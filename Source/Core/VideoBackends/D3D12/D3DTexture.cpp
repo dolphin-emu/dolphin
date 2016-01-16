@@ -50,9 +50,7 @@ void CleanupPersistentD3DTextureResources()
 
 void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned int width, unsigned int height, unsigned int src_pitch, unsigned int level, D3D12_RESOURCE_STATES current_resource_state)
 {
-	unsigned int upload_size =
-		D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT +
-		((src_pitch + (D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) * height;
+	const unsigned int upload_size = AlignValue(src_pitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * height;
 
 	if (s_texture_upload_heap_current_offset + upload_size > s_texture_upload_heap_size)
 	{
@@ -104,8 +102,9 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 	ResourceBarrier(D3D::current_command_list, texture12, D3D12_RESOURCE_STATE_COPY_DEST, current_resource_state, level);
 
 	s_texture_upload_heap_current_offset += upload_size;
-
-	s_texture_upload_heap_current_offset = (s_texture_upload_heap_current_offset + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT - 1); // Align offset in upload heap to 512 bytes, as required.
+	
+	// Offset in upload heap must be aligned to D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT (512 bytes).
+	s_texture_upload_heap_current_offset = AlignValue(s_texture_upload_heap_current_offset, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 }
 
 }  // namespace

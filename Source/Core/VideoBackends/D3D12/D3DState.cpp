@@ -40,7 +40,7 @@ public:
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
 		desc.pRootSignature = D3D::default_root_signature;
 		desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // This state changes in PSTextureEncoder::Encode.
-		desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // This state changes in PSTextureEncoder::Encode.
+		desc.DSVFormat = DXGI_FORMAT_D32_FLOAT; // This state changes in PSTextureEncoder::Encode.
 		desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
 		desc.NumRenderTargets = 1;
 		desc.SampleMask = UINT_MAX;
@@ -115,7 +115,7 @@ StateCache::StateCache()
 	m_current_pso_desc = {};
 
 	m_current_pso_desc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // This state changes in PSTextureEncoder::Encode.
-	m_current_pso_desc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT; // This state changes in PSTextureEncoder::Encode.
+	m_current_pso_desc.DSVFormat = DXGI_FORMAT_D32_FLOAT; // This state changes in PSTextureEncoder::Encode.
 	m_current_pso_desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
 	m_current_pso_desc.NumRenderTargets = 1;
 	m_current_pso_desc.SampleMask = UINT_MAX;

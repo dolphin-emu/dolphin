@@ -78,8 +78,7 @@ void PSTextureEncoder::Init()
 			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
 			D3D12_HEAP_FLAG_NONE,
 			&CD3DX12_RESOURCE_DESC::Buffer(
-				D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT +
-				((out_tex_desc.Width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) *
+				D3D::AlignValue(static_cast<unsigned int>(out_tex_desc.Width) * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
 				out_tex_desc.Height
 				),
 			D3D12_RESOURCE_STATE_COPY_DEST,
@@ -204,13 +203,12 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 	dst_location.pResource = m_out_readback_buffer;
 	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+	dst_location.PlacedFootprint.Offset = 0;
 	dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	dst_location.PlacedFootprint.Footprint.Width = EFB_WIDTH * 4;
 	dst_location.PlacedFootprint.Footprint.Height = EFB_HEIGHT / 4;
 	dst_location.PlacedFootprint.Footprint.Depth = 1;
-	dst_location.PlacedFootprint.Footprint.RowPitch = dst_location.PlacedFootprint.Footprint.Width * 4 /* width * 32bpp */;
-	dst_location.PlacedFootprint.Footprint.RowPitch = (dst_location.PlacedFootprint.Footprint.RowPitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+	dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 	D3D12_TEXTURE_COPY_LOCATION src_location = {};
 	src_location.pResource = m_out;
@@ -224,7 +222,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	// Transfer staging buffer to GameCube/Wii RAM
 
-	u8* src = static_cast<u8*>(m_out_readback_buffer_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+	u8* src = static_cast<u8*>(m_out_readback_buffer_data);
 	u32 read_stride = std::min(bytes_per_row, dst_location.PlacedFootprint.Footprint.RowPitch);
 	for (unsigned int y = 0; y < num_blocks_y; ++y)
 	{

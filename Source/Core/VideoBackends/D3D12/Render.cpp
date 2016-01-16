@@ -196,9 +196,8 @@ void CreateScreenshotTexture()
 	// We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the screenshot buffer size.
 	// This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
 
-	UINT screenshot_buffer_size =
-		D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT +
-		(((D3D::GetBackBufferWidth() * 4) + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) *
+	const unsigned int screenshot_buffer_size = 
+		D3D::AlignValue(D3D::GetBackBufferWidth() * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
 		D3D::GetBackBufferHeight();
 
 	CheckHR(
@@ -448,13 +447,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 		dst_location.pResource = readback_buffer;
 		dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+		dst_location.PlacedFootprint.Offset = 0;
 		dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R32_FLOAT;
 		dst_location.PlacedFootprint.Footprint.Width = 1;
 		dst_location.PlacedFootprint.Footprint.Height = 1;
 		dst_location.PlacedFootprint.Footprint.Depth = 1;
-		dst_location.PlacedFootprint.Footprint.RowPitch = 1 * 4 /* width * 32bpp */;
-		dst_location.PlacedFootprint.Footprint.RowPitch = (dst_location.PlacedFootprint.Footprint.RowPitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+		dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 		D3D12_TEXTURE_COPY_LOCATION src_location = {};
 		src_location.pResource = FramebufferManager::GetEFBDepthReadTexture()->GetTex12();
@@ -477,9 +475,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		void* readback_buffer_data = nullptr;
 		CheckHR(readback_buffer->Map(0, nullptr, &readback_buffer_data));
-
-		// Account for padding.
-		readback_buffer_data = static_cast<u8*>(readback_buffer_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 
 		// depth buffer is inverted in the d3d backend
 		float val = 1.0f - reinterpret_cast<float*>(readback_buffer_data)[0];
@@ -509,13 +504,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 		dst_location.pResource = readback_buffer;
 		dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+		dst_location.PlacedFootprint.Offset = 0;
 		dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		dst_location.PlacedFootprint.Footprint.Width = 1;
 		dst_location.PlacedFootprint.Footprint.Height = 1;
 		dst_location.PlacedFootprint.Footprint.Depth = 1;
-		dst_location.PlacedFootprint.Footprint.RowPitch = 1 * 4 /* width * 32bpp */;
-		dst_location.PlacedFootprint.Footprint.RowPitch = (dst_location.PlacedFootprint.Footprint.RowPitch + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+		dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 		D3D12_TEXTURE_COPY_LOCATION src_location = {};
 		src_location.pResource = FramebufferManager::GetResolvedEFBColorTexture()->GetTex12();
@@ -528,9 +522,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		void* readback_buffer_data = nullptr;
 		CheckHR(readback_buffer->Map(0, nullptr, &readback_buffer_data));
-
-		// Account for padding.
-		readback_buffer_data = static_cast<u8*>(readback_buffer_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 
 		u32 ret = reinterpret_cast<u32*>(readback_buffer_data)[0];
 
@@ -560,11 +551,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
+	D3D12_VIEWPORT vp = { 0.0f, 0.0f, static_cast<float>(GetTargetWidth()), static_cast<float>(GetTargetHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+
 	if (type == POKE_COLOR)
 	{
 		// In the D3D12 backend, the rt/db/viewport is passed into DrawEFBPokeQuads, and set there.
-
-		D3D12_VIEWPORT vp = { 0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
 		D3D::DrawEFBPokeQuads(
 			type,
 			points,
@@ -579,16 +570,12 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 	}
 	else // if (type == POKE_Z)
 	{
-		D3D12_VIEWPORT vp = { 0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
-			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777216.0f), 0.0f, 16777215.0f) / 16777216.0f };
-
 		D3D::DrawEFBPokeQuads(
 			type,
 			points,
 			num_points,
-			&g_reset_blend_desc,
-			&g_reset_depth_desc,
+			&s_clear_blend_descs[3],
+			&s_clear_depth_descs[1],
 			&vp,
 			&FramebufferManager::GetEFBColorTexture()->GetRTV12(),
 			&FramebufferManager::GetEFBDepthTexture()->GetDSV12(),
@@ -793,12 +780,12 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 	D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 	dst_location.pResource = s_screenshot_texture;
 	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+	dst_location.PlacedFootprint.Offset = 0;
 	dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	dst_location.PlacedFootprint.Footprint.Width = D3D::GetBackBufferWidth();
 	dst_location.PlacedFootprint.Footprint.Height = D3D::GetBackBufferHeight();
 	dst_location.PlacedFootprint.Footprint.Depth = 1;
-	dst_location.PlacedFootprint.Footprint.RowPitch = ((dst_location.PlacedFootprint.Footprint.Width * 4) + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+	dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 	D3D12_TEXTURE_COPY_LOCATION src_location = {};
 	src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -810,7 +797,7 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-	saved_png = TextureToPng(static_cast<u8*>(s_screenshot_texture_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
+	saved_png = TextureToPng(static_cast<u8*>(s_screenshot_texture_data), dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
 
 	if (saved_png)
 	{
@@ -971,12 +958,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 		D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 		dst_location.pResource = s_screenshot_texture;
 		dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+		dst_location.PlacedFootprint.Offset = 0;
 		dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		dst_location.PlacedFootprint.Footprint.Width = GetTargetRectangle().GetWidth();
 		dst_location.PlacedFootprint.Footprint.Height = GetTargetRectangle().GetHeight();
 		dst_location.PlacedFootprint.Footprint.Depth = 1;
-		dst_location.PlacedFootprint.Footprint.RowPitch = ((dst_location.PlacedFootprint.Footprint.Width * 4) + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1);
+		dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 		D3D12_TEXTURE_COPY_LOCATION src_location = {};
 		src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
@@ -1013,7 +1000,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 				w = s_record_width;
 				h = s_record_height;
 			}
-			formatBufferDump(static_cast<u8*>(s_screenshot_texture_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT, &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
+			formatBufferDump(static_cast<u8*>(s_screenshot_texture_data), &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
 			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
 		}
