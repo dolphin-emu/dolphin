@@ -920,19 +920,24 @@ void OGLPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfi
 												 const TargetRectangle& src_rect, const TargetSize& src_size,
 												 int src_layer)
 {
+	// Skip writing to buffer if there were no changes
+	u32 buffer_size;
+	if (!UpdateUniformBuffer(API_OPENGL, config, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer, &buffer_size))
+		return;
+
 	// Annoyingly, due to latched state, we have to bind our private uniform buffer here, then restore the
 	// ProgramShaderCache uniform buffer afterwards, otherwise we'll end up flushing the wrong buffer.
 	glBindBuffer(GL_UNIFORM_BUFFER, m_uniform_buffer->m_buffer);
 
-	std::pair<u8*, u32> ubo = m_uniform_buffer->Map(UNIFORM_BUFFER_SIZE, ProgramShaderCache::GetUniformBufferAlignment());
-	UpdateUniformBuffer(API_OPENGL, config, ubo.first, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer);
-	m_uniform_buffer->Unmap(UNIFORM_BUFFER_SIZE);
+	auto mapped_buffer = m_uniform_buffer->Map(buffer_size, ProgramShaderCache::GetUniformBufferAlignment());
+	memcpy(mapped_buffer.first, m_current_constants.data(), buffer_size);
+	m_uniform_buffer->Unmap(buffer_size);
 
-	glBindBufferRange(GL_UNIFORM_BUFFER, UNIFORM_BUFFER_BIND_POINT, m_uniform_buffer->m_buffer, ubo.second, UNIFORM_BUFFER_SIZE);
+	glBindBufferRange(GL_UNIFORM_BUFFER, UNIFORM_BUFFER_BIND_POINT, m_uniform_buffer->m_buffer, mapped_buffer.second, buffer_size);
 
 	ProgramShaderCache::BindUniformBuffer();
 
-	ADDSTAT(stats.thisFrame.bytesUniformStreamed, UNIFORM_BUFFER_SIZE);
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, buffer_size);
 }
 
 }  // namespace OGL
