@@ -87,7 +87,7 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame *pare
 
 	m_aui_manager.SetManagedWindow(this);
 	m_aui_manager.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
-	m_aui_manager.AddPane(m_aui_toolbar, wxAuiPaneInfo().ToolbarPane().Top().Floatable(false));
+	m_aui_manager.AddPane(m_aui_toolbar, wxAuiPaneInfo().MinSize(150, -1).ToolbarPane().Top().Floatable(false));
 	m_aui_manager.AddPane(callstack, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Callstack")));
 	m_aui_manager.AddPane(symbols, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Symbols")));
 	m_aui_manager.AddPane(calls, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Function calls")));
