@@ -128,7 +128,8 @@ const char color_matrix_program_code_msaa[] = {
     "texcol /= SAMPLES;\n"
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,"
+    "cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -174,7 +175,8 @@ const char depth_matrix_program_msaa[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	float4 texcol = 0;\n"
     "	for(int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+    "		texcol += Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
     "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
@@ -192,7 +194,8 @@ const char depth_matrix_program_msaa[] = {
 
     // Apply color matrix
     "	ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot("
+    "texcol,cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -208,7 +211,8 @@ const char depth_resolve_program[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	ocol0 = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
     "	for(int i = 1; i < SAMPLES; ++i)\n"
-    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
+    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i).x);\n"
     "}\n"};
 
 const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
@@ -227,29 +231,29 @@ const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
                                     "	ocol0 = (float4)dst8 / 255.f;\n"
                                     "}"};
 
-const char reint_rgba6_to_rgb8_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "void main(\n"
-    "	out float4 ocol0 : SV_Target,\n"
-    "	in float4 pos : SV_Position,\n"
-    "	in float3 uv0 : TEXCOORD0)\n"
-    "{\n"
-    "	int width, height, slices, samples;\n"
-    "	Tex0.GetDimensions(width, height, slices, samples);\n"
-    "	float4 texcol = 0;\n"
-    "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "	texcol /= SAMPLES;\n"
-    "	int4 src6 = round(texcol * 63.f);\n"
-    "	int4 dst8;\n"
-    "	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
-    "	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
-    "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
-    "	dst8.a = 255;\n"
-    "	ocol0 = (float4)dst8 / 255.f;\n"
-    "}"};
+const char reint_rgba6_to_rgb8_msaa[] = {"#define SAMPLES %d\n"
+                                         "sampler samp0 : register(s0);\n"
+                                         "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+                                         "void main(\n"
+                                         "	out float4 ocol0 : SV_Target,\n"
+                                         "	in float4 pos : SV_Position,\n"
+                                         "	in float3 uv0 : TEXCOORD0)\n"
+                                         "{\n"
+                                         "	int width, height, slices, samples;\n"
+                                         "	Tex0.GetDimensions(width, height, slices, samples);\n"
+                                         "	float4 texcol = 0;\n"
+                                         "	for (int i = 0; i < SAMPLES; ++i)\n"
+                                         "		texcol += Tex0.Load(int3(uv0.x*(width), "
+                                         "uv0.y*(height), uv0.z), i);\n"
+                                         "	texcol /= SAMPLES;\n"
+                                         "	int4 src6 = round(texcol * 63.f);\n"
+                                         "	int4 dst8;\n"
+                                         "	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
+                                         "	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
+                                         "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
+                                         "	dst8.a = 255;\n"
+                                         "	ocol0 = (float4)dst8 / 255.f;\n"
+                                         "}"};
 
 const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
                                     "Texture2DArray Tex0 : register(t0);\n"
@@ -267,29 +271,29 @@ const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
                                     "	ocol0 = (float4)dst6 / 63.f;\n"
                                     "}\n"};
 
-const char reint_rgb8_to_rgba6_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "void main(\n"
-    "	out float4 ocol0 : SV_Target,\n"
-    "	in float4 pos : SV_Position,\n"
-    "	in float3 uv0 : TEXCOORD0)\n"
-    "{\n"
-    "	int width, height, slices, samples;\n"
-    "	Tex0.GetDimensions(width, height, slices, samples);\n"
-    "	float4 texcol = 0;\n"
-    "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "	texcol /= SAMPLES;\n"
-    "	int4 src8 = round(texcol * 255.f);\n"
-    "	int4 dst6;\n"
-    "	dst6.r = src8.r >> 2;\n"
-    "	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
-    "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
-    "	dst6.a = src8.b & 0x3F;\n"
-    "	ocol0 = (float4)dst6 / 63.f;\n"
-    "}\n"};
+const char reint_rgb8_to_rgba6_msaa[] = {"#define SAMPLES %d\n"
+                                         "sampler samp0 : register(s0);\n"
+                                         "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+                                         "void main(\n"
+                                         "	out float4 ocol0 : SV_Target,\n"
+                                         "	in float4 pos : SV_Position,\n"
+                                         "	in float3 uv0 : TEXCOORD0)\n"
+                                         "{\n"
+                                         "	int width, height, slices, samples;\n"
+                                         "	Tex0.GetDimensions(width, height, slices, samples);\n"
+                                         "	float4 texcol = 0;\n"
+                                         "	for (int i = 0; i < SAMPLES; ++i)\n"
+                                         "		texcol += Tex0.Load(int3(uv0.x*(width), "
+                                         "uv0.y*(height), uv0.z), i);\n"
+                                         "	texcol /= SAMPLES;\n"
+                                         "	int4 src8 = round(texcol * 255.f);\n"
+                                         "	int4 dst6;\n"
+                                         "	dst6.r = src8.r >> 2;\n"
+                                         "	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
+                                         "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
+                                         "	dst6.a = src8.b & 0x3F;\n"
+                                         "	ocol0 = (float4)dst6 / 63.f;\n"
+                                         "}\n"};
 
 ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8(bool multisampled)
 {
@@ -431,7 +435,8 @@ ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
 
 ID3D11Buffer*& PixelShaderCache::GetConstantBuffer()
 {
-  // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
+  // TODO: divide the global variables of the generated shaders into about 5
+  // constant buffers to
   // speed this up
   if (PixelShaderManager::dirty)
   {
@@ -556,10 +561,10 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
-  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode, API_D3D);
+  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+    ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
     pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
   }
 
@@ -588,7 +593,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))
