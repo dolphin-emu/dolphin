@@ -30,39 +30,39 @@ UidChecker<PixelShaderUid, ShaderCode> PixelShaderCache::pixel_uid_checker;
 
 LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
 
-ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
-ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
-ID3D11PixelShader* s_DepthMatrixProgram[2] = {nullptr};
+ID3D11PixelShader* s_ColorMatrixProgram[2] = { nullptr };
+ID3D11PixelShader* s_ColorCopyProgram[2] = { nullptr };
+ID3D11PixelShader* s_DepthMatrixProgram[2] = { nullptr };
 ID3D11PixelShader* s_ClearProgram = nullptr;
 ID3D11PixelShader* s_AnaglyphProgram = nullptr;
 ID3D11PixelShader* s_DepthResolveProgram = nullptr;
-ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
-ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
+ID3D11PixelShader* s_rgba6_to_rgb8[2] = { nullptr };
+ID3D11PixelShader* s_rgb8_to_rgba6[2] = { nullptr };
 ID3D11Buffer* pscbuf = nullptr;
 
-const char clear_program_code[] = {"void main(\n"
+const char clear_program_code[] = { "void main(\n"
                                    "out float4 ocol0 : SV_Target,\n"
                                    "in float4 pos : SV_Position,\n"
                                    "in float4 incol0 : COLOR0){\n"
                                    "ocol0 = incol0;\n"
-                                   "}\n"};
+                                   "}\n" };
 
 // TODO: Find some way to avoid having separate shaders for non-MSAA and MSAA...
-const char color_copy_program_code[] = {"sampler samp0 : register(s0);\n"
+const char color_copy_program_code[] = { "sampler samp0 : register(s0);\n"
                                         "Texture2DArray Tex0 : register(t0);\n"
                                         "void main(\n"
                                         "out float4 ocol0 : SV_Target,\n"
                                         "in float4 pos : SV_Position,\n"
                                         "in float3 uv0 : TEXCOORD0){\n"
                                         "ocol0 = Tex0.Sample(samp0,uv0);\n"
-                                        "}\n"};
+                                        "}\n" };
 
 // Anaglyph Red-Cyan shader based on Dubois algorithm
 // Constants taken from the paper:
 // "Conversion of a Stereo Pair to Anaglyph with
 // the Least-Squares Projection Method"
 // Eric Dubois, March 2009
-const char anaglyph_program_code[] = {"sampler samp0 : register(s0);\n"
+const char anaglyph_program_code[] = { "sampler samp0 : register(s0);\n"
                                       "Texture2DArray Tex0 : register(t0);\n"
                                       "void main(\n"
                                       "out float4 ocol0 : SV_Target,\n"
@@ -77,7 +77,7 @@ const char anaglyph_program_code[] = {"sampler samp0 : register(s0);\n"
                                       "                       0.377, 0.761, 0.009,\n"
                                       "                      -0.026,-0.093, 1.234);\n"
                                       "ocol0 = float4(mul(l, c0.rgb) + mul(r, c1.rgb), c0.a);\n"
-                                      "}\n"};
+                                      "}\n" };
 
 // TODO: Improve sampling algorithm!
 const char color_copy_program_code_msaa[] = {
@@ -94,9 +94,9 @@ const char color_copy_program_code_msaa[] = {
     "for(int i = 0; i < SAMPLES; ++i)\n"
     "	ocol0 += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
     "ocol0 /= SAMPLES;\n"
-    "}\n"};
+    "}\n" };
 
-const char color_matrix_program_code[] = {"sampler samp0 : register(s0);\n"
+const char color_matrix_program_code[] = { "sampler samp0 : register(s0);\n"
                                           "Texture2DArray Tex0 : register(t0);\n"
                                           "uniform float4 cColMatrix[7] : register(c0);\n"
                                           "void main(\n"
@@ -109,7 +109,7 @@ const char color_matrix_program_code[] = {"sampler samp0 : register(s0);\n"
                                           "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix["
                                           "1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3]))"
                                           " + cColMatrix[4];\n"
-                                          "}\n"};
+                                          "}\n" };
 
 const char color_matrix_program_code_msaa[] = {
     "#define SAMPLES %d\n"
@@ -130,9 +130,9 @@ const char color_matrix_program_code_msaa[] = {
     "ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
-    "}\n"};
+    "}\n" };
 
-const char depth_matrix_program[] = {"sampler samp0 : register(s0);\n"
+const char depth_matrix_program[] = { "sampler samp0 : register(s0);\n"
                                      "Texture2DArray Tex0 : register(t0);\n"
                                      "uniform float4 cColMatrix[7] : register(c0);\n"
                                      "void main(\n"
@@ -159,7 +159,7 @@ const char depth_matrix_program[] = {"sampler samp0 : register(s0);\n"
                                      "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),"
                                      "dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + "
                                      "cColMatrix[4];\n"
-                                     "}\n"};
+                                     "}\n" };
 
 const char depth_matrix_program_msaa[] = {
     "#define SAMPLES %d\n"
@@ -194,7 +194,7 @@ const char depth_matrix_program_msaa[] = {
     "	ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
-    "}\n"};
+    "}\n" };
 
 const char depth_resolve_program[] = {
     "#define SAMPLES %d\n"
@@ -209,9 +209,9 @@ const char depth_resolve_program[] = {
     "	ocol0 = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
     "	for(int i = 1; i < SAMPLES; ++i)\n"
     "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
-    "}\n"};
+    "}\n" };
 
-const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
+const char reint_rgba6_to_rgb8[] = { "sampler samp0 : register(s0);\n"
                                     "Texture2DArray Tex0 : register(t0);\n"
                                     "void main(\n"
                                     "	out float4 ocol0 : SV_Target,\n"
@@ -225,7 +225,7 @@ const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
                                     "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
                                     "	dst8.a = 255;\n"
                                     "	ocol0 = (float4)dst8 / 255.f;\n"
-                                    "}"};
+                                    "}" };
 
 const char reint_rgba6_to_rgb8_msaa[] = {
     "#define SAMPLES %d\n"
@@ -249,9 +249,9 @@ const char reint_rgba6_to_rgb8_msaa[] = {
     "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
     "	dst8.a = 255;\n"
     "	ocol0 = (float4)dst8 / 255.f;\n"
-    "}"};
+    "}" };
 
-const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
+const char reint_rgb8_to_rgba6[] = { "sampler samp0 : register(s0);\n"
                                     "Texture2DArray Tex0 : register(t0);\n"
                                     "void main(\n"
                                     "	out float4 ocol0 : SV_Target,\n"
@@ -265,7 +265,7 @@ const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
                                     "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
                                     "	dst6.a = src8.b & 0x3F;\n"
                                     "	ocol0 = (float4)dst6 / 63.f;\n"
-                                    "}\n"};
+                                    "}\n" };
 
 const char reint_rgb8_to_rgba6_msaa[] = {
     "#define SAMPLES %d\n"
@@ -289,7 +289,7 @@ const char reint_rgb8_to_rgba6_msaa[] = {
     "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
     "	dst6.a = src8.b & 0x3F;\n"
     "	ocol0 = (float4)dst6 / 63.f;\n"
-    "}\n"};
+    "}\n" };
 
 ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8(bool multisampled)
 {
@@ -375,7 +375,7 @@ ID3D11PixelShader* PixelShaderCache::GetColorMatrixProgram(bool multisampled)
   {
     // create MSAA shader for current AA mode
     std::string buf =
-        StringFromFormat(color_matrix_program_code_msaa, g_ActiveConfig.iMultisamples);
+      StringFromFormat(color_matrix_program_code_msaa, g_ActiveConfig.iMultisamples);
     s_ColorMatrixProgram[1] = D3D::CompileAndCreatePixelShader(buf);
     CHECK(s_ColorMatrixProgram[1] != nullptr, "Create color matrix MSAA pixel shader");
     D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ColorMatrixProgram[1],
@@ -500,8 +500,8 @@ void PixelShaderCache::Init()
   SETSTAT(stats.numPixelShadersAlive, 0);
 
   std::string cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strUniqueID.c_str());
+    StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                     SConfig::GetInstance().m_strUniqueID.c_str());
   PixelShaderCacheInserter inserter;
   g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
@@ -556,10 +556,10 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
-  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode, API_D3D);
+  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+    ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
     pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
   }
 
@@ -588,7 +588,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))
