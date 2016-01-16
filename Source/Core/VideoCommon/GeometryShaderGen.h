@@ -20,6 +20,8 @@ struct geometry_shader_uid_data
 	u32 pixel_lighting : 1;
 	u32 primitive_type : 2;
 	u32 wireframe : 1;
+	u32 msaa : 1;
+	u32 ssaa : 1;
 };
 
 #pragma pack()
