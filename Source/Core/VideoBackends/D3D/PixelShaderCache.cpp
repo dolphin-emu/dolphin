@@ -27,7 +27,6 @@ namespace DX11
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
 PixelShaderUid PixelShaderCache::last_uid;
-UidChecker<PixelShaderUid, ShaderCode> PixelShaderCache::pixel_uid_checker;
 
 LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
 
@@ -520,7 +519,6 @@ void PixelShaderCache::Clear()
 	for (auto& iter : PixelShaders)
 		iter.second.Destroy();
 	PixelShaders.clear();
-	pixel_uid_checker.Invalidate();
 
 	last_entry = nullptr;
 }
@@ -560,11 +558,6 @@ void PixelShaderCache::Shutdown()
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
 	PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
-		pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
-	}
 
 	// Check if the shader is already set
 	if (last_entry)
