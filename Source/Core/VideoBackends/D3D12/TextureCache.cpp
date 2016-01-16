@@ -102,9 +102,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 
 	D3D12_RESOURCE_DESC texture_desc = m_texture->GetTex12()->GetDesc();
 
-	UINT required_readback_buffer_size =
-		D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT +
-		((texture_desc.Width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1)) * texture_desc.Height;
+	const unsigned int required_readback_buffer_size = D3D::AlignValue(static_cast<unsigned int>(texture_desc.Width) * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 	if (s_texture_cache_entry_readback_buffer_size < required_readback_buffer_size)
 	{
@@ -139,12 +137,12 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	D3D12_TEXTURE_COPY_LOCATION dst_location = {};
 	dst_location.pResource = s_texture_cache_entry_readback_buffer;
 	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	dst_location.PlacedFootprint.Offset = D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+	dst_location.PlacedFootprint.Offset = 0;
 	dst_location.PlacedFootprint.Footprint.Depth = 1;
 	dst_location.PlacedFootprint.Footprint.Format = texture_desc.Format;
 	dst_location.PlacedFootprint.Footprint.Width = static_cast<UINT>(texture_desc.Width);
 	dst_location.PlacedFootprint.Footprint.Height = texture_desc.Height;
-	dst_location.PlacedFootprint.Footprint.RowPitch = ((texture_desc.Width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1) & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1));
+	dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
 	D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), 0);
 
@@ -153,7 +151,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	saved_png = TextureToPng(
-		static_cast<u8*>(s_texture_cache_entry_readback_buffer_data) + D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT,
+		static_cast<u8*>(s_texture_cache_entry_readback_buffer_data),
 		dst_location.PlacedFootprint.Footprint.RowPitch,
 		filename,
 		dst_location.PlacedFootprint.Footprint.Width,

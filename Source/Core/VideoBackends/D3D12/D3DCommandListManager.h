@@ -14,7 +14,7 @@ class D3DCommandListManager
 {
 public:
 
-	D3DCommandListManager(D3D12_COMMAND_LIST_TYPE command_list_type, ID3D12Device* device, ID3D12CommandQueue* command_queue, ID3D12DescriptorHeap** gpu_descriptor_heaps, unsigned int num_gpu_descriptor_heaps, ID3D12RootSignature* default_root_signature);
+	D3DCommandListManager(D3D12_COMMAND_LIST_TYPE command_list_type, ID3D12Device* device, ID3D12CommandQueue* command_queue);
 
 	void SetInitialCommandListState();
 
@@ -59,6 +59,8 @@ private:
 	void ResetCommandListWithIdleCommandAllocator();
 	void WaitOnCPUForFence(ID3D12Fence* fence, UINT64 fence_value);
 
+	HANDLE m_wait_on_cpu_fence_event;
+
 	ID3D12Device* m_device;
 	ID3D12CommandQueue* m_command_queue;
 	UINT64 m_queue_fence_value;
@@ -73,8 +75,6 @@ private:
 	ID3D12GraphicsCommandList* m_backing_command_list;
 	ID3D12QueuedCommandList* m_queued_command_list;
 
-	ID3D12DescriptorHeap* m_gpu_descriptor_heaps[2]; // We'll never need more than two.
-	UINT m_gpu_descriptor_heaps_count;
 	ID3D12RootSignature* m_default_root_signature;
 
 	UINT m_current_deferred_destruction_list;
