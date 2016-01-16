@@ -248,12 +248,22 @@ protected:
 		PROJECTION_STATE_FINAL
 	};
 
+	// Each option is aligned to a float4
+	union Constant
+	{
+		int bool_constant;
+		float float_constant[4];
+		s32 int_constant[4];
+	};
+
 	// Update constant buffer with the current values from the config.
-	void UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
-							 void* buffer_ptr, const InputTextureSizeArray& input_sizes,
+	// Returns true if the buffer contents has changed.
+	bool UpdateUniformBuffer(API_TYPE api,
+							 const PostProcessingShaderConfiguration* config,
+							 const InputTextureSizeArray& input_sizes,
 							 const TargetRectangle& dst_rect, const TargetSize& dst_size,
 							 const TargetRectangle& src_rect, const TargetSize& src_size,
-							 int src_layer);
+							 int src_layer, u32* buffer_size);
 
 	// Load m_configs with the selected post-processing shaders.
 	void ReloadShaderConfigs();
@@ -285,6 +295,10 @@ protected:
 	// Global post-processing enable state
 	bool m_active = false;
 	bool m_requires_depth_buffer = false;
+
+	// Uniform buffer data, double-buffered so we don't update if unnecessary
+	std::vector<Constant> m_current_constants;
+	std::vector<Constant> m_new_constants;
 
 	// common shader code between backends
 	static const std::string s_post_fragment_header_ogl;
