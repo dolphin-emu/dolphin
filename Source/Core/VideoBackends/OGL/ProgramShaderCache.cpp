@@ -614,6 +614,15 @@ void ProgramShaderCache::CreateHeader()
 	);
 }
 
+void ProgramShaderCache::BindUniformBuffer()
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, s_buffer->m_buffer);
+}
+
+u32 ProgramShaderCache::GetUniformBufferAlignment()
+{
+	return s_ubo_align;
+}
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value, u32 value_size)
 {
