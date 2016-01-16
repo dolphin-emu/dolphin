@@ -44,7 +44,7 @@ public:
    */
   void Write(const char*, ...)
 #ifdef __GNUC__
-      __attribute__((format(printf, 2, 3)))
+    __attribute__((format(printf, 2, 3)))
 #endif
   {
   }
@@ -117,7 +117,7 @@ public:
   const std::string& GetBuffer() const { return m_buffer; }
   void Write(const char* fmt, ...)
 #ifdef __GNUC__
-      __attribute__((format(printf, 2, 3)))
+    __attribute__((format(printf, 2, 3)))
 #endif
   {
     va_list arglist;
@@ -186,10 +186,10 @@ public:
         static int num_failures = 0;
 
         std::string temp =
-            StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-                             dump_prefix, ++num_failures);
+          StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+                           dump_prefix, ++num_failures);
 
-        // TODO: Should also dump uids
+      // TODO: Should also dump uids
         std::ofstream file;
         OpenFStream(file, temp, std::ios_base::out);
         file << "Old shader code:\n" << old_code;
@@ -201,7 +201,7 @@ public:
           if ((i % 4) == 0)
           {
             auto last_value =
-                (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
+              (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
             file << std::setfill(' ') << std::dec;
             file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
           }
@@ -244,41 +244,38 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
   object.Write(";\n");
 }
 
-template <class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier)
+template<class T>
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens, bool per_pixel_lighting, const char* qualifier)
 {
   DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD",
-                     xfmem.numTexGen.numTexGens);
+  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
-    DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
-                       xfmem.numTexGen.numTexGens + 1);
-    DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
-                       xfmem.numTexGen.numTexGens + 2);
+    DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", texgens + 1);
+    DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", texgens + 2);
   }
 }
 
-template <class T>
-inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+template<class T>
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 texgens, bool per_pixel_lighting)
 {
   object.Write("\t%s.pos = %s.pos;\n", a, b);
   object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
   object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
 
   object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
@@ -293,23 +290,23 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-inline const char* GetInterpolationQualifier(bool in_glsl_interface_block = false, bool in = false)
+inline const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interface_block = false, bool in = false)
 {
-  if (g_ActiveConfig.iMultisamples <= 1)
+  if (!msaa)
     return "";
 
   // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
   if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return in ? "centroid in" : "centroid out";
     else
       return in ? "sample in" : "sample out";
   }
   else
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return "centroid";
     else
       return "sample";
@@ -345,11 +342,11 @@ inline const char* GetInterpolationQualifier(bool in_glsl_interface_block = fals
 #define I_TEXOFFSET "ctexoffset"
 
 static const char s_shader_uniforms[] = "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
-                                        "\tfloat4 " I_PROJECTION "[4];\n"
-                                        "\tint4 " I_MATERIALS "[4];\n"
-                                        "\tLight " I_LIGHTS "[8];\n"
-                                        "\tfloat4 " I_TEXMATRICES "[24];\n"
-                                        "\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_NORMALMATRICES "[32];\n"
-                                        "\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
-                                        "\tfloat4 " I_PIXELCENTERCORRECTION ";\n";
+"\tfloat4 " I_PROJECTION "[4];\n"
+"\tint4 " I_MATERIALS "[4];\n"
+"\tLight " I_LIGHTS "[8];\n"
+"\tfloat4 " I_TEXMATRICES "[24];\n"
+"\tfloat4 " I_TRANSFORMMATRICES "[64];\n"
+"\tfloat4 " I_NORMALMATRICES "[32];\n"
+"\tfloat4 " I_POSTTRANSFORMMATRICES "[64];\n"
+"\tfloat4 " I_PIXELCENTERCORRECTION ";\n";

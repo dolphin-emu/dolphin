@@ -39,13 +39,15 @@ static T GenerateVertexShader(API_TYPE api_type)
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 
-  out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers<T>(out, api_type, "");
-  out.Write("};\n");
-
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
   uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
+  uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+  uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
+
+  out.Write("struct VS_OUTPUT {\n");
+  GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, "");
+  out.Write("};\n");
 
   if (api_type == API_OPENGL)
   {
@@ -66,15 +68,15 @@ static T GenerateVertexShader(API_TYPE api_type)
 
     for (int i = 0; i < 8; ++i)
     {
-      u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0<<i));
-      if ((uid_data->components & (VB_HAS_UV0<<i)) || hastexmtx)
+      u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
+      if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
         out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i, SHADER_TEXTURE0_ATTRIB + i);
     }
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
       out.Write("out VertexData {\n");
-      GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(true, false));
+      GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
       out.Write("} vs;\n");
     }
     else
@@ -84,17 +86,17 @@ static T GenerateVertexShader(API_TYPE api_type)
       {
         if (i < uid_data->numTexGens)
         {
-          out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(), i);
+          out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa), i);
         }
       }
-      out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier());
+      out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       if (uid_data->pixel_lighting)
       {
-        out.Write("%s out float3 Normal;\n", GetInterpolationQualifier());
-        out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier());
+        out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+        out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       }
-      out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier());
-      out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier());
+      out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+      out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
     }
 
     out.Write("void main()\n{\n");
@@ -116,8 +118,8 @@ static T GenerateVertexShader(API_TYPE api_type)
       out.Write("  float4 color1 : COLOR1,\n");
     for (int i = 0; i < 8; ++i)
     {
-      u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0<<i));
-      if ((uid_data->components & (VB_HAS_UV0<<i)) || hastexmtx)
+      u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
+      if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
         out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
     }
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -235,50 +237,50 @@ static T GenerateVertexShader(API_TYPE api_type)
     // first transformation
     switch (texinfo.texgentype)
     {
-      case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
+    case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
 
-        if (uid_data->components & (VB_HAS_NRM1|VB_HAS_NRM2))
-        {
-          // transform the light dir into tangent space
-          texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
-          texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-          out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
-          out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
-        }
-        else
-        {
-          // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
-          //_assert_(0); // should have normals
-          texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-          out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
-        }
+      if (uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2))
+      {
+        // transform the light dir into tangent space
+        texinfo.embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
+        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
+        out.Write("o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i, texinfo.embosssourceshift);
+      }
+      else
+      {
+        // The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
+        //_assert_(0); // should have normals
+        texinfo.embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
+        out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
+      }
 
-        break;
-      case XF_TEXGEN_COLOR_STRGBC0:
-        out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
-        break;
-      case XF_TEXGEN_COLOR_STRGBC1:
-        out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
-        break;
-      case XF_TEXGEN_REGULAR:
-      default:
-        uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
-        if (uid_data->components & (VB_HAS_TEXMTXIDX0<<i))
-        {
-          out.Write("int tmp = int(tex%d.z);\n", i);
-          if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
-            out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
-          else
-            out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
-        }
+      break;
+    case XF_TEXGEN_COLOR_STRGBC0:
+      out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
+      break;
+    case XF_TEXGEN_COLOR_STRGBC1:
+      out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
+      break;
+    case XF_TEXGEN_REGULAR:
+    default:
+      uid_data->texMtxInfo_n_projection |= xfmem.texMtxInfo[i].projection << i;
+      if (uid_data->components & (VB_HAS_TEXMTXIDX0 << i))
+      {
+        out.Write("int tmp = int(tex%d.z);\n", i);
+        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+          out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
         else
-        {
-          if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
-            out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
-          else
-            out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
-        }
-        break;
+          out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
+      }
+      else
+      {
+        if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+          out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3 * i, 3 * i + 1, 3 * i + 2);
+        else
+          out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3 * i, 3 * i + 1);
+      }
+      break;
     }
 
     uid_data->dualTexTrans_enabled = xfmem.dualTexTrans.enabled;
@@ -357,7 +359,7 @@ static T GenerateVertexShader(API_TYPE api_type)
   {
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      AssignVSOutputMembers(out, "vs", "o");
+      AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, uid_data->pixel_lighting);
     }
     else
     {
