@@ -158,7 +158,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 {
 	SetCurrentPrimitiveTopology(gs_primitive_type);
 
-	GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type, API_D3D);
+	GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
 	PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode, API_D3D);
 	VertexShaderUid vs_uid = GetVertexShaderUid(API_D3D);
 
@@ -215,7 +215,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 
 	if (g_ActiveConfig.bEnableShaderDebugging)
 	{
-		ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+		ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
 		s_geometry_uid_checker.AddToIndexAndCheck(code, gs_uid, "Geometry", "g");
 	}
 
@@ -232,7 +232,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 	}
 	else
 	{
-		ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+		ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
 		ID3DBlob* gs_bytecode = nullptr;
 
 		if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))
