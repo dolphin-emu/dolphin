@@ -24,8 +24,8 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
-template<class T> static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
-template<class T> static void EndPrimitive(T& out, API_TYPE ApiType);
+template<class T> static void EmitVertex(T& out, geometry_shader_uid_data *uid_data, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+template<class T> static void EndPrimitive(T& out, geometry_shader_uid_data *uid_data, API_TYPE ApiType);
 
 template<class T>
 static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
@@ -47,6 +47,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	if (g_ActiveConfig.bWireFrame)
 		vertex_out++;
 
+	uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
+	uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
 	uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 	if (ApiType == API_OPENGL)
 	{
@@ -80,7 +82,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting);
 	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
@@ -89,11 +91,11 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting, GetInterpolationQualifier(ApiType, uid_data->msaa, uid_data->ssaa, true, true));
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, false, true));
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting, GetInterpolationQualifier(ApiType, uid_data->msaa, uid_data->ssaa, false, true));
 
 		if (g_ActiveConfig.iStereoMode > 0)
 			out.Write("\tflat int layer;\n");
@@ -131,8 +133,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT start, end;\n");
-			AssignVSOutputMembers(out, "start", "vs[0]");
-			AssignVSOutputMembers(out, "end", "vs[1]");
+			AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
+			AssignVSOutputMembers(out, "end", "vs[1]", uid_data->numTexGens, uid_data->pixel_lighting);
 		}
 		else
 		{
@@ -163,11 +165,11 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		if (ApiType == API_OPENGL)
 		{
 			out.Write("\tVS_OUTPUT center;\n");
-			AssignVSOutputMembers(out, "center", "vs[0]");
+			AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
 		}
 		else
 		{
-			out.Write("\tVS_OUTPUT center = o[0];\n");
+			out.Write("\tVS_OUTPUT center = o[0];\n", uid_data->numTexGens, uid_data->pixel_lighting);
 		}
 
 		// Offset from center to upper right vertex
@@ -193,7 +195,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("\tVS_OUTPUT f;\n");
-		AssignVSOutputMembers(out, "f", "vs[i]");
+		AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, uid_data->pixel_lighting);
 	}
 	else
 	{
@@ -235,8 +237,8 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		}
 		out.Write("\t}\n");
 
-		EmitVertex<T>(out, "l", ApiType, true);
-		EmitVertex<T>(out, "r", ApiType);
+		EmitVertex<T>(out, uid_data, "l", ApiType, true);
+		EmitVertex<T>(out, uid_data, "r", ApiType);
 	}
 	else if (primitive_type == PRIMITIVE_POINTS)
 	{
@@ -263,19 +265,19 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		}
 		out.Write("\t}\n");
 
-		EmitVertex<T>(out, "ll", ApiType, true);
-		EmitVertex<T>(out, "lr", ApiType);
-		EmitVertex<T>(out, "ul", ApiType);
-		EmitVertex<T>(out, "ur", ApiType);
+		EmitVertex<T>(out, uid_data, "ll", ApiType, true);
+		EmitVertex<T>(out, uid_data, "lr", ApiType);
+		EmitVertex<T>(out, uid_data, "ul", ApiType);
+		EmitVertex<T>(out, uid_data, "ur", ApiType);
 	}
 	else
 	{
-		EmitVertex<T>(out, "f", ApiType, true);
+		EmitVertex<T>(out, uid_data, "f", ApiType, true);
 	}
 
 	out.Write("\t}\n");
 
-	EndPrimitive<T>(out, ApiType);
+	EndPrimitive<T>(out, uid_data, ApiType);
 
 	if (g_ActiveConfig.iStereoMode > 0 && !g_ActiveConfig.backend_info.bSupportsGSInstancing)
 		out.Write("\t}\n");
@@ -286,7 +288,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 }
 
 template<class T>
-static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
+static void EmitVertex(T& out, geometry_shader_uid_data *uid_data, const char* vertex, API_TYPE ApiType, bool first_vertex)
 {
 	if (g_ActiveConfig.bWireFrame && first_vertex)
 		out.Write("\tif (i == 0) first = %s;\n", vertex);
@@ -294,7 +296,7 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
 	if (ApiType == API_OPENGL)
 	{
 		out.Write("\tgl_Position = %s.pos;\n", vertex);
-		AssignVSOutputMembers(out, "ps", vertex);
+		AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
 	}
 	else
 	{
@@ -307,10 +309,10 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
 		out.Write("\toutput.Append(ps);\n");
 }
 template<class T>
-static void EndPrimitive(T& out, API_TYPE ApiType)
+static void EndPrimitive(T& out, geometry_shader_uid_data *uid_data, API_TYPE ApiType)
 {
 	if (g_ActiveConfig.bWireFrame)
-		EmitVertex<T>(out, "first", ApiType);
+		EmitVertex<T>(out, uid_data, "first", ApiType);
 
 	if (ApiType == API_OPENGL)
 		out.Write("\tEndPrimitive();\n");
