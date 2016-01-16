@@ -104,6 +104,12 @@ PostProcessingShader::~PostProcessingShader()
 			pass.program.reset();
 		}
 
+		if (pass.gs_program != nullptr)
+		{
+			pass.gs_program->Destroy();
+			pass.gs_program.reset();
+		}
+
 		if (pass.output_texture_id != 0)
 		{
 			glDeleteTextures(1, &pass.output_texture_id);
@@ -242,11 +248,23 @@ bool PostProcessingShader::RecompileShaders()
 		RenderPassData& pass = m_passes[i];
 		const PostProcessingShaderConfiguration::RenderPass& pass_config = m_config->GetPass(i);
 
+		// Manually destroy old programs (no cleanup in destructor)
+		if (pass.program)
+		{
+			pass.program->Destroy();
+			pass.program.reset();
+		}
+		if (pass.gs_program)
+		{
+			pass.gs_program->Destroy();
+			pass.gs_program.reset();
+		}
+
 		// Compile shader for this pass
-		std::unique_ptr<SHADER> program = std::make_unique<SHADER>();
+		pass.program = std::make_unique<SHADER>();
 		std::string vertex_shader_source = PostProcessor::GetUniformBufferShaderSource(API_OPENGL, m_config) + s_vertex_shader;
 		std::string fragment_shader_source = PostProcessor::GetPassFragmentShaderSource(API_OPENGL, m_config, &pass_config);
-		if (!ProgramShaderCache::CompileShader(*program, vertex_shader_source.c_str(), fragment_shader_source.c_str()))
+		if (!ProgramShaderCache::CompileShader(*pass.program, vertex_shader_source.c_str(), fragment_shader_source.c_str()))
 		{
 			ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s (pass %s)", m_config->GetShaderName().c_str(), pass_config.entry_point.c_str());
 			m_ready = false;
@@ -254,33 +272,29 @@ bool PostProcessingShader::RecompileShaders()
 		}
 
 		// Bind our uniform block
-		GLuint block_index = glGetUniformBlockIndex(program->glprogid, "PostProcessingConstants");
+		GLuint block_index = glGetUniformBlockIndex(pass.program->glprogid, "PostProcessingConstants");
 		if (block_index != GL_INVALID_INDEX)
-			glUniformBlockBinding(program->glprogid, block_index, UNIFORM_BUFFER_BIND_POINT);
+			glUniformBlockBinding(pass.program->glprogid, block_index, UNIFORM_BUFFER_BIND_POINT);
 
 		// Only generate a GS-expanding program if needed
 		std::unique_ptr<SHADER> gs_program;
 		if (m_internal_layers > 1)
 		{
-			gs_program = std::make_unique<SHADER>();
+			pass.gs_program = std::make_unique<SHADER>();
 			vertex_shader_source = PostProcessor::GetUniformBufferShaderSource(API_OPENGL, m_config) + s_layered_vertex_shader;
 			std::string geometry_shader_source = StringFromFormat(s_geometry_shader, m_internal_layers * 3, m_internal_layers).c_str();
 
-			if (!ProgramShaderCache::CompileShader(*gs_program, vertex_shader_source.c_str(), fragment_shader_source.c_str(), geometry_shader_source.c_str()))
+			if (!ProgramShaderCache::CompileShader(*pass.gs_program, vertex_shader_source.c_str(), fragment_shader_source.c_str(), geometry_shader_source.c_str()))
 			{
 				ERROR_LOG(VIDEO, "Failed to compile GS post-processing shader %s (pass %s)", m_config->GetShaderName().c_str(), pass_config.entry_point.c_str());
 				m_ready = false;
 				return false;
 			}
 
-			block_index = glGetUniformBlockIndex(gs_program->glprogid, "PostProcessingConstants");
+			block_index = glGetUniformBlockIndex(pass.gs_program->glprogid, "PostProcessingConstants");
 			if (block_index != GL_INVALID_INDEX)
-				glUniformBlockBinding(gs_program->glprogid, block_index, UNIFORM_BUFFER_BIND_POINT);
+				glUniformBlockBinding(pass.gs_program->glprogid, block_index, UNIFORM_BUFFER_BIND_POINT);
 		}
-
-		// Store to struct
-		std::swap(pass.program, program);
-		std::swap(pass.gs_program, gs_program);
 	}
 
 	return true;
@@ -525,6 +539,7 @@ void OGLPostProcessor::ReloadShaders()
 	m_reload_flag.Clear();
 	m_post_processing_shaders.clear();
 	m_scaling_shader.reset();
+	m_stereo_shader.reset();
 	m_active = false;
 
 	ReloadShaderConfigs();
