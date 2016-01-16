@@ -281,7 +281,8 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
   }
 
   out.Write("struct VS_OUTPUT {\n");
-  GenerateVSOutputMembers<T>(out, ApiType, "");
+  GenerateVSOutputMembers<T>(out, ApiType, uid_data->genMode_numtexgens,
+                             uid_data->per_pixel_lighting, "");
   out.Write("};\n");
 
   {
@@ -374,7 +375,9 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
       out.Write("in VertexData {\n");
-      GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, true));
+      GenerateVSOutputMembers<T>(
+          out, ApiType, uid_data->genMode_numtexgens, uid_data->per_pixel_lighting,
+          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
 
       if (uid_data->stereo)
         out.Write("\tflat int layer;\n");
@@ -383,19 +386,25 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier());
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier());
+      out.Write("%s in float4 colors_0;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+      out.Write("%s in float4 colors_1;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
       {
-        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(), i);
+        out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
+                  i);
       }
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier());
+      out.Write("%s in float4 clipPos;\n",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       if (uid_data->per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier());
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier());
+        out.Write("%s in float3 Normal;\n",
+                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+        out.Write("%s in float3 WorldPos;\n",
+                  GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
       }
     }
 
@@ -417,19 +426,25 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
                                                            "",
               uid_data->per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-    out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier());
-    out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier());
+    out.Write("  in %s float4 colors_0 : COLOR0,\n",
+              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
+    out.Write("  in %s float4 colors_1 : COLOR1\n",
+              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
 
     // compute window position if needed because binding semantic WPOS is not widely supported
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
-      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(), i, i);
-    out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(),
+      out.Write(",\n  in %s float3 uv%d : TEXCOORD%d",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa), i, i);
+    out.Write(",\n  in %s float4 clipPos : TEXCOORD%d",
+              GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
               uid_data->genMode_numtexgens);
     if (uid_data->per_pixel_lighting)
     {
-      out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(),
+      out.Write(",\n  in %s float3 Normal : TEXCOORD%d",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
                 uid_data->genMode_numtexgens + 1);
-      out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(),
+      out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d",
+                GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa),
                 uid_data->genMode_numtexgens + 2);
     }
     if (uid_data->stereo)
