@@ -202,6 +202,7 @@ public:
 
 	bool IsActive() const { return m_active; }
 	bool RequiresDepthBuffer() const { return m_requires_depth_buffer; }
+	bool ShouldTriggerOnSwap() const;
 
 	void SetReloadFlag() { m_reload_flag.Set(); }
 	bool RequiresReload() { return m_reload_flag.TestAndClear(); }
@@ -218,13 +219,15 @@ public:
 	virtual void PostProcessEFB() = 0;
 
 	// Copy/resize src_texture to dst_texture (0 means backbuffer), using the resize/blit shader.
-	virtual void BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
-								   const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
-								   int src_layer) = 0;
+	virtual void BlitScreen(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
+							const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+							int src_layer) = 0;
 
-	// Post-process an image.
-	virtual void PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
-							 uintptr_t texture, uintptr_t depth_texture) = 0;
+	// Post-process the source image, if output_texture is null, it will be written back to src_texture,
+	// otherwise a temporary texture will be returned that is valid until the next call to PostProcess.
+	virtual void PostProcess(TargetRectangle* output_rect, TargetSize* output_size, uintptr_t* output_texture,
+							 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+							 const TargetRectangle& src_depth_rect, const TargetSize& src_depth_size, uintptr_t src_depth_texture) = 0;
 
 	// Construct the options uniform buffer source for the specified config.
 	static std::string GetUniformBufferShaderSource(API_TYPE api, const PostProcessingShaderConfiguration* config);

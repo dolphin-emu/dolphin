@@ -558,6 +558,7 @@ Renderer::Renderer()
 			glEnable(GL_DEBUG_OUTPUT);
 		else
 			glDisable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	}
 
 	int samples;
@@ -1103,10 +1104,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	ClearEFBCache();
 }
 
-void Renderer::BlitScreen(TargetRectangle dst, TargetRectangle src, GLuint src_texture, int src_width, int src_height)
+void Renderer::BlitScreen(TargetRectangle dst_rect, TargetRectangle src_rect, TargetSize src_size, GLuint src_texture)
 {
 	TargetSize dst_size(s_backbuffer_width, s_backbuffer_height);
-	TargetSize src_size(src_width, src_height);
 
 	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 	{
@@ -1114,16 +1114,16 @@ void Renderer::BlitScreen(TargetRectangle dst, TargetRectangle src, GLuint src_t
 
 		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
 		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-			ConvertStereoRectangle(dst, rightRc, leftRc);
+			ConvertStereoRectangle(dst_rect, rightRc, leftRc);
 		else
-			ConvertStereoRectangle(dst, leftRc, rightRc);
+			ConvertStereoRectangle(dst_rect, leftRc, rightRc);
 
-		m_post_processor->BlitToFramebuffer(leftRc, dst_size, 0, src, src_size, src_texture, 0);
-		m_post_processor->BlitToFramebuffer(rightRc, dst_size, 0, src, src_size, src_texture, 1);
+		m_post_processor->BlitScreen(leftRc, dst_size, 0, src_rect, src_size, src_texture, 0);
+		m_post_processor->BlitScreen(rightRc, dst_size, 0, src_rect, src_size, src_texture, 1);
 	}
 	else
 	{
-		m_post_processor->BlitToFramebuffer(dst, dst_size, 0, src, src_size, src_texture, 0);
+		m_post_processor->BlitScreen(dst_rect, dst_size, 0, src_rect, src_size, src_texture, 0);
 	}
 }
 
@@ -1340,7 +1340,40 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
-			BlitScreen(drawRc, sourceRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+			// Post-processing for XFB this way is not ideal, since the EFB depth buffer may have been modified
+			// after the copy was performed. The only way around this would be to take a depth copy at the same
+			// time as the color copy, and even then, if the game has modified the image, it still may not be
+			// representative of what the depth buffer contains.
+			TargetRectangle blit_rect(sourceRc);
+			TargetSize blit_size(xfbSource->texWidth, xfbSource->texHeight);
+			GLuint blit_tex = xfbSource->texture;
+			if (g_ActiveConfig.bPostProcessingEnable &&
+				g_ActiveConfig.iPostProcessingTrigger == POST_PROCESSING_TRIGGER_ON_SWAP &&
+				m_post_processor->IsActive())
+			{
+				TargetSize src_size(xfbSource->srcWidth, xfbSource->srcHeight);
+				TargetRectangle src_depth_rect(sourceRc);
+				TargetSize src_depth_size(s_target_width, s_target_height);
+				GLuint src_depth_tex = 0;
+				if (m_post_processor->RequiresDepthBuffer())
+				{
+					if (g_ActiveConfig.bUseRealXFB)
+					{
+						// This still isn't correct. Tempted to just leave depth out for XFB post-processing.
+						int clipSize = std::max(0, EFB_HEIGHT - static_cast<int>(xfbSource->texHeight));
+						src_depth_rect.top = std::max(0, s_target_height - EFBToScaledY(clipSize));
+						src_depth_rect.bottom = std::max(0, EFBToScaledY(clipSize));
+					}
+
+					src_depth_tex = FramebufferManager::ResolveAndGetDepthTarget(src_depth_rect);
+				}
+
+				uintptr_t new_blit_tex;
+				m_post_processor->PostProcess(&blit_rect, &blit_size, &new_blit_tex, sourceRc, src_size, xfbSource->texture, src_depth_rect, src_depth_size, src_depth_tex);
+				blit_tex = static_cast<GLuint>(new_blit_tex);
+			}
+
+			BlitScreen(drawRc, blit_rect, blit_size, blit_tex);
 		}
 	}
 	else
@@ -1351,19 +1384,25 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
 		TargetSize tex_size(s_target_width, s_target_height);
 
-		// Post processing active?
+		// Apply post-processing.
+		// If enabled, blit_tex will be replaced with an internal texture from the post-processor,
+		// leaving the original texture unmodified, should it be required next frame.
 		if (g_ActiveConfig.bPostProcessingEnable &&
 			g_ActiveConfig.iPostProcessingTrigger == POST_PROCESSING_TRIGGER_ON_SWAP &&
 			m_post_processor->IsActive())
 		{
+			TargetRectangle src_rect(target_rc);
+			TargetSize src_size(tex_size);
 			GLuint depth_tex = 0;
 			if (m_post_processor->RequiresDepthBuffer())
 				depth_tex = FramebufferManager::ResolveAndGetDepthTarget(rc);
 
-			m_post_processor->PostProcess(target_rc, tex_size, FramebufferManager::GetEFBLayers(), tex, depth_tex);
+			uintptr_t new_blit_tex;
+			m_post_processor->PostProcess(&target_rc, &tex_size, &new_blit_tex, src_rect, src_size, tex, src_rect, src_size, depth_tex);
+			tex = static_cast<GLuint>(new_blit_tex);
 		}
 
-		BlitScreen(flipped_trc, target_rc, tex, tex_size.width, tex_size.height);
+		BlitScreen(flipped_trc, target_rc, tex_size, tex);
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

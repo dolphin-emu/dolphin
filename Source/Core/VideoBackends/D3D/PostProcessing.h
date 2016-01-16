@@ -94,12 +94,13 @@ public:
 
 	void PostProcessEFB() override;
 
-	void BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
+	void BlitScreen(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
 						   const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
 						   int src_layer) override;
 
-	void PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
-					 uintptr_t texture, uintptr_t depth_texture) override;
+	void PostProcess(TargetRectangle* output_rect, TargetSize* output_size, uintptr_t* output_texture,
+					 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+					 const TargetRectangle& src_depth_rect, const TargetSize& src_depth_size, uintptr_t src_depth_texture) override;
 
 	void MapAndUpdateUniformBuffer(const PostProcessingShaderConfiguration* config,
 								   const InputTextureSizeArray& input_sizes,
