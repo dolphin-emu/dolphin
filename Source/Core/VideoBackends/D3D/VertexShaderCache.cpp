@@ -54,7 +54,8 @@ ID3D11Buffer* vscbuf = nullptr;
 
 ID3D11Buffer*& VertexShaderCache::GetConstantBuffer()
 {
-  // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
+  // TODO: divide the global variables of the generated shaders into about 5
+  // constant buffers to
   // speed this up
   if (VertexShaderManager::dirty)
   {
@@ -199,10 +200,10 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader()
 {
-  VertexShaderUid uid = GetVertexShaderUid(API_D3D);
+  VertexShaderUid uid = GetVertexShaderUid();
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GenerateVertexShaderCode(API_D3D);
+    ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
     vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
   }
 
@@ -227,7 +228,7 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(API_D3D);
+  ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);
