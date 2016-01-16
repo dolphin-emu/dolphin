@@ -18,6 +18,7 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/Statistics.h"
 
 namespace DX11
 {
@@ -640,8 +641,6 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	D3DTexture2D* real_src_texture = reinterpret_cast<D3DTexture2D*>(src_texture);
 	_dbg_assert_msg_(VIDEO, src_layer >= 0, "BlitToFramebuffer should always be called with a single source layer");
 
-	D3D::stateman->SetPixelConstants(m_uniform_buffer.Get());
-
 	ReconfigureScalingShader(src_size);
 	ReconfigureStereoShader(dst_size);
 
@@ -655,6 +654,10 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 		m_scaling_shader->Draw(this, dst_rect, dst_size, real_dst_texture, src_rect, src_size, real_src_texture, nullptr, src_layer);
 	else
 		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_size, src_layer);
+
+	// Restore constants
+	D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(), g_ActiveConfig.bEnablePixelLighting ? VertexShaderCache::GetConstantBuffer() : nullptr);
+	D3D::stateman->Apply();
 }
 
 void D3DPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
@@ -715,6 +718,10 @@ void D3DPostProcessor::PostProcess(const TargetRectangle& visible_rect, const Ta
 			input_color_texture = output_color_texture;
 		}
 	}
+
+	// Restore constants
+	D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(), g_ActiveConfig.bEnablePixelLighting ? VertexShaderCache::GetConstantBuffer() : nullptr);
+	D3D::stateman->Apply();
 }
 
 bool D3DPostProcessor::ResizeCopyBuffers(const TargetSize& size, int layers)
@@ -854,11 +861,18 @@ void D3DPostProcessor::MapAndUpdateUniformBuffer(const PostProcessingShaderConfi
 												 const TargetRectangle& src_rect, const TargetSize& src_size,
 												 int src_layer)
 {
+	// Skip writing to buffer if there were no changes
+	u32 buffer_size;
+	if (!UpdateUniformBuffer(API_D3D, config, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer, &buffer_size))
+		return;
+
 	D3D11_MAPPED_SUBRESOURCE mapped_cbuf;
 	HRESULT hr = D3D::context->Map(m_uniform_buffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_cbuf);
 	CHECK(SUCCEEDED(hr), "Map post processing constant buffer failed, hr=%X", hr);
-	UpdateUniformBuffer(API_D3D, config, mapped_cbuf.pData, input_sizes, dst_rect, dst_size, src_rect, src_size, src_layer);
+	memcpy(mapped_cbuf.pData, m_current_constants.data(), buffer_size);
 	D3D::context->Unmap(m_uniform_buffer.Get(), 0);
+
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, buffer_size);
 }
 
 void D3DPostProcessor::CopyTexture(const TargetRectangle& dst_rect, D3DTexture2D* dst_texture,

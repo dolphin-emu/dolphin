@@ -1285,73 +1285,70 @@ std::string PostProcessor::GetPassFragmentShaderSource(API_TYPE api, const PostP
 	return shader_source;
 }
 
-void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShaderConfiguration* config,
-										void* buffer_ptr, const InputTextureSizeArray& input_sizes,
+bool PostProcessor::UpdateUniformBuffer(API_TYPE api,
+									    const PostProcessingShaderConfiguration* config,
+										const InputTextureSizeArray& input_sizes,
 										const TargetRectangle& dst_rect, const TargetSize& dst_size,
 										const TargetRectangle& src_rect, const TargetSize& src_size,
-										int src_layer)
+										int src_layer, u32* buffer_size)
 {
-	// Each option is aligned to a float4
-	union Constant
-	{
-		int bool_constant;
-		float float_constant[4];
-		s32 int_constant[4];
-	};
-
-	Constant* constants = reinterpret_cast<Constant*>(buffer_ptr);
+	// Check if the size has changed, due to options.
+	size_t active_constant_count = POST_PROCESSING_MAX_TEXTURE_INPUTS + 6 + config->GetOptions().size();
+	bool size_changed = (active_constant_count != m_current_constants.size());
+	*buffer_size = sizeof(Constant) * (u32)active_constant_count;
+	m_new_constants.resize(active_constant_count);
 
 	// float4 input_resolutions[4]
 	for (size_t i = 0; i < POST_PROCESSING_MAX_TEXTURE_INPUTS; i++)
 	{
-		constants[i].float_constant[0] = (float)input_sizes[i].width;
-		constants[i].float_constant[1] = (float)input_sizes[i].height;
-		constants[i].float_constant[2] = 1.0f / (float)input_sizes[i].width;
-		constants[i].float_constant[3] = 1.0f / (float)input_sizes[i].height;
+		m_new_constants[i].float_constant[0] = (float)input_sizes[i].width;
+		m_new_constants[i].float_constant[1] = (float)input_sizes[i].height;
+		m_new_constants[i].float_constant[2] = 1.0f / (float)input_sizes[i].width;
+		m_new_constants[i].float_constant[3] = 1.0f / (float)input_sizes[i].height;
 	}
 
 	// float4 target_resolution
 	u32 constant_idx = POST_PROCESSING_MAX_TEXTURE_INPUTS;
-	constants[constant_idx].float_constant[0] = (float)dst_size.width;
-	constants[constant_idx].float_constant[1] = (float)dst_size.height;
-	constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
-	constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
+	m_new_constants[constant_idx].float_constant[0] = (float)dst_size.width;
+	m_new_constants[constant_idx].float_constant[1] = (float)dst_size.height;
+	m_new_constants[constant_idx].float_constant[2] = 1.0f / (float)dst_size.width;
+	m_new_constants[constant_idx].float_constant[3] = 1.0f / (float)dst_size.height;
 	constant_idx++;
 
 	// float4 src_rect
-	constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
-	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
-	constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
-	constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
+	m_new_constants[constant_idx].float_constant[0] = (float)src_rect.left / (float)src_size.width;
+	m_new_constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? src_rect.bottom : src_rect.top) / (float)src_size.height;
+	m_new_constants[constant_idx].float_constant[2] = (float)src_rect.GetWidth() / (float)src_size.width;
+	m_new_constants[constant_idx].float_constant[3] = (float)src_rect.GetHeight() / (float)src_size.height;
 	constant_idx++;
 
 	// float4 target_rect
-	constants[constant_idx].float_constant[0] = (float)dst_rect.left / (float)dst_size.width;
-	constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? dst_rect.bottom : dst_rect.top) / (float)dst_size.height;
-	constants[constant_idx].float_constant[2] = (float)dst_rect.GetWidth() / (float)dst_size.width;
-	constants[constant_idx].float_constant[3] = (float)dst_rect.GetHeight() / (float)dst_size.height;
+	m_new_constants[constant_idx].float_constant[0] = (float)dst_rect.left / (float)dst_size.width;
+	m_new_constants[constant_idx].float_constant[1] = (float)((api == API_OPENGL) ? dst_rect.bottom : dst_rect.top) / (float)dst_size.height;
+	m_new_constants[constant_idx].float_constant[2] = (float)dst_rect.GetWidth() / (float)dst_size.width;
+	m_new_constants[constant_idx].float_constant[3] = (float)dst_rect.GetHeight() / (float)dst_size.height;
 	constant_idx++;
 
 	// float4 viewport_rect
-	constants[constant_idx].float_constant[0] = (float)dst_rect.left;
-	constants[constant_idx].float_constant[1] = (float)dst_rect.top;
-	constants[constant_idx].float_constant[2] = (float)dst_rect.right;
-	constants[constant_idx].float_constant[3] = (float)dst_rect.bottom;
+	m_new_constants[constant_idx].float_constant[0] = (float)dst_rect.left;
+	m_new_constants[constant_idx].float_constant[1] = (float)dst_rect.top;
+	m_new_constants[constant_idx].float_constant[2] = (float)dst_rect.right;
+	m_new_constants[constant_idx].float_constant[3] = (float)dst_rect.bottom;
 	constant_idx++;
 
 	// float4 window_rect
 	const TargetRectangle& window_rect = Renderer::GetWindowRectangle();
-	constants[constant_idx].float_constant[0] = (float)window_rect.left;
-	constants[constant_idx].float_constant[1] = (float)window_rect.top;
-	constants[constant_idx].float_constant[2] = (float)window_rect.right;
-	constants[constant_idx].float_constant[3] = (float)window_rect.bottom;
+	m_new_constants[constant_idx].float_constant[0] = (float)window_rect.left;
+	m_new_constants[constant_idx].float_constant[1] = (float)window_rect.top;
+	m_new_constants[constant_idx].float_constant[2] = (float)window_rect.right;
+	m_new_constants[constant_idx].float_constant[3] = (float)window_rect.bottom;
 	constant_idx++;
 
 	// float time, float layer
-	constants[constant_idx].float_constant[0] = float(double(m_timer.GetTimeDifference()) / 1000.0);
-	constants[constant_idx].float_constant[1] = float(std::max(src_layer, 0));
-	constants[constant_idx].float_constant[2] = 0.0f;
-	constants[constant_idx].float_constant[3] = 0.0f;
+	m_new_constants[constant_idx].float_constant[0] = float(double(m_timer.GetTimeDifference()) / 1000.0);
+	m_new_constants[constant_idx].float_constant[1] = float(std::max(src_layer, 0));
+	m_new_constants[constant_idx].float_constant[2] = 0.0f;
+	m_new_constants[constant_idx].float_constant[3] = 0.0f;
 	constant_idx++;
 
 	// Set from options. This is an ordered map so it will always match the order in the shader code generated.
@@ -1364,10 +1361,10 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 		switch (it.second.m_type)
 		{
 		case POST_PROCESSING_OPTION_TYPE_BOOL:
-			constants[constant_idx].int_constant[0] = (int)it.second.m_bool_value;
-			constants[constant_idx].int_constant[1] = 0;
-			constants[constant_idx].int_constant[2] = 0;
-			constants[constant_idx].int_constant[3] = 0;
+			m_new_constants[constant_idx].int_constant[0] = (int)it.second.m_bool_value;
+			m_new_constants[constant_idx].int_constant[1] = 0;
+			m_new_constants[constant_idx].int_constant[2] = 0;
+			m_new_constants[constant_idx].int_constant[3] = 0;
 			constant_idx++;
 			break;
 
@@ -1375,9 +1372,9 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 			{
 				u32 components = std::max((u32)it.second.m_integer_values.size(), (u32)0);
 				for (u32 i = 0; i < components; i++)
-					constants[constant_idx].int_constant[i] = it.second.m_integer_values[i];
+					m_new_constants[constant_idx].int_constant[i] = it.second.m_integer_values[i];
 				for (u32 i = components; i < 4; i++)
-					constants[constant_idx].int_constant[i] = 0;
+					m_new_constants[constant_idx].int_constant[i] = 0;
 
 				constant_idx++;
 			}
@@ -1387,9 +1384,9 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 			{
 				u32 components = std::max((u32)it.second.m_float_values.size(), (u32)0);
 				for (u32 i = 0; i < components; i++)
-					constants[constant_idx].float_constant[i] = it.second.m_float_values[i];
+					m_new_constants[constant_idx].float_constant[i] = it.second.m_float_values[i];
 				for (u32 i = components; i < 4; i++)
-					constants[constant_idx].int_constant[i] = 0;
+					m_new_constants[constant_idx].int_constant[i] = 0;
 
 				constant_idx++;
 			}
@@ -1397,6 +1394,11 @@ void PostProcessor::UpdateUniformBuffer(API_TYPE api, const PostProcessingShader
 		}
 	}
 
-	// Sanity check, should never fail
-	_dbg_assert_(VIDEO, constant_idx <= (UNIFORM_BUFFER_SIZE / 16));
+	// Any changes?
+	if (!size_changed && !memcmp(m_current_constants.data(), m_new_constants.data(), sizeof(Constant) * m_new_constants.size()))
+		return false;
+
+	// Swap buffer pointers, to avoid copying data again
+	std::swap(m_current_constants, m_new_constants);
+	return true;
 }
