@@ -49,6 +49,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
@@ -609,12 +610,3 @@ void UpdateDevices()
 
 
 } // end of namespace WII_IPC_HLE_Interface
-
-// TODO: create WII_IPC_HLE_Device.cpp ?
-void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
-{
-	p.Do(m_Name);
-	p.Do(m_DeviceID);
-	p.Do(m_Hardware);
-	p.Do(m_Active);
-}

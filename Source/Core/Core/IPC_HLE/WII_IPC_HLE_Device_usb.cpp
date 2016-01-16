@@ -2,13 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <memory>
+#include <string>
+
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/HW/Wiimote.h"
@@ -17,16 +25,16 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-
-void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
+SQueuedEvent::SQueuedEvent(u32 size, u16 connection_handle)
+	: m_size(size)
+	, m_connectionHandle(connection_handle)
 {
-	// IOS seems to write back the command that was responded to in the FD field, this
-	// class does not overwrite the command so it is safe to read back.
-	Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
-	// The original hardware overwrites the command type with the async reply type.
-	Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
-
-	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+	if (m_size > 1024)
+	{
+		// I know this code sux...
+		PanicAlert("SQueuedEvent: allocate too big buffer!!");
+	}
+	memset(m_buffer, 0, 1024);
 }
 
 // The device class
@@ -120,6 +128,29 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 {
 	m_WiiMotes.clear();
 	SetUsbPointer(nullptr);
+}
+
+
+CWII_IPC_HLE_Device_usb_oh1_57e_305::CtrlBuffer::CtrlBuffer(u32 address)
+	: m_address(address)
+{
+	if (m_address == 0)
+		return;
+
+	u32 InBufferNum = Memory::Read_U32(m_address + 0x10);
+	u32 BufferVector = Memory::Read_U32(m_address + 0x18);
+	m_buffer = Memory::Read_U32(
+		BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CtrlBuffer::FillBuffer(const void* src, const size_t size) const
+{
+	Memory::CopyToEmu(m_buffer, src, size);
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::CtrlBuffer::SetRetVal(const u32 retval) const
+{
+	Memory::Write_U32(retval, m_address + 4);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
@@ -323,6 +354,16 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress
 	return _SendReply ? GetDefaultReply() : GetNoReply();
 }
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::EnqueueReply(u32 CommandAddress)
+{
+	// IOS seems to write back the command that was responded to in the FD field, this
+	// class does not overwrite the command so it is safe to read back.
+	Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
+	// The original hardware overwrites the command type with the async reply type.
+	Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
+
+	WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+}
 
 // Here we handle the USBV0_IOCTL_BLKMSG Ioctlv
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
@@ -544,6 +585,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::WriteToEndpoint(CtrlBuffer& e
 
 	EnqueueReply(endpoint.m_address);
 	endpoint.Invalidate();
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::DoState(PointerWrap& p)
+{
+	p.Do(m_queue);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()

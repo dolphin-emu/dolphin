@@ -171,6 +171,7 @@
     <ClCompile Include="IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_es.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp" />
@@ -185,6 +186,8 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
@@ -389,6 +392,7 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h" />
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h" />

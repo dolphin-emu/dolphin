@@ -2,7 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h" // Local core functions
@@ -16,11 +21,26 @@
 // TODO: support in netplay/movies.
 
 CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
-: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{}
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+{
+}
 
 CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
-{}
+{
+}
+
+CWII_IPC_HLE_Device_usb_kbd::SMessageData::SMessageData(u32 message_type, u8 modifiers, u8* pressed_keys)
+{
+	MsgType = Common::swap32(message_type);
+	Unk1 = 0; // swapped
+	Modifiers = modifiers;
+	Unk2 = 0;
+
+	if (pressed_keys) // Doesn't need to be in a specific order
+		memcpy(PressedKeys, pressed_keys, sizeof(PressedKeys));
+	else
+		memset(PressedKeys, 0, sizeof(PressedKeys));
+}
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {

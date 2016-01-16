@@ -139,6 +139,12 @@
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\Stub">
+      <UniqueIdentifier>{031319db-d619-40d7-8e19-4a1fe8237693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\STM - State Transition Manager">
+      <UniqueIdentifier>{11554dcb-b75b-4913-8c77-77ba5e958fef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -591,6 +597,12 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\STM - State Transition Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Stub</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
@@ -728,6 +740,9 @@
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1117,9 +1132,6 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_DI.h">
       <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
     </ClInclude>
@@ -1149,6 +1161,12 @@
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
       <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\STM - State Transition Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Stub</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_hid.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
