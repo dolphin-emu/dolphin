@@ -1063,7 +1063,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	// the system beep for unhandled key events when
 	// receiving pad/Wiimote keypresses which take an
 	// entirely different path through the HID subsystem.
-#ifndef __APPLE__
+#if defined __APPLE__ && (defined(_DEBUG) || defined(DEBUGFAST))
 	// On other platforms, we leave the key event alone
 	// so it can be passed on to the windowing system.
 	event.Skip();
