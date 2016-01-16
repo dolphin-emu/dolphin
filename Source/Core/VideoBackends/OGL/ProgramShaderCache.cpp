@@ -152,7 +152,7 @@ void ProgramShaderCache::UploadConstants()
            &VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
     memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-               ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+           ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
            &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
@@ -163,7 +163,7 @@ void ProgramShaderCache::UploadConstants()
                       sizeof(VertexShaderConstants));
     glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer,
                       buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                          ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+                      ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
     PixelShaderManager::dirty = false;
@@ -212,9 +212,8 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL);
   ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL);
   ShaderCode gcode;
-  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
-      !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
+  if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
+    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL, uid.guid.GetUidData());
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
@@ -228,7 +227,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   {
     static int counter = 0;
     std::string filename =
-        StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+      StringFromFormat("%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
     SaveData(filename, vcode.GetBuffer());
 
     filename = StringFromFormat("%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
@@ -237,7 +236,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
     if (!gcode.GetBuffer().empty())
     {
       filename =
-          StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
+        StringFromFormat("%sgs_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), counter++);
       SaveData(filename, gcode.GetBuffer());
     }
   }
@@ -307,7 +306,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
     ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 
     std::string filename =
-        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+      StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << vcode << s_glsl_header << pcode;
@@ -345,7 +344,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 {
   GLuint result = glCreateShader(type);
 
-  const char* src[] = {s_glsl_header.c_str(), code.c_str()};
+  const char* src[] = { s_glsl_header.c_str(), code.c_str() };
 
   glShaderSource(result, 2, src, nullptr);
   glCompileShader(result);
@@ -363,8 +362,8 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
               type == GL_VERTEX_SHADER ? "VS" : type == GL_FRAGMENT_SHADER ? "PS" : "GS", infoLog);
 
     std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-        type == GL_VERTEX_SHADER ? "vs" : type == GL_FRAGMENT_SHADER ? "ps" : "gs", num_failures++);
+      "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+      type == GL_VERTEX_SHADER ? "vs" : type == GL_FRAGMENT_SHADER ? "ps" : "gs", num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code << infoLog;
@@ -375,7 +374,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
       PanicAlert("Failed to compile %s shader: %s\n"
                  "Debug info (%s, %s, %s):\n%s",
                  type == GL_VERTEX_SHADER ? "vertex" : type == GL_FRAGMENT_SHADER ? "pixel" :
-                                                                                    "geometry",
+                 "geometry",
                  filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
                  g_ogl_config.gl_version, infoLog);
     }
@@ -399,7 +398,7 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
 {
   uid->puid = GetPixelShaderUid(dstAlphaMode, API_OPENGL);
   uid->vuid = GetVertexShaderUid(API_OPENGL);
-  uid->guid = GetGeometryShaderUid(primitive_type, API_OPENGL);
+  uid->guid = GetGeometryShaderUid(primitive_type);
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
@@ -409,7 +408,7 @@ void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode,
     ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL);
     vertex_uid_checker.AddToIndexAndCheck(vcode, uid->vuid, "Vertex", "v");
 
-    ShaderCode gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL);
+    ShaderCode gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL, uid->guid.GetUidData());
     geometry_uid_checker.AddToIndexAndCheck(gcode, uid->guid, "Geometry", "g");
   }
 }
@@ -427,12 +426,12 @@ void ProgramShaderCache::Init()
   glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &s_ubo_align);
 
   s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(GeometryShaderConstants), s_ubo_align);
+    ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align) +
+    ROUND_UP(sizeof(GeometryShaderConstants), s_ubo_align);
 
-  // We multiply by *4*4 because we need to get down to basic machine units.
-  // So multiply by four to get how many floats we have from vec4s
-  // Then once more to get bytes
+// We multiply by *4*4 because we need to get down to basic machine units.
+// So multiply by four to get how many floats we have from vec4s
+// Then once more to get bytes
   s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
 
   // Read our shader cache, only if supported
@@ -443,7 +442,7 @@ void ProgramShaderCache::Init()
     if (!Supported)
     {
       ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So "
-                       "disable shader cache.");
+                "disable shader cache.");
       g_ogl_config.bSupportsGLSLCache = false;
     }
     else
@@ -452,8 +451,8 @@ void ProgramShaderCache::Init()
         File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
       std::string cache_filename =
-          StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                           SConfig::GetInstance().m_strUniqueID.c_str());
+        StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                         SConfig::GetInstance().m_strUniqueID.c_str());
 
       ProgramShaderCacheInserter inserter;
       g_program_disk_cache.OpenAndRead(cache_filename, inserter);
@@ -573,81 +572,81 @@ void ProgramShaderCache::CreateHeader()
   }
 
   s_glsl_header = StringFromFormat(
-      "%s\n"
-      "%s\n"  // ubo
-      "%s\n"  // early-z
-      "%s\n"  // 420pack
-      "%s\n"  // msaa
-      "%s\n"  // Sampler binding
-      "%s\n"  // storage buffer
-      "%s\n"  // shader5
-      "%s\n"  // SSAA
-      "%s\n"  // Geometry point size
-      "%s\n"  // AEP
-      "%s\n"  // texture buffer
-      "%s\n"  // ES texture buffer
-      "%s\n"  // ES dual source blend
+    "%s\n"
+    "%s\n"  // ubo
+    "%s\n"  // early-z
+    "%s\n"  // 420pack
+    "%s\n"  // msaa
+    "%s\n"  // Sampler binding
+    "%s\n"  // storage buffer
+    "%s\n"  // shader5
+    "%s\n"  // SSAA
+    "%s\n"  // Geometry point size
+    "%s\n"  // AEP
+    "%s\n"  // texture buffer
+    "%s\n"  // ES texture buffer
+    "%s\n"  // ES dual source blend
 
-      // Precision defines for GLSL ES
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
-      "%s\n"
+    // Precision defines for GLSL ES
+    "%s\n"
+    "%s\n"
+    "%s\n"
+    "%s\n"
+    "%s\n"
 
-      // Silly differences
-      "#define float2 vec2\n"
-      "#define float3 vec3\n"
-      "#define float4 vec4\n"
-      "#define uint2 uvec2\n"
-      "#define uint3 uvec3\n"
-      "#define uint4 uvec4\n"
-      "#define int2 ivec2\n"
-      "#define int3 ivec3\n"
-      "#define int4 ivec4\n"
+    // Silly differences
+    "#define float2 vec2\n"
+    "#define float3 vec3\n"
+    "#define float4 vec4\n"
+    "#define uint2 uvec2\n"
+    "#define uint3 uvec3\n"
+    "#define uint4 uvec4\n"
+    "#define int2 ivec2\n"
+    "#define int3 ivec3\n"
+    "#define int4 ivec4\n"
 
-      // hlsl to glsl function translation
-      "#define frac fract\n"
-      "#define lerp mix\n"
+    // hlsl to glsl function translation
+    "#define frac fract\n"
+    "#define lerp mix\n"
 
-      ,
-      GetGLSLVersionString().c_str(),
-      v < GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
-      (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ?
-          "#extension GL_ARB_shading_language_420pack : enable" :
-          "",
-      (g_ogl_config.bSupportsMSAA && v < GLSL_150) ?
-          "#extension GL_ARB_texture_multisample : enable" :
-          "",
-      g_ActiveConfig.backend_info.bSupportsBindingLayout ?
-          "#define SAMPLER_BINDING(x) layout(binding = x)" :
-          "#define SAMPLER_BINDING(x)",
-      !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
-          "#extension GL_ARB_shader_storage_buffer_object : enable" :
-          "",
-      v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?
-          "#extension GL_ARB_gpu_shader5 : enable" :
-          "",
-      v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
-          "#extension GL_ARB_sample_shading : enable" :
-          "",
-      SupportedESPointSize.c_str(),
-      g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
-      v < GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
-          "#extension GL_ARB_texture_buffer_object : enable" :
-          "",
-      SupportedESTextureBuffer.c_str(),
-      is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
-          "#extension GL_EXT_blend_func_extended : enable" :
-          ""
+    ,
+    GetGLSLVersionString().c_str(),
+    v < GLSL_140 ? "#extension GL_ARB_uniform_buffer_object : enable" : "", earlyz_string.c_str(),
+    (g_ActiveConfig.backend_info.bSupportsBindingLayout && v < GLSLES_310) ?
+    "#extension GL_ARB_shading_language_420pack : enable" :
+    "",
+    (g_ogl_config.bSupportsMSAA && v < GLSL_150) ?
+    "#extension GL_ARB_texture_multisample : enable" :
+    "",
+    g_ActiveConfig.backend_info.bSupportsBindingLayout ?
+    "#define SAMPLER_BINDING(x) layout(binding = x)" :
+    "#define SAMPLER_BINDING(x)",
+    !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
+    "#extension GL_ARB_shader_storage_buffer_object : enable" :
+    "",
+    v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?
+    "#extension GL_ARB_gpu_shader5 : enable" :
+    "",
+    v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsSSAA ?
+    "#extension GL_ARB_sample_shading : enable" :
+    "",
+    SupportedESPointSize.c_str(),
+    g_ogl_config.bSupportsAEP ? "#extension GL_ANDROID_extension_pack_es31a : enable" : "",
+    v < GLSL_140 && g_ActiveConfig.backend_info.bSupportsPaletteConversion ?
+    "#extension GL_ARB_texture_buffer_object : enable" :
+    "",
+    SupportedESTextureBuffer.c_str(),
+    is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
+    "#extension GL_EXT_blend_func_extended : enable" :
+    ""
 
-      ,
-      is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
-      is_glsles ? "precision highp sampler2DArray;" : "",
-      (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
-          "precision highp usamplerBuffer;" :
-          "",
-      v > GLSLES_300 ? "precision highp sampler2DMS;" : "");
+    ,
+    is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
+    is_glsles ? "precision highp sampler2DArray;" : "",
+    (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
+    "precision highp usamplerBuffer;" :
+    "",
+    v > GLSLES_300 ? "precision highp sampler2DMS;" : "");
 }
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value,

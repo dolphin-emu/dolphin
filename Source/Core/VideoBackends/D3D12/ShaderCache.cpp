@@ -18,7 +18,7 @@ namespace DX12
 // Primitive topology type is always triangle, unless the GS stage is used. This is consumed
 // by the PSO created in Renderer::ApplyState.
 static D3D12_PRIMITIVE_TOPOLOGY_TYPE s_current_primitive_topology =
-    D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 
 using GsBytecodeCache = std::map<GeometryShaderUid, D3D12_SHADER_BYTECODE>;
 using PsBytecodeCache = std::map<PixelShaderUid, D3D12_SHADER_BYTECODE>;
@@ -89,11 +89,11 @@ void ShaderCache::Init()
   std::string title_unique_id = SConfig::GetInstance().m_strUniqueID.c_str();
 
   std::string gs_cache_filename =
-      StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+    StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
   std::string ps_cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+    StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_unique_id.c_str());
   std::string vs_cache_filename =
-      StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+    StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
 
   ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
   s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);
@@ -162,7 +162,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 {
   SetCurrentPrimitiveTopology(gs_primitive_type);
 
-  GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type, API_D3D);
+  GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
   PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode, API_D3D);
   VertexShaderUid vs_uid = GetVertexShaderUid(API_D3D);
 
@@ -219,7 +219,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+    ShaderCode code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
     s_geometry_uid_checker.AddToIndexAndCheck(code, gs_uid, "Geometry", "g");
   }
 
@@ -236,7 +236,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
   }
   else
   {
-    ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
+    ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
     ID3DBlob* gs_bytecode = nullptr;
 
     if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))
