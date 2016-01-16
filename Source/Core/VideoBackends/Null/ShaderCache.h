@@ -45,12 +45,12 @@ protected:
   VertexShaderUid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
                          API_TYPE api_type) override
   {
-    return GetVertexShaderUid(api_type);
+    return GetVertexShaderUid();
   }
   ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type, API_TYPE api_type,
                           VertexShaderUid uid) override
   {
-    return GenerateVertexShaderCode(api_type);
+    return GenerateVertexShaderCode(api_type, uid.GetUidData());
   }
 };
 
