@@ -203,7 +203,8 @@ SHADER *ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode,
 
   ShaderCode vcode =
       GenerateVertexShaderCode(API_OPENGL, uid.vuid.GetUidData());
-  ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL);
+  ShaderCode pcode =
+      GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
@@ -389,12 +390,13 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type,
 
 void ProgramShaderCache::GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode,
                                      u32 primitive_type) {
-  uid->puid = GetPixelShaderUid(dstAlphaMode, API_OPENGL);
+  uid->puid = GetPixelShaderUid(dstAlphaMode);
   uid->vuid = GetVertexShaderUid();
   uid->guid = GetGeometryShaderUid(primitive_type);
 
   if (g_ActiveConfig.bEnableShaderDebugging) {
-    ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL);
+    ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL,
+                                               uid->puid.GetUidData());
     pixel_uid_checker.AddToIndexAndCheck(pcode, uid->puid, "Pixel", "p");
 
     ShaderCode vcode =
