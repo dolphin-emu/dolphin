@@ -620,7 +620,9 @@ void D3DPostProcessor::PostProcessEFB()
 		depth_texture = FramebufferManager::GetResolvedEFBDepthTexture();
 
 	// Invoke post process process
-	PostProcess(target_rect, target_size, FramebufferManager::GetEFBLayers(), reinterpret_cast<uintptr_t>(color_texture), reinterpret_cast<uintptr_t>(depth_texture));
+	PostProcess(nullptr, nullptr, nullptr,
+		target_rect, target_size, reinterpret_cast<uintptr_t>(color_texture),
+		target_rect, target_size, reinterpret_cast<uintptr_t>(depth_texture));
 
 	// Copy back to EFB buffer when multisampling is enabled
 	if (g_ActiveConfig.iMultisamples > 1)
@@ -633,7 +635,7 @@ void D3DPostProcessor::PostProcessEFB()
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
+void D3DPostProcessor::BlitScreen(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
 										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
 										 int src_layer)
 {
@@ -660,38 +662,41 @@ void D3DPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 	D3D::stateman->Apply();
 }
 
-void D3DPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
-								   uintptr_t texture, uintptr_t depth_texture)
+void D3DPostProcessor::PostProcess(TargetRectangle* output_rect, TargetSize* output_size, uintptr_t* output_texture,
+								   const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+								   const TargetRectangle& src_depth_rect, const TargetSize& src_depth_size, uintptr_t src_depth_texture)
 {
-	D3DTexture2D* real_texture = reinterpret_cast<D3DTexture2D*>(texture);
-	D3DTexture2D* real_depth_texture = reinterpret_cast<D3DTexture2D*>(depth_texture);
+	D3DTexture2D* real_src_texture = reinterpret_cast<D3DTexture2D*>(src_texture);
+	D3DTexture2D* real_depth_texture = reinterpret_cast<D3DTexture2D*>(src_depth_texture);
 	if (!m_active)
 		return;
 
-	// Setup copy buffers first
-	TargetSize buffer_size(visible_rect.GetWidth(), visible_rect.GetHeight());
-	if (!ResizeCopyBuffers(buffer_size, tex_layers))
-	{
-		ERROR_LOG(VIDEO, "Failed to resize post-processor copy buffers. Disabling post processor.");
-		DisablePostProcessor();
-		return;
-	}
-
-	// Update compile-time constants.
-	if (!ReconfigurePostProcessingShaders(buffer_size))
+	// Setup copy buffers first, and update compile-time constants.
+	TargetSize buffer_size(src_rect.GetWidth(), src_rect.GetHeight());
+	if (!ResizeCopyBuffers(buffer_size, FramebufferManager::GetEFBLayers()) ||
+		!ReconfigurePostProcessingShaders(buffer_size))
 	{
 		ERROR_LOG(VIDEO, "Failed to update post-processor state. Disabling post processor.");
+
+		// We need to fill in an output texture if we're bailing out, so set it to the source.
+		if (output_texture)
+		{
+			*output_rect = src_rect;
+			*output_size = src_size;
+			*output_texture = src_texture;
+		}
+
 		DisablePostProcessor();
 		return;
 	}
 
 	// Copy only the visible region to our buffers.
 	TargetRectangle buffer_rect(0, 0, buffer_size.width, buffer_size.height);
-	CopyTexture(buffer_rect, m_color_copy_texture, visible_rect, real_texture, tex_size, -1, false);
+	CopyTexture(buffer_rect, m_color_copy_texture, src_rect, real_src_texture, src_size, -1, false);
 	if (real_depth_texture != nullptr)
 	{
 		// Depth buffers can only be completely CopySubresourced, so use a shader copy instead.
-		CopyTexture(buffer_rect, m_depth_copy_texture, visible_rect, real_depth_texture, tex_size, -1, true);
+		CopyTexture(buffer_rect, m_depth_copy_texture, src_depth_rect, real_depth_texture, src_depth_size, -1, true);
 	}
 
 	// Uniform buffer is shared across all shaders, bind it early.
@@ -703,17 +708,30 @@ void D3DPostProcessor::PostProcess(const TargetRectangle& visible_rect, const Ta
 	{
 		PostProcessingShader* shader = m_post_processing_shaders[shader_index].get();
 
-		// Last shader in the list?
+		// To save a copy, we use the output of one shader as the input to the next.
+		// This works except when the last pass is scaled, as the next shader expects a full-size input, so re-use the copy buffer for this case.
+		D3DTexture2D* output_color_texture = (shader->IsLastPassScaled()) ? m_color_copy_texture : shader->GetLastPassOutputTexture();
+
+		// Last shader in the sequence? If so, write to the output texture.
 		if (shader_index == (m_post_processing_shaders.size() - 1))
 		{
-			// Last shader in the list, so write to the output texture.
-			shader->Draw(this, visible_rect, tex_size, real_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+			// Are we returning our temporary texture, or storing back to the original buffer?
+			if (output_texture)
+			{
+				// Use the same texture as if it was a previous pass, and return it.
+				shader->Draw(this, buffer_rect, buffer_size, output_color_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+				*output_rect = buffer_rect;
+				*output_size = buffer_size;
+				*output_texture = reinterpret_cast<uintptr_t>(output_color_texture);
+			}
+			else
+			{
+				// Write to original texture.
+				shader->Draw(this, src_rect, src_size, real_src_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+			}
 		}
 		else
 		{
-			// To save a copy, we use the output of one shader as the input to the next.
-			// This works except when the last pass is scaled, as the next shader expects a full-size input, so re-use the copy buffer for this case.
-			D3DTexture2D* output_color_texture = (shader->IsLastPassScaled()) ? input_color_texture : shader->GetLastPassOutputTexture();
 			shader->Draw(this, buffer_rect, buffer_size, output_color_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
 			input_color_texture = output_color_texture;
 		}

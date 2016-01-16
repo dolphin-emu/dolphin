@@ -638,6 +638,7 @@ void OGLPostProcessor::PostProcessEFB()
 	}
 
 	EFBRectangle efb_rect(0, EFB_HEIGHT, EFB_WIDTH, 0);
+	TargetSize target_size(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 	TargetRectangle target_rect(static_cast<int>(X), static_cast<int>(Y + Height),
 		static_cast<int>(X + Width), static_cast<int>(Y));
 
@@ -648,8 +649,7 @@ void OGLPostProcessor::PostProcessEFB()
 		efb_depth_texture = FramebufferManager::GetEFBDepthTexture(efb_rect);
 
 	// Invoke post-process process, this will write back to efb_color_texture
-	PostProcess(target_rect, TargetSize(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight()),
-		FramebufferManager::GetEFBLayers(), efb_color_texture, efb_depth_texture);
+	PostProcess(nullptr, nullptr, nullptr, target_rect, target_size, efb_color_texture, target_rect, target_size, efb_depth_texture);
 
 	// Restore EFB framebuffer
 	FramebufferManager::SetFramebuffer(0);
@@ -672,7 +672,7 @@ void OGLPostProcessor::PostProcessEFB()
 	g_renderer->RestoreAPIState();
 }
 
-void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
+void OGLPostProcessor::BlitScreen(const TargetRectangle& dst_rect, const TargetSize& dst_size, uintptr_t dst_texture,
 										 const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
 										 int src_layer)
 {
@@ -692,36 +692,39 @@ void OGLPostProcessor::BlitToFramebuffer(const TargetRectangle& dst_rect, const 
 		CopyTexture(dst_rect, real_dst_texture, src_rect, real_src_texture, src_layer, false);
 }
 
-void OGLPostProcessor::PostProcess(const TargetRectangle& visible_rect, const TargetSize& tex_size, int tex_layers,
-								   uintptr_t texture, uintptr_t depth_texture)
+void OGLPostProcessor::PostProcess(TargetRectangle* output_rect, TargetSize* output_size, uintptr_t* output_texture,
+								   const TargetRectangle& src_rect, const TargetSize& src_size, uintptr_t src_texture,
+								   const TargetRectangle& src_depth_rect, const TargetSize& src_depth_size, uintptr_t src_depth_texture)
 {
-	GLuint real_texture = static_cast<GLuint>(texture);
-	GLuint real_depth_texture = static_cast<GLuint>(depth_texture);
+	GLuint real_src_texture = static_cast<GLuint>(src_texture);
+	GLuint real_src_depth_texture = static_cast<GLuint>(src_depth_texture);
 	if (!m_active)
 		return;
 
-	// Setup copy buffers first
-	TargetSize buffer_size(visible_rect.GetWidth(), visible_rect.GetHeight());
-	if (!ResizeCopyBuffers(buffer_size, tex_layers))
-	{
-		ERROR_LOG(VIDEO, "Failed to resize post-processor copy buffers. Disabling post processor.");
-		DisablePostProcessor();
-		return;
-	}
-
-	// Update compile-time constants.
-	if (!ReconfigurePostProcessingShaders(buffer_size))
+	// Setup copy buffers first, and update compile-time constants.
+	TargetSize buffer_size(src_rect.GetWidth(), src_rect.GetHeight());
+	if (!ResizeCopyBuffers(buffer_size, FramebufferManager::GetEFBLayers()) ||
+		!ReconfigurePostProcessingShaders(buffer_size))
 	{
 		ERROR_LOG(VIDEO, "Failed to update post-processor state. Disabling post processor.");
+
+		// We need to fill in an output texture if we're bailing out, so set it to the source.
+		if (output_texture)
+		{
+			*output_rect = src_rect;
+			*output_size = src_size;
+			*output_texture = src_texture;
+		}
+
 		DisablePostProcessor();
 		return;
 	}
 
 	// Copy the visible region to our buffers.
 	TargetRectangle buffer_rect(0, buffer_size.height, buffer_size.width, 0);
-	CopyTexture(buffer_rect, m_color_copy_texture, visible_rect, real_texture, -1, false);
-	if (real_depth_texture != 0)
-		CopyTexture(buffer_rect, m_depth_copy_texture, visible_rect, real_depth_texture, -1, false);
+	CopyTexture(buffer_rect, m_color_copy_texture, src_rect, real_src_texture, -1, false);
+	if (real_src_depth_texture != 0)
+		CopyTexture(buffer_rect, m_depth_copy_texture, src_depth_rect, real_src_depth_texture, -1, false);
 
 	// Loop through the shader list, applying each of them in sequence.
 	GLuint input_color_texture = m_color_copy_texture;
@@ -729,17 +732,30 @@ void OGLPostProcessor::PostProcess(const TargetRectangle& visible_rect, const Ta
 	{
 		PostProcessingShader* shader = m_post_processing_shaders[shader_index].get();
 
-		// Last shader in the list?
+		// To save a copy, we use the output of one shader as the input to the next.
+		// This works except when the last pass is scaled, as the next shader expects a full-size input, so re-use the copy buffer for this case.
+		GLuint output_color_texture = (shader->IsLastPassScaled()) ? m_color_copy_texture : shader->GetLastPassOutputTexture();
+
+		// Last shader in the sequence? If so, write to the output texture.
 		if (shader_index == (m_post_processing_shaders.size() - 1))
 		{
-			// Last shader in the list, so we write to the output texture.
-			shader->Draw(this, visible_rect, tex_size, real_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+			// Are we returning our temporary texture, or storing back to the original buffer?
+			if (output_texture)
+			{
+				// Use the same texture as if it was a previous pass, and return it.
+				shader->Draw(this, buffer_rect, buffer_size, output_color_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+				*output_rect = buffer_rect;
+				*output_size = buffer_size;
+				*output_texture = static_cast<uintptr_t>(output_color_texture);
+			}
+			else
+			{
+				// Write to original texture.
+				shader->Draw(this, src_rect, src_size, real_src_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
+			}
 		}
 		else
 		{
-			// To save a copy, we use the output of one shader as the input to the next.
-			// This works except when the last pass is scaled, as the next shader expects a full-size input, so re-use the copy buffer for this case.
-			GLuint output_color_texture = (shader->IsLastPassScaled()) ? input_color_texture : shader->GetLastPassOutputTexture();
 			shader->Draw(this, buffer_rect, buffer_size, output_color_texture, buffer_rect, buffer_size, input_color_texture, m_depth_copy_texture, -1);
 			input_color_texture = output_color_texture;
 		}
