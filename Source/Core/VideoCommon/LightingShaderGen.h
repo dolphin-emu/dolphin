@@ -48,8 +48,7 @@ static const char s_lighting_struct[] =
 	"\tfloat4 dir;\n"
 	"};\n";
 
-template<class T>
-static void GenerateLightShader(T& object, LightingUidData& uid_data, int index, int litchan_index, bool alpha)
+static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index, int litchan_index, bool alpha)
 {
 	const char* swizzle = alpha ? "a" : "rgb";
 	const char* swizzle_components = (alpha) ? "" : "3";
@@ -109,17 +108,12 @@ static void GenerateLightShader(T& object, LightingUidData& uid_data, int index,
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
-template<class T>
-static void GenerateLightingShader(T& object, LightingUidData& uid_data, int components, const char* inColorName, const char* dest)
+static void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components, const char* inColorName, const char* dest)
 {
 	for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
 	{
-		const LitChannel& color = xfmem.color[j];
-		const LitChannel& alpha = xfmem.alpha[j];
-
 		object.Write("{\n");
 
-		uid_data.matsource |= xfmem.color[j].matsource << j;
 		bool colormatsource = !!(uid_data.matsource & (1 << j));
 		if (colormatsource) // from vertex
 		{
@@ -135,10 +129,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			object.Write("int4 mat = %s[%d];\n", I_MATERIALS, j+2);
 		}
 
-		uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
 		if (uid_data.enablelighting & (1 << j))
 		{
-			uid_data.ambsource |= xfmem.color[j].ambsource << j;
 			if (uid_data.ambsource & (1 << j)) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -162,7 +154,6 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 		}
 
 		// check if alpha is different
-		uid_data.matsource |= xfmem.alpha[j].matsource << (j+2);
 		bool alphamatsource = !!(uid_data.matsource & (1 << (j+2)));
 		if (alphamatsource != colormatsource)
 		{
@@ -180,10 +171,8 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 			}
 		}
 
-		uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j+2);
 		if (uid_data.enablelighting & (1 << (j+2)))
 		{
-			uid_data.ambsource |= xfmem.alpha[j].ambsource << (j+2);
 			if (uid_data.ambsource & (1 << (j+2))) // from vertex
 			{
 				if (components & (VB_HAS_COL0<<j) )
@@ -206,24 +195,44 @@ static void GenerateLightingShader(T& object, LightingUidData& uid_data, int com
 
 		if (uid_data.enablelighting & (1 << j)) // Color lights
 		{
-			uid_data.attnfunc |= color.attnfunc << (2 * j);
-			uid_data.diffusefunc |= color.diffusefunc << (2 * j);
-			uid_data.light_mask |= color.GetFullLightMask() << (8 * j);
 			for (int i = 0; i < 8; ++i)
 				if (uid_data.light_mask & (1 << (i + 8 * j)))
-					GenerateLightShader<T>(object, uid_data, i, j, false);
+					GenerateLightShader(object, uid_data, i, j, false);
 		}
 		if (uid_data.enablelighting & (1 << (j+2))) // Alpha lights
 		{
-			uid_data.attnfunc |= alpha.attnfunc << (2 * (j+2));
-			uid_data.diffusefunc |= alpha.diffusefunc << (2 * (j+2));
-			uid_data.light_mask |= alpha.GetFullLightMask() << (8 * (j+2));
 			for (int i = 0; i < 8; ++i)
 				if (uid_data.light_mask & (1 << (i + 8 * (j+2))))
-					GenerateLightShader<T>(object, uid_data, i, j+2, true);
+					GenerateLightShader(object, uid_data, i, j+2, true);
 		}
 		object.Write("lacc = clamp(lacc, 0, 255);\n");
 		object.Write("%s%d = float4((mat * (lacc + (lacc >> 7))) >> 8) / 255.0;\n", dest, j);
 		object.Write("}\n");
+	}
+}
+
+static void GetLightingShaderUid(LightingUidData& uid_data)
+{
+	for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
+	{
+		uid_data.matsource |= xfmem.color[j].matsource << j;
+		uid_data.matsource |= xfmem.alpha[j].matsource << (j + 2);
+		uid_data.enablelighting |= xfmem.color[j].enablelighting << j;
+		uid_data.enablelighting |= xfmem.alpha[j].enablelighting << (j + 2);
+
+		if (uid_data.enablelighting & (1 << j)) // Color lights
+		{
+			uid_data.ambsource |= xfmem.color[j].ambsource << j;
+			uid_data.attnfunc |= xfmem.color[j].attnfunc << (2 * j);
+			uid_data.diffusefunc |= xfmem.color[j].diffusefunc << (2 * j);
+			uid_data.light_mask |= xfmem.color[j].GetFullLightMask() << (8 * j);
+		}
+		if (uid_data.enablelighting & (1 << (j + 2))) // Alpha lights
+		{
+			uid_data.ambsource |= xfmem.alpha[j].ambsource << (j + 2);
+			uid_data.attnfunc |= xfmem.alpha[j].attnfunc << (2 * (j + 2));
+			uid_data.diffusefunc |= xfmem.alpha[j].diffusefunc << (2 * (j + 2));
+			uid_data.light_mask |= xfmem.alpha[j].GetFullLightMask() << (8 * (j + 2));
+		}
 	}
 }
