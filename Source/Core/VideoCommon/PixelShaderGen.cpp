@@ -837,17 +837,18 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
   uid_data->stagehash[n].cc = cc.hex & 0xFFFFFF;
   uid_data->stagehash[n].ac = ac.hex & 0xFFFFF0;  // Storing rswap and tswap later
 
-  if (cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC || cc.b == TEVCOLORARG_RASA ||
-      cc.b == TEVCOLORARG_RASC || cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC ||
-      cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC || ac.a == TEVALPHAARG_RASA ||
-      ac.b == TEVALPHAARG_RASA || ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
+  if (cc.a == TEVCOLORARG_RASA || cc.a == TEVCOLORARG_RASC ||
+     cc.b == TEVCOLORARG_RASA || cc.b == TEVCOLORARG_RASC ||
+     cc.c == TEVCOLORARG_RASA || cc.c == TEVCOLORARG_RASC ||
+     cc.d == TEVCOLORARG_RASA || cc.d == TEVCOLORARG_RASC ||
+     ac.a == TEVALPHAARG_RASA || ac.b == TEVALPHAARG_RASA ||
+     ac.c == TEVALPHAARG_RASA || ac.d == TEVALPHAARG_RASA)
   {
     const int i = bpmem.combiners[n].alphaC.rswap;
-    uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.rswap;
-    uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i * 2].swap1;
-    uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i * 2].swap2;
-    uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i * 2 + 1].swap1;
-    uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i * 2 + 1].swap2;
+    uid_data->stagehash[n].tevksel_swap1a = bpmem.tevksel[i*2].swap1;
+    uid_data->stagehash[n].tevksel_swap2a = bpmem.tevksel[i*2].swap2;
+    uid_data->stagehash[n].tevksel_swap1b = bpmem.tevksel[i*2+1].swap1;
+    uid_data->stagehash[n].tevksel_swap2b = bpmem.tevksel[i*2+1].swap2;
     uid_data->stagehash[n].tevorders_colorchan = bpmem.tevorders[n / 2].getColorChan(n & 1);
 
     const char* rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
@@ -869,17 +870,14 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
     }
 
     const int i = bpmem.combiners[n].alphaC.tswap;
-    uid_data->stagehash[n].ac |= bpmem.combiners[n].alphaC.tswap << 2;
-    uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i * 2].swap1;
-    uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i * 2].swap2;
-    uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i * 2 + 1].swap1;
-    uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i * 2 + 1].swap2;
+    uid_data->stagehash[n].tevksel_swap1c = bpmem.tevksel[i*2].swap1;
+    uid_data->stagehash[n].tevksel_swap2c = bpmem.tevksel[i*2].swap2;
+    uid_data->stagehash[n].tevksel_swap1d = bpmem.tevksel[i*2+1].swap1;
+    uid_data->stagehash[n].tevksel_swap2d = bpmem.tevksel[i*2+1].swap2;
 
     uid_data->stagehash[n].tevorders_texmap = bpmem.tevorders[n / 2].getTexMap(n & 1);
 
-    const char* texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
-    uid_data->SetTevindrefTexmap(i, texmap);
-
+    const char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
     out.Write("\ttextemp = ");
     SampleTexture<T>(out, "float2(tevcoord.xy)", texswap, texmap, ApiType);
   }

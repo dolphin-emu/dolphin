@@ -65,52 +65,16 @@ struct pixel_shader_uid_data
 
   inline void SetTevindrefValues(int index, u32 texcoord, u32 texmap)
   {
-    if (index == 0)
-    {
-      tevindref_bc0 = texcoord;
-      tevindref_bi0 = texmap;
-    }
-    else if (index == 1)
-    {
-      tevindref_bc1 = texcoord;
-      tevindref_bi1 = texmap;
-    }
-    else if (index == 2)
-    {
-      tevindref_bc3 = texcoord;
-      tevindref_bi2 = texmap;
-    }
-    else if (index == 3)
-    {
-      tevindref_bc4 = texcoord;
-      tevindref_bi4 = texmap;
-    }
-  }
-  inline void SetTevindrefTexmap(int index, u32 texmap)
-  {
-    if (index == 0)
-    {
-      tevindref_bi0 = texmap;
-    }
-    else if (index == 1)
-    {
-      tevindref_bi1 = texmap;
-    }
-    else if (index == 2)
-    {
-      tevindref_bi2 = texmap;
-    }
-    else if (index == 3)
-    {
-      tevindref_bi4 = texmap;
-    }
+    if (index == 0) { tevindref_bc0 = texcoord; tevindref_bi0 = texmap; }
+    else if (index == 1) { tevindref_bc1 = texcoord; tevindref_bi1 = texmap; }
+    else if (index == 2) { tevindref_bc3 = texcoord; tevindref_bi2 = texmap; }
+    else if (index == 3) { tevindref_bc4 = texcoord; tevindref_bi4 = texmap; }
   }
 
-  struct
-  {
+  struct {
     // TODO: Can save a lot space by removing the padding bits
     u32 cc : 24;
-    u32 ac : 24;
+    u32 ac : 24; // tswap and rswap are left blank (encoded into the tevksel fields below)
 
     u32 tevorders_texmap : 3;
     u32 tevorders_texcoord : 3;
