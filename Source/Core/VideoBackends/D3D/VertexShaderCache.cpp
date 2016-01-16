@@ -95,7 +95,7 @@ const char simple_shader_code[] = {
     "OUT.vTexCoord = inTEX0.xyz;\n"
     "OUT.vTexCoord1 = inTEX0.w;\n"
     "return OUT;\n"
-    "}\n"};
+    "}\n" };
 
 const char clear_shader_code[] = {
     "struct VSOUTPUT\n"
@@ -109,7 +109,7 @@ const char clear_shader_code[] = {
     "OUT.vPosition = inPosition;\n"
     "OUT.vColor0 = inColor0;\n"
     "return OUT;\n"
-    "}\n"};
+    "}\n" };
 
 void VertexShaderCache::Init()
 {
@@ -161,8 +161,8 @@ void VertexShaderCache::Init()
   SETSTAT(stats.numVertexShadersAlive, 0);
 
   std::string cache_filename =
-      StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strUniqueID.c_str());
+    StringFromFormat("%sdx11-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                     SConfig::GetInstance().m_strUniqueID.c_str());
   VertexShaderCacheInserter inserter;
   g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 
@@ -199,10 +199,10 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader()
 {
-  VertexShaderUid uid = GetVertexShaderUid(API_D3D);
+  VertexShaderUid uid = GetVertexShaderUid();
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
-    ShaderCode code = GenerateVertexShaderCode(API_D3D);
+    ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
     vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
   }
 
@@ -227,7 +227,7 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(API_D3D);
+  ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);
