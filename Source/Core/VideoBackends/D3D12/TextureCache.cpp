@@ -262,7 +262,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 	if (config.rendertarget)
 	{
 		D3DTexture2D* texture = D3DTexture2D::Create(config.width, config.height,
-			(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
+			static_cast<D3D11_BIND_FLAG>((static_cast<int>(D3D11_BIND_RENDER_TARGET) | static_cast<int>(D3D11_BIND_SHADER_RESOURCE))),
 			D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers);
 
 		TCacheEntry* entry = new TCacheEntry(config, texture);
@@ -337,7 +337,15 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	}
 
 	// stretch picture with increased internal resolution
-	const D3D12_VIEWPORT vp = { 0.f, 0.f, (float)config.width, (float)config.height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	const D3D12_VIEWPORT vp = {
+		0.f,
+		0.f,
+		static_cast<float>(config.width),
+		static_cast<float>(config.height),
+		D3D12_MIN_DEPTH,
+		D3D12_MAX_DEPTH
+	};
+
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// set transformation

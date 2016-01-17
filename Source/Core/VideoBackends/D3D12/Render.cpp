@@ -289,7 +289,7 @@ Renderer::Renderer(void*& window_handle)
 	D3D::current_command_list->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV12(), clear_color, 0, nullptr);
 	D3D::current_command_list->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV12(), D3D12_CLEAR_FLAG_DEPTH, 0.f, 0, 0, nullptr);
 
-	D3D12_VIEWPORT vp = { 0.f, 0.f, (float)s_target_width, (float)s_target_height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	D3D12_VIEWPORT vp = { 0.f, 0.f, static_cast<float>(s_target_width), static_cast<float>(s_target_height), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// Already transitioned to appropriate states a few lines up for the clears.
@@ -308,8 +308,8 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-	D3D::font.DrawTextScaled((float)(left+1), (float)(top+1), 20.f, 0.0f, color & 0xFF000000, text);
-	D3D::font.DrawTextScaled((float)left, (float)top, 20.f, 0.0f, color, text);
+	D3D::font.DrawTextScaled(static_cast<float>(left + 1), static_cast<float>(top + 1), 20.f, 0.0f, color & 0xFF000000, text);
+	D3D::font.DrawTextScaled(static_cast<float>(left), static_cast<float>(top), 20.f, 0.0f, color, text);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -650,7 +650,15 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 	// Update the view port for clearing the picture
 	TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
 
-	D3D12_VIEWPORT vp = { (float)target_rc.left, (float)target_rc.top, (float)target_rc.GetWidth(), (float)target_rc.GetHeight(), 0.f, 1.f };
+	D3D12_VIEWPORT vp = {
+		static_cast<float>(target_rc.left),
+		static_cast<float>(target_rc.top),
+		static_cast<float>(target_rc.GetWidth()),
+		static_cast<float>(target_rc.GetHeight()),
+		D3D12_MIN_DEPTH,
+		D3D12_MAX_DEPTH
+	};
+
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// Color is passed in bgra mode so we need to convert it to rgba
@@ -682,7 +690,15 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 		return;
 	}
 
-	D3D12_VIEWPORT vp = { 0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	D3D12_VIEWPORT vp = {
+		0.f,
+		0.f,
+		static_cast<float>(g_renderer->GetTargetWidth()),
+		static_cast<float>(g_renderer->GetTargetHeight()),
+		D3D12_MIN_DEPTH,
+		D3D12_MAX_DEPTH
+	};
+
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	FramebufferManager::GetEFBColorTempTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -871,8 +887,16 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
 	{
-		// TODO: Television should be used to render Virtual XFB mode as well.
-		D3D12_VIEWPORT vp12 = { (float)target_rc.left, (float)target_rc.top, (float)target_rc.GetWidth(), (float)target_rc.GetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+		// EXISTINGD3D11TODO: Television should be used to render Virtual XFB mode as well.
+		D3D12_VIEWPORT vp12 = {
+			static_cast<float>(target_rc.left),
+			static_cast<float>(target_rc.top),
+			static_cast<float>(target_rc.GetWidth()),
+			static_cast<float>(target_rc.GetHeight()),
+			D3D12_MIN_DEPTH,
+			D3D12_MAX_DEPTH
+		};
+
 		D3D::current_command_list->RSSetViewports(1, &vp12);
 
 		s_television.Submit(xfb_addr, fb_stride, fb_width, fb_height);
@@ -892,17 +916,17 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 			// use virtual xfb with offset
 			int xfb_height = xfb_source->srcHeight;
 			int xfb_width = xfb_source->srcWidth;
-			int hOffset = ((s32)xfb_source->srcAddr - (s32)xfb_addr) / ((s32)fb_stride * 2);
+			int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) / (static_cast<s32>(fb_stride) * 2);
 
-			drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / (s32)fb_height;
-			drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / (s32)fb_height;
-			drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / (s32)fb_stride) / 2;
-			drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / (s32)fb_stride) / 2;
+			drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
+			drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
+			drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+			drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
 
 			// The following code disables auto stretch.  Kept for reference.
 			// scale draw area for a 1 to 1 pixel mapping with the draw target
-			//float vScale = (float)fbHeight / (float)s_backbuffer_height;
-			//float hScale = (float)fbWidth / (float)s_backbuffer_width;
+			//float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
+			//float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
 			//drawRc.top *= vScale;
 			//drawRc.bottom *= vScale;
 			//drawRc.left *= hScale;
@@ -1021,7 +1045,15 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	}
 
 	// Reset viewport for drawing text
-	D3D12_VIEWPORT vp = { 0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	D3D12_VIEWPORT vp = {
+		0.0f,
+		0.0f,
+		static_cast<float>(GetBackbufferWidth()),
+		static_cast<float>(GetBackbufferHeight()),
+		D3D12_MIN_DEPTH,
+		D3D12_MAX_DEPTH
+	};
+
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	Renderer::DrawDebugText();
@@ -1438,8 +1470,23 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		TargetRectangle left_rc, right_rc;
 		ConvertStereoRectangle(dst, left_rc, right_rc);
 
-		D3D12_VIEWPORT left_vp = { (float)left_rc.left, (float)left_rc.top, (float)left_rc.GetWidth(), (float)left_rc.GetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		D3D12_VIEWPORT right_vp = { (float)right_rc.left, (float)right_rc.top, (float)right_rc.GetWidth(), (float)right_rc.GetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+		D3D12_VIEWPORT left_vp = {
+			static_cast<float>(left_rc.left),
+			static_cast<float>(left_rc.top),
+			static_cast<float>(left_rc.GetWidth()),
+			static_cast<float>(left_rc.GetHeight()),
+			D3D12_MIN_DEPTH,
+			D3D12_MAX_DEPTH
+		};
+
+		D3D12_VIEWPORT right_vp = {
+			static_cast<float>(right_rc.left),
+			static_cast<float>(right_rc.top),
+			static_cast<float>(right_rc.GetWidth()),
+			static_cast<float>(right_rc.GetHeight()),
+			D3D12_MIN_DEPTH,
+			D3D12_MAX_DEPTH
+		};
 
 		// Swap chain backbuffer is never multisampled..
 
@@ -1457,8 +1504,8 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		//if (!s_3d_vision_texture)
 		//	Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
 
-		//D3D12_VIEWPORT leftVp12 = { (float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		//D3D12_VIEWPORT rightVp12 = { (float)(dst.left + s_backbuffer_width), (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight(), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+		//D3D12_VIEWPORT leftVp12 = { static_cast<float>(dst.left), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+		//D3D12_VIEWPORT rightVp12 = { static_cast<float>(dst.left + s_backbuffer_width), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
 
 		//// Render to staging texture which is double the width of the backbuffer
 		//s_3d_vision_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
