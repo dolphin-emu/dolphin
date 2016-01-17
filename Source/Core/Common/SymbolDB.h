@@ -40,6 +40,7 @@ struct Symbol
 	{}
 
 	std::string name;
+	std::unordered_map<char, std::string> comments;
 	std::vector<SCall> callers; //addresses of functions that call this function
 	std::vector<SCall> calls;   //addresses of functions that are called by this function
 	u32 hash;            //use for HLE function finding
