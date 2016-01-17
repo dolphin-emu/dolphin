@@ -196,7 +196,7 @@ void CreateScreenshotTexture()
 	// We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the screenshot buffer size.
 	// This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
 
-	const unsigned int screenshot_buffer_size = 
+	const unsigned int screenshot_buffer_size =
 		D3D::AlignValue(D3D::GetBackBufferWidth() * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
 		D3D::GetBackBufferHeight();
 
