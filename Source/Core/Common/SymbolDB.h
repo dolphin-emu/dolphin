@@ -8,11 +8,9 @@
 #pragma once
 
 #include <map>
-#include <string>
 #include <utility>
+#include <unordered_map>
 #include <vector>
-
-#include "Common/CommonTypes.h"
 
 struct SCall
 {
@@ -83,6 +81,9 @@ public:
 	virtual Symbol *AddFunction(u32 startAddr) { return nullptr; }
 
 	void AddCompleteSymbol(const Symbol &symbol);
+	
+	void PopulateSymbolComments();
+	const std::string GetCommentFromAddr(u32 addr);
 
 	Symbol* GetSymbolFromName(const std::string& name);
 	Symbol* GetSymbolFromHash(u32 hash)
