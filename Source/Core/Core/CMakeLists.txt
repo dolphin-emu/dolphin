@@ -135,22 +135,29 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			HW/WiiSaveCrypted.cpp
-			IPC_HLE/ICMPLin.cpp
 			IPC_HLE/WII_IPC_HLE.cpp
 			IPC_HLE/WII_IPC_HLE_Device.cpp
 			IPC_HLE/WII_IPC_HLE_Device_DI.cpp
 			IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
-			IPC_HLE/WII_IPC_HLE_Device_net.cpp
-			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
 			IPC_HLE/WII_IPC_HLE_Device_stm.cpp
 			IPC_HLE/WII_IPC_HLE_Device_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
-			IPC_HLE/WII_Socket.cpp
+			IPC_HLE/Net/ICMPLin.cpp
+			IPC_HLE/Net/MacHelpers.cpp
+			IPC_HLE/Net/NWC24Config.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net_kd_request.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net_kd_time.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net_ncd_manage.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net_ssl.cpp
+			IPC_HLE/Net/WII_IPC_HLE_Device_net_wd_command.cpp
+			IPC_HLE/Net/WII_Socket.cpp
+			IPC_HLE/Net/WiiNetConfig.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			PowerPC/MMU.cpp
 			PowerPC/PowerPC.cpp

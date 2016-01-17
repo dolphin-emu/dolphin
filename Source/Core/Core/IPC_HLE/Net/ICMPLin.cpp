@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "ICMP.h"
+#include "Core/IPC_HLE/Net/ICMP.h"
 
 // Currently stubbed. AFAIK (delroth) there is no way to send ICMP echo
 // requests without being root on current Linux versions.

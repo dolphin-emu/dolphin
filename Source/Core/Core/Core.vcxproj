@@ -168,7 +168,6 @@
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="HW\WII_IPC.cpp" />
     <ClCompile Include="HW\WiiSaveCrypted.cpp" />
-    <ClCompile Include="IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp" />
@@ -183,15 +182,23 @@
       -->
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp" />
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
-    <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
+    <ClCompile Include="IPC_HLE\Net\ICMPWin.cpp" />
+    <ClCompile Include="IPC_HLE\Net\MacHelpers.cpp" />
+    <ClCompile Include="IPC_HLE\Net\NWC24Config.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_request.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_time.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ncd_manage.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_wd_command.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ssl.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WII_Socket.cpp" />
+    <ClCompile Include="IPC_HLE\Net\WiiNetConfig.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
@@ -378,7 +385,6 @@
     <ClInclude Include="HW\WiiSaveCrypted.h" />
     <ClInclude Include="HW\WII_IPC.h" />
     <ClInclude Include="IPC_HLE\hci.h" />
-    <ClInclude Include="IPC_HLE\ICMP.h" />
     <ClInclude Include="IPC_HLE\l2cap.h" />
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h" />
@@ -388,15 +394,23 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_fs.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_hid.h" />
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net.h" />
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h" />
-    <ClInclude Include="IPC_HLE\WII_Socket.h" />
+    <ClInclude Include="IPC_HLE\Net\ICMP.h" />
+    <ClInclude Include="IPC_HLE\Net\MacHelpers.h" />
+    <ClInclude Include="IPC_HLE\Net\NWC24Config.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_request.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_time.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ncd_manage.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_wd_command.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ssl.h" />
+    <ClInclude Include="IPC_HLE\Net\WII_Socket.h" />
+    <ClInclude Include="IPC_HLE\Net\WiiNetConfig.h" />
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />
