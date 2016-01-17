@@ -317,8 +317,6 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 			Host_NotifyMapLoaded();
 			break;
 
-		case IDM_RENAMESYMBOL:
-			{
 		case IDM_RENAMESYMBOL:   // TODO: This option (as well as any other text entry options) is unusable 
 			{		 // on OSX while a game is running (caused by Frame.cpp:1059)
 				{
