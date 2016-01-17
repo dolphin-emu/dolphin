@@ -524,6 +524,12 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			{
 				desc = m_debugger->GetDescription(address);
 			}
+			
+			if (comment.empty())
+			{
+				ctx->SetFont(DebuggerFont, *wxBLACK);
+				ctx->DrawText(StrToWxStr(comment), 17 + 50*charWidth, rowY1);
+			}
 
 			if (!m_plain)
 			{
