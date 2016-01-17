@@ -6,8 +6,8 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <memory>
-#include <string>
+#include <memory>		
+#include <string>		
 #include <vector>
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
@@ -434,6 +434,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	ctx->DrawRectangle(0, 0, 16, rc.height);
 	ctx->DrawRectangle(0, 0, rc.width, 5);
 	// ------------
+	m_symbol_db->PopulateSymbolComments();
 
 	// -----------------------------
 	// Walk through all visible rows
@@ -483,6 +484,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			const std::string& opcode   = dis[0];
 			const std::string& operands = dis[1];
 			std::string desc;
+			std::string comment = m_symbol_db->GetCommentFromAddr(address);
 
 			// look for hex strings to decode branches
 			std::string hex_str;
@@ -523,6 +525,12 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			if (desc.empty())
 			{
 				desc = m_debugger->GetDescription(address);
+			}
+			
+			if (!comment.empty())
+			{
+				ctx->SetFont(DebuggerFont, *wxBLACK);
+				ctx->DrawText(StrToWxStr(comment), 17 + 50*charWidth, rowY1);
 			}
 
 			if (!m_plain)

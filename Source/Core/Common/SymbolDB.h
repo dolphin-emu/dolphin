@@ -9,10 +9,11 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "Common/CommonTypes.h"
+-#include "Common/CommonTypes.h"
 
 struct SCall
 {
@@ -42,6 +43,7 @@ struct Symbol
 	{}
 
 	std::string name;
+	std::unordered_map<char, std::string> comments;
 	std::vector<SCall> callers; //addresses of functions that call this function
 	std::vector<SCall> calls;   //addresses of functions that are called by this function
 	u32 hash;            //use for HLE function finding
@@ -83,6 +85,9 @@ public:
 	virtual Symbol *AddFunction(u32 startAddr) { return nullptr; }
 
 	void AddCompleteSymbol(const Symbol &symbol);
+	
+	void PopulateSymbolComments();
+	const std::string GetCommentFromAddr(u32 addr);
 
 	Symbol* GetSymbolFromName(const std::string& name);
 	Symbol* GetSymbolFromHash(u32 hash)
