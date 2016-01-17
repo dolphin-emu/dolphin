@@ -101,10 +101,10 @@ void ShaderCache::Init()
 	if (g_Config.bEnableShaderDebugging)
 		Clear();
 
-	SETSTAT(stats.numPixelShadersAlive, (int)s_ps_bytecode_cache.size());
-	SETSTAT(stats.numPixelShadersCreated, (int)s_ps_bytecode_cache.size());
-	SETSTAT(stats.numVertexShadersAlive, (int)s_vs_bytecode_cache.size());
-	SETSTAT(stats.numVertexShadersCreated, (int)s_vs_bytecode_cache.size());
+	SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
+	SETSTAT(stats.numPixelShadersCreated, static_cast<int>(s_ps_bytecode_cache.size()));
+	SETSTAT(stats.numVertexShadersAlive, static_cast<int>(s_vs_bytecode_cache.size()));
+	SETSTAT(stats.numVertexShadersCreated, static_cast<int>(s_vs_bytecode_cache.size()));
 }
 
 void ShaderCache::Clear()
@@ -278,7 +278,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 		s_last_pixel_shader_bytecode = InsertByteCode<PixelShaderUid, PsBytecodeCache>(ps_uid, &s_ps_bytecode_cache, ps_bytecode);
 		s_ps_disk_cache.Append(ps_uid, ps_bytecode->Data(), ps_bytecode->Size());
 
-		SETSTAT(stats.numPixelShadersAlive, (int)s_ps_bytecode_cache.size());
+		SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
 		INCSTAT(stats.numPixelShadersCreated);
 
 		if (g_ActiveConfig.bEnableShaderDebugging && ps_bytecode)
@@ -318,7 +318,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 		s_last_vertex_shader_bytecode = InsertByteCode<VertexShaderUid, VsBytecodeCache>(vs_uid, &s_vs_bytecode_cache, vs_bytecode);
 		s_vs_disk_cache.Append(vs_uid, vs_bytecode->Data(), vs_bytecode->Size());
 
-		SETSTAT(stats.numVertexShadersAlive, (int)s_vs_bytecode_cache.size());
+		SETSTAT(stats.numVertexShadersAlive, static_cast<int>(s_vs_bytecode_cache.size()));
 		INCSTAT(stats.numVertexShadersCreated);
 
 		if (g_ActiveConfig.bEnableShaderDebugging && vs_bytecode)
