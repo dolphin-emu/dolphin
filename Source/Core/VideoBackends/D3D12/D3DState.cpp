@@ -241,9 +241,9 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 
 	sampdc.BorderColor[0] = sampdc.BorderColor[1] = sampdc.BorderColor[2] = sampdc.BorderColor[3] = 1.0f;
 
-	sampdc.MaxLOD = (mip == TexMode0::TEXF_NONE) ? 0.0f : (float)state.max_lod / 16.f;
-	sampdc.MinLOD = (float)state.min_lod / 16.f;
-	sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
+	sampdc.MaxLOD = (mip == TexMode0::TEXF_NONE) ? 0.0f : static_cast<float>(state.max_lod) / 16.f;
+	sampdc.MinLOD = static_cast<float>(state.min_lod) / 16.f;
+	sampdc.MipLODBias = static_cast<s32>(state.lod_bias) / 32.0f;
 
 	return sampdc;
 }
