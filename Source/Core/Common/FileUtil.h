@@ -228,9 +228,6 @@ public:
 
 	std::FILE* m_file;
 	bool m_good;
-private:
-	IOFile(IOFile&);
-	IOFile& operator=(IOFile& other);
 };
 
 }  // namespace
