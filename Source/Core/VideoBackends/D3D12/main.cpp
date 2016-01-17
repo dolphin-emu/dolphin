@@ -189,7 +189,7 @@ void VideoBackend::Video_Prepare()
 
 	// VideoCommon
 	BPInit();
-	Fifo_Init();
+	Fifo::Init();
 	IndexGenerator::Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
@@ -215,7 +215,7 @@ void VideoBackend::Shutdown()
 		D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 		// VideoCommon
-		Fifo_Shutdown();
+		Fifo::Shutdown();
 		CommandProcessor::Shutdown();
 		GeometryShaderManager::Shutdown();
 		PixelShaderManager::Shutdown();
