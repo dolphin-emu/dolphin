@@ -567,6 +567,9 @@ include_directories(Externals/Bochs_disasm)
 
 add_subdirectory(Externals/glslang)
 
+add_subdirectory(Externals/cpp-optparse)
+include_directories(Externals/cpp-optparse)
+
 if(USE_SHARED_ENET)
 	check_lib(ENET libenet enet enet/enet.h QUIET)
 	include(CheckSymbolExists)
