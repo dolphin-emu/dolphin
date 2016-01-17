@@ -102,7 +102,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 	ResourceBarrier(D3D::current_command_list, texture12, D3D12_RESOURCE_STATE_COPY_DEST, current_resource_state, level);
 
 	s_texture_upload_heap_current_offset += upload_size;
-	
+
 	// Offset in upload heap must be aligned to D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT (512 bytes).
 	s_texture_upload_heap_current_offset = AlignValue(s_texture_upload_heap_current_offset, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 }
