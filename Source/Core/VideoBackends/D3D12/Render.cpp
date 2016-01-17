@@ -831,7 +831,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc, float gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
+	if (Fifo::g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
 	{
 		if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
 			AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
