@@ -10,6 +10,8 @@
 namespace DX12
 {
 
+static const unsigned int QUEUE_ARRAY_SIZE = 24 * 1024 * 1024;
+
 enum D3DQueueItemType
 {
 	AbortProcessing = 0,
@@ -204,6 +206,11 @@ struct FenceCpuSignalArguments
 	UINT64 fence_value;
 };
 
+struct StopArguments
+{
+	bool eligible_to_move_to_front_of_queue;
+};
+
 struct D3DQueueItem
 {
 	D3DQueueItemType Type;
@@ -236,6 +243,7 @@ struct D3DQueueItem
 		ResetCommandAllocatorArguments ResetCommandAllocator;
 		FenceGpuSignalArguments FenceGpuSignal;
 		FenceCpuSignalArguments FenceCpuSignal;
+		StopArguments Stop;
 	};
 };
 
@@ -245,7 +253,7 @@ public:
 
 	ID3D12QueuedCommandList(ID3D12GraphicsCommandList* backing_command_list, ID3D12CommandQueue* backing_command_queue);
 
-	void ProcessQueuedItems();
+	void ProcessQueuedItems(bool eligible_to_move_to_front_of_queue = false);
 
 	void QueueExecute();
 	void QueueFenceGpuSignal(ID3D12Fence* fence_to_signal, UINT64 fence_value);
@@ -598,16 +606,17 @@ public:
 		);
 
 private:
-
-	static const UINT s_queue_array_size = 24 * 1024 * 1024;
-
 	~ID3D12QueuedCommandList();
+
+	void ResetQueueOverflowTracking();
+	void CheckForOverflow();
 
 	static DWORD WINAPI BackgroundThreadFunction(LPVOID param);
 
-	byte m_queue_array[s_queue_array_size];
-	UINT m_queue_array_front = 0;
-	byte* m_queue_array_back;
+	byte m_queue_array[QUEUE_ARRAY_SIZE];
+	byte* m_queue_array_back = m_queue_array;
+
+	byte* m_queue_array_back_at_start_of_frame = m_queue_array_back;
 
 	DWORD m_background_thread_id;
 	HANDLE m_background_thread;

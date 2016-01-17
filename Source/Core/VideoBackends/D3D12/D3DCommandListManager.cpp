@@ -109,11 +109,6 @@ void D3DCommandListManager::GetCommandList(ID3D12GraphicsCommandList** command_l
 #endif
 }
 
-void D3DCommandListManager::ProcessQueuedWork()
-{
-	m_queued_command_list->ProcessQueuedItems();
-}
-
 void D3DCommandListManager::ExecuteQueuedWork(bool wait_for_gpu_completion)
 {
 	if (wait_for_gpu_completion)
@@ -166,7 +161,7 @@ void D3DCommandListManager::ExecuteQueuedWorkAndPresent(IDXGISwapChain* swap_cha
 	CheckHR(m_queued_command_list->Close());
 	m_queued_command_list->QueueExecute();
 	m_queued_command_list->QueuePresent(swap_chain, sync_interval, flags);
-	m_queued_command_list->ProcessQueuedItems();
+	m_queued_command_list->ProcessQueuedItems(true);
 
 	if (m_current_command_allocator == 0)
 	{
@@ -192,7 +187,7 @@ void D3DCommandListManager::WaitForQueuedWorkToBeExecutedOnGPU()
 	m_queued_command_list->QueueExecute();
 	m_queued_command_list->QueueFenceGpuSignal(m_queue_fence, m_queue_fence_value);
 
-	m_queued_command_list->ProcessQueuedItems();
+	m_queued_command_list->ProcessQueuedItems(true);
 #else
 	CheckHR(m_command_queue->Signal(m_queue_fence, m_queue_fence_value));
 #endif
@@ -289,7 +284,7 @@ void D3DCommandListManager::ClearQueueAndWaitForCompletionOfInflightWork()
 #ifdef USE_D3D12_QUEUED_COMMAND_LISTS
 	m_queued_command_list->ClearQueue(); // Waits for currently-processing work to finish, then clears queue.
 	m_queued_command_list->QueueFenceGpuSignal(m_queue_fence, m_queue_fence_value);
-	m_queued_command_list->ProcessQueuedItems();
+	m_queued_command_list->ProcessQueuedItems(true);
 #else
 	CheckHR(m_command_queue->Signal(m_queue_fence, m_queue_fence_value));
 #endif

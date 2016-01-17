@@ -23,8 +23,6 @@ public:
 	void ExecuteQueuedWork(bool wait_for_gpu_completion = false);
 	void ExecuteQueuedWorkAndPresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
 
-	void ProcessQueuedWork();
-
 	void WaitForQueuedWorkToBeExecutedOnGPU();
 
 	void ClearQueueAndWaitForCompletionOfInflightWork();
