@@ -264,7 +264,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 void XFBSource::CopyEFB(float gamma)
 {
 	// Copy EFB data to XFB and restore render target again
-	const D3D12_VIEWPORT vp12 = { 0.f, 0.f, (float)texWidth, (float)texHeight, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	const D3D12_VIEWPORT vp12 = { 0.f, 0.f, static_cast<float>(texWidth), static_cast<float>(texHeight), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
 	D3D::current_command_list->RSSetViewports(1, &vp12);
 
 	const D3D12_RECT rect = CD3DX12_RECT(0, 0, texWidth, texHeight);

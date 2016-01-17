@@ -37,10 +37,10 @@ static const constexpr DXGI_FORMAT d3d_format_lookup[5*4*2] =
 
 DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 {
-	DXGI_FORMAT retval = d3d_format_lookup[(int)t + 5*(size-1) + 5*4*(int)integer];
+	DXGI_FORMAT retval = d3d_format_lookup[static_cast<int>(t) + 5 * (size-1) + 5 * 4 * static_cast<int>(integer)];
 	if (retval == DXGI_FORMAT_UNKNOWN)
 	{
-		PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", (int)t, size, (int)integer);
+		PanicAlert("VarToD3D: Invalid type/size combo %i , %i, %i", static_cast<int>(t), size, static_cast<int>(integer));
 	}
 	return retval;
 }
