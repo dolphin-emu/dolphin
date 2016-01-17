@@ -48,8 +48,9 @@
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
-    <ClCompile />
-    <ClCompile />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Manifest>
       <AdditionalManifestFiles>DolphinWX.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
@@ -227,6 +228,9 @@
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
       <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
+      <Project>{C636D9D1-82FE-42B5-9987-63B7D4836341}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
