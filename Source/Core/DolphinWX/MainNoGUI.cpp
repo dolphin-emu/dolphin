@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <getopt.h>
 #include <string>
 #include <thread>
 #include <unistd.h>
@@ -25,6 +24,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/State.h"
 
+#include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
@@ -321,37 +321,24 @@ static Platform* GetPlatform()
 
 int main(int argc, char* argv[])
 {
-  int ch, help = 0;
-  struct option longopts[] = {{"exec", no_argument, nullptr, 'e'},
-                              {"help", no_argument, nullptr, 'h'},
-                              {"version", no_argument, nullptr, 'v'},
-                              {nullptr, 0, nullptr, 0}};
+  std::string boot_filename;
+  std::unique_ptr<optparse::OptionParser> parser = CommandLineParse::CreateParser(false);
+  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  std::vector<std::string> args = parser->args();
 
-  while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
+  if (options.is_set("exec"))
   {
-    switch (ch)
-    {
-    case 'e':
-      break;
-    case 'h':
-    case '?':
-      help = 1;
-      break;
-    case 'v':
-      fprintf(stderr, "%s\n", scm_rev_str.c_str());
-      return 1;
-    }
+    boot_filename = (const char*)options.get("exec");
   }
-
-  if (help == 1 || argc == optind)
+  else if (args.size())
   {
-    fprintf(stderr, "%s\n\n", scm_rev_str.c_str());
-    fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
-    fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
-    fprintf(stderr, "  -e, --exec     Load the specified file\n");
-    fprintf(stderr, "  -h, --help     Show this help message\n");
-    fprintf(stderr, "  -v, --version  Print version and exit\n");
-    return 1;
+    boot_filename = args.front();
+    args.erase(args.begin());
+  }
+  else
+  {
+    parser->print_help();
+    return 0;
   }
 
   platform = GetPlatform();
@@ -368,9 +355,9 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(argv[optind]))
+  if (!BootManager::BootCore(boot_filename))
   {
-    fprintf(stderr, "Could not boot %s\n", argv[optind]);
+    fprintf(stderr, "Could not boot %s\n", boot_filename.c_str());
     return 1;
   }
 
