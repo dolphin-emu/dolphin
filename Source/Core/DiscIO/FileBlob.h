@@ -9,8 +9,9 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
+
+namespace File { class IOFile; }
 
 namespace DiscIO
 {
@@ -26,7 +27,7 @@ public:
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-	PlainFileReader(std::FILE* file);
+	PlainFileReader(File::IOFile&& file);
 
 	File::IOFile m_file;
 	s64 m_size;
