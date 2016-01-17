@@ -324,8 +324,8 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 
 		case IDM_RENAMESYMBOL:
 			{
-				Symbol *symbol = m_symbol_db->GetSymbolFromAddr(m_selection);
-				if (symbol)
+		case IDM_RENAMESYMBOL:   // TODO: This option (as well as any other text entry options) is unusable 
+			{		 // on OSX while a game is running (caused by Frame.cpp:1059)
 				{
 					wxTextEntryDialog input_symbol(this, _("Rename symbol:"),
 							wxGetTextFromUserPromptStr,
@@ -434,6 +434,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	ctx->DrawRectangle(0, 0, 16, rc.height);
 	ctx->DrawRectangle(0, 0, rc.width, 5);
 	// ------------
+	m_symbol_db->PopulateSymbolComments();
 
 	// -----------------------------
 	// Walk through all visible rows
@@ -483,6 +484,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			const std::string& opcode   = dis[0];
 			const std::string& operands = dis[1];
 			std::string desc;
+			std::string comment = m_symbol_db->GetCommentFromAddr(address);
 
 			// look for hex strings to decode branches
 			std::string hex_str;
