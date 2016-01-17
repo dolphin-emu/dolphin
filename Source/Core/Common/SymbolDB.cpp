@@ -4,9 +4,9 @@
 
 #include <cstring>
 
-#include "Common/SymbolDB.h"
-#include "Common/Logging/Log.h"
 #include "Common/Fileutil.h"
+#include "Common/Logging/Log.h"
+#include "Common/SymbolDB.h"
 #include "Core/ConfigManager.h"
 
 void SymbolDB::List()
