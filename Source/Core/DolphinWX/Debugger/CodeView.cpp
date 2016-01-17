@@ -6,20 +6,15 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <memory>
-#include <string>
-#include <vector>
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
 #include <wx/colour.h>
 #include <wx/dataobj.h>
 #include <wx/dcclient.h>
-#include <wx/graphics.h>
 #include <wx/menu.h>
 #include <wx/pen.h>
 #include <wx/textdlg.h>
 
-#include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
