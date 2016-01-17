@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
-
+#include <string>		
+  		  
+#include "Common/CommonTypes.h"
 #include "Common/Fileutil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SymbolDB.h"
