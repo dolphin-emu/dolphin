@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <queue>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 

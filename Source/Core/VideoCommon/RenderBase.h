@@ -17,14 +17,15 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Common/MathUtil.h"
-#include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
-#include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;

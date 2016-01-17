@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"

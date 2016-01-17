@@ -22,7 +22,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexLoaderUtils.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 class NullNativeVertexFormat : public NativeVertexFormat

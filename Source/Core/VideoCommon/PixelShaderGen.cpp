@@ -2,11 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cassert>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
-#include "Common/Common.h"
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"

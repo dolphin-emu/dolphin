@@ -10,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 // Global flag to signal if FifoRecorder is active.
 extern bool g_bRecordFifoData;

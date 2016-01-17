@@ -4,15 +4,12 @@
 
 #include <cstring>
 
-#include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 #define AMASK 0xFF000000
 

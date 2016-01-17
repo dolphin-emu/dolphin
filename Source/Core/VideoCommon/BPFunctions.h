@@ -9,8 +9,9 @@
 
 #pragma once
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/VideoCommon.h"
+
+struct BPCmd;
 
 namespace BPFunctions
 {

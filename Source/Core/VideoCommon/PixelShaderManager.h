@@ -4,16 +4,10 @@
 
 #pragma once
 
-#include <array>
-
-#include "VideoCommon/BPMemory.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
-#include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/XFMemory.h"
 
 class PointerWrap;
-
-
 
 // The non-API dependent parts.
 class PixelShaderManager

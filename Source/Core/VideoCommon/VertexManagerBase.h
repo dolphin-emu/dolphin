@@ -10,10 +10,10 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/NativeVertexFormat.h"
 
 class NativeVertexFormat;
 class PointerWrap;
+struct PortableVertexDeclaration;
 
 enum PrimitiveType {
 	PRIMITIVE_POINTS,
