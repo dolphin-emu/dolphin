@@ -261,6 +261,8 @@ public:
 	void QueuePresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
 	void ClearQueue();
 
+	long GetOutstandingTaskCount();
+
 	// IUnknown methods
 
 	ULONG STDMETHODCALLTYPE AddRef();

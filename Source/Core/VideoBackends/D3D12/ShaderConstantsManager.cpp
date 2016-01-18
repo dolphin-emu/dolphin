@@ -41,9 +41,9 @@ static const unsigned int s_shader_constant_buffer_slot_count[SHADER_STAGE_COUNT
 };
 
 static const unsigned int s_shader_constant_buffer_slot_rollover_threshold[SHADER_STAGE_COUNT] = {
-	10000,
-	10000,
-	10000
+	18333,
+	18333,
+	18333
 };
 
 static unsigned int s_shader_constant_buffer_current_slot_index[SHADER_STAGE_COUNT] = {};

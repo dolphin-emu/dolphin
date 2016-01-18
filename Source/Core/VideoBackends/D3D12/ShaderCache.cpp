@@ -336,6 +336,8 @@ D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCach
 
 	s_shader_blob_list.push_back(bytecode_blob);
 
+	CHECK(bytecode_blob->Size() > 0, "Hmm..");
+
 	D3D12_SHADER_BYTECODE shader_bytecode;
 	shader_bytecode.pShaderBytecode = bytecode_blob->Data();
 	shader_bytecode.BytecodeLength = bytecode_blob->Size();

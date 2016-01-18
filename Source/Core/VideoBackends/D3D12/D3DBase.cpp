@@ -885,23 +885,20 @@ void Present()
 {
 	unsigned int present_flags = 0;
 
-	// For syncIntervals of '0', take care to not Present if next-in-line back buffer is busy,
+	// For syncIntervals of '0' (vsync off), take care to not Present if next-in-line back buffer is busy,
 	// else Windows can throttle presentation rate.
-	if (g_ActiveConfig.IsVSync() == false)
+
+	DWORD result = WaitForSingleObject(s_swap_chain_waitable_object, 0);
+
+	if (result == WAIT_TIMEOUT && g_ActiveConfig.IsVSync() == false)
 	{
-		// Determine if swap chain back buffer is currently in use.
-		DWORD result = WaitForSingleObject(s_swap_chain_waitable_object, 0);
+		present_flags = DXGI_PRESENT_TEST; // Causes Present to be a no-op.
+	}
+	else
+	{
+		s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
 
-		if (result == WAIT_TIMEOUT)
-		{
-			present_flags = DXGI_PRESENT_TEST; // Causes Present to be a no-op.
-		}
-		else
-		{
-			s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
-
-			s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
-		}
+		s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
 	}
 
 	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swap_chain, g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
