@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdio>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -129,8 +128,8 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
 		return false;
 	}
 #else
-	fseeko(m_file.GetHandle(), (m_blocksize * block_num), SEEK_SET);
-	if (fread(out_ptr, 1, (m_blocksize * num_blocks), m_file.GetHandle()) != (m_blocksize * num_blocks))
+	m_file.Seek(m_blocksize * block_num, SEEK_SET);
+	if (!m_file.ReadBytes(out_ptr, m_blocksize * num_blocks))
 		return false;
 #endif
 	return true;
