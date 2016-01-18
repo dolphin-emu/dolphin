@@ -159,9 +159,18 @@ bool ReadFileToString(const std::string& filename, std::string& str);
 class IOFile : public NonCopyable
 {
 public:
+	// Flags that can be provided to the Open method or to the IOFile constructor
+	// to get alternative behaviors.
+	enum OpenFlags
+	{
+		OPENFLAGS_DEFAULT = 0,
+		DISABLE_BUFFERING = 1,
+	};
+
 	IOFile();
 	IOFile(std::FILE* file);
-	IOFile(const std::string& filename, const char openmode[]);
+	IOFile(const std::string& filename, const char openmode[],
+	       OpenFlags flags = OPENFLAGS_DEFAULT);
 
 	~IOFile();
 
@@ -170,7 +179,8 @@ public:
 
 	void Swap(IOFile& other);
 
-	bool Open(const std::string& filename, const char openmode[]);
+	bool Open(const std::string& filename, const char openmode[],
+	          OpenFlags flags = OPENFLAGS_DEFAULT);
 	bool Close();
 
 	template <typename T>
