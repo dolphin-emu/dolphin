@@ -116,13 +116,13 @@ namespace JitInterface
 			PanicAlert("Failed to open %s", filename.c_str());
 			return;
 		}
-		fprintf(f.GetHandle(), "origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
+		f.WriteFormat("origAddr\tblkName\trunCount\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
 		for (auto& stat : prof_stats.block_stats)
 		{
 			std::string name = g_symbolDB.GetDescription(stat.addr);
 			double percent = 100.0 * (double)stat.cost / (double)prof_stats.cost_sum;
 			double timePercent = 100.0 * (double)stat.tick_counter / (double)prof_stats.timecost_sum;
-			fprintf(f.GetHandle(), "%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
+			f.WriteFormat("%08x\t%s\t%" PRIu64 "\t%" PRIu64 "\t%" PRIu64 "\t%.2f\t%.2f\t%.2f\t%i\n",
 					stat.addr, name.c_str(), stat.run_count, stat.cost,
 					stat.tick_counter, percent, timePercent,
 					(double)stat.tick_counter*1000.0/(double)prof_stats.countsPerSec, stat.block_size);
