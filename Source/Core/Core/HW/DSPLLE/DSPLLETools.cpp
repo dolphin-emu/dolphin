@@ -55,22 +55,3 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 
 	return File::WriteStringToFile(text, txtFile);
 }
-
-// TODO make this useful :p
-bool DumpCWCode(u32 _Address, u32 _Length)
-{
-	std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "DSP_UCode.bin";
-	File::IOFile pFile(filename, "wb");
-
-	if (pFile)
-	{
-		for (size_t i = _Address; i != _Address + _Length; ++i)
-		{
-			u16 val = g_dsp.iram[i];
-			fprintf(pFile.GetHandle(), "    cw 0x%04x \n", val);
-		}
-		return true;
-	}
-
-	return false;
-}
