@@ -8,6 +8,7 @@
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DState.h"
+#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
@@ -27,18 +28,12 @@ namespace DX12
 static const unsigned int MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16;
 static const unsigned int MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 4;
 
-static u8* s_last_gpu_vertex_buffer_location = nullptr;
-static unsigned int s_last_stride = UINT_MAX;
-static u8* s_current_buffer_pointer_before_write = nullptr;
-static u8* s_index_buffer_pointer = nullptr;
-static u32 s_last_index_write_size = 0;
-
 void VertexManager::SetIndexBuffer()
 {
 	D3D12_INDEX_BUFFER_VIEW ib_view = {
-		m_index_buffer->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
-		MAX_IBUFFER_SIZE,                       // UINT SizeInBytes;
-		DXGI_FORMAT_R16_UINT                    // DXGI_FORMAT Format;
+		m_index_stream_buffer->GetBaseGPUAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
+		m_index_stream_buffer->GetSize(),           // UINT SizeInBytes;
+		DXGI_FORMAT_R16_UINT                        // DXGI_FORMAT Format;
 	};
 
 	D3D::current_command_list->IASetIndexBuffer(&ib_view);
@@ -49,35 +44,8 @@ void VertexManager::CreateDeviceObjects()
 	m_vertex_draw_offset = 0;
 	m_index_draw_offset = 0;
 
-	CheckHR(
-		D3D::device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(MAX_VBUFFER_SIZE),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_vertex_buffer)
-			)
-		);
-
-	D3D::SetDebugObjectName12(m_vertex_buffer, "Vertex Buffer of VertexManager");
-
-	CheckHR(m_vertex_buffer->Map(0, nullptr, &m_vertex_buffer_data));
-
-	CheckHR(
-		D3D::device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(MAX_IBUFFER_SIZE),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_index_buffer)
-			)
-		);
-
-	D3D::SetDebugObjectName12(m_index_buffer, "Index Buffer of VertexManager");
-
-	CheckHR(m_index_buffer->Map(0, nullptr, &m_index_buffer_data));
+	m_vertex_stream_buffer = new D3DStreamBuffer(VertexManager::MAXVBUFFERSIZE * 2, MAX_VBUFFER_SIZE, &m_vertex_stream_buffer_reallocated);
+	m_index_stream_buffer = new D3DStreamBuffer(VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 2, VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16, &m_index_stream_buffer_reallocated);
 
 	SetIndexBuffer();
 
@@ -89,21 +57,16 @@ void VertexManager::CreateDeviceObjects()
 
 void VertexManager::DestroyDeviceObjects()
 {
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_vertex_buffer);
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_index_buffer);
+	SAFE_DELETE(m_vertex_stream_buffer);
+	SAFE_DELETE(m_index_stream_buffer);
 
-	SAFE_DELETE(m_vertex_cpu_buffer);
-	SAFE_DELETE(m_index_cpu_buffer);
+	SAFE_DELETE_ARRAY(m_vertex_cpu_buffer);
+	SAFE_DELETE_ARRAY(m_index_cpu_buffer);
 }
 
 VertexManager::VertexManager()
 {
 	CreateDeviceObjects();
-
-	s_pCurBufferPointer = s_pBaseBufferPointer = static_cast<u8*>(m_vertex_buffer_data);
-	s_pEndBufferPointer = s_pBaseBufferPointer + MAX_VBUFFER_SIZE;
-
-	s_index_buffer_pointer = static_cast<u8*>(m_index_buffer_data);
 }
 
 VertexManager::~VertexManager()
@@ -113,14 +76,14 @@ VertexManager::~VertexManager()
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
 {
-	u32 vertexBufferSize = static_cast<u32>(s_pCurBufferPointer - s_pBaseBufferPointer);
-	s_last_index_write_size = IndexGenerator::GetIndexLen() * sizeof(u16);
+	u32 vertex_data_size = IndexGenerator::GetNumVerts() * stride;
+	u32 index_data_size = IndexGenerator::GetIndexLen() * sizeof(u16);
 
-	m_vertex_draw_offset = static_cast<u32>(s_current_buffer_pointer_before_write - s_pBaseBufferPointer);
-	m_index_draw_offset = static_cast<u32>(s_index_buffer_pointer - static_cast<u8*>(m_index_buffer_data));
+	m_vertex_stream_buffer->OverrideSizeOfPreviousAllocation(vertex_data_size);
+	m_index_stream_buffer->OverrideSizeOfPreviousAllocation(index_data_size);
 
-	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertexBufferSize);
-	ADDSTAT(stats.thisFrame.bytesIndexStreamed, s_last_index_write_size);
+	ADDSTAT(stats.thisFrame.bytesVertexStreamed, vertex_data_size);
+	ADDSTAT(stats.thisFrame.bytesIndexStreamed, index_data_size);
 }
 
 void VertexManager::Draw(u32 stride)
@@ -132,9 +95,9 @@ void VertexManager::Draw(u32 stride)
 	if (D3D::command_list_mgr->m_dirty_vertex_buffer || s_previous_stride != stride)
 	{
 		D3D12_VERTEX_BUFFER_VIEW vb_view = {
-			m_vertex_buffer->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
-			MAX_VBUFFER_SIZE,                        // UINT SizeInBytes;
-			stride                                   // UINT StrideInBytes;
+			m_vertex_stream_buffer->GetBaseGPUAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
+			m_vertex_stream_buffer->GetSize(),           // UINT SizeInBytes;
+			stride                                       // UINT StrideInBytes;
 		};
 
 		D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
@@ -214,57 +177,42 @@ void VertexManager::ResetBuffer(u32 stride)
 {
 	if (s_cull_all)
 	{
-		if (!m_using_cpu_only_buffer)
-		{
-			s_last_gpu_vertex_buffer_location = s_pCurBufferPointer;
-		}
-
-		m_using_cpu_only_buffer = true;
-
 		s_pCurBufferPointer = m_vertex_cpu_buffer;
 		s_pBaseBufferPointer = m_vertex_cpu_buffer;
 		s_pEndBufferPointer = m_vertex_cpu_buffer + MAXVBUFFERSIZE;
 
 		IndexGenerator::Start(reinterpret_cast<u16*>(m_index_cpu_buffer));
+		return;
 	}
-	else
+
+	bool command_list_executed = m_vertex_stream_buffer->AllocateSpaceInBuffer(MAXVBUFFERSIZE, stride);
+
+	if (m_vertex_stream_buffer_reallocated)
 	{
-		if (m_using_cpu_only_buffer)
-		{
-			s_pBaseBufferPointer = static_cast<u8*>(m_vertex_buffer_data);
-			s_pEndBufferPointer = static_cast<u8*>(m_vertex_buffer_data) + MAX_VBUFFER_SIZE;
-			s_pCurBufferPointer = s_last_gpu_vertex_buffer_location;
-
-			m_using_cpu_only_buffer = false;
-		}
-
-		if (stride != s_last_stride)
-		{
-			s_last_stride = stride;
-			u32 padding = (s_pCurBufferPointer - s_pBaseBufferPointer) % stride;
-			if (padding)
-			{
-				s_pCurBufferPointer += stride - padding;
-			}
-		}
-
-		if ((s_pCurBufferPointer - s_pBaseBufferPointer) + MAXVBUFFERSIZE > MAX_VBUFFER_SIZE)
-		{
-			s_pCurBufferPointer = s_pBaseBufferPointer;
-			s_last_stride = 0;
-		}
-
-		s_current_buffer_pointer_before_write = s_pCurBufferPointer;
-
-		s_index_buffer_pointer += s_last_index_write_size;
-
-		if ((s_index_buffer_pointer - static_cast<u8*>(m_index_buffer_data)) + MAXIBUFFERSIZE > MAX_IBUFFER_SIZE)
-		{
-			s_index_buffer_pointer = static_cast<u8*>(m_index_buffer_data);
-		}
-
-		IndexGenerator::Start(reinterpret_cast<u16*>(s_index_buffer_pointer));
+		D3D::command_list_mgr->m_dirty_vertex_buffer = true;
+		m_vertex_stream_buffer_reallocated = false;
 	}
+
+	s_pBaseBufferPointer = static_cast<u8*>(m_vertex_stream_buffer->GetBaseCPUAddress());
+	s_pEndBufferPointer = s_pBaseBufferPointer + m_vertex_stream_buffer->GetSize();
+	s_pCurBufferPointer = static_cast<u8*>(m_vertex_stream_buffer->GetCPUAddressOfCurrentAllocation());
+	m_vertex_draw_offset = m_vertex_stream_buffer->GetOffsetOfCurrentAllocation();
+
+	command_list_executed |= m_index_stream_buffer->AllocateSpaceInBuffer(MAXIBUFFERSIZE  * sizeof(u16), sizeof(u16));
+	if (command_list_executed)
+	{
+		g_renderer->SetViewport();
+		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	}
+
+	if (m_index_stream_buffer_reallocated)
+	{
+		SetIndexBuffer();
+		m_index_stream_buffer_reallocated = false;
+	}
+
+	m_index_draw_offset = m_index_stream_buffer->GetOffsetOfCurrentAllocation();
+	IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCPUAddressOfCurrentAllocation()));
 }
 
 }  // namespace

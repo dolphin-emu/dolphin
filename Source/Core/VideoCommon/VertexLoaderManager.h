@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/DataReader.h"
 
+struct PortableVertexDeclaration;
 class NativeVertexFormat;
 
 namespace VertexLoaderManager

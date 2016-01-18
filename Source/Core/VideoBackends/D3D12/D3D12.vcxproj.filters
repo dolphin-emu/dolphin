@@ -76,6 +76,9 @@
     <ClCompile Include="ShaderConstantsManager.cpp">
       <Filter>Render</Filter>
     </ClCompile>
+    <ClCompile Include="D3DStreamBuffer.cpp">
+      <Filter>D3D12</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -147,6 +150,9 @@
     </ClInclude>
     <ClInclude Include="ShaderConstantsManager.h">
       <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="D3DStreamBuffer.h">
+      <Filter>D3D12</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
