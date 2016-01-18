@@ -4,6 +4,7 @@
 
 #include "D3DBase.h"
 #include "D3DCommandListManager.h"
+#include "D3DStreamBuffer.h"
 
 #include "ShaderConstantsManager.h"
 
@@ -24,9 +25,7 @@ enum SHADER_STAGE
 	SHADER_STAGE_COUNT = 3
 };
 
-static ID3D12Resource* s_shader_constant_buffers[DX12::SHADER_STAGE_COUNT] = {};
-static void* s_shader_constant_buffer_data[SHADER_STAGE_COUNT] = {};
-static D3D12_GPU_VIRTUAL_ADDRESS s_shader_constant_buffer_gpu_va[SHADER_STAGE_COUNT] = {};
+static D3DStreamBuffer* s_shader_constant_stream_buffers[SHADER_STAGE_COUNT] = {};
 
 static const unsigned int s_shader_constant_buffer_padded_sizes[SHADER_STAGE_COUNT] = {
 	(sizeof(GeometryShaderConstants) + 0xff) & ~0xff,
@@ -34,46 +33,12 @@ static const unsigned int s_shader_constant_buffer_padded_sizes[SHADER_STAGE_COU
 	(sizeof(VertexShaderConstants)   + 0xff) & ~0xff
 };
 
-static const unsigned int s_shader_constant_buffer_slot_count[SHADER_STAGE_COUNT] = {
-	50000,
-	50000,
-	50000
-};
-
-static const unsigned int s_shader_constant_buffer_slot_rollover_threshold[SHADER_STAGE_COUNT] = {
-	10000,
-	10000,
-	10000
-};
-
-static unsigned int s_shader_constant_buffer_current_slot_index[SHADER_STAGE_COUNT] = {};
-
 void ShaderConstantsManager::Init()
 {
 	for (unsigned int i = 0; i < SHADER_STAGE_COUNT; i++)
 	{
-		s_shader_constant_buffer_current_slot_index[i] = 0;
-
-		const unsigned int upload_heap_size = s_shader_constant_buffer_padded_sizes[i] * s_shader_constant_buffer_slot_count[i];
-
-		CheckHR(
-			D3D::device12->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(upload_heap_size),
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&s_shader_constant_buffers[i])
-				)
-			);
-
-		D3D::SetDebugObjectName12(s_shader_constant_buffers[i], "constant buffer used to emulate the GX pipeline");
-
-		// Obtain persistent CPU pointer, never needs to be unmapped.
-		CheckHR(s_shader_constant_buffers[i]->Map(0, nullptr, &s_shader_constant_buffer_data[i]));
-
-		// Obtain GPU VA for upload heap, to avoid repeated calls to ID3D12Resource::GetGPUVirtualAddress.
-		s_shader_constant_buffer_gpu_va[i] = s_shader_constant_buffers[i]->GetGPUVirtualAddress();
+		// Allow a large maximum size, as we want to minimize stalls here.
+		s_shader_constant_stream_buffers[i] = new D3DStreamBuffer(2 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
 	}
 }
 
@@ -81,24 +46,23 @@ void ShaderConstantsManager::Shutdown()
 {
 	for (unsigned int i = 0; i < SHADER_STAGE_COUNT; i++)
 	{
-		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_shader_constant_buffers[i]);
-
-		s_shader_constant_buffers[i] = nullptr;
-		s_shader_constant_buffer_current_slot_index[i] = 0;
-		s_shader_constant_buffer_data[i] = nullptr;
+		SAFE_DELETE(s_shader_constant_stream_buffers[i]);
 	}
 }
 
-void ShaderConstantsManager::LoadAndSetGeometryShaderConstants()
+bool ShaderConstantsManager::LoadAndSetGeometryShaderConstants()
 {
+	bool command_list_executed = false;
+
 	if (GeometryShaderManager::dirty)
 	{
-		s_shader_constant_buffer_current_slot_index[SHADER_STAGE_GEOMETRY_SHADER]++;
+		command_list_executed = s_shader_constant_stream_buffers[SHADER_STAGE_GEOMETRY_SHADER]->AllocateSpaceInBuffer(
+			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_GEOMETRY_SHADER],
+			0 // The padded sizes are already aligned to 256 bytes, so don't need to worry about manually aligning offset.
+			);
 
 		memcpy(
-			static_cast<u8*>(s_shader_constant_buffer_data[SHADER_STAGE_GEOMETRY_SHADER]) +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_GEOMETRY_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_GEOMETRY_SHADER],
+			s_shader_constant_stream_buffers[SHADER_STAGE_GEOMETRY_SHADER]->GetCPUAddressOfCurrentAllocation(),
 			&GeometryShaderManager::constants,
 			sizeof(GeometryShaderConstants));
 
@@ -113,25 +77,28 @@ void ShaderConstantsManager::LoadAndSetGeometryShaderConstants()
 	{
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(
 			DESCRIPTOR_TABLE_GS_CBV,
-			s_shader_constant_buffer_gpu_va[SHADER_STAGE_GEOMETRY_SHADER] +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_GEOMETRY_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_GEOMETRY_SHADER]
+			s_shader_constant_stream_buffers[SHADER_STAGE_GEOMETRY_SHADER]->GetGPUAddressOfCurrentAllocation()
 			);
 
 		D3D::command_list_mgr->m_dirty_gs_cbv = false;
 	}
+
+	return command_list_executed;
 }
 
-void ShaderConstantsManager::LoadAndSetPixelShaderConstants()
+bool ShaderConstantsManager::LoadAndSetPixelShaderConstants()
 {
+	bool command_list_executed = false;
+
 	if (PixelShaderManager::dirty)
 	{
-		s_shader_constant_buffer_current_slot_index[SHADER_STAGE_PIXEL_SHADER]++;
+		command_list_executed = s_shader_constant_stream_buffers[SHADER_STAGE_PIXEL_SHADER]->AllocateSpaceInBuffer(
+			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_PIXEL_SHADER],
+			0 // The padded sizes are already aligned to 256 bytes, so don't need to worry about manually aligning offset.
+			);
 
 		memcpy(
-			static_cast<u8*>(s_shader_constant_buffer_data[SHADER_STAGE_PIXEL_SHADER]) +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_PIXEL_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_PIXEL_SHADER],
+			s_shader_constant_stream_buffers[SHADER_STAGE_PIXEL_SHADER]->GetCPUAddressOfCurrentAllocation(),
 			&PixelShaderManager::constants,
 			sizeof(PixelShaderConstants));
 
@@ -146,25 +113,28 @@ void ShaderConstantsManager::LoadAndSetPixelShaderConstants()
 	{
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(
 			DESCRIPTOR_TABLE_PS_CBVONE,
-			s_shader_constant_buffer_gpu_va[SHADER_STAGE_PIXEL_SHADER] +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_PIXEL_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_PIXEL_SHADER]
+			s_shader_constant_stream_buffers[SHADER_STAGE_PIXEL_SHADER]->GetGPUAddressOfCurrentAllocation()
 			);
 
 		D3D::command_list_mgr->m_dirty_ps_cbv = false;
 	}
+
+	return command_list_executed;
 }
 
-void ShaderConstantsManager::LoadAndSetVertexShaderConstants()
+bool ShaderConstantsManager::LoadAndSetVertexShaderConstants()
 {
+	bool command_list_executed = false;
+
 	if (VertexShaderManager::dirty)
 	{
-		s_shader_constant_buffer_current_slot_index[SHADER_STAGE_VERTEX_SHADER]++;
+		command_list_executed = s_shader_constant_stream_buffers[SHADER_STAGE_VERTEX_SHADER]->AllocateSpaceInBuffer(
+			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_VERTEX_SHADER],
+			0 // The padded sizes are already aligned to 256 bytes, so don't need to worry about manually aligning offset.
+			);
 
 		memcpy(
-			static_cast<u8*>(s_shader_constant_buffer_data[SHADER_STAGE_VERTEX_SHADER]) +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_VERTEX_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_VERTEX_SHADER],
+			s_shader_constant_stream_buffers[SHADER_STAGE_VERTEX_SHADER]->GetCPUAddressOfCurrentAllocation(),
 			&VertexShaderManager::constants,
 			sizeof(VertexShaderConstants));
 
@@ -178,9 +148,7 @@ void ShaderConstantsManager::LoadAndSetVertexShaderConstants()
 	if (D3D::command_list_mgr->m_dirty_vs_cbv)
 	{
 		const D3D12_GPU_VIRTUAL_ADDRESS calculated_gpu_va =
-			s_shader_constant_buffer_gpu_va[SHADER_STAGE_VERTEX_SHADER] +
-			s_shader_constant_buffer_padded_sizes[SHADER_STAGE_VERTEX_SHADER] *
-			s_shader_constant_buffer_current_slot_index[SHADER_STAGE_VERTEX_SHADER];
+			s_shader_constant_stream_buffers[SHADER_STAGE_VERTEX_SHADER]->GetGPUAddressOfCurrentAllocation();
 
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(
 			DESCRIPTOR_TABLE_VS_CBV,
@@ -195,17 +163,8 @@ void ShaderConstantsManager::LoadAndSetVertexShaderConstants()
 
 		D3D::command_list_mgr->m_dirty_vs_cbv = false;
 	}
-}
 
-void ShaderConstantsManager::CheckToResetIndexPositionInUploadHeaps()
-{
-	for (unsigned int i = 0; i < SHADER_STAGE_COUNT; i++)
-	{
-		if (s_shader_constant_buffer_current_slot_index[i] > s_shader_constant_buffer_slot_rollover_threshold[i])
-		{
-			s_shader_constant_buffer_current_slot_index[i] = 0;
-		}
-	}
+	return command_list_executed;
 }
 
 }
