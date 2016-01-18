@@ -32,7 +32,6 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
-	, m_Card(nullptr)
 {}
 
 void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
