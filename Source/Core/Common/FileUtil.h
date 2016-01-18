@@ -165,7 +165,6 @@ public:
 	};
 
 	IOFile();
-	IOFile(std::FILE* file);
 	IOFile(const std::string& filename, const char openmode[],
 	       OpenFlags flags = OPENFLAGS_DEFAULT);
 
@@ -226,12 +225,6 @@ public:
 	bool IsGood() const { return m_good; }
 	bool IsEOF() const { return std::feof(m_file) != 0; }
 	operator void*() { return m_good ? m_file : nullptr; }
-
-	std::FILE* ReleaseHandle();
-
-	std::FILE* GetHandle() { return m_file; }
-
-	void SetHandle(std::FILE* file);
 
 	bool Seek(s64 off, int origin);
 	u64 Tell() const;

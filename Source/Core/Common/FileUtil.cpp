@@ -906,10 +906,6 @@ IOFile::IOFile()
 	: m_file(nullptr), m_good(true)
 {}
 
-IOFile::IOFile(std::FILE* file)
-	: m_file(file), m_good(true)
-{}
-
 IOFile::IOFile(const std::string& filename, const char openmode[],
                OpenFlags flags)
 	: m_file(nullptr), m_good(true)
@@ -967,20 +963,6 @@ bool IOFile::Close()
 
 	m_file = nullptr;
 	return m_good;
-}
-
-std::FILE* IOFile::ReleaseHandle()
-{
-	std::FILE* const ret = m_file;
-	m_file = nullptr;
-	return ret;
-}
-
-void IOFile::SetHandle(std::FILE* file)
-{
-	Close();
-	Clear();
-	m_file = file;
 }
 
 u64 IOFile::GetSize()
