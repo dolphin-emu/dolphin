@@ -242,6 +242,7 @@ public:
 	// clear error state
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
+private:
 	std::FILE* m_file;
 	bool m_good;
 };
