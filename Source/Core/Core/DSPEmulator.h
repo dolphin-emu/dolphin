@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -32,4 +33,4 @@ public:
 	virtual u32 DSP_UpdateRate() = 0;
 };
 
-DSPEmulator *CreateDSPEmulator(bool HLE);
+std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool hle);
