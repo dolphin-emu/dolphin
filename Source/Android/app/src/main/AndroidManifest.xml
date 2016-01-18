@@ -56,7 +56,7 @@
             android:label="@string/add_directory_title"/>
 
         <activity
-            android:name=".activities.SettingsActivity"
+            android:name=".ui.settings.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
             android:label="@string/grid_menu_settings"/>
 
@@ -70,8 +70,6 @@
 
 
         <service android:name=".services.AssetCopyService"/>
-
-        <service android:name=".services.SettingsSaveService"/>
 
         <provider
             android:name=".model.GameProvider"

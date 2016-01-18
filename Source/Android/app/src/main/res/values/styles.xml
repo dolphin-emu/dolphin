@@ -17,7 +17,7 @@
     </style>
 
     <!-- Same as above, but use default action bar, and mandate margins. -->
-    <style name="DolphinSettingsBase" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="DolphinSettingsBase" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
