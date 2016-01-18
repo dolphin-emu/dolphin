@@ -302,7 +302,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 	if (vs_iterator != s_vs_bytecode_cache.end())
 	{
 		s_last_vertex_shader_bytecode = vs_iterator->second;
-		GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
+		GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	}
 	else
 	{
@@ -355,8 +355,31 @@ const GeometryShaderUid* ShaderCache::GetActiveGeometryShaderUid() { return &s_l
 const PixelShaderUid* ShaderCache::GetActivePixelShaderUid() { return &s_last_pixel_shader_uid; }
 const VertexShaderUid* ShaderCache::GetActiveVertexShaderUid() { return &s_last_vertex_shader_uid; }
 
-D3D12_SHADER_BYTECODE ShaderCache::GetGeometryShaderFromUid(const GeometryShaderUid* uid) { return s_gs_bytecode_cache[*uid]; }
-D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* uid) { return s_ps_bytecode_cache[*uid]; }
-D3D12_SHADER_BYTECODE ShaderCache::GetVertexShaderFromUid(const VertexShaderUid* uid) { return s_vs_bytecode_cache[*uid]; }
+D3D12_SHADER_BYTECODE ShaderCache::GetGeometryShaderFromUid(const GeometryShaderUid* uid)
+{
+	auto bytecode = s_gs_bytecode_cache.find(*uid);
+	if (bytecode != s_gs_bytecode_cache.end())
+		return bytecode->second;
+	else
+		return D3D12_SHADER_BYTECODE();
+}
+
+D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* uid)
+{
+	auto bytecode = s_ps_bytecode_cache.find(*uid);
+	if (bytecode != s_ps_bytecode_cache.end())
+		return bytecode->second;
+	else
+		return D3D12_SHADER_BYTECODE();
+}
+
+D3D12_SHADER_BYTECODE ShaderCache::GetVertexShaderFromUid(const VertexShaderUid* uid)
+{
+	auto bytecode = s_vs_bytecode_cache.find(*uid);
+	if (bytecode != s_vs_bytecode_cache.end())
+		return bytecode->second;
+	else
+		return D3D12_SHADER_BYTECODE();
+}
 
 }

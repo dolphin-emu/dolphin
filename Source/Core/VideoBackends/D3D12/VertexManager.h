@@ -9,6 +9,8 @@
 namespace DX12
 {
 
+class D3DStreamBuffer;
+
 class VertexManager final : public VertexManagerBase
 {
 public:
@@ -25,7 +27,6 @@ protected:
 	void ResetBuffer(u32 stride) override;
 
 private:
-
 	void PrepareDrawBuffers(u32 stride);
 	void Draw(u32 stride);
 	void vFlush(bool use_dst_alpha) override;
@@ -33,12 +34,12 @@ private:
 	u32 m_vertex_draw_offset;
 	u32 m_index_draw_offset;
 
-	ID3D12Resource* m_vertex_buffer;
-	void* m_vertex_buffer_data;
-	ID3D12Resource* m_index_buffer;
-	void* m_index_buffer_data;
+	D3DStreamBuffer* m_vertex_stream_buffer = nullptr;
+	D3DStreamBuffer* m_index_stream_buffer = nullptr;
 
-	bool m_using_cpu_only_buffer = false;
+	bool m_vertex_stream_buffer_reallocated = false;
+	bool m_index_stream_buffer_reallocated = false;
+
 	u8* m_index_cpu_buffer = nullptr;
 	u8* m_vertex_cpu_buffer = nullptr;
 };
