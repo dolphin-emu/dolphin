@@ -216,18 +216,33 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // bad=true means carefully load map files that might not be from exactly the right version
 bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 {
-	File::IOFile f(filename, "r");
-	if (!f)
+	std::string contents;
+	if (!File::ReadFileToString(filename, contents))
 		return false;
 
 	// four columns are used in American Mensa Academy map files and perhaps other games
 	bool started = false, four_columns = false;
 	int good_count = 0, bad_count = 0;
 
-	char line[512];
-	while (fgets(line, 512, f.GetHandle()))
+	for (size_t line_start = 0, line_end;
+	     line_start < contents.size();
+	     line_start = line_end + 1)
 	{
-		size_t length = strlen(line);
+		line_end = contents.find('\n', line_start);
+		if (line_end == std::string::npos)
+			line_end = contents.size();
+
+		std::string line_data = contents.substr(line_start, line_end - line_start);
+		size_t length = line_data.size();
+		if (length > 1 && line_data[length - 2] == '\r')
+		{
+			line_data.resize(--length);
+			line_data[length - 1] = '\n';
+		}
+
+		// This is terrible, but so is the rest of this code. I'm just trying to
+		// fit in.
+		char* line = const_cast<char*>(line_data.data());
 		if (length < 4)
 			continue;
 
@@ -387,7 +402,7 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 	// --------------------------------------------------------------------
 	// Walk through every code row
 	// -------------------------
-	fprintf(f.GetHandle(), ".text\n"); // Write ".text" at the top
+	f.WriteFormat(".text\n"); // Write ".text" at the top
 	XFuncMap::const_iterator itr = functions.begin();
 	u32 LastAddress = 0x80004000;
 	std::string LastSymbolName;
@@ -397,7 +412,7 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 		const Symbol &rSymbol = itr->second;
 		if (!WithCodes)
 		{
-			fprintf(f.GetHandle(),"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
+			f.WriteFormat("%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
 			0, rSymbol.name.c_str());
 			++itr;
 		}
@@ -433,10 +448,10 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
 				int Address = LastAddress + i;
 
 				std::string disasm = debugger->Disassemble(Address);
-				fprintf(f.GetHandle(),"%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm.c_str());
+				f.WriteFormat("%08x %i %20s %s\n", Address, 0, TempSym.c_str(), disasm.c_str());
 			}
 			// Write a blank line after each block
-			fprintf(f.GetHandle(), "\n");
+			f.WriteFormat("\n");
 		}
 	}
 
