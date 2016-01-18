@@ -910,10 +910,11 @@ IOFile::IOFile(std::FILE* file)
 	: m_file(file), m_good(true)
 {}
 
-IOFile::IOFile(const std::string& filename, const char openmode[])
+IOFile::IOFile(const std::string& filename, const char openmode[],
+               OpenFlags flags)
 	: m_file(nullptr), m_good(true)
 {
-	Open(filename, openmode);
+	Open(filename, openmode, flags);
 }
 
 IOFile::~IOFile()
@@ -939,7 +940,8 @@ void IOFile::Swap(IOFile& other)
 	std::swap(m_good, other.m_good);
 }
 
-bool IOFile::Open(const std::string& filename, const char openmode[])
+bool IOFile::Open(const std::string& filename, const char openmode[],
+                  OpenFlags flags)
 {
 	Close();
 #ifdef _WIN32
@@ -947,6 +949,12 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 #else
 	m_file = fopen(filename.c_str(), openmode);
 #endif
+
+	if (IsOpen())
+	{
+		if (flags & DISABLE_BUFFERING)
+			std::setvbuf(m_file, nullptr, _IONBF, 0);
+	}
 
 	m_good = IsOpen();
 	return m_good;
