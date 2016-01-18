@@ -9,6 +9,7 @@
 
 #include <map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -71,10 +72,12 @@ class SymbolDB
 public:
 	typedef std::map<u32, Symbol>  XFuncMap;
 	typedef std::map<u32, Symbol*> XFuncPtrMap;
+	typedef std::unordered_map<u32, std::string> XCommentMap;
 
 protected:
 	XFuncMap    functions;
 	XFuncPtrMap checksumToFunction;
+	XCommentMap comments;
 
 public:
 	SymbolDB() {}
@@ -83,6 +86,10 @@ public:
 	virtual Symbol *AddFunction(u32 startAddr) { return nullptr; }
 
 	void AddCompleteSymbol(const Symbol &symbol);
+
+	void PopulateSymbolComments();
+
+	std::string GetCommentFromAddress(unsigned int address) const;
 
 	Symbol* GetSymbolFromName(const std::string& name);
 	Symbol* GetSymbolFromHash(u32 hash)
