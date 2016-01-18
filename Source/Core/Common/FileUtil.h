@@ -205,9 +205,9 @@ public:
 		return m_good;
 	}
 
-	bool ReadBytes(void* data, size_t length)
+	bool ReadBytes(void* data, size_t length, size_t* read_bytes = nullptr)
 	{
-		return ReadArray(reinterpret_cast<char*>(data), length);
+		return ReadArray(reinterpret_cast<char*>(data), length, read_bytes);
 	}
 
 	bool WriteBytes(const void* data, size_t length)
