@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.2)
+set(DOLPHIN_EXE main)
+add_library(${DOLPHIN_EXE} SHARED Noop.cpp)
+add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+	COMMAND mkdir ARGS -p ${CMAKE_SOURCE_DIR}/../app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}
+)
+add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+	COMMAND cp ARGS ${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}/lib${DOLPHIN_EXE}.so ${CMAKE_SOURCE_DIR}/../app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}/
+)
+set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
