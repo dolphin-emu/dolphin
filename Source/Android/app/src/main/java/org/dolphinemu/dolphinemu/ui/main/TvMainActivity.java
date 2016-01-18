@@ -20,11 +20,12 @@ import android.support.v17.leanback.widget.RowPresenter;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.activities.SettingsActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
@@ -114,7 +115,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void launchSettingsActivity()
 	{
-		SettingsActivity.launch(this);
+		SettingsActivity.launch(this, SettingsFile.FILE_NAME_DOLPHIN);
 	}
 
 	@Override
