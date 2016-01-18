@@ -16,10 +16,11 @@ import android.view.View;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
-import org.dolphinemu.dolphinemu.activities.SettingsActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
+import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
+import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 /**
@@ -117,7 +118,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 	@Override
 	public void launchSettingsActivity()
 	{
-		SettingsActivity.launch(this);
+		SettingsActivity.launch(this, SettingsFile.FILE_NAME_DOLPHIN);
 	}
 
 	@Override
