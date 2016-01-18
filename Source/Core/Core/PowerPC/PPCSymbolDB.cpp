@@ -11,6 +11,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -224,20 +225,31 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // bad=true means carefully load map files that might not be from exactly the right version
 bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 {
-  File::IOFile f(filename, "r");
-  if (!f)
+  std::string contents;
+  if (!File::ReadFileToString(filename, contents))
     return false;
 
   // four columns are used in American Mensa Academy map files and perhaps other games
   bool started = false, four_columns = false;
   int good_count = 0, bad_count = 0;
 
-  char line[512];
-  while (fgets(line, 512, f.GetHandle()))
+  for (size_t line_start = 0, line_end; line_start < contents.size(); line_start = line_end + 1)
   {
-    size_t length = strlen(line);
+    line_end = contents.find('\n', line_start);
+    if (line_end == std::string::npos)
+      line_end = contents.size();
+
+    std::string line_data = contents.substr(line_start, line_end - line_start);
+    size_t length = line_data.size();
+    if (length > 1 && line_data[length - 2] == '\r')
+    {
+      line_data.resize(--length);
+      line_data[length - 1] = '\n';
+    }
+
     if (length < 4)
       continue;
+    char* line = &line_data[0];
 
     if (length == 34 && strcmp(line, "  address  Size   address  offset\n") == 0)
     {
