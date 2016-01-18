@@ -406,8 +406,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			}
 			else
 			{
-				ERROR_LOG(WII_IPC_SD, "Read Failed - error: %i, eof: %i",
-					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
+				ERROR_LOG(WII_IPC_SD, "Read Failed - eof: %i", m_Card.IsEOF());
 				ret = RET_FAIL;
 			}
 		}
@@ -431,8 +430,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
 			if (!m_Card.WriteBytes(Memory::GetPointer(req.addr), size))
 			{
-				ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i",
-					ferror(m_Card.GetHandle()), feof(m_Card.GetHandle()));
+				ERROR_LOG(WII_IPC_SD, "Write Failed - eof: %i", m_Card.IsEOF());
 				ret = RET_FAIL;
 			}
 		}
