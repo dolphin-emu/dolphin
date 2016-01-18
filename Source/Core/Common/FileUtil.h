@@ -219,6 +219,7 @@ public:
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
+	bool IsEOF() const { return std::feof(m_file) != 0; }
 	operator void*() { return m_good ? m_file : nullptr; }
 
 	std::FILE* ReleaseHandle();
