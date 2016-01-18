@@ -108,7 +108,7 @@ CEXIIPL::CEXIIPL() :
 		// Load whole ROM dump
 		LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0);
 		// Descramble the encrypted section (contains BS1 and BS2)
-		Descrambler(m_pIPL + 0x100, 0x1aff00);
+		Descrambler(m_pIPL + 0x100, 0x1afe00);
 		INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL); // yay for null-terminated strings ;p
 	}
 
