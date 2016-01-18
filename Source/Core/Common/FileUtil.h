@@ -12,10 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
-
-#ifdef _WIN32
 #include "Common/StringUtil.h"
-#endif
 
 // User directory indices for GetUserPath
 enum {
@@ -213,6 +210,14 @@ public:
 	bool WriteBytes(const void* data, size_t length)
 	{
 		return WriteArray(reinterpret_cast<const char*>(data), length);
+	}
+
+	// Wrapper around StringFromFormat + WriteBytes.
+	template <typename... T>
+	bool WriteFormat(T&&... args)
+	{
+		std::string text = StringFromFormat(std::forward<T>(args)...);
+		return WriteBytes(text.c_str(), text.size());
 	}
 
 	bool IsOpen() const { return nullptr != m_file; }
