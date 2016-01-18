@@ -22,6 +22,7 @@ extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
 
 void Init();
 void Shutdown();
+void Prepare(); // Must be called from the CPU thread.
 void DoState(PointerWrap &f);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void UpdateWantDeterminism(bool want);
@@ -52,6 +53,5 @@ void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void SetRendering(bool bEnabled);
-int Update(int ticks);
 
 };

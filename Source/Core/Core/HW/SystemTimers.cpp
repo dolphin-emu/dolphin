@@ -66,7 +66,6 @@ namespace SystemTimers
 
 static int et_Dec;
 static int et_VI;
-static int et_CP;
 static int et_AudioDMA;
 static int et_DSP;
 static int et_IPC_HLE;
@@ -74,7 +73,6 @@ static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by de
 static int et_Throttle;
 
 static u32 s_cpu_core_clock = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
-static u64 s_last_sync_gpu_tick;
 
 // These two are badly educated guesses.
 // Feel free to experiment. Set them in Init below.
@@ -121,16 +119,6 @@ static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
-}
-
-static void CPCallback(u64 userdata, int cyclesLate)
-{
-	u64 now = CoreTiming::GetTicks();
-	int next = Fifo::Update((int)(now - s_last_sync_gpu_tick));
-	s_last_sync_gpu_tick = now;
-
-	if (next > 0)
-		CoreTiming::ScheduleEvent(next, et_CP);
 }
 
 static void DecrementerCallback(u64 userdata, int cyclesLate)
@@ -238,8 +226,6 @@ void Init()
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
-	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
-		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
@@ -250,9 +236,6 @@ void Init()
 	CoreTiming::ScheduleEvent(0, et_DSP);
 	CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
-	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
-		CoreTiming::ScheduleEvent(0, et_CP);
-	s_last_sync_gpu_tick = CoreTiming::GetTicks();
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 
