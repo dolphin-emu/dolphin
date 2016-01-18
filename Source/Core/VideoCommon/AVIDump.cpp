@@ -15,9 +15,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
-#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"

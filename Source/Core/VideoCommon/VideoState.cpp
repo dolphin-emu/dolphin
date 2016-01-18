@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"

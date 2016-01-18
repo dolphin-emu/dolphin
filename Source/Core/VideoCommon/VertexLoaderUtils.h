@@ -5,12 +5,12 @@
 #pragma once
 
 #include <cstring>
+
 #include "Common/Common.h"
-#include "VideoCommon/VertexManagerBase.h"
+#include "Common/CommonTypes.h"
 
 extern u8* g_video_buffer_read_ptr;
 extern u8* g_vertex_manager_write_ptr;
-
 
 __forceinline void DataSkip(u32 skip)
 {

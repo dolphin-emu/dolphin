@@ -5,10 +5,6 @@
 #pragma once
 
 #include <string>
-#include <vector>
-
-#include "Common/CommonTypes.h"
-#include "VideoCommon/VideoCommon.h"
 
 struct Statistics
 {

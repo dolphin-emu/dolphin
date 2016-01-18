@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "VideoCommon/NativeVertexFormat.h"
-
 class VertexLoader;
 
 void Color_ReadDirect_24b_888(VertexLoader* loader);

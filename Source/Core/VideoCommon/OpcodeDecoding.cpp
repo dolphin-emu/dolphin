@@ -13,9 +13,8 @@
 // when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
 #include "Common/CommonTypes.h"
-#include "Common/CPUDetect.h"
-#include "Core/Core.h"
-#include "Core/Host.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/BPMemory.h"
@@ -24,11 +23,9 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 

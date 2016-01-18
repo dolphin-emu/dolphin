@@ -12,6 +12,7 @@
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"

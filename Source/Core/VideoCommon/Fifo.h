@@ -4,8 +4,9 @@
 
 #pragma once
 
+#include <atomic>
+#include <cstddef>
 #include "Common/CommonTypes.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
 

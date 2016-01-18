@@ -7,17 +7,11 @@
 // Top vertex loaders
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
 
-#include <algorithm>
 #include <string>
 
 #include "Common/CommonTypes.h"
-
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderBase.h"
-#include "VideoCommon/VertexLoaderUtils.h"
-
 
 class VertexLoader;
 typedef void (*TPipelineFunction)(VertexLoader* loader);

@@ -3,19 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/BlockingLoop.h"
 #include "Common/ChunkFile.h"
-#include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MemoryUtil.h"
-#include "Common/Thread.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
@@ -25,10 +24,8 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace Fifo
 {

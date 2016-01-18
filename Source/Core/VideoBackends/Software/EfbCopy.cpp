@@ -2,13 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
-#include "Core/Core.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
-#include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/TextureEncoder.h"
 
 #include "VideoCommon/BPMemory.h"

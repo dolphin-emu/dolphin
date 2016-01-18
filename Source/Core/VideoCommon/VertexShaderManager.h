@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
-#include "VideoCommon/VertexShaderGen.h"
 
 class PointerWrap;
 

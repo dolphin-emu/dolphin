@@ -4,26 +4,25 @@
 
 #include <type_traits>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 template <int N>
 void LOG_TEX();
 
 template <>
-__forceinline void LOG_TEX<1>()
+void LOG_TEX<1>()
 {
 	// warning: mapping buffer should be disabled to use this
 	// PRIM_LOG("tex: %f, ", ((float*)g_vertex_manager_write_ptr)[-1]);
 }
 
 template <>
-__forceinline void LOG_TEX<2>()
+void LOG_TEX<2>()
 {
 	// warning: mapping buffer should be disabled to use this
 	// PRIM_LOG("tex: %f %f, ", ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);

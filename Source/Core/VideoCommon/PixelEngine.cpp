@@ -10,18 +10,16 @@
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/State.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace PixelEngine
 {

@@ -2,12 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <string>
+
 #include "Common/BitSet.h"
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderX64.h"
 

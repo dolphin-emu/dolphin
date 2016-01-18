@@ -4,7 +4,5 @@
 
 #pragma once
 
-#include "VideoCommon/BPMemory.h"
-
 void BPInit();
 void BPReload();

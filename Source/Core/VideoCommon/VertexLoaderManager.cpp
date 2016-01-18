@@ -5,23 +5,24 @@
 #include <algorithm>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoCommon.h"
-
-
 
 namespace VertexLoaderManager
 {

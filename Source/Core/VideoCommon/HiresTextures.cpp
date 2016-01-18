@@ -5,15 +5,16 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 #include <xxhash.h>
 #include <SOIL/SOIL.h>
 
-#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
@@ -22,9 +23,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"

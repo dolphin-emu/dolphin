@@ -6,11 +6,14 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <string>
 
 #include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
@@ -18,7 +21,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

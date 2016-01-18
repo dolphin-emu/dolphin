@@ -5,12 +5,12 @@
 #include <cmath>
 #include <cstdio>
 
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/BPMemory.h"
+#include "Common/MsgHandler.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VideoConfig.h"
 
 #define WRITE p+=sprintf
 

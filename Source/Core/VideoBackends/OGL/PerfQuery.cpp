@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 

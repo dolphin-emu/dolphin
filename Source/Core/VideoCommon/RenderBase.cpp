@@ -15,9 +15,12 @@
 #include <cinttypes>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
@@ -27,7 +30,6 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
-
 #include "Core/HW/VideoInterface.h"
 
 #include "VideoCommon/AVIDump.h"

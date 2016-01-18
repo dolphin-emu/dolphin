@@ -6,12 +6,13 @@
 #include <type_traits>
 
 #include "Common/Common.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 
 // warning: mapping buffer should be disabled to use this
 #define LOG_NORM()  // PRIM_LOG("norm: %f %f %f, ", ((float*)g_vertex_manager_write_ptr)[-3], ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);

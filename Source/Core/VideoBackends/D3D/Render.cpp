@@ -9,8 +9,9 @@
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-#include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -31,13 +32,10 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11

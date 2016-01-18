@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
 class VertexLoaderARM64 : public VertexLoaderBase, public Arm64Gen::ARM64CodeBlock

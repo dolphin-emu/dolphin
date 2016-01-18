@@ -3,10 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstring>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
