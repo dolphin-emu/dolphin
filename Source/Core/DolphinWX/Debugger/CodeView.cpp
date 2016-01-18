@@ -434,6 +434,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	ctx->DrawRectangle(0, 0, 16, rc.height);
 	ctx->DrawRectangle(0, 0, rc.width, 5);
 	// ------------
+	m_symbol_db->PopulateSymbolComments();
 
 	// -----------------------------
 	// Walk through all visible rows
@@ -483,6 +484,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			const std::string& opcode   = dis[0];
 			const std::string& operands = dis[1];
 			std::string desc;
+			std::string comment = m_symbol_db->GetCommentFromAddress(address);
 
 			// look for hex strings to decode branches
 			std::string hex_str;
@@ -509,7 +511,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				ctx->SetFont(DebuggerFont, *wxBLACK);
 			}
 
-			ctx->DrawText(StrToWxStr(operands), 17 + 17*charWidth, rowY1);
+			ctx->DrawText(StrToWxStr(operands), 17 + 12*charWidth, rowY1);
 			// ------------
 
 			// Show blr as its' own color
@@ -518,7 +520,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			else
 				ctx->SetFont(DebuggerFont, wxTheColourDatabase->Find("VIOLET"));
 
-			ctx->DrawText(StrToWxStr(opcode), 17 + (m_plain ? 1*charWidth : 9*charWidth), rowY1);
+			ctx->DrawText(StrToWxStr(opcode), 17 + (m_plain ? 1*charWidth : 7*charWidth), rowY1);
 
 			if (desc.empty())
 			{
@@ -533,8 +535,14 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 				//UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
 				if (!desc.empty())
 				{
-					ctx->DrawText(StrToWxStr(desc), 17 + 35 * charWidth, rowY1);
+					ctx->DrawText(StrToWxStr(desc), 17 + 28 * charWidth, rowY1);
 				}
+			}
+
+			if (!comment.empty())
+			{
+				ctx->SetFont(DebuggerFont, *wxBLACK);
+				ctx->DrawText(StrToWxStr(comment), 17 + 60*charWidth, rowY1);
 			}
 
 			// Show red breakpoint dot
@@ -548,7 +556,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 	// ------------
 
 	// -------------------------
-	// Colors and brushes
+	// Branch Arrows TODO: Add a toggle option for these in case symbol names are longer than normal
 	// -------------------------
 	ctx->SetPen(currentPen);
 
