@@ -1441,7 +1441,7 @@ InstLoc IRBuilder::isNeg(InstLoc I) const
 struct Writer
 {
 	File::IOFile file;
-	Writer() : file(nullptr)
+	Writer()
 	{
 		std::string filename = StringFromFormat("JitIL_IR_%d.txt", (int)time(nullptr));
 		file.Open(filename, "w");
