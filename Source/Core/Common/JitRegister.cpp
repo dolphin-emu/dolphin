@@ -4,7 +4,6 @@
 
 #include <cinttypes>
 #include <cstddef>
-#include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <string>
@@ -48,10 +47,7 @@ void Init(const std::string& perf_dir)
 	{
 		std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
 		std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
-		s_perf_map_file.Open(filename, "w");
-		// Disable buffering in order to avoid missing some mappings
-		// if the event of a crash:
-		std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
+		s_perf_map_file.Open(filename, "w", File::IOFile::DISABLE_BUFFERING);
 	}
 }
 
