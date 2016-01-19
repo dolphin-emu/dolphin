@@ -1322,7 +1322,7 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_SCREENSHOT))
 		Core::SaveScreenShot();
 	if (IsHotkey(HK_EXIT))
-		wxPostEvent(this, wxCommandEvent(wxID_EXIT));
+		wxPostEvent(this, wxCommandEvent(wxEVT_MENU, wxID_EXIT));
 	if (IsHotkey(HK_VOLUME_DOWN))
 		AudioCommon::DecreaseVolume(3);
 	if (IsHotkey(HK_VOLUME_UP))
