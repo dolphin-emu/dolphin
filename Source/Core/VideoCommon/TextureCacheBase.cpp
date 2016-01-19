@@ -3,24 +3,32 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include <memory>
 #include <string>
+#include <utility>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -328,7 +336,7 @@ void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename,
 
 static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 {
-	return (level_0_size + ((1 << level) - 1)) >> level;
+	return std::max(level_0_size >> level, 1u);
 }
 
 // Used by TextureCacheBase::Load

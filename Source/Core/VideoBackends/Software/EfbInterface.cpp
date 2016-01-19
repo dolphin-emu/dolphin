@@ -6,13 +6,11 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/Memmap.h"
-
+#include "Common/Logging/Log.h"
 #include "VideoBackends/Software/EfbInterface.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PerfQueryBase.h"
 
 
 static u8 efb[EFB_WIDTH*EFB_HEIGHT*6];

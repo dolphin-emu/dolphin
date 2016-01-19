@@ -3,24 +3,20 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
-#include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 namespace CommandProcessor
 {

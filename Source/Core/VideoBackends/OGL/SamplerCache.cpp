@@ -4,9 +4,10 @@
 
 #include <memory>
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL

@@ -4,14 +4,15 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VideoConfig.h"
 
 // GameCube/Wii texture decoder
 

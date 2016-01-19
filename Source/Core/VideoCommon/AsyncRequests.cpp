@@ -2,9 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <mutex>
+
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 
 AsyncRequests AsyncRequests::s_singleton;
 

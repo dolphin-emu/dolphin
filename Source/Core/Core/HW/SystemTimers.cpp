@@ -46,7 +46,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -59,9 +59,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
-
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace SystemTimers
 {

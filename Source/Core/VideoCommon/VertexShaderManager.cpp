@@ -6,11 +6,14 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <string>
 
 #include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
@@ -18,7 +21,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -432,10 +434,9 @@ void VertexShaderManager::SetConstants()
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			// donkopunchstania suggested the GC GPU might round differently
-			// He had thus changed this to -(1 + epsilon) to fix clipping issues.
-			// I (neobrain) don't think his conjecture is true and thus reverted his change.
-			g_fProjectionMatrix[14] = -1.0f;
+
+			// Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
+			g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
 			g_fProjectionMatrix[15] = 0.0f;
 
 			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.

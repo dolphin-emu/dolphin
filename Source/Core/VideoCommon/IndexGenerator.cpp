@@ -6,6 +6,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"

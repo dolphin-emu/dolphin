@@ -7,15 +7,11 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
-
 #include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace GPFifo
 {

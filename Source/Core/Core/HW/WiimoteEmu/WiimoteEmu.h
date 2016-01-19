@@ -6,9 +6,7 @@
 
 #include <queue>
 #include <string>
-#include <vector>
 
-#include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu.h"

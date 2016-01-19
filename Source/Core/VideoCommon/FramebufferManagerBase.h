@@ -8,6 +8,7 @@
 #include <list>
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
 inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)

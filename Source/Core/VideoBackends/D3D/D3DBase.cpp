@@ -4,7 +4,10 @@
 
 #include <algorithm>
 
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"

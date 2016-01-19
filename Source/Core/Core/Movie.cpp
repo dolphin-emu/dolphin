@@ -12,7 +12,6 @@
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -29,13 +28,12 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.

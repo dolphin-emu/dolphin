@@ -3,12 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/Timer.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"

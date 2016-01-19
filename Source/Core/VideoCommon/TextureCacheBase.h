@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include <functional>
 #include <map>
 #include <memory>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"

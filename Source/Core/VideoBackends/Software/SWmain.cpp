@@ -8,14 +8,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 #include "Common/Logging/LogManager.h"
 
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/VideoInterface.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -30,7 +25,7 @@
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/Fifo.h"
+#include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -40,7 +35,6 @@
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 #define VSYNC_ENABLED 0
 

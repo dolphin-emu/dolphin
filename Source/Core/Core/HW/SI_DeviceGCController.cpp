@@ -3,14 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
-#include "Core/Core.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SystemTimers.h"

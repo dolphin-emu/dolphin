@@ -2,11 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cassert>
 #include <cmath>
 #include <cstdio>
+#include <cstring>
 
-#include "Common/Common.h"
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
@@ -764,7 +766,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		else if (bpmem.tevind[n].sw == ITW_0)
 			out.Write("\twrappedcoord.x = 0;\n");
 		else
-			out.Write("\twrappedcoord.x = fixpoint_uv%d.x %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
+			out.Write("\twrappedcoord.x = fixpoint_uv%d.x & (%s - 1);\n", texcoord, tevIndWrapStart[bpmem.tevind[n].sw]);
 
 		// wrap T
 		if (bpmem.tevind[n].tw == ITW_OFF)
@@ -772,7 +774,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		else if (bpmem.tevind[n].tw == ITW_0)
 			out.Write("\twrappedcoord.y = 0;\n");
 		else
-			out.Write("\twrappedcoord.y = fixpoint_uv%d.y %% %s;\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
+			out.Write("\twrappedcoord.y = fixpoint_uv%d.y & (%s - 1);\n", texcoord, tevIndWrapStart[bpmem.tevind[n].tw]);
 
 		if (bpmem.tevind[n].fb_addprev) // add previous tevcoord
 			out.Write("\ttevcoord.xy += wrappedcoord + indtevtrans%d;\n", n);

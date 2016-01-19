@@ -123,6 +123,8 @@ public:
 	{
 		if (Exists(sectionName, key))
 			return GetOrCreateSection(sectionName)->Get(key, value, defaultValue);
+		else
+			*value = defaultValue;
 
 		return false;
 	}

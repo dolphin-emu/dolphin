@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"

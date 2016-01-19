@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
+#include "Common/Common.h"
 
 class InputConfig;
+class PointerWrap;
 
 enum
 {

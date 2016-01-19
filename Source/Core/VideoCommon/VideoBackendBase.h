@@ -7,11 +7,11 @@
 #include <string>
 #include <vector>
 
-#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO { class Mapping; }
-
+class PointerWrap;
 
 enum FieldType
 {

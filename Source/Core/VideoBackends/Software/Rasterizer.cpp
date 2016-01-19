@@ -10,7 +10,7 @@
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 #include "VideoBackends/Software/Tev.h"
-#include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"

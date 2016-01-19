@@ -4,16 +4,13 @@
 
 #include <memory>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
-#include "Core/Movie.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/MMIO.h"
-#include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/PowerPC.h"
 
 enum
 {

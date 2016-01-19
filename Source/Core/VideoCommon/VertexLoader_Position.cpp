@@ -2,14 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <limits>
 #include <type_traits>
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VideoCommon.h"
 
 template <typename T>

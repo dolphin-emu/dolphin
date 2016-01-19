@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/SI_DeviceKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"

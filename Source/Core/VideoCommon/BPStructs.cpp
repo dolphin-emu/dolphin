@@ -3,16 +3,19 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
+#include <string>
 
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -20,7 +23,6 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"

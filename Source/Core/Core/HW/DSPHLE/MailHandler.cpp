@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 

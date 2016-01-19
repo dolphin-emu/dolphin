@@ -2,15 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <atomic>
 #include <memory>
+#include <mutex>
+#include <queue>
 #include <thread>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceGecko.h"
 
 u16                       GeckoSockServer::server_port;

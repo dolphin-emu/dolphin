@@ -4,9 +4,13 @@
 
 #include <memory>
 
+#include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
-#include "VideoCommon/BPStructs.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
