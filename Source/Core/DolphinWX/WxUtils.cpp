@@ -60,13 +60,13 @@ void ShowErrorDialog(const wxString& error_msg)
 	wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
-wxBitmap LoadResourceBitmap(const std::string& name, bool allow_2x)
+wxBitmap LoadResourceBitmap(const std::string& name, const wxSize& padded_size)
 {
 	const std::string path_base = File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + name;
 	std::string path = path_base + ".png";
-#ifdef __APPLE__
 	double scale_factor = 1.0;
-	if (allow_2x && wxTheApp->GetTopWindow()->GetContentScaleFactor() >= 2)
+#ifdef __APPLE__
+	if (wxTheApp->GetTopWindow()->GetContentScaleFactor() >= 2)
 	{
 		const std::string path_2x = path_base + "@2x.png";
 		if (File::Exists(path_2x))
@@ -77,18 +77,20 @@ wxBitmap LoadResourceBitmap(const std::string& name, bool allow_2x)
 	}
 #endif
 	wxImage image(StrToWxStr(path), wxBITMAP_TYPE_PNG);
+
+	if (padded_size != wxSize())
+	{
+		// Add padding if necessary (or crop, but images aren't supposed to be large enough to require that).
+		// The image will be left-aligned and vertically centered.
+		const wxSize scaled_padded_size = padded_size * scale_factor;
+		image.Resize(scaled_padded_size, wxPoint(0, (scaled_padded_size.GetHeight() - image.GetHeight()) / 2));
+	}
+
 #ifdef __APPLE__
 	return wxBitmap(image, -1, scale_factor);
 #else
 	return wxBitmap(image);
 #endif
-}
-
-wxBitmap LoadResourceBitmapPadded(const std::string& name, const wxSize& size)
-{
-	wxImage image(StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + name + ".png"), wxBITMAP_TYPE_PNG);
-	image.Resize(size, wxPoint(0, (size.GetHeight() - image.GetHeight()) / 2)); // Vertically centered
-	return wxBitmap(image);
 }
 
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original)
