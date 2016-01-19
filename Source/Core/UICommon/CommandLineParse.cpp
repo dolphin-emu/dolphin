@@ -2,10 +2,51 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <sstream>
+
+#include "Common/OnionConfig.h"
+
 #include "UICommon/CommandLineParse.h"
 
 namespace CommandLineParse
 {
+	class CommandLineConfigLayerLoader : public OnionConfig::ConfigLayerLoader
+	{
+	public:
+		CommandLineConfigLayerLoader(const std::list<std::string>& args)
+			: ConfigLayerLoader(OnionConfig::OnionLayerType::LAYER_COMMANDLINE)
+		{
+			// Arguments are in the format of <System>.<Petal>.<Key>=Value
+			for (const auto& arg : args)
+			{
+				std::istringstream buffer(arg);
+				std::string system, petal, key, value;
+				std::getline(buffer, system, '.');
+				std::getline(buffer, petal, '.');
+				std::getline(buffer, key, '=');
+				std::getline(buffer, value, '=');
+				m_values.emplace_back(std::make_tuple(system, petal, key, value));
+			}
+		}
+
+		void Load(OnionConfig::BloomLayer* config_layer) override
+		{
+			for (auto& value : m_values)
+			{
+				OnionConfig::OnionPetal* petal = config_layer->GetOrCreatePetal(OnionConfig::GetSystemFromName(std::get<0>(value)), std::get<1>(value));
+				petal->Set(std::get<2>(value), std::get<3>(value));
+			}
+		}
+
+		void Save(OnionConfig::BloomLayer* config_layer) override
+		{
+			// Save Nothing
+		}
+
+	private:
+		std::list<std::tuple<std::string, std::string, std::string, std::string>> m_values;
+	};
+
 	std::unique_ptr<optparse::OptionParser> CreateParser(bool gui)
 	{
 		std::unique_ptr<optparse::OptionParser> parser(new optparse::OptionParser());
@@ -27,6 +68,11 @@ namespace CommandLineParse
 			.metavar("<file>")
 			.type("string")
 			.help("Load the specified file");
+		parser->add_option("-C", "--config")
+			.action("append")
+			.metavar("<System>.<Petal>.<Key>=<Value>")
+			.type("string")
+			.help("Set a configuration option");
 
 		if (gui)
 		{
@@ -57,7 +103,13 @@ namespace CommandLineParse
 
 	optparse::Values& ParseArguments(optparse::OptionParser* parser, int argc, char** argv)
 	{
-		return parser->parse_args(argc, argv);
+		optparse::Values& options = parser->parse_args(argc, argv);
+
+		const std::list<std::string>& config_args = options.all("config");
+		if (config_args.size())
+			OnionConfig::AddLayer(new CommandLineConfigLayerLoader(config_args));
+
+		return options;
 	}
 
 }
