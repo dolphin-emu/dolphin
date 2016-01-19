@@ -33,6 +33,11 @@ public:
 	std::string GetDescription() const;
 	std::vector<DiscIO::IVolume::ELanguage> GetLanguages() const;
 	std::string GetCompany() const { return m_company; }
+	std::string GetGenre() const { return m_genre; }
+	int GetOnlinePlayers() const { return m_onlinePlayers; }
+	int GetPlayers() const { return m_players; }
+	std::set<std::string> GetRequiredControls() const { return m_requiredControls; }
+	std::set<std::string> GetOptionalControls() const { return m_optionalControls; }
 	u16 GetRevision() const { return m_Revision; }
 	const std::string& GetUniqueID() const {return m_UniqueID;}
 	const std::string GetWiiFSPath() const;
@@ -51,6 +56,12 @@ public:
 	// 0 is the first disc, 1 is the second disc
 	u8 GetDiscNumber() const { return m_disc_number; }
 
+	void SetGenre(std::string genre) { m_genre = genre; }
+	void SetOnlinePlayers(int OnlinePlayers) { m_onlinePlayers = OnlinePlayers; }
+	void SetPlayers(int Players) { m_players = Players; }
+	void SetRequiredControls(std::set<std::string> RequiredControls) { m_requiredControls = RequiredControls; }
+	void SetOptionalControls(std::set<std::string> OptionalControls) { m_optionalControls = OptionalControls; }
+
 #if defined(HAVE_WX) && HAVE_WX
 	const wxBitmap& GetBitmap() const {return m_Bitmap;}
 #endif
@@ -63,6 +74,11 @@ private:
 	std::map<DiscIO::IVolume::ELanguage, std::string> m_names;
 	std::map<DiscIO::IVolume::ELanguage, std::string> m_descriptions;
 	std::string m_company;
+	std::string m_genre;
+	int m_onlinePlayers;
+	int m_players;
+	std::set<std::string> m_requiredControls;
+	std::set<std::string> m_optionalControls;
 
 	std::string m_UniqueID;
 	u64 m_title_id;
