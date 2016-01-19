@@ -21,8 +21,10 @@
 #include <wx/stattext.h>
 
 #include "Common/Assert.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
+
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
@@ -79,7 +81,7 @@ void SettingChoice::UpdateValue(wxCommandEvent& ev)
 
 void VideoConfigDiag::Event_Close(wxCommandEvent& ev)
 {
-  g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  Config::Save();
   ev.Skip();
 }
 
@@ -353,7 +355,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  vconfig.Load();
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
