@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{47411FDB-1BF2-48D0-AB4E-C7C41160F898}</ProjectGuid>
     <ProjectName>Dolphin</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
@@ -25,6 +26,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -85,6 +89,12 @@
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="ExtInfo\ExtInfo.cpp" />
+    <ClCompile Include="ExtInfo\TinyXml\tinystr.cpp" />
+    <ClCompile Include="ExtInfo\TinyXml\tinyxml.cpp" />
+    <ClCompile Include="ExtInfo\TinyXml\tinyxmlerror.cpp" />
+    <ClCompile Include="ExtInfo\TinyXml\tinyxmlparser.cpp" />
+    <ClCompile Include="ExtInfo\wiitdbReader.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
     <ClCompile Include="NetPlay\NetWindow.cpp" />
@@ -123,6 +133,10 @@
     <ClInclude Include="Config\InterfaceConfigPane.h" />
     <ClInclude Include="Config\PathConfigPane.h" />
     <ClInclude Include="Config\WiiConfigPane.h" />
+    <ClInclude Include="ExtInfo\ExtInfo.h" />
+    <ClInclude Include="ExtInfo\TinyXml\tinystr.h" />
+    <ClInclude Include="ExtInfo\TinyXml\tinyxml.h" />
+    <ClInclude Include="ExtInfo\wiitdbReader.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
     <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
     <ClInclude Include="NetPlay\PadMapDialog.h" />

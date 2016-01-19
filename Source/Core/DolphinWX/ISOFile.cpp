@@ -73,6 +73,8 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 	, m_ImageHeight(0)
 	, m_disc_number(0)
 	, m_has_custom_name(false)
+	, m_players(0)
+	, m_onlinePlayers(0)
 {
 	if (LoadFromCache())
 	{

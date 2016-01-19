@@ -28,6 +28,12 @@
     <Filter Include="GUI\Config">
       <UniqueIdentifier>{9d8b4144-f335-4fa4-b995-852533298474}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GUI\ExtInfo">
+      <UniqueIdentifier>{301e03c9-db04-49a2-835e-8c82d15a5265}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\ExtInfo\TinyXml">
+      <UniqueIdentifier>{5790e0e3-854e-4eee-b4d5-89849f188896}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -199,6 +205,24 @@
     <ClCompile Include="NetPlay\PadMapDialog.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="ExtInfo\TinyXml\tinystr.cpp">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtInfo\TinyXml\tinyxml.cpp">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtInfo\TinyXml\tinyxmlerror.cpp">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtInfo\TinyXml\tinyxmlparser.cpp">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtInfo\ExtInfo.cpp">
+      <Filter>GUI\ExtInfo</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtInfo\wiitdbReader.cpp">
+      <Filter>GUI\ExtInfo</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -362,6 +386,18 @@
     </ClInclude>
     <ClInclude Include="NetPlay\PadMapDialog.h">
       <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtInfo\TinyXml\tinystr.h">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtInfo\TinyXml\tinyxml.h">
+      <Filter>GUI\ExtInfo\TinyXml</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtInfo\ExtInfo.h">
+      <Filter>GUI\ExtInfo</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtInfo\wiitdbReader.h">
+      <Filter>GUI\ExtInfo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
