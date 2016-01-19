@@ -2,12 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifdef __unix__
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <unistd.h>
 
+#elif defined(_WIN32)
+
+#include <iostream>
+#include <windows.h>
+
+#endif
+
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/MemoryWatcher.h"
 #include "Core/HW/Memmap.h"
@@ -32,7 +42,12 @@ MemoryWatcher::~MemoryWatcher()
 
 	m_running = false;
 	m_watcher_thread.join();
+
+#ifdef __unix__
 	close(m_fd);
+#elif defined(_WIN32)
+	CloseHandle(pipe);
+#endif
 }
 
 bool MemoryWatcher::LoadAddresses(const std::string& path)
@@ -62,12 +77,26 @@ void MemoryWatcher::ParseLine(const std::string& line)
 
 bool MemoryWatcher::OpenSocket(const std::string& path)
 {
+#ifdef __unix__
 	memset(&m_addr, 0, sizeof(m_addr));
 	m_addr.sun_family = AF_UNIX;
 	strncpy(m_addr.sun_path, path.c_str(), sizeof(m_addr.sun_path) - 1);
 
 	m_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	return m_fd >= 0;
+#elif defined(_WIN32)
+	pipe = CreateNamedPipe(L"\\\\.\\dolphin-emu\\mem-watch", 
+		PIPE_ACCESS_OUTBOUND,
+		PIPE_TYPE_BYTE,
+		1,
+		0,
+		0,
+		0,
+		NULL);
+
+	if(pipe == NULL | pipe == INVALID_HANDLE_VALUE) return false;
+	return true;
+#endif
 }
 
 u32 MemoryWatcher::ChasePointer(const std::string& line)
@@ -87,6 +116,14 @@ std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
 
 void MemoryWatcher::WatcherThread()
 {
+#ifdef _WIN32
+	if(!ConnectNamedPipe(pipe, NULL))
+	{
+		INFO_LOG("Unable to connect WIN32 named pipe for MemoryWatcher.");
+		return;
+	}
+#endif
+
 	while (m_running)
 	{
 		for (auto& entry : m_values)
@@ -100,6 +137,8 @@ void MemoryWatcher::WatcherThread()
 				// Update the value
 				current_value = new_value;
 				std::string message = ComposeMessage(address, new_value);
+
+#ifdef __unix__
 				sendto(
 					m_fd,
 					message.c_str(),
@@ -107,6 +146,12 @@ void MemoryWatcher::WatcherThread()
 					0,
 					reinterpret_cast<sockaddr*>(&m_addr),
 					sizeof(m_addr));
+#elif defined(_WIN32)
+				if(!WriteFile(pipe, message, sizeof(char) * strlen(message), NULL, NULL))
+				{
+					INFO_LOG("Unable to update memory addresses for MemoryWatcher.");
+				}
+#endif
 			}
 		}
 		Common::SleepCurrentThread(SLEEP_DURATION);
