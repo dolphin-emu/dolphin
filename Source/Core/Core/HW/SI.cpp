@@ -18,6 +18,7 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceGBA.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace SerialInterface
 {
@@ -511,6 +512,10 @@ void ChangeDevice(SIDevices device, int channel)
 
 void UpdateDevices()
 {
+	// Update inputs at the rate of SI
+	// Typically 120hz but is variable
+	g_controller_interface.UpdateInput();
+
 	// Update channels and set the status bit if there's new data
 	g_StatusReg.RDST0 = !!g_Channel[0].m_device->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
 	g_StatusReg.RDST1 = !!g_Channel[1].m_device->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
