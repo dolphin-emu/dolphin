@@ -41,4 +41,6 @@ private:
 
 	QListView* m_list;
 	QTableView* m_table;
+protected:
+	void keyReleaseEvent(QKeyEvent* event) override;
 };

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QHeaderView>
+#include <QKeyEvent>
 
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
@@ -93,4 +94,12 @@ QString GameList::GetSelectedGame() const
 		return m_model->GetPath(model_index.row());
 	}
 	return QStringLiteral();
+}
+
+void GameList::keyReleaseEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_Return)
+		emit GameSelected();
+	else
+		QStackedWidget::keyReleaseEvent(event);
 }
