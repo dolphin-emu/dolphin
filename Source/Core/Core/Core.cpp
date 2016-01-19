@@ -25,7 +25,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/DebugInterface.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
 #include "Core/MemTools.h"
