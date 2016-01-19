@@ -4,6 +4,7 @@
 
 #include <QDesktopServices>
 #include <QHeaderView>
+#include <QKeyEvent>
 #include <QMenu>
 #include <QUrl>
 
@@ -163,4 +164,11 @@ void GameList::ConsiderViewChange()
 	{
 		setCurrentWidget(m_empty);
 	}
+}
+void GameList::keyReleaseEvent(QKeyEvent* event)
+{
+	if (event->key() == Qt::Key_Return)
+		emit GameSelected();
+	else
+		QStackedWidget::keyReleaseEvent(event);
 }
