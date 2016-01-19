@@ -5,16 +5,16 @@
 #ifdef __unix__
 
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <unistd.h>
 
 #elif defined(_WIN32)
 
-#include <iostream>
 #include <windows.h>
 
 #endif
+
+#include <iostream>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -46,7 +46,7 @@ MemoryWatcher::~MemoryWatcher()
 #ifdef __unix__
 	close(m_fd);
 #elif defined(_WIN32)
-	CloseHandle(pipe);
+	CloseHandle(m_pipe);
 #endif
 }
 
@@ -85,16 +85,16 @@ bool MemoryWatcher::OpenSocket(const std::string& path)
 	m_fd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	return m_fd >= 0;
 #elif defined(_WIN32)
-	pipe = CreateNamedPipe(L"\\\\.\\dolphin-emu\\mem-watch", 
+	m_pipe = CreateNamedPipe(L"\\\\.\\dolphin-emu\\mem-watch", 
 		PIPE_ACCESS_OUTBOUND,
 		PIPE_TYPE_BYTE | PIPE_WAIT,
 		1,
 		0,
 		0,
 		0,
-		NULL);
+		nullptr);
 
-	if(pipe == NULL | pipe == INVALID_HANDLE_VALUE) return false;
+	if(m_pipe == INVALID_HANDLE_VALUE) return false;
 	return true;
 #endif
 }
@@ -117,7 +117,7 @@ std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
 void MemoryWatcher::WatcherThread()
 {
 #ifdef _WIN32
-	if(!ConnectNamedPipe(pipe, NULL))
+	if(!ConnectNamedPipe(m_pipe, NULL))
 	{
 		INFO_LOG("Unable to connect WIN32 named pipe for MemoryWatcher.");
 		return;
@@ -147,7 +147,7 @@ void MemoryWatcher::WatcherThread()
 					reinterpret_cast<sockaddr*>(&m_addr),
 					sizeof(m_addr));
 #elif defined(_WIN32)
-				if(!WriteFile(pipe, message, sizeof(char) * strlen(message), NULL, NULL))
+				if(!WriteFile(m_pipe, message, sizeof(char) * strlen(message), NULL, NULL))
 				{
 					INFO_LOG("Unable to update memory addresses for MemoryWatcher.");
 				}

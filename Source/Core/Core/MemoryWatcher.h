@@ -37,7 +37,6 @@ public:
 private:
 	bool LoadAddresses(const std::string& path);
 	bool OpenSocket(const std::string& path);
-	void CloseSocket();
 
 	void ParseLine(const std::string& line);
 	u32 ChasePointer(const std::string& line);
@@ -55,7 +54,7 @@ private:
 
 #elif defined(_WIN32)
 
-	HANDLE pipe;
+	HANDLE m_pipe;
 
 #endif
 
