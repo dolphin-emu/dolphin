@@ -26,7 +26,7 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	: wxDialog(parent, id, title, position, size, style)
 {
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			WxUtils::LoadResourceBitmap("dolphin_logo", true));
+			WxUtils::LoadResourceBitmap("dolphin_logo"));
 
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;
