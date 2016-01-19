@@ -87,7 +87,7 @@ bool MemoryWatcher::OpenSocket(const std::string& path)
 #elif defined(_WIN32)
 	pipe = CreateNamedPipe(L"\\\\.\\dolphin-emu\\mem-watch", 
 		PIPE_ACCESS_OUTBOUND,
-		PIPE_TYPE_BYTE,
+		PIPE_TYPE_BYTE | PIPE_WAIT,
 		1,
 		0,
 		0,
