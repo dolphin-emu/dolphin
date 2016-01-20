@@ -646,7 +646,8 @@ static void BeginField(FieldType field)
 		xfbAddr = GetXFBAddressTop();
 	}
 
-	if (interlaced_xfb && g_ActiveConfig.bForceProgressive) {
+	if (interlaced_xfb && g_ActiveConfig.bForceProgressive)
+	{
 		// Strictly speaking, in interlaced mode, we're only supposed to read
 		// half of the lines of the XFB, and use that to display a field; the
 		// other lines are unspecified junk.  However, in practice, we can
@@ -657,17 +658,16 @@ static void BeginField(FieldType field)
 		fbStride /= 2;
 		fbHeight *= 2;
 
-                // PRB for the different fields should only ever differ by 1 in
-                // interlaced mode, and which is less determines which field
-                // has the first line. For the field with the second line, we
-                // offset the xfb by (-stride_of_one_line) to get the start
-                // address of the full xfb.
-		if ((field == FieldType::FIELD_ODD) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)) {
-			xfbAddr -= (fbStride * 2);
-		}
-		if ((field == FieldType::FIELD_EVEN) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)) {
-			xfbAddr -= (fbStride * 2);
-		}
+		// PRB for the different fields should only ever differ by 1 in
+		// interlaced mode, and which is less determines which field
+		// has the first line. For the field with the second line, we
+		// offset the xfb by (-stride_of_one_line) to get the start
+		// address of the full xfb.
+		if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)
+			xfbAddr -= fbStride * 2;
+
+		if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)
+			xfbAddr -= fbStride * 2;
 	}
 
 	static const char* const fieldTypeNames[] = { "Odd", "Even" };
