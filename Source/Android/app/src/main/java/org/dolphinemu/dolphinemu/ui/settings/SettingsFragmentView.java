@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.app.Activity;
+
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 
@@ -13,4 +15,6 @@ public interface SettingsFragmentView
 	void passOptionsToActivity(HashMap<String, SettingSection> settings);
 
 	void showSettingsList(ArrayList<SettingsItem> settingsList);
+
+	Activity getActivity();
 }

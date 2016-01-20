@@ -97,6 +97,6 @@ public class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(overclockEnable.getKey(), overclockEnable, R.string.overclock_enable, R.string.overclock_enable_description));
 
 		Setting overclock = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-		sl.add(new SliderSetting(overclock.getKey(), overclock, R.string.overclock_title, 0, 400));
+		sl.add(new SliderSetting(overclock.getKey(), overclock, R.string.overclock_title, 0, 400, "%"));
 	}
 }

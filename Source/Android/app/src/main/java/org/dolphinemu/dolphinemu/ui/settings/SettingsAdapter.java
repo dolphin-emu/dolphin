@@ -1,13 +1,18 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.settings.FloatSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
@@ -19,14 +24,22 @@ import org.dolphinemu.dolphinemu.ui.settings.viewholder.SingleChoiceViewHolder;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.ui.settings.viewholder.SubmenuViewHolder;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.ArrayList;
 
 public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
+		implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
 	private SettingsFragmentView mView;
 	private Context mContext;
 	private ArrayList<SettingsItem> mSettings;
+
+	private SettingsItem mClickedItem;
+	private int mSeekbarProgress;
+
+	private AlertDialog mDialog;
+	private TextView mTextSliderValue;
 
 	public SettingsAdapter(SettingsFragmentView view, Context context)
 	{
@@ -106,16 +119,155 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 
 	public void onSingleChoiceClick(SingleChoiceSetting item)
 	{
-		Toast.makeText(mContext, "Single choice item clicked", Toast.LENGTH_SHORT).show();
+		mClickedItem = item;
+
+		int value = getSelectionForSingleChoiceValue(item);
+
+		AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
+
+		builder.setTitle(item.getNameId());
+		builder.setSingleChoiceItems(item.getChoicesId(), value, this);
+
+		mDialog = builder.show();
 	}
 
 	public void onSliderClick(SliderSetting item)
 	{
-		Toast.makeText(mContext, "Slider item clicked", Toast.LENGTH_SHORT).show();
+		mClickedItem = item;
+		mSeekbarProgress = item.getSelectedValue();
+		AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity());
+
+		LayoutInflater inflater = LayoutInflater.from(mView.getActivity());
+		View view = inflater.inflate(R.layout.dialog_seekbar, null);
+
+		builder.setTitle(item.getNameId());
+		builder.setView(view);
+		builder.setPositiveButton(R.string.dialog_seekbar_pos, this);
+		builder.setNegativeButton(R.string.dialog_seekbar_neg, this);
+		mDialog = builder.show();
+
+		mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
+		mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
+
+		TextView units = (TextView) view.findViewById(R.id.text_units);
+		units.setText(item.getUnits());
+
+		SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
+
+		seekbar.setMax(item.getMax());
+		seekbar.setProgress(mSeekbarProgress);
+
+		seekbar.setOnSeekBarChangeListener(this);
 	}
 
 	public void onSubmenuClick(SubmenuSetting item)
 	{
 		Toast.makeText(mContext, "Submenu item clicked", Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onClick(DialogInterface dialog, int which)
+	{
+		if (mClickedItem instanceof SingleChoiceSetting)
+		{
+			SingleChoiceSetting scSetting = (SingleChoiceSetting) mClickedItem;
+
+			int value = getValueForSingleChoiceSelection(scSetting, which);
+
+			scSetting.setSelectedValue(value);
+			closeDialog();
+		}
+		else if (mClickedItem instanceof SliderSetting)
+		{
+			SliderSetting sliderSetting = (SliderSetting) mClickedItem;
+			if (sliderSetting.getSetting() instanceof FloatSetting)
+			{
+				float value;
+
+				if (sliderSetting.getKey().equals(SettingsFile.KEY_OVERCLOCK_PERCENT))
+				{
+					value = mSeekbarProgress / 100.0f;
+				}
+				else
+				{
+					value = (float) mSeekbarProgress;
+				}
+
+				sliderSetting.setSelectedValue(value);
+			}
+			else
+			{
+				sliderSetting.setSelectedValue(mSeekbarProgress);
+			}
+		}
+
+		mClickedItem = null;
+		mSeekbarProgress = -1;
+	}
+
+	public void closeDialog()
+	{
+		if (mDialog != null)
+		{
+			mDialog.dismiss();
+			mDialog = null;
+		}
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+	{
+		mSeekbarProgress = progress;
+		mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar seekBar)
+	{
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar seekBar)
+	{
+	}
+
+	private int getValueForSingleChoiceSelection(SingleChoiceSetting item, int which)
+	{
+		int valuesId = item.getValuesId();
+
+		if (valuesId > 0)
+		{
+			int[] valuesArray = mContext.getResources().getIntArray(valuesId);
+			return valuesArray[which];
+		}
+		else
+		{
+			return which;
+		}
+	}
+
+	private int getSelectionForSingleChoiceValue(SingleChoiceSetting item)
+	{
+		int value = item.getSelectedValue();
+		int valuesId = item.getValuesId();
+
+		if (valuesId > 0)
+		{
+			int[] valuesArray = mContext.getResources().getIntArray(valuesId);
+			for (int index = 0; index < valuesArray.length; index++)
+			{
+				int current = valuesArray[index];
+				if (current == value)
+				{
+					return index;
+				}
+			}
+		}
+		else
+		{
+			return value;
+		}
+
+		return -1;
 	}
 }
