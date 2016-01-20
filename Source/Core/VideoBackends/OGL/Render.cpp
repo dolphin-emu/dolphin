@@ -132,8 +132,8 @@ static void InitDriverInfo()
 	std::string sversion = std::string(g_ogl_config.gl_version);
 	DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
 	DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
+	DriverDetails::Family family = DriverDetails::Family::UNKNOWN;
 	double version = 0.0;
-	u32 family = 0;
 
 	// Get the vendor first
 	if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
@@ -210,11 +210,21 @@ static void InitDriverInfo()
 		case DriverDetails::VENDOR_MESA:
 		{
 			if (svendor == "nouveau")
+			{
 				driver = DriverDetails::DRIVER_NOUVEAU;
+			}
 			else if (svendor == "Intel Open Source Technology Center")
+			{
 				driver = DriverDetails::DRIVER_I965;
+				if (srenderer.find("Sandybridge") != std::string::npos)
+					family = DriverDetails::Family::INTEL_SANDY;
+				else if (srenderer.find("Ivybridge") != std::string::npos)
+					family = DriverDetails::Family::INTEL_IVY;
+			}
 			else if (std::string::npos != srenderer.find("AMD") || std::string::npos != srenderer.find("ATI"))
+			{
 				driver = DriverDetails::DRIVER_R600;
+			}
 
 			int major = 0;
 			int minor = 0;
@@ -225,7 +235,22 @@ static void InitDriverInfo()
 		break;
 		case DriverDetails::VENDOR_INTEL: // Happens in OS X/Windows
 		{
-			sscanf(g_ogl_config.gl_renderer, "Intel HD Graphics %d", &family);
+			u32 market_name;
+			sscanf(g_ogl_config.gl_renderer, "Intel HD Graphics %d", &market_name);
+			switch (market_name)
+			{
+			case 2000:
+			case 3000:
+				family = DriverDetails::Family::INTEL_SANDY;
+			break;
+			case 2500:
+			case 4000:
+				family = DriverDetails::Family::INTEL_IVY;
+			break;
+			default:
+				family = DriverDetails::Family::UNKNOWN;
+			break;
+			};
 #ifdef _WIN32
 			int glmajor = 0;
 			int glminor = 0;
