@@ -210,6 +210,7 @@ void Jit64::Init()
 	// important: do this *after* generating the global asm routines, because we can't use farcode in them.
 	// it'll crash because the farcode functions get cleared on JIT clears.
 	farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+	Clear();
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -223,6 +224,7 @@ void Jit64::ClearCache()
 	trampolines.ClearCodeSpace();
 	farcode.ClearCodeSpace();
 	ClearCodeSpace();
+	Clear();
 	UpdateMemoryOptions();
 	m_clear_cache_asap = false;
 }
