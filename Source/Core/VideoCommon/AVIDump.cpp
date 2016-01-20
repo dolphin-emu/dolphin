@@ -203,8 +203,10 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 			pkt.dts = av_rescale_q(pkt.dts,
 			                       s_stream->codec->time_base, s_stream->time_base);
 		}
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
 		if (s_stream->codec->coded_frame->key_frame)
 			pkt.flags |= AV_PKT_FLAG_KEY;
+#endif
 		pkt.stream_index = s_stream->index;
 		av_interleaved_write_frame(s_format_context, &pkt);
 
