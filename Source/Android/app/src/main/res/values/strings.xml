@@ -334,6 +334,8 @@
     <string name="preferences_extensions">Extension Bindings</string>
     <string name="preferences_video">Video Settings</string>
     <string name="emulation_title">Emulation Activity</string>
+    <string name="dialog_seekbar_pos">OK</string>
+    <string name="dialog_seekbar_neg">Cancel</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_toggle_input">Toggle Touch Controls</string>

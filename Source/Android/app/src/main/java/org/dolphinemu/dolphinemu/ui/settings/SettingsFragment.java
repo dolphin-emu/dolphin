@@ -77,6 +77,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	{
 		super.onDetach();
 		mView = null;
+
+		if (mAdapter != null)
+		{
+			mAdapter.closeDialog();
+		}
 	}
 
 	@Override
