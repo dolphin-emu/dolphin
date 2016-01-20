@@ -53,7 +53,23 @@ static Television s_television;
 
 static ID3D12Resource* s_access_efb_constant_buffer = nullptr;
 
+enum CLEAR_BLEND_DESC
+{
+	CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED = 0,
+	CLEAR_BLEND_DESC_RGB_CHANNELS_ENABLED = 1,
+	CLEAR_BLEND_DESC_ALPHA_CHANNEL_ENABLED = 2,
+	CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED = 3
+};
+
 static D3D12_BLEND_DESC s_clear_blend_descs[4] = {};
+
+enum CLEAR_DEPTH_DESC
+{
+	CLEAR_DEPTH_DESC_DEPTH_DISABLED = 0,
+	CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED = 1,
+	CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED = 2,
+};
+
 static D3D12_DEPTH_STENCIL_DESC s_clear_depth_descs[3] = {};
 
 // These are accessed in D3DUtil.
@@ -120,14 +136,14 @@ static void SetupDeviceObjects()
 	depth_desc.StencilEnable    = FALSE;
 	depth_desc.StencilReadMask  = D3D12_DEFAULT_STENCIL_READ_MASK;
 	depth_desc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
-	s_clear_depth_descs[0] = depth_desc;
+	s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED] = depth_desc;
 
 	depth_desc.DepthWriteMask  = D3D12_DEPTH_WRITE_MASK_ALL;
 	depth_desc.DepthEnable     = TRUE;
-	s_clear_depth_descs[1] = depth_desc;
+	s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED] = depth_desc;
 
 	depth_desc.DepthWriteMask  = D3D12_DEPTH_WRITE_MASK_ZERO;
-	s_clear_depth_descs[2] = depth_desc;
+	s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED] = depth_desc;
 
 	D3D12_BLEND_DESC blend_desc;
 	blend_desc.AlphaToCoverageEnable = FALSE;
@@ -143,16 +159,16 @@ static void SetupDeviceObjects()
 	blend_desc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
 	blend_desc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 	g_reset_blend_desc = blend_desc;
-	s_clear_blend_descs[0] = g_reset_blend_desc;
+	s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED] = g_reset_blend_desc;
 
 	blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED|D3D12_COLOR_WRITE_ENABLE_GREEN|D3D12_COLOR_WRITE_ENABLE_BLUE;
-	s_clear_blend_descs[1] = blend_desc;
+	s_clear_blend_descs[CLEAR_BLEND_DESC_RGB_CHANNELS_ENABLED] = blend_desc;
 
 	blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALPHA;
-	s_clear_blend_descs[2] = blend_desc;
+	s_clear_blend_descs[CLEAR_BLEND_DESC_ALPHA_CHANNEL_ENABLED] = blend_desc;
 
 	blend_desc.RenderTarget[0].RenderTargetWriteMask = 0;
-	s_clear_blend_descs[3] = blend_desc;
+	s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED] = blend_desc;
 
 	depth_desc.DepthEnable      = FALSE;
 	depth_desc.DepthWriteMask   = D3D12_DEPTH_WRITE_MASK_ZERO;
@@ -572,8 +588,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 			type,
 			points,
 			num_points,
-			&s_clear_blend_descs[3],
-			&s_clear_depth_descs[1],
+			&s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED],
+			&s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED],
 			&vp,
 			&FramebufferManager::GetEFBColorTexture()->GetRTV12(),
 			&FramebufferManager::GetEFBDepthTexture()->GetDSV12(),
@@ -633,17 +649,17 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 {
 	D3D12_BLEND_DESC* blend_desc = nullptr;
 
-	if (color_enable && alpha_enable) blend_desc = &s_clear_blend_descs[0];
-	else if (color_enable) blend_desc = &s_clear_blend_descs[1];
-	else if (alpha_enable) blend_desc = &s_clear_blend_descs[2];
-	else blend_desc = &s_clear_blend_descs[3];
+	if (color_enable && alpha_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED];
+	else if (color_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_RGB_CHANNELS_ENABLED];
+	else if (alpha_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALPHA_CHANNEL_ENABLED];
+	else blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED];
 
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc = nullptr;
 
 	// EXISTINGD3D11TODO: Should we enable Z testing here?
-	/*if (!bpmem.zmode.testenable) depth_stencil_desc = &s_clear_depth_descs[0];
-	else */if (z_enable) depth_stencil_desc = &s_clear_depth_descs[1];
-	else /*if (!z_enable)*/ depth_stencil_desc = &s_clear_depth_descs[2];
+	/*if (!bpmem.zmode.testenable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED];
+	else */if (z_enable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED];
+	else /*if (!z_enable)*/ depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED];
 
 	// Update the view port for clearing the picture
 	TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
