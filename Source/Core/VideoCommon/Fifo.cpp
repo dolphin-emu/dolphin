@@ -47,7 +47,7 @@ static u8* s_fifo_aux_read_ptr;
 bool g_use_deterministic_gpu_thread;
 
 static u64 s_last_sync_gpu_tick;
-static int s_et_syncGPU;
+static int s_event_sync_gpu;
 
 // STATE_TO_SAVE
 static u8* s_video_buffer;
@@ -497,6 +497,11 @@ void UpdateWantDeterminism(bool want)
 	}
 }
 
+/* This function checks the emulated CPU - GPU distance and may wake up the GPU,
+ * or block the CPU if required. It should be called by the CPU thread regulary.
+ * @ticks The gone emulated CPU time.
+ * @return A good time to call Update() next.
+ */
 static int Update(int ticks)
 {
 	const SConfig& param = SConfig::GetInstance();
@@ -513,10 +518,12 @@ static int Update(int ticks)
 		return param.iSyncGpuMaxDistance;
 	}
 
+	// Wakeup GPU
 	int old = s_sync_ticks.fetch_add(ticks);
 	if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
 		RunGpu();
 
+	// Wait for GPU
 	if (s_sync_ticks.load() >= param.iSyncGpuMaxDistance)
 	{
 		while (s_sync_ticks.load() > 0)
@@ -535,15 +542,16 @@ static void SyncGPUCallback(u64 userdata, int cyclesLate)
 	s_last_sync_gpu_tick = now;
 
 	if (next > 0)
-		CoreTiming::ScheduleEvent(next, s_et_syncGPU);
+		CoreTiming::ScheduleEvent(next, s_event_sync_gpu);
 }
 
+// Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
 	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
 	{
-		s_et_syncGPU = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
-		CoreTiming::ScheduleEvent(0, s_et_syncGPU);
+		s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+		CoreTiming::ScheduleEvent(0, s_event_sync_gpu);
 		s_last_sync_gpu_tick = CoreTiming::GetTicks();
 	}
 }
