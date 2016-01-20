@@ -47,7 +47,9 @@ macro(add_dolphin_library lib srcs libs)
 endmacro(add_dolphin_library)
 
 add_subdirectory(Core)
-add_subdirectory(Android/jni)
+if (ANDROID)
+	add_subdirectory(Android/jni)
+endif()
 add_subdirectory(UnitTests)
 
 if (DSPTOOL)
