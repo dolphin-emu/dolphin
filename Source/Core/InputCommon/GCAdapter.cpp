@@ -190,7 +190,11 @@ void Setup()
 	{
 		libusb_device* device = list[d];
 		if (CheckDeviceAccess(device))
+		{
+			// Only connect to a single adapter in case the user has multiple connected
 			AddGCAdapter(device);
+			break;
+		}
 	}
 
 	libusb_free_device_list(list, 1);
