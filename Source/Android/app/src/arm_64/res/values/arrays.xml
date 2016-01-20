@@ -9,10 +9,10 @@
         <item>@string/cached_interpreter</item>
         <item>@string/jit_arm64_recompiler</item>
     </string-array>
-    <string-array name="int_emu_cores" translatable="false">
+    <integer-array name="int_emu_cores" translatable="false">
         <item>0</item>
         <item>5</item>
         <item>4</item>
-    </string-array>
+    </integer-array>
 
 </resources>
