@@ -41,7 +41,7 @@ namespace JitInterface
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
-			jit->GetBlockCache()->Clear();
+			jit->ClearCache();
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{

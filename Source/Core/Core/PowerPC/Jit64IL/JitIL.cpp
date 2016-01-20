@@ -254,6 +254,7 @@ void JitIL::Init()
 	asm_routines.Init(nullptr);
 
 	farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+	ClearAtLocForBackPatch();
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -269,7 +270,9 @@ void JitIL::ClearCache()
 {
 	blocks.Clear();
 	trampolines.ClearCodeSpace();
+	farcode.ClearCodeSpace();
 	ClearCodeSpace();
+	ClearAtLocForBackPatch();
 }
 
 void JitIL::Shutdown()
@@ -455,7 +458,7 @@ void JitIL::Trace()
 
 void JitIL::Jit(u32 em_address)
 {
-	if (IsAlmostFull() || farcode.IsAlmostFull() || blocks.IsFull() ||
+	if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() || blocks.IsFull() ||
 		SConfig::GetInstance().bJITNoBlockCache)
 	{
 		ClearCache();
