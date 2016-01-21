@@ -136,7 +136,7 @@ std::vector<std::string> cdio_get_devices()
 // checklist: /dev/cdrom, /dev/dvd /dev/hd?, /dev/scd? /dev/sr?
 static struct
 {
-	const char * format;
+	const char* format;
 	unsigned int num_min;
 	unsigned int num_max;
 } checklist[] =
@@ -166,7 +166,7 @@ static bool is_device(const std::string& source_name)
 }
 
 // Check a device to see if it is a DVD/CD-ROM drive
-static bool is_cdrom(const std::string& drive, char *mnttype)
+static bool is_cdrom(const std::string& drive, char* mnttype)
 {
 	// Check if the device exists
 	if (!is_device(drive))
@@ -213,7 +213,7 @@ bool cdio_is_cdrom(std::string device)
 	// Resolve symbolic links. This allows symbolic links to valid
 	// drives to be passed from the command line with the -e flag.
 	char resolved_path[MAX_PATH];
-	char *devname = realpath(device.c_str(), resolved_path);
+	char* devname = realpath(device.c_str(), resolved_path);
 	if (!devname)
 		return false;
 	device = devname;

@@ -60,7 +60,7 @@ bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift)
 	return false;
 }
 
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned int *imm_s, unsigned int *imm_r)
+bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s, unsigned int* imm_r)
 {
 	//DCHECK((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
 	// DCHECK((width == kWRegSizeInBits) || (width == kXRegSizeInBits));

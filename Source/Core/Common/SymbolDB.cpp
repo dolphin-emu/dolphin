@@ -23,7 +23,7 @@ void SymbolDB::List()
 	INFO_LOG(OSHLE, "%zu functions known in this program above.", functions.size());
 }
 
-void SymbolDB::Clear(const char *prefix)
+void SymbolDB::Clear(const char* prefix)
 {
 	// TODO: honor prefix
 	functions.clear();

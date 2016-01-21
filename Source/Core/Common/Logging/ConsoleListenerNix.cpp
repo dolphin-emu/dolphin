@@ -22,7 +22,7 @@ ConsoleListener::~ConsoleListener()
 	fflush(nullptr);
 }
 
-void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
+void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
 	char color_attr[16] = "";
 	char reset_attr[16] = "";

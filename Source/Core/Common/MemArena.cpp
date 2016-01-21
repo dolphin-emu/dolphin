@@ -30,7 +30,7 @@
 #ifdef ANDROID
 #define ASHMEM_DEVICE "/dev/ashmem"
 
-static int AshmemCreateFileMapping(const char *name, size_t size)
+static int AshmemCreateFileMapping(const char* name, size_t size)
 {
 	int fd, ret;
 	fd = open(ASHMEM_DEVICE, O_RDWR);

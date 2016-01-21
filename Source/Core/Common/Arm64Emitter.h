@@ -96,7 +96,7 @@ constexpr ARM64Reg EncodeRegToDouble(ARM64Reg reg) { return static_cast<ARM64Reg
 constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)   { return static_cast<ARM64Reg>(reg | 0xC0); }
 
 // For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned int *imm_s, unsigned int *imm_r);
+bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s, unsigned int* imm_r);
 // For ADD/SUB
 bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift);
 
