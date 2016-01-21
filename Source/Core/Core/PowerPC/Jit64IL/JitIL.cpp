@@ -219,15 +219,14 @@ namespace JitILProfiler
 		{
 			std::string filename = StringFromFormat("JitIL_profiling_%d.csv", (int)time(nullptr));
 			File::IOFile file(filename, "w");
-			setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
-			fprintf(file.GetHandle(), "code hash,total elapsed,number of calls,elapsed per call\n");
+			file.WriteFormat("code hash,total elapsed,number of calls,elapsed per call\n");
 			for (auto& block : blocks)
 			{
 				const u64 codeHash = block.codeHash;
 				const u64 totalElapsed = block.totalElapsed;
 				const u64 numberOfCalls = block.numberOfCalls;
 				const double elapsedPerCall = totalElapsed / (double)numberOfCalls;
-				fprintf(file.GetHandle(), "%016" PRIx64 ",%" PRId64 ",%" PRId64 ",%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
+				file.WriteFormat("%016" PRIx64 ",%" PRId64 ",%" PRId64 ",%f\n", codeHash, totalElapsed, numberOfCalls, elapsedPerCall);
 			}
 		}
 	};
@@ -326,7 +325,7 @@ static void ImHere()
 		{
 			f.Open("log64.txt", "w");
 		}
-		fprintf(f.GetHandle(), "%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
+		f.WriteFormat("%08x r0: %08x r5: %08x r6: %08x\n", PC, PowerPC::ppcState.gpr[0],
 			PowerPC::ppcState.gpr[5], PowerPC::ppcState.gpr[6]);
 		f.Flush();
 	}

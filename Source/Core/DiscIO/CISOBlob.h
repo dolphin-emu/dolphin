@@ -9,8 +9,9 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
+
+namespace File { class IOFile; }
 
 namespace DiscIO
 {
@@ -47,7 +48,7 @@ public:
 	bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-	CISOFileReader(std::FILE* file);
+	CISOFileReader(File::IOFile&& file);
 
 	typedef u16 MapType;
 	static const MapType UNUSED_BLOCK_ID = -1;

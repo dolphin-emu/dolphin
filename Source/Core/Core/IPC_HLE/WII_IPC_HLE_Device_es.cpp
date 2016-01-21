@@ -411,7 +411,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 						{
 							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
 						}
-						WARN_LOG(WII_IPC_ES, "2 %p", pFile->GetHandle());
 						if (!pFile->ReadBytes(pDest, Size))
 						{
 							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");

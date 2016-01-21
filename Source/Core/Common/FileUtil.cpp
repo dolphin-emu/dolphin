@@ -891,13 +891,12 @@ bool WriteStringToFile(const std::string &str, const std::string& filename)
 bool ReadFileToString(const std::string& filename, std::string &str)
 {
 	File::IOFile file(filename, "rb");
-	auto const f = file.GetHandle();
 
-	if (!f)
+	if (!file.IsOpen())
 		return false;
 
 	size_t read_size;
-	str.resize(GetSize(f));
+	str.resize(file.GetSize());
 	bool retval = file.ReadArray(&str[0], str.size(), &read_size);
 
 	return retval;
@@ -907,14 +906,11 @@ IOFile::IOFile()
 	: m_file(nullptr), m_good(true)
 {}
 
-IOFile::IOFile(std::FILE* file)
-	: m_file(file), m_good(true)
-{}
-
-IOFile::IOFile(const std::string& filename, const char openmode[])
+IOFile::IOFile(const std::string& filename, const char openmode[],
+               OpenFlags flags)
 	: m_file(nullptr), m_good(true)
 {
-	Open(filename, openmode);
+	Open(filename, openmode, flags);
 }
 
 IOFile::~IOFile()
@@ -940,7 +936,8 @@ void IOFile::Swap(IOFile& other)
 	std::swap(m_good, other.m_good);
 }
 
-bool IOFile::Open(const std::string& filename, const char openmode[])
+bool IOFile::Open(const std::string& filename, const char openmode[],
+                  OpenFlags flags)
 {
 	Close();
 #ifdef _WIN32
@@ -948,6 +945,12 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 #else
 	m_file = fopen(filename.c_str(), openmode);
 #endif
+
+	if (IsOpen())
+	{
+		if (flags & DISABLE_BUFFERING)
+			std::setvbuf(m_file, nullptr, _IONBF, 0);
+	}
 
 	m_good = IsOpen();
 	return m_good;
@@ -960,20 +963,6 @@ bool IOFile::Close()
 
 	m_file = nullptr;
 	return m_good;
-}
-
-std::FILE* IOFile::ReleaseHandle()
-{
-	std::FILE* const ret = m_file;
-	m_file = nullptr;
-	return ret;
-}
-
-void IOFile::SetHandle(std::FILE* file)
-{
-	Close();
-	Clear();
-	m_file = file;
 }
 
 u64 IOFile::GetSize()

@@ -258,8 +258,10 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
 		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address, m_Name.c_str());
 			m_file->Seek(m_SeekPos, SEEK_SET); // File might be opened twice, need to seek before we read
-			ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file->GetHandle());
-			if (ReturnValue != Size && ferror(m_file->GetHandle()))
+			size_t read_bytes;
+			m_file->ReadBytes(Memory::GetPointer(Address), Size, &read_bytes);
+			ReturnValue = (u32)read_bytes;
+			if (ReturnValue != Size && !m_file->IsEOF())
 			{
 				ReturnValue = FS_EACCESS;
 			}

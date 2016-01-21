@@ -70,7 +70,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
 	File::IOFile f(filename, "rb");
 	if (f.IsOpen())
 	{
-		if (LoadFromFileInternal(f.ReleaseHandle()))
+		if (LoadFromFileInternal(&f))
 		{
 			m_Filename = filename;
 			m_IsValid = true;
@@ -81,19 +81,18 @@ bool SysConf::LoadFromFile(const std::string& filename)
 	return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE *fh)
+bool SysConf::LoadFromFileInternal(File::IOFile* f)
 {
-	File::IOFile f(fh);
 	// Fill in infos
 	SSysConfHeader s_Header;
-	f.ReadArray(s_Header.version, 4);
-	f.ReadArray(&s_Header.numEntries, 1);
+	f->ReadArray(s_Header.version, 4);
+	f->ReadArray(&s_Header.numEntries, 1);
 	s_Header.numEntries = Common::swap16(s_Header.numEntries) + 1;
 
 	for (u16 index = 0; index < s_Header.numEntries; index++)
 	{
 		SSysConfEntry tmpEntry;
-		f.ReadArray(&tmpEntry.offset, 1);
+		f->ReadArray(&tmpEntry.offset, 1);
 		tmpEntry.offset = Common::swap16(tmpEntry.offset);
 		m_Entries.push_back(tmpEntry);
 	}
@@ -102,16 +101,16 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
 	{
 		SSysConfEntry& curEntry = *i;
-		f.Seek(curEntry.offset, SEEK_SET);
+		f->Seek(curEntry.offset, SEEK_SET);
 
 		u8 description = 0;
-		f.ReadArray(&description, 1);
+		f->ReadArray(&description, 1);
 		// Data type
 		curEntry.type = (SysconfType)((description & 0xe0) >> 5);
 		// Length of name in bytes - 1
 		curEntry.nameLength = (description & 0x1f) + 1;
 		// Name
-		f.ReadArray(curEntry.name, curEntry.nameLength);
+		f->ReadArray(curEntry.name, curEntry.nameLength);
 		curEntry.name[curEntry.nameLength] = '\0';
 		// Get length of data
 		curEntry.data = nullptr;
@@ -119,14 +118,14 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 		switch (curEntry.type)
 		{
 		case Type_BigArray:
-			f.ReadArray(&curEntry.dataLength, 1);
+			f->ReadArray(&curEntry.dataLength, 1);
 			curEntry.dataLength = Common::swap16(curEntry.dataLength);
 			break;
 
 		case Type_SmallArray:
 			{
 			u8 dlength = 0;
-			f.ReadBytes(&dlength, 1);
+			f->ReadBytes(&dlength, 1);
 			curEntry.dataLength = dlength;
 			break;
 			}
@@ -154,11 +153,11 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 		if (curEntry.dataLength)
 		{
 			curEntry.data = new u8[curEntry.dataLength];
-			f.ReadArray(curEntry.data, curEntry.dataLength);
+			f->ReadArray(curEntry.data, curEntry.dataLength);
 		}
 	}
 
-	return f.IsGood();
+	return f->IsGood();
 }
 
 // Returns the size of the item in file

@@ -816,14 +816,13 @@ u32 GCMemcard::ImportGci(const std::string& inputFile, const std::string &output
 	if (!gci)
 		return OPENFAIL;
 
-	u32 result = ImportGciInternal(gci.ReleaseHandle(), inputFile, outputFile);
+	u32 result = ImportGciInternal(&gci, inputFile, outputFile);
 
 	return result;
 }
 
-u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile)
+u32 GCMemcard::ImportGciInternal(File::IOFile* gci, const std::string& inputFile, const std::string &outputFile)
 {
-	File::IOFile gci(gcih);
 	unsigned int offset;
 	std::string fileType;
 	SplitPath(inputFile, nullptr, nullptr, &fileType);
@@ -833,7 +832,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 	else
 	{
 		char tmp[0xD];
-		gci.ReadBytes(tmp, sizeof(tmp));
+		gci->ReadBytes(tmp, sizeof(tmp));
 		if (!strcasecmp(fileType.c_str(), ".gcs"))
 		{
 			if (!memcmp(tmp, "GCSAVE", 6)) // Header must be uppercase
@@ -851,20 +850,20 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 		else
 			return OPENFAIL;
 	}
-	gci.Seek(offset, SEEK_SET);
+	gci->Seek(offset, SEEK_SET);
 
 	DEntry tempDEntry;
-	gci.ReadBytes(&tempDEntry, DENTRY_SIZE);
-	const int fStart = (int)gci.Tell();
-	gci.Seek(0, SEEK_END);
-	const int length = (int)gci.Tell() - fStart;
-	gci.Seek(offset + DENTRY_SIZE, SEEK_SET);
+	gci->ReadBytes(&tempDEntry, DENTRY_SIZE);
+	const int fStart = (int)gci->Tell();
+	gci->Seek(0, SEEK_END);
+	const int length = (int)gci->Tell() - fStart;
+	gci->Seek(offset + DENTRY_SIZE, SEEK_SET);
 
 	Gcs_SavConvert(tempDEntry, offset, length);
 
 	if (length != BE16(tempDEntry.BlockCount) * BLOCK_SIZE)
 		return LENGTHFAIL;
-	if (gci.Tell() != offset + DENTRY_SIZE) // Verify correct file position
+	if (gci->Tell() != offset + DENTRY_SIZE) // Verify correct file position
 		return OPENFAIL;
 
 	u32 size = BE16((tempDEntry.BlockCount));
@@ -874,7 +873,7 @@ u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile, const
 	for (unsigned int i = 0; i < size; ++i)
 	{
 		GCMBlock b;
-		gci.ReadBytes(b.block, BLOCK_SIZE);
+		gci->ReadBytes(b.block, BLOCK_SIZE);
 		saveData.push_back(b);
 	}
 	u32 ret;

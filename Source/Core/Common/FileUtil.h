@@ -12,10 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
-
-#ifdef _WIN32
 #include "Common/StringUtil.h"
-#endif
 
 // User directory indices for GetUserPath
 enum {
@@ -159,9 +156,17 @@ bool ReadFileToString(const std::string& filename, std::string& str);
 class IOFile : public NonCopyable
 {
 public:
+	// Flags that can be provided to the Open method or to the IOFile constructor
+	// to get alternative behaviors.
+	enum OpenFlags
+	{
+		OPENFLAGS_DEFAULT = 0,
+		DISABLE_BUFFERING = 1,
+	};
+
 	IOFile();
-	IOFile(std::FILE* file);
-	IOFile(const std::string& filename, const char openmode[]);
+	IOFile(const std::string& filename, const char openmode[],
+	       OpenFlags flags = OPENFLAGS_DEFAULT);
 
 	~IOFile();
 
@@ -170,7 +175,8 @@ public:
 
 	void Swap(IOFile& other);
 
-	bool Open(const std::string& filename, const char openmode[]);
+	bool Open(const std::string& filename, const char openmode[],
+	          OpenFlags flags = OPENFLAGS_DEFAULT);
 	bool Close();
 
 	template <typename T>
@@ -195,9 +201,9 @@ public:
 		return m_good;
 	}
 
-	bool ReadBytes(void* data, size_t length)
+	bool ReadBytes(void* data, size_t length, size_t* read_bytes = nullptr)
 	{
-		return ReadArray(reinterpret_cast<char*>(data), length);
+		return ReadArray(reinterpret_cast<char*>(data), length, read_bytes);
 	}
 
 	bool WriteBytes(const void* data, size_t length)
@@ -205,17 +211,20 @@ public:
 		return WriteArray(reinterpret_cast<const char*>(data), length);
 	}
 
+	// Wrapper around StringFromFormat + WriteBytes.
+	template <typename... T>
+	bool WriteFormat(T&&... args)
+	{
+		std::string text = StringFromFormat(std::forward<T>(args)...);
+		return WriteBytes(text.c_str(), text.size());
+	}
+
 	bool IsOpen() const { return nullptr != m_file; }
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
+	bool IsEOF() const { return std::feof(m_file) != 0; }
 	operator void*() { return m_good ? m_file : nullptr; }
-
-	std::FILE* ReleaseHandle();
-
-	std::FILE* GetHandle() { return m_file; }
-
-	void SetHandle(std::FILE* file);
 
 	bool Seek(s64 off, int origin);
 	u64 Tell() const;
@@ -226,11 +235,9 @@ public:
 	// clear error state
 	void Clear() { m_good = true; std::clearerr(m_file); }
 
+private:
 	std::FILE* m_file;
 	bool m_good;
-private:
-	IOFile(IOFile&);
-	IOFile& operator=(IOFile& other);
 };
 
 }  // namespace
