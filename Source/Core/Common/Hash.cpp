@@ -104,7 +104,7 @@ u32 HashEctor(const u8* ptr, int length)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-inline u64 getblock(const u64 * p, int i)
+inline u64 getblock(const u64* p, int i)
 {
 	return p[i];
 }
@@ -151,7 +151,7 @@ inline u64 fmix64(u64 k)
 
 u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
-	const u8 * data = (const u8*)src;
+	const u8* data = (const u8*)src;
 	const int nblocks = len / 16;
 	u32 Step = (len / 8);
 	if (samples == 0)
@@ -170,7 +170,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	//----------
 	// body
 
-	const u64 * blocks = (const u64 *)(data);
+	const u64* blocks = (const u64*)(data);
 
 	for (int i = 0; i < nblocks; i+=Step)
 	{
@@ -183,7 +183,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	//----------
 	// tail
 
-	const u8 * tail = (const u8*)(data + nblocks*16);
+	const u8* tail = (const u8*)(data + nblocks*16);
 
 	u64 k1 = 0;
 	u64 k2 = 0;
@@ -339,7 +339,7 @@ u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
 	u64 h = len * m;
 	const int r = 47;
 	u32 Step = (len / 8);
-	const u64* data = (const u64 *)src;
+	const u64* data = (const u64*)src;
 	const u64* end = data + Step;
 	if (samples == 0)
 		samples = std::max(Step, 1u);
@@ -408,7 +408,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
 // Block read - if your platform needs to do endian-swapping or can only
 // handle aligned reads, do the conversion here
 
-inline u32 getblock(const u32 * p, int i)
+inline u32 getblock(const u32* p, int i)
 {
 	return p[i];
 }
@@ -456,7 +456,7 @@ inline void bmix32(u32 & h1, u32 & h2, u32 & k1, u32 & k2, u32 & c1, u32 & c2)
 
 u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 {
-	const u8 * data = (const u8*)src;
+	const u8* data = (const u8*)src;
 	u32 out[2];
 	const int nblocks = len / 8;
 	u32 Step = (len / 4);
@@ -475,7 +475,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	//----------
 	// body
 
-	const u32 * blocks = (const u32 *)(data + nblocks*8);
+	const u32* blocks = (const u32*)(data + nblocks*8);
 
 	for (int i = -nblocks; i < 0; i+=Step)
 	{
@@ -488,7 +488,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	//----------
 	// tail
 
-	const u8 * tail = (const u8*)(data + nblocks*8);
+	const u8* tail = (const u8*)(data + nblocks*8);
 
 	u32 k1 = 0;
 	u32 k2 = 0;
@@ -522,7 +522,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 	out[0] = h1;
 	out[1] = h2;
 
-	return *((u64 *)&out);
+	return *((u64*)&out);
 }
 
 /*
@@ -536,7 +536,7 @@ u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
 	u64 h = len * m;
 	const int r = 47;
 	u32 Step = (len / 8);
-	const u64* data = (const u64 *)src;
+	const u64* data = (const u64*)src;
 	const u64* end = data + Step;
 	if (samples == 0)
 		samples = std::max(Step, 1u);
@@ -554,7 +554,7 @@ u64 GetHashHiresTexture(const u8* src, u32 len, u32 samples)
 		h *= m;
 	}
 
-	const u8 * data2 = (const u8*)end;
+	const u8* data2 = (const u8*)end;
 
 	switch (len & 7)
 	{

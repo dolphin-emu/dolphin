@@ -35,7 +35,7 @@ bool ApplyPatch(const PatchInfo& patch) {
 		return false;
 	}
 
-	void* patch_addr = (void *)((uintptr_t)module + patch.rva);
+	void* patch_addr = (void*)((uintptr_t)module + patch.rva);
 	size_t patch_size = patch.length;
 
 	DWORD old_protect;

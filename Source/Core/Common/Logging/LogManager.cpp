@@ -28,7 +28,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_end(args);
 }
 
-LogManager *LogManager::m_logManager = nullptr;
+LogManager* LogManager::m_logManager = nullptr;
 
 LogManager::LogManager()
 {
@@ -118,7 +118,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	const char* file, int line, const char* format, va_list args)
 {
 	char temp[MAX_MSGLEN];
-	LogContainer *log = m_Log[type];
+	LogContainer* log = m_Log[type];
 
 	if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
 		return;
