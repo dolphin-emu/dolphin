@@ -64,39 +64,6 @@ void CLogWindow::CreateGUIControls()
 	log_window->Get("y", &y, Parent->GetSize().GetY());
 	log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
 
-	// Set up log listeners
-	int verbosity;
-	options->Get("Verbosity", &verbosity, 0);
-
-	// Ensure the verbosity level is valid
-	if (verbosity < 1)
-		verbosity = 1;
-	if (verbosity > MAX_LOGLEVEL)
-		verbosity = MAX_LOGLEVEL;
-
-	// Get the logger output settings from the config ini file.
-	options->Get("WriteToFile", &m_writeFile, false);
-	options->Get("WriteToWindow", &m_writeWindow, true);
-
-	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-	{
-		bool enable;
-		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, false);
-
-		if (m_writeWindow && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-
-		if (m_writeFile && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
-
-		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
-	}
-
 	// Font
 	m_FontChoice = new wxChoice(this, wxID_ANY);
 	m_FontChoice->Bind(wxEVT_CHOICE, &CLogWindow::OnFontChange, this);
@@ -148,14 +115,12 @@ void CLogWindow::CreateGUIControls()
 	SetSizer(sMain);
 
 	m_cmdline->SetFocus();
+	m_LogManager->OpenWindow();
 }
 
 CLogWindow::~CLogWindow()
 {
-	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-	{
-		m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-	}
+	m_LogManager->CloseWindow();
 }
 
 void CLogWindow::OnClose(wxCloseEvent& event)

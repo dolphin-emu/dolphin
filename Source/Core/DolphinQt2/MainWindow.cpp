@@ -7,10 +7,12 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
+#include <QTextEdit>
 
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
+#include "DolphinQt2/LogViewer.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"

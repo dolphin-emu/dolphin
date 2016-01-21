@@ -46,7 +46,7 @@ private:
 	wxTimer m_LogTimer;
 	LogManager* m_LogManager;
 	std::queue<std::pair<u8, wxString> > msgQueue;
-	bool m_writeFile, m_writeWindow, m_LogAccess;
+	bool m_LogAccess;
 
 	// Controls
 	wxBoxSizer* sBottom;
