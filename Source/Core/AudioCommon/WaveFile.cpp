@@ -135,28 +135,28 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count, int
 	if (sample_rate == 32000)
 	{
 		static short *buff = NULL;
-		static int nsampf = 0;
 
 		static short old[2] = { 0, 0 };
+
+		u32 count_resampled = count * 3 / 2; //Converted sample count from 32khz to 48khz (3/2 more samples than 32khz)
 
 		if (count % 2)
 			return;
 
 		// 2->3
-		if (count < count * 3 / 2)
+		if (count < count_resampled)
 		{
-			buff = (short *)realloc(buff, count * 3 / 2 * 4);
-			nsampf = count * 3 / 2;
+			buff = (short *)realloc(buff, count_resampled * 4);
 		}
 		if (!buff)
 			return;
 
-		for (int i = 0; i < (int)count / 2; i++)
+		for (u32 i = 0; i < count / 2; i++)
 		{
-			buff[6 * i + 0] = (int)sample_data[4 * i + 0] * 2 / 3 + old[0] * 1 / 3;
-			buff[6 * i + 1] = (int)sample_data[4 * i + 1] * 2 / 3 + old[1] * 1 / 3;
-			buff[6 * i + 2] = (int)sample_data[4 * i + 0] * 2 / 3 + sample_data[4 * i + 2] * 1 / 3;
-			buff[6 * i + 3] = (int)sample_data[4 * i + 1] * 2 / 3 + sample_data[4 * i + 3] * 1 / 3;
+			buff[6 * i + 0] = static_cast<int>(sample_data[4 * i + 0]) * 2 / 3 + old[0] * 1 / 3;
+			buff[6 * i + 1] = static_cast<int>(sample_data[4 * i + 1]) * 2 / 3 + old[1] * 1 / 3;
+			buff[6 * i + 2] = static_cast<int>(sample_data[4 * i + 0]) * 2 / 3 + sample_data[4 * i + 2] * 1 / 3;
+			buff[6 * i + 3] = static_cast<int>(sample_data[4 * i + 1]) * 2 / 3 + sample_data[4 * i + 3] * 1 / 3;
 			buff[6 * i + 4] = sample_data[4 * i + 2];
 			buff[6 * i + 5] = sample_data[4 * i + 3];
 
@@ -164,7 +164,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count, int
 			old[1] = sample_data[4 * i + 3];
 		}
 
-		count = count * 3 / 2;
+		count = count_resampled;
 		sample_data = buff;
 	}
 
