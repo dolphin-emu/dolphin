@@ -4,7 +4,7 @@ public final class FloatSetting extends Setting
 {
 	private float mValue;
 
-	public FloatSetting(String key, SettingSection section, float value)
+	public FloatSetting(String key, String section, float value)
 	{
 		super(key, section);
 		mValue = value;

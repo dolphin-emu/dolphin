@@ -9,10 +9,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.FloatSetting;
+import org.dolphinemu.dolphinemu.model.settings.IntSetting;
+import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
@@ -117,6 +119,17 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 		notifyDataSetChanged();
 	}
 
+	public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
+	{
+		BooleanSetting setting = item.setChecked(checked);
+		notifyItemChanged(position);
+
+		if (setting != null)
+		{
+			mView.addSetting(setting);
+		}
+	}
+
 	public void onSingleChoiceClick(SingleChoiceSetting item)
 	{
 		mClickedItem = item;
@@ -162,7 +175,7 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 
 	public void onSubmenuClick(SubmenuSetting item)
 	{
-		Toast.makeText(mContext, "Submenu item clicked", Toast.LENGTH_SHORT).show();
+		mView.loadSubMenu(item.getMenuKey());
 	}
 
 	@Override
@@ -174,7 +187,12 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 
 			int value = getValueForSingleChoiceSelection(scSetting, which);
 
-			scSetting.setSelectedValue(value);
+			IntSetting setting = scSetting.setSelectedValue(value);
+			if (setting != null)
+			{
+				mView.addSetting(setting);
+			}
+
 			closeDialog();
 		}
 		else if (mClickedItem instanceof SliderSetting)
@@ -193,11 +211,19 @@ public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 					value = (float) mSeekbarProgress;
 				}
 
-				sliderSetting.setSelectedValue(value);
+				FloatSetting setting = sliderSetting.setSelectedValue(value);
+				if (setting != null)
+				{
+					mView.addSetting(setting);
+				}
 			}
 			else
 			{
-				sliderSetting.setSelectedValue(mSeekbarProgress);
+				IntSetting setting = sliderSetting.setSelectedValue(mSeekbarProgress);
+				if (setting != null)
+				{
+					mView.addSetting(setting);
+				}
 			}
 		}
 

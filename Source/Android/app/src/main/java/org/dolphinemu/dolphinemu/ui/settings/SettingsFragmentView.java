@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.settings;
 
 import android.app.Activity;
 
+import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 
@@ -12,9 +13,15 @@ public interface SettingsFragmentView
 {
 	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
 
-	void passOptionsToActivity(HashMap<String, SettingSection> settings);
+	void passSettingsToActivity(HashMap<String, SettingSection> settings);
 
 	void showSettingsList(ArrayList<SettingsItem> settingsList);
 
 	Activity getActivity();
+
+	void loadSubMenu(String menuKey);
+
+	void showToastMessage(String message);
+
+	void addSetting(Setting setting);
 }

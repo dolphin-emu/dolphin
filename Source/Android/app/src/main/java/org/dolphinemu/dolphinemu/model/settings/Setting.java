@@ -3,10 +3,9 @@ package org.dolphinemu.dolphinemu.model.settings;
 public abstract class Setting
 {
 	private String mKey;
+	private String mSection;
 
-	private SettingSection mSection;
-
-	public Setting(String key, SettingSection section)
+	public Setting(String key, String section)
 	{
 		mKey = key;
 		mSection = section;
@@ -17,7 +16,7 @@ public abstract class Setting
 		return mKey;
 	}
 
-	public SettingSection getSection()
+	public String getSection()
 	{
 		return mSection;
 	}

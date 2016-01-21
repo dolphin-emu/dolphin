@@ -6,21 +6,46 @@ import org.dolphinemu.dolphinemu.model.settings.Setting;
 
 public class CheckBoxSetting extends SettingsItem
 {
-	public CheckBoxSetting(String key, Setting setting, int titleId, int descriptionId)
+	private boolean mDefaultValue;
+
+	public CheckBoxSetting(String key, String section, int titleId, int descriptionId, boolean defaultValue, Setting setting)
 	{
-		super(key, setting, titleId, descriptionId);
+		super(key, section, setting, titleId, descriptionId);
+		mDefaultValue = defaultValue;
 	}
 
 	public boolean isChecked()
 	{
+		if (getSetting() == null)
+		{
+			return mDefaultValue;
+		}
+
 		BooleanSetting setting = (BooleanSetting) getSetting();
 		return setting.getValue();
 	}
 
-	public void setChecked(boolean checked)
+	/**
+	 * Write a value to the backing boolean. If that boolean was previously null,
+	 * initializes a new one and returns it, so it can be added to the Hashmap.
+	 *
+	 * @param checked Pretty self explanatory.
+	 * @return null if overwritten successfully; otherwise, a newly created BooleanSetting.
+	 */
+	public BooleanSetting setChecked(boolean checked)
 	{
-		BooleanSetting setting = (BooleanSetting) getSetting();
-		setting.setValue(checked);
+		if (getSetting() == null)
+		{
+			BooleanSetting setting = new BooleanSetting(getKey(), getSection(), checked);
+			setSetting(setting);
+			return setting;
+		}
+		else
+		{
+			BooleanSetting setting = (BooleanSetting) getSetting();
+			setting.setValue(checked);
+			return null;
+		}
 	}
 
 	@Override

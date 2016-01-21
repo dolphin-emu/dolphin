@@ -1,18 +1,22 @@
 package org.dolphinemu.dolphinemu.model.settings.view;
 
+
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
 public class SingleChoiceSetting extends SettingsItem
 {
+	private int mDefaultValue;
+
 	private int mChoicesId;
 	private int mValuesId;
 
-	public SingleChoiceSetting(String key, Setting setting, int titleId, int descriptionId, int choicesId, int valuesId)
+	public SingleChoiceSetting(String key, String section, int titleId, int descriptionId, int choicesId, int valuesId, int defaultValue, Setting setting)
 	{
-		super(key, setting, titleId, descriptionId);
-		mChoicesId = choicesId;
+		super(key, section, setting, titleId, descriptionId);
 		mValuesId = valuesId;
+		mChoicesId = choicesId;
+		mDefaultValue = defaultValue;
 	}
 
 	public int getChoicesId()
@@ -27,14 +31,38 @@ public class SingleChoiceSetting extends SettingsItem
 
 	public int getSelectedValue()
 	{
-		IntSetting setting = (IntSetting) getSetting();
-		return setting.getValue();
+		if (getSetting() != null)
+		{
+			IntSetting setting = (IntSetting) getSetting();
+			return setting.getValue();
+		}
+		else
+		{
+			return mDefaultValue;
+		}
 	}
 
-	public void setSelectedValue(int selection)
+	/**
+	 * Write a value to the backing int. If that int was previously null,
+	 * initializes a new one and returns it, so it can be added to the Hashmap.
+	 *
+	 * @param selection New value of the int.
+	 * @return null if overwritten successfully otherwise; a newly created IntSetting.
+	 */
+	public IntSetting setSelectedValue(int selection)
 	{
-		IntSetting setting = (IntSetting) getSetting();
-		setting.setValue(selection);
+		if (getSetting() == null)
+		{
+			IntSetting setting = new IntSetting(getKey(), getSection(), selection);
+			setSetting(setting);
+			return setting;
+		}
+		else
+		{
+			IntSetting setting = (IntSetting) getSetting();
+			setting.setValue(selection);
+			return null;
+		}
 	}
 
 	@Override

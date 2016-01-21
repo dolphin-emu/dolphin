@@ -11,14 +11,17 @@ public abstract class SettingsItem
 	public static final int TYPE_SUBMENU = 4;
 
 	private String mKey;
+	private String mSection;
+
 	private Setting mSetting;
 
 	private int mTitleId;
 	private int mDescriptionId;
 
-	public SettingsItem(String key, Setting setting, int titleId, int descriptionId)
+	public SettingsItem(String key, String section, Setting setting, int titleId, int descriptionId)
 	{
 		mKey = key;
+		mSection = section;
 		mSetting = setting;
 		mTitleId = titleId;
 		mDescriptionId = descriptionId;
@@ -29,9 +32,19 @@ public abstract class SettingsItem
 		return mKey;
 	}
 
+	public String getSection()
+	{
+		return mSection;
+	}
+
 	public Setting getSetting()
 	{
 		return mSetting;
+	}
+
+	public void setSetting(Setting setting)
+	{
+		mSetting = setting;
 	}
 
 	public int getNameId()

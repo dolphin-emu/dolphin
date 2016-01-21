@@ -25,7 +25,7 @@ public class SettingsActivityPresenter
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, String filename)
+	public void onCreate(Bundle savedInstanceState, final String filename)
 	{
 		mFileName = filename;
 
@@ -35,14 +35,23 @@ public class SettingsActivityPresenter
 					.subscribeOn(Schedulers.io())
 					.observeOn(AndroidSchedulers.mainThread())
 					.subscribe(new Action1<HashMap<String, SettingSection>>()
-					{
-						@Override
-						public void call(HashMap<String, SettingSection> settingsBySection)
-						{
-							mSettingsBySection = settingsBySection;
-							mView.onSettingsFileLoaded(settingsBySection);
-						}
-					});
+							   {
+								   @Override
+								   public void call(HashMap<String, SettingSection> settingsBySection)
+								   {
+									   mSettingsBySection = settingsBySection;
+									   mView.onSettingsFileLoaded(settingsBySection);
+								   }
+							   },
+							new Action1<Throwable>()
+							{
+								@Override
+								public void call(Throwable throwable)
+								{
+									Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
+									mView.onSettingsFileLoaded(null);
+								}
+							});
 
 			mView.showSettingsFragment(mFileName, false);
 		}
