@@ -36,7 +36,7 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 }
 
 // Good
-std::string ArrayToString(const u8 *data, u32 size, int line_len = 20, bool spaces = true);
+std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
@@ -59,11 +59,11 @@ std::string ThousandSeparate(I value, int spaces = 0)
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
-bool TryParse(const std::string &str, bool *output);
-bool TryParse(const std::string &str, u32 *output);
+bool TryParse(const std::string &str, bool* output);
+bool TryParse(const std::string &str, u32* output);
 
 template <typename N>
-static bool TryParse(const std::string &str, N *const output)
+static bool TryParse(const std::string &str, N* const output)
 {
 	std::istringstream iss(str);
 	// is this right? not doing this breaks reading floats on locales that use different decimal separators

@@ -43,7 +43,7 @@ static bool IsPowerOfTwo(uint64_t x)
 
 #define V8_UINT64_C(x) ((uint64_t)(x))
 
-bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift)
+bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
 {
 	if (input < 4096)
 	{
@@ -1002,7 +1002,7 @@ void ARM64XEmitter::BL(const void* ptr)
 	EncodeUnconditionalBranchInst(1, ptr);
 }
 
-void ARM64XEmitter::QuickCallFunction(ARM64Reg scratchreg, const void *func)
+void ARM64XEmitter::QuickCallFunction(ARM64Reg scratchreg, const void* func)
 {
 	s64 distance = (s64)func - (s64)m_code;
 	distance >>= 2;  // Can only branch to opcode-aligned (4) addresses
@@ -4094,7 +4094,7 @@ float FPImm8ToFloat(uint8_t bits)
 	return fl;
 }
 
-bool FPImm8FromFloat(float value, uint8_t *immOut)
+bool FPImm8FromFloat(float value, uint8_t* immOut)
 {
 	uint32_t f;
 	memcpy(&f, &value, sizeof(float));

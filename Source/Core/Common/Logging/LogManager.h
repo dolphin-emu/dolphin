@@ -95,7 +95,7 @@ class LogManager : NonCopyable
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	static LogManager *m_logManager;  // Singleton. Ugh.
+	static LogManager* m_logManager;  // Singleton. Ugh.
 	std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners;
 
 	LogManager();
@@ -132,7 +132,7 @@ public:
 		return m_Log[type]->GetFullName();
 	}
 
-	void RegisterListener(LogListener::LISTENER id, LogListener *listener)
+	void RegisterListener(LogListener::LISTENER id, LogListener* listener)
 	{
 		m_listeners[id] = listener;
 	}
@@ -152,7 +152,7 @@ public:
 		return m_logManager;
 	}
 
-	static void SetInstance(LogManager *logManager)
+	static void SetInstance(LogManager* logManager)
 	{
 		m_logManager = logManager;
 	}

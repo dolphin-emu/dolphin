@@ -4,7 +4,7 @@
 
 #include "Common/x64Analyzer.h"
 
-bool DisassembleMov(const unsigned char* codePtr, InstructionInfo *info)
+bool DisassembleMov(const unsigned char* codePtr, InstructionInfo* info)
 {
 	unsigned const char* startCodePtr = codePtr;
 	u8 rex = 0;

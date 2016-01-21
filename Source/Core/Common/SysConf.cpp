@@ -81,7 +81,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
 	return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE *fh)
+bool SysConf::LoadFromFileInternal(FILE* fh)
 {
 	File::IOFile f(fh);
 	// Fill in infos

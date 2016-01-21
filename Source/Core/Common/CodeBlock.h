@@ -21,7 +21,7 @@ private:
 	virtual void PoisonMemory() = 0;
 
 protected:
-	u8 *region;
+	u8* region;
 	size_t region_size;
 	size_t parent_region_size;
 
@@ -68,7 +68,7 @@ public:
 		}
 	}
 
-	bool IsInSpace(u8 *ptr) const
+	bool IsInSpace(u8* ptr) const
 	{
 		return (ptr >= region) && (ptr < (region + region_size));
 	}

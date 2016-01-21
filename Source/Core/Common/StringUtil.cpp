@@ -145,7 +145,7 @@ std::string StringFromFormatV(const char* format, va_list args)
 }
 
 // For Debugging. Read out an u8 array.
-std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
+std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 {
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;
@@ -188,7 +188,7 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-bool TryParse(const std::string &str, u32 *const output)
+bool TryParse(const std::string &str, u32* const output)
 {
 	char* endptr = nullptr;
 
@@ -213,7 +213,7 @@ bool TryParse(const std::string &str, u32 *const output)
 	return true;
 }
 
-bool TryParse(const std::string &str, bool *const output)
+bool TryParse(const std::string &str, bool* const output)
 {
 	if ("1" == str || !strcasecmp("true", str.c_str()))
 		*output = true;

@@ -82,7 +82,7 @@ u64 GetSize(const std::string &filename);
 u64 GetSize(const int fd);
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE *f);
+u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string &filename);

@@ -41,4 +41,4 @@ enum AccessType
 	OP_ACCESS_WRITE = 1
 };
 
-bool DisassembleMov(const unsigned char* codePtr, InstructionInfo *info);
+bool DisassembleMov(const unsigned char* codePtr, InstructionInfo* info);

@@ -16,7 +16,7 @@
 template <class T, int N>
 class FixedSizeQueue
 {
-	T *storage;
+	T* storage;
 	int head;
 	int tail;
 	int count;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.

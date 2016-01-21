@@ -243,7 +243,7 @@ double ApproximateReciprocal(double val)
 
 }  // namespace
 
-inline void MatrixMul(int n, const float *a, const float *b, float *result)
+inline void MatrixMul(int n, const float* a, const float* b, float* result)
 {
 	for (int i = 0; i < n; ++i)
 	{

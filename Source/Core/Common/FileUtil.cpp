@@ -417,7 +417,7 @@ u64 GetSize(const int fd)
 }
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE *f)
+u64 GetSize(FILE* f)
 {
 	// can't use off_t here because it can be 32-bit
 	u64 pos = ftello(f);
@@ -482,7 +482,7 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 #else
 	struct dirent dirent, *result = nullptr;
 
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 			return parent_entry;
 
@@ -547,7 +547,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 		return false;
 
@@ -621,7 +621,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(source_path.c_str());
+	DIR* dirp = opendir(source_path.c_str());
 	if (!dirp) return;
 
 	while (!readdir_r(dirp, &dirent, &result) && result)

@@ -65,7 +65,7 @@ public:
 	{
 		if (NeedSize)
 			m_size--;
-		ElementPtr *tmpptr = m_read_ptr;
+		ElementPtr* tmpptr = m_read_ptr;
 		// advance the read pointer
 		m_read_ptr = tmpptr->next.load();
 		// set the next element to nullptr to stop the recursive deletion
@@ -81,7 +81,7 @@ public:
 		if (NeedSize)
 			m_size--;
 
-		ElementPtr *tmpptr = m_read_ptr;
+		ElementPtr* tmpptr = m_read_ptr;
 		m_read_ptr = tmpptr->next.load(std::memory_order_acquire);
 		t = std::move(tmpptr->current);
 		tmpptr->next.store(nullptr);
@@ -117,8 +117,8 @@ private:
 		std::atomic<ElementPtr*> next;
 	};
 
-	ElementPtr *m_write_ptr;
-	ElementPtr *m_read_ptr;
+	ElementPtr* m_write_ptr;
+	ElementPtr* m_read_ptr;
 	std::atomic<u32> m_size;
 };
 
