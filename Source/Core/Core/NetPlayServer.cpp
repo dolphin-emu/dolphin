@@ -713,19 +713,7 @@ bool NetPlayServer::StartGame()
 	sf::Packet* spac = new sf::Packet;
 	*spac << (MessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
-	*spac << m_settings.m_CPUthread;
-	*spac << m_settings.m_CPUcore;
-	*spac << m_settings.m_SelectedLanguage;
-	*spac << m_settings.m_OverrideGCLanguage;
-	*spac << m_settings.m_ProgressiveScan;
-	*spac << m_settings.m_PAL60;
-	*spac << m_settings.m_DSPEnableJIT;
-	*spac << m_settings.m_DSPHLE;
-	*spac << m_settings.m_WriteToMemcard;
-	*spac << m_settings.m_OCEnable;
-	*spac << m_settings.m_OCFactor;
-	*spac << m_settings.m_EXIDevice[0];
-	*spac << m_settings.m_EXIDevice[1];
+	spac->append(&m_settings, sizeof(m_settings));
 	*spac << (u32)g_netplay_initial_gctime;
 	*spac << (u32)(g_netplay_initial_gctime >> 32);
 

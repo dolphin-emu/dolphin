@@ -674,7 +674,6 @@ bool NetPlayClient::StartGame(const std::string &path)
 	sf::Packet* spac = new sf::Packet;
 	*spac << (MessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
-	*spac << (char *)&g_NetPlaySettings;
 	SendAsync(spac);
 
 	if (m_is_running.load())
