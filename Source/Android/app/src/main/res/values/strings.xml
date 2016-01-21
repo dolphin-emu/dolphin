@@ -320,7 +320,8 @@
 
 
     <!-- Game Grid Screen-->
-    <string name="grid_menu_settings">Settings</string>
+    <string name="grid_menu_core_settings">Settings</string>
+    <string name="grid_menu_video_settings">Video Settings</string>
     <string name="grid_menu_refresh">Refresh Library</string>
 
     <!-- Add Directory Screen-->

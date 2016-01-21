@@ -113,7 +113,7 @@ public final class TvMainActivity extends Activity implements MainView
 	}
 
 	@Override
-	public void launchSettingsActivity()
+	public void launchSettingsActivity(String menuTag)
 	{
 		SettingsActivity.launch(this, SettingsFile.FILE_NAME_DOLPHIN);
 	}
@@ -230,9 +230,13 @@ public final class TvMainActivity extends Activity implements MainView
 				R.drawable.ic_refresh_tv,
 				R.string.grid_menu_refresh));
 
-		rowItems.add(new TvSettingsItem(R.id.menu_settings,
-				R.drawable.ic_settings_tv,
-				R.string.grid_menu_settings));
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
+				R.drawable.ic_settings_core_tv,
+				R.string.grid_menu_core_settings));
+
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_video,
+				R.drawable.ic_settings_graphics_tv,
+				R.string.grid_menu_core_settings));
 
 		rowItems.add(new TvSettingsItem(R.id.button_add_directory,
 				R.drawable.ic_add_tv,

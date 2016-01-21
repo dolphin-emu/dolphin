@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
 	private SettingsFragmentPresenter mPresenter = new SettingsFragmentPresenter(this);
-	private SettingsActivityView mView;
+	private SettingsActivityView mActivity;
 
 	private SettingsAdapter mAdapter;
 
@@ -31,7 +32,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	{
 		super.onAttach(context);
 
-		mView = (SettingsActivityView) context;
+		mActivity = (SettingsActivityView) context;
 		mPresenter.onAttach();
 	}
 
@@ -76,7 +77,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	public void onDetach()
 	{
 		super.onDetach();
-		mView = null;
+		mActivity = null;
 
 		if (mAdapter != null)
 		{
@@ -91,11 +92,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void passOptionsToActivity(HashMap<String, SettingSection> settings)
+	public void passSettingsToActivity(HashMap<String, SettingSection> settings)
 	{
-		if (mView != null)
+		if (mActivity != null)
 		{
-			mView.setSettings(settings);
+			mActivity.setSettings(settings);
 		}
 	}
 
@@ -103,6 +104,24 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	public void showSettingsList(ArrayList<SettingsItem> settingsList)
 	{
 		mAdapter.setSettings(settingsList);
+	}
+
+	@Override
+	public void loadSubMenu(String menuKey)
+	{
+		mActivity.showSettingsFragment(menuKey, true);
+	}
+
+	@Override
+	public void showToastMessage(String message)
+	{
+		mActivity.showToastMessage(message);
+	}
+
+	@Override
+	public void addSetting(Setting setting)
+	{
+		mPresenter.addSetting(setting);
 	}
 
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".fragment.settings";

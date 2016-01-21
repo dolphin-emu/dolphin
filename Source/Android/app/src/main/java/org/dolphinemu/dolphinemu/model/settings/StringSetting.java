@@ -4,7 +4,7 @@ public final class StringSetting extends Setting
 {
 	private String mValue;
 
-	public StringSetting(String key, SettingSection section, String value)
+	public StringSetting(String key, String section, String value)
 	{
 		super(key, section);
 		mValue = value;

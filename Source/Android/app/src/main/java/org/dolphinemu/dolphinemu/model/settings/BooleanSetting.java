@@ -4,7 +4,7 @@ public final class BooleanSetting extends Setting
 {
 	private boolean mValue;
 
-	public BooleanSetting(String key, SettingSection section, boolean value)
+	public BooleanSetting(String key, String section, boolean value)
 	{
 		super(key, section);
 		mValue = value;
