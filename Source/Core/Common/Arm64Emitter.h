@@ -96,12 +96,12 @@ constexpr ARM64Reg EncodeRegToDouble(ARM64Reg reg) { return static_cast<ARM64Reg
 constexpr ARM64Reg EncodeRegToQuad(ARM64Reg reg)   { return static_cast<ARM64Reg>(reg | 0xC0); }
 
 // For AND/TST/ORR/EOR etc
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned int *imm_s, unsigned int *imm_r);
+bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s, unsigned int* imm_r);
 // For ADD/SUB
-bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift);
+bool IsImmArithmetic(uint64_t input, u32* val, bool* shift);
 
 float FPImm8ToFloat(uint8_t bits);
-bool FPImm8FromFloat(float value, uint8_t *immOut);
+bool FPImm8FromFloat(float value, uint8_t* immOut);
 
 enum OpType
 {
@@ -677,7 +677,7 @@ public:
 	// Wrapper around MOVZ+MOVK
 	void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);
 	template <class P>
-	void MOVP2R(ARM64Reg Rd, P *ptr)
+	void MOVP2R(ARM64Reg Rd, P* ptr)
 	{
 		_assert_msg_(DYNA_REC, Is64Bit(Rd), "Can't store pointers in 32-bit registers");
 		MOVI2R(Rd, (uintptr_t)ptr);
@@ -730,10 +730,10 @@ public:
 	}
 
 	// Plain function call
-	void QuickCallFunction(ARM64Reg scratchreg, const void *func);
+	void QuickCallFunction(ARM64Reg scratchreg, const void* func);
 	template <typename T> void QuickCallFunction(ARM64Reg scratchreg, T func)
 	{
-		QuickCallFunction(scratchreg, (const void *)func);
+		QuickCallFunction(scratchreg, (const void*)func);
 	}
 };
 

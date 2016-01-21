@@ -42,7 +42,7 @@ bool AsciiToHex(const std::string& _szValue, u32& result)
 	// Set errno to a good state.
 	errno = 0;
 
-	char *endptr = nullptr;
+	char* endptr = nullptr;
 	const u32 value = strtoul(_szValue.c_str(), &endptr, 16);
 
 	if (!endptr || *endptr)
@@ -120,7 +120,7 @@ std::string StringFromFormat(const char* format, ...)
 
 std::string StringFromFormatV(const char* format, va_list args)
 {
-	char *buf = nullptr;
+	char* buf = nullptr;
 #ifdef _WIN32
 	int required = _vscprintf(format, args);
 	buf = new char[required + 1];
@@ -145,7 +145,7 @@ std::string StringFromFormatV(const char* format, va_list args)
 }
 
 // For Debugging. Read out an u8 array.
-std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
+std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 {
 	std::ostringstream oss;
 	oss << std::setfill('0') << std::hex;
@@ -167,7 +167,7 @@ std::string ArrayToString(const u8 *data, u32 size, int line_len, bool spaces)
 }
 
 // Turns "  hej " into "hej". Also handles tabs.
-std::string StripSpaces(const std::string &str)
+std::string StripSpaces(const std::string& str)
 {
 	const size_t s = str.find_first_not_of(" \t\r\n");
 
@@ -188,9 +188,9 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-bool TryParse(const std::string &str, u32 *const output)
+bool TryParse(const std::string& str, u32* const output)
 {
-	char *endptr = nullptr;
+	char* endptr = nullptr;
 
 	// Reset errno to a value other than ERANGE
 	errno = 0;
@@ -213,7 +213,7 @@ bool TryParse(const std::string &str, u32 *const output)
 	return true;
 }
 
-bool TryParse(const std::string &str, bool *const output)
+bool TryParse(const std::string& str, bool* const output)
 {
 	if ("1" == str || !strcasecmp("true", str.c_str()))
 		*output = true;
@@ -292,7 +292,7 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
 	output.pop_back();
 }
 
-std::string TabsToSpaces(int tab_size, const std::string &in)
+std::string TabsToSpaces(int tab_size, const std::string& in)
 {
 	const std::string spaces(tab_size, ' ');
 	std::string out(in);

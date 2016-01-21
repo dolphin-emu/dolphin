@@ -31,7 +31,7 @@ template <typename K, typename V>
 class LinearDiskCacheReader
 {
 public:
-	virtual void Read(const K &key, const V *value, u32 value_size) = 0;
+	virtual void Read(const K& key, const V* value, u32 value_size) = 0;
 };
 
 // Dead simple unsorted key-value store with append functionality.
@@ -82,7 +82,7 @@ public:
 			// good header, read some key/value pairs
 			K key;
 
-			V *value = nullptr;
+			V* value = nullptr;
 			u32 value_size = 0;
 			u32 entry_number = 0;
 
@@ -142,7 +142,7 @@ public:
 	}
 
 	// Appends a key-value pair to the store.
-	void Append(const K &key, const V *value, u32 value_size)
+	void Append(const K& key, const V* value, u32 value_size)
 	{
 		// TODO: Should do a check that we don't already have "key"? (I think each caller does that already.)
 		Write(&value_size);
@@ -167,13 +167,13 @@ private:
 	}
 
 	template <typename D>
-	bool Write(const D *data, u32 count = 1)
+	bool Write(const D* data, u32 count = 1)
 	{
 		return m_file.write((const char*)data, count * sizeof(D)).good();
 	}
 
 	template <typename D>
-	bool Read(const D *data, u32 count = 1)
+	bool Read(const D* data, u32 count = 1)
 	{
 		return m_file.read((char*)data, count * sizeof(D)).good();
 	}

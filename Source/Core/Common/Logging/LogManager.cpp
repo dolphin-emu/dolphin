@@ -18,7 +18,7 @@
 #include "Common/Logging/LogManager.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-		const char *file, int line, const char* fmt, ...)
+		const char* file, int line, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -28,7 +28,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	va_end(args);
 }
 
-LogManager *LogManager::m_logManager = nullptr;
+LogManager* LogManager::m_logManager = nullptr;
 
 LogManager::LogManager()
 {
@@ -115,10 +115,10 @@ LogManager::~LogManager()
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-	const char *file, int line, const char *format, va_list args)
+	const char* file, int line, const char* format, va_list args)
 {
 	char temp[MAX_MSGLEN];
-	LogContainer *log = m_Log[type];
+	LogContainer* log = m_Log[type];
 
 	if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
 		return;
@@ -160,7 +160,7 @@ FileLogListener::FileLogListener(const std::string& filename)
 	SetEnable(true);
 }
 
-void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg)
+void FileLogListener::Log(LogTypes::LOG_LEVELS, const char* msg)
 {
 	if (!IsEnabled() || !IsValid())
 		return;

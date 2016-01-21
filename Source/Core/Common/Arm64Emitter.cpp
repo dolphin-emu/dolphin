@@ -43,7 +43,7 @@ static bool IsPowerOfTwo(uint64_t x)
 
 #define V8_UINT64_C(x) ((uint64_t)(x))
 
-bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift)
+bool IsImmArithmetic(uint64_t input, u32* val, bool* shift)
 {
 	if (input < 4096)
 	{
@@ -60,7 +60,7 @@ bool IsImmArithmetic(uint64_t input, u32 *val, bool *shift)
 	return false;
 }
 
-bool IsImmLogical(uint64_t value, unsigned int width, unsigned int *n, unsigned int *imm_s, unsigned int *imm_r)
+bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned int* imm_s, unsigned int* imm_r)
 {
 	//DCHECK((n != NULL) && (imm_s != NULL) && (imm_r != NULL));
 	// DCHECK((width == kWRegSizeInBits) || (width == kXRegSizeInBits));
@@ -1002,7 +1002,7 @@ void ARM64XEmitter::BL(const void* ptr)
 	EncodeUnconditionalBranchInst(1, ptr);
 }
 
-void ARM64XEmitter::QuickCallFunction(ARM64Reg scratchreg, const void *func)
+void ARM64XEmitter::QuickCallFunction(ARM64Reg scratchreg, const void* func)
 {
 	s64 distance = (s64)func - (s64)m_code;
 	distance >>= 2;  // Can only branch to opcode-aligned (4) addresses
@@ -1097,7 +1097,7 @@ void ARM64XEmitter::_MSR(PStateField field, u8 imm)
 	EncodeSystemInst(0, op1, 4, imm, op2, WSP);
 }
 
-static void GetSystemReg(PStateField field, int &o0, int &op1, int &CRn, int &CRm, int &op2)
+static void GetSystemReg(PStateField field, int& o0, int& op1, int& CRn, int& CRm, int& op2)
 {
 	switch (field)
 {
@@ -4094,7 +4094,7 @@ float FPImm8ToFloat(uint8_t bits)
 	return fl;
 }
 
-bool FPImm8FromFloat(float value, uint8_t *immOut)
+bool FPImm8FromFloat(float value, uint8_t* immOut)
 {
 	uint32_t f;
 	memcpy(&f, &value, sizeof(float));

@@ -97,7 +97,7 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
 #ifdef __APPLE__
 	thread_policy_set(pthread_mach_thread_np(thread),
-		THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
+		THREAD_AFFINITY_POLICY, (integer_t*)&mask, 1);
 #elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__) && !(defined ANDROID)
 #ifdef __FreeBSD__
 	cpuset_t cpu_set;

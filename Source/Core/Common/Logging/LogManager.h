@@ -24,7 +24,7 @@ class LogListener
 public:
 	virtual ~LogListener() {}
 
-	virtual void Log(LogTypes::LOG_LEVELS, const char *msg) = 0;
+	virtual void Log(LogTypes::LOG_LEVELS, const char* msg) = 0;
 
 	enum LISTENER
 	{
@@ -41,7 +41,7 @@ class FileLogListener : public LogListener
 public:
 	FileLogListener(const std::string& filename);
 
-	void Log(LogTypes::LOG_LEVELS, const char *msg) override;
+	void Log(LogTypes::LOG_LEVELS, const char* msg) override;
 
 	bool IsValid() const { return m_logfile.good(); }
 	bool IsEnabled() const { return m_enable; }
@@ -66,7 +66,7 @@ public:
 	void AddListener(LogListener::LISTENER id) { m_listener_ids[id] = 1; }
 	void RemoveListener(LogListener::LISTENER id) { m_listener_ids[id] = 0; }
 
-	void Trigger(LogTypes::LOG_LEVELS, const char *msg);
+	void Trigger(LogTypes::LOG_LEVELS, const char* msg);
 
 	bool IsEnabled() const { return m_enable; }
 	void SetEnable(bool enable) { m_enable = enable; }
@@ -95,7 +95,7 @@ class LogManager : NonCopyable
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	static LogManager *m_logManager;  // Singleton. Ugh.
+	static LogManager* m_logManager;  // Singleton. Ugh.
 	std::array<LogListener*, LogListener::NUMBER_OF_LISTENERS> m_listeners;
 
 	LogManager();
@@ -105,7 +105,7 @@ public:
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-			 const char *file, int line, const char *fmt, va_list args);
+			 const char* file, int line, const char* fmt, va_list args);
 
 	void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
 	{
@@ -132,7 +132,7 @@ public:
 		return m_Log[type]->GetFullName();
 	}
 
-	void RegisterListener(LogListener::LISTENER id, LogListener *listener)
+	void RegisterListener(LogListener::LISTENER id, LogListener* listener)
 	{
 		m_listeners[id] = listener;
 	}
@@ -152,7 +152,7 @@ public:
 		return m_logManager;
 	}
 
-	static void SetInstance(LogManager *logManager)
+	static void SetInstance(LogManager* logManager)
 	{
 		m_logManager = logManager;
 	}

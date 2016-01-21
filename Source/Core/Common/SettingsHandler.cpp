@@ -62,7 +62,7 @@ const std::string SettingsHandler::GetValue(const std::string& key)
 
 void SettingsHandler::Decrypt()
 {
-	const u8 *str = m_buffer;
+	const u8* str = m_buffer;
 	while (*str != 0)
 	{
 		if (m_position >= SETTINGS_SIZE)
@@ -113,7 +113,7 @@ void SettingsHandler::WriteByte(u8 b)
 const std::string SettingsHandler::generateSerialNumber()
 {
 	time_t rawtime;
-	tm *timeinfo;
+	tm* timeinfo;
 	char buffer[12];
 	char serialNumber[12];
 

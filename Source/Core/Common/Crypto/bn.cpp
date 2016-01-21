@@ -8,17 +8,17 @@
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/bn.h"
 
-static void bn_zero(u8 *d, u32 n)
+static void bn_zero(u8* d, u32 n)
 {
 	memset(d, 0, n);
 }
 
-static void bn_copy(u8 *d, const u8 *a, u32 n)
+static void bn_copy(u8* d, const u8* a, u32 n)
 {
 	memcpy(d, a, n);
 }
 
-int bn_compare(const u8 *a, const u8 *b, u32 n)
+int bn_compare(const u8* a, const u8* b, u32 n)
 {
 	u32 i;
 
@@ -32,7 +32,7 @@ int bn_compare(const u8 *a, const u8 *b, u32 n)
 	return 0;
 }
 
-void bn_sub_modulus(u8 *a, const u8 *N, u32 n)
+void bn_sub_modulus(u8* a, const u8* N, u32 n)
 {
 	u32 i;
 	u32 dig;
@@ -46,7 +46,7 @@ void bn_sub_modulus(u8 *a, const u8 *N, u32 n)
 	}
 }
 
-void bn_add(u8 *d, const u8 *a, const u8 *b, const u8 *N, u32 n)
+void bn_add(u8* d, const u8* a, const u8* b, const u8* N, u32 n)
 {
 	u32 i;
 	u32 dig;
@@ -66,7 +66,7 @@ void bn_add(u8 *d, const u8 *a, const u8 *b, const u8 *N, u32 n)
 		bn_sub_modulus(d, N, n);
 }
 
-void bn_mul(u8 *d, const u8 *a, const u8 *b, const u8 *N, u32 n)
+void bn_mul(u8* d, const u8* a, const u8* b, const u8* N, u32 n)
 {
 	u32 i;
 	u8 mask;
@@ -81,7 +81,7 @@ void bn_mul(u8 *d, const u8 *a, const u8 *b, const u8 *N, u32 n)
 		}
 }
 
-void bn_exp(u8 *d, const u8 *a, const u8 *N, u32 n, const u8 *e, u32 en)
+void bn_exp(u8* d, const u8* a, const u8* N, u32 n, const u8* e, u32 en)
 {
 	u8 t[512];
 	u32 i;
@@ -100,7 +100,7 @@ void bn_exp(u8 *d, const u8 *a, const u8 *N, u32 n, const u8 *e, u32 en)
 }
 
 // only for prime N -- stupid but lazy, see if I care
-void bn_inv(u8 *d, const u8 *a, const u8 *N, u32 n)
+void bn_inv(u8* d, const u8* a, const u8* N, u32 n)
 {
 	u8 t[512], s[512];
 

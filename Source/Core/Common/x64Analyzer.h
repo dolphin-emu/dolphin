@@ -21,7 +21,7 @@ struct InstructionInfo
 	u64 immediate;
 	s32 displacement;
 
-	bool operator==(const InstructionInfo &other) const;
+	bool operator==(const InstructionInfo& other) const;
 };
 
 struct ModRM
@@ -41,4 +41,4 @@ enum AccessType
 	OP_ACCESS_WRITE = 1
 };
 
-bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info);
+bool DisassembleMov(const unsigned char* codePtr, InstructionInfo* info);
