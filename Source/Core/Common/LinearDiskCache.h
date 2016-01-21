@@ -31,7 +31,7 @@ template <typename K, typename V>
 class LinearDiskCacheReader
 {
 public:
-	virtual void Read(const K &key, const V* value, u32 value_size) = 0;
+	virtual void Read(const K& key, const V* value, u32 value_size) = 0;
 };
 
 // Dead simple unsorted key-value store with append functionality.
@@ -142,7 +142,7 @@ public:
 	}
 
 	// Appends a key-value pair to the store.
-	void Append(const K &key, const V* value, u32 value_size)
+	void Append(const K& key, const V* value, u32 value_size)
 	{
 		// TODO: Should do a check that we don't already have "key"? (I think each caller does that already.)
 		Write(&value_size);

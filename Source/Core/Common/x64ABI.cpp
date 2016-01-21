@@ -217,7 +217,7 @@ void XEmitter::MOVTwo(int bits, Gen::X64Reg dst1, Gen::X64Reg src1, s32 offset1,
 	}
 }
 
-void XEmitter::ABI_CallFunctionAC(int bits, const void* func, const Gen::OpArg &arg1, u32 param2)
+void XEmitter::ABI_CallFunctionAC(int bits, const void* func, const Gen::OpArg& arg1, u32 param2)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		MOV(bits, R(ABI_PARAM1), arg1);
@@ -225,7 +225,7 @@ void XEmitter::ABI_CallFunctionAC(int bits, const void* func, const Gen::OpArg &
 	ABI_CallFunction(func);
 }
 
-void XEmitter::ABI_CallFunctionA(int bits, const void* func, const Gen::OpArg &arg1)
+void XEmitter::ABI_CallFunctionA(int bits, const void* func, const Gen::OpArg& arg1)
 {
 	if (!arg1.IsSimpleReg(ABI_PARAM1))
 		MOV(bits, R(ABI_PARAM1), arg1);

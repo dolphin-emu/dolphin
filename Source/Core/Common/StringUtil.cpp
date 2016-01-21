@@ -167,7 +167,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
 }
 
 // Turns "  hej " into "hej". Also handles tabs.
-std::string StripSpaces(const std::string &str)
+std::string StripSpaces(const std::string& str)
 {
 	const size_t s = str.find_first_not_of(" \t\r\n");
 
@@ -188,7 +188,7 @@ std::string StripQuotes(const std::string& s)
 		return s;
 }
 
-bool TryParse(const std::string &str, u32* const output)
+bool TryParse(const std::string& str, u32* const output)
 {
 	char* endptr = nullptr;
 
@@ -213,7 +213,7 @@ bool TryParse(const std::string &str, u32* const output)
 	return true;
 }
 
-bool TryParse(const std::string &str, bool* const output)
+bool TryParse(const std::string& str, bool* const output)
 {
 	if ("1" == str || !strcasecmp("true", str.c_str()))
 		*output = true;
@@ -292,7 +292,7 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
 	output.pop_back();
 }
 
-std::string TabsToSpaces(int tab_size, const std::string &in)
+std::string TabsToSpaces(int tab_size, const std::string& in)
 {
 	const std::string spaces(tab_size, ' ');
 	std::string out(in);

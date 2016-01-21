@@ -224,7 +224,7 @@ bool DisassembleMov(const unsigned char* codePtr, InstructionInfo* info)
 	return true;
 }
 
-bool InstructionInfo::operator==(const InstructionInfo &other) const
+bool InstructionInfo::operator==(const InstructionInfo& other) const
 {
 	return operandSize     == other.operandSize     &&
 	       instructionSize == other.instructionSize &&

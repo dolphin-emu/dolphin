@@ -162,7 +162,7 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
 }
 
 // Returns the size of the item in file
-static unsigned int create_item(SSysConfEntry &item, SysconfType type, const std::string &name,
+static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std::string& name,
 		const int data_length, unsigned int offset)
 {
 	item.offset = offset;

@@ -265,7 +265,7 @@ float MathFloatVectorSum(const std::vector<float>& Vec)
 	return std::accumulate(Vec.begin(), Vec.end(), 0.0f);
 }
 
-void Matrix33::LoadIdentity(Matrix33 &mtx)
+void Matrix33::LoadIdentity(Matrix33& mtx)
 {
 	memset(mtx.data, 0, sizeof(mtx.data));
 	mtx.data[0] = 1.0f;
@@ -273,7 +273,7 @@ void Matrix33::LoadIdentity(Matrix33 &mtx)
 	mtx.data[8] = 1.0f;
 }
 
-void Matrix33::RotateX(Matrix33 &mtx, float rad)
+void Matrix33::RotateX(Matrix33& mtx, float rad)
 {
 	float s = sin(rad);
 	float c = cos(rad);
@@ -284,7 +284,7 @@ void Matrix33::RotateX(Matrix33 &mtx, float rad)
 	mtx.data[7] = s;
 	mtx.data[8] = c;
 }
-void Matrix33::RotateY(Matrix33 &mtx, float rad)
+void Matrix33::RotateY(Matrix33& mtx, float rad)
 {
 	float s = sin(rad);
 	float c = cos(rad);
@@ -296,12 +296,12 @@ void Matrix33::RotateY(Matrix33 &mtx, float rad)
 	mtx.data[8] = c;
 }
 
-void Matrix33::Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result)
+void Matrix33::Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result)
 {
 	MatrixMul(3, a.data, b.data, result.data);
 }
 
-void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
+void Matrix33::Multiply(const Matrix33& a, const float vec[3], float result[3])
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -314,7 +314,7 @@ void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
 	}
 }
 
-void Matrix44::LoadIdentity(Matrix44 &mtx)
+void Matrix44::LoadIdentity(Matrix44& mtx)
 {
 	memset(mtx.data, 0, sizeof(mtx.data));
 	mtx.data[0] = 1.0f;
@@ -323,7 +323,7 @@ void Matrix44::LoadIdentity(Matrix44 &mtx)
 	mtx.data[15] = 1.0f;
 }
 
-void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
+void Matrix44::LoadMatrix33(Matrix44& mtx, const Matrix33& m33)
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -341,7 +341,7 @@ void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 	mtx.data[15] = 1.0f;
 }
 
-void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
+void Matrix44::Set(Matrix44& mtx, const float mtxArray[16])
 {
 	for (int i = 0; i < 16; ++i)
 	{
@@ -349,7 +349,7 @@ void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
 	}
 }
 
-void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
+void Matrix44::Translate(Matrix44& mtx, const float vec[3])
 {
 	LoadIdentity(mtx);
 	mtx.data[3] = vec[0];
@@ -357,14 +357,14 @@ void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
 	mtx.data[11] = vec[2];
 }
 
-void Matrix44::Shear(Matrix44 &mtx, const float a, const float b)
+void Matrix44::Shear(Matrix44& mtx, const float a, const float b)
 {
 	LoadIdentity(mtx);
 	mtx.data[2] = a;
 	mtx.data[6] = b;
 }
 
-void Matrix44::Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result)
+void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result)
 {
 	MatrixMul(4, a.data, b.data, result.data);
 }

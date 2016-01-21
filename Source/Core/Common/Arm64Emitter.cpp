@@ -1097,7 +1097,7 @@ void ARM64XEmitter::_MSR(PStateField field, u8 imm)
 	EncodeSystemInst(0, op1, 4, imm, op2, WSP);
 }
 
-static void GetSystemReg(PStateField field, int &o0, int &op1, int &CRn, int &CRm, int &op2)
+static void GetSystemReg(PStateField field, int& o0, int& op1, int& CRn, int& CRm, int& op2)
 {
 	switch (field)
 {

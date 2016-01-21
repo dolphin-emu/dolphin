@@ -23,7 +23,7 @@ struct PatchInfo {
 	{ L"ucrtbased.dll", 0x1C1915 , 0x91905, 5 },
 };
 
-bool ApplyPatch(const PatchInfo &patch) {
+bool ApplyPatch(const PatchInfo& patch) {
 	auto module = GetModuleHandleW(patch.module_name);
 	if (module == nullptr)
 	{
