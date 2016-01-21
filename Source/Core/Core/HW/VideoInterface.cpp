@@ -49,7 +49,7 @@ static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
-u32 TargetRefreshRate = 0;
+u32 s_target_refresh_rate = 0;
 
 static u32 s_clock_freqs[2] =
 {
@@ -94,7 +94,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_DTVStatus);
 	p.Do(m_FBWidth);
 	p.Do(m_BorderHBlank);
-	p.Do(TargetRefreshRate);
+	p.Do(s_target_refresh_rate);
 	p.Do(s_ticks_last_line_start);
 	p.Do(s_half_line_count);
 	p.Do(s_half_line_of_next_si_poll);
@@ -609,7 +609,12 @@ void UpdateParameters()
 	s_even_field_last_hl = s_even_field_first_hl + m_VerticalTimingRegister.ACV * 2;
 	s_odd_field_last_hl = s_odd_field_first_hl + m_VerticalTimingRegister.ACV * 2;
 
-	TargetRefreshRate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
+	s_target_refresh_rate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
+}
+
+u32 GetTargetRefreshRate()
+{
+	return s_target_refresh_rate;
 }
 
 u32 GetTicksPerSample()
@@ -621,7 +626,6 @@ u32 GetTicksPerHalfLine()
 {
 	return GetTicksPerSample() * m_HTiming0.HLW;
 }
-
 
 u32 GetTicksPerField()
 {

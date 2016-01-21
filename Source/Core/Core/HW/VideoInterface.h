@@ -305,9 +305,6 @@ union UVIHorizontalStepping
 	};
 };
 
-	// urgh, ugly externs.
-	extern u32 TargetRefreshRate;
-
 	// For BS2 HLE
 	void Preset(bool _bNTSC);
 
@@ -330,6 +327,7 @@ union UVIHorizontalStepping
 	// Change values pertaining to video mode
 	void UpdateParameters();
 
+	u32 GetTargetRefreshRate();
 	u32 GetTicksPerSample();
 	u32 GetTicksPerHalfLine();
 	u32 GetTicksPerField();
