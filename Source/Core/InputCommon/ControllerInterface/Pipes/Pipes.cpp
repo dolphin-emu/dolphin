@@ -6,7 +6,9 @@
 #include <cstdlib>
 #include <fcntl.h>
 #include <iostream>
+#include <locale>
 #include <map>
+#include <sstream>
 #include <string>
 #include <unistd.h>
 #include <vector>
@@ -49,6 +51,16 @@ static const std::array<std::string, 2> s_axis_tokens
 	"MAIN",
 	"C"
 }};
+
+static double StringToDouble(const std::string& text)
+{
+	std::istringstream is(text);
+	// ignore current locale
+	is.imbue(std::locale::classic());
+	double result;
+	is >> result;
+	return result;
+}
 
 void Init(std::vector<Core::Device*>& devices)
 {
@@ -161,13 +173,13 @@ void PipeDevice::ParseCommand(const std::string& command)
 	{
 		if (tokens.size() == 3)
 		{
-			double value = strtod(tokens[2].c_str(), nullptr);
+			double value = StringToDouble(tokens[2]);
 			SetAxis(tokens[1], (value / 2.0) + 0.5);
 		}
 		else if (tokens.size() == 4)
 		{
-			double x = strtod(tokens[2].c_str(), nullptr);
-			double y = strtod(tokens[3].c_str(), nullptr);
+			double x = StringToDouble(tokens[2]);
+			double y = StringToDouble(tokens[3]);
 			SetAxis(tokens[1] + " X", x);
 			SetAxis(tokens[1] + " Y", y);
 		}
