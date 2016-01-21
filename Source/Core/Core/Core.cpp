@@ -770,7 +770,7 @@ void VideoThrottle()
 // depending on the emulation speed set
 bool ShouldSkipFrame(int skipped)
 {
-	u32 TargetFPS = VideoInterface::TargetRefreshRate;
+	u32 TargetFPS = VideoInterface::GetTargetRefreshRate();
 	if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
 		TargetFPS = u32(TargetFPS * SConfig::GetInstance().m_EmulationSpeed);
 	const u32 frames = s_drawn_frame.load();
@@ -801,7 +801,7 @@ void UpdateTitle()
 
 	float FPS   = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
 	float VPS   = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
-	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
+	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",

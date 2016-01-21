@@ -305,36 +305,35 @@ union UVIHorizontalStepping
 	};
 };
 
-	// urgh, ugly externs.
-	extern u32 TargetRefreshRate;
+// For BS2 HLE
+void Preset(bool _bNTSC);
 
-	// For BS2 HLE
-	void Preset(bool _bNTSC);
+void Init();
+void SetRegionReg(char region);
+void DoState(PointerWrap &p);
 
-	void Init();
-	void SetRegionReg(char region);
-	void DoState(PointerWrap &p);
+void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-	void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+// returns a pointer to the current visible xfb
+u32 GetXFBAddressTop();
+u32 GetXFBAddressBottom();
 
-	// returns a pointer to the current visible xfb
-	u32 GetXFBAddressTop();
-	u32 GetXFBAddressBottom();
+// Update and draw framebuffer
+void Update();
 
-	// Update and draw framebuffer
-	void Update();
+// UpdateInterrupts: check if we have to generate a new VI Interrupt
+void UpdateInterrupts();
 
-	// UpdateInterrupts: check if we have to generate a new VI Interrupt
-	void UpdateInterrupts();
+// Change values pertaining to video mode
+void UpdateParameters();
 
-	// Change values pertaining to video mode
-	void UpdateParameters();
+u32 GetTargetRefreshRate();
+u32 GetTicksPerSample();
+u32 GetTicksPerHalfLine();
+u32 GetTicksPerField();
 
-	u32 GetTicksPerSample();
-	u32 GetTicksPerHalfLine();
-	u32 GetTicksPerField();
+// Get the aspect ratio of VI's active area.
+// This function only deals with standard aspect ratios. For widescreen aspect ratios, multiply the result by 1.33333..
+float GetAspectRatio();
 
-	// Get the aspect ratio of VI's active area.
-	// This function only deals with standard aspect ratios. For widescreen aspect ratios, multiply the result by 1.33333..
-	float GetAspectRatio();
-}
+} // namespace VideoInterface

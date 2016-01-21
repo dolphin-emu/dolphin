@@ -108,7 +108,7 @@ bool AVIDump::CreateFile()
 	s_stream->codec->width = s_width;
 	s_stream->codec->height = s_height;
 	s_stream->codec->time_base.num = 1;
-	s_stream->codec->time_base.den = VideoInterface::TargetRefreshRate;
+	s_stream->codec->time_base.den = VideoInterface::GetTargetRefreshRate();
 	s_stream->codec->gop_size = 12;
 	s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
