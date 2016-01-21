@@ -7,9 +7,14 @@
         android:icon="@drawable/ic_refresh"
         app:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/menu_settings"
-        android:title="@string/grid_menu_settings"
-        android:icon="@drawable/ic_settings"
+        android:id="@+id/menu_settings_core"
+        android:title="@string/grid_menu_core_settings"
+        android:icon="@drawable/ic_settings_core"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/menu_settings_video"
+        android:title="@string/grid_menu_video_settings"
+        android:icon="@drawable/ic_settings_graphics"
         app:showAsAction="ifRoom"/>
 
 </menu>

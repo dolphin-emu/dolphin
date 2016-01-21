@@ -32,7 +32,7 @@ public interface MainView
 	void refreshFragmentScreenshot(int fragmentPosition);
 
 
-	void launchSettingsActivity();
+	void launchSettingsActivity(String menuTag);
 
 	void launchFileListActivity();
 

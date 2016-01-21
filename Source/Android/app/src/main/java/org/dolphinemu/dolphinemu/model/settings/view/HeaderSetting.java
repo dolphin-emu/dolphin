@@ -7,7 +7,7 @@ public class HeaderSetting extends SettingsItem
 {
 	public HeaderSetting(String key, Setting setting, int titleId, int descriptionId)
 	{
-		super(key, setting, titleId, descriptionId);
+		super(key, null, setting, titleId, descriptionId);
 	}
 
 	@Override

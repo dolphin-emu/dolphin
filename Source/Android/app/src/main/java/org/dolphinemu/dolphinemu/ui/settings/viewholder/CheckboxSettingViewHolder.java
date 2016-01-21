@@ -51,7 +51,7 @@ public class CheckBoxSettingViewHolder extends SettingViewHolder
 	public void onClick(View clicked)
 	{
 		mCheckbox.toggle();
-		mItem.setChecked(mCheckbox.isChecked());
-		getAdapter().notifyItemChanged(getAdapterPosition());
+
+		getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
 	}
 }

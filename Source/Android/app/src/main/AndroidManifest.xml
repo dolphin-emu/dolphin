@@ -58,7 +58,7 @@
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
-            android:label="@string/grid_menu_settings"/>
+            android:label="@string/grid_menu_core_settings"/>
 
         <activity
             android:name=".activities.EmulationActivity"

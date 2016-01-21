@@ -4,7 +4,7 @@ public final class IntSetting extends Setting
 {
 	private int mValue;
 
-	public IntSetting(String key, SettingSection section, int value)
+	public IntSetting(String key, String section, int value)
 	{
 		super(key, section);
 		mValue = value;

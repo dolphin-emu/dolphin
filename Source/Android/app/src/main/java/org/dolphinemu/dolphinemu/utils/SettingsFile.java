@@ -36,38 +36,42 @@ public final class SettingsFile
 	public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
 	public static final String SECTION_GFX_HACKS = "Hacks";
 
+	public static final String SECTION_STEREOSCOPY = "Stereoscopy";
 
-	public static final String KEY_CPU_CORE= "CPUCore";
-	public static final String KEY_DUAL_CORE= "CPUThread";
-	public static final String KEY_OVERCLOCK_ENABLE= "OverclockEnable";
-	public static final String KEY_OVERCLOCK_PERCENT= "Overclock";
-	public static final String KEY_VIDEO_BACKEND= "GFXBackend";
+	public static final String KEY_CPU_CORE = "CPUCore";
+	public static final String KEY_DUAL_CORE = "CPUThread";
+	public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
+	public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
+	public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 
-	public static final String KEY_SHOW_FPS= "ShowFPS";
-	public static final String KEY_INTERNAL_RES= "EFBScale";
-	public static final String KEY_FSAA= "MSAA";
-	public static final String KEY_ANISOTROPY= "MaxAnisotropy";
-	public static final String KEY_POST_SHADER= "PostProcessingShader";
-	public static final String KEY_SCALED_EFB= "EFBScaledCopy";
-	public static final String KEY_PER_PIXEL= "EnablePixelLighting";
-	public static final String KEY_FORCE_FILTERING= "ForceFiltering";
-	public static final String KEY_DISABLE_FOG= "DisableFog";
+	public static final String KEY_SHOW_FPS = "ShowFPS";
+	public static final String KEY_INTERNAL_RES = "EFBScale";
+	public static final String KEY_FSAA = "MSAA";
+	public static final String KEY_ANISOTROPY = "MaxAnisotropy";
+	public static final String KEY_POST_SHADER = "PostProcessingShader";
+	public static final String KEY_SCALED_EFB = "EFBScaledCopy";
+	public static final String KEY_PER_PIXEL = "EnablePixelLighting";
+	public static final String KEY_FORCE_FILTERING = "ForceFiltering";
+	public static final String KEY_DISABLE_FOG = "DisableFog";
 
-	public static final String KEY_STEREO_MODE= "StereoMode";
-	public static final String KEY_STEREO_DEPTH= "StereoDepth";
-	public static final String KEY_STEREO_CONV= "StereoConvergencePercentage";
-	public static final String KEY_STEREO_SWAP= "StereoSwapEyes";
+	public static final String KEY_STEREO_MODE = "StereoMode";
+	public static final String KEY_STEREO_DEPTH = "StereoDepth";
+	public static final String KEY_STEREO_CONV = "StereoConvergencePercentage";
+	public static final String KEY_STEREO_SWAP = "StereoSwapEyes";
 
-	public static final String KEY_SKIP_EFB= "EFBAccessEnable";
-	public static final String KEY_IGNORE_FORMAT= "EFBEmulateFormatChanges";
-	public static final String KEY_EFB_COPY= "EFBCopyEnable";
-	public static final String KEY_EFB_TEXTURE= "EFBToTextureEnable";
-	public static final String KEY_EFB_CACHE= "EFBCopyCacheEnable";
-	public static final String KEY_TEXCACHE_ACCURACY= "SafeTextureCacheColorSamples";
-	public static final String KEY_XFB= "UseXFB";
-	public static final String KEY_XFB_REAL= "UseRealXFB";
+	public static final String KEY_SKIP_EFB = "EFBAccessEnable";
+	public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
+	public static final String KEY_EFB_COPY = "EFBCopyEnable";
+	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
+	public static final String KEY_EFB_CACHE = "EFBCopyCacheEnable";
+	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
+	public static final String KEY_XFB = "UseXFB";
+	public static final String KEY_XFB_REAL = "UseRealXFB";
 	public static final String KEY_FAST_DEPTH= "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO= "AspectRatio";
+
+	// Internal only, not actually found in settings file.
+	public static final String KEY_EFB_COPY_METHOD = "EFBCopyMethod";
 
 	private SettingsFile()
 	{
@@ -206,7 +210,7 @@ public final class SettingsFile
 		{
 			int valueAsInt = Integer.valueOf(value);
 
-			return new IntSetting(key, current, valueAsInt);
+			return new IntSetting(key, current.getName(), valueAsInt);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -216,7 +220,7 @@ public final class SettingsFile
 		{
 			float valueAsFloat = Float.valueOf(value);
 
-			return new FloatSetting(key, current, valueAsFloat);
+			return new FloatSetting(key, current.getName(), valueAsFloat);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -225,11 +229,11 @@ public final class SettingsFile
 		switch (value)
 		{
 			case "True":
-				return new BooleanSetting(key, current, true);
+				return new BooleanSetting(key, current.getName(), true);
 			case "False":
-				return new BooleanSetting(key, current, false);
+				return new BooleanSetting(key, current.getName(), false);
 			default:
-				return new StringSetting(key, current, value);
+				return new StringSetting(key, current.getName(), value);
 		}
 	}
 
