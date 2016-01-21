@@ -75,7 +75,7 @@ EvictFindResult<V> EvictFind(std::unordered_map<K, EvictEntry<V>>& map, const K&
 #if DEBUG
 	printf("failed to find key '");
 	for (size_t i = 0; i < sizeof(key); i++) {
-		printf("%02x", ((u8 *) &key)[i]);
+		printf("%02x", ((u8*) &key)[i]);
 	}
 	printf("'\n");
 #endif

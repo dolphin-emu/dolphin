@@ -733,7 +733,7 @@ public:
 	void QuickCallFunction(ARM64Reg scratchreg, const void* func);
 	template <typename T> void QuickCallFunction(ARM64Reg scratchreg, T func)
 	{
-		QuickCallFunction(scratchreg, (const void *)func);
+		QuickCallFunction(scratchreg, (const void*)func);
 	}
 };
 
