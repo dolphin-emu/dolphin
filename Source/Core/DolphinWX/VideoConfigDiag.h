@@ -24,6 +24,7 @@
 #include "Core/Core.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 class wxBoxSizer;

@@ -558,7 +558,6 @@ Renderer::Renderer()
 			glEnable(GL_DEBUG_OUTPUT);
 		else
 			glDisable(GL_DEBUG_OUTPUT);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	}
 
 	int samples;

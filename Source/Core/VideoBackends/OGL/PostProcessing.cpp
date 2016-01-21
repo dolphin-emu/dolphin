@@ -396,6 +396,8 @@ void PostProcessingShader::Draw(OGLPostProcessor* parent,
 	{
 		const RenderPassData& pass = m_passes[pass_index];
 		bool is_last_pass = (pass_index == m_last_pass_index);
+		if (!pass.enabled)
+			continue;
 
 		// If this is the last pass and we can skip the final copy, write directly to output texture.
 		GLuint output_texture;
