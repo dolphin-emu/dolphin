@@ -138,28 +138,28 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	};
 	switch (s_opengl_mode)
 	{
-		case GLInterfaceMode::MODE_OPENGL:
-			attribs[1] = EGL_OPENGL_BIT;
-			ctx_attribs[0] = EGL_NONE;
-		break;
-		case GLInterfaceMode::MODE_OPENGLES2:
-			attribs[1] = EGL_OPENGL_ES2_BIT;
-			ctx_attribs[1] = 2;
-		break;
-		case GLInterfaceMode::MODE_OPENGLES3:
-			attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
-			ctx_attribs[1] = 3;
-		break;
-		default:
-			ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
-			return false;
-		break;
+	case GLInterfaceMode::MODE_OPENGL:
+		attribs[1] = EGL_OPENGL_BIT;
+		ctx_attribs[0] = EGL_NONE;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES2:
+		attribs[1] = EGL_OPENGL_ES2_BIT;
+		ctx_attribs[1] = 2;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES3:
+		attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
+		ctx_attribs[1] = 3;
+	break;
+	default:
+		ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
+		return false;
+	break;
 	}
 
 	if (!eglChooseConfig( egl_dpy, attribs, &m_config, 1, &num_configs))
 	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-		exit(1);
+		return false;
 	}
 
 	if (s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
@@ -171,7 +171,7 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	if (!egl_ctx)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
-		exit(1);
+		return false;
 	}
 
 	std::string tmp;
@@ -185,16 +185,22 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 		}
 	}
 
-	CreateWindowSurface();
+	if (!CreateWindowSurface())
+	{
+		ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x\n", eglGetError());
+		return false;
+	}
 	return true;
 }
 
 cInterfaceBase* cInterfaceEGL::GetFreeContext()
 {
-	cInterfaceBase* context = new cInterfaceEGL();
-	context->Create(this);
-	m_shared_contexts.emplace_back(std::unique_ptr<cInterfaceBase>(context));
-	return context;
+	auto context = std::make_unique<cInterfaceEGL>();
+	cInterfaceBase* context_ptr = context.get();
+	if (!context->Create(this))
+		return nullptr;
+	m_shared_contexts.emplace_back(std::move(context));
+	return context_ptr;
 }
 
 bool cInterfaceEGL::Create(cInterfaceBase* main_context)
@@ -215,19 +221,19 @@ bool cInterfaceEGL::Create(cInterfaceBase* main_context)
 
 	switch (egl_context->GetMode())
 	{
-		case GLInterfaceMode::MODE_OPENGL:
-			ctx_attribs[0] = EGL_NONE;
-		break;
-		case GLInterfaceMode::MODE_OPENGLES2:
-			ctx_attribs[1] = 2;
-		break;
-		case GLInterfaceMode::MODE_OPENGLES3:
-			ctx_attribs[1] = 3;
-		break;
-		default:
-			INFO_LOG(VIDEO, "Unknown opengl mode set\n");
-			return false;
-		break;
+	case GLInterfaceMode::MODE_OPENGL:
+		ctx_attribs[0] = EGL_NONE;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES2:
+		ctx_attribs[1] = 2;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES3:
+		ctx_attribs[1] = 3;
+	break;
+	default:
+		INFO_LOG(VIDEO, "Unknown opengl mode set\n");
+		return false;
+	break;
 	}
 
 	if (egl_context->GetMode() == GLInterfaceMode::MODE_OPENGL)
@@ -239,14 +245,18 @@ bool cInterfaceEGL::Create(cInterfaceBase* main_context)
 	if (!egl_ctx)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x\n", eglGetError());
-		exit(1);
+		return false;
 	}
 
-	CreateWindowSurface();
+	if (!CreateWindowSurface())
+	{
+		ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x\n", eglGetError());
+		return false;
+	}
 	return true;
 }
 
-void cInterfaceEGL::CreateWindowSurface()
+bool cInterfaceEGL::CreateWindowSurface()
 {
 	if (m_has_handle)
 	{
@@ -255,7 +265,7 @@ void cInterfaceEGL::CreateWindowSurface()
 		if (!egl_surf)
 		{
 			INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
-			exit(1);
+			return false;
 		}
 	}
 	else if (!m_supports_surfaceless)
@@ -268,13 +278,14 @@ void cInterfaceEGL::CreateWindowSurface()
 		if (!egl_surf)
 		{
 			INFO_LOG(VIDEO, "Error: eglCreatePbufferSurface failed");
-			exit(2);
+			return false;
 		}
 	}
 	else
 	{
 		egl_surf = EGL_NO_SURFACE;
 	}
+	return true;
 }
 
 void cInterfaceEGL::DestroyWindowSurface()

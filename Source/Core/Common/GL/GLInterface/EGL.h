@@ -17,7 +17,7 @@ private:
 	EGLNativeWindowType m_host_window;
 	bool m_supports_surfaceless = false;
 
-	void CreateWindowSurface();
+	bool CreateWindowSurface();
 	void DestroyWindowSurface();
 
 protected:
