@@ -104,6 +104,7 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	egl_dpy = OpenDisplay();
 	m_host_window = (EGLNativeWindowType) window_handle;
 	m_has_handle = !!window_handle;
+	m_core = false;
 
 	if (!egl_dpy)
 	{
@@ -184,6 +185,62 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 		}
 	}
 
+	CreateWindowSurface();
+	return true;
+}
+
+cInterfaceBase* cInterfaceEGL::GetFreeContext()
+{
+	cInterfaceBase* context = new cInterfaceEGL();
+	context->Create(this);
+	m_shared_contexts.emplace_back(std::unique_ptr<cInterfaceBase>(context));
+	return context;
+}
+
+bool cInterfaceEGL::Create(cInterfaceBase* main_context)
+{
+	cInterfaceEGL* egl_context = static_cast<cInterfaceEGL*>(main_context);
+
+	egl_dpy = egl_context->egl_dpy;
+	m_core = egl_context->m_core;
+	m_config = egl_context->m_config;
+	m_supports_surfaceless = egl_context->m_supports_surfaceless;
+	m_is_shared = true;
+	m_has_handle = false;
+
+	EGLint ctx_attribs[] = {
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_NONE
+	};
+
+	switch (egl_context->GetMode())
+	{
+		case GLInterfaceMode::MODE_OPENGL:
+			ctx_attribs[0] = EGL_NONE;
+		break;
+		case GLInterfaceMode::MODE_OPENGLES2:
+			ctx_attribs[1] = 2;
+		break;
+		case GLInterfaceMode::MODE_OPENGLES3:
+			ctx_attribs[1] = 3;
+		break;
+		default:
+			INFO_LOG(VIDEO, "Unknown opengl mode set\n");
+			return false;
+		break;
+	}
+
+	if (egl_context->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		eglBindAPI(EGL_OPENGL_API);
+	else
+		eglBindAPI(EGL_OPENGL_ES_API);
+
+	egl_ctx = eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, ctx_attribs );
+	if (!egl_ctx)
+	{
+		INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x\n", eglGetError());
+		exit(1);
+	}
 
 	CreateWindowSurface();
 	return true;
@@ -254,17 +311,31 @@ bool cInterfaceEGL::ClearCurrent()
 // Close backend
 void cInterfaceEGL::Shutdown()
 {
-	ShutdownPlatform();
-	if (egl_ctx && !eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx))
-		NOTICE_LOG(VIDEO, "Could not release drawing context.");
-	if (egl_ctx)
+	// Shutdown any shared contexts
+	for (auto& context : m_shared_contexts)
+		context->Shutdown();
+
+	if (m_is_shared)
 	{
 		eglMakeCurrent(egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (!eglDestroyContext(egl_dpy, egl_ctx))
 			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
 		DestroyWindowSurface();
-		if (!eglTerminate(egl_dpy))
-			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
-		egl_ctx = nullptr;
+	}
+	else
+	{
+		ShutdownPlatform();
+		if (egl_ctx && !eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx))
+			NOTICE_LOG(VIDEO, "Could not release drawing context.");
+		if (egl_ctx)
+		{
+			eglMakeCurrent(egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+			if (!eglDestroyContext(egl_dpy, egl_ctx))
+				NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
+			DestroyWindowSurface();
+			if (!eglTerminate(egl_dpy))
+				NOTICE_LOG(VIDEO, "Could not destroy display connection.");
+			egl_ctx = nullptr;
+		}
 	}
 }
