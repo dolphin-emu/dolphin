@@ -2,6 +2,13 @@ package org.dolphinemu.dolphinemu.model.settings.view;
 
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
+/**
+ * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
+ * Each one corresponds to a {@link Setting} object, so this class's subclasses
+ * should vaguely correspond to those subclasses. There are a few with multiple analogues
+ * and a few with none (Headers, for example, do not correspond to anything in the ini
+ * file.)
+ */
 public abstract class SettingsItem
 {
 	public static final int TYPE_HEADER = 0;
@@ -15,41 +22,73 @@ public abstract class SettingsItem
 
 	private Setting mSetting;
 
-	private int mTitleId;
+	private int mNameId;
 	private int mDescriptionId;
 
-	public SettingsItem(String key, String section, Setting setting, int titleId, int descriptionId)
+	/**
+	 * Base constructor. Takes a key / section name in case the third parameter, the Setting,
+	 * is null; in which case, one can be constructed and saved using the key / section.
+	 *
+	 * @param key           Identifier for the Setting represented by this Item.
+	 * @param section       Section to which the Setting belongs.
+	 * @param setting       A possibly-null backing Setting, to be modified on UI events.
+	 * @param nameId        Resource ID for a text string to be displayed as this setting's name.
+	 * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
+	 */
+	public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId)
 	{
 		mKey = key;
 		mSection = section;
 		mSetting = setting;
-		mTitleId = titleId;
+		mNameId = nameId;
 		mDescriptionId = descriptionId;
 	}
 
+	/**
+	 *
+	 * @return The identifier for the backing Setting.
+	 */
 	public String getKey()
 	{
 		return mKey;
 	}
 
+	/**
+	 *
+	 * @return The header under which the backing Setting belongs.
+	 */
 	public String getSection()
 	{
 		return mSection;
 	}
 
+	/**
+	 *
+	 * @return The backing Setting, possibly null.
+	 */
 	public Setting getSetting()
 	{
 		return mSetting;
 	}
 
+	/**
+	 * Replace the backing setting with a new one. Generally used in cases where
+	 * the backing setting is null.
+	 *
+	 * @param setting A non-null Setting.
+	 */
 	public void setSetting(Setting setting)
 	{
 		mSetting = setting;
 	}
 
+	/**
+	 *
+	 * @return A resource ID for a text string representing this Setting's name.
+	 */
 	public int getNameId()
 	{
-		return mTitleId;
+		return mNameId;
 	}
 
 	public int getDescriptionId()
@@ -57,5 +96,11 @@ public abstract class SettingsItem
 		return mDescriptionId;
 	}
 
+	/**
+	 * Used by {@link org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter}'s onCreateViewHolder()
+	 * method to determine which type of ViewHolder should be created.
+	 *
+	 * @return An integer (ideally, one of the constants defined in this file)
+	 */
 	public abstract int getType();
 }

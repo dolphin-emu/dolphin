@@ -17,7 +17,7 @@ import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class SettingsFragmentPresenter
+public final class SettingsFragmentPresenter
 {
 	private SettingsFragmentView mView;
 

@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.ArrayList;
 
-public class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
+public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
 		implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
 	private SettingsFragmentView mView;

@@ -10,7 +10,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter;
 
-public class CheckBoxSettingViewHolder extends SettingViewHolder
+public final class CheckBoxSettingViewHolder extends SettingViewHolder
 {
 	private CheckBoxSetting mItem;
 
