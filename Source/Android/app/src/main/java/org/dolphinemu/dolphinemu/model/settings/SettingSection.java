@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu.model.settings;
 
 import java.util.HashMap;
 
-public class SettingSection
+public final class SettingSection
 {
 	private String mName;
 

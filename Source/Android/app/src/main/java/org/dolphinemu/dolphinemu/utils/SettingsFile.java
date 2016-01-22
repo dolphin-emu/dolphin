@@ -23,6 +23,9 @@ import java.util.Set;
 import rx.Observable;
 import rx.Subscriber;
 
+/**
+ * Contains static methods for interacting with .ini files in which settings are stored.
+ */
 public final class SettingsFile
 {
 	public static final String FILE_NAME_DOLPHIN = "Dolphin";
@@ -77,6 +80,14 @@ public final class SettingsFile
 	{
 	}
 
+	/**
+	 * Reads a given .ini file from disk and returns it as an Rx Observable. If successful,
+	 * this Observable emits a Hashmap of SettingSections, themselves effectively a Hashmap of
+	 * key/value settings. If unsuccessful, the observer notifies the subscriber of why it failed.
+	 *
+	 * @param fileName The name of the settings file without a path or extension.
+	 * @return An Observable that emits a Hashmap of the file's contents, then completes.
+	 */
 	public static Observable<HashMap<String, SettingSection>> readFile(final String fileName)
 	{
 		return Observable.create(new Observable.OnSubscribe<HashMap<String, SettingSection>>()
@@ -141,6 +152,15 @@ public final class SettingsFile
 		});
 	}
 
+	/**
+	 * Saves a Settings Hashmap to a given .ini file on disk, returning the operation
+	 * as an Rx Observable. If successful, this Observable emits an event to notify subscribers;
+	 * if unsuccessful, the observer notifies the subscriber of why it failed.
+	 *
+	 * @param fileName The target filename without a path or extension.
+	 * @param sections The hashmap containing the Settings we want to serialize.
+	 * @return An Observable representing the operation.
+	 */
 	public static Observable<Boolean> saveFile(final String fileName, final HashMap<String, SettingSection> sections)
 	{
 		return Observable.create(new Observable.OnSubscribe<Boolean>()
@@ -199,6 +219,14 @@ public final class SettingsFile
 		return new SettingSection(sectionName);
 	}
 
+	/**
+	 * For a line of text, determines what type of data is being represented, and returns
+	 * a Setting object containing this data.
+	 *
+	 * @param current The section currently being parsed by the consuming method.
+	 * @param line The line of text being parsed.
+	 * @return A typed Setting containing the key/value contained in the line.
+	 */
 	private static Setting settingFromLine(SettingSection current, String line)
 	{
 		String[] splitLine = line.split("=");
@@ -237,6 +265,12 @@ public final class SettingsFile
 		}
 	}
 
+	/**
+	 * Writes the contents of a Section hashmap to disk.
+	 *
+	 * @param writer A PrintWriter pointed at a file on disk.
+	 * @param section A section containing settings to be written to the file.
+	 */
 	private static void writeSection(PrintWriter writer, SettingSection section)
 	{
 		// Write the section header.
