@@ -4,7 +4,7 @@ package org.dolphinemu.dolphinemu.model.settings.view;
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
-public class CheckBoxSetting extends SettingsItem
+public final class CheckBoxSetting extends SettingsItem
 {
 	private boolean mDefaultValue;
 

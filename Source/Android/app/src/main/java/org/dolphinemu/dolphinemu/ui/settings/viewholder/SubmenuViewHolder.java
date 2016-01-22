@@ -8,7 +8,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter;
 
-public class SubmenuViewHolder extends SettingViewHolder
+public final class SubmenuViewHolder extends SettingViewHolder
 {
 	private SubmenuSetting mItem;
 

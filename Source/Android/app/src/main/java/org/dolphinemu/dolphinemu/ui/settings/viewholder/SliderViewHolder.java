@@ -9,7 +9,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SliderSetting;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter;
 
-public class SliderViewHolder extends SettingViewHolder
+public final class SliderViewHolder extends SettingViewHolder
 {
 	private SliderSetting mItem;
 
