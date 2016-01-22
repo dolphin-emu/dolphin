@@ -136,7 +136,7 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, 
 			s_screenshotCompleted.Set();
 		}
 
-		if (SConfig::GetInstance().m_DumpFrames)
+		if (SConfig::GetInstance().m_DumpFrames || SConfig::GetInstance().m_DumpFramesAndAudio)
 		{
 			static int frame_index = 0;
 			TextureToPng(GetCurrentColorTexture(), fbWidth * 4, StringFromFormat("%sframe%i_color.png",
