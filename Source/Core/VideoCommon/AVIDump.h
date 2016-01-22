@@ -11,6 +11,8 @@ class AVIDump
 private:
 	static bool CreateFile();
 	static void CloseFile();
+	static void StartAudioDumping();
+	static void StopAudioDumping();
 
 public:
 	static bool Start(int w, int h);

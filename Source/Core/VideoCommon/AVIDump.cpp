@@ -15,6 +15,8 @@ extern "C" {
 #include <libswscale/swscale.h>
 }
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
@@ -41,7 +43,8 @@ static int s_width;
 static int s_height;
 static int s_size;
 static u64 s_last_frame;
-static bool s_start_dumping = false;
+static bool s_start_video_dumping = false;
+static bool s_start_audio_dumping = false;
 static u64 s_last_pts;
 
 static void InitAVCodec()
@@ -135,6 +138,8 @@ bool AVIDump::CreateFile()
 
 	avformat_write_header(s_format_context, nullptr);
 
+	StartAudioDumping();
+
 	return true;
 }
 
@@ -171,11 +176,11 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	int error = 0;
 	u64 delta;
 	s64 last_pts;
-	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	if (!s_start_video_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
 	{
 		delta = CoreTiming::GetTicks();
 		last_pts = AV_NOPTS_VALUE;
-		s_start_dumping = true;
+		s_start_video_dumping = true;
 	}
 	else
 	{
@@ -221,6 +226,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 void AVIDump::Stop()
 {
 	av_write_trailer(s_format_context);
+	StopAudioDumping();
 	CloseFile();
 	NOTICE_LOG(VIDEO, "Stopping frame dump");
 }
@@ -256,6 +262,26 @@ void AVIDump::CloseFile()
 	{
 		sws_freeContext(s_sws_context);
 		s_sws_context = nullptr;
+	}
+}
+
+void AVIDump::StartAudioDumping()
+{
+	// Start audio dumping if dump audio is checked and not started
+	if (SConfig::GetInstance().m_DumpAudio && !AudioCommon::IsAudioDumping() && !s_start_audio_dumping)
+	{
+		AudioCommon::StartAudioDump();
+		s_start_audio_dumping = true;
+	}
+}
+
+void AVIDump::StopAudioDumping()
+{
+	// Stop audio dumping if dumping was started from AVIDump
+	if (SConfig::GetInstance().m_DumpAudio && AudioCommon::IsAudioDumping() && s_start_audio_dumping)
+	{
+		AudioCommon::StopAudioDump();
+		s_start_audio_dumping = false;
 	}
 }
 
