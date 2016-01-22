@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <EGL/egl.h>
 
@@ -16,6 +17,7 @@ private:
 	bool m_has_handle;
 	EGLNativeWindowType m_host_window;
 	bool m_supports_surfaceless = false;
+	std::mutex m_mutex;
 
 	bool CreateWindowSurface();
 	void DestroyWindowSurface();

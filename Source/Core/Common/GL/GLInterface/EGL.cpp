@@ -195,12 +195,12 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 
 cInterfaceBase* cInterfaceEGL::GetFreeContext()
 {
+	std::lock_guard<std::mutex> lock(m_mutex);
 	auto context = std::make_unique<cInterfaceEGL>();
-	cInterfaceBase* context_ptr = context.get();
 	if (!context->Create(this))
 		return nullptr;
 	m_shared_contexts.emplace_back(std::move(context));
-	return context_ptr;
+	return m_shared_contexts.back().get();
 }
 
 bool cInterfaceEGL::Create(cInterfaceBase* main_context)
