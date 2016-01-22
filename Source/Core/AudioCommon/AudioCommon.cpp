@@ -147,10 +147,13 @@ namespace AudioCommon
 		if (!g_sound_stream)
 			return;
 
-		if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
-			StartAudioDump();
-		else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
-			StopAudioDump();
+		if (!SConfig::GetInstance().m_DumpFramesAndAudio)
+		{
+			if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+				StartAudioDump();
+			else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+				StopAudioDump();
+		}
 
 		CMixer* pMixer = g_sound_stream->GetMixer();
 

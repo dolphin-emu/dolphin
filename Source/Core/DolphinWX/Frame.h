@@ -272,6 +272,7 @@ private:
 	void OnTASInput(wxCommandEvent& event);
 	void OnTogglePauseMovie(wxCommandEvent& event);
 	void OnToggleDumpFrames(wxCommandEvent& event);
+	void OnToggleDumpFramesAndAudio(wxCommandEvent& event);
 	void OnToggleDumpAudio(wxCommandEvent& event);
 	void OnShowLag(wxCommandEvent& event);
 	void OnShowFrameCount(wxCommandEvent& event);
