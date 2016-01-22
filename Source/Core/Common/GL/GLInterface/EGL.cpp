@@ -100,11 +100,12 @@ void cInterfaceEGL::DetectMode()
 bool cInterfaceEGL::Create(void *window_handle, bool core)
 {
 	EGLint egl_major, egl_minor;
+	bool supports_core_profile = false;
 
 	egl_dpy = OpenDisplay();
 	m_host_window = (EGLNativeWindowType) window_handle;
 	m_has_handle = !!window_handle;
-	m_core = false;
+	m_core = core;
 
 	if (!egl_dpy)
 	{
@@ -132,23 +133,20 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 		EGL_BLUE_SIZE, 8,
 		EGL_NONE };
 
-	EGLint ctx_attribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
+	std::vector<EGLint> ctx_attribs;
 	switch (s_opengl_mode)
 	{
 	case GLInterfaceMode::MODE_OPENGL:
 		attribs[1] = EGL_OPENGL_BIT;
-		ctx_attribs[0] = EGL_NONE;
+		ctx_attribs = { EGL_NONE };
 	break;
 	case GLInterfaceMode::MODE_OPENGLES2:
 		attribs[1] = EGL_OPENGL_ES2_BIT;
-		ctx_attribs[1] = 2;
+		ctx_attribs = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
 	break;
 	case GLInterfaceMode::MODE_OPENGLES3:
 		attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
-		ctx_attribs[1] = 3;
+		ctx_attribs = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
 	break;
 	default:
 		ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
@@ -167,22 +165,51 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, ctx_attribs );
-	if (!egl_ctx)
-	{
-		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
-		return false;
-	}
-
 	std::string tmp;
 	std::istringstream buffer(eglQueryString(egl_dpy, EGL_EXTENSIONS));
 	while (buffer >> tmp)
 	{
 		if (tmp == "EGL_KHR_surfaceless_context")
-		{
 			m_supports_surfaceless = true;
-			break;
+		else if (tmp == "EGL_KHR_create_context")
+			supports_core_profile = true;
+	}
+
+	if (supports_core_profile && core && s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
+	{
+		std::array<std::pair<int, int>, 2> versions_to_try =
+		{{
+			{ 4, 0 },
+			{ 3, 3 },
+		}};
+
+		for (const auto& version : versions_to_try)
+		{
+			std::vector<EGLint> core_attribs =
+			{
+				EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
+				EGL_CONTEXT_FLAGS_KHR, EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR,
+				EGL_CONTEXT_MAJOR_VERSION_KHR, version.first,
+				EGL_CONTEXT_MINOR_VERSION_KHR, version.second,
+				EGL_NONE
+			};
+
+			egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &core_attribs[0]);
+			if (egl_ctx)
+				break;
 		}
+	}
+
+	if (!egl_ctx)
+	{
+		m_core = false;
+		egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &ctx_attribs[0]);
+	}
+
+	if (!egl_ctx)
+	{
+		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
+		return false;
 	}
 
 	if (!CreateWindowSurface())
