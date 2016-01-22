@@ -49,7 +49,7 @@ static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
-u32 s_target_refresh_rate = 0;
+static u32 s_target_refresh_rate = 0;
 
 static u32 s_clock_freqs[2] =
 {
