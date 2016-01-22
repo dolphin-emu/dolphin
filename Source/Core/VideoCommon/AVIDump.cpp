@@ -66,6 +66,7 @@ bool AVIDump::Start(int w, int h)
 	s_last_pts = 0;
 
 	InitAVCodec();
+	StartAudioDumping();
 	bool success = CreateFile();
 	if (!success)
 		CloseFile();
@@ -137,8 +138,6 @@ bool AVIDump::CreateFile()
 	}
 
 	avformat_write_header(s_format_context, nullptr);
-
-	StartAudioDumping();
 
 	return true;
 }
@@ -268,7 +267,7 @@ void AVIDump::CloseFile()
 void AVIDump::StartAudioDumping()
 {
 	// Start audio dumping if dump audio is checked and not started
-	if (SConfig::GetInstance().m_DumpAudio && !AudioCommon::IsAudioDumping() && !s_start_audio_dumping)
+	if (SConfig::GetInstance().m_DumpFramesAndAudio && !AudioCommon::IsAudioDumping() && !s_start_audio_dumping)
 	{
 		AudioCommon::StartAudioDump();
 		s_start_audio_dumping = true;
@@ -278,7 +277,7 @@ void AVIDump::StartAudioDumping()
 void AVIDump::StopAudioDumping()
 {
 	// Stop audio dumping if dumping was started from AVIDump
-	if (SConfig::GetInstance().m_DumpAudio && AudioCommon::IsAudioDumping() && s_start_audio_dumping)
+	if (SConfig::GetInstance().m_DumpFramesAndAudio && AudioCommon::IsAudioDumping() && s_start_audio_dumping)
 	{
 		AudioCommon::StopAudioDump();
 		s_start_audio_dumping = false;
