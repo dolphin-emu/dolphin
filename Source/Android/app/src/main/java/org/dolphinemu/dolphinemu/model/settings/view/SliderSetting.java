@@ -6,7 +6,7 @@ import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
-public class SliderSetting extends SettingsItem
+public final class SliderSetting extends SettingsItem
 {
 	private int mMax;
 	private int mDefaultValue;

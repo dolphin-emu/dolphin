@@ -8,7 +8,7 @@ import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsAdapter;
 
-public class SingleChoiceViewHolder extends SettingViewHolder
+public final class SingleChoiceViewHolder extends SettingViewHolder
 {
 	private SingleChoiceSetting mItem;
 

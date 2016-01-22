@@ -4,7 +4,7 @@ package org.dolphinemu.dolphinemu.model.settings.view;
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
-public class SingleChoiceSetting extends SettingsItem
+public final class SingleChoiceSetting extends SettingsItem
 {
 	private int mDefaultValue;
 

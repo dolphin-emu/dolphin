@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu.model.settings.view;
 
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
-public class SubmenuSetting extends SettingsItem
+public final class SubmenuSetting extends SettingsItem
 {
 	private String mMenuKey;
 
