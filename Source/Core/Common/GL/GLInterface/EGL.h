@@ -7,6 +7,7 @@
 #include <mutex>
 #include <string>
 #include <EGL/egl.h>
+#include <EGL/eglext.h>
 
 #include "Common/GL/GLInterfaceBase.h"
 
