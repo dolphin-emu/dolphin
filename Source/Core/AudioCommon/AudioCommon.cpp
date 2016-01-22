@@ -180,6 +180,11 @@ namespace AudioCommon
 		s_audio_dump_start = false;
 	}
 
+	bool IsAudioDumping()
+	{
+		return s_audio_dump_start;
+	}
+
 	void IncreaseVolume(unsigned short offset)
 	{
 		SConfig::GetInstance().m_IsMuted = false;
