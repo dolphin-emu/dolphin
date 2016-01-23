@@ -642,11 +642,19 @@ void Wiimote::Update()
 	s8 rptf_size = rptf.size;
 	if (Movie::IsPlayingInput() && Movie::PlayWiimote(m_index, data, rptf, m_extension->active_extension, m_ext_key))
 	{
+		if (NetPlay::IsNetPlayRunning())
+		{
+			NetPlay_GetWiimoteData(m_index, data, rptf.size);
+		}
 		if (rptf.core)
 			m_status.buttons = *(wm_buttons*)(data + rptf.core);
 	}
 	else
 	{
+		if (NetPlay::IsNetPlayRunning())
+		{
+			NetPlay_GetWiimoteData(m_index, data, rptf.size);
+		}
 		data[0] = 0xA1;
 		data[1] = m_reporting_mode;
 
@@ -745,12 +753,6 @@ void Wiimote::Update()
 		}
 
 		Movie::CallWiiInputManip(data, rptf, m_index, m_extension->active_extension, m_ext_key);
-	}
-	if (NetPlay::IsNetPlayRunning())
-	{
-		NetPlay_GetWiimoteData(m_index, data, rptf.size);
-		if (rptf.core)
-			m_status.buttons = *(wm_buttons*)(data + rptf.core);
 	}
 
 	Movie::CheckWiimoteStatus(m_index, data, rptf, m_extension->active_extension, m_ext_key);
