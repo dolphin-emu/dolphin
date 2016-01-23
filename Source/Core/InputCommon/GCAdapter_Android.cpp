@@ -35,7 +35,7 @@ static u8 s_controller_rumble[4];
 // Input handling
 static std::mutex s_read_mutex;
 static u8 s_controller_payload[37];
-static std::atomic<int> s_controller_payload_size;
+static std::atomic<int> s_controller_payload_size{0};
 
 // Output handling
 static std::mutex s_write_mutex;
