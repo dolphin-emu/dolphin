@@ -6,7 +6,7 @@
 
 #include <string>
 #include <GL/glx.h>
-#include <GL/glext.h>
+#include <GL/glxext.h>
 
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
@@ -34,7 +34,9 @@ public:
 	void Swap() override;
 	void* GetFuncAddress(const std::string& name) override;
 	bool Create(void *window_handle, bool core) override;
+	bool Create(cInterfaceBase* main_context) override;
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;
+	std::unique_ptr<cInterfaceBase> CreateSharedContext() override;
 };
