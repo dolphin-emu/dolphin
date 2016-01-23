@@ -242,7 +242,7 @@ static u32 NextLength;
 
 static u32  g_ErrorCode = 0;
 static bool g_bDiscInside = false;
-bool g_bStream = false;
+static bool g_bStream = false;
 static bool g_bStopAtTrackEnd = false;
 static int  finish_execute_command = 0;
 static int  dtk = 0;
