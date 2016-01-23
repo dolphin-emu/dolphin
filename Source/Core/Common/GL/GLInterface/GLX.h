@@ -6,6 +6,7 @@
 
 #include <string>
 #include <GL/glx.h>
+#include <GL/glext.h>
 
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
@@ -13,11 +14,20 @@
 class cInterfaceGLX : public cInterfaceBase
 {
 private:
+	Window m_host_window;
 	cX11Window XWindow;
 	Display *dpy;
 	Window win;
 	GLXContext ctx;
 	GLXFBConfig fbconfig;
+	bool m_has_handle;
+	bool m_supports_pbuffer = false;
+	GLXPbufferSGIX m_pbuffer = 0;
+	std::vector<int> m_attribs;
+
+	bool CreateWindowSurface();
+	void DestroyWindowSurface();
+
 public:
 	friend class cX11Window;
 	void SwapInterval(int Interval) override;
