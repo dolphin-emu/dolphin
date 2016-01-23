@@ -1,10 +1,10 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
 
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
@@ -46,15 +46,29 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
+	public void onBackPressed()
+	{
+		mPresenter.onBackPressed();
+	}
+
+
+	@Override
 	public void showSettingsFragment(String menuTag, boolean addToStack)
 	{
-		FragmentTransaction transaction = getSupportFragmentManager().beginTransaction()
-				.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), SettingsFragment.FRAGMENT_TAG);
+		FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
 		if (addToStack)
 		{
+			transaction.setCustomAnimations(
+					R.animator.settings_enter,
+					R.animator.settings_exit,
+					R.animator.settings_pop_enter,
+					R.animator.setttings_pop_exit);
+
 			transaction.addToBackStack(null);
+			mPresenter.addToStack();
 		}
+		transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag), SettingsFragment.FRAGMENT_TAG);
 
 		transaction.commit();
 	}
@@ -88,9 +102,15 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
+	@Override
+	public void popBackStack()
+	{
+		getFragmentManager().popBackStackImmediate();
+	}
+
 	private SettingsFragment getFragment()
 	{
-		return (SettingsFragment) getSupportFragmentManager().findFragmentByTag(SettingsFragment.FRAGMENT_TAG);
+		return (SettingsFragment) getFragmentManager().findFragmentByTag(SettingsFragment.FRAGMENT_TAG);
 	}
 
 	public static final String ARGUMENT_FILE_NAME = BuildConfig.APPLICATION_ID + ".file_name";

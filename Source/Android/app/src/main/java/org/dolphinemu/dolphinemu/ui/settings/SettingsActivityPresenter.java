@@ -20,6 +20,8 @@ public final class SettingsActivityPresenter
 	private String mFileName;
 	private HashMap<String, SettingSection> mSettingsBySection;
 
+	private int mStackCount;
+
 	public SettingsActivityPresenter(SettingsActivityView view)
 	{
 		mView = view;
@@ -92,6 +94,24 @@ public final class SettingsActivityPresenter
 									mView.showToastMessage("Error saving " + mFileName + ".ini: " + throwable.getMessage());
 								}
 							});
+		}
+	}
+
+	public void addToStack()
+	{
+		mStackCount++;
+	}
+
+	public void onBackPressed()
+	{
+		if (mStackCount > 0)
+		{
+			mView.popBackStack();
+			mStackCount--;
+		}
+		else
+		{
+			mView.finish();
 		}
 	}
 }
