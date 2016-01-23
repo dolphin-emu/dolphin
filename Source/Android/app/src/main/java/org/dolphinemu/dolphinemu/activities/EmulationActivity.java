@@ -3,7 +3,9 @@ package org.dolphinemu.dolphinemu.activities;
 import android.app.Activity;
 import android.app.ActivityOptions;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -30,6 +32,7 @@ import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.Animations;
+import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.List;
@@ -115,6 +118,8 @@ public final class EmulationActivity extends AppCompatActivity
 
 		setTheme(themeId);
 		super.onCreate(savedInstanceState);
+		Java_GCAdapter.our_activity = this;
+		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
 		// Picasso will take a while to load these big-ass screenshots. So don't run
 		// the animation until we say so.
