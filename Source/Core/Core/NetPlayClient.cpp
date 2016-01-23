@@ -746,8 +746,11 @@ void NetPlayClient::UpdateDevices()
 {
 	for (PadMapping i = 0; i < 4; i++)
 	{
-		// XXX: add support for other device types? does it matter?
-		SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+		// Use local controller types for local controllers
+		if (m_pad_map[i] == m_local_player->pid)
+			SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
+		else
+			SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
 	}
 }
 
