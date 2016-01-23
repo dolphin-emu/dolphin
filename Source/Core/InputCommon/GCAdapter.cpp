@@ -32,7 +32,7 @@ static std::mutex s_mutex;
 static u8 s_controller_payload[37];
 static u8 s_controller_payload_swap[37];
 
-static int s_controller_payload_size = 0;
+static std::atomic<int> s_controller_payload_size(0);
 
 static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
@@ -56,13 +56,15 @@ static u64 s_last_init = 0;
 
 static void Read()
 {
+	int payload_size = 0;
 	while (s_adapter_thread_running.IsSet())
 	{
-		libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap, sizeof(s_controller_payload_swap), &s_controller_payload_size, 16);
+		libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap, sizeof(s_controller_payload_swap), &payload_size, 16);
 
 		{
 		std::lock_guard<std::mutex> lk(s_mutex);
 		std::swap(s_controller_payload_swap, s_controller_payload);
+		s_controller_payload_size.store(payload_size);
 		}
 
 		Common::YieldCPU();
@@ -359,16 +361,18 @@ void Input(int chan, GCPadStatus* pad)
 	if (s_handle == nullptr || !s_detected)
 		return;
 
+	int payload_size = 0;
 	u8 controller_payload_copy[37];
 
 	{
 	std::lock_guard<std::mutex> lk(s_mutex);
 	std::copy(std::begin(s_controller_payload), std::end(s_controller_payload), std::begin(controller_payload_copy));
+	payload_size = s_controller_payload_size.load();
 	}
 
-	if (s_controller_payload_size != sizeof(controller_payload_copy) || controller_payload_copy[0] != LIBUSB_DT_HID)
+	if (payload_size != sizeof(controller_payload_copy) || controller_payload_copy[0] != LIBUSB_DT_HID)
 	{
-		INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", s_controller_payload_size, controller_payload_copy[0]);
+		INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size, controller_payload_copy[0]);
 		Reset();
 	}
 	else
