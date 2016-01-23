@@ -6,7 +6,7 @@
 
 #include <string>
 #include <GL/glx.h>
-#include <GL/glext.h>
+#include <GL/glxext.h>
 
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
@@ -24,6 +24,7 @@ private:
 	bool m_supports_pbuffer = false;
 	GLXPbufferSGIX m_pbuffer = 0;
 	std::vector<int> m_attribs;
+	std::mutex m_mutex;
 
 	bool CreateWindowSurface();
 	void DestroyWindowSurface();
@@ -34,7 +35,9 @@ public:
 	void Swap() override;
 	void* GetFuncAddress(const std::string& name) override;
 	bool Create(void *window_handle, bool core) override;
+	bool Create(cInterfaceBase* main_context) override;
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;
+	cInterfaceBase* GetFreeContext() override;
 };

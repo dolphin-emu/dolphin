@@ -13,9 +13,6 @@
 typedef GLXContext (*PFNGLXCREATECONTEXTATTRIBSPROC)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
 typedef int ( * PFNGLXSWAPINTERVALSGIPROC) (int interval);
 
-typedef GLXPbufferSGIX ( *PFNGLXCREATEGLXPBUFFERSGIXPROC) (Display *dpy, GLXFBConfigSGIX config, unsigned int width, unsigned int height, int *attrib_list);
-typedef void ( *PFNGLXDESTROYGLXPBUFFERSGIXPROC) (Display *dpy, GLXPbufferSGIX pbuf);
-
 static PFNGLXCREATECONTEXTATTRIBSPROC glXCreateContextAttribs = nullptr;
 static PFNGLXSWAPINTERVALSGIPROC glXSwapIntervalSGI = nullptr;
 
@@ -178,6 +175,44 @@ bool cInterfaceGLX::Create(void *window_handle, bool core)
 	return true;
 }
 
+bool cInterfaceGLX::Create(cInterfaceBase* main_context)
+{
+	cInterfaceGLX* glx_context = static_cast<cInterfaceGLX*>(main_context);
+
+	m_has_handle = false;
+	dpy = glx_context->dpy;
+	fbconfig = glx_context->fbconfig;
+	s_glxError = false;
+	XErrorHandler oldHandler = XSetErrorHandler(&ctxErrorHandler);
+
+	ctx = glXCreateContextAttribs(dpy, fbconfig, glx_context->ctx, True, &glx_context->m_attribs[0]);
+	XSync(dpy, False);
+
+	if (!ctx || s_glxError)
+	{
+		ERROR_LOG(VIDEO, "Unable to create GL context.");
+		return false;
+	}
+	XSetErrorHandler(oldHandler);
+
+	if (!CreateWindowSurface())
+	{
+		ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed\n");
+		return false;
+	}
+	return true;
+}
+
+cInterfaceBase* cInterfaceGLX::GetFreeContext()
+{
+	std::lock_guard<std::mutex> lock(m_mutex);
+	auto context = std::make_unique<cInterfaceGLX>();
+	if (!context->Create(this))
+		return nullptr;
+	m_shared_contexts.emplace_back(std::move(context));
+	return m_shared_contexts.back().get();
+}
+
 bool cInterfaceGLX::CreateWindowSurface()
 {
 	if (m_has_handle)
@@ -226,7 +261,7 @@ void cInterfaceGLX::DestroyWindowSurface()
 bool cInterfaceGLX::MakeCurrent()
 {
 	bool success = glXMakeCurrent(dpy, win, ctx);
-	if (success)
+	if (success && !glXSwapIntervalSGI)
 	{
 		// load this function based on the current bound context
 		glXSwapIntervalSGI = (PFNGLXSWAPINTERVALSGIPROC)GLInterface->GetFuncAddress("glXSwapIntervalSGI");
