@@ -71,20 +71,6 @@
         <item>Turntable</item>
     </string-array>
 
-    <!-- EFB Copy Method Preference -->
-    <string-array name="efbCopyMethodEntries" translatable="false">
-        <item>@string/disabled</item>
-        <item>@string/efb_copy_texture</item>
-        <item>@string/efb_copy_ram_uncached</item>
-        <item>@string/efb_copy_ram_cached</item>
-    </string-array>
-    <string-array name="efbCopyMethodValues" translatable="false">
-        <item>Off</item>
-        <item>Texture</item>
-        <item>RAM (cached)</item>
-        <item>RAM (uncached)</item>
-    </string-array>
-
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
         <item>@string/texture_cache_accuracy_low</item>
@@ -103,11 +89,11 @@
         <item>@string/external_frame_buffer_virtual</item>
         <item>@string/external_frame_buffer_real</item>
     </string-array>
-    <string-array name="externalFrameBufferValues" translatable="false">
-        <item>Disabled</item>
-        <item>Virtual</item>
-        <item>Real</item>
-    </string-array>
+    <integer-array name="externalFrameBufferValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
 
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">

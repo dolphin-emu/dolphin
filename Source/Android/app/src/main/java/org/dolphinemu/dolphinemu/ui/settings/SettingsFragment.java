@@ -119,9 +119,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void addSetting(Setting setting)
+	public void putSetting(Setting setting)
 	{
-		mPresenter.addSetting(setting);
+		mPresenter.putSetting(setting);
 	}
 
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".fragment.settings";
@@ -138,5 +138,4 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		fragment.setArguments(arguments);
 		return fragment;
 	}
-
 }

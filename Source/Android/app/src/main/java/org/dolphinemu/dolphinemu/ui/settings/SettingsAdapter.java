@@ -126,7 +126,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		if (setting != null)
 		{
-			mView.addSetting(setting);
+			mView.putSetting(setting);
 		}
 	}
 
@@ -187,10 +187,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 			int value = getValueForSingleChoiceSelection(scSetting, which);
 
+			// Get the backing Setting, which may be null (if for example it was missing from the file)
 			IntSetting setting = scSetting.setSelectedValue(value);
 			if (setting != null)
 			{
-				mView.addSetting(setting);
+				mView.putSetting(setting);
+			}
+			else
+			{
+				if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
+				{
+					putXfbSetting(which);
+				}
 			}
 
 			closeDialog();
@@ -214,7 +222,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				FloatSetting setting = sliderSetting.setSelectedValue(value);
 				if (setting != null)
 				{
-					mView.addSetting(setting);
+					mView.putSetting(setting);
 				}
 			}
 			else
@@ -222,7 +230,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				IntSetting setting = sliderSetting.setSelectedValue(mSeekbarProgress);
 				if (setting != null)
 				{
-					mView.addSetting(setting);
+					mView.putSetting(setting);
 				}
 			}
 		}
@@ -295,5 +303,32 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		}
 
 		return -1;
+	}
+
+	public void putXfbSetting(int which)
+	{
+		BooleanSetting xfbEnable = null;
+		BooleanSetting xfbReal = null;
+
+		switch (which)
+		{
+			case 0:
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, false);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				break;
+
+			case 1:
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				break;
+
+			case 2:
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, true);
+				break;
+		}
+
+		mView.putSetting(xfbEnable);
+		mView.putSetting(xfbReal);
 	}
 }

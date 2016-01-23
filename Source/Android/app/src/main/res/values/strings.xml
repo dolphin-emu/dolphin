@@ -286,11 +286,8 @@
     <string name="skip_efb_access_descrip">Ignore any requests from the CPU to read/write to the EFB.</string>
     <string name="ignore_format_changes">Ignore Format Changes</string>
     <string name="ignore_format_changes_descrip">Ignore any changes to the EFB format.</string>
-    <string name="efb_copy_method">EFB Copy Method</string>
-    <string name="efb_copy_method_descrip">Determines how EFB copies will be emulated.</string>
-    <string name="efb_copy_texture">Texture</string>
-    <string name="efb_copy_ram_uncached">RAM (uncached)</string>
-    <string name="efb_copy_ram_cached">RAM (cached)</string>
+    <string name="efb_copy_method">Store EFB Copies to Texture Only</string>
+    <string name="efb_copy_method_descrip">Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games. If unsure, leave this checked.</string>
     <string name="texture_cache">Texture Cache</string>
     <string name="texture_cache_accuracy">Texture Cache Accuracy</string>
     <string name="texture_cache_accuracy_descrip">The safer the selection, the less likely the emulator will be missing any texture updates from RAM.</string>

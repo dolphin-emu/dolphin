@@ -54,7 +54,7 @@ public final class SettingsFragmentPresenter
 		}
 	}
 
-	public void addSetting(Setting setting)
+	public void putSetting(Setting setting)
 	{
 		mSettings.get(setting.getSection()).putSetting(setting.getKey(), setting);
 	}
@@ -198,12 +198,11 @@ public final class SettingsFragmentPresenter
 
 	private void addHackSettings(ArrayList<SettingsItem> sl)
 	{
-		int efbCopyMethodValue = getEfbCopyMethodValue();
 		int xfbValue = getXfbValue();
 
 		Setting skipEFB = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_SKIP_EFB);
 		Setting ignoreFormat = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_IGNORE_FORMAT);
-		IntSetting efbCopyMethod = new IntSetting(SettingsFile.KEY_EFB_COPY_METHOD, null, efbCopyMethodValue);
+		Setting efbToTexture = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_TEXTURE);
 		Setting texCacheAccuracy = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
 		IntSetting xfb = new IntSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_HACKS, xfbValue);
 		Setting fastDepth = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_FAST_DEPTH);
@@ -212,52 +211,17 @@ public final class SettingsFragmentPresenter
 		sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, R.string.skip_efb_access, R.string.skip_efb_access_descrip, false, skipEFB));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, R.string.ignore_format_changes, R.string.ignore_format_changes_descrip, false, ignoreFormat));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_EFB_COPY_METHOD, SettingsFile.SECTION_GFX_HACKS, R.string.efb_copy_method, R.string.efb_copy_method_descrip, R.array.efbCopyMethodEntries, R.array.efbCopyMethodValues, 1, efbCopyMethod));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_EFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, R.string.efb_copy_method, R.string.efb_copy_method_descrip, true, efbToTexture));
 
 		sl.add(new HeaderSetting(null, null, R.string.texture_cache, 0));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_TEXCACHE_ACCURACY, SettingsFile.SECTION_GFX_HACKS, R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_descrip, R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
 
 		sl.add(new HeaderSetting(null, null, R.string.external_frame_buffer, 0));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_HACKS, R.string.external_frame_buffer, R.string.external_frame_buffer_descrip, R.array.externalFrameBufferEntries, R.array.externalFrameBufferValues, 0, xfb));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_XFB_METHOD, SettingsFile.SECTION_GFX_HACKS, R.string.external_frame_buffer, R.string.external_frame_buffer_descrip, R.array.externalFrameBufferEntries, R.array.externalFrameBufferValues, 0, xfb));
 
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_HACKS, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
-	}
-
-	private int getEfbCopyMethodValue()
-	{
-		int efbCopyMethodValue;
-		try
-		{
-			boolean efbCopyOn = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_COPY)).getValue();
-			boolean efbCopyTexture = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_TEXTURE)).getValue();
-			boolean efbCopyCache = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_CACHE)).getValue();
-
-
-			if (!efbCopyOn)
-			{
-				efbCopyMethodValue = 0;
-			}
-			else if (efbCopyTexture)
-			{
-				efbCopyMethodValue = 1;
-			}
-			else if (!efbCopyCache)
-			{
-				efbCopyMethodValue = 2;
-			}
-			else
-			{
-				efbCopyMethodValue = 3;
-			}
-		}
-		catch (NullPointerException ex)
-		{
-			efbCopyMethodValue = 1;
-		}
-
-		return efbCopyMethodValue;
 	}
 
 	private int getXfbValue()
@@ -266,8 +230,8 @@ public final class SettingsFragmentPresenter
 
 		try
 		{
-			boolean usingXFB = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_XFB)).getValue();
-			boolean usingRealXFB = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_XFB_REAL)).getValue();
+			boolean usingXFB = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_XFB)).getValue();
+			boolean usingRealXFB = ((BooleanSetting) mSettings.get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_XFB_REAL)).getValue();
 
 			if (!usingXFB)
 			{
@@ -290,3 +254,4 @@ public final class SettingsFragmentPresenter
 		return xfbValue;
 	}
 }
+
