@@ -13,7 +13,6 @@ import android.preference.PreferenceManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.UserPreferences;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -60,10 +59,6 @@ public final class AssetCopyService extends IntentService
 		// Not a user configurable file.
 		copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini");
 		copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini");
-
-		// Load the configuration keys set in the Dolphin ini and gfx ini files
-		// into the application's shared preferences.
-		UserPreferences.LoadIniToPrefs(this);
 
 		// Record the fact that we've done this before, so we don't do it on every launch.
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);

@@ -9,77 +9,49 @@
         <item>@string/jit64_recompiler</item>
         <item>@string/jitil_recompiler</item>
     </string-array>
-    <string-array name="emuCoreValuesX86_64" translatable="false">
+    <integer-array name="emuCoreValuesX86_64" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
+    </integer-array>
 
     <!-- CPU core selection - ARM -->
     <string-array name="emuCoreEntriesARM" translatable="false">
         <item>@string/interpreter</item>
         <item>@string/jit_arm_recompiler</item>
     </string-array>
-    <string-array name="emuCoreValuesARM" translatable="false">
+    <integer-array name="emuCoreValuesARM" translatable="false">
         <item>0</item>
         <item>3</item>
-    </string-array>
+    </integer-array>
 
     <!-- CPU core selection - ARM64 -->
     <string-array name="emuCoreEntriesARM64" translatable="false">
         <item>@string/interpreter</item>
         <item>@string/jit_arm64_recompiler</item>
     </string-array>
-    <string-array name="emuCoreValuesARM64" translatable="false">
+    <integer-array name="emuCoreValuesARM64" translatable="false">
         <item>0</item>
         <item>4</item>
-    </string-array>
+    </integer-array>
 
     <!-- CPU core selection - Other -->
     <string-array name="emuCoreEntriesOther" translatable="false">
         <item>@string/interpreter</item>
     </string-array>
-    <string-array name="emuCoreValuesOther" translatable="false">
+    <integer-array name="emuCoreValuesOther" translatable="false">
         <item>0</item>
-    </string-array>
+    </integer-array>
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="string_emu_cores" translatable="false">
         <item>@string/interpreter</item>
         <item>@string/cached_interpreter</item>
     </string-array>
-    <string-array name="int_emu_cores" translatable="false">
+    <integer-array name="int_emu_cores" translatable="false">
         <item>0</item>
         <item>5</item>
-    </string-array>
-
-    <!-- Video Backend Selection - Supports OpenGL ES 3 -->
-    <string-array name="videoBackendEntriesGLES3" translatable="false">
-        <item>@string/software_renderer</item>
-        <item>@string/opengl_es3</item>
-    </string-array>
-    <string-array name="videoBackendValuesGLES3" translatable="false">
-        <item>Software Renderer</item>
-        <item>OGL</item>
-    </string-array>
-
-    <!-- Video Backend Selection - Supports desktop OpenGL -->
-    <string-array name="videoBackendEntriesGL" translatable="false">
-        <item>@string/software_renderer</item>
-        <item>@string/opengl</item>
-    </string-array>
-    <string-array name="videoBackendValuesGL" translatable="false">
-        <item>Software Renderer</item>
-        <item>OGL</item>
-    </string-array>
-
-    <!-- Video Backend Selection - No OpenGL ES 3 support -->
-    <string-array name="videoBackendEntriesNoGLES3" translatable="false">
-        <item>@string/software_renderer</item>
-    </string-array>
-    <string-array name="videoBackendValuesNoGLES3" translatable="false">
-        <item>Software Renderer</item>
-    </string-array>
+    </integer-array>
 
     <!-- Wiimote extensions -->
     <string-array name="wiimoteExtEntries" translatable="false">
@@ -99,57 +71,17 @@
         <item>Turntable</item>
     </string-array>
 
-    <!-- EFB Copy Method Preference -->
-    <string-array name="efbCopyMethodEntries" translatable="false">
-        <item>@string/disabled</item>
-        <item>@string/efb_copy_texture</item>
-        <item>@string/efb_copy_ram_uncached</item>
-        <item>@string/efb_copy_ram_cached</item>
-    </string-array>
-    <string-array name="efbCopyMethodValues" translatable="false">
-        <item>Off</item>
-        <item>Texture</item>
-        <item>RAM (cached)</item>
-        <item>RAM (uncached)</item>
-    </string-array>
-
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
         <item>@string/texture_cache_accuracy_low</item>
         <item>@string/texture_cache_accuracy_medium</item>
         <item>@string/texture_cache_accuracy_high</item>
     </string-array>
-    <string-array name="textureCacheAccuracyValues" translatable="false">
+    <integer-array name="textureCacheAccuracyValues" translatable="false">
         <item>128</item>
         <item>512</item>
         <item>0</item>
-    </string-array>
-
-    <!-- Analog Modifier ranges -->
-    <string-array name="analogRangesEntries" translatable="false">
-        <item>100</item>
-        <item>90</item>
-        <item>80</item>
-        <item>70</item>
-        <item>60</item>
-        <item>50</item>
-        <item>40</item>
-        <item>30</item>
-        <item>20</item>
-        <item>10</item>
-    </string-array>
-    <string-array name="analogRangesValues" translatable="false">
-        <item>100,000000</item>
-        <item>90,000000</item>
-        <item>80,000000</item>
-        <item>70,000000</item>
-        <item>60,000000</item>
-        <item>50,000000</item>
-        <item>40,000000</item>
-        <item>30,000000</item>
-        <item>20,000000</item>
-        <item>10,000000</item>
-    </string-array>
+    </integer-array>
 
     <!-- External Frame Buffer Preference -->
     <string-array name="externalFrameBufferEntries" translatable="false">
@@ -157,11 +89,11 @@
         <item>@string/external_frame_buffer_virtual</item>
         <item>@string/external_frame_buffer_real</item>
     </string-array>
-    <string-array name="externalFrameBufferValues" translatable="false">
-        <item>Disabled</item>
-        <item>Virtual</item>
-        <item>Real</item>
-    </string-array>
+    <integer-array name="externalFrameBufferValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
 
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
@@ -174,7 +106,7 @@
         <item>5x Native (3200x2640)</item>
         <item>6x Native (3840x3168) for 4K</item>
     </string-array>
-    <string-array name="internalResolutionValues" translatable="false">
+    <integer-array name="internalResolutionValues" translatable="false">
         <item>2</item>
         <item>3</item>
         <item>4</item>
@@ -183,7 +115,7 @@
         <item>7</item>
         <item>8</item>
         <item>9</item>
-    </string-array>
+    </integer-array>
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
@@ -191,11 +123,11 @@
         <item>2x</item>
         <item>4x</item>
     </string-array>
-    <string-array name="FSAAValues" translatable="false">
+    <integer-array name="FSAAValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
-    </string-array>
+    </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
     <string-array name="anisotropicFilteringEntries" translatable="false">
@@ -205,13 +137,13 @@
         <item>8x</item>
         <item>16x</item>
     </string-array>
-    <string-array name="anisotropicFilteringValues" translatable="false">
+    <integer-array name="anisotropicFilteringValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
         <item>4</item>
-    </string-array>
+    </integer-array>
 
     <!-- Stereoscopy Preference -->
     <string-array name="stereoscopyEntries" translatable="false">
@@ -220,12 +152,12 @@
         <item>Top-and-Bottom</item>
         <item>Anaglyph</item>
     </string-array>
-    <string-array name="stereoscopyValues" translatable="false">
+    <integer-array name="stereoscopyValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
-    </string-array>
+    </integer-array>
 
     <!-- Aspect Ratio Preference -->
     <string-array name="aspectRatioEntries" translatable="false">
@@ -234,12 +166,12 @@
         <item>Force 4:3</item>
         <item>Stretch To Window</item>
     </string-array>
-    <string-array name="aspectRatioValues" translatable="false">
+    <integer-array name="aspectRatioValues" translatable="false">
         <item>0</item>
         <item>1</item>
         <item>2</item>
         <item>3</item>
-    </string-array>
+    </integer-array>
 
     <string-array name="country_names">
         <item>Europe</item>
