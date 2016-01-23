@@ -171,7 +171,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	int error = 0;
 	u64 delta;
 	s64 last_pts;
-	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	if (!s_start_dumping && s_last_frame <= (SystemTimers::GetTicksPerSecond() * 2))
 	{
 		delta = CoreTiming::GetTicks();
 		last_pts = AV_NOPTS_VALUE;
