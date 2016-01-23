@@ -48,4 +48,14 @@ public interface SettingsActivityView
 	 * @param message The contents of the onscreen message.
 	 */
 	void showToastMessage(String message);
+
+	/**
+	 * Show the previous fragment.
+	 */
+	void popBackStack();
+
+	/**
+	 * End the activity.
+	 */
+	void finish();
 }
