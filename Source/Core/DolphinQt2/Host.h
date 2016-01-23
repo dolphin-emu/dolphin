@@ -30,7 +30,7 @@ public slots:
 	void SetRenderFullscreen(bool fullscreen);
 
 signals:
-	void RequestTitle(QString title);
+	void RequestTitle(const QString& title);
 	void RequestStop();
 	void RequestRenderSize(int w, int h);
 

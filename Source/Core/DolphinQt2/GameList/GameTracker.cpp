@@ -45,7 +45,7 @@ GameTracker::~GameTracker()
 	m_loader_thread.wait();
 }
 
-void GameTracker::AddDirectory(QString dir)
+void GameTracker::AddDirectory(const QString& dir)
 {
 	if (!QFileInfo(dir).exists())
 		return;
@@ -53,7 +53,7 @@ void GameTracker::AddDirectory(QString dir)
 	UpdateDirectory(dir);
 }
 
-void GameTracker::RemoveDirectory(QString dir)
+void GameTracker::RemoveDirectory(const QString& dir)
 {
 	removePath(dir);
 	QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);

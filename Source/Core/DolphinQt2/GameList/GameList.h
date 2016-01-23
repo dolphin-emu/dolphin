@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <QLabel>
 #include <QListView>
 #include <QSortFilterProxyModel>
 #include <QStackedWidget>
@@ -22,18 +23,22 @@ public:
 	QString GetSelectedGame() const;
 
 public slots:
-	void SetTableView() { setCurrentWidget(m_table); }
-	void SetListView() { setCurrentWidget(m_list); }
+	void SetTableView() { SetPreferredView(true); }
+	void SetListView() { SetPreferredView(false); }
 	void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
 
 signals:
 	void GameSelected();
-	void DirectoryAdded(QString dir);
-	void DirectoryRemoved(QString dir);
+	void DirectoryAdded(const QString& dir);
+	void DirectoryRemoved(const QString& dir);
 
 private:
 	void MakeTableView();
 	void MakeListView();
+	void MakeEmptyView();
+	// We only have two views, just use a bool to distinguish.
+	void SetPreferredView(bool table);
+	void ConsiderViewChange();
 
 	GameListModel* m_model;
 	QSortFilterProxyModel* m_table_proxy;
@@ -41,4 +46,6 @@ private:
 
 	QListView* m_list;
 	QTableView* m_table;
+	QLabel* m_empty;
+	bool m_prefer_table;
 };

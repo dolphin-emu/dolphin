@@ -35,6 +35,8 @@ public:
 	void SetWiiNAND(const QString& path);
 	DiscIO::IVolume::ELanguage GetWiiSystemLanguage() const;
 	DiscIO::IVolume::ELanguage GetGCSystemLanguage() const;
+	bool GetPreferredView() const;
+	void SetPreferredView(bool table);
 
 	// Emulation
 	bool GetConfirmStop() const;
