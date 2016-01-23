@@ -5,10 +5,10 @@
 #pragma once
 
 #include <string>
+#include <wx/gdicmn.h>
 #include <wx/string.h>
 
 class wxBitmap;
-class wxSize;
 class wxToolBar;
 
 namespace WxUtils
@@ -24,8 +24,7 @@ void Explore(const std::string& path);
 void ShowErrorDialog(const wxString& error_msg);
 
 // Reads a PNG from the Resources folder
-wxBitmap LoadResourceBitmap(const std::string& name, bool allow_2x = false);
-wxBitmap LoadResourceBitmapPadded(const std::string& name, const wxSize& size);
+wxBitmap LoadResourceBitmap(const std::string& name, const wxSize& padded_size = wxSize());
 
 // From a wxBitmap, creates the corresponding disabled version for toolbar buttons
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original);
