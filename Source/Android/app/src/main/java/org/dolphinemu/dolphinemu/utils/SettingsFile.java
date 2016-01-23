@@ -74,7 +74,7 @@ public final class SettingsFile
 	public static final String KEY_ASPECT_RATIO= "AspectRatio";
 
 	// Internal only, not actually found in settings file.
-	public static final String KEY_EFB_COPY_METHOD = "EFBCopyMethod";
+	public static final String KEY_XFB_METHOD = "XFBMethod";
 
 	private SettingsFile()
 	{

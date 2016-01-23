@@ -60,10 +60,9 @@ public interface SettingsFragmentView
 	void showToastMessage(String message);
 
 	/**
-	 * Have the fragment add a setting to the Hashmap. Useful if the setting
-	 * was missing from the .ini file, but included in the UI.
+	 * Have the fragment add a setting to the Hashmap.
 	 *
-	 * @param setting The (possibly missing) new setting.
+	 * @param setting The (possibly previously missing) new setting.
 	 */
-	void addSetting(Setting setting);
+	void putSetting(Setting setting);
 }
