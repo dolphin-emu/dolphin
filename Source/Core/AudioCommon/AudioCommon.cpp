@@ -147,10 +147,13 @@ namespace AudioCommon
 		if (!g_sound_stream)
 			return;
 
-		if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
-			StartAudioDump();
-		else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
-			StopAudioDump();
+		if (!SConfig::GetInstance().m_DumpFramesAndAudio)
+		{
+			if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+				StartAudioDump();
+			else if (!SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
+				StopAudioDump();
+		}
 
 		CMixer* pMixer = g_sound_stream->GetMixer();
 
@@ -178,6 +181,11 @@ namespace AudioCommon
 		g_sound_stream->GetMixer()->StopLogDTKAudio();
 		g_sound_stream->GetMixer()->StopLogDSPAudio();
 		s_audio_dump_start = false;
+	}
+
+	bool IsAudioDumping()
+	{
+		return s_audio_dump_start;
 	}
 
 	void IncreaseVolume(unsigned short offset)

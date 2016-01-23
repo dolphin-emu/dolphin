@@ -249,6 +249,7 @@ struct SConfig : NonCopyable
 	unsigned int m_FrameSkip;
 	bool m_DumpFrames;
 	bool m_DumpFramesSilent;
+	bool m_DumpFramesAndAudio;
 	bool m_ShowInputDisplay;
 
 	bool m_PauseOnFocusLost;

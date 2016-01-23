@@ -1241,7 +1241,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 static void DumpFrame(const std::vector<u8>& data, int w, int h)
 {
 #if defined(HAVE_LIBAV) || defined (_WIN32)
-	if (SConfig::GetInstance().m_DumpFrames && !data.empty())
+	if ((SConfig::GetInstance().m_DumpFrames || SConfig::GetInstance().m_DumpFramesAndAudio) && !data.empty())
 	{
 		AVIDump::AddFrame(&data[0], w, h);
 	}
@@ -1365,7 +1365,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 	{
 #if defined(HAVE_LIBAV) || defined (_WIN32)
-		if (SConfig::GetInstance().m_DumpFrames)
+		if (SConfig::GetInstance().m_DumpFrames || SConfig::GetInstance().m_DumpFramesAndAudio)
 		{
 			std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 			if (frame_data.empty() || w != flipped_trc.GetWidth() ||

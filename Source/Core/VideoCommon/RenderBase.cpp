@@ -110,7 +110,7 @@ Renderer::~Renderer()
 
 	efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 #if defined _WIN32 || defined HAVE_LIBAV
-	if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
+	if ((SConfig::GetInstance().m_DumpFrames || SConfig::GetInstance().m_DumpFramesAndAudio) && bLastFrameDumped && bAVIDumping)
 		AVIDump::Stop();
 #endif
 }
