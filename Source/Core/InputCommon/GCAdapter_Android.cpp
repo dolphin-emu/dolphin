@@ -35,7 +35,7 @@ static u8 s_controller_rumble[4];
 // Input handling
 static std::mutex s_read_mutex;
 static u8 s_controller_payload[37];
-static int s_controller_payload_size = 0;
+static std::atomic<int> s_controller_payload_size;
 
 // Output handling
 static std::mutex s_write_mutex;
@@ -102,12 +102,13 @@ static void Read()
 
 	while (s_read_adapter_thread_running.IsSet())
 	{
-		s_controller_payload_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+		int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
 
 		jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
 		{
 		std::lock_guard<std::mutex> lk(s_read_mutex);
 		memcpy(s_controller_payload, java_data, 0x37);
+		s_controller_payload_size.store(read_size);
 		}
 		env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
@@ -187,6 +188,8 @@ void Init()
 
 void Setup()
 {
+	s_fd = 0;
+
 	s_read_adapter_thread_running.Set(true);
 	s_read_adapter_thread = std::thread(Read);
 
@@ -244,16 +247,18 @@ void Input(int chan, GCPadStatus* pad)
 	if (!UseAdapter() || !s_detected || !s_fd)
 		return;
 
+	int payload_size = 0;
 	u8 controller_payload_copy[37];
 
 	{
 	std::lock_guard<std::mutex> lk(s_read_mutex);
 	std::copy(std::begin(s_controller_payload), std::end(s_controller_payload), std::begin(controller_payload_copy));
+	payload_size = s_controller_payload_size.load();
 	}
 
-	if (s_controller_payload_size != sizeof(controller_payload_copy))
+	if (payload_size != sizeof(controller_payload_copy))
 	{
-		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", s_controller_payload_size, controller_payload_copy[0]);
+		ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size, controller_payload_copy[0]);
 		Reset();
 	}
 	else
