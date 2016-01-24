@@ -6,6 +6,7 @@
 
 #include <map>
 #include <memory>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
@@ -20,26 +21,30 @@ class TextureCacheBase
 public:
 	struct TCacheEntryConfig
 	{
-		TCacheEntryConfig() : width(0), height(0), levels(1), layers(1), rendertarget(false) {}
+		constexpr TCacheEntryConfig() = default;
 
-		u32 width, height;
-		u32 levels, layers;
-		bool rendertarget;
-
-		bool operator == (const TCacheEntryConfig& b) const
+		bool operator==(const TCacheEntryConfig& o) const
 		{
-			return width == b.width && height == b.height && levels == b.levels && layers == b.layers && rendertarget == b.rendertarget;
+			return std::tie(width, height, levels, layers, rendertarget) ==
+			       std::tie(o.width, o.height, o.levels, o.layers, o.rendertarget);
 		}
 
 		struct Hasher : std::hash<u64>
 		{
-			size_t operator()(const TextureCacheBase::TCacheEntryConfig& c) const
+			size_t operator()(const TCacheEntryConfig& c) const
 			{
 				u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
 				return std::hash<u64>::operator()(id);
 			}
 		};
+
+		u32 width  = 0;
+		u32 height = 0;
+		u32 levels = 1;
+		u32 layers = 1;
+		bool rendertarget = false;
 	};
+
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
