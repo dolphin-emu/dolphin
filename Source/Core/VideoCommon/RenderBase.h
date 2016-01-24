@@ -40,8 +40,6 @@ struct EfbPokeData
 extern int frameCount;
 extern int OSDChoice;
 
-extern bool bLastFrameDumped;
-
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
 // more sense.
