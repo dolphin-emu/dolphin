@@ -109,7 +109,7 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed *xfb, u32 fbWidt
 // Called on the GPU thread
 void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
-	if (!Fifo::g_bSkipCurrentFrame)
+	if (!Fifo::WillSkipCurrentFrame())
 	{
 
 		if (g_ActiveConfig.bUseXFB)

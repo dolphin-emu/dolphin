@@ -13,8 +13,6 @@ class PointerWrap;
 namespace Fifo
 {
 
-extern bool g_bSkipCurrentFrame;
-
 // This could be in SConfig, but it depends on multiple settings
 // and can change at runtime.
 extern bool g_use_deterministic_gpu_thread;
@@ -53,5 +51,6 @@ void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void SetRendering(bool bEnabled);
+bool WillSkipCurrentFrame();
 
-};
+} // namespace Fifo
