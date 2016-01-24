@@ -25,7 +25,6 @@ import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
-import org.dolphinemu.dolphinemu.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
@@ -115,7 +114,7 @@ public final class TvMainActivity extends Activity implements MainView
 	@Override
 	public void launchSettingsActivity(String menuTag)
 	{
-		SettingsActivity.launch(this, SettingsFile.FILE_NAME_DOLPHIN);
+		SettingsActivity.launch(this, menuTag);
 	}
 
 	@Override
@@ -236,7 +235,7 @@ public final class TvMainActivity extends Activity implements MainView
 
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_video,
 				R.drawable.ic_settings_graphics_tv,
-				R.string.grid_menu_core_settings));
+				R.string.grid_menu_video_settings));
 
 		rowItems.add(new TvSettingsItem(R.id.button_add_directory,
 				R.drawable.ic_add_tv,
