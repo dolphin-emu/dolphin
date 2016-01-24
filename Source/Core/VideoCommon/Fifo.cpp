@@ -32,7 +32,7 @@ namespace Fifo
 
 static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
 
-bool g_bSkipCurrentFrame = false;
+static bool s_skip_current_frame = false;
 
 static Common::BlockingLoop s_gpu_mainloop;
 
@@ -78,7 +78,7 @@ void DoState(PointerWrap &p)
 		// We're good and paused, right?
 		s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
 	}
-	p.Do(g_bSkipCurrentFrame);
+	p.Do(s_skip_current_frame);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
@@ -124,7 +124,12 @@ void Shutdown()
 
 void SetRendering(bool enabled)
 {
-	g_bSkipCurrentFrame = !enabled;
+	s_skip_current_frame = !enabled;
+}
+
+bool CanSkipCurrentFrame()
+{
+	return s_skip_current_frame;
 }
 
 // May be executed from any thread, even the graphics thread.
