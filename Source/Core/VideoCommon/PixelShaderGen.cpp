@@ -719,9 +719,13 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 
 				out.Write("\tint2 indtevtrans%d = int2(idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d), idot(" I_INDTEXMTX"[%d].xyz, iindtevcrd%d)) >> 3;\n", n, mtxidx, n, mtxidx+1, n);
 
-				// TODO: should use a shader uid branch for this for better performance
-				out.Write("\tif (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
-				out.Write("\telse indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
+				out.Write("\tuint2 tmp0_indtevtrans%d = uint2(indtevtrans%d << 16);\n", n, n);
+				out.Write("\tuint2 tmp1_indtevtrans%d = uint2(indtevtrans%d);\n", n, n);
+				out.Write("\tuint2 tmp2_indtevtrans%d = uint2(indtevtrans%d) >> 16;\n", n, n);
+				out.Write("\ttmp0_indtevtrans%d >>= " I_INDTEXMTX"[%d].w + 16;\n", n, mtxidx);
+				out.Write("\ttmp1_indtevtrans%d >>= " I_INDTEXMTX"[%d].w;\n", n, mtxidx);
+				out.Write("\ttmp2_indtevtrans%d >>= " I_INDTEXMTX"[%d].w - 16;\n", n, mtxidx);
+				out.Write("\tindtevtrans%d = int2(tmp0_indtevtrans%d | tmp1_indtevtrans%d | tmp2_indtevtrans%d);\n", n, n, n, n);
 			}
 			else if (bpmem.tevind[n].mid <= 7 && bHasTexCoord)
 			{ // s matrix
@@ -731,8 +735,13 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 
 				out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.xx) >> 8;\n", n, texcoord, n);
 
-				out.Write("\tif (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
-				out.Write("\telse indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
+				out.Write("\tuint2 tmp0_indtevtrans%d = uint2(indtevtrans%d << 16);\n", n, n);
+				out.Write("\tuint2 tmp1_indtevtrans%d = uint2(indtevtrans%d);\n", n, n);
+				out.Write("\tuint2 tmp2_indtevtrans%d = uint2(indtevtrans%d) >> 16;\n", n, n);
+				out.Write("\ttmp0_indtevtrans%d >>= " I_INDTEXMTX"[%d].w + 16;\n", n, mtxidx);
+				out.Write("\ttmp1_indtevtrans%d >>= " I_INDTEXMTX"[%d].w;\n", n, mtxidx);
+				out.Write("\ttmp2_indtevtrans%d >>= " I_INDTEXMTX"[%d].w - 16;\n", n, mtxidx);
+				out.Write("\tindtevtrans%d = int2(tmp0_indtevtrans%d | tmp1_indtevtrans%d | tmp2_indtevtrans%d);\n", n, n, n, n);
 			}
 			else if (bpmem.tevind[n].mid <= 11 && bHasTexCoord)
 			{ // t matrix
@@ -742,8 +751,13 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 
 				out.Write("\tint2 indtevtrans%d = int2(fixpoint_uv%d * iindtevcrd%d.yy) >> 8;\n", n, texcoord, n);
 
-				out.Write("\tif (" I_INDTEXMTX"[%d].w >= 0) indtevtrans%d = indtevtrans%d >> " I_INDTEXMTX"[%d].w;\n", mtxidx, n, n, mtxidx);
-				out.Write("\telse indtevtrans%d = indtevtrans%d << (-" I_INDTEXMTX"[%d].w);\n", n, n, mtxidx);
+				out.Write("\tuint2 tmp0_indtevtrans%d = uint2(indtevtrans%d << 16);\n", n, n);
+				out.Write("\tuint2 tmp1_indtevtrans%d = uint2(indtevtrans%d);\n", n, n);
+				out.Write("\tuint2 tmp2_indtevtrans%d = uint2(indtevtrans%d) >> 16;\n", n, n);
+				out.Write("\ttmp0_indtevtrans%d >>= " I_INDTEXMTX"[%d].w + 16;\n", n, mtxidx);
+				out.Write("\ttmp1_indtevtrans%d >>= " I_INDTEXMTX"[%d].w;\n", n, mtxidx);
+				out.Write("\ttmp2_indtevtrans%d >>= " I_INDTEXMTX"[%d].w - 16;\n", n, mtxidx);
+				out.Write("\tindtevtrans%d = int2(tmp0_indtevtrans%d | tmp1_indtevtrans%d | tmp2_indtevtrans%d);\n", n, n, n, n);
 			}
 			else
 			{
