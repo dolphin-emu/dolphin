@@ -36,7 +36,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* startAddress;
 
-	if (Fifo::g_use_deterministic_gpu_thread)
+	if (Fifo::UseDeterministicGPUThread())
 		startAddress = (u8*)Fifo::PopFifoAuxBuffer(size);
 	else
 		startAddress = Memory::GetPointer(address);
