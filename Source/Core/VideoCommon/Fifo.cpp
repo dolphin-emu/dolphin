@@ -261,7 +261,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 		}
 	}
 	Memory::CopyFromEmu(s_video_buffer_write_ptr, readPtr, len);
-	s_video_buffer_pp_read_ptr = OpcodeDecoder_Run<true>(DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
+	s_video_buffer_pp_read_ptr = OpcodeDecoder::Run<true>(DataReader(s_video_buffer_pp_read_ptr, write_ptr + len), nullptr, false);
 	// This would have to be locked if the GPU thread didn't spin.
 	s_video_buffer_write_ptr = write_ptr + len;
 }
@@ -305,7 +305,7 @@ void RunGpuLoop()
 			// See comment in SyncGPU
 			if (write_ptr > seen_ptr)
 			{
-				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
+				s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, write_ptr), nullptr, false);
 				s_video_buffer_seen_ptr = write_ptr;
 			}
 		}
@@ -336,7 +336,7 @@ void RunGpuLoop()
 					"Negative fifo.CPReadWriteDistance = %i in FIFO Loop !\nThat can produce instability in the game. Please report it.", fifo.CPReadWriteDistance - 32);
 
 				u8* write_ptr = s_video_buffer_write_ptr;
-				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
+				s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, write_ptr), &cyclesExecuted, false);
 
 				Common::AtomicStore(fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(fifo.CPReadWriteDistance, -32);
@@ -423,7 +423,7 @@ void RunGpu()
 					reset_simd_state = true;
 				}
 				ReadDataFromFifo(fifo.CPReadPointer);
-				s_video_buffer_read_ptr = OpcodeDecoder_Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
+				s_video_buffer_read_ptr = OpcodeDecoder::Run(DataReader(s_video_buffer_read_ptr, s_video_buffer_write_ptr), nullptr, false);
 			}
 
 			//DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");

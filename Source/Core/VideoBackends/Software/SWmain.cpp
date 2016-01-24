@@ -205,7 +205,7 @@ void VideoSoftware::Video_Cleanup()
 		PixelShaderManager::Shutdown();
 		g_perf_query.reset();
 		g_vertex_manager.reset();
-		OpcodeDecoder_Shutdown();
+		OpcodeDecoder::Shutdown();
 		g_renderer.reset();
 	}
 }
@@ -221,8 +221,8 @@ void VideoSoftware::Video_Prepare()
 	BPInit();
 	g_vertex_manager = std::make_unique<SWVertexLoader>();
 	g_perf_query = std::make_unique<PerfQuery>();
-	Fifo::Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
+	Fifo::Init(); // must be done before OpcodeDecoder::Init()
+	OpcodeDecoder::Init();
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
