@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <cstddef>
 #include "Common/CommonTypes.h"
 
@@ -12,8 +11,6 @@ class PointerWrap;
 
 namespace Fifo
 {
-
-extern std::atomic<u8*> g_video_buffer_write_ptr_xthread;
 
 void Init();
 void Shutdown();
