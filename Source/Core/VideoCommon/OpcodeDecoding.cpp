@@ -28,8 +28,11 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
-
 bool g_bRecordFifoData = false;
+
+namespace OpcodeDecoder
+{
+
 static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
@@ -49,7 +52,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		OpcodeDecoder_Run(DataReader(startAddress, startAddress + size), &cycles, true);
+		Run(DataReader(startAddress, startAddress + size), &cycles, true);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -67,7 +70,7 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 
 	if (startAddress != nullptr)
 	{
-		OpcodeDecoder_Run<true>(DataReader(startAddress, startAddress + size), nullptr, true);
+		Run<true>(DataReader(startAddress, startAddress + size), nullptr, true);
 	}
 }
 
@@ -120,18 +123,17 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess)
 	}
 }
 
-void OpcodeDecoder_Init()
+void Init()
 {
 	s_bFifoErrorSeen = false;
 }
 
-
-void OpcodeDecoder_Shutdown()
+void Shutdown()
 {
 }
 
 template <bool is_preprocess>
-u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list)
+u8* Run(DataReader src, u32* cycles, bool in_display_list)
 {
 	u32 totalCycles = 0;
 	u8* opcodeStart;
@@ -314,5 +316,7 @@ end:
 	return opcodeStart;
 }
 
-template u8* OpcodeDecoder_Run<true>(DataReader src, u32* cycles, bool in_display_list);
-template u8* OpcodeDecoder_Run<false>(DataReader src, u32* cycles, bool in_display_list);
+template u8* Run<true>(DataReader src, u32* cycles, bool in_display_list);
+template u8* Run<false>(DataReader src, u32* cycles, bool in_display_list);
+
+} // namespace OpcodeDecoder

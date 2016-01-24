@@ -181,8 +181,8 @@ void VideoBackend::Video_Prepare()
 	BPInit();
 	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = GetPerfQuery();
-	Fifo::Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
+	Fifo::Init(); // must be done before OpcodeDecoder::Init()
+	OpcodeDecoder::Init();
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
@@ -233,7 +233,7 @@ void VideoBackend::Video_Cleanup()
 	g_perf_query.reset();
 	g_vertex_manager.reset();
 
-	OpcodeDecoder_Shutdown();
+	OpcodeDecoder::Shutdown();
 	g_renderer.reset();
 	GLInterface->ClearCurrent();
 }
