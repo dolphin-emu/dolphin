@@ -259,7 +259,7 @@ void LoadIndexedXF(u32 val, int refarray)
 
 	u32* currData = (u32*)(&xfmem) + address;
 	u32* newData;
-	if (Fifo::g_use_deterministic_gpu_thread)
+	if (Fifo::UseDeterministicGPUThread())
 	{
 		newData = (u32*)Fifo::PopFifoAuxBuffer(size * sizeof(u32));
 	}

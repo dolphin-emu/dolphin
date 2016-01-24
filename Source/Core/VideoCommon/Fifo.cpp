@@ -44,7 +44,9 @@ static u8 s_fifo_aux_data[FIFO_SIZE];
 static u8* s_fifo_aux_write_ptr;
 static u8* s_fifo_aux_read_ptr;
 
-bool g_use_deterministic_gpu_thread;
+// This could be in SConfig, but it depends on multiple settings
+// and can change at runtime.
+static bool s_use_deterministic_gpu_thread;
 
 static u64 s_last_sync_gpu_tick;
 static int s_event_sync_gpu;
@@ -56,7 +58,7 @@ static std::atomic<u8*> s_video_buffer_write_ptr;
 static std::atomic<u8*> s_video_buffer_seen_ptr;
 static u8* s_video_buffer_pp_read_ptr;
 // The read_ptr is always owned by the GPU thread.  In normal mode, so is the
-// write_ptr, despite it being atomic.  In g_use_deterministic_gpu_thread mode,
+// write_ptr, despite it being atomic.  In deterministic GPU thread mode,
 // things get a bit more complicated:
 // - The seen_ptr is written by the GPU thread, and points to what it's already
 // processed as much of as possible - in the case of a partial command which
@@ -77,7 +79,7 @@ void DoState(PointerWrap &p)
 	p.DoPointer(write_ptr, s_video_buffer);
 	s_video_buffer_write_ptr = write_ptr;
 	p.DoPointer(s_video_buffer_read_ptr, s_video_buffer);
-	if (p.mode == PointerWrap::MODE_READ && g_use_deterministic_gpu_thread)
+	if (p.mode == PointerWrap::MODE_READ && s_use_deterministic_gpu_thread)
 	{
 		// We're good and paused, right?
 		s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
@@ -159,7 +161,7 @@ void EmulatorState(bool running)
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 {
-	if (g_use_deterministic_gpu_thread)
+	if (s_use_deterministic_gpu_thread)
 	{
 		s_gpu_mainloop.Wait();
 		if (!s_gpu_mainloop.IsRunning())
@@ -306,7 +308,7 @@ void RunGpuLoop()
 		if (!s_emu_running_state.load())
 			return;
 
-		if (g_use_deterministic_gpu_thread)
+		if (s_use_deterministic_gpu_thread)
 		{
 			AsyncRequests::GetInstance()->PullEvents();
 
@@ -392,7 +394,7 @@ void FlushGpu()
 {
 	const SConfig& param = SConfig::GetInstance();
 
-	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
+	if (!param.bCPUThread || s_use_deterministic_gpu_thread)
 		return;
 
 	s_gpu_mainloop.Wait();
@@ -415,12 +417,12 @@ void RunGpu()
 	const SConfig& param = SConfig::GetInstance();
 
 	// execute GPU
-	if (!param.bCPUThread || g_use_deterministic_gpu_thread)
+	if (!param.bCPUThread || s_use_deterministic_gpu_thread)
 	{
 		bool reset_simd_state = false;
 		while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() )
 		{
-			if (g_use_deterministic_gpu_thread)
+			if (s_use_deterministic_gpu_thread)
 			{
 				ReadDataFromFifoOnCPU(fifo.CPReadPointer);
 				s_gpu_mainloop.Wakeup();
@@ -490,9 +492,9 @@ void UpdateWantDeterminism(bool want)
 
 	gpu_thread = gpu_thread && param.bCPUThread;
 
-	if (g_use_deterministic_gpu_thread != gpu_thread)
+	if (s_use_deterministic_gpu_thread != gpu_thread)
 	{
-		g_use_deterministic_gpu_thread = gpu_thread;
+		s_use_deterministic_gpu_thread = gpu_thread;
 		if (gpu_thread)
 		{
 			// These haven't been updated in non-deterministic mode.
@@ -501,6 +503,11 @@ void UpdateWantDeterminism(bool want)
 			VertexLoaderManager::MarkAllDirty();
 		}
 	}
+}
+
+bool UseDeterministicGPUThread()
+{
+	return s_use_deterministic_gpu_thread;
 }
 
 /* This function checks the emulated CPU - GPU distance and may wake up the GPU,
@@ -513,7 +520,7 @@ static int Update(int ticks)
 	const SConfig& param = SConfig::GetInstance();
 
 	// GPU is sleeping, so no need for synchronization
-	if (s_gpu_mainloop.IsDone() || g_use_deterministic_gpu_thread)
+	if (s_gpu_mainloop.IsDone() || s_use_deterministic_gpu_thread)
 	{
 		if (s_sync_ticks.load() < 0)
 		{
