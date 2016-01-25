@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
@@ -33,6 +34,20 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		super.onAttach(context);
 
 		mActivity = (SettingsActivityView) context;
+		mPresenter.onAttach();
+	}
+
+	/**
+	 * This version of onAttach is needed for versions below Marshmallow.
+	 *
+	 * @param activity
+	 */
+	@Override
+	public void onAttach(Activity activity)
+	{
+		super.onAttach(activity);
+
+		mActivity = (SettingsActivityView) activity;
 		mPresenter.onAttach();
 	}
 
@@ -107,6 +122,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
+	public void loadDefaultSettings()
+	{
+		mPresenter.loadDefaultSettings();
+	}
+
+	@Override
 	public void loadSubMenu(String menuKey)
 	{
 		mActivity.showSettingsFragment(menuKey, true);
@@ -122,6 +143,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	public void putSetting(Setting setting)
 	{
 		mPresenter.putSetting(setting);
+	}
+
+	@Override
+	public void onSettingChanged()
+	{
+		mActivity.onSettingChanged();
 	}
 
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".fragment.settings";

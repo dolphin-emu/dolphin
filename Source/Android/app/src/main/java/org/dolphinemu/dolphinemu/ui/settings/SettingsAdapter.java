@@ -128,6 +128,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		{
 			mView.putSetting(setting);
 		}
+
+		mView.onSettingChanged();
 	}
 
 	public void onSingleChoiceClick(SingleChoiceSetting item)
@@ -235,6 +237,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			}
 		}
 
+		mView.onSettingChanged();
 		mClickedItem = null;
 		mSeekbarProgress = -1;
 	}

@@ -3,6 +3,8 @@ package org.dolphinemu.dolphinemu.ui.settings;
 
 import android.os.Bundle;
 
+import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
@@ -15,12 +17,16 @@ import rx.schedulers.Schedulers;
 
 public final class SettingsActivityPresenter
 {
+	private static final String SHOULD_SAVE = BuildConfig.APPLICATION_ID + ".should_save";
+
 	private SettingsActivityView mView;
 
 	private String mFileName;
 	private HashMap<String, SettingSection> mSettingsBySection;
 
 	private int mStackCount;
+
+	private boolean mShouldSave;
 
 	public SettingsActivityPresenter(SettingsActivityView view)
 	{
@@ -51,11 +57,15 @@ public final class SettingsActivityPresenter
 								public void call(Throwable throwable)
 								{
 									Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
-									mView.onSettingsFileLoaded(null);
+									mView.onSettingsFileNotFound();
 								}
 							});
 
 			mView.showSettingsFragment(mFileName, false);
+		}
+		else
+		{
+			mShouldSave = savedInstanceState.getBoolean(SHOULD_SAVE);
 		}
 	}
 
@@ -71,7 +81,7 @@ public final class SettingsActivityPresenter
 
 	public void onStop(boolean finishing)
 	{
-		if (mSettingsBySection != null && finishing)
+		if (mSettingsBySection != null && finishing && mShouldSave)
 		{
 			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
 			SettingsFile.saveFile(mFileName, mSettingsBySection)
@@ -113,5 +123,28 @@ public final class SettingsActivityPresenter
 		{
 			mView.finish();
 		}
+	}
+
+	public boolean handleOptionsItem(int itemId)
+	{
+		switch (itemId)
+		{
+			case R.id.menu_exit_no_save:
+				mShouldSave = false;
+				mView.finish();
+				return true;
+		}
+
+		return false;
+	}
+
+	public void onSettingChanged()
+	{
+		mShouldSave = true;
+	}
+
+	public void saveState(Bundle outState)
+	{
+		outState.putBoolean(SHOULD_SAVE, mShouldSave);
 	}
 }

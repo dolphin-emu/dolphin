@@ -43,6 +43,11 @@ public interface SettingsActivityView
 	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
 
 	/**
+	 * Called when an asynchronous load operation fails.
+	 */
+	void onSettingsFileNotFound();
+
+	/**
 	 * Display a popup text message on screen.
 	 *
 	 * @param message The contents of the onscreen message.
@@ -58,4 +63,10 @@ public interface SettingsActivityView
 	 * End the activity.
 	 */
 	void finish();
+
+	/**
+	 * Called by a containing Fragment to tell the Activity that a setting was changed;
+	 * unless this has been called, the Activity will not save to disk.
+	 */
+	void onSettingChanged();
 }

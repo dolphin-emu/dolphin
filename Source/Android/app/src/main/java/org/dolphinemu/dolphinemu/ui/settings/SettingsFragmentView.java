@@ -40,6 +40,12 @@ public interface SettingsFragmentView
 	void showSettingsList(ArrayList<SettingsItem> settingsList);
 
 	/**
+	 * Called by the containing Activity when an asynchronous load operation fails.
+	 * Instructs the Fragment to load the settings screen with defaults selected.
+	 */
+	void loadDefaultSettings();
+
+	/**
 	 * @return The Fragment's containing activity.
 	 */
 	Activity getActivity();
@@ -65,4 +71,9 @@ public interface SettingsFragmentView
 	 * @param setting The (possibly previously missing) new setting.
 	 */
 	void putSetting(Setting setting);
+
+	/**
+	 * Have the fragment tell the containing Activity that a setting was modified.
+	 */
+	void onSettingChanged();
 }
