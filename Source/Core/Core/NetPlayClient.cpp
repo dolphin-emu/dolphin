@@ -60,22 +60,9 @@ NetPlayClient::~NetPlayClient()
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort)
 	: m_dialog(dialog)
-	, m_client(nullptr)
-	, m_server(nullptr)
-	, m_is_running(false)
-	, m_do_loop(true)
-	, m_target_buffer_size()
-	, m_local_player(nullptr)
-	, m_current_game(0)
-	, m_is_recording(false)
-	, m_pid(0)
-	, m_connecting(false)
-	, m_traversal_client(nullptr)
+	, m_player_name(name)
 {
-	m_target_buffer_size = 20;
 	ClearBuffers();
-
-	m_player_name = name;
 
 	if (!traversal)
 	{
