@@ -15,7 +15,7 @@
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoCommon/VideoConfig.h"
 
-static const unsigned int SWAP_CHAIN_BUFFER_COUNT = 2;
+static const unsigned int SWAP_CHAIN_BUFFER_COUNT = 4;
 
 namespace DX12
 {
@@ -64,7 +64,7 @@ HWND hWnd;
 // End extern'd variables.
 
 static IDXGISwapChain* s_swap_chain = nullptr;
-static HANDLE s_swap_chain_waitable_object = NULL;
+static unsigned int s_monitor_refresh_rate = 0;
 
 static ID3D12DebugDevice* s_debug_device12 = nullptr;
 
@@ -407,7 +407,7 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.SampleDesc.Quality = 0;
 	swap_chain_desc.Windowed = true;
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+	swap_chain_desc.Flags = 0;
 
 	swap_chain_desc.BufferDesc.Width = s_xres;
 	swap_chain_desc.BufferDesc.Height = s_yres;
@@ -478,14 +478,28 @@ HRESULT Create(HWND wnd)
 
 		CheckHR(factory->CreateSwapChain(command_queue, &swap_chain_desc, &s_swap_chain));
 
-		IDXGISwapChain3* swap_chain = nullptr;
-		CheckHR(s_swap_chain->QueryInterface(&swap_chain));
-
-		s_swap_chain_waitable_object = swap_chain->GetFrameLatencyWaitableObject();
-
 		s_current_back_buf = 0;
 
 		factory->Release();
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		// Query the monitor refresh rate, to ensure proper Present throttling behavior.
+		DEVMODE dev_mode;
+		memset(&dev_mode, 0, sizeof(DEVMODE));
+		dev_mode.dmSize = sizeof(DEVMODE);
+		dev_mode.dmDriverExtra = 0;
+
+		if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &dev_mode) == 0)
+		{
+			// If EnumDisplaySettings fails, assume monitor refresh rate of 60 Hz.
+			s_monitor_refresh_rate = 60;
+		}
+		else
+		{
+			s_monitor_refresh_rate = dev_mode.dmDisplayFrequency;
+		}
 	}
 
 	if (FAILED(hr))
@@ -727,6 +741,8 @@ void Close()
 		SAFE_RELEASE(s_backbuf[i]);
 	}
 
+	D3D::CleanupPersistentD3DTextureResources();
+
 	command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
 	SAFE_RELEASE(s_swap_chain);
@@ -740,8 +756,6 @@ void Close()
 	sampler_descriptor_heap_mgr->Release();
 	rtv_descriptor_heap_mgr->Release();
 	dsv_descriptor_heap_mgr->Release();
-
-	D3D::CleanupPersistentD3DTextureResources();
 
 	ULONG remaining_references = device12->Release();
 	if ((!s_debug_device12 && remaining_references) || (s_debug_device12 && remaining_references > 1))
@@ -830,7 +844,7 @@ void Reset()
 	s_xres = client.right - client.left;
 	s_yres = client.bottom - client.top;
 
-	CheckHR(s_swap_chain->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT));
+	CheckHR(s_swap_chain->ResizeBuffers(SWAP_CHAIN_BUFFER_COUNT, s_xres, s_yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0));
 
 	// recreate back buffer textures
 
@@ -886,27 +900,45 @@ void EndFrame()
 
 void Present()
 {
+	// The Present function contains logic to ensure we never Present faster than Windows can
+	// send to the monitor. If we Present too fast, the Present call will start to block, and we'll be
+	// throttled - obviously not desired if vsync is disabled and the emulated CPU speed is > 100%.
+
+	// The throttling logic ensures that we don't Present more than twice in a given monitor vsync.
+	// This is accomplished through timing data - there is a programmatic way to determine if a
+	// Present call will block, however after investigation that is not feasible here (without invasive
+	// workarounds), due to the fact this method does not actually call Present - we just queue a Present
+	// command for the background thread to dispatch.
+
+	// The monitor refresh rate is determined in Create().
+
+	static LARGE_INTEGER s_last_present_qpc;
+
+	LARGE_INTEGER current_qpc;
+	LARGE_INTEGER current_qpc_frequency;
+
+	QueryPerformanceCounter(&current_qpc);
+	QueryPerformanceFrequency(&current_qpc_frequency);
+
+	const float time_elapsed_since_last_present = static_cast<float>(current_qpc.QuadPart - s_last_present_qpc.QuadPart) / current_qpc_frequency.QuadPart;
+
 	unsigned int present_flags = 0;
 
-	// For syncIntervals of '0' (vsync off), take care to not Present if next-in-line back buffer is busy,
-	// else Windows can throttle presentation rate.
-
-	DWORD result = WaitForSingleObject(s_swap_chain_waitable_object, 0);
-
-	if (result == WAIT_TIMEOUT && g_ActiveConfig.IsVSync() == false)
+	if (g_ActiveConfig.IsVSync() == false &&
+		time_elapsed_since_last_present < (1.0f / static_cast<float>(s_monitor_refresh_rate)) / 2.0f
+		)
 	{
 		present_flags = DXGI_PRESENT_TEST; // Causes Present to be a no-op.
 	}
 	else
 	{
-		s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
+		s_last_present_qpc = current_qpc;
 
+		s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_PRESENT);
 		s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
 	}
 
 	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swap_chain, g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
-
-	s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	command_list_mgr->m_cpu_access_last_frame = command_list_mgr->m_cpu_access_this_frame;
 	command_list_mgr->m_cpu_access_this_frame = false;
