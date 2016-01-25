@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -48,7 +49,7 @@ class NetPlayClient : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
-	void SendAsync(sf::Packet* packet);
+	void SendAsync(std::unique_ptr<sf::Packet> packet);
 
 	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayClient();
@@ -126,6 +127,9 @@ private:
 		Connected,
 		Failure
 	};
+
+	void SendStartGamePacket();
+	void SendStopGamePacket();
 
 	void UpdateDevices();
 	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
