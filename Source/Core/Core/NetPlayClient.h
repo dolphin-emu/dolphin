@@ -56,7 +56,7 @@ public:
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
 	std::vector<const Player*> GetPlayers();
 
-	bool is_connected;
+	bool IsConnected() const;
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
@@ -134,6 +134,8 @@ private:
 	void Send(sf::Packet& packet);
 	void Disconnect();
 	bool Connect();
+
+	bool m_is_connected = false;
 
 	PlayerId m_pid;
 	std::map<PlayerId, Player> m_players;

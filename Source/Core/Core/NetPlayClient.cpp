@@ -30,7 +30,7 @@ NetPlayClient::~NetPlayClient()
 	if (m_is_running.load())
 		StopGame();
 
-	if (is_connected)
+	if (m_is_connected)
 	{
 		m_do_loop.store(false);
 		m_thread.join();
@@ -75,8 +75,6 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 {
 	m_target_buffer_size = 20;
 	ClearBuffers();
-
-	is_connected = false;
 
 	m_player_name = name;
 
@@ -235,7 +233,7 @@ bool NetPlayClient::Connect()
 
 		m_dialog->Update();
 
-		is_connected = true;
+		m_is_connected = true;
 
 		return true;
 	}
@@ -629,6 +627,11 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 	return players;
 }
 
+// called from ---GUI--- thread
+bool NetPlayClient::IsConnected() const
+{
+	return m_is_connected;
+}
 
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
