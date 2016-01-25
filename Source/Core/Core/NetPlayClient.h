@@ -128,6 +128,8 @@ private:
 		Failure
 	};
 
+	bool LocalPlayerHasControllerMapped() const;
+
 	void SendStartGamePacket();
 	void SendStopGamePacket();
 
