@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <map>
 #include <memory>
@@ -93,8 +94,8 @@ protected:
 
 	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
-	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
-	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
+	std::array<Common::FifoQueue<GCPadStatus>, 4> m_pad_buffer;
+	std::array<Common::FifoQueue<NetWiimote >, 4> m_wiimote_buffer;
 
 	NetPlayUI*   m_dialog = nullptr;
 

@@ -311,11 +311,20 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	{
 		PadMapping map = 0;
 		GCPadStatus pad;
-		packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+		packet >> map
+		       >> pad.button
+		       >> pad.analogA
+		       >> pad.analogB
+		       >> pad.stickX
+		       >> pad.stickY
+		       >> pad.substickX
+		       >> pad.substickY
+		       >> pad.triggerLeft
+		       >> pad.triggerRight;
 
-		// trusting server for good map value (>=0 && <4)
+		// Trusting server for good map value (>=0 && <4)
 		// add to pad buffer
-		m_pad_buffer[map].Push(pad);
+		m_pad_buffer.at(map).Push(pad);
 	}
 	break;
 
@@ -331,9 +340,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		for (unsigned int i = 0; i < size; ++i)
 			packet >> nw[i];
 
-		// trusting server for good map value (>=0 && <4)
+		// Trusting server for good map value (>=0 && <4)
 		// add to Wiimote buffer
-		m_wiimote_buffer[(unsigned)map].Push(nw);
+		m_wiimote_buffer.at(map).Push(nw);
 	}
 	break;
 
