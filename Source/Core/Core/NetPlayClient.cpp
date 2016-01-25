@@ -758,13 +758,22 @@ bool NetPlayClient::ChangeGame(const std::string&)
 // called from ---NETPLAY--- thread
 void NetPlayClient::UpdateDevices()
 {
+	u8 local_players = 0;
+	// Add local pads first
 	for (PadMapping i = 0; i < 4; i++)
 	{
 		// Use local controller types for local controllers
 		if (m_pad_map[i] == m_local_player->pid)
-			SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
-		else
-			SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+		{
+			SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_players], local_players++);
+		}
+	}
+	for (PadMapping i = 0; i < 4; i++)
+	{
+		if (m_pad_map[i] != m_local_player->pid)
+		{
+			SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, local_players++);
+		}
 	}
 }
 
