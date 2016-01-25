@@ -575,29 +575,26 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 
 	std::ostringstream ss;
 
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i != e; ++i)
+	const auto enumerate_player_controller_mappings = [&ss](const PadMappingArray& mappings, const Player& player) {
+		for (size_t i = 0; i < mappings.size(); i++)
+		{
+			if (mappings[i] == player.pid)
+				ss << i + 1;
+			else
+				ss << '-';
+		}
+	};
+
+	for (const auto& entry : m_players)
 	{
-		const Player *player = &(i->second);
-		ss << player->name << "[" << (int)player->pid << "] : " << player->revision << " | ";
-		for (unsigned int j = 0; j < 4; j++)
-		{
-			if (m_pad_map[j] == player->pid)
-				ss << j + 1;
-			else
-				ss << '-';
-		}
-		for (unsigned int j = 0; j < 4; j++)
-		{
-			if (m_wiimote_map[j] == player->pid)
-				ss << j + 1;
-			else
-				ss << '-';
-		}
-		ss << " |\nPing: " << player->ping << "ms\n\n";
-		pid_list.push_back(player->pid);
+		const Player& player = entry.second;
+		ss << player.name << "[" << static_cast<int>(player.pid) << "] : " << player.revision << " | ";
+
+		enumerate_player_controller_mappings(m_pad_map, player);
+		enumerate_player_controller_mappings(m_wiimote_map, player);
+
+		ss << " |\nPing: " << player.ping << "ms\n\n";
+		pid_list.push_back(player.pid);
 	}
 
 	list = ss.str();
