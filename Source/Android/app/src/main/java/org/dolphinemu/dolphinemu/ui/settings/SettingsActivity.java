@@ -21,7 +21,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 {
 	private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
 
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
@@ -53,6 +52,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	@Override
 	protected void onSaveInstanceState(Bundle outState)
 	{
+		// Critical: If super method is not called, rotations will be busted.
+		super.onSaveInstanceState(outState);
 		mPresenter.saveState(outState);
 	}
 
