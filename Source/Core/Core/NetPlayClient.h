@@ -7,9 +7,9 @@
 #include <atomic>
 #include <map>
 #include <mutex>
-#include <queue>
-#include <sstream>
+#include <string>
 #include <thread>
+#include <vector>
 #include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"

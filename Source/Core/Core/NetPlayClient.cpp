@@ -3,22 +3,20 @@
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/SI.h"
-#include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGCController.h"
-#include "Core/HW/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
