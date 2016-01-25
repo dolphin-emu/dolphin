@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 EndProject
@@ -69,6 +69,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enet", "..\Externals\enet\enet.vcxproj", "{CBC76802-C128-4B17-BF6C-23B08C313E5E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D12", "Core\VideoBackends\D3D12\D3D12.vcxproj", "{570215B7-E32F-4438-95AE-C8D955F9FCA3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinQt2", "Core\DolphinQt2\DolphinQt2.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -200,6 +201,10 @@ Global
 		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Debug|x64.Build.0 = Debug|x64
 		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Release|x64.ActiveCfg = Release|x64
 		{570215B7-E32F-4438-95AE-C8D955F9FCA3}.Release|x64.Build.0 = Release|x64
+		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Debug|x64.ActiveCfg = Debug|x64
+		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Debug|x64.Build.0 = Debug|x64
+		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Release|x64.ActiveCfg = Release|x64
+		{FA3FA62B-6F58-4B86-9453-4D149940A066}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
