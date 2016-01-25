@@ -39,7 +39,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* startAddress;
 
-	if (Fifo::g_use_deterministic_gpu_thread)
+	if (Fifo::UseDeterministicGPUThread())
 		startAddress = (u8*)Fifo::PopFifoAuxBuffer(size);
 	else
 		startAddress = Memory::GetPointer(address);
@@ -277,7 +277,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
 					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 					num_vertices,
 					src,
-					Fifo::g_bSkipCurrentFrame,
+					Fifo::WillSkipCurrentFrame(),
 					is_preprocess);
 
 				if (bytes < 0)

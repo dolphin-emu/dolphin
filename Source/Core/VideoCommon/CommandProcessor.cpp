@@ -302,7 +302,7 @@ void GatherPipeBursted()
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
 	{
-		if (IsOnThread() && !Fifo::g_use_deterministic_gpu_thread)
+		if (IsOnThread() && !Fifo::UseDeterministicGPUThread())
 		{
 			// In multibuffer mode is not allowed write in the same FIFO attached to the GPU.
 			// Fix Pokemon XD in DC mode.
@@ -368,7 +368,7 @@ void UpdateInterrupts(u64 userdata)
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
-	if (!Fifo::g_use_deterministic_gpu_thread)
+	if (!Fifo::UseDeterministicGPUThread())
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
