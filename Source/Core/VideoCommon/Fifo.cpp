@@ -15,6 +15,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/NetPlayProto.h"
 #include "Core/HW/Memmap.h"
 
@@ -44,6 +45,9 @@ static u8* s_fifo_aux_write_ptr;
 static u8* s_fifo_aux_read_ptr;
 
 bool g_use_deterministic_gpu_thread;
+
+static u64 s_last_sync_gpu_tick;
+static int s_event_sync_gpu;
 
 // STATE_TO_SAVE
 static u8* s_video_buffer;
@@ -79,6 +83,7 @@ void DoState(PointerWrap &p)
 		s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
 	}
 	p.Do(g_bSkipCurrentFrame);
+	p.Do(s_last_sync_gpu_tick);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
@@ -492,15 +497,14 @@ void UpdateWantDeterminism(bool want)
 	}
 }
 
-int Update(int ticks)
+/* This function checks the emulated CPU - GPU distance and may wake up the GPU,
+ * or block the CPU if required. It should be called by the CPU thread regulary.
+ * @ticks The gone emulated CPU time.
+ * @return A good time to call Update() next.
+ */
+static int Update(int ticks)
 {
 	const SConfig& param = SConfig::GetInstance();
-
-	if (ticks == 0)
-	{
-		FlushGpu();
-		return param.iSyncGpuMaxDistance;
-	}
 
 	// GPU is sleeping, so no need for synchronization
 	if (s_gpu_mainloop.IsDone() || g_use_deterministic_gpu_thread)
@@ -514,10 +518,12 @@ int Update(int ticks)
 		return param.iSyncGpuMaxDistance;
 	}
 
+	// Wakeup GPU
 	int old = s_sync_ticks.fetch_add(ticks);
 	if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
 		RunGpu();
 
+	// Wait for GPU
 	if (s_sync_ticks.load() >= param.iSyncGpuMaxDistance)
 	{
 		while (s_sync_ticks.load() > 0)
@@ -527,6 +533,27 @@ int Update(int ticks)
 	}
 
 	return param.iSyncGpuMaxDistance - s_sync_ticks.load();
+}
+
+static void SyncGPUCallback(u64 userdata, int cyclesLate)
+{
+	u64 now = CoreTiming::GetTicks();
+	int next = Fifo::Update((int)(now - s_last_sync_gpu_tick));
+	s_last_sync_gpu_tick = now;
+
+	if (next > 0)
+		CoreTiming::ScheduleEvent(next, s_event_sync_gpu);
+}
+
+// Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
+void Prepare()
+{
+	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
+	{
+		s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+		CoreTiming::ScheduleEvent(0, s_event_sync_gpu);
+		s_last_sync_gpu_tick = CoreTiming::GetTicks();
+	}
 }
 
 }

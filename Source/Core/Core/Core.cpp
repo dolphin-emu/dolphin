@@ -498,6 +498,9 @@ void EmuThread()
 
 	CBoot::BootUp();
 
+	// This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
+	Fifo::Prepare();
+
 	// Thread is no longer acting as CPU Thread
 	UndeclareAsCPUThread();
 
