@@ -6,6 +6,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
@@ -30,6 +33,27 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		String filename = launcher.getStringExtra(ARGUMENT_FILE_NAME);
 
 		mPresenter.onCreate(savedInstanceState, filename);
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu)
+	{
+		MenuInflater inflater = getMenuInflater();
+		inflater.inflate(R.menu.menu_settings, menu);
+
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item)
+	{
+		return mPresenter.handleOptionsItem(item.getItemId());
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState)
+	{
+		mPresenter.saveState(outState);
 	}
 
 	/**
@@ -97,6 +121,17 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
+	public void onSettingsFileNotFound()
+	{
+		SettingsFragmentView fragment = getFragment();
+
+		if (fragment != null)
+		{
+			fragment.loadDefaultSettings();
+		}
+	}
+
+	@Override
 	public void showToastMessage(String message)
 	{
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
@@ -106,6 +141,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	public void popBackStack()
 	{
 		getFragmentManager().popBackStackImmediate();
+	}
+
+	@Override
+	public void onSettingChanged()
+	{
+		mPresenter.onSettingChanged();
 	}
 
 	private SettingsFragment getFragment()

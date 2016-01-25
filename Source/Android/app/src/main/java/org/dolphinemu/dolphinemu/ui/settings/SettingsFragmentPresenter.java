@@ -59,9 +59,14 @@ public final class SettingsFragmentPresenter
 		mSettings.get(setting.getSection()).putSetting(setting.getKey(), setting);
 	}
 
+	public void loadDefaultSettings()
+	{
+		loadSettingsList();
+	}
+
 	public void setSettings(HashMap<String, SettingSection> settings)
 	{
-		if (mSettingsList == null)
+		if (mSettingsList == null && settings != null)
 		{
 			mSettings = settings;
 
