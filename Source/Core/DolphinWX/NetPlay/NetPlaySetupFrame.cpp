@@ -291,7 +291,7 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string &game, bool 
 	GetTraversalServer(netplay_section, &centralServer);
 
 	netplay_client = new NetPlayClient(ip, (u16)port, npd, WxStrToStr(m_nickname_text->GetValue()), trav, centralServer, (u16) centralPort);
-	if (netplay_client->is_connected)
+	if (netplay_client->IsConnected())
 	{
 		npd->Show();
 		Destroy();

@@ -2,23 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <memory>
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/SI.h"
-#include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGCController.h"
-#include "Core/HW/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 
 static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
@@ -32,7 +32,7 @@ NetPlayClient::~NetPlayClient()
 	if (m_is_running.load())
 		StopGame();
 
-	if (is_connected)
+	if (m_is_connected)
 	{
 		m_do_loop.store(false);
 		m_thread.join();
@@ -61,26 +61,10 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort)
-	: m_state(Failure)
-	, m_dialog(dialog)
-	, m_client(nullptr)
-	, m_server(nullptr)
-	, m_is_running(false)
-	, m_do_loop(true)
-	, m_target_buffer_size()
-	, m_local_player(nullptr)
-	, m_current_game(0)
-	, m_is_recording(false)
-	, m_pid(0)
-	, m_connecting(false)
-	, m_traversal_client(nullptr)
+	: m_dialog(dialog)
+	, m_player_name(name)
 {
-	m_target_buffer_size = 20;
 	ClearBuffers();
-
-	is_connected = false;
-
-	m_player_name = name;
 
 	if (!traversal)
 	{
@@ -138,7 +122,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			m_traversal_client->ReconnectToServer();
 		m_traversal_client->m_Client = this;
 		m_host_spec = address;
-		m_state = WaitingForTraversalClientConnection;
+		m_connection_state = ConnectionState::WaitingForTraversalClientConnection;
 		OnTraversalStateChanged();
 		m_connecting = true;
 
@@ -160,7 +144,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 					m_server = netEvent.peer;
 					if (Connect())
 					{
-						m_state = Connected;
+						m_connection_state = ConnectionState::Connected;
 						m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 					}
 					return;
@@ -237,7 +221,7 @@ bool NetPlayClient::Connect()
 
 		m_dialog->Update();
 
-		is_connected = true;
+		m_is_connected = true;
 
 		return true;
 	}
@@ -327,11 +311,20 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	{
 		PadMapping map = 0;
 		GCPadStatus pad;
-		packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+		packet >> map
+		       >> pad.button
+		       >> pad.analogA
+		       >> pad.analogB
+		       >> pad.stickX
+		       >> pad.stickY
+		       >> pad.substickX
+		       >> pad.substickY
+		       >> pad.triggerLeft
+		       >> pad.triggerRight;
 
-		// trusting server for good map value (>=0 && <4)
+		// Trusting server for good map value (>=0 && <4)
 		// add to pad buffer
-		m_pad_buffer[map].Push(pad);
+		m_pad_buffer.at(map).Push(pad);
 	}
 	break;
 
@@ -347,9 +340,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		for (unsigned int i = 0; i < size; ++i)
 			packet >> nw[i];
 
-		// trusting server for good map value (>=0 && <4)
+		// Trusting server for good map value (>=0 && <4)
 		// add to Wiimote buffer
-		m_wiimote_buffer[(unsigned)map].Push(nw);
+		m_wiimote_buffer.at(map).Push(nw);
 	}
 	break;
 
@@ -505,7 +498,7 @@ void NetPlayClient::Disconnect()
 {
 	ENetEvent netEvent;
 	m_connecting = false;
-	m_state = Failure;
+	m_connection_state = ConnectionState::Failure;
 	if (m_server)
 		enet_peer_disconnect(m_server, 0);
 	else
@@ -530,11 +523,11 @@ void NetPlayClient::Disconnect()
 	m_server = nullptr;
 }
 
-void NetPlayClient::SendAsync(sf::Packet* packet)
+void NetPlayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 {
 	{
 		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
+		m_async_queue.Push(std::move(packet));
 	}
 	ENetUtil::WakeupThread(m_client);
 }
@@ -591,29 +584,26 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 
 	std::ostringstream ss;
 
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for (; i != e; ++i)
+	const auto enumerate_player_controller_mappings = [&ss](const PadMappingArray& mappings, const Player& player) {
+		for (size_t i = 0; i < mappings.size(); i++)
+		{
+			if (mappings[i] == player.pid)
+				ss << i + 1;
+			else
+				ss << '-';
+		}
+	};
+
+	for (const auto& entry : m_players)
 	{
-		const Player *player = &(i->second);
-		ss << player->name << "[" << (int)player->pid << "] : " << player->revision << " | ";
-		for (unsigned int j = 0; j < 4; j++)
-		{
-			if (m_pad_map[j] == player->pid)
-				ss << j + 1;
-			else
-				ss << '-';
-		}
-		for (unsigned int j = 0; j < 4; j++)
-		{
-			if (m_wiimote_map[j] == player->pid)
-				ss << j + 1;
-			else
-				ss << '-';
-		}
-		ss << " |\nPing: " << player->ping << "ms\n\n";
-		pid_list.push_back(player->pid);
+		const Player& player = entry.second;
+		ss << player.name << "[" << static_cast<int>(player.pid) << "] : " << player.revision << " | ";
+
+		enumerate_player_controller_mappings(m_pad_map, player);
+		enumerate_player_controller_mappings(m_wiimote_map, player);
+
+		ss << " |\nPing: " << player.ping << "ms\n\n";
+		pid_list.push_back(player.pid);
 	}
 
 	list = ss.str();
@@ -631,50 +621,74 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 	return players;
 }
 
-
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
 	*spac << msg;
-	SendAsync(spac);
+
+	SendAsync(std::move(spac));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad)
 {
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_DATA;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
 	*spac << in_game_pad;
-	*spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+	*spac << pad.button
+	      << pad.analogA
+	      << pad.analogB
+	      << pad.stickX
+	      << pad.stickY
+	      << pad.substickX
+	      << pad.substickY
+	      << pad.triggerLeft
+	      << pad.triggerRight;
 
-	SendAsync(spac);
+	SendAsync(std::move(spac));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw)
 {
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_WIIMOTE_DATA;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
 	*spac << in_game_pad;
-	*spac << (u8)nw.size();
+	*spac << static_cast<u8>(nw.size());
 	for (auto it : nw)
 	{
 		*spac << it;
 	}
-	SendAsync(spac);
+
+	SendAsync(std::move(spac));
+}
+
+// called from ---GUI--- thread
+void NetPlayClient::SendStartGamePacket()
+{
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_START_GAME);
+	*spac << m_current_game;
+
+	SendAsync(std::move(spac));
+}
+
+// called from ---GUI--- thread
+void NetPlayClient::SendStopGamePacket()
+{
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_STOP_GAME);
+
+	SendAsync(std::move(spac));
 }
 
 // called from ---GUI--- thread
 bool NetPlayClient::StartGame(const std::string &path)
 {
 	std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-	// tell server i started the game
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_START_GAME;
-	*spac << m_current_game;
-	SendAsync(spac);
+	SendStartGamePacket();
 
 	if (m_is_running.load())
 	{
@@ -771,13 +785,13 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
-	if (m_state == WaitingForTraversalClientConnection &&
+	if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
 		m_traversal_client->m_State == TraversalClient::Connected)
 	{
-		m_state = WaitingForTraversalClientConnectReady;
+		m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
 		m_traversal_client->ConnectToClient(m_host_spec);
 	}
-	else if (m_state != Failure &&
+	else if (m_connection_state != ConnectionState::Failure &&
 		m_traversal_client->m_State == TraversalClient::Failure)
 	{
 		Disconnect();
@@ -787,9 +801,9 @@ void NetPlayClient::OnTraversalStateChanged()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnConnectReady(ENetAddress addr)
 {
-	if (m_state == WaitingForTraversalClientConnectReady)
+	if (m_connection_state == ConnectionState::WaitingForTraversalClientConnectReady)
 	{
-		m_state = Connecting;
+		m_connection_state = ConnectionState::Connecting;
 		enet_host_connect(m_client, &addr, 0, 0);
 	}
 }
@@ -798,7 +812,7 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 void NetPlayClient::OnConnectFailed(u8 reason)
 {
 	m_connecting = false;
-	m_state = Failure;
+	m_connection_state = ConnectionState::Failure;
 	switch (reason)
 	{
 	case TraversalConnectFailedClientDidntRespond:
@@ -1010,28 +1024,20 @@ void NetPlayClient::Stop()
 	if (!m_is_running.load())
 		return;
 
-	bool isPadMapped = false;
-	for (PadMapping mapping : m_pad_map)
-	{
-		if (mapping == m_local_player->pid)
-		{
-			isPadMapped = true;
-		}
-	}
-	for (PadMapping mapping : m_wiimote_map)
-	{
-		if (mapping == m_local_player->pid)
-		{
-			isPadMapped = true;
-		}
-	}
-	// tell the server to stop if we have a pad mapped in game.
-	if (isPadMapped)
-	{
-		sf::Packet* spac = new sf::Packet;
-		*spac << (MessageId)NP_MSG_STOP_GAME;
-		SendAsync(spac);
-	}
+	// Tell the server to stop if we have a pad mapped in game.
+	if (LocalPlayerHasControllerMapped())
+		SendStopGamePacket();
+}
+
+// called from ---GUI--- thread
+bool NetPlayClient::LocalPlayerHasControllerMapped() const
+{
+	const auto mapping_matches_player_id = [this](const PadMapping& mapping) {
+		return mapping == m_local_player->pid;
+	};
+
+	return std::any_of(m_pad_map.begin(),     m_pad_map.end(),     mapping_matches_player_id) ||
+	       std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
 u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
@@ -1096,12 +1102,13 @@ void NetPlayClient::SendTimeBase()
 
 	u64 timebase = SystemTimers::GetFakeTimeBase();
 
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_TIMEBASE;
-	*spac << (u32)timebase;
-	*spac << (u32)(timebase << 32);
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_TIMEBASE);
+	*spac << static_cast<u32>(timebase);
+	*spac << static_cast<u32>(timebase << 32);
 	*spac << netplay_client->m_timebase_frame++;
-	netplay_client->SendAsync(spac);
+
+	netplay_client->SendAsync(std::move(spac));
 }
 
 // stuff hacked into dolphin
