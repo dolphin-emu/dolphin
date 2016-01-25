@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <memory>
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -1017,25 +1018,20 @@ void NetPlayClient::Stop()
 	if (!m_is_running.load())
 		return;
 
-	bool isPadMapped = false;
-	for (PadMapping mapping : m_pad_map)
-	{
-		if (mapping == m_local_player->pid)
-		{
-			isPadMapped = true;
-		}
-	}
-	for (PadMapping mapping : m_wiimote_map)
-	{
-		if (mapping == m_local_player->pid)
-		{
-			isPadMapped = true;
-		}
-	}
-
 	// Tell the server to stop if we have a pad mapped in game.
-	if (isPadMapped)
+	if (LocalPlayerHasControllerMapped())
 		SendStopGamePacket();
+}
+
+// called from ---GUI--- thread
+bool NetPlayClient::LocalPlayerHasControllerMapped() const
+{
+	const auto mapping_matches_player_id = [this](const PadMapping& mapping) {
+		return mapping == m_local_player->pid;
+	};
+
+	return std::any_of(m_pad_map.begin(),     m_pad_map.end(),     mapping_matches_player_id) ||
+	       std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
 u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
