@@ -59,8 +59,7 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort)
-	: m_state(Failure)
-	, m_dialog(dialog)
+	: m_dialog(dialog)
 	, m_client(nullptr)
 	, m_server(nullptr)
 	, m_is_running(false)
@@ -134,7 +133,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 			m_traversal_client->ReconnectToServer();
 		m_traversal_client->m_Client = this;
 		m_host_spec = address;
-		m_state = WaitingForTraversalClientConnection;
+		m_connection_state = ConnectionState::WaitingForTraversalClientConnection;
 		OnTraversalStateChanged();
 		m_connecting = true;
 
@@ -156,7 +155,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 					m_server = netEvent.peer;
 					if (Connect())
 					{
-						m_state = Connected;
+						m_connection_state = ConnectionState::Connected;
 						m_thread = std::thread(&NetPlayClient::ThreadFunc, this);
 					}
 					return;
@@ -501,7 +500,7 @@ void NetPlayClient::Disconnect()
 {
 	ENetEvent netEvent;
 	m_connecting = false;
-	m_state = Failure;
+	m_connection_state = ConnectionState::Failure;
 	if (m_server)
 		enet_peer_disconnect(m_server, 0);
 	else
@@ -766,13 +765,13 @@ void NetPlayClient::ClearBuffers()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnTraversalStateChanged()
 {
-	if (m_state == WaitingForTraversalClientConnection &&
+	if (m_connection_state == ConnectionState::WaitingForTraversalClientConnection &&
 		m_traversal_client->m_State == TraversalClient::Connected)
 	{
-		m_state = WaitingForTraversalClientConnectReady;
+		m_connection_state = ConnectionState::WaitingForTraversalClientConnectReady;
 		m_traversal_client->ConnectToClient(m_host_spec);
 	}
-	else if (m_state != Failure &&
+	else if (m_connection_state != ConnectionState::Failure &&
 		m_traversal_client->m_State == TraversalClient::Failure)
 	{
 		Disconnect();
@@ -782,9 +781,9 @@ void NetPlayClient::OnTraversalStateChanged()
 // called from ---NETPLAY--- thread
 void NetPlayClient::OnConnectReady(ENetAddress addr)
 {
-	if (m_state == WaitingForTraversalClientConnectReady)
+	if (m_connection_state == ConnectionState::WaitingForTraversalClientConnectReady)
 	{
-		m_state = Connecting;
+		m_connection_state = ConnectionState::Connecting;
 		enet_host_connect(m_client, &addr, 0, 0);
 	}
 }
@@ -793,7 +792,7 @@ void NetPlayClient::OnConnectReady(ENetAddress addr)
 void NetPlayClient::OnConnectFailed(u8 reason)
 {
 	m_connecting = false;
-	m_state = Failure;
+	m_connection_state = ConnectionState::Failure;
 	switch (reason)
 	{
 	case TraversalConnectFailedClientDidntRespond:

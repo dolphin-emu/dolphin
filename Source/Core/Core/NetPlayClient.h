@@ -80,16 +80,6 @@ public:
 
 	static void SendTimeBase();
 
-	enum State
-	{
-		WaitingForTraversalClientConnection,
-		WaitingForTraversalClientConnectReady,
-		Connecting,
-		WaitingForHelloResponse,
-		Connected,
-		Failure
-	} m_state;
-
 protected:
 	void ClearBuffers();
 
@@ -128,6 +118,16 @@ protected:
 	bool m_is_recording;
 
 private:
+	enum class ConnectionState
+	{
+		WaitingForTraversalClientConnection,
+		WaitingForTraversalClientConnectReady,
+		Connecting,
+		WaitingForHelloResponse,
+		Connected,
+		Failure
+	};
+
 	void UpdateDevices();
 	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
@@ -137,6 +137,7 @@ private:
 	bool Connect();
 
 	bool m_is_connected = false;
+	ConnectionState m_connection_state = ConnectionState::Failure;
 
 	PlayerId m_pid;
 	std::map<PlayerId, Player> m_players;
