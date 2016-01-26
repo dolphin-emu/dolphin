@@ -500,7 +500,16 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		PadMapping map = 0;
 		GCPadStatus pad;
-		packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+		packet >> map
+		       >> pad.button
+		       >> pad.analogA
+		       >> pad.analogB
+		       >> pad.stickX
+		       >> pad.stickY
+		       >> pad.substickX
+		       >> pad.substickY
+		       >> pad.triggerLeft
+		       >> pad.triggerRight;
 
 		// If the data is not from the correct player,
 		// then disconnect them.
@@ -512,7 +521,16 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 		// Relay to clients
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_PAD_DATA;
-		spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+		spac << map
+		     << pad.button
+		     << pad.analogA
+		     << pad.analogB
+		     << pad.stickX
+		     << pad.stickY
+		     << pad.substickX
+		     << pad.substickY
+		     << pad.triggerLeft
+		     << pad.triggerRight;
 
 		SendToClients(spac, player.pid);
 	}
