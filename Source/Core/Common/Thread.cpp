@@ -136,7 +136,8 @@ void SetCurrentThreadName(const char* szThreadName)
 #elif defined __FreeBSD__
 	pthread_set_name_np(pthread_self(), szThreadName);
 #else
-	pthread_setname_np(pthread_self(), szThreadName);
+	// linux doesn't allow to set more than 16 bytes, including \0.
+	pthread_setname_np(pthread_self(), std::string(szThreadName).substr(0, 15).c_str());
 #endif
 #ifdef USE_VTUNE
 	// VTune uses OS thread names by default but probably supports longer names when set via its own API.
