@@ -58,17 +58,6 @@ NetPlayServer::~NetPlayServer()
 
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort)
-	: is_connected(false)
-	, m_is_running(false)
-	, m_do_loop(false)
-	, m_ping_key(0)
-	, m_update_pings(false)
-	, m_current_game(0)
-	, m_target_buffer_size(0)
-	, m_selected_game("")
-	, m_server(nullptr)
-	, m_traversal_client(nullptr)
-	, m_dialog(nullptr)
 {
 	//--use server time
 	if (enet_initialize() != 0)
