@@ -504,8 +504,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_pad_map[map] != player.pid)
+		if (map < 0 || map > 3 || m_pad_map[map] != player.pid)
+		{
 			return 1;
+		}
 
 		// Relay to clients
 		sf::Packet spac;
@@ -531,7 +533,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_wiimote_map[map] != player.pid)
+		if (map < 0 || map > 3 || m_wiimote_map[map] != player.pid)
 		{
 			return 1;
 		}
