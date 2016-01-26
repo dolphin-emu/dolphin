@@ -22,7 +22,7 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
-	void SendAsyncToClients(sf::Packet* packet);
+	void SendAsyncToClients(std::unique_ptr<sf::Packet> packet);
 
 	NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayServer();
