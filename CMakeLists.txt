@@ -13,6 +13,7 @@ option(ENABLE_QT2 "Enable Qt2 (use the other experimental Qt interface)" OFF)
 option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
+option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
@@ -380,6 +381,15 @@ if(ANDROID)
 	set(USE_EGL 1)
 endif()
 
+if(ENABLE_HEADLESS)
+	message("Enabling Headless! Disabling GUI, force enabling EGL!")
+	set(USE_X11 0)
+	set(USE_EGL 1)
+	set(DISABLE_WX 1)
+	set(ENABLE_QT2 0)
+	add_definitions(-DUSE_HEADLESS)
+endif()
+
 include_directories(Externals/GL)
 
 add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
@@ -457,7 +467,7 @@ if(NOT ANDROID)
 
 	set(USE_X11 0)
 
-	if(UNIX AND NOT APPLE)
+	if(UNIX AND NOT APPLE AND NOT ENABLE_HEADLESS)
 		include(FindX11)
 		if(TRY_X11 AND X11_FOUND)
 			set(USE_X11 1)

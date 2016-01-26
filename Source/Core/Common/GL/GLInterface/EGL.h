@@ -27,7 +27,7 @@ protected:
 	EGLContext egl_ctx;
 	EGLDisplay egl_dpy;
 
-	virtual EGLDisplay OpenDisplay() { return EGL_NO_DISPLAY; }
+	virtual EGLDisplay OpenDisplay() { return eglGetDisplay(EGL_DEFAULT_DISPLAY); }
 	virtual EGLNativeWindowType InitializePlatform(EGLNativeWindowType host_window, EGLConfig config) { return (EGLNativeWindowType)EGL_DEFAULT_DISPLAY; }
 	virtual void ShutdownPlatform() {}
 

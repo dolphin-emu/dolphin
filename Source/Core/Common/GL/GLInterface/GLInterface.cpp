@@ -18,6 +18,8 @@
 #else
 #include "Common/GL/GLInterface/GLX.h"
 #endif
+#elif defined(USE_EGL) && USE_EGL && defined(USE_HEADLESS)
+#include "Common/GL/GLInterface/EGL.h"
 #else
 #error Platform doesnt have a GLInterface
 #endif
@@ -30,6 +32,8 @@ std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 		return std::make_unique<cInterfaceAGL>();
 	#elif defined(_WIN32)
 		return std::make_unique<cInterfaceWGL>();
+	#elif defined(USE_EGL) && defined(USE_HEADLESS)
+		return std::make_unique<cInterfaceEGL>();
 	#elif defined(HAVE_X11) && HAVE_X11
 	#if defined(USE_EGL) && USE_EGL
 		return std::make_unique<cInterfaceEGLX11>();
