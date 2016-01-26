@@ -169,7 +169,8 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 			@{ @kIOHIDVendorIDKey: @0x057e, @kIOHIDProductIDKey: @0x0330 },
 		];
 		IOHIDManagerSetDeviceMatchingMultiple(hid, (CFArrayRef)criteria);
-		CFRunLoopRun();
+		if (IOHIDManagerOpen(hid, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
+			NSLog(@"Failed to open HID Manager");
 		CFSetRef devices = IOHIDManagerCopyDevices(hid);
 		if (devices)
 		{
