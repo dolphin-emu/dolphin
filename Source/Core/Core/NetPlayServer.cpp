@@ -450,18 +450,18 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	m_target_buffer_size = size;
 
 	// tell clients to change buffer size
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_BUFFER;
-	*spac << (u32)m_target_buffer_size;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+	*spac << static_cast<u32>(m_target_buffer_size);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
-void NetPlayServer::SendAsyncToClients(sf::Packet* packet)
+void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
 {
 	{
 		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
+		m_async_queue.Push(std::move(packet));
 	}
 	ENetUtil::WakeupThread(m_server);
 }
@@ -674,12 +674,12 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
 	*spac << (PlayerId)0; // server id always 0
 	*spac << msg;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
 // called from ---GUI--- thread
@@ -690,11 +690,11 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	m_selected_game = game;
 
 	// send changed game to clients
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHANGE_GAME;
 	*spac << game;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	return true;
 }
@@ -719,7 +719,7 @@ bool NetPlayServer::StartGame()
 	g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	// tell clients to start game
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
@@ -738,7 +738,7 @@ bool NetPlayServer::StartGame()
 	*spac << (u32)g_netplay_initial_gctime;
 	*spac << (u32)(g_netplay_initial_gctime >> 32);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	m_is_running = true;
 
