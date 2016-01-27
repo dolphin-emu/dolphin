@@ -81,55 +81,53 @@ private:
 	int iSelectedLanguage;
 	int iCPUCore;
 	int Volume;
-	std::array<int, MAX_BBMOTES> iWiimoteSource;
-	std::array<SIDevices, MAX_SI_CHANNELS> Pads;
-	std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
 	unsigned int frameSkip;
 	float m_EmulationSpeed;
 	std::string strBackend;
 	std::string sBackend;
 	std::string m_strGPUDeterminismMode;
+	std::array<int, MAX_BBMOTES> iWiimoteSource;
+	std::array<SIDevices, MAX_SI_CHANNELS> Pads;
+	std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
 {
 	valid = true;
 
-	bCPUThread = config.bCPUThread;
-	bSkipIdle = config.bSkipIdle;
-	bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
-	bFPRF = config.bFPRF;
-	bAccurateNaNs = config.bAccurateNaNs;
-	bMMU = config.bMMU;
-	bDCBZOFF = config.bDCBZOFF;
-	m_EnableJIT = config.m_DSPEnableJIT;
-	bSyncGPU = config.bSyncGPU;
-	bFastDiscSpeed = config.bFastDiscSpeed;
-	bDSPHLE = config.bDSPHLE;
-	bHLE_BS2 = config.bHLE_BS2;
-	bProgressive = config.bProgressive;
-	bPAL60 = config.bPAL60;
-	iSelectedLanguage = config.SelectedLanguage;
-	iCPUCore = config.iCPUCore;
-	Volume = config.m_Volume;
+	bCPUThread              = config.bCPUThread;
+	bSkipIdle               = config.bSkipIdle;
+	bSyncGPUOnSkipIdleHack  = config.bSyncGPUOnSkipIdleHack;
+	bFPRF                   = config.bFPRF;
+	bAccurateNaNs           = config.bAccurateNaNs;
+	bMMU                    = config.bMMU;
+	bDCBZOFF                = config.bDCBZOFF;
+	m_EnableJIT             = config.m_DSPEnableJIT;
+	bSyncGPU                = config.bSyncGPU;
+	bFastDiscSpeed          = config.bFastDiscSpeed;
+	bDSPHLE                 = config.bDSPHLE;
+	bHLE_BS2                = config.bHLE_BS2;
+	bProgressive            = config.bProgressive;
+	bPAL60                  = config.bPAL60;
+	iSelectedLanguage       = config.SelectedLanguage;
+	iCPUCore                = config.iCPUCore;
+	Volume                  = config.m_Volume;
+	m_EmulationSpeed        = config.m_EmulationSpeed;
+	frameSkip               = config.m_FrameSkip;
+	strBackend              = config.m_strVideoBackend;
+	sBackend                = config.sBackend;
+	m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
 	std::copy(std::begin(g_wiimote_sources),  std::end(g_wiimote_sources),  std::begin(iWiimoteSource));
 	std::copy(std::begin(config.m_SIDevice),  std::end(config.m_SIDevice),  std::begin(Pads));
 	std::copy(std::begin(config.m_EXIDevice), std::end(config.m_EXIDevice), std::begin(m_EXIDevice));
 
-	m_EmulationSpeed = config.m_EmulationSpeed;
-	frameSkip = config.m_FrameSkip;
-
-	strBackend = config.m_strVideoBackend;
-	sBackend = config.sBackend;
-	m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
-
 	bSetEmulationSpeed = false;
 	bSetVolume = false;
+	bSetFrameSkip = false;
 	bSetWiimoteSource.fill(false);
 	bSetPads.fill(false);
 	bSetEXIDevice.fill(false);
-	bSetFrameSkip = false;
 }
 
 void ConfigCache::RestoreConfig(SConfig* config)
@@ -139,24 +137,25 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
 	valid = false;
 
-	config->bCPUThread = bCPUThread;
-	config->bSkipIdle = bSkipIdle;
+	config->bCPUThread             = bCPUThread;
+	config->bSkipIdle              = bSkipIdle;
 	config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
-	config->bFPRF = bFPRF;
-	config->bAccurateNaNs = bAccurateNaNs;
-	config->bMMU = bMMU;
-	config->bDCBZOFF = bDCBZOFF;
-	config->m_DSPEnableJIT = m_EnableJIT;
-	config->bSyncGPU = bSyncGPU;
-	config->bFastDiscSpeed = bFastDiscSpeed;
-	config->bDSPHLE = bDSPHLE;
-	config->bHLE_BS2 = bHLE_BS2;
-	config->bProgressive = bProgressive;
+	config->bFPRF                  = bFPRF;
+	config->bAccurateNaNs          = bAccurateNaNs;
+	config->bMMU                   = bMMU;
+	config->bDCBZOFF               = bDCBZOFF;
+	config->m_DSPEnableJIT         = m_EnableJIT;
+	config->bSyncGPU               = bSyncGPU;
+	config->bFastDiscSpeed         = bFastDiscSpeed;
+	config->bDSPHLE                = bDSPHLE;
+	config->bHLE_BS2               = bHLE_BS2;
+	config->bProgressive           = bProgressive;
+	config->bPAL60                 = bPAL60;
+	config->SelectedLanguage       = iSelectedLanguage;
+	config->iCPUCore               = iCPUCore;
+
 	config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
-	config->bPAL60 = bPAL60;
 	config->m_SYSCONF->SetData("IPL.E60", bPAL60);
-	config->SelectedLanguage = iSelectedLanguage;
-	config->iCPUCore = iCPUCore;
 
 	// Only change these back if they were actually set by game ini, since they can be changed while a game is running.
 	if (bSetVolume)
@@ -319,14 +318,14 @@ bool BootCore(const std::string& _rFilename)
 	// Movie settings
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
 	{
-		StartUp.bCPUThread = Movie::IsDualCore();
-		StartUp.bSkipIdle = Movie::IsSkipIdle();
-		StartUp.bDSPHLE = Movie::IsDSPHLE();
-		StartUp.bProgressive = Movie::IsProgressive();
-		StartUp.bPAL60 = Movie::IsPAL60();
+		StartUp.bCPUThread     = Movie::IsDualCore();
+		StartUp.bSkipIdle      = Movie::IsSkipIdle();
+		StartUp.bDSPHLE        = Movie::IsDSPHLE();
+		StartUp.bProgressive   = Movie::IsProgressive();
+		StartUp.bPAL60         = Movie::IsPAL60();
 		StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
-		StartUp.iCPUCore = Movie::GetCPUMode();
-		StartUp.bSyncGPU = Movie::IsSyncGPU();
+		StartUp.iCPUCore       = Movie::GetCPUMode();
+		StartUp.bSyncGPU       = Movie::IsSyncGPU();
 		for (int i = 0; i < 2; ++i)
 		{
 			if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
@@ -339,17 +338,17 @@ bool BootCore(const std::string& _rFilename)
 
 	if (NetPlay::IsNetPlayRunning())
 	{
-		StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
-		StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
-		StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
-		StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
-		StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
-		StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;
-		StartUp.bProgressive = g_NetPlaySettings.m_ProgressiveScan;
-		StartUp.bPAL60 = g_NetPlaySettings.m_PAL60;
+		StartUp.bCPUThread                    = g_NetPlaySettings.m_CPUthread;
+		StartUp.bDSPHLE                       = g_NetPlaySettings.m_DSPHLE;
+		StartUp.bEnableMemcardSdWriting       = g_NetPlaySettings.m_WriteToMemcard;
+		StartUp.iCPUCore                      = g_NetPlaySettings.m_CPUcore;
+		StartUp.SelectedLanguage              = g_NetPlaySettings.m_SelectedLanguage;
+		StartUp.bOverrideGCLanguage           = g_NetPlaySettings.m_OverrideGCLanguage;
+		StartUp.bProgressive                  = g_NetPlaySettings.m_ProgressiveScan;
+		StartUp.bPAL60                        = g_NetPlaySettings.m_PAL60;
 		SConfig::GetInstance().m_DSPEnableJIT = g_NetPlaySettings.m_DSPEnableJIT;
-		SConfig::GetInstance().m_OCEnable = g_NetPlaySettings.m_OCEnable;
-		SConfig::GetInstance().m_OCFactor = g_NetPlaySettings.m_OCFactor;
+		SConfig::GetInstance().m_OCEnable     = g_NetPlaySettings.m_OCEnable;
+		SConfig::GetInstance().m_OCFactor     = g_NetPlaySettings.m_OCFactor;
 		SConfig::GetInstance().m_EXIDevice[0] = g_NetPlaySettings.m_EXIDevice[0];
 		SConfig::GetInstance().m_EXIDevice[1] = g_NetPlaySettings.m_EXIDevice[1];
 		config_cache.bSetEXIDevice[0] = true;
