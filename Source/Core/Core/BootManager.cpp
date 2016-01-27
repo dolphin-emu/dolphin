@@ -20,6 +20,8 @@
 
 // Includes
 // ----------------
+#include <algorithm>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -52,20 +54,40 @@ public:
 	// restore values to the configuration from the cache
 	void RestoreConfig(SConfig* config);
 
-	// these store if the relevant setting should be reset back later (true) or if it should be left alone on restore (false)
-	bool bSetEmulationSpeed, bSetEXIDevice[MAX_EXI_CHANNELS], bSetVolume, bSetPads[MAX_SI_CHANNELS], bSetWiimoteSource[MAX_BBMOTES], bSetFrameSkip;
+	// These store if the relevant setting should be reset back later (true) or if it should be left alone on restore (false)
+	bool bSetEmulationSpeed;
+	bool bSetVolume;
+	bool bSetFrameSkip;
+	std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
+	std::array<bool, MAX_SI_CHANNELS> bSetPads;
+	std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
 
 private:
-	bool valid, bCPUThread, bSkipIdle, bSyncGPUOnSkipIdleHack, bFPRF, bAccurateNaNs, bMMU, bDCBZOFF, m_EnableJIT,
-	     bSyncGPU, bFastDiscSpeed, bDSPHLE, bHLE_BS2, bProgressive, bPAL60;
+	bool valid;
+	bool bCPUThread;
+	bool bSkipIdle;
+	bool bSyncGPUOnSkipIdleHack;
+	bool bFPRF;
+	bool bAccurateNaNs;
+	bool bMMU;
+	bool bDCBZOFF;
+	bool m_EnableJIT;
+	bool bSyncGPU;
+	bool bFastDiscSpeed;
+	bool bDSPHLE;
+	bool bHLE_BS2;
+	bool bProgressive;
+	bool bPAL60;
 	int iSelectedLanguage;
-	int iCPUCore, Volume;
-	int iWiimoteSource[MAX_BBMOTES];
-	SIDevices Pads[MAX_SI_CHANNELS];
+	int iCPUCore;
+	int Volume;
+	std::array<int, MAX_BBMOTES> iWiimoteSource;
+	std::array<SIDevices, MAX_SI_CHANNELS> Pads;
+	std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
 	unsigned int frameSkip;
 	float m_EmulationSpeed;
-	TEXIDevices m_EXIDevice[MAX_EXI_CHANNELS];
-	std::string strBackend, sBackend;
+	std::string strBackend;
+	std::string sBackend;
 	std::string m_strGPUDeterminismMode;
 };
 
@@ -91,33 +113,22 @@ void ConfigCache::SaveConfig(const SConfig& config)
 	iCPUCore = config.iCPUCore;
 	Volume = config.m_Volume;
 
-	for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
-	{
-		iWiimoteSource[i] = g_wiimote_sources[i];
-	}
-
-	for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
-	{
-		Pads[i] = config.m_SIDevice[i];
-	}
+	std::copy(std::begin(g_wiimote_sources),  std::end(g_wiimote_sources),  std::begin(iWiimoteSource));
+	std::copy(std::begin(config.m_SIDevice),  std::end(config.m_SIDevice),  std::begin(Pads));
+	std::copy(std::begin(config.m_EXIDevice), std::end(config.m_EXIDevice), std::begin(m_EXIDevice));
 
 	m_EmulationSpeed = config.m_EmulationSpeed;
 	frameSkip = config.m_FrameSkip;
-
-	for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
-	{
-		m_EXIDevice[i] = config.m_EXIDevice[i];
-	}
 
 	strBackend = config.m_strVideoBackend;
 	sBackend = config.sBackend;
 	m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
 
 	bSetEmulationSpeed = false;
-	std::fill_n(bSetEXIDevice, (int)MAX_EXI_CHANNELS, false);
 	bSetVolume = false;
-	std::fill_n(bSetPads, (int)MAX_SI_CHANNELS, false);
-	std::fill_n(bSetWiimoteSource, (int)MAX_BBMOTES, false);
+	bSetWiimoteSource.fill(false);
+	bSetPads.fill(false);
+	bSetEXIDevice.fill(false);
 	bSetFrameSkip = false;
 }
 
