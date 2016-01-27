@@ -293,6 +293,9 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 	dsp->Set("Backend", sBackend);
 	dsp->Set("Volume", m_Volume);
 	dsp->Set("CaptureLog", m_DSPCaptureLog);
+	dsp->Set("FilterPreset", sFilterPreset);
+	dsp->Set("FilterTaps", iFilterTaps);
+	dsp->Set("FilterResolution", iFilterResolution);
 }
 
 void SConfig::SaveInputSettings(IniFile& ini)
@@ -568,6 +571,9 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 #endif
 	dsp->Get("Volume", &m_Volume, 100);
 	dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
+	dsp->Get("FilterPreset", &sFilterPreset, FILTER_SINC_7PT);
+	dsp->Get("FilterTaps", &iFilterTaps, 7);
+	dsp->Get("FilterResolution", &iFilterResolution, 512);
 
 	m_IsMuted = false;
 }
@@ -620,6 +626,8 @@ void SConfig::LoadDefaults()
 	bWii = false;
 	bDPL2Decoder = false;
 	iLatency = 14;
+	iFilterTaps = 7;
+	iFilterResolution = 512;
 
 	iPosX = 100;
 	iPosY = 100;

@@ -76,7 +76,7 @@ private:
 
 	Common::Event soundSyncEvent;
 
-	short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
+	float realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
 	soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 	ALuint uiBuffers[OAL_MAX_BUFFERS];
 	ALuint uiSource;

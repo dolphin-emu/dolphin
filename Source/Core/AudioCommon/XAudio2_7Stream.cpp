@@ -46,7 +46,7 @@ const int SAMPLES_PER_BUFFER = 96;
 
 const int NUM_CHANNELS = 2;
 const int BUFFER_SIZE = SAMPLES_PER_BUFFER * NUM_CHANNELS;
-const int BUFFER_SIZE_BYTES = BUFFER_SIZE * sizeof(s16);
+const int BUFFER_SIZE_BYTES = BUFFER_SIZE * sizeof(float);
 
 void StreamingVoiceContext2_7::SubmitBuffer(PBYTE buf_data)
 {
@@ -68,13 +68,13 @@ StreamingVoiceContext2_7::StreamingVoiceContext2_7(IXAudio2 *pXAudio2, CMixer *p
 	wfx.Format.wFormatTag      = WAVE_FORMAT_EXTENSIBLE;
 	wfx.Format.nSamplesPerSec  = m_mixer->GetSampleRate();
 	wfx.Format.nChannels       = 2;
-	wfx.Format.wBitsPerSample  = 16;
+	wfx.Format.wBitsPerSample  = 32;
 	wfx.Format.nBlockAlign     = wfx.Format.nChannels*wfx.Format.wBitsPerSample / 8;
 	wfx.Format.nAvgBytesPerSec = wfx.Format.nSamplesPerSec * wfx.Format.nBlockAlign;
 	wfx.Format.cbSize          = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-	wfx.Samples.wValidBitsPerSample = 16;
+	wfx.Samples.wValidBitsPerSample = 32;
 	wfx.dwChannelMask          = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-	wfx.SubFormat              = KSDATAFORMAT_SUBTYPE_PCM;
+	wfx.SubFormat              = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
 
 	// create source voice
 	HRESULT hr;
@@ -122,7 +122,7 @@ void StreamingVoiceContext2_7::OnBufferEnd(void* context)
 	//m_sound_sync_event->Wait(); // sync
 	//m_sound_sync_event->Spin(); // or tight sync
 
-	m_mixer->Mix(static_cast<short*>(context), SAMPLES_PER_BUFFER);
+	m_mixer->Mix(static_cast<float*>(context), SAMPLES_PER_BUFFER);
 	SubmitBuffer(static_cast<BYTE*>(context));
 }
 

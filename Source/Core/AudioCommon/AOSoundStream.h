@@ -14,6 +14,7 @@
 
 #if defined(HAVE_AO) && HAVE_AO
 #include <ao/ao.h>
+#define MAX_AO_BUFFER 1024 * 512
 #endif
 
 class AOSound final : public SoundStream
@@ -30,7 +31,7 @@ class AOSound final : public SoundStream
 	ao_sample_format format;
 	int default_driver;
 
-	short realtimeBuffer[1024 * 1024];
+	float realtimeBuffer[MAX_AO_BUFFER];
 
 public:
 	bool Start() override;

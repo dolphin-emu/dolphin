@@ -15,7 +15,8 @@ void AOSound::SoundLoop()
 {
 	Common::SetCurrentThreadName("Audio thread - ao");
 
-	uint_32 numBytesToRender = 256;
+	const uint_32 numBytesToMix = 512;
+	const uint_32 numBytesToOutput = numBytesToMix / 2;
 	ao_initialize();
 	default_driver = ao_default_driver_id();
 	format.bits = 16;
@@ -32,15 +33,23 @@ void AOSound::SoundLoop()
 		return;
 	}
 
+	// is buf_size being used?
 	buf_size = format.bits/8 * format.channels * format.rate;
 
 	while (m_run_thread.load())
 	{
-		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+		m_mixer->Mix(realtimeBuffer, numBytesToMix / (sizeof(float) * 2));
+
+		// Convert the samples from float to short
+		s16 dest[MAX_AO_BUFFER];
+		for (u32 i = 0; i < numBytesToMix / sizeof(float); ++i)
+		{
+			dest[i] = CMixer::FloatToSigned16(realtimeBuffer[i]);
+		}
 
 		{
 		std::lock_guard<std::mutex> lk(soundCriticalSection);
-		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+		ao_play(device, (char*)dest, numBytesToOutput);
 		}
 
 		soundSyncEvent.Wait();

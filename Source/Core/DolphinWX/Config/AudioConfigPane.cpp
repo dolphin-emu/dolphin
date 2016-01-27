@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
@@ -15,6 +16,7 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Common.h"
+#include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/WxUtils.h"
@@ -34,18 +36,32 @@ void AudioConfigPane::InitializeGUI()
 	m_dsp_engine_strings.Add(_("DSP LLE recompiler"));
 	m_dsp_engine_strings.Add(_("DSP LLE interpreter (slow)"));
 
+	m_filter_preset_strings.Add(FILTER_LINEAR);
+	m_filter_preset_strings.Add(FILTER_SINC_7PT);
+	m_filter_preset_strings.Add(FILTER_SINC_13PT);
+	m_filter_preset_strings.Add(FILTER_SINC_27PT);
+	m_filter_preset_strings.Add(FILTER_SINC_CUSTOM);
+
 	m_dsp_engine_radiobox = new wxRadioBox(this, wxID_ANY, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize, m_dsp_engine_strings, 0, wxRA_SPECIFY_ROWS);
 	m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II decoder"));
 	m_volume_slider = new wxSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL | wxSL_INVERSE);
 	m_volume_text = new wxStaticText(this, wxID_ANY, "");
 	m_audio_backend_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
 	m_audio_latency_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
+	m_filter_preset_choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_filter_preset_strings);
+	m_filter_taps_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 768);
+	m_filter_resolution_spinctrl = new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 65536);
+	m_clear_cache_button = new wxButton(this, wxID_ANY, _("Clear Filter Cache"));
 
 	m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
 	m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged, this);
 	m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
 	m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
 	m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged, this);
+	m_filter_preset_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnFilterPresetChange, this);
+	m_filter_taps_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnFilterTapsChange, this);
+	m_filter_resolution_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnFilterResolutionChange, this);
+	m_clear_cache_button->Bind(wxEVT_BUTTON, &AudioConfigPane::OnClearCachePress, this);
 
 	m_audio_backend_choice->SetToolTip(_("Changing this will have no effect while the emulator is running."));
 	m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
@@ -54,6 +70,7 @@ void AudioConfigPane::InitializeGUI()
 #else
 	m_dpl2_decoder_checkbox->SetToolTip(_("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
 #endif
+	m_filter_preset_choice->SetToolTip(_("Audio resampling filter presets. Listed from very fast, low quality to slow, high quality."));
 
 	wxStaticBoxSizer* const dsp_engine_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Sound Settings"));
 	dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxALL | wxEXPAND, 5);
@@ -66,11 +83,27 @@ void AudioConfigPane::InitializeGUI()
 	wxGridBagSizer* const backend_grid_sizer = new wxGridBagSizer();
 	backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Audio Backend:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+
 	backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
 
+	wxGridBagSizer* const filter_grid_sizer = new wxGridBagSizer();
+	filter_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Preset:")), wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	filter_grid_sizer->Add(m_filter_preset_choice, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+
+	filter_grid_sizer->Add(m_clear_cache_button, wxGBPosition(0, 3), wxDefaultSpan, wxALL, 5);
+
+	filter_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Taps:")), wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	filter_grid_sizer->Add(m_filter_taps_spinctrl, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+
+	filter_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Resolution:")), wxGBPosition(1, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	filter_grid_sizer->Add(m_filter_resolution_spinctrl, wxGBPosition(1, 3), wxDefaultSpan, wxALL, 5);
+
 	wxStaticBoxSizer* const backend_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Backend Settings"));
 	backend_static_box_sizer->Add(backend_grid_sizer, 0, wxEXPAND);
+
+	wxStaticBoxSizer* const filter_static_box_sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, _("FIR Filter Settings"));
+	filter_static_box_sizer->Add(filter_grid_sizer, 0, wxEXPAND);
 
 	wxBoxSizer* const dsp_audio_sizer = new wxBoxSizer(wxHORIZONTAL);
 	dsp_audio_sizer->Add(dsp_engine_sizer, 1, wxEXPAND | wxALL, 5);
@@ -79,6 +112,7 @@ void AudioConfigPane::InitializeGUI()
 	wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->Add(dsp_audio_sizer, 0, wxALL | wxEXPAND);
 	main_sizer->Add(backend_static_box_sizer, 0, wxALL | wxEXPAND, 5);
+	main_sizer->Add(filter_static_box_sizer, 0, wxALL | wxEXPAND, 5);
 
 	SetSizerAndFit(main_sizer);
 }
@@ -106,6 +140,10 @@ void AudioConfigPane::LoadGUIValues()
 
 	m_audio_latency_spinctrl->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
 	m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
+
+	int sel_num = m_filter_preset_choice->FindString(startup_params.sFilterPreset);
+	m_filter_preset_choice->SetSelection(sel_num);
+	PopulateFilterBoxes();
 }
 
 void AudioConfigPane::RefreshGUI()
@@ -116,6 +154,9 @@ void AudioConfigPane::RefreshGUI()
 		m_audio_backend_choice->Disable();
 		m_dpl2_decoder_checkbox->Disable();
 		m_dsp_engine_radiobox->Disable();
+		m_filter_preset_choice->Disable();
+		m_filter_taps_spinctrl->Disable();
+		m_filter_resolution_spinctrl->Disable();
 	}
 }
 
@@ -152,9 +193,60 @@ void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 	AudioCommon::UpdateSoundStream();
 }
 
+void AudioConfigPane::OnFilterPresetChange(wxCommandEvent& event)
+{
+	std::string filter_name = WxStrToStr(m_filter_preset_choice->GetStringSelection());
+	SConfig::GetInstance().sFilterPreset = filter_name;
+
+	PopulateFilterBoxes();
+}
+
 void AudioConfigPane::OnLatencySpinCtrlChanged(wxCommandEvent& event)
 {
 	SConfig::GetInstance().iLatency = m_audio_latency_spinctrl->GetValue();
+}
+
+void AudioConfigPane::OnFilterTapsChange(wxCommandEvent& event)
+{
+	int val = m_filter_taps_spinctrl->GetValue();
+	if (val % 2 == 0)
+	{
+		val++;
+	}
+	m_filter_taps_spinctrl->SetValue(val);
+	SConfig::GetInstance().iFilterResolution = val;
+}
+
+void AudioConfigPane::OnFilterResolutionChange(wxCommandEvent& event)
+{
+	SConfig::GetInstance().iFilterTaps = m_filter_resolution_spinctrl->GetValue();
+}
+
+void AudioConfigPane::PopulateFilterBoxes()
+{
+	std::string filter_name = WxStrToStr(m_filter_preset_choice->GetStringSelection());
+
+	std::pair<int, int> params = AudioCommon::FILTER_PRESETS.at(filter_name);
+	if (filter_name != FILTER_SINC_CUSTOM)
+	{
+		if (filter_name == FILTER_LINEAR)
+		{
+			m_filter_taps_spinctrl->SetValue("");
+			m_filter_resolution_spinctrl->SetValue("");
+		}
+		else {
+			m_filter_taps_spinctrl->SetValue(params.first);
+			m_filter_resolution_spinctrl->SetValue(params.second);
+		}
+		m_filter_taps_spinctrl->Disable();
+		m_filter_resolution_spinctrl->Disable();
+	}
+	else {
+		m_filter_taps_spinctrl->SetValue(SConfig::GetInstance().iFilterTaps);
+		m_filter_resolution_spinctrl->SetValue(SConfig::GetInstance().iFilterResolution);
+		m_filter_taps_spinctrl->Enable();
+		m_filter_resolution_spinctrl->Enable();
+	}
 }
 
 void AudioConfigPane::PopulateBackendChoiceBox()
@@ -165,6 +257,16 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 
 		int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
 		m_audio_backend_choice->SetSelection(num);
+	}
+}
+
+void AudioConfigPane::OnClearCachePress(wxCommandEvent& event)
+{
+	const std::string audio_cache_path = File::GetUserPath(D_CACHE_IDX) + "Audio";
+
+	if (!File::DeleteDirRecursively(audio_cache_path))
+	{
+		ERROR_LOG(CONSOLE, "Failed to clear audio cache.");
 	}
 }
 

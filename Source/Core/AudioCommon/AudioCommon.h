@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <map>
+
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
 
@@ -25,4 +27,5 @@ namespace AudioCommon
 	void IncreaseVolume(unsigned short offset);
 	void DecreaseVolume(unsigned short offset);
 	void ToggleMuteVolume();
+	extern const std::map<std::string, std::pair<int, int> > FILTER_PRESETS;
 }

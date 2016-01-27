@@ -24,6 +24,13 @@
 #define BACKEND_XAUDIO2     "XAudio2"
 #define BACKEND_OPENSLES    "OpenSLES"
 
+// FIR Filter Presets
+#define FILTER_LINEAR		"Linear"
+#define FILTER_SINC_7PT		"Sinc 7pt"
+#define FILTER_SINC_13PT	"Sinc 13pt"
+#define FILTER_SINC_27PT	"Sinc 27pt"
+#define FILTER_SINC_CUSTOM	"Sinc Custom"
+
 enum GPUDeterminismMode
 {
 	GPU_DETERMINISM_AUTO,
@@ -93,6 +100,8 @@ struct SConfig : NonCopyable
 
 	bool bDPL2Decoder;
 	int iLatency;
+	int iFilterTaps;
+	int iFilterResolution;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;
@@ -261,6 +270,7 @@ struct SConfig : NonCopyable
 	bool m_DumpUCode;
 	int m_Volume;
 	std::string sBackend;
+	std::string sFilterPreset;
 
 	// Input settings
 	bool m_BackgroundInput;

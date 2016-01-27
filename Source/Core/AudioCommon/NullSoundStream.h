@@ -20,8 +20,8 @@ public:
 	static bool isValid() { return true; }
 
 private:
-	static constexpr size_t BUFFER_SIZE = 48000 * 4 / 32;
+	static constexpr size_t BUFFER_SIZE = 48000 * 8 / 32;
 
 	// Playback position
-	std::array<short, BUFFER_SIZE / sizeof(short)> m_realtime_buffer;
+	std::array<float, BUFFER_SIZE / sizeof(float)> m_realtime_buffer;
 };

@@ -14,7 +14,7 @@ OSStatus CoreAudioSound::callback(void *inRefCon,
 {
 	for (UInt32 i = 0; i < ioData->mNumberBuffers; i++)
 		((CoreAudioSound *)inRefCon)->m_mixer->
-			Mix((short *)ioData->mBuffers[i].mData,
+			Mix((float *)ioData->mBuffers[i].mData,
 				ioData->mBuffers[i].mDataByteSize / 4);
 
 	return noErr;
@@ -48,7 +48,7 @@ bool CoreAudioSound::Start()
 	}
 
 	FillOutASBDForLPCM(format, m_mixer->GetSampleRate(),
-				2, 16, 16, false, false, false);
+				2, 32, 32, true, false, false);
 	err = AudioUnitSetProperty(audioUnit,
 				kAudioUnitProperty_StreamFormat,
 				kAudioUnitScope_Input, 0, &format,
