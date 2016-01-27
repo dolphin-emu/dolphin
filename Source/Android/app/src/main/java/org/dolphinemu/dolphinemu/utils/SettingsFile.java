@@ -70,7 +70,6 @@ public final class SettingsFile
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
 	public static final String KEY_XFB = "UseXFB";
 	public static final String KEY_XFB_REAL = "UseRealXFB";
-	public static final String KEY_FAST_DEPTH= "FastDepthCalc";
 	public static final String KEY_ASPECT_RATIO= "AspectRatio";
 
 	// Internal only, not actually found in settings file.
