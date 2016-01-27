@@ -49,7 +49,7 @@ void AOSound::SoundLoop()
 
 		{
 		std::lock_guard<std::mutex> lk(soundCriticalSection);
-		ao_play(device, (char*)realtimeBuffer, numBytesToOutput);
+		ao_play(device, (char*)dest, numBytesToOutput);
 		}
 
 		soundSyncEvent.Wait();

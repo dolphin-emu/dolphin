@@ -71,15 +71,13 @@ protected:
 		bool GetFilterFromFile(const std::string &filename, float* filter);
 		bool PutFilterToFile(const std::string &filename, float* filter);
 		double ModBessel0th(const double x) const;
-		const double m_kaiser_beta;
-		const double m_lowpass_frequency;
 	public:
 		FIRFilter(u32 nz = 13, u32 nl = 65536, double fc = 0.45, double beta = 7.0)
 			: m_num_crossings(nz)
 			, m_samples_per_crossing(nl)
 			, m_kaiser_beta(beta)
+			, m_wing_size(nl * (nz - 1) / 2)
 			, m_lowpass_frequency(fc)
-			, m_wing_size(m_samples_per_crossing * (m_num_crossings - 1) / 2)
 		{
 			m_filter = (float*)malloc(m_wing_size * sizeof(float));
 			m_deltas = (float*)malloc(m_wing_size * sizeof(float));
@@ -96,7 +94,9 @@ protected:
 		const u32 m_num_crossings;
 		const u32 m_samples_per_crossing;
 		const u32 m_wing_size;
-
+	private:
+		const double m_kaiser_beta;
+		const double m_lowpass_frequency;
 	};
 
 	class MixerFifo
