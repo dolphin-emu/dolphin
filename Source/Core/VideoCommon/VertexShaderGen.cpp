@@ -333,7 +333,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
-		// divide
+		// divide, but introduces a floating point round-trip error.
 		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:
