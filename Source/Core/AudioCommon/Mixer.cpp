@@ -35,7 +35,7 @@ CMixer::CMixer(u32 BackendSampleRate)
 
 	//  no use trying to make wiimote speaker high quality
 	//  if the desire is there, use SincMixer with FIRFilter(5, 128, 0.125) is good enough
-	//  sources say ADPCM is x2 (3000 x 2 = 6000), but setting this input 
+	//  sources say ADPCM is x2 (3000 x 2 = 6000), but setting this input
 	//  rate to 6000 doesn't seem to produce the right result
 
 	m_wiimote_speaker_mixer = std::make_unique<LinearMixer>(this, 3000);
@@ -157,7 +157,7 @@ u32 CMixer::MixerFifo::Mix(float* samples, u32 numSamples, bool consider_frameli
 	{
 		float sample_l, sample_r;
 		Interpolate(indexR, &sample_l, &sample_r);
-		
+
 		samples[currentSample + 1] += sample_l * lvolume;
 		samples[currentSample] += sample_r * rvolume;
 
@@ -197,7 +197,7 @@ u32 CMixer::Mix(float* samples, u32 num_samples, bool consider_framelimit)
 		memset(samples, 0, num_samples * 2 * sizeof(s16));
 		return num_samples;
 	}
-	
+
 	m_dma_mixer->Mix(samples, num_samples, consider_framelimit);
 	m_streaming_mixer->Mix(samples, num_samples, consider_framelimit);
 	m_wiimote_speaker_mixer->Mix(samples, num_samples, consider_framelimit);
@@ -389,31 +389,31 @@ void CMixer::FIRFilter::PopulateFilterDeltas()
 
 void CMixer::FIRFilter::PopulateFilterCoeff()
 {
-		m_filter[0] = (float)(2 * m_lowpass_frequency);
-		double inv_I0_beta = 1.0 / ModBessel0th(m_kaiser_beta);
-		double inv_size = 1.0 / (m_wing_size - 1);
-		for (u32 i = 1; i < m_wing_size; ++i)
-		{
-			double offset = M_PI * (double)i / (double)m_samples_per_crossing;
-			double sinc = sin(offset * 2 * m_lowpass_frequency) / offset;
-			double radicand = (double)i * inv_size;
-			radicand = 1.0 - radicand * radicand;
-			radicand = (radicand < 0.0) ? 0.0 : radicand;
-			m_filter[i] = (float)(sinc * ModBessel0th(m_kaiser_beta * sqrt(radicand)) * inv_I0_beta);
-		}
+	m_filter[0] = (float)(2 * m_lowpass_frequency);
+	double inv_I0_beta = 1.0 / ModBessel0th(m_kaiser_beta);
+	double inv_size = 1.0 / (m_wing_size - 1);
+	for (u32 i = 1; i < m_wing_size; ++i)
+	{
+		double offset = M_PI * (double)i / (double)m_samples_per_crossing;
+		double sinc = sin(offset * 2 * m_lowpass_frequency) / offset;
+		double radicand = (double)i * inv_size;
+		radicand = 1.0 - radicand * radicand;
+		radicand = (radicand < 0.0) ? 0.0 : radicand;
+		m_filter[i] = (float)(sinc * ModBessel0th(m_kaiser_beta * sqrt(radicand)) * inv_I0_beta);
+	}
 
-		double dc_gain = 0;
-		for (u32 i = m_samples_per_crossing; i < m_wing_size; i += m_samples_per_crossing)
-		{
-			dc_gain += m_filter[i];
-		}
-		dc_gain *= 2;
-		dc_gain += m_filter[0];
-		dc_gain = 1.0 / dc_gain;
+	double dc_gain = 0;
+	for (u32 i = m_samples_per_crossing; i < m_wing_size; i += m_samples_per_crossing)
+	{
+		dc_gain += m_filter[i];
+	}
+	dc_gain *= 2;
+	dc_gain += m_filter[0];
+	dc_gain = 1.0 / dc_gain;
 
-		for (u32 i = 0; i < m_wing_size; ++i) {
-			m_filter[i] = (float)(m_filter[i] * dc_gain);
-		}
+	for (u32 i = 0; i < m_wing_size; ++i) {
+		m_filter[i] = (float)(m_filter[i] * dc_gain);
+	}
 }
 
 void CMixer::FIRFilter::CheckFilterCache()

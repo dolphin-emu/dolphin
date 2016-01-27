@@ -36,7 +36,6 @@ namespace AudioCommon
 {
 	static const int AUDIO_VOLUME_MIN = 0;
 	static const int AUDIO_VOLUME_MAX = 100;
-	
 
 	SoundStream* InitSoundStream()
 	{

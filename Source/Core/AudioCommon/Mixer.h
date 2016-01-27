@@ -96,7 +96,7 @@ protected:
 		const u32 m_num_crossings;
 		const u32 m_samples_per_crossing;
 		const u32 m_wing_size;
-		
+
 	};
 
 	class MixerFifo
@@ -115,8 +115,6 @@ protected:
 			, m_firfilter(filter)
 			, m_filter_length((filter) ? ((filter->m_num_crossings - 1) / 2) : 1) // one-sided length of filter
 		{
-			m_buffer.fill(0);
-			m_floats.fill(0.f);
 		}
 		virtual void Interpolate(u32 index, float* output_l, float* output_r) = 0;
 		void PushSamples(const s16* samples, u32 num_samples);
@@ -127,8 +125,8 @@ protected:
 	protected:
 		CMixer* m_mixer;
 		u32 m_input_sample_rate;
-		std::array<s16, MAX_SAMPLES * 2> m_buffer;
-		std::array<float, MAX_SAMPLES * 2> m_floats;
+		std::array<s16, MAX_SAMPLES * 2> m_buffer{};
+		std::array<float, MAX_SAMPLES * 2> m_floats{};
 		std::atomic<u32> m_indexW;
 		std::atomic<u32> m_indexR;
 		std::atomic<u32> m_floatI;
@@ -160,7 +158,7 @@ protected:
 		void Interpolate(u32 index, float* output_l, float* output_r);
 
 	};
-	
+
 	std::unique_ptr<MixerFifo> m_dma_mixer;
 	std::unique_ptr<MixerFifo> m_streaming_mixer;
 	std::unique_ptr<MixerFifo> m_wiimote_speaker_mixer;
