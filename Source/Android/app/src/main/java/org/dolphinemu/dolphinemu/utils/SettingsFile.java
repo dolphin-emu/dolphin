@@ -70,8 +70,13 @@ public final class SettingsFile
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
 	public static final String KEY_XFB = "UseXFB";
 	public static final String KEY_XFB_REAL = "UseRealXFB";
-	public static final String KEY_FAST_DEPTH= "FastDepthCalc";
-	public static final String KEY_ASPECT_RATIO= "AspectRatio";
+	public static final String KEY_FAST_DEPTH = "FastDepthCalc";
+	public static final String KEY_ASPECT_RATIO = "AspectRatio";
+
+	public static final String KEY_GCPAD_TYPE = "SIDevice";
+
+	public static final String KEY_GCADAPTER_RUMBLE = "AdapterRumble";
+	public static final String KEY_GCADAPTER_BONGOS = "SimulateKonga";
 
 	// Internal only, not actually found in settings file.
 	public static final String KEY_XFB_METHOD = "XFBMethod";

@@ -189,6 +189,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 			int value = getValueForSingleChoiceSelection(scSetting, which);
 
+			if (scSetting.getKey().startsWith(SettingsFile.KEY_GCPAD_TYPE))
+			{
+				mView.onGcPadSettingChanged(scSetting.getKey(), value);
+			}
+
 			// Get the backing Setting, which may be null (if for example it was missing from the file)
 			IntSetting setting = scSetting.setSelectedValue(value);
 			if (setting != null)

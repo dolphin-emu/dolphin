@@ -150,6 +150,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		mPresenter.onSettingChanged();
 	}
 
+	@Override
+	public void onGcPadSettingChanged(String key, int value)
+	{
+		mPresenter.onGcPadSettingChanged(key, value);
+	}
+
 	private SettingsFragment getFragment()
 	{
 		return (SettingsFragment) getFragmentManager().findFragmentByTag(SettingsFragment.FRAGMENT_TAG);

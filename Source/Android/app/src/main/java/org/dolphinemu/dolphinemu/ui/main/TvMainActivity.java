@@ -237,6 +237,10 @@ public final class TvMainActivity extends Activity implements MainView
 				R.drawable.ic_settings_graphics_tv,
 				R.string.grid_menu_video_settings));
 
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_gcpad,
+				R.drawable.ic_settings_gcpad,
+				R.string.grid_menu_gcpad_settings));
+
 		rowItems.add(new TvSettingsItem(R.id.button_add_directory,
 				R.drawable.ic_add_tv,
 				R.string.add_directory_title));

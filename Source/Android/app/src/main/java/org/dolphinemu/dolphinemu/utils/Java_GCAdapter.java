@@ -20,9 +20,7 @@ import java.util.Map;
 
 public class Java_GCAdapter {
 	public static UsbManager manager;
-	public static Activity our_activity;
 	static byte[] controller_payload = new byte[37];
-	static byte HasRead;
 
 	static UsbDeviceConnection usb_con;
 	static UsbInterface usb_intf;

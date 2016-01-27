@@ -78,10 +78,14 @@
     <string name="controller_bindings">Controller Bindings</string>
     <string name="controller_gc">GameCube Controllers</string>
     <string name="controller_wii">Wii Controllers (Wiimotes)</string>
+
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! -->
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
     <string name="controller_3">GameCube Controller 4</string>
+    <!-- END WARNING -->
+
     <string name="enable_controller">Enable controller</string>
     <string name="controller_buttons">Buttons</string>
     <string name="controller_dpad">Directional Keys</string>
@@ -317,8 +321,9 @@
 
 
     <!-- Game Grid Screen-->
-    <string name="grid_menu_core_settings">Settings</string>
+    <string name="grid_menu_core_settings">CPU Settings</string>
     <string name="grid_menu_video_settings">Video Settings</string>
+    <string name="grid_menu_gcpad_settings">Gamecube Input</string>
     <string name="grid_menu_refresh">Refresh Library</string>
 
     <!-- Add Directory Screen-->
@@ -340,7 +345,13 @@
     <string name="emulation_toggle_input">Toggle Touch Controls</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
-
+    
+    <!-- GC Adapter Menu-->
+    <string name="gc_adapter_rumble">Enable Vibration</string>
+    <string name="gc_adapter_rumble_description">Enable the vibration function for this Gamecube controller.</string>
+    <string name="gc_adapter_bongos">Bongo Controller</string>
+    <string name="gc_adapter_bongos_description">Enable this if you are using bongos on this port.</string>
+    
     <!-- Package Names-->
     <string name="application_id">org.dolphinemu.dolphinemu</string>
 </resources>
