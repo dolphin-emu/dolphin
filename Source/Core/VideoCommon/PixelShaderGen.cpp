@@ -285,13 +285,14 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	GenerateVSOutputMembers<T>(out, ApiType);
 	out.Write("};\n");
 
+	const bool forced_slow_depth = g_ActiveConfig.bForcedSlowDepth || !g_ActiveConfig.backend_info.bSupportsClipControl;
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
-	                            && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
+	                            && (!forced_slow_depth || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.
 	                            // This means it's impossible for zcomploc to be emulated on a zfrozen polygon.
 	                            && !(bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 	const bool per_pixel_depth = (bpmem.ztex2.op != ZTEXTURE_DISABLE && bpmem.UseLateDepthTest())
-	                             || (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !forced_early_z)
+	                             || (forced_slow_depth && bpmem.zmode.testenable && !forced_early_z)
 	                             || (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
 
 	if (forced_early_z)
@@ -324,7 +325,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		// D3D11 also has a way to force the driver to enable early-z, so we're fine here.
 		if(ApiType == API_OPENGL)
 		{
-			 // This is a #define which signals whatever early-z method the driver supports.
+			// This is a #define which signals whatever early-z method the driver supports.
 			out.Write("FORCE_EARLY_Z; \n");
 		}
 		else
@@ -332,7 +333,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 			out.Write("[earlydepthstencil]\n");
 		}
 	}
-	else if (bpmem.UseEarlyDepthTest() && (g_ActiveConfig.bFastDepthCalc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
+	else if (bpmem.UseEarlyDepthTest() && (!forced_slow_depth || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
 	{
 		static bool warn_once = true;
 		if (warn_once)
@@ -561,11 +562,13 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
 		out.Write("\tint zCoord = int(" I_ZSLOPE".z + " I_ZSLOPE".x * screenpos.x + " I_ZSLOPE".y * screenpos.y);\n");
 	}
-	else if (!g_ActiveConfig.bFastDepthCalc)
+	else if (forced_slow_depth)
 	{
-		// FastDepth means to trust the depth generated in perspective division.
-		// It should be correct, but it seems not to be as accurate as required. TODO: Find out why!
-		// For disabled FastDepth we just calculate the depth value again.
+		// Due to floating point round-trip issues some depth equations are not as accurate as required.
+		// Depth equations used in D3D and OGL with GL_ARB_clip_control are accurate, but older cards
+		// that do not support GL_ARB_clip_control are not accurate enough under OGL. So on these older
+		// cards we just calculate the depth value again.
+
 		// The performance impact of this additional calculation doesn't matter, but it prevents
 		// the host GPU driver from performing any early depth test optimizations.
 		out.SetConstantsUsed(C_ZBIAS+1, C_ZBIAS+1);
@@ -574,6 +577,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	}
 	else
 	{
+		// Our D3D backend uses inverse depth values, so we invert them to the .
 		if (ApiType == API_D3D)
 			out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
 		else
@@ -587,7 +591,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	uid_data->ztex_op = bpmem.ztex2.op;
 	uid_data->per_pixel_depth = per_pixel_depth;
 	uid_data->forced_early_z = forced_early_z;
-	uid_data->fast_depth_calc = g_ActiveConfig.bFastDepthCalc;
+	uid_data->forced_slow_depth = forced_slow_depth;
 	uid_data->early_ztest = bpmem.UseEarlyDepthTest();
 	uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
 	uid_data->zfreeze = bpmem.genMode.zfreeze;
@@ -595,6 +599,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
+		// Our D3D backend uses inverse depth values, so we invert them back to the.
 		if (ApiType == API_D3D)
 			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
 		else
@@ -614,6 +619,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
+		// Our D3D backend uses inverse depth values, so we invert them here.
 		if (ApiType == API_D3D)
 			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
 		else
