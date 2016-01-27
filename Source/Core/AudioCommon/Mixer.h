@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <atomic>
 #include <array>
+#include <atomic>
 #include <cstring>
 #include <mutex>
 
