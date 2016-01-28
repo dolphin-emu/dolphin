@@ -156,8 +156,7 @@ bool VideoSoftware::Initialize(void *window_handle)
 	InitializeShared();
 	InitBackendInfo();
 
-	g_Config.Load((File::GetUserPath(D_CONFIG_IDX) + "gfx_software.ini").c_str());
-	g_Config.GameIniLoad();
+	g_Config.Load();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
