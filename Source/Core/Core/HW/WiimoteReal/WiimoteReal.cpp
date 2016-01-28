@@ -8,7 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -604,21 +604,14 @@ void LoadSettings()
 {
 	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
 
-	IniFile inifile;
-	inifile.Load(ini_filename);
-
 	for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
 	{
-		std::string secname("Wiimote");
-		secname += (char)('1' + i);
-		IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-
-		sec.Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
+		OnionConfig::OnionPetal* wiimote = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, StringFromFormat("Wiimote%d", i + 1));
+		wiimote->Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
 	}
 
-	std::string secname("BalanceBoard");
-	IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-	sec.Get("Source", &g_wiimote_sources[WIIMOTE_BALANCE_BOARD], WIIMOTE_SRC_NONE);
+	OnionConfig::OnionPetal* balanceboard = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, "BalanceBoard");
+	balanceboard->Get("Source", &g_wiimote_sources[WIIMOTE_BALANCE_BOARD], WIIMOTE_SRC_NONE);
 }
 
 // config dialog calls this when some settings change
