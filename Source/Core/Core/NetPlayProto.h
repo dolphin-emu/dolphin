@@ -25,7 +25,6 @@ struct NetSettings
 	TEXIDevices m_EXIDevice[2];
 };
 
-extern NetSettings g_NetPlaySettings;
 extern u64 g_netplay_initial_gctime;
 
 struct Rpt : public std::vector<u8>

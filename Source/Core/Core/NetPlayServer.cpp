@@ -8,7 +8,6 @@
 #include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/NetPlayClient.h" //for NetPlayUI
