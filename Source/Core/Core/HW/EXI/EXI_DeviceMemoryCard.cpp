@@ -12,8 +12,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -132,8 +132,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // Disney Sports : Soccer GDKEA4
   // Use a 16Mb (251 block) memory card for these games
   bool useMC251;
-  IniFile gameIni = SConfig::GetInstance().LoadGameIni();
-  gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
+  Config::Section* core = Config::GetOrCreateSection(Config::System::Main, "Core");
+  core->Get("MemoryCard251", &useMC251, false);
   u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
 
   if (gciFolder)
@@ -465,9 +465,12 @@ void CEXIMemoryCard::TransferByte(u8& byte)
 
 void CEXIMemoryCard::DoState(PointerWrap& p)
 {
-  // for movie sync, we need to save/load memory card contents (and other data) in savestates.
-  // otherwise, we'll assume the user wants to keep their memcards and saves separate,
-  // unless we're loading (in which case we let the savestate contents decide, in order to stay
+  // for movie sync, we need to save/load memory card contents (and other data)
+  // in savestates.
+  // otherwise, we'll assume the user wants to keep their memcards and saves
+  // separate,
+  // unless we're loading (in which case we let the savestate contents decide,
+  // in order to stay
   // aligned with them).
   bool storeContents = (Movie::IsMovieActive());
   p.Do(storeContents);
@@ -496,7 +499,8 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 }
 
 // DMA reads are preceded by all of the necessary setup via IMMRead
-// read all at once instead of single byte at a time as done by IEXIDevice::DMARead
+// read all at once instead of single byte at a time as done by
+// IEXIDevice::DMARead
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
   memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
@@ -512,7 +516,8 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
-// write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
+// write all at once instead of single byte at a time as done by
+// IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
