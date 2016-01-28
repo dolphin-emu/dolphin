@@ -174,6 +174,8 @@ struct SConfig : NonCopyable
 	void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
 	DiscIO::IVolume::ELanguage GetCurrentLanguage(bool wii) const;
 
+	void LoadGameSettings();
+
 	IniFile LoadDefaultGameIni() const;
 	IniFile LoadLocalGameIni() const;
 	IniFile LoadGameIni() const;
@@ -285,25 +287,18 @@ private:
 	SConfig();
 	~SConfig();
 
-	void SaveGeneralSettings(IniFile& ini);
-	void SaveInterfaceSettings(IniFile& ini);
-	void SaveDisplaySettings(IniFile& ini);
-	void SaveGameListSettings(IniFile& ini);
-	void SaveCoreSettings(IniFile& ini);
-	void SaveDSPSettings(IniFile& ini);
-	void SaveInputSettings(IniFile& ini);
-	void SaveMovieSettings(IniFile& ini);
-	void SaveFifoPlayerSettings(IniFile& ini);
+	static void ConfigChanged(void* class_ptr);
+	GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode);
 
-	void LoadGeneralSettings(IniFile& ini);
-	void LoadInterfaceSettings(IniFile& ini);
-	void LoadDisplaySettings(IniFile& ini);
-	void LoadGameListSettings(IniFile& ini);
-	void LoadCoreSettings(IniFile& ini);
-	void LoadDSPSettings(IniFile& ini);
-	void LoadInputSettings(IniFile& ini);
-	void LoadMovieSettings(IniFile& ini);
-	void LoadFifoPlayerSettings(IniFile& ini);
+	void LoadGeneralSettings();
+	void LoadInterfaceSettings();
+	void LoadDisplaySettings();
+	void LoadGameListSettings();
+	void LoadCoreSettings();
+	void LoadDSPSettings();
+	void LoadInputSettings();
+	void LoadMovieSettings();
+	void LoadFifoPlayerSettings();
 
 	static SConfig* m_Instance;
 };
