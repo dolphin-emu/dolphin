@@ -50,6 +50,7 @@ static std::tuple<OnionConfig::OnionSystem, std::string, std::string> MapINIToRe
 		{ std::make_pair("Core", "HLE_BS2"),            std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "HLE_BS2") },
 		{ std::make_pair("Core", "EmulationSpeed"),     std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "EmulationSpeed") },
 		{ std::make_pair("Core", "FrameSkip"),          std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FrameSkip") },
+		{ std::make_pair("Wii",  "Widescreen"),         std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "Widescreen") },
 		{ std::make_pair("Core", "GPUDeterminismMode"), std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "GPUDeterminismMode") },
 		{ std::make_pair("Core", "ProgressiveScan"),    std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display", "ProgressiveScan") },
 		{ std::make_pair("Core", "PAL60"),              std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display", "PAL60") },

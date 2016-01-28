@@ -17,6 +17,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -239,11 +240,10 @@ bool Init()
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	g_aspect_wide = _CoreParameter.bWii;
-	if (g_aspect_wide)
+	if (_CoreParameter.bWii)
 	{
-		IniFile gameIni = _CoreParameter.LoadGameIni();
-		gameIni.GetOrCreateSection("Wii")->Get("Widescreen", &g_aspect_wide,
-		     !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+		OnionConfig::OnionPetal* core = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+		core->Get("Widescreen", &g_aspect_wide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 
 	s_window_handle = Host_GetRenderHandle();
