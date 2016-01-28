@@ -3,14 +3,16 @@
 // Refer to the license.txt file included.
 
 // PatchEngine
-// Supports simple memory patches, and has a partial Action Replay implementation
+// Supports simple memory patches, and has a partial Action Replay
+// implementation
 // in ActionReplay.cpp/h.
 
 // TODO: Still even needed?  Zelda WW now works with improved DSP code.
 // Zelda item hang fixes:
 // [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
 // [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version
-// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it (0x4E800020)
+// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it
+// (0x4E800020)
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
@@ -23,6 +25,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
@@ -124,25 +127,22 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
   }
 }
 
-static void LoadSpeedhacks(const std::string& section, IniFile& ini)
+static void LoadSpeedhacks()
 {
-  std::vector<std::string> keys;
-  ini.GetKeys(section, &keys);
-  for (const std::string& key : keys)
+  OnionConfig::OnionPetal* speedhacks =
+      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Speedhacks");
+
+  const auto& values = speedhacks->GetValues();
+  for (auto value : values)
   {
-    std::string value;
-    ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-    if (value != "BOGUS")
+    u32 address;
+    u32 cycles;
+    bool success = true;
+    success &= TryParse(value.first, &address);
+    success &= TryParse(value.second, &cycles);
+    if (success)
     {
-      u32 address;
-      u32 cycles;
-      bool success = true;
-      success &= TryParse(key, &address);
-      success &= TryParse(value, &cycles);
-      if (success)
-      {
-        speedHacks[address] = (int)cycles;
-      }
+      speedHacks[address] = (int)cycles;
     }
   }
 }
@@ -170,7 +170,7 @@ void LoadPatches()
   Gecko::LoadCodes(globalIni, localIni, gcodes);
   Gecko::SetActiveCodes(gcodes);
 
-  LoadSpeedhacks("Speedhacks", merged);
+  LoadSpeedhacks();
 }
 
 static void ApplyPatches(const std::vector<Patch>& patches)
