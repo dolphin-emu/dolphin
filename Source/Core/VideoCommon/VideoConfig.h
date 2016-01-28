@@ -2,10 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
-// The reason for this is to get rid of race conditions etc when the configuration
-// changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
-// at the start of every frame. Noone should ever change members of g_ActiveConfig
+// IMPORTANT: UI etc should modify g_Config. Graphics code should read
+// g_ActiveConfig.
+// The reason for this is to get rid of race conditions etc when the
+// configuration
+// changes in the middle of a frame. This is done by copying g_Config to
+// g_ActiveConfig
+// at the start of every frame. Noone should ever change members of
+// g_ActiveConfig
 // directly.
 
 #pragma once
@@ -54,10 +58,8 @@ enum StereoMode
 struct VideoConfig final
 {
   VideoConfig();
-  void Load(const std::string& ini_file);
-  void GameIniLoad();
+  void Load();
   void VerifyValidity();
-  void Save(const std::string& ini_file);
   void UpdateProjectionHack();
   bool IsVSync();
 
@@ -161,13 +163,17 @@ struct VideoConfig final
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
     bool bSupports3DVision;
-    bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
-    bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
+    bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in
+                                  // VideoCommon
+    bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in
+                                  // VideoCommon
     bool bSupportsBBox;
-    bool bSupportsGSInstancing;  // Needed by GeometryShaderGen, so must stay in VideoCommon
+    bool bSupportsGSInstancing;  // Needed by GeometryShaderGen, so must stay in
+                                 // VideoCommon
     bool bSupportsPostProcessing;
     bool bSupportsPaletteConversion;
-    bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in
+                                // VideoCommon
     bool bSupportsSSAA;
   } backend_info;
 
