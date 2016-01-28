@@ -66,6 +66,8 @@ MapINIToRealLocation(const std::string& section, const std::string& key)
            std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "EmulationSpeed")},
           {std::make_pair("Core", "FrameSkip"),
            std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FrameSkip")},
+          {std::make_pair("Wii", "Widescreen"),
+           std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "Widescreen")},
           {std::make_pair("Core", "GPUDeterminismMode"),
            std::make_tuple(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "GPUDeterminismMode")},
           {std::make_pair("Core", "ProgressiveScan"),
