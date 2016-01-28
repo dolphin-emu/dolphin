@@ -59,14 +59,14 @@ struct DTMHeader
   u8 controllers;  // Controllers plugged in (from least to most significant,
                    // the bits are GC controllers 1-4 and Wiimotes 1-4)
 
-  bool
-      bFromSaveState;  // false indicates that the recording started from bootup, true for savestate
-  u64 frameCount;      // Number of frames in the recording
-  u64 inputCount;      // Number of input frames in recording
-  u64 lagCount;        // Number of lag frames in the recording
-  u64 uniqueID;        // (not implemented) A Unique ID comprised of: md5(time + Game ID)
-  u32 numRerecords;    // Number of rerecords/'cuts' of this TAS
-  u8 author[32];       // Author's name (encoded in UTF-8)
+  bool bFromSaveState;  // false indicates that the recording started from
+                        // bootup, true for savestate
+  u64 frameCount;       // Number of frames in the recording
+  u64 inputCount;       // Number of input frames in recording
+  u64 lagCount;         // Number of lag frames in the recording
+  u64 uniqueID;         // (not implemented) A Unique ID comprised of: md5(time + Game ID)
+  u32 numRerecords;     // Number of rerecords/'cuts' of this TAS
+  u8 author[32];        // Author's name (encoded in UTF-8)
 
   u8 videoBackend[16];   // UTF-8 representation of the video backend
   u8 audioEmulator[16];  // UTF-8 representation of the audio emulator
@@ -134,17 +134,8 @@ void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
 
 bool IsConfigSaved();
-bool IsDualCore();
-bool IsProgressive();
-bool IsPAL60();
-bool IsDSPHLE();
-bool IsFastDiscSpeed();
-int GetCPUMode();
-u8 GetLanguage();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
-bool IsSyncGPU();
-void SetGraphicsConfig();
 void GetSettings();
 bool IsNetPlayRecording();
 

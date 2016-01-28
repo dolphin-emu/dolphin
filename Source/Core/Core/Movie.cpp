@@ -23,6 +23,12 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayProto.h"
+#include "Core/State.h"
+
+#include "Core/ConfigLoaders/MovieConfigLoader.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
@@ -66,15 +72,13 @@ static u64 s_totalLagCount = 0;                               // just stats
 static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0;  // just stats
 static u64 s_recordingStartTime;  // seconds since 1970 that recording started
-static bool s_bSaveConfig = false, s_bDualCore = false;
-static bool s_bProgressive = false, s_bPAL60 = false;
-static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
-static bool s_bSyncGPU = false, s_bNetPlay = false;
-static std::string s_videoBackend = "unknown";
-static int s_iCPUCore = 1;
+
+static bool s_bSaveConfig = false;
+static bool s_bNetPlay = false;
 static bool s_bClearSave = false;
 static bool s_bDiscChange = false;
 static bool s_bReset = false;
+
 static std::string s_author = "";
 static std::string s_discChange = "";
 static u8 s_MD5[16];
@@ -140,9 +144,12 @@ static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
   }
   else
   {
-    // If the revision string for some reason doesn't only contain hexadecimal digit
-    // pairs, we instead copy the string with no conversion. This probably doesn't match
-    // the intended design of the DTM format, but it's the most sensible fallback.
+    // If the revision string for some reason doesn't only contain hexadecimal
+    // digit
+    // pairs, we instead copy the string with no conversion. This probably
+    // doesn't match
+    // the intended design of the DTM format, but it's the most sensible
+    // fallback.
     size_t bytes_to_write = std::min(revision.size(), revision_bytes.size());
     std::copy_n(std::begin(revision), bytes_to_write, std::begin(revision_bytes));
   }
@@ -220,7 +227,6 @@ void Init()
   s_bPolled = false;
   s_bFrameStep = false;
   s_bSaveConfig = false;
-  s_iCPUCore = SConfig::GetInstance().iCPUCore;
   if (IsPlayingInput())
   {
     ReadHeader();
@@ -421,40 +427,6 @@ bool IsConfigSaved()
 {
   return s_bSaveConfig;
 }
-bool IsDualCore()
-{
-  return s_bDualCore;
-}
-
-bool IsProgressive()
-{
-  return s_bProgressive;
-}
-
-bool IsPAL60()
-{
-  return s_bPAL60;
-}
-
-bool IsDSPHLE()
-{
-  return s_bDSPHLE;
-}
-
-bool IsFastDiscSpeed()
-{
-  return s_bFastDiscSpeed;
-}
-
-int GetCPUMode()
-{
-  return s_iCPUCore;
-}
-
-u8 GetLanguage()
-{
-  return s_language;
-}
 
 bool IsStartingFromClearSave()
 {
@@ -464,10 +436,6 @@ bool IsStartingFromClearSave()
 bool IsUsingMemcard(int memcard)
 {
   return (s_memcards & (1 << memcard)) != 0;
-}
-bool IsSyncGPU()
-{
-  return s_bSyncGPU;
 }
 
 bool IsNetPlayRecording()
@@ -583,7 +551,8 @@ bool BeginRecordingInput(int controllers)
   // Wiimotes cause desync issues if they're not reset before launching the game
   if (!Core::IsRunningAndStarted())
   {
-    // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+    // This will also reset the wiimotes for gamecube games, but that shouldn't
+    // do anything
     Wiimote::ResetAllWiimotes();
   }
 
@@ -894,18 +863,11 @@ void ReadHeader()
   if (tmpHeader.bSaveConfig)
   {
     s_bSaveConfig = true;
-    s_bDualCore = tmpHeader.bDualCore;
-    s_bProgressive = tmpHeader.bProgressive;
-    s_bPAL60 = tmpHeader.bPAL60;
-    s_bDSPHLE = tmpHeader.bDSPHLE;
-    s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-    s_iCPUCore = tmpHeader.CPUCore;
+    Config::AddLoadLayer(GenerateMovieConfigLoader(&tmpHeader));
     s_bClearSave = tmpHeader.bClearSave;
     s_memcards = tmpHeader.memcards;
     s_bongos = tmpHeader.bongos;
-    s_bSyncGPU = tmpHeader.bSyncGPU;
     s_bNetPlay = tmpHeader.bNetPlay;
-    s_language = tmpHeader.language;
     memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
   }
   else
@@ -913,7 +875,6 @@ void ReadHeader()
     GetSettings();
   }
 
-  s_videoBackend = (char*)tmpHeader.videoBackend;
   s_discChange = (char*)tmpHeader.discChange;
   s_author = (char*)tmpHeader.author;
   memcpy(s_MD5, tmpHeader.md5, 16);
@@ -1030,8 +991,10 @@ void LoadInput(const std::string& filename)
   // This can only happen if the user manually deletes data from the dtm.
   if (s_currentByte > totalSavedBytes)
   {
-    PanicAlertT("Warning: You loaded a save whose movie ends before the current frame in the save "
-                "(byte %u < %u) (frame %u < %u). You should load another save before continuing.",
+    PanicAlertT("Warning: You loaded a save whose movie ends before the "
+                "current frame in the save "
+                "(byte %u < %u) (frame %u < %u). You should load another save "
+                "before continuing.",
                 (u32)totalSavedBytes + 256, (u32)s_currentByte + 256, (u32)tmpHeader.frameCount,
                 (u32)s_currentFrame);
     afterEnd = true;
@@ -1170,7 +1133,8 @@ static void CheckInputEnd()
 // NOTE: CPU Thread
 void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
-  // Correct playback is entirely dependent on the emulator polling the controllers
+  // Correct playback is entirely dependent on the emulator polling the
+  // controllers
   // in the same order done during recording
   if (!IsPlayingInput() || !IsUsingPad(controllerID) || tmpInput == nullptr)
     return;
@@ -1183,7 +1147,8 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     return;
   }
 
-  // dtm files don't save the mic button or error bit. not sure if they're actually used, but better
+  // dtm files don't save the mic button or error bit. not sure if they're
+  // actually used, but better
   // safe than sorry
   signed char e = PadStatus->err;
   memset(PadStatus, 0, sizeof(GCPadStatus));
@@ -1290,7 +1255,8 @@ bool PlayWiimote(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, 
 
   if (size != sizeInMovie)
   {
-    PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s",
+    PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, "
+                "byte %u.)%s",
                 (u32)sizeInMovie, (u32)size, (u32)s_currentByte,
                 (s_controllers & 0xF) ?
                     " Try re-creating the recording with all GameCube controllers "
@@ -1341,7 +1307,8 @@ void EndPlayInput(bool cont)
     s_playMode = MODE_NONE;
     Core::DisplayMessage("Movie End.", 2000);
     s_bRecordingFromSaveState = false;
-    // we don't clear these things because otherwise we can't resume playback if we load a movie
+    // we don't clear these things because otherwise we can't resume playback if
+    // we load a movie
     // state later
     // s_totalFrames = s_totalBytes = 0;
     // delete tmpInput;
@@ -1379,24 +1346,14 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
-  header.bSkipIdle = true;
-  header.bDualCore = s_bDualCore;
-  header.bProgressive = s_bProgressive;
-  header.bPAL60 = s_bPAL60;
-  header.bDSPHLE = s_bDSPHLE;
-  header.bFastDiscSpeed = s_bFastDiscSpeed;
-  strncpy((char*)header.videoBackend, s_videoBackend.c_str(), ArraySize(header.videoBackend));
-  header.CPUCore = s_iCPUCore;
-  header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
-  header.bEFBCopyEnable = true;
-  header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
-  header.bEFBCopyCacheEnable = false;
-  header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
-  header.bUseXFB = g_ActiveConfig.bUseXFB;
-  header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
+  auto* movie_layer = Config::GetLayer(Config::LayerType::Movie);
+  MovieConfigLayerLoader* movie_loader =
+      static_cast<MovieConfigLayerLoader*>(movie_layer->GetLoader());
+  movie_loader->ChangeDTMHeader(&header);
+  movie_layer->Save();
+
   header.memcards = s_memcards;
   header.bClearSave = s_bClearSave;
-  header.bSyncGPU = s_bSyncGPU;
   header.bNetPlay = s_bNetPlay;
   strncpy((char*)header.discChange, s_discChange.c_str(), ArraySize(header.discChange));
   strncpy((char*)header.author, s_author.c_str(), ArraySize(header.author));
@@ -1406,7 +1363,6 @@ void SaveRecording(const std::string& filename)
   header.DSPiromHash = s_DSPiromHash;
   header.DSPcoefHash = s_DSPcoefHash;
   header.tickCount = s_totalTickCount;
-  header.language = s_language;
 
   // TODO
   header.uniqueID = 0;
@@ -1451,28 +1407,9 @@ void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controller
     (*wiimfunc)(data, rptf, controllerID, ext, key);
 }
 
-// NOTE: GPU Thread
-void SetGraphicsConfig()
-{
-  g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
-  g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
-  g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
-  g_Config.bUseXFB = tmpHeader.bUseXFB;
-  g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
-}
-
-// NOTE: EmuThread / Host Thread
 void GetSettings()
 {
   s_bSaveConfig = true;
-  s_bDualCore = SConfig::GetInstance().bCPUThread;
-  s_bProgressive = SConfig::GetInstance().bProgressive;
-  s_bPAL60 = SConfig::GetInstance().bPAL60;
-  s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
-  s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
-  s_videoBackend = g_video_backend->GetName();
-  s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
-  s_iCPUCore = SConfig::GetInstance().iCPUCore;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
@@ -1492,7 +1429,13 @@ void GetSettings()
   std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
 
-  if (!s_bDSPHLE)
+  unsigned int tmp;
+  for (int i = 0; i < 20; ++i)
+  {
+    sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
+    s_revision[i] = tmp;
+  }
+  if (!SConfig::GetInstance().bDSPHLE)
   {
     std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
     std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
