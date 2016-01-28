@@ -20,9 +20,9 @@
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-LogConfigWindow::LogConfigWindow(wxWindow* parent, CLogWindow *log_window, wxWindowID id)
+LogConfigWindow::LogConfigWindow(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("Log Configuration"))
-	, m_LogWindow(log_window), enableAll(true)
+	, enableAll(true)
 {
 	SetMinSize(wxSize(100, 100));
 	m_LogManager = LogManager::GetInstance();
