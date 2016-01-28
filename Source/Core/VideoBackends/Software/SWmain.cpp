@@ -150,7 +150,11 @@ void VideoSoftware::InitBackendInfo()
 bool VideoSoftware::Initialize(void* window_handle)
 {
   InitBackendInfo();
-  InitializeShared();
+
+  g_Config.Load();
+  g_Config.UpdateProjectionHack();
+  g_Config.VerifyValidity();
+  UpdateActiveConfig();
 
   SWOGLWindow::Init(window_handle);
 

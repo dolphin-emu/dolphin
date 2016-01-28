@@ -113,7 +113,8 @@ void VideoBackend::InitBackendInfo()
 
       bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
 
-      // Requires the earlydepthstencil attribute (only available in shader model 5)
+      // Requires the earlydepthstencil attribute (only available in shader
+      // model 5)
       g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
 
       // Requires full UAV functionality (only available in shader model 5)
@@ -144,7 +145,17 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
 
   InitBackendInfo();
-  InitializeShared();
+
+  frameCount = 0;
+
+  if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  else
+    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_dx11.ini");
+
+  g_Config.UpdateProjectionHack();
+  g_Config.VerifyValidity();
+  UpdateActiveConfig();
 
   m_window_handle = window_handle;
 
