@@ -19,11 +19,11 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/OnionCoreLoaders/NetPlayConfigLoader.h"
 
 static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
-NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -372,24 +372,28 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	{
 		{
 			std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+			NetSettings netplay_settings;
 			packet >> m_current_game;
-			packet >> g_NetPlaySettings.m_CPUthread;
-			packet >> g_NetPlaySettings.m_CPUcore;
-			packet >> g_NetPlaySettings.m_SelectedLanguage;
-			packet >> g_NetPlaySettings.m_OverrideGCLanguage;
-			packet >> g_NetPlaySettings.m_ProgressiveScan;
-			packet >> g_NetPlaySettings.m_PAL60;
-			packet >> g_NetPlaySettings.m_DSPEnableJIT;
-			packet >> g_NetPlaySettings.m_DSPHLE;
-			packet >> g_NetPlaySettings.m_WriteToMemcard;
-			packet >> g_NetPlaySettings.m_OCEnable;
-			packet >> g_NetPlaySettings.m_OCFactor;
+			packet >> netplay_settings.m_CPUthread;
+			packet >> netplay_settings.m_CPUcore;
+			packet >> netplay_settings.m_SelectedLanguage;
+			packet >> netplay_settings.m_OverrideGCLanguage;
+			packet >> netplay_settings.m_ProgressiveScan;
+			packet >> netplay_settings.m_PAL60;
+			packet >> netplay_settings.m_DSPEnableJIT;
+			packet >> netplay_settings.m_DSPHLE;
+			packet >> netplay_settings.m_WriteToMemcard;
+			packet >> netplay_settings.m_OCEnable;
+			packet >> netplay_settings.m_OCFactor;
 
 			int tmp;
 			packet >> tmp;
-			g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices)tmp;
+			netplay_settings.m_EXIDevice[0] = (TEXIDevices)tmp;
 			packet >> tmp;
-			g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
+			netplay_settings.m_EXIDevice[1] = (TEXIDevices)tmp;
+
+			OnionConfig::AddLoadLayer(GenerateNetPlayConfigLoader(netplay_settings));
 
 			u32 time_low, time_high;
 			packet >> time_low;
