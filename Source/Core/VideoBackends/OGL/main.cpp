@@ -149,7 +149,6 @@ bool VideoBackend::Initialize(void* window_handle)
 		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
 	else
 		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
-	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
