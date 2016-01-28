@@ -84,9 +84,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     m_traversal_listen_port->Enable(m_traversal_listen_port_enabled->IsChecked());
     m_traversal_listen_port->SetValue(listen_port);
 
-    temp.clear();
-    netplay_section.Get("TraversalChoice", &temp, "direct");
-    if (temp == "traversal")
+    std::string travChoice;
+    netplay_section.Get("TraversalChoice", &travChoice, "direct");
+    if (travChoice == "traversal")
     {
       m_direct_traversal->Select(TRAVERSAL_CHOICE);
     }

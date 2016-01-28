@@ -15,6 +15,7 @@
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
+#include "Core/ConfigLoaders/NetPlayConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI/SI.h"
@@ -30,7 +31,6 @@
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -114,7 +114,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   {
     if (address.size() > NETPLAY_CODE_SIZE)
     {
-      PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+      PanicAlertT("Host code size is to large.\nPlease recheck that you have "
+                  "the correct code");
       return;
     }
 
@@ -400,26 +401,30 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+      NetSettings netplay_settings;
       packet >> m_current_game;
-      packet >> g_NetPlaySettings.m_CPUthread;
-      packet >> g_NetPlaySettings.m_CPUcore;
-      packet >> g_NetPlaySettings.m_EnableCheats;
-      packet >> g_NetPlaySettings.m_SelectedLanguage;
-      packet >> g_NetPlaySettings.m_OverrideGCLanguage;
-      packet >> g_NetPlaySettings.m_ProgressiveScan;
-      packet >> g_NetPlaySettings.m_PAL60;
-      packet >> g_NetPlaySettings.m_DSPEnableJIT;
-      packet >> g_NetPlaySettings.m_DSPHLE;
-      packet >> g_NetPlaySettings.m_WriteToMemcard;
-      packet >> g_NetPlaySettings.m_CopyWiiSave;
-      packet >> g_NetPlaySettings.m_OCEnable;
-      packet >> g_NetPlaySettings.m_OCFactor;
+      packet >> netplay_settings.m_CPUthread;
+      packet >> netplay_settings.m_CPUcore;
+      packet >> netplay_settings.m_EnableCheats;
+      packet >> netplay_settings.m_SelectedLanguage;
+      packet >> netplay_settings.m_OverrideGCLanguage;
+      packet >> netplay_settings.m_ProgressiveScan;
+      packet >> netplay_settings.m_PAL60;
+      packet >> netplay_settings.m_DSPEnableJIT;
+      packet >> netplay_settings.m_DSPHLE;
+      packet >> netplay_settings.m_WriteToMemcard;
+      packet >> netplay_settings.m_CopyWiiSave;
+      packet >> netplay_settings.m_OCEnable;
+      packet >> netplay_settings.m_OCFactor;
 
       int tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices)tmp;
+      netplay_settings.m_EXIDevice[0] = (TEXIDevices)tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
+      netplay_settings.m_EXIDevice[1] = (TEXIDevices)tmp;
+
+      Config::AddLoadLayer(GenerateNetPlayConfigLoader(netplay_settings));
 
       u32 time_low, time_high;
       packet >> time_low;
