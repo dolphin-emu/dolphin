@@ -54,6 +54,7 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/AdvancedConfigurationWindow.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/Frame.h"
@@ -235,6 +236,7 @@ wxMenuBar* CFrame::CreateMenu()
 	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
 	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
+	toolsMenu->Append(IDM_ADVANCED_CONFIG, _("Advanced Configuration"));
 
 	toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
 
@@ -1436,6 +1438,12 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 	HotkeyManagerEmu::Enable(false);
 	MemcardManager.ShowModal();
 	HotkeyManagerEmu::Enable(true);
+}
+
+void CFrame::OnAdvancedConfig(wxCommandEvent& WXUNUSED (event))
+{
+	AdvancedConfigWindow advanced_config(this);
+	advanced_config.ShowModal();
 }
 
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED (event))
