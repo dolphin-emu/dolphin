@@ -317,6 +317,7 @@ private:
 	void OnHostMessage(wxCommandEvent& event);
 
 	void OnMemcard(wxCommandEvent& event); // Misc
+	void OnAdvancedConfig(wxCommandEvent& event);
 	void OnImportSave(wxCommandEvent& event);
 	void OnExportAllSaves(wxCommandEvent& event);
 
