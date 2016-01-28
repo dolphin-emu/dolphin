@@ -10,9 +10,9 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -114,8 +114,9 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // Disney Sports : Soccer GDKEA4
   // Use a 16Mb (251 block) memory card for these games
   bool useMC251;
-  IniFile gameIni = SConfig::GetInstance().LoadGameIni();
-  gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
+  OnionConfig::OnionPetal* core =
+      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+  core->Get("MemoryCard251", &useMC251, false);
   u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
 
   if (gciFolder)
@@ -168,15 +169,19 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   case DiscIO::IVolume::COUNTRY_UNKNOWN:
   {
     // The current game's region is not passed down to the EXI device level.
-    // Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
+    // Usually, we can retrieve the region from
+    // SConfig::GetInstance().m_strUniqueId.
     // The Wii System Menu requires a lookup based on the version number.
-    // This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
+    // This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol
+    // files).
     // Instead, we then lookup the region from the memory card name
-    // Earlier in the boot process the region is added to the memory card name (This is done by the
+    // Earlier in the boot process the region is added to the memory card name
+    // (This is done by the
     // function checkMemcardPath)
     // For now take advantage of this.
     // Future options:
-    // 			Set memory card directory path in the checkMemcardPath function.
+    // 			Set memory card directory path in the checkMemcardPath
+    // function.
     // 	or		Add region to SConfig::GetInstance().
     // 	or		Pass region down to the EXI device creation.
 
@@ -203,7 +208,8 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   }
   strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
 
-  if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
+  if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate
+                                        // automatically
   {
     MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
   }
@@ -217,7 +223,8 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     else  // we tried but the user wants to crash
     {
       // TODO more user friendly abort
-      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your write "
+      PanicAlertT("%s is not a directory, failed to move to *.original.\n "
+                  "Verify your write "
                   "permissions or move "
                   "the file outside of Dolphin",
                   strDirectoryName.c_str());
@@ -503,9 +510,12 @@ void CEXIMemoryCard::TransferByte(u8& byte)
 
 void CEXIMemoryCard::DoState(PointerWrap& p)
 {
-  // for movie sync, we need to save/load memory card contents (and other data) in savestates.
-  // otherwise, we'll assume the user wants to keep their memcards and saves separate,
-  // unless we're loading (in which case we let the savestate contents decide, in order to stay
+  // for movie sync, we need to save/load memory card contents (and other data)
+  // in savestates.
+  // otherwise, we'll assume the user wants to keep their memcards and saves
+  // separate,
+  // unless we're loading (in which case we let the savestate contents decide,
+  // in order to stay
   // aligned with them).
   bool storeContents = (Movie::IsMovieActive());
   p.Do(storeContents);
@@ -534,7 +544,8 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 }
 
 // DMA reads are preceded by all of the necessary setup via IMMRead
-// read all at once instead of single byte at a time as done by IEXIDevice::DMARead
+// read all at once instead of single byte at a time as done by
+// IEXIDevice::DMARead
 void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
   memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
@@ -550,7 +561,8 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
-// write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
+// write all at once instead of single byte at a time as done by
+// IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
