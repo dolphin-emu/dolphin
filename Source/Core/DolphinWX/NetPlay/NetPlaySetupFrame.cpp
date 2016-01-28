@@ -84,7 +84,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 		nick_szr->Add(m_nickname_text, 0, wxALL, 5);
 
 		std::string travChoice;
-		netplay_section.Get("TraversalChoice", &travChoice, "direct");
+		netplay_petal->Get("TraversalChoice", &travChoice, "direct");
 		if (travChoice == "traversal")
 		{
 			m_direct_traversal->Select(1);
