@@ -768,7 +768,14 @@ void NetPlayClient::UpdateDevices()
 		// Use local controller types for local controllers
 		if (player_id == m_local_player->pid)
 		{
-			SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], local_pad);
+			if (SConfig::GetInstance().m_SIDevice[local_pad] != SIDEVICE_NONE)
+			{
+				SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], local_pad);
+			}
+			else
+			{
+				SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, local_pad);
+			}
 			local_pad++;
 		}
 	}
