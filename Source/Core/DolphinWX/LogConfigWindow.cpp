@@ -11,8 +11,8 @@
 #include <wx/sizer.h>
 #include <wx/validate.h>
 
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
@@ -90,10 +90,8 @@ void LogConfigWindow::CreateGUIControls()
 
 void LogConfigWindow::LoadSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
+  Config::Section* options = Config::GetOrCreateSection(Config::System::Logger, "Options");
+  Config::Section* logs = Config::GetOrCreateSection(Config::System::Logger, "Logs");
 
   // Retrieve the verbosity value from the config ini file.
   int verbosity;
@@ -116,13 +114,13 @@ void LogConfigWindow::LoadSettings()
   options->Get("WriteToWindow", &m_writeWindow, true);
   m_writeWindowCB->SetValue(m_writeWindow);
 
-  // Run through all of the log types and check each checkbox for each logging type
+  // Run through all of the log types and check each checkbox for each logging
+  // type
   // depending on its set value within the config ini.
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
   {
     bool log_enabled;
-    ini.GetOrCreateSection("Logs")->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i),
-                                        &log_enabled, false);
+    logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, false);
 
     if (log_enabled)
       enableAll = false;
