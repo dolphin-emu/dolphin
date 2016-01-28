@@ -19,12 +19,12 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/Movie.h"
+#include "Core/OnionCoreLoaders/NetPlayConfigLoader.h"
 #include "InputCommon/GCAdapter.h"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
 static std::array<int, 4> s_wiimote_sources_cache;
-NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
 NetPlayClient::~NetPlayClient()
@@ -108,7 +108,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   {
     if (address.size() > NETPLAY_CODE_SIZE)
     {
-      PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+      PanicAlertT("Host code size is to large.\nPlease recheck that you have "
+                  "the correct code");
       return;
     }
 
@@ -364,24 +365,28 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
+
+      NetSettings netplay_settings;
       packet >> m_current_game;
-      packet >> g_NetPlaySettings.m_CPUthread;
-      packet >> g_NetPlaySettings.m_CPUcore;
-      packet >> g_NetPlaySettings.m_SelectedLanguage;
-      packet >> g_NetPlaySettings.m_OverrideGCLanguage;
-      packet >> g_NetPlaySettings.m_ProgressiveScan;
-      packet >> g_NetPlaySettings.m_PAL60;
-      packet >> g_NetPlaySettings.m_DSPEnableJIT;
-      packet >> g_NetPlaySettings.m_DSPHLE;
-      packet >> g_NetPlaySettings.m_WriteToMemcard;
-      packet >> g_NetPlaySettings.m_OCEnable;
-      packet >> g_NetPlaySettings.m_OCFactor;
+      packet >> netplay_settings.m_CPUthread;
+      packet >> netplay_settings.m_CPUcore;
+      packet >> netplay_settings.m_SelectedLanguage;
+      packet >> netplay_settings.m_OverrideGCLanguage;
+      packet >> netplay_settings.m_ProgressiveScan;
+      packet >> netplay_settings.m_PAL60;
+      packet >> netplay_settings.m_DSPEnableJIT;
+      packet >> netplay_settings.m_DSPHLE;
+      packet >> netplay_settings.m_WriteToMemcard;
+      packet >> netplay_settings.m_OCEnable;
+      packet >> netplay_settings.m_OCFactor;
 
       int tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices)tmp;
+      netplay_settings.m_EXIDevice[0] = (TEXIDevices)tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
+      netplay_settings.m_EXIDevice[1] = (TEXIDevices)tmp;
+
+      OnionConfig::AddLoadLayer(GenerateNetPlayConfigLoader(netplay_settings));
 
       u32 time_low, time_high;
       packet >> time_low;
@@ -401,7 +406,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_DISABLE_GAME:
   {
-    PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You must "
+    PanicAlertT("Other client disconnected while game is running!! NetPlay is "
+                "disabled. You must "
                 "manually stop the game.");
     m_is_running.store(false);
     NetPlay_Disable();
@@ -977,12 +983,14 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     m_wiimote_buffer[_number].Push(nw);
   }
 
-  // We should have used a blank input last time, so now we just need to pop through the old buffer,
+  // We should have used a blank input last time, so now we just need to pop
+  // through the old buffer,
   // until we reach a good input
   if (nw.size() != size)
   {
     u8 tries = 0;
-    // Clear the buffer and wait for new input, since we probably just changed reporting mode.
+    // Clear the buffer and wait for new input, since we probably just changed
+    // reporting mode.
     while (nw.size() != size)
     {
       while (!m_wiimote_buffer[_number].Pop(nw))

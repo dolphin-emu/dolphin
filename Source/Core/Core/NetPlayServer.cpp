@@ -9,7 +9,6 @@
 #include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -345,7 +344,8 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
     {
       if (mapping == pid && pid != 1)
       {
-        PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must "
+        PanicAlertT("Client disconnect while game is running!! NetPlay is "
+                    "disabled. You must "
                     "manually stop the game.");
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         m_is_running = false;
@@ -523,7 +523,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_WIIMOTE_DATA:
   {
-    // if this is Wiimote data from the last game still being received, ignore it
+    // if this is Wiimote data from the last game still being received, ignore
+    // it
     if (player.current_game != m_current_game)
       break;
 
