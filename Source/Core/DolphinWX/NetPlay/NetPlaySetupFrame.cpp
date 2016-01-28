@@ -87,7 +87,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     nick_szr->Add(m_nickname_text, 0, wxALL, 5);
 
     std::string travChoice;
-    netplay_section.Get("TraversalChoice", &travChoice, "direct");
+    netplay_petal->Get("TraversalChoice", &travChoice, "direct");
     if (travChoice == "traversal")
     {
       m_direct_traversal->Select(1);
@@ -131,14 +131,15 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     connect_btn->Bind(wxEVT_BUTTON, &NetPlaySetupFrame::OnJoin, this);
 
     wxStaticText* const alert_lbl = new wxStaticText(
-        connect_tab, wxID_ANY,
-        _("ALERT:\n\n"
-          "All players must use the same Dolphin version.\n"
-          "All memory cards, SD cards and cheats must be identical between players or disabled.\n"
-          "If DSP LLE is used, DSP ROMs must be identical between players.\n"
-          "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
-          "\n"
-          "Wiimote support is broken in netplay and therefore disabled.\n"));
+        connect_tab, wxID_ANY, _("ALERT:\n\n"
+                                 "All players must use the same Dolphin version.\n"
+                                 "All memory cards, SD cards and cheats must be identical between "
+                                 "players or disabled.\n"
+                                 "If DSP LLE is used, DSP ROMs must be identical between players.\n"
+                                 "If connecting directly, the host must have the chosen UDP port "
+                                 "open/forwarded!\n"
+                                 "\n"
+                                 "Wiimote support is broken in netplay and therefore disabled.\n"));
 
     wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 
@@ -381,11 +382,11 @@ void NetPlaySetupFrame::OnHost(wxCommandEvent&)
   else
   {
     if (trav && m_traversal_listen_port_enabled->IsChecked())
-      WxUtils::ShowErrorDialog(
-          _("Failed to listen. Someone is probably already listening on the port you specified."));
+      WxUtils::ShowErrorDialog(_("Failed to listen. Someone is probably already listening on the "
+                                 "port you specified."));
     else
-      WxUtils::ShowErrorDialog(
-          _("Failed to listen. Is another instance of the NetPlay server running?"));
+      WxUtils::ShowErrorDialog(_("Failed to listen. Is another instance of the "
+                                 "NetPlay server running?"));
   }
 }
 
