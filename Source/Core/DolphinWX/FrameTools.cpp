@@ -54,6 +54,7 @@
 #include "DiscIO/NANDContentLoader.h"
 
 #include "DolphinWX/AboutDolphin.h"
+#include "DolphinWX/AdvancedConfigurationWindow.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/ControllerConfigDiag.h"
@@ -87,7 +88,8 @@
 class InputConfig;
 class wxFrame;
 
-// This override allows returning a fake menubar object while removing the real one from the screen
+// This override allows returning a fake menubar object while removing the real
+// one from the screen
 wxMenuBar* CFrame::GetMenuBar() const
 {
   if (m_frameMenuBar)
@@ -620,7 +622,8 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
     dmScreenSettings.dmBitsPerPel = 32;
     dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-    // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+    // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid
+    // Of Start Bar.
     ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
   }
   else
@@ -692,10 +695,12 @@ void CFrame::StartGame(const std::string& filename)
     m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
     m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
 #ifdef _WIN32
-    // The renderer should use a top-level window for exclusive fullscreen support.
+    // The renderer should use a top-level window for exclusive fullscreen
+    // support.
     m_RenderParent = m_RenderFrame;
 #else
-    // To capture key events on Linux and Mac OS X the frame needs at least one child.
+    // To capture key events on Linux and Mac OS X the frame needs at least one
+    // child.
     m_RenderParent = new wxPanel(m_RenderFrame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
 
@@ -952,7 +957,8 @@ void CFrame::OnStopped()
   // Clear Wii Remote connection status from the status bar.
   GetStatusBar()->SetStatusText(" ", 1);
 
-  // If batch mode was specified on the command-line or we were already closing, exit now.
+  // If batch mode was specified on the command-line or we were already closing,
+  // exit now.
   if (m_bBatchMode || m_bClosing)
     Close(true);
 
@@ -1163,6 +1169,12 @@ void CFrame::OnMemcard(wxCommandEvent& WXUNUSED(event))
   HotkeyManagerEmu::Enable(true);
 }
 
+void CFrame::OnAdvancedConfig(wxCommandEvent& WXUNUSED(event))
+{
+  AdvancedConfigWindow advanced_config(this);
+  advanced_config.ShowModal();
+}
+
 void CFrame::OnExportAllSaves(wxCommandEvent& WXUNUSED(event))
 {
   CWiiSaveCrypted::ExportAllSaves();
@@ -1294,7 +1306,8 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
   Core::PauseAndLock(false, was_unpaused);
 }
 
-// Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to
+// Toggle fullscreen. In Windows the fullscreen mode is accomplished by
+// expanding the m_Panel to
 // cover
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED(event))

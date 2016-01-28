@@ -1,4 +1,5 @@
 set(GUI_SRCS
+	AdvancedConfigurationWindow.cpp
 	AboutDolphin.cpp
 	ControllerConfigDiag.cpp
 	Cheats/ActionReplayCodesPanel.cpp
