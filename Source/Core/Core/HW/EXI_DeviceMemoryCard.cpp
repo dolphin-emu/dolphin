@@ -10,8 +10,8 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/NandPaths.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -122,8 +122,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder)
 	// Disney Sports : Soccer GDKEA4
 	// Use a 16Mb (251 block) memory card for these games
 	bool useMC251;
-	IniFile gameIni = SConfig::GetInstance().LoadGameIni();
-	gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
+	OnionConfig::OnionPetal* core = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+	core->Get("MemoryCard251", &useMC251, false);
 	u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
 
 	if (gciFolder)
