@@ -24,6 +24,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
@@ -127,25 +128,21 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
 	}
 }
 
-static void LoadSpeedhacks(const std::string& section, IniFile& ini)
+static void LoadSpeedhacks()
 {
-	std::vector<std::string> keys;
-	ini.GetKeys(section, &keys);
-	for (const std::string& key : keys)
+	OnionConfig::OnionPetal* speedhacks = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Speedhacks");
+
+	const auto& values = speedhacks->GetValues();
+	for (auto value : values)
 	{
-		std::string value;
-		ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-		if (value != "BOGUS")
+		u32 address;
+		u32 cycles;
+		bool success = true;
+		success &= TryParse(value.first, &address);
+		success &= TryParse(value.second, &cycles);
+		if (success)
 		{
-			u32 address;
-			u32 cycles;
-			bool success = true;
-			success &= TryParse(key, &address);
-			success &= TryParse(value, &cycles);
-			if (success)
-			{
-				speedHacks[address] = (int)cycles;
-			}
+			speedHacks[address] = (int)cycles;
 		}
 	}
 }
@@ -173,7 +170,7 @@ void LoadPatches()
 	Gecko::LoadCodes(globalIni, localIni, gcodes);
 	Gecko::SetActiveCodes(gcodes);
 
-	LoadSpeedhacks("Speedhacks", merged);
+	LoadSpeedhacks();
 }
 
 static void ApplyPatches(const std::vector<Patch> &patches)
