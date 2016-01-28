@@ -14,7 +14,7 @@
 namespace Wiimote
 {
 
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
+static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_WIIPAD, _trans("Wiimote"), "Wiimote");
 
 InputConfig* GetConfig()
 {
@@ -40,7 +40,7 @@ void Initialize(void* const hwnd, bool wait)
 
 	g_controller_interface.Initialize(hwnd);
 
-	s_config.LoadConfig(false);
+	s_config.LoadConfig();
 
 	WiimoteReal::Initialize(wait);
 
@@ -57,7 +57,7 @@ void ResetAllWiimotes()
 
 void LoadConfig()
 {
-	s_config.LoadConfig(false);
+	s_config.LoadConfig();
 }
 
 
