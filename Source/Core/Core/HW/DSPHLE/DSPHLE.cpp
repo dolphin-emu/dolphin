@@ -5,8 +5,10 @@
 #include <iostream>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
+#include "Common/Logging/LogManager.h"
+#include "Common/StringUtil.h"
+
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
@@ -129,7 +131,8 @@ void DSPHLE::DoState(PointerWrap& p)
   p.Do(last_ucode_crc);
 
   // if a different type of ucode was being used when the savestate was created,
-  // we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
+  // we have to reconstruct the old type of ucode so that we have a valid thing
+  // to call DoState on.
   UCodeInterface* ucode =
       (ucode_crc == ucode_crc_beforeLoad) ? m_ucode : UCodeFactory(ucode_crc, this, m_wii);
   UCodeInterface* last_ucode = (last_ucode_crc != last_ucode_crc_before_load) ?
