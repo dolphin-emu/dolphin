@@ -10,8 +10,8 @@
 #include <string>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
@@ -93,10 +93,8 @@ LogManager::LogManager()
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-  IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
+  Config::Section* logs = Config::GetOrCreateSection(Config::System::Logger, "Logs");
+  Config::Section* options = Config::GetOrCreateSection(Config::System::Logger, "Options");
   bool write_file;
   bool write_console;
   options->Get("WriteToFile", &write_file, false);
