@@ -135,7 +135,13 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
 
   InitBackendInfo();
-  InitializeShared();
+
+  frameCount = 0;
+
+  g_Config.Load();
+  g_Config.UpdateProjectionHack();
+  g_Config.VerifyValidity();
+  UpdateActiveConfig();
 
   m_window_handle = window_handle;
 
