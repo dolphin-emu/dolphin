@@ -5,8 +5,10 @@
 #include <iostream>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
-#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+#include "Common/Logging/LogManager.h"
+
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
