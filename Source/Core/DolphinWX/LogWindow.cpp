@@ -21,7 +21,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/LogManager.h"
 #include "DolphinWX/Frame.h"
@@ -55,11 +55,10 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 
 void CLogWindow::CreateGUIControls()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	OnionConfig::OnionPetal* options = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
+	OnionConfig::OnionPetal* log_window = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "LogWindow");
+	OnionConfig::OnionPetal* logs = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
 
-	IniFile::Section* options    = ini.GetOrCreateSection("Options");
-	IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
 	log_window->Get("x", &x, Parent->GetSize().GetX() / 2);
 	log_window->Get("y", &y, Parent->GetSize().GetY());
 	log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
@@ -78,7 +77,6 @@ void CLogWindow::CreateGUIControls()
 	options->Get("WriteToFile", &m_writeFile, false);
 	options->Get("WriteToWindow", &m_writeWindow, true);
 
-	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
