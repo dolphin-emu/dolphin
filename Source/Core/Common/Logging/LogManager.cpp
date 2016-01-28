@@ -10,7 +10,7 @@
 #include <string>
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -83,10 +83,8 @@ LogManager::LogManager()
 	RegisterListener(LogListener::FILE_LISTENER, new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
 	RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-	IniFile::Section* logs = ini.GetOrCreateSection("Logs");
-	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	OnionConfig::OnionPetal* logs = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
+	OnionConfig::OnionPetal* options = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
 	bool write_file;
 	bool write_console;
 	options->Get("WriteToFile", &write_file, false);
