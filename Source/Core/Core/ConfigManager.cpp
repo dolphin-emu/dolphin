@@ -9,6 +9,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -17,10 +18,24 @@
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HW/SI.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
+
+GPUDeterminismMode SConfig::ParseGPUDeterminismMode(const std::string& mode)
+{
+	if (mode == "auto")
+		return GPU_DETERMINISM_AUTO;
+	if (mode == "none")
+		return GPU_DETERMINISM_NONE;
+	if (mode == "fake-completion")
+		return GPU_DETERMINISM_FAKE_COMPLETION;
+
+	NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+	return GPU_DETERMINISM_AUTO;
+}
 
 SConfig* SConfig::m_Instance;
 
@@ -60,15 +75,25 @@ SConfig::SConfig()
 	LoadDefaults();
 	// Make sure we have log manager
 	LoadSettings();
+	m_SYSCONF = new SysConf();
+}
+
+void SConfig::ConfigChanged(void* class_ptr)
+{
+	SConfig* config = static_cast<SConfig*>(class_ptr);
+	config->LoadSettings();
 }
 
 void SConfig::Init()
 {
 	m_Instance = new SConfig;
+
+	OnionConfig::AddConfigChangedCallback(SConfig::ConfigChanged, m_Instance);
 }
 
 void SConfig::Shutdown()
 {
+	OnionConfig::Save();
 	delete m_Instance;
 	m_Instance = nullptr;
 }
@@ -82,255 +107,25 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-	NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
-
-	SaveGeneralSettings(ini);
-	SaveInterfaceSettings(ini);
-	SaveDisplaySettings(ini);
-	SaveGameListSettings(ini);
-	SaveCoreSettings(ini);
-	SaveMovieSettings(ini);
-	SaveDSPSettings(ini);
-	SaveInputSettings(ini);
-	SaveFifoPlayerSettings(ini);
-
-	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
-}
-
-void SConfig::SaveGeneralSettings(IniFile& ini)
-{
-	IniFile::Section* general = ini.GetOrCreateSection("General");
-
-	// General
-	general->Set("LastFilename", m_LastFilename);
-	general->Set("ShowLag", m_ShowLag);
-	general->Set("ShowFrameCount", m_ShowFrameCount);
-
-	// ISO folders
-	// Clear removed folders
-	int oldPaths;
-	int numPaths = (int)m_ISOFolder.size();
-	general->Get("ISOPaths", &oldPaths, 0);
-	for (int i = numPaths; i < oldPaths; i++)
-	{
-		ini.DeleteKey("General", StringFromFormat("ISOPath%i", i));
-	}
-
-	general->Set("ISOPaths", numPaths);
-	for (int i = 0; i < numPaths; i++)
-	{
-		general->Set(StringFromFormat("ISOPath%i", i), m_ISOFolder[i]);
-	}
-
-	general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
-	general->Set("NANDRootPath", m_NANDPath);
-	general->Set("WirelessMac", m_WirelessMac);
-
-#ifdef USE_GDBSTUB
-#ifndef _WIN32
-	general->Set("GDBSocket", gdb_socket);
-#endif
-	general->Set("GDBPort", iGDBPort);
-#endif
-}
-
-void SConfig::SaveInterfaceSettings(IniFile& ini)
-{
-	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
-
-	interface->Set("ConfirmStop", bConfirmStop);
-	interface->Set("UsePanicHandlers", bUsePanicHandlers);
-	interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
-	interface->Set("HideCursor", bHideCursor);
-	interface->Set("AutoHideCursor", bAutoHideCursor);
-	interface->Set("MainWindowPosX", (iPosX == -32000) ? 0 : iPosX); // TODO - HAX
-	interface->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY); // TODO - HAX
-	interface->Set("MainWindowWidth", iWidth);
-	interface->Set("MainWindowHeight", iHeight);
-	interface->Set("Language", m_InterfaceLanguage);
-	interface->Set("ShowToolbar", m_InterfaceToolbar);
-	interface->Set("ShowStatusbar", m_InterfaceStatusbar);
-	interface->Set("ShowLogWindow", m_InterfaceLogWindow);
-	interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
-	interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-	interface->Set("ThemeName40", theme_name);
-	interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
-}
-
-void SConfig::SaveDisplaySettings(IniFile& ini)
-{
-	IniFile::Section* display = ini.GetOrCreateSection("Display");
-
-	display->Set("FullscreenResolution", strFullscreenResolution);
-	display->Set("Fullscreen", bFullscreen);
-	display->Set("RenderToMain", bRenderToMain);
-	display->Set("RenderWindowXPos", iRenderWindowXPos);
-	display->Set("RenderWindowYPos", iRenderWindowYPos);
-	display->Set("RenderWindowWidth", iRenderWindowWidth);
-	display->Set("RenderWindowHeight", iRenderWindowHeight);
-	display->Set("RenderWindowAutoSize", bRenderWindowAutoSize);
-	display->Set("KeepWindowOnTop", bKeepWindowOnTop);
-	display->Set("ProgressiveScan", bProgressive);
-	display->Set("PAL60", bPAL60);
-	display->Set("DisableScreenSaver", bDisableScreenSaver);
-	display->Set("ForceNTSCJ", bForceNTSCJ);
-}
-
-void SConfig::SaveGameListSettings(IniFile& ini)
-{
-	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
-
-	gamelist->Set("ListDrives", m_ListDrives);
-	gamelist->Set("ListWad", m_ListWad);
-	gamelist->Set("ListElfDol", m_ListElfDol);
-	gamelist->Set("ListWii", m_ListWii);
-	gamelist->Set("ListGC", m_ListGC);
-	gamelist->Set("ListJap", m_ListJap);
-	gamelist->Set("ListPal", m_ListPal);
-	gamelist->Set("ListUsa", m_ListUsa);
-	gamelist->Set("ListAustralia", m_ListAustralia);
-	gamelist->Set("ListFrance", m_ListFrance);
-	gamelist->Set("ListGermany", m_ListGermany);
-	gamelist->Set("ListItaly", m_ListItaly);
-	gamelist->Set("ListKorea", m_ListKorea);
-	gamelist->Set("ListNetherlands", m_ListNetherlands);
-	gamelist->Set("ListRussia", m_ListRussia);
-	gamelist->Set("ListSpain", m_ListSpain);
-	gamelist->Set("ListTaiwan", m_ListTaiwan);
-	gamelist->Set("ListWorld", m_ListWorld);
-	gamelist->Set("ListUnknown", m_ListUnknown);
-	gamelist->Set("ListSort", m_ListSort);
-	gamelist->Set("ListSortSecondary", m_ListSort2);
-
-	gamelist->Set("ColorCompressed", m_ColorCompressed);
-
-	gamelist->Set("ColumnPlatform", m_showSystemColumn);
-	gamelist->Set("ColumnBanner", m_showBannerColumn);
-	gamelist->Set("ColumnNotes", m_showMakerColumn);
-	gamelist->Set("ColumnFileName", m_showFileNameColumn);
-	gamelist->Set("ColumnID", m_showIDColumn);
-	gamelist->Set("ColumnRegion", m_showRegionColumn);
-	gamelist->Set("ColumnSize", m_showSizeColumn);
-	gamelist->Set("ColumnState", m_showStateColumn);
-}
-
-void SConfig::SaveCoreSettings(IniFile& ini)
-{
-	IniFile::Section* core = ini.GetOrCreateSection("Core");
-
-	core->Set("HLE_BS2", bHLE_BS2);
-	core->Set("TimingVariance", iTimingVariance);
-	core->Set("CPUCore", iCPUCore);
-	core->Set("Fastmem", bFastmem);
-	core->Set("CPUThread", bCPUThread);
-	core->Set("DSPHLE", bDSPHLE);
-	core->Set("SkipIdle", bSkipIdle);
-	core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
-	core->Set("SyncGPU", bSyncGPU);
-	core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
-	core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
-	core->Set("SyncGpuOverclock", fSyncGpuOverclock);
-	core->Set("FPRF", bFPRF);
-	core->Set("AccurateNaNs", bAccurateNaNs);
-	core->Set("DefaultISO", m_strDefaultISO);
-	core->Set("DVDRoot", m_strDVDRoot);
-	core->Set("Apploader", m_strApploader);
-	core->Set("EnableCheats", bEnableCheats);
-	core->Set("SelectedLanguage", SelectedLanguage);
-	core->Set("OverrideGCLang", bOverrideGCLanguage);
-	core->Set("DPL2Decoder", bDPL2Decoder);
-	core->Set("Latency", iLatency);
-	core->Set("MemcardAPath", m_strMemoryCardA);
-	core->Set("MemcardBPath", m_strMemoryCardB);
-	core->Set("AgpCartAPath", m_strGbaCartA);
-	core->Set("AgpCartBPath", m_strGbaCartB);
-	core->Set("SlotA", m_EXIDevice[0]);
-	core->Set("SlotB", m_EXIDevice[1]);
-	core->Set("SerialPort1", m_EXIDevice[2]);
-	core->Set("BBA_MAC", m_bba_mac);
-	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-	{
-		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
-		core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
-		core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
-	}
-	core->Set("WiiSDCard", m_WiiSDCard);
-	core->Set("WiiKeyboard", m_WiiKeyboard);
-	core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
-	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
-	core->Set("RunCompareServer", bRunCompareServer);
-	core->Set("RunCompareClient", bRunCompareClient);
-	core->Set("EmulationSpeed", m_EmulationSpeed);
-	core->Set("FrameSkip", m_FrameSkip);
-	core->Set("Overclock", m_OCFactor);
-	core->Set("OverclockEnable", m_OCEnable);
-	core->Set("GFXBackend", m_strVideoBackend);
-	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
-	core->Set("PerfMapDir", m_perfDir);
-}
-
-void SConfig::SaveMovieSettings(IniFile& ini)
-{
-	IniFile::Section* movie = ini.GetOrCreateSection("Movie");
-
-	movie->Set("PauseMovie", m_PauseMovie);
-	movie->Set("Author", m_strMovieAuthor);
-	movie->Set("DumpFrames", m_DumpFrames);
-	movie->Set("DumpFramesSilent", m_DumpFramesSilent);
-	movie->Set("ShowInputDisplay", m_ShowInputDisplay);
-}
-
-void SConfig::SaveDSPSettings(IniFile& ini)
-{
-	IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
-
-	dsp->Set("EnableJIT", m_DSPEnableJIT);
-	dsp->Set("DumpAudio", m_DumpAudio);
-	dsp->Set("DumpUCode", m_DumpUCode);
-	dsp->Set("Backend", sBackend);
-	dsp->Set("Volume", m_Volume);
-	dsp->Set("CaptureLog", m_DSPCaptureLog);
-}
-
-void SConfig::SaveInputSettings(IniFile& ini)
-{
-	IniFile::Section* input = ini.GetOrCreateSection("Input");
-
-	input->Set("BackgroundInput", m_BackgroundInput);
-}
-
-void SConfig::SaveFifoPlayerSettings(IniFile& ini)
-{
-	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
-
-	fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
 void SConfig::LoadSettings()
 {
-	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-
-	LoadGeneralSettings(ini);
-	LoadInterfaceSettings(ini);
-	LoadDisplaySettings(ini);
-	LoadGameListSettings(ini);
-	LoadCoreSettings(ini);
-	LoadMovieSettings(ini);
-	LoadDSPSettings(ini);
-	LoadInputSettings(ini);
-	LoadFifoPlayerSettings(ini);
-
-	m_SYSCONF = new SysConf();
+	LoadGeneralSettings();
+	LoadInterfaceSettings();
+	LoadDisplaySettings();
+	LoadGameListSettings();
+	LoadCoreSettings();
+	LoadMovieSettings();
+	LoadDSPSettings();
+	LoadInputSettings();
+	LoadFifoPlayerSettings();
 }
 
-void SConfig::LoadGeneralSettings(IniFile& ini)
+void SConfig::LoadGeneralSettings()
 {
-	IniFile::Section* general = ini.GetOrCreateSection("General");
+	OnionConfig::OnionPetal* general = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "General");
 
 	general->Get("LastFilename", &m_LastFilename);
 	general->Get("ShowLag", &m_ShowLag, false);
@@ -387,9 +182,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 	general->Get("WirelessMac", &m_WirelessMac);
 }
 
-void SConfig::LoadInterfaceSettings(IniFile& ini)
+void SConfig::LoadInterfaceSettings()
 {
-	IniFile::Section* interface = ini.GetOrCreateSection("Interface");
+	OnionConfig::OnionPetal* interface = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Interface");
 
 	interface->Get("ConfirmStop",             &bConfirmStop,      true);
 	interface->Get("UsePanicHandlers",        &bUsePanicHandlers, true);
@@ -410,9 +205,9 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 	interface->Get("PauseOnFocusLost",        &m_PauseOnFocusLost,                            false);
 }
 
-void SConfig::LoadDisplaySettings(IniFile& ini)
+void SConfig::LoadDisplaySettings()
 {
-	IniFile::Section* display = ini.GetOrCreateSection("Display");
+	OnionConfig::OnionPetal* display = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display");
 
 	display->Get("Fullscreen",           &bFullscreen,             false);
 	display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
@@ -429,9 +224,9 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
 	display->Get("ForceNTSCJ",           &bForceNTSCJ,             false);
 }
 
-void SConfig::LoadGameListSettings(IniFile& ini)
+void SConfig::LoadGameListSettings()
 {
-	IniFile::Section* gamelist = ini.GetOrCreateSection("GameList");
+	OnionConfig::OnionPetal* gamelist = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "GameList");
 
 	gamelist->Get("ListDrives",        &m_ListDrives,  false);
 	gamelist->Get("ListWad",           &m_ListWad,     true);
@@ -470,9 +265,9 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ColumnState",      &m_showStateColumn,   true);
 }
 
-void SConfig::LoadCoreSettings(IniFile& ini)
+void SConfig::LoadCoreSettings()
 {
-	IniFile::Section* core = ini.GetOrCreateSection("Core");
+	OnionConfig::OnionPetal* core = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
 
 	core->Get("HLE_BS2",      &bHLE_BS2, false);
 #ifdef _M_X86
@@ -503,6 +298,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SlotA",       (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
 	core->Get("SlotB",       (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
 	core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
+	core->Get("EnableSaving",      &bEnableMemcardSdWriting, true);
 	core->Get("BBA_MAC",           &m_bba_mac);
 	core->Get("TimeProfiling",     &bJITILTimeProfiling, false);
 	core->Get("OutputIR",          &bJITILOutputIR,      false);
@@ -535,11 +331,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("GFXBackend",                &m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
 	core->Get("PerfMapDir",                &m_perfDir, "");
+
+	m_GPUDeterminismMode = ParseGPUDeterminismMode(m_strGPUDeterminismMode);
 }
 
-void SConfig::LoadMovieSettings(IniFile& ini)
+void SConfig::LoadMovieSettings()
 {
-	IniFile::Section* movie = ini.GetOrCreateSection("Movie");
+	OnionConfig::OnionPetal* movie = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Movie");
 
 	movie->Get("PauseMovie", &m_PauseMovie, false);
 	movie->Get("Author", &m_strMovieAuthor, "");
@@ -548,9 +346,9 @@ void SConfig::LoadMovieSettings(IniFile& ini)
 	movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
 }
 
-void SConfig::LoadDSPSettings(IniFile& ini)
+void SConfig::LoadDSPSettings()
 {
-	IniFile::Section* dsp = ini.GetOrCreateSection("DSP");
+	OnionConfig::OnionPetal* dsp = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "DSP");
 
 	dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
 	dsp->Get("DumpAudio", &m_DumpAudio, false);
@@ -572,16 +370,16 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 	m_IsMuted = false;
 }
 
-void SConfig::LoadInputSettings(IniFile& ini)
+void SConfig::LoadInputSettings()
 {
-	IniFile::Section* input = ini.GetOrCreateSection("Input");
+	OnionConfig::OnionPetal* input = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Input");
 
 	input->Get("BackgroundInput", &m_BackgroundInput, false);
 }
 
-void SConfig::LoadFifoPlayerSettings(IniFile& ini)
+void SConfig::LoadFifoPlayerSettings()
 {
-	IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
+	OnionConfig::OnionPetal* fifoplayer = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "FifoPlayer");
 
 	fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
 }
@@ -863,6 +661,9 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 		bHLE_BS2 = true;
 	}
 
+	OnionConfig::AddLoadLayer(GenerateGlobalGameConfigLoader(GetUniqueID(), m_revision));
+	OnionConfig::AddLoadLayer(GenerateLocalGameConfigLoader(GetUniqueID(), m_revision));
+
 	return true;
 }
 
@@ -925,47 +726,6 @@ DiscIO::IVolume::ELanguage SConfig::GetCurrentLanguage(bool wii) const
 	if (language > DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN || language < 0)
 		language = DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN;
 	return language;
-}
-
-IniFile SConfig::LoadDefaultGameIni() const
-{
-	return LoadDefaultGameIni(GetUniqueID(), m_revision);
-}
-
-IniFile SConfig::LoadLocalGameIni() const
-{
-	return LoadLocalGameIni(GetUniqueID(), m_revision);
-}
-
-IniFile SConfig::LoadGameIni() const
-{
-	return LoadGameIni(GetUniqueID(), m_revision);
-}
-
-IniFile SConfig::LoadDefaultGameIni(const std::string& id, u16 revision)
-{
-	IniFile game_ini;
-	for (const std::string& filename : GetGameIniFilenames(id, revision))
-		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-	return game_ini;
-}
-
-IniFile SConfig::LoadLocalGameIni(const std::string& id, u16 revision)
-{
-	IniFile game_ini;
-	for (const std::string& filename : GetGameIniFilenames(id, revision))
-		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
-	return game_ini;
-}
-
-IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
-{
-	IniFile game_ini;
-	for (const std::string& filename : GetGameIniFilenames(id, revision))
-		game_ini.Load(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename, true);
-	for (const std::string& filename : GetGameIniFilenames(id, revision))
-		game_ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + filename, true);
-	return game_ini;
 }
 
 // Returns all possible filenames in ascending order of priority
