@@ -836,7 +836,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			s_recordWidth = source_width;
 			s_recordHeight = source_height;
-			bAVIDumping = AVIDump::Start(s_recordWidth, s_recordHeight);
+			bAVIDumping = AVIDump::Start(s_recordWidth, s_recordHeight, AVIDump::DumpFormat::FORMAT_BGR);
 			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
