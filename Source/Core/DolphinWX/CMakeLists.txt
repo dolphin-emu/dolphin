@@ -1,4 +1,5 @@
 set(GUI_SRCS
+	AdvancedConfigurationWindow.cpp
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ControllerConfigDiag.cpp
