@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h" // Local core functions
@@ -25,9 +26,8 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+	OnionConfig::OnionPetal* keyboard = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "USB Keyboard");
+	keyboard->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
 	for (bool& pressed : m_OldKeyBuffer)
 	{
