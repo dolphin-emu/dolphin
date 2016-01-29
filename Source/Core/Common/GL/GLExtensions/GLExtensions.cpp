@@ -647,6 +647,20 @@ PFNDOLFRAMEBUFFERTEXTUREPROC dolFramebufferTexture;
 PFNDOLGETBUFFERPARAMETERI64VPROC dolGetBufferParameteri64v;
 PFNDOLGETINTEGER64I_VPROC dolGetInteger64i_v;
 
+// gl 4_2
+PFNGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC glDrawArraysInstancedBaseInstance;
+PFNGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC glDrawElementsInstancedBaseInstance;
+PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC glDrawElementsInstancedBaseVertexBaseInstance;
+PFNGLGETINTERNALFORMATIVPROC glGetInternalformativ;
+PFNGLGETACTIVEATOMICCOUNTERBUFFERIVPROC glGetActiveAtomicCounterBufferiv;
+PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
+PFNGLMEMORYBARRIERPROC glMemoryBarrier;
+PFNGLTEXSTORAGE1DPROC glTexStorage1D;
+PFNGLTEXSTORAGE2DPROC glTexStorage2D;
+PFNGLTEXSTORAGE3DPROC glTexStorage3D;
+PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC glDrawTransformFeedbackInstanced;
+PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC glDrawTransformFeedbackStreamInstanced;
+
 // ARB_uniform_buffer_object
 PFNDOLBINDBUFFERBASEPROC dolBindBufferBase;
 PFNDOLBINDBUFFERRANGEPROC dolBindBufferRange;
@@ -1465,6 +1479,20 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glGetBufferParameteri64v, "VERSION_3_2 |VERSION_GLES_3"),
 	GLFUNC_REQUIRES(glGetInteger64i_v,        "VERSION_3_2 |VERSION_GLES_3"),
 	GLFUNC_REQUIRES(glFramebufferTexture,     "VERSION_3_2 |VERSION_GLES_3_2"),
+
+	// gl_4_2
+	GLFUNC_REQUIRES(glDrawArraysInstancedBaseInstance,             "VERSION_4_2"),
+	GLFUNC_REQUIRES(glDrawElementsInstancedBaseInstance,           "VERSION_4_2"),
+	GLFUNC_REQUIRES(glDrawElementsInstancedBaseVertexBaseInstance, "VERSION_4_2"),
+	GLFUNC_REQUIRES(glGetInternalformativ,                         "VERSION_4_2"),
+	GLFUNC_REQUIRES(glGetActiveAtomicCounterBufferiv,              "VERSION_4_2"),
+	GLFUNC_REQUIRES(glBindImageTexture,                            "VERSION_4_2"),
+	GLFUNC_REQUIRES(glMemoryBarrier,                               "VERSION_4_2"),
+	GLFUNC_REQUIRES(glTexStorage1D,                                "VERSION_4_2"),
+	GLFUNC_REQUIRES(glTexStorage2D,                                "VERSION_4_2"),
+	GLFUNC_REQUIRES(glTexStorage3D,                                "VERSION_4_2"),
+	GLFUNC_REQUIRES(glDrawTransformFeedbackInstanced,              "VERSION_4_2"),
+	GLFUNC_REQUIRES(glDrawTransformFeedbackStreamInstanced,        "VERSION_4_2"),
 
 	// ARB_uniform_buffer_object
 	GLFUNC_REQUIRES(glGetActiveUniformName,      "GL_ARB_uniform_buffer_object"),
