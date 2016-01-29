@@ -35,7 +35,7 @@ static AVFormatContext* s_format_context = nullptr;
 static AVStream* s_stream = nullptr;
 static AVFrame* s_src_frame = nullptr;
 static AVFrame* s_scaled_frame = nullptr;
-AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
+static AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
 static uint8_t* s_yuv_buffer = nullptr;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;

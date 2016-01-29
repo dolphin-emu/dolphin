@@ -131,7 +131,7 @@ void CFrame::ToggleLogConfigWindow(bool bShow)
 	if (bShow)
 	{
 		if (!m_LogConfigWindow)
-			m_LogConfigWindow = new LogConfigWindow(this, m_LogWindow, IDM_LOG_CONFIG_WINDOW);
+			m_LogConfigWindow = new LogConfigWindow(this, IDM_LOG_CONFIG_WINDOW);
 
 		const int nbIndex = IDM_LOG_CONFIG_WINDOW - IDM_LOG_WINDOW;
 		DoAddPage(m_LogConfigWindow,
