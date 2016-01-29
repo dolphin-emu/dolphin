@@ -15,10 +15,12 @@
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
@@ -80,9 +82,6 @@ bool FifoPlayer::Play()
 				if (m_Loop)
 				{
 					m_CurrentFrame = m_FrameRangeStart;
-
-					PowerPC::ppcState.downcount = 0;
-					CoreTiming::Advance();
 				}
 				else
 				{
@@ -231,6 +230,13 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 	WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
 
 	FlushWGP();
+
+	// Sleep while the GPU is active
+	while (!IsIdleSet())
+	{
+		CoreTiming::Idle();
+		CoreTiming::Advance();
+	}
 }
 
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
@@ -298,6 +304,12 @@ void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 	// Write up to 256 bytes at a time
 	while (written < end)
 	{
+		while (IsHighWatermarkSet())
+		{
+			CoreTiming::Idle();
+			CoreTiming::Advance();
+		}
+
 		u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
 		while (written < burstEnd)
@@ -317,42 +329,42 @@ void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 
 void FifoPlayer::SetupFifo()
 {
-	WriteCP(0x02, 0); // disable read, BP, interrupts
-	WriteCP(0x04, 7); // clear overflow, underflow, metrics
+	WriteCP(CommandProcessor::CTRL_REGISTER, 0); // disable read, BP, interrupts
+	WriteCP(CommandProcessor::CLEAR_REGISTER, 7); // clear overflow, underflow, metrics
 
 	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
 	// Set fifo bounds
-	WriteCP(0x20, frame.fifoStart);
-	WriteCP(0x22, frame.fifoStart >> 16);
-	WriteCP(0x24, frame.fifoEnd);
-	WriteCP(0x26, frame.fifoEnd >> 16);
+	WriteCP(CommandProcessor::FIFO_BASE_LO, frame.fifoStart);
+	WriteCP(CommandProcessor::FIFO_BASE_HI, frame.fifoStart >> 16);
+	WriteCP(CommandProcessor::FIFO_END_LO, frame.fifoEnd);
+	WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
 
-	// Set watermarks
-	u32 fifoSize = frame.fifoEnd - frame.fifoStart;
-	WriteCP(0x28, fifoSize);
-	WriteCP(0x2a, fifoSize >> 16);
-	WriteCP(0x2c, 0);
-	WriteCP(0x2e, 0);
+	// Set watermarks, high at 75%, low at 0%
+	u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
+	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
+	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
+	WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
+	WriteCP(CommandProcessor::FIFO_LO_WATERMARK_HI, 0);
 
 	// Set R/W pointers to fifo start
-	WriteCP(0x30, 0);
-	WriteCP(0x32, 0);
-	WriteCP(0x34, frame.fifoStart);
-	WriteCP(0x36, frame.fifoStart >> 16);
-	WriteCP(0x38, frame.fifoStart);
-	WriteCP(0x3a, frame.fifoStart >> 16);
+	WriteCP(CommandProcessor::FIFO_RW_DISTANCE_LO, 0);
+	WriteCP(CommandProcessor::FIFO_RW_DISTANCE_HI, 0);
+	WriteCP(CommandProcessor::FIFO_WRITE_POINTER_LO, frame.fifoStart);
+	WriteCP(CommandProcessor::FIFO_WRITE_POINTER_HI, frame.fifoStart >> 16);
+	WriteCP(CommandProcessor::FIFO_READ_POINTER_LO, frame.fifoStart);
+	WriteCP(CommandProcessor::FIFO_READ_POINTER_HI, frame.fifoStart >> 16);
 
 	// Set fifo bounds
-	WritePI(12, frame.fifoStart);
-	WritePI(16, frame.fifoEnd);
+	WritePI(ProcessorInterface::PI_FIFO_BASE, frame.fifoStart);
+	WritePI(ProcessorInterface::PI_FIFO_END, frame.fifoEnd);
 
 	// Set write pointer
-	WritePI(20, frame.fifoStart);
+	WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
 	FlushWGP();
-	WritePI(20, frame.fifoStart);
+	WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
 
-	WriteCP(0x02, 17); // enable read & GP link
+	WriteCP(CommandProcessor::CTRL_REGISTER, 17); // enable read & GP link
 }
 
 void FifoPlayer::LoadMemory()
@@ -476,4 +488,16 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
 	default:
 		return true;
 	}
+}
+
+bool FifoPlayer::IsIdleSet()
+{
+	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+	return status.CommandIdle;
+}
+
+bool FifoPlayer::IsHighWatermarkSet()
+{
+	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+	return status.OverflowHiWatermark;
 }
