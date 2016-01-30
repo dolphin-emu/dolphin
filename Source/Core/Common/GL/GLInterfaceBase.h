@@ -23,6 +23,8 @@ protected:
 	// Window dimensions.
 	u32 s_backbuffer_width = 0;
 	u32 s_backbuffer_height = 0;
+	bool m_core = false;
+	bool m_is_shared = false;
 
 	GLInterfaceMode s_opengl_mode = GLInterfaceMode::MODE_DETECT;
 public:
@@ -32,6 +34,7 @@ public:
 	virtual GLInterfaceMode GetMode() { return s_opengl_mode; }
 	virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
 	virtual bool Create(void *window_handle, bool core = true) { return true; }
+	virtual bool Create(cInterfaceBase* main_context) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
 	virtual void Shutdown() {}
@@ -44,6 +47,7 @@ public:
 	virtual bool PeekMessages() { return false; }
 	virtual void UpdateHandle(void* window_handle) {}
 	virtual void UpdateSurface() {}
+	virtual std::unique_ptr<cInterfaceBase> CreateSharedContext() { return nullptr; }
 };
 
 extern std::unique_ptr<cInterfaceBase> GLInterface;
