@@ -258,7 +258,6 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
-void SetDiscInside(bool disc_inside);
 void SetLidOpen();
 
 void UpdateInterrupts();
@@ -468,7 +467,7 @@ bool SetVolumeName(const std::string& disc_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
-  SetDiscInside(VolumeIsValid());
+  SetLidOpen();
   return VolumeIsValid();
 }
 
@@ -478,18 +477,13 @@ bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
   DVDThread::WaitUntilIdle();
   s_inserted_volume =
       DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
-  SetDiscInside(VolumeIsValid());
+  SetLidOpen();
   return VolumeIsValid();
 }
 
 bool VolumeIsValid()
 {
   return s_inserted_volume != nullptr;
-}
-
-void SetDiscInside(bool disc_inside)
-{
-  SetLidOpen();
 }
 
 bool IsDiscInside()
@@ -505,7 +499,7 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume.reset();
-  SetDiscInside(false);
+  SetLidOpen();
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
