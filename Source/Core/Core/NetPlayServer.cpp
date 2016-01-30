@@ -58,17 +58,6 @@ NetPlayServer::~NetPlayServer()
 
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort)
-	: is_connected(false)
-	, m_is_running(false)
-	, m_do_loop(false)
-	, m_ping_key(0)
-	, m_update_pings(false)
-	, m_current_game(0)
-	, m_target_buffer_size(0)
-	, m_selected_game("")
-	, m_server(nullptr)
-	, m_traversal_client(nullptr)
-	, m_dialog(nullptr)
 {
 	//--use server time
 	if (enet_initialize() != 0)
@@ -461,18 +450,18 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	m_target_buffer_size = size;
 
 	// tell clients to change buffer size
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_BUFFER;
-	*spac << (u32)m_target_buffer_size;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+	*spac << static_cast<u32>(m_target_buffer_size);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
-void NetPlayServer::SendAsyncToClients(sf::Packet* packet)
+void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
 {
 	{
 		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
+		m_async_queue.Push(std::move(packet));
 	}
 	ENetUtil::WakeupThread(m_server);
 }
@@ -511,17 +500,37 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		PadMapping map = 0;
 		GCPadStatus pad;
-		packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+		packet >> map
+		       >> pad.button
+		       >> pad.analogA
+		       >> pad.analogB
+		       >> pad.stickX
+		       >> pad.stickY
+		       >> pad.substickX
+		       >> pad.substickY
+		       >> pad.triggerLeft
+		       >> pad.triggerRight;
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_pad_map[map] != player.pid)
+		if (m_pad_map.at(map) != player.pid)
+		{
 			return 1;
+		}
 
 		// Relay to clients
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_PAD_DATA;
-		spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+		spac << map
+		     << pad.button
+		     << pad.analogA
+		     << pad.analogB
+		     << pad.stickX
+		     << pad.stickY
+		     << pad.substickX
+		     << pad.substickY
+		     << pad.triggerLeft
+		     << pad.triggerRight;
 
 		SendToClients(spac, player.pid);
 	}
@@ -542,7 +551,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_wiimote_map[map] != player.pid)
+		if (m_wiimote_map.at(map) != player.pid)
 		{
 			return 1;
 		}
@@ -665,12 +674,12 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
 	*spac << (PlayerId)0; // server id always 0
 	*spac << msg;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
 // called from ---GUI--- thread
@@ -681,11 +690,11 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	m_selected_game = game;
 
 	// send changed game to clients
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHANGE_GAME;
 	*spac << game;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	return true;
 }
@@ -710,7 +719,7 @@ bool NetPlayServer::StartGame()
 	g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	// tell clients to start game
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
@@ -729,7 +738,7 @@ bool NetPlayServer::StartGame()
 	*spac << (u32)g_netplay_initial_gctime;
 	*spac << (u32)(g_netplay_initial_gctime >> 32);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	m_is_running = true;
 
