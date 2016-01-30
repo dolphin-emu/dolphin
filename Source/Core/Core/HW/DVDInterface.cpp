@@ -264,7 +264,7 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
 void SetDiscInside(bool disc_inside);
-void SetLidOpen(bool open);
+void SetLidOpen();
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
@@ -507,7 +507,7 @@ bool VolumeIsValid()
 
 void SetDiscInside(bool disc_inside)
 {
-  SetLidOpen(!disc_inside);
+  SetLidOpen();
 }
 
 bool IsDiscInside()
@@ -567,10 +567,10 @@ void ChangeDiscAsCPU(const std::string& new_path)
   Movie::SignalDiscChange(new_path);
 }
 
-void SetLidOpen(bool open)
+void SetLidOpen()
 {
   u32 old_value = s_DICVR.CVR;
-  s_DICVR.CVR = open ? 1 : 0;
+  s_DICVR.CVR = IsDiscInside() ? 0 : 1;
   if (s_DICVR.CVR != old_value)
     GenerateDIInterrupt(INT_CVRINT);
 }
