@@ -1,8 +1,6 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.Activity;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.hardware.usb.UsbConfiguration;
 import android.hardware.usb.UsbConstants;
@@ -12,6 +10,7 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.HashMap;
@@ -39,8 +38,8 @@ public class Java_GCAdapter {
 				{
 					Intent intent = new Intent();
 					PendingIntent pend_intent;
-					intent.setClass(our_activity, USBPermService.class);
-					pend_intent = PendingIntent.getService(our_activity, 0, intent, 0);
+					intent.setClass(NativeLibrary.sEmulationActivity, USBPermService.class);
+					pend_intent = PendingIntent.getService(NativeLibrary.sEmulationActivity, 0, intent, 0);
 					manager.requestPermission(dev, pend_intent);
 				}
 			}
