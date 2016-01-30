@@ -61,7 +61,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   // to 0x80000000 according to YAGCD 4.2.
 
   // It's possible to boot DOL and ELF files without a disc inserted
-  if (DVDInterface::VolumeIsValid())
+  if (DVDInterface::IsDiscInside())
     DVDRead(/*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);  // write disc info
 
   PowerPC::HostWrite_U32(0x0D15EA5E,
@@ -94,7 +94,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
   HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
 
-  if (!DVDInterface::VolumeIsValid())
+  if (!DVDInterface::IsDiscInside())
     return false;
 
   // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
@@ -269,7 +269,7 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
   */
 
   // When booting a WAD or the system menu, there will probably not be a disc inserted
-  if (DVDInterface::VolumeIsValid())
+  if (DVDInterface::IsDiscInside())
     DVDRead(0x00000000, 0x00000000, 0x20, false);  // Game Code
 
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
@@ -337,14 +337,14 @@ bool CBoot::EmulatedBS2_Wii()
 
   // Setup Wii memory
   DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
-  if (DVDInterface::VolumeIsValid())
+  if (DVDInterface::IsDiscInside())
     country_code = DVDInterface::GetVolume().GetCountry();
   if (SetupWiiMemory(country_code) == false)
     return false;
 
   // Execute the apploader
   bool apploaderRan = false;
-  if (DVDInterface::VolumeIsValid() &&
+  if (DVDInterface::IsDiscInside() &&
       DVDInterface::GetVolume().GetVolumeType() == DiscIO::Platform::WII_DISC)
   {
     // This is some kind of consistency check that is compared to the 0x00

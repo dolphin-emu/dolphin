@@ -113,7 +113,7 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
     // m_TitleIDsOwned.clear();
     // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
   }
-  else if (DVDInterface::VolumeIsValid())
+  else if (DVDInterface::IsDiscInside())
   {
     // blindly grab the titleID from the disc - it's unencrypted at:
     // offset 0x0F8001DC and 0x0F80044C

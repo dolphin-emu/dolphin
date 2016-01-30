@@ -410,7 +410,7 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
 void Init()
 {
-  _assert_(!VolumeIsValid());
+  _assert_(!IsDiscInside());
 
   DVDThread::Start();
 
@@ -468,7 +468,7 @@ bool SetVolumeName(const std::string& disc_path)
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
   SetLidOpen();
-  return VolumeIsValid();
+  return IsDiscInside();
 }
 
 bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
@@ -478,12 +478,7 @@ bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
   s_inserted_volume =
       DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
   SetLidOpen();
-  return VolumeIsValid();
-}
-
-bool VolumeIsValid()
-{
-  return s_inserted_volume != nullptr;
+  return IsDiscInside();
 }
 
 bool IsDiscInside()
