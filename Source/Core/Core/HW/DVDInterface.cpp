@@ -259,7 +259,8 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
-void SetLidOpen(bool _bOpen);
+void SetDiscInside(bool disc_inside);
+void SetLidOpen(bool open);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
@@ -409,6 +410,8 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
 void Init()
 {
+  _assert_(!VolumeIsValid());
+
   DVDThread::Start();
 
   s_DISR.Hex = 0;
@@ -465,6 +468,7 @@ bool SetVolumeName(const std::string& disc_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
+  SetDiscInside(VolumeIsValid());
   return VolumeIsValid();
 }
 
@@ -474,6 +478,7 @@ bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
   DVDThread::WaitUntilIdle();
   s_inserted_volume =
       DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
+  SetDiscInside(VolumeIsValid());
   return VolumeIsValid();
 }
 
@@ -516,7 +521,6 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
     SetVolumeName(old_path);
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
   }
-  SetDiscInside(VolumeIsValid());
 
   s_disc_path_to_insert.clear();
 }

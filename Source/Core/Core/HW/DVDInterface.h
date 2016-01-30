@@ -106,20 +106,17 @@ void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
-// Direct disc access
+// Disc access (don't call GetVolume unless you know that VolumeIsValid() == true)
 const DiscIO::IVolume& GetVolume();
 bool SetVolumeName(const std::string& disc_path);
 bool SetVolumeDirectory(const std::string& disc_path, bool is_wii,
                         const std::string& apploader_path = "", const std::string& DOL_path = "");
 bool VolumeIsValid();
-
-// Disc detection and swapping
-void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
 void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread
 void ChangeDiscAsCPU(const std::string& new_path);   // Can only be called by the CPU thread
 
-// DVD Access Functions
+// Direct access to DI for IOS HLE (a bit different from how it actually works on hardware)
 bool ChangePartition(u64 offset);
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios);
