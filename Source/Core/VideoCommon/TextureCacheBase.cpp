@@ -1115,6 +1115,21 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		}
 	}
 
+	if (dstStride < bytes_per_row)
+	{
+		// This kind of efb copy results in a scrambled image.
+		// I'm pretty sure no game actually wants to do this, it might be caused by a
+		// programming bug in the game, or a CPU/Bounding box emulation issue with dolphin.
+		// The copy_to_ram code path above handles this "correctly" and scrambles the image
+		// but the copy_to_vram code path just saves and uses unscrambled texture instead.
+
+		// To avoid a "incorrect" result, we simply skip doing the copy_to_vram code path
+		// so if the game does try to use the scrambled texture, dolphin will grab the scrambled
+		// texture (or black if copy_to_ram is also disabled) out of ram.
+		ERROR_LOG(VIDEO, "Memory stride too small (%i < %i)", dstStride, bytes_per_row);
+		copy_to_vram = false;
+	}
+
 	// Invalidate all textures that overlap the range of our efb copy.
 	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
 	// we might be able to do a partial texture update on.
