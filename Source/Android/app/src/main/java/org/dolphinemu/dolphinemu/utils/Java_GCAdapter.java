@@ -76,13 +76,29 @@ public class Java_GCAdapter {
 	}
 
 	public static int Input() {
-		int read = usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
-		return read;
+		if (usb_in != null)
+		{
+			int read = usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
+			return read;
+		}
+		else
+		{
+			// TODO Is this right?
+			return 0;
+		}
 	}
 
 	public static int Output(byte[] rumble) {
-		int size = usb_con.bulkTransfer(usb_out, rumble, 5, 16);
-		return size;
+		if (usb_out != null)
+		{
+			int size = usb_con.bulkTransfer(usb_out, rumble, 5, 16);
+			return size;
+		}
+		else
+		{
+			// TODO Is this right?
+			return 0;
+		}
 	}
 
 	public static void OpenAdapter()
