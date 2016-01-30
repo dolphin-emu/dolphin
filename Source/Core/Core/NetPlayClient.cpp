@@ -758,13 +758,36 @@ bool NetPlayClient::ChangeGame(const std::string&)
 // called from ---NETPLAY--- thread
 void NetPlayClient::UpdateDevices()
 {
-	for (PadMapping i = 0; i < 4; i++)
+	u8 local_pad = 0;
+	// Add local pads first:
+	// As stated in the comment in NetPlayClient::GetNetPads, the pads pertaining
+	// to the local user are always locally mapped to the first gamecube ports,
+	// so they should be added first.
+	for (auto player_id : m_pad_map)
 	{
 		// Use local controller types for local controllers
-		if (m_pad_map[i] == m_local_player->pid)
-			SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
-		else
-			SerialInterface::AddDevice(m_pad_map[i] > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, i);
+		if (player_id == m_local_player->pid)
+		{
+			if (SConfig::GetInstance().m_SIDevice[local_pad] != SIDEVICE_NONE)
+			{
+				SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], local_pad);
+			}
+			else
+			{
+				SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, local_pad);
+			}
+			local_pad++;
+		}
+	}
+	for (auto player_id : m_pad_map)
+	{
+		if (player_id != m_local_player->pid)
+		{
+			// Only GCController-like controllers are supported, GBA and similar
+			// exotic devices are not supported on netplay.
+			SerialInterface::AddDevice(player_id > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, local_pad);
+			local_pad++;
+		}
 	}
 }
 

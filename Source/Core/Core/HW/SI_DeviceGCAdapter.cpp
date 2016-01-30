@@ -16,7 +16,8 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
 {
 	// get the correct pad number that should rumble locally when using netplay
 	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
-	m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[numPAD];
+	if (numPAD < 4)
+		m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[numPAD];
 }
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
@@ -39,12 +40,14 @@ int CSIDevice_GCAdapter::RunBuffer(u8* _pBuffer, int _iLength)
 	// Read the command
 	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
 
-	// get the correct pad number that should rumble locally when using netplay
 	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
-	if (!GCAdapter::DeviceConnected(numPAD))
+	if (numPAD < 4)
 	{
-		reinterpret_cast<u32*>(_pBuffer)[0] = SI_NONE;
-		return 4;
+		if (!GCAdapter::DeviceConnected(numPAD))
+		{
+			reinterpret_cast<u32*>(_pBuffer)[0] = SI_NONE;
+			return 4;
+		}
 	}
 
 	// Handle it
