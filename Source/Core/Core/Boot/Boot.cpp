@@ -267,7 +267,6 @@ bool CBoot::BootUp()
   case SConfig::BOOT_ISO:
   {
     DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
     if (!DVDInterface::VolumeIsValid())
       return false;
 
@@ -353,8 +352,6 @@ bool CBoot::BootUp()
       BS2Success = EmulatedBS2(dolWii);
     }
 
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
-
     if (!BS2Success)
     {
       // Set up MSR and the BAT SPR registers.
@@ -414,8 +411,6 @@ bool CBoot::BootUp()
       DVDInterface::SetVolumeDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
     }
 
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
-
     // Poor man's bootup
     if (_StartupPara.bWii)
     {
@@ -450,13 +445,11 @@ bool CBoot::BootUp()
     else if (!_StartupPara.m_strDefaultISO.empty())
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
 
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
     break;
 
   // Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
   case SConfig::BOOT_BS2:
   {
-    DVDInterface::SetDiscInside(DVDInterface::VolumeIsValid());
     if (Load_BS2(_StartupPara.m_strBootROM))
     {
       if (LoadMapFromFilename())
