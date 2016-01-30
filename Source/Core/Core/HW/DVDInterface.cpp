@@ -507,9 +507,7 @@ bool VolumeIsValid()
 
 void SetDiscInside(bool disc_inside)
 {
-  if (s_disc_inside != disc_inside)
-    SetLidOpen(!disc_inside);
-
+  SetLidOpen(!disc_inside);
   s_disc_inside = disc_inside;
 }
 
@@ -572,9 +570,10 @@ void ChangeDiscAsCPU(const std::string& new_path)
 
 void SetLidOpen(bool open)
 {
+  u32 old_value = s_DICVR.CVR;
   s_DICVR.CVR = open ? 1 : 0;
-
-  GenerateDIInterrupt(INT_CVRINT);
+  if (s_DICVR.CVR != old_value)
+    GenerateDIInterrupt(INT_CVRINT);
 }
 
 bool ChangePartition(u64 offset)
