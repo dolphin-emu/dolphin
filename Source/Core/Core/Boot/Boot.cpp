@@ -50,7 +50,7 @@ bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt
 
 void CBoot::Load_FST(bool _bIsWii)
 {
-  if (!DVDInterface::VolumeIsValid())
+  if (!DVDInterface::IsDiscInside())
     return;
 
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
@@ -267,7 +267,7 @@ bool CBoot::BootUp()
   case SConfig::BOOT_ISO:
   {
     DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
-    if (!DVDInterface::VolumeIsValid())
+    if (!DVDInterface::IsDiscInside())
       return false;
 
     const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
@@ -336,7 +336,7 @@ bool CBoot::BootUp()
     {
       BS2Success = EmulatedBS2(dolWii);
     }
-    else if ((!DVDInterface::VolumeIsValid() ||
+    else if ((!DVDInterface::IsDiscInside() ||
               DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
              !_StartupPara.m_strDefaultISO.empty())
     {
