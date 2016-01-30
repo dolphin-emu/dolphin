@@ -35,11 +35,11 @@ static bool running = true;
 class Platform
 {
 public:
-	virtual void Init() = 0;
-	virtual void SetTitle(const std::string &title) = 0;
-	virtual void MainLoop() = 0;
-	virtual void Shutdown() = 0;
-	virtual ~Platform() {};
+	virtual void Init() {}
+	virtual void SetTitle(const std::string &title) {}
+	virtual void MainLoop() { while(running) {} }
+	virtual void Shutdown() {}
+	virtual ~Platform() {}
 };
 
 static Platform* platform;
@@ -54,7 +54,7 @@ void Host_Message(int Id)
 		running = false;
 }
 
-static void* s_window_handle;
+static void* s_window_handle = nullptr;
 void* Host_GetRenderHandle()
 {
 	return s_window_handle;
@@ -291,7 +291,9 @@ class PlatformX11 : public Platform
 
 static Platform* GetPlatform()
 {
-#if HAVE_X11
+#if defined(USE_EGL) && defined(USE_HEADLESS)
+	return new Platform();
+#elif HAVE_X11
 	return new PlatformX11();
 #endif
 	return nullptr;
