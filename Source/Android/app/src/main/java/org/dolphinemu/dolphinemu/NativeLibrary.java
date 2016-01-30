@@ -19,7 +19,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
  */
 public final class NativeLibrary
 {
-	private static EmulationActivity mEmulationActivity;
+	public static EmulationActivity sEmulationActivity;
 
 	/**
 	 * Button type for use in onTouchEvent
@@ -403,12 +403,12 @@ public final class NativeLibrary
 	public static void displayAlertMsg(final String alert)
 	{
 		Log.error("[NativeLibrary] Alert: " + alert);
-		mEmulationActivity.runOnUiThread(new Runnable()
+		sEmulationActivity.runOnUiThread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				Toast.makeText(mEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+				Toast.makeText(sEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
 			}
 		});
 	}
@@ -416,12 +416,12 @@ public final class NativeLibrary
 	public static void endEmulationActivity()
 	{
 		Log.verbose("[NativeLibrary]Ending EmulationActivity.");
-		mEmulationActivity.exitWithAnimation();
+		sEmulationActivity.exitWithAnimation();
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
 		Log.verbose("[NativeLibrary]Registering EmulationActivity.");
-		mEmulationActivity = emulationActivity;
+		sEmulationActivity = emulationActivity;
 	}
 }

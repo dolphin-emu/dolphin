@@ -118,7 +118,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 		setTheme(themeId);
 		super.onCreate(savedInstanceState);
-		Java_GCAdapter.our_activity = this;
+
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
 		// Picasso will take a while to load these big-ass screenshots. So don't run

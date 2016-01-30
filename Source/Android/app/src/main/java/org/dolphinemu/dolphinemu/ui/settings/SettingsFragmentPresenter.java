@@ -26,6 +26,8 @@ public final class SettingsFragmentPresenter
 	private HashMap<String, SettingSection> mSettings;
 	private ArrayList<SettingsItem> mSettingsList;
 
+	private int mGcPadNumber;
+
 	public SettingsFragmentPresenter(SettingsFragmentView view)
 	{
 		mView = view;
@@ -33,7 +35,15 @@ public final class SettingsFragmentPresenter
 
 	public void onCreate(String menuTag)
 	{
-		mMenuTag = menuTag;
+		if (menuTag.startsWith(SettingsFile.KEY_GCPAD_TYPE))
+		{
+			mMenuTag = SettingsFile.KEY_GCPAD_TYPE;
+			mGcPadNumber = Integer.valueOf(menuTag.substring(menuTag.length() - 1));
+		}
+		else
+		{
+			mMenuTag = menuTag;
+		}
 	}
 
 	public void onViewCreated(HashMap<String, SettingSection> settings)
@@ -92,12 +102,20 @@ public final class SettingsFragmentPresenter
 				addGraphicsSettings(sl);
 				break;
 
+			case SettingsFile.FILE_NAME_GCPAD:
+				addGcPadSettings(sl);
+				break;
+
 			case SettingsFile.SECTION_GFX_ENHANCEMENTS:
 				addEnhanceSettings(sl);
 				break;
 
 			case SettingsFile.SECTION_GFX_HACKS:
 				addHackSettings(sl);
+				break;
+
+			case SettingsFile.KEY_GCPAD_TYPE:
+				addGcAdapterSettings(sl, mGcPadNumber);
 				break;
 
 			default:
@@ -137,6 +155,19 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, R.string.overclock_title, 0, 400, "%", 100, overclock));
 
+	}
+
+	private void addGcPadSettings(ArrayList<SettingsItem> sl)
+	{
+		if (mSettings != null)
+		{
+			for (int i = 0; i < 4; i++)
+			{
+				// TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
+				Setting gcPadSetting = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
+				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_CORE, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting));
+			}
+		}
 	}
 
 	private void addGraphicsSettings(ArrayList<SettingsItem> sl)
@@ -227,6 +258,15 @@ public final class SettingsFragmentPresenter
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_HACKS, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
+	}
+
+	private void addGcAdapterSettings(ArrayList<SettingsItem> sl, int gcPadNumber)
+	{
+		Setting rumble = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber);
+		Setting bongos = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber);
+
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
 	}
 
 	private int getXfbValue()

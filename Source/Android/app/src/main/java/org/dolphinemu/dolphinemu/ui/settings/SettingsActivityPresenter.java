@@ -39,6 +39,21 @@ public final class SettingsActivityPresenter
 
 		if (savedInstanceState == null)
 		{
+			// TODO DI should be able to get rid of this hack
+			if (filename.equals(SettingsFile.FILE_NAME_GCPAD))
+			{
+				// Psyche! Don't actually load that file (yet).
+				mFileName = SettingsFile.FILE_NAME_DOLPHIN;
+
+				// But do display its fragment, as if we had.
+				mView.showSettingsFragment(SettingsFile.FILE_NAME_GCPAD, false);
+			}
+			else
+			{
+				mFileName = filename;
+				mView.showSettingsFragment(mFileName, false);
+			}
+
 			SettingsFile.readFile(mFileName)
 					.subscribeOn(Schedulers.io())
 					.observeOn(AndroidSchedulers.mainThread())
@@ -60,8 +75,6 @@ public final class SettingsActivityPresenter
 									mView.onSettingsFileNotFound();
 								}
 							});
-
-			mView.showSettingsFragment(mFileName, false);
 		}
 		else
 		{
@@ -146,5 +159,19 @@ public final class SettingsActivityPresenter
 	public void saveState(Bundle outState)
 	{
 		outState.putBoolean(SHOULD_SAVE, mShouldSave);
+	}
+
+	public void onGcPadSettingChanged(String key, int value)
+	{
+		switch (value)
+		{
+			case 6:
+				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
+				break;
+
+			case 12:
+				mView.showSettingsFragment(key, true);
+				break;
+		}
 	}
 }

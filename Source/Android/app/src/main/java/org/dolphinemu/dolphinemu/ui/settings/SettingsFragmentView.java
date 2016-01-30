@@ -76,4 +76,12 @@ public interface SettingsFragmentView
 	 * Have the fragment tell the containing Activity that a setting was modified.
 	 */
 	void onSettingChanged();
+
+	/**
+	 * Have the fragment tell the containing Activity that a GCPad's setting was modified.
+	 *
+	 * @param key   Identifier for the GCPad that was modified.
+	 * @param value New setting for the GCPad.
+	 */
+	void onGcPadSettingChanged(String key, int value);
 }
