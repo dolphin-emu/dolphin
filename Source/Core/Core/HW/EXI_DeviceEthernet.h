@@ -310,8 +310,8 @@ public:
 	void inc_rwp();
 	bool RecvHandlePacket();
 
-	u8 *tx_fifo;
-	u8 *mBbaMem;
+	std::unique_ptr<u8[]> mBbaMem;
+	std::unique_ptr<u8[]> tx_fifo;
 
 	// TAP interface
 	bool Activate();
@@ -322,7 +322,7 @@ public:
 	void RecvStart();
 	void RecvStop();
 
-	u8 *mRecvBuffer;
+	std::unique_ptr<u8[]> mRecvBuffer;
 	u32 mRecvBufferLength;
 
 #if defined(_WIN32)
