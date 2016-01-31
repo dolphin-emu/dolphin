@@ -16,6 +16,7 @@
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TransformUnit.h"
 
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"

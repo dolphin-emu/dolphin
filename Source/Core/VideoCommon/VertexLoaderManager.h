@@ -7,8 +7,8 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
 
+class DataReader;
 class NativeVertexFormat;
 
 namespace VertexLoaderManager

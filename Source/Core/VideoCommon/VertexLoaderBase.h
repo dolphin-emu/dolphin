@@ -9,10 +9,10 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/NativeVertexFormat.h"
+
+class DataReader;
 
 class VertexLoaderUID
 {

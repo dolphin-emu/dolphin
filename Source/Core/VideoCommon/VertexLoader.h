@@ -10,9 +10,9 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderBase.h"
 
+class DataReader;
 class VertexLoader;
 typedef void (*TPipelineFunction)(VertexLoader* loader);
 

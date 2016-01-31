@@ -5,7 +5,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
+
+class DataReader;
 
 #define GX_NOP                      0x00
 #define GX_UNKNOWN_RESET            0x01

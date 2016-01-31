@@ -16,6 +16,7 @@
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/Statistics.h"

@@ -9,8 +9,8 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
 
+class DataReader;
 class NativeVertexFormat;
 class PointerWrap;
 struct PortableVertexDeclaration;

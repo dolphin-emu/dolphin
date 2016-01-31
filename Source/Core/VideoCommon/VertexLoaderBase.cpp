@@ -13,6 +13,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderBase.h"
 

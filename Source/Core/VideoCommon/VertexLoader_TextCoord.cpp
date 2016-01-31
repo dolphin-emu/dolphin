@@ -6,6 +6,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexLoaderManager.h"
