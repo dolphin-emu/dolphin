@@ -323,7 +323,7 @@
     <!-- Game Grid Screen-->
     <string name="grid_menu_core_settings">CPU Settings</string>
     <string name="grid_menu_video_settings">Video Settings</string>
-    <string name="grid_menu_gcpad_settings">Gamecube Input</string>
+    <string name="grid_menu_gcpad_settings">GameCube Input</string>
     <string name="grid_menu_refresh">Refresh Library</string>
 
     <!-- Add Directory Screen-->
@@ -349,7 +349,7 @@
     
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>
-    <string name="gc_adapter_rumble_description">Enable the vibration function for this Gamecube controller.</string>
+    <string name="gc_adapter_rumble_description">Enable the vibration function for this GameCube controller.</string>
     <string name="gc_adapter_bongos">Bongo Controller</string>
     <string name="gc_adapter_bongos_description">Enable this if you are using bongos on this port.</string>
     
