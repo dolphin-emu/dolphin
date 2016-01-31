@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
-import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,15 +21,20 @@ import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
 import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
+import org.dolphinemu.dolphinemu.application.injectors.ActivityInjector;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
+import org.dolphinemu.dolphinemu.ui.BaseActivity;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
-public final class TvMainActivity extends Activity implements MainView
+import javax.inject.Inject;
+
+public final class TvMainActivity extends BaseActivity implements MainView
 {
-	private MainPresenter mPresenter = new MainPresenter(this);
+	@Inject
+	public MainPresenter mPresenter;
 
 	private BrowseFragment mBrowseFragment;
 
@@ -249,5 +253,11 @@ public final class TvMainActivity extends Activity implements MainView
 		HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));
 
 		return new ListRow(header, rowItems);
+	}
+
+	@Override
+	protected void inject()
+	{
+		ActivityInjector.inject(this);
 	}
 }

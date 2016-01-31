@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".DolphinApplication"
+        android:name=".application.DolphinApplication"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"

@@ -7,7 +7,6 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,23 +16,28 @@ import android.view.View;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
+import org.dolphinemu.dolphinemu.application.injectors.ActivityInjector;
 import org.dolphinemu.dolphinemu.model.GameProvider;
+import org.dolphinemu.dolphinemu.ui.BaseActivity;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+
+import javax.inject.Inject;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
  * individually display a grid of available games for each Fragment, in a tabbed layout.
  */
-public final class MainActivity extends AppCompatActivity implements MainView
+public final class MainActivity extends BaseActivity implements MainView
 {
 	private ViewPager mViewPager;
 	private Toolbar mToolbar;
 	private TabLayout mTabLayout;
 	private FloatingActionButton mFab;
 
-	private MainPresenter mPresenter = new MainPresenter(this);
+	@Inject
+	public MainPresenter mPresenter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -173,4 +177,11 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
 		return (PlatformGamesView) getFragmentManager().findFragmentByTag(fragmentTag);
 	}
+
+	@Override
+	protected void inject()
+	{
+		ActivityInjector.inject(this);
+	}
+
 }

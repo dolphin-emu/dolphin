@@ -49,7 +49,11 @@ public abstract class BaseFragment extends Fragment
 
 		if (activity instanceof FragmentContainer)
 		{
-			((FragmentContainer) activity).setActivityTitle(getTitle());
+			String title = getTitle();
+			if (title != null)
+			{
+				((FragmentContainer) activity).setActivityTitle(title);
+			}
 		}
 	}
 

@@ -3,26 +3,32 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.database.Cursor;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.application.scopes.ActivityScoped;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.utils.SettingsFile;
+
+import javax.inject.Inject;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
+@ActivityScoped
 public final class MainPresenter
 {
 	public static final int REQUEST_ADD_DIRECTORY = 1;
 	public static final int REQUEST_EMULATE_GAME = 2;
 
 	private final MainView mView;
+	private final GameDatabase mGameDatabase;
 
-	public MainPresenter(MainView view)
+	@Inject
+	public MainPresenter(MainView view, GameDatabase gameDatabase)
 	{
 		mView = view;
+		mGameDatabase = gameDatabase;
 	}
 
 	public void onCreate()
@@ -86,9 +92,7 @@ public final class MainPresenter
 
 	public void loadGames(final int platformIndex)
 	{
-		GameDatabase databaseHelper = DolphinApplication.databaseHelper;
-
-		databaseHelper.getGamesForPlatform(platformIndex)
+		mGameDatabase.getGamesForPlatform(platformIndex)
 				.subscribeOn(Schedulers.io())
 				.observeOn(AndroidSchedulers.mainThread())
 				.subscribe(new Action1<Cursor>()

@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.platform;
 
-import android.app.Fragment;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -9,18 +8,26 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.GameAdapter;
+import org.dolphinemu.dolphinemu.application.injectors.FragmentInjector;
+import org.dolphinemu.dolphinemu.ui.settings.BaseFragment;
 
-public final class PlatformGamesFragment extends Fragment implements PlatformGamesView
+import javax.inject.Inject;
+
+public final class PlatformGamesFragment extends BaseFragment implements PlatformGamesView
 {
 	private static final String ARG_PLATFORM = BuildConfig.APPLICATION_ID + ".PLATFORM";
 
-	private PlatformGamesPresenter mPresenter = new PlatformGamesPresenter(this);
+	@Inject
+	public PlatformGamesPresenter mPresenter;
 
 	private GameAdapter mAdapter;
+
+	private FrameLayout mFrameContent;
 	private RecyclerView mRecyclerView;
 
 	public static PlatformGamesFragment newInstance(int platform)
@@ -95,8 +102,27 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 		}
 	}
 
+	@Override
+	protected void inject()
+	{
+		FragmentInjector.inject(this);
+	}
+
+	@Override
+	protected FrameLayout getContentLayout()
+	{
+		return mFrameContent;
+	}
+
+	@Override
+	protected String getTitle()
+	{
+		return null;
+	}
+
 	private void findViews(View root)
 	{
+		mFrameContent = (FrameLayout) root.findViewById(R.id.frame_content);
 		mRecyclerView = (RecyclerView) root.findViewById(R.id.grid_games);
 	}
 }
