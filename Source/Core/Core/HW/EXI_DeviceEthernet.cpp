@@ -20,7 +20,7 @@
 
 CEXIETHERNET::CEXIETHERNET()
 {
-	tx_fifo = new u8[1518];
+	tx_fifo = new u8[BBA_TXFIFO_SIZE];
 	mBbaMem = new u8[BBA_MEM_SIZE];
 
 	mRecvBuffer = new u8[BBA_RECV_SIZE];
@@ -206,9 +206,8 @@ void CEXIETHERNET::DMARead(u32 addr, u32 size)
 
 void CEXIETHERNET::DoState(PointerWrap &p)
 {
-	p.Do(mBbaMem);
-	// TODO ... the rest...
-	ERROR_LOG(SP1, "CEXIETHERNET::DoState not implemented!");
+	p.DoArray(tx_fifo, BBA_TXFIFO_SIZE);
+	p.DoArray(mBbaMem, BBA_MEM_SIZE);
 }
 
 bool CEXIETHERNET::IsMXCommand(u32 const data)
