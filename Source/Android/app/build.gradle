@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+// Allows Android Studio to see generated classes.
+apply plugin: 'com.neenbedankt.android-apt'
+
 android {
     // Leanback support requires >22
     compileSdkVersion 23
@@ -92,6 +95,15 @@ dependencies {
 
     // Allows FRP-style asynchronous operations in Android.
     compile 'io.reactivex:rxandroid:1.1.0'
+
+    // A framework for dependency injection.
+    compile 'com.google.dagger:dagger:2.0.2'
+
+    // The Dagger2 annotation processor.
+    apt 'com.google.dagger:dagger-compiler:2.0.2'
+
+    // Provides the @Inject annotation
+    provided 'org.glassfish:javax.annotation:10.0-b28'
 }
 
 task setupCMake(type: Exec) {
