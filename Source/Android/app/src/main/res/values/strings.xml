@@ -333,6 +333,7 @@
 
     <!-- Preferences Screen -->
     <string name="preferences_exit_no_save">Exit Without Saving</string>
+    <string name="preferences_settings">Settings</string>
     <string name="preferences_cpu">CPU Settings</string>
     <string name="preferences_input">Input Settings</string>
     <string name="preferences_extensions">Extension Bindings</string>
