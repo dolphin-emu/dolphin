@@ -270,7 +270,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		DWORD transferred;
 
 		// Read from TAP into internal buffer.
-		if (ReadFile(self->mHAdapter, self->mRecvBuffer, BBA_RECV_SIZE, &transferred, &self->mReadOverlapped))
+		if (ReadFile(self->mHAdapter, self->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred, &self->mReadOverlapped))
 		{
 			// Returning immediately is not likely to happen, but if so, reset the event state manually.
 			ResetEvent(self->mReadOverlapped.hEvent);
@@ -298,7 +298,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		}
 
 		// Copy to BBA buffer, and fire interrupt if enabled.
-		DEBUG_LOG(SP1, "Received %u bytes\n: %s", transferred, ArrayToString(self->mRecvBuffer, transferred, 0x10).c_str());
+		DEBUG_LOG(SP1, "Received %u bytes\n: %s", transferred, ArrayToString(self->mRecvBuffer.get(), transferred, 0x10).c_str());
 		if (self->readEnabled.IsSet())
 		{
 			self->mRecvBufferLength = transferred;

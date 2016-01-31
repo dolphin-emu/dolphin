@@ -75,14 +75,14 @@ static void ReadThreadHandler(CEXIETHERNET* self)
 		if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
 			continue;
 
-		int readBytes = read(self->fd, self->mRecvBuffer, BBA_RECV_SIZE);
+		int readBytes = read(self->fd, self->mRecvBuffer.get(), BBA_RECV_SIZE);
 		if (readBytes < 0)
 		{
 			ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
 		}
 		else if (self->readEnabled.IsSet())
 		{
-			INFO_LOG(SP1, "Read data: %s", ArrayToString(self->mRecvBuffer, readBytes, 0x10).c_str());
+			INFO_LOG(SP1, "Read data: %s", ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
 			self->mRecvBufferLength = readBytes;
 			self->RecvHandlePacket();
 		}
