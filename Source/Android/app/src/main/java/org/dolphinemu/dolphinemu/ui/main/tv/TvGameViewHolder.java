@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.viewholders;
+package org.dolphinemu.dolphinemu.ui.main.tv;
 
 import android.support.v17.leanback.widget.ImageCardView;
 import android.support.v17.leanback.widget.Presenter;

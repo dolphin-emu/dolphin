@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.adapters;
+package org.dolphinemu.dolphinemu.ui.main.tv;
 
 import android.graphics.Bitmap;
 import android.support.v17.leanback.widget.ImageCardView;
@@ -10,13 +10,12 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.Game;
-import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 /**
  * The Leanback library / docs call this a Presenter, but it works very
  * similarly to a RecyclerView.Adapter.
  */
-public final class GameRowPresenter extends Presenter
+public final class GameRowAdapter extends Presenter
 {
 	public ViewHolder onCreateViewHolder(ViewGroup parent)
 	{

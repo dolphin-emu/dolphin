@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.activities;
+package org.dolphinemu.dolphinemu.ui.ingame;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
@@ -26,10 +26,6 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
-import org.dolphinemu.dolphinemu.fragments.LoadStateFragment;
-import org.dolphinemu.dolphinemu.fragments.MenuFragment;
-import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;

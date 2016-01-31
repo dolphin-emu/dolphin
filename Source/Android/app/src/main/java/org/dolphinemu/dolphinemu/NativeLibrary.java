@@ -10,7 +10,7 @@ package org.dolphinemu.dolphinemu;
 import android.view.Surface;
 import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 /**

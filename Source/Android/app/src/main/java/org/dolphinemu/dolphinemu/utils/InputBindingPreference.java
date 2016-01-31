@@ -8,7 +8,7 @@ import android.preference.Preference;
 import android.util.AttributeSet;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.ui.input.MotionAlertDialog;
 
 /**
  * {@link Preference} subclass that represents a preference

@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.adapters;
+package org.dolphinemu.dolphinemu.ui.main.tv;
 
 
 import android.content.res.Resources;
@@ -7,9 +7,8 @@ import android.support.v17.leanback.widget.Presenter;
 import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.viewholders.TvSettingsViewHolder;
 
-public final class SettingsRowPresenter extends Presenter
+public final class SettingsRowAdapter extends Presenter
 {
 	public Presenter.ViewHolder onCreateViewHolder(ViewGroup parent)
 	{

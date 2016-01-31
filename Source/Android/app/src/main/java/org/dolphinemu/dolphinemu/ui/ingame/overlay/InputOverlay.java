@@ -4,7 +4,7 @@
  * Refer to the license.txt file included.
  */
 
-package org.dolphinemu.dolphinemu.overlay;
+package org.dolphinemu.dolphinemu.ui.ingame.overlay;
 
 import android.content.Context;
 import android.content.SharedPreferences;

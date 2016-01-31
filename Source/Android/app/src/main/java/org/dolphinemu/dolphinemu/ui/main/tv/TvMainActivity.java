@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.ui.main;
+package org.dolphinemu.dolphinemu.ui.main.tv;
 
 import android.app.FragmentManager;
 import android.content.Intent;
@@ -17,17 +17,16 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.adapters.GameRowPresenter;
-import org.dolphinemu.dolphinemu.adapters.SettingsRowPresenter;
 import org.dolphinemu.dolphinemu.application.injectors.ActivityInjector;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
 import org.dolphinemu.dolphinemu.ui.BaseActivity;
+import org.dolphinemu.dolphinemu.ui.files.AddDirectoryActivity;
+import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.ui.main.MainView;
 import org.dolphinemu.dolphinemu.ui.settings.SettingsActivity;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
-import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 import javax.inject.Inject;
 
@@ -170,7 +169,7 @@ public final class TvMainActivity extends BaseActivity implements MainView
 	private ListRow buildGamesRow(int platform, Cursor games)
 	{
 		// Create an adapter for this row.
-		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowPresenter());
+		CursorObjectAdapter row = new CursorObjectAdapter(new GameRowAdapter());
 
 		// If cursor is empty, don't return a Row.
 		if (!games.moveToFirst())
@@ -227,7 +226,7 @@ public final class TvMainActivity extends BaseActivity implements MainView
 
 	private ListRow buildSettingsRow()
 	{
-		ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
+		ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowAdapter());
 
 		rowItems.add(new TvSettingsItem(R.id.menu_refresh,
 				R.drawable.ic_refresh_tv,

@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.adapters;
+package org.dolphinemu.dolphinemu.ui.files;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.FileListItem;
-import org.dolphinemu.dolphinemu.viewholders.FileViewHolder;
 
 import java.io.File;
 import java.util.ArrayList;

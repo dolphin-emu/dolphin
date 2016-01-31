@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.adapters;
+package org.dolphinemu.dolphinemu.ui.main;
 
 
 import android.app.Fragment;

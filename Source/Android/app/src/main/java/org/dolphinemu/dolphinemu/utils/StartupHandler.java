@@ -8,8 +8,8 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.services.AssetCopyService;
+import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
 
 public final class StartupHandler
 {

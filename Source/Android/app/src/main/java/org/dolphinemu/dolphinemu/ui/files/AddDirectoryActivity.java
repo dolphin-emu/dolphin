@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.activities;
+package org.dolphinemu.dolphinemu.ui.files;
 
 import android.app.Activity;
 import android.content.AsyncQueryHandler;
@@ -17,7 +17,6 @@ import android.widget.Toolbar;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.adapters.FileAdapter;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;

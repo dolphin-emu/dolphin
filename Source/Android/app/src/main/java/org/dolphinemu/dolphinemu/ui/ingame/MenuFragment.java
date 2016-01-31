@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.fragments;
+package org.dolphinemu.dolphinemu.ui.ingame;
 
 import android.app.Fragment;
 import android.os.Bundle;
@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {

@@ -39,7 +39,7 @@
         </activity>
 
         <activity
-            android:name=".ui.main.TvMainActivity"
+            android:name=".ui.main.tv.TvMainActivity"
             android:theme="@style/DolphinTvGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -51,7 +51,7 @@
         </activity>
 
         <activity
-            android:name=".activities.AddDirectoryActivity"
+            android:name=".ui.files.AddDirectoryActivity"
             android:theme="@style/DolphinGamecube"
             android:label="@string/add_directory_title"/>
 
@@ -61,12 +61,8 @@
             android:label="@string/grid_menu_core_settings"/>
 
         <activity
-            android:name=".activities.EmulationActivity"
+            android:name=".ui.ingame.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
-
-        <activity
-            android:name=".activities.OverlayConfigActivity"
-            android:theme="@style/DolphinSettingsGamecube"/>
 
 
         <service android:name=".services.AssetCopyService"/>

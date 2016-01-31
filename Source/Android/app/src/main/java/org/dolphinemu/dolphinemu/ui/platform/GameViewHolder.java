@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.viewholders;
+package org.dolphinemu.dolphinemu.ui.platform;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.View;

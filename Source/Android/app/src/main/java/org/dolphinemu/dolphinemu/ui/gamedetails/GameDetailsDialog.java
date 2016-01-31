@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.dialogs;
+package org.dolphinemu.dolphinemu.ui.gamedetails;
 
 
 import android.app.AlertDialog;
@@ -15,7 +15,7 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 

@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.adapters;
+package org.dolphinemu.dolphinemu.ui.platform;
 
 import android.app.Activity;
 import android.database.Cursor;
@@ -13,11 +13,11 @@ import android.view.ViewGroup;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.ui.files.FileAdapter;
+import org.dolphinemu.dolphinemu.ui.gamedetails.GameDetailsDialog;
+import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
  * This adapter, unlike {@link FileAdapter} which is backed by an ArrayList, gets its

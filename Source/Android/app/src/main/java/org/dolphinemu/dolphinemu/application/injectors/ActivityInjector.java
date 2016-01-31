@@ -4,7 +4,7 @@ package org.dolphinemu.dolphinemu.application.injectors;
 import org.dolphinemu.dolphinemu.application.DolphinApplication;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainModule;
-import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
+import org.dolphinemu.dolphinemu.ui.main.tv.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 public class ActivityInjector

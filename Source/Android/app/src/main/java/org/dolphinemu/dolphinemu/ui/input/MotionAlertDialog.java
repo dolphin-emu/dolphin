@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.dialogs;
+package org.dolphinemu.dolphinemu.ui.input;
 
 import android.app.AlertDialog;
 import android.content.Context;

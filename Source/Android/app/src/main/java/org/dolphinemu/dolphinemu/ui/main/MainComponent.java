@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import org.dolphinemu.dolphinemu.application.scopes.ActivityScoped;
+import org.dolphinemu.dolphinemu.ui.main.tv.TvMainActivity;
 
 import dagger.Subcomponent;
 

@@ -31,7 +31,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:name="org.dolphinemu.dolphinemu.fragments.MenuFragment"
+            android:name="org.dolphinemu.dolphinemu.ui.ingame.MenuFragment"
             tools:layout="@layout/fragment_ingame_menu"/>
 
         <FrameLayout

@@ -12,7 +12,6 @@ import android.widget.FrameLayout;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.adapters.GameAdapter;
 import org.dolphinemu.dolphinemu.application.injectors.FragmentInjector;
 import org.dolphinemu.dolphinemu.ui.settings.BaseFragment;
 

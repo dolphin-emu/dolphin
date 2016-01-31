@@ -1,4 +1,4 @@
-package org.dolphinemu.dolphinemu.fragments;
+package org.dolphinemu.dolphinemu.ui.ingame;
 
 import android.app.Fragment;
 import android.content.SharedPreferences;
@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.ui.ingame.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 
