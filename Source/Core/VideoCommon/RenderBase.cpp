@@ -384,6 +384,7 @@ void Renderer::DrawDebugText()
 			std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
 			SConfig::GetInstance().m_EmulationSpeed <= 0 ? "Speed Limit: Unlimited" :
 			StringFromFormat("Speed Limit: %li%%", std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+			std::string("Wireframe: ") + (g_ActiveConfig.bWireFrame ? "Enabled" : "Disabled")
 		};
 
 		enum { lines_count = sizeof(lines) / sizeof(*lines) };
