@@ -1,15 +1,15 @@
 package org.dolphinemu.dolphinemu.ui;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.application.DolphinApplication;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 
-public abstract class BaseActivity extends AppCompatActivity
+public abstract class BaseTvActivity extends Activity
 {
 
 	@Override

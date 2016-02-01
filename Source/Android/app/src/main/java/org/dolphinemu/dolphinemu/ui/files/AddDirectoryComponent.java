@@ -1,21 +1,18 @@
-package org.dolphinemu.dolphinemu.ui.main;
+package org.dolphinemu.dolphinemu.ui.files;
 
 import org.dolphinemu.dolphinemu.application.scopes.ActivityScoped;
-import org.dolphinemu.dolphinemu.ui.main.tv.TvMainActivity;
 
 import dagger.Subcomponent;
 
 @ActivityScoped
 @Subcomponent(
-		modules = {MainModule.class}
+		modules = {AddDirectoryModule.class}
 )
-public interface MainComponent
+public interface AddDirectoryComponent
 {
 	/**
 	 * Crucial: Injection targets must be strongly typed. Passing an interface to an inject() method results in a
 	 * no-op.
 	 */
-	void inject(MainActivity activity);
-
-	void inject(TvMainActivity activity);
+	void inject(AddDirectoryActivity activity);
 }

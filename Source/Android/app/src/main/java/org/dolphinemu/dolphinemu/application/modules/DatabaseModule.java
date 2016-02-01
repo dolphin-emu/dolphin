@@ -17,7 +17,7 @@ public class DatabaseModule
 	@Singleton
 	GameDatabase provideDatabase(Context context)
 	{
-		Log.verbose("[DatabaseModule] Providing GameDAtabase...");
+		Log.verbose("[DatabaseModule] Providing GameDatabase...");
 		return new GameDatabase(context);
 	}
 }

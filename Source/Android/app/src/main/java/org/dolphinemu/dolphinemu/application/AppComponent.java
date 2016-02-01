@@ -4,6 +4,10 @@ package org.dolphinemu.dolphinemu.application;
 import org.dolphinemu.dolphinemu.application.modules.AppModule;
 import org.dolphinemu.dolphinemu.application.modules.DatabaseModule;
 import org.dolphinemu.dolphinemu.application.modules.SettingsModule;
+import org.dolphinemu.dolphinemu.ui.files.AddDirectoryComponent;
+import org.dolphinemu.dolphinemu.ui.files.AddDirectoryModule;
+import org.dolphinemu.dolphinemu.ui.files.FileListComponent;
+import org.dolphinemu.dolphinemu.ui.files.FileListModule;
 import org.dolphinemu.dolphinemu.ui.main.MainComponent;
 import org.dolphinemu.dolphinemu.ui.main.MainModule;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesComponent;
@@ -32,5 +36,9 @@ public interface AppComponent
 	MainComponent plus(MainModule module);
 
 	PlatformGamesComponent plus(PlatformGamesModule module);
+
+	AddDirectoryComponent plus(AddDirectoryModule module);
+
+	FileListComponent plus(FileListModule module);
 }
 

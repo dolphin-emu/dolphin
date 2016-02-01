@@ -2,6 +2,8 @@ package org.dolphinemu.dolphinemu.application.injectors;
 
 
 import org.dolphinemu.dolphinemu.application.DolphinApplication;
+import org.dolphinemu.dolphinemu.ui.files.AddDirectoryActivity;
+import org.dolphinemu.dolphinemu.ui.files.AddDirectoryModule;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainModule;
 import org.dolphinemu.dolphinemu.ui.main.tv.TvMainActivity;
@@ -24,6 +26,15 @@ public class ActivityInjector
 
 		DolphinApplication.appComponent
 				.plus(new MainModule(activity))
+				.inject(activity);
+	}
+
+	public static void inject(AddDirectoryActivity activity)
+	{
+		Log.verbose("[ActivityInjector] Injecting AddDirectoryActivity.");
+
+		DolphinApplication.appComponent
+				.plus(new AddDirectoryModule(activity))
 				.inject(activity);
 	}
 

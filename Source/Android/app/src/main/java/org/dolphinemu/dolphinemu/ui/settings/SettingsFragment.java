@@ -82,8 +82,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		recyclerView.setLayoutManager(manager);
 		recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), null));
 
-		SettingsActivityView activity = (SettingsActivityView) getActivity();
-		HashMap<String, SettingSection> settings = activity.getSettings();
+		HashMap<String, SettingSection> settings = mActivity.getSettings();
 
 		mPresenter.onViewCreated(settings);
 	}
@@ -161,7 +160,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 
 	public static final String ARGUMENT_MENU_TAG = FRAGMENT_TAG + ".menu_tag";
 
-	public static Fragment newInstance(String menuTag)
+	public static SettingsFragment newInstance(String menuTag)
 	{
 		SettingsFragment fragment = new SettingsFragment();
 

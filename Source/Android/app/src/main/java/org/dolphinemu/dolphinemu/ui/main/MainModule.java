@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
 import org.dolphinemu.dolphinemu.application.scopes.ActivityScoped;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import dagger.Module;
 import dagger.Provides;
@@ -19,6 +20,7 @@ public class MainModule
 	@ActivityScoped
 	public MainView provideView()
 	{
+		Log.verbose("[MainModule] Providing view...");
 		return view;
 	}
 }

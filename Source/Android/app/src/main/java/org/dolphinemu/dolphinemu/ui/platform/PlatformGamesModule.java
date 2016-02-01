@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.ui.platform;
 
 import org.dolphinemu.dolphinemu.application.scopes.FragmentScoped;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import dagger.Module;
 import dagger.Provides;
@@ -19,6 +20,7 @@ public class PlatformGamesModule
 	@FragmentScoped
 	public PlatformGamesView provideView()
 	{
+		Log.verbose("[PlatformGamesModule] Providing view...");
 		return view;
 	}
 }

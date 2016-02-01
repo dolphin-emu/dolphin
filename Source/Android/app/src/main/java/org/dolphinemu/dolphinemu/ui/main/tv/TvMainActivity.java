@@ -20,7 +20,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.application.injectors.ActivityInjector;
 import org.dolphinemu.dolphinemu.model.Game;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.ui.BaseActivity;
+import org.dolphinemu.dolphinemu.ui.BaseTvActivity;
 import org.dolphinemu.dolphinemu.ui.files.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.ui.ingame.EmulationActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
@@ -30,7 +30,7 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
 import javax.inject.Inject;
 
-public final class TvMainActivity extends BaseActivity implements MainView
+public final class TvMainActivity extends BaseTvActivity implements MainView
 {
 	@Inject
 	public MainPresenter mPresenter;

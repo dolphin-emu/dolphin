@@ -4,6 +4,7 @@ package org.dolphinemu.dolphinemu.ui.settings;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -15,6 +16,13 @@ import org.dolphinemu.dolphinemu.utils.Log;
 public abstract class BaseFragment extends Fragment
 {
 	private boolean mInjected = false;
+
+	@Override
+	public void onCreate(Bundle savedInstanceState)
+	{
+		super.onCreate(savedInstanceState);
+		setRetainInstance(true);
+	}
 
 	@Override
 	public void onAttach(Context context)
@@ -39,7 +47,7 @@ public abstract class BaseFragment extends Fragment
 		onAttachHelper(activity);
 	}
 
-	private void onAttachHelper(Activity activity)
+	protected void onAttachHelper(Activity activity)
 	{
 		if (!mInjected)
 		{
@@ -53,6 +61,12 @@ public abstract class BaseFragment extends Fragment
 			if (title != null)
 			{
 				((FragmentContainer) activity).setActivityTitle(title);
+			}
+
+			String subtitle = getSubtitle();
+			if (subtitle != null)
+			{
+				((FragmentContainer) activity).setActivitySubtitle(subtitle);
 			}
 		}
 	}
@@ -79,4 +93,6 @@ public abstract class BaseFragment extends Fragment
 	protected abstract FrameLayout getContentLayout();
 
 	protected abstract String getTitle();
+
+	protected abstract String getSubtitle();
 }

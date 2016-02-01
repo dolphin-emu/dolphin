@@ -52,7 +52,7 @@
 
         <activity
             android:name=".ui.files.AddDirectoryActivity"
-            android:theme="@style/DolphinGamecube"
+            android:theme="@style/DolphinSettingsGamecube"
             android:label="@string/add_directory_title"/>
 
         <activity

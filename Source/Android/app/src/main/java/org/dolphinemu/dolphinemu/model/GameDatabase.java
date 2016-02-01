@@ -256,6 +256,39 @@ public final class GameDatabase extends SQLiteOpenHelper
 		database.close();
 	}
 
+	public Observable<Long> addDirectory(final String path)
+	{
+		return Observable.create(new Observable.OnSubscribe<Long>()
+		{
+			@Override
+			public void call(Subscriber<? super Long> subscriber)
+			{
+				SQLiteDatabase database = getWritableDatabase();
+
+				ContentValues values = new ContentValues();
+
+				values.put(KEY_FOLDER_PATH, path);
+
+				long insertedId = database.insert(TABLE_NAME_FOLDERS, null, values);
+
+				if (insertedId >= 0)
+				{
+					Log.info("[GameDatabase] Successfully added folder to database.");
+
+					scanLibrary(database);
+					subscriber.onNext(insertedId);
+					subscriber.onCompleted();
+				}
+				else
+				{
+					Log.error("[GameDatabase] Unable to add folder to database.");
+					subscriber.onError(new Exception("Unable to add folder to database."));
+					database.close();
+				}
+			}
+		});
+	}
+
 	public Observable<Cursor> getGamesForPlatform(final int platform)
 	{
 		return Observable.create(new Observable.OnSubscribe<Cursor>()

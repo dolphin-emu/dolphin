@@ -1,29 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical">
-
-    <Toolbar
-        android:id="@+id/toolbar_folder_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/dolphin_blue"
-        android:minHeight="?android:attr/actionBarSize"
-        android:theme="@android:style/ThemeOverlay.Material.Dark.ActionBar"
-        android:elevation="6dp"/>
-
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_files"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginLeft="@dimen/activity_horizontal_margin"
-        android:layout_marginRight="@dimen/activity_horizontal_margin"
-        tools:listitem="@layout/list_item_file"
-        android:elevation="4dp"
-        android:background="@android:color/white"/>
-
-
-</LinearLayout>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:id="@+id/frame_content"/>

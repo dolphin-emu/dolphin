@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<org.dolphinemu.dolphinemu.ui.settings.SettingsFrameLayout android:id="@+id/frame_content"
+                                                           xmlns:android="http://schemas.android.com/apk/res/android"
+                                                           android:layout_width="match_parent"
+                                                           android:layout_height="match_parent">
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/list_files"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/activity_horizontal_margin"
+        android:layout_marginStart="@dimen/activity_horizontal_margin"
+        android:background="@android:color/white"
+        android:elevation="@dimen/elevation_high"/>
+
+</org.dolphinemu.dolphinemu.ui.settings.SettingsFrameLayout>

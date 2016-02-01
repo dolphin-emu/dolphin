@@ -330,6 +330,7 @@
     <string name="add_directory_title">Add Folder to Library</string>
     <string name="add_directory_up_one_level">Up one level</string>
     <string name="add_directory_empty_folder">That folder is empty.</string>
+    <string name="add_directory_bad_folder">Cannot open that folder.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_exit_no_save">Exit Without Saving</string>

@@ -119,6 +119,12 @@ public final class PlatformGamesFragment extends BaseFragment implements Platfor
 		return null;
 	}
 
+	@Override
+	protected String getSubtitle()
+	{
+		return null;
+	}
+
 	private void findViews(View root)
 	{
 		mFrameContent = (FrameLayout) root.findViewById(R.id.frame_content);
