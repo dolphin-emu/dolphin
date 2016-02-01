@@ -1383,6 +1383,15 @@ void CFrame::ParseHotkeys()
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 	}
+	if (IsHotkey(HK_TOGGLE_WIREFRAME))
+	{
+		g_Config.bWireFrame = !g_Config.bWireFrame;
+
+		if (g_Config.bWireFrame)
+			OSD::AddMessage("Wireframe ON");
+		else
+			OSD::AddMessage("Wireframe OFF");
+	}
 	Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
 	if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
 	{
