@@ -151,7 +151,7 @@
     <string-array name="gcpadTypeEntries">
         <item>Disabled</item>
         <item>Emulated</item>
-        <item>Gamecube Adapter</item>
+        <item>GameCube Adapter</item>
     </string-array>
     <integer-array name="gcpadTypeValues">
         <item>0</item>
