@@ -765,10 +765,10 @@ void NetPlayClient::UpdateDevices()
 	// so they should be added first.
 	for (auto player_id : m_pad_map)
 	{
-		// Use local controller types for local controllers
+		// Use local controller types for local controllers if they are compatible
 		if (player_id == m_local_player->pid)
 		{
-			if (SConfig::GetInstance().m_SIDevice[local_pad] != SIDEVICE_NONE)
+			if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
 			{
 				SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], local_pad);
 			}
