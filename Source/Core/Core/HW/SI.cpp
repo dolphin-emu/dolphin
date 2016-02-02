@@ -260,9 +260,25 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;
 
 		if (Movie::IsMovieActive())
-			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+		{
+			if (Movie::IsUsingPad(i))
+			{
+				SIDevices current = SConfig::GetInstance().m_SIDevice[i];
+				// GC pad-compatible devices can be used for both playing and recording
+				if (SIDevice_IsGCController(current))
+					AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : current, i);
+				else
+					AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER, i);
+			}
+			else
+			{
+					AddDevice(SIDEVICE_NONE, i);
+			}
+		}
 		else if (!NetPlay::IsNetPlayRunning())
+		{
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
+		}
 	}
 
 	g_Poll.Hex = 0;
