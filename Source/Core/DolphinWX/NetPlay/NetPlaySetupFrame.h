@@ -23,27 +23,35 @@ public:
 	~NetPlaySetupFrame();
 
 private:
+	static constexpr int CONNECT_TAB = 0;
+	static constexpr int HOST_TAB    = 1;
+
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
+	void DoJoin();
+	void DoHost();
 	void OnQuit(wxCommandEvent& event);
-	void OnChoice(wxCommandEvent& event);
+	void OnDirectTraversalChoice(wxCommandEvent& event);
 	void OnResetTraversal(wxCommandEvent& event);
 	void OnTraversalListenPortChanged(wxCommandEvent& event);
+	void OnKeyDown(wxKeyEvent& event);
+	void DispatchFocus();
 
 	void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
 
-	wxStaticText* m_ip_lbl;
-	wxStaticText* m_client_port_lbl;
-	wxTextCtrl*   m_nickname_text;
-	wxStaticText* m_host_port_lbl;
-	wxTextCtrl*   m_host_port_text;
-	wxTextCtrl*   m_connect_port_text;
-	wxTextCtrl*   m_connect_ip_text;
-	wxChoice*     m_direct_traversal;
-	wxStaticText* m_traversal_lbl;
-	wxButton* m_trav_reset_btn;
-	wxCheckBox* m_traversal_listen_port_enabled;
-	wxSpinCtrl* m_traversal_listen_port;
+	wxStaticText*     m_ip_lbl;
+	wxStaticText*     m_client_port_lbl;
+	wxTextCtrl*       m_nickname_text;
+	wxStaticText*     m_host_port_lbl;
+	wxTextCtrl*       m_host_port_text;
+	wxTextCtrl*       m_connect_port_text;
+	wxTextCtrl*       m_connect_ip_text;
+	wxChoice*         m_direct_traversal;
+	wxStaticText*     m_traversal_lbl;
+	wxButton*         m_trav_reset_btn;
+	wxCheckBox*       m_traversal_listen_port_enabled;
+	wxSpinCtrl*       m_traversal_listen_port;
+	wxNotebook*       m_notebook;
 
 	wxListBox*  m_game_lbox;
 #ifdef USE_UPNP
