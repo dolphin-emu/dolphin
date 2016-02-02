@@ -26,6 +26,9 @@ private:
 	static constexpr int CONNECT_TAB = 0;
 	static constexpr int HOST_TAB    = 1;
 
+	static constexpr int DIRECT_CHOICE    = 0;
+	static constexpr int TARVERSAL_CHOICE = 1;
+
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
 	void DoJoin();
@@ -46,6 +49,7 @@ private:
 	wxTextCtrl*       m_host_port_text;
 	wxTextCtrl*       m_connect_port_text;
 	wxTextCtrl*       m_connect_ip_text;
+	wxTextCtrl*       m_connect_hashcode_text;
 	wxChoice*         m_direct_traversal;
 	wxStaticText*     m_traversal_lbl;
 	wxButton*         m_trav_reset_btn;
