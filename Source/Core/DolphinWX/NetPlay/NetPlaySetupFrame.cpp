@@ -120,10 +120,18 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow *const parent,
   {
     m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Host Code :"));
 
-    std::string address;
-    netplay_section.Get("HostCode", &address, "00000000");
+    std::string last_hash_code;
+    netplay_section.Get("HostCode", &last_hash_code, "00000000");
+    std::string last_ip_address;
+    netplay_section.Get("Address", &last_ip_address, "127.0.0.1");
     m_connect_ip_text =
-        new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(address));
+        new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(last_ip_address));
+    m_connect_hashcode_text =
+        new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(last_hash_code));
+
+    // Will be overridden by OnDirectTraversalChoice, but is necessary
+    // so that both inputs do not take up space
+    m_connect_hashcode_text->Hide();
 
     m_client_port_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Port :"));
 
@@ -154,6 +162,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow *const parent,
 
     top_szr->Add(m_ip_lbl, 0, wxCENTER | wxRIGHT, 5);
     top_szr->Add(m_connect_ip_text, 3);
+    top_szr->Add(m_connect_hashcode_text, 3);
     top_szr->Add(m_client_port_lbl, 0, wxCENTER | wxRIGHT | wxLEFT, 5);
     top_szr->Add(m_connect_port_text, 1);
 
@@ -263,21 +272,25 @@ NetPlaySetupFrame::~NetPlaySetupFrame() {
   inifile.Load(dolphin_ini);
   IniFile::Section &netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
-  std::string travChoice = "traversal";
-  if (m_direct_traversal->GetSelection() == 1) {
-    netplay_section.Set("TraversalChoice", travChoice);
-  } else {
+  std::string travChoice;
+  switch (m_direct_traversal->GetSelection()) {
+  case TRAVERSAL_CHOICE:
+    travChoice = "traversal";
+    break;
+  case DIRECT_CHOICE:
     travChoice = "direct";
-    netplay_section.Set("TraversalChoice", travChoice);
+    break;
   }
 
+  netplay_section.Set("TraversalChoice", travChoice);
   netplay_section.Set("Nickname", WxStrToStr(m_nickname_text->GetValue()));
 
-  if (m_direct_traversal->GetCurrentSelection() == 0) {
+  if (m_direct_traversal->GetCurrentSelection() == DIRECT_CHOICE)
     netplay_section.Set("Address", WxStrToStr(m_connect_ip_text->GetValue()));
-  } else {
-    netplay_section.Set("HostCode", WxStrToStr(m_connect_ip_text->GetValue()));
-  }
+  else
+    netplay_section.Set("HostCode",
+                        WxStrToStr(m_connect_hashcode_text->GetValue()));
+
   netplay_section.Set("ConnectPort",
                       WxStrToStr(m_connect_port_text->GetValue()));
   netplay_section.Set("HostPort", WxStrToStr(m_host_port_text->GetValue()));
@@ -294,18 +307,17 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string &game,
   NetPlayDialog *&npd = NetPlayDialog::GetInstance();
   NetPlayClient *&netplay_client = NetPlayDialog::GetNetPlayClient();
 
+  bool trav = !is_hosting &&
+              m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE;
+
   std::string ip;
   npd = new NetPlayDialog(m_parent, m_game_list, game, is_hosting);
   if (is_hosting)
     ip = "127.0.0.1";
+  else if (trav)
+    ip = WxStrToStr(m_connect_hashcode_text->GetValue());
   else
     ip = WxStrToStr(m_connect_ip_text->GetValue());
-
-  bool trav;
-  if (!is_hosting && m_direct_traversal->GetCurrentSelection() == 1)
-    trav = true;
-  else
-    trav = false;
 
   IniFile inifile;
   inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -434,18 +446,15 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent &event) {
   inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile::Section &netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
-  if (sel == 1) {
+  if (sel == TRAVERSAL_CHOICE) {
     m_traversal_lbl->Show();
     m_trav_reset_btn->Show();
+    m_connect_hashcode_text->Show();
+    m_connect_ip_text->Hide();
     // Traversal
     // client tab
     {
       m_ip_lbl->SetLabelText("Host Code: ");
-
-      std::string address;
-      netplay_section.Get("HostCode", &address, "00000000");
-      m_connect_ip_text->SetLabelText(address);
-
       m_client_port_lbl->Hide();
       m_connect_port_text->Hide();
     }
@@ -463,6 +472,8 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent &event) {
   } else {
     m_traversal_lbl->Hide();
     m_trav_reset_btn->Hide();
+    m_connect_hashcode_text->Hide();
+    m_connect_ip_text->Show();
     // Direct
     // Client tab
     {
@@ -485,7 +496,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent &event) {
     m_upnp_chk->Show();
 #endif
   }
-
+  m_connect_ip_text->GetParent()->Layout();
   DispatchFocus();
 }
 
@@ -513,7 +524,10 @@ void NetPlaySetupFrame::DispatchFocus() {
 
   switch (current_tab) {
   case CONNECT_TAB:
-    m_connect_ip_text->SetFocus();
+    if (m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE)
+      m_connect_hashcode_text->SetFocus();
+    else
+      m_connect_ip_text->SetFocus();
     break;
 
   case HOST_TAB:
