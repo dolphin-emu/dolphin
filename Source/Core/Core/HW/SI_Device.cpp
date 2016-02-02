@@ -67,6 +67,23 @@ public:
 };
 
 
+// Check if a device inherits from the gc controller
+bool SIDevice_IsGCController(SIDevices type)
+{
+	switch (type)
+	{
+	case SIDEVICE_GC_CONTROLLER:
+	case SIDEVICE_WIIU_ADAPTER:
+	case SIDEVICE_GC_TARUKONGA:
+	case SIDEVICE_DANCEMAT:
+	case SIDEVICE_GC_STEERING:
+		return true;
+	default:
+		return false;
+	}
+}
+
+
 // F A C T O R Y
 std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
 {
