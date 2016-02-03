@@ -18,6 +18,7 @@ class D3DDescriptorHeapManager
 public:
 
 	D3DDescriptorHeapManager(D3D12_DESCRIPTOR_HEAP_DESC* desc, ID3D12Device* device, unsigned int temporarySlots = 0);
+	~D3DDescriptorHeapManager();
 
 	bool Allocate(D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle = nullptr, D3D12_CPU_DESCRIPTOR_HANDLE* gpu_handle_cpu_shadow = nullptr, bool temporary = false);
 	bool AllocateGroup(D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handles, unsigned int num_handles, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handles = nullptr, D3D12_CPU_DESCRIPTOR_HANDLE* gpu_handle_cpu_shadows = nullptr, bool temporary = false);
@@ -25,9 +26,6 @@ public:
 	D3D12_GPU_DESCRIPTOR_HANDLE GetHandleForSamplerGroup(SamplerState* sampler_state, unsigned int num_sampler_samples);
 
 	ID3D12DescriptorHeap* GetDescriptorHeap() const;
-
-	void AddRef();
-	unsigned int Release();
 
 	struct SamplerStateSet
 	{
@@ -42,7 +40,6 @@ public:
 	};
 
 private:
-	~D3DDescriptorHeapManager();
 
 	ID3D12Device* m_device = nullptr;
 	ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
@@ -70,8 +67,6 @@ private:
 	bool m_gpu_visible;
 
 	unsigned int m_first_temporary_slot_in_heap;
-
-	unsigned int m_ref = 1;
 };
 
 }  // namespace

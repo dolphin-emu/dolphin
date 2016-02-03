@@ -7,6 +7,7 @@
 #include <string>
 
 #include "VideoBackends/D3D12/D3DBase.h"
+#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"

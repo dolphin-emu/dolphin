@@ -34,12 +34,12 @@ D3DBlob::~D3DBlob()
 
 void D3DBlob::AddRef()
 {
-	++m_ref;
+	InterlockedIncrement(&m_ref);
 }
 
 unsigned int D3DBlob::Release()
 {
-	if (--m_ref == 0)
+	if (InterlockedDecrement(&m_ref) == 0)
 	{
 		delete this;
 		return 0;

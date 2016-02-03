@@ -61,7 +61,7 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBColorTexture()
 	}
 }
 
-D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
+D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
 {
 	if (g_ActiveConfig.iMultisamples > 1)
 	{
@@ -77,17 +77,8 @@ D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-	m_target_width = Renderer::GetTargetWidth();
-	m_target_height = Renderer::GetTargetHeight();
-
-	if (m_target_height < 1)
-	{
-		m_target_height = 1;
-	}
-	if (m_target_width < 1)
-	{
-		m_target_width = 1;
-	}
+	m_target_width = std::max(Renderer::GetTargetWidth(), 1);
+	m_target_height = std::max(Renderer::GetTargetHeight(), 1);
 
 	DXGI_SAMPLE_DESC sample_desc;
 	sample_desc.Count = g_ActiveConfig.iMultisamples;

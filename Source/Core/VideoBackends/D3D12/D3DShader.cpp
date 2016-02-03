@@ -10,6 +10,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/D3DBase.h"
+#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -25,9 +26,9 @@ bool CompileShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MAC
 	ID3D10Blob* error_buffer = nullptr;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3D10_SHADER_DEBUG;
+	UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_DEBUG;
 #else
-	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY | D3D10_SHADER_OPTIMIZATION_LEVEL3 | D3D10_SHADER_SKIP_VALIDATION;
+	UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION;
 #endif
 	HRESULT hr = d3d_compile(code.c_str(), code.length(), nullptr, defines, nullptr, "main", shader_version_string.data(),
 		flags, 0, &shader_buffer, &error_buffer);

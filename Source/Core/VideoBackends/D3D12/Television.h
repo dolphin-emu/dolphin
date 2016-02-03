@@ -6,6 +6,8 @@
 
 #include "VideoCommon/VideoCommon.h"
 
+// D3D12TODO: Add DX12 path for this file.
+
 namespace DX12
 {
 
@@ -29,17 +31,6 @@ public:
 
 private:
 
-	// Properties of last Submit call
-	u32 m_current_address;
-	u32 m_current_width;
-	u32 m_current_height;
-
-	// Used for real XFB mode
-
-	//ID3D11Texture2D* m_yuyvTexture;
-	//ID3D11ShaderResourceView* m_yuyvTextureSRV;
-	//ID3D11PixelShader* m_pShader;
-	//ID3D11SamplerState* m_sampler_state;
 
 };
 

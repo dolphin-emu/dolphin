@@ -7,7 +7,8 @@
 #include <string>
 
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
+
+class D3DBlob;
 
 namespace DX12
 {
