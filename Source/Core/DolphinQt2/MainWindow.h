@@ -51,6 +51,7 @@ private:
 	void StartGame(const QString& path);
 	void ShowRenderWidget();
 	void HideRenderWidget();
+	void EnableScreensaver(bool enable);
 
 	QStackedWidget* m_stack;
 	ToolBar* m_tool_bar;

@@ -2,12 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <QDir>
-#include <QFile>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
 
+#ifdef Q_OS_LINUX
+#include <spawn.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#endif
+
+#include "Common/Logging/Log.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
@@ -15,7 +22,6 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/PathDialog.h"
-#include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -106,6 +112,7 @@ void MainWindow::Play()
 	if (Core::GetState() == Core::CORE_PAUSE)
 	{
 		Core::SetState(Core::CORE_RUN);
+		EnableScreensaver(false);
 		emit EmulationStarted();
 	}
 	else
@@ -138,6 +145,7 @@ void MainWindow::Pause()
 {
 	Core::SetState(Core::CORE_PAUSE);
 	emit EmulationPaused();
+	EnableScreensaver(true);
 }
 
 bool MainWindow::Stop()
@@ -161,6 +169,7 @@ void MainWindow::ForceStop()
 {
 	BootManager::Stop();
 	HideRenderWidget();
+	EnableScreensaver(true);
 	emit EmulationStopped();
 }
 
@@ -206,6 +215,7 @@ void MainWindow::StartGame(const QString& path)
 	}
 	Settings().SetLastGame(path);
 	ShowRenderWidget();
+	EnableScreensaver(false);
 	emit EmulationStarted();
 }
 
@@ -248,4 +258,34 @@ void MainWindow::HideRenderWidget()
 		setWindowTitle(tr("Dolphin"));
 	}
 	m_render_widget->hide();
+}
+
+void MainWindow::EnableScreensaver(bool enable)
+{
+#ifdef Q_OS_LINUX
+	// runs xdg-screensaver which will safely re-enable the screensaver should dolphin crash
+	char window_id[20];
+	sprintf(window_id, "%llu", winId());
+	std::array<char* const, 4> argv = {
+			const_cast<char* const>("xdg-screensaver"),
+			const_cast<char* const>(enable ? "resume" : "suspend"),
+			const_cast<char* const>(window_id),
+			nullptr
+	};
+	pid_t pid;
+	if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv.data(), environ))
+	{
+		int status;
+		while (waitpid(pid, &status, 0) == -1);
+
+		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", static_cast<int>(pid));
+	}
+#elif defined(Q_OS_WIN)
+	if (enable)
+		SetThreadExecutionState(ES_CONTINUOUS);
+	else
+		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+#elif defined(Q_OS_MAC)
+	//TODO: need a dev with mac os
+#endif
 }
