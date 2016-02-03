@@ -38,8 +38,6 @@ Window XWindowFromHandle(void* Handle);
 Display* XDisplayFromHandle(void* Handle);
 #endif
 
-void InhibitScreensaver(Display* dpy, Window win, bool suspend);
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 class XRRConfiguration
 {

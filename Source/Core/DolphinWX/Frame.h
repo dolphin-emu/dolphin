@@ -330,6 +330,8 @@ private:
 
   // Event table
   DECLARE_EVENT_TABLE();
+
+  void EnableScreensaver(bool enable);
 };
 
 void OnAfterLoadCallback();
