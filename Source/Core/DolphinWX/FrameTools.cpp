@@ -76,6 +76,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -97,7 +99,8 @@
 class InputConfig;
 class wxFrame;
 
-// This override allows returning a fake menubar object while removing the real one from the screen
+// This override allows returning a fake menubar object while removing the real
+// one from the screen
 wxMenuBar* CFrame::GetMenuBar() const
 {
   if (m_frameMenuBar)
@@ -665,12 +668,13 @@ void CFrame::DoOpen(bool Boot)
 {
   std::string currentDir = File::GetCurrentDir();
 
-  wxString path = wxFileSelector(
-      _("Select the file to load"), wxEmptyString, wxEmptyString, wxEmptyString,
-      _("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
-          wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s",
-                           wxGetTranslation(wxALL_FILES)),
-      wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+  wxString path =
+      wxFileSelector(_("Select the file to load"), wxEmptyString, wxEmptyString, wxEmptyString,
+                     _("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
+                         wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;"
+                                          "*.dff;*.tmd|%s",
+                                          wxGetTranslation(wxALL_FILES)),
+                     wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
   if (path.IsEmpty())
     return;
@@ -764,7 +768,8 @@ void CFrame::OnFrameStep(wxCommandEvent& event)
   Movie::DoFrameStep();
 
   bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
-  if (isPaused && !wasPaused)  // don't update on unpause, otherwise the status would be wrong when
+  if (isPaused && !wasPaused)  // don't update on unpause, otherwise the status
+                               // would be wrong when
                                // pausing next frame
     UpdateGUI();
 }
@@ -915,7 +920,8 @@ void CFrame::ToggleDisplayMode(bool bFullscreen)
     dmScreenSettings.dmBitsPerPel = 32;
     dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
-    // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+    // Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid
+    // Of Start Bar.
     ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
   }
   else
@@ -995,10 +1001,12 @@ void CFrame::StartGame(const std::string& filename)
     m_RenderFrame->Bind(wxEVT_ACTIVATE, &CFrame::OnActive, this);
     m_RenderFrame->Bind(wxEVT_MOVE, &CFrame::OnRenderParentMove, this);
 #ifdef _WIN32
-    // The renderer should use a top-level window for exclusive fullscreen support.
+    // The renderer should use a top-level window for exclusive fullscreen
+    // support.
     m_RenderParent = m_RenderFrame;
 #else
-    // To capture key events on Linux and Mac OS X the frame needs at least one child.
+    // To capture key events on Linux and Mac OS X the frame needs at least one
+    // child.
     m_RenderParent = new wxPanel(m_RenderFrame, IDM_MPANEL, wxDefaultPosition, wxDefaultSize, 0);
 #endif
 
@@ -1028,18 +1036,7 @@ void CFrame::StartGame(const std::string& filename)
   }
   else
   {
-#if defined(HAVE_X11) && HAVE_X11
-    if (SConfig::GetInstance().bDisableScreenSaver)
-      X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                   X11Utils::XWindowFromHandle(GetHandle()), true);
-#endif
-
-#ifdef _WIN32
-    // Prevents Windows from sleeping, turning off the display, or idling
-    EXECUTION_STATE shouldScreenSave =
-        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
-    SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
-#endif
+    EnableScreensaver(false);
 
     m_RenderParent->SetFocus();
 
@@ -1125,7 +1122,8 @@ void CFrame::DoStop()
       Core::EState state = Core::GetState();
 
       // If exclusive fullscreen is not enabled then we can pause the emulation
-      // before we've exited fullscreen. If not then we need to exit fullscreen first.
+      // before we've exited fullscreen. If not then we need to exit fullscreen
+      // first.
       if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
           SConfig::GetInstance().bRenderToMain)
       {
@@ -1183,17 +1181,7 @@ void CFrame::OnStopped()
 {
   m_confirmStop = false;
 
-#if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
-    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-                                 X11Utils::XWindowFromHandle(GetHandle()), false);
-#endif
-
-#ifdef _WIN32
-  // Allow windows to resume normal idling behavior
-  SetThreadExecutionState(ES_CONTINUOUS);
-#endif
-
+  EnableScreensaver(true);
   m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
   // Destroy the renderer frame when not rendering to main
@@ -1233,7 +1221,8 @@ void CFrame::OnStopped()
   // Clear wiimote connection status from the status bar.
   GetStatusBar()->SetStatusText(" ", 1);
 
-  // If batch mode was specified on the command-line or we were already closing, exit now.
+  // If batch mode was specified on the command-line or we were already closing,
+  // exit now.
   if (m_bBatchMode || m_bClosing)
     Close(true);
 
@@ -1554,7 +1543,8 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
   Core::PauseAndLock(false, was_unpaused);
 }
 
-// Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to
+// Toggle fullscreen. In Windows the fullscreen mode is accomplished by
+// expanding the m_Panel to
 // cover
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED(event))
@@ -2013,4 +2003,16 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
   }
   m_GameListCtrl->Update();
   SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::EnableScreensaver(bool enable)
+{
+  std::string handle;
+
+#if defined(__linux__)
+  Window win = X11Utils::XWindowFromHandle(GetHandle());
+  handle = std::to_string(win);
+#endif
+
+  UICommon::EnableScreensaver(enable, handle);
 }
