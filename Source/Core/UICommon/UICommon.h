@@ -11,5 +11,6 @@ void Shutdown();
 
 void CreateDirectories();
 void SetUserDirectory(const std::string& custom_path);
+void EnableScreensaver(bool enable, const std::string& window_id);
 
 }  // namespace UICommon

@@ -6,6 +6,12 @@
 #include <shlobj.h>  // for SHGetFolderPath
 #endif
 
+#if defined(__linux__) && !defined(__ANDROID__)
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
@@ -78,7 +84,8 @@ void SetUserDirectory(const std::string& custom_path)
 
   std::string user_path = "";
 #ifdef _WIN32
-  // Detect where the User directory is. There are five different cases (on top of the
+  // Detect where the User directory is. There are five different cases (on top
+  // of the
   // command line flag, which overrides all this):
   // 1. GetExeDirectory()\portable.txt exists
   //    -> Use GetExeDirectory()\User
@@ -126,7 +133,8 @@ void SetUserDirectory(const std::string& custom_path)
   else  // Case 5
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
-  // Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
+  // Prettify the path: it will be displayed in some places, we don't want a mix
+  // of \ and /.
   user_path = ReplaceAll(user_path, "\\", DIR_SEP);
 
   // Make sure it ends in DIR_SEP.
@@ -149,9 +157,12 @@ void SetUserDirectory(const std::string& custom_path)
 #if defined(__APPLE__) || defined(ANDROID)
     user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
 #else
-    // We are on a non-Apple and non-Android POSIX system, let's respect XDG basedir.
-    // The only case we don't is when there is an existing ~/.dolphin-emu directory.
-    // See http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    // We are on a non-Apple and non-Android POSIX system, let's respect XDG
+    // basedir.
+    // The only case we don't is when there is an existing ~/.dolphin-emu
+    // directory.
+    // See
+    // http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
     if (!File::Exists(user_path))
@@ -182,6 +193,36 @@ void SetUserDirectory(const std::string& custom_path)
   }
 #endif
   File::SetUserPath(D_USER_IDX, user_path);
+}
+
+void EnableScreensaver(bool enable, const std::string& window_id)
+{
+  if (!SConfig::GetInstance().bDisableScreenSaver)
+    return;
+
+#if defined(__linux__) && !defined(__ANDROID__)
+  // runs xdg-screensaver which will safely re-enable the screensaver should
+  // dolphin crash
+  std::array<char*, 4> argv{{const_cast<char*>("xdg-screensaver"),
+                             const_cast<char*>(enable ? "resume" : "suspend"),
+                             const_cast<char*>(window_id.c_str()), nullptr}};
+  pid_t pid;
+  if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv.data(), environ))
+  {
+    int status;
+    while (waitpid(pid, &status, 0) == -1)
+      continue;
+
+    DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", static_cast<int>(pid));
+  }
+#elif defined(_WIN32)
+  if (enable)
+    SetThreadExecutionState(ES_CONTINUOUS);
+  else
+    SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+#elif defined(__APPLE__)
+// TODO: need a dev with mac os
+#endif
 }
 
 }  // namespace UICommon

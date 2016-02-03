@@ -21,6 +21,8 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
+#include "UICommon/UICommon.h"
+
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
   setWindowTitle(tr("Dolphin"));
@@ -136,7 +138,8 @@ void MainWindow::Open()
 {
   QString file = QFileDialog::getOpenFileName(
       this, tr("Select a File"), QDir::currentPath(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz "
+         "*.wad);;"
          "All Files (*)"));
   if (!file.isEmpty())
     StartGame(file);
@@ -152,6 +155,7 @@ void MainWindow::Play()
   if (Core::GetState() == Core::CORE_PAUSE)
   {
     Core::SetState(Core::CORE_RUN);
+    EnableScreensaver(false);
     emit EmulationStarted();
   }
   else
@@ -184,6 +188,7 @@ void MainWindow::Pause()
 {
   Core::SetState(Core::CORE_PAUSE);
   emit EmulationPaused();
+  EnableScreensaver(true);
 }
 
 bool MainWindow::Stop()
@@ -207,6 +212,7 @@ void MainWindow::ForceStop()
 {
   BootManager::Stop();
   HideRenderWidget();
+  EnableScreensaver(true);
   emit EmulationStopped();
 }
 
@@ -257,6 +263,7 @@ void MainWindow::StartGame(const QString& path)
   }
   Settings().SetLastGame(path);
   ShowRenderWidget();
+  EnableScreensaver(false);
   emit EmulationStarted();
 }
 
@@ -265,7 +272,8 @@ void MainWindow::ShowRenderWidget()
   Settings settings;
   if (settings.GetRenderToMain())
   {
-    // If we're rendering to main, add it to the stack and update our title when necessary.
+    // If we're rendering to main, add it to the stack and update our title when
+    // necessary.
     m_rendering_to_main = true;
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
@@ -290,7 +298,8 @@ void MainWindow::HideRenderWidget()
 {
   if (m_rendering_to_main)
   {
-    // Remove the widget from the stack and reparent it to nullptr, so that it can draw
+    // Remove the widget from the stack and reparent it to nullptr, so that it
+    // can draw
     // itself in a new window if it wants. Disconnect the title updates.
     m_stack->removeWidget(m_render_widget);
     m_render_widget->setParent(nullptr);
@@ -376,4 +385,10 @@ void MainWindow::SetStateSlot(int slot)
 {
   Settings().SetStateSlot(slot);
   m_state_slot = slot;
+}
+
+void MainWindow::EnableScreensaver(bool enable)
+{
+  const std::string window_id = std::to_string(winId());
+  UICommon::EnableScreensaver(enable, window_id);
 }
