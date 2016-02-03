@@ -343,6 +343,8 @@ private:
 
 	// Event table
 	DECLARE_EVENT_TABLE();
+
+	void EnableScreensaver(bool enable);
 };
 
 int GetCmdForHotkey(unsigned int key);

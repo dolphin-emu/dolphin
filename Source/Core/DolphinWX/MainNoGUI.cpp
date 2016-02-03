@@ -150,8 +150,13 @@ class PlatformX11 : public Platform
 		XFlush(dpy);
 		s_window_handle = (void*)win;
 
-		if (SConfig::GetInstance().bDisableScreenSaver)
-			X11Utils::InhibitScreensaver(dpy, win, true);
+		char handle[20] = "";
+
+        #if defined(__linux__)
+        snprintf(handle, sizeof(handle), "0x%lx", win);
+        #endif
+
+		UICommon::EnableScreensaver(true, handle);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
