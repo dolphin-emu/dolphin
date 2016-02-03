@@ -76,6 +76,8 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "UICommon/UICommon.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -1031,11 +1033,7 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
-#if defined(HAVE_X11) && HAVE_X11
-	if (SConfig::GetInstance().bDisableScreenSaver)
-		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-				X11Utils::XWindowFromHandle(GetHandle()), true);
-#endif
+		EnableScreensaver(false);
 
 		m_RenderParent->SetFocus();
 
@@ -1184,11 +1182,7 @@ void CFrame::OnStopped()
 {
 	m_confirmStop = false;
 
-#if defined(HAVE_X11) && HAVE_X11
-	if (SConfig::GetInstance().bDisableScreenSaver)
-		X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
-				X11Utils::XWindowFromHandle(GetHandle()), false);
-#endif
+	EnableScreensaver(true);
 	m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
 	// Destroy the renderer frame when not rendering to main
@@ -2011,4 +2005,16 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
 	}
 	m_GameListCtrl->Update();
 	SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::EnableScreensaver(bool enable)
+{
+	std::string handle;
+
+	#if defined(__linux__)
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		handle = std::to_string(win);
+	#endif
+
+	UICommon::EnableScreensaver(enable, handle);
 }

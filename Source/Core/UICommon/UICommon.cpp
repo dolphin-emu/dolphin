@@ -6,6 +6,12 @@
 #include <shlobj.h>    // for SHGetFolderPath
 #endif
 
+#if defined(__linux__) && !defined(__ANDROID__)
+#include <spawn.h>
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
+
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
@@ -178,6 +184,38 @@ void SetUserDirectory(const std::string& custom_path)
 	}
 #endif
 	File::SetUserPath(D_USER_IDX, user_path);
+}
+
+void EnableScreensaver(bool enable, const std::string& window_id)
+{
+	if (!SConfig::GetInstance().bDisableScreenSaver)
+		return;
+
+#if defined(__linux__) && !defined(__ANDROID__)
+	// runs xdg-screensaver which will safely re-enable the screensaver should dolphin crash
+	std::array<char*, 4> argv{{
+			const_cast<char*>("xdg-screensaver"),
+			const_cast<char*>(enable ? "resume" : "suspend"),
+			const_cast<char*>(window_id.c_str()),
+			nullptr
+	}};
+	pid_t pid;
+	if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv.data(), environ))
+	{
+		int status;
+		while (waitpid(pid, &status, 0) == -1)
+			continue;
+
+		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", static_cast<int>(pid));
+	}
+#elif defined(_WIN32)
+	if (enable)
+		SetThreadExecutionState(ES_CONTINUOUS);
+	else
+		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+#elif defined(__APPLE__)
+	//TODO: need a dev with mac os
+#endif
 }
 
 } // namespace UICommon

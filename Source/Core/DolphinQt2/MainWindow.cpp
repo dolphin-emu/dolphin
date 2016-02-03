@@ -21,6 +21,8 @@
 #include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 
+#include "UICommon/UICommon.h"
+
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
 	setWindowTitle(tr("Dolphin"));
@@ -153,6 +155,7 @@ void MainWindow::Play()
 	if (Core::GetState() == Core::CORE_PAUSE)
 	{
 		Core::SetState(Core::CORE_RUN);
+		EnableScreensaver(false);
 		emit EmulationStarted();
 	}
 	else
@@ -185,6 +188,7 @@ void MainWindow::Pause()
 {
 	Core::SetState(Core::CORE_PAUSE);
 	emit EmulationPaused();
+	EnableScreensaver(true);
 }
 
 bool MainWindow::Stop()
@@ -208,6 +212,7 @@ void MainWindow::ForceStop()
 {
 	BootManager::Stop();
 	HideRenderWidget();
+	EnableScreensaver(true);
 	emit EmulationStopped();
 }
 
@@ -258,6 +263,7 @@ void MainWindow::StartGame(const QString& path)
 	}
 	Settings().SetLastGame(path);
 	ShowRenderWidget();
+	EnableScreensaver(false);
 	emit EmulationStarted();
 }
 
@@ -377,4 +383,10 @@ void MainWindow::SetStateSlot(int slot)
 {
 	Settings().SetStateSlot(slot);
 	m_state_slot = slot;
+}
+
+void MainWindow::EnableScreensaver(bool enable)
+{
+	const std::string window_id = std::to_string(winId());
+	UICommon::EnableScreensaver(enable, window_id);
 }

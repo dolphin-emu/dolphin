@@ -150,8 +150,13 @@ class PlatformX11 : public Platform
 		XFlush(dpy);
 		s_window_handle = (void*)win;
 
-		if (SConfig::GetInstance().bDisableScreenSaver)
-			X11Utils::InhibitScreensaver(dpy, win, true);
+		std::string handle;
+
+	#if defined(__linux__)
+		handle = std::to_string(win);
+	#endif
+
+		UICommon::EnableScreensaver(true, handle);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
@@ -245,7 +250,7 @@ class PlatformX11 : public Platform
 				case FocusIn:
 					rendererHasFocus = true;
 					if (SConfig::GetInstance().bHideCursor &&
-					    Core::GetState() != Core::CORE_PAUSE)
+						Core::GetState() != Core::CORE_PAUSE)
 						XDefineCursor(dpy, win, blankCursor);
 					break;
 				case FocusOut:
@@ -306,7 +311,7 @@ int main(int argc, char* argv[])
 		{ "exec",    no_argument, nullptr, 'e' },
 		{ "help",    no_argument, nullptr, 'h' },
 		{ "version", no_argument, nullptr, 'v' },
-		{ nullptr,      0,           nullptr,  0  }
+		{ nullptr,   0,           nullptr,  0  }
 	};
 
 	while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
