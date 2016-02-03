@@ -555,9 +555,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 			ret |= 0xFF000000;
 		}
 
-		if (alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
-		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
-		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
+		if (alpha_read_mode.ReadMode == 2)
+		{
+			return ret; // GX_READ_NONE
+		}
+		else if (alpha_read_mode.ReadMode == 1)
+		{
+			return (ret | 0xFF000000); // GX_READ_FF
+		}
+		else /*if(alpha_read_mode.ReadMode == 0)*/
+		{
+			return (ret & 0x00FFFFFF); // GX_READ_00
+		}
 	}
 
 	return 0;
@@ -649,17 +658,23 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 {
 	D3D12_BLEND_DESC* blend_desc = nullptr;
 
-	if (color_enable && alpha_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED];
-	else if (color_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_RGB_CHANNELS_ENABLED];
-	else if (alpha_enable) blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALPHA_CHANNEL_ENABLED];
-	else blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED];
+	if (color_enable && alpha_enable)
+		blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED];
+	else if (color_enable)
+		blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_RGB_CHANNELS_ENABLED];
+	else if (alpha_enable)
+		blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALPHA_CHANNEL_ENABLED];
+	else
+		blend_desc = &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED];
 
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc = nullptr;
 
 	// EXISTINGD3D11TODO: Should we enable Z testing here?
 	/*if (!bpmem.zmode.testenable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED];
-	else */if (z_enable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED];
-	else /*if (!z_enable)*/ depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED];
+	else */if (z_enable)
+		depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED];
+	else /*if (!z_enable)*/
+		depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED];
 
 	// Update the view port for clearing the picture
 	TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);

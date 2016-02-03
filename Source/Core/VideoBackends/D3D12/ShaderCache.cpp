@@ -6,6 +6,7 @@
 
 #include "Core/ConfigManager.h"
 
+#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
@@ -360,8 +361,8 @@ D3D12_SHADER_BYTECODE ShaderCache::GetGeometryShaderFromUid(const GeometryShader
 	auto bytecode = s_gs_bytecode_cache.find(*uid);
 	if (bytecode != s_gs_bytecode_cache.end())
 		return bytecode->second;
-	else
-		return D3D12_SHADER_BYTECODE();
+
+	return D3D12_SHADER_BYTECODE();
 }
 
 D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* uid)
@@ -369,8 +370,8 @@ D3D12_SHADER_BYTECODE ShaderCache::GetPixelShaderFromUid(const PixelShaderUid* u
 	auto bytecode = s_ps_bytecode_cache.find(*uid);
 	if (bytecode != s_ps_bytecode_cache.end())
 		return bytecode->second;
-	else
-		return D3D12_SHADER_BYTECODE();
+
+	return D3D12_SHADER_BYTECODE();
 }
 
 D3D12_SHADER_BYTECODE ShaderCache::GetVertexShaderFromUid(const VertexShaderUid* uid)
@@ -378,8 +379,8 @@ D3D12_SHADER_BYTECODE ShaderCache::GetVertexShaderFromUid(const VertexShaderUid*
 	auto bytecode = s_vs_bytecode_cache.find(*uid);
 	if (bytecode != s_vs_bytecode_cache.end())
 		return bytecode->second;
-	else
-		return D3D12_SHADER_BYTECODE();
+
+	return D3D12_SHADER_BYTECODE();
 }
 
 }

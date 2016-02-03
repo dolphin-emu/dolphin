@@ -494,12 +494,12 @@ void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_
 
 ULONG ID3D12QueuedCommandList::AddRef()
 {
-	return ++m_ref;
+	return InterlockedIncrement(&m_ref);
 }
 
 ULONG ID3D12QueuedCommandList::Release()
 {
-	ULONG ref = --m_ref;
+	ULONG ref = InterlockedDecrement(&m_ref);
 	if (!ref)
 	{
 		delete this;

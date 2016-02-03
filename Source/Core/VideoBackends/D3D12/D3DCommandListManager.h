@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <array>
 #include <map>
+#include <vector>
 
 #include "D3DQueuedCommandList.h"
 
@@ -17,6 +19,7 @@ class D3DCommandListManager
 public:
 
 	D3DCommandListManager(D3D12_COMMAND_LIST_TYPE command_list_type, ID3D12Device* device, ID3D12CommandQueue* command_queue);
+	~D3DCommandListManager();
 
 	void SetInitialCommandListState();
 
@@ -31,9 +34,6 @@ public:
 	void DestroyResourceAfterCurrentCommandListExecuted(ID3D12Resource* resource);
 	void ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
-	void AddRef();
-	unsigned int Release();
-
 	bool m_dirty_vertex_buffer;
 	bool m_dirty_pso;
 	bool m_dirty_ps_cbv;
@@ -46,22 +46,16 @@ public:
 	bool m_cpu_access_last_frame = false;
 	bool m_cpu_access_this_frame = false;
 
-	void CPUAccessNotify() {
-		m_cpu_access_last_frame = true;
-		m_cpu_access_this_frame = true;
-		m_draws_since_last_execution = 0;
-	};
+	void CPUAccessNotify();
 
 	// Allow other components to register for a callback each time a fence is queued.
-	typedef void (PFN_QUEUE_FENCE_CALLBACK)(void* owning_object, UINT64 fence_value);
-
+	using PFN_QUEUE_FENCE_CALLBACK = void(void* owning_object, UINT64 fence_value);
 	ID3D12Fence* RegisterQueueFenceCallback(void* owning_object, PFN_QUEUE_FENCE_CALLBACK* callback_function);
 	void RemoveQueueFenceCallback(void* owning_object);
 
 	void WaitOnCPUForFence(ID3D12Fence* fence, UINT64 fence_value);
 
 private:
-	~D3DCommandListManager();
 
 	void PerformGpuRolloverChecks();
 	void ResetCommandListWithIdleCommandAllocator();
@@ -75,11 +69,11 @@ private:
 	UINT64 m_queue_frame_fence_value;
 	ID3D12Fence* m_queue_frame_fence;
 
-	std::map<void*,PFN_QUEUE_FENCE_CALLBACK*> m_queue_fence_callbacks;
+	std::map<void*, PFN_QUEUE_FENCE_CALLBACK*> m_queue_fence_callbacks;
 
 	UINT m_current_command_allocator;
 	UINT m_current_command_allocator_list;
-	std::vector<ID3D12CommandAllocator*> m_command_allocator_lists[2];
+	std::array<std::vector<ID3D12CommandAllocator*>, 2> m_command_allocator_lists;
 
 	ID3D12GraphicsCommandList* m_backing_command_list;
 	ID3D12QueuedCommandList* m_queued_command_list;
@@ -87,9 +81,7 @@ private:
 	ID3D12RootSignature* m_default_root_signature;
 
 	UINT m_current_deferred_destruction_list;
-	std::vector<ID3D12Resource*> m_deferred_destruction_lists[2];
-
-	unsigned int m_ref = 1;
+	std::array<std::vector<ID3D12Resource*>, 2> m_deferred_destruction_lists;
 };
 
 }  // namespace

@@ -626,7 +626,7 @@ private:
 	ID3D12GraphicsCommandList* m_command_list;
 	ID3D12CommandQueue* m_command_queue;
 
-	unsigned int m_ref = 1;
+	volatile long m_ref = 1;
 };
 
 }  // namespace

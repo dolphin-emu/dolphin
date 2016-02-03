@@ -51,8 +51,8 @@ void VertexManager::CreateDeviceObjects()
 
 	// Use CPU-only memory if the GPU won't be reading from the buffers,
 	// since reading upload heaps on the CPU is slow..
-	m_vertex_cpu_buffer = new u8[MAXVBUFFERSIZE];
-	m_index_cpu_buffer = new u8[MAXIBUFFERSIZE];
+	m_vertex_cpu_buffer.reserve(MAXVBUFFERSIZE);
+	m_index_cpu_buffer.reserve(MAXIBUFFERSIZE);
 }
 
 void VertexManager::DestroyDeviceObjects()
@@ -60,8 +60,8 @@ void VertexManager::DestroyDeviceObjects()
 	SAFE_DELETE(m_vertex_stream_buffer);
 	SAFE_DELETE(m_index_stream_buffer);
 
-	SAFE_DELETE_ARRAY(m_vertex_cpu_buffer);
-	SAFE_DELETE_ARRAY(m_index_cpu_buffer);
+	m_vertex_cpu_buffer.clear();
+	m_index_cpu_buffer.clear();
 }
 
 VertexManager::VertexManager()
@@ -177,11 +177,11 @@ void VertexManager::ResetBuffer(u32 stride)
 {
 	if (s_cull_all)
 	{
-		s_pCurBufferPointer = m_vertex_cpu_buffer;
-		s_pBaseBufferPointer = m_vertex_cpu_buffer;
-		s_pEndBufferPointer = m_vertex_cpu_buffer + MAXVBUFFERSIZE;
+		s_pCurBufferPointer = m_vertex_cpu_buffer.data();
+		s_pBaseBufferPointer = m_vertex_cpu_buffer.data();
+		s_pEndBufferPointer = m_vertex_cpu_buffer.data() + MAXVBUFFERSIZE;
 
-		IndexGenerator::Start(reinterpret_cast<u16*>(m_index_cpu_buffer));
+		IndexGenerator::Start(reinterpret_cast<u16*>(m_index_cpu_buffer.data()));
 		return;
 	}
 

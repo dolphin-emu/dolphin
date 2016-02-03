@@ -60,7 +60,7 @@ private:
 
 	bool m_multisampled = false;
 
-	unsigned int m_ref = 1;
+	volatile unsigned long m_ref = 1;
 };
 
 }  // namespace DX12

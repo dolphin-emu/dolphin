@@ -26,15 +26,15 @@
 namespace DX12
 {
 
-bool cache_is_corrupted = false;
-LinearDiskCache<SmallPsoDiskDesc, u8> g_pso_disk_cache;
+static bool s_cache_is_corrupted = false;
+static LinearDiskCache<SmallPsoDiskDesc, u8> s_pso_disk_cache;
 
 class PipelineStateCacheInserter : public LinearDiskCacheReader<SmallPsoDiskDesc, u8>
 {
 public:
 	void Read(const SmallPsoDiskDesc& key, const u8* value, u32 value_size)
 	{
-		if (cache_is_corrupted)
+		if (s_cache_is_corrupted)
 			return;
 
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
@@ -53,7 +53,7 @@ public:
 
 		if (!desc.PS.pShaderBytecode || !desc.VS.pShaderBytecode)
 		{
-			cache_is_corrupted = true;
+			s_cache_is_corrupted = true;
 			return;
 		}
 
@@ -93,7 +93,7 @@ public:
 			// Failure can occur if disk cache is corrupted, or a driver upgrade invalidates the existing blobs.
 			// In this case, we need to clear the disk cache.
 
-			cache_is_corrupted = true;
+			s_cache_is_corrupted = true;
 			return;
 		}
 
@@ -137,9 +137,9 @@ void StateCache::Init()
 		SConfig::GetInstance().m_strUniqueID.c_str());
 
 	PipelineStateCacheInserter inserter;
-	g_pso_disk_cache.OpenAndRead(cache_filename, inserter);
+	s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (cache_is_corrupted)
+	if (s_cache_is_corrupted)
 	{
 		// If a PSO fails to create, that means either:
 		// - The file itself is corrupt.
@@ -147,7 +147,7 @@ void StateCache::Init()
 		//
 		// In either case, we want to re-create the disk cache. This should not be a frequent occurence.
 
-		g_pso_disk_cache.Close();
+		s_pso_disk_cache.Close();
 
 		for (auto it : gx_state_cache.m_small_pso_map)
 		{
@@ -157,9 +157,9 @@ void StateCache::Init()
 
 		File::Delete(cache_filename);
 
-		g_pso_disk_cache.OpenAndRead(cache_filename, inserter);
+		s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
 
-		cache_is_corrupted = false;
+		s_cache_is_corrupted = false;
 	}
 }
 
@@ -449,7 +449,7 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 
 		if (SUCCEEDED(hr))
 		{
-			g_pso_disk_cache.Append(disk_desc, reinterpret_cast<const u8*>(psoBlob->GetBufferPointer()), static_cast<u32>(psoBlob->GetBufferSize()));
+			s_pso_disk_cache.Append(disk_desc, reinterpret_cast<const u8*>(psoBlob->GetBufferPointer()), static_cast<u32>(psoBlob->GetBufferSize()));
 			psoBlob->Release();
 		}
 	}
@@ -463,20 +463,20 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 
 void StateCache::Clear()
 {
-	for (auto it : m_pso_map)
+	for (auto& it : m_pso_map)
 	{
 		SAFE_RELEASE(it.second);
 	}
 	m_pso_map.clear();
 
-	for (auto it : m_small_pso_map)
+	for (auto& it : m_small_pso_map)
 	{
 		SAFE_RELEASE(it.second);
 	}
 	m_small_pso_map.clear();
 
-	g_pso_disk_cache.Sync();
-	g_pso_disk_cache.Close();
+	s_pso_disk_cache.Sync();
+	s_pso_disk_cache.Close();
 }
 
 }  // namespace DX12

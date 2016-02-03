@@ -41,7 +41,7 @@ D3DDescriptorHeapManager::D3DDescriptorHeapManager(D3D12_DESCRIPTOR_HEAP_DESC* d
 	m_current_temporary_offset_in_heap = m_first_temporary_slot_in_heap;
 }
 
-bool D3DDescriptorHeapManager::Allocate(D3D12_CPU_DESCRIPTOR_HANDLE *cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE *gpu_handle, D3D12_CPU_DESCRIPTOR_HANDLE *gpu_handle_cpu_shadow, bool temporary)
+bool D3DDescriptorHeapManager::Allocate(D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle, D3D12_CPU_DESCRIPTOR_HANDLE* gpu_handle_cpu_shadow, bool temporary)
 {
 	bool allocated_from_current_heap = true;
 
@@ -164,21 +164,6 @@ D3DDescriptorHeapManager::~D3DDescriptorHeapManager()
 {
 	SAFE_RELEASE(m_descriptor_heap);
 	SAFE_RELEASE(m_descriptor_heap_cpu_shadow);
-}
-
-void D3DDescriptorHeapManager::AddRef()
-{
-	++m_ref;
-}
-
-unsigned int D3DDescriptorHeapManager::Release()
-{
-	if (--m_ref == 0)
-	{
-		delete this;
-		return 0;
-	}
-	return m_ref;
 }
 
 }  // namespace DX12

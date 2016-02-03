@@ -4,6 +4,7 @@
 
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D12/D3DBase.h"
+#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 #include "VideoCommon/VideoConfig.h"

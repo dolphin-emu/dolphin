@@ -40,8 +40,8 @@ private:
 	bool m_vertex_stream_buffer_reallocated = false;
 	bool m_index_stream_buffer_reallocated = false;
 
-	u8* m_index_cpu_buffer = nullptr;
-	u8* m_vertex_cpu_buffer = nullptr;
+	std::vector<u8> m_index_cpu_buffer;
+	std::vector<u8> m_vertex_cpu_buffer;
 };
 
 }  // namespace

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/D3DBase.h"
+#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
@@ -21,7 +22,7 @@
 namespace DX12
 {
 
-static TextureEncoder* s_encoder = nullptr;
+static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
 static const unsigned int s_max_copy_buffers = 32;
 static ID3D12Resource* s_efb_copy_buffers[s_max_copy_buffers] = {};
 
@@ -365,6 +366,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 		void* data = nullptr;
 		CheckHR(s_efb_copy_buffers[cbuf_id]->Map(0, nullptr, &data));
 		memcpy(data, colmat, 28 * sizeof(float));
+		s_efb_copy_buffers[cbuf_id]->Unmap(0, nullptr);
 	}
 
 	D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_buffers[cbuf_id]->GetGPUVirtualAddress());
@@ -598,15 +600,15 @@ D3D12_SHADER_BYTECODE GetConvertShader12(std::string& Type)
 	shader.append("\n");
 	shader.append(s_palette_shader_hlsl);
 
-	D3DBlob* pBlob = nullptr;
-	D3D::CompilePixelShader(shader, &pBlob);
+	D3DBlob* blob = nullptr;
+	D3D::CompilePixelShader(shader, &blob);
 
-	return { pBlob->Data(), pBlob->Size() };
+	return { blob->Data(), blob->Size() };
 }
 
 TextureCache::TextureCache()
 {
-	s_encoder = new PSTextureEncoder;
+	s_encoder = std::make_unique<PSTextureEncoder>();
 	s_encoder->Init();
 
 	s_texture_cache_entry_readback_buffer = nullptr;
@@ -667,7 +669,7 @@ TextureCache::~TextureCache()
 	}
 
 	s_encoder->Shutdown();
-	delete s_encoder;
+	s_encoder.release();
 	s_encoder = nullptr;
 
 	if (s_texture_cache_entry_readback_buffer)

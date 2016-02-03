@@ -25,6 +25,7 @@ class VideoBackend : public VideoBackendBase
 
 	unsigned int PeekMessages() override;
 
+private:
 	void* m_window_handle;
 };
 

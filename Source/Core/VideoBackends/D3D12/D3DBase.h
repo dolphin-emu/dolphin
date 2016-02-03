@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #define USE_D3D12_QUEUED_COMMAND_LISTS
+
+// D3D12TODO: Support this from Graphics Settings, not require a recompile to enable.
 //#define USE_D3D12_DEBUG_LAYER
 
 #pragma once
@@ -82,7 +84,7 @@ extern D3DDescriptorHeapManager* gpu_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* sampler_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* dsv_descriptor_heap_mgr;
 extern D3DDescriptorHeapManager* rtv_descriptor_heap_mgr;
-extern ID3D12DescriptorHeap* gpu_descriptor_heaps[2];
+extern std::array<ID3D12DescriptorHeap*, 2> gpu_descriptor_heaps;
 
 
 extern D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu;

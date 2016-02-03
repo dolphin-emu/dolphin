@@ -28,6 +28,8 @@ D3DStreamBuffer::D3DStreamBuffer(unsigned int initial_size, unsigned int max_siz
 D3DStreamBuffer::~D3DStreamBuffer()
 {
 	D3D::command_list_mgr->RemoveQueueFenceCallback(this);
+
+	m_buffer->Unmap(0, nullptr);
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_buffer);
 }
 
@@ -92,6 +94,7 @@ void D3DStreamBuffer::AllocateBuffer(unsigned int size)
 	// First, put existing buffer (if it exists) in deferred destruction list.
 	if (m_buffer)
 	{
+		m_buffer->Unmap(0, nullptr);
 		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_buffer);
 		m_buffer = nullptr;
 	}

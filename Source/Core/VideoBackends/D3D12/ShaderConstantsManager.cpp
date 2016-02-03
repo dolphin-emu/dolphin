@@ -25,7 +25,7 @@ enum SHADER_STAGE
 	SHADER_STAGE_COUNT = 3
 };
 
-static D3DStreamBuffer* s_shader_constant_stream_buffers[SHADER_STAGE_COUNT] = {};
+static std::array<D3DStreamBuffer*, SHADER_STAGE_COUNT> s_shader_constant_stream_buffers = {};
 
 static const unsigned int s_shader_constant_buffer_padded_sizes[SHADER_STAGE_COUNT] = {
 	(sizeof(GeometryShaderConstants) + 0xff) & ~0xff,
@@ -35,19 +35,16 @@ static const unsigned int s_shader_constant_buffer_padded_sizes[SHADER_STAGE_COU
 
 void ShaderConstantsManager::Init()
 {
-	for (unsigned int i = 0; i < SHADER_STAGE_COUNT; i++)
-	{
-		// Allow a large maximum size, as we want to minimize stalls here.
-		s_shader_constant_stream_buffers[i] = new D3DStreamBuffer(2 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
-	}
+	// Allow a large maximum size, as we want to minimize stalls here
+	std::generate(std::begin(s_shader_constant_stream_buffers), std::end(s_shader_constant_stream_buffers), []() {
+		return new D3DStreamBuffer(2 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
+	});
 }
 
 void ShaderConstantsManager::Shutdown()
 {
-	for (unsigned int i = 0; i < SHADER_STAGE_COUNT; i++)
-	{
-		SAFE_DELETE(s_shader_constant_stream_buffers[i]);
-	}
+	for (auto& it : s_shader_constant_stream_buffers)
+		SAFE_DELETE(it);
 }
 
 bool ShaderConstantsManager::LoadAndSetGeometryShaderConstants()

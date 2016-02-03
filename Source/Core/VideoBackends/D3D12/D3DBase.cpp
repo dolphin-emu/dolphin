@@ -58,13 +58,15 @@ D3DDescriptorHeapManager* gpu_descriptor_heap_mgr = nullptr;
 D3DDescriptorHeapManager* sampler_descriptor_heap_mgr = nullptr;
 D3DDescriptorHeapManager* dsv_descriptor_heap_mgr = nullptr;
 D3DDescriptorHeapManager* rtv_descriptor_heap_mgr = nullptr;
-ID3D12DescriptorHeap* gpu_descriptor_heaps[2];
+std::array<ID3D12DescriptorHeap*, 2> gpu_descriptor_heaps;
 
 HWND hWnd;
 // End extern'd variables.
 
 static IDXGISwapChain* s_swap_chain = nullptr;
 static unsigned int s_monitor_refresh_rate = 0;
+
+static LARGE_INTEGER s_qpc_frequency;
 
 static ID3D12DebugDevice* s_debug_device12 = nullptr;
 
@@ -582,6 +584,8 @@ HRESULT Create(HWND wnd)
 	s_backbuf[s_current_back_buf]->TransitionToResourceState(current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	current_command_list->OMSetRenderTargets(1, &s_backbuf[s_current_back_buf]->GetRTV12(), FALSE, nullptr);
 
+	QueryPerformanceFrequency(&s_qpc_frequency);
+
 	return S_OK;
 }
 
@@ -747,15 +751,15 @@ void Close()
 
 	SAFE_RELEASE(s_swap_chain);
 
-	command_list_mgr->Release();
+	SAFE_DELETE(command_list_mgr);
 	command_queue->Release();
 
 	default_root_signature->Release();
 
-	gpu_descriptor_heap_mgr->Release();
-	sampler_descriptor_heap_mgr->Release();
-	rtv_descriptor_heap_mgr->Release();
-	dsv_descriptor_heap_mgr->Release();
+	SAFE_DELETE(gpu_descriptor_heap_mgr);
+	SAFE_DELETE(sampler_descriptor_heap_mgr);
+	SAFE_DELETE(rtv_descriptor_heap_mgr);
+	SAFE_DELETE(dsv_descriptor_heap_mgr);
 
 	ULONG remaining_references = device12->Release();
 	if ((!s_debug_device12 && remaining_references) || (s_debug_device12 && remaining_references > 1))
@@ -915,17 +919,14 @@ void Present()
 	static LARGE_INTEGER s_last_present_qpc;
 
 	LARGE_INTEGER current_qpc;
-	LARGE_INTEGER current_qpc_frequency;
-
 	QueryPerformanceCounter(&current_qpc);
-	QueryPerformanceFrequency(&current_qpc_frequency);
 
-	const float time_elapsed_since_last_present = static_cast<float>(current_qpc.QuadPart - s_last_present_qpc.QuadPart) / current_qpc_frequency.QuadPart;
+	const double time_elapsed_since_last_present = static_cast<double>(current_qpc.QuadPart - s_last_present_qpc.QuadPart) / s_qpc_frequency.QuadPart;
 
 	unsigned int present_flags = 0;
 
 	if (g_ActiveConfig.IsVSync() == false &&
-		time_elapsed_since_last_present < (1.0f / static_cast<float>(s_monitor_refresh_rate)) / 2.0f
+		time_elapsed_since_last_present < (1.0 / static_cast<double>(s_monitor_refresh_rate)) / 2.0
 		)
 	{
 		present_flags = DXGI_PRESENT_TEST; // Causes Present to be a no-op.
@@ -952,6 +953,8 @@ HRESULT SetFullscreenState(bool enable_fullscreen)
 
 HRESULT GetFullscreenState(bool* fullscreen_state)
 {
+	// Fullscreen exclusive intentionally not supported in DX12 backend. No performance
+	// difference between it and windowed full-screen due to usage of a FLIP swap chain.
 	*fullscreen_state = false;
 	return S_OK;
 }
