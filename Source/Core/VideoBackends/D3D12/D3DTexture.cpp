@@ -130,8 +130,7 @@ void D3DTexture2D::AddRef()
 
 UINT D3DTexture2D::Release()
 {
-	m_ref.fetch_sub(1);
-	if (m_ref == 0)
+	if (m_ref.fetch_sub(1) == 0)
 	{
 		delete this;
 		return 0;

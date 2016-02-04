@@ -209,6 +209,7 @@ struct FenceCpuSignalArguments
 struct StopArguments
 {
 	bool eligible_to_move_to_front_of_queue;
+	bool signal_stop_event;
 };
 
 struct D3DQueueItem
@@ -253,7 +254,7 @@ public:
 
 	ID3D12QueuedCommandList(ID3D12GraphicsCommandList* backing_command_list, ID3D12CommandQueue* backing_command_queue);
 
-	void ProcessQueuedItems(bool eligible_to_move_to_front_of_queue = false);
+	void ProcessQueuedItems(bool eligible_to_move_to_front_of_queue = false, bool wait_for_stop = false);
 
 	void QueueExecute();
 	void QueueFenceGpuSignal(ID3D12Fence* fence_to_signal, UINT64 fence_value);
@@ -622,6 +623,7 @@ private:
 	HANDLE m_background_thread;
 
 	HANDLE m_begin_execution_event;
+	HANDLE m_stop_execution_event;
 
 	ID3D12GraphicsCommandList* m_command_list;
 	ID3D12CommandQueue* m_command_queue;
