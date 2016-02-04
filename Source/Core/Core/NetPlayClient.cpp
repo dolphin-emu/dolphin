@@ -20,6 +20,9 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
+
 static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
@@ -439,6 +442,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			packet >> player.ping;
 		}
 
+		DisplayPlayersPing();
 		m_dialog->Update();
 	}
 	break;
@@ -492,6 +496,31 @@ void NetPlayClient::Send(sf::Packet& packet)
 {
 	ENetPacket* epac = enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
 	enet_peer_send(m_server, 0, epac);
+}
+
+void NetPlayClient::DisplayPlayersPing()
+{
+	if (!g_ActiveConfig.bShowNetPlayPing)
+		return;
+
+	OSD::AddTypedMessage(
+		OSD::MessageType::NetPlayPing,
+		StringFromFormat("Ping: %u", GetPlayersMaxPing()),
+		OSD::Duration::SHORT,
+		OSD::Color::CYAN
+	);
+}
+
+u32 NetPlayClient::GetPlayersMaxPing() const
+{
+	return std::max_element(
+		m_players.begin(),
+		m_players.end(),
+		[] (const std::pair<PlayerId, Player>& a, const std::pair<PlayerId, Player>& b)
+		{
+			return a.second.ping < b.second.ping;
+		}
+	)->second.ping;
 }
 
 void NetPlayClient::Disconnect()
