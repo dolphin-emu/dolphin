@@ -7,6 +7,7 @@
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/D3DState.h"
+#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
@@ -22,8 +23,8 @@ namespace DX12
 {
 
 static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
-static const unsigned int s_max_copy_buffers = 32;
-static ID3D12Resource* s_efb_copy_buffers[s_max_copy_buffers] = {};
+
+static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
 
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
 static void* s_texture_cache_entry_readback_buffer_data = nullptr;
@@ -321,6 +322,8 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& srcRect,
 	bool scale_by_half, unsigned int cbuf_id, const float* colmat)
 {
+	static unsigned int old_cbuf_id = UINT_MAX;
+
 	// When copying at half size, in multisampled mode, resolve the color/depth buffer first.
 	// This is because multisampled texture reads go through Load, not Sample, and the linear
 	// filter is ignored.
@@ -349,26 +352,16 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// set transformation
-	if (s_efb_copy_buffers[cbuf_id] == nullptr)
+	if (cbuf_id != old_cbuf_id)
 	{
-		CheckHR(
-			D3D::device12->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(28 * sizeof(float)),
-				D3D12_RESOURCE_STATE_GENERIC_READ,
-				nullptr,
-				IID_PPV_ARGS(&s_efb_copy_buffers[cbuf_id])
-				)
-			);
+		s_efb_copy_stream_buffer->AllocateSpaceInBuffer(28 * sizeof(float), 256);
 
-		void* data = nullptr;
-		CheckHR(s_efb_copy_buffers[cbuf_id]->Map(0, nullptr, &data));
-		memcpy(data, colmat, 28 * sizeof(float));
-		s_efb_copy_buffers[cbuf_id]->Unmap(0, nullptr);
+		memcpy(s_efb_copy_stream_buffer->GetCPUAddressOfCurrentAllocation(), colmat, 28 * sizeof(float));
+
+		old_cbuf_id = cbuf_id;
 	}
 
-	D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_buffers[cbuf_id]->GetGPUVirtualAddress());
+	D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_stream_buffer->GetGPUAddressOfCurrentAllocation());
 	D3D::command_list_mgr->m_dirty_ps_cbv = true;
 
 	const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
@@ -502,11 +495,9 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	const D3D12_VIEWPORT vp = { 0.f, 0.f, static_cast<float>(unconverted->config.width), static_cast<float>(unconverted->config.height), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
-	// D3D12: Copy the palette into a free place in the palette_buf12 upload heap.
-	// Only 1024 palette buffers are supported in flight at once (arbitrary, this should be plenty). D3D12TODO: Is this actually plenty?
-	m_palette_buffer_index = (m_palette_buffer_index + 1) %  1024;
-	const unsigned int palette_buffer_slot_size = 512;
-	memcpy(static_cast<u8*>(m_palette_buffer_data) + m_palette_buffer_index * palette_buffer_slot_size, palette, palette_buffer_slot_size);
+	const unsigned int palette_buffer_allocation_size = 512;
+	m_palette_stream_buffer->AllocateSpaceInBuffer(palette_buffer_allocation_size, 256);
+	memcpy(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation(), palette, palette_buffer_allocation_size);
 
 	// D3D12: Because the second SRV slot is occupied by this buffer, and an arbitrary texture occupies the first SRV slot,
 	// we need to allocate temporary space out of our descriptor heap, place the palette SRV in the second slot, then copy the
@@ -525,10 +516,12 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 		D3D12_SRV_DIMENSION_BUFFER,              // D3D12_SRV_DIMENSION ViewDimension;
 		D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING // UINT Shader4ComponentMapping;
 	};
-	palette_buffer_srv_desc.Buffer.FirstElement = m_palette_buffer_index * 256;
+
+	// Each 'element' is two bytes since format is R16.
+	palette_buffer_srv_desc.Buffer.FirstElement = m_palette_stream_buffer->GetOffsetOfCurrentAllocation() / sizeof(u16);
 	palette_buffer_srv_desc.Buffer.NumElements = 256;
 
-	D3D::device12->CreateShaderResourceView(m_palette_buffer, &palette_buffer_srv_desc, srv_group_cpu_handle[1]);
+	D3D::device12->CreateShaderResourceView(m_palette_stream_buffer->GetBuffer(), &palette_buffer_srv_desc, srv_group_cpu_handle[1]);
 
 	// Now, copy the existing texture's descriptor into the new temporary location.
 	static_cast<TCacheEntry*>(unconverted)->m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
@@ -610,6 +603,8 @@ TextureCache::TextureCache()
 	s_encoder = std::make_unique<PSTextureEncoder>();
 	s_encoder->Init();
 
+	s_efb_copy_stream_buffer = std::make_unique<D3DStreamBuffer>(1024 * 1024, 1024 * 1024, nullptr);
+
 	s_texture_cache_entry_readback_buffer = nullptr;
 	s_texture_cache_entry_readback_buffer_data = nullptr;
 	s_texture_cache_entry_readback_buffer_size = 0;
@@ -618,28 +613,15 @@ TextureCache::TextureCache()
 	m_palette_pixel_shaders[GX_TL_RGB565] = GetConvertShader12(std::string("RGB565"));
 	m_palette_pixel_shaders[GX_TL_RGB5A3] = GetConvertShader12(std::string("RGB5A3"));
 
-	CheckHR(
-		D3D::device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(sizeof(u16) * 256 * 1024),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_palette_buffer)
-			)
-		);
-
-	D3D::SetDebugObjectName12(m_palette_buffer, "texture decoder lut buffer");
-
-	CheckHR(m_palette_buffer->Map(0, nullptr, &m_palette_buffer_data));
+	m_palette_stream_buffer = new D3DStreamBuffer(sizeof(u16) * 256 * 1024, sizeof(u16) * 256 * 1024 * 16, nullptr);
 
 	// Right now, there are only two variants of palette_uniform data. So, we'll just create an upload heap to permanently store both of these.
 	CheckHR(
 		D3D::device12->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
 		&CD3DX12_RESOURCE_DESC::Buffer(((16 + 255) & ~255) * 2), // Constant Buffers have to be 256b aligned. "* 2" to create for two sets of data.
-		D3D12_RESOURCE_STATE_GENERIC_READ,
+		D3D12_RESOURCE_STATE_COPY_DEST,
 		nullptr,
 		IID_PPV_ARGS(&m_palette_uniform_buffer)
 		)
@@ -647,28 +629,32 @@ TextureCache::TextureCache()
 
 	D3D::SetDebugObjectName12(m_palette_uniform_buffer, "a constant buffer used in TextureCache::ConvertTexture");
 
-	CheckHR(m_palette_uniform_buffer->Map(0, nullptr, &m_palette_uniform_buffer_data));
+	// Temporarily repurpose m_palette_stream_buffer as a copy source to populate initial data here.
+	m_palette_stream_buffer->AllocateSpaceInBuffer(256 * 2, 256);
+
+	u8* upload_heap_data_location = reinterpret_cast<u8*>(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation());
+
+	memset(upload_heap_data_location, 0, 256 * 2);
 
 	float paramsFormatZero[4] = { 15.f };
 	float paramsFormatNonzero[4] = { 255.f };
 
-	memcpy(m_palette_uniform_buffer_data, paramsFormatZero, sizeof(paramsFormatZero));
-	memcpy(static_cast<u8*>(m_palette_uniform_buffer_data) + 256, paramsFormatNonzero, sizeof(paramsFormatNonzero));
+	memcpy(upload_heap_data_location, paramsFormatZero, sizeof(paramsFormatZero));
+	memcpy(upload_heap_data_location + 256, paramsFormatNonzero, sizeof(paramsFormatNonzero));
+
+	D3D::current_command_list->CopyBufferRegion(m_palette_uniform_buffer, 0, m_palette_stream_buffer->GetBuffer(), m_palette_stream_buffer->GetOffsetOfCurrentAllocation(), 256 * 2);
+
+	DX12::D3D::ResourceBarrier(D3D::current_command_list, m_palette_uniform_buffer, D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER, 0);
 }
 
 TextureCache::~TextureCache()
 {
-	for (auto& efb_copy_buffer : s_efb_copy_buffers)
-	{
-		if (efb_copy_buffer)
-		{
-			D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(efb_copy_buffer);
-			efb_copy_buffer = nullptr;
-		}
-	}
-
 	s_encoder->Shutdown();
 	s_encoder.reset();
+
+	s_efb_copy_stream_buffer.reset();
+
+	SAFE_DELETE(m_palette_stream_buffer);
 
 	if (s_texture_cache_entry_readback_buffer)
 	{
@@ -676,7 +662,6 @@ TextureCache::~TextureCache()
 		s_texture_cache_entry_readback_buffer = nullptr;
 	}
 
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_palette_buffer);
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_palette_uniform_buffer);
 }
 
