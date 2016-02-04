@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <list>
 #include <map>
-#include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
@@ -19,24 +18,27 @@
 namespace OSD
 {
 
-struct Message
-{
-	Message() {}
-	Message(const std::string& s, u32 ts, u32 rgba) : m_str(s), m_timestamp(ts), m_rgba(rgba)
-	{
-	}
-
-	std::string m_str;
-	u32 m_timestamp;
-	u32 m_rgba;
-};
-
 static std::multimap<CallbackType, Callback> s_callbacks;
 static std::list<Message> s_msgList;
+static std::map<MessageName, Message> s_namedMsgList;
 
-void AddMessage(const std::string& str, u32 ms, u32 rgba)
+void AddMessage(const std::string& message, u32 ms, u32 rgba)
 {
-	s_msgList.emplace_back(str, Common::Timer::GetTimeMs() + ms, rgba);
+	s_msgList.emplace_back(message, Common::Timer::GetTimeMs() + ms, rgba);
+}
+
+void AddNamedMessage(MessageName name, const std::string& message, u32 ms, u32 rgba)
+{
+	Message* msg = new Message(message, Common::Timer::GetTimeMs() + ms, rgba);
+	s_namedMsgList[name] = *msg;
+}
+
+void DrawMessage(Message* msg, int top, int left, int time_left)
+{
+	float alpha = std::min(1.0f, std::max(0.0f, time_left / 1024.0f));
+	u32 color = (msg->m_rgba & 0xFFFFFF) | ((u32)((msg->m_rgba >> 24) * alpha) << 24);
+
+	g_renderer->RenderText(msg->m_str, left, top, color);
 }
 
 void DrawMessages()
@@ -44,22 +46,36 @@ void DrawMessages()
 	if (!SConfig::GetInstance().bOnScreenDisplayMessages)
 		return;
 
-	int left = 25, top = 15;
+	int left = 20, top = 35;
+	u32 now = Common::Timer::GetTimeMs();
+
+	auto namedIt = s_namedMsgList.begin();
+	while (namedIt != s_namedMsgList.end())
+	{
+		Message msg = namedIt->second;
+		int time_left = (int)(msg.m_timestamp - now);
+		DrawMessage(&msg, top, left, time_left);
+
+		if (time_left <= 0)
+			s_namedMsgList.erase(namedIt->first);
+
+		++namedIt;
+
+		top += 15;
+	}
+
 	auto it = s_msgList.begin();
 	while (it != s_msgList.end())
 	{
-		int time_left = (int)(it->m_timestamp - Common::Timer::GetTimeMs());
-		float alpha = std::max(1.0f, std::min(0.0f, time_left / 1024.0f));
-		u32 color = (it->m_rgba & 0xFFFFFF) | ((u32)((it->m_rgba >> 24) * alpha) << 24);
-
-		g_renderer->RenderText(it->m_str, left, top, color);
-
-		top += 15;
+		int time_left = (int)(it->m_timestamp - now);
+		DrawMessage(&*it, top, left, time_left);
 
 		if (time_left <= 0)
 			it = s_msgList.erase(it);
 		else
 			++it;
+
+		top += 15;
 	}
 }
 
