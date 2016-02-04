@@ -43,21 +43,9 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	if (update)
 		gpr.BindToRegister(a, true, true);
-	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
-	{
-		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
-		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
-	}
-	else
-	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
-		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
-		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
-	}
+
+	MOV_sum(32, RSCRATCH_EXTRA, gpr.R(a), indexed ? gpr.R(b) : Imm32((u32)offset));
+
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !jo.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
@@ -143,21 +131,9 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	gpr.BindToRegister(a, true, update);
 	fpr.BindToRegister(s, false, true);
-	if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && (indexed || offset))
-	{
-		if (indexed)
-			LEA(32, RSCRATCH_EXTRA, MRegSum(gpr.RX(a), gpr.RX(b)));
-		else
-			LEA(32, RSCRATCH_EXTRA, MDisp(gpr.RX(a), offset));
-	}
-	else
-	{
-		MOV(32, R(RSCRATCH_EXTRA), gpr.R(a));
-		if (indexed)
-			ADD(32, R(RSCRATCH_EXTRA), gpr.R(b));
-		else if (offset)
-			ADD(32, R(RSCRATCH_EXTRA), Imm32((u32)offset));
-	}
+
+	MOV_sum(32, RSCRATCH_EXTRA, gpr.R(a), indexed ? gpr.R(b) : Imm32((u32)offset));
+
 	// In memcheck mode, don't update the address until the exception check
 	if (update && !jo.memcheck)
 		MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
