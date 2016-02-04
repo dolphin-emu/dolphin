@@ -142,6 +142,8 @@ private:
 	void Send(sf::Packet& packet);
 	void Disconnect();
 	bool Connect();
+	void DisplayPlayersPing();
+	u32 GetPlayersMaxPing();
 
 	bool m_is_connected = false;
 	ConnectionState m_connection_state = ConnectionState::Failure;
