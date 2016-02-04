@@ -182,6 +182,7 @@ struct OpArg
 	{
 		return IsSimpleReg() && GetSimpleReg() == reg;
 	}
+	bool IsZero() const {return IsImm() && offset == 0;}
 
 	int GetImmBits() const
 	{
@@ -470,6 +471,7 @@ public:
 	void TEST(int bits, const OpArg& a1, const OpArg& a2);
 
 	void CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2);
+	void MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2);
 
 	// Are these useful at all? Consider removing.
 	void XCHG(int bits, const OpArg& a1, const OpArg& a2);
