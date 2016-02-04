@@ -227,11 +227,21 @@ Joystick::Hat::Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir
 ControlState Joystick::Hat::GetState() const
 {
 	IOHIDValueRef value;
-	int position;
 
 	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
 	{
-		position = IOHIDValueGetIntegerValue(value);
+		int position = IOHIDValueGetIntegerValue(value);
+		int min = IOHIDElementGetLogicalMin(m_element);
+		int max = IOHIDElementGetLogicalMax(m_element);
+
+		// if the position is outside the min or max, don't register it as a valid button press
+		if (position < min || position > max)
+		{
+			return 0;
+		}
+
+		// normalize the position so that its lowest value is 0
+		position = position - min;
 
 		switch (position)
 		{
