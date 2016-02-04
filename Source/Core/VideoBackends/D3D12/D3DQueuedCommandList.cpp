@@ -8,6 +8,12 @@
 namespace DX12
 {
 
+template <typename T>
+constexpr size_t BufferOffsetForQueueItemType()
+{
+	return sizeof(T) + sizeof(D3DQueueItemType) * 2;
+}
+
 DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 {
 	ID3D12QueuedCommandList* parent_queued_command_list = static_cast<ID3D12QueuedCommandList*>(param);
@@ -31,7 +37,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					command_list->ClearDepthStencilView(reinterpret_cast<D3DQueueItem*>(item)->ClearDepthStencilView.DepthStencilView, D3D12_CLEAR_FLAG_DEPTH, 0.f, 0, 0, nullptr);
 
-					item += sizeof(ClearDepthStencilViewArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ClearDepthStencilViewArguments>();
 					break;
 				}
 
@@ -40,7 +46,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 					float clearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 					command_list->ClearRenderTargetView(reinterpret_cast<D3DQueueItem*>(item)->ClearRenderTargetView.RenderTargetView, clearColor, 0, nullptr);
 
-					item += sizeof(ClearRenderTargetViewArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ClearRenderTargetViewArguments>();
 					break;
 				}
 
@@ -54,7 +60,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->CopyBufferRegion.NumBytes
 						);
 
-					item += sizeof(CopyBufferRegionArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<CopyBufferRegionArguments>();
 					break;
 				}
 
@@ -82,7 +88,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 							nullptr : src_box
 						);
 
-					item += sizeof(CopyTextureRegionArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<CopyTextureRegionArguments>();
 					break;
 				}
 
@@ -96,7 +102,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						0
 						);
 
-					item += sizeof(DrawIndexedInstancedArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<DrawIndexedInstancedArguments>();
 					break;
 				}
 
@@ -109,7 +115,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						0
 						);
 
-					item += sizeof(DrawInstancedArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<DrawInstancedArguments>();
 					break;
 				}
 
@@ -117,7 +123,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					command_list->IASetPrimitiveTopology(reinterpret_cast<D3DQueueItem*>(item)->IASetPrimitiveTopology.PrimitiveTopology);
 
-					item += sizeof(IASetPrimitiveTopologyArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<IASetPrimitiveTopologyArguments>();
 					break;
 				}
 
@@ -125,7 +131,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					command_list->ResourceBarrier(1, &reinterpret_cast<D3DQueueItem*>(item)->ResourceBarrier.barrier);
 
-					item += sizeof(ResourceBarrierArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ResourceBarrierArguments>();
 					break;
 				}
 
@@ -139,7 +145,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 					};
 
 					command_list->RSSetScissorRects(1, &rect);
-					item += sizeof(RSSetScissorRectsArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<RSSetScissorRectsArguments>();
 					break;
 				}
 
@@ -155,7 +161,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 					};
 
 					command_list->RSSetViewports(1, &viewport);
-					item += sizeof(RSSetViewportsArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<RSSetViewportsArguments>();
 					break;
 				}
 
@@ -166,7 +172,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->SetDescriptorHeaps.ppDescriptorHeap
 						);
 
-					item += sizeof(SetDescriptorHeapsArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetDescriptorHeapsArguments>();
 					break;
 				}
 
@@ -177,7 +183,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->SetGraphicsRootConstantBufferView.BufferLocation
 						);
 
-					item += sizeof(SetGraphicsRootConstantBufferViewArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetGraphicsRootConstantBufferViewArguments>();
 					break;
 				}
 
@@ -188,7 +194,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->SetGraphicsRootDescriptorTable.BaseDescriptor
 						);
 
-					item += sizeof(SetGraphicsRootDescriptorTableArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetGraphicsRootDescriptorTableArguments>();
 					break;
 				}
 
@@ -198,7 +204,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->SetGraphicsRootSignature.pRootSignature
 						);
 
-					item += sizeof(SetGraphicsRootSignatureArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetGraphicsRootSignatureArguments>();
 					break;
 				}
 
@@ -208,7 +214,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						&reinterpret_cast<D3DQueueItem*>(item)->SetIndexBuffer.desc
 						);
 
-					item += sizeof(SetIndexBufferArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetIndexBufferArguments>();
 					break;
 				}
 
@@ -220,14 +226,14 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						&reinterpret_cast<D3DQueueItem*>(item)->SetVertexBuffers.desc
 						);
 
-					item += sizeof(SetVertexBuffersArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetVertexBuffersArguments>();
 					break;
 				}
 
 				case D3DQueueItemType::SetPipelineState:
 				{
 					command_list->SetPipelineState(reinterpret_cast<D3DQueueItem*>(item)->SetPipelineState.pPipelineStateObject);
-					item += sizeof(SetPipelineStateArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetPipelineStateArguments>();
 					break;
 				}
 
@@ -251,7 +257,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						&reinterpret_cast<D3DQueueItem*>(item)->SetRenderTargets.DepthStencilDescriptor
 						);
 
-					item += sizeof(SetRenderTargetsArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<SetRenderTargetsArguments>();
 					break;
 				}
 
@@ -265,7 +271,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 						reinterpret_cast<D3DQueueItem*>(item)->ResolveSubresource.Format
 						);
 
-					item += sizeof(ResolveSubresourceArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ResolveSubresourceArguments>();
 					break;
 				}
 
@@ -273,7 +279,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(command_list->Close());
 
-					item += sizeof(CloseCommandListArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<CloseCommandListArguments>();
 					break;
 				}
 
@@ -281,7 +287,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					parent_queued_command_list->m_command_queue->ExecuteCommandLists(1, reinterpret_cast<ID3D12CommandList**>(&command_list));
 
-					item += sizeof(ExecuteCommandListArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ExecuteCommandListArguments>();
 					break;
 				}
 
@@ -289,7 +295,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(reinterpret_cast<D3DQueueItem*>(item)->Present.swapChain->Present(reinterpret_cast<D3DQueueItem*>(item)->Present.syncInterval, reinterpret_cast<D3DQueueItem*>(item)->Present.flags));
 
-					item += sizeof(PresentArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<PresentArguments>();
 					break;
 				}
 
@@ -297,7 +303,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(command_list->Reset(reinterpret_cast<D3DQueueItem*>(item)->ResetCommandList.allocator, nullptr));
 
-					item += sizeof(ResetCommandListArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ResetCommandListArguments>();
 					break;
 				}
 
@@ -305,7 +311,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(reinterpret_cast<D3DQueueItem*>(item)->ResetCommandAllocator.allocator->Reset());
 
-					item += sizeof(ResetCommandAllocatorArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<ResetCommandAllocatorArguments>();
 					break;
 				}
 
@@ -313,7 +319,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(parent_queued_command_list->m_command_queue->Signal(reinterpret_cast<D3DQueueItem*>(item)->FenceGpuSignal.fence, reinterpret_cast<D3DQueueItem*>(item)->FenceGpuSignal.fence_value));
 
-					item += sizeof(FenceGpuSignalArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<FenceGpuSignalArguments>();
 					break;
 				}
 
@@ -321,7 +327,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 				{
 					CheckHR(reinterpret_cast<D3DQueueItem*>(item)->FenceCpuSignal.fence->Signal(reinterpret_cast<D3DQueueItem*>(item)->FenceCpuSignal.fence_value));
 
-					item += sizeof(FenceCpuSignalArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<FenceCpuSignalArguments>();
 					break;
 				}
 
@@ -334,7 +340,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 
 					bool eligible_to_move_to_front_of_queue = reinterpret_cast<D3DQueueItem*>(item)->Stop.eligible_to_move_to_front_of_queue;
 
-					item += sizeof(StopArguments) + sizeof(D3DQueueItemType) * 2;
+					item += BufferOffsetForQueueItemType<StopArguments>();
 
 					if (eligible_to_move_to_front_of_queue && item - queue_array > QUEUE_ARRAY_SIZE * 2 / 3)
 					{
@@ -494,12 +500,12 @@ void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_
 
 ULONG ID3D12QueuedCommandList::AddRef()
 {
-	return InterlockedIncrement(&m_ref);
+	return m_ref.fetch_add(1);
 }
 
 ULONG ID3D12QueuedCommandList::Release()
 {
-	ULONG ref = InterlockedDecrement(&m_ref);
+	ULONG ref = m_ref.fetch_sub(1);
 	if (!ref)
 	{
 		delete this;

@@ -125,12 +125,12 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 
 void D3DTexture2D::AddRef()
 {
-	InterlockedIncrement(&m_ref);
+	m_ref.fetch_add(1);
 }
 
 UINT D3DTexture2D::Release()
 {
-	InterlockedDecrement(&m_ref);
+	m_ref.fetch_sub(1);
 	if (m_ref == 0)
 	{
 		delete this;

@@ -24,6 +24,7 @@ namespace DX12
 static HINSTANCE s_d3d_compiler_dll = nullptr;
 static int s_d3d_compiler_dll_ref = 0;
 D3DREFLECT d3d_reflect = nullptr;
+D3DCREATEBLOB d3d_create_blob = nullptr;
 pD3DCompile d3d_compile = nullptr;
 
 // dxgi.dll exports
@@ -172,6 +173,10 @@ HRESULT LoadD3DCompiler()
 	if (d3d_reflect == nullptr)
 		MessageBoxA(nullptr, "GetProcAddress failed for D3DReflect!", "Critical error", MB_OK | MB_ICONERROR);
 
+	d3d_create_blob = (D3DCREATEBLOB)GetProcAddress(s_d3d_compiler_dll, "D3DCreateBlob");
+	if (d3d_create_blob == nullptr)
+		MessageBoxA(nullptr, "GetProcAddress failed for D3DCreateBlob!", "Critical error", MB_OK | MB_ICONERROR);
+
 	d3d_compile = (pD3DCompile) GetProcAddress(s_d3d_compiler_dll, "D3DCompile");
 	if (d3d_compile == nullptr)
 		MessageBoxA(nullptr, "GetProcAddress failed for D3DCompile!", "Critical error", MB_OK | MB_ICONERROR);
@@ -223,6 +228,7 @@ void UnloadD3DCompiler()
 
 	s_d3d_compiler_dll = nullptr;
 	d3d_compile = nullptr;
+	d3d_create_blob = nullptr;
 	d3d_reflect = nullptr;
 }
 

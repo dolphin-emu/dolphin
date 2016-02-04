@@ -4,7 +4,6 @@
 
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
@@ -273,7 +272,7 @@ D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
 				format |= _GX_TF_CTF;
 		}
 
-		D3DBlob* bytecode = nullptr;
+		ID3DBlob* bytecode = nullptr;
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_D3D);
 		if (!D3D::CompilePixelShader(shader, &bytecode))
 		{
@@ -284,13 +283,13 @@ D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
 		}
 
 		D3D12_SHADER_BYTECODE new_shader = {
-			bytecode->Data(),
-			bytecode->Size()
+			bytecode->GetBufferPointer(),
+			bytecode->GetBufferSize()
 		};
 
 		it = m_static_shaders_map.emplace(key, new_shader).first;
 
-		// Keep track of the D3DBlobs, so we can free them upon shutdown.
+		// Keep track of the ID3DBlobs, so we can free them upon shutdown.
 		m_static_shaders_blobs.push_back(bytecode);
 	}
 

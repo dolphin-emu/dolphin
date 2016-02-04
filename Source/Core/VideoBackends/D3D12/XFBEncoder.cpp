@@ -6,7 +6,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/D3DState.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"

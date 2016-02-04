@@ -25,8 +25,8 @@
 namespace DX12
 {
 
-static const unsigned int MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16;
-static const unsigned int MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 4;
+static constexpr unsigned int MAX_IBUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16;
+static constexpr unsigned int MAX_VBUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 4;
 
 void VertexManager::SetIndexBuffer()
 {
@@ -51,8 +51,8 @@ void VertexManager::CreateDeviceObjects()
 
 	// Use CPU-only memory if the GPU won't be reading from the buffers,
 	// since reading upload heaps on the CPU is slow..
-	m_vertex_cpu_buffer.reserve(MAXVBUFFERSIZE);
-	m_index_cpu_buffer.reserve(MAXIBUFFERSIZE);
+	m_vertex_cpu_buffer.resize(MAXVBUFFERSIZE);
+	m_index_cpu_buffer.resize(MAXIBUFFERSIZE);
 }
 
 void VertexManager::DestroyDeviceObjects()
