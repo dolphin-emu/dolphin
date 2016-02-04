@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
@@ -600,10 +599,10 @@ D3D12_SHADER_BYTECODE GetConvertShader12(std::string& Type)
 	shader.append("\n");
 	shader.append(s_palette_shader_hlsl);
 
-	D3DBlob* blob = nullptr;
+	ID3DBlob* blob = nullptr;
 	D3D::CompilePixelShader(shader, &blob);
 
-	return { blob->Data(), blob->Size() };
+	return { blob->GetBufferPointer(), blob->GetBufferSize() };
 }
 
 TextureCache::TextureCache()
@@ -659,18 +658,17 @@ TextureCache::TextureCache()
 
 TextureCache::~TextureCache()
 {
-	for (unsigned int k = 0; k < s_max_copy_buffers; ++k)
+	for (auto& efb_copy_buffer : s_efb_copy_buffers)
 	{
-		if (s_efb_copy_buffers[k])
+		if (efb_copy_buffer)
 		{
-			D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_efb_copy_buffers[k]);
-			s_efb_copy_buffers[k] = nullptr;
+			D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(efb_copy_buffer);
+			efb_copy_buffer = nullptr;
 		}
 	}
 
 	s_encoder->Shutdown();
-	s_encoder.release();
-	s_encoder = nullptr;
+	s_encoder.reset();
 
 	if (s_texture_cache_entry_readback_buffer)
 	{

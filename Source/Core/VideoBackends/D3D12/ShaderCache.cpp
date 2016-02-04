@@ -6,7 +6,6 @@
 
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
@@ -29,7 +28,7 @@ PsBytecodeCache s_ps_bytecode_cache;
 VsBytecodeCache s_vs_bytecode_cache;
 
 // Used to keep track of blobs to release at Shutdown time.
-static std::vector<D3DBlob*> s_shader_blob_list;
+static std::vector<ID3DBlob*> s_shader_blob_list;
 
 // Only used for shader debugging..
 using GsHlslCache = std::map<GeometryShaderUid, std::string>;
@@ -60,7 +59,10 @@ class ShaderCacheInserter final : public LinearDiskCacheReader<UidType, u8>
 public:
 	void Read(const UidType &key, const u8* value, u32 value_size)
 	{
-		D3DBlob* blob = new D3DBlob(value_size, value);
+		ID3DBlob* blob = nullptr;
+		CheckHR(d3d_create_blob(value_size, &blob));
+		memcpy(blob->GetBufferPointer(), value, value_size);
+
 		ShaderCache::InsertByteCode<UidType, ShaderCacheType>(key, cache, blob);
 	}
 };
@@ -231,7 +233,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 	else
 	{
 		ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D);
-		D3DBlob* gs_bytecode = nullptr;
+		ID3DBlob* gs_bytecode = nullptr;
 
 		if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))
 		{
@@ -240,7 +242,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 		}
 
 		s_last_geometry_shader_bytecode = InsertByteCode<GeometryShaderUid, GsBytecodeCache>(gs_uid, &s_gs_bytecode_cache, gs_bytecode);
-		s_gs_disk_cache.Append(gs_uid, gs_bytecode->Data(), gs_bytecode->Size());
+		s_gs_disk_cache.Append(gs_uid, reinterpret_cast<u8*>(gs_bytecode->GetBufferPointer()), static_cast<u32>(gs_bytecode->GetBufferSize()));
 
 		if (g_ActiveConfig.bEnableShaderDebugging && gs_bytecode)
 		{
@@ -268,7 +270,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 	else
 	{
 		ShaderCode ps_code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D);
-		D3DBlob* ps_bytecode = nullptr;
+		ID3DBlob* ps_bytecode = nullptr;
 
 		if (!D3D::CompilePixelShader(ps_code.GetBuffer(), &ps_bytecode))
 		{
@@ -277,7 +279,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 		}
 
 		s_last_pixel_shader_bytecode = InsertByteCode<PixelShaderUid, PsBytecodeCache>(ps_uid, &s_ps_bytecode_cache, ps_bytecode);
-		s_ps_disk_cache.Append(ps_uid, ps_bytecode->Data(), ps_bytecode->Size());
+		s_ps_disk_cache.Append(ps_uid, reinterpret_cast<u8*>(ps_bytecode->GetBufferPointer()), static_cast<u32>(ps_bytecode->GetBufferSize()));
 
 		SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
 		INCSTAT(stats.numPixelShadersCreated);
@@ -308,7 +310,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 	else
 	{
 		ShaderCode vs_code = GenerateVertexShaderCode(API_D3D);
-		D3DBlob* vs_bytecode = nullptr;
+		ID3DBlob* vs_bytecode = nullptr;
 
 		if (!D3D::CompileVertexShader(vs_code.GetBuffer(), &vs_bytecode))
 		{
@@ -317,7 +319,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 		}
 
 		s_last_vertex_shader_bytecode = InsertByteCode<VertexShaderUid, VsBytecodeCache>(vs_uid, &s_vs_bytecode_cache, vs_bytecode);
-		s_vs_disk_cache.Append(vs_uid, vs_bytecode->Data(), vs_bytecode->Size());
+		s_vs_disk_cache.Append(vs_uid, reinterpret_cast<u8*>(vs_bytecode->GetBufferPointer()), static_cast<u32>(vs_bytecode->GetBufferSize()));
 
 		SETSTAT(stats.numVertexShadersAlive, static_cast<int>(s_vs_bytecode_cache.size()));
 		INCSTAT(stats.numVertexShadersCreated);
@@ -330,7 +332,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 }
 
 template<class UidType, class ShaderCacheType>
-D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache, D3DBlob* bytecode_blob)
+D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache, ID3DBlob* bytecode_blob)
 {
 	// Note: Don't release the incoming bytecode, we need it to stick around, since in D3D12
 	// the raw bytecode itself is bound. It is released at Shutdown() time.
@@ -338,8 +340,8 @@ D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCach
 	s_shader_blob_list.push_back(bytecode_blob);
 
 	D3D12_SHADER_BYTECODE shader_bytecode;
-	shader_bytecode.pShaderBytecode = bytecode_blob->Data();
-	shader_bytecode.BytecodeLength = bytecode_blob->Size();
+	shader_bytecode.pShaderBytecode = bytecode_blob->GetBufferPointer();
+	shader_bytecode.BytecodeLength = bytecode_blob->GetBufferSize();
 
 	(*shader_cache)[uid] = shader_bytecode;
 

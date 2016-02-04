@@ -10,7 +10,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -20,7 +19,7 @@ namespace DX12
 namespace D3D
 {
 
-bool CompileShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* defines, std::string shader_version_string)
+bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines, std::string shader_version_string)
 {
 	ID3D10Blob* shader_buffer = nullptr;
 	ID3D10Blob* error_buffer = nullptr;
@@ -56,27 +55,26 @@ bool CompileShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MAC
 	}
 	else
 	{
-		*blob = new D3DBlob(shader_buffer);
-		shader_buffer->Release();
+		*blob = shader_buffer;
 	}
 
 	return SUCCEEDED(hr);
 }
 
 // code->bytecode
-bool CompileVertexShader(const std::string& code, D3DBlob** blob)
+bool CompileVertexShader(const std::string& code, ID3DBlob** blob)
 {
 	return CompileShader(code, blob, nullptr, D3D::VertexShaderVersionString());
 }
 
 // code->bytecode
-bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* defines)
+bool CompileGeometryShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines)
 {
 	return CompileShader(code, blob, defines, D3D::GeometryShaderVersionString());
 }
 
 // code->bytecode
-bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADER_MACRO* defines)
+bool CompilePixelShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines)
 {
 	return CompileShader(code, blob, defines, D3D::PixelShaderVersionString());
 }

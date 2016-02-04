@@ -23,7 +23,7 @@ public:
 	static void LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 gs_primitive_type);
 
 	template<class UidType, class ShaderCacheType>
-	static D3D12_SHADER_BYTECODE InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache, D3DBlob* bytecode_blob);
+	static D3D12_SHADER_BYTECODE InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache, ID3DBlob* bytecode_blob);
 
 	static D3D12_SHADER_BYTECODE GetActiveGeometryShaderBytecode();
 	static D3D12_SHADER_BYTECODE GetActivePixelShaderBytecode();

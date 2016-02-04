@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <atomic>
 #include <d3d12.h>
-
 
 namespace DX12
 {
@@ -626,7 +626,7 @@ private:
 	ID3D12GraphicsCommandList* m_command_list;
 	ID3D12CommandQueue* m_command_queue;
 
-	volatile long m_ref = 1;
+	std::atomic<unsigned long> m_ref = 1;
 };
 
 }  // namespace

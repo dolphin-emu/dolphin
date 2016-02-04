@@ -140,15 +140,19 @@ static std::string GetDebugObjectName12(ID3D12Resource* resource)
 
 }  // namespace D3D
 
-typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
+using CREATEDXGIFACTORY = HRESULT(WINAPI*)(REFIID, void**);
 extern CREATEDXGIFACTORY create_dxgi_factory;
 
-typedef HRESULT(WINAPI* D3D12CREATEDEVICE)(IUnknown*, D3D_FEATURE_LEVEL, REFIID, void**);
-typedef HRESULT(WINAPI* D3D12SERIALIZEROOTSIGNATURE)(const D3D12_ROOT_SIGNATURE_DESC* pRootSignature, D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob** ppBlob, ID3DBlob** ppErrorBlob);
-typedef HRESULT(WINAPI* D3D12GETDEBUGINTERFACE)(REFIID riid, void** ppvDebug);
+using D3D12CREATEDEVICE = HRESULT(WINAPI*)(IUnknown*, D3D_FEATURE_LEVEL, REFIID, void**);
+using D3D12SERIALIZEROOTSIGNATURE = HRESULT(WINAPI*)(const D3D12_ROOT_SIGNATURE_DESC* pRootSignature, D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob** ppBlob, ID3DBlob** ppErrorBlob);
+using D3D12GETDEBUGINTERFACE = HRESULT(WINAPI*)(REFIID riid, void** ppvDebug);
 
-typedef HRESULT (WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
+using D3DREFLECT = HRESULT(WINAPI*)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT d3d_reflect;
+
+using D3DCREATEBLOB = HRESULT(WINAPI*)(SIZE_T, ID3DBlob**);
+extern D3DCREATEBLOB d3d_create_blob;
+
 extern pD3DCompile d3d_compile;
 
 }  // namespace DX12

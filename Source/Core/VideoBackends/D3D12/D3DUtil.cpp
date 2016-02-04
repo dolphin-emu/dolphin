@@ -7,7 +7,6 @@
 #include <string>
 
 #include "VideoBackends/D3D12/D3DBase.h"
-#include "VideoBackends/D3D12/D3DBlob.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
 #include "VideoBackends/D3D12/D3DShader.h"
@@ -317,21 +316,21 @@ int CD3DFont::Init()
 	DeleteObject(hFont);
 
 	// setup device objects for drawing
-	D3DBlob* psbytecode = nullptr;
+	ID3DBlob* psbytecode = nullptr;
 	D3D::CompilePixelShader(fontpixshader, &psbytecode);
 	if (psbytecode == nullptr)
 		PanicAlert("Failed to compile pixel shader, %s %d\n", __FILE__, __LINE__);
 
-	m_pshader12.pShaderBytecode = psbytecode->Data();
-	m_pshader12.BytecodeLength = psbytecode->Size();
+	m_pshader12.pShaderBytecode = psbytecode->GetBufferPointer();
+	m_pshader12.BytecodeLength = psbytecode->GetBufferSize();
 
-	D3DBlob* vsbytecode = nullptr;
+	ID3DBlob* vsbytecode = nullptr;
 	D3D::CompileVertexShader(fontvertshader, &vsbytecode);
 	if (vsbytecode == nullptr)
 		PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 
-	m_vshader12.pShaderBytecode = vsbytecode->Data();
-	m_vshader12.BytecodeLength = vsbytecode->Size();
+	m_vshader12.pShaderBytecode = vsbytecode->GetBufferPointer();
+	m_vshader12.BytecodeLength = vsbytecode->GetBufferSize();
 
 	const D3D12_INPUT_ELEMENT_DESC desc[] =
 	{
@@ -384,8 +383,8 @@ int CD3DFont::Init()
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC text_pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
-		{ vsbytecode->Data(), vsbytecode->Size() },       // D3D12_SHADER_BYTECODE VS;
-		{ psbytecode->Data(), psbytecode->Size() },       // D3D12_SHADER_BYTECODE PS;
+		{ vsbytecode->GetBufferPointer(), vsbytecode->GetBufferSize() },       // D3D12_SHADER_BYTECODE VS;
+		{ psbytecode->GetBufferPointer(), psbytecode->GetBufferSize() },       // D3D12_SHADER_BYTECODE PS;
 		{},                                               // D3D12_SHADER_BYTECODE DS;
 		{},                                               // D3D12_SHADER_BYTECODE HS;
 		{},                                               // D3D12_SHADER_BYTECODE GS;

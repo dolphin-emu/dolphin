@@ -50,7 +50,6 @@
   <ItemGroup>
     <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
-    <ClCompile Include="D3DBlob.cpp" />
     <ClCompile Include="D3DCommandListManager.cpp" />
     <ClCompile Include="D3DDescriptorHeapManager.cpp" />
     <ClCompile Include="D3DQueuedCommandList.cpp" />
@@ -76,7 +75,6 @@
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
-    <ClInclude Include="D3DBlob.h" />
     <ClInclude Include="D3DCommandListManager.h" />
     <ClInclude Include="D3DDescriptorHeapManager.h" />
     <ClInclude Include="D3DQueuedCommandList.h" />

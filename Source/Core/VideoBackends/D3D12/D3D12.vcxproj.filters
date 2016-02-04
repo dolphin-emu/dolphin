@@ -12,9 +12,6 @@
     <ClCompile Include="D3DBase.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="D3DBlob.cpp">
-      <Filter>D3D12</Filter>
-    </ClCompile>
     <ClCompile Include="D3DShader.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
@@ -82,9 +79,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
-      <Filter>D3D12</Filter>
-    </ClInclude>
-    <ClInclude Include="D3DBlob.h">
       <Filter>D3D12</Filter>
     </ClInclude>
     <ClInclude Include="D3DShader.h">
