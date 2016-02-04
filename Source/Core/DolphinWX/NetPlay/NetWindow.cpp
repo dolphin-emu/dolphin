@@ -10,6 +10,7 @@
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/clipbrd.h>
+#include <wx/colour.h>
 #include <wx/dialog.h>
 #include <wx/frame.h>
 #include <wx/listbox.h>
@@ -41,6 +42,8 @@
 #include "DolphinWX/NetPlay/ChangeGameDialog.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
 
 NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
@@ -243,13 +246,13 @@ NetPlayDialog::~NetPlayDialog()
 
 void NetPlayDialog::OnChat(wxCommandEvent&)
 {
-	wxString text = m_chat_msg_text->GetValue();
+	std::string text = WxStrToStr(m_chat_msg_text->GetValue());
 
 	if (!text.empty())
 	{
-		netplay_client->SendChatMessage(WxStrToStr(text));
-		m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
+		netplay_client->SendChatMessage(text);
 		m_chat_msg_text->Clear();
+		AddChatMessage(ChatMessageType::UserOut, text);
 	}
 }
 
@@ -354,11 +357,27 @@ void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 {
 	const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
 	netplay_server->AdjustPadBufferSize(val);
+}
 
-	std::ostringstream ss;
-	ss << "< Pad Buffer: " << val << " >";
-	netplay_client->SendChatMessage(ss.str());
-	m_chat_text->AppendText(StrToWxStr(ss.str()).Append('\n'));
+void NetPlayDialog::OnPadBufferChanged(int buffer)
+{
+	m_pad_buffer = buffer;
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_PAD_BUFFER_CHANGE);
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
+{
+	m_desync_frame = frame;
+	m_desync_player = player;
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_DESYNC);
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnConnectionLost()
+{
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_CONNECTION_LOST);
+	GetEventHandler()->AddPendingEvent(evt);
 }
 
 void NetPlayDialog::OnQuit(wxCommandEvent&)
@@ -426,12 +445,37 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 		// client start game :/
 	{
 		netplay_client->StartGame(FindGame());
+		std::string msg = "Starting game";
+		AddChatMessage(ChatMessageType::Info, msg);
 	}
 	break;
 	case NP_GUI_EVT_STOP_GAME:
 		// client stop game
 	{
-		netplay_client->StopGame();
+		std::string msg = "Stopping game";
+		AddChatMessage(ChatMessageType::Info, msg);
+	}
+	break;
+	case NP_GUI_EVT_PAD_BUFFER_CHANGE:
+	{
+		std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
+		OSD::AddMessage(msg, OSD::Duration::NORMAL);
+		AddChatMessage(ChatMessageType::Info , msg);
+	}
+	break;
+	case NP_GUI_EVT_DESYNC:
+	{
+		std::string msg = "Possible desync detected from player " +
+			m_desync_player + " on frame " + std::to_string(m_desync_frame);
+
+		AddChatMessage(ChatMessageType::Error , msg);
+		OSD::AddMessage(msg, OSD::Duration::VERY_LONG, OSD::Color::RED);
+	}
+	break;
+	case NP_GUI_EVT_CONNECTION_LOST:
+	{
+		std::string msg = "Lost connection to server";
+		AddChatMessage(ChatMessageType::Error , msg);
 	}
 	break;
 	}
@@ -441,8 +485,8 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 	{
 		std::string s;
 		chat_msgs.Pop(s);
-		//PanicAlert("message: %s", s.c_str());
-		m_chat_text->AppendText(StrToWxStr(s).Append('\n'));
+		AddChatMessage(ChatMessageType::UserIn , s);
+		OSD::AddMessage("NetPlay chat: " + s, OSD::Duration::NORMAL, OSD::Color::GREEN);
 	}
 }
 
@@ -581,4 +625,37 @@ void NetPlayDialog::UpdateHostLabel()
 			count--;
 		}
 	}
+}
+
+void NetPlayDialog::AddChatMessage(ChatMessageType type, const std::string& msg)
+{
+	wxColour colour = *wxBLACK;
+	std::string printed_msg = msg;
+
+	switch (type)
+	{
+	case ChatMessageType::Info:
+		colour = wxColour(0, 150, 150);
+		break;
+
+	case ChatMessageType::Error:
+		colour = *wxRED;
+		break;
+
+	case ChatMessageType::UserIn:
+		colour = wxColour(0, 150, 0);
+		printed_msg = "▶ " + msg;
+		break;
+
+	case ChatMessageType::UserOut:
+		colour = wxColour(50, 50, 50);
+		printed_msg = "◀ " + msg;
+		break;
+	}
+
+	if (type == ChatMessageType::Info || type == ChatMessageType::Error)
+		printed_msg = "― " + msg + " ―";
+
+	m_chat_text->SetDefaultStyle(wxTextAttr(colour));
+	m_chat_text->AppendText(StrToWxStr(printed_msg + "\n"));
 }

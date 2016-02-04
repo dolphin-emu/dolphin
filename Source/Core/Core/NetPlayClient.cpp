@@ -354,6 +354,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		packet >> size;
 
 		m_target_buffer_size = size;
+		m_dialog->OnPadBufferChanged((int)size);
 	}
 	break;
 
@@ -403,16 +404,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	break;
 
 	case NP_MSG_STOP_GAME:
-	{
-		m_dialog->OnMsgStopGame();
-	}
-	break;
-
 	case NP_MSG_DISABLE_GAME:
 	{
-		PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You must manually stop the game.");
-		m_is_running.store(false);
-		NetPlay_Disable();
+		StopGame();
+		m_dialog->OnMsgStopGame();
 	}
 	break;
 
@@ -450,17 +445,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		u32 frame;
 		packet >> pid_to_blame;
 		packet >> frame;
-		const char* blame_str = "";
-		const char* blame_name = "";
+
+		std::string player = "??";
 		std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-		if (pid_to_blame != -1)
 		{
 			auto it = m_players.find(pid_to_blame);
-			blame_str = " from player ";
-			blame_name = it != m_players.end() ? it->second.name.c_str() : "??";
+			if (it != m_players.end())
+				player = it->second.name;
 		}
-
-		m_dialog->AppendChat(StringFromFormat("/!\\ Possible desync detected%s%s on frame %u", blame_str, blame_name, frame));
+		m_dialog->OnDesync(frame, player);
 	}
 	break;
 
@@ -560,13 +553,11 @@ void NetPlayClient::ThreadFunc()
 				enet_packet_destroy(netEvent.packet);
 				break;
 			case ENET_EVENT_TYPE_DISCONNECT:
-				m_is_running.store(false);
-				NetPlay_Disable();
-				m_dialog->AppendChat("< LOST CONNECTION TO SERVER >");
-				PanicAlertT("Lost connection to server!");
-				m_do_loop.store(false);
+				m_dialog->OnConnectionLost();
 
-				netEvent.peer->data = nullptr;
+				if (m_is_running.load())
+					StopGame();
+
 				break;
 			default:
 				break;
@@ -595,7 +586,7 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 		}
 	};
 
-	u32 maxPing = 0;
+	u32 max_ping = 0;
 	for (const auto& entry : m_players)
 	{
 		const Player& player = entry.second;
@@ -607,11 +598,10 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 		ss << " |\nPing: " << player.ping << "ms\n\n";
 		pid_list.push_back(player.pid);
 
-		if (player.ping > maxPing)
-			maxPing = player.ping;
+		if (player.ping > max_ping)
+			max_ping = player.ping;
 
 	}
-
 
 	OSD::AddTypedMessage(
 		OSD::Message::TYPE_NETPLAY_PING,
@@ -709,8 +699,6 @@ bool NetPlayClient::StartGame(const std::string &path)
 		PanicAlertT("Game is already running!");
 		return false;
 	}
-
-	m_dialog->AppendChat(" -- STARTING GAME -- ");
 
 	m_timebase_frame = 0;
 
@@ -1043,8 +1031,6 @@ bool NetPlayClient::StopGame()
 		PanicAlertT("Game isn't running!");
 		return false;
 	}
-
-	m_dialog->AppendChat(" -- STOPPING GAME -- ");
 
 	m_is_running.store(false);
 	NetPlay_Disable();
