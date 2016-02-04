@@ -27,11 +27,26 @@ enum
 	NP_GUI_EVT_CHANGE_GAME = 45,
 	NP_GUI_EVT_START_GAME,
 	NP_GUI_EVT_STOP_GAME,
+	NP_GUI_EVT_PAD_BUFFER_CHANGE,
+	NP_GUI_EVT_DESYNC,
+	NP_GUI_EVT_CONNECTION_LOST,
 };
 
 enum
 {
 	INITIAL_PAD_BUFFER_SIZE = 5
+};
+
+enum class ChatMessageType
+{
+	// Info messages logged to chat
+	Info,
+	// Error messages logged to chat
+	Error,
+	// Incoming user chat messages
+	UserIn,
+	// Outcoming user chat messages
+	UserOut,
 };
 
 class NetPlayDialog : public wxFrame, public NetPlayUI
@@ -55,6 +70,9 @@ public:
 	void OnMsgChangeGame(const std::string& filename) override;
 	void OnMsgStartGame() override;
 	void OnMsgStopGame() override;
+	void OnPadBufferChanged(int buffer) override;
+	void OnDesync(u32 frame, const std::string& player) override;
+	void OnConnectionLost() override;
 
 	static NetPlayDialog*& GetInstance() { return npd; }
 	static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
@@ -74,6 +92,7 @@ private:
 	void OnPlayerSelect(wxCommandEvent& event);
 	void GetNetSettings(NetSettings& settings);
 	std::string FindGame();
+	void AddChatMessage(ChatMessageType type, const std::string& msg);
 
 	void OnCopyIP(wxCommandEvent&);
 	void OnChoice(wxCommandEvent& event);
@@ -95,6 +114,9 @@ private:
 	wxButton*     m_host_copy_btn;
 	bool          m_host_copy_btn_is_retry;
 	bool          m_is_hosting;
+	int           m_pad_buffer;
+	u32           m_desync_frame;
+	std::string   m_desync_player;
 
 	std::vector<int> m_playerids;
 
