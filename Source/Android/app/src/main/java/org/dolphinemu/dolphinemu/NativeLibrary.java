@@ -380,6 +380,11 @@ public final class NativeLibrary
 	public static native void eglBindAPI(int api);
 
 	/**
+	 * Provides a way to refresh the connections on Wiimotes
+	 */
+	public static native void RefreshWiimotes();
+
+	/**
 	 * The methods C++ uses to find references to Java classes and methods
 	 * are really expensive. Rather than calling them every time we want to
 	 * run them, do it once when we load the native library.
