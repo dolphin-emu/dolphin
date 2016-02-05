@@ -33,6 +33,7 @@ import org.dolphinemu.dolphinemu.fragments.SaveStateFragment;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
+import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.List;
@@ -120,6 +121,7 @@ public final class EmulationActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 
 		Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
 		// Picasso will take a while to load these big-ass screenshots. So don't run
 		// the animation until we say so.
@@ -391,6 +393,10 @@ public final class EmulationActivity extends AppCompatActivity
 
 				return;
 			}
+
+			case R.id.menu_refresh_wiimotes:
+				NativeLibrary.RefreshWiimotes();
+				return;
 
 			// Screenshot capturing
 			case R.id.menu_emulation_screenshot:
