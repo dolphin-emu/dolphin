@@ -61,9 +61,6 @@ else()
 endif()
 
 list(APPEND LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
-if(NOT APPLE AND NOT ANDROID)
-	list(APPEND LIBS rt)
-endif()
 
 # OpenGL Interface
 set(SRCS ${SRCS}
