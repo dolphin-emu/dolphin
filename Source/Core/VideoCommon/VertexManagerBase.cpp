@@ -230,7 +230,7 @@ void VertexManagerBase::Flush()
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
-		TextureCacheBase::BindTextures();
+		g_texture_cache->BindTextures();
 	}
 
 	// set global vertex constants

@@ -35,59 +35,9 @@ TextureCache::TCacheEntry::~TCacheEntry()
 	m_texture->Release();
 }
 
-void TextureCache::TCacheEntry::Bind(unsigned int stage, unsigned int last_texture)
+void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	static bool s_first_texture_in_group = true;
-	static D3D12_CPU_DESCRIPTOR_HANDLE s_group_base_texture_cpu_handle;
-	static D3D12_GPU_DESCRIPTOR_HANDLE s_group_base_texture_gpu_handle;
-
-	if (last_texture == 0)
-	{
-		DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, this->m_texture_srv_gpu_handle);
-		return;
-	}
-
-	if (s_first_texture_in_group)
-	{
-		// On the first texture in the group, we need to allocate the space in the descriptor heap.
-		DX12::D3D::gpu_descriptor_heap_mgr->AllocateGroup(&s_group_base_texture_cpu_handle, 8, &s_group_base_texture_gpu_handle, nullptr, true);
-
-		// Pave over space with null textures.
-		for (unsigned int i = 0; i < last_texture; i++)
-		{
-			D3D12_CPU_DESCRIPTOR_HANDLE nullDestDescriptor;
-			nullDestDescriptor.ptr = s_group_base_texture_cpu_handle.ptr + i * D3D::resource_descriptor_size;
-
-			DX12::D3D::device12->CopyDescriptorsSimple(
-				1,
-				nullDestDescriptor,
-				DX12::D3D::null_srv_cpu_shadow,
-				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-				);
-		}
-
-		// Future binding calls will not be the first texture in the group.. until stage == count, below.
-		s_first_texture_in_group = false;
-	}
-
-	D3D12_CPU_DESCRIPTOR_HANDLE textureDestDescriptor;
-	textureDestDescriptor.ptr = s_group_base_texture_cpu_handle.ptr + stage * D3D::resource_descriptor_size;
-	DX12::D3D::device12->CopyDescriptorsSimple(
-		1,
-		textureDestDescriptor,
-		this->m_texture_srv_gpu_handle_cpu_shadow,
-		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-		);
-
-	// Stage is zero-based, count is one-based
-	if (stage == last_texture)
-	{
-		// On the last texture, we need to actually bind the table.
-		DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, s_group_base_texture_gpu_handle);
-
-		// Then mark that the next binding call will be the first texture in a group.
-		s_first_texture_in_group = true;
-	}
+	// Textures bound as group in TextureCache::BindTextures.
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
@@ -663,6 +613,60 @@ TextureCache::~TextureCache()
 	}
 
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_palette_uniform_buffer);
+}
+
+void TextureCache::BindTextures()
+{
+	unsigned int last_texture = 0;
+	for (unsigned int i = 0; i < 8; ++i)
+	{
+		if (bound_textures[i] != nullptr)
+		{
+			last_texture = i;
+		}
+	}
+
+	if (last_texture == 0 && bound_textures[0] != nullptr)
+	{
+		DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, reinterpret_cast<TCacheEntry*>(bound_textures[0])->m_texture_srv_gpu_handle);
+		return;
+	}
+
+	// If more than one texture, allocate space for group.
+	D3D12_CPU_DESCRIPTOR_HANDLE s_group_base_texture_cpu_handle;
+	D3D12_GPU_DESCRIPTOR_HANDLE s_group_base_texture_gpu_handle;
+	DX12::D3D::gpu_descriptor_heap_mgr->AllocateGroup(&s_group_base_texture_cpu_handle, 8, &s_group_base_texture_gpu_handle, nullptr, true);
+
+	for (unsigned int stage = 0; stage <= last_texture; stage++)
+	{
+		if (bound_textures[stage] != nullptr)
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE textureDestDescriptor;
+			textureDestDescriptor.ptr = s_group_base_texture_cpu_handle.ptr + stage * D3D::resource_descriptor_size;
+
+			DX12::D3D::device12->CopyDescriptorsSimple(
+				1,
+				textureDestDescriptor,
+				reinterpret_cast<TCacheEntry*>(bound_textures[stage])->m_texture_srv_gpu_handle_cpu_shadow,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+				);
+		}
+		else
+		{
+			D3D12_CPU_DESCRIPTOR_HANDLE nullDestDescriptor;
+			nullDestDescriptor.ptr = s_group_base_texture_cpu_handle.ptr + stage * D3D::resource_descriptor_size;
+
+			DX12::D3D::device12->CopyDescriptorsSimple(
+				1,
+				nullDestDescriptor,
+				DX12::D3D::null_srv_cpu_shadow,
+				D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
+				);
+		}
+	}
+
+	// Actually bind the textures.
+	DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, s_group_base_texture_gpu_handle);
 }
 
 }

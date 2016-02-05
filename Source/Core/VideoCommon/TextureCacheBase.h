@@ -94,7 +94,7 @@ public:
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
 
-		virtual void Bind(unsigned int stage, unsigned int last_texture) = 0;
+		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
 
 		virtual void CopyRectangleFromTexture(
@@ -138,7 +138,7 @@ public:
 
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
-	static void BindTextures();
+	virtual void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
@@ -149,6 +149,8 @@ protected:
 
 	alignas(16) static u8* temp;
 	static size_t temp_size;
+
+	static TCacheEntryBase* bound_textures[8];
 
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
@@ -165,7 +167,6 @@ private:
 	static TexCache textures_by_address;
 	static TexCache textures_by_hash;
 	static TexPool texture_pool;
-	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig

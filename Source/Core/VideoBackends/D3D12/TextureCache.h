@@ -18,6 +18,8 @@ public:
 	TextureCache();
 	~TextureCache();
 
+	virtual void BindTextures();
+
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
@@ -40,7 +42,7 @@ private:
 		void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
 			bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
 
-		void Bind(unsigned int stage, unsigned int last_texture) override;
+		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
 	};
 
