@@ -170,7 +170,64 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(unsigned int allocation_siz
 	// This might be ok if we have > 2 frames queued up or something, but
 	// we don't want to be stalling as we generate the front-of-queue frame.
 
-	// First, let's find the first fence that will free up enough space in our buffer.
+	const bool found_fence_to_wait_on = AttemptToFindExistingFenceToStallOn(allocation_size);
+
+	if (found_fence_to_wait_on)
+	{
+		return false;
+	}
+
+	// 4) If we get to this point, that means there is no outstanding queued GPU work, and we're still out of room.
+	// This is bad - and performance will suffer due to the CPU/GPU serialization, but the show must go on.
+
+	// This is guaranteed to succeed, since we've already CHECK'd that the allocation_size <= max_buffer_size, and flushing now and waiting will
+	// free all space in buffer.
+
+	D3D::command_list_mgr->ExecuteQueuedWork(true);
+
+	m_buffer_offset = allocation_size;
+	m_buffer_current_allocation_offset = 0;
+	m_buffer_gpu_completion_offset = 0;
+
+	return true;
+}
+
+// Return true if space is found.
+bool D3DStreamBuffer::AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(unsigned int allocation_size)
+{
+	// First, check if there is room at end of buffer. Fast path.
+	if (m_buffer_offset >= m_buffer_gpu_completion_offset)
+	{
+		if (m_buffer_offset + allocation_size <= m_buffer_size)
+		{
+			m_buffer_current_allocation_offset = m_buffer_offset;
+			m_buffer_offset += allocation_size;
+			return true;
+		}
+
+		if (0 + allocation_size < m_buffer_gpu_completion_offset)
+		{
+			m_buffer_current_allocation_offset = 0;
+			m_buffer_offset = allocation_size;
+			return true;
+		}
+	}
+
+	// Next, check if there is room at front of buffer. Fast path.
+	if (m_buffer_offset < m_buffer_gpu_completion_offset && m_buffer_offset + allocation_size < m_buffer_gpu_completion_offset)
+	{
+		m_buffer_current_allocation_offset = m_buffer_offset;
+		m_buffer_offset += allocation_size;
+		return true;
+	}
+
+	return false;
+}
+
+// Returns true if fence was found and waited on.
+bool D3DStreamBuffer::AttemptToFindExistingFenceToStallOn(unsigned int allocation_size)
+{
+	// Let's find the first fence that will free up enough space in our buffer.
 
 	UINT64 fence_value_required = 0;
 	unsigned int new_buffer_offset = 0;
@@ -221,50 +278,6 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(unsigned int allocation_siz
 	if (fence_value_required > 0)
 	{
 		D3D::command_list_mgr->WaitOnCPUForFence(m_buffer_tracking_fence, fence_value_required);
-		return false;
-	}
-
-	// 4) If we get to this point, that means there is no outstanding queued GPU work, and we're still out of room.
-	// This is bad - and performance will suffer due to the CPU/GPU serialization, but the show must go on.
-
-	// This is guaranteed to succeed, since we've already CHECK'd that the allocation_size <= max_buffer_size, and flushing now and waiting will
-	// free all space in buffer.
-
-	D3D::command_list_mgr->ExecuteQueuedWork(true);
-
-	m_buffer_offset = allocation_size;
-	m_buffer_current_allocation_offset = 0;
-	m_buffer_gpu_completion_offset = 0;
-
-	return true;
-}
-
-// Return true if space is found.
-bool D3DStreamBuffer::AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(unsigned int allocation_size)
-{
-	// First, check if there is room at end of buffer. Fast path.
-	if (m_buffer_offset >= m_buffer_gpu_completion_offset)
-	{
-		if (m_buffer_offset + allocation_size <= m_buffer_size)
-		{
-			m_buffer_current_allocation_offset = m_buffer_offset;
-			m_buffer_offset += allocation_size;
-			return true;
-		}
-
-		if (0 + allocation_size < m_buffer_gpu_completion_offset)
-		{
-			m_buffer_current_allocation_offset = 0;
-			m_buffer_offset = allocation_size;
-			return true;
-		}
-	}
-
-	// Next, check if there is room at front of buffer. Fast path.
-	if (m_buffer_offset < m_buffer_gpu_completion_offset && m_buffer_offset + allocation_size < m_buffer_gpu_completion_offset)
-	{
-		m_buffer_current_allocation_offset = m_buffer_offset;
-		m_buffer_offset += allocation_size;
 		return true;
 	}
 

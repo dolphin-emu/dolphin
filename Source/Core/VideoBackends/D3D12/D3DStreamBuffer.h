@@ -36,6 +36,8 @@ private:
 
 	bool AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(unsigned int allocation_size);
 
+	bool AttemptToFindExistingFenceToStallOn(unsigned int allocation_size);
+
 	void UpdateGPUProgress();
 	void QueueFence(UINT64 fence_value);
 

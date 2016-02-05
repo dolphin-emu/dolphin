@@ -99,7 +99,7 @@ TextureCache::TCacheEntry::TCacheEntry(const TCacheEntryConfig& _config)
 	framebuffer = 0;
 }
 
-void TextureCache::TCacheEntry::Bind(unsigned int stage, unsigned int lastTexture)
+void TextureCache::TCacheEntry::Bind(unsigned int stage, unsigned int last_texture)
 {
 	if (s_Textures[stage] != texture)
 	{

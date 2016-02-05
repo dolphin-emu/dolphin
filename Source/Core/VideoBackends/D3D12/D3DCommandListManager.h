@@ -13,6 +13,16 @@
 namespace DX12
 {
 
+enum COMMAND_LIST_STATE
+{
+	COMMAND_LIST_STATE_GS_CBV        = 1,
+	COMMAND_LIST_STATE_PS_CBV        = 2,
+	COMMAND_LIST_STATE_VS_CBV        = 4,
+	COMMAND_LIST_STATE_PSO           = 8,
+	COMMAND_LIST_STATE_SAMPLERS      = 16,
+	COMMAND_LIST_STATE_VERTEX_BUFFER = 32
+};
+
 // This class provides an abstraction for D3D12 descriptor heaps.
 class D3DCommandListManager
 {
@@ -34,13 +44,11 @@ public:
 	void DestroyResourceAfterCurrentCommandListExecuted(ID3D12Resource* resource);
 	void ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
-	bool m_dirty_vertex_buffer;
-	bool m_dirty_pso;
-	bool m_dirty_ps_cbv;
-	bool m_dirty_vs_cbv;
-	bool m_dirty_gs_cbv;
-	bool m_dirty_samplers;
-	unsigned int m_current_topology;
+	void SetCommandListDirtyState(unsigned int command_list_state, bool dirty);
+	bool GetCommandListDirtyState(COMMAND_LIST_STATE command_list_state) const;
+
+	void SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitive_topology);
+	D3D_PRIMITIVE_TOPOLOGY GetCommandListPrimitiveTopology() const;
 
 	unsigned int m_draws_since_last_execution = 0;
 	bool m_cpu_access_last_frame = false;
@@ -59,6 +67,9 @@ private:
 
 	void PerformGpuRolloverChecks();
 	void ResetCommandListWithIdleCommandAllocator();
+
+	unsigned int m_command_list_dirty_state = UINT_MAX;
+	D3D_PRIMITIVE_TOPOLOGY m_command_list_current_topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
 	HANDLE m_wait_on_cpu_fence_event;
 

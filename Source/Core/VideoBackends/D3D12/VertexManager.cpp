@@ -92,7 +92,7 @@ void VertexManager::Draw(u32 stride)
 
 	u32 indices = IndexGenerator::GetIndexLen();
 
-	if (D3D::command_list_mgr->m_dirty_vertex_buffer || s_previous_stride != stride)
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER) || s_previous_stride != stride)
 	{
 		D3D12_VERTEX_BUFFER_VIEW vb_view = {
 			m_vertex_stream_buffer->GetBaseGPUAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
@@ -102,7 +102,7 @@ void VertexManager::Draw(u32 stride)
 
 		D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
 
-		D3D::command_list_mgr->m_dirty_vertex_buffer = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, false);
 		s_previous_stride = stride;
 	}
 
@@ -118,10 +118,10 @@ void VertexManager::Draw(u32 stride)
 			break;
 	}
 
-	if (D3D::command_list_mgr->m_current_topology != d3d_primitive_topology)
+	if (D3D::command_list_mgr->GetCommandListPrimitiveTopology() != d3d_primitive_topology)
 	{
 		D3D::current_command_list->IASetPrimitiveTopology(d3d_primitive_topology);
-		D3D::command_list_mgr->m_current_topology = d3d_primitive_topology;
+		D3D::command_list_mgr->SetCommandListPrimitiveTopology(d3d_primitive_topology);
 	}
 
 	u32 base_vertex = m_vertex_draw_offset / stride;
@@ -189,7 +189,7 @@ void VertexManager::ResetBuffer(u32 stride)
 
 	if (m_vertex_stream_buffer_reallocated)
 	{
-		D3D::command_list_mgr->m_dirty_vertex_buffer = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
 		m_vertex_stream_buffer_reallocated = false;
 	}
 

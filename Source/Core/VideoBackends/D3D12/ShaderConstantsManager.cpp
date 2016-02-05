@@ -67,17 +67,17 @@ bool ShaderConstantsManager::LoadAndSetGeometryShaderConstants()
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(GeometryShaderConstants));
 
-		D3D::command_list_mgr->m_dirty_gs_cbv = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_GS_CBV, true);
 	}
 
-	if (D3D::command_list_mgr->m_dirty_gs_cbv)
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_GS_CBV))
 	{
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(
 			DESCRIPTOR_TABLE_GS_CBV,
 			s_shader_constant_stream_buffers[SHADER_STAGE_GEOMETRY_SHADER]->GetGPUAddressOfCurrentAllocation()
 			);
 
-		D3D::command_list_mgr->m_dirty_gs_cbv = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_GS_CBV, false);
 	}
 
 	return command_list_executed;
@@ -103,17 +103,17 @@ bool ShaderConstantsManager::LoadAndSetPixelShaderConstants()
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
 
-		D3D::command_list_mgr->m_dirty_ps_cbv = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
 	}
 
-	if (D3D::command_list_mgr->m_dirty_ps_cbv)
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV))
 	{
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(
 			DESCRIPTOR_TABLE_PS_CBVONE,
 			s_shader_constant_stream_buffers[SHADER_STAGE_PIXEL_SHADER]->GetGPUAddressOfCurrentAllocation()
 			);
 
-		D3D::command_list_mgr->m_dirty_ps_cbv = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, false);
 	}
 
 	return command_list_executed;
@@ -139,10 +139,10 @@ bool ShaderConstantsManager::LoadAndSetVertexShaderConstants()
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
 
-		D3D::command_list_mgr->m_dirty_vs_cbv = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VS_CBV, true);
 	}
 
-	if (D3D::command_list_mgr->m_dirty_vs_cbv)
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_VS_CBV))
 	{
 		const D3D12_GPU_VIRTUAL_ADDRESS calculated_gpu_va =
 			s_shader_constant_stream_buffers[SHADER_STAGE_VERTEX_SHADER]->GetGPUAddressOfCurrentAllocation();
@@ -158,7 +158,7 @@ bool ShaderConstantsManager::LoadAndSetVertexShaderConstants()
 				calculated_gpu_va
 				);
 
-		D3D::command_list_mgr->m_dirty_vs_cbv = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VS_CBV, false);
 	}
 
 	return command_list_executed;

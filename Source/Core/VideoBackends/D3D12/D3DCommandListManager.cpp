@@ -86,18 +86,13 @@ void D3DCommandListManager::SetInitialCommandListState()
 		g_renderer->RestoreAPIState();
 	}
 
+	m_command_list_dirty_state = UINT_MAX;
+
 	command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	m_command_list_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 
 	if (g_vertex_manager)
 		reinterpret_cast<VertexManager*>(g_vertex_manager.get())->SetIndexBuffer();
-
-	m_dirty_pso = true;
-	m_dirty_vertex_buffer = true;
-	m_dirty_ps_cbv = true;
-	m_dirty_vs_cbv = true;
-	m_dirty_gs_cbv = true;
-	m_dirty_samplers = true;
-	m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 }
 
 void D3DCommandListManager::GetCommandList(ID3D12GraphicsCommandList** command_list) const
@@ -313,6 +308,29 @@ void D3DCommandListManager::WaitOnCPUForFence(ID3D12Fence* fence, UINT64 fence_v
 	CheckHR(fence->SetEventOnCompletion(fence_value, m_wait_on_cpu_fence_event));
 
 	WaitForSingleObject(m_wait_on_cpu_fence_event, INFINITE);
+}
+
+void D3DCommandListManager::SetCommandListDirtyState(unsigned int command_list_state, bool dirty)
+{
+	if (dirty)
+		m_command_list_dirty_state |= command_list_state;
+	else
+		m_command_list_dirty_state &= ~command_list_state;
+}
+
+bool D3DCommandListManager::GetCommandListDirtyState(COMMAND_LIST_STATE command_list_state) const
+{
+	return ((m_command_list_dirty_state & command_list_state) != 0);
+}
+
+void D3DCommandListManager::SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY primitive_topology)
+{
+	m_command_list_current_topology = primitive_topology;
+}
+
+D3D_PRIMITIVE_TOPOLOGY D3DCommandListManager::GetCommandListPrimitiveTopology() const
+{
+	return m_command_list_current_topology;
 }
 
 void D3DCommandListManager::CPUAccessNotify()

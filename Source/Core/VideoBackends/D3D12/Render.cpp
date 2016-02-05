@@ -375,7 +375,7 @@ void Renderer::SetColorMask()
 	}
 	gx_state.blend.write_mask = color_mask;
 
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -431,7 +431,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D::current_command_list->RSSetViewports(1, &vp12);
 
 		D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_access_efb_constant_buffer->GetGPUVirtualAddress());
-		D3D::command_list_mgr->m_dirty_ps_cbv = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
 
 		FramebufferManager::GetEFBDepthReadTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV12(), FALSE, nullptr);
@@ -809,7 +809,7 @@ void Renderer::SetBlendMode(bool force_update)
 		}
 	}
 
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& rc)
@@ -1197,19 +1197,19 @@ void Renderer::ApplyState(bool use_dst_alpha)
 	if (use_dst_alpha != s_previous_use_dst_alpha)
 	{
 		s_previous_use_dst_alpha = use_dst_alpha;
-		D3D::command_list_mgr->m_dirty_pso = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 	}
 
 	gx_state.blend.use_dst_alpha = use_dst_alpha;
 
-	if (D3D::command_list_mgr->m_dirty_samplers)
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS))
 	{
 		D3D12_GPU_DESCRIPTOR_HANDLE sample_group_gpu_handle;
 		sample_group_gpu_handle = D3D::sampler_descriptor_heap_mgr->GetHandleForSamplerGroup(gx_state.sampler, 8);
 
 		D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SAMPLER, sample_group_gpu_handle);
 
-		D3D::command_list_mgr->m_dirty_samplers = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, false);
 	}
 
 	// Uploads and binds required constant buffer data for all stages.
@@ -1217,7 +1217,7 @@ void Renderer::ApplyState(bool use_dst_alpha)
 	ShaderConstantsManager::LoadAndSetPixelShaderConstants();
 	ShaderConstantsManager::LoadAndSetVertexShaderConstants();
 
-	if (D3D::command_list_mgr->m_dirty_pso || s_previous_vertex_format != reinterpret_cast<D3DVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat()))
+	if (D3D::command_list_mgr->GetCommandListDirtyState(COMMAND_LIST_STATE_PSO) || s_previous_vertex_format != reinterpret_cast<D3DVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat()))
 	{
 		s_previous_vertex_format = reinterpret_cast<D3DVertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
 
@@ -1260,7 +1260,7 @@ void Renderer::ApplyState(bool use_dst_alpha)
 
 		D3D::current_command_list->SetPipelineState(pso);
 
-		D3D::command_list_mgr->m_dirty_pso = false;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, false);
 	}
 }
 
@@ -1292,14 +1292,14 @@ void Renderer::SetGenerationMode()
 	// EXISTINGD3D11TODO: GX_CULL_ALL not supported, yet!
 	gx_state.raster.cull_mode = d3d_cull_modes[bpmem.genMode.cullmode];
 
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 void Renderer::SetDepthMode()
 {
 	gx_state.zmode.hex = bpmem.zmode.hex;
 
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 void Renderer::SetLogicOpMode()
@@ -1394,7 +1394,7 @@ void Renderer::SetLogicOpMode()
 		SetBlendMode(true);
 	}
 
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 void Renderer::SetDitherMode()
@@ -1438,7 +1438,7 @@ void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 
 	if (gx_state.sampler[stage].hex != s_previous_sampler_state[stage].hex)
 	{
-		D3D::command_list_mgr->m_dirty_samplers = true;
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 		s_previous_sampler_state[stage].hex = gx_state.sampler[stage].hex;
 	}
 }
@@ -1583,6 +1583,21 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 			false // Backbuffer never multisampled.
 			);
 	}
+}
+
+D3D12_BLEND_DESC Renderer::GetResetBlendDesc()
+{
+	return g_reset_blend_desc;
+}
+
+D3D12_DEPTH_STENCIL_DESC Renderer::GetResetDepthStencilDesc()
+{
+	return g_reset_depth_desc;
+}
+
+D3D12_RASTERIZER_DESC Renderer::GetResetRasterizerDesc()
+{
+	return g_reset_rast_desc;
 }
 
 }  // namespace DX12

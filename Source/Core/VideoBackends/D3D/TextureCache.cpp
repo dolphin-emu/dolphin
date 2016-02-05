@@ -32,7 +32,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 	texture->Release();
 }
 
-void TextureCache::TCacheEntry::Bind(unsigned int stage, unsigned int lastTexture)
+void TextureCache::TCacheEntry::Bind(unsigned int stage, unsigned int last_texture)
 {
 	D3D::stateman->SetTexture(stage, texture->GetSRV());
 }

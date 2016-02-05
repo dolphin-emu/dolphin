@@ -187,7 +187,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 	}
 
 	// A Uid has changed, so the PSO will need to be reset at next ApplyState.
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
 void ShaderCache::SetCurrentPrimitiveTopology(u32 gs_primitive_type)

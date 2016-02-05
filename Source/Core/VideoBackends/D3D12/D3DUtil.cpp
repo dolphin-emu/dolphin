@@ -21,9 +21,9 @@
 namespace DX12
 {
 
-extern D3D12_BLEND_DESC g_reset_blend_desc;
-extern D3D12_DEPTH_STENCIL_DESC g_reset_depth_desc;
-extern D3D12_RASTERIZER_DESC g_reset_rast_desc;
+static D3D12_BLEND_DESC s_reset_blend_desc;
+static D3D12_DEPTH_STENCIL_DESC s_reset_depth_desc;
+static D3D12_RASTERIZER_DESC s_reset_rast_desc;
 
 namespace D3D
 {
@@ -437,10 +437,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 
 	// set general pipeline state
 	D3D::current_command_list->SetPipelineState(m_pso);
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	D3D::command_list_mgr->m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, m_texture12_gpu);
 
@@ -545,6 +545,10 @@ int clearq_offset;
 
 void InitUtils()
 {
+	s_reset_blend_desc = Renderer::GetResetBlendDesc();
+	s_reset_depth_desc = Renderer::GetResetDepthStencilDesc();
+	s_reset_rast_desc = Renderer::GetResetRasterizerDesc();
+
 	util_vbuf_stq = new UtilVertexBuffer(0x10000);
 	util_vbuf_cq = new UtilVertexBuffer(0x10000);
 	util_vbuf_clearq = new UtilVertexBuffer(0x10000);
@@ -603,13 +607,13 @@ void ShutdownUtils()
 void SetPointCopySampler()
 {
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SAMPLER, point_copy_sampler12GPU);
-	D3D::command_list_mgr->m_dirty_samplers = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 }
 
 void SetLinearCopySampler()
 {
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SAMPLER, linear_copy_sampler12GPU);
-	D3D::command_list_mgr->m_dirty_samplers = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 }
 
 void DrawShadedTexQuad(D3DTexture2D* texture,
@@ -660,7 +664,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	}
 
 	D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	D3D::command_list_mgr->m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	D3D12_VERTEX_BUFFER_VIEW vb_view = {
 		util_vbuf_stq->GetBuffer12()->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
@@ -669,7 +673,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	};
 
 	D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
-	D3D::command_list_mgr->m_dirty_vertex_buffer = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
 
 	if (!inherit_srv_binding)
 	{
@@ -685,12 +689,12 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 		{},                                               // D3D12_SHADER_BYTECODE HS;
 		gshader12,                                        // D3D12_SHADER_BYTECODE GS;
 		{},                                               // D3D12_STREAM_OUTPUT_DESC StreamOutput
-		g_reset_blend_desc,                               // D3D12_BLEND_DESC BlendState;
+		s_reset_blend_desc,                               // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
-		g_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
+		s_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
 		depth_stencil_desc_override ?
 			*depth_stencil_desc_override :
-			g_reset_depth_desc,                           // D3D12_DEPTH_STENCIL_DESC DepthStencilState
+			s_reset_depth_desc,                           // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		layout12,                                         // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
@@ -709,7 +713,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&pso_desc, &pso));
 
 	D3D::current_command_list->SetPipelineState(pso);
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
 	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
@@ -749,7 +753,7 @@ void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D
 	}
 
 	D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	D3D::command_list_mgr->m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	D3D12_VERTEX_BUFFER_VIEW vb_view = {
 		util_vbuf_cq->GetBuffer12()->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
@@ -758,7 +762,7 @@ void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D
 	};
 
 	D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
-	D3D::command_list_mgr->m_dirty_vertex_buffer = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
@@ -770,7 +774,7 @@ void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D
 		{},                                               // D3D12_STREAM_OUTPUT_DESC StreamOutput
 		*blend_desc,                                      // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
-		g_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
+		s_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
 		*depth_stencil_desc,                              // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		StaticShaderCache::GetClearVertexShaderInputLayout(), // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
@@ -790,7 +794,7 @@ void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D
 	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&pso_desc, &pso));
 
 	D3D::current_command_list->SetPipelineState(pso);
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
 	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
@@ -822,7 +826,7 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	}
 
 	D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	D3D::command_list_mgr->m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	D3D12_VERTEX_BUFFER_VIEW vb_view = {
 		util_vbuf_clearq->GetBuffer12()->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
@@ -831,7 +835,7 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	};
 
 	D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
-	D3D::command_list_mgr->m_dirty_vertex_buffer = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
@@ -845,7 +849,7 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 		{},                                               // D3D12_STREAM_OUTPUT_DESC StreamOutput
 		*blend_desc,                                      // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
-		g_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
+		s_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
 		*depth_stencil_desc,                              // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		StaticShaderCache::GetClearVertexShaderInputLayout(), // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
@@ -865,7 +869,7 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&pso_desc, &pso));
 
 	D3D::current_command_list->SetPipelineState(pso);
-	D3D::command_list_mgr->m_dirty_pso = true;
+	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
 	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
@@ -900,7 +904,7 @@ void DrawEFBPokeQuads(EFBAccessType type,
 {
 	// The viewport and RT/DB are passed in so we can reconstruct the state if we need to execute in the middle of building the vertex buffer.
 
-	D3D::command_list_mgr->m_current_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
@@ -914,7 +918,7 @@ void DrawEFBPokeQuads(EFBAccessType type,
 		{},                                               // D3D12_STREAM_OUTPUT_DESC StreamOutput
 		*blend_desc,                                      // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
-		g_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
+		s_reset_rast_desc,                                // D3D12_RASTERIZER_DESC RasterizerState
 		*depth_stencil_desc,                              // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		StaticShaderCache::GetClearVertexShaderInputLayout(), // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
@@ -932,8 +936,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 
 	ID3D12PipelineState* pso = nullptr;
 	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&pso_desc, &pso));
-
-	D3D::command_list_mgr->m_dirty_pso = true;
 
 	// If drawing a large number of points at once, this will have to be split into multiple passes.
 	const size_t COL_QUAD_SIZE = sizeof(ColVertex) * 6;
@@ -963,10 +965,11 @@ void DrawEFBPokeQuads(EFBAccessType type,
 			sizeof(ColVertex)                                              // UINT StrideInBytes;
 		};
 
-		D3D::command_list_mgr->m_dirty_vertex_buffer = true;
 		D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
 
 		D3D::current_command_list->SetPipelineState(pso);
+		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 		// Disable scissor testing.
 		D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
