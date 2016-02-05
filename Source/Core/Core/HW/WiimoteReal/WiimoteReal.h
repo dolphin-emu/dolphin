@@ -161,4 +161,8 @@ void ChangeWiimoteSource(unsigned int index, int source);
 bool IsValidBluetoothName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
 
+#ifdef ANDROID
+void InitAdapterClass();
+#endif
+
 } // WiimoteReal
