@@ -11,7 +11,7 @@
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	#define ENABLE_MEM_CHECK
+//	#define ENABLE_MEM_CHECK
 #endif
 
 // Global declarations
