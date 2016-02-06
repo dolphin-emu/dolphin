@@ -15,7 +15,6 @@ import android.view.View;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.application.injectors.ActivityInjector;
-import org.dolphinemu.dolphinemu.model.GameProvider;
 import org.dolphinemu.dolphinemu.ui.BaseActivity;
 import org.dolphinemu.dolphinemu.ui.files.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
@@ -101,7 +100,6 @@ public final class MainActivity extends BaseActivity implements MainView
 	@Override
 	public void refresh()
 	{
-		getContentResolver().insert(GameProvider.URI_REFRESH, null);
 		refreshFragment();
 	}
 

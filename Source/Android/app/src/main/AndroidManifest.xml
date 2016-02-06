@@ -67,13 +67,6 @@
 
         <service android:name=".services.AssetCopyService"/>
 
-        <provider
-            android:name=".model.GameProvider"
-            android:authorities="${applicationId}.provider"
-            android:enabled="true"
-            android:exported="false">
-        </provider>
-
     </application>
 
 </manifest>
