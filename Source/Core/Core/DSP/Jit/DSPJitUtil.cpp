@@ -25,7 +25,7 @@ void DSPEmitter::dsp_reg_stack_push(int stack_reg)
 	MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
 	MOVZX(64, 8, RAX, R(AL));
 	MOV(16, MComplex(EAX, EAX, SCALE_1,
-			 PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)), R(tmp1));
+			 PtrOffset(&g_dsp.reg_stack[stack_reg][0], static_cast<u16*>(nullptr))), R(tmp1));
 	gpr.PutXReg(tmp1);
 }
 
@@ -39,7 +39,7 @@ void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
 	X64Reg tmp1 = gpr.GetFreeXReg();
 	MOVZX(64, 8, RAX, R(AL));
 	MOV(16, R(tmp1), MComplex(EAX, EAX, SCALE_1,
-				  PtrOffset(&g_dsp.reg_stack[stack_reg][0],nullptr)));
+				  PtrOffset(&g_dsp.reg_stack[stack_reg][0], static_cast<u16*>(nullptr))));
 	MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
 	gpr.PutXReg(tmp1);
 
