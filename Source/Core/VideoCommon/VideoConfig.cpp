@@ -271,6 +271,7 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("UseRealXFB", bUseRealXFB);
 	settings->Set("SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 	settings->Set("ShowFPS", bShowFPS);
+	settings->Set("ShowNetPlayPing", bShowNetPlayPing);
 	settings->Set("LogRenderTimeToFile", bLogRenderTimeToFile);
 	settings->Set("OverlayStats", bOverlayStats);
 	settings->Set("OverlayProjStats", bOverlayProjStats);
