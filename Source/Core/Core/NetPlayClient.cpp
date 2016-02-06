@@ -19,7 +19,9 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
@@ -603,12 +605,15 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 
 	}
 
-	OSD::AddTypedMessage(
-		OSD::Message::TYPE_NETPLAY_PING,
-		StringFromFormat("Ping: %d", max_ping),
-		OSD::Duration::SHORT,
-		OSD::Color::CYAN
-	);
+	if (g_ActiveConfig.bShowNetPlayPing)
+	{
+		OSD::AddTypedMessage(
+			OSD::Message::TYPE_NETPLAY_PING,
+			StringFromFormat("Ping: %d", max_ping),
+			OSD::Duration::SHORT,
+			OSD::Color::CYAN
+		);
+	}
 
 	list = ss.str();
 }
