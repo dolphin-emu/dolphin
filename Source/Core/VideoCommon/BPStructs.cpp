@@ -220,6 +220,9 @@ static int BPWritten(const BPCmd& bp)
 			srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
 			srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
+			// 4 pixels per GPU cycle, 3 CPU cycles per GPU cycle
+			int ticks = (bpmem.copyTexSrcWH.x + 1) * (bpmem.copyTexSrcWH.y + 1) * 3 / 4;
+
 			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
 			// Check if we are to copy from the EFB or draw to the XFB
@@ -265,7 +268,7 @@ static int BPWritten(const BPCmd& bp)
 				ClearScreen(srcRect);
 			}
 
-			return 0; // TODO: Timing
+			return ticks;
 		}
 	case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		return 0; // TODO: Timing
