@@ -95,10 +95,14 @@
 	<string name="modifier_range">Modifier Range</string>
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
+
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! -->
     <string name="wiimote_0">Wiimote 1</string>
     <string name="wiimote_1">Wiimote 2</string>
     <string name="wiimote_2">Wiimote 3</string>
     <string name="wiimote_3">Wiimote 4</string>
+    <!-- END WARNING -->
+
     <string name="enable_wiimote">Enable Wiimote</string>
     <string name="wiimote_ir">IR Motion Controls</string>
     <string name="wiimote_swing">Swing Navigation</string>
@@ -245,6 +249,9 @@
     <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
+    <string name="wiimote_scanning">Wiimote Continuous Scanning</string>
+    <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
+
 
     <!-- Video Preference Fragment -->
     <string name="video_settings">Video</string>
@@ -324,6 +331,7 @@
     <string name="grid_menu_core_settings">CPU Settings</string>
     <string name="grid_menu_video_settings">Video Settings</string>
     <string name="grid_menu_gcpad_settings">GameCube Input</string>
+    <string name="grid_menu_wiimote_settings">Wii Input</string>
     <string name="grid_menu_refresh">Refresh Library</string>
 
     <!-- Add Directory Screen-->
