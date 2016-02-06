@@ -159,4 +159,15 @@
         <item>12</item>
     </integer-array>
 
+    <string-array name="wiimoteTypeEntries">
+        <item>Disabled</item>
+        <item>Emulated</item>
+        <item>"Real Wiimote (DolphinBar required)"</item>
+    </string-array>
+    <integer-array name="wiimoteTypeValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
 </resources>

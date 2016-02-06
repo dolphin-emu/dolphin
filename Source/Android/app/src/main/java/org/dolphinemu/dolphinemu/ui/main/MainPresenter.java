@@ -54,6 +54,9 @@ public final class MainPresenter
 				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GCPAD);
 				return true;
 
+			case R.id.menu_settings_wiimote:
+				mView.launchSettingsActivity(SettingsFile.FILE_NAME_WIIMOTE);
+
 			case R.id.menu_refresh:
 				mView.refresh();
 				return true;

@@ -174,4 +174,18 @@ public final class SettingsActivityPresenter
 				break;
 		}
 	}
+
+	public void onWiimoteSettingChanged(String section, int value)
+	{
+		switch (value)
+		{
+			case 1:
+				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
+				break;
+
+			case 2:
+				mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
+				break;
+		}
+	}
 }

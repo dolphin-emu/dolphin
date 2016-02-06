@@ -106,6 +106,10 @@ public final class SettingsFragmentPresenter
 				addGcPadSettings(sl);
 				break;
 
+			case SettingsFile.FILE_NAME_WIIMOTE:
+				addWiimoteSettings(sl);
+				break;
+
 			case SettingsFile.SECTION_GFX_ENHANCEMENTS:
 				addEnhanceSettings(sl);
 				break;
@@ -133,6 +137,7 @@ public final class SettingsFragmentPresenter
 		Setting dualCore = null;
 		Setting overclockEnable = null;
 		Setting overclock = null;
+		Setting continuousScan = null;
 
 		if (mSettings != null)
 		{
@@ -140,6 +145,7 @@ public final class SettingsFragmentPresenter
 			dualCore = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_DUAL_CORE);
 			overclockEnable = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 			overclock = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
+			continuousScan = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
 		}
 		else
 		{
@@ -154,7 +160,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_CORE, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, R.string.overclock_title, 0, 400, "%", 100, overclock));
-
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -166,6 +172,19 @@ public final class SettingsFragmentPresenter
 				// TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
 				Setting gcPadSetting = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
 				sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, SettingsFile.SECTION_CORE, R.string.controller_0 + i, 0, R.array.gcpadTypeEntries, R.array.gcpadTypeValues, 0, gcPadSetting));
+			}
+		}
+	}
+
+	private void addWiimoteSettings(ArrayList<SettingsItem> sl)
+	{
+		if (mSettings != null)
+		{
+			for (int i = 1; i <= 4; i++)
+			{
+				// TODO This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
+				Setting wiimoteSetting = mSettings.get(SettingsFile.SECTION_WIIMOTE + i).getSetting(SettingsFile.KEY_WIIMOTE_TYPE);
+				sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_TYPE, SettingsFile.SECTION_WIIMOTE + i, R.string.wiimote_0 + i - 1, 0, R.array.wiimoteTypeEntries, R.array.wiimoteTypeValues, 0, wiimoteSetting));
 			}
 		}
 	}

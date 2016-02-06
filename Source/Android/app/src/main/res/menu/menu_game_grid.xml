@@ -17,6 +17,11 @@
         android:icon="@drawable/ic_settings_gcpad"
         app:showAsAction="ifRoom"/>
     <item
+        android:id="@+id/menu_settings_wiimote"
+        android:title="@string/grid_menu_wiimote_settings"
+        android:icon="@drawable/ic_settings_wiimote"
+        app:showAsAction="ifRoom"/>
+    <item
         android:id="@+id/menu_refresh"
         android:title="@string/grid_menu_refresh"
         android:icon="@drawable/ic_refresh"
