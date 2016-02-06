@@ -125,7 +125,7 @@ private:
 			m_code->MOVZX(32, sbits, m_dst_reg, arg);
 	}
 
-	void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
+	void LoadAddrMaskToReg(int sbits, const T* ptr, u32 mask)
 	{
 		m_code->MOV(64, R(RSCRATCH), ImmPtr(ptr));
 		// If we do not need to mask, we can do the sign extend while loading
