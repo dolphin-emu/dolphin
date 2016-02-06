@@ -80,7 +80,7 @@ public interface SettingsActivityView
 	void onGcPadSettingChanged(String key, int value);
 
 	/**
-	 * Called by a containing Fragment tell the containing Activity that a Wiimote's setting
+	 * Called by a containing Fragment to tell the containing Activity that a Wiimote's setting
 	 * was modified.
 	 *
 	 * @param section Identifier for Wiimote that was modified; Wiimotes are identified by their section,

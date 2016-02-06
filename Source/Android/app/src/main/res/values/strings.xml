@@ -79,7 +79,8 @@
     <string name="controller_gc">GameCube Controllers</string>
     <string name="controller_wii">Wii Controllers (Wiimotes)</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! -->
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
+            is made that they are placed together so that we can access them sequentially in a loop. -->
     <string name="controller_0">GameCube Controller 1</string>
     <string name="controller_1">GameCube Controller 2</string>
     <string name="controller_2">GameCube Controller 3</string>
@@ -96,7 +97,8 @@
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
-    <!-- WARNING Do not move these controller entries AT ALL COSTS! -->
+    <!-- WARNING Do not move these controller entries AT ALL COSTS! They are indexed with ints, and an assumption
+            is made that they are placed together so that we can access them sequentially in a loop. -->
     <string name="wiimote_0">Wiimote 1</string>
     <string name="wiimote_1">Wiimote 2</string>
     <string name="wiimote_2">Wiimote 3</string>

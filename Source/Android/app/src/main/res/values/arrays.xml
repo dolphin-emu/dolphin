@@ -162,7 +162,7 @@
     <string-array name="wiimoteTypeEntries">
         <item>Disabled</item>
         <item>Emulated</item>
-        <item>"Real Wiimote (DolphinBar required)"</item>
+        <item>Real Wiimote (DolphinBar required)</item>
     </string-array>
     <integer-array name="wiimoteTypeValues">
         <item>0</item>
