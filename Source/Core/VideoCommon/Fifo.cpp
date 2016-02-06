@@ -70,7 +70,10 @@ static u8* s_video_buffer_pp_read_ptr;
 // - The pp_read_ptr is the CPU preprocessing version of the read_ptr.
 
 static std::atomic<int> s_sync_ticks;
+static bool s_syncing_suspended;
 static Common::Event s_sync_wakeup_event;
+
+static void SyncGPUCallback(u64 ticks, int cyclesLate);
 
 void DoState(PointerWrap &p)
 {
@@ -419,6 +422,18 @@ void RunGpu()
 	{
 		s_gpu_mainloop.Wakeup();
 	}
+
+	// if the sync GPU callback is suspended, wake it up.
+	if(!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread || SConfig::GetInstance().bSyncGPU)
+	{
+		if (s_syncing_suspended)
+		{
+			//SyncGPUCallback(0, 0);
+			s_syncing_suspended = false;
+			CoreTiming::ScheduleEvent(100, s_event_sync_gpu, 100);
+		}
+
+	}
 }
 
 static int RunGpuOnCpu(int ticks)
@@ -426,7 +441,7 @@ static int RunGpuOnCpu(int ticks)
 	SCPFifoStruct &fifo = CommandProcessor::fifo;
 	bool reset_simd_state = false;
 	int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
-	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && available_ticks > 0)
+	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() && available_ticks >= 0)
 	{
 		if (s_use_deterministic_gpu_thread)
 		{
@@ -463,10 +478,13 @@ static int RunGpuOnCpu(int ticks)
 		FPURoundMode::LoadSIMDState();
 	}
 
-	available_ticks = std::min(available_ticks, 0);
-	s_sync_ticks.store(available_ticks);
+	s_sync_ticks.store(std::min(available_ticks, 0));
 
-	return 10000 - available_ticks;
+	if(!(fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint()))
+		return -1;
+
+	// always wait at least 100 cycles
+	return std::max(-available_ticks, 1000);
 }
 
 void UpdateWantDeterminism(bool want)
@@ -517,7 +535,7 @@ bool UseDeterministicGPUThread()
 }
 
 /* This function checks the emulated CPU - GPU distance and may wake up the GPU,
- * or block the CPU if required. It should be called by the CPU thread regulary.
+ * or block the CPU if required. It should be called by the CPU thread regularly.
  * @ticks The gone emulated CPU time.
  * @return A good time to call WaitForGpuThread() next.
  */
@@ -528,13 +546,17 @@ static int WaitForGpuThread(int ticks)
 	// GPU is sleeping, so no need for synchronization
 	if (s_gpu_mainloop.IsDone() || s_use_deterministic_gpu_thread)
 	{
-		if (s_sync_ticks.load() < 0)
+		int sync_ticks = s_sync_ticks.load();
+		if ((s_sync_ticks.load() + ticks) < 0)
 		{
-			int old = s_sync_ticks.fetch_add(ticks);
-			if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
-				RunGpu();
+			s_sync_ticks.store(s_sync_ticks.load() + ticks);
+			return 0 - s_sync_ticks.load();
 		}
-		return param.iSyncGpuMaxDistance;
+		else
+		{
+			s_sync_ticks.store(0);
+			return -1;
+		}
 	}
 
 	// Wakeup GPU
@@ -557,7 +579,7 @@ static int WaitForGpuThread(int ticks)
 static void SyncGPUCallback(u64 ticks, int cyclesLate)
 {
 	ticks += cyclesLate;
-	int next = SystemTimers::GetTicksPerSecond();
+	int next = 0;
 
 	if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
 	{
@@ -568,14 +590,28 @@ static void SyncGPUCallback(u64 ticks, int cyclesLate)
 		next = WaitForGpuThread((int)ticks);
 	}
 
-	CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
+	s_syncing_suspended = !(next >= 0);
+	if (!s_syncing_suspended)
+		CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
+}
+
+int callback;
+
+static void superCallback(u64 ticks, int cyclesLate) {
+	CommandProcessor::SetCPStatusFromGPU();
+	CoreTiming::ScheduleEvent(100, callback, 100);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
-	s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
-	CoreTiming::ScheduleEvent(0, s_event_sync_gpu, 0);
+	if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread || SConfig::GetInstance().bSyncGPU) {
+		s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
+		//CoreTiming::ScheduleEvent(0, s_event_sync_gpu, 0);
+		callback = CoreTiming::RegisterEvent("superCallback", superCallback);
+		//CoreTiming::ScheduleEvent(0, callback, 0);
+	}
+	s_syncing_suspended = true;
 }
 
 }
