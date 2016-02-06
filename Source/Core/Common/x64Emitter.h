@@ -276,22 +276,23 @@ constexpr OpArg Imm64(u64 imm)
 	return OpArg(imm, SCALE_IMM64);
 }
 
-inline OpArg ImmPtr(const void* imm)
+template <typename T>
+OpArg ImmPtr(const T* imm)
 {
 	return Imm64(reinterpret_cast<u64>(imm));
 }
 
-inline u32 PtrOffset(const void* ptr, const void* base)
+template <typename T>
+u32 PtrOffset(const T* ptr, const T* base)
 {
-	s64 distance = (s64)ptr-(s64)base;
-	if (distance >= 0x80000000LL ||
-	    distance < -0x80000000LL)
+	s64 distance = reinterpret_cast<s64>(ptr) - reinterpret_cast<s64>(base);
+	if (distance >= 0x80000000LL || distance < -0x80000000LL)
 	{
 		_assert_msg_(DYNA_REC, 0, "pointer offset out of range");
 		return 0;
 	}
 
-	return (u32)distance;
+	return static_cast<u32>(distance);
 }
 
 //usage: int a[]; ARRAY_OFFSET(a,10)
