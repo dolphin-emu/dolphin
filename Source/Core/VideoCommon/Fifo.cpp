@@ -69,6 +69,7 @@ static u8* s_video_buffer_pp_read_ptr;
 // - The pp_read_ptr is the CPU preprocessing version of the read_ptr.
 
 static std::atomic<int> s_sync_ticks;
+static bool s_syncing_suspended;
 static Common::Event s_sync_wakeup_event;
 
 void DoState(PointerWrap& p)
@@ -426,6 +427,17 @@ void RunGpu()
   {
     s_gpu_mainloop.Wakeup();
   }
+
+  // if the sync GPU callback is suspended, wake it up.
+  if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread ||
+      SConfig::GetInstance().bSyncGPU)
+  {
+    if (s_syncing_suspended)
+    {
+      s_syncing_suspended = false;
+      CoreTiming::ScheduleEvent(100, s_event_sync_gpu, 100);
+    }
+  }
 }
 
 static int RunGpuOnCpu(int ticks)
@@ -473,10 +485,13 @@ static int RunGpuOnCpu(int ticks)
   }
 
   // Discard all available ticks as there is nothing to do any more.
-  available_ticks = std::min(available_ticks, 0);
-  s_sync_ticks.store(available_ticks);
+  s_sync_ticks.store(std::min(available_ticks, 0));
 
-  return 10000 - available_ticks;
+  if (!(fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint()))
+    return -1;
+
+  // always wait at least 100 cycles
+  return std::max(-available_ticks, 100);
 }
 
 void UpdateWantDeterminism(bool want)
@@ -527,7 +542,7 @@ bool UseDeterministicGPUThread()
 }
 
 /* This function checks the emulated CPU - GPU distance and may wake up the GPU,
- * or block the CPU if required. It should be called by the CPU thread regulary.
+ * or block the CPU if required. It should be called by the CPU thread regularly.
  * @ticks The gone emulated CPU time.
  * @return A good time to call WaitForGpuThread() next.
  */
@@ -538,13 +553,16 @@ static int WaitForGpuThread(int ticks)
   // GPU is sleeping, so no need for synchronization
   if (s_gpu_mainloop.IsDone() || s_use_deterministic_gpu_thread)
   {
-    if (s_sync_ticks.load() < 0)
+    if ((s_sync_ticks.load() + ticks) < 0)
     {
-      int old = s_sync_ticks.fetch_add(ticks);
-      if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
-        RunGpu();
+      s_sync_ticks.store(s_sync_ticks.load() + ticks);
+      return 0 - s_sync_ticks.load();
     }
-    return param.iSyncGpuMaxDistance;
+    else
+    {
+      s_sync_ticks.store(0);
+      return -1;
+    }
   }
 
   // Wakeup GPU
@@ -567,7 +585,7 @@ static int WaitForGpuThread(int ticks)
 static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
 {
   ticks += cyclesLate;
-  int next = SystemTimers::GetTicksPerSecond();
+  int next = -1;
 
   if (!SConfig::GetInstance().bCPUThread || s_use_deterministic_gpu_thread)
   {
@@ -578,13 +596,15 @@ static void SyncGPUCallback(u64 ticks, s64 cyclesLate)
     next = WaitForGpuThread((int)ticks);
   }
 
-  CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
+  s_syncing_suspended = next < 0;
+  if (!s_syncing_suspended)
+    CoreTiming::ScheduleEvent(next, s_event_sync_gpu, next);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
 void Prepare()
 {
   s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
-  CoreTiming::ScheduleEvent(0, s_event_sync_gpu, 0);
+  s_syncing_suspended = true;
 }
 }
