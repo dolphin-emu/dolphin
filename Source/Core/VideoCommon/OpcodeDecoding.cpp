@@ -258,7 +258,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
 				}
 				else
 				{
-					LoadBPReg(bp_cmd);
+					totalCycles += LoadBPReg(bp_cmd);
 					INCSTAT(stats.thisFrame.numBPLoads);
 				}
 			}
