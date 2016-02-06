@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstring>
 #include <functional>
+#include <tuple>
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
@@ -131,25 +132,27 @@ struct OpArg
 {
 	friend class XEmitter; // For accessing offset and operandReg
 
-	OpArg() {}  // dummy op arg, used for storage
-	OpArg(u64 _offset, int _scale, X64Reg rmReg = RAX, X64Reg scaledReg = RAX)
+	// Dummy op arg, used for storage
+	constexpr OpArg() = default;
+	constexpr OpArg(u64 offset_, int scale_, X64Reg rm_reg = RAX, X64Reg scaled_reg = RAX)
+		: scale(static_cast<u8>(scale_))
+		, offsetOrBaseReg(static_cast<u16>(rm_reg))
+		, indexReg(static_cast<u16>(scaled_reg))
+		, offset(offset_)
 	{
-		operandReg = 0;
-		scale = (u8)_scale;
-		offsetOrBaseReg = (u16)rmReg;
-		indexReg = (u16)scaledReg;
-		//if scale == 0 never mind offsetting
-		offset = _offset;
 	}
-	bool operator==(const OpArg& b) const
+
+	constexpr bool operator==(const OpArg& b) const
 	{
-		return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
-		       indexReg == b.indexReg && offset == b.offset;
+		return std::tie(operandReg, scale, offsetOrBaseReg, indexReg, offset) ==
+		       std::tie(b.operandReg, b.scale, b.offsetOrBaseReg, b.indexReg, b.offset);
 	}
+
 	void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
 	void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm, int W = 0) const;
 	void WriteRest(XEmitter* emit, int extraBytes=0, X64Reg operandReg=INVALID_REG, bool warn_64bit_offset = true) const;
 	void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
+	void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
 
 	u64 Imm64() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM64); return (u64)offset; }
 	u32 Imm32() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM32); return (u32)offset; }
@@ -161,10 +164,18 @@ struct OpArg
 	s16 SImm16() const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM16); return (s16)offset; }
 	s8  SImm8()  const { _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);  return (s8)offset; }
 
-	void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
-	bool IsImm() const {return scale == SCALE_IMM8 || scale == SCALE_IMM16 || scale == SCALE_IMM32 || scale == SCALE_IMM64;}
-	bool IsSimpleReg() const {return scale == SCALE_NONE;}
-	bool IsSimpleReg(X64Reg reg) const
+	constexpr bool IsImm() const
+	{
+		return scale == SCALE_IMM8  || scale == SCALE_IMM16 ||
+		       scale == SCALE_IMM32 || scale == SCALE_IMM64;
+	}
+
+	constexpr bool IsSimpleReg() const
+	{
+		return scale == SCALE_NONE;
+	}
+
+	constexpr bool IsSimpleReg(X64Reg reg) const
 	{
 		return IsSimpleReg() && GetSimpleReg() == reg;
 	}
@@ -197,46 +208,76 @@ struct OpArg
 	}
 
 private:
-	u8 scale;
-	u16 offsetOrBaseReg;
-	u16 indexReg;
-	u64 offset;  // Also used to store immediates.
-	u16 operandReg;
+	u8 scale = 0;
+	u16 offsetOrBaseReg = 0;
+	u16 indexReg = 0;
+	u64 offset = 0;  // Also used to store immediates.
+	u16 operandReg = 0;
 };
 
 template <typename T>
-inline OpArg M(const T* ptr)    {return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);}
-inline OpArg R(X64Reg value)    {return OpArg(0, SCALE_NONE, value);}
-inline OpArg MatR(X64Reg value) {return OpArg(0, SCALE_ATREG, value);}
-
-inline OpArg MDisp(X64Reg value, int offset)
+OpArg M(const T* ptr)
 {
-	return OpArg((u32)offset, SCALE_ATREG, value);
+	return OpArg(reinterpret_cast<u64>(ptr), static_cast<int>(SCALE_RIP));
 }
 
-inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
+constexpr OpArg R(X64Reg value)
+{
+	return OpArg(0, SCALE_NONE, value);
+}
+
+constexpr OpArg MatR(X64Reg value)
+{
+	return OpArg(0, SCALE_ATREG, value);
+}
+
+constexpr OpArg MDisp(X64Reg value, int offset)
+{
+	return OpArg(static_cast<u32>(offset), SCALE_ATREG, value);
+}
+
+constexpr OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
 {
 	return OpArg(offset, scale, base, scaled);
 }
 
-inline OpArg MScaled(X64Reg scaled, int scale, int offset)
+constexpr OpArg MScaled(X64Reg scaled, int scale, int offset)
 {
-	if (scale == SCALE_1)
-		return OpArg(offset, SCALE_ATREG, scaled);
-	else
-		return OpArg(offset, scale | 0x20, RAX, scaled);
+	return (scale == SCALE_1)
+	       ? OpArg(offset, SCALE_ATREG, scaled)
+	       : OpArg(offset, scale | 0x20, RAX, scaled);
 }
 
-inline OpArg MRegSum(X64Reg base, X64Reg offset)
+constexpr OpArg MRegSum(X64Reg base, X64Reg offset)
 {
 	return MComplex(base, offset, 1, 0);
 }
 
-inline OpArg Imm8 (u8 imm)  {return OpArg(imm, SCALE_IMM8);}
-inline OpArg Imm16(u16 imm) {return OpArg(imm, SCALE_IMM16);} //rarely used
-inline OpArg Imm32(u32 imm) {return OpArg(imm, SCALE_IMM32);}
-inline OpArg Imm64(u64 imm) {return OpArg(imm, SCALE_IMM64);}
-inline OpArg ImmPtr(const void* imm) {return Imm64((u64)imm);}
+constexpr OpArg Imm8(u8 imm)
+{
+	return OpArg(imm, SCALE_IMM8);
+}
+
+// Rarely used
+constexpr OpArg Imm16(u16 imm)
+{
+	return OpArg(imm, SCALE_IMM16);
+}
+
+constexpr OpArg Imm32(u32 imm)
+{
+	return OpArg(imm, SCALE_IMM32);
+}
+
+constexpr OpArg Imm64(u64 imm)
+{
+	return OpArg(imm, SCALE_IMM64);
+}
+
+inline OpArg ImmPtr(const void* imm)
+{
+	return Imm64(reinterpret_cast<u64>(imm));
+}
 
 inline u32 PtrOffset(const void* ptr, const void* base)
 {
