@@ -83,6 +83,7 @@ public final class SettingsFile
 	public static final String KEY_WIIMOTE_TYPE = "Source";
 
 	public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
+	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
 	// Internal only, not actually found in settings file.
 	public static final String KEY_XFB_METHOD = "XFBMethod";

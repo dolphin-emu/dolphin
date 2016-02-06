@@ -251,6 +251,8 @@
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="wiimote_scanning">Wiimote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
+    <string name="wiimote_speaker">Wiimote Speaker</string>
+    <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
 
 
     <!-- Video Preference Fragment -->
@@ -361,7 +363,11 @@
     <string name="gc_adapter_rumble_description">Enable the vibration function for this GameCube controller.</string>
     <string name="gc_adapter_bongos">Bongo Controller</string>
     <string name="gc_adapter_bongos_description">Enable this if you are using bongos on this port.</string>
-    
+
+    <!-- Wiimote Input Menu-->
+    <string name="header_wiimote_general">General</string>
+    <string name="header_controllers">Controllers</string>
+
     <!-- Package Names-->
     <string name="application_id">org.dolphinemu.dolphinemu</string>
 </resources>

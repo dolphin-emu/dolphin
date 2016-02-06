@@ -138,6 +138,7 @@ public final class SettingsFragmentPresenter
 		Setting overclockEnable = null;
 		Setting overclock = null;
 		Setting continuousScan = null;
+		Setting wiimoteSpeaker = null;
 
 		if (mSettings != null)
 		{
@@ -146,6 +147,7 @@ public final class SettingsFragmentPresenter
 			overclockEnable = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
 			overclock = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
 			continuousScan = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
+			wiimoteSpeaker = mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 		}
 		else
 		{
@@ -161,6 +163,7 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, R.string.overclock_title, 0, 400, "%", 100, overclock));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_CORE, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 	}
 
 	private void addGcPadSettings(ArrayList<SettingsItem> sl)
