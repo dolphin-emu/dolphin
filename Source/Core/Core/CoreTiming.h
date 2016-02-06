@@ -34,6 +34,7 @@ void Shutdown();
 
 typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 
+// This should only be called from the CPU thread, if you are calling it any other thread, you are doing something evil
 u64 GetTicks();
 u64 GetIdleTicks();
 
@@ -79,5 +80,6 @@ void SetFakeTBStartTicks(u64 val);
 void ForceExceptionCheck(int cycles);
 
 extern int slicelength;
+extern float lastOCFactor;
 
 } // end of namespace

@@ -50,13 +50,16 @@ static Common::FifoQueue<BaseEvent, false> tsQueue;
 // event pools
 static Event *eventPool = nullptr;
 
-static float lastOCFactor;
+float lastOCFactor;
 int slicelength;
 static int maxSliceLength = MAX_SLICE_LENGTH;
 
 static s64 idledCycles;
 static u32 fakeDecStartValue;
 static u64 fakeDecStartTicks;
+
+// Are we in a function that has been called from Advance()
+static bool GlobalTimerIsSane;
 
 s64 globalTimer;
 u64 fakeTBStartValue;
@@ -137,6 +140,7 @@ void Init()
 	slicelength = maxSliceLength;
 	globalTimer = 0;
 	idledCycles = 0;
+	GlobalTimerIsSane = true;
 
 	ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
@@ -209,9 +213,16 @@ void DoState(PointerWrap &p)
 	p.DoMarker("CoreTimingEvents");
 }
 
+// This should only be called from the CPU thread, if you are calling it any other thread, you are doing something evil
 u64 GetTicks()
 {
-	return (u64)globalTimer;
+	u64 ticks = (u64)globalTimer;
+	if (!GlobalTimerIsSane)
+	{
+		int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
+		ticks += ((slicelength - downcount));
+	}
+	return ticks;
 }
 
 u64 GetIdleTicks()
@@ -303,10 +314,23 @@ void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 {
 	_assert_msg_(POWERPC, Core::IsCPUThread() || Core::GetState() == Core::CORE_PAUSE,
 				 "ScheduleEvent from wrong thread");
+
 	Event *ne = GetNewEvent();
 	ne->userdata = userdata;
 	ne->type = event_type;
 	ne->time = globalTimer + cyclesIntoFuture;
+
+	if (!GlobalTimerIsSane)
+	{
+		// We are doing a mid-block update, so we need to adjust for the inaccuracy in globalTimer
+		int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
+		ne->time += ((slicelength - downcount));
+
+		// If this event needs to be scheduled before the next advance(), force one early
+		if (downcount > cyclesIntoFuture)
+			ForceExceptionCheck(0);
+	}
+
 	AddEventToQueue(ne);
 }
 
@@ -402,6 +426,8 @@ void Advance()
 	lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
 	PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 
+	GlobalTimerIsSane = true;
+
 	while (first && first->time <= globalTimer)
 	{
 		//LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
@@ -411,6 +437,8 @@ void Advance()
 		event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
 		FreeEvent(evt);
 	}
+
+	GlobalTimerIsSane = false;
 
 	if (!first)
 	{
