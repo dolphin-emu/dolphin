@@ -159,20 +159,25 @@ public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> impl
 	private ArrayList<FileListItem> generateFileList(File directory)
 	{
 		File[] children = directory.listFiles();
-		ArrayList<FileListItem> fileList = new ArrayList<FileListItem>(children.length);
-
-		for (File child : children)
-		{
-			if (!child.isHidden())
-			{
-				FileListItem item = new FileListItem(child);
-				fileList.add(item);
-			}
-		}
-
 		mPath = directory.getAbsolutePath();
+		ArrayList<FileListItem> fileList = new ArrayList<FileListItem>(0);
 
-		Collections.sort(fileList);
+		if (children != null)
+		{
+
+			fileList = new ArrayList<FileListItem>(children.length);
+
+			for (File child : children)
+			{
+				if (!child.isHidden())
+				{
+					FileListItem item = new FileListItem(child);
+					fileList.add(item);
+				}
+			}
+
+			Collections.sort(fileList);
+		}
 		return fileList;
 	}
 
