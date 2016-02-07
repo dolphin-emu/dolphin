@@ -6,7 +6,8 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DataReader.h"
+
+class DataReader;
 
 // Lighting
 

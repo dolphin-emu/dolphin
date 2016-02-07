@@ -6,8 +6,9 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoaderBase.h"
+
+class DataReader;
 
 class VertexLoaderARM64 : public VertexLoaderBase, public Arm64Gen::ARM64CodeBlock
 {
