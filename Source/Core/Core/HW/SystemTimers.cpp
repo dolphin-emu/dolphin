@@ -83,6 +83,10 @@ static int s_audio_dma_period;
 // we can just increase this number.
 static int s_ipc_hle_period;
 
+// Temporary debugging thing for JCM47
+static u64 timebase_register_checks;
+static u64 last_timebase_check;
+static u64 rapid_timebase_checks;
 
 
 u32 GetTicksPerSecond()
@@ -154,6 +158,12 @@ void TimeBaseSet()
 
 u64 GetFakeTimeBase()
 {
+	timebase_register_checks++;
+	u64 diff = CoreTiming::GetTicks() -last_timebase_check;
+	if (diff < 2000 && diff > 10)
+		rapid_timebase_checks++;
+	last_timebase_check = CoreTiming::GetTicks();
+
 	return CoreTiming::GetFakeTBStartValue() + ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
@@ -241,11 +251,16 @@ void Init()
 
 	if (SConfig::GetInstance().bWii)
 		CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
+
+	timebase_register_checks = 0;
+	rapid_timebase_checks = 0;
+	last_timebase_check = 0;
 }
 
 void Shutdown()
 {
 	Common::Timer::RestoreResolution();
+	PanicAlert("Timebase register checked %llu times\n %llu of those checks were \"rapid\"", timebase_register_checks, rapid_timebase_checks);
 }
 
 }  // namespace

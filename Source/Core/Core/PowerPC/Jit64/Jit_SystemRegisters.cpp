@@ -273,6 +273,9 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_TL:
 	case SPR_TU:
 	{
+
+		FALLBACK_IF(true);
+		/*
 		// TODO: we really only need to call GetFakeTimeBase once per JIT block; this matters because
 		// typical use of this instruction is to call it three times, e.g. mftbu/mftbl/mftbu/cmpw/bne
 		// to deal with possible timer wraparound. This makes the second two (out of three) completely
@@ -338,7 +341,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		if (iIndex == SPR_TU)
 			SHR(64, R(RAX), Imm8(32));
 		MOV(32, gpr.R(d), R(RAX));
-		break;
+		break;*/
 	}
 	case SPR_XER:
 		gpr.Lock(d);
