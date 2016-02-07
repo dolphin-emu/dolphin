@@ -215,25 +215,6 @@ void TraversalClient::OnFailure(FailureReason reason)
 	m_State = Failure;
 	m_FailureReason = reason;
 
-	switch (reason)
-	{
-	case TraversalClient::BadHost:
-		PanicAlertT("Couldn't look up central server %s", m_Server.c_str());
-		break;
-	case TraversalClient::VersionTooOld:
-		PanicAlertT("Dolphin too old for traversal server");
-		break;
-	case TraversalClient::ServerForgotAboutUs:
-		PanicAlertT("Disconnected from traversal server");
-		break;
-	case TraversalClient::SocketSendError:
-		PanicAlertT("Socket error sending to traversal server");
-		break;
-	case TraversalClient::ResendTimeout:
-		PanicAlertT("Timeout connecting to traversal server");
-		break;
-	}
-
 	if (m_Client)
 		m_Client->OnTraversalStateChanged();
 }
