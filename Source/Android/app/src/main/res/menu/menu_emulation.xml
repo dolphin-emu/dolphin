@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:tools="http://schemas.android.com/tools"
-      tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
+      tools:context=".ui.ingame.EmulationActivity">
 
 
 
