@@ -14,7 +14,6 @@
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
-#include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
@@ -22,21 +21,28 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	setWindowTitle(tr("Dolphin"));
 	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 
-	MakeGameList();
-	MakeToolBar();
-	MakeRenderWidget();
-	MakeStack();
-	MakeMenuBar();
+	CreateComponents();
+
+	ConnectGameList();
+	ConnectPathsDialog();
+	ConnectToolBar();
+	ConnectRenderWidget();
+	ConnectStack();
+	ConnectMenuBar();
 }
 
-MainWindow::~MainWindow()
-{
-	m_render_widget->deleteLater();
-}
-
-void MainWindow::MakeMenuBar()
+void MainWindow::CreateComponents()
 {
 	m_menu_bar = new MenuBar(this);
+	m_tool_bar = new ToolBar(this);
+	m_game_list = new GameList(this);
+	m_render_widget = new RenderWidget(this);
+	m_stack = new QStackedWidget(this);
+	m_paths_dialog = new PathDialog(this);
+}
+
+void MainWindow::ConnectMenuBar()
+{
 	setMenuBar(m_menu_bar);
 	connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
 	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
@@ -44,45 +50,46 @@ void MainWindow::MakeMenuBar()
 	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
 }
 
-void MainWindow::MakeToolBar()
+void MainWindow::ConnectToolBar()
 {
-	m_tool_bar = new ToolBar(this);
 	addToolBar(m_tool_bar);
-
 	connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
 	connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
 	connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
 	connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
 	connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
 	connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
-	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::PathsConfig);
+	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
 
 	connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
 	connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
 	connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
 }
 
-void MainWindow::MakeGameList()
+void MainWindow::ConnectGameList()
 {
-	m_game_list = new GameList(this);
 	connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
 }
 
-void MainWindow::MakeRenderWidget()
+void MainWindow::ConnectRenderWidget()
 {
-	m_render_widget = new RenderWidget;
+	m_rendering_to_main = false;
+	m_render_widget->hide();
 	connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::Stop);
 	connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-	m_render_widget->hide();
-	m_rendering_to_main = false;
 }
 
-void MainWindow::MakeStack()
+void MainWindow::ConnectStack()
 {
-	m_stack = new QStackedWidget;
 	m_stack->setMinimumSize(800, 600);
 	m_stack->addWidget(m_game_list);
 	setCentralWidget(m_stack);
+}
+
+void MainWindow::ConnectPathsDialog()
+{
+	connect(m_paths_dialog, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
+	connect(m_paths_dialog, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
 }
 
 void MainWindow::Open()
@@ -182,14 +189,6 @@ void MainWindow::ScreenShot()
 	Core::SaveScreenShot();
 }
 
-void MainWindow::PathsConfig()
-{
-	PathDialog* paths = new PathDialog(this);
-	connect(paths, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
-	connect(paths, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
-	paths->exec();
-}
-
 void MainWindow::StartGame(const QString& path)
 {
 	// If we're running, only start a new game once we've stopped the last.
@@ -248,4 +247,11 @@ void MainWindow::HideRenderWidget()
 		setWindowTitle(tr("Dolphin"));
 	}
 	m_render_widget->hide();
+}
+
+void MainWindow::ShowPathsDialog()
+{
+	m_paths_dialog->show();
+	m_paths_dialog->raise();
+	m_paths_dialog->activateWindow();
 }
