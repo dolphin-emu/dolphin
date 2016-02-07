@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstddef>
 #include <cstdio>
 #include <cstring>
 
@@ -520,10 +521,9 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	for (unsigned int i = 0; i < numStages; i++)
 		WriteStage<T>(out, uid_data, i, ApiType, swapModeTable); // build the equation for this stage
 
-#define MY_STRUCT_OFFSET(str,elem) ((u32)((u64)&(str).elem-(u64)&(str)))
 	bool enable_pl = g_ActiveConfig.bEnablePixelLighting;
-	uid_data->num_values = (enable_pl) ? sizeof(*uid_data) : MY_STRUCT_OFFSET(*uid_data,stagehash[numStages]);
-
+	uid_data->num_values = enable_pl ? sizeof(*uid_data)
+	                                 : static_cast<u32>(offsetof(pixel_shader_uid_data, stagehash[numStages]));
 
 	if (numStages)
 	{
