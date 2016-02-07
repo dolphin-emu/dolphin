@@ -42,7 +42,7 @@ else()
 	         Logging/ConsoleListenerNix.cpp)
 endif()
 
-set(LIBS enet)
+list(APPEND LIBS enet)
 if(_M_ARM_64)
 	set(SRCS ${SRCS}
 	         Arm64Emitter.cpp
@@ -60,13 +60,10 @@ else()
 	endif()
 endif()
 
-set(LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
-if(NOT APPLE AND NOT ANDROID)
-	set(LIBS ${LIBS} rt)
-endif()
+list(APPEND LIBS "${CMAKE_THREAD_LIBS_INIT}" ${VTUNE_LIBRARIES})
 
 # OpenGL Interface
-set(SRCS ${SRCS} 
+set(SRCS ${SRCS}
 	GL/GLUtil.cpp
 	GL/GLExtensions/GLExtensions.cpp
 	GL/GLInterface/GLInterface.cpp)

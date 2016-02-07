@@ -4,6 +4,8 @@
 
 #include <array>
 #include <cstdlib>
+#include <sstream>
+#include <vector>
 
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"

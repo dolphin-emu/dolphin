@@ -31,6 +31,7 @@ elseif(X11_FOUND)
 	endif()
 	set(LIBS ${LIBS} ${X11_LIBRARIES} ${XINPUT2_LIBRARIES})
 elseif(ANDROID)
+	add_definitions(-DCIFACE_USE_ANDROID)
 	set(SRCS ${SRCS}
 	         ControllerInterface/Android/Android.cpp)
 endif()
