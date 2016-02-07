@@ -37,6 +37,7 @@ public:
 	virtual void OnPadBufferChanged(u32 buffer) = 0;
 	virtual void OnDesync(u32 frame, const std::string& player) = 0;
 	virtual void OnConnectionLost() = 0;
+	virtual void OnTraversalError(int error) = 0;
 	virtual bool IsRecording() = 0;
 };
 

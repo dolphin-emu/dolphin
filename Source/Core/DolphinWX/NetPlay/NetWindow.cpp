@@ -50,25 +50,6 @@ NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
 NetPlayDialog *NetPlayDialog::npd = nullptr;
 
-static wxString FailureReasonStringForHostLabel(int reason)
-{
-	switch (reason)
-	{
-	case TraversalClient::BadHost:
-		return _("(Error: Bad host)");
-	case TraversalClient::VersionTooOld:
-		return _("(Error: Dolphin too old)");
-	case TraversalClient::ServerForgotAboutUs:
-		return _("(Error: Disconnected)");
-	case TraversalClient::SocketSendError:
-		return _("(Error: Socket)");
-	case TraversalClient::ResendTimeout:
-		return _("(Error: Timeout)");
-	default:
-		return _("(Error: Unknown)");
-	}
-}
-
 static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
@@ -400,6 +381,25 @@ void NetPlayDialog::OnConnectionLost()
 	GetEventHandler()->AddPendingEvent(evt);
 }
 
+void NetPlayDialog::OnTraversalError(int error)
+{
+	switch (error)
+	{
+	case TraversalClient::BadHost:
+		PanicAlertT("Couldn't look up central server");
+		break;
+	case TraversalClient::VersionTooOld:
+		PanicAlertT("Dolphin is too old for traversal server");
+		break;
+	case TraversalClient::ServerForgotAboutUs:
+	case TraversalClient::SocketSendError:
+	case TraversalClient::ResendTimeout:
+		wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR);
+		GetEventHandler()->AddPendingEvent(evt);
+		break;
+	}
+}
+
 void NetPlayDialog::OnQuit(wxCommandEvent&)
 {
 	Destroy();
@@ -498,6 +498,11 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 		AddChatMessage(ChatMessageType::Error , msg);
 	}
 	break;
+	case NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR:
+	{
+		std::string msg = "Traversal server connection error";
+		AddChatMessage(ChatMessageType::Error, msg);
+	}
 	}
 
 	// chat messages
@@ -611,7 +616,7 @@ void NetPlayDialog::UpdateHostLabel()
 			break;
 		case TraversalClient::Failure:
 			m_host_label->SetForegroundColour(*wxBLACK);
-			m_host_label->SetLabel(FailureReasonStringForHostLabel(g_TraversalClient->m_FailureReason));
+			m_host_label->SetLabel("...");
 			m_host_copy_btn->SetLabel(_("Retry"));
 			m_host_copy_btn->Enable();
 			m_host_copy_btn_is_retry = true;
