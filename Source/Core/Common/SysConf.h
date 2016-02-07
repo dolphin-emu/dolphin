@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -44,15 +45,19 @@ struct SSysConfEntry
 	u8 nameLength;
 	char name[32];
 	u16 dataLength;
-	u8* data;
+	std::unique_ptr<u8[]> data;
+
+	SSysConfEntry() : offset(0), type(Type_Unknown), nameLength(0), dataLength(0) {
+		memset(name, 0, sizeof(name));
+	}
 
 	template<class T>
-	T GetData() { return *(T*)data; }
+	T GetData() { return *(T*)data.get(); }
 	bool GetArrayData(u8* dest, u16 destSize)
 	{
 		if (dest && destSize >= dataLength)
 		{
-			memcpy(dest, data, dataLength);
+			memcpy(dest, data.get(), dataLength);
 			return true;
 		}
 		return false;
@@ -61,7 +66,7 @@ struct SSysConfEntry
 	{
 		if (buffer)
 		{
-			memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
+			memcpy(data.get(), buffer, std::min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;
@@ -161,7 +166,7 @@ public:
 			return false;
 		}
 
-		*(T*)index->data = newValue;
+		*(T*)index->data.get() = newValue;
 		return true;
 	}
 

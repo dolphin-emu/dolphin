@@ -32,9 +32,6 @@ SysConf::~SysConf()
 
 void SysConf::Clear()
 {
-	for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
-		delete [] i->data;
-
 	m_Entries.clear();
 }
 
@@ -95,7 +92,7 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
 		SSysConfEntry tmpEntry;
 		f.ReadArray(&tmpEntry.offset, 1);
 		tmpEntry.offset = Common::swap16(tmpEntry.offset);
-		m_Entries.push_back(tmpEntry);
+		m_Entries.push_back(std::move(tmpEntry));
 	}
 
 	// Last offset is an invalid entry. We ignore it throughout this class
@@ -153,8 +150,8 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
 		// Fill in the actual data
 		if (curEntry.dataLength)
 		{
-			curEntry.data = new u8[curEntry.dataLength];
-			f.ReadArray(curEntry.data, curEntry.dataLength);
+			curEntry.data = std::make_unique<u8[]>(curEntry.dataLength);
+			f.ReadArray(curEntry.data.get(), curEntry.dataLength);
 		}
 	}
 
@@ -170,8 +167,8 @@ static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std
 	item.nameLength = (u8)(name.length());
 	strncpy(item.name, name.c_str(), 32);
 	item.dataLength = data_length;
-	item.data = new u8[data_length];
-	memset(item.data, 0, data_length);
+	item.data = std::make_unique <u8[]>(data_length);
+	memset(item.data.get(), 0, data_length);
 	switch (type)
 	{
 		case Type_BigArray:
@@ -198,7 +195,6 @@ void SysConf::GenerateSysConf()
 	s_Header.numEntries = Common::swap16(28 - 1);
 
 	SSysConfEntry items[27];
-	memset(items, 0, sizeof(SSysConfEntry) * 27);
 
 	// version length + size of numEntries + 28 * size of offset
 	unsigned int current_offset = 4 + 2 + 28 * 2;
@@ -220,7 +216,7 @@ void SysConf::GenerateSysConf()
 	// IPL.NIK
 	current_offset += create_item(items[2], Type_SmallArray, "IPL.NIK", 0x15, current_offset);
 	const u8 console_nick[14] = {0, 'd', 0, 'o', 0, 'l', 0, 'p', 0, 'h', 0, 'i', 0, 'n'};
-	memcpy(items[2].data, console_nick, 14);
+	memcpy(items[2].data.get(), console_nick, 14);
 
 	// IPL.AR
 	current_offset += create_item(items[3], Type_Byte, "IPL.AR", 1, current_offset);
@@ -314,8 +310,8 @@ void SysConf::GenerateSysConf()
 	items[26].data[0] = 0x01;
 
 
-	for (const SSysConfEntry& item : items)
-		m_Entries.push_back(item);
+	for (SSysConfEntry& item : items)
+		m_Entries.push_back(std::move(item));
 
 	File::CreateFullPath(m_FilenameDefault);
 	File::IOFile g(m_FilenameDefault, "wb");
@@ -325,7 +321,7 @@ void SysConf::GenerateSysConf()
 	g.WriteBytes(&s_Header.numEntries, sizeof(u16));
 	for (int i = 0; i != 27; ++i)
 	{
-		const u16 tmp_offset = Common::swap16(items[i].offset);
+		const u16 tmp_offset = Common::swap16(m_Entries[i].offset);
 		g.WriteBytes(&tmp_offset, 2);
 	}
 	const u16 end_data_offset = Common::swap16(current_offset);
@@ -335,28 +331,28 @@ void SysConf::GenerateSysConf()
 	const u8 null_byte = 0;
 	for (int i = 0; i != 27; ++i)
 	{
-		u8 description = (items[i].type << 5) | (items[i].nameLength - 1);
+		u8 description = (m_Entries[i].type << 5) | (m_Entries[i].nameLength - 1);
 		g.WriteBytes(&description, sizeof(description));
-		g.WriteBytes(&items[i].name, items[i].nameLength);
-		switch (items[i].type)
+		g.WriteBytes(&m_Entries[i].name, m_Entries[i].nameLength);
+		switch (m_Entries[i].type)
 		{
 			case Type_BigArray:
 				{
-					const u16 tmpDataLength = Common::swap16(items[i].dataLength);
+					const u16 tmpDataLength = Common::swap16(m_Entries[i].dataLength);
 					g.WriteBytes(&tmpDataLength, 2);
-					g.WriteBytes(items[i].data, items[i].dataLength);
+					g.WriteBytes(m_Entries[i].data.get(), m_Entries[i].dataLength);
 					g.WriteBytes(&null_byte, 1);
 				}
 				break;
 
 			case Type_SmallArray:
-				g.WriteBytes(&items[i].dataLength, 1);
-				g.WriteBytes(items[i].data, items[i].dataLength);
+				g.WriteBytes(&m_Entries[i].dataLength, 1);
+				g.WriteBytes(m_Entries[i].data.get(), m_Entries[i].dataLength);
 				g.WriteBytes(&null_byte, 1);
 				break;
 
 			default:
-				g.WriteBytes(items[i].data, items[i].dataLength);
+				g.WriteBytes(m_Entries[i].data.get(), m_Entries[i].dataLength);
 				break;
 		}
 	}
@@ -395,7 +391,7 @@ bool SysConf::SaveToFile(const std::string& filename)
 		}
 
 		// Now write the actual data
-		f.WriteBytes(i->data, i->dataLength);
+		f.WriteBytes(i->data.get(), i->dataLength);
 	}
 
 	return f.IsGood();
