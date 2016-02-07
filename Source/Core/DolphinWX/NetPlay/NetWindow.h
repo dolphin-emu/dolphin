@@ -30,6 +30,7 @@ enum
 	NP_GUI_EVT_PAD_BUFFER_CHANGE,
 	NP_GUI_EVT_DESYNC,
 	NP_GUI_EVT_CONNECTION_LOST,
+	NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR,
 };
 
 enum
@@ -73,6 +74,7 @@ public:
 	void OnPadBufferChanged(int buffer) override;
 	void OnDesync(u32 frame, const std::string& player) override;
 	void OnConnectionLost() override;
+	void OnTraversalError(int error) override;
 
 	static NetPlayDialog*& GetInstance() { return npd; }
 	static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
