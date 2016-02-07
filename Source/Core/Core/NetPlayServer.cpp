@@ -663,8 +663,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-	if (m_dialog)
-		m_dialog->Update();
+	if (m_dialog && m_traversal_client->m_State == TraversalClient::Failure)
+		m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
 }
 
 // called from ---GUI--- thread
