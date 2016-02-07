@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
@@ -112,6 +114,9 @@ struct pixel_shader_uid_data
 	LightingUidData lighting;
 };
 #pragma pack()
+
+// Necessary, as it's undefined behavior to use offsetof on a struct that doesn't have a standard layout.
+static_assert(std::is_standard_layout<pixel_shader_uid_data>(), "pixel_shader_uid_data must be a standard layout type.");
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
