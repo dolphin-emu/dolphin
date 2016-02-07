@@ -837,6 +837,7 @@ void NetPlayClient::OnTraversalStateChanged()
 		m_traversal_client->m_State == TraversalClient::Failure)
 	{
 		Disconnect();
+		m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
 	}
 }
 
