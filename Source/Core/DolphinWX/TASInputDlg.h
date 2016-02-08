@@ -8,6 +8,7 @@
 #include <wx/dcmemory.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
+#include <wx/tglbtn.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -22,11 +23,11 @@ class TASInputDlg : public wxDialog
 {
 	public:
 		TASInputDlg(wxWindow* parent,
-		            wxWindowID id = wxID_ANY,
-		            const wxString& title = _("TAS Input"),
-		            const wxPoint& pos = wxDefaultPosition,
-		            const wxSize& size = wxDefaultSize,
-		            long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
+					wxWindowID id = wxID_ANY,
+					const wxString& title = _("TAS Input"),
+					const wxPoint& pos = wxDefaultPosition,
+					const wxSize& size = wxDefaultSize,
+					long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 
 		void OnCloseWindow(wxCloseEvent& event);
 		void UpdateFromSliders(wxCommandEvent& event);
@@ -58,9 +59,11 @@ class TASInputDlg : public wxDialog
 		{
 			wxTextCtrl* text;
 			wxSlider* slider;
+			wxBitmapToggleButton* lock_to_TAS;
 			int value = -1;
 			int text_id;
 			int slider_id;
+			int lock_to_TAS_id;
 			u32 range;
 			u32 default_value = 128;
 			bool set_by_keyboard = false;
@@ -140,4 +143,10 @@ class TASInputDlg : public wxDialog
 		bool m_has_layout = false;
 
 		wxGridSizer* m_buttons_dpad;
+
+		wxBitmap locked_graphic;
+		wxBitmap unlocked_graphic;
+		void OnLockToggle(wxCommandEvent& event);
+
+		wxDECLARE_EVENT_TABLE();
 };
