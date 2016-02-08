@@ -828,6 +828,9 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 		for (ifaddrs* curifp = ifp; curifp; curifp = curifp->ifa_next)
 		{
 			sockaddr* sa = curifp->ifa_addr;
+
+			if (sa == nullptr)
+				continue;
 			if (sa->sa_family != AF_INET)
 				continue;
 			sockaddr_in* sai = (struct sockaddr_in*) sa;
