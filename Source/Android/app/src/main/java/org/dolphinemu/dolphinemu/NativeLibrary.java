@@ -335,7 +335,7 @@ public final class NativeLibrary
 	/**
 	 * Begins emulation.
 	 */
-	public static native void Run();
+	public static native void Run(ClassLoader loader);
 
 	// Surface Handling
 	public static native void SurfaceChanged(Surface surf);

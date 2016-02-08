@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/JavaHelper.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -14,14 +15,11 @@
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
-// Global java_vm class
-extern JavaVM* g_java_vm;
-
 namespace WiimoteReal
 {
 
 // Java classes
-static jclass s_adapter_class;
+static jclass s_adapter_class = nullptr;
 
 class WiimoteAndroid final : public Wiimote
 {
@@ -66,10 +64,13 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
 	NOTICE_LOG(WIIMOTE, "Finding Wiimotes");
 
 	JNIEnv* env;
-	int get_env_status = g_java_vm->GetEnv(reinterpret_cast<void**>(&env), JNI_VERSION_1_6);
+	bool attached = JavaHelper::AttachThread(&env);
 
-	if (get_env_status == JNI_EDETACHED)
-		g_java_vm->AttachCurrentThread(&env, nullptr);
+	if (!s_adapter_class)
+	{
+		jclass adapter_class = JavaHelper::FindClass("org/dolphinemu/dolphinemu/utils/Java_WiimoteAdapter");
+		s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
+	}
 
 	jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
 	jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
@@ -81,8 +82,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
 			found_wiimotes.emplace_back(new WiimoteAndroid(i));
 	}
 
-	if (get_env_status == JNI_EDETACHED)
-		g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread(!attached);
 }
 
 bool WiimoteScanner::IsReady() const
@@ -103,7 +103,7 @@ WiimoteAndroid::~WiimoteAndroid()
 // Connect to a Wiimote with a known address.
 bool WiimoteAndroid::ConnectInternal()
 {
-	g_java_vm->AttachCurrentThread(&m_env, nullptr);
+	JavaHelper::AttachThread(&m_env);
 
 	jfieldID payload_field = m_env->GetStaticFieldID(s_adapter_class, "wiimote_payload", "[[B");
 	jobjectArray payload_object = reinterpret_cast<jobjectArray>(m_env->GetStaticObjectField(s_adapter_class, payload_field));
@@ -120,7 +120,7 @@ bool WiimoteAndroid::ConnectInternal()
 
 void WiimoteAndroid::DisconnectInternal()
 {
-	g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread();
 }
 
 bool WiimoteAndroid::IsConnected() const
@@ -151,15 +151,6 @@ int WiimoteAndroid::IOWrite(u8 const* buf, size_t len)
 	int written = m_env->CallStaticIntMethod(s_adapter_class, m_output_func, m_mayflash_index, output_array, len);
 	m_env->DeleteLocalRef(output_array);
 	return written;
-}
-
-void InitAdapterClass()
-{
-	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, nullptr);
-
-	jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_WiimoteAdapter");
-	s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 }
 
 }

@@ -8,8 +8,10 @@
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/JavaHelper.h"
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -18,9 +20,6 @@
 
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
-
-// Global java_vm class
-extern JavaVM* g_java_vm;
 
 namespace GCAdapter
 {
@@ -61,7 +60,7 @@ static void ScanThreadFunc()
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
 	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
+	JavaHelper::AttachThread(&env);
 
 	jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
 
@@ -72,7 +71,7 @@ static void ScanThreadFunc()
 			Setup();
 		Common::SleepCurrentThread(1000);
 	}
-	g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread();
 
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
@@ -84,7 +83,7 @@ static void Read()
 
 	bool first_read = true;
 	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
+	JavaHelper::AttachThread(&env);
 
 	jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
 	jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
@@ -121,7 +120,7 @@ static void Read()
 		Common::YieldCPU();
 	}
 
-	g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread();
 
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread stopped");
 }
@@ -132,7 +131,7 @@ static void Write()
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
 
 	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
+	JavaHelper::AttachThread(&env);
 	jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
 
 	while (s_write_adapter_thread_running.IsSet())
@@ -158,7 +157,7 @@ static void Write()
 		Common::YieldCPU();
 	}
 
-	g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread();
 
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
 }
@@ -177,10 +176,12 @@ void Init()
 	}
 
 	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
+	bool attached = JavaHelper::AttachThread(&env);
 
-	jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
+	jclass adapter_class = JavaHelper::FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
 	s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
+
+	JavaHelper::DetachThread(!attached);
 
 	if (UseAdapter())
 		StartScanThread();
