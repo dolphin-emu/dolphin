@@ -24,8 +24,6 @@ public:
 	DSPEmitter();
 	~DSPEmitter();
 
-	Block m_compiledCode;
-
 	void EmitInstruction(UDSPInstruction inst);
 	void ClearIRAM();
 	void ClearIRAMandDSPJITCodespaceReset();
