@@ -7,10 +7,12 @@
 #include <wx/checkbox.h>
 #include <wx/dcmemory.h>
 #include <wx/dialog.h>
+#include <wx/generic/statbmpg.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/statbmp.h>
 #include <wx/textctrl.h>
+#include <wx/tglbtn.h>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -24,6 +26,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
 #include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -43,6 +46,7 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
     : wxDialog(parent, id, title, position, size, style)
 {
+  Bind(wxEVT_TOGGLEBUTTON, &TASInputDlg::OnLockToggle, this);
 }
 
 void TASInputDlg::CreateBaseLayout()
@@ -269,10 +273,17 @@ wxBoxSizer* TASInputDlg::CreateCCLayout()
 
   wxStaticBoxSizer* const shoulder_box =
       new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
+  wxBoxSizer* const shoulder_box_vert_left = new wxBoxSizer(wxVERTICAL);
+  shoulder_box_vert_left->Add(m_cc_l.text, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box_vert_left->Add(m_cc_l.lock_to_tas, 0, wxALIGN_CENTER_HORIZONTAL);
   shoulder_box->Add(m_cc_l.slider, 0, wxALIGN_CENTER_VERTICAL);
-  shoulder_box->Add(m_cc_l.text, 0, wxALIGN_CENTER_VERTICAL);
+  shoulder_box->Add(shoulder_box_vert_left, 0, wxALIGN_CENTER_VERTICAL);
+
+  wxBoxSizer* const shoulder_box_vert_right = new wxBoxSizer(wxVERTICAL);
+  shoulder_box_vert_right->Add(m_cc_r.text, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box_vert_right->Add(m_cc_r.lock_to_tas, 0, wxALIGN_CENTER_HORIZONTAL);
   shoulder_box->Add(m_cc_r.slider, 0, wxALIGN_CENTER_VERTICAL);
-  shoulder_box->Add(m_cc_r.text, 0, wxALIGN_CENTER_VERTICAL);
+  shoulder_box->Add(shoulder_box_vert_right, 0, wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const cc_buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
   wxGridSizer* const cc_buttons_grid = new wxGridSizer(4);
@@ -359,14 +370,22 @@ void TASInputDlg::CreateGCLayout()
   m_c_stick = CreateStick(ID_C_STICK, 255, 255, 128, 128, false, true);
   wxStaticBoxSizer* const c_box = CreateStickLayout(&m_c_stick, _("C Stick"));
 
-  wxStaticBoxSizer* const shoulder_box =
-      new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
   m_l_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 255, 0);
   m_r_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 255, 0);
-  shoulder_box->Add(m_l_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-  shoulder_box->Add(m_l_cont.text, 0, wxALIGN_CENTER_VERTICAL);
-  shoulder_box->Add(m_r_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-  shoulder_box->Add(m_r_cont.text, 0, wxALIGN_CENTER_VERTICAL);
+
+  wxStaticBoxSizer* const shoulder_box =
+      new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
+  wxBoxSizer* const shoulder_box_vert_left = new wxBoxSizer(wxVERTICAL);
+  shoulder_box_vert_left->Add(m_l_cont.text, 0, wxALIGN_CENTER_VERTICAL);
+  shoulder_box_vert_left->Add(m_l_cont.lock_to_tas, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box->Add(m_l_cont.slider, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box->Add(shoulder_box_vert_left, 0, wxALIGN_CENTER_VERTICAL);
+
+  wxBoxSizer* const shoulder_box_vert_right = new wxBoxSizer(wxVERTICAL);
+  shoulder_box_vert_right->Add(m_r_cont.text, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box_vert_right->Add(m_r_cont.lock_to_tas, 0, wxALIGN_CENTER_VERTICAL);
+  shoulder_box->Add(m_r_cont.slider, 0, wxALIGN_CENTER_HORIZONTAL);
+  shoulder_box->Add(shoulder_box_vert_right, 0, wxALIGN_CENTER_VERTICAL);
 
   for (Control* const control : m_controls)
   {
@@ -418,16 +437,23 @@ TASInputDlg::Control TASInputDlg::CreateControl(long style, int width, int heigh
   Control tempCont;
   tempCont.range = range;
   tempCont.default_value = default_value;
+  tempCont.slider_id = m_eleID;
   tempCont.slider = new wxSlider(this, m_eleID++, default_value, 0, range, wxDefaultPosition,
                                  wxDefaultSize, style);
   tempCont.slider->SetMinSize(wxSize(width, height));
   tempCont.slider->Bind(wxEVT_SLIDER, &TASInputDlg::UpdateFromSliders, this);
+  tempCont.text_id = m_eleID;
   tempCont.text = new wxTextCtrl(this, m_eleID++, std::to_string(default_value), wxDefaultPosition,
                                  wxSize(40, 20));
+  tempCont.lock_to_tas_id = m_eleID;
+  m_locked_graphic = WxUtils::LoadResourceBitmap("locked");
+  m_unlocked_graphic = WxUtils::LoadResourceBitmap("unlocked");
+  tempCont.lock_to_tas =
+      new wxBitmapToggleButton(this, m_eleID++, m_locked_graphic, wxDefaultPosition, wxDefaultSize);
+  tempCont.lock_to_tas->SetValue(true);
+  tempCont.lock_to_tas->SetToolTip(_("Toggle between TAS and regular input"));
   tempCont.text->SetMaxLength(range > 999 ? 4 : 3);
-  tempCont.text_id = m_eleID - 1;
   tempCont.text->Bind(wxEVT_TEXT, &TASInputDlg::UpdateFromText, this);
-  tempCont.slider_id = m_eleID - 2;
   tempCont.reverse = reverse;
   return tempCont;
 }
@@ -456,11 +482,13 @@ wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxStrin
 
   temp_xslider_box->Add(tempStick->x_cont.slider, 0, wxALIGN_TOP);
   temp_xslider_box->Add(tempStick->x_cont.text, 0, wxALIGN_TOP);
+  temp_xslider_box->Add(tempStick->x_cont.lock_to_tas, 0, wxALIGN_TOP);
   temp_stick_box->Add(temp_xslider_box);
   temp_stick_box->Add(tempStick->bitmap, 0, wxALL | wxALIGN_CENTER, 3);
   temp_box->Add(temp_stick_box);
   temp_yslider_box->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
   temp_yslider_box->Add(tempStick->y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
+  temp_yslider_box->Add(tempStick->y_cont.lock_to_tas, 0, wxALIGN_CENTER_VERTICAL);
   temp_box->Add(temp_yslider_box);
   return temp_box;
 }
@@ -475,10 +503,13 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
 
   xBox->Add(x->slider, 0, wxALIGN_CENTER_VERTICAL);
   xBox->Add(x->text, 0, wxALIGN_CENTER_VERTICAL);
+  xBox->Add(x->lock_to_tas, 0, wxALIGN_CENTER_VERTICAL);
   yBox->Add(y->slider, 0, wxALIGN_CENTER_VERTICAL);
   yBox->Add(y->text, 0, wxALIGN_CENTER_VERTICAL);
+  yBox->Add(y->lock_to_tas, 0, wxALIGN_CENTER_VERTICAL);
   zBox->Add(z->slider, 0, wxALIGN_CENTER_VERTICAL);
   zBox->Add(z->text, 0, wxALIGN_CENTER_VERTICAL);
+  zBox->Add(z->lock_to_tas, 0, wxALIGN_CENTER_VERTICAL);
   temp_box->Add(xBox, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
   temp_box->Add(yBox, 0, wxRIGHT, 5);
   temp_box->Add(zBox, 0, wxRIGHT, 5);
@@ -543,43 +574,21 @@ void TASInputDlg::ResetValues()
 // NOTE: Host / CPU Thread
 void TASInputDlg::SetStickValue(Control* control, int CurrentValue, int center)
 {
-  if (CurrentValue != center)
+  if (!control->lock_to_tas->GetValue())
   {
     control->value = CurrentValue;
-    control->set_by_keyboard = true;
+    InvalidateControl(control);
   }
-  else if (control->set_by_keyboard)
-  {
-    control->value = center;
-    control->set_by_keyboard = false;
-  }
-  else
-  {
-    return;
-  }
-
-  InvalidateControl(control);
 }
 
 // NOTE: Host / CPU Thread
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 {
-  if (CurrentValue != (int)control->default_value)
+  if (!control->lock_to_tas->GetValue())
   {
     control->value = CurrentValue;
-    control->set_by_keyboard = true;
+    InvalidateControl(control);
   }
-  else if (control->set_by_keyboard)
-  {
-    control->value = control->default_value;
-    control->set_by_keyboard = false;
-  }
-  else
-  {
-    return;
-  }
-
-  InvalidateControl(control);
 }
 
 // NOTE: Host / CPU Thread
@@ -668,9 +677,11 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
   //	u16 x = 1023 - (irData[0] | ((irData[2] >> 4 & 0x3) << 8));
   //	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
 
-  //	SetStickValue(&m_main_stick.x_cont.set_by_keyboard, &m_main_stick.x_cont.value,
+  //	SetStickValue(&m_main_stick.x_cont.set_by_keyboard,
+  //&m_main_stick.x_cont.value,
   // m_main_stick.x_cont.text, x, 561);
-  //	SetStickValue(&m_main_stick.y_cont.set_by_keyboard, &m_main_stick.y_cont.value,
+  //	SetStickValue(&m_main_stick.y_cont.set_by_keyboard,
+  //&m_main_stick.y_cont.value,
   // m_main_stick.y_cont.text, y, 486);
   //}
 
@@ -1221,4 +1232,13 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
   memDC.DrawCircle(x, y, 5);
   memDC.SelectObject(wxNullBitmap);
   return bitmap;
+}
+
+void TASInputDlg::OnLockToggle(wxCommandEvent& event)
+{
+  wxBitmapToggleButton* button = static_cast<wxBitmapToggleButton*>(event.GetEventObject());
+  if (button->GetValue())
+    button->SetBitmap(m_locked_graphic);
+  else
+    button->SetBitmap(m_unlocked_graphic);
 }

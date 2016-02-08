@@ -4,11 +4,6 @@
 
 #pragma once
 
-#include <wx/bitmap.h>
-#include <wx/dcmemory.h>
-#include <wx/dialog.h>
-#include <wx/sizer.h>
-
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/GCPadStatus.h"
@@ -16,7 +11,12 @@
 class wxCheckBox;
 class wxSlider;
 class wxStaticBitmap;
+class wxBitmapToggleButton;
 class wxTextCtrl;
+class wxBoxSizer;
+class wxStaticBoxSizer;
+class wxGridSizer;
+class wxDialog;
 
 class TASInputDlg : public wxDialog
 {
@@ -55,12 +55,13 @@ private:
   {
     wxTextCtrl* text;
     wxSlider* slider;
+    wxBitmapToggleButton* lock_to_tas;
     int value = -1;
     int text_id;
     int slider_id;
+    int lock_to_tas_id;
     u32 range;
     u32 default_value = 128;
-    bool set_by_keyboard = false;
     bool reverse = false;
   };
 
@@ -95,6 +96,7 @@ private:
   void UpdateFromInvalidatedControl(wxCommandEvent& event);
   void UpdateFromInvalidatedExtension(wxThreadEvent& event);
   void OnCheckboxToggle(wxCommandEvent& event);
+  void OnLockToggle(wxCommandEvent& event);
   Stick* FindStickByID(int id);
   Stick CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX,
                     bool reverseY);
@@ -144,4 +146,7 @@ private:
   bool m_has_layout = false;
 
   wxGridSizer* m_buttons_dpad;
+
+  wxBitmap m_locked_graphic;
+  wxBitmap m_unlocked_graphic;
 };
