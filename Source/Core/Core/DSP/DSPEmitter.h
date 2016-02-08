@@ -261,9 +261,6 @@ private:
 	int storeIndex;
 	int storeIndex2;
 
-	// Counts down.
-	// int cycles;
-
 	void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
 	void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
