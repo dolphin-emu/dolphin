@@ -12,8 +12,8 @@
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
-typedef u32 (*DSPCompiledCode)();
-typedef const u8 *Block;
+using DSPCompiledCode = u32(*)();
+using Block = const u8*;
 
 class DSPEmitter : public Gen::X64CodeBlock
 {
