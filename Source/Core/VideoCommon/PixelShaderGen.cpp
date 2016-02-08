@@ -285,7 +285,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	GenerateVSOutputMembers<T>(out, ApiType);
 	out.Write("};\n");
 
-	const bool forced_slow_depth = g_ActiveConfig.bForcedSlowDepth || !g_ActiveConfig.backend_info.bSupportsClipControl;
+	const bool forced_slow_depth = xfmem.viewport.farZ > 16777215.0f || !g_ActiveConfig.backend_info.bSupportsClipControl;
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
 	                            && (!forced_slow_depth || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED)
 	                            // We can't allow early_ztest for zfreeze because depth is overridden per-pixel.

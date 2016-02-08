@@ -117,7 +117,6 @@ struct VideoConfig final
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bEnablePixelLighting;
-	bool bForcedSlowDepth;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
