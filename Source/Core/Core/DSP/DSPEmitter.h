@@ -33,7 +33,7 @@ public:
 	u16 FirstUnresolvedJumpAtAddress(u16 address) const;
 	void AddUnresolvedJumpAtStartAddress(u16 destination);
 
-	bool FlagsNeeded();
+	bool FlagsNeeded() const;
 
 	void FallBackToInterpreter(UDSPInstruction inst);
 

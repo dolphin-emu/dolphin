@@ -100,13 +100,10 @@ void DSPEmitter::checkExceptions(u32 retval)
 	SetJumpTarget(skipCheck);
 }
 
-bool DSPEmitter::FlagsNeeded()
+bool DSPEmitter::FlagsNeeded() const
 {
-	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
-		(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
-		return true;
-	else
-		return false;
+	return !(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
+	        (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR);
 }
 
 void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
