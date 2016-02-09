@@ -225,10 +225,6 @@ public final class TvMainActivity extends Activity implements MainView
 	{
 		ArrayObjectAdapter rowItems = new ArrayObjectAdapter(new SettingsRowPresenter());
 
-		rowItems.add(new TvSettingsItem(R.id.menu_refresh,
-				R.drawable.ic_refresh_tv,
-				R.string.grid_menu_refresh));
-
 		rowItems.add(new TvSettingsItem(R.id.menu_settings_core,
 				R.drawable.ic_settings_core_tv,
 				R.string.grid_menu_core_settings));
@@ -241,9 +237,17 @@ public final class TvMainActivity extends Activity implements MainView
 				R.drawable.ic_settings_gcpad,
 				R.string.grid_menu_gcpad_settings));
 
+		rowItems.add(new TvSettingsItem(R.id.menu_settings_wiimote,
+				R.drawable.ic_settings_wiimote,
+				R.string.grid_menu_wiimote_settings));
+
 		rowItems.add(new TvSettingsItem(R.id.button_add_directory,
 				R.drawable.ic_add_tv,
 				R.string.add_directory_title));
+
+		rowItems.add(new TvSettingsItem(R.id.menu_refresh,
+				R.drawable.ic_refresh_tv,
+				R.string.grid_menu_refresh));
 
 		// Create a header for this row.
 		HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));

@@ -156,6 +156,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 		mPresenter.onGcPadSettingChanged(key, value);
 	}
 
+	@Override
+	public void onWiimoteSettingChanged(String section, int value)
+	{
+		mPresenter.onWiimoteSettingChanged(section, value);
+	}
+
 	private SettingsFragment getFragment()
 	{
 		return (SettingsFragment) getFragmentManager().findFragmentByTag(SettingsFragment.FRAGMENT_TAG);

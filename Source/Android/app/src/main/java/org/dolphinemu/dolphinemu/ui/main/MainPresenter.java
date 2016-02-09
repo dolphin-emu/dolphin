@@ -54,7 +54,13 @@ public final class MainPresenter
 				mView.launchSettingsActivity(SettingsFile.FILE_NAME_GCPAD);
 				return true;
 
+			case R.id.menu_settings_wiimote:
+				mView.launchSettingsActivity(SettingsFile.FILE_NAME_WIIMOTE);
+				return true;
+
 			case R.id.menu_refresh:
+				GameDatabase databaseHelper = DolphinApplication.databaseHelper;
+				databaseHelper.scanLibrary(databaseHelper.getWritableDatabase());
 				mView.refresh();
 				return true;
 

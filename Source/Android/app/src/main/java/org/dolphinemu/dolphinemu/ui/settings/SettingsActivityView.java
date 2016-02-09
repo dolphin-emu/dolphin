@@ -78,4 +78,14 @@ public interface SettingsActivityView
 	 * @param value New setting for the GCPad.
 	 */
 	void onGcPadSettingChanged(String key, int value);
+
+	/**
+	 * Called by a containing Fragment to tell the containing Activity that a Wiimote's setting
+	 * was modified.
+	 *
+	 * @param section Identifier for Wiimote that was modified; Wiimotes are identified by their section,
+	 *                not their key.
+	 * @param value   New setting for the Wiimote.
+	 */
+	void onWiimoteSettingChanged(String section, int value);
 }
