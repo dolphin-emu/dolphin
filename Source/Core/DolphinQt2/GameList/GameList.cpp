@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QDesktopServices>
 #include <QHeaderView>
+#include <QMenu>
+#include <QUrl>
 
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameList.h"
@@ -45,6 +48,8 @@ void GameList::MakeTableView()
 	m_table->setShowGrid(false);
 	m_table->setSortingEnabled(true);
 	m_table->setCurrentIndex(QModelIndex());
+	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_table, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
 
 	// TODO load from config
 	m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
@@ -84,6 +89,29 @@ void GameList::MakeListView()
 	m_list->setViewMode(QListView::IconMode);
 	m_list->setResizeMode(QListView::Adjust);
 	m_list->setUniformItemSizes(true);
+	m_list->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_list, SIGNAL(customContextMenuRequested(const QPoint&)), this, SLOT(ShowContextMenu(const QPoint&)));
+}
+
+void GameList::ShowContextMenu(const QPoint& pos)
+{
+	QMenu* menu = new QMenu(this);
+	menu->addAction(tr("Properties"));
+	menu->addAction(tr("Open wiki page"), this, SLOT(OpenWiki()));
+	menu->addAction(tr("Set as default ISO"), this, SLOT(SetDefaultISO()));
+	menu->exec(QCursor::pos());
+}
+
+void GameList::OpenWiki()
+{
+	QString game_ID = GameFile(GetSelectedGame()).GetUniqueID();
+	QString url = QString::fromUtf8("https://wiki.dolphin-emu.org/index.php?title=").append(game_ID);
+	QDesktopServices::openUrl(QUrl(url));
+}
+
+void GameList::SetDefaultISO()
+{
+	Settings().SetDefaultGame(GetSelectedGame());
 }
 
 QString GameList::GetSelectedGame() const
