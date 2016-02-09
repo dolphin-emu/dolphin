@@ -19,13 +19,17 @@ class GameList final : public QStackedWidget
 
 public:
 	explicit GameList(QWidget* parent = nullptr);
-
 	QString GetSelectedGame() const;
 
 public slots:
 	void SetTableView() { SetPreferredView(true); }
 	void SetListView() { SetPreferredView(false); }
 	void SetViewColumn(int col, bool view) { m_table->setColumnHidden(col, !view); }
+
+private slots:
+	void ShowContextMenu(const QPoint&);
+	void OpenWiki();
+	void SetDefaultISO();
 
 signals:
 	void GameSelected();
