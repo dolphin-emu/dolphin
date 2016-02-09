@@ -1050,12 +1050,12 @@ float ToLinearDepth(float depth)
 // Constant accessors
 float2 GetInputResolution(int index) { return u_input_resolutions[index].xy; }
 float2 GetInvInputResolution(int index) { return u_input_resolutions[index].zw; }
-float2 GetTargetResolution() { return u_target_resolution.xy; }
-float2 GetInvTargetResolution() { return u_target_resolution.zw; }
+float2 GetOutputResolution() { return u_output_resolution.xy; }
+float2 GetInvOutputResolution() { return u_output_resolution.zw; }
 float2 GetSourceRectOrigin() { return u_source_rect.xy; }
 float2 GetSourceRectSize() { return u_source_rect.zw; }
-float2 GetTargetRectOrigin() { return u_target_rect.xy; }
-float2 GetTargetRectSize() { return u_target_rect.zw; }
+float2 GetOutputRectOrigin() { return u_output_rect.xy; }
+float2 GetOutputRectSize() { return u_output_rect.zw; }
 float4 GetViewportRect() { return u_viewport_rect; }
 float4 GetWindowRect() { return u_window_rect; }
 float GetTime() { return u_time; }
@@ -1104,9 +1104,9 @@ std::string PostProcessor::GetUniformBufferShaderSource(API_TYPE api, const Post
 
 	// Common constants
 	shader_source += "\tfloat4 u_input_resolutions[4];\n";
-	shader_source += "\tfloat4 u_target_resolution;\n";
+	shader_source += "\tfloat4 u_output_resolution;\n";
 	shader_source += "\tfloat4 u_source_rect;\n";
-	shader_source += "\tfloat4 u_target_rect;\n";
+	shader_source += "\tfloat4 u_output_rect;\n";
 	shader_source += "\tfloat4 u_viewport_rect;\n";
 	shader_source += "\tfloat4 u_window_rect;\n";
 	shader_source += "\tfloat u_time;\n";

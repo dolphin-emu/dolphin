@@ -924,7 +924,7 @@ void D3DPostProcessor::CopyTexture(const TargetRectangle& dst_rect, D3DTexture2D
 		if (scaling)
 			D3D::SetLinearCopySampler();
 		else
-			D3D::SetLinearCopySampler();
+			D3D::SetPointCopySampler();
 
 		D3D::drawShadedTexQuad(src_texture->GetSRV(), src_rect.AsRECT(), src_size.width, src_size.height,
 			PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
