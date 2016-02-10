@@ -31,40 +31,6 @@ void JitArm64::ps_abs(UGeckoInstruction inst)
 	m_float_emit.FABS(64, VD, VB);
 }
 
-void JitArm64::ps_add(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FADD(64, VD, VA, VB);
-	fpr.FixSinglePrecision(d);
-}
-
-void JitArm64::ps_div(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FDIV(64, VD, VA, VB);
-	fpr.FixSinglePrecision(d);
-}
-
 void JitArm64::ps_madd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -221,23 +187,6 @@ void JitArm64::ps_mr(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
 	m_float_emit.ORR(VD, VB, VB);
-}
-
-void JitArm64::ps_mul(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, c = inst.FC, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FMUL(64, VD, VA, VC);
-	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_muls0(UGeckoInstruction inst)
@@ -419,23 +368,6 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
 		m_float_emit.ORR(VD, V0, V0);
 		fpr.Unlock(V0);
 	}
-}
-
-void JitArm64::ps_sub(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FSUB(64, VD, VA, VB);
-	fpr.FixSinglePrecision(d);
 }
 
 void JitArm64::ps_sum0(UGeckoInstruction inst)

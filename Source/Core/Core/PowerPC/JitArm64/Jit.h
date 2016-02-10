@@ -157,8 +157,6 @@ public:
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
-	void ps_add(UGeckoInstruction inst);
-	void ps_div(UGeckoInstruction inst);
 	void ps_madd(UGeckoInstruction inst);
 	void ps_madds0(UGeckoInstruction inst);
 	void ps_madds1(UGeckoInstruction inst);
@@ -168,7 +166,6 @@ public:
 	void ps_merge11(UGeckoInstruction inst);
 	void ps_mr(UGeckoInstruction inst);
 	void ps_msub(UGeckoInstruction inst);
-	void ps_mul(UGeckoInstruction inst);
 	void ps_muls0(UGeckoInstruction inst);
 	void ps_muls1(UGeckoInstruction inst);
 	void ps_nabs(UGeckoInstruction inst);
@@ -177,7 +174,6 @@ public:
 	void ps_neg(UGeckoInstruction inst);
 	void ps_res(UGeckoInstruction inst);
 	void ps_sel(UGeckoInstruction inst);
-	void ps_sub(UGeckoInstruction inst);
 	void ps_sum0(UGeckoInstruction inst);
 	void ps_sum1(UGeckoInstruction inst);
 

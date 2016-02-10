@@ -40,31 +40,41 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 	u32 a = inst.FA, d = inst.FD;
 	u32 b = inst.SUBOP5 == 25 ? inst.FC : inst.FB;
 
-	bool single = inst.OPCD == 4 || inst.OPCD == 59;
+	bool single = inst.OPCD == 59;
+	bool packed = inst.OPCD == 4;
 
-	ARM64Reg VA = EncodeRegToDouble(fpr.R(a, REG_IS_LOADED));
-	ARM64Reg VB = EncodeRegToDouble(fpr.R(b, REG_IS_LOADED));
-	ARM64Reg VD = EncodeRegToDouble(fpr.RW(d, single ? REG_DUP : REG_LOWER_PAIR));
-
-	switch (inst.SUBOP5)
+	if (packed)
 	{
-	case 18:
-		m_float_emit.FDIV(VD, VA, VB);
-		break;
-	case 20:
-		m_float_emit.FSUB(VD, VA, VB);
-		break;
-	case 21:
-		m_float_emit.FADD(VD, VA, VB);
-		break;
-	case 25:
-		m_float_emit.FMUL(VD, VA, VB);
-		break;
-	default:
-		_assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+		ARM64Reg VA = fpr.R(a, REG_REG);
+		ARM64Reg VB = fpr.R(b, REG_REG);
+		ARM64Reg VD = fpr.RW(d, REG_REG);
+
+		switch (inst.SUBOP5)
+		{
+		case 18: m_float_emit.FDIV(64, VD, VA, VB); break;
+		case 20: m_float_emit.FSUB(64, VD, VA, VB); break;
+		case 21: m_float_emit.FADD(64, VD, VA, VB); break;
+		case 25: m_float_emit.FMUL(64, VD, VA, VB); break;
+		default: _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+		}
+	}
+	else
+	{
+		ARM64Reg VA = EncodeRegToDouble(fpr.R(a, REG_IS_LOADED));
+		ARM64Reg VB = EncodeRegToDouble(fpr.R(b, REG_IS_LOADED));
+		ARM64Reg VD = EncodeRegToDouble(fpr.RW(d, single ? REG_DUP : REG_LOWER_PAIR));
+
+		switch (inst.SUBOP5)
+		{
+		case 18: m_float_emit.FDIV(VD, VA, VB); break;
+		case 20: m_float_emit.FSUB(VD, VA, VB); break;
+		case 21: m_float_emit.FADD(VD, VA, VB); break;
+		case 25: m_float_emit.FMUL(VD, VA, VB); break;
+		default: _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+		}
 	}
 
-	if (single)
+	if (single || packed)
 		fpr.FixSinglePrecision(d);
 }
 
