@@ -78,7 +78,7 @@ void JitArm64::ps_maddsX(UGeckoInstruction inst)
 	fpr.Unlock(V0);
 }
 
-void JitArm64::ps_merge00(UGeckoInstruction inst)
+void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
@@ -90,65 +90,37 @@ void JitArm64::ps_merge00(UGeckoInstruction inst)
 	ARM64Reg VB = fpr.R(b, REG_REG);
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 
-	m_float_emit.TRN1(64, VD, VA, VB);
-}
-
-void JitArm64::ps_merge01(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.INS(64, VD, 0, VA, 0);
-	m_float_emit.INS(64, VD, 1, VB, 1);
-}
-
-void JitArm64::ps_merge10(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	if (d != a && d != b)
+	switch (inst.SUBOP10)
 	{
-		m_float_emit.INS(64, VD, 0, VA, 1);
-		m_float_emit.INS(64, VD, 1, VB, 0);
+	case 528: //00
+		m_float_emit.TRN1(64, VD, VA, VB);
+		break;
+	case 560: //01
+		m_float_emit.INS(64, VD, 0, VA, 0);
+		m_float_emit.INS(64, VD, 1, VB, 1);
+		break;
+	case 592: //10
+		if (d != a && d != b)
+		{
+			m_float_emit.INS(64, VD, 0, VA, 1);
+			m_float_emit.INS(64, VD, 1, VB, 0);
+		}
+		else
+		{
+			ARM64Reg V0 = fpr.GetReg();
+			m_float_emit.INS(64, V0, 0, VA, 1);
+			m_float_emit.INS(64, V0, 1, VB, 0);
+			m_float_emit.ORR(VD, V0, V0);
+			fpr.Unlock(V0);
+		}
+		break;
+	case 624: //11
+		m_float_emit.TRN2(64, VD, VA, VB);
+		break;
+	default:
+		_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
+		break;
 	}
-	else
-	{
-		ARM64Reg V0 = fpr.GetReg();
-		m_float_emit.INS(64, V0, 0, VA, 1);
-		m_float_emit.INS(64, V0, 1, VB, 0);
-		m_float_emit.ORR(VD, V0, V0);
-		fpr.Unlock(V0);
-	}
-}
-
-void JitArm64::ps_merge11(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 a = inst.FA, b = inst.FB, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.TRN2(64, VD, VA, VB);
 }
 
 void JitArm64::ps_mr(UGeckoInstruction inst)
