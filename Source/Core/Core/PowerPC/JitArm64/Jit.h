@@ -138,10 +138,7 @@ public:
 
 	// Floating point
 	void fp_arith(UGeckoInstruction inst);
-	void fabsx(UGeckoInstruction inst);
-	void fmrx(UGeckoInstruction inst);
-	void fnabsx(UGeckoInstruction inst);
-	void fnegx(UGeckoInstruction inst);
+	void fp_logic(UGeckoInstruction inst);
 	void fselx(UGeckoInstruction inst);
 	void fcmpX(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
