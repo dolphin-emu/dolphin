@@ -97,5 +97,5 @@ private:
 	u64 m_raw_size;
 	QPixmap m_banner;
 	QString m_issues;
-	int m_rating;
+	int m_rating = 0;
 };
