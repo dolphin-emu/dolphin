@@ -17,53 +17,6 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::ps_madd(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-	ARM64Reg V0 = fpr.GetReg();
-
-	m_float_emit.FMUL(64, V0, VA, VC);
-	m_float_emit.FADD(64, VD, V0, VB);
-	fpr.FixSinglePrecision(d);
-
-	fpr.Unlock(V0);
-}
-
-void JitArm64::ps_maddsX(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
-
-	bool upper = inst.SUBOP5 == 15;
-
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-	ARM64Reg V0 = fpr.GetReg();
-
-	m_float_emit.DUP(64, V0, VC, upper ? 1 : 0);
-	m_float_emit.FMUL(64, V0, V0, VA);
-	m_float_emit.FADD(64, VD, V0, VB);
-	fpr.FixSinglePrecision(d);
-
-	fpr.Unlock(V0);
-}
-
 void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -128,6 +81,52 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
 	m_float_emit.DUP(64, V0, VC, upper ? 1 : 0);
 	m_float_emit.FMUL(64, VD, VA, V0);
 	fpr.FixSinglePrecision(d);
+	fpr.Unlock(V0);
+}
+void JitArm64::ps_madd(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	ARM64Reg VA = fpr.R(a, REG_REG);
+	ARM64Reg VB = fpr.R(b, REG_REG);
+	ARM64Reg VC = fpr.R(c, REG_REG);
+	ARM64Reg VD = fpr.RW(d, REG_REG);
+	ARM64Reg V0 = fpr.GetReg();
+
+	m_float_emit.FMUL(64, V0, VA, VC);
+	m_float_emit.FADD(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
+
+	fpr.Unlock(V0);
+}
+
+void JitArm64::ps_maddsX(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITPairedOff);
+	FALLBACK_IF(inst.Rc);
+	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
+
+	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+
+	bool upper = inst.SUBOP5 == 15;
+
+	ARM64Reg VA = fpr.R(a, REG_REG);
+	ARM64Reg VB = fpr.R(b, REG_REG);
+	ARM64Reg VC = fpr.R(c, REG_REG);
+	ARM64Reg VD = fpr.RW(d, REG_REG);
+	ARM64Reg V0 = fpr.GetReg();
+
+	m_float_emit.DUP(64, V0, VC, upper ? 1 : 0);
+	m_float_emit.FMUL(64, V0, V0, VA);
+	m_float_emit.FADD(64, VD, V0, VB);
+	fpr.FixSinglePrecision(d);
+
 	fpr.Unlock(V0);
 }
 
@@ -243,7 +242,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
 	}
 }
 
-void JitArm64::ps_sum0(UGeckoInstruction inst)
+void JitArm64::ps_sumX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
@@ -252,36 +251,7 @@ void JitArm64::ps_sum0(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-	ARM64Reg V0 = fpr.GetReg();
-
-	m_float_emit.DUP(64, V0, VB, 1);
-	if (d != c)
-	{
-		m_float_emit.FADD(64, VD, V0, VA);
-		m_float_emit.INS(64, VD, 1, VC, 1);
-	}
-	else
-	{
-		m_float_emit.FADD(64, V0, V0, VA);
-		m_float_emit.INS(64, VD, 0, V0, 0);
-	}
-	fpr.FixSinglePrecision(d);
-
-	fpr.Unlock(V0);
-}
-
-void JitArm64::ps_sum1(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
+	bool upper = inst.SUBOP5 == 11;
 
 	ARM64Reg VA = fpr.R(a, REG_REG);
 	ARM64Reg VB = fpr.R(b, REG_REG);
@@ -289,16 +259,16 @@ void JitArm64::ps_sum1(UGeckoInstruction inst)
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 	ARM64Reg V0 = fpr.GetReg();
 
-	m_float_emit.DUP(64, V0, VA, 0);
+	m_float_emit.DUP(64, V0, upper ? VA : VB, upper ? 0 : 1);
 	if (d != c)
 	{
-		m_float_emit.FADD(64, VD, V0, VB);
-		m_float_emit.INS(64, VD, 0, VC, 0);
+		m_float_emit.FADD(64, VD, V0, upper ? VB : VA);
+		m_float_emit.INS(64, VD, upper ? 0 : 1, VC, upper ? 0 : 1);
 	}
 	else
 	{
-		m_float_emit.FADD(64, V0, V0, VB);
-		m_float_emit.INS(64, VD, 1, V0, 1);
+		m_float_emit.FADD(64, V0, V0, upper ? VB : VA);
+		m_float_emit.INS(64, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
 	}
 	fpr.FixSinglePrecision(d);
 
