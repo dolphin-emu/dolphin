@@ -157,6 +157,10 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
+if(ENABLE_QT2)
+	set(ENABLE_GENERIC 1) #Qt requires pie, pie breaks JIT
+endif()
+
 if(NOT ENABLE_GENERIC)
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
@@ -790,6 +794,7 @@ if (OPENSLES_LIBRARIES AND OPENSLES_INCLUDE_DIR)
 endif()
 
 if(ENABLE_QT2)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Widgets_EXECUTABLE_COMPILE_FLAGS}")
 	find_package(Qt5Widgets REQUIRED)
 	message("Found Qt version ${Qt5Core_VERSION}, enabling the Qt backend")
 endif()
@@ -992,3 +997,8 @@ list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
 # CPack must be included after the CPACK_* variables are set in order for those
 # variables to take effect.
 Include(CPack)
+
+if(_M_X86_64)
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-pie")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-pie")
+endif()
