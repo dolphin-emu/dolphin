@@ -9,6 +9,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
   - [General] (#general)
   - [Naming] (#naming)
   - [Conditionals] (#conditionals)
+  - [Switch Statements] (#switch-statements)
   - [Classes and Structs] (#classes-and-structs)
 - [Code specific] (#code-specific)
   - [General] (#general-1)
@@ -99,6 +100,71 @@ Following this guide and formatting your code as detailed will likely get your p
         // code line
     ```
 
+### Switch Statements
+- Switch statements should have their labels at the same level of indentation as the statement's opening braces.
+  - Yes:
+
+    ```cpp
+    switch (condition)
+    {
+    case 1:
+        // Code here
+        break;
+    case 2:
+        // Code here
+        break;
+    default:
+        // Code here
+        break;
+    }
+    ```
+  - No:
+
+    ```cpp
+    switch (condition)
+    {
+        case 1:
+            // Code here
+            break;
+        case 2:
+            // Code here
+            break;
+        default:
+            // Code here
+            break;
+    }
+    ```
+
+- Switch statement case labels that intentionally use fallthrough should be documented with a comment indicating said fallthrough is intentional.
+  Consider alternatives before relying on fallthrough, however, as it can make code more error-prone.
+
+    ```cpp
+    switch (condition)
+    {
+    case 1:
+        if (some_other_condition)
+        {
+            // Code here
+        }
+        // Fallthrough intentional
+    case 2:
+        // More code here
+        break;
+    }
+    ```
+
+    Multiple cases that lead to a single case label with code do not have to be documented with a fallthrough comment.
+
+    ```cpp
+    switch (condition)
+    {
+    case 1: // No need to document cases 1 and 2 as fallthrough.
+    case 2:
+    case 3:
+        // Code here
+        break;
+    }
+    ```
 
 ### Classes and Structs
 - If making a [POD](http://en.wikipedia.org/wiki/Plain_Old_Data_Structures) type, use a `struct` for this. Use a `class` otherwise.
