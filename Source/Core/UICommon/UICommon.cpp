@@ -78,7 +78,8 @@ void SetUserDirectory(const std::string& custom_path)
 
   std::string user_path = "";
 #ifdef _WIN32
-  // Detect where the User directory is. There are five different cases (on top of the
+  // Detect where the User directory is. There are five different cases (on top
+  // of the
   // command line flag, which overrides all this):
   // 1. GetExeDirectory()\portable.txt exists
   //    -> Use GetExeDirectory()\User
@@ -126,7 +127,8 @@ void SetUserDirectory(const std::string& custom_path)
   else  // Case 5
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
-  // Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
+  // Prettify the path: it will be displayed in some places, we don't want a mix
+  // of \ and /.
   user_path = ReplaceAll(user_path, "\\", DIR_SEP);
 
   // Make sure it ends in DIR_SEP.
@@ -149,12 +151,21 @@ void SetUserDirectory(const std::string& custom_path)
 #if defined(__APPLE__) || defined(ANDROID)
     user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
 #else
-    // We are on a non-Apple and non-Android POSIX system, let's respect XDG basedir.
-    // The only case we don't is when there is an existing ~/.dolphin-emu directory.
-    // See http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-
+    // We are on a non-Apple and non-Android POSIX system, there are 3 cases:
+    // 1. GetExeDirectory()/portable.txt exists
+    //    -> Use GetExeDirectory/User
+    // 2. ~/.dolphin-emu directory exists
+    //    -> Use ~/.dolphin-emu
+    // 3. Default
+    //    -> Use XDG basedir, see
+    //    http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
-    if (!File::Exists(user_path))
+    std::string exe_path = File::GetExeDirectory();
+    if (File::Exists(exe_path + DIR_SEP "portable.txt"))
+    {
+      user_path = exe_path + DIR_SEP "User" DIR_SEP;
+    }
+    else if (!File::Exists(user_path))
     {
       const char* data_home = getenv("XDG_DATA_HOME");
       std::string data_path =
