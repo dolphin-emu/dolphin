@@ -137,16 +137,13 @@ public:
 	void stfXX(UGeckoInstruction inst);
 
 	// Floating point
+	void fp_arith(UGeckoInstruction inst);
 	void fabsx(UGeckoInstruction inst);
-	void faddsx(UGeckoInstruction inst);
-	void faddx(UGeckoInstruction inst);
 	void fmaddsx(UGeckoInstruction inst);
 	void fmaddx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 	void fmsubsx(UGeckoInstruction inst);
 	void fmsubx(UGeckoInstruction inst);
-	void fmulsx(UGeckoInstruction inst);
-	void fmulx(UGeckoInstruction inst);
 	void fnabsx(UGeckoInstruction inst);
 	void fnegx(UGeckoInstruction inst);
 	void fnmaddsx(UGeckoInstruction inst);
@@ -154,13 +151,9 @@ public:
 	void fnmsubsx(UGeckoInstruction inst);
 	void fnmsubx(UGeckoInstruction inst);
 	void fselx(UGeckoInstruction inst);
-	void fsubsx(UGeckoInstruction inst);
-	void fsubx(UGeckoInstruction inst);
 	void fcmpX(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
 	void fctiwzx(UGeckoInstruction inst);
-	void fdivx(UGeckoInstruction inst);
-	void fdivsx(UGeckoInstruction inst);
 
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
