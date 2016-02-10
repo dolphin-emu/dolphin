@@ -195,6 +195,37 @@ bool IniFile::Section::Delete(const std::string& key)
 	return true;
 }
 
+void IniFile::Section::SetLines(const std::vector<std::string>& lines)
+{
+	m_lines = lines;
+}
+
+bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
+{
+	for (std::string line : m_lines)
+	{
+		line = StripSpaces(line);
+
+		if (remove_comments)
+		{
+			size_t commentPos = line.find('#');
+			if (commentPos == 0)
+			{
+				continue;
+			}
+
+			if (commentPos != std::string::npos)
+			{
+				line = StripSpaces(line.substr(0, commentPos));
+			}
+		}
+
+		lines->push_back(line);
+	}
+
+	return true;
+}
+
 // IniFile
 
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
@@ -251,7 +282,7 @@ bool IniFile::Exists(const std::string& sectionName, const std::string& key) con
 void IniFile::SetLines(const std::string& sectionName, const std::vector<std::string> &lines)
 {
 	Section* section = GetOrCreateSection(sectionName);
-	section->lines = lines;
+	section->SetLines(lines);
 }
 
 bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
@@ -283,28 +314,7 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 	if (!section)
 		return false;
 
-	for (std::string line : section->lines)
-	{
-		line = StripSpaces(line);
-
-		if (remove_comments)
-		{
-			size_t commentPos = line.find('#');
-			if (commentPos == 0)
-			{
-				continue;
-			}
-
-			if (commentPos != std::string::npos)
-			{
-				line = StripSpaces(line.substr(0, commentPos));
-			}
-		}
-
-		lines->push_back(line);
-	}
-
-	return true;
+	return section->GetLines(lines, remove_comments);
 }
 
 void IniFile::SortSections()
@@ -380,7 +390,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 					     (line[0] == '$' ||
 					      line[0] == '+' ||
 					      line[0] == '*')))
-						current_section->lines.push_back(line);
+						current_section->m_lines.push_back(line);
 					else
 						current_section->Set(key, value);
 				}
@@ -405,12 +415,12 @@ bool IniFile::Save(const std::string& filename)
 
 	for (const Section& section : sections)
 	{
-		if (section.keys_order.size() != 0 || section.lines.size() != 0)
+		if (section.keys_order.size() != 0 || section.m_lines.size() != 0)
 			out << "[" << section.name << "]" << std::endl;
 
 		if (section.keys_order.size() == 0)
 		{
-			for (const std::string& s : section.lines)
+			for (const std::string& s : section.m_lines)
 				out << s << std::endl;
 		}
 		else
