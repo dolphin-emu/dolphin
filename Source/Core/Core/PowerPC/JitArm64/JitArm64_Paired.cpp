@@ -140,7 +140,7 @@ void JitArm64::ps_mr(UGeckoInstruction inst)
 	m_float_emit.ORR(VD, VB, VB);
 }
 
-void JitArm64::ps_muls0(UGeckoInstruction inst)
+void JitArm64::ps_mulsX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITPairedOff);
@@ -149,32 +149,14 @@ void JitArm64::ps_muls0(UGeckoInstruction inst)
 
 	u32 a = inst.FA, c = inst.FC, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-	ARM64Reg V0 = fpr.GetReg();
-
-	m_float_emit.DUP(64, V0, VC, 0);
-	m_float_emit.FMUL(64, VD, VA, V0);
-	fpr.FixSinglePrecision(d);
-	fpr.Unlock(V0);
-}
-
-void JitArm64::ps_muls1(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-	FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
-
-	u32 a = inst.FA, c = inst.FC, d = inst.FD;
+	bool upper = inst.SUBOP5 == 13;
 
 	ARM64Reg VA = fpr.R(a, REG_REG);
 	ARM64Reg VC = fpr.R(c, REG_REG);
 	ARM64Reg VD = fpr.RW(d, REG_REG);
 	ARM64Reg V0 = fpr.GetReg();
 
-	m_float_emit.DUP(64, V0, VC, 1);
+	m_float_emit.DUP(64, V0, VC, upper ? 1 : 0);
 	m_float_emit.FMUL(64, VD, VA, V0);
 	fpr.FixSinglePrecision(d);
 	fpr.Unlock(V0);
