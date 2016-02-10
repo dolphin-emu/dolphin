@@ -17,20 +17,6 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::ps_abs(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FABS(64, VD, VB);
-}
-
 void JitArm64::ps_madd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -123,23 +109,6 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 	}
 }
 
-void JitArm64::ps_mr(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-
-	if (d == b)
-		return;
-
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.ORR(VD, VB, VB);
-}
-
 void JitArm64::ps_mulsX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -182,35 +151,6 @@ void JitArm64::ps_msub(UGeckoInstruction inst)
 	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
-}
-
-void JitArm64::ps_nabs(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FABS(64, VD, VB);
-	m_float_emit.FNEG(64, VD, VD);
-}
-
-void JitArm64::ps_neg(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITPairedOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
-
-	m_float_emit.FNEG(64, VD, VB);
 }
 
 void JitArm64::ps_nmadd(UGeckoInstruction inst)

@@ -145,17 +145,13 @@ public:
 	void fctiwzx(UGeckoInstruction inst);
 
 	// Paired
-	void ps_abs(UGeckoInstruction inst);
 	void ps_madd(UGeckoInstruction inst);
 	void ps_maddsX(UGeckoInstruction inst);
 	void ps_mergeXX(UGeckoInstruction inst);
-	void ps_mr(UGeckoInstruction inst);
 	void ps_msub(UGeckoInstruction inst);
 	void ps_mulsX(UGeckoInstruction inst);
-	void ps_nabs(UGeckoInstruction inst);
 	void ps_nmadd(UGeckoInstruction inst);
 	void ps_nmsub(UGeckoInstruction inst);
-	void ps_neg(UGeckoInstruction inst);
 	void ps_res(UGeckoInstruction inst);
 	void ps_sel(UGeckoInstruction inst);
 	void ps_sum0(UGeckoInstruction inst);
