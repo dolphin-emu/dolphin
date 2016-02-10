@@ -17,19 +17,6 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::fabsx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.RW(d);
-
-	m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-}
-
 void JitArm64::fp_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -93,7 +80,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 		fpr.FixSinglePrecision(d);
 }
 
-void JitArm64::fmrx(UGeckoInstruction inst)
+void JitArm64::fp_logic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITFloatingPointOff);
@@ -101,39 +88,20 @@ void JitArm64::fmrx(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.RW(d);
-
-	m_float_emit.INS(64, VD, 0, VB, 0);
-}
-
-void JitArm64::fnabsx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
+	u32 op10 = inst.SUBOP10;
 
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
 	ARM64Reg VD = fpr.RW(d);
 
-	m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VD));
-}
-
-void JitArm64::fnegx(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-	FALLBACK_IF(inst.Rc);
-
-	u32 b = inst.FB, d = inst.FD;
-
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.RW(d);
-
-	m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+	switch (op10)
+	{
+	case  40: m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VB)); break;
+	case  72: m_float_emit.INS(64, VD, 0, VB, 0); break;
+	case 136: m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+	          m_float_emit.FNEG(EncodeRegToDouble(VD), EncodeRegToDouble(VD)); break;
+	case 264: m_float_emit.FABS(EncodeRegToDouble(VD), EncodeRegToDouble(VB)); break;
+	default: _assert_msg_(DYNA_REC, 0, "fp_logic WTF!!!");
+	}
 }
 
 void JitArm64::fselx(UGeckoInstruction inst)

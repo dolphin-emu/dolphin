@@ -326,14 +326,14 @@ static GekkoOPTemplate table59[] =
 
 static GekkoOPTemplate table63[] =
 {
-	{264, &JitArm64::fabsx},                    // fabsx
+	{264, &JitArm64::fp_logic},                 // fabsx
 	{32,  &JitArm64::fcmpX},                    // fcmpo
 	{0,   &JitArm64::fcmpX},                    // fcmpu
 	{14,  &JitArm64::FallBackToInterpreter},    // fctiwx
 	{15,  &JitArm64::fctiwzx},                  // fctiwzx
-	{72,  &JitArm64::fmrx},                     // fmrx
-	{136, &JitArm64::fnabsx},                   // fnabsx
-	{40,  &JitArm64::fnegx},                    // fnegx
+	{72,  &JitArm64::fp_logic},                 // fmrx
+	{136, &JitArm64::fp_logic},                 // fnabsx
+	{40,  &JitArm64::fp_logic},                 // fnegx
 	{12,  &JitArm64::frspx},                    // frspx
 
 	{64,  &JitArm64::FallBackToInterpreter},    // mcrfs
