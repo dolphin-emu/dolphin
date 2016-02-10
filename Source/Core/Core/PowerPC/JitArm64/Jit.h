@@ -151,10 +151,7 @@ public:
 	void ps_abs(UGeckoInstruction inst);
 	void ps_madd(UGeckoInstruction inst);
 	void ps_maddsX(UGeckoInstruction inst);
-	void ps_merge00(UGeckoInstruction inst);
-	void ps_merge01(UGeckoInstruction inst);
-	void ps_merge10(UGeckoInstruction inst);
-	void ps_merge11(UGeckoInstruction inst);
+	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_mr(UGeckoInstruction inst);
 	void ps_msub(UGeckoInstruction inst);
 	void ps_muls0(UGeckoInstruction inst);

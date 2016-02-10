@@ -110,10 +110,10 @@ static GekkoOPTemplate table4[] =
 	{64,   &JitArm64::FallBackToInterpreter},   // ps_cmpu1
 	{72,   &JitArm64::ps_mr},                   // ps_mr
 	{96,   &JitArm64::FallBackToInterpreter},   // ps_cmpo1
-	{528,  &JitArm64::ps_merge00},              // ps_merge00
-	{560,  &JitArm64::ps_merge01},              // ps_merge01
-	{592,  &JitArm64::ps_merge10},              // ps_merge10
-	{624,  &JitArm64::ps_merge11},              // ps_merge11
+	{528,  &JitArm64::ps_mergeXX},              // ps_merge00
+	{560,  &JitArm64::ps_mergeXX},              // ps_merge01
+	{592,  &JitArm64::ps_mergeXX},              // ps_merge10
+	{624,  &JitArm64::ps_mergeXX},              // ps_merge11
 
 	{1014, &JitArm64::FallBackToInterpreter},   // dcbz_l
 };
