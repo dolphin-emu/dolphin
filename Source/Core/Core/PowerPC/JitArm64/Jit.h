@@ -154,8 +154,7 @@ public:
 	void ps_mergeXX(UGeckoInstruction inst);
 	void ps_mr(UGeckoInstruction inst);
 	void ps_msub(UGeckoInstruction inst);
-	void ps_muls0(UGeckoInstruction inst);
-	void ps_muls1(UGeckoInstruction inst);
+	void ps_mulsX(UGeckoInstruction inst);
 	void ps_nabs(UGeckoInstruction inst);
 	void ps_nmadd(UGeckoInstruction inst);
 	void ps_nmsub(UGeckoInstruction inst);
