@@ -14,13 +14,14 @@
 #include "DolphinQt2/ToolBar.h"
 #include "DolphinQt2/GameList/GameList.h"
 
+class PathDialog;
+
 class MainWindow final : public QMainWindow
 {
 	Q_OBJECT
 
 public:
 	explicit MainWindow();
-	~MainWindow();
 
 signals:
 	void EmulationStarted();
@@ -39,18 +40,21 @@ private slots:
 	void FullScreen();
 	void ScreenShot();
 
-	void PathsConfig();
-
 private:
-	void MakeGameList();
-	void MakeMenuBar();
-	void MakeRenderWidget();
-	void MakeStack();
-	void MakeToolBar();
+	void CreateComponents();
+
+	void ConnectGameList();
+	void ConnectMenuBar();
+	void ConnectRenderWidget();
+	void ConnectStack();
+	void ConnectToolBar();
+	void ConnectPathsDialog();
 
 	void StartGame(const QString& path);
 	void ShowRenderWidget();
 	void HideRenderWidget();
+
+	void ShowPathsDialog();
 
 	QStackedWidget* m_stack;
 	ToolBar* m_tool_bar;
@@ -58,4 +62,6 @@ private:
 	GameList* m_game_list;
 	RenderWidget* m_render_widget;
 	bool m_rendering_to_main;
+
+	PathDialog* m_paths_dialog;
 };
