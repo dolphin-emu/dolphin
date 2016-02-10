@@ -51,8 +51,10 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 	if (packed)
 	{
 		VA = fpr.R(a, REG_REG);
-		if (use_b) VB = fpr.R(b, REG_REG);
-		if (use_c) VC = fpr.R(c, REG_REG);
+		if (use_b)
+			VB = fpr.R(b, REG_REG);
+		if (use_c)
+			VC = fpr.R(c, REG_REG);
 		VD = fpr.RW(d, REG_REG);
 
 		switch (op5)
@@ -61,14 +63,16 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 		case 20: m_float_emit.FSUB(64, VD, VA, VB); break;
 		case 21: m_float_emit.FADD(64, VD, VA, VB); break;
 		case 25: m_float_emit.FMUL(64, VD, VA, VC); break;
-		default: _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+		default: _assert_msg_(DYNA_REC, 0, "fp_arith"); break;
 		}
 	}
 	else
 	{
 		VA = EncodeRegToDouble(fpr.R(a, REG_IS_LOADED));
-		if (use_b) VB = EncodeRegToDouble(fpr.R(b, REG_IS_LOADED));
-		if (use_c) VC = EncodeRegToDouble(fpr.R(c, REG_IS_LOADED));
+		if (use_b)
+			VB = EncodeRegToDouble(fpr.R(b, REG_IS_LOADED));
+		if (use_c)
+			VC = EncodeRegToDouble(fpr.R(c, REG_IS_LOADED));
 		VD = EncodeRegToDouble(fpr.RW(d, single ? REG_DUP : REG_LOWER_PAIR));
 
 		switch (op5)
@@ -81,7 +85,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 		case 29: m_float_emit.FMADD(VD, VA, VC, VB); break;
 		case 30: m_float_emit.FMSUB(VD, VA, VC, VB); break;
 		case 31: m_float_emit.FNMADD(VD, VA, VC, VB); break;
-		default: _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+		default: _assert_msg_(DYNA_REC, 0, "fp_arith"); break;
 		}
 	}
 
