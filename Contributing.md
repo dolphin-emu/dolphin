@@ -99,6 +99,39 @@ Following this guide and formatting your code as detailed will likely get your p
         // code line
     ```
 
+- Switch statements should have their labels at the same level of indentation as the statement's opening braces.
+  - Yes:
+
+    ```cpp
+    switch (condition)
+    {
+    case 1:
+        // Code here
+        break;
+    case 2:
+        // Code here
+        break;
+    default:
+        // Code here
+        break;
+    }
+    ```
+  - No:
+
+    ```cpp
+    switch (condition)
+    {
+        case 1:
+            // Code here
+            break;
+        case 2:
+            // Code here
+            break;
+        default:
+            // Code here
+            break;
+    }
+    ```
 
 ### Classes and Structs
 - If making a [POD](http://en.wikipedia.org/wiki/Plain_Old_Data_Structures) type, use a `struct` for this. Use a `class` otherwise.
