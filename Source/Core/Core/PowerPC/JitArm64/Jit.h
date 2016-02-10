@@ -154,8 +154,7 @@ public:
 	void ps_nmsub(UGeckoInstruction inst);
 	void ps_res(UGeckoInstruction inst);
 	void ps_sel(UGeckoInstruction inst);
-	void ps_sum0(UGeckoInstruction inst);
-	void ps_sum1(UGeckoInstruction inst);
+	void ps_sumX(UGeckoInstruction inst);
 
 	// Loadstore paired
 	void psq_l(UGeckoInstruction inst);
