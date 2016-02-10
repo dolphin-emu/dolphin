@@ -150,9 +150,13 @@ void SetUserDirectory(const std::string& custom_path)
 		// We are on a non-Apple and non-Android POSIX system, let's respect XDG basedir.
 		// The only case we don't is when there is an existing ~/.dolphin-emu directory.
 		// See http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
-
 		user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
-		if (!File::Exists(user_path))
+		std::string exe_path = File::GetExeDirectory();
+		if (File::Exists(exe_path + DIR_SEP "portable.txt"))
+		{
+			user_path = exe_path + DIR_SEP "PortableConfig" DIR_SEP;
+		}
+		else if(!File::Exists(user_path))
 		{
 			const char* data_home = getenv("XDG_DATA_HOME");
 			std::string data_path = std::string(data_home && data_home[0] == '/' ?
