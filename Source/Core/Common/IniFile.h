@@ -83,6 +83,9 @@ public:
 		bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
 		bool Get(const std::string& key, std::vector<std::string>* values) const;
 
+		void SetLines(const std::vector<std::string>& _lines);
+		bool GetLines(std::vector<std::string>* _lines, const bool remove_comments = true) const;
+
 		bool operator < (const Section& other) const
 		{
 			return name < other.name;
@@ -92,6 +95,7 @@ public:
 
 		const std::string& GetName() const { return name; }
 		const SectionMap& GetValues() const { return values; }
+		bool HasLines() const { return lines.size() > 0; }
 
 	protected:
 		std::string name;

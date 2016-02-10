@@ -195,6 +195,37 @@ bool IniFile::Section::Delete(const std::string& key)
 	return true;
 }
 
+void IniFile::Section::SetLines(const std::vector<std::string>& _lines)
+{
+	lines = _lines;
+}
+
+bool IniFile::Section::GetLines(std::vector<std::string>* _lines, const bool remove_comments) const
+{
+	for (std::string line : lines)
+	{
+		line = StripSpaces(line);
+
+		if (remove_comments)
+		{
+			size_t commentPos = line.find('#');
+			if (commentPos == 0)
+			{
+				continue;
+			}
+
+			if (commentPos != std::string::npos)
+			{
+				line = StripSpaces(line.substr(0, commentPos));
+			}
+		}
+
+		_lines->push_back(line);
+	}
+
+	return true;
+}
+
 // IniFile
 
 const IniFile::Section* IniFile::GetSection(const std::string& sectionName) const
@@ -251,7 +282,7 @@ bool IniFile::Exists(const std::string& sectionName, const std::string& key) con
 void IniFile::SetLines(const std::string& sectionName, const std::vector<std::string> &lines)
 {
 	Section* section = GetOrCreateSection(sectionName);
-	section->lines = lines;
+	section->SetLines(lines);
 }
 
 bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
@@ -283,28 +314,7 @@ bool IniFile::GetLines(const std::string& sectionName, std::vector<std::string>*
 	if (!section)
 		return false;
 
-	for (std::string line : section->lines)
-	{
-		line = StripSpaces(line);
-
-		if (remove_comments)
-		{
-			size_t commentPos = line.find('#');
-			if (commentPos == 0)
-			{
-				continue;
-			}
-
-			if (commentPos != std::string::npos)
-			{
-				line = StripSpaces(line.substr(0, commentPos));
-			}
-		}
-
-		lines->push_back(line);
-	}
-
-	return true;
+	return section->GetLines(lines, remove_comments);
 }
 
 void IniFile::SortSections()
