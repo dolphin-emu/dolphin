@@ -318,10 +318,10 @@ static GekkoOPTemplate table59[] =
 	{21, &JitArm64::fp_arith},                  // faddsx
 	{24, &JitArm64::FallBackToInterpreter},     // fresx
 	{25, &JitArm64::fp_arith},                  // fmulsx
-	{28, &JitArm64::fmsubsx},                   // fmsubsx
-	{29, &JitArm64::fmaddsx},                   // fmaddsx
-	{30, &JitArm64::fnmsubsx},                  // fnmsubsx
-	{31, &JitArm64::fnmaddsx},                  // fnmaddsx
+	{28, &JitArm64::fp_arith},                  // fmsubsx
+	{29, &JitArm64::fp_arith},                  // fmaddsx
+	{30, &JitArm64::fp_arith},                  // fnmsubsx
+	{31, &JitArm64::fp_arith},                  // fnmaddsx
 };
 
 static GekkoOPTemplate table63[] =
@@ -352,10 +352,10 @@ static GekkoOPTemplate table63_2[] =
 	{23, &JitArm64::fselx},                     // fselx
 	{25, &JitArm64::fp_arith},                  // fmulx
 	{26, &JitArm64::FallBackToInterpreter},     // frsqrtex
-	{28, &JitArm64::fmsubx},                    // fmsubx
-	{29, &JitArm64::fmaddx},                    // fmaddx
-	{30, &JitArm64::fnmsubx},                   // fnmsubx
-	{31, &JitArm64::fnmaddx},                   // fnmaddx
+	{28, &JitArm64::fp_arith},                  // fmsubx
+	{29, &JitArm64::fp_arith},                  // fmaddx
+	{30, &JitArm64::fp_arith},                  // fnmsubx
+	{31, &JitArm64::fp_arith},                  // fnmaddx
 };
 
 
