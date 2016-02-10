@@ -124,8 +124,8 @@ static GekkoOPTemplate table4_2[] =
 	{11, &JitArm64::ps_sumX},                   // ps_sum1
 	{12, &JitArm64::ps_mulsX},                  // ps_muls0
 	{13, &JitArm64::ps_mulsX},                  // ps_muls1
-	{14, &JitArm64::ps_maddsX},                 // ps_madds0
-	{15, &JitArm64::ps_maddsX},                 // ps_madds1
+	{14, &JitArm64::ps_maddXX},                 // ps_madds0
+	{15, &JitArm64::ps_maddXX},                 // ps_madds1
 	{18, &JitArm64::fp_arith},                  // ps_div
 	{20, &JitArm64::fp_arith},                  // ps_sub
 	{21, &JitArm64::fp_arith},                  // ps_add
@@ -133,10 +133,10 @@ static GekkoOPTemplate table4_2[] =
 	{24, &JitArm64::ps_res},                    // ps_res
 	{25, &JitArm64::fp_arith},                  // ps_mul
 	{26, &JitArm64::FallBackToInterpreter},     // ps_rsqrte
-	{28, &JitArm64::ps_msub},                   // ps_msub
-	{29, &JitArm64::ps_madd},                   // ps_madd
-	{30, &JitArm64::ps_nmsub},                  // ps_nmsub
-	{31, &JitArm64::ps_nmadd},                  // ps_nmadd
+	{28, &JitArm64::ps_maddXX},                 // ps_msub
+	{29, &JitArm64::ps_maddXX},                 // ps_madd
+	{30, &JitArm64::ps_maddXX},                 // ps_nmsub
+	{31, &JitArm64::ps_maddXX},                 // ps_nmadd
 };
 
 
