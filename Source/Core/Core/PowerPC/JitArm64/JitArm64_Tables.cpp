@@ -124,8 +124,8 @@ static GekkoOPTemplate table4_2[] =
 	{11, &JitArm64::ps_sum1},                   // ps_sum1
 	{12, &JitArm64::ps_muls0},                  // ps_muls0
 	{13, &JitArm64::ps_muls1},                  // ps_muls1
-	{14, &JitArm64::ps_madds0},                 // ps_madds0
-	{15, &JitArm64::ps_madds1},                 // ps_madds1
+	{14, &JitArm64::ps_maddsX},                 // ps_madds0
+	{15, &JitArm64::ps_maddsX},                 // ps_madds1
 	{18, &JitArm64::fp_arith},                  // ps_div
 	{20, &JitArm64::fp_arith},                  // ps_sub
 	{21, &JitArm64::fp_arith},                  // ps_add
