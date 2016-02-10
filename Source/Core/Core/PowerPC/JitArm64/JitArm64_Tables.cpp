@@ -104,11 +104,11 @@ static GekkoOPTemplate table4[] =
 {    //SUBOP10
 	{0,    &JitArm64::FallBackToInterpreter},   // ps_cmpu0
 	{32,   &JitArm64::FallBackToInterpreter},   // ps_cmpo0
-	{40,   &JitArm64::ps_neg},                  // ps_neg
-	{136,  &JitArm64::ps_nabs},                 // ps_nabs
-	{264,  &JitArm64::ps_abs},                  // ps_abs
+	{40,   &JitArm64::fp_logic},                // ps_neg
+	{136,  &JitArm64::fp_logic},                // ps_nabs
+	{264,  &JitArm64::fp_logic},                // ps_abs
 	{64,   &JitArm64::FallBackToInterpreter},   // ps_cmpu1
-	{72,   &JitArm64::ps_mr},                   // ps_mr
+	{72,   &JitArm64::fp_logic},                // ps_mr
 	{96,   &JitArm64::FallBackToInterpreter},   // ps_cmpo1
 	{528,  &JitArm64::ps_mergeXX},              // ps_merge00
 	{560,  &JitArm64::ps_mergeXX},              // ps_merge01
