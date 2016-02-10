@@ -150,8 +150,7 @@ public:
 	// Paired
 	void ps_abs(UGeckoInstruction inst);
 	void ps_madd(UGeckoInstruction inst);
-	void ps_madds0(UGeckoInstruction inst);
-	void ps_madds1(UGeckoInstruction inst);
+	void ps_maddsX(UGeckoInstruction inst);
 	void ps_merge00(UGeckoInstruction inst);
 	void ps_merge01(UGeckoInstruction inst);
 	void ps_merge10(UGeckoInstruction inst);
