@@ -208,23 +208,28 @@ void JitArm64::ps_sumX(UGeckoInstruction inst)
 
 	bool upper = inst.SUBOP5 == 11;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
+
+	ARM64Reg VA = fpr.R(a, type);
+	ARM64Reg VB = fpr.R(b, type);
+	ARM64Reg VC = fpr.R(c, type);
+	ARM64Reg VD = fpr.RW(d, type);
 	ARM64Reg V0 = fpr.GetReg();
 
-	m_float_emit.DUP(64, V0, upper ? VA : VB, upper ? 0 : 1);
+	m_float_emit.DUP(size, V0, upper ? VA : VB, upper ? 0 : 1);
 	if (d != c)
 	{
-		m_float_emit.FADD(64, VD, V0, upper ? VB : VA);
-		m_float_emit.INS(64, VD, upper ? 0 : 1, VC, upper ? 0 : 1);
+		m_float_emit.FADD(size, VD, V0, upper ? VB : VA);
+		m_float_emit.INS(size, VD, upper ? 0 : 1, VC, upper ? 0 : 1);
 	}
 	else
 	{
-		m_float_emit.FADD(64, V0, V0, upper ? VB : VA);
-		m_float_emit.INS(64, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
+		m_float_emit.FADD(size, V0, V0, upper ? VB : VA);
+		m_float_emit.INS(size, VD, upper ? 1 : 0, V0, upper ? 1 : 0);
 	}
+
 	fpr.FixSinglePrecision(d);
 
 	fpr.Unlock(V0);
