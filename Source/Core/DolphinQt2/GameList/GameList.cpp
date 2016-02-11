@@ -46,16 +46,10 @@ void GameList::MakeTableView()
 	m_table->setSortingEnabled(true);
 	m_table->setCurrentIndex(QModelIndex());
 
-	// TODO load from config
-	m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
-	m_table->setColumnHidden(GameListModel::COL_ID, true);
-	m_table->setColumnHidden(GameListModel::COL_BANNER, false);
-	m_table->setColumnHidden(GameListModel::COL_TITLE, false);
-	m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, true);
-	m_table->setColumnHidden(GameListModel::COL_MAKER, false);
-	m_table->setColumnHidden(GameListModel::COL_SIZE, false);
-	m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
-	m_table->setColumnHidden(GameListModel::COL_RATING, false);
+	for (int i = 0; i < GameListModel::NUM_COLS; i++)
+	{
+		m_table->setColumnHidden(i, !Settings().GetViewColumn(i));
+	}
 
 	QHeaderView* header = m_table->horizontalHeader();
 	header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);

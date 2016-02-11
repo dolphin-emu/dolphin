@@ -7,6 +7,7 @@
 
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/GameList/GameListModel.h"
 
 MenuBar::MenuBar(QWidget* parent)
 	: QMenuBar(parent)
@@ -55,27 +56,22 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 	connect(list_view, &QAction::triggered, this, &MenuBar::ShowList);
 }
 
-// TODO implement this
 void MenuBar::AddTableColumnsMenu(QMenu* view_menu)
 {
 	QActionGroup* column_group = new QActionGroup(this);
 	QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
 	column_group->setExclusive(false);
 
-	QStringList col_names{
-		tr("Platform"),
-		tr("ID"),
-		tr("Banner"),
-		tr("Title"),
-		tr("Description"),
-		tr("Maker"),
-		tr("Size"),
-		tr("Country"),
-		tr("Quality")
-	};
-	for (int i = 0; i < col_names.count(); i++)
+	for (int i = 0; i < GameListModel::NUM_COLS; i++)
 	{
-		QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
+		QAction* action = column_group->addAction(cols_menu->addAction(GameListModel::ColumnNames(i)));
 		action->setCheckable(true);
+		action->setChecked(Settings().GetViewColumn(i));
+		connect(action, &QAction::toggled, this,
+		         [=] {
+		             bool show = action->isChecked();
+		             Settings().SetViewColumn(i, show);
+		             emit SetViewColumn(i, show);
+		         });
 	}
 }
