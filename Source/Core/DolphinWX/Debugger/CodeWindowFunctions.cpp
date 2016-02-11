@@ -19,7 +19,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/SymbolDB.h"
 
 #include "Core/Core.h"
@@ -51,13 +51,13 @@
 // -----------------------------
 void CCodeWindow::Load()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
 	// The font to override DebuggerFont with
 	std::string fontDesc;
 
-	IniFile::Section* general = ini.GetOrCreateSection("General");
+	OnionConfig::OnionPetal* general = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "General");
+	OnionConfig::OnionPetal* show_on_start = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "ShowOnStart");
+	OnionConfig::OnionPetal* float_windows = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Float");
+
 	general->Get("DebuggerFont", &fontDesc);
 	general->Get("AutomaticStart", &bAutomaticStart, false);
 	general->Get("BootToPause", &bBootToPause, true);
@@ -80,7 +80,7 @@ void CCodeWindow::Load()
 
 	// Decide what windows to show
 	for (int i = 0; i <= IDM_VIDEO_WINDOW - IDM_LOG_WINDOW; i++)
-		ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
+		show_on_start->Get(SettingName[i], &bShowOnStart[i], false);
 
 	// Get notebook affiliation
 	std::string section = "P - " +
@@ -88,19 +88,23 @@ void CCodeWindow::Load()
 		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-		ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
+	{
+		OnionConfig::OnionPetal* petal = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, section);
+		petal->Get(SettingName[i], &iNbAffiliation[i], 0);
+	}
 
 	// Get floating setting
 	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-		ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
+		float_windows->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+	OnionConfig::BloomLayer* base_layer = OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+	OnionConfig::OnionPetal* general = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "General");
+	OnionConfig::OnionPetal* show_on_start = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "ShowOnStart");
+	OnionConfig::OnionPetal* float_windows = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Float");
 
-	IniFile::Section* general = ini.GetOrCreateSection("General");
 	general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
 	general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
 	general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
@@ -120,18 +124,20 @@ void CCodeWindow::Save()
 
 	// Save windows settings
 	for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
-		ini.GetOrCreateSection("ShowOnStart")->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
+		show_on_start->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
 	std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-		ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
+	{
+		OnionConfig::OnionPetal* petal = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, section);
+		petal->Set(SettingName[i], iNbAffiliation[i]);
+	}
 
 	// Save floating setting
 	for (int i = IDM_LOG_WINDOW_PARENT; i <= IDM_CODE_WINDOW_PARENT; i++)
-		ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT], !!FindWindowById(i));
-
-	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+		float_windows->Set(SettingName[i - IDM_LOG_WINDOW_PARENT], !!FindWindowById(i));
+	base_layer->Save();
 }
 
 // Symbols, JIT, Profiler
