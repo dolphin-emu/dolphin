@@ -8,9 +8,10 @@
 #include <vector>
 #include <wx/panel.h>
 
+#include "Common/OnionConfig.h"
+
 #include "Core/GeckoCode.h"
 
-class IniFile;
 class wxButton;
 class wxCheckListBox;
 class wxListBox;
@@ -27,7 +28,9 @@ public:
 	CodeConfigPanel(wxWindow* const parent);
 
 
-	void LoadCodes(const IniFile& globalIni, const IniFile& localIni, const std::string& gameid = "", bool checkRunning = false);
+	void LoadCodes(OnionConfig::BloomLayer* global_config,
+	               OnionConfig::BloomLayer* local_config,
+	               const std::string& gameid = "", bool checkRunning = false);
 	const std::vector<GeckoCode>& GetCodes() const { return m_gcodes; }
 
 protected:
