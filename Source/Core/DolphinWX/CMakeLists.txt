@@ -3,6 +3,7 @@ set(GUI_SRCS
 	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ControllerConfigDiag.cpp
+	ControllerProfileLoader.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
