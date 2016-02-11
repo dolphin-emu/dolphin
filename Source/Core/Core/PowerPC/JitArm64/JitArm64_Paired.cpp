@@ -25,36 +25,40 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(b);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
+
+	ARM64Reg VA = fpr.R(a, type);
+	ARM64Reg VB = fpr.R(b, type);
+	ARM64Reg VD = fpr.RW(d, type);
 
 	switch (inst.SUBOP10)
 	{
 	case 528: //00
-		m_float_emit.TRN1(64, VD, VA, VB);
+		m_float_emit.TRN1(size, VD, VA, VB);
 		break;
 	case 560: //01
-		m_float_emit.INS(64, VD, 0, VA, 0);
-		m_float_emit.INS(64, VD, 1, VB, 1);
+		m_float_emit.INS(size, VD, 0, VA, 0);
+		m_float_emit.INS(size, VD, 1, VB, 1);
 		break;
 	case 592: //10
 		if (d != a && d != b)
 		{
-			m_float_emit.INS(64, VD, 0, VA, 1);
-			m_float_emit.INS(64, VD, 1, VB, 0);
+			m_float_emit.INS(size, VD, 0, VA, 1);
+			m_float_emit.INS(size, VD, 1, VB, 0);
 		}
 		else
 		{
 			ARM64Reg V0 = fpr.GetReg();
-			m_float_emit.INS(64, V0, 0, VA, 1);
-			m_float_emit.INS(64, V0, 1, VB, 0);
+			m_float_emit.INS(size, V0, 0, VA, 1);
+			m_float_emit.INS(size, V0, 1, VB, 0);
 			m_float_emit.ORR(VD, V0, V0);
 			fpr.Unlock(V0);
 		}
 		break;
 	case 624: //11
-		m_float_emit.TRN2(64, VD, VA, VB);
+		m_float_emit.TRN2(size, VD, VA, VB);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
