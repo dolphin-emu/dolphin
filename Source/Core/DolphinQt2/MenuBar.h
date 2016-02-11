@@ -21,9 +21,12 @@ signals:
 	void ShowTable();
 	void ShowList();
 
+	void ShowAboutDialog();
+
 private:
 	void AddFileMenu();
 	void AddViewMenu();
+	void AddHelpMenu();
 
 	void AddGameListTypeSection(QMenu* view_menu);
 	void AddTableColumnsMenu(QMenu* view_menu);

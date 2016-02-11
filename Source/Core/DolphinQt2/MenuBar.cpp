@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <QAction>
-#include <QActionGroup>
+#include <QDesktopServices>
+#include <QUrl>
 
+#include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/Settings.h"
 
@@ -17,7 +19,7 @@ MenuBar::MenuBar(QWidget* parent)
 	addMenu(tr("Options"));
 	addMenu(tr("Tools"));
 	AddViewMenu();
-	addMenu(tr("Help"));
+	AddHelpMenu();
 }
 
 void MenuBar::AddFileMenu()
@@ -34,6 +36,17 @@ void MenuBar::AddViewMenu()
 	view_menu->addSeparator();
 	AddTableColumnsMenu(view_menu);
 }
+
+void MenuBar::AddHelpMenu()
+{
+	QMenu* help_menu = addMenu(tr("Help"));
+	QAction* documentation = help_menu->addAction(tr("Online Documentation"));
+	connect(documentation, &QAction::triggered, this, [=]() {
+	    QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
+	});
+	help_menu->addAction(tr("About"), this, SIGNAL(ShowAboutDialog()));
+}
+
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 {
