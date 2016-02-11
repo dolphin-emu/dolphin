@@ -21,7 +21,6 @@ PathDialog::PathDialog(QWidget* parent)
 	: QDialog(parent)
 {
 	setWindowTitle(tr("Paths"));
-	setAttribute(Qt::WA_DeleteOnClose);
 
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget(MakeGameFolderBox());
