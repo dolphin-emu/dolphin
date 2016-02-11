@@ -34,8 +34,8 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ARDecrypt.h"
@@ -138,20 +138,24 @@ void AddCode(ARCode code)
   }
 }
 
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
+void LoadAndApplyCodes(OnionConfig::BloomLayer* global_config,
+                       OnionConfig::BloomLayer* local_config)
 {
-  ApplyCodes(LoadCodes(global_ini, local_ini));
+  ApplyCodes(LoadCodes(global_config, local_config));
 }
 
 // Parses the Action Replay section of a game ini file.
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
+                              OnionConfig::BloomLayer* local_config)
 {
   std::vector<ARCode> codes;
 
   std::unordered_set<std::string> enabled_names;
   {
+    OnionConfig::OnionPetal* local_codes_enabled = local_config->GetOrCreatePetal(
+        OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
     std::vector<std::string> enabled_lines;
-    local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
+    local_codes_enabled->GetLines(&enabled_lines);
     for (const std::string& line : enabled_lines)
     {
       if (line.size() != 0 && line[0] == '$')
@@ -162,14 +166,16 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
   }
 
-  const IniFile* inis[2] = {&global_ini, &local_ini};
-  for (const IniFile* ini : inis)
+  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  for (auto config : configs)
   {
+    OnionConfig::OnionPetal* available_codes =
+        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
     std::vector<std::string> lines;
     std::vector<std::string> encrypted_lines;
     ARCode current_code;
 
-    ini->GetLines("ActionReplay", &lines);
+    available_codes->GetLines(&lines);
 
     for (const std::string& line : lines)
     {
@@ -198,7 +204,8 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
 
         current_code.name = line.substr(1, line.size() - 1);
         current_code.active = enabled_names.find(current_code.name) != enabled_names.end();
-        current_code.user_defined = (ini == &local_ini);
+
+        current_code.user_defined = (config == local_config);
       }
       else
       {
@@ -258,8 +265,8 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(OnionConfig::OnionPetal* ar,
-               OnionConfig::OnionPetal* ar_enabled const std::vector<ARCode>& codes)
+void SaveCodes(OnionConfig::OnionPetal* ar, OnionConfig::OnionPetal* ar_enabled,
+               const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -277,8 +284,8 @@ void SaveCodes(OnionConfig::OnionPetal* ar,
       }
     }
   }
-  ar_enabled->SetLines("ActionReplay_Enabled", enabled_lines);
-  ar->SetLines("ActionReplay", lines);
+  ar_enabled->SetLines(enabled_lines);
+  ar->SetLines(lines);
 }
 
 static void LogInfo(const char* format, ...)
