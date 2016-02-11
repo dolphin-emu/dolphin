@@ -23,13 +23,15 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
+
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
@@ -154,9 +156,12 @@ void wxCheatsWindow::UpdateGUI()
 {
 	// load code
 	const SConfig& parameters = SConfig::GetInstance();
-	m_gameini_default = parameters.LoadDefaultGameIni();
-	m_gameini_local = parameters.LoadLocalGameIni();
-	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
+	m_global_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateGlobalGameConfigLoader(parameters.GetUniqueID(), 0))));
+	m_local_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateLocalGameConfigLoader(parameters.GetUniqueID(), 0))));
+
+	m_global_config->Load();
+	m_local_config->Load();
+
 	Load_ARCodes();
 	Load_GeckoCodes();
 
@@ -197,7 +202,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().GetUniqueID(), true);
+	m_geckocode_panel->LoadCodes(m_global_config.get(), m_local_config.get(), SConfig::GetInstance().GetUniqueID(), true);
 }
 
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED(event))
@@ -256,8 +261,8 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 	// Save gameini, with changed gecko codes
 	if (m_gameini_local_path.size())
 	{
-		Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
-		m_gameini_local.Save(m_gameini_local_path);
+		Gecko::SaveCodes(m_local_config.get(), m_geckocode_panel->GetCodes());
+		m_local_config->Save();
 	}
 
 	ev.Skip();
