@@ -25,13 +25,15 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
+
 #include "DolphinWX/Cheats/CheatSearchTab.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
@@ -171,11 +173,18 @@ void wxCheatsWindow::UpdateGUI()
 {
   // load code
   const SConfig& parameters = SConfig::GetInstance();
-  m_gameini_default = parameters.LoadDefaultGameIni();
-  m_gameini_local = parameters.LoadLocalGameIni();
-  m_game_id = parameters.GetUniqueID();
+  m_global_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+      GenerateGlobalGameConfigLoader(parameters.GetUniqueID(), 0))));
+  m_local_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+      GenerateLocalGameConfigLoader(parameters.GetUniqueID(), 0))));
+
+  m_global_config->Load();
+  m_local_config->Load();
+
   m_game_revision = parameters.m_revision;
+  m_game_id = parameters.GetUniqueID();
   m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
+
   Load_ARCodes();
   Load_GeckoCodes();
 
@@ -199,7 +208,7 @@ void wxCheatsWindow::Load_ARCodes()
     return;
 
   m_checklistbox_cheats_list->Freeze();
-  for (auto& code : ActionReplay::LoadCodes(m_gameini_default, m_gameini_local))
+  for (auto& code : ActionReplay::LoadCodes(m_global_config.get(), m_local_config.get()))
   {
     CodeData* cd = new CodeData();
     cd->code = std::move(code);
@@ -212,7 +221,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-  m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local,
+  m_geckocode_panel->LoadCodes(m_global_config.get(), m_local_config.get(),
                                SConfig::GetInstance().GetUniqueID(), true);
 }
 
@@ -283,9 +292,13 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
   // Save gameini, with changed codes
   if (m_gameini_local_path.size())
   {
-    ActionReplay::SaveCodes(&m_gameini_local, code_vec);
-    Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
-    m_gameini_local.Save(m_gameini_local_path);
+    OnionConfig::OnionPetal* ar =
+        m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
+    OnionConfig::OnionPetal* ar_enabled = m_local_config->GetOrCreatePetal(
+        OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+    ActionReplay::SaveCodes(ar, ar_enabled, code_vec);
+    Gecko::SaveCodes(m_local_config.get(), m_geckocode_panel->GetCodes());
+    m_local_config->Save();
 
     wxCommandEvent ini_changed(DOLPHIN_EVT_LOCAL_INI_CHANGED);
     ini_changed.SetString(StrToWxStr(m_game_id));
