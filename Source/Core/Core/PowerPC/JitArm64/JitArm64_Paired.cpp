@@ -78,13 +78,19 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
 
 	bool upper = inst.SUBOP5 == 13;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(c);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
+	ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToDouble : EncodeRegToQuad;
+
+	ARM64Reg VA = fpr.R(a, type);
+	ARM64Reg VC = fpr.R(c, type);
+	ARM64Reg VD = fpr.RW(d, type);
 	ARM64Reg V0 = fpr.GetReg();
 
-	m_float_emit.DUP(64, V0, VC, upper ? 1 : 0);
-	m_float_emit.FMUL(64, VD, VA, V0);
+	m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VC), upper ? 1 : 0);
+	m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(V0));
+
 	fpr.FixSinglePrecision(d);
 	fpr.Unlock(V0);
 }
