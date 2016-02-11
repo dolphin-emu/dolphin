@@ -4,18 +4,23 @@
 
 // -----------------------------------------------------------------------------------------
 // Partial Action Replay code system implementation.
-// Will never be able to support some AR codes - specifically those that patch the running
+// Will never be able to support some AR codes - specifically those that patch
+// the running
 // Action Replay engine itself - yes they do exist!!!
-// Action Replay actually is a small virtual machine with a limited number of commands.
-// It probably is Turing complete - but what does that matter when AR codes can write
+// Action Replay actually is a small virtual machine with a limited number of
+// commands.
+// It probably is Turing complete - but what does that matter when AR codes can
+// write
 // actual PowerPC code...
 // -----------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------------------
 // Code Types:
 // (Unconditional) Normal Codes (0): this one has subtypes inside
-// (Conditional) Normal Codes (1 - 7): these just compare values and set the line skip info
-// Zero Codes: any code with no address.  These codes are used to do special operations like memory
+// (Conditional) Normal Codes (1 - 7): these just compare values and set the
+// line skip info
+// Zero Codes: any code with no address.  These codes are used to do special
+// operations like memory
 // copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
@@ -82,7 +87,8 @@ static std::mutex s_lock;
 static std::vector<ARCode> s_active_codes;
 static std::vector<std::string> s_internal_log;
 static std::atomic<bool> s_use_internal_log{false};
-// pointer to the code currently being run, (used by log messages that include the code name)
+// pointer to the code currently being run, (used by log messages that include
+// the code name)
 static const ARCode* s_current_code = nullptr;
 static bool s_disable_logging = false;
 
@@ -227,8 +233,10 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
               pieces[2].size() == 5)
           {
             // Encrypted AR code
-            // Decryption is done in "blocks", so we must push blocks into a vector,
-            // then send to decrypt when a new block is encountered, or if it's the last block.
+            // Decryption is done in "blocks", so we must push blocks into a
+            // vector,
+            // then send to decrypt when a new block is encountered, or if it's
+            // the last block.
             encrypted_lines.emplace_back(pieces[0] + pieces[1] + pieces[2]);
           }
         }
@@ -250,7 +258,8 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
+void SaveCodes(OnionConfig::OnionPetal* ar,
+               OnionConfig::OnionPetal* ar_enabled const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -268,8 +277,8 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
       }
     }
   }
-  local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
-  local_ini->SetLines("ActionReplay", lines);
+  ar_enabled->SetLines("ActionReplay_Enabled", enabled_lines);
+  ar->SetLines("ActionReplay", lines);
 }
 
 static void LogInfo(const char* format, ...)
@@ -503,7 +512,8 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
   // u8  mcode_type = (data & 0xFF0000) >> 16;
   // u8  mcode_count = (data & 0xFF00) >> 8;
   // u8  mcode_number = data & 0xFF;
-  PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
+  PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not "
+              "implemented (%s)\n"
               "Master codes are not needed. Do not use master codes.",
               s_current_code->name.c_str());
   return false;
@@ -578,7 +588,8 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 
   default:
     LogInfo("Bad Size");
-    PanicAlertT("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)",
+    PanicAlertT("Action Replay Error: Invalid size (%08x : address = %08x) in "
+                "Fill and Slide (%s)",
                 size, new_addr, s_current_code->name.c_str());
     return false;
   }
@@ -773,7 +784,8 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 // NOTE: Lock needed to give mutual exclusion to s_current_code and LogInfo
 static bool RunCodeLocked(const ARCode& arcode)
 {
-  // The mechanism is different than what the real AR uses, so there may be compatibility problems.
+  // The mechanism is different than what the real AR uses, so there may be
+  // compatibility problems.
 
   bool do_fill_and_slide = false;
   bool do_memory_copy = false;
@@ -844,10 +856,10 @@ static bool RunCodeLocked(const ARCode& arcode)
     // ActionReplay program self modification codes
     if (addr >= 0x00002000 && addr < 0x00003000)
     {
-      LogInfo(
-          "This action replay simulator does not support codes that modify Action Replay itself.");
-      PanicAlertT(
-          "This action replay simulator does not support codes that modify Action Replay itself.");
+      LogInfo("This action replay simulator does not support codes that modify "
+              "Action Replay itself.");
+      PanicAlertT("This action replay simulator does not support codes that "
+                  "modify Action Replay itself.");
       return false;
     }
 
@@ -869,16 +881,19 @@ static bool RunCodeLocked(const ARCode& arcode)
         LogInfo("ZCode: End Of Codes");
         return true;
 
-      // TODO: the "00000000 40000000"(end if) codes fall into this case, I don't think that is
+      // TODO: the "00000000 40000000"(end if) codes fall into this case, I
+      // don't think that is
       // correct
       case ZCODE_NORM:  // Normal execution of codes
         // Todo: Set register 1BB4 to 0
-        LogInfo("ZCode: Normal execution of codes, set register 1BB4 to 0 (zcode not supported)");
+        LogInfo("ZCode: Normal execution of codes, set register 1BB4 to 0 "
+                "(zcode not supported)");
         break;
 
       case ZCODE_ROW:  // Executes all codes in the same row
         // Todo: Set register 1BB4 to 1
-        LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not "
+        LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 "
+                "to 1 (zcode not "
                 "supported)");
         PanicAlertT("Zero 3 code not supported");
         return false;
