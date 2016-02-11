@@ -28,7 +28,7 @@ ControlGroup::~ControlGroup() = default;
 
 ControlGroup::BooleanSetting::~BooleanSetting() = default;
 
-void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::LoadConfig(Config::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   std::string group(base + name + "/");
@@ -84,7 +84,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 }
 
-void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
+void ControlGroup::SaveConfig(Config::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
   std::string group(base + name + "/");

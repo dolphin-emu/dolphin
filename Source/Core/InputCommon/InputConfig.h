@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Config.h"
+
 namespace ControllerEmu
 {
 class EmulatedController;
@@ -17,12 +19,11 @@ class EmulatedController;
 class InputConfig
 {
 public:
-  InputConfig(const std::string& ini_name, const std::string& gui_name,
+  InputConfig(const Config::System system, const std::string& gui_name,
               const std::string& profile_name);
-
   ~InputConfig();
 
-  bool LoadConfig(bool isGC);
+  bool LoadConfig();
   void SaveConfig();
 
   template <typename T, typename... Args>
@@ -40,7 +41,7 @@ public:
   std::string GetProfileName() const { return m_profile_name; }
 private:
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
-  const std::string m_ini_name;
+  const Config::System m_system;
   const std::string m_gui_name;
   const std::string m_profile_name;
 };

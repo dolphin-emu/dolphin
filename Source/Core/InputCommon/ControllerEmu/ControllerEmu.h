@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Config.h"
 #include "Common/IniFile.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -29,8 +30,8 @@ public:
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
 
-  virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
-  virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
+  virtual void LoadConfig(Config::Section* section, const std::string& base = "");
+  virtual void SaveConfig(Config::Section* section, const std::string& base = "");
   void UpdateDefaultDevice();
 
   void UpdateReferences(const ControllerInterface& devi);
