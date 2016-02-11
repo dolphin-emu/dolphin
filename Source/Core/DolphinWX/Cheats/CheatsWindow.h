@@ -11,7 +11,7 @@
 #include <wx/panel.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/Config.h"
 
 class CheatSearchTab;
 class wxButton;
@@ -50,8 +50,8 @@ private:
 
   ActionReplayCodesPanel* m_ar_codes_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
-  IniFile m_gameini_default;
-  IniFile m_gameini_local;
+  std::unique_ptr<Config::Layer> m_global_config;
+  std::unique_ptr<Config::Layer> m_local_config;
   std::string m_gameini_local_path;
   std::string m_game_id;
   u32 m_game_revision;
