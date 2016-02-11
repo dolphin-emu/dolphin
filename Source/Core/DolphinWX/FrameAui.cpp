@@ -27,9 +27,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/MathUtil.h"
+#include "Common/Config.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -747,10 +747,9 @@ void CFrame::LoadIniPerspectives()
   std::vector<std::string> VPerspectives;
   std::string _Perspectives;
 
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  Config::Section* perspectives =
+      Config::GetOrCreateSection(Config::System::Debugger, "Perspectives");
 
-  IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
   perspectives->Get("Perspectives", &_Perspectives, "Perspective 1");
   perspectives->Get("Active", &ActivePerspective, 0);
   SplitString(_Perspectives, ',', VPerspectives);
@@ -770,7 +769,9 @@ void CFrame::LoadIniPerspectives()
 
     _Section = StringFromFormat("P - %s", Tmp.Name.c_str());
 
-    IniFile::Section* perspec_section = ini.GetOrCreateSection(_Section);
+    Config::Section* perspec_section =
+        Config::GetOrCreateSection(Config::System::Debugger, _Section);
+
     perspec_section->Get("Perspective", &_Perspective,
                          "layout2|"
                          "name=Pane 0;caption=Pane 0;state=768;dir=5;prop=100000;|"
@@ -833,9 +834,6 @@ void CFrame::SaveIniPerspectives()
 
   UpdateCurrentPerspective();
 
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
   // Save perspective names
   std::string STmp = "";
   for (auto& Perspective : Perspectives)
@@ -844,7 +842,10 @@ void CFrame::SaveIniPerspectives()
   }
   STmp = STmp.substr(0, STmp.length() - 1);
 
-  IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
+  Config::Layer* base_layer = Config::GetLayer(Config::LayerType::Base);
+  Config::Section* perspectives =
+      base_layer->GetOrCreateSection(Config::System::Debugger, "Perspectives");
+
   perspectives->Set("Perspectives", STmp);
   perspectives->Set("Active", ActivePerspective);
 
@@ -852,7 +853,9 @@ void CFrame::SaveIniPerspectives()
   for (auto& Perspective : Perspectives)
   {
     std::string _Section = "P - " + Perspective.Name;
-    IniFile::Section* perspec_section = ini.GetOrCreateSection(_Section);
+    Config::Section* perspec_section =
+        base_layer->GetOrCreateSection(Config::System::Debugger, _Section);
+
     perspec_section->Set("Perspective", WxStrToStr(Perspective.Perspective));
 
     std::string SWidth = "", SHeight = "";
@@ -869,7 +872,7 @@ void CFrame::SaveIniPerspectives()
     perspec_section->Set("Height", SHeight);
   }
 
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  base_layer->Save();
 
   // Save notebook affiliations
   g_pCodeWindow->Save();
