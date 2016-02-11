@@ -8,10 +8,12 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/OnionCoreLoaders/BaseConfigLoader.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -24,6 +26,9 @@ namespace UICommon
 
 void Init()
 {
+	OnionConfig::Init();
+	OnionConfig::AddLayer(GenerateBaseConfigLoader());
+
 	LogManager::Init();
 	SConfig::Init();
 	VideoBackendBase::PopulateList();
