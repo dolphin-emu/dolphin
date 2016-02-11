@@ -24,7 +24,6 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
@@ -32,6 +31,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -46,14 +46,17 @@ const char* PatchTypeStrings[] = {
 static std::vector<Patch> onFrame;
 static std::map<u32, int> speedHacks;
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+                      std::vector<Patch>& patches)
 {
   // Load the name of all enabled patches
-  std::string enabledSectionName = section + "_Enabled";
   std::vector<std::string> enabledLines;
   std::set<std::string> enabledNames;
-  localIni.GetLines(enabledSectionName, &enabledLines);
+
+  OnionConfig::OnionPetal* local_codes_enabled =
+      local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame_Enabled");
+
+  local_codes_enabled->GetLines(&enabledLines);
   for (const std::string& line : enabledLines)
   {
     if (line.size() != 0 && line[0] == '$')
@@ -63,13 +66,15 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
     }
   }
 
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  for (auto config : configs)
   {
+    OnionConfig::OnionPetal* codes =
+        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame");
+
     std::vector<std::string> lines;
     Patch currentPatch;
-    ini->GetLines(section, &lines);
+    codes->GetLines(&lines);
 
     for (std::string& line : lines)
     {
@@ -88,7 +93,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         // Set active and name
         currentPatch.name = line.substr(1, line.size() - 1);
         currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
-        currentPatch.user_defined = (ini == &localIni);
+
+        currentPatch.user_defined = config == local_config;
       }
       else
       {
@@ -158,16 +164,17 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+  OnionConfig::BloomLayer* global_config =
+      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_GLOBALGAME);
+  OnionConfig::BloomLayer* local_config =
+      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_LOCALGAME);
 
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  LoadPatchSection(global_config, local_config, onFrame);
+  ActionReplay::LoadAndApplyCodes(global_config, local_config);
 
   // lil silly
   std::vector<Gecko::GeckoCode> gcodes;
-  Gecko::LoadCodes(globalIni, localIni, gcodes);
+  Gecko::LoadCodes(global_config, local_config, gcodes);
   Gecko::SetActiveCodes(gcodes);
 
   LoadSpeedhacks();

@@ -6,20 +6,25 @@
 #include <string>
 #include <vector>
 
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes)
+void LoadCodes(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+               std::vector<GeckoCode>& gcodes)
 {
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  for (auto config : configs)
   {
+    OnionConfig::OnionPetal* codes =
+        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko");
+    OnionConfig::OnionPetal* codes_enabled =
+        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko_Enabled");
+
     std::vector<std::string> lines;
-    ini->GetLines("Gecko", &lines, false);
+    codes->GetLines(&lines, false);
 
     GeckoCode gcode;
 
@@ -40,7 +45,8 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
           gcodes.push_back(gcode);
         gcode = GeckoCode();
         gcode.enabled = (1 == ss.tellg());  // silly
-        gcode.user_defined = (ini == &localIni);
+
+        gcode.user_defined = config == local_config;
         ss.seekg(1, std::ios_base::cur);
         // read the code name
         std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)
@@ -73,7 +79,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
       gcodes.push_back(gcode);
     }
 
-    ini->GetLines("Gecko_Enabled", &lines, false);
+    codes_enabled->GetLines(&lines, false);
 
     for (const std::string& line : lines)
     {
@@ -123,7 +129,8 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
   for (const GeckoCode::Code& code : gcode.codes)
   {
     // ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
-    // lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
+    // lines.push_back(StringFromFormat("%08X %08X", codes_iter->address,
+    // codes_iter->data));
     lines.push_back(code.original_line);
     // ss.clear();
   }
@@ -133,7 +140,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
     lines.push_back(std::string("*") + note);
 }
 
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(OnionConfig::BloomLayer* config, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabledLines;
@@ -143,7 +150,12 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
     SaveGeckoCode(lines, enabledLines, geckoCode);
   }
 
-  inifile.SetLines("Gecko", lines);
-  inifile.SetLines("Gecko_Enabled", enabledLines);
+  OnionConfig::OnionPetal* gecko =
+      config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko");
+  OnionConfig::OnionPetal* gecko_enabled =
+      config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko_Enabled");
+
+  gecko->SetLines(lines);
+  gecko_enabled->SetLines(enabledLines);
 }
 }
