@@ -26,6 +26,9 @@ public:
 	// Path of the Game at the specified index.
 	QString GetPath(int index) const { return m_games[index]->GetPath(); }
 
+	static QString GetColumnName(int column_id);
+	static bool GetDefaultColumnEnable(int column_id);
+
 	enum
 	{
 		COL_PLATFORM = 0,
