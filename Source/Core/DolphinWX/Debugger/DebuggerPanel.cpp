@@ -12,8 +12,8 @@
 #include <wx/textctrl.h>
 
 #include "Common/CommonFuncs.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "DolphinWX/WxUtils.h"
