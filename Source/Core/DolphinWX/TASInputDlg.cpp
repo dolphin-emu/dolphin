@@ -16,6 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/OnionConfig.h"
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -168,10 +169,10 @@ void TASInputDlg::CreateWiiLayout(int num)
   }
   else
   {
-    IniFile ini;
-    ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
     std::string extension;
-    ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
+    OnionConfig::OnionPetal* wiimote = OnionConfig::GetOrCreatePetal(
+        OnionConfig::OnionSystem::SYSTEM_WIIPAD, "Wiimote" + std::to_string(num + 1));
+    wiimote->Get("Extension", &extension);
 
     if (extension == "Nunchuk")
       m_ext = 1;
@@ -668,9 +669,11 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
   //	u16 x = 1023 - (irData[0] | ((irData[2] >> 4 & 0x3) << 8));
   //	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
 
-  //	SetStickValue(&m_main_stick.x_cont.set_by_keyboard, &m_main_stick.x_cont.value,
+  //	SetStickValue(&m_main_stick.x_cont.set_by_keyboard,
+  //&m_main_stick.x_cont.value,
   // m_main_stick.x_cont.text, x, 561);
-  //	SetStickValue(&m_main_stick.y_cont.set_by_keyboard, &m_main_stick.y_cont.value,
+  //	SetStickValue(&m_main_stick.y_cont.set_by_keyboard,
+  //&m_main_stick.y_cont.value,
   // m_main_stick.y_cont.text, y, 486);
   //}
 
