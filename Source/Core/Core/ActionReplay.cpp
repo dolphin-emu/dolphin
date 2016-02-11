@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/LogManager.h"
 
@@ -102,7 +102,9 @@ struct ARAddr
 
 // ----------------------
 // AR Remote Functions
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
+void LoadCodes(OnionConfig::BloomLayer* global_config,
+		   OnionConfig::BloomLayer* local_config,
+               bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
 	if (!SConfig::GetInstance().bEnableCheats &&
@@ -113,7 +115,9 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines("ActionReplay_Enabled", &enabledLines);
+	OnionConfig::OnionPetal* local_codes_enabled = local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+
+	local_codes_enabled->GetLines(&enabledLines);
 	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
@@ -123,14 +127,15 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		}
 	}
 
-	const IniFile* inis[2] = {&globalIni, &localIni};
-	for (const IniFile* ini : inis)
+	OnionConfig::BloomLayer* configs[] = { global_config, local_config };
+	for (auto config : configs)
 	{
+		OnionConfig::OnionPetal* codes = config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
 		std::vector<std::string> lines;
 		std::vector<std::string> encryptedLines;
 		ARCode currentCode;
 
-		ini->GetLines("ActionReplay", &lines);
+		codes->GetLines(&lines);
 
 		for (const std::string& line : lines)
 		{
@@ -159,7 +164,9 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 
 				currentCode.name = line.substr(1, line.size() - 1);
 				currentCode.active = enabledNames.find(currentCode.name) != enabledNames.end();
-				currentCode.user_defined = (ini == &localIni);
+
+				// XXX: Do this
+				currentCode.user_defined = false;
 			}
 			else
 			{
@@ -216,9 +223,11 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 	UpdateActiveList();
 }
 
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
+void LoadCodes(OnionConfig::BloomLayer* global_config,
+		   OnionConfig::BloomLayer* local_config,
+               std::vector<ARCode> &_arCodes)
 {
-	LoadCodes(globalIni, localIni, true);
+	LoadCodes(global_config, local_config, true);
 	_arCodes = arCodes;
 }
 

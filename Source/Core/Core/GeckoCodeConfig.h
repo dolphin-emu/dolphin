@@ -5,14 +5,17 @@
 #pragma once
 
 #include <vector>
-#include "Core/GeckoCode.h"
 
-class IniFile;
+#include "Common/OnionConfig.h"
+
+#include "Core/GeckoCode.h"
 
 namespace Gecko
 {
 
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes);
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
+void LoadCodes(OnionConfig::BloomLayer* global_config,
+		   OnionConfig::BloomLayer* local_config,
+               std::vector<GeckoCode>& gcodes);
+void SaveCodes(OnionConfig::BloomLayer* config, const std::vector<GeckoCode>& gcodes);
 
 }
