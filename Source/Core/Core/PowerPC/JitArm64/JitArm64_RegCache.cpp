@@ -307,12 +307,26 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	OpArg& reg = m_guest_registers[preg];
 	IncrementAllUsed();
 	reg.ResetLastUsed();
+	ARM64Reg host_reg = reg.GetReg();
 
 	switch (reg.GetType())
 	{
+	case REG_REG_SINGLE:
+	{
+		// We're asked for singles, so just return the register.
+		if (type == REG_REG_SINGLE || type == REG_IS_LOADED_SINGLE)
+			return host_reg;
+
+		// Else convert this register back to doubles.
+		m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		reg.LoadToReg(host_reg);
+
+		// fall through
+	}
 	case REG_REG: // already in a reg
-		return reg.GetReg();
-	break;
+	{
+		return host_reg;
+	}
 	case REG_LOWER_PAIR:
 	{
 		if (type == REG_REG)
@@ -320,18 +334,34 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 			// Load the high 64bits from the file and insert them in to the high 64bits of the host register
 			ARM64Reg tmp_reg = GetReg();
 			m_float_emit->LDR(64, INDEX_UNSIGNED, tmp_reg, X29, PPCSTATE_OFF(ps[preg][1]));
-			m_float_emit->INS(64, reg.GetReg(), 1, tmp_reg, 0);
+			m_float_emit->INS(64, host_reg, 1, tmp_reg, 0);
 			UnlockRegister(tmp_reg);
 
 			// Change it over to a full 128bit register
-			reg.LoadToReg(reg.GetReg());
+			reg.LoadToReg(host_reg);
 		}
-		return reg.GetReg();
+		return host_reg;
 	}
-	break;
+	case REG_DUP_SINGLE:
+	{
+		if (type == REG_IS_LOADED_SINGLE)
+			return host_reg;
+
+		if (type == REG_REG_SINGLE)
+		{
+			// Duplicate to the top and change over
+			m_float_emit->INS(32, host_reg, 1, host_reg, 0);
+			reg.LoadToRegSingle(host_reg);
+			return host_reg;
+		}
+
+		m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		reg.LoadDup(host_reg);
+
+		// fall through
+	}
 	case REG_DUP:
 	{
-		ARM64Reg host_reg = reg.GetReg();
 		if (type == REG_REG)
 		{
 			// We are requesting a full 128bit register
@@ -342,10 +372,9 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 		}
 		return host_reg;
 	}
-	break;
 	case REG_NOTLOADED: // Register isn't loaded at /all/
 	{
-		ARM64Reg host_reg = GetReg();
+		host_reg = GetReg();
 		u32 load_size;
 		if (type == REG_REG)
 		{
@@ -361,7 +390,6 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 		m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 		return host_reg;
 	}
-	break;
 	default:
 		_dbg_assert_msg_(DYNA_REC, false, "Invalid OpArg Type!");
 	break;
@@ -380,90 +408,43 @@ ARM64Reg Arm64FPRCache::RW(u32 preg, RegType type)
 	reg.ResetLastUsed();
 
 	reg.SetDirty(true);
-	switch (reg.GetType())
+
+	// If not loaded at all, just alloc a new one.
+	if (reg.GetType() == REG_NOTLOADED)
 	{
-	case REG_NOTLOADED:
-	{
-		ARM64Reg host_reg = GetReg();
-		if (type == REG_LOWER_PAIR)
-		{
-			reg.LoadLowerReg(host_reg);
-		}
-		else if (type == REG_DUP)
-		{
-			reg.LoadDup(host_reg);
-		}
-		else
-		{
-			reg.LoadToReg(host_reg);
-		}
+		reg.Load(GetReg(), type);
+		return reg.GetReg();
 	}
-	break;
-	case REG_LOWER_PAIR:
+
+	// Only the lower value will be overwritten, so we must be extra careful to store PSR1 if dirty.
+	if (type == REG_LOWER_PAIR && was_dirty)
 	{
 		ARM64Reg host_reg = reg.GetReg();
-		if (type == REG_REG)
+
+		switch (reg.GetType())
 		{
-			// Change it over to a full 128bit register
-			reg.LoadToReg(host_reg);
-		}
-		else if (type == REG_DUP)
-		{
-			// Register is already the lower pair
-			// Just convert it over to a dup
-			reg.LoadDup(host_reg);
-		}
-	}
-	break;
-	case REG_REG:
-	{
-		ARM64Reg host_reg = reg.GetReg();
-		if (type == REG_LOWER_PAIR)
-		{
-			// If we only want the lower bits, let's store away the high bits and drop to a lower only register
+		case REG_REG_SINGLE:
+			m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+			// fall through
+		case REG_REG:
 			// We are doing a full 128bit store because it takes 2 cycles on a Cortex-A57 to do a 128bit store.
 			// It would take longer to do an insert to a temporary and a 64bit store than to just do this.
-			if (was_dirty)
-				m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
-			reg.LoadLowerReg(host_reg);
+			m_float_emit->STR(128, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
+			break;
+		case REG_DUP_SINGLE:
+			m_float_emit->FCVT(64, 32, EncodeRegToDouble(reg.GetReg()), EncodeRegToDouble(reg.GetReg()));
+			// fall through
+		case REG_DUP:
+			// Store PSR1 (which is equal to PSR0) in memory.
+			m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
+			break;
+		default:
+			// All other types doesn't store anything in PSR1.
+			break;
 		}
-		else if (type == REG_DUP)
-		{
-			// If we are going from a full 128bit register to a duplicate
-			// then we can just change over
-			reg.LoadDup(host_reg);
-		}
-	}
-	break;
-	case REG_DUP:
-	{
-		ARM64Reg host_reg = reg.GetReg();
-		if (type == REG_REG)
-		{
-			// We are a duplicated register going to a full 128bit register
-			// Do an insert of our lower 64bits to the higher 64bits
-			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
-
-			// Change over to the full 128bit register
-			reg.LoadToReg(host_reg);
-		}
-		else if (type == REG_LOWER_PAIR)
-		{
-			// We are duplicated changing over to a lower register
-			// We've got to be careful in this instance and do a store of our lower 64bits
-			// to the upper 64bits in the PowerPC state
-			// That way incase if we hit the path of DUP->LOWER->REG we get the correct bits back
-			if (was_dirty)
-				m_float_emit->STR(64, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][1]));
-			reg.LoadLowerReg(host_reg);
-		}
-	}
-	break;
-	default:
-		// Do nothing
-	break;
 	}
 
+	reg.Load(reg.GetReg(), type);
 	return reg.GetReg();
 }
 
@@ -510,17 +491,33 @@ bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
 void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 {
 	OpArg& reg = m_guest_registers[preg];
-	if (reg.GetType() == REG_REG ||
-	    reg.GetType() == REG_LOWER_PAIR)
+	ARM64Reg host_reg = reg.GetReg();
+	RegType type = reg.GetType();
+	bool dirty = reg.IsDirty();
+
+	// If we're in single mode, just convert it back to a double.
+	if (type == REG_REG_SINGLE)
 	{
-		ARM64Reg host_reg = reg.GetReg();
+		if (dirty)
+			m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		type = REG_REG;
+	}
+	if (type == REG_DUP_SINGLE)
+	{
+		if (dirty)
+			m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		type = REG_DUP;
+	}
+
+	if (type == REG_REG || type == REG_LOWER_PAIR)
+	{
 		u32 store_size;
-		if (reg.GetType() == REG_REG)
+		if (type == REG_REG)
 			store_size = 128;
 		else
 			store_size = 64;
 
-		if (reg.IsDirty())
+		if (dirty)
 			m_float_emit->STR(store_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
 
 		if (!maintain_state)
@@ -529,10 +526,9 @@ void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
 			reg.Flush();
 		}
 	}
-	else if (reg.GetType() == REG_DUP)
+	else if (type == REG_DUP)
 	{
-		ARM64Reg host_reg = reg.GetReg();
-		if (reg.IsDirty())
+		if (dirty)
 		{
 			// If the paired registers were at the start of ppcState we could do an STP here.
 			// Too bad moving them would break savestate compatibility between x86_64 and AArch64
@@ -564,18 +560,25 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed()
 	return registers;
 }
 
+bool Arm64FPRCache::IsSingle(u32 preg)
+{
+	RegType type = m_guest_registers[preg].GetType();
+	return type == REG_REG_SINGLE || type == REG_DUP_SINGLE;
+}
+
 void Arm64FPRCache::FixSinglePrecision(u32 preg)
 {
-	ARM64Reg host_reg = m_guest_registers[preg].GetReg();
-	switch (m_guest_registers[preg].GetType())
+	OpArg& reg = m_guest_registers[preg];
+	ARM64Reg host_reg = reg.GetReg();
+	switch (reg.GetType())
 	{
 	case REG_DUP: // only PS0 needs to be converted
 		m_float_emit->FCVT(32, 64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		reg.LoadDupSingle(host_reg);
 		break;
 	case REG_REG: // PS0 and PS1 needs to be converted
 		m_float_emit->FCVTN(32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
+		reg.LoadToRegSingle(host_reg);
 		break;
 	default:
 		break;
