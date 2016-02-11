@@ -55,6 +55,7 @@ private:
 	QTableView* m_table;
 	QLabel* m_empty;
 	bool m_prefer_table;
+
 protected:
 	void keyReleaseEvent(QKeyEvent* event) override;
 };

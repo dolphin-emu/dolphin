@@ -55,16 +55,10 @@ void GameList::MakeTableView()
 	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
-	// TODO load from config
-	m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
-	m_table->setColumnHidden(GameListModel::COL_ID, true);
-	m_table->setColumnHidden(GameListModel::COL_BANNER, false);
-	m_table->setColumnHidden(GameListModel::COL_TITLE, false);
-	m_table->setColumnHidden(GameListModel::COL_DESCRIPTION, true);
-	m_table->setColumnHidden(GameListModel::COL_MAKER, false);
-	m_table->setColumnHidden(GameListModel::COL_SIZE, false);
-	m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
-	m_table->setColumnHidden(GameListModel::COL_RATING, false);
+	for (int i = 0; i < GameListModel::NUM_COLS; i++)
+	{
+		m_table->setColumnHidden(i, !Settings().GetViewColumn(i));
+	}
 
 	QHeaderView* hor_header = m_table->horizontalHeader();
 	hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
@@ -165,6 +159,7 @@ void GameList::ConsiderViewChange()
 		setCurrentWidget(m_empty);
 	}
 }
+
 void GameList::keyReleaseEvent(QKeyEvent* event)
 {
 	if (event->key() == Qt::Key_Return)
