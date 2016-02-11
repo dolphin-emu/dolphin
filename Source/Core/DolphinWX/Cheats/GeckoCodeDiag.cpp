@@ -92,14 +92,15 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
   UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& globalIni, const IniFile& localIni,
-                                const std::string& gameid, bool checkRunning)
+void CodeConfigPanel::LoadCodes(OnionConfig::BloomLayer* global_config,
+                                OnionConfig::BloomLayer* local_config, const std::string& gameid,
+                                bool checkRunning)
 {
   m_gameid = gameid;
 
   m_gcodes.clear();
   if (!checkRunning || Core::IsRunning())
-    Gecko::LoadCodes(globalIni, localIni, m_gcodes);
+    Gecko::LoadCodes(global_config, local_config, m_gcodes);
 
   UpdateCodeList(checkRunning);
 }
@@ -159,7 +160,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
   case 'G':
     break;
   default:
-    // All channels (WiiWare, VirtualConsole, etc) are identified by their first four characters
+    // All channels (WiiWare, VirtualConsole, etc) are identified by their first
+    // four characters
     gameid = m_gameid.substr(0, 4);
     break;
   }
@@ -192,7 +194,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
 
     while ((std::getline(ss, line).good()))
     {
-      // Remove \r at the end of the line for files using windows line endings, std::getline only
+      // Remove \r at the end of the line for files using windows line endings,
+      // std::getline only
       // removes \n
       line = StripSpaces(line);
 
@@ -230,7 +233,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
         ssline >> addr >> data;
         ssline.seekg(0);
 
-        // check if this line a code, silly, but the dumb txt file comment lines can start with
+        // check if this line a code, silly, but the dumb txt file comment lines
+        // can start with
         // valid hex chars :/
         if (8 == addr.length() && 8 == data.length())
         {
