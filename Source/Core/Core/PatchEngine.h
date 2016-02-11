@@ -9,8 +9,6 @@
 
 #include "Common/CommonTypes.h"
 
-class IniFile;
-
 namespace PatchEngine
 {
 
@@ -41,8 +39,7 @@ struct Patch
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const std::string& section, std::vector<Patch> &patches,
-                      IniFile &globalIni, IniFile &localIni);
+void LoadPatchSection(std::vector<Patch> &patches);
 void LoadPatches();
 void ApplyFramePatches();
 void Shutdown();

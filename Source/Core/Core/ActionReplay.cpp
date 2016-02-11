@@ -23,7 +23,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/LogManager.h"
 
@@ -102,18 +102,21 @@ struct ARAddr
 
 // ----------------------
 // AR Remote Functions
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
+void LoadCodes(bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
 	if (!SConfig::GetInstance().bEnableCheats &&
 		!forceLoad)
 		return;
 
+	OnionConfig::OnionPetal* codes = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
+	OnionConfig::OnionPetal* codes_enabled = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+
 	arCodes.clear();
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
-	localIni.GetLines("ActionReplay_Enabled", &enabledLines);
+	codes_enabled->GetLines(&enabledLines);
 	for (const std::string& line : enabledLines)
 	{
 		if (line.size() != 0 && line[0] == '$')
@@ -123,102 +126,100 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		}
 	}
 
-	const IniFile* inis[2] = {&globalIni, &localIni};
-	for (const IniFile* ini : inis)
+	std::vector<std::string> lines;
+	std::vector<std::string> encryptedLines;
+	ARCode currentCode;
+
+	codes->GetLines(&lines);
+
+	for (const std::string& line : lines)
 	{
-		std::vector<std::string> lines;
-		std::vector<std::string> encryptedLines;
-		ARCode currentCode;
-
-		ini->GetLines("ActionReplay", &lines);
-
-		for (const std::string& line : lines)
+		if (line.empty())
 		{
-			if (line.empty())
+			continue;
+		}
+
+		std::vector<std::string> pieces;
+
+		// Check if the line is a name of the code
+		if (line[0] == '$')
+		{
+			if (currentCode.ops.size())
 			{
-				continue;
+				arCodes.push_back(currentCode);
+				currentCode.ops.clear();
+			}
+			if (encryptedLines.size())
+			{
+				DecryptARCode(encryptedLines, currentCode.ops);
+				arCodes.push_back(currentCode);
+				currentCode.ops.clear();
+				encryptedLines.clear();
 			}
 
-			std::vector<std::string> pieces;
+			currentCode.name = line.substr(1, line.size() - 1);
+			currentCode.active = enabledNames.find(currentCode.name) != enabledNames.end();
 
-			// Check if the line is a name of the code
-			if (line[0] == '$')
+			// XXX: Do this
+			currentCode.user_defined = false;
+		}
+		else
+		{
+			SplitString(line, ' ', pieces);
+
+			// Check if the AR code is decrypted
+			if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 			{
-				if (currentCode.ops.size())
+				AREntry op;
+				bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
+				bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
+
+				if (success_addr && success_val)
 				{
-					arCodes.push_back(currentCode);
-					currentCode.ops.clear();
-				}
-				if (encryptedLines.size())
-				{
-					DecryptARCode(encryptedLines, currentCode.ops);
-					arCodes.push_back(currentCode);
-					currentCode.ops.clear();
-					encryptedLines.clear();
-				}
-
-				currentCode.name = line.substr(1, line.size() - 1);
-				currentCode.active = enabledNames.find(currentCode.name) != enabledNames.end();
-				currentCode.user_defined = (ini == &localIni);
-			}
-			else
-			{
-				SplitString(line, ' ', pieces);
-
-				// Check if the AR code is decrypted
-				if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
-				{
-					AREntry op;
-					bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
-					bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
-
-					if (success_addr && success_val)
-					{
-						currentCode.ops.push_back(op);
-					}
-					else
-					{
-						PanicAlertT("Action Replay Error: invalid AR code line: %s", line.c_str());
-
-						if (!success_addr)
-							PanicAlertT("The address is invalid");
-
-						if (!success_val)
-							PanicAlertT("The value is invalid");
-					}
+					currentCode.ops.push_back(op);
 				}
 				else
 				{
-					SplitString(line, '-', pieces);
-					if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
-					{
-						// Encrypted AR code
-						// Decryption is done in "blocks", so we must push blocks into a vector,
-						// then send to decrypt when a new block is encountered, or if it's the last block.
-						encryptedLines.push_back(pieces[0]+pieces[1]+pieces[2]);
-					}
+					PanicAlertT("Action Replay Error: invalid AR code line: %s", line.c_str());
+
+					if (!success_addr)
+						PanicAlertT("The address is invalid");
+
+					if (!success_val)
+						PanicAlertT("The value is invalid");
+				}
+			}
+			else
+			{
+				SplitString(line, '-', pieces);
+				if (pieces.size() == 3 && pieces[0].size() == 4 && pieces[1].size() == 4 && pieces[2].size() == 5)
+				{
+					// Encrypted AR code
+					// Decryption is done in "blocks", so we must push blocks into a vector,
+					// then send to decrypt when a new block is encountered, or if it's the last block.
+					encryptedLines.push_back(pieces[0]+pieces[1]+pieces[2]);
 				}
 			}
 		}
+	}
 
-		// Handle the last code correctly.
-		if (currentCode.ops.size())
-		{
-			arCodes.push_back(currentCode);
-		}
-		if (encryptedLines.size())
-		{
-			DecryptARCode(encryptedLines, currentCode.ops);
-			arCodes.push_back(currentCode);
-		}
+	// Handle the last code correctly.
+	if (currentCode.ops.size())
+	{
+		arCodes.push_back(currentCode);
+	}
+	if (encryptedLines.size())
+	{
+		DecryptARCode(encryptedLines, currentCode.ops);
+		arCodes.push_back(currentCode);
 	}
 
 	UpdateActiveList();
 }
 
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
+void LoadCodes(std::vector<ARCode> &_arCodes)
 {
-	LoadCodes(globalIni, localIni, true);
+	LoadCodes(true);
 	_arCodes = arCodes;
 }
 
