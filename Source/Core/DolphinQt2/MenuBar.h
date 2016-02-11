@@ -41,6 +41,7 @@ signals:
   // View
   void ShowTable();
   void ShowList();
+  void SetViewColumn(int col, bool view);
 
   void ShowAboutDialog();
 

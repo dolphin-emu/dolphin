@@ -6,6 +6,7 @@
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/Settings.h"
 
 static QString GetSettingsPath()
@@ -142,4 +143,15 @@ bool Settings::GetFullScreen() const
 QSize Settings::GetRenderWindowSize() const
 {
   return value(QStringLiteral("Graphics/RenderWindowSize"), QSize(640, 480)).toSize();
+}
+
+void Settings::SetViewColumn(int column, bool view)
+{
+  setValue(QStringLiteral("GameList/ViewColumn%1").arg(column), view);
+}
+
+bool Settings::GetViewColumn(int column) const
+{
+  bool default_view = GameListModel::GetDefaultColumnEnable(column);
+  return value(QStringLiteral("GameList/ViewColumn%1").arg(column), default_view).toBool();
 }
