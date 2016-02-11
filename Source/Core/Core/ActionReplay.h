@@ -6,10 +6,9 @@
 
 #include <string>
 #include <vector>
+
 #include "Common/CommonTypes.h"
 #include "Common/OnionConfig.h"
-
-class IniFile;
 
 namespace ActionReplay
 {
@@ -33,9 +32,11 @@ void RunAllActive();
 
 void ApplyCodes(const std::vector<ARCode>& codes);
 void AddCode(ARCode new_code);
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
+void LoadAndApplyCodes(OnionConfig::BloomLayer* global_config,
+                       OnionConfig::BloomLayer* local_config);
 
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
+std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
+                              OnionConfig::BloomLayer* local_config);
 void SaveCodes(OnionConfig::OnionPetal* ar, OnionConfig::OnionPetal* ar_enabled,
                const std::vector<ARCode>& codes);
 
