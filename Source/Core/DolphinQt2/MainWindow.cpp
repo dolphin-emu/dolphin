@@ -10,6 +10,7 @@
 
 #include "Core/BootManager.h"
 #include "Core/Core.h"
+#include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
@@ -49,6 +50,7 @@ void MainWindow::ConnectMenuBar()
 	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
 	connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
 	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+	connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 }
 
 void MainWindow::ConnectToolBar()
@@ -255,4 +257,10 @@ void MainWindow::ShowPathsDialog()
 	m_paths_dialog->show();
 	m_paths_dialog->raise();
 	m_paths_dialog->activateWindow();
+}
+
+void MainWindow::ShowAboutDialog()
+{
+	AboutDialog* about = new AboutDialog(this);
+	about->show();
 }
