@@ -33,15 +33,19 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+
+#include "DolphinWX/ControllerProfileLoader.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -286,8 +290,8 @@ void GamepadPage::UpdateGUI()
 void GamepadPage::ClearAll(wxCommandEvent&)
 {
 	// just load an empty ini section to clear everything :P
-	IniFile::Section section;
-	controller->LoadConfig(&section);
+	OnionConfig::OnionPetal petal(OnionConfig::OnionLayerType::LAYER_META, OnionConfig::OnionSystem::SYSTEM_GCPAD, "");
+	controller->LoadConfig(&petal);
 
 	// no point in using the real ControllerInterface i guess
 	ControllerInterface face;
@@ -667,10 +671,10 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	if (!File::Exists(fname))
 		return;
 
-	IniFile inifile;
-	inifile.Load(fname);
+	std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+	profile->Load();
 
-	controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
+	controller->LoadConfig(profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
 	controller->UpdateReferences(g_controller_interface);
 
 	UpdateGUI();
@@ -684,9 +688,9 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 
 	if (!fname.empty())
 	{
-		IniFile inifile;
-		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
-		inifile.Save(fname);
+		std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+		controller->SaveConfig(profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
+		profile->Save();
 
 		m_config_dialog->UpdateProfileComboBox();
 	}
