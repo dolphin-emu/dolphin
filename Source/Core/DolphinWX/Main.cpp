@@ -24,7 +24,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
@@ -115,8 +115,9 @@ bool DolphinApp::OnInit()
 
 	UICommon::SetUserDirectory(m_user_path.ToStdString());
 	UICommon::CreateDirectories();
-	InitLanguageSupport(); // The language setting is loaded from the user directory
+
 	UICommon::Init();
+	InitLanguageSupport(); // The language setting is loaded from the user directory
 
 	if (m_select_video_backend && !m_video_backend_name.empty())
 		SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
@@ -250,9 +251,8 @@ void DolphinApp::InitLanguageSupport()
 {
 	unsigned int language = 0;
 
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
+	OnionConfig::OnionPetal* interface = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Interface");
+	interface->Get("Language", &language, wxLANGUAGE_DEFAULT);
 
 	// Load language if possible, fall back to system default otherwise
 	if (wxLocale::IsAvailable(language))
