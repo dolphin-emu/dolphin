@@ -8,11 +8,15 @@
 #include <QImage>
 #include <QSharedPointer>
 
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
+
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
+
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
@@ -102,10 +106,22 @@ bool GameFile::LoadFileInfo(const QString& path)
 
 void GameFile::LoadState()
 {
-  IniFile ini = SConfig::LoadGameIni(m_game_id.toStdString(), m_revision);
+  std::unique_ptr<Config::Layer> global_config(
+      new Config::Layer(std::unique_ptr<Config::ConfigLayerLoader>(
+          GenerateGlobalGameConfigLoader(m_game_id.toStdString(), m_revision))));
+  std::unique_ptr<Config::Layer> local_config(
+      new Config::Layer(std::unique_ptr<Config::ConfigLayerLoader>(
+          GenerateLocalGameConfigLoader(m_game_id.toStdString(), m_revision))));
+
+  global_config->Load();
+  local_config->Load();
+
   std::string issues_temp;
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_rating);
-  ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
+  if (!local_config->GetIfExists(Config::System::UI, "EmuState", "EmulationStateId", &m_rating))
+    global_config->GetIfExists(Config::System::UI, "EmuState", "EmulationStateId", &m_rating);
+  if (!local_config->GetIfExists(Config::System::UI, "EmuState", "EmulationIssues", &issues_temp))
+    global_config->GetIfExists(Config::System::UI, "EmuState", "EmulationIssues", &issues_temp);
+
   m_issues = QString::fromStdString(issues_temp);
 }
 
