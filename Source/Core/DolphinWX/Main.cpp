@@ -25,8 +25,8 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/Thread.h"
 
@@ -102,9 +102,10 @@ bool DolphinApp::OnInit()
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
+
+  UICommon::Init();
   InitLanguageSupport();  // The language setting is loaded from the user
                           // directory
-  UICommon::Init();
 
   if (m_select_video_backend && !m_video_backend_name.empty())
     SConfig::GetInstance().m_strVideoBackend = WxStrToStr(m_video_backend_name);
@@ -251,9 +252,8 @@ void DolphinApp::InitLanguageSupport()
 {
   std::string language_code;
   {
-    IniFile ini;
-    ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-    ini.GetOrCreateSection("Interface")->Get("LanguageCode", &language_code, "");
+    Config::Section* interface = Config::GetOrCreateSection(Config::System::Main, "Interface");
+    interface->Get("LanguageCode", &language_code, "");
   }
   int language = wxLANGUAGE_UNKNOWN;
   if (language_code.empty())
