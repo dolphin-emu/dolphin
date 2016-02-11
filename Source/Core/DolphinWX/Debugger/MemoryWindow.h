@@ -9,7 +9,6 @@
 
 class CMemoryView;
 class CCodeWindow;
-class IniFile;
 class wxButton;
 class wxCheckBox;
 class wxRadioBox;
