@@ -49,6 +49,7 @@ void MainWindow::ConnectMenuBar()
 	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
 	connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
 	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+	connect(m_menu_bar, &MenuBar::SetViewColumn, m_game_list, &GameList::SetViewColumn);
 }
 
 void MainWindow::ConnectToolBar()

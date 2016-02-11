@@ -20,6 +20,7 @@ signals:
 
 	void ShowTable();
 	void ShowList();
+	void SetViewColumn(int col, bool view);
 
 private:
 	void AddFileMenu();
@@ -27,4 +28,5 @@ private:
 
 	void AddGameListTypeSection(QMenu* view_menu);
 	void AddTableColumnsMenu(QMenu* view_menu);
+
 };
