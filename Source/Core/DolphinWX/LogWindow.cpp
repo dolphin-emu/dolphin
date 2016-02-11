@@ -169,22 +169,21 @@ void CLogWindow::RemoveAllListeners()
 
 void CLogWindow::SaveSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
+  Config::Layer* base_config = Config::GetLayer(Config::LayerType::Base);
   if (!Parent->g_pCodeWindow)
   {
-    IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
+    Config::Section* log_window =
+        base_config->GetOrCreateSection(Config::System::Logger, "LogWindow");
     log_window->Set("x", x);
     log_window->Set("y", y);
     log_window->Set("pos", winpos);
   }
 
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
+  Config::Section* options = base_config->GetOrCreateSection(Config::System::Logger, "Options");
   options->Set("Font", m_FontChoice->GetSelection());
   options->Set("WrapLines", m_WrapLine->IsChecked());
 
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  base_config->Save();
 }
 
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED(event))
