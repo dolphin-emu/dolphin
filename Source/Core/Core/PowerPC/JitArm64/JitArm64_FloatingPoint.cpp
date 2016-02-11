@@ -103,18 +103,23 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
 	if (op10 == 72 && b == d)
 		return;
 
+	bool is_single = fpr.IsSingle(b);
+
 	if (packed)
 	{
-		ARM64Reg VB = fpr.R(b, REG_REG);
-		ARM64Reg VD = fpr.RW(d, REG_REG);
+		RegType type = is_single ? REG_REG_SINGLE : REG_REG;
+		u8 size = is_single ? 32 : 64;
+
+		ARM64Reg VB = fpr.R(b, type);
+		ARM64Reg VD = fpr.RW(d, type);
 
 		switch (op10)
 		{
-		case  40: m_float_emit.FNEG(64, VD, VB); break;
+		case  40: m_float_emit.FNEG(size, VD, VB); break;
 		case  72: m_float_emit.ORR(VD, VB, VB); break;
-		case 136: m_float_emit.FABS(64, VD, VB);
-		          m_float_emit.FNEG(64, VD, VD); break;
-		case 264: m_float_emit.FABS(64, VD, VB); break;
+		case 136: m_float_emit.FABS(size, VD, VB);
+		          m_float_emit.FNEG(size, VD, VD); break;
+		case 264: m_float_emit.FABS(size, VD, VB); break;
 		default: _assert_msg_(DYNA_REC, 0, "fp_logic"); break;
 		}
 	}
