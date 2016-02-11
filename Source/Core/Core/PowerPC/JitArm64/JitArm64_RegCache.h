@@ -23,6 +23,9 @@ enum RegType
 	REG_LOWER_PAIR, // Only the lower pair of a paired register
 	REG_DUP, // The lower reg is the same as the upper one (physical upper doesn't actually have the duplicated value)
 	REG_IS_LOADED, // We don't care what type it is, as long as the lower 64bits are loaded
+	REG_REG_SINGLE, // Both registers are loaded as single
+	REG_DUP_SINGLE, // The lower one contains both registers, as single
+	REG_IS_LOADED_SINGLE, // We only want to access the lower one as single
 };
 
 enum FlushMode
@@ -56,9 +59,19 @@ public:
 	{
 		return m_value;
 	}
+	void Load(ARM64Reg reg, RegType type)
+	{
+		m_type = type;
+		m_reg = reg;
+	}
 	void LoadToReg(ARM64Reg reg)
 	{
 		m_type = REG_REG;
+		m_reg = reg;
+	}
+	void LoadToRegSingle(ARM64Reg reg)
+	{
+		m_type = REG_REG_SINGLE;
 		m_reg = reg;
 	}
 	void LoadLowerReg(ARM64Reg reg)
@@ -69,6 +82,11 @@ public:
 	void LoadDup(ARM64Reg reg)
 	{
 		m_type = REG_DUP;
+		m_reg = reg;
+	}
+	void LoadDupSingle(ARM64Reg reg)
+	{
+		m_type = REG_DUP_SINGLE;
 		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)
@@ -277,6 +295,8 @@ public:
 	ARM64Reg RW(u32 preg, RegType type = REG_LOWER_PAIR);
 
 	BitSet32 GetCallerSavedUsed() override;
+
+	bool IsSingle(u32 preg);
 
 	void FixSinglePrecision(u32 preg);
 
