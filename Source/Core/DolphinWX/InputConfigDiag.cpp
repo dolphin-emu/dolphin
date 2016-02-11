@@ -33,15 +33,19 @@
 
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
+
+#include "DolphinWX/ControllerProfileLoader.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -137,8 +141,10 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputConfig& config,
   m_devq = m_parent->controller->default_device;
 
   // GetStrings() sounds slow :/
-  // device_cbox = new wxComboBox(this, wxID_ANY, StrToWxStr(ref->device_qualifier.ToString()),
-  // wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
+  // device_cbox = new wxComboBox(this, wxID_ANY,
+  // StrToWxStr(ref->device_qualifier.ToString()),
+  // wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(),
+  // wxTE_PROCESS_ENTER);
   device_cbox =
       new wxComboBox(this, wxID_ANY, StrToWxStr(m_devq.ToString()), wxDefaultPosition,
                      wxSize(256, -1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER);
@@ -292,8 +298,9 @@ void GamepadPage::UpdateGUI()
 void GamepadPage::ClearAll(wxCommandEvent&)
 {
   // just load an empty ini section to clear everything :P
-  IniFile::Section section;
-  controller->LoadConfig(&section);
+  OnionConfig::OnionPetal petal(OnionConfig::OnionLayerType::LAYER_META,
+                                OnionConfig::OnionSystem::SYSTEM_GCPAD, "");
+  controller->LoadConfig(&petal);
 
   // no point in using the real ControllerInterface i guess
   ControllerInterface face;
@@ -499,7 +506,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
     m_event_filter.BlockEvents(true);
     btn->SetLabel(_("[ waiting ]"));
 
-    // This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
+    // This makes the "waiting" text work on Linux. true (only if needed)
+    // prevents crash on Windows
     wxTheApp->Yield(true);
 
     ciface::Core::Device::Control* const ctrl =
@@ -511,7 +519,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 
     btn->SetLabel(lbl);
 
-    // This lets the input events be sent to the filter and discarded before unblocking
+    // This lets the input events be sent to the filter and discarded before
+    // unblocking
     wxTheApp->Yield(true);
     m_event_filter.BlockEvents(false);
   }
@@ -524,7 +533,8 @@ void GamepadPage::DetectControl(wxCommandEvent& event)
   {
     auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
 
-    // std find will never return end since btn will always be found in control_buttons
+    // std find will never return end since btn will always be found in
+    // control_buttons
     ++it;
     for (; it != control_buttons.end(); ++it)
     {
@@ -544,7 +554,8 @@ bool GamepadPage::DetectButton(ControlButton* button)
     m_event_filter.BlockEvents(true);
     button->SetLabel(_("[ waiting ]"));
 
-    // This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
+    // This makes the "waiting" text work on Linux. true (only if needed)
+    // prevents crash on Windows
     wxTheApp->Yield(true);
 
     ciface::Core::Device::Control* const ctrl =
@@ -561,7 +572,8 @@ bool GamepadPage::DetectButton(ControlButton* button)
       success = true;
     }
 
-    // This lets the input events be sent to the filter and discarded before unblocking
+    // This lets the input events be sent to the filter and discarded before
+    // unblocking
     wxTheApp->Yield(true);
     m_event_filter.BlockEvents(false);
   }
@@ -678,10 +690,12 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
   if (!File::Exists(fname))
     return;
 
-  IniFile inifile;
-  inifile.Load(fname);
+  std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(
+      std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+  profile->Load();
 
-  controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
+  controller->LoadConfig(
+      profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
   controller->UpdateReferences(g_controller_interface);
 
   UpdateGUI();
@@ -695,9 +709,11 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 
   if (!fname.empty())
   {
-    IniFile inifile;
-    controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
-    inifile.Save(fname);
+    std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(
+        std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+    controller->SaveConfig(
+        profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
+    profile->Save();
 
     m_config_dialog->UpdateProfileComboBox();
   }
@@ -790,8 +806,8 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
     if (control->control_ref->is_input)
     {
-      control_button->SetToolTip(
-          _("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
+      control_button->SetToolTip(_("Left-click to detect input.\nMiddle-click "
+                                   "to clear.\nRight-click for more options."));
       control_button->Bind(wxEVT_BUTTON, &GamepadPage::DetectControl, eventsink);
     }
     else
