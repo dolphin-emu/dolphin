@@ -157,10 +157,15 @@ void JitArm64::ps_res(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(b);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
 
-	m_float_emit.FRSQRTE(64, VD, VB);
+	ARM64Reg VB = fpr.R(b, type);
+	ARM64Reg VD = fpr.RW(d, type);
+
+	m_float_emit.FRSQRTE(size, VD, VB);
+
 	fpr.FixSinglePrecision(d);
 }
 
