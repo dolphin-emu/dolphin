@@ -13,7 +13,7 @@
 #include <wx/dialog.h>
 #include <wx/treebase.h>
 
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Core/ActionReplay.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -226,9 +226,10 @@ private:
   void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
                  const WiiPartition* partition = nullptr);
 
-  IniFile GameIniDefault;
-  IniFile GameIniLocal;
-  std::string GameIniFileLocal;
+  std::unique_ptr<OnionConfig::BloomLayer> m_global_config;
+  std::unique_ptr<OnionConfig::BloomLayer> m_local_config;
+
+  std::string game_config_backing;
   std::string game_id;
 
   std::set<std::string> DefaultPatches;
@@ -244,8 +245,9 @@ private:
   void ActionReplayList_Save();
   void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
-  long GetElementStyle(const char* section, const char* key);
-  void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
-  void SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key,
-                                          wxCheckBox* checkbox);
+  long GetElementStyle(OnionConfig::OnionSystem system, const char* section, const char* key);
+  void SetCheckboxValueFromGameini(OnionConfig::OnionSystem system, const char* section,
+                                   const char* key, wxCheckBox* checkbox);
+  void SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem system, const char* section,
+                                          const char* key, wxCheckBox* checkbox);
 };
