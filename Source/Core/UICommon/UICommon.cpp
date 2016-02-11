@@ -9,9 +9,11 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/OnionConfig.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/OnionCoreLoaders/BaseConfigLoader.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -23,6 +25,9 @@ namespace UICommon
 {
 void Init()
 {
+  OnionConfig::Init();
+  OnionConfig::AddLayer(GenerateBaseConfigLoader());
+
   LogManager::Init();
   SConfig::Init();
   VideoBackendBase::PopulateList();
@@ -40,6 +45,7 @@ void Shutdown()
   VideoBackendBase::ClearList();
   SConfig::Shutdown();
   LogManager::Shutdown();
+  OnionConfig::Shutdown();
 }
 
 void CreateDirectories()
@@ -78,7 +84,8 @@ void SetUserDirectory(const std::string& custom_path)
 
   std::string user_path = "";
 #ifdef _WIN32
-  // Detect where the User directory is. There are five different cases (on top of the
+  // Detect where the User directory is. There are five different cases (on top
+  // of the
   // command line flag, which overrides all this):
   // 1. GetExeDirectory()\portable.txt exists
   //    -> Use GetExeDirectory()\User
@@ -126,7 +133,8 @@ void SetUserDirectory(const std::string& custom_path)
   else  // Case 5
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
-  // Prettify the path: it will be displayed in some places, we don't want a mix of \ and /.
+  // Prettify the path: it will be displayed in some places, we don't want a mix
+  // of \ and /.
   user_path = ReplaceAll(user_path, "\\", DIR_SEP);
 
   // Make sure it ends in DIR_SEP.
@@ -149,9 +157,12 @@ void SetUserDirectory(const std::string& custom_path)
 #if defined(__APPLE__) || defined(ANDROID)
     user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
 #else
-    // We are on a non-Apple and non-Android POSIX system, let's respect XDG basedir.
-    // The only case we don't is when there is an existing ~/.dolphin-emu directory.
-    // See http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+    // We are on a non-Apple and non-Android POSIX system, let's respect XDG
+    // basedir.
+    // The only case we don't is when there is an existing ~/.dolphin-emu
+    // directory.
+    // See
+    // http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
     user_path = home_path + "." DOLPHIN_DATA_DIR DIR_SEP;
     if (!File::Exists(user_path))
