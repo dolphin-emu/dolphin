@@ -9,7 +9,6 @@
 #include <wx/listctrl.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
 
 class GCMemcard;
 class wxButton;
@@ -31,8 +30,6 @@ private:
 	int maxPages;
 	std::string DefaultMemcard[2];
 	std::string DefaultIOPath;
-	IniFile MemcardManagerIni;
-	IniFile::Section* iniMemcardSection;
 
 	wxButton* m_CopyFrom[2];
 	wxButton* m_SaveImport[2];
@@ -103,8 +100,8 @@ private:
 	void OnPathChange(wxFileDirPickerEvent& event);
 	void ChangePath(int id);
 	bool CopyDeleteSwitch(u32 error, int slot);
-	bool LoadSettings();
-	bool SaveSettings();
+	void LoadSettings();
+	void SaveSettings();
 
 	struct _mcmSettings
 	{
