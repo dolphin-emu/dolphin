@@ -33,34 +33,42 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 	bool use_c = op5 >= 25; // fmul and all kind of fmaddXX
 	bool use_b = op5 != 25; // fmul uses no B
 
+	bool inputs_are_singles = fpr.IsSingle(a) && (!use_b || fpr.IsSingle(b)) && (!use_c || fpr.IsSingle(c));
+
 	ARM64Reg VA, VB, VC, VD;
 
 	if (packed)
 	{
-		VA = fpr.R(a, REG_REG);
+		RegType type = inputs_are_singles ? REG_REG_SINGLE : REG_REG;
+		u8 size = inputs_are_singles ? 32 : 64;
+		VA = fpr.R(a, type);
 		if (use_b)
-			VB = fpr.R(b, REG_REG);
+			VB = fpr.R(b, type);
 		if (use_c)
-			VC = fpr.R(c, REG_REG);
-		VD = fpr.RW(d, REG_REG);
+			VC = fpr.R(c, type);
+		VD = fpr.RW(d, type);
 
 		switch (op5)
 		{
-		case 18: m_float_emit.FDIV(64, VD, VA, VB); break;
-		case 20: m_float_emit.FSUB(64, VD, VA, VB); break;
-		case 21: m_float_emit.FADD(64, VD, VA, VB); break;
-		case 25: m_float_emit.FMUL(64, VD, VA, VC); break;
+		case 18: m_float_emit.FDIV(size, VD, VA, VB); break;
+		case 20: m_float_emit.FSUB(size, VD, VA, VB); break;
+		case 21: m_float_emit.FADD(size, VD, VA, VB); break;
+		case 25: m_float_emit.FMUL(size, VD, VA, VC); break;
 		default: _assert_msg_(DYNA_REC, 0, "fp_arith"); break;
 		}
 	}
 	else
 	{
-		VA = EncodeRegToDouble(fpr.R(a, REG_IS_LOADED));
+		RegType type = (inputs_are_singles && single) ? REG_IS_LOADED_SINGLE : REG_IS_LOADED;
+		RegType type_out = single ? (inputs_are_singles ? REG_DUP_SINGLE : REG_DUP) : REG_LOWER_PAIR;
+		ARM64Reg (*reg_encoder)(ARM64Reg) = (inputs_are_singles && single) ? EncodeRegToSingle : EncodeRegToDouble;
+
+		VA = reg_encoder(fpr.R(a, type));
 		if (use_b)
-			VB = EncodeRegToDouble(fpr.R(b, REG_IS_LOADED));
+			VB = reg_encoder(fpr.R(b, type));
 		if (use_c)
-			VC = EncodeRegToDouble(fpr.R(c, REG_IS_LOADED));
-		VD = EncodeRegToDouble(fpr.RW(d, single ? REG_DUP : REG_LOWER_PAIR));
+			VC = reg_encoder(fpr.R(c, type));
+		VD = reg_encoder(fpr.RW(d, type_out));
 
 		switch (op5)
 		{
