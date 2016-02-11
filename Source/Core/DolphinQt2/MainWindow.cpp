@@ -82,6 +82,9 @@ void MainWindow::ConnectMenuBar()
   // View
   connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
   connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+  connect(m_menu_bar, &MenuBar::SetViewColumn, m_game_list, &GameList::SetViewColumn);
+
+  // Help
   connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
 
   connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
@@ -136,7 +139,8 @@ void MainWindow::Open()
 {
   QString file = QFileDialog::getOpenFileName(
       this, tr("Select a File"), QDir::currentPath(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz "
+         "*.wad);;"
          "All Files (*)"));
   if (!file.isEmpty())
     StartGame(file);
@@ -265,7 +269,8 @@ void MainWindow::ShowRenderWidget()
   Settings settings;
   if (settings.GetRenderToMain())
   {
-    // If we're rendering to main, add it to the stack and update our title when necessary.
+    // If we're rendering to main, add it to the stack and update our title when
+    // necessary.
     m_rendering_to_main = true;
     m_stack->setCurrentIndex(m_stack->addWidget(m_render_widget));
     connect(Host::GetInstance(), &Host::RequestTitle, this, &MainWindow::setWindowTitle);
@@ -290,7 +295,8 @@ void MainWindow::HideRenderWidget()
 {
   if (m_rendering_to_main)
   {
-    // Remove the widget from the stack and reparent it to nullptr, so that it can draw
+    // Remove the widget from the stack and reparent it to nullptr, so that it
+    // can draw
     // itself in a new window if it wants. Disconnect the title updates.
     m_stack->removeWidget(m_render_widget);
     m_render_widget->setParent(nullptr);
