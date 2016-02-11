@@ -7,10 +7,12 @@
 #endif
 
 #include "Common/CommonPaths.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 
+#include "Core/ConfigLoaders/BaseConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 
@@ -25,6 +27,9 @@ namespace UICommon
 {
 void Init()
 {
+  Config::Init();
+  Config::AddLayer(GenerateBaseConfigLoader());
+
   LogManager::Init();
   SConfig::Init();
   VideoBackendBase::PopulateList();
@@ -42,6 +47,7 @@ void Shutdown()
   VideoBackendBase::ClearList();
   SConfig::Shutdown();
   LogManager::Shutdown();
+  Config::Shutdown();
 }
 
 void CreateDirectories()
