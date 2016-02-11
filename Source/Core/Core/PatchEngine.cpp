@@ -25,8 +25,8 @@
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
@@ -47,14 +47,14 @@ const char* PatchTypeStrings[] = {
 static std::vector<Patch> onFrame;
 static std::map<u32, int> speedHacks;
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(Config::Layer& globalIni, Config::Layer& localIni,
+                      std::vector<Patch>& patches)
 {
   // Load the name of all enabled patches
-  std::string enabledSectionName = section + "_Enabled";
+  auto enabled_section = localIni.GetOrCreateSection(Config::System::Main, "OnFrame_Enabled");
   std::vector<std::string> enabledLines;
   std::set<std::string> enabledNames;
-  localIni.GetLines(enabledSectionName, &enabledLines);
+  enabled_section->GetLines(&enabledLines);
   for (const std::string& line : enabledLines)
   {
     if (line.size() != 0 && line[0] == '$')
@@ -64,13 +64,13 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
     }
   }
 
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  for (Config::Layer* ini : {&globalIni, &localIni})
   {
+    auto section = ini->GetOrCreateSection(Config::System::Main, "OnFrame");
+
     std::vector<std::string> lines;
     Patch currentPatch;
-    ini->GetLines(section, &lines);
+    section->GetLines(&lines);
 
     for (std::string& line : lines)
     {
@@ -158,16 +158,14 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
-
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  auto* global_config = Config::GetLayer(Config::LayerType::GlobalGame);
+  auto* local_config = Config::GetLayer(Config::LayerType::LocalGame);
+  LoadPatchSection(*global_config, *local_config, onFrame);
+  ActionReplay::LoadAndApplyCodes(*global_config, *local_config);
 
   // lil silly
   std::vector<Gecko::GeckoCode> gcodes;
-  Gecko::LoadCodes(globalIni, localIni, gcodes);
+  Gecko::LoadCodes(*global_config, *local_config, gcodes);
   Gecko::SetActiveCodes(gcodes);
 
   LoadSpeedhacks();

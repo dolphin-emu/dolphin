@@ -13,7 +13,7 @@
 #include <wx/dialog.h>
 #include <wx/treebase.h>
 
-#include "Common/IniFile.h"
+#include "Common/Config.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
@@ -142,9 +142,10 @@ private:
 
   const GameListItem OpenGameListItem;
 
-  IniFile GameIniDefault;
-  IniFile GameIniLocal;
-  std::string GameIniFileLocal;
+  std::unique_ptr<Config::Layer> m_global_config;
+  std::unique_ptr<Config::Layer> m_local_config;
+
+  std::string game_config_backing;
   std::string game_id;
 
   std::set<std::string> DefaultPatches;
@@ -156,8 +157,9 @@ private:
   void PatchList_Load();
   void PatchList_Save();
 
-  long GetElementStyle(const char* section, const char* key);
-  void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
-  void SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key,
-                                          wxCheckBox* checkbox);
+  long GetElementStyle(Config::System system, const char* section, const char* key);
+  void SetCheckboxValueFromGameini(Config::System system, const char* section, const char* key,
+                                   wxCheckBox* checkbox);
+  void SaveGameIniValueFrom3StateCheckbox(Config::System system, const char* section,
+                                          const char* key, wxCheckBox* checkbox);
 };

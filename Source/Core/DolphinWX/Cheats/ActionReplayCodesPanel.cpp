@@ -27,16 +27,18 @@ ActionReplayCodesPanel::~ActionReplayCodesPanel()
 {
 }
 
-void ActionReplayCodesPanel::LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+void ActionReplayCodesPanel::LoadCodes(Config::Layer& global_ini, Config::Layer& local_ini)
 {
   m_codes = ActionReplay::LoadCodes(global_ini, local_ini);
   m_was_modified = false;
   Repopulate();
 }
 
-void ActionReplayCodesPanel::SaveCodes(IniFile* local_ini)
+void ActionReplayCodesPanel::SaveCodes(Config::Layer* local_ini)
 {
-  ActionReplay::SaveCodes(local_ini, m_codes);
+  ActionReplay::SaveCodes(local_ini->GetSection(Config::System::Main, "ActionReplay"),
+                          local_ini->GetSection(Config::System::Main, "ActionReplay_Enabled"),
+                          m_codes);
   m_was_modified = false;
 }
 

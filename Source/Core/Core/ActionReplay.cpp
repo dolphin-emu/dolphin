@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -134,20 +133,22 @@ void AddCode(ARCode code)
   }
 }
 
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
+void LoadAndApplyCodes(Config::Layer& global_ini, Config::Layer& local_ini)
 {
   ApplyCodes(LoadCodes(global_ini, local_ini));
 }
 
 // Parses the Action Replay section of a game ini file.
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+std::vector<ARCode> LoadCodes(Config::Layer& global_ini, Config::Layer& local_ini)
 {
   std::vector<ARCode> codes;
 
   std::unordered_set<std::string> enabled_names;
   {
     std::vector<std::string> enabled_lines;
-    local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
+    auto ar_enabled_section =
+        local_ini.GetOrCreateSection(Config::System::Main, "ActionReplay_Enabled");
+    ar_enabled_section->GetLines(&enabled_lines);
     for (const std::string& line : enabled_lines)
     {
       if (line.size() != 0 && line[0] == '$')
@@ -158,14 +159,15 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
   }
 
-  const IniFile* inis[2] = {&global_ini, &local_ini};
-  for (const IniFile* ini : inis)
+  Config::Layer* inis[2] = {&global_ini, &local_ini};
+  for (auto* ini : inis)
   {
     std::vector<std::string> lines;
     std::vector<std::string> encrypted_lines;
     ARCode current_code;
 
-    ini->GetLines("ActionReplay", &lines);
+    auto ar_section = ini->GetOrCreateSection(Config::System::Main, "ActionReplay");
+    ar_section->GetLines(&lines);
 
     for (const std::string& line : lines)
     {
@@ -252,7 +254,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
+void SaveCodes(Config::Section* ar, Config::Section* ar_enabled, const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -270,8 +272,8 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
       }
     }
   }
-  local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
-  local_ini->SetLines("ActionReplay", lines);
+  ar_enabled->SetLines(enabled_lines);
+  ar->SetLines(lines);
 }
 
 static void LogInfo(const char* format, ...)

@@ -8,6 +8,7 @@
 #include <vector>
 #include <wx/panel.h>
 
+#include "Common/Config.h"
 #include "Core/ActionReplay.h"
 
 class wxButton;
@@ -17,7 +18,6 @@ class wxStaticBoxSizer;
 class wxStaticText;
 
 class ARCodeAddEdit;
-class IniFile;
 
 // GetClientData() -> ActionReplay::ARCode* [immutable]
 wxDECLARE_EVENT(DOLPHIN_EVT_ARCODE_TOGGLED, wxCommandEvent);
@@ -35,9 +35,9 @@ public:
   explicit ActionReplayCodesPanel(wxWindow* parent, Style styles = STYLE_LIST);
   ~ActionReplayCodesPanel() override;
 
-  void LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
+  void LoadCodes(Config::Layer& global, Config::Layer& local);
   const std::vector<ActionReplay::ARCode>& GetCodes() { return m_codes; }
-  void SaveCodes(IniFile* local_ini);
+  void SaveCodes(Config::Layer* local_ini);
   void AppendNewCode(const ActionReplay::ARCode& code);
   void Clear();
 
