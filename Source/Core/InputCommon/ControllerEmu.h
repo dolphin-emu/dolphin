@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
@@ -125,9 +127,9 @@ public:
     {
     }
     virtual ~ControlGroup() {}
-    virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
+    virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "",
                             const std::string& base = "");
-    virtual void SaveConfig(IniFile::Section* sec, const std::string& defdev = "",
+    virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "",
                             const std::string& base = "");
 
     void SetControlExpression(int index, const std::string& expression);
@@ -143,7 +145,8 @@ public:
   class AnalogStick : public ControlGroup
   {
   public:
-    // The GameCube controller and Wiimote attachments have a different default radius
+    // The GameCube controller and Wiimote attachments have a different default
+    // radius
     AnalogStick(const char* const _name, ControlState default_radius);
     AnalogStick(const char* const _name, const char* const _ui_name, ControlState default_radius);
 
@@ -309,8 +312,10 @@ public:
       ControlState square_full =
           std::min(ang_sin ? 1 / fabs(ang_sin) : 2, ang_cos ? 1 / fabs(ang_cos) : 2);
 
-      // the amt a full stick would have that was (user setting circular) at current angle
-      // I think this is more like a pointed circle rather than a rounded square like it should be
+      // the amt a full stick would have that was (user setting circular) at
+      // current angle
+      // I think this is more like a pointed circle rather than a rounded square
+      // like it should be
       ControlState stick_full = (square_full * (1 - circle)) + (circle);
 
       ControlState dist = sqrt(xx * xx + yy * yy);
@@ -422,8 +427,8 @@ public:
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
 
-  virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
-  virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
+  virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
+  virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
