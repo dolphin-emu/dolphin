@@ -931,9 +931,9 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 #endif // MORE_ACCURATE_DOUBLETOSINGLE
 
 // Converting single->double is a bit easier because all single denormals are double normals.
-void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
+void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, X64Reg scratch, bool src_is_gpr)
 {
-	X64Reg gprsrc = src_is_gpr ? src : RSCRATCH;
+	X64Reg gprsrc = src_is_gpr ? src : scratch;
 	if (src_is_gpr)
 	{
 		MOVD_xmm(dst, R(src));
@@ -942,7 +942,7 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 	{
 		if (dst != src)
 			MOVAPS(dst, R(src));
-		MOVD_xmm(R(RSCRATCH), src);
+		MOVD_xmm(R(scratch), src);
 	}
 
 	UCOMISS(dst, R(dst));
