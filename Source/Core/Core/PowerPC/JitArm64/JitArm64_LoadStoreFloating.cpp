@@ -76,7 +76,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 	u32 imm_addr = 0;
 	bool is_immediate = false;
 
-	RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP;
+	RegType type = !!(flags & BackPatchInfo::FLAG_SIZE_F64) ? REG_LOWER_PAIR : REG_DUP_SINGLE;
 
 	gpr.Lock(W0, W30);
 	fpr.Lock(Q0);

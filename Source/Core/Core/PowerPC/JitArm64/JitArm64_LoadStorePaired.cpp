@@ -62,16 +62,16 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
 	if (js.assumeNoPairedQuantize)
 	{
-		VS = fpr.RW(inst.RS, REG_REG);
 		if (!inst.W)
 		{
+			VS = fpr.RW(inst.RS, REG_REG_SINGLE);
 			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), X28);
 			m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
 			m_float_emit.REV32(8, VS, VS);
-			m_float_emit.FCVTL(64, VS, VS);
 		}
 		else
 		{
+			VS = fpr.RW(inst.RS, REG_REG);
 			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), X28);
 			m_float_emit.REV32(8, VS, VS);
 			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
@@ -87,11 +87,16 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 		LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 		BLR(X30);
 
-		VS = fpr.RW(inst.RS, REG_REG);
 		if (!inst.W)
-			m_float_emit.FCVTL(64, VS, D0);
+		{
+			VS = fpr.RW(inst.RS, REG_REG_SINGLE);
+			m_float_emit.ORR(VS, D0, D0);
+		}
 		else
+		{
+			VS = fpr.RW(inst.RS, REG_REG);
 			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), D0);
+		}
 	}
 
 	if (inst.W)
