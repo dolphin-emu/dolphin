@@ -164,22 +164,20 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 
 void CLogWindow::SaveSettings()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
+	OnionConfig::BloomLayer* base_config = OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
 	if (!Parent->g_pCodeWindow)
 	{
-		IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
+		OnionConfig::OnionPetal* log_window = base_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "LogWindow");
 		log_window->Set("x", x);
 		log_window->Set("y", y);
 		log_window->Set("pos", winpos);
 	}
 
-	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	OnionConfig::OnionPetal* options = base_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
 	options->Set("Font", m_FontChoice->GetSelection());
 	options->Set("WrapLines", m_WrapLine->IsChecked());
 
-	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	base_config->Save();
 }
 
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
