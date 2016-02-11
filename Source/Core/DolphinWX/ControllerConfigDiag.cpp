@@ -16,8 +16,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/SysConf.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HotkeyManager.h"
@@ -28,6 +29,7 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
@@ -404,25 +406,22 @@ void ControllerConfigDiag::RevertSource()
 
 void ControllerConfigDiag::Save(wxCommandEvent& event)
 {
-	std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-	IniFile inifile;
-	inifile.Load(ini_filename);
+	OnionConfig::BloomLayer* base_layer = OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
 
 	for (unsigned int i=0; i<MAX_WIIMOTES; ++i)
 	{
 		std::string secname("Wiimote");
 		secname += (char)('1' + i);
-		IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
+		OnionConfig::OnionPetal* petal = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, secname);
 
-		sec.Set("Source", (int)g_wiimote_sources[i]);
+		petal->Set("Source", (int)g_wiimote_sources[i]);
 	}
 
 	std::string secname("BalanceBoard");
-	IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-	sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+	OnionConfig::OnionPetal* petal = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, secname);
+	petal->Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
 
-	inifile.Save(ini_filename);
+	base_layer->Save();
 
 	event.Skip();
 }
