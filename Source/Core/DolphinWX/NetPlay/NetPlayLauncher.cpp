@@ -94,8 +94,7 @@ bool NetPlayLauncher::Join(const NetPlayJoinConfig& config)
 
 const std::string NetPlayLaunchConfig::DEFAULT_TRAVERSAL_HOST = "stun.dolphin-emu.org";
 
-std::string
-NetPlayLaunchConfig::GetTraversalHostFromIniConfig(const IniFile::Section& netplay_section)
+std::string NetPlayLaunchConfig::GetTraversalHostFromConfig(const Config::Section& netplay_section)
 {
   std::string host;
 
@@ -108,7 +107,7 @@ NetPlayLaunchConfig::GetTraversalHostFromIniConfig(const IniFile::Section& netpl
   return host;
 }
 
-u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(const IniFile::Section& netplay_section)
+u16 NetPlayLaunchConfig::GetTraversalPortFromConfig(const Config::Section& netplay_section)
 {
   std::string port_str;
   unsigned long port;
@@ -122,7 +121,7 @@ u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(const IniFile::Section& n
   return static_cast<u16>(port);
 }
 
-void NetPlayLaunchConfig::SetDialogInfo(const IniFile::Section& section, wxWindow* parent)
+void NetPlayLaunchConfig::SetDialogInfo(const Config::Section& section, wxWindow* parent)
 {
   parent_window = parent;
 
@@ -138,7 +137,7 @@ void NetPlayLaunchConfig::SetDialogInfo(const IniFile::Section& section, wxWindo
   }
 }
 
-void NetPlayHostConfig::FromIniConfig(IniFile::Section& netplay_section)
+void NetPlayHostConfig::FromConfig(Config::Section& netplay_section)
 {
   netplay_section.Get("Nickname", &player_name, "Player");
 
@@ -157,7 +156,7 @@ void NetPlayHostConfig::FromIniConfig(IniFile::Section& netplay_section)
   }
   else
   {
-    traversal_port = GetTraversalPortFromIniConfig(netplay_section);
-    traversal_host = GetTraversalHostFromIniConfig(netplay_section);
+    traversal_port = GetTraversalPortFromConfig(netplay_section);
+    traversal_host = GetTraversalHostFromConfig(netplay_section);
   }
 }

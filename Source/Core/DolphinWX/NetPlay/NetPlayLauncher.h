@@ -6,7 +6,7 @@
 
 #include <string>
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/Config.h"
 
 class CGameListCtrl;
 class wxRect;
@@ -15,9 +15,9 @@ class wxWindow;
 class NetPlayLaunchConfig
 {
 public:
-  static std::string GetTraversalHostFromIniConfig(const IniFile::Section& netplay_section);
-  static u16 GetTraversalPortFromIniConfig(const IniFile::Section& netplay_section);
-  void SetDialogInfo(const IniFile::Section& section, wxWindow* parent);
+  static std::string GetTraversalHostFromConfig(const Config::Section& netplay_section);
+  static u16 GetTraversalPortFromConfig(const Config::Section& netplay_section);
+  void SetDialogInfo(const Config::Section& section, wxWindow* parent);
 
   static const std::string DEFAULT_TRAVERSAL_HOST;
   static constexpr u16 DEFAULT_TRAVERSAL_PORT = 6262;
@@ -35,7 +35,7 @@ public:
 class NetPlayHostConfig : public NetPlayLaunchConfig
 {
 public:
-  void FromIniConfig(IniFile::Section& netplay_section);
+  void FromConfig(Config::Section& netplay_section);
 
   static constexpr u16 DEFAULT_LISTEN_PORT = 2626;
 

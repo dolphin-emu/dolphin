@@ -9,6 +9,7 @@
 #include <wx/frame.h>
 
 class CGameListCtrl;
+class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
