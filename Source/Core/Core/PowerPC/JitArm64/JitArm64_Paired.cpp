@@ -103,41 +103,47 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 	u32 op5 = inst.SUBOP5;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
+
+	ARM64Reg VA = fpr.R(a, type);
+	ARM64Reg VB = fpr.R(b, type);
+	ARM64Reg VC = fpr.R(c, type);
+	ARM64Reg VD = fpr.RW(d, type);
 	ARM64Reg V0 = fpr.GetReg();
+
+	// TODO: Do FMUL and FADD/FSUB in *one* host call to save accuracy.
 
 	switch (op5)
 	{
 	case 14: // ps_madds0
-		m_float_emit.DUP(64, V0, VC, 0);
-		m_float_emit.FMUL(64, V0, V0, VA);
-		m_float_emit.FADD(64, VD, V0, VB);
+		m_float_emit.DUP(size, V0, VC, 0);
+		m_float_emit.FMUL(size, V0, V0, VA);
+		m_float_emit.FADD(size, VD, V0, VB);
 		break;
 	case 15: // ps_madds1
-		m_float_emit.DUP(64, V0, VC, 1);
-		m_float_emit.FMUL(64, V0, V0, VA);
-		m_float_emit.FADD(64, VD, V0, VB);
+		m_float_emit.DUP(size, V0, VC, 1);
+		m_float_emit.FMUL(size, V0, V0, VA);
+		m_float_emit.FADD(size, VD, V0, VB);
 		break;
 	case 28: // ps_msub
-		m_float_emit.FMUL(64, V0, VA, VC);
-		m_float_emit.FSUB(64, VD, V0, VB);
+		m_float_emit.FMUL(size, V0, VA, VC);
+		m_float_emit.FSUB(size, VD, V0, VB);
 		break;
 	case 29: // ps_madd
-		m_float_emit.FMUL(64, V0, VA, VC);
-		m_float_emit.FADD(64, VD, V0, VB);
+		m_float_emit.FMUL(size, V0, VA, VC);
+		m_float_emit.FADD(size, VD, V0, VB);
 		break;
 	case 30: // ps_nmsub
-		m_float_emit.FMUL(64, V0, VA, VC);
-		m_float_emit.FSUB(64, VD, V0, VB);
-		m_float_emit.FNEG(64, VD, VD);
+		m_float_emit.FMUL(size, V0, VA, VC);
+		m_float_emit.FSUB(size, VD, V0, VB);
+		m_float_emit.FNEG(size, VD, VD);
 		break;
 	case 31: // ps_nmadd
-		m_float_emit.FMUL(64, V0, VA, VC);
-		m_float_emit.FADD(64, VD, V0, VB);
-		m_float_emit.FNEG(64, VD, VD);
+		m_float_emit.FMUL(size, V0, VA, VC);
+		m_float_emit.FADD(size, VD, V0, VB);
+		m_float_emit.FNEG(size, VD, VD);
 		break;
 	default:
 		_assert_msg_(DYNA_REC, 0, "ps_madd - invalid op");
