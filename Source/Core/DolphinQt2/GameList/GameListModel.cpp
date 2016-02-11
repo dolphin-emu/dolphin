@@ -42,18 +42,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
 {
 	if (orientation == Qt::Vertical || role != Qt::DisplayRole)
 		return QVariant();
-
-	switch (section)
-	{
-	case COL_TITLE:       return tr("Title");
-	case COL_ID:          return tr("ID");
-	case COL_BANNER:      return tr("Banner");
-	case COL_DESCRIPTION: return tr("Description");
-	case COL_MAKER:       return tr("Maker");
-	case COL_SIZE:        return tr("Size");
-	case COL_RATING:      return tr("Quality");
-	}
-	return QVariant();
+	else
+        return ColumnNames(section);
 }
 
 int GameListModel::rowCount(const QModelIndex& parent) const
@@ -100,4 +90,36 @@ int GameListModel::FindGame(const QString& path) const
 			return i;
 	}
 	return -1;
+}
+
+QString GameListModel::ColumnNames(int col_id)
+{
+	switch (col_id)
+	{
+	case GameListModel::COL_PLATFORM: return tr("Platform");
+	case GameListModel::COL_ID: return tr("ID");
+	case GameListModel::COL_BANNER: return tr("Banner");
+	case GameListModel::COL_TITLE: return tr("Title");
+	case GameListModel::COL_DESCRIPTION: return tr("Description");
+	case GameListModel::COL_MAKER: return tr("Maker");
+	case GameListModel::COL_SIZE: return tr("Size");
+	case GameListModel::COL_COUNTRY: return tr("Country");
+	case GameListModel::COL_RATING: return tr("Quality");
+	default: return QStringLiteral("DEADBEEF");
+	}
+}
+
+bool GameListModel::GetDefaultColumnEnable(int col_id)
+{
+	switch (col_id)
+	{
+	case GameListModel::COL_PLATFORM: return true;
+	case GameListModel::COL_BANNER: return true;
+	case GameListModel::COL_TITLE: return true;
+	case GameListModel::COL_MAKER: return true;
+	case GameListModel::COL_SIZE: return true;
+	case GameListModel::COL_COUNTRY: return true;
+	case GameListModel::COL_RATING: return true;
+	default: return false;
+	}
 }

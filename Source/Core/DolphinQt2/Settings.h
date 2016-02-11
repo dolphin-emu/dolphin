@@ -37,6 +37,8 @@ public:
 	DiscIO::IVolume::ELanguage GetGCSystemLanguage() const;
 	bool GetPreferredView() const;
 	void SetPreferredView(bool table);
+	void SetViewColumn(int col, bool view);
+	bool GetViewColumn(int col) const;
 
 	// Emulation
 	bool GetConfirmStop() const;
