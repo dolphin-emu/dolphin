@@ -18,7 +18,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
 #include "Core/ConfigManager.h"
@@ -117,32 +116,6 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 
 	sizerRight->Fit(this);
 	sizerBig->Fit(this);
-}
-
-void CMemoryWindow::Save(IniFile& ini) const
-{
-	// Prevent these bad values that can happen after a crash or hanging
-	if (GetPosition().x != -32000 && GetPosition().y != -32000)
-	{
-		IniFile::Section* mem_window = ini.GetOrCreateSection("MemoryWindow");
-		mem_window->Set("x", GetPosition().x);
-		mem_window->Set("y", GetPosition().y);
-		mem_window->Set("w", GetSize().GetWidth());
-		mem_window->Set("h", GetSize().GetHeight());
-	}
-}
-
-void CMemoryWindow::Load(IniFile& ini)
-{
-	int x, y, w, h;
-
-	IniFile::Section* mem_window = ini.GetOrCreateSection("MemoryWindow");
-	mem_window->Get("x", &x, GetPosition().x);
-	mem_window->Get("y", &y, GetPosition().y);
-	mem_window->Get("w", &w, GetSize().GetWidth());
-	mem_window->Get("h", &h, GetSize().GetHeight());
-
-	SetSize(x, y, w, h);
 }
 
 void CMemoryWindow::JumpToAddress(u32 _Address)
