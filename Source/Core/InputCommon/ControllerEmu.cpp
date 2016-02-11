@@ -38,7 +38,7 @@ void ControllerEmu::UpdateDefaultDevice()
 	}
 }
 
-void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::string& defdev, const std::string& base)
+void ControllerEmu::ControlGroup::LoadConfig(OnionConfig::OnionPetal* petal, const std::string& defdev, const std::string& base)
 {
 	std::string group(base + name + "/");
 
@@ -49,17 +49,17 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 			continue;
 		if (s->is_iterate)
 			continue;
-		sec->Get(group + s->name, &s->value, s->default_value * 100);
+		petal->Get(group + s->name, &s->value, s->default_value * 100);
 		s->value /= 100;
 	}
 
 	for (auto& c : controls)
 	{
 		// control expression
-		sec->Get(group + c->name, &c->control_ref->expression, "");
+		petal->Get(group + c->name, &c->control_ref->expression, "");
 
 		// range
-		sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
+		petal->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
 		c->control_ref->range /= 100;
 
 	}
@@ -72,12 +72,12 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 		ext->switch_extension = 0;
 		unsigned int n = 0;
 		std::string extname;
-		sec->Get(base + name, &extname, "");
+		petal->Get(base + name, &extname, "");
 
 		for (auto& ai : ext->attachments)
 		{
 			ai->default_device.FromString(defdev);
-			ai->LoadConfig(sec, base + ai->GetName() + "/");
+			ai->LoadConfig(petal, base + ai->GetName() + "/");
 
 			if (ai->GetName() == extname)
 				ext->switch_extension = n;
@@ -87,20 +87,20 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	}
 }
 
-void ControllerEmu::LoadConfig(IniFile::Section *sec, const std::string& base)
+void ControllerEmu::LoadConfig(OnionConfig::OnionPetal* petal, const std::string& base)
 {
 	std::string defdev = default_device.ToString();
 	if (base.empty())
 	{
-		sec->Get(base + "Device", &defdev, "");
+		petal->Get(base + "Device", &defdev, "");
 		default_device.FromString(defdev);
 	}
 
 	for (auto& cg : groups)
-		cg->LoadConfig(sec, defdev, base);
+		cg->LoadConfig(petal, defdev, base);
 }
 
-void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::string& defdev, const std::string& base)
+void ControllerEmu::ControlGroup::SaveConfig(OnionConfig::OnionPetal* petal, const std::string& defdev, const std::string& base)
 {
 	std::string group(base + name + "/");
 
@@ -111,37 +111,37 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section *sec, const std::s
 		if (s->is_iterate)
 			continue;
 
-		sec->Set(group + s->name, s->value * 100.0, s->default_value * 100.0);
+		petal->Set(group + s->name, s->value * 100.0, s->default_value * 100.0);
 	}
 
 	for (auto& c : controls)
 	{
 		// control expression
-		sec->Set(group + c->name, c->control_ref->expression, "");
+		petal->Set(group + c->name, c->control_ref->expression, "");
 
 		// range
-		sec->Set(group + c->name + "/Range", c->control_ref->range*100.0, 100.0);
+		petal->Set(group + c->name + "/Range", c->control_ref->range*100.0, 100.0);
 	}
 
 	// extensions
 	if (type == GROUP_TYPE_EXTENSION)
 	{
 		Extension* const ext = (Extension*)this;
-		sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");
+		petal->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");
 
 		for (auto& ai : ext->attachments)
-			ai->SaveConfig(sec, base + ai->GetName() + "/");
+			ai->SaveConfig(petal, base + ai->GetName() + "/");
 	}
 }
 
-void ControllerEmu::SaveConfig(IniFile::Section *sec, const std::string& base)
+void ControllerEmu::SaveConfig(OnionConfig::OnionPetal* petal, const std::string& base)
 {
 	const std::string defdev = default_device.ToString();
 	if (base.empty())
-		sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+		petal->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
 
 	for (auto& ctrlGroup : groups)
-		ctrlGroup->SaveConfig(sec, defdev, base);
+		ctrlGroup->SaveConfig(petal, defdev, base);
 }
 
 void ControllerEmu::ControlGroup::SetControlExpression(int index, const std::string& expression)
@@ -235,8 +235,8 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
 void ControllerEmu::LoadDefaults(const ControllerInterface &ciface)
 {
 	// load an empty inifile section, clears everything
-	IniFile::Section sec;
-	LoadConfig(&sec);
+	OnionConfig::OnionPetal petal(OnionConfig::OnionLayerType::LAYER_META, OnionConfig::OnionSystem::SYSTEM_GCPAD, "");
+	LoadConfig(&petal);
 
 	if (ciface.Devices().size())
 	{
