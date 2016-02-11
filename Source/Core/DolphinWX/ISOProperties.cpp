@@ -49,18 +49,22 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
+
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "Core/Boot/Boot.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
+
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/GameListCtrl.h"
 //#include "DolphinWX/Frame.h"
@@ -107,9 +111,13 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 	game_id = m_open_iso->GetUniqueID();
 
 	// Load game INIs
-	GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
-	GameIniDefault = SConfig::LoadDefaultGameIni(game_id, m_open_iso->GetRevision());
-	GameIniLocal = SConfig::LoadLocalGameIni(game_id, m_open_iso->GetRevision());
+	// XXX: Remove this assumption that the game configuration will be backed by an INI file that a text editor can get
+	game_config_backing = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
+	m_global_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateGlobalGameConfigLoader(game_id, m_open_iso->GetRevision()))));
+	m_local_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateLocalGameConfigLoader(game_id, m_open_iso->GetRevision()))));
+
+	m_global_config->Load();
+	m_local_config->Load();
 
 	// Setup GUI
 	bRefreshList = false;
@@ -285,10 +293,10 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 	return CurrentIndex;
 }
 
-long CISOProperties::GetElementStyle(const char* section, const char* key)
+long CISOProperties::GetElementStyle(OnionConfig::OnionSystem system, const char* section, const char* key)
 {
 	// Disable 3rd state if default gameini overrides the setting
-	if (GameIniDefault.Exists(section, key))
+	if (m_global_config->Exists(system, section, key))
 		return 0;
 
 	return wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER;
@@ -319,19 +327,19 @@ void CISOProperties::CreateGUIControls()
 	wxStaticText* const OverrideText = new wxStaticText(m_GameConfig, wxID_ANY, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."));
 
 	// Core
-	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "CPUThread"));
-	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SkipIdle"));
-	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "MMU"));
+	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "CPUThread"));
+	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SkipIdle"));
+	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "MMU"));
 	MMU->SetToolTip(_("Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
-	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DCBZ"));
+	DCBZOFF = new wxCheckBox(m_GameConfig, ID_DCBZOFF, _("Skip DCBZ clearing"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DCBZ"));
 	DCBZOFF->SetToolTip(_("Bypass the clearing of the data cache by the DCBZ instruction. Usually leave this option disabled."));
-	FPRF = new wxCheckBox(m_GameConfig, ID_FPRF, _("Enable FPRF"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FPRF"));
+	FPRF = new wxCheckBox(m_GameConfig, ID_FPRF, _("Enable FPRF"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FPRF"));
 	FPRF->SetToolTip(_("Enables Floating Point Result Flag calculation, needed for a few games. (ON = Compatible, OFF = Fast)"));
-	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "SyncGPU"));
+	SyncGPU = new wxCheckBox(m_GameConfig, ID_SYNCGPU, _("Synchronize GPU thread"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SyncGPU"));
 	SyncGPU->SetToolTip(_("Synchronizes the GPU and CPU threads to help prevent random freezes in Dual Core mode. (ON = Compatible, OFF = Fast)"));
-	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "FastDiscSpeed"));
+	FastDiscSpeed = new wxCheckBox(m_GameConfig, ID_DISCSPEED, _("Speed up Disc Transfer Rate"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FastDiscSpeed"));
 	FastDiscSpeed->SetToolTip(_("Enable fast disc access. This can cause crashes and other problems in some games. (ON = Fast, OFF = Compatible)"));
-	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Core", "DSPHLE"));
+	DSPHLE = new wxCheckBox(m_GameConfig, ID_AUDIO_DSP_HLE, _("DSP HLE emulation (fast)"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DSPHLE"));
 
 	wxBoxSizer* const sGPUDeterminism = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const GPUDeterminismText = new wxStaticText(m_GameConfig, wxID_ANY, _("Deterministic dual core: "));
@@ -344,7 +352,7 @@ void CISOProperties::CreateGUIControls()
 	sGPUDeterminism->Add(GPUDeterminism);
 
 	// Wii Console
-	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Wii", "Widescreen"));
+	EnableWideScreen = new wxCheckBox(m_GameConfig, ID_ENABLEWIDESCREEN, _("Enable WideScreen"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_MAIN, "Wii", "Widescreen"));
 
 	// Stereoscopy
 	wxBoxSizer* const sDepthPercentage = new wxBoxSizer(wxHORIZONTAL);
@@ -362,7 +370,7 @@ void CISOProperties::CreateGUIControls()
 	sConvergence->Add(ConvergenceText);
 	sConvergence->Add(Convergence);
 
-	MonoDepth = new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition, wxDefaultSize, GetElementStyle("Video_Stereoscopy", "StereoEFBMonoDepth"));
+	MonoDepth = new wxCheckBox(m_GameConfig, ID_MONODEPTH, _("Monoscopic Shadows"), wxDefaultPosition, wxDefaultSize, GetElementStyle(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy", "StereoEFBMonoDepth"));
 	MonoDepth->SetToolTip(_("Use a single depth buffer for both eyes. Needed for a few games."));
 
 	wxBoxSizer* const sEmuState = new wxBoxSizer(wxHORIZONTAL);
@@ -642,7 +650,7 @@ void CISOProperties::CreateGUIControls()
 void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
-		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
+		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), game_config_backing.c_str()));
 	if (bRefreshList)
 		((CGameListCtrl*)GetParent())->Update();
 	Destroy();
@@ -995,13 +1003,13 @@ void CISOProperties::SetRefresh(wxCommandEvent& event)
 		EmuIssues->Enable(event.GetSelection() != 0);
 }
 
-void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox)
+void CISOProperties::SetCheckboxValueFromGameini(OnionConfig::OnionSystem system, const char* section, const char* key, wxCheckBox* checkbox)
 {
 	// Prefer local gameini value over default gameini value.
 	bool value;
-	if (GameIniLocal.GetOrCreateSection(section)->Get(key, &value))
+	if (m_local_config->GetOrCreatePetal(system, section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
-	else if (GameIniDefault.GetOrCreateSection(section)->Get(key, &value))
+	else if (m_local_config->GetOrCreatePetal(system, section)->Get(key, &value))
 		checkbox->Set3StateValue((wxCheckBoxState)value);
 	else
 		checkbox->Set3StateValue(wxCHK_UNDETERMINED);
@@ -1009,53 +1017,55 @@ void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char
 
 void CISOProperties::LoadGameConfig()
 {
-	SetCheckboxValueFromGameini("Core", "CPUThread", CPUThread);
-	SetCheckboxValueFromGameini("Core", "SkipIdle", SkipIdle);
-	SetCheckboxValueFromGameini("Core", "MMU", MMU);
-	SetCheckboxValueFromGameini("Core", "DCBZ", DCBZOFF);
-	SetCheckboxValueFromGameini("Core", "FPRF", FPRF);
-	SetCheckboxValueFromGameini("Core", "SyncGPU", SyncGPU);
-	SetCheckboxValueFromGameini("Core", "FastDiscSpeed", FastDiscSpeed);
-	SetCheckboxValueFromGameini("Core", "DSPHLE", DSPHLE);
-	SetCheckboxValueFromGameini("Wii", "Widescreen", EnableWideScreen);
-	SetCheckboxValueFromGameini("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "CPUThread", CPUThread);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SkipIdle", SkipIdle);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "MMU", MMU);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DCBZ", DCBZOFF);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FPRF", FPRF);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SyncGPU", SyncGPU);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FastDiscSpeed", FastDiscSpeed);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DSPHLE", DSPHLE);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_MAIN, "Wii", "Widescreen", EnableWideScreen);
+	SetCheckboxValueFromGameini(OnionConfig::OnionSystem::SYSTEM_GFX,  "Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
-	IniFile::Section* default_video = GameIniDefault.GetOrCreateSection("Video");
+	OnionConfig::OnionPetal* default_video = m_global_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Video");
 
 	int iTemp;
 	default_video->Get("ProjectionHack", &iTemp);
 	default_video->Get("PH_SZNear", &m_PHack_Data.PHackSZNear);
-	if (GameIniLocal.GetIfExists("Video", "PH_SZNear", &iTemp))
-		m_PHack_Data.PHackSZNear = !!iTemp;
 	default_video->Get("PH_SZFar", &m_PHack_Data.PHackSZFar);
-	if (GameIniLocal.GetIfExists("Video", "PH_SZFar", &iTemp))
+
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_SZNear", &iTemp))
+		m_PHack_Data.PHackSZNear = !!iTemp;
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_SZFar", &iTemp))
 		m_PHack_Data.PHackSZFar = !!iTemp;
 
 	std::string sTemp;
 	default_video->Get("PH_ZNear", &m_PHack_Data.PHZNear);
-	if (GameIniLocal.GetIfExists("Video", "PH_ZNear", &sTemp))
-		m_PHack_Data.PHZNear = sTemp;
 	default_video->Get("PH_ZFar", &m_PHack_Data.PHZFar);
-	if (GameIniLocal.GetIfExists("Video", "PH_ZFar", &sTemp))
+
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_ZNear", &sTemp))
+		m_PHack_Data.PHZNear = sTemp;
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_ZFar", &sTemp))
 		m_PHack_Data.PHZFar = sTemp;
 
-	IniFile::Section* default_emustate = GameIniDefault.GetOrCreateSection("EmuState");
+	OnionConfig::OnionPetal* default_emustate = m_global_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState");
 	default_emustate->Get("EmulationStateId", &iTemp, 0/*Not Set*/);
 	EmuState->SetSelection(iTemp);
-	if (GameIniLocal.GetIfExists("EmuState", "EmulationStateId", &iTemp))
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId", &iTemp))
 		EmuState->SetSelection(iTemp);
 
 	default_emustate->Get("EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 		EmuIssues->SetValue(StrToWxStr(sTemp));
-	if (GameIniLocal.GetIfExists("EmuState", "EmulationIssues", &sTemp))
+	if (m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues", &sTemp))
 		EmuIssues->SetValue(StrToWxStr(sTemp));
 
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
 	sTemp = "";
-	if (!GameIniLocal.GetIfExists("Core", "GPUDeterminismMode", &sTemp))
-		GameIniDefault.GetIfExists("Core", "GPUDeterminismMode", &sTemp);
+	if (!m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "GPUDeterminismMode", &sTemp))
+		m_global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "GPUDeterminismMode", &sTemp);
 
 	if (sTemp == "")
 		GPUDeterminism->SetSelection(0);
@@ -1066,20 +1076,22 @@ void CISOProperties::LoadGameConfig()
 	else if (sTemp == "fake-completion")
 		GPUDeterminism->SetSelection(3);
 
-	IniFile::Section* default_stereoscopy = GameIniDefault.GetOrCreateSection("Video_Stereoscopy");
+	OnionConfig::OnionPetal* default_stereoscopy = m_global_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy");
 	default_stereoscopy->Get("StereoDepthPercentage", &iTemp, 100);
-	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
+	m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy", "StereoDepthPercentage", &iTemp);
 	DepthPercentage->SetValue(iTemp);
 	default_stereoscopy->Get("StereoConvergence", &iTemp, 0);
-	GameIniLocal.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iTemp);
+	m_local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy", "StereoConvergence", &iTemp);
 	Convergence->SetValue(iTemp);
 
 	PatchList_Load();
 	ActionReplayList_Load();
-	m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, m_open_iso->GetUniqueID());
+	m_geckocode_panel->LoadCodes(m_global_config.get(),
+	                             m_local_config.get(),
+	                             m_open_iso->GetUniqueID());
 }
 
-void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key, wxCheckBox* checkbox)
+void CISOProperties::SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem system, const char* section, const char* key, wxCheckBox* checkbox)
 {
 	// Delete any existing entries from the local gameini if checkbox is undetermined.
 	// Otherwise, write the current value to the local gameini if the value differs from the default gameini values.
@@ -1087,55 +1099,55 @@ void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, con
 	bool checkbox_val = (checkbox->Get3StateValue() == wxCHK_CHECKED);
 
 	if (checkbox->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIniLocal.DeleteKey(section, key);
-	else if (!GameIniDefault.Exists(section, key))
-		GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
+		m_local_config->DeleteKey(system, section, key);
+	else if (!m_global_config->Exists(system, section, key))
+		m_local_config->GetOrCreatePetal(system, section)->Set(key, checkbox_val);
 	else
 	{
 		bool default_value;
-		GameIniDefault.GetOrCreateSection(section)->Get(key, &default_value);
+		m_global_config->GetOrCreatePetal(system, section)->Get(key, &default_value);
 		if (default_value != checkbox_val)
-			GameIniLocal.GetOrCreateSection(section)->Set(key, checkbox_val);
+			m_local_config->GetOrCreatePetal(system, section)->Set(key, checkbox_val);
 		else
-			GameIniLocal.DeleteKey(section, key);
+			m_local_config->DeleteKey(system, section, key);
 	}
 }
 
 bool CISOProperties::SaveGameConfig()
 {
-	SaveGameIniValueFrom3StateCheckbox("Core", "CPUThread", CPUThread);
-	SaveGameIniValueFrom3StateCheckbox("Core", "SkipIdle", SkipIdle);
-	SaveGameIniValueFrom3StateCheckbox("Core", "MMU", MMU);
-	SaveGameIniValueFrom3StateCheckbox("Core", "DCBZ", DCBZOFF);
-	SaveGameIniValueFrom3StateCheckbox("Core", "FPRF", FPRF);
-	SaveGameIniValueFrom3StateCheckbox("Core", "SyncGPU", SyncGPU);
-	SaveGameIniValueFrom3StateCheckbox("Core", "FastDiscSpeed", FastDiscSpeed);
-	SaveGameIniValueFrom3StateCheckbox("Core", "DSPHLE", DSPHLE);
-	SaveGameIniValueFrom3StateCheckbox("Wii", "Widescreen", EnableWideScreen);
-	SaveGameIniValueFrom3StateCheckbox("Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "CPUThread", CPUThread);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SkipIdle", SkipIdle);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "MMU", MMU);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DCBZ", DCBZOFF);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FPRF", FPRF);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "SyncGPU", SyncGPU);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "FastDiscSpeed", FastDiscSpeed);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "DSPHLE", DSPHLE);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_MAIN, "Wii", "Widescreen", EnableWideScreen);
+	SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem::SYSTEM_GFX,  "Video_Stereoscopy", "StereoEFBMonoDepth", MonoDepth);
 
-	#define SAVE_IF_NOT_DEFAULT(section, key, val, def) do { \
-		if (GameIniDefault.Exists((section), (key))) { \
+	#define SAVE_IF_NOT_DEFAULT(system, section, key, val, def) do { \
+		if (m_global_config->Exists((system), (section), (key))) { \
 			std::remove_reference<decltype((val))>::type tmp__; \
-			GameIniDefault.GetOrCreateSection((section))->Get((key), &tmp__); \
+			m_global_config->GetOrCreatePetal((system), (section))->Get((key), &tmp__); \
 			if ((val) != tmp__) \
-				GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
+				m_local_config->GetOrCreatePetal((system), (section))->Set((key), (val)); \
 			else \
-				GameIniLocal.DeleteKey((section), (key)); \
+				m_local_config->DeleteKey((system), (section), (key)); \
 		} else if ((val) != (def)) \
-			GameIniLocal.GetOrCreateSection((section))->Set((key), (val)); \
+			m_local_config->GetOrCreatePetal((system), (section))->Set((key), (val)); \
 		else \
-			GameIniLocal.DeleteKey((section), (key)); \
+			m_local_config->DeleteKey((system), (section), (key)); \
 	} while (0)
 
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZNear", (m_PHack_Data.PHackSZNear ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_SZFar", (m_PHack_Data.PHackSZFar ? 1 : 0), 0);
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZNear", m_PHack_Data.PHZNear, "");
-	SAVE_IF_NOT_DEFAULT("Video", "PH_ZFar", m_PHack_Data.PHZFar, "");
-	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationStateId", EmuState->GetSelection(), 0);
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_SZNear", (m_PHack_Data.PHackSZNear ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_SZFar", (m_PHack_Data.PHackSZFar ? 1 : 0), 0);
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_ZNear", m_PHack_Data.PHZNear, "");
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video", "PH_ZFar", m_PHack_Data.PHZFar, "");
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId", EmuState->GetSelection(), 0);
 
 	std::string emu_issues = EmuIssues->GetValue().ToStdString();
-	SAVE_IF_NOT_DEFAULT("EmuState", "EmulationIssues", emu_issues, "");
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues", emu_issues, "");
 
 	std::string tmp;
 	if (GPUDeterminism->GetSelection() == 0)
@@ -1147,23 +1159,23 @@ bool CISOProperties::SaveGameConfig()
 	else if (GPUDeterminism->GetSelection() == 3)
 		tmp = "fake-completion";
 
-	SAVE_IF_NOT_DEFAULT("Core", "GPUDeterminismMode", tmp, "Not Set");
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core", "GPUDeterminismMode", tmp, "Not Set");
 
 	int depth = DepthPercentage->GetValue() > 0 ? DepthPercentage->GetValue() : 100;
-	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
-	SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergence", Convergence->GetValue(), 0);
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy", "StereoDepthPercentage", depth, 100);
+	SAVE_IF_NOT_DEFAULT(OnionConfig::OnionSystem::SYSTEM_GFX, "Video_Stereoscopy", "StereoConvergence", Convergence->GetValue(), 0);
 
 	PatchList_Save();
 	ActionReplayList_Save();
-	Gecko::SaveCodes(GameIniLocal, m_geckocode_panel->GetCodes());
+	Gecko::SaveCodes(m_local_config.get(), m_geckocode_panel->GetCodes());
 
-	bool success = GameIniLocal.Save(GameIniFileLocal);
+	m_local_config->Save();
 
 	// If the resulting file is empty, delete it. Kind of a hack, but meh.
-	if (success && File::GetSize(GameIniFileLocal) == 0)
-		File::Delete(GameIniFileLocal);
+	if (File::GetSize(game_config_backing) == 0)
+		File::Delete(game_config_backing);
 
-	return success;
+	return true;
 }
 
 void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait_until_closed)
@@ -1214,13 +1226,13 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
 	SaveGameConfig();
 	// Create blank file to prevent editor from prompting to create it.
-	if (!File::Exists(GameIniFileLocal))
+	if (!File::Exists(game_config_backing))
 	{
-		std::fstream blankFile(GameIniFileLocal, std::ios::out);
+		std::fstream blankFile(game_config_backing, std::ios::out);
 		blankFile.close();
 	}
-	LaunchExternalEditor(GameIniFileLocal, true);
-	GameIniLocal.Load(GameIniFileLocal);
+	LaunchExternalEditor(game_config_backing, true);
+	m_local_config->Load();
 	LoadGameConfig();
 }
 
@@ -1319,7 +1331,7 @@ void CISOProperties::PatchList_Load()
 	onFrame.clear();
 	Patches->Clear();
 
-	PatchEngine::LoadPatchSection("OnFrame", onFrame, GameIniDefault, GameIniLocal);
+	PatchEngine::LoadPatchSection(onFrame);
 
 	u32 index = 0;
 	for (PatchEngine::Patch& p : onFrame)
@@ -1354,8 +1366,12 @@ void CISOProperties::PatchList_Save()
 		}
 		++index;
 	}
-	GameIniLocal.SetLines("OnFrame_Enabled", enabledLines);
-	GameIniLocal.SetLines("OnFrame", lines);
+
+	OnionConfig::OnionPetal* onframe = m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame");
+	OnionConfig::OnionPetal* onframe_enabled = m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame_Enabled");
+
+	onframe_enabled->SetLines(enabledLines);
+	onframe->SetLines(lines);
 }
 
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
@@ -1401,7 +1417,7 @@ void CISOProperties::ActionReplayList_Load()
 {
 	arCodes.clear();
 	Cheats->Clear();
-	ActionReplay::LoadCodes(arCodes, GameIniDefault, GameIniLocal);
+	ActionReplay::LoadCodes(m_global_config.get(), m_local_config.get(), arCodes);
 
 	u32 index = 0;
 	for (const ActionReplay::ARCode& arCode : arCodes)
@@ -1437,8 +1453,12 @@ void CISOProperties::ActionReplayList_Save()
 		}
 		++index;
 	}
-	GameIniLocal.SetLines("ActionReplay_Enabled", enabledLines);
-	GameIniLocal.SetLines("ActionReplay", lines);
+
+	OnionConfig::OnionPetal* ar = m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
+	OnionConfig::OnionPetal* ar_enabled = m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+
+	ar_enabled->SetLines(enabledLines);
+	ar->SetLines(lines);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
