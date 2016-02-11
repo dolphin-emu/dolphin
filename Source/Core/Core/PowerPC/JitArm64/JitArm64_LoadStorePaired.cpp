@@ -62,20 +62,17 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
 	if (js.assumeNoPairedQuantize)
 	{
-		VS = fpr.RW(inst.RS, REG_REG);
+		VS = fpr.RW(inst.RS, REG_REG_SINGLE);
 		if (!inst.W)
 		{
 			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), X28);
 			m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
-			m_float_emit.REV32(8, VS, VS);
-			m_float_emit.FCVTL(64, VS, VS);
 		}
 		else
 		{
 			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), X28);
-			m_float_emit.REV32(8, VS, VS);
-			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
 		}
+		m_float_emit.REV32(8, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
 	}
 	else
 	{
@@ -87,17 +84,14 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 		LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 		BLR(X30);
 
-		VS = fpr.RW(inst.RS, REG_REG);
-		if (!inst.W)
-			m_float_emit.FCVTL(64, VS, D0);
-		else
-			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), D0);
+		VS = fpr.RW(inst.RS, REG_REG_SINGLE);
+		m_float_emit.ORR(EncodeRegToDouble(VS), D0, D0);
 	}
 
 	if (inst.W)
 	{
-		m_float_emit.FMOV(D0, 0x70); // 1.0 as a Double
-		m_float_emit.INS(64, VS, 1, Q0, 0);
+		m_float_emit.FMOV(S0, 0x70); // 1.0 as a Single
+		m_float_emit.INS(32, VS, 1, Q0, 0);
 	}
 
 	gpr.Unlock(W0, W1, W2, W30);
