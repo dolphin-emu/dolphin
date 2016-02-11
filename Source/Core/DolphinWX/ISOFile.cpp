@@ -20,12 +20,13 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 
 #include "DiscIO/Blob.h"
@@ -181,12 +182,25 @@ void GameListItem::ReloadINI()
   if (!IsValid())
     return;
 
-  IniFile ini = SConfig::LoadGameIni(m_game_id, m_Revision);
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state, 0);
-  ini.GetIfExists("EmuState", "EmulationIssues", &m_issues, std::string());
+  auto global_config = std::make_unique<Config::Layer>(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateGlobalGameConfigLoader(m_game_id, m_Revision)));
+  auto local_config = std::make_unique<Config::Layer>(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateLocalGameConfigLoader(m_game_id, m_Revision)));
+
+  global_config->Load();
+  local_config->Load();
+
+  if (!local_config->GetIfExists(Config::System::UI, "EmuState", "EmulationStateId", &m_emu_state))
+    global_config->GetIfExists(Config::System::UI, "EmuState", "EmulationStateId", &m_emu_state);
+  if (!local_config->GetIfExists(Config::System::UI, "EmuState", "EmulationIssues", &m_issues))
+    global_config->GetIfExists(Config::System::UI, "EmuState", "EmulationIssues", &m_issues);
 
   m_custom_name.clear();
-  m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+  if (!(m_has_custom_name =
+            local_config->GetIfExists(Config::System::UI, "EmuState", "Title", &m_custom_name)))
+    m_has_custom_name =
+        global_config->GetIfExists(Config::System::UI, "EmuState", "Title", &m_custom_name);
+
   if (!m_has_custom_name && !m_custom_name_titles_txt.empty())
   {
     m_custom_name = m_custom_name_titles_txt;
