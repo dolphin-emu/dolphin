@@ -15,6 +15,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/Movie.h"
@@ -150,10 +151,9 @@ void TASInputDlg::CreateWiiLayout(int num)
 	}
 	else
 	{
-		IniFile ini;
-		ini.Load(File::GetUserPath(D_CONFIG_IDX) + "WiimoteNew.ini");
 		std::string extension;
-		ini.GetIfExists("Wiimote" + std::to_string(num + 1), "Extension", &extension);
+		OnionConfig::OnionPetal* wiimote = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, "Wiimote" + std::to_string(num + 1));
+		wiimote->Get("Extension", &extension);
 
 		if (extension == "Nunchuk")
 			m_ext = 1;
