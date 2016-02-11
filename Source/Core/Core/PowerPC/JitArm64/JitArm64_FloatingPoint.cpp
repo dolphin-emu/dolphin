@@ -191,8 +191,12 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 	u32 a = inst.FA, b = inst.FB;
 	int crf = inst.CRFD;
 
-	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(b);
+	RegType type = singles ? REG_IS_LOADED_SINGLE : REG_IS_LOADED;
+	ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToSingle : EncodeRegToDouble;
+
+	ARM64Reg VA = reg_encoder(fpr.R(a, type));
+	ARM64Reg VB = reg_encoder(fpr.R(b, type));
 
 	ARM64Reg WA = gpr.GetReg();
 	ARM64Reg XA = EncodeRegTo64(WA);
@@ -201,7 +205,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 	FixupBranch continue1, continue2, continue3;
 	ORR(XA, ZR, 32, 0, true);
 
-	m_float_emit.FCMP(EncodeRegToDouble(VA), EncodeRegToDouble(VB));
+	m_float_emit.FCMP(VA, VB);
 
 	if (a != b)
 	{
