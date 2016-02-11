@@ -166,11 +166,20 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
+	if (fpr.IsSingle(b))
+	{
+		// Source is already in single precision, so no need to do anything but to copy to PSR1.
+		ARM64Reg VB = fpr.R(b, REG_IS_LOADED_SINGLE);
+		ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
+
+		if (b != d)
+			m_float_emit.ORR(VD, VB, VB);
+	}
+
 	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VD = fpr.RW(d, REG_DUP);
+	ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
 
 	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-	m_float_emit.FCVT(64, 32, EncodeRegToDouble(VD), EncodeRegToDouble(VD));
 }
 
 void JitArm64::fcmpX(UGeckoInstruction inst)
