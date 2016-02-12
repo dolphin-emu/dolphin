@@ -270,7 +270,16 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	gpr.Lock(W0, W1, W30);
 	fpr.Lock(Q0);
 
-	ARM64Reg V0 = fpr.R(inst.FS, REG_IS_LOADED);
+	bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS);
+
+	ARM64Reg V0 = fpr.R(inst.FS, single ? REG_IS_LOADED_SINGLE : REG_IS_LOADED);
+
+	if (single)
+	{
+		flags &= ~BackPatchInfo::FLAG_SIZE_F32;
+		flags |= BackPatchInfo::FLAG_SIZE_F32I;
+	}
+
 	ARM64Reg addr_reg = W1;
 
 	if (update)
@@ -407,24 +416,29 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 				ADD(X1, X30, pipe_off);
 
 			LDR(INDEX_UNSIGNED, W0, X30, count_off);
-			if (accessSize == 64)
+			if (flags & BackPatchInfo::FLAG_SIZE_F64)
 			{
 				m_float_emit.REV64(8, Q0, V0);
-				if (pipe_off)
-					m_float_emit.STR(64, Q0, X1, ArithOption(X0));
-				else
-					m_float_emit.STR(64, Q0, X30, ArithOption(X0));
 			}
-			else if (accessSize == 32)
+			else if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
 				m_float_emit.FCVT(32, 64, D0, EncodeRegToDouble(V0));
 				m_float_emit.REV32(8, D0, D0);
-				if (pipe_off)
-					m_float_emit.STR(32, D0, X1, ArithOption(X0));
-				else
-					m_float_emit.STR(32, D0, X30, ArithOption(X0));
-
 			}
+			else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
+			{
+				m_float_emit.REV32(8, D0, V0);
+			}
+
+			if (pipe_off)
+			{
+				m_float_emit.STR(accessSize, accessSize == 64 ? Q0 : D0, X1, ArithOption(X0));
+			}
+			else
+			{
+				m_float_emit.STR(accessSize, accessSize == 64 ? Q0 : D0, X30, ArithOption(X0));
+			}
+
 			ADD(W0, W0, accessSize >> 3);
 			STR(INDEX_UNSIGNED, W0, X30, count_off);
 			js.fifoBytesThisBlock += accessSize >> 3;
