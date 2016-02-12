@@ -191,7 +191,7 @@ namespace DriverDetails
 		// Bug: Broken lines in geometry shaders
 		// Affected Devices: Mesa r600/radeonsi, Mesa Sandy Bridge
 		// Started Version: -1
-		// Ended Version: 11.1.2
+		// Ended Version: 11.1.2 for radeon, -1 for Sandy
 		// Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test it with us.
 		// Causes misrenderings on a large amount of things that draw lines.
 		BUG_BROKENGEOMETRYSHADERS,
