@@ -57,16 +57,19 @@ void GameList::MakeTableView()
 	m_table->setColumnHidden(GameListModel::COL_COUNTRY, false);
 	m_table->setColumnHidden(GameListModel::COL_RATING, false);
 
-	QHeaderView* header = m_table->horizontalHeader();
-	header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
-	header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
-	header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
-	header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
-	header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
-	header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
-	header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
-	header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-	header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::Fixed);
+	QHeaderView* hor_header = m_table->horizontalHeader();
+	hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
+	hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
+	hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
+	hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
+	hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
+	hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
+	hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
+	hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
+	hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::Fixed);
+
+	QHeaderView* ver_header = m_table->verticalHeader();
+	ver_header->setSectionResizeMode(QHeaderView::ResizeToContents);
 }
 
 void GameList::MakeEmptyView()
