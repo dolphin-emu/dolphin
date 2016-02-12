@@ -1015,7 +1015,7 @@ void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 	if (!iso || !File::Exists(iso->GetFileName()))
 	{
 		WxUtils::ShowErrorDialog(
-			wxString::Format(_("Could not open %s. File might be renamed or deleted."),
+			wxString::Format(_("Could not open %s. The file might have been renamed or deleted."),
 			iso->GetName().c_str()));
 		Update();
 		return;
