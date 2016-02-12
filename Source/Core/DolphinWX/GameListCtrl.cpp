@@ -1058,8 +1058,15 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 void CGameListCtrl::OnProperties(wxCommandEvent& WXUNUSED (event))
 {
 	const GameListItem* iso = GetSelectedISO();
-	if (!iso)
+
+	if (!iso || !File::Exists(iso->GetFileName()))
+	{
+		WxUtils::ShowErrorDialog(
+			wxString::Format(_("Could not open %s. The file might have been renamed or deleted."),
+			iso->GetName().c_str()));
+		Update();
 		return;
+	}
 
 	CISOProperties* ISOProperties = new CISOProperties(*iso, this);
 	ISOProperties->Show();
