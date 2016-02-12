@@ -36,8 +36,9 @@ public:
 	void Update() override;
 
 	void BrowseForDirectory();
-	const GameListItem *GetSelectedISO();
-	const GameListItem *GetISO(size_t index) const;
+	const GameListItem* GetISO(size_t index) const;
+	const GameListItem* GetSelectedISO() const;
+	std::vector<const GameListItem*> GetAllSelectedISOs() const;
 
 	static bool IsHidingItems();
 
@@ -108,9 +109,6 @@ private:
 	void HideColumn(int column);
 	void UnselectAll();
 
-	static size_t m_currentItem;
-	static std::string m_currentFilename;
-	static size_t m_numberItem;
 	static bool CompressCB(const std::string& text, float percent, void* arg);
 	static bool MultiCompressCB(const std::string& text, float percent, void* arg);
 	static bool WiiCompressWarning();

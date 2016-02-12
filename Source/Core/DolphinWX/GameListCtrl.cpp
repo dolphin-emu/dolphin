@@ -53,9 +53,19 @@
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
-size_t CGameListCtrl::m_currentItem = 0;
-size_t CGameListCtrl::m_numberItem = 0;
-std::string CGameListCtrl::m_currentFilename;
+struct CompressionProgress final
+{
+public:
+	CompressionProgress(int items_done_, int items_total_, const std::string& current_filename_, wxProgressDialog* dialog_)
+		: items_done(items_done_), items_total(items_total_), current_filename(current_filename_), dialog(dialog_)
+	{ }
+
+	int items_done;
+	int items_total;
+	std::string current_filename;
+	wxProgressDialog* dialog;
+};
+
 static bool sorted = false;
 
 static int CompareGameListItems(const GameListItem* iso1, const GameListItem* iso2,
@@ -921,7 +931,7 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 	}
 }
 
-const GameListItem * CGameListCtrl::GetSelectedISO()
+const GameListItem* CGameListCtrl::GetSelectedISO() const
 {
 	if (m_ISOFiles.size() == 0)
 	{
@@ -935,20 +945,21 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
-		{
 			return nullptr;
-		}
-		else
-		{
-			// Here is a little workaround for multiselections:
-			// when > 1 item is selected, return info on the first one
-			// and deselect it so the next time GetSelectedISO() is called,
-			// the next item's info is returned
-			if (GetSelectedItemCount() > 1)
-				SetItemState(item, 0, wxLIST_STATE_SELECTED);
+		return m_ISOFiles[GetItemData(item)];
+	}
+}
 
-			return m_ISOFiles[GetItemData(item)];
-		}
+std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
+{
+	std::vector<const GameListItem*> result;
+	long item = -1;
+	while (true)
+	{
+		item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+		if (item == wxNOT_FOUND)
+			return result;
+		result.push_back(m_ISOFiles[GetItemData(item)]);
 	}
 }
 
@@ -1032,32 +1043,15 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
 
 void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 {
-	if (GetSelectedItemCount() == 1)
-	{
-		const GameListItem* iso = GetSelectedISO();
-		if (!iso)
-			return;
-		if (wxMessageBox(_("Are you sure you want to delete this file?  It will be gone forever!"),
-					_("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
-		{
-			File::Delete(iso->GetFileName());
-			Update();
-		}
-	}
-	else
-	{
-		if (wxMessageBox(_("Are you sure you want to delete these files?\nThey will be gone forever!"),
-					_("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
-		{
-			int selected = GetSelectedItemCount();
+	const wxString message = GetSelectedItemCount() == 1 ?
+			_("Are you sure you want to delete this file? It will be gone forever!") :
+			_("Are you sure you want to delete these files? They will be gone forever!");
 
-			for (int i = 0; i < selected; i++)
-			{
-				const GameListItem* iso = GetSelectedISO();
-				File::Delete(iso->GetFileName());
-			}
-			Update();
-		}
+	if (wxMessageBox(message, _("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
+	{
+		for (const GameListItem* iso : GetAllSelectedISOs())
+			File::Delete(iso->GetFileName());
+		Update();
 	}
 }
 
@@ -1083,12 +1077,14 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED (event))
 
 bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
 {
-	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-	wxString textString(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
-				m_currentFilename.c_str(), (int)m_currentItem + 1,
-				(int)m_numberItem, text.c_str())));
+	CompressionProgress* progress = static_cast<CompressionProgress*>(arg);
 
-	return ((wxProgressDialog*)arg)->Update((int)(percent * 1000), textString);
+	float total_percent = ((float)progress->items_done + percent) / (float)progress->items_total;
+	wxString text_string(StrToWxStr(StringFromFormat("%s (%i/%i) - %s",
+				progress->current_filename.c_str(), progress->items_done + 1,
+				progress->items_total, text.c_str())));
+
+	return progress->dialog->Update(total_percent * progress->dialog->GetRange(), text_string);
 }
 
 void CGameListCtrl::OnMultiCompressISO(wxCommandEvent& /*event*/)
@@ -1103,6 +1099,29 @@ void CGameListCtrl::OnMultiDecompressISO(wxCommandEvent& /*event*/)
 
 void CGameListCtrl::CompressSelection(bool _compress)
 {
+	std::vector<const GameListItem*> items_to_compress;
+	bool wii_compression_warning_accepted = false;
+	for (const GameListItem* iso : GetAllSelectedISOs())
+	{
+		// Don't include items that we can't do anything with
+		if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
+			continue;
+		if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
+			continue;
+
+		items_to_compress.push_back(iso);
+
+		// Show the Wii compression warning if it's relevant and it hasn't been shown already
+		if (!wii_compression_warning_accepted && _compress &&
+		    !iso->IsCompressed() && iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
+		{
+			if (WiiCompressWarning())
+				wii_compression_warning_accepted = true;
+			else
+				return;
+		}
+	}
+
 	wxString dirHome;
 	wxGetHomeDir(&dirHome);
 
@@ -1117,7 +1136,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 		wxProgressDialog progressDialog(
 			_compress ? _("Compressing ISO") : _("Decompressing ISO"),
 			_("Working..."),
-			1000,
+			1000, // Arbitrary number that's larger than the dialog's width in pixels
 			this,
 			wxPD_APP_MODAL |
 			wxPD_CAN_ABORT |
@@ -1125,24 +1144,15 @@ void CGameListCtrl::CompressSelection(bool _compress)
 			wxPD_SMOOTH
 			);
 
-		m_currentItem = 0;
-		m_numberItem = GetSelectedItemCount();
-		for (u32 i = 0; i < m_numberItem; i++)
-		{
-			const GameListItem* iso = GetSelectedISO();
-			if (iso->GetPlatform() != DiscIO::IVolume::GAMECUBE_DISC && iso->GetPlatform() != DiscIO::IVolume::WII_DISC)
-				continue;
-			if (iso->GetBlobType() != DiscIO::BlobType::PLAIN && iso->GetBlobType() != DiscIO::BlobType::GCZ)
-				continue;
+		CompressionProgress progress(0, items_to_compress.size(), "", &progressDialog);
 
+		for (const GameListItem* iso : items_to_compress)
+		{
 			if (!iso->IsCompressed() && _compress)
 			{
-				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC && !WiiCompressWarning())
-					return;
-
-				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
-				m_currentFilename = FileName;
+				std::string FileName;
+				SplitPath(iso->GetFileName(), nullptr, &FileName, nullptr);
+				progress.current_filename = FileName;
 				FileName.append(".gcz");
 
 				std::string OutputFileName;
@@ -1161,13 +1171,13 @@ void CGameListCtrl::CompressSelection(bool _compress)
 				all_good &= DiscIO::CompressFileToBlob(iso->GetFileName(),
 						OutputFileName,
 						(iso->GetPlatform() == DiscIO::IVolume::WII_DISC) ? 1 : 0,
-						16384, &MultiCompressCB, &progressDialog);
+						16384, &MultiCompressCB, &progress);
 			}
 			else if (iso->IsCompressed() && !_compress)
 			{
-				std::string FileName, FileExt;
-				SplitPath(iso->GetFileName(), nullptr, &FileName, &FileExt);
-				m_currentFilename = FileName;
+				std::string FileName;
+				SplitPath(iso->GetFileName(), nullptr, &FileName, nullptr);
+				progress.current_filename = FileName;
 				if (iso->GetPlatform() == DiscIO::IVolume::WII_DISC)
 					FileName.append(".iso");
 				else
@@ -1187,9 +1197,10 @@ void CGameListCtrl::CompressSelection(bool _compress)
 					continue;
 
 				all_good &= DiscIO::DecompressBlobToFile(iso->GetFileName().c_str(),
-						OutputFileName.c_str(), &MultiCompressCB, &progressDialog);
+						OutputFileName.c_str(), &MultiCompressCB, &progress);
 			}
-			m_currentItem++;
+
+			progress.items_done++;
 		}
 	}
 
