@@ -57,7 +57,23 @@ macro(check_libav)
 		pkg_check_modules(LIBAV libavcodec>=54.35.0 libavformat>=54.20.4
 			libswscale>=2.1.1 libavutil>=52.3.0)
 	else()
-		message("pkg-config is required to check for libav/ffmpeg")
+		# Attempt to find it through static means
+		set(LIBAV_LDFLAGS avformat avcodec swscale avutil)
+		set(CMAKE_REQUIRED_LIBRARIES ${LIBAV_LDFLAGS})
+		CHECK_CXX_SOURCE_COMPILES(
+			"extern \"C\" {
+			#include <libavcodec/avcodec.h>
+			#include <libavformat/avformat.h>
+			#include <libavutil/mathematics.h>
+			#include <libswscale/swscale.h>
+			}
+			int main(int argc, char **argv)
+			{
+				av_register_all();
+				return 0;
+			}"
+			LIBAV_FOUND)
+		unset(CMAKE_REQUIRED_LIBRARIES)
 	endif()
 	if(LIBAV_FOUND)
 		message("libav/ffmpeg found, enabling AVI frame dumps")
