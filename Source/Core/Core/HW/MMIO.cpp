@@ -197,7 +197,7 @@ template <typename T>
 ReadHandlingMethod<T>* InvalidRead()
 {
 	return ComplexRead<T>([](u32 addr) {
-		ERROR_LOG(MEMMAP, "Trying to read %zu bytes from an invalid MMIO (addr=%08x)",
+		ERROR_LOG(MEMMAP, "Trying to read %zu bits from an invalid MMIO (addr=%08x)",
 			8 * sizeof(T), addr);
 		return -1;
 	});
@@ -206,7 +206,7 @@ template <typename T>
 WriteHandlingMethod<T>* InvalidWrite()
 {
 	return ComplexWrite<T>([](u32 addr, T val) {
-		ERROR_LOG(MEMMAP, "Trying to write %zu bytes to an invalid MMIO (addr=%08x, val=%08x)",
+		ERROR_LOG(MEMMAP, "Trying to write %zu bits to an invalid MMIO (addr=%08x, val=%08x)",
 			8 * sizeof(T), addr, (u32)val);
 	});
 }
