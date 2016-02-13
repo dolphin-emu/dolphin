@@ -137,56 +137,20 @@ public:
 	void stfXX(UGeckoInstruction inst);
 
 	// Floating point
-	void fabsx(UGeckoInstruction inst);
-	void faddsx(UGeckoInstruction inst);
-	void faddx(UGeckoInstruction inst);
-	void fmaddsx(UGeckoInstruction inst);
-	void fmaddx(UGeckoInstruction inst);
-	void fmrx(UGeckoInstruction inst);
-	void fmsubsx(UGeckoInstruction inst);
-	void fmsubx(UGeckoInstruction inst);
-	void fmulsx(UGeckoInstruction inst);
-	void fmulx(UGeckoInstruction inst);
-	void fnabsx(UGeckoInstruction inst);
-	void fnegx(UGeckoInstruction inst);
-	void fnmaddsx(UGeckoInstruction inst);
-	void fnmaddx(UGeckoInstruction inst);
-	void fnmsubsx(UGeckoInstruction inst);
-	void fnmsubx(UGeckoInstruction inst);
+	void fp_arith(UGeckoInstruction inst);
+	void fp_logic(UGeckoInstruction inst);
 	void fselx(UGeckoInstruction inst);
-	void fsubsx(UGeckoInstruction inst);
-	void fsubx(UGeckoInstruction inst);
 	void fcmpX(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);
 	void fctiwzx(UGeckoInstruction inst);
-	void fdivx(UGeckoInstruction inst);
-	void fdivsx(UGeckoInstruction inst);
 
 	// Paired
-	void ps_abs(UGeckoInstruction inst);
-	void ps_add(UGeckoInstruction inst);
-	void ps_div(UGeckoInstruction inst);
-	void ps_madd(UGeckoInstruction inst);
-	void ps_madds0(UGeckoInstruction inst);
-	void ps_madds1(UGeckoInstruction inst);
-	void ps_merge00(UGeckoInstruction inst);
-	void ps_merge01(UGeckoInstruction inst);
-	void ps_merge10(UGeckoInstruction inst);
-	void ps_merge11(UGeckoInstruction inst);
-	void ps_mr(UGeckoInstruction inst);
-	void ps_msub(UGeckoInstruction inst);
-	void ps_mul(UGeckoInstruction inst);
-	void ps_muls0(UGeckoInstruction inst);
-	void ps_muls1(UGeckoInstruction inst);
-	void ps_nabs(UGeckoInstruction inst);
-	void ps_nmadd(UGeckoInstruction inst);
-	void ps_nmsub(UGeckoInstruction inst);
-	void ps_neg(UGeckoInstruction inst);
+	void ps_maddXX(UGeckoInstruction inst);
+	void ps_mergeXX(UGeckoInstruction inst);
+	void ps_mulsX(UGeckoInstruction inst);
 	void ps_res(UGeckoInstruction inst);
 	void ps_sel(UGeckoInstruction inst);
-	void ps_sub(UGeckoInstruction inst);
-	void ps_sum0(UGeckoInstruction inst);
-	void ps_sum1(UGeckoInstruction inst);
+	void ps_sumX(UGeckoInstruction inst);
 
 	// Loadstore paired
 	void psq_l(UGeckoInstruction inst);
