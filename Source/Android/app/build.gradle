@@ -15,7 +15,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 21
-        targetSdkVersion 21
+        targetSdkVersion 23
 
         // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
         versionCode 13
@@ -85,7 +85,7 @@ dependencies {
     compile 'com.android.support:leanback-v17:23.1.1'
 
     // For showing the banner as a circle a-la Material Design Guidelines
-    compile 'de.hdodenhof:circleimageview:1.2.2'
+    compile 'de.hdodenhof:circleimageview:2.0.0'
 
     // For loading huge screenshots from the disk.
     compile 'com.squareup.picasso:picasso:2.5.2'
@@ -230,8 +230,6 @@ String getAbi() {
 
     if (taskName.contains("Arm_64")) {
         abi = "arm64-v8a"
-    } else if (taskName.contains("Arm")) {
-        abi = "armeabi-v7a"
     } else if (taskName.contains("X86_64")) {
         abi = "x86_64"
     }
@@ -250,8 +248,6 @@ String getToolchainName() {
 
     if (taskName.contains("Arm_64")) {
         toolchain = "aarch64-linux-android-4.9"
-    } else if (taskName.contains("Arm")) {
-        toolchain = "arm-linux-androideabi-4.9"
     } else if (taskName.contains("X86_64")) {
         toolchain = "x86_64-4.9"
     }
