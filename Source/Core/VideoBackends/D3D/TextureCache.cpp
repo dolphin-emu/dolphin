@@ -93,7 +93,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		srcbox.right = srcrect.right;
 		srcbox.bottom = srcrect.bottom;
 		srcbox.front = 0;
-		srcbox.back = 1;
+		srcbox.back = srcentry->config.layers;
 
 		D3D::context->CopySubresourceRegion(
 			texture->GetTex(),
@@ -130,7 +130,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		srcentry->config.width, srcentry->config.height,
 		PixelShaderCache::GetColorCopyProgram(false),
 		VertexShaderCache::GetSimpleVertexShader(),
-		VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0, 0);
+		VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
 	D3D::context->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV(),

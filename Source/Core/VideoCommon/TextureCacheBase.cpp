@@ -226,6 +226,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 	TextureCacheBase::TCacheEntryConfig newconfig;
 	newconfig.width = new_width;
 	newconfig.height = new_height;
+	newconfig.layers = (*entry)->config.layers;
 	newconfig.rendertarget = true;
 
 	TCacheEntryBase* newentry = AllocateTexture(newconfig);
