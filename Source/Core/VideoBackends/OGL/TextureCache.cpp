@@ -168,7 +168,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 			0,
 			dstrect.GetWidth(),
 			dstrect.GetHeight(),
-			1);
+			srcentry->native_levels);
 		return;
 	}
 	else if (!framebuffer)
