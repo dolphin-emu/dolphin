@@ -487,8 +487,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 	{
 		TCacheEntryBase* entry = iter->second;
 		// Do not load strided EFB copies, they are not meant to be used directly
-		if (entry->IsEfbCopy() && entry->native_width == nativeW && entry->native_height == nativeH &&
-			entry->memory_stride == entry->BytesPerRow())
+		if (entry->IsEfbCopy() && entry->memory_stride == entry->BytesPerRow())
 		{
 			// EFB copies have slightly different rules as EFB copy formats have different
 			// meanings from texture formats.
