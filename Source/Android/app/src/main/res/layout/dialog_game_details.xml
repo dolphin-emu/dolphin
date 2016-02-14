@@ -19,8 +19,8 @@
             android:layout_marginLeft="16dp"
             android:layout_marginTop="24dp"
             tools:src="@drawable/placeholder_banner"
-            app:border_color="?android:colorAccent"
-            app:border_width="2dp"
+            app:civ_border_color="?android:colorAccent"
+            app:civ_border_width="2dp"
             />
 
         <ImageView
