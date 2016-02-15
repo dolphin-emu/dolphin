@@ -121,7 +121,7 @@ public:
 	void FinalizeCarry(bool ca);
 	void Compare(int crf, bool merge_branch, GPRNative& input, GPRRegister& comparand);
 	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
-	
+
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(GPRRegister& reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
@@ -144,7 +144,7 @@ public:
 
 	void HandleNaNs(bool single, std::vector<FPURegister> inputs, Gen::X64Reg xmm_out, Gen::X64Reg xmm);
 
-	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
+	void MultiplyImmediate(u32 imm, GPRRegister& ra, GPRNative& xd, bool overflow);
 
 	typedef u32 (*Operation)(u32 a, u32 b);
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
