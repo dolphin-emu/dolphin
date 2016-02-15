@@ -186,13 +186,16 @@ void Jit64AsmRoutineManager::Generate()
 			}
 			SetJumpTarget(notfound);
 
+			// We reset the stack because Jit might clear the code cache.
+			// Also if we are in the middle of disabling BLR optimization on windows
+			// we need to reset the stack before _resetstkoflw() is called in Jit
+			// otherwise we will generate a second stack overflow exception during DoJit()
+			ResetStack();
+
 			//Ok, no block, let's jit
 			ABI_PushRegistersAndAdjustStack({}, 0);
 			ABI_CallFunctionA(32, (void *)&Jit, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack({}, 0);
-
-			// Jit might have cleared the code cache
-			ResetStack();
 
 			JMP(dispatcherNoCheck, true); // no point in special casing this
 
