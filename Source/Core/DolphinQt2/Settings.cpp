@@ -120,6 +120,16 @@ bool Settings::GetConfirmStop() const
 	return value(QStringLiteral("Emulation/ConfirmStop"), true).toBool();
 }
 
+int Settings::GetStateSlot() const
+{
+	return value(QStringLiteral("Emulation/StateSlot"), 1).toInt();
+}
+
+void Settings::SetStateSlot(int slot)
+{
+	setValue(QStringLiteral("Emulation/StateSlot"), slot);
+}
+
 bool Settings::GetRenderToMain() const
 {
 	return value(QStringLiteral("Graphics/RenderToMain"), false).toBool();
