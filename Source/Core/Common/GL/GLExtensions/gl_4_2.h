@@ -136,28 +136,41 @@
 #define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT 0x8E8F
 #define GL_TEXTURE_IMMUTABLE_FORMAT       0x912F
 
-typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
-typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance);
-typedef void (APIENTRYP PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
-typedef void (APIENTRYP PFNGLGETINTERNALFORMATIVPROC) (GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
-typedef void (APIENTRYP PFNGLGETACTIVEATOMICCOUNTERBUFFERIVPROC) (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNGLBINDIMAGETEXTUREPROC) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
-typedef void (APIENTRYP PFNGLMEMORYBARRIERPROC) (GLbitfield barriers);
-typedef void (APIENTRYP PFNGLTEXSTORAGE1DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
-typedef void (APIENTRYP PFNGLTEXSTORAGE2DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
-typedef void (APIENTRYP PFNGLTEXSTORAGE3DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
-typedef void (APIENTRYP PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC) (GLenum mode, GLuint id, GLsizei instancecount);
-typedef void (APIENTRYP PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC) (GLenum mode, GLuint id, GLuint stream, GLsizei instancecount);
+typedef void (APIENTRYP PFNDOLDRAWARRAYSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLint first, GLsizei count, GLsizei instancecount, GLuint baseinstance);
+typedef void (APIENTRYP PFNDOLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLuint baseinstance);
+typedef void (APIENTRYP PFNDOLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex, GLuint baseinstance);
+typedef void (APIENTRYP PFNDOLGETINTERNALFORMATIVPROC) (GLenum target, GLenum internalformat, GLenum pname, GLsizei bufSize, GLint *params);
+typedef void (APIENTRYP PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC) (GLuint program, GLuint bufferIndex, GLenum pname, GLint *params);
+typedef void (APIENTRYP PFNDOLBINDIMAGETEXTUREPROC) (GLuint unit, GLuint texture, GLint level, GLboolean layered, GLint layer, GLenum access, GLenum format);
+typedef void (APIENTRYP PFNDOLMEMORYBARRIERPROC) (GLbitfield barriers);
+typedef void (APIENTRYP PFNDOLTEXSTORAGE1DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width);
+typedef void (APIENTRYP PFNDOLTEXSTORAGE2DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void (APIENTRYP PFNDOLTEXSTORAGE3DPROC) (GLenum target, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+typedef void (APIENTRYP PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC) (GLenum mode, GLuint id, GLsizei instancecount);
+typedef void (APIENTRYP PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC) (GLenum mode, GLuint id, GLuint stream, GLsizei instancecount);
 
-extern PFNGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC glDrawArraysInstancedBaseInstance;
-extern PFNGLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC glDrawElementsInstancedBaseInstance;
-extern PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC glDrawElementsInstancedBaseVertexBaseInstance;
-extern PFNGLGETINTERNALFORMATIVPROC glGetInternalformativ;
-extern PFNGLGETACTIVEATOMICCOUNTERBUFFERIVPROC glGetActiveAtomicCounterBufferiv;
-extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
-extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
-extern PFNGLTEXSTORAGE1DPROC glTexStorage1D;
-extern PFNGLTEXSTORAGE2DPROC glTexStorage2D;
-extern PFNGLTEXSTORAGE3DPROC glTexStorage3D;
-extern PFNGLDRAWTRANSFORMFEEDBACKINSTANCEDPROC glDrawTransformFeedbackInstanced;
-extern PFNGLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC glDrawTransformFeedbackStreamInstanced;
+extern PFNDOLDRAWARRAYSINSTANCEDBASEINSTANCEPROC dolDrawArraysInstancedBaseInstance;
+extern PFNDOLDRAWELEMENTSINSTANCEDBASEINSTANCEPROC dolDrawElementsInstancedBaseInstance;
+extern PFNDOLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC dolDrawElementsInstancedBaseVertexBaseInstance;
+extern PFNDOLGETINTERNALFORMATIVPROC dolGetInternalformativ;
+extern PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC dolGetActiveAtomicCounterBufferiv;
+extern PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
+extern PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
+extern PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
+extern PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
+extern PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
+extern PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
+extern PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
+
+#define glDrawArraysInstancedBaseInstance dolDrawArraysInstancedBaseInstance
+#define glDrawElementsInstancedBaseInstance dolDrawElementsInstancedBaseInstance
+#define glDrawElementsInstancedBaseVertexBaseInstance dolDrawElementsInstancedBaseVertexBaseInstance
+#define glGetInternalformativ dolGetInternalformativ
+#define glGetActiveAtomicCounterBufferiv dolGetActiveAtomicCounterBufferiv
+#define glBindImageTexture dolBindImageTexture
+#define glMemoryBarrier dolMemoryBarrier
+#define glTexStorage1D dolTexStorage1D
+#define glTexStorage2D dolTexStorage2D
+#define glTexStorage3D dolTexStorage3D
+#define glDrawTransformFeedbackInstanced dolDrawTransformFeedbackInstanced
+#define glDrawTransformFeedbackStreamInstanced dolDrawTransformFeedbackStreamInstanced
