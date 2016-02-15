@@ -661,6 +661,16 @@ PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
+// gl_4_4
+PFNDOLCLEARTEXIMAGEPROC dolClearTexImage;
+PFNDOLCLEARTEXSUBIMAGEPROC dolClearTexSubImage;
+PFNDOLBINDBUFFERSBASEPROC dolBindBuffersBase;
+PFNDOLBINDBUFFERSRANGEPROC dolBindBuffersRange;
+PFNDOLBINDTEXTURESPROC dolBindTextures;
+PFNDOLBINDSAMPLERSPROC dolBindSamplers;
+PFNDOLBINDIMAGETEXTURESPROC dolBindImageTextures;
+PFNDOLBINDVERTEXBUFFERSPROC dolBindVertexBuffers;
+
 // gl_4_5
 PFNDOLCREATETRANSFORMFEEDBACKSPROC dolCreateTransformFeedbacks;
 PFNDOLTRANSFORMFEEDBACKBUFFERBASEPROC dolTransformFeedbackBufferBase;
@@ -1616,6 +1626,17 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawTransformFeedbackInstanced,              "VERSION_4_2"),
 	GLFUNC_REQUIRES(glDrawTransformFeedbackStreamInstanced,        "VERSION_4_2"),
 
+	// gl_4_4
+	GLFUNC_REQUIRES(glBufferStorage,     "VERSION_4_4"),
+	GLFUNC_REQUIRES(glClearTexImage,     "VERSION_4_4"),
+	GLFUNC_REQUIRES(glClearTexSubImage,  "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindBuffersBase,   "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindBuffersRange,  "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindTextures,      "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindSamplers,      "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindImageTextures, "VERSION_4_4"),
+	GLFUNC_REQUIRES(glBindVertexBuffers, "VERSION_4_4"),
+
 	// gl_4_5
 	GLFUNC_REQUIRES(glClipControl,                              "VERSION_4_5"),
 	GLFUNC_REQUIRES(glCreateTransformFeedbacks,                 "VERSION_4_5"),
@@ -1911,11 +1932,11 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glPushDebugGroup,       "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
 
 	// ARB_buffer_storage
-	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
+	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage !VERSION_4_4"),
 	GLFUNC_REQUIRES(glNamedBufferStorage,    "GL_ARB_buffer_storage GL_EXT_direct_state_access !VERSION_4_5"),
 
 	// EXT_buffer_storage
-	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage"),
+	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage !VERSION_4_4"),
 
 	// EXT_geometry_shader
 	GLFUNC_SUFFIX(glFramebufferTexture, EXT, "GL_EXT_geometry_shader !VERSION_3_2"),

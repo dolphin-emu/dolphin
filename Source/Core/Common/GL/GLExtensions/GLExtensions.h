@@ -40,6 +40,7 @@
 #include "Common/GL/GLExtensions/gl_3_1.h"
 #include "Common/GL/GLExtensions/gl_3_2.h"
 #include "Common/GL/GLExtensions/gl_4_2.h"
+#include "Common/GL/GLExtensions/gl_4_4.h"
 #include "Common/GL/GLExtensions/gl_4_5.h"
 #include "Common/GL/GLExtensions/HP_occlusion_test.h"
 #include "Common/GL/GLExtensions/KHR_debug.h"
