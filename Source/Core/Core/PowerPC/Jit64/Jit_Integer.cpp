@@ -1151,27 +1151,31 @@ void Jit64::divwux(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
-	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rd = regs.gpr.Lock(d);
+
+	if (ra.IsImm() && rb.IsImm())
 	{
-		if (gpr.R(b).Imm32() == 0)
+		if (rb.Imm32() == 0)
 		{
-			gpr.SetImmediate32(d, 0);
+			rd.SetImm32(0);
 			if (inst.OE)
 				GenerateConstantOverflow(true);
 		}
 		else
 		{
-			gpr.SetImmediate32(d, gpr.R(a).Imm32() / gpr.R(b).Imm32());
+			rd.SetImm32(ra.Imm32() / rb.Imm32());
 			if (inst.OE)
 				GenerateConstantOverflow(false);
 		}
 	}
-	else if (gpr.R(b).IsImm())
+	else if (rb.IsImm())
 	{
-		u32 divisor = gpr.R(b).Imm32();
+		u32 divisor = rb.Imm32();
 		if (divisor == 0)
 		{
-			gpr.SetImmediate32(d, 0);
+			rd.SetImm32(0);
 			if (inst.OE)
 				GenerateConstantOverflow(true);
 		}
@@ -1183,12 +1187,11 @@ void Jit64::divwux(UGeckoInstruction inst)
 
 			if (divisor == (u32)(1 << shift))
 			{
-				gpr.Lock(a, b, d);
-				gpr.BindToRegister(d, d == a, true);
+				auto xd = rd.BindWriteAndReadIf(d == a);
 				if (d != a)
-					MOV(32, gpr.R(d), gpr.R(a));
+					MOV(32, xd, ra);
 				if (shift)
-					SHR(32, gpr.R(d), Imm8(shift));
+					SHR(32, xd, Imm8(shift));
 			}
 			else
 			{
@@ -1200,32 +1203,32 @@ void Jit64::divwux(UGeckoInstruction inst)
 				if (((u64)(magic+1) * (max_quotient*divisor-1)) >> (shift + 32) != max_quotient-1)
 				{
 					// If failed, use slower round-down method
-					gpr.Lock(a, b, d);
-					gpr.BindToRegister(d, d == a, true);
-					MOV(32, R(RSCRATCH), Imm32(magic));
+					auto xd = rd.BindWriteAndReadIf(d == a);
+					auto scratch = regs.gpr.Borrow();
+					MOV(32, scratch, Imm32(magic));
 					if (d != a)
-						MOV(32, gpr.R(d), gpr.R(a));
-					IMUL(64, gpr.RX(d), R(RSCRATCH));
-					ADD(64, gpr.R(d), R(RSCRATCH));
-					SHR(64, gpr.R(d), Imm8(shift+32));
+						MOV(32, xd, ra);
+					IMUL(64, xd, scratch);
+					ADD(64, xd, scratch);
+					SHR(64, xd, Imm8(shift+32));
 				}
 				else
 				{
 					// If success, use faster round-up method
-					gpr.Lock(a, b, d);
-					gpr.BindToRegister(a, true, false);
-					gpr.BindToRegister(d, false, true);
+					auto xa = ra.Bind(BindMode::Read);
+					auto xd = rd.Bind(BindMode::Write);
 					if (d == a)
 					{
-						MOV(32, R(RSCRATCH), Imm32(magic+1));
-						IMUL(64, gpr.RX(d), R(RSCRATCH));
+						auto scratch = regs.gpr.Borrow();
+						MOV(32, scratch, Imm32(magic+1));
+						IMUL(64, xd, scratch);
 					}
 					else
 					{
-						MOV(32, gpr.R(d), Imm32(magic+1));
-						IMUL(64, gpr.RX(d), gpr.R(a));
+						MOV(32, xd, Imm32(magic+1));
+						IMUL(64, xd, xa);
 					}
-					SHR(64, gpr.R(d), Imm8(shift+32));
+					SHR(64, xd, Imm8(shift+32));
 				}
 			}
 			if (inst.OE)
@@ -1234,24 +1237,26 @@ void Jit64::divwux(UGeckoInstruction inst)
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
 		// no register choice (do we need to do this?)
-		gpr.FlushLockX(EAX, EDX);
-		gpr.BindToRegister(d, (d == a || d == b), true);
-		MOV(32, R(EAX), gpr.R(a));
-		XOR(32, R(EDX), R(EDX));
-		gpr.KillImmediate(b, true, false);
-		CMP_or_TEST(32, gpr.R(b), Imm32(0));
+		auto eax = regs.gpr.Borrow(EAX);
+		auto edx = regs.gpr.Borrow(EDX);
+
+		auto xd = rd.BindWriteAndReadIf(rd.IsAliasOf(ra, rb));
+		MOV(32, eax, d == a ? xd : ra);
+		XOR(32, edx, edx);
+		rb.RealizeImmediate();
+		auto divisor = d == b ? xd : rb;
+		CMP_or_TEST(32, divisor, Imm32(0));
 		FixupBranch not_div_by_zero = J_CC(CC_NZ);
-		MOV(32, gpr.R(d), R(EDX));
+		MOV(32, xd, edx);
 		if (inst.OE)
 		{
 			GenerateConstantOverflow(true);
 		}
 		FixupBranch end = J();
 		SetJumpTarget(not_div_by_zero);
-		DIV(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EAX));
+		DIV(32, divisor);
+		MOV(32, xd, eax);
 		if (inst.OE)
 		{
 			GenerateConstantOverflow(false);
@@ -1259,9 +1264,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 		SetJumpTarget(end);
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
+		ComputeRC(rd);
 }
 
 void Jit64::divwx(UGeckoInstruction inst)
@@ -1270,54 +1273,58 @@ void Jit64::divwx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
-	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rd = regs.gpr.Lock(d);
+
+	if (ra.IsImm() && rb.IsImm())
 	{
-		s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
+		s32 i = ra.SImm32(), j = rb.SImm32();
 		if (j == 0 || (i == (s32)0x80000000 && j == -1))
 		{
-			gpr.SetImmediate32(d, (i >> 31) ^ j);
+			rd.SetImm32((i >> 31) ^ j);
 			if (inst.OE)
 				GenerateConstantOverflow(true);
 		}
 		else
 		{
-			gpr.SetImmediate32(d, i / j);
+			rd.SetImm32(i / j);
 			if (inst.OE)
 				GenerateConstantOverflow(false);
 		}
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
 		// no register choice
-		gpr.FlushLockX(EAX, EDX);
-		gpr.BindToRegister(d, (d == a || d == b), true);
-		MOV(32, R(EAX), gpr.R(a));
+		auto eax = regs.gpr.Borrow(EAX);
+		auto edx = regs.gpr.Borrow(EDX);
+		auto xd = rd.BindWriteAndReadIf(d == a || d == b);
+		MOV(32, eax, d == a ? xd : ra);
 		CDQ();
-		gpr.BindToRegister(b, true, false);
-		TEST(32, gpr.R(b), gpr.R(b));
+		auto xb = rb.Bind(BindMode::Read);
+		TEST(32, xb, xb);
 		FixupBranch not_div_by_zero = J_CC(CC_NZ);
-		MOV(32, gpr.R(d), R(EDX));
+		MOV(32, xd, edx);
 		if (inst.OE)
 		{
 			GenerateConstantOverflow(true);
 		}
 		FixupBranch end1 = J();
 		SetJumpTarget(not_div_by_zero);
-		CMP(32, gpr.R(b), R(EDX));
+		CMP(32, xb, edx);
 		FixupBranch not_div_by_neg_one = J_CC(CC_NZ);
-		MOV(32, gpr.R(d), R(EAX));
-		NEG(32, gpr.R(d));
+		MOV(32, xd, eax);
+		NEG(32, xd);
 		FixupBranch no_overflow = J_CC(CC_NO);
-		XOR(32, gpr.R(d), gpr.R(d));
+		XOR(32, xd, xd);
 		if (inst.OE)
 		{
 			GenerateConstantOverflow(true);
 		}
 		FixupBranch end2 = J();
 		SetJumpTarget(not_div_by_neg_one);
-		IDIV(32, gpr.R(b));
-		MOV(32, gpr.R(d), R(EAX));
+		IDIV(32, xb);
+		MOV(32, xd, eax);
 		SetJumpTarget(no_overflow);
 		if (inst.OE)
 		{
@@ -1327,9 +1334,7 @@ void Jit64::divwx(UGeckoInstruction inst)
 		SetJumpTarget(end2);
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
+		ComputeRC(rd);
 }
 
 void Jit64::addx(UGeckoInstruction inst)
