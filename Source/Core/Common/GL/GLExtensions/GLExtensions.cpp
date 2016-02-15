@@ -661,6 +661,129 @@ PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
+// gl_4_5
+PFNDOLCREATETRANSFORMFEEDBACKSPROC dolCreateTransformFeedbacks;
+PFNDOLTRANSFORMFEEDBACKBUFFERBASEPROC dolTransformFeedbackBufferBase;
+PFNDOLTRANSFORMFEEDBACKBUFFERRANGEPROC dolTransformFeedbackBufferRange;
+PFNDOLGETTRANSFORMFEEDBACKIVPROC dolGetTransformFeedbackiv;
+PFNDOLGETTRANSFORMFEEDBACKI_VPROC dolGetTransformFeedbacki_v;
+PFNDOLGETTRANSFORMFEEDBACKI64_VPROC dolGetTransformFeedbacki64_v;
+PFNDOLCREATEBUFFERSPROC dolCreateBuffers;
+PFNDOLNAMEDBUFFERSTORAGEPROC dolNamedBufferStorage;
+PFNDOLNAMEDBUFFERDATAPROC dolNamedBufferData;
+PFNDOLNAMEDBUFFERSUBDATAPROC dolNamedBufferSubData;
+PFNDOLCOPYNAMEDBUFFERSUBDATAPROC dolCopyNamedBufferSubData;
+PFNDOLCLEARNAMEDBUFFERDATAPROC dolClearNamedBufferData;
+PFNDOLCLEARNAMEDBUFFERSUBDATAPROC dolClearNamedBufferSubData;
+PFNDOLMAPNAMEDBUFFERPROC dolMapNamedBuffer;
+PFNDOLMAPNAMEDBUFFERRANGEPROC dolMapNamedBufferRange;
+PFNDOLUNMAPNAMEDBUFFERPROC dolUnmapNamedBuffer;
+PFNDOLFLUSHMAPPEDNAMEDBUFFERRANGEPROC dolFlushMappedNamedBufferRange;
+PFNDOLGETNAMEDBUFFERPARAMETERIVPROC dolGetNamedBufferParameteriv;
+PFNDOLGETNAMEDBUFFERPARAMETERI64VPROC dolGetNamedBufferParameteri64v;
+PFNDOLGETNAMEDBUFFERPOINTERVPROC dolGetNamedBufferPointerv;
+PFNDOLGETNAMEDBUFFERSUBDATAPROC dolGetNamedBufferSubData;
+PFNDOLCREATEFRAMEBUFFERSPROC dolCreateFramebuffers;
+PFNDOLNAMEDFRAMEBUFFERRENDERBUFFERPROC dolNamedFramebufferRenderbuffer;
+PFNDOLNAMEDFRAMEBUFFERPARAMETERIPROC dolNamedFramebufferParameteri;
+PFNDOLNAMEDFRAMEBUFFERTEXTUREPROC dolNamedFramebufferTexture;
+PFNDOLNAMEDFRAMEBUFFERTEXTURELAYERPROC dolNamedFramebufferTextureLayer;
+PFNDOLNAMEDFRAMEBUFFERDRAWBUFFERPROC dolNamedFramebufferDrawBuffer;
+PFNDOLNAMEDFRAMEBUFFERDRAWBUFFERSPROC dolNamedFramebufferDrawBuffers;
+PFNDOLNAMEDFRAMEBUFFERREADBUFFERPROC dolNamedFramebufferReadBuffer;
+PFNDOLINVALIDATENAMEDFRAMEBUFFERDATAPROC dolInvalidateNamedFramebufferData;
+PFNDOLINVALIDATENAMEDFRAMEBUFFERSUBDATAPROC dolInvalidateNamedFramebufferSubData;
+PFNDOLCLEARNAMEDFRAMEBUFFERIVPROC dolClearNamedFramebufferiv;
+PFNDOLCLEARNAMEDFRAMEBUFFERUIVPROC dolClearNamedFramebufferuiv;
+PFNDOLCLEARNAMEDFRAMEBUFFERFVPROC dolClearNamedFramebufferfv;
+PFNDOLCLEARNAMEDFRAMEBUFFERFIPROC dolClearNamedFramebufferfi;
+PFNDOLBLITNAMEDFRAMEBUFFERPROC dolBlitNamedFramebuffer;
+PFNDOLCHECKNAMEDFRAMEBUFFERSTATUSPROC dolCheckNamedFramebufferStatus;
+PFNDOLGETNAMEDFRAMEBUFFERPARAMETERIVPROC dolGetNamedFramebufferParameteriv;
+PFNDOLGETNAMEDFRAMEBUFFERATTACHMENTPARAMETERIVPROC dolGetNamedFramebufferAttachmentParameteriv;
+PFNDOLCREATERENDERBUFFERSPROC dolCreateRenderbuffers;
+PFNDOLNAMEDRENDERBUFFERSTORAGEPROC dolNamedRenderbufferStorage;
+PFNDOLNAMEDRENDERBUFFERSTORAGEMULTISAMPLEPROC dolNamedRenderbufferStorageMultisample;
+PFNDOLGETNAMEDRENDERBUFFERPARAMETERIVPROC dolGetNamedRenderbufferParameteriv;
+PFNDOLCREATETEXTURESPROC dolCreateTextures;
+PFNDOLTEXTUREBUFFERPROC dolTextureBuffer;
+PFNDOLTEXTUREBUFFERRANGEPROC dolTextureBufferRange;
+PFNDOLTEXTURESTORAGE1DPROC dolTextureStorage1D;
+PFNDOLTEXTURESTORAGE2DPROC dolTextureStorage2D;
+PFNDOLTEXTURESTORAGE3DPROC dolTextureStorage3D;
+PFNDOLTEXTURESTORAGE2DMULTISAMPLEPROC dolTextureStorage2DMultisample;
+PFNDOLTEXTURESTORAGE3DMULTISAMPLEPROC dolTextureStorage3DMultisample;
+PFNDOLTEXTURESUBIMAGE1DPROC dolTextureSubImage1D;
+PFNDOLTEXTURESUBIMAGE2DPROC dolTextureSubImage2D;
+PFNDOLTEXTURESUBIMAGE3DPROC dolTextureSubImage3D;
+PFNDOLCOMPRESSEDTEXTURESUBIMAGE1DPROC dolCompressedTextureSubImage1D;
+PFNDOLCOMPRESSEDTEXTURESUBIMAGE2DPROC dolCompressedTextureSubImage2D;
+PFNDOLCOMPRESSEDTEXTURESUBIMAGE3DPROC dolCompressedTextureSubImage3D;
+PFNDOLCOPYTEXTURESUBIMAGE1DPROC dolCopyTextureSubImage1D;
+PFNDOLCOPYTEXTURESUBIMAGE2DPROC dolCopyTextureSubImage2D;
+PFNDOLCOPYTEXTURESUBIMAGE3DPROC dolCopyTextureSubImage3D;
+PFNDOLTEXTUREPARAMETERFPROC dolTextureParameterf;
+PFNDOLTEXTUREPARAMETERFVPROC dolTextureParameterfv;
+PFNDOLTEXTUREPARAMETERIPROC dolTextureParameteri;
+PFNDOLTEXTUREPARAMETERIIVPROC dolTextureParameterIiv;
+PFNDOLTEXTUREPARAMETERIUIVPROC dolTextureParameterIuiv;
+PFNDOLTEXTUREPARAMETERIVPROC dolTextureParameteriv;
+PFNDOLGENERATETEXTUREMIPMAPPROC dolGenerateTextureMipmap;
+PFNDOLBINDTEXTUREUNITPROC dolBindTextureUnit;
+PFNDOLGETTEXTUREIMAGEPROC dolGetTextureImage;
+PFNDOLGETCOMPRESSEDTEXTUREIMAGEPROC dolGetCompressedTextureImage;
+PFNDOLGETTEXTURELEVELPARAMETERFVPROC dolGetTextureLevelParameterfv;
+PFNDOLGETTEXTURELEVELPARAMETERIVPROC dolGetTextureLevelParameteriv;
+PFNDOLGETTEXTUREPARAMETERFVPROC dolGetTextureParameterfv;
+PFNDOLGETTEXTUREPARAMETERIIVPROC dolGetTextureParameterIiv;
+PFNDOLGETTEXTUREPARAMETERIUIVPROC dolGetTextureParameterIuiv;
+PFNDOLGETTEXTUREPARAMETERIVPROC dolGetTextureParameteriv;
+PFNDOLCREATEVERTEXARRAYSPROC dolCreateVertexArrays;
+PFNDOLDISABLEVERTEXARRAYATTRIBPROC dolDisableVertexArrayAttrib;
+PFNDOLENABLEVERTEXARRAYATTRIBPROC dolEnableVertexArrayAttrib;
+PFNDOLVERTEXARRAYELEMENTBUFFERPROC dolVertexArrayElementBuffer;
+PFNDOLVERTEXARRAYVERTEXBUFFERPROC dolVertexArrayVertexBuffer;
+PFNDOLVERTEXARRAYVERTEXBUFFERSPROC dolVertexArrayVertexBuffers;
+PFNDOLVERTEXARRAYATTRIBBINDINGPROC dolVertexArrayAttribBinding;
+PFNDOLVERTEXARRAYATTRIBFORMATPROC dolVertexArrayAttribFormat;
+PFNDOLVERTEXARRAYATTRIBIFORMATPROC dolVertexArrayAttribIFormat;
+PFNDOLVERTEXARRAYATTRIBLFORMATPROC dolVertexArrayAttribLFormat;
+PFNDOLVERTEXARRAYBINDINGDIVISORPROC dolVertexArrayBindingDivisor;
+PFNDOLGETVERTEXARRAYIVPROC dolGetVertexArrayiv;
+PFNDOLGETVERTEXARRAYINDEXEDIVPROC dolGetVertexArrayIndexediv;
+PFNDOLGETVERTEXARRAYINDEXED64IVPROC dolGetVertexArrayIndexed64iv;
+PFNDOLCREATESAMPLERSPROC dolCreateSamplers;
+PFNDOLCREATEPROGRAMPIPELINESPROC dolCreateProgramPipelines;
+PFNDOLCREATEQUERIESPROC dolCreateQueries;
+PFNDOLGETQUERYBUFFEROBJECTI64VPROC dolGetQueryBufferObjecti64v;
+PFNDOLGETQUERYBUFFEROBJECTIVPROC dolGetQueryBufferObjectiv;
+PFNDOLGETQUERYBUFFEROBJECTUI64VPROC dolGetQueryBufferObjectui64v;
+PFNDOLGETQUERYBUFFEROBJECTUIVPROC dolGetQueryBufferObjectuiv;
+PFNDOLMEMORYBARRIERBYREGIONPROC dolMemoryBarrierByRegion;
+PFNDOLGETTEXTURESUBIMAGEPROC dolGetTextureSubImage;
+PFNDOLGETCOMPRESSEDTEXTURESUBIMAGEPROC dolGetCompressedTextureSubImage;
+PFNDOLGETGRAPHICSRESETSTATUSPROC dolGetGraphicsResetStatus;
+PFNDOLGETNCOMPRESSEDTEXIMAGEPROC dolGetnCompressedTexImage;
+PFNDOLGETNTEXIMAGEPROC dolGetnTexImage;
+PFNDOLGETNUNIFORMDVPROC dolGetnUniformdv;
+PFNDOLGETNUNIFORMFVPROC dolGetnUniformfv;
+PFNDOLGETNUNIFORMIVPROC dolGetnUniformiv;
+PFNDOLGETNUNIFORMUIVPROC dolGetnUniformuiv;
+PFNDOLREADNPIXELSPROC dolReadnPixels;
+PFNDOLGETNMAPDVPROC dolGetnMapdv;
+PFNDOLGETNMAPFVPROC dolGetnMapfv;
+PFNDOLGETNMAPIVPROC dolGetnMapiv;
+PFNDOLGETNPIXELMAPFVPROC dolGetnPixelMapfv;
+PFNDOLGETNPIXELMAPUIVPROC dolGetnPixelMapuiv;
+PFNDOLGETNPIXELMAPUSVPROC dolGetnPixelMapusv;
+PFNDOLGETNPOLYGONSTIPPLEPROC dolGetnPolygonStipple;
+PFNDOLGETNCOLORTABLEPROC dolGetnColorTable;
+PFNDOLGETNCONVOLUTIONFILTERPROC dolGetnConvolutionFilter;
+PFNDOLGETNSEPARABLEFILTERPROC dolGetnSeparableFilter;
+PFNDOLGETNHISTOGRAMPROC dolGetnHistogram;
+PFNDOLGETNMINMAXPROC dolGetnMinmax;
+PFNDOLTEXTUREBARRIERPROC dolTextureBarrier;
+
 // ARB_uniform_buffer_object
 PFNDOLBINDBUFFERBASEPROC dolBindBufferBase;
 PFNDOLBINDBUFFERRANGEPROC dolBindBufferRange;
@@ -801,7 +924,6 @@ PFNDOLPUSHDEBUGGROUPPROC dolPushDebugGroup;
 
 // ARB_buffer_storage
 PFNDOLBUFFERSTORAGEPROC dolBufferStorage;
-PFNDOLNAMEDBUFFERSTORAGEEXTPROC dolNamedBufferStorageEXT;
 
 // GL_NV_occlusion_query_samples
 PFNDOLGENOCCLUSIONQUERIESNVPROC dolGenOcclusionQueriesNV;
@@ -1494,6 +1616,130 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawTransformFeedbackInstanced,              "VERSION_4_2"),
 	GLFUNC_REQUIRES(glDrawTransformFeedbackStreamInstanced,        "VERSION_4_2"),
 
+	// gl_4_5
+	GLFUNC_REQUIRES(glClipControl,                              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateTransformFeedbacks,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTransformFeedbackBufferBase,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTransformFeedbackBufferRange,             "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTransformFeedbackiv,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTransformFeedbacki_v,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTransformFeedbacki64_v,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateBuffers,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedBufferStorage,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedBufferData,                          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedBufferSubData,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCopyNamedBufferSubData,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedBufferData,                     "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedBufferSubData,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glMapNamedBuffer,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glMapNamedBufferRange,                      "VERSION_4_5"),
+	GLFUNC_REQUIRES(glUnmapNamedBuffer,                         "VERSION_4_5"),
+	GLFUNC_REQUIRES(glFlushMappedNamedBufferRange,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedBufferParameteriv,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedBufferParameteri64v,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedBufferPointerv,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedBufferSubData,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateFramebuffers,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferRenderbuffer,             "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferParameteri,               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferTexture,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferTextureLayer,             "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferDrawBuffer,               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferDrawBuffers,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedFramebufferReadBuffer,               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glInvalidateNamedFramebufferData,           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glInvalidateNamedFramebufferSubData,        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedFramebufferiv,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedFramebufferuiv,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedFramebufferfv,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glClearNamedFramebufferfi,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glBlitNamedFramebuffer,                     "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCheckNamedFramebufferStatus,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedFramebufferParameteriv,           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedFramebufferAttachmentParameteriv, "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateRenderbuffers,                      "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedRenderbufferStorage,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glNamedRenderbufferStorageMultisample,      "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetNamedRenderbufferParameteriv,          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateTextures,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureBuffer,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureBufferRange,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureStorage1D,                         "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureStorage2D,                         "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureStorage3D,                         "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureStorage2DMultisample,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureStorage3DMultisample,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureSubImage1D,                        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureSubImage2D,                        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureSubImage3D,                        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCompressedTextureSubImage1D,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCompressedTextureSubImage2D,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCompressedTextureSubImage3D,              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCopyTextureSubImage1D,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCopyTextureSubImage2D,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCopyTextureSubImage3D,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameterf,                        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameterfv,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameteri,                        "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameterIiv,                      "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameterIuiv,                     "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureParameteriv,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGenerateTextureMipmap,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glBindTextureUnit,                          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureImage,                          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetCompressedTextureImage,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureLevelParameterfv,               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureLevelParameteriv,               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureParameterfv,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureParameterIiv,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureParameterIuiv,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureParameteriv,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateVertexArrays,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glDisableVertexArrayAttrib,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glEnableVertexArrayAttrib,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayElementBuffer,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayVertexBuffer,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayVertexBuffers,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayAttribBinding,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayAttribFormat,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayAttribIFormat,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayAttribLFormat,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glVertexArrayBindingDivisor,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetVertexArrayiv,                         "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetVertexArrayIndexediv,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetVertexArrayIndexed64iv,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateSamplers,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateProgramPipelines,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glCreateQueries,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetQueryBufferObjecti64v,                 "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetQueryBufferObjectiv,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetQueryBufferObjectui64v,                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetQueryBufferObjectuiv,                  "VERSION_4_5"),
+	GLFUNC_REQUIRES(glMemoryBarrierByRegion,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetTextureSubImage,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetCompressedTextureSubImage,             "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetGraphicsResetStatus,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnCompressedTexImage,                   "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnTexImage,                             "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnUniformdv,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnUniformfv,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnUniformiv,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnUniformuiv,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glReadnPixels,                              "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnMapdv,                                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnMapfv,                                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnMapiv,                                "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnPixelMapfv,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnPixelMapuiv,                          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnPixelMapusv,                          "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnPolygonStipple,                       "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnColorTable,                           "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnConvolutionFilter,                    "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnSeparableFilter,                      "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnHistogram,                            "VERSION_4_5"),
+	GLFUNC_REQUIRES(glGetnMinmax,                               "VERSION_4_5"),
+	GLFUNC_REQUIRES(glTextureBarrier,                           "VERSION_4_5"),
+
 	// ARB_uniform_buffer_object
 	GLFUNC_REQUIRES(glGetActiveUniformName,      "GL_ARB_uniform_buffer_object"),
 	GLFUNC_REQUIRES(glBindBufferBase,            "GL_ARB_uniform_buffer_object |VERSION_GLES_3"),
@@ -1666,7 +1912,7 @@ const GLFunc gl_function_array[] =
 
 	// ARB_buffer_storage
 	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage"),
-	GLFUNC_REQUIRES(glNamedBufferStorageEXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access"),
+	GLFUNC_REQUIRES(glNamedBufferStorage,    "GL_ARB_buffer_storage GL_EXT_direct_state_access !VERSION_4_5"),
 
 	// EXT_buffer_storage
 	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage"),
@@ -1684,7 +1930,7 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glGetOcclusionQueryuivNV,   "GL_NV_occlusion_query_samples"),
 
 	// ARB_clip_control
-	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control"),
+	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control !VERSION_4_5"),
 
 	// ARB_copy_image
 	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image |VERSION_GLES_3_2"),
