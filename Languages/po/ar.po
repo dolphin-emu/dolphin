@@ -5876,8 +5876,8 @@ msgid "Toggle Fog"
 msgstr "Toggle Fog"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
-msgstr "Toggle Frame limit"
+msgid "Disable Frame Limit"
+msgstr "Disable Frame Limit"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 msgid "Toggle Fullscreen"

@@ -5972,7 +5972,7 @@ msgid "Toggle Fog"
 msgstr "フォグ処理 設定切替"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "フレームリミット 切替"
 
 #: Source/Core/Core/HotkeyManager.cpp:32

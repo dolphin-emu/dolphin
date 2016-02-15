@@ -5888,7 +5888,7 @@ msgid "Toggle Fog"
 msgstr "Nebel umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "Bildbegrenzung umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:32

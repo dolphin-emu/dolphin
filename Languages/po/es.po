@@ -6063,8 +6063,8 @@ msgid "Toggle Fog"
 msgstr "Activar niebla"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
-msgstr "Cambiar el límite de frames"
+msgid "Disable Frame Limit"
+msgstr "Desactivar el límite de frames"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 msgid "Toggle Fullscreen"

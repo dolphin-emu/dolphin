@@ -6009,7 +6009,7 @@ msgid "Toggle Fog"
 msgstr "Ligar/Desligar a Névoa"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "Ligar/Desligar Limitador de Frames"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
