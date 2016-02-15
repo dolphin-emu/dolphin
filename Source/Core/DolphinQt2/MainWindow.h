@@ -37,6 +37,18 @@ private slots:
 	// May ask for confirmation. Returns whether or not it actually stopped.
 	bool Stop();
 	void ForceStop();
+	void Reset();
+	void FrameAdvance();
+	void StateLoad();
+	void StateSave();
+	void StateLoadSlot();
+	void StateSaveSlot();
+	void StateLoadSlotAt(int slot);
+	void StateSaveSlotAt(int slot);
+	void StateLoadUndo();
+	void StateSaveUndo();
+	void StateSaveOldest();
+	void SetStateSlot(int slot);
 
 	void FullScreen();
 	void ScreenShot();
@@ -64,6 +76,7 @@ private:
 	GameList* m_game_list;
 	RenderWidget* m_render_widget;
 	bool m_rendering_to_main;
+	int m_state_slot = 1;
 
 	PathDialog* m_paths_dialog;
 };
