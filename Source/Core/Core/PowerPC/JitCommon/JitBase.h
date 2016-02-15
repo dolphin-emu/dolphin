@@ -118,6 +118,7 @@ public:
 	virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
 	virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
+	virtual bool HandleStackFault() { return false; }
 };
 
 class Jitx86Base : public JitBase, public EmuCodeBlock

@@ -15,6 +15,7 @@
 #include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
 #include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
@@ -119,12 +120,15 @@ using namespace PowerPC;
 // bad RSP, because on Linux we can use sigaltstack and on OS X we're already
 // on a separate thread.
 
-// On Windows, the OS gets upset if RSP doesn't work, and I don't know any
-// equivalent of sigaltstack.  Windows supports guard pages which, when
-// accessed, immediately turn into regular pages but cause a trap... but
-// putting them in the path of RSP just leads to something (in the kernel?)
-// thinking a regular stack extension is required.  So this protection is not
-// supported on Windows yet...
+// Windows is... under-documented.
+// It already puts guard pages so it can automatically grow the stack and it
+// doesn't look like there is a way to re-implemented that.
+// But when it reaches the last page, it raises a "Stack Overflow" exception
+// which we can hook into, however by default it leaves you with 4kb of stack.
+// So we use SetThreadStackGuarantee to trigger the Stack Overflow early while
+// we still have 512kb of stack remaining.
+// After resetting the stack to the top, we call _resetstkoflw() to restore
+// the last guard page.
 
 enum
 {
@@ -140,6 +144,10 @@ void Jit64::AllocStack()
 	m_stack = (u8*)AllocateMemoryPages(STACK_SIZE);
 	ReadProtectMemory(m_stack, GUARD_SIZE);
 	ReadProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
+#else
+	// For windows we just keep using the system stack and reserve a large amount of memory at the end of the stack.
+	ULONG reserveSize = SAFE_STACK_SIZE;
+	SetThreadStackGuarantee(&reserveSize);
 #endif
 }
 
@@ -154,30 +162,37 @@ void Jit64::FreeStack()
 #endif
 }
 
+bool Jit64::HandleStackFault() {
+	if (!m_enable_blr_optimization || !Core::IsCPUThread())
+		return false;
+	WARN_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+	m_enable_blr_optimization = false;
+#ifndef _WIN32
+	// Windows does this automatically.
+	UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
+#endif
+	// We're going to need to clear the whole cache to get rid of the bad
+	// CALLs, but we can't yet.  Fake the downcount so we're forced to the
+	// dispatcher (no block linking), and clear the cache so we're sent to
+	// Jit. In the case of Windows, we will also need to call _resetstkoflw()
+	// to reset the guard page.
+	// Yeah, it's kind of gross.
+	GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
+	CoreTiming::ForceExceptionCheck(0);
+	m_cleanup_after_stackfault = true;
+
+	return true;
+}
+
 bool Jit64::HandleFault(uintptr_t access_address, SContext* ctx)
 {
 	uintptr_t stack = (uintptr_t)m_stack, diff = access_address - stack;
 	// In the trap region?
 	if (m_enable_blr_optimization && diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
-	{
-		WARN_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
-		m_enable_blr_optimization = false;
-		UnWriteProtectMemory(m_stack + GUARD_OFFSET, GUARD_SIZE);
-		// We're going to need to clear the whole cache to get rid of the bad
-		// CALLs, but we can't yet.  Fake the downcount so we're forced to the
-		// dispatcher (no block linking), and clear the cache so we're sent to
-		// Jit.  Yeah, it's kind of gross.
-		GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
-		CoreTiming::ForceExceptionCheck(0);
-		m_clear_cache_asap = true;
-
-		return true;
-	}
+		return HandleStackFault();
 
 	return Jitx86Base::HandleFault(access_address, ctx);
 }
-
-
 
 void Jit64::Init()
 {
@@ -198,7 +213,6 @@ void Jit64::Init()
 	// BLR optimization has the same consequences as block linking, as well as
 	// depending on the fault handler to be safe in the event of excessive BL.
 	m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem && !SConfig::GetInstance().bEnableDebugging;
-	m_clear_cache_asap = false;
 
 	m_stack = nullptr;
 	if (m_enable_blr_optimization)
@@ -226,7 +240,6 @@ void Jit64::ClearCache()
 	ClearCodeSpace();
 	Clear();
 	UpdateMemoryOptions();
-	m_clear_cache_asap = false;
 }
 
 void Jit64::Shutdown()
@@ -511,10 +524,19 @@ void Jit64::Trace()
 
 void Jit64::Jit(u32 em_address)
 {
+	if (m_cleanup_after_stackfault)
+	{
+		ClearCache();
+		m_cleanup_after_stackfault = false;
+#ifdef _WIN32
+		// The stack is in an invalid state with no guard page, reset it.
+		_resetstkoflw();
+#endif
+	}
 	if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() ||
 	    blocks.IsFull() ||
 	    SConfig::GetInstance().bJITNoBlockCache ||
-	    m_clear_cache_asap)
+	    m_cleanup_after_stackfault)
 	{
 		ClearCache();
 	}
