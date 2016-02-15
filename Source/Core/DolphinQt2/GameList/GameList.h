@@ -12,6 +12,7 @@
 
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameListModel.h"
+#include "DolphinQt2/GameList/TableDelegate.h"
 
 class GameList final : public QStackedWidget
 {
@@ -41,6 +42,7 @@ private:
 	void ConsiderViewChange();
 
 	GameListModel* m_model;
+	TableDelegate* m_delegate;
 	QSortFilterProxyModel* m_table_proxy;
 	QSortFilterProxyModel* m_list_proxy;
 

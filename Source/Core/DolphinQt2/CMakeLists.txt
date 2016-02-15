@@ -18,7 +18,7 @@ set(SRCS
 	GameList/GameListModel.cpp
 	GameList/GameTracker.cpp
 	GameList/ListProxyModel.cpp
-	GameList/TableProxyModel.cpp
+	GameList/TableDelegate.cpp
 	)
 
 list(APPEND LIBS core uicommon)
