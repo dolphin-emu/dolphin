@@ -1301,7 +1301,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	u64 disk_read_duration = CalculateRawDiscReadTime(offset, length) +
 		SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
-	if (offset + length - s_last_read_offset > 1024 * 1024)
+	if (offset + length > s_last_read_offset + 1024 * 1024)
 	{
 		// No buffer; just use the simple seek time + read time.
 		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
