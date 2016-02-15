@@ -2012,7 +2012,7 @@ const GLFunc gl_function_array[] =
 
 	// ARB_buffer_storage
 	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage !VERSION_4_4"),
-	GLFUNC_REQUIRES(glNamedBufferStorage,    "GL_ARB_buffer_storage GL_EXT_direct_state_access !VERSION_4_5"),
+	GLFUNC_SUFFIX(glNamedBufferStorage, EXT, "GL_ARB_buffer_storage GL_EXT_direct_state_access !VERSION_4_5"),
 
 	// EXT_buffer_storage
 	GLFUNC_SUFFIX(glBufferStorage, EXT, "GL_EXT_buffer_storage !GL_ARB_buffer_storage !VERSION_4_4"),
