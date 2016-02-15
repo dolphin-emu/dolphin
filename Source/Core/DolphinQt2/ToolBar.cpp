@@ -19,13 +19,16 @@ ToolBar::ToolBar(QWidget* parent)
 
 	MakeActions();
 	UpdateIcons();
+
+	EmulationStopped();
 }
 
 void ToolBar::EmulationStarted()
 {
 	m_play_action->setEnabled(false);
+	m_play_action->setVisible(false);
 	m_pause_action->setEnabled(true);
-	m_stop_action->setEnabled(true);
+	m_pause_action->setVisible(true);
 	m_fullscreen_action->setEnabled(true);
 	m_screenshot_action->setEnabled(true);
 }
@@ -33,14 +36,17 @@ void ToolBar::EmulationStarted()
 void ToolBar::EmulationPaused()
 {
 	m_play_action->setEnabled(true);
+	m_play_action->setVisible(true);
 	m_pause_action->setEnabled(false);
-	m_stop_action->setEnabled(true);
+	m_pause_action->setVisible(false);
 }
 
 void ToolBar::EmulationStopped()
 {
 	m_play_action->setEnabled(true);
+	m_play_action->setVisible(true);
 	m_pause_action->setEnabled(false);
+	m_pause_action->setVisible(false);
 	m_stop_action->setEnabled(false);
 	m_fullscreen_action->setEnabled(false);
 	m_screenshot_action->setEnabled(false);
@@ -50,18 +56,10 @@ void ToolBar::MakeActions()
 {
 	m_open_action = addAction(tr("Open"), this, SIGNAL(OpenPressed()));
 	m_play_action = addAction(tr("Play"), this, SIGNAL(PlayPressed()));
-
 	m_pause_action = addAction(tr("Pause"), this, SIGNAL(PausePressed()));
-	m_pause_action->setEnabled(false);
-
 	m_stop_action = addAction(tr("Stop"), this, SIGNAL(StopPressed()));
-	m_stop_action->setEnabled(false);
-
 	m_fullscreen_action = addAction(tr("Full Screen"), this, SIGNAL(FullScreenPressed()));
-	m_fullscreen_action->setEnabled(false);
-
 	m_screenshot_action = addAction(tr("Screen Shot"), this, SIGNAL(ScreenShotPressed()));
-	m_screenshot_action->setEnabled(false);
 
 	addSeparator();
 
