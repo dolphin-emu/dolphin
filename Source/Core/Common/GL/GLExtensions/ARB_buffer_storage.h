@@ -37,7 +37,5 @@ typedef void (APIENTRYP PFNDOLBUFFERSTORAGEPROC) (GLenum target, GLsizeiptr size
 typedef void (APIENTRYP PFNDOLNAMEDBUFFERSTORAGEEXTPROC) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
 
 extern PFNDOLBUFFERSTORAGEPROC dolBufferStorage;
-extern PFNDOLNAMEDBUFFERSTORAGEEXTPROC dolNamedBufferStorageEXT;
 
 #define glBufferStorage dolBufferStorage
-#define glNamedBufferStorageEXT dolNamedBufferStorageEXT
