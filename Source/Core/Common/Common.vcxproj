@@ -97,6 +97,7 @@
     <ClInclude Include="GL\GLExtensions\gl_3_1.h" />
     <ClInclude Include="GL\GLExtensions\gl_3_2.h" />
     <ClInclude Include="GL\GLExtensions\gl_4_2.h" />
+    <ClInclude Include="GL\GLExtensions\gl_4_3.h" />
     <ClInclude Include="GL\GLExtensions\gl_4_4.h" />
     <ClInclude Include="GL\GLExtensions\gl_4_5.h" />
     <ClInclude Include="GL\GLExtensions\gl_common.h" />

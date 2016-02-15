@@ -661,6 +661,37 @@ PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
+// gl_4_3
+PFNDOLCLEARBUFFERDATAPROC dolClearBufferData;
+PFNDOLCLEARBUFFERSUBDATAPROC dolClearBufferSubData;
+PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
+PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
+PFNDOLFRAMEBUFFERPARAMETERIPROC dolFramebufferParameteri;
+PFNDOLGETFRAMEBUFFERPARAMETERIVPROC dolGetFramebufferParameteriv;
+PFNDOLGETINTERNALFORMATI64VPROC dolGetInternalformati64v;
+PFNDOLINVALIDATETEXSUBIMAGEPROC dolInvalidateTexSubImage;
+PFNDOLINVALIDATETEXIMAGEPROC dolInvalidateTexImage;
+PFNDOLINVALIDATEBUFFERSUBDATAPROC dolInvalidateBufferSubData;
+PFNDOLINVALIDATEBUFFERDATAPROC dolInvalidateBufferData;
+PFNDOLINVALIDATEFRAMEBUFFERPROC dolInvalidateFramebuffer;
+PFNDOLINVALIDATESUBFRAMEBUFFERPROC dolInvalidateSubFramebuffer;
+PFNDOLMULTIDRAWARRAYSINDIRECTPROC dolMultiDrawArraysIndirect;
+PFNDOLMULTIDRAWELEMENTSINDIRECTPROC dolMultiDrawElementsIndirect;
+PFNDOLGETPROGRAMINTERFACEIVPROC dolGetProgramInterfaceiv;
+PFNDOLGETPROGRAMRESOURCEINDEXPROC dolGetProgramResourceIndex;
+PFNDOLGETPROGRAMRESOURCENAMEPROC dolGetProgramResourceName;
+PFNDOLGETPROGRAMRESOURCEIVPROC dolGetProgramResourceiv;
+PFNDOLGETPROGRAMRESOURCELOCATIONPROC dolGetProgramResourceLocation;
+PFNDOLGETPROGRAMRESOURCELOCATIONINDEXPROC dolGetProgramResourceLocationIndex;
+PFNDOLTEXBUFFERRANGEPROC dolTexBufferRange;
+PFNDOLTEXTUREVIEWPROC dolTextureView;
+PFNDOLBINDVERTEXBUFFERPROC dolBindVertexBuffer;
+PFNDOLVERTEXATTRIBFORMATPROC dolVertexAttribFormat;
+PFNDOLVERTEXATTRIBIFORMATPROC dolVertexAttribIFormat;
+PFNDOLVERTEXATTRIBLFORMATPROC dolVertexAttribLFormat;
+PFNDOLVERTEXATTRIBBINDINGPROC dolVertexAttribBinding;
+PFNDOLVERTEXBINDINGDIVISORPROC dolVertexBindingDivisor;
+
 // gl_4_4
 PFNDOLCLEARTEXIMAGEPROC dolClearTexImage;
 PFNDOLCLEARTEXSUBIMAGEPROC dolClearTexSubImage;
@@ -1626,6 +1657,52 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glDrawTransformFeedbackInstanced,              "VERSION_4_2"),
 	GLFUNC_REQUIRES(glDrawTransformFeedbackStreamInstanced,        "VERSION_4_2"),
 
+
+	// gl_4_3
+	GLFUNC_REQUIRES(glClearBufferData,                 "VERSION_4_3"),
+	GLFUNC_REQUIRES(glClearBufferSubData,              "VERSION_4_3"),
+	GLFUNC_REQUIRES(glDispatchCompute,                 "VERSION_4_3"),
+	GLFUNC_REQUIRES(glDispatchComputeIndirect,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glCopyImageSubData,                "VERSION_4_3"),
+	GLFUNC_REQUIRES(glFramebufferParameteri,           "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetFramebufferParameteriv,       "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetInternalformati64v,           "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateTexSubImage,           "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateTexImage,              "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateBufferSubData,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateBufferData,            "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateFramebuffer,           "VERSION_4_3"),
+	GLFUNC_REQUIRES(glInvalidateSubFramebuffer,        "VERSION_4_3"),
+	GLFUNC_REQUIRES(glMultiDrawArraysIndirect,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glMultiDrawElementsIndirect,       "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramInterfaceiv,           "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramResourceIndex,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramResourceName,          "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramResourceiv,            "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramResourceLocation,      "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetProgramResourceLocationIndex, "VERSION_4_3"),
+	GLFUNC_REQUIRES(glShaderStorageBlockBinding,       "VERSION_4_3"),
+	GLFUNC_REQUIRES(glTexBufferRange,                  "VERSION_4_3"),
+	GLFUNC_REQUIRES(glTexStorage2DMultisample,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glTexStorage3DMultisample,         "VERSION_4_3"),
+	GLFUNC_REQUIRES(glTextureView,                     "VERSION_4_3"),
+	GLFUNC_REQUIRES(glBindVertexBuffer,                "VERSION_4_3"),
+	GLFUNC_REQUIRES(glVertexAttribFormat,              "VERSION_4_3"),
+	GLFUNC_REQUIRES(glVertexAttribIFormat,             "VERSION_4_3"),
+	GLFUNC_REQUIRES(glVertexAttribLFormat,             "VERSION_4_3"),
+	GLFUNC_REQUIRES(glVertexAttribBinding,             "VERSION_4_3"),
+	GLFUNC_REQUIRES(glVertexBindingDivisor,            "VERSION_4_3"),
+	GLFUNC_REQUIRES(glDebugMessageControl,             "VERSION_4_3"),
+	GLFUNC_REQUIRES(glDebugMessageInsert,              "VERSION_4_3"),
+	GLFUNC_REQUIRES(glDebugMessageCallback,            "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetDebugMessageLog,              "VERSION_4_3"),
+	GLFUNC_REQUIRES(glPushDebugGroup,                  "VERSION_4_3"),
+	GLFUNC_REQUIRES(glPopDebugGroup,                   "VERSION_4_3"),
+	GLFUNC_REQUIRES(glObjectLabel,                     "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetObjectLabel,                  "VERSION_4_3"),
+	GLFUNC_REQUIRES(glObjectPtrLabel,                  "VERSION_4_3"),
+	GLFUNC_REQUIRES(glGetObjectPtrLabel,               "VERSION_4_3"),
+
 	// gl_4_4
 	GLFUNC_REQUIRES(glBufferStorage,     "VERSION_4_4"),
 	GLFUNC_REQUIRES(glClearTexImage,     "VERSION_4_4"),
@@ -1848,8 +1925,8 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glSampleMaski,           "GL_ARB_texture_multisample"),
 
 	// ARB_texture_storage_multisample
-	GLFUNC_REQUIRES(glTexStorage2DMultisample, "GL_ARB_texture_storage_multisample |VERSION_GLES_3_1"),
-	GLFUNC_REQUIRES(glTexStorage3DMultisample, "GL_ARB_texture_storage_multisample |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glTexStorage2DMultisample, "GL_ARB_texture_storage_multisample !VERSION_4_3 |VERSION_GLES_3_1"),
+	GLFUNC_REQUIRES(glTexStorage3DMultisample, "GL_ARB_texture_storage_multisample !VERSION_4_3 |VERSION_GLES_3_2"),
 	GLFUNC_SUFFIX(glTexStorage3DMultisample, OES, "GL_OES_texture_storage_multisample_2d_array !VERSION_GLES_3_2"),
 
 	// ARB_ES2_compatibility
@@ -1920,16 +1997,16 @@ const GLFunc gl_function_array[] =
 	GLFUNC_SUFFIX(glObjectPtrLabel,       KHR, "GL_KHR_debug VERSION_GLES_3"),
 	GLFUNC_SUFFIX(glPopDebugGroup,        KHR, "GL_KHR_debug VERSION_GLES_3"),
 	GLFUNC_SUFFIX(glPushDebugGroup,       KHR, "GL_KHR_debug VERSION_GLES_3"),
-	GLFUNC_REQUIRES(glDebugMessageCallback, "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glDebugMessageControl,  "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glDebugMessageInsert,   "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetDebugMessageLog,   "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetObjectLabel,       "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glGetObjectPtrLabel,    "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glObjectLabel,          "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glObjectPtrLabel,       "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glPopDebugGroup,        "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
-	GLFUNC_REQUIRES(glPushDebugGroup,       "GL_KHR_debug !VERSION_GLES_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageCallback, "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageControl,  "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glDebugMessageInsert,   "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetDebugMessageLog,   "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectLabel,       "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glGetObjectPtrLabel,    "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectLabel,          "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glObjectPtrLabel,       "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPopDebugGroup,        "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glPushDebugGroup,       "GL_KHR_debug !VERSION_GLES_3 !VERSION_GL_4_3 |VERSION_GLES_3_2"),
 
 	// ARB_buffer_storage
 	GLFUNC_REQUIRES(glBufferStorage,         "GL_ARB_buffer_storage !VERSION_4_4"),
@@ -1954,7 +2031,7 @@ const GLFunc gl_function_array[] =
 	GLFUNC_REQUIRES(glClipControl, "GL_ARB_clip_control !VERSION_4_5"),
 
 	// ARB_copy_image
-	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image |VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glCopyImageSubData, "GL_ARB_copy_image !VERSION_4_3 |VERSION_GLES_3_2"),
 
 	// NV_copy_image
 	GLFUNC_SUFFIX(glCopyImageSubData, NV, "GL_NV_copy_image !GL_ARB_copy_image !VERSION_GLES_3_2"),
@@ -1976,7 +2053,7 @@ const GLFunc gl_function_array[] =
 	GLFUNC_SUFFIX(glGetFragDataIndex, EXT,            "GL_EXT_blend_func_extended"),
 
 	// ARB_shader_storage_buffer_object
-	GLFUNC_REQUIRES(glShaderStorageBlockBinding, "ARB_shader_storage_buffer_object"),
+	GLFUNC_REQUIRES(glShaderStorageBlockBinding, "ARB_shader_storage_buffer_object !VERSION_4_3"),
 };
 
 namespace GLExtensions
