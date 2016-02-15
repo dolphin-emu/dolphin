@@ -6,7 +6,7 @@
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/TableProxyModel.h"
 
-static constexpr QSize NORMAL_BANNER_SIZE(96, 32);
+static QSize NORMAL_BANNER_SIZE(96, 32);
 
 // Convert an integer size to a friendly string representation.
 static QString FormatSize(qint64 size)

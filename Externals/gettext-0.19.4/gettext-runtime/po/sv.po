@@ -1,0 +1,314 @@
+# Swedish messages for gettext
+# Copyright © 1996, 1997, 1998, 2001, 2002, 2003, 2007, 2010, 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Jan Djärv <jan.h.d@swipnet.se>, 1998, 2001, 2002, 2003, 2006, 2007, 2010, 2013
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.18.2\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2013-03-10 16:05+0100\n"
+"Last-Translator: Jan Djärv <jan.h.d@swipnet.se>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "skrivfel"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Okänt systemfel"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: flaggan \"%s\" är tvetydig; alternativ:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: flaggan \"--%s\" tar inget argument\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: flaggan \"%c%s\" tar inget argument\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: flaggan \"%s\" kräver ett argument\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: okänd flagga \"--%s\"\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: okänd flagga \"%c%s\"\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: ogiltig flagga -- \"%c\"\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: flaggan kräver ett argument -- \"%c\"\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: flaggan \"-W %s\" är tvetydig\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: flaggan \"-W %s\" tar inget argument\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: flaggan \"-W %s\" kräver ett argument\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "minnet slut"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Licens GPLv3+: GNU GPL version 3 eller senare <http://gnu.org/licenses/gpl.html>\n"
+"Detta program är fri programvara.  Du kan modifiera och distribuera den.\n"
+"Det finns inte NÅGON SOM HELST GARANTI, till den grad som lagen tillåter.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Skrivet av %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "för många argument"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "argument saknas"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Försök med \"%s --help\" för mer information.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Användning: %s [FLAGGA] [SKALFORMAT]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Ersätter värdena av miljövariabler.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Körläge:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             skriv ut variabler som förekommer i SKALFORMAT\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Informativ utskrift:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  visa denna hjälptext och avsluta\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               visa versionsinformation och avsluta\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"I normalt körläge kopieras standard in till standard ut med referenser\n"
+"till miljövariabler i form av $VARIABEL eller ${VARIABEL} ersatta med\n"
+"motsvarande värden.  Om SKALFORMAT anges så ersätts bara de\n"
+"miljövariabler som refereras i SKALFORMAT; annars ersätts alla miljövariabler\n"
+"som hittas i standard in.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"När --variables används så ignoreras standard in och utdata består av de\n"
+"miljövariabler som förekommer i SKALFORMAT, en per rad.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr ""
+"Rapportera fel till <bug-gnu-gettext@gnu.org>.\n"
+"Rapportera fel och synpunkter på översättningen till <tp-sv@listor.tp-sv."
+"se>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "fel uppstod då \"%s\" lästes"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "standard in"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Användning: %s [FLAGGA] [[TEXTDOMÄN] MSGID]\n"
+"eller       %s [FLAGGA] -s [MSGID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Visa lokala språkets översättning av textmeddelande.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=TEXTDOMÄN    hämta översatta meddelanden från TEXTDOMÄN\n"
+"  -e                        expandera några kontrollsekvenser\n"
+"  -E                        (ignorerad för bakåtkompatibilitet)\n"
+"  -h, --help                visa denna hjälptext och avsluta\n"
+"  -n                        skriv inte ut avslutande radframmatning\n"
+"  -V, --version             visa versionsinformation och avsluta\n"
+"  [TEXTDOMÄN] MSGID         hämta översatt meddelande som motsvarar\n"
+"                            MSGID från TEXTDOMÄN\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Om parametern TEXTDOMÄN utelämnas bestäms domänen av miljövariabeln\n"
+"TEXTDOMAIN. Om meddelandekatalogen inte hittas i den normala katalogen så\n"
+"kan en annan katalog anges med miljövariabeln TEXTDOMAINDIR.\n"
+"När flaggan -s ges uppträder programmet som kommandot \"echo\".\n"
+"Men det kopierar inte enbart sina argument till standard ut. Istället\n"
+"översätts de argument som hittas i den valda meddelandekatalogen.\n"
+"Normal katalog för meddelandekataloger: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Användning: %s [FLAGGA] [TEXTDOMÄN] MSGID MSGID-PLURAL ANTAL\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Visa översättningar i det lokala språket av textmeddelanden vars grammatiska\n"
+"form beror på ett tal.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=TEXTDOMÄN    hämta översatta meddelanden från TEXTDOMÄN\n"
+"  -e                        expandera några kontrollsekvenser\n"
+"  -E                        (ignorerad för bakåtkompatibilitet)\n"
+"  -h, --help                visa denna hjälptext och avsluta\n"
+"  -V, --version             visa versionsinformation och avsluta\n"
+"  [TEXTDOMÄN]               hämta meddelande från TEXTDOMÄN\n"
+"  MSGID MSGID-PLURAL        översätt MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  ANTAL                     välj singular/plural baserat på detta värde\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Om parametern TEXTDOMÄN utelämnas bestäms domänen av miljövariabeln\n"
+"TEXTDOMAIN. Om meddelandekatalogen inte hittas i den normala katalogen så\n"
+"kan en annan katalog anges med miljövariabeln TEXTDOMAINDIR.\n"
+"Normal katalog för meddelandekataloger: %s\n"

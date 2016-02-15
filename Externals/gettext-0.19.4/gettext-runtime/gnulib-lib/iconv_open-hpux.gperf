@@ -1,0 +1,56 @@
+struct mapping { int standard_name; const char vendor_name[9 + 1]; };
+%struct-type
+%language=ANSI-C
+%define slot-name standard_name
+%define hash-function-name mapping_hash
+%define lookup-function-name mapping_lookup
+%readonly-tables
+%global-table
+%define word-array-name mappings
+%pic
+%%
+# On HP-UX 11.11, look in /usr/lib/nls/iconv.
+ISO-8859-1, "iso88591"
+ISO-8859-2, "iso88592"
+ISO-8859-5, "iso88595"
+ISO-8859-6, "iso88596"
+ISO-8859-7, "iso88597"
+ISO-8859-8, "iso88598"
+ISO-8859-9, "iso88599"
+ISO-8859-15, "iso885915"
+CP437, "cp437"
+CP775, "cp775"
+CP850, "cp850"
+CP852, "cp852"
+CP855, "cp855"
+CP857, "cp857"
+CP861, "cp861"
+CP862, "cp862"
+CP864, "cp864"
+CP865, "cp865"
+CP866, "cp866"
+CP869, "cp869"
+CP874, "cp874"
+CP1250, "cp1250"
+CP1251, "cp1251"
+CP1252, "cp1252"
+CP1253, "cp1253"
+CP1254, "cp1254"
+CP1255, "cp1255"
+CP1256, "cp1256"
+CP1257, "cp1257"
+CP1258, "cp1258"
+HP-ROMAN8, "roman8"
+HP-ARABIC8, "arabic8"
+HP-GREEK8, "greek8"
+HP-HEBREW8, "hebrew8"
+HP-TURKISH8, "turkish8"
+HP-KANA8, "kana8"
+TIS-620, "tis620"
+GB2312, "hp15CN"
+EUC-JP, "eucJP"
+EUC-KR, "eucKR"
+EUC-TW, "eucTW"
+BIG5, "big5"
+SHIFT_JIS, "sjis"
+UTF-8, "utf8"

@@ -1,0 +1,314 @@
+# GNU gettext-runtime의 한국어 메시지
+# Copyright (C) 1996, 1997, 2001, 2002, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+#
+# Bang Jun-Young <bangjy@geocities.com>, 1995-1997.
+# Changwoo Ryu <cwryu@debian.org>, 2001-2006, 2009, 2010, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext-runtime 0.18.2\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2013-03-12 03:38+0900\n"
+"Last-Translator: Changwoo Ryu <cwryu@debian.org>\n"
+"Language-Team: Korean <translation-team-ko@lists.sourceforge.net>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8-bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "쓰기 오류"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "알 수 없는 시스템 오류"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: '%s' 옵션은 모호한 옵션입니다. 가능한 옵션은:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: '--%s' 옵션은 인수를 허용하지 않습니다\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: '%c%s' 옵션은 인수를 허용하지 않습니다\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: '--%s' 옵션은 인수가 필요합니다\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: 인식할 수 없는 옵션 '--%s'\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: 인식할 수 없는 옵션 '%c%s'\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: 잘못된 옵션 -- '%c'\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: 이 옵션은 인수가 필요합니다 -- '%c'\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: '-W %s' 옵션은 모호한 옵션입니다\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: '-W %s' 옵션은 인수를 허용하지 않습니다\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: '-W %s' 옵션은 인수가 필요합니다\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "메모리가 바닥났습니다"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "%s이(가) 만들었습니다.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "인수가 너무 많음"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "인수가 빠졌음"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "더 많은 정보를 보려면 '%s --help' 하십시오.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "사용법: %s [<옵션>] [<쉘-형식>]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "환경 변수 값을 치환합니다.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "동작 모드:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             <쉘-형식>에 나오는 변수를 출력합니다\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "정보 출력:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  이 도움말을 표시하고 끝납니다\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               버전 정보를 표시하고 끝납니다\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"일반 동작 모드에서는, 표준 입력을 표준 출력으로 복사합니다. 이 때, $변수 혹은\n"
+"${변수} 형식의 환경 변수는 해당되는 환경 변수 값으로 치환합니다.  만약\n"
+"<쉘-형식>을 쓰면, <쉘-형식>에서 사용한 환경 변수만 치환합니다; <쉘-형식>을\n"
+"쓰지 않으면 표준 입력의 모든 환경 변수를 치환합니다.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"--variables 옵션을 사용하면, 표준 입력을 무시하고, <쉘-형식>에 참조된 환경 변수를\n"
+"한 줄에 하나씩 출력합니다.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "<bug-gnu-gettext@gnu.org>로 문제점을 알려 주십시오.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "\"%s\"을(를) 읽는 동안 오류 발생"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "표준 입력"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"사용법: %s [<옵션>] [[<TEXTDOMAIN>] <MSGID>]\n"
+"혹은:   %s [<옵션>] -s [<MSGID>]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "주어진 메시지에 대한 고유어 번역문을 표시합니다.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=<TEXTDOMAIN> 번역된 메시지를 <TEXTDOMAIN>에서 불러옵니다\n"
+"  -e                        몇몇 이스케이프 문자열의 확장을 가능케 합니다\n"
+"  -E                        (호환성을 위해 무시됨)\n"
+"  -h, --help                이 도움말을 보여주고 종료합니다\n"
+"  -n                        따라붙는 줄바꿈 문자를 제거합니다\n"
+"  -V, --version             버전 정보를 표시하고 종료합니다\n"
+"  [<TEXTDOMAIN>] <MSGID>    <MSGID>에 대응하는 번역된 메시지를 <TEXTDOMAIN>에서\n"
+"                            불러옵니다\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"<TEXTDOMAIN> 인자가 주어지지 않으면, 도메인은 TEXTDOMAIN \n"
+"환경 변수로 결정됩니다.  메시지 목록이 일반적인 디렉터리에 \n"
+"없다면, 환경 변수 TEXTDOMAINDIR로 다른 위치를 지정할 수 \n"
+"있습니다.\n"
+"-s 옵션이 쓰이면 프로그램은 'echo' 명령처럼 동작합니다. 그러나 \n"
+"단순히 인수를 표준출력에 복사하지는 않습니다.  대신에 지정한 \n"
+"목록에서 번역되어 있는 메시지만이 출력됩니다.\n"
+"기본 탐색 디렉터리: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "사용법: %s [<옵션>] [<TEXTDOMAIN>] <MSGID> <MSGID-PLURAL> <개수>\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"숫자에 따라 문법이 달라지는, 주어진 메시지에 대한 고유어 번역문을\n"
+"표시합니다.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=TEXTDOMAIN   번역된 메시지를 TEXTDOMAIN에서 불러옵니다\n"
+"  -e                        몇몇 이스케이프 문자열의 확장을 가능케 합니다\n"
+"  -E                        (호환성을 위해 무시됨)\n"
+"  -h, --help                이 도움말을 보여주고 끝납니다\n"
+"  -V, --version             버전 정보를 표시하고 끝납니다\n"
+"  [TEXTDOMAIN]              번역된 메시지를 TEXTDOMAIN에서 불러옵니다\n"
+"  MSGID MSGID-복수형        MSGID(단수) / MSGID-복수형(복수)을 번역합니다\n"
+"  개수                      이 값에 따라 단수/복수를 결정합니다\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"TEXTDOMAIN 매개변수가 주어지지 않으면 도메인은 TEXTDOMAIN 환경 변수로부터\n"
+"결정됩니다.  메시지 목록이 일반적인 디렉터리에 있지 않으면 환경 변수\n"
+"TEXTDOMAINDIR로 다른 위치를 지정할 수 있습니다.\n"
+"\n"
+"표준 탐색 디렉터리: %s\n"

@@ -1,0 +1,16 @@
+# List of files which contain translatable strings.
+# Copyright (C) 1995, 1998, 2001-2003, 2005-2006 Free Software Foundation, Inc.
+
+# For updating this file, look at the result of:
+#   $ LC_ALL=C grep -l '[^A-Za-z_]_(' {gnulib-lib,src}/*.[chly]
+
+# Files from the portability library
+gnulib-lib/closeout.c
+gnulib-lib/error.c
+gnulib-lib/getopt.c
+gnulib-lib/xmalloc.c
+
+# Package source files
+src/envsubst.c
+src/gettext.c
+src/ngettext.c

@@ -1,0 +1,44 @@
+struct mapping { int standard_name; const char vendor_name[10 + 1]; };
+%struct-type
+%language=ANSI-C
+%define slot-name standard_name
+%define hash-function-name mapping_hash
+%define lookup-function-name mapping_lookup
+%readonly-tables
+%global-table
+%define word-array-name mappings
+%pic
+%%
+# On AIX 5.1, look in /usr/lib/nls/loc/uconvTable.
+ISO-8859-1, "ISO8859-1"
+ISO-8859-2, "ISO8859-2"
+ISO-8859-3, "ISO8859-3"
+ISO-8859-4, "ISO8859-4"
+ISO-8859-5, "ISO8859-5"
+ISO-8859-6, "ISO8859-6"
+ISO-8859-7, "ISO8859-7"
+ISO-8859-8, "ISO8859-8"
+ISO-8859-9, "ISO8859-9"
+ISO-8859-15, "ISO8859-15"
+CP437, "IBM-437"
+CP850, "IBM-850"
+CP852, "IBM-852"
+CP856, "IBM-856"
+CP857, "IBM-857"
+CP861, "IBM-861"
+CP865, "IBM-865"
+CP869, "IBM-869"
+ISO-8859-13, "IBM-921"
+CP922, "IBM-922"
+CP932, "IBM-932"
+CP943, "IBM-943"
+CP1046, "IBM-1046"
+CP1124, "IBM-1124"
+CP1125, "IBM-1125"
+CP1129, "IBM-1129"
+CP1252, "IBM-1252"
+GB2312, "IBM-eucCN"
+EUC-JP, "IBM-eucJP"
+EUC-KR, "IBM-eucKR"
+EUC-TW, "IBM-eucTW"
+BIG5, "big5"

@@ -95,7 +95,6 @@ endif()
 
 set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
 
-include(FindGettext)
 if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
 	file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
 	add_custom_target(translations ALL)

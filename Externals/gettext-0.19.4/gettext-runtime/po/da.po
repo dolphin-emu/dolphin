@@ -1,0 +1,318 @@
+# gettext-0.10/po/da.po - initial revision  -*- po -*-
+# Copyright (C) 1996 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+#
+# Reviewed: 2001-08-31 olau@hardworking.dk
+#
+# Keld Simonsen <keld@dkuug.dk>, 2001-2002.
+# Thorbjørn Ravn Andersen <ravn@unixsnedkeren.dk>, 1996.
+# Keld Simonsen <keld@keldix.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.18\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2011-01-08 01:45+0100\n"
+"Last-Translator: Keld Simonsen <keld@keldix.com>\n"
+"Language-Team: Danish <dansk@dansk-gruppen.dk>\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8-bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Lokalize 1.0\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "skrivefejl"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Ukendt systemfejl"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, fuzzy, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: tilvalget '%s' kan betyde flere ting\n"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: tilvalget '--%s' tillader ikke et argument\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: tilvalget `%c%s' tillader ikke et argument\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: tilvalget `--%s' kræver et argument\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: ukendt tilvalg `--%s'\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: ukendt tilvalg `%c%s'\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: ugyldigt tilvalg -- %c\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: tilvalget '%c' kræver et argument\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: tilvalget '-W %s' er flertydigt\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: tilvalget '-W %s' tillader ikke et argument\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: tilvalget `%s' kræver et argument\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "ikke mere ledig hukommelse"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Ophavsret © %s Free Software Foundation, Inc.\n"
+"Licens GPLv3+: GNU GPL version 3 eller senere <http://gnu.org/licenses/gpl.html>\n"
+"Dette er frit programmel: du kan frit ændre og videredistribuere det.\n"
+"Der er INGEN GARANTIER, så vidt som lov foreskriver.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Skrevet af %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "For mange argumenter"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "argumenter mangler"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, fuzzy, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Prøv '%s --help' for yderligere oplysninger.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Brug: %s [TILVALG] [SKAL-FORMAT]...\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Erstatter værdierne af miljøvariable.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Kørselstilstand:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             vis variablene der optræder i SKAL-FORMAT\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Informativt uddata:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                     vis denne hjælp og afslut\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               vis versionsinformation og afslut\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"I normal kørselstilstand kopieres standard-inddata til standard-uddata,\n"
+"med referencer til miljøvariable på formen $VARIABLE eller ${VARIABLE}\n"
+"erstattet med den tilsvarende værdi. Hvis et SKAL-FORMAT er angivet,\n"
+"bliver kun de miljøvariable som refereres i SKAL-FORMAT erstattet;\n"
+"ellers erstates alle miljøvariabelreferencer der optræder i\n"
+"standard-inddata.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Når --variables bruges, ignores inddata, og uddata består af\n"
+"miljøvariablene der optræder i SKAL-FORMAT, én per linje.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "Rapportér fejl på engelsk til <bug-gnu-gettext@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "fejl ved læsning af '%s'"
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "standard-inddata"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Brug:  %s [TILVALG] [[TEKSTDOMÆNE] TEKSTID]\n"
+"eller: %s [TILVALG] -s [TEKSTID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Vis ikke-engelsk oversættelse af en tekstbesked.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=TEKSTDOMÆNE  hent oversatte tekster fra TEKSTDOMÆNE\n"
+"  -e                        aktivér fortolkning af visse escape-sekvenser\n"
+"  -E                        (ignoreret af hensyn til kompatibilitet)\n"
+"  -h, --help                vis denne hjælp og afslut\n"
+"  -V, --version             vis versionsinformation og afslut\n"
+"  [TEKSTDOMÆNE] TEKSTID     hent den oversatte tekst svarende til\n"
+"                            TEKSTID fra TEKSTDOMÆNE\n"
+
+#: src/gettext.c:264
+#, fuzzy, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Hvis TEKSTDOMÆNE-parameteren ikke angives, bestemmes domænet ud fra værdien af\n"
+"miljøvariablen TEXTDOMAIN. Hvis tekstkataloget ikke kan findes i det\n"
+"sædvanlige filkatalog, kan en anden placering angives vha miljøvariablen\n"
+"TEXTDOMAINDIR.\n"
+"Når tilvalget -s bruges, opfører programmet sig som 'echo'-kommandoen.\n"
+"Men argumenterne bliver ikke blot kopieret til standard uddata. I stedet\n"
+"oversættes de tekster der findes i det valgte tekstkatalog.\n"
+"Standard-filkataloget for søgning er: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Brug: %s [TILVALG] [TEKSTDOMÆNE] TEKSTID TEKSTID-FLERTAL ANTAL\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Vis oversættelser i det lokale sprog af tekstbeskeder hvis grammatiske\n"
+"form beror på et tal.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=TEKSTDOMÆNE  hent oversatte tekster fra TEKSTDOMÆNE\n"
+"  -e                        aktivér fortolkning af visse escape-sekvenser\n"
+"  -E                        (ignoreret af hensyn til kompatibilitet)\n"
+"  -h, --help                vis denne hjælp og afslut\n"
+"  -V, --version             vis versionsinformation og afslut\n"
+"  [TEKSTDOMÆNE]             hent den oversatte tekst fra TEKSTDOMÆNE\n"
+"  TEKSTID TEKSTID-FLERTAL   oversæt TEKSTID (ental) / TEKSTID-FLERTAL (flertal)\n"
+"  COUNT                     vælg ental/flertalsform ud fra denne værdi\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Hvis TEKSTDOMÆNE-parameteren ikke angives, bestemmes domænet ud fra værdien af\n"
+"miljøvariablen TEXTDOMAIN. Hvis tekstkataloget ikke kan findes i det\n"
+"sædvanlige filkatalog, kan en anden placering angives vha miljøvariablen\n"
+"TEXTDOMAINDIR.\n"
+"Standard-filkataloget for søgning er: %s\n"

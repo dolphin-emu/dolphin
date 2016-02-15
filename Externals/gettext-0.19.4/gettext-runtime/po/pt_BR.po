@@ -1,0 +1,1570 @@
+# Brazilian Portuguese translation of gettext-runtime
+# Copyright (C) 2013 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Sandro Nunes Henrique <sandro@conectiva.com.br>, 1998
+# Rodrigo Stulzer Lopes <rodrigo@conectiva.com.br>, 2000
+# Flávio Bruno Leitner <flavio@conectiva.com.br>, 2001.
+# Rafael Ferreira <rafael.f.f1@gmail.com>, 2013.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.18.2\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2013-03-01 06:03-0300\n"
+"Last-Translator: Rafael Ferreira <rafael.f.f1@gmail.com>\n"
+"Language-Team: Brazilian Portuguese <ldpbr-translation@lists.sourceforge."
+"net>\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "erro de escrita"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Erro de sistema desconhecido"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: a opção \"%s\" é ambígua; possibilidades:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: opção \"--%s\" não aceita um argumento\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: opção \"%c%s\" não aceita um argumento\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: opção \"--%s\" requer um argumento\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: opção não reconhecida \"--%s\"\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: opção não reconhecida \"%c%s\"\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opção inválida -- \"%c\"\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: opção requer um argumento -- \"%c\"\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: opção \"-W %s\" é ambígua\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: opção \"-W %s\" não aceita um argumento\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: opção \"-W %s\" requer um argumento\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "Memória insuficiente"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"Licença GPLv3+: GNU GPL versão 3 ou posterior <http://gnu.org/licenses/gpl.html>\n"
+"Este é  um software livre: você é livre para alterar e redistribui-lo.\n"
+"NÃO HÁ GARANTIA, à extensão permitida pela lei.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Escrito por %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "excesso de parâmetros"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "parâmetros não informados"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Tente \"%s --help\" para mais informações.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Uso: %s [OPÇÃO] [FORMATO SHELL]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Substitui os valores das variáveis de ambiente.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Modo de operação:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             exibe as variáveis ocorrentes em SHELL-FORMAT\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Saída informativa:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  exibe essa ajuda e sai\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               exibe a informação da versão e sai\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"Em modo de operação normal, a entrada padrão é copiada para a saída padrão,\n"
+"com referências a variáveis de ambiente da forma de $VARIABLE ou ${VARIABLE}\n"
+"sendo substituída com os valores correspondentes. Se um FORMATO-SHELL é dado,\n"
+"apenas aquelas variáveis de ambiente que forem referenciadas no FORMATO-SHELL\n"
+"são substituídas. Do contrário, todas as referências variáveis de ambiente\n"
+"ocorrentes na entrada padrão são substituídas.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Quando --variables é usado, a entrada padrão é ignorada e a saída conste nas\n"
+"variáveis de ambiente que são referenciadas em FORMATO-SHELL, um por linha.\n"
+
+# Outra linha adicionada com email da equipe de tradução, seguindo requisição do desenvolvedor.
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr ""
+"Relate erros para <bug-gnu-gettext@gnu.org>.\n"
+"Relate erros de tradução para <ldpbr-translation@lists.sourceforge.net>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "erro ao ler \"%s\""
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "entrada padrão"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Uso: %s [OPÇÃO] [[DOMÍNIO] MSGID]\n"
+"ou:  %s [OPÇÃO] -s [MSGID]...\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Exibe tradução do idioma nativo de uma mensagem textual.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=DOMÍNIO      recupera mensagens traduzidas em DOMÍNIO\n"
+"  -e                        habilita expansão de alguns caracteres de escape\n"
+"  -E                        (ignorado para compatibilidade)\n"
+"  -h, --help                exibe esta ajuda e sai\n"
+"  -n                        suprime caractere de nova linha\n"
+"  -v, --version             exibe a versão e sai\n"
+"  [DOMÍNIO] MSGID           recupera mensagens traduzidas correspondentes\n"
+"                            a MSGID no DOMÍNIO\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Se o parâmetro DOMÍNIO não for informado, este será determinado através da\n"
+"variável de ambiente TEXTDOMAIN. Se o catálogo de mensagens não for encontrado\n"
+"no diretório padrão, outra localização pode ser especificada na variável\n"
+"TEXTDOMAINDIR.\n"
+"Quando utilizado com a opção -s o programa comporta-se como o comando \"echo\".\n"
+"Mas não somente copiando seus parâmetros para stdout, e sim traduzindo as\n"
+"mensagens encontradas no catálogo selecionado\n"
+"Diretório de pesquisa padrão: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Uso: %s [OPÇÃO] [DOMÍNIO] MSGID MSGID-PLURAL NÚMERO\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr ""
+"Exibe tradução de idioma nativo de uma mensagem textual cuja forma\n"
+"gramatical depende de um número.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=DOMÍNIO      recupera mensagens traduzidas em DOMÍNIO\n"
+"  -e                        habilita expansão de alguns caracteres de escape\n"
+"  -E                        (ignorado para compatibilidade)\n"
+"  -h, --help                exibe esta ajuda e sai\n"
+"  -n                        suprime caractere de nova linha\n"
+"  -v, --version             exibe a versão e sai\n"
+"  [DOMÍNIO] MSGID           recupera mensagens traduzidas correspondentes\n"
+"                            para MSGID no DOMÍNIO\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Caso o parâmetro DOMÍNIO não seja informado este será determinado através da\n"
+"variável de ambiente TEXTDOMAIN. Se o catálogo de mensagens não for encontrado\n"
+"no diretório padrão, outra localização pode ser especificada na variável\n"
+"TEXTDOMAINDIR.\n"
+"Quando utilizado com a opção -s o programa comporta-se como um comando echo.\n"
+"Mas não somente copiando seus parâmetros para stdout, e sim traduzindo as\n"
+"mensagens encontradas no catálogo selecionado\n"
+"Diretório de pesquisa padrão: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: opção ilegal -- %c\n"
+
+#~ msgid ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "Este é um sofware livre; veja os fontes para condições de cópia.  Não "
+#~ "existe\n"
+#~ "garantia; nem mesmo COMERCIAIS ou de ATENDIMENTO A UMA DETERMINADA "
+#~ "FINALIDADE.\n"
+
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "erro ao abrir \"%s\" para leitura"
+
+#, fuzzy
+#~ msgid "cannot open backup file \"%s\" for writing"
+#~ msgstr "erro ao abrir o arquivo \"%s\" para gravação"
+
+#, fuzzy
+#~ msgid "error reading \"%s\""
+#~ msgstr "erro ao ler \"%s\""
+
+#, fuzzy
+#~ msgid "error writing \"%s\""
+#~ msgstr "erro ao gravar o arquivo \"%s\""
+
+#, fuzzy
+#~ msgid "error after reading \"%s\""
+#~ msgstr "erro ao ler \"%s\""
+
+#, fuzzy
+#~ msgid "cannot create pipe"
+#~ msgstr "não foi possível criar o arquivo de saída \"%s\""
+
+#, fuzzy
+#~ msgid "number of format specifications in 'msgid' and '%s' does not match"
+#~ msgstr ""
+#~ "número de especificações de formatos em `msgid' e `msgstr' não conferem"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument %u are not the same"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument %u, as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "a format specification for argument %u doesn't exist in '%s'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument {%u}, as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "a format specification for argument {%u} doesn't exist in '%s'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument {%u} are not the "
+#~ "same"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "format specifications in 'msgid' and '%s' are not equivalent"
+#~ msgstr ""
+#~ "número de especificações de formatos em `msgid' e `msgstr' não conferem"
+
+#, fuzzy
+#~ msgid "format specifications in '%s' are not a subset of those in 'msgid'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' expect a mapping, those in '%s' expect a "
+#~ "tuple"
+#~ msgstr ""
+#~ "número de especificações de formatos em `msgid' e `msgstr' não conferem"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' expect a tuple, those in '%s' expect a "
+#~ "mapping"
+#~ msgstr ""
+#~ "número de especificações de formatos em `msgid' e `msgstr' não conferem"
+
+#, fuzzy
+#~ msgid ""
+#~ "a format specification for argument '%s', as in '%s', doesn't exist in "
+#~ "'msgid'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "a format specification for argument '%s' doesn't exist in '%s'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid ""
+#~ "format specifications in 'msgid' and '%s' for argument '%s' are not the "
+#~ "same"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#~ msgid "%s and %s are mutually exclusive"
+#~ msgstr "%s e %s são mutuamente exclusivos"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "  -i, --indent                write the .po file using indented style\n"
+#~ "      --no-location           do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location          generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#~ msgid "impossible selection criteria specified (%d < n < %d)"
+#~ msgstr "critério de seleção especificado impossível (%d < n < %d)"
+
+#, fuzzy
+#~ msgid ""
+#~ "Concatenates and merges the specified PO files.\n"
+#~ "Find messages which are common to two or more of the specified PO files.\n"
+#~ "By using the --more-than option, greater commonality may be requested\n"
+#~ "before messages are printed.  Conversely, the --less-than option may be\n"
+#~ "used to specify less commonality before messages are printed (i.e.\n"
+#~ "--less-than=2 will only print the unique messages).  Translations,\n"
+#~ "comments and extract comments will be cumulated, except that if --use-"
+#~ "first\n"
+#~ "is specified, they will be taken from the first PO file to define them.\n"
+#~ "File positions from all PO files will be cumulated.\n"
+#~ msgstr ""
+#~ "  -V, --version                  mostra informações de versão e sai\n"
+#~ "  -w, --width=NUMBER             configura a largura de página de saída\n"
+#~ "  -<, --less-than=NÚMERO         mostra mensagens menores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "  ->, --more-than=NÚMERO         mostra mensagens maiores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "\n"
+#~ "Descobre mensagens que são comuns a dois ou mais do arquivos PO\n"
+#~ "especificados. Usando a opção --more-than, a maior parte das\n"
+#~ "ocorrências podem ser solicitadas antes das mensagens serem impressas.\n"
+#~ "De modo contrário, a opção --less-than pode ser usada para especificar\n"
+#~ "menos ocorrências antes das mensagens serem exibidas (i.e., \n"
+#~ "--less-than=2 irá exibir apenas as mensagens exclusivas). Traduções,\n"
+#~ "comentários e comentários de extração serão preservados, mas apenas do\n"
+#~ "primeiro arquivo PO que os definirem. As posições de arquivo de todos\n"
+#~ "os arquivos PO serão preservados.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Message selection:\n"
+#~ "  -<, --less-than=NUMBER         print messages with less than this many\n"
+#~ "                                 definitions, defaults to infinite if "
+#~ "not\n"
+#~ "                                 set\n"
+#~ "  ->, --more-than=NUMBER         print messages with more than this many\n"
+#~ "                                 definitions, defaults to 0 if not set\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -V, --version                  mostra informações de versão e sai\n"
+#~ "  -w, --width=NUMBER             configura a largura de página de saída\n"
+#~ "  -<, --less-than=NÚMERO         mostra mensagens menores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "  ->, --more-than=NÚMERO         mostra mensagens maiores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "\n"
+#~ "Descobre mensagens que são comuns a dois ou mais do arquivos PO\n"
+#~ "especificados. Usando a opção --more-than, a maior parte das\n"
+#~ "ocorrências podem ser solicitadas antes das mensagens serem impressas.\n"
+#~ "De modo contrário, a opção --less-than pode ser usada para especificar\n"
+#~ "menos ocorrências antes das mensagens serem exibidas (i.e., \n"
+#~ "--less-than=2 irá exibir apenas as mensagens exclusivas). Traduções,\n"
+#~ "comentários e comentários de extração serão preservados, mas apenas do\n"
+#~ "primeiro arquivo PO que os definirem. As posições de arquivo de todos\n"
+#~ "os arquivos PO serão preservados.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -t, --to-code=NAME             encoding for output\n"
+#~ "      --use-first                use first available translation for "
+#~ "each\n"
+#~ "                                 message, don't merge several "
+#~ "translations\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#~ msgid "no input files given"
+#~ msgstr "arquivos de entrada não informados"
+
+#~ msgid "exactly 2 input files required"
+#~ msgstr "são necessários 2 arquivos de entrada"
+
+#, fuzzy
+#~ msgid ""
+#~ "Compare two Uniforum style .po files to check that both contain the same\n"
+#~ "set of msgid strings.  The def.po file is an existing PO file with the\n"
+#~ "translations.  The ref.pot file is the last created PO file, or a PO "
+#~ "Template\n"
+#~ "file (generally created by xgettext).  This is useful for checking that\n"
+#~ "you have translated each and every message in your program.  Where an "
+#~ "exact\n"
+#~ "match cannot be found, fuzzy matching is used to produce better "
+#~ "diagnostics.\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIRETÓRIO  adiciona DIRETÓRIO na lista de pesquisa "
+#~ "dos \n"
+#~ "                             arquivos de entrada\n"
+#~ "  -h, --help                 apresenta esta ajuda e finaliza\n"
+#~ "  -V, --version              apresenta informações da versão e finaliza\n"
+#~ "\n"
+#~ "Compara dois arquivos .po de estilo Uniforum para checar se ambos contém "
+#~ "o\n"
+#~ "mesmo conjunto de strings msgid. O arquivo def.po deve ser um arquivo PO\n"
+#~ "existente com as traduções antigas. O arquivo ref.po é o último arquivo "
+#~ "PO\n"
+#~ "criado (geralmente pelo xgettext). Isto é útil para comparar se todas as\n"
+#~ "mensagens do programa foram traduzidas. Onde uma igualdade não puder ser\n"
+#~ "encontrada uma aproximação é utilizada para produzir um melhor "
+#~ "diagnóstico.\n"
+
+#~ msgid "this message is used but not defined..."
+#~ msgstr "esta mensagem é utilizada, mas não foi definida..."
+
+#~ msgid "...but this definition is similar"
+#~ msgstr "...mas esta definição é similar"
+
+#~ msgid "this message is used but not defined in %s"
+#~ msgstr "esta mensagem é utilizada mas não definida em %s"
+
+#~ msgid "warning: this message is not used"
+#~ msgstr "atenção: esta mensagem não é utilizada"
+
+#~ msgid "found %d fatal error"
+#~ msgid_plural "found %d fatal errors"
+#~ msgstr[0] "encontrado %d erro fatal"
+#~ msgstr[1] "encontrados %d erros fatais"
+
+#~ msgid "at least two files must be specified"
+#~ msgstr "pelo menos dois arquivos devem ser especificados"
+
+#, fuzzy
+#~ msgid ""
+#~ "Find messages which are common to two or more of the specified PO files.\n"
+#~ "By using the --more-than option, greater commonality may be requested\n"
+#~ "before messages are printed.  Conversely, the --less-than option may be\n"
+#~ "used to specify less commonality before messages are printed (i.e.\n"
+#~ "--less-than=2 will only print the unique messages).  Translations,\n"
+#~ "comments and extract comments will be preserved, but only from the first\n"
+#~ "PO file to define them.  File positions from all PO files will be\n"
+#~ "cumulated.\n"
+#~ msgstr ""
+#~ "  -V, --version                  mostra informações de versão e sai\n"
+#~ "  -w, --width=NUMBER             configura a largura de página de saída\n"
+#~ "  -<, --less-than=NÚMERO         mostra mensagens menores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "  ->, --more-than=NÚMERO         mostra mensagens maiores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "\n"
+#~ "Descobre mensagens que são comuns a dois ou mais do arquivos PO\n"
+#~ "especificados. Usando a opção --more-than, a maior parte das\n"
+#~ "ocorrências podem ser solicitadas antes das mensagens serem impressas.\n"
+#~ "De modo contrário, a opção --less-than pode ser usada para especificar\n"
+#~ "menos ocorrências antes das mensagens serem exibidas (i.e., \n"
+#~ "--less-than=2 irá exibir apenas as mensagens exclusivas). Traduções,\n"
+#~ "comentários e comentários de extração serão preservados, mas apenas do\n"
+#~ "primeiro arquivo PO que os definirem. As posições de arquivo de todos\n"
+#~ "os arquivos PO serão preservados.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Message selection:\n"
+#~ "  -<, --less-than=NUMBER         print messages with less than this many\n"
+#~ "                                 definitions, defaults to infinite if "
+#~ "not\n"
+#~ "                                 set\n"
+#~ "  ->, --more-than=NUMBER         print messages with more than this many\n"
+#~ "                                 definitions, defaults to 1 if not set\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -V, --version                  mostra informações de versão e sai\n"
+#~ "  -w, --width=NUMBER             configura a largura de página de saída\n"
+#~ "  -<, --less-than=NÚMERO         mostra mensagens menores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "  ->, --more-than=NÚMERO         mostra mensagens maiores que este "
+#~ "número\n"
+#~ "                                 o padrão é infinito\n"
+#~ "\n"
+#~ "Descobre mensagens que são comuns a dois ou mais do arquivos PO\n"
+#~ "especificados. Usando a opção --more-than, a maior parte das\n"
+#~ "ocorrências podem ser solicitadas antes das mensagens serem impressas.\n"
+#~ "De modo contrário, a opção --less-than pode ser usada para especificar\n"
+#~ "menos ocorrências antes das mensagens serem exibidas (i.e., \n"
+#~ "--less-than=2 irá exibir apenas as mensagens exclusivas). Traduções,\n"
+#~ "comentários e comentários de extração serão preservados, mas apenas do\n"
+#~ "primeiro arquivo PO que os definirem. As posições de arquivo de todos\n"
+#~ "os arquivos PO serão preservados.\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "  -i, --indent                indented output style\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#~ msgid "no input file given"
+#~ msgstr "não foi informado o arquivo de entrada"
+
+#, fuzzy
+#~ msgid "exactly one input file required"
+#~ msgstr "são necessários 2 arquivos de entrada"
+
+#, fuzzy
+#~ msgid "missing command name"
+#~ msgstr "parâmetros não informados"
+
+#, fuzzy
+#~ msgid "missing filter name"
+#~ msgstr "parâmetros não informados"
+
+#, fuzzy
+#~ msgid "at least one sed script must be specified"
+#~ msgstr "pelo menos dois arquivos devem ser especificados"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "      --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "      --indent                indented output style\n"
+#~ "      --keep-header           keep header entry unmodified, don't filter "
+#~ "it\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "  -s, --sort-output           generate sorted output\n"
+#~ "  -F, --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#~ msgid "%d translated message"
+#~ msgid_plural "%d translated messages"
+#~ msgstr[0] "%d mensagem traduzida"
+#~ msgstr[1] "%d mensagens traduzidas"
+
+#~ msgid ", %d fuzzy translation"
+#~ msgid_plural ", %d fuzzy translations"
+#~ msgstr[0] ", %d tradução aproximada (fuzzy)"
+#~ msgstr[1] ", %d traduções aproximadas (fuzzy)"
+
+#~ msgid ", %d untranslated message"
+#~ msgid_plural ", %d untranslated messages"
+#~ msgstr[0] ", %d mensagem não traduzida"
+#~ msgstr[1] ", %d mensagens não traduzidas"
+
+#, fuzzy
+#~ msgid "invalid nplurals value"
+#~ msgstr "seqüência de controle ilegal"
+
+#, fuzzy
+#~ msgid "...but some messages have only one plural form"
+#~ msgid_plural "...but some messages have only %lu plural forms"
+#~ msgstr[0] "esta mensagem é utilizada mas não definida em %s"
+#~ msgstr[1] "esta mensagem é utilizada mas não definida em %s"
+
+#, fuzzy
+#~ msgid "...but some messages have one plural form"
+#~ msgid_plural "...but some messages have %lu plural forms"
+#~ msgstr[0] "esta mensagem é utilizada mas não definida em %s"
+#~ msgstr[1] "esta mensagem é utilizada mas não definida em %s"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' e `msgstr' não começam com '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' e `msgstr[%u]' não começam com '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both begin with '\\n'"
+#~ msgstr "`msgid' e `msgstr' não começam com '\\n'"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both end with '\\n'"
+#~ msgstr "`msgid' e `msgstr' não terminam com '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both end with '\\n'"
+#~ msgstr "`msgid' e `msgstr[%u]' não terminam com '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both end with '\\n'"
+#~ msgstr "`msgid' e `msgstr' não terminam com '\\n'"
+
+#, fuzzy
+#~ msgid "headerfield `%s' missing in header\n"
+#~ msgstr "campo `%s' faltando no cabeçalho"
+
+#, fuzzy
+#~ msgid "header field `%s' should start at beginning of line\n"
+#~ msgstr "campo `%s' deve iniciar no começo da linha"
+
+#, fuzzy
+#~ msgid "some header fields still have the initial default value\n"
+#~ msgstr ""
+#~ "alguns campos do cabeçalho ainda possuem os valores iniciais padrões"
+
+#, fuzzy
+#~ msgid "field `%s' still has initial default value\n"
+#~ msgstr "campo `%s' ainda possui o valor inicial"
+
+#, fuzzy
+#~ msgid "warning: PO file header missing or invalid\n"
+#~ msgstr ""
+#~ "%s: aviso: Cabeçalho do arquivo PO esquecido, aproximado ou inválido\n"
+#~ "%*s aviso: conversão de charset não vai funcionar"
+
+#, fuzzy
+#~ msgid "warning: charset conversion will not work\n"
+#~ msgstr ""
+#~ "%s: aviso: falta o cabeçalho relativo ao charset\n"
+#~ "%*s aviso: conversão de charset não vai funcionar"
+
+#, fuzzy
+#~ msgid "warning: PO file header fuzzy\n"
+#~ msgstr ""
+#~ "%s: aviso: Cabeçalho do arquivo PO esquecido, aproximado ou inválido\n"
+#~ "%*s aviso: conversão de charset não vai funcionar"
+
+#~ msgid "domain name \"%s\" not suitable as file name"
+#~ msgstr "nome do domínio \"%s\" não é válido como nome de arquivo"
+
+#~ msgid "domain name \"%s\" not suitable as file name: will use prefix"
+#~ msgstr ""
+#~ "nome do domínio \"%s\" não é válido como nome de arquivo: será usado um "
+#~ "prefixo"
+
+#~ msgid "`domain %s' directive ignored"
+#~ msgstr "`domain %s': diretiva ignorada"
+
+#~ msgid "duplicate message definition"
+#~ msgstr "definição duplicada de mensagem"
+
+#~ msgid "...this is the location of the first definition"
+#~ msgstr "...esta é a localização da primeira definição"
+
+#~ msgid "empty `msgstr' entry ignored"
+#~ msgstr "`msgstr' vazia: mensagem ignorada"
+
+#~ msgid "fuzzy `msgstr' entry ignored"
+#~ msgstr "`msgstr' aproximada (fuzzy): mensagem ignorada"
+
+#~ msgid "%s: warning: source file contains fuzzy translation"
+#~ msgstr "%s: aviso: arquivo fonte contém traduções aproximadas"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "      --no-escape             do not use C escapes in output (default)\n"
+#~ "      --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "      --indent                indented output style\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ "      --no-wrap               do not break long message lines, longer "
+#~ "than\n"
+#~ "                              the output page width, into several lines\n"
+#~ "      --sort-output           generate sorted output\n"
+#~ "      --sort-by-file          sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#, fuzzy
+#~ msgid "present charset \"%s\" is not a portable encoding name"
+#~ msgstr "%s: aviso: charset \"%s\" não é suportado pelo iconv%s"
+
+#, fuzzy
+#~ msgid "target charset \"%s\" is not a portable encoding name."
+#~ msgstr "%s: aviso: charset \"%s\" não é suportado pelo iconv%s"
+
+#, fuzzy
+#~ msgid ""
+#~ "Merges two Uniforum style .po files together.  The def.po file is an\n"
+#~ "existing PO file with translations which will be taken over to the newly\n"
+#~ "created file as long as they still match; comments will be preserved,\n"
+#~ "but extracted comments and file positions will be discarded.  The ref."
+#~ "pot\n"
+#~ "file is the last created PO file with up-to-date source references but\n"
+#~ "old translations, or a PO Template file (generally created by xgettext);\n"
+#~ "any translations or comments in the file will be discarded, however dot\n"
+#~ "comments and file positions will be preserved.  Where an exact match\n"
+#~ "cannot be found, fuzzy matching is used to produce better results.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Unifica dois arquivos .po de estilo Uniforum. O arquivo def.po é um\n"
+#~ "arquivo PO existente com as traduções antigas que serão utilizadas no "
+#~ "novo\n"
+#~ "arquivo, enquanto elas coincidirem; comentários são preservados, porém\n"
+#~ "comentários extraídos e posições de arquivos serão descartados.\n"
+#~ "O arquivo ref.po é o último arquivo PO criado (geralmente pelo "
+#~ "xgettext),\n"
+#~ "em que qualquer tradução ou comentário são descartados, exceto "
+#~ "comentários\n"
+#~ "\"ponto\" e posições de arquivo. Onde as igualdades não forem exatas,\n"
+#~ "aproximações podem ser utilizadas para produzirem melhores resultados.\n"
+#~ "Os resultados serão gravados na saída padrão, a menos que um arquivo de\n"
+#~ "saída seja especificado.\n"
+
+#, fuzzy
+#~ msgid "this message should define plural forms"
+#~ msgstr "esta mensagem é utilizada mas não definida em %s"
+
+#, fuzzy
+#~ msgid "this message should not define plural forms"
+#~ msgstr "esta mensagem é utilizada mas não definida em %s"
+
+#~ msgid ""
+#~ "%sRead %ld old + %ld reference, merged %ld, fuzzied %ld, missing %ld, "
+#~ "obsolete %ld.\n"
+#~ msgstr ""
+#~ "%sLido %ld antigas + %ld referência, concatenadas %ld, aproximadas %ld, "
+#~ "perdidas %ld, obsoletas %ld.\n"
+
+#~ msgid " done.\n"
+#~ msgstr " feito.\n"
+
+#, fuzzy
+#~ msgid "%s and explicit file names are mutually exclusive"
+#~ msgstr "%s e %s são mutuamente exclusivos"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape          do not use C escapes in output (default)\n"
+#~ "  -E, --escape             use C escapes in output, no extended chars\n"
+#~ "      --force-po           write PO file even if empty\n"
+#~ "  -i, --indent             write indented output style\n"
+#~ "      --strict             write strict uniforum style\n"
+#~ "  -w, --width=NUMBER       set output page width\n"
+#~ "      --no-wrap            do not break long message lines, longer than\n"
+#~ "                           the output page width, into several lines\n"
+#~ "  -s, --sort-output        generate sorted output\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] [ARQUIVO]...\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios para\n"
+#~ "as opções curtas\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+#~ "  -w, --width=NÚMERO       configura largura da página de saída\n"
+
+#~ msgid "<stdin>"
+#~ msgstr "<stdin>"
+
+#, fuzzy
+#~ msgid ""
+#~ "Charset \"%s\" is not a portable encoding name.\n"
+#~ "Message conversion to user's charset might not work.\n"
+#~ msgstr ""
+#~ "%s: aviso: charset \"%s\" não é um encoding portável\n"
+#~ "%*s aviso: conversão de charset pode não funcionar"
+
+#, fuzzy
+#~ msgid ""
+#~ "Charset missing in header.\n"
+#~ "Message conversion to user's charset will not work.\n"
+#~ msgstr ""
+#~ "%s: aviso: falta o cabeçalho relativo ao charset\n"
+#~ "%*s aviso: conversão de charset não vai funcionar"
+
+#~ msgid "inconsistent use of #~"
+#~ msgstr "uso inconsistente de #~"
+
+#~ msgid "missing `msgstr[]' section"
+#~ msgstr "seção `msgstr[]' não localizada"
+
+#~ msgid "missing `msgid_plural' section"
+#~ msgstr "seção `msgid_plural' não localizada"
+
+#~ msgid "missing `msgstr' section"
+#~ msgstr "seção `msgstr' não localizada"
+
+#~ msgid "first plural form has nonzero index"
+#~ msgstr "primeira forma em plural tem o índice diferente de zero"
+
+#~ msgid "plural form has wrong index"
+#~ msgstr "forma plural tem o índice errado"
+
+#~ msgid "too many errors, aborting"
+#~ msgstr "excesso de erros - finalizando"
+
+#~ msgid "invalid multibyte sequence"
+#~ msgstr "sequência multibyte inválido"
+
+#, fuzzy
+#~ msgid "incomplete multibyte sequence at end of file"
+#~ msgstr "sequência multibyte inválido"
+
+#, fuzzy
+#~ msgid "incomplete multibyte sequence at end of line"
+#~ msgstr "sequência multibyte inválido"
+
+#~ msgid "keyword \"%s\" unknown"
+#~ msgstr "palavra chave \"%s\" desconhecida"
+
+#~ msgid "invalid control sequence"
+#~ msgstr "seqüência de controle ilegal"
+
+#~ msgid "end-of-file within string"
+#~ msgstr "fim de arquivo sem string"
+
+#~ msgid "end-of-line within string"
+#~ msgstr "fim de linha sem string"
+
+#, fuzzy
+#~ msgid "file \"%s\" is truncated"
+#~ msgstr "arquivo \"%s\" truncado"
+
+#~ msgid "file \"%s\" contains a not NUL terminated string"
+#~ msgstr "arquivo \"%s\" contém string não terminada em NULL"
+
+#~ msgid "file \"%s\" is not in GNU .mo format"
+#~ msgstr "arquivo \"%s\" não está no formato GNU .mo"
+
+#, fuzzy
+#~ msgid "file \"%s\" contains a not NUL terminated string, at %s"
+#~ msgstr "arquivo \"%s\" contém string não terminada em NULL"
+
+#, fuzzy
+#~ msgid "expected two arguments"
+#~ msgstr "excesso de parâmetros"
+
+#, fuzzy
+#~ msgid "error writing stdout"
+#~ msgstr "erro ao gravar o arquivo \"%s\""
+
+#, fuzzy
+#~ msgid "cannot create a temporary directory using template \"%s\""
+#~ msgstr "não foi possível criar o arquivo de saída \"%s\""
+
+#~ msgid "error while writing \"%s\" file"
+#~ msgstr "erro ao gravar o arquivo \"%s\""
+
+#~ msgid "error while opening \"%s\" for writing"
+#~ msgstr "erro ao abrir o arquivo \"%s\" para gravação"
+
+#~ msgid ""
+#~ "internationalized messages should not contain the `\\%c' escape sequence"
+#~ msgstr ""
+#~ "mensagens internacionalizadas não devem conter o caractere de escape `\\"
+#~ "%c'"
+
+#~ msgid "cannot create output file \"%s\""
+#~ msgstr "não foi possível criar o arquivo de saída \"%s\""
+
+#~ msgid "standard output"
+#~ msgstr "saída padrão"
+
+#~ msgid "%s:%d: warning: unterminated character constant"
+#~ msgstr "%s:%d: aviso: caractere constante indeterminado"
+
+#~ msgid "%s:%d: warning: unterminated string literal"
+#~ msgstr "%s:%d: aviso: string literal indeterminada"
+
+#~ msgid "this file may not contain domain directives"
+#~ msgstr "este arquivo parece não conter diretivas de domínio"
+
+#~ msgid "--join-existing cannot be used when output is written to stdout"
+#~ msgstr ""
+#~ "--join-existing não pode ser usado enquanto a saída é escrita na saída "
+#~ "padrão"
+
+#~ msgid "xgettext cannot work without keywords to look for"
+#~ msgstr "xgettext não pode funcionar sem as teclas para procurar"
+
+#~ msgid "warning: file `%s' extension `%s' is unknown; will try C"
+#~ msgstr "aviso: arquivo `%s' extensão `%s' é desconhecida; tentarei C"
+
+#, fuzzy
+#~ msgid ""
+#~ "Output details:\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "      --no-wrap                  do not break long message lines, longer "
+#~ "than\n"
+#~ "                                 the output page width, into several "
+#~ "lines\n"
+#~ "  -s, --sort-output              generate sorted output\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "      --copyright-holder=STRING  set copyright holder in output\n"
+#~ "      --foreign-user             omit FSF copyright in output for foreign "
+#~ "user\n"
+#~ "  -m, --msgstr-prefix[=STRING]   use STRING or \"\" as prefix for msgstr "
+#~ "entries\n"
+#~ "  -M, --msgstr-suffix[=STRING]   use STRING or \"\" as suffix for msgstr "
+#~ "entries\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] def.po ref.po\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -e, --no-escape          não utilizar escapes C na saída (padrão)\n"
+#~ "  -E, --escape             usar escapes C na saída sem caracteres "
+#~ "estendidos\n"
+#~ "      --force-po           grava o arquivo .po mesmo que vazio\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "  -i, --indent             estilo de saída indentado\n"
+#~ "  -o, --output-file=ARQ    resultado será gravado em ARQ\n"
+#~ "      --no-location        suprime as linhas '#: arquivo:linha'\n"
+#~ "      --add-location       preserva as linhas '#: arquivo:"
+#~ "linha' (padrão)\n"
+#~ "  -S, --strict             habilita o modo Uniforum estrito\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+
+#~ msgid "language `%s' unknown"
+#~ msgstr "idioma `%s' desconhecido"
+
+#, fuzzy
+#~ msgid "file \"%s\" contains a not NUL terminated sysdep segment"
+#~ msgstr "arquivo \"%s\" contém string não terminada em NULL"
+
+#~ msgid "seek \"%s\" offset %ld failed"
+#~ msgstr "falha na pesquisa \"%s\" offset %ld"
+
+#, fuzzy
+#~ msgid "a format specification for argument {%u} doesn't exist in 'msgstr'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "a format specification for argument '%s' doesn't exist in 'msgstr'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#, fuzzy
+#~ msgid "a format specification for argument %u doesn't exist in 'msgstr'"
+#~ msgstr "especificações de formato para o argumento %lu são diferentes"
+
+#~ msgid "while creating hash table"
+#~ msgstr "enquanto criando tabela hash"
+
+#, fuzzy
+#~ msgid "%s:%lu: warning: keyword nested in keyword arg"
+#~ msgstr "%s:%d: aviso: string literal indeterminada"
+
+#~ msgid "while preparing output"
+#~ msgstr "enquanto preparando a saída"
+
+#~ msgid "this message has no definition in the \"%s\" domain"
+#~ msgstr "esta mensagem não tem definição no domínio \"%s\""
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] INPUTFILE ...\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -d, --default-domain=NAME      use NAME.po for output (instead of "
+#~ "messages.po)\n"
+#~ "  -D, --directory=DIRECTORY      add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "  -f, --files-from=FILE          get list of input files from FILE\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "  -h, --help                     display this help and exit\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] ARQUIVO DE ENTRADA ...\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -d, --default-domain=NOME      utiliza NOME.po para a saída, ao invés\n"
+#~ "                                 de messages.po\n"
+#~ "  -D, --directory=DIRETÓRIO      muda para DIRETÓRIO antes de começar\n"
+#~ "  -e, --no-escape                não utiliza escapes C na saída "
+#~ "(default)\n"
+#~ "  -E, --escape                   usa escapes C na saída, sem caracteres\n"
+#~ "                                 estendidos\n"
+#~ "  -f, --files-from=ARQ           lê ARQ como uma lista dos arquivos de "
+#~ "entrada\n"
+#~ "  -F, --sort-by-file             ordena a saída pela localização dos "
+#~ "arquivos\n"
+#~ "  -h, --help                     apresenta esta ajuda e finaliza\n"
+
+#~ msgid ""
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "  -o, --output=FILE              write output to specified file\n"
+#~ "  -p, --output-dir=DIR           output files will be placed in directory "
+#~ "DIR\n"
+#~ "  -s, --sort-output              generate sorted output and remove "
+#~ "duplicates\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -T, --trigraphs                understand ANSI C trigraphs for input\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -i, --indent                   grava o arquivo .po usando o estilo "
+#~ "indentado\n"
+#~ "      --no-location              não grava linhas '#: arquivo:linha'\n"
+#~ "  -n, --add-location             adiciona linhas '#: arquivo:"
+#~ "linha'(padrão)\n"
+#~ "      --omit-header              não grava cabeçalho com `msgid \"\"' \n"
+#~ "  -o, --output=ARQ               grava saída para o arquivo especificado\n"
+#~ "  -p, --output-dir=DIR           arquivos de saída serão gravados em DIR\n"
+#~ "  -s, --sort-output              gera saída ordenada, removendo "
+#~ "duplicidades\n"
+#~ "      --strict                   grava arquivo .po em estilo Uniforum\n"
+#~ "  -T, --trigraphs                entende trígrafos ANSI C na entrada\n"
+#~ "  -u, --unique                   atalho para --less-than=2, somente "
+#~ "mensagens\n"
+#~ "                                 únicas serão mostradas\n"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] filename.po ...\n"
+#~ "Generate binary message catalog from textual translation description.\n"
+#~ "\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -a, --alignment=NUMBER      align strings to NUMBER bytes (default: "
+#~ "%d)\n"
+#~ "  -c, --check                 perform language dependent checks on "
+#~ "strings\n"
+#~ "  -D, --directory=DIRECTORY   add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -f, --use-fuzzy             use fuzzy entries in output\n"
+#~ "  -h, --help                  display this help and exit\n"
+#~ "      --no-hash               binary file will not include the hash "
+#~ "table\n"
+#~ "  -o, --output-file=FILE      specify output file name as FILE\n"
+#~ "      --statistics            print statistics about translations\n"
+#~ "      --strict                enable strict Uniforum mode\n"
+#~ "  -v, --verbose               list input file anomalies\n"
+#~ "  -V, --version               output version information and exit\n"
+#~ "\n"
+#~ "Giving the -v option more than once increases the verbosity level.\n"
+#~ "\n"
+#~ "If input file is -, standard input is read.  If output file is -,\n"
+#~ "output is written to standard output.\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO]  arquivo.po ...\n"
+#~ "Gera catálogo de mensagens binárias a partir da descrição de tradução de "
+#~ "texto.\n"
+#~ "\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -a, --alignment=NÚMERO   alinha strings em um NÚMERO de bytes (padrão: "
+#~ "%d)\n"
+#~ "  -c, --check              executa conferências dependentes de linguagem "
+#~ "em strings\n"
+#~ "  -D, --directory=DIR      adiciona DIR para a lista de pesquisa de "
+#~ "arquivos de entrada\n"
+#~ "  -f, --use-fuzzy          use entradas aproximadas (fuzzy) na saída\n"
+#~ "  -h, --help               apresenta esta ajuda e finaliza\n"
+#~ "      --no-hash            arquivos binários não serão incluídos na "
+#~ "tabela hash\n"
+#~ "  -o, --output-file=ARQ    especifica o nome do arquivo de saída ARQ\n"
+#~ "      --statistics         mostra estatísticas das traduções\n"
+#~ "      --strict             habilita o modo Uniforum estrito\n"
+#~ "  -v, --verbose            lista problemas do arquivo de entrada\n"
+#~ "  -V, --version            apresenta informações de versão e finaliza\n"
+#~ "\n"
+#~ "Informando a opção -v mais que uma vez as mensagens de saída são "
+#~ "incrementadas\n"
+#~ "\n"
+#~ "Se o arquivo de entrada é -, a entrada padrão é lida. Caso o arquivo de "
+#~ "saída\n"
+#~ "seja - as mensagens serão geradas na saída padrão\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Convert binary .mo files to Uniforum style .po files.\n"
+#~ "Both little-endian and big-endian .mo files are handled.\n"
+#~ "If no input file is given or it is -, standard input is read.\n"
+#~ "By default the output is written to standard output.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Converte arquivos binários .mo em arquivos .po de estilo Uniforum.\n"
+#~ "São tratados tanto arquivos .mo little-endian e big-endian.\n"
+#~ "Se nenhum arquivo de entrada for fornecido ou for -, a entrada\n"
+#~ "padrão é lida. Por padrão, a saída é gravada para a saída padrão.\n"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] INPUTFILE ...\n"
+#~ "Extract translatable string from given input files.\n"
+#~ "\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -a, --extract-all              extract all strings\n"
+#~ "  -c, --add-comments[=TAG]       place comment block with TAG (or those\n"
+#~ "                                 preceding keyword lines) in output file\n"
+#~ "  -C, --c++                      shorthand for --language=C++\n"
+#~ "      --debug                    more detailed formatstring recognision "
+#~ "result\n"
+#~ "  -d, --default-domain=NAME      use NAME.po for output (instead of "
+#~ "messages.po)\n"
+#~ "  -D, --directory=DIRECTORY      add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "  -f, --files-from=FILE          get list of input files from FILE\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "      --foreign-user             omit FSF copyright in output for foreign "
+#~ "user\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ msgstr ""
+#~ "Uso: %s [OPÇÃO] ARQUIVO DE ENTRADA ...\n"
+#~ "Extrai strings a traduzir dos arquivos de entrada\n"
+#~ "\n"
+#~ "Parâmetros obrigatórios para opções longas são também obrigatórios\n"
+#~ "para as opções curtas\n"
+#~ "  -a, --extract-all              extrai todas as strings\n"
+#~ "  -c, --add-comments[=TAG]       adiciona blocos de comentários com TAG\n"
+#~ "                                 precedendo as linhas do arquivo de "
+#~ "saída\n"
+#~ "  -C, --c++                      reconhece estilo C++ de comentários\n"
+#~ "      --debug                    formato de saída mais detalhado\n"
+#~ "  -d, --default-domain=NOME      utiliza NOME.po para a saída, ao invés\n"
+#~ "                                 de messages.po\n"
+#~ "  -D, --directory=DIRETÓRIO      muda para DIRETÓRIO antes de começar\n"
+#~ "  -e, --no-escape                não utiliza escapes C na saída "
+#~ "(default)\n"
+#~ "  -E, --escape                   usa escapes C na saída, sem caracteres\n"
+#~ "                                 estendidos\n"
+#~ "  -f, --files-from=ARQ           lê ARQ como uma lista dos arquivos de "
+#~ "entrada\n"
+#~ "      --force-po                 escreve o arquivo .po mesmo que vazio\n"
+#~ "      --foreign-user             omite o  copyright da FSF na saída para "
+#~ "estrangeiros\n"
+#~ "  -F, --sort-by-file             ordena a saída pela localização dos "
+#~ "arquivos\n"
+
+#~ msgid ""
+#~ "  -h, --help                     display this help and exit\n"
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "  -j, --join-existing            join messages with existing file\n"
+#~ "  -k, --keyword[=WORD]           additonal keyword to be looked for "
+#~ "(without\n"
+#~ "                                 WORD means not to use default keywords)\n"
+#~ "  -L, --language=NAME            recognise the specified language (C, C+"
+#~ "+, PO),\n"
+#~ "                                 otherwise is guessed from file "
+#~ "extension\n"
+#~ "  -m, --msgstr-prefix[=STRING]   use STRING or \"\" as prefix for msgstr "
+#~ "entries\n"
+#~ "  -M, --msgstr-suffix[=STRING]   use STRING or \"\" as suffix for msgstr "
+#~ "entries\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ msgstr ""
+#~ "  -h, --help                     mostra a ajuda e sai\n"
+#~ "  -i, --indent                   grava o arquivo .po usando estilo "
+#~ "indentado\n"
+#~ "  -j, --join-existing            adiciona mensagens a um arquivo já "
+#~ "existente\n"
+#~ "  -k, --keyword[=PALAVRA]        palavra chave adicional a ser "
+#~ "pesquisada\n"
+#~ "                                 (sem PALAVRA significa não usar as "
+#~ "palavras\n"
+#~ "                                 chaves padrões)\n"
+#~ "  -L, --language=NOME            reconhece a linguagem especificada (C, C+"
+#~ "+, PO), caso \n"
+#~ "                                 contrário é escolhida através da "
+#~ "extensão do arquivo\n"
+#~ "  -m, --msgstr-prefix[=STRING]   usa STRING ou \"\" como prefixo para as\n"
+#~ "                                 entradas msgstr\n"
+#~ "  -M, --msgstr-suffix[=STRING]   usa STRING ou \"\" como sufixo para as\n"
+#~ "                                 entradas msgstr\n"
+#~ "      --no-location              não gravar linhas '#: arquivo:linha'\n"
+
+#~ msgid ""
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "  -o, --output=FILE              write output to specified file\n"
+#~ "  -p, --output-dir=DIR           output files will be placed in directory "
+#~ "DIR\n"
+#~ "  -s, --sort-output              generate sorted output and remove "
+#~ "duplicates\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -T, --trigraphs                understand ANSI C trigraphs for input\n"
+#~ "  -V, --version                  output version information and exit\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "  -x, --exclude-file=FILE        entries from FILE are not extracted\n"
+#~ "\n"
+#~ "If INPUTFILE is -, standard input is read.\n"
+#~ msgstr ""
+#~ "  -n, --add-location             adicionar linhas '#: arquivo:"
+#~ "linha' (default)\n"
+#~ "      --omit-header              não gravar cabeçalho com `msgid \"\"' \n"
+#~ "  -o, --output=ARQ               grava saída para o arquivo especificado\n"
+#~ "  -p, --output-dir=DIR           arquivos de saída serão gravados em DIR\n"
+#~ "  -s, --sort-output              gera saída ordenada, removendo "
+#~ "duplicidades\n"
+#~ "      --strict                   grava arquivo .po em estilo Uniforum\n"
+#~ "  -T, --trigraphs                entende trígrafos ANSI C na entrada\n"
+#~ "  -V, --version                  apresenta informação de versão e sai\n"
+#~ "  -n, --add-location             adicionar linhas '#: arquivo:"
+#~ "linha' (default)\n"
+#~ "      --omit-header              não gravar cabeçalho com `msgid \"\"' \n"
+#~ "  -o, --output=ARQ               grava saída para o arquivo especificado\n"
+#~ "  -p, --output-dir=DIR           arquivos de saída serão gravados em DIR\n"
+#~ "  -s, --sort-output              gera saída ordenada, removendo "
+#~ "duplicidades\n"
+#~ "      --strict                   grava arquivo .po em estilo Uniforum\n"
+#~ "  -T, --trigraphs                entende trígrafos ANSI C na entrada\n"
+#~ "  -V, --version                  apresenta informação de versão e sai\n"
+#~ "  -w, width=NÚMERO               configura a largura da página de saída\n"
+#~ "  -x, --exclude-file=ARQ         entradas do arquivo ARQ não são "
+#~ "extraídas\n"
+#~ "\n"
+#~ "Se ARQUIVO DE ENTRADA é -, a entrada padrão é lida.\n"
+
+#~ msgid ""
+#~ "%s: warning: charset \"%s\" is not supported by iconv%s\n"
+#~ "%*s  warning: consider installing GNU libiconv and then\n"
+#~ "%*s           reinstalling GNU gettext"
+#~ msgstr ""
+#~ "%s: aviso: charset \"%s\" não é suportado pelo iconv%s\n"
+#~ "%*s aviso: Instale a biblioteca GNU libiconv e depois\n"
+#~ "%*s        reinstale o GNU gettext"
+
+#~ msgid ""
+#~ "%s: warning: charset \"%s\" is not supported without iconv%s\n"
+#~ "%*s  warning: consider installing GNU libiconv and then\n"
+#~ "%*s           reinstalling GNU gettext"
+#~ msgstr ""
+#~ "%s: aviso: charset \"%s\" não é suportado sem o iconv%s\n"
+#~ "%*s aviso: considere instalar a biblioteca GNU libiconv e depois\n"
+#~ "%*s        reinstale o GNU gettext"

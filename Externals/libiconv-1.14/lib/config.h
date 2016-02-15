@@ -17,7 +17,9 @@
    If not, write to the Free Software Foundation, Inc., 51 Franklin Street,
    Fifth Floor, Boston, MA 02110-1301, USA.  */
 
+#include "../config.h"
 
+#ifdef __ANDROID__
 /* Define to 1 to enable a few rarely used encodings. */
 /* #undef ENABLE_EXTRA */
 
@@ -69,4 +71,4 @@
 
 /* Define to the value of ${prefix}, as a string. */
 #define INSTALLPREFIX "/usr/local"
-
+#endif

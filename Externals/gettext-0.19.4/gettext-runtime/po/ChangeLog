@@ -1,0 +1,738 @@
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-10-08  Daiki Ueno  <ueno@gnu.org>
+
+	* Makevars (MSGINIT_OPTIONS): New variable.
+	* Rules-quot: Use it when invoking msginit.
+	If one wants to use '--no-wrap' in MSGMERGE_OPTIONS and
+	XGETTEXT_OPTIONS, there should be a way to pass the option to
+	msginit.  Reported by Ludovic Courtès in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2014-08/msg00004.html>.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-05-02  Daiki Ueno  <ueno@gnu.org>
+
+	Makefile.in.in: Turn {POFILES,DISTFILES}DEPS into yes/no options
+	Preserve the previous behavior even if a user forgot to update
+	Makevars, after calling autopoint.
+	* Makevars (PO_DEPENDS_ON_POT): Rename from POFILESDEPS and turn
+	it into a yes/no option.
+	(DIST_DEPENDS_ON_UPDATE_PO): Rename from DISTFILESDEPS and turn it
+	into a yes/no option.
+
+2014-05-01  Daiki Ueno  <ueno@gnu.org>
+
+	Makefile.in.in: Add an option to claim the package as GNU/non-GNU
+	Reporeted by David Shea at:
+	<https://savannah.gnu.org/bugs/?40520>.
+	* Makevars (PACKAGE_GNU): New variable.
+	* Makefile.in.in ($(DOMAIN).pot-update): Don't search for "GNU
+	packagename" if $(PACKAGE_GNU) is set.
+
+2014-05-01  Daiki Ueno  <ueno@gnu.org>
+
+	Makefile.in.in: Make dependencies of a PO file and 'dist' customizable
+	* Makevars (POFILESDEPS): New variable.
+	(DISTFILESDEPS): New variable.
+	* Makefile.in.in ($(POFILES)): Depend on $(POFILESDEPS) instead of
+	$(srcdir)/$(DOMAIN).pot.
+	(dist distdir): Run $(DISTFILEDEPS) instead of 'update-po'.
+
+2014-04-21  Daiki Ueno  <ueno@gnu.org>
+
+	* Rules-quot: Use built-in filter if possible.
+
+2014-04-02  Daiki Ueno  <ueno@gnu.org>
+
+	* Rules-quot: Add a license notice.
+
+2013-07-07  Daiki Ueno  <ueno@gnu.org>
+
+	* cs.po: Update from Marek Černocký <marek@manet.cz>.
+	* de.po: Update from Jakob Kramer <jakob.kramer@gmx.de>.
+	* fi.po: Update from Jorma Karvonen <karvonen.jorma@gmail.com>.
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* ko.po: Update from Changwoo Ryu <cwryu@debian.org>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* pt_BR.po: Update from Rafael Ferreira <rafael.f.f1@gmail.com>.
+	* sl.po: Update from Primoz PETERLIN <primozz.peterlin@gmail.com>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* uk.po: Update from Yuri Chornoivan <yurchor@ukr.net>.
+	* vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+
+2013-06-25  Daiki Ueno  <ueno@gnu.org>
+
+	Allow user to supply custom sed command when generating en@quot.po.
+	This is necessary because BSD Sed is known not to work well with
+	an input not ending with a newline.
+	* Makefile.in.in (SED): Define using @SED@.
+	* Rules-quot: Use '$(SED)' instead of 'sed' as the FILTER argument
+	of msgfilter.
+	Reported by Mats Erik Andersson in
+	<https://lists.gnu.org/archive/html/bug-gettext/2013-04/msg00028.html>.
+
+2013-03-02  Bruno Haible  <bruno@clisp.org>
+
+	* bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+	* gl.po: Update from Leandro Regueiro <leandro.regueiro@gmail.com>.
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* pt_BR.po: Update from Rafael Ferreira <rafael.f.f1@gmail.com>.
+	* uk.po: Update from Yuri Chornoivan <yurchor@ukr.net>.
+	* vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-07  Bruno Haible  <bruno@clisp.org>
+
+	* cs.po: Update from Marek Černocký <marek@manet.cz>.
+	* gl.po: Update from Leandro Regueiro <leandro.regueiro@gmail.com>.
+	* hr.po: Update from Tomislav Krznar <tomislav.krznar@gmail.com>.
+	* sr.po: Update from Мирослав Николић <miroslavnikolic@rocketmail.com>.
+	* uk.po: Update from Yuri Chornoivan <yurchor@ukr.net>.
+	* vi.po: Update from Trần Ngọc Quân <vnwildman@gmail.com>.
+	* LINGUAS: Add hr.
+
+2012-07-08  Bruno Haible  <bruno@clisp.org>
+
+	* hr.po: New file, from Tomislav Krznar <tomislav.krznar@gmail.com>.
+
+2012-02-19  Bruno Haible  <bruno@clisp.org>
+
+	Rules.quot: Reenable use of build gettext tools in gettext package.
+	* Rules-quot (.insert-header.po-update-en): Augment PATH in the
+	gettext-tools package.
+
+2011-08-11  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Makefile.in.in: fix make -q problem
+	* build-aux/po/Makefile.in.in (check-macro-version): Remove this
+	rule, since there's no file named 'check-macro-version' and its
+	use as a file breaks make -q.
+	(all): Don't depend on check-macro-version.
+	(CHECK_MACRO_VERSION): New macro.
+	(stamp-po): Use it.
+
+2011-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* da.po: Update from Keld Simonsen <keld@keldix.com>.
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* sl.po: Update from Primoz Peterlin <primozz.peterlin@gmail.com>.
+
+2010-10-10  Bruno Haible  <bruno@clisp.org>
+
+	* bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+
+2010-08-15  Bruno Haible  <bruno@clisp.org>
+
+	* fi.po: Update from Jorma Karvonen <karvonen.jorma@gmail.com>.
+
+2010-07-27  Bruno Haible  <bruno@clisp.org>
+
+	* fr.po: Update from Christophe Combelles <ccomb@free.fr>.
+
+2010-07-11  Bruno Haible  <bruno@clisp.org>
+
+	* zh_CN.po: Update from Aron Xu <happyaron.xu@gmail.com>.
+
+2010-07-02  Bruno Haible  <bruno@clisp.org>
+
+	* nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+
+2010-06-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(DOMAIN).pot-update): When GNU find is available,
+	avoid grepping through monster files.
+	Reported by Jim Meyering <jim@meyering.net>.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-24  Bruno Haible  <bruno@clisp.org>
+
+	* bg.po: Update from Roumen Petrov <transl@roumenpetrov.info>.
+	* id.po: Update from Arif E. Nugroho <arif_endro@yahoo.com>.
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* ko.po: Update from Changwoo Ryu <cwryu@debian.org>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* sk.po: Update from Marcel Telka <marcel@telka.sk>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (GETTEXT_MACRO_VERSION): Bump to 0.18.
+
+2010-02-07  Bruno Haible  <bruno@clisp.org>
+
+	* bg.po: New file, from Roumen Petrov <transl@roumenpetrov.info>.
+	* LINGUAS: Add bg.
+
+2009-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* ko.po: Update from Changwoo Ryu <cwryu@debian.org>.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (MSGMERGE_OPTIONS): New variable.
+	* Makefile.in.in ($(POFILES), .nop.po-update): Use it when invoking
+	msgmerge.
+	Suggested by Guillem Jover <guillem@debian.org>.
+
+2009-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* de.po: Update from Karl Eichwalder <ke@suse.de>.
+
+2009-06-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (install-data-yes, installdirs-data-yes): Remove
+	unnecessary mkdir of $(datadir).
+	Reported by Serge Pavlovsky <pal666@gmail.com>.
+
+2009-02-27  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (Makefile): Use @SHELL@, not $(SHELL).
+	Reported by Scott James Remnant <scott@ubuntu.com>.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (.po.gmo): Pass --verbose to msgfmt when producing
+	statistics.
+	Suggested by Vincent Lefevre <vincent@vinc17.org>.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* id.po: Update from Arif E. Nugroho <arif_endro@yahoo.com>.
+	* nn.po: Update from Eirik U. Birkeland <eirbir@gmail.com>.
+	* zh_CN.po: Update from Li Daobing <lidaobing@gmail.com>.
+
+2008-09-28  Bruno Haible  <bruno@clisp.org>
+
+	* Rules-quot (.insert-header.po-update-en): Pass the locale name with
+	suffix to msginit. Needed for the "Language:" field in the header
+	entry.
+
+2008-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (XGETTEXT_OPTIONS): Remove the options for proper_name and
+	proper_name_utf8, now collected automatically through
+	AM_XGETTEXT_OPTION.
+
+2008-05-08  Bruno Haible  <bruno@clisp.org>
+
+	* sk.po: Update from Marcel Telka <marcel@telka.sk>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+
+2008-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* pt.po: Update from Helder Correia <helder.pereira.correia@gmail.com>.
+
+2007-12-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(POFILES), .nop.po-update): When using msgmerge
+	0.18 or newer, pass a --lang option.
+
+2007-12-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (.nop.po-update): Put all non-option arguments after
+	all option arguments, so that the commands work 1. when POSIXLY_CORRECT
+	is set, 2. on platforms whose getopt facility is POSIX compliant but
+	not GNU libc compatible, such as Cygwin.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* zh_CN.po: Restore the accidentally emptied translations.
+	Reported by Benno Schulenberg <coordinator@translationproject.org>.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-10-30  Bruno Haible  <bruno@clisp.org>
+
+	* nb.po: Renamed from no.po.
+	* LINGUAS: Add nb, remove no.
+
+2007-10-30  Bruno Haible  <bruno@clisp.org>
+
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(DOMAIN).pot-update): Consider the
+	XGETTEXT_EXTRA_OPTIONS variable.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (GETTEXT_MACRO_VERSION): Bump to 0.17.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+
+2007-10-27  Bruno Haible  <bruno@clisp.org>
+
+	* fr.po: Update from Christophe Combelles <ccomb@free.fr>.
+
+2007-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* eo.po: Update from D. Dale Gulledge <dsplat@rochester.rr.com>.
+	* fi.po: Update from Lauri Nurmi <lanurmi@iki.fi>.
+	* ga.po: Update from Kevin Patrick Scannell <kscanne@gmail.com>.
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* sl.po: Update from
+	Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2007-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(DOMAIN).pot-update): Don't pass the package name
+	and version to xgettext if the xgettext version is < 0.16.2.
+
+2007-10-12  Bruno Haible  <bruno@clisp.org>
+
+	* nl.po: Update from Benno Schulenberg <benno@vertaalt.nl>.
+
+2007-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(DOMAIN).pot-update): Exclude "GNU <package>"
+	matches from the libtool script in any directory.
+
+2007-09-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in ($(DOMAIN).pot-update): Pass the package name and
+	version to xgettext.
+
+2007-09-15  Bruno Haible  <bruno@clisp.org>
+
+	* sk.po: Update from Marcel Telka <marcel@telka.sk>.
+	* uk.po: Update from Maxim V. Dziumanenko <dziumanenko@gmail.com>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2007-09-08  Bruno Haible  <bruno@clisp.org>
+
+	Check that the gettext macros and Makefile.in.in are in sync.
+	* Makefile.in.in (GETTEXT_MACRO_VERSION): New macro.
+	(check-macro-version): New target.
+	(all): Depend on it.
+	Suggested by Daniel Leidert <daniel.leidert.spam@gmx.net>.
+
+2007-05-30  Bruno Haible  <bruno@clisp.org>
+
+	* pt.po: Update from Helder Correia <helder.pereira.correia@gmail.com>.
+
+2007-01-30  Bruno Haible  <bruno@clisp.org>
+
+	* uk.po: Update from Maxim V. Dziumanenko <dziumanenko@gmail.com>.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-02  Bruno Haible  <bruno@clisp.org>
+
+	* fr.po: Update from Christophe Combelles <ccomb@free.fr>.
+	* sl.po: Update from
+	Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>.
+
+2006-09-28  Bruno Haible  <bruno@clisp.org>
+
+	* ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* id.po: Update from Tedi Heriyanto <tedi_heriyanto@yahoo.com>.
+	* zh_CN.po: Update from Funda Wang <fundawang@linux.net.cn>.
+
+2006-09-10  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (install_sh): New variable.
+	Fixes "make install" errors in packages that have no 'mkinstalldirs'
+	file and use automake <= 1.9.x, on platforms where 'mkdir' does not
+	support the -p option.
+
+2006-08-16  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.in.in (MKDIR_P): New variable. Needed by $(mkdir_p) with
+	Automake-1.10.
+
+2006-07-31  Bruno Haible  <bruno@clisp.org>
+
+	* POTFILES.in: Refer to gnulib-lib/ instead of ../gettext-tools/lib/.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Rules-msvc: Remove file.
+	* Makefile.msvc.sh: Remove file.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Rules-vms: Remove file.
+	* Makefile.vms.sh: Remove file.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2006-07-20  Bruno Haible  <bruno@clisp.org>
+
+	* de.po: Update from Karl Eichwalder <ke@suse.de>.
+	* eo.po: New file, from D. Dale Gulledge <dsplat@rochester.rr.com>.
+	* fr.po: Update from Michel Robitaille <robitail@iro.umontreal.ca>.
+	* ga.po: Update from Kevin Patrick Scannell <scannell@slu.edu>.
+	* ru.po: Update from Oleg S. Tihonov <ost@tatnipi.ru>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+	* zh_HK.po: New file, from Abel Cheung <abelcheung@gmail.com>.
+	* zh_TW.po: Update from Abel Cheung <abelcheung@gmail.com>.
+	* LINGUAS: Add eo, zh_HK.
+
+2006-07-03  Bruno Haible  <bruno@clisp.org>
+
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* ko.po: Update from Changwoo Ryu <cwryu@debian.org>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* tr.po: Update from Nilgün Belma Bugüner <nilgun@buguner.name.tr>.
+
+2006-06-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (mkinstalldirs): New variable. Needed by $(mkdir_p)
+	if an mkinstalldirs file is present.
+
+2006-04-17  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (MKINSTALLDIRS, mkinstalldirs): Remove variables.
+	(mkdir_p): New variable.
+	(install-data, install-data-yes, installdirs-data,
+	installdirs-data-yes): Use $(mkdir_p) instead of $(mkinstalldirs).
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Don't ignore the --localedir option from autoconf >= 2.60.
+	* Makefile.in.in (localedir): Set to the value determined by the
+	configure script.
+
+2006-04-07  Bruno Haible  <bruno@clisp.org>
+
+	* es.po: Update from Max de Mendizábal <max@upn.mx>.
+	* pt.po: Update from Helder Correia <helder.pereira.correia@gmail.com>.
+	* sl.po: Update from
+	Primož Peterlin <primoz.peterlin@biofiz.mf.uni-lj.si>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+	* zh_TW.po: Update from Abel Cheung <abelcheung@gmail.com>.
+
+2006-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (XGETTEXT_OPTIONS): Add keywords 'proper_name' and
+	'proper_name_utf8'.
+
+2005-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (USE_MSGCTXT): New macro.
+	* Makefile.in.in (GMSGFMT, MSGFMT, XGETTEXT): Define according to the
+	value of $(USE_MSGCTXT).
+
+2005-07-26  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (datarootdir): New variable.
+	Suggested by Stepan Kasal <kasal@ucw.cz>.
+
+2005-03-13  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (Makefile): Call config.status with calling convention
+	supported since autoconf-2.50.
+	Suggested by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.6 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.5 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* zh_TW.po: Update from Abel Cheung <abelcheung@gmail.com>.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.4 released.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2005-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.3 released.
+
+2005-03-13  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (Makefile): Depend on Makevars.
+	Reported by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-08  Bruno Haible  <bruno@clisp.org>
+
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (dist2): Fail if some of the files to be distributed
+	do not exist or cannot be copied.
+	Suggested by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (DISTFILES): Remove $(DOMAIN).pot, stamp-po.
+	(stamp-po): Do nothing if $(DOMAIN).pot does not exist.
+	(dist2): Depend on stamp-po. If $(DOMAIN).pot exists, distribute also
+	$(DOMAIN).pot and stamp-po.
+	Reported by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.2 released.
+
+2005-02-23  Bruno Haible  <bruno@clisp.org>
+
+	* it.po: Update from Marco Colombo <m.colombo@ed.ac.uk>.
+
+2005-02-21  Bruno Haible  <bruno@clisp.org>
+
+	* vi.po: Update from Clytie Siddall <clytie@riverland.net.au>.
+
+2005-02-11  Bruno Haible  <bruno@clisp.org>
+
+	* ga.po: New file, from Kevin Patrick Scannell <scannell@slu.edu>.
+	* LINGUAS: Add ga.
+
+2005-02-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (PACKAGE_BUGREPORT): New variable.
+	($(DOMAIN).pot-update): If MSGID_BUGS_ADDRESS is empty and
+	PACKAGE_BUGREPORT is available, use the latter.
+	Reported by Simon Josefsson <jas@extundo.com>.
+
+2005-01-29  Bruno Haible  <bruno@clisp.org>
+
+	* vi.po: New file, from Clytie Siddall <clytie@riverland.net.au>.
+	* LINGUAS: Add vi.
+
+2005-01-20  Bruno Haible  <bruno@clisp.org>
+
+	* ru.po: Update from Oleg S. Tihonov <ost@tatnipi.ru>.
+
+2005-01-06  Bruno Haible  <bruno@clisp.org>
+
+	* de.po: Update from Karl Eichwalder <ke@suse.de>.
+	* id.po: Update from Tedi Heriyanto <tedi_h@gmx.net>.
+	* uk.po: Update from Maxim V. Dziumanenko <mvd@mylinux.com.ua>.
+
+2004-01-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.1 released.
+
+2004-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14 released.
+
+2004-01-17  Bruno Haible  <bruno@clisp.org>
+
+	* nl.po: Update from Elros Cyriatan <cyriatan@fastmail.fm>.
+
+2004-01-16  Bruno Haible  <bruno@clisp.org>
+
+	Create en@quot.po when it doesn't exist.
+	* Makefile.in.in (.SUFFIXES): Add .po-create.
+	($(POFILES)): Invoke .po-create target when the PO file does not exist.
+	(.nop.po-create): New rule.
+	* Rules-quot (en@quot.po-create, en@boldquot.po-create): New rules.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13.1 released.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* fi.po: Update from Sami J. Laine <sami.laine@iki.fi>.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13 released.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* es.po: Update from Max de Mendizábal <max@upn.mx>.
+	* sk.po: Update from Marcel Telka <marcel@telka.sk>.
+
+2003-11-24  Bruno Haible  <bruno@clisp.org>
+
+	* ca.po: Update from Ivan Vilata i Balaguer <ivan@selidor.net>.
+	* ro.po: New file, from Eugen Hoanca <eugenh@urban-grafx.ro>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+	* tr.po: Update from Nilgün Belma Bugüner <nilgun@superonline.com>.
+	* LINGUAS: Add ro.
+
+2003-11-22  Bruno Haible  <bruno@clisp.org>
+
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* ko.po: Update from Changwoo Ryu <cwryu@debian.org>.
+	* sv.po: Update from Jan Djärv <jan.h.d@swipnet.se>.
+
+2003-11-19  Bruno Haible  <bruno@clisp.org>
+
+	* de.po: Update from Karl Eichwalder <ke@suse.de>.
+	* fr.po: Update from Michel Robitaille <robitail@iro.umontreal.ca>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* sr.po: Update from Danilo Segan <dsegan@gmx.net>.
+	* zh_CN.po: Update from Funda Wang <fundawang@linux.net.cn>.
+
+2003-11-09  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (stamp-po): Remake all GMOFILES, not just those
+	needed in this build. This is necessary because stamp-po persists
+	across "make distclean".
+
+2003-11-06  Bruno Haible  <bruno@clisp.org>
+
+	* sr.po: New file, from Danilo Segan.
+	* LINGUAS: Add sr.
+
+2003-10-05  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (XGETTEXT_OPTIONS): Add --flag options.
+
+2003-09-14  Bruno Haible  <bruno@clisp.org>
+
+	* POTFILES.in: Add ../gettext-tools/lib/closeout.c, src/envsubst.c.
+
+2003-08-22  Bruno Haible  <bruno@clisp.org>
+
+	* zh_CN.po: New file, from Funda Wang <fundawang@linux.net.cn>.
+	* LINGUAS: Add zh_CN.
+
+2003-07-31  Bruno Haible  <bruno@clisp.org>
+
+	* uk.po: New file, from Volodymyr M. Lisivka <lvm@mystery.lviv.net>.
+	* LINGUAS: Add uk.
+
+2003-06-22  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in: Add a version number, to be used by intltools.
+
+2003-05-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12.1 released.
+
+2003-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* fi.po: Update from Sami J. Laine <sami.laine@iki.fi>.
+
+2003-05-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12 released.
+
+2003-05-12  Bruno Haible  <bruno@clisp.org>
+
+	* es.po: Update from Max de Mendizábal <max@upn.mx>.
+
+2003-04-29  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (stamp-po, update-po): Avoid infinite recursion if
+	LINGUAS is empty.
+
+2003-04-22  Bruno Haible  <bruno@clisp.org>
+
+	* sk.po: Update from Marcel Telka <marcel@telka.sk>.
+
+2003-04-12  Bruno Haible  <bruno@clisp.org>
+
+	VMS support.
+	* Rules-vms: New file.
+	* Makefile.vms.sh: New file.
+
+2003-03-17  Bruno Haible  <bruno@clisp.org>
+
+	Native Woe32/MSVC support.
+	* Makefile.msvc.sh: New file.
+	* Rules-msvc: New file.
+
+2003-03-29  Bruno Haible  <bruno@clisp.org>
+
+	* id.po: Update from Tedi Heriyanto <tedi_h@gmx.net>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+
+2003-02-28  Bruno Haible  <bruno@clisp.org>
+
+	* POTFILES.in: Use references to ../gettext-tools/lib.
+
+2003-02-28  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.in.in (mkinstalldirs): Simplify. Prepending
+	"$(top_builddir)/" in the case of a relative $srcdir is now handled
+	in gettext.m4.
+
+2003-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* de.po: Update from Karl Eichwalder <ke@suse.de>.
+	* ja.po: Update from Masahito Yamaga <ma@yama-ga.com>.
+	* pl.po: Update from Rafał Maszkowski <rzm@icm.edu.pl>.
+	* ru.po: Update from Oleg S. Tihonov <tihonov@ffke-campus.mipt.ru>.
+
+2003-02-16  Bruno Haible  <bruno@clisp.org>
+
+	* Makevars (MSGID_BUGS_ADDRESS): New variable.
+	* Makefile.in.in (DISTFILES.common): Remove Makevars.
+	(DISTFILES): Add Makevars here.
+	($(DOMAIN).pot-update): Pass --msgid-bugs-address to xgettext.
+	(install-data): Install Makevars.template. Uninstall Makevars.
+	(uninstall-data): Uninstall Makevars.template.
+	(dist2): Distribute Makevars.template, in gettext-tools package only.
+
+2003-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* POTFILES.in: New file.
+	* Makevars: New file.
+
+	* Makefile.in.in (install-data, installdirs-data, uninstall-data):
+	Special case package 'gettext-tools'.
+	(.nop.po-update): Likewise.
+	(dist2): Distribute also ChangeLog.[0-9] if present.
+

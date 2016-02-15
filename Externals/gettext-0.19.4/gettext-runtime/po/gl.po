@@ -1,0 +1,739 @@
+# Galician translation of gettext-runtime.
+# This file is distributed under the same license as the gettext package.
+# Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+# Copyright (C) 2012, 2013 Leandro Regueiro.
+#
+# Jesús Bravo Álvarez <jba@pobox.com>, 1999-2001.
+# Leandro Regueiro <leandro.regueiro@gmail.com>, 2012, 2013, 2014.
+#
+# Proxecto Trasno - Adaptación do software libre á lingua galega:  Se desexas
+# colaborar connosco, podes atopar máis información en http://www.trasno.net
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.19-rc1\n"
+"Report-Msgid-Bugs-To: bug-gnu-gettext@gnu.org\n"
+"POT-Creation-Date: 2014-12-24 16:27+0900\n"
+"PO-Revision-Date: 2014-05-10 16:37+0100\n"
+"Last-Translator: Leandro Regueiro <leandro.regueiro@gmail.com>\n"
+"Language-Team: Galician <proxecto@trasno.net>\n"
+"Language: gl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "erro de escritura"
+
+#: gnulib-lib/error.c:191
+msgid "Unknown system error"
+msgstr "Erro de sistema descoñecido"
+
+#: gnulib-lib/getopt.c:547 gnulib-lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr "%s: a opción «%s» é ambigua; as posibilidades son:"
+
+#: gnulib-lib/getopt.c:624 gnulib-lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr "%s: a opción «--%s» non permite ningún argumento\n"
+
+#: gnulib-lib/getopt.c:637 gnulib-lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr "%s: a opción «%c%s» non permite un argumento\n"
+
+#: gnulib-lib/getopt.c:685 gnulib-lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr "%s: a opción «--%s» require un argumento\n"
+
+#: gnulib-lib/getopt.c:742 gnulib-lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr "%s: opción «--%s» non recoñecida\n"
+
+#: gnulib-lib/getopt.c:753 gnulib-lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr "%s: opción «%c%s» non recoñecida\n"
+
+#: gnulib-lib/getopt.c:805 gnulib-lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s: opción incorrecta -- «%c»\n"
+
+#: gnulib-lib/getopt.c:861 gnulib-lib/getopt.c:878 gnulib-lib/getopt.c:1088
+#: gnulib-lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s: a opción require un argumento -- «%c»\n"
+
+#: gnulib-lib/getopt.c:934 gnulib-lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr "%s: a opción «-W %s» é ambigua\n"
+
+#: gnulib-lib/getopt.c:974 gnulib-lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr "%s: a opción «-W %s» non permite un argumento\n"
+
+#: gnulib-lib/getopt.c:1013 gnulib-lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr "%s: a opción «-W %s» require un argumento\n"
+
+#: gnulib-lib/xmalloc.c:37
+#, c-format
+msgid "memory exhausted"
+msgstr "memoria esgotada"
+
+#: src/envsubst.c:112 src/gettext.c:133 src/ngettext.c:123
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"Licenza GPLv3+: GNU GPL versión 3 ou posterior <http://gnu.org/licenses/gpl.html>\n"
+"Isto é software libre: ten a liberdade para cambialo e redistribuílo.\n"
+"Non hai GARANTÍAS, ata onde o permita a lei.\n"
+
+#: src/envsubst.c:118 src/gettext.c:139 src/ngettext.c:129
+#, c-format
+msgid "Written by %s.\n"
+msgstr "Escrito por %s.\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:118
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:127 src/gettext.c:157 src/ngettext.c:141
+#, c-format
+msgid "too many arguments"
+msgstr "demasiados argumentos"
+
+#: src/envsubst.c:138 src/gettext.c:167 src/ngettext.c:153
+#, c-format
+msgid "missing arguments"
+msgstr "faltan argumentos"
+
+#: src/envsubst.c:171 src/gettext.c:238 src/ngettext.c:207
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "Use «%s --help» para obter máis información.\n"
+
+#: src/envsubst.c:176
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "Modo de uso: %s [OPCIÓN] [FORMATO-SHELL]\n"
+
+#: src/envsubst.c:181
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "Substitúe os valores das variábeis de ambiente.\n"
+
+#: src/envsubst.c:185
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "Modo de funcionamento:\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             escribe na saída as variábeis atopadas en FORMATO-SHELL\n"
+
+#: src/envsubst.c:192
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "Saída informativa:\n"
+
+#: src/envsubst.c:195
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  Mostra esta mensaxe de axuda e sae\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               Mostra a información da versión e sae\n"
+
+#: src/envsubst.c:202
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"No modo de operación normal, a entrada estándar cópiase á saída estándar,\n"
+"con referencias ás variábeis de ambiente da forma $VARIABLE ou ${VARIABLE}\n"
+"substituíndoas cos valores correspondentes. se se fornece un FORMATO-SHELL,\n"
+"só se substitúen aquelas variábeis referidas en FORMATO-SHELL; senón\n"
+"substitúense todas as referencias a variábeis que se atopen na entrada\n"
+"estándar.\n"
+
+#: src/envsubst.c:211
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"Cando se emprega --variables, ignórase a entrada estándar, e a saída consiste\n"
+"nas variábeis de ambiente que se referencian en FORMATO-SHELL, unha por liña.\n"
+
+#. TRANSLATORS: The placeholder indicates the bug-reporting address
+#. for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:219 src/gettext.c:279 src/ngettext.c:245
+msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+msgstr "Envíe informes de fallo a <bug-gnu-gettext@gnu.org>.\n"
+
+#: src/envsubst.c:442
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "erro ao ler \"%s\""
+
+#: src/envsubst.c:443
+msgid "standard input"
+msgstr "entrada estándar"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:139 src/ngettext.c:129
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:243
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"Uso:   %s [OPCIÓN] [[DOMINIO] MSGID]\n"
+"ou:    %s [OPCIÓN] -s [MSGID]...]\n"
+
+#: src/gettext.c:249
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "Mostra a tradución nun idioma dunha mensaxe de texto.\n"
+
+#: src/gettext.c:253
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -n                        suppress trailing newline\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  -d, --domain=DOMINIO      obter as mensaxes traducidas do DOMINIO\n"
+"  -e                        permitir a expansión de algunhas secuencias\n"
+"                            de escape\n"
+"  -E                        (ignorado por compatibilidade)\n"
+"  -h, --help                mostrar esta axuda e saír\n"
+"  -n                        suprimir o carácter final de nova liña\n"
+"  -V, --version             mostrar a información da versión e saír\n"
+"  [DOMINIO] MSGID           obter a mensaxe traducida correspondente a\n"
+"                            MSGID do DOMINIO\n"
+
+#: src/gettext.c:264
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Se non se indica o parámetro DOMINIO, o dominio determínase a partir da\n"
+"variábel de ambiente TEXTDOMAIN. Se o catálogo de mensaxes non está no\n"
+"directorio habitual, pódese especificar outro mediante a variábel\n"
+"TEXTDOMAINDIR.\n"
+"Cando se usa a opción -s, o programa compórtase como a orde «echo». Pero\n"
+"non só copia os argumentos á saída, senón que traduce as mensaxes que atopa\n"
+"no catálogo escollido.\n"
+"Directorio estándar de busca: %s\n"
+
+#: src/ngettext.c:212
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "Uso: %s [OPCIÓN] [DOMINIO] MSGID MSGID-PLURAL NÚMERO\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr "Mostra a tradución a un idioma dunha mensaxe de texto cuxa forma gramatical depende dun número.\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+"  -e                        enable expansion of some escape sequences\n"
+"  -E                        (ignored for compatibility)\n"
+"  -h, --help                display this help and exit\n"
+"  -V, --version             display version information and exit\n"
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr ""
+"  -d, --domain=DOMINIO      obter a mensaxe traducida do DOMINIO\n"
+"  -e                        permitir a expansión de algunhas secuencias de escape\n"
+"  -E                        (ignorada por compatibilidade)\n"
+"  -h, --help                mostrar esta axuda e saír\n"
+"  -V, --version             mostrar a información da versión e saír\n"
+"  [DOMINIO]                 obter a mensaxe traducida do DOMINIO\n"
+"  MSGID MSGID-PLURAL        traducir MSGID (singular) / MSGID-PLURAL (plural)\n"
+"  NÚMERO                    escoller a forma singular/plural segundo este valor\n"
+
+#: src/ngettext.c:233
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"Se non se indica o parámetro DOMINIO, o dominio determínase a partir da\n"
+"variábel de ambiente TEXTDOMAIN. Se o catálogo de mensaxes non está no\n"
+"directorio habitual, pódese especificar outro mediante a variábel de\n"
+"ambiente TEXTDOMAINDIR.\n"
+"Directorio estándar de busca: %s\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s: opción ilegal -- %c\n"
+
+#~ msgid ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "This is free software; see the source for copying conditions.  There is "
+#~ "NO\n"
+#~ "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR "
+#~ "PURPOSE.\n"
+#~ msgstr ""
+#~ "Copyright (C) %s Free Software Foundation, Inc.\n"
+#~ "Isto é software libre; vexa o código para as condicións de copia.  NON "
+#~ "hai\n"
+#~ "ningunha garantía; nin sequera de COMERCIABILIDADE ou IDONEIDADE PARA UN\n"
+#~ "FIN DETERMINADO.\n"
+
+#~ msgid "no input files given"
+#~ msgstr "non se indicou ningún ficheiro de entrada"
+
+#~ msgid "exactly 2 input files required"
+#~ msgstr "precísanse exactamente dous ficheiros de entrada"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] def.po ref.po\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -D, --directory=DIRECTORY   add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -h, --help                  display this help and exit\n"
+#~ "  -V, --version               output version information and exit\n"
+#~ "\n"
+#~ "Compare two Uniforum style .po files to check that both contain the same\n"
+#~ "set of msgid strings.  The def.po file is an existing PO file with the\n"
+#~ "old translations.  The ref.po file is the last created PO file\n"
+#~ "(generally by xgettext).  This is useful for checking that you have\n"
+#~ "translated each and every message in your program.  Where an exact match\n"
+#~ "cannot be found, fuzzy matching is used to produce better diagnostics.\n"
+#~ msgstr ""
+#~ "Uso: %s [OPCIÓN] def.po ref.po\n"
+#~ "Os argumentos obrigatorios para as opcións longas son tamén obligatorios "
+#~ "para\n"
+#~ "as opcións curtas.\n"
+#~ "  -D, --directory=DIRECTORIO  engadir DIRECTORIO á lista de busca de "
+#~ "ficheiros\n"
+#~ "                              de entrada\n"
+#~ "  -h, --help                  amosar esta axuda e saír\n"
+#~ "  -V, --version               amosa-la información da versión e saír\n"
+#~ "\n"
+#~ "Compara dous ficheiros .po de estilo Uniforum para verificar que os dous\n"
+#~ "conteñen o mesmo conxunto de cadeas msgid.  O ficheiro def.po é un "
+#~ "ficheiro\n"
+#~ "PO existente, coas traduccións antigas.  O ficheiro ref.po é o último\n"
+#~ "ficheiro PO creado (xeralmente por xgettext).  Isto é útil para "
+#~ "verificar\n"
+#~ "que tódalas mensaxes do programa están traducidas.  Cando non se pode "
+#~ "atopar\n"
+#~ "un emparellamento exacto, úsase coincidencia difusa, de xeito que se "
+#~ "produza\n"
+#~ "un mellor diagnóstico.\n"
+
+#~ msgid "this message is used but not defined..."
+#~ msgstr "esta mensaxe úsase mais non está definida..."
+
+#~ msgid "...but this definition is similar"
+#~ msgstr "...mais esta definición é semellante"
+
+#~ msgid "this message is used but not defined in %s"
+#~ msgstr "esta mensaxe úsase mais non está definida en %s"
+
+#~ msgid "warning: this message is not used"
+#~ msgstr "aviso: esta mensaxe non se usa"
+
+#~ msgid "found %d fatal error"
+#~ msgid_plural "found %d fatal errors"
+#~ msgstr[0] "atopouse %d erro grave"
+#~ msgstr[1] "atopáronse %d erros graves"
+
+#~ msgid "duplicate message definition"
+#~ msgstr "definición de mensaxe duplicada"
+
+#~ msgid "...this is the location of the first definition"
+#~ msgstr "...este é o lugar da primeira definición"
+
+#~ msgid "this message has no definition in the \"%s\" domain"
+#~ msgstr "esta mensaxe non ten definición no dominio \"%s\""
+
+#~ msgid "while preparing output"
+#~ msgstr "ao preparar a saída"
+
+#~ msgid "%s and %s are mutually exclusive"
+#~ msgstr "%s e %s son mutuamente excluíntes"
+
+#~ msgid "at least two files must be specified"
+#~ msgstr "téñense que indicar polo menos dous ficheiros"
+
+#~ msgid "impossible selection criteria specified (%d < n < %d)"
+#~ msgstr "o criterio de selección indicado é imposible (%d < n < %d)"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] INPUTFILE ...\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -d, --default-domain=NAME      use NAME.po for output (instead of "
+#~ "messages.po)\n"
+#~ "  -D, --directory=DIRECTORY      add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape                do not use C escapes in output "
+#~ "(default)\n"
+#~ "  -E, --escape                   use C escapes in output, no extended "
+#~ "chars\n"
+#~ "  -f, --files-from=FILE          get list of input files from FILE\n"
+#~ "      --force-po                 write PO file even if empty\n"
+#~ "  -F, --sort-by-file             sort output by file location\n"
+#~ "  -h, --help                     display this help and exit\n"
+#~ msgstr ""
+#~ "Uso: %s [OPCIÓN] FICHEIRO ...\n"
+#~ "Os argumentos obrigatorios para as opcións longas son tamén obrigatorios "
+#~ "para\n"
+#~ "as opcións curtas.\n"
+#~ "  -d, --default-domain=NOME      usar NOME.po para a saída (en vez de\n"
+#~ "                                 messages.po)\n"
+#~ "  -D, --directory=DIRECTORIO     engadir DIRECTORIO á lista de busca de\n"
+#~ "                                 ficheiros de entrada\n"
+#~ "  -e, --no-escape                non usar secuencias de escape de C na "
+#~ "saída\n"
+#~ "                                 (opción por defecto)\n"
+#~ "  -E, --escape                   usar secuencias de escape de C na "
+#~ "saída,\n"
+#~ "                                 sen caracteres estendidos\n"
+#~ "  -f, --files-from=FICHEIRO      obte-la lista de ficheiros de entrada "
+#~ "do\n"
+#~ "                                 FICHEIRO\n"
+#~ "      --force-po                 escribi-lo ficheiro PO aínda que estea "
+#~ "baleiro\n"
+#~ "  -F, --sort-by-file             ordena-la saída pola posición do "
+#~ "ficheiro\n"
+#~ "  -h, --help                     amosar esta axuda e saír\n"
+
+#~ msgid ""
+#~ "  -i, --indent                   write the .po file using indented style\n"
+#~ "      --no-location              do not write '#: filename:line' lines\n"
+#~ "  -n, --add-location             generate '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --omit-header              don't write header with `msgid \"\"' "
+#~ "entry\n"
+#~ "  -o, --output=FILE              write output to specified file\n"
+#~ "  -p, --output-dir=DIR           output files will be placed in directory "
+#~ "DIR\n"
+#~ "  -s, --sort-output              generate sorted output and remove "
+#~ "duplicates\n"
+#~ "      --strict                   write out strict Uniforum conforming .po "
+#~ "file\n"
+#~ "  -T, --trigraphs                understand ANSI C trigraphs for input\n"
+#~ "  -u, --unique                   shorthand for --less-than=2, requests\n"
+#~ "                                 that only unique messages be printed\n"
+#~ msgstr ""
+#~ "  -i, --indent                   escribi-lo ficheiro .po cun estilo "
+#~ "indentado\n"
+#~ "      --no-location              non escribi-las liñas '#: ficheiro:"
+#~ "liña'\n"
+#~ "  -n, --add-location             xera-las liñas '#: ficheiro:"
+#~ "liña' (defecto)\n"
+#~ "      --omit-header              non escribi-la entrada `msgid \"\"' na\n"
+#~ "                                 cabeceira\n"
+#~ "  -o, --output=FICHEIRO          escribi-la saída ao ficheiro indicado\n"
+#~ "  -p, --output-dir=DIRECTORIO    pó-los ficheiros de saída no DIRECTORIO\n"
+#~ "  -s, --sort-output              ordena-la saída e quita-los duplicados\n"
+#~ "      --strict                   escribi-lo ficheiro .po de tipo "
+#~ "Uniforum\n"
+#~ "                                 estricto\n"
+#~ "  -T, --trigraphs                entende-los trigrafos ANSI C na entrada\n"
+#~ "  -u, --unique                   atallo para --less-than=2, só escribi-"
+#~ "las\n"
+#~ "                                 mensaxes únicas\n"
+
+#~ msgid ""
+#~ "  -V, --version                  output version information and exit\n"
+#~ "  -w, --width=NUMBER             set output page width\n"
+#~ "  -<, --less-than=NUMBER         print messages with less than this many\n"
+#~ "                                 definitions, defaults to infinite if "
+#~ "not\n"
+#~ "                                 set\n"
+#~ "  ->, --more-than=NUMBER         print messages with more than this many\n"
+#~ "                                 definitions, defaults to 1 if not set\n"
+#~ "\n"
+#~ "Find messages which are common to two or more of the specified PO files.\n"
+#~ "By using the --more-than option, greater commonality may be requested\n"
+#~ "before messages are printed.  Conversely, the --less-than option may be\n"
+#~ "used to specify less commonality before messages are printed (i.e.\n"
+#~ "--less-than=2 will only print the unique messages).  Translations,\n"
+#~ "comments and extract comments will be preserved, but only from the first\n"
+#~ "PO file to define them.  File positions from all PO files will be\n"
+#~ "preserved.\n"
+#~ msgstr ""
+#~ "  -V, --version                  amosa-la información da versión e saír\n"
+#~ "  -w, --width=NÚMERO             establece-la anchura da páxina de saída\n"
+#~ "  -<, --less-than=NÚMERO         escribi-las mensaxes que teñan menos\n"
+#~ "                                 deste número de definicións.  Se non se\n"
+#~ "                                 indica, é infinito\n"
+#~ "  ->, --more-than=NÚMERO         escribi-las mensaxes que teñan máis\n"
+#~ "                                 deste número de definicións.  Se non se\n"
+#~ "                                 indica, é 1\n"
+#~ "\n"
+#~ "Atopar mensaxes que son comúns a dous ou máis dos ficheiros PO "
+#~ "indicados.\n"
+#~ "Usando a opción --more-than, pódese requiri-la concorrencia en máis "
+#~ "ficheiros\n"
+#~ "antes de escribi-las mensaxes.  Do mesmo xeito, coa opción --less-than "
+#~ "pódese\n"
+#~ "requiri-la concorrencia en menos ficheiros antes de escribir-las "
+#~ "mensaxes\n"
+#~ "(i.e. --less-than=2 só escribe as mensaxes únicas).  As traduccións,\n"
+#~ "comentarios e comentarios de extracción mantéñense, pero só do primeiro\n"
+#~ "ficheiro para definilos.  Mantéñense as posicións de tódolos ficheiros "
+#~ "PO.\n"
+
+#~ msgid "error while opening \"%s\" for reading"
+#~ msgstr "erro ao abrir \"%s\" para lectura"
+
+#~ msgid "this file may not contain domain directives"
+#~ msgstr "este ficheiro non pode conter directivas de dominio"
+
+#~ msgid "no input file given"
+#~ msgstr "non se indicou ningún ficheiro de entrada"
+
+#~ msgid "error while opening \"%s\" for writing"
+#~ msgstr "erro ao abrir \"%s\" para escribir"
+
+#~ msgid "%d translated message"
+#~ msgid_plural "%d translated messages"
+#~ msgstr[0] "%d mensaxe traducida"
+#~ msgstr[1] "%d mensaxes traducidas"
+
+#~ msgid ", %d fuzzy translation"
+#~ msgid_plural ", %d fuzzy translations"
+#~ msgstr[0] ", %d traducción difusa"
+#~ msgstr[1] ", %d traduccións difusas"
+
+#~ msgid ", %d untranslated message"
+#~ msgid_plural ", %d untranslated messages"
+#~ msgstr[0] ", %d mensaxe sen traducir"
+#~ msgstr[1] ", %d mensaxes sen traducir"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] filename.po ...\n"
+#~ "Generate binary message catalog from textual translation description.\n"
+#~ "\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -a, --alignment=NUMBER      align strings to NUMBER bytes (default: "
+#~ "%d)\n"
+#~ "  -c, --check                 perform language dependent checks on "
+#~ "strings\n"
+#~ "  -D, --directory=DIRECTORY   add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -f, --use-fuzzy             use fuzzy entries in output\n"
+#~ "  -h, --help                  display this help and exit\n"
+#~ "      --no-hash               binary file will not include the hash "
+#~ "table\n"
+#~ "  -o, --output-file=FILE      specify output file name as FILE\n"
+#~ "      --statistics            print statistics about translations\n"
+#~ "      --strict                enable strict Uniforum mode\n"
+#~ "  -v, --verbose               list input file anomalies\n"
+#~ "  -V, --version               output version information and exit\n"
+#~ "\n"
+#~ "Giving the -v option more than once increases the verbosity level.\n"
+#~ "\n"
+#~ "If input file is -, standard input is read.  If output file is -,\n"
+#~ "output is written to standard output.\n"
+#~ msgstr ""
+#~ "Uso: %s [OPCIÓN] ficheiro.po ...\n"
+#~ "Xera un catálogo de mensaxes binario a partir da descripción textual da\n"
+#~ "traducción.\n"
+#~ "Os argumentos obrigatorios para as opcións longas son tamén obrigatorios "
+#~ "para\n"
+#~ "as opcións curtas.\n"
+#~ "  -a, --alignment=NÚMERO      aliña-las cadeas a NÚMERO bytes (defecto: "
+#~ "%d)\n"
+#~ "  -c, --check                 facer comprobacións dependentes da "
+#~ "linguaxe\n"
+#~ "                              nas cadeas\n"
+#~ "  -D, --directory=DIRECTORIO  engadir DIRECTORIO á lista de busca de "
+#~ "ficheiros\n"
+#~ "                              de entrada\n"
+#~ "  -f, --use-fuzzy             utiliza-las entradas fuzzy na saída\n"
+#~ "  -h, --help                  amosar esta axuda e saír\n"
+#~ "      --no-hash               non incluí-la tabla \"hash\" no ficheiro "
+#~ "binario\n"
+#~ "  -o, --output-file=FICHEIRO  especifica-lo nome do ficheiro de saída\n"
+#~ "      --statictics            escribi-las estatísticas das traduccións\n"
+#~ "      --strict                emprega-lo modo Uniforum estricto\n"
+#~ "  -v, --verbose               amosa-las anomalías do ficheiro de entrada\n"
+#~ "  -V, --version               amosa-la información da versión e saír\n"
+#~ "\n"
+#~ "Empregando a opción -v máis dunha vez, o nivel de detalle increméntase.\n"
+#~ "\n"
+#~ "Se o ficheiro de entrada é -, lese da entrada estándar.  Se o ficheiro de "
+#~ "saída\n"
+#~ "é -, o resultado escríbese na saída estándar.\n"
+
+#~ msgid "while creating hash table"
+#~ msgstr "ao crea-la táboa `hash'"
+
+#~ msgid ""
+#~ "%s: warning: PO file header missing, fuzzy, or invalid\n"
+#~ "%*s  warning: charset conversion will not work"
+#~ msgstr ""
+#~ "%s: aviso: a cabeceira do ficheiro PO non existe, é 'fuzzy' ou é "
+#~ "inválida\n"
+#~ "%*s  aviso: a conversión de código de caracteres non vai funcionar"
+
+#~ msgid "domain name \"%s\" not suitable as file name"
+#~ msgstr "o nome de dominio \"%s\" non é axeitado para nome de ficheiro"
+
+#~ msgid "domain name \"%s\" not suitable as file name: will use prefix"
+#~ msgstr ""
+#~ "o nome de dominio \"%s\" non é axeitado como nome de ficheiro:\n"
+#~ "empregarase un prefixo"
+
+#~ msgid "`domain %s' directive ignored"
+#~ msgstr "directiva `domain %s' ignorada"
+
+#~ msgid "empty `msgstr' entry ignored"
+#~ msgstr "entrada `msgstr' baleira ignorada"
+
+#~ msgid "fuzzy `msgstr' entry ignored"
+#~ msgstr "entrada `msgstr' difusa ignorada"
+
+#~ msgid "headerfield `%s' missing in header"
+#~ msgstr "falta o campo `%s' na cabeceira"
+
+#~ msgid "header field `%s' should start at beginning of line"
+#~ msgstr "o campo `%s' da cabeceira tería que comezar ao principio da liña"
+
+#~ msgid "some header fields still have the initial default value"
+#~ msgstr "algúns campos da cabeceira aínda teñen o valor inicial por defecto"
+
+#~ msgid "field `%s' still has initial default value"
+#~ msgstr "o campo `%s' aínda ten o valor inicial por defecto"
+
+#~ msgid "%s: warning: source file contains fuzzy translation"
+#~ msgstr "%s: aviso: o ficheiro fonte contén traduccións difusas"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both begin with '\\n'"
+#~ msgstr ""
+#~ "as entradas `msgid' e `msgid_plural' non comezan ámbalas dúas con '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both begin with '\\n'"
+#~ msgstr ""
+#~ "as entradas `msgid' e `msgstr[%u]' non comezan ámbalas dúas con '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both begin with '\\n'"
+#~ msgstr "as entradas `msgid' e `msgstr' non comezan ámbalas dúas con '\\n'"
+
+#~ msgid "`msgid' and `msgid_plural' entries do not both end with '\\n'"
+#~ msgstr ""
+#~ "as entradas `msgid' e `msgid_plural' non rematan ámbalas dúas con '\\n'"
+
+#~ msgid "`msgid' and `msgstr[%u]' entries do not both end with '\\n'"
+#~ msgstr ""
+#~ "as entradas `msgid' e `msgstr[%u]' non rematan ámbalas dúas con '\\n'"
+
+#~ msgid "`msgid' and `msgstr' entries do not both end with '\\n'"
+#~ msgstr "as entradas `msgid' e `msgstr' non rematan ámbalas dúas con '\\n'"
+
+#~ msgid ""
+#~ "number of format specifications in `msgid' and `msgstr' does not match"
+#~ msgstr ""
+#~ "o número de especificacións de formato en `msgid' e `msgstr' non coincide"
+
+#~ msgid "format specifications for argument %lu are not the same"
+#~ msgstr "as especificacións de formato do argumento %lu non son as mesmas"
+
+#~ msgid ""
+#~ "Usage: %s [OPTION] def.po ref.po\n"
+#~ "Mandatory arguments to long options are mandatory for short options too.\n"
+#~ "  -C, --compendium=FILE       additional library of message "
+#~ "translations,\n"
+#~ "                              may be specified more than once\n"
+#~ "  -D, --directory=DIRECTORY   add DIRECTORY to list for input files "
+#~ "search\n"
+#~ "  -e, --no-escape             do not use C escapes in output (default)\n"
+#~ "  -E, --escape                use C escapes in output, no extended chars\n"
+#~ "      --force-po              write PO file even if empty\n"
+#~ "  -h, --help                  display this help and exit\n"
+#~ "  -i, --indent                indented output style\n"
+#~ "  -o, --output-file=FILE      result will be written to FILE\n"
+#~ "      --no-location           suppress '#: filename:line' lines\n"
+#~ "      --add-location          preserve '#: filename:line' lines "
+#~ "(default)\n"
+#~ "      --strict                strict Uniforum output style\n"
+#~ "  -v, --verbose               increase verbosity level\n"
+#~ "  -V, --version               output version information and exit\n"
+#~ "  -w, --width=NUMBER          set output page width\n"
+#~ msgstr ""
+#~ "Uso: %s [OPCIÓN] def.po ref.po\n"
+#~ "Os argumentos obrigatorios para as opcións longas son tamén obrigatorios\n"
+#~ "para as opcións curtas.\n"
+#~ "  -C, --compendium=FICHEIRO   biblioteca adicional de traduccións de "
+#~ "mensaxes,\n"
+#~ "                              pode ser indicada máis dunha vez\n"
+#~ "  -D, --directory=DIRECTORIO  engadir DIRECTORIO á lista de busca de "
+#~ "ficheiros\n"
+#~ "                              de entrada\n"
+#~ "  -e, --no-escape             non usar secuencias de escape de C na "
+#~ "saída\n"
+#~ "                              (opción por defecto)\n"
+#~ "  -E, --escape                usar secuencias de escape de C na saída, "
+#~ "sen\n"
+#~ "                              caracteres estendidos\n"
+#~ "      --force-po              escribi-lo ficheiro po aínda que estea "
+#~ "baleiro\n"
+#~ "  -h, --help                  amosar esta axuda e saír\n"
+#~ "  -i, --indent                estilo de saída indentado\n"
+#~ "  -o, --output-file=FICHEIRO  escribi-lo resultado en FICHEIRO\n"
+#~ "      --no-location           suprimi-las liñas '#: ficheiro:liña'\n"
+#~ "      --add-location          mante-las liñas '#: ficheiro:liña' (por "
+#~ "omisión)\n"
+#~ "      --strict                estilo de saída Uniforum estricto\n"
+#~ "  -v, --verbose               incrementa-lo nivel de detalle\n"
+#~ "  -V, --version               amosa-la información da versión e saír\n"
+#~ "  -w, --width=NÚMERO          establece-la anchura da páxina de saída\n"
