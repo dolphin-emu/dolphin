@@ -394,7 +394,8 @@ void Jit64::DoMergedBranch()
 	}
 	else
 	{
-		PanicAlert("WTF invalid branch");
+		UnexpectedInstructionForm();
+		return;
 	}
 }
 
@@ -419,8 +420,8 @@ void Jit64::DoMergedBranchCondition()
 	else  // SO bit, do not branch (we don't emulate SO for cmp).
 		pDontBranch = J(true);
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
+	Jit64Reg::Registers branch = regs.Branch();
+	branch.Flush();
 
 	DoMergedBranch();
 
@@ -428,8 +429,7 @@ void Jit64::DoMergedBranchCondition()
 
 	if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		WriteExit(nextPC + 4);
 	}
 }
@@ -443,8 +443,6 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 	bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
 	const u32 nextPC = js.op[1].address;
 
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	bool branch;
 	if (test_bit & 8)
 		branch = condition ? val < 0 : val >= 0;
@@ -457,14 +455,12 @@ void Jit64::DoMergedBranchImmediate(s64 val)
 
 	if (branch)
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		DoMergedBranch();
 	}
 	else if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		WriteExit(nextPC + 4);
 	}
 }
