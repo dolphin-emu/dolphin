@@ -6064,7 +6064,7 @@ msgstr "Activar niebla"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Disable Frame Limit"
-msgstr "Cambiar el límite de frames"
+msgstr "Desactivar el límite de frames"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 msgid "Toggle Fullscreen"
