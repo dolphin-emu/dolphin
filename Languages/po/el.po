@@ -5812,7 +5812,7 @@ msgid "Toggle Fog"
 msgstr "Εναλλαγή Ομίχλης"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame limit"
 msgstr "Εναλλαγή Ορίου Καρέ"
 
 #: Source/Core/Core/HotkeyManager.cpp:32

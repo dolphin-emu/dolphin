@@ -5963,7 +5963,7 @@ msgid "Toggle Fog"
 msgstr "Slå på tåke"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "Slå Av/På Bildebegrensning"
 
 #: Source/Core/Core/HotkeyManager.cpp:32

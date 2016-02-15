@@ -6005,7 +6005,7 @@ msgid "Toggle Fog"
 msgstr "Slå på/av dimma"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "Slå på/av bildrutegräns"
 
 #: Source/Core/Core/HotkeyManager.cpp:32

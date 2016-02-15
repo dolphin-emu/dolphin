@@ -5957,7 +5957,7 @@ msgid "Toggle Fog"
 msgstr "Přepínat mlhu"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
+msgid "Disable Frame Limit"
 msgstr "Povolit omezení snímků"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
