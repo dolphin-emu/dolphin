@@ -12,7 +12,7 @@
 namespace DX12
 {
 
-D3DStreamBuffer::D3DStreamBuffer(unsigned int initial_size, unsigned int max_size, bool* buffer_reallocation_notification) :
+D3DStreamBuffer::D3DStreamBuffer(size_t initial_size, size_t max_size, bool* buffer_reallocation_notification) :
 	m_buffer_size(initial_size),
 	m_buffer_max_size(max_size),
 	m_buffer_reallocation_notification(buffer_reallocation_notification)
@@ -39,13 +39,13 @@ D3DStreamBuffer::~D3DStreamBuffer()
 
 // Obviously this is non-performant, so the buffer max_size should be large enough to
 // ensure this never happens.
-bool D3DStreamBuffer::AllocateSpaceInBuffer(unsigned int allocation_size, unsigned int alignment)
+bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t alignment)
 {
 	CHECK(allocation_size <= m_buffer_max_size, "Error: Requested allocation size in D3DStreamBuffer is greater than max allowed size of backing buffer.");
 
 	if (alignment)
 	{
-		unsigned int padding = m_buffer_offset % alignment;
+		size_t padding = m_buffer_offset % alignment;
 
 		// Check for case when adding alignment causes CPU offset to equal GPU offset,
 		// which would imply entire buffer is available (if not corrected).
@@ -84,12 +84,12 @@ bool D3DStreamBuffer::AllocateSpaceInBuffer(unsigned int allocation_size, unsign
 // we call AllocateSpaceInBuffer. We have to conservatively allocate 16MB (!).
 // After the vertex data is written, we can choose to specify the 'real' allocation
 // size to avoid wasting space.
-void D3DStreamBuffer::OverrideSizeOfPreviousAllocation(unsigned int override_allocation_size)
+void D3DStreamBuffer::OverrideSizeOfPreviousAllocation(size_t override_allocation_size)
 {
 	m_buffer_offset = m_buffer_current_allocation_offset + override_allocation_size;
 }
 
-void D3DStreamBuffer::AllocateBuffer(unsigned int size)
+void D3DStreamBuffer::AllocateBuffer(size_t size)
 {
 	// First, put existing buffer (if it exists) in deferred destruction list.
 	if (m_buffer)
@@ -120,7 +120,7 @@ void D3DStreamBuffer::AllocateBuffer(unsigned int size)
 // Function returns true if current command list executed as a result of current command list
 // referencing all of buffer's contents, AND we are already at max_size. No alternative but to
 // flush. See comments above AllocateSpaceInBuffer for more details.
-bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(unsigned int allocation_size)
+bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size)
 {
 	// This function will attempt to increase the size of the buffer, in response
 	// to running out of room. If the buffer is already at its maximum size specified
@@ -148,7 +148,7 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(unsigned int allocation_siz
 	}
 
 	// 2) Next, prefer increasing buffer size instead of stalling.
-	unsigned int new_size = std::min(static_cast<unsigned int>(m_buffer_size * 1.5f), m_buffer_max_size);
+	size_t new_size = std::min(static_cast<size_t>(m_buffer_size * 1.5f), m_buffer_max_size);
 	new_size = std::max(new_size, allocation_size);
 
 	// Can we grow buffer further?
@@ -193,7 +193,7 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(unsigned int allocation_siz
 }
 
 // Return true if space is found.
-bool D3DStreamBuffer::AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(unsigned int allocation_size)
+bool D3DStreamBuffer::AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(size_t allocation_size)
 {
 	// First, check if there is room at end of buffer. Fast path.
 	if (m_buffer_offset >= m_buffer_gpu_completion_offset)
@@ -225,12 +225,11 @@ bool D3DStreamBuffer::AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(unsigned
 }
 
 // Returns true if fence was found and waited on.
-bool D3DStreamBuffer::AttemptToFindExistingFenceToStallOn(unsigned int allocation_size)
+bool D3DStreamBuffer::AttemptToFindExistingFenceToStallOn(size_t allocation_size)
 {
 	// Let's find the first fence that will free up enough space in our buffer.
 
 	UINT64 fence_value_required = 0;
-	unsigned int new_buffer_offset = 0;
 
 	while (m_queued_fences.size() > 0)
 	{
@@ -335,12 +334,12 @@ void* D3DStreamBuffer::GetCPUAddressOfCurrentAllocation() const
 	return static_cast<u8*>(m_buffer_cpu_address) + m_buffer_current_allocation_offset;
 }
 
-unsigned int D3DStreamBuffer::GetOffsetOfCurrentAllocation() const
+size_t D3DStreamBuffer::GetOffsetOfCurrentAllocation() const
 {
 	return m_buffer_current_allocation_offset;
 }
 
-unsigned int D3DStreamBuffer::GetSize() const
+size_t D3DStreamBuffer::GetSize() const
 {
 	return m_buffer_size;
 }
