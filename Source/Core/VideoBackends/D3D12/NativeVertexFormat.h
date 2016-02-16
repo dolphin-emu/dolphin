@@ -16,7 +16,7 @@ public:
 	D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
 	~D3DVertexFormat();
 
-	void SetupVertexPointers();
+	void SetupVertexPointers() override;
 
 	D3D12_INPUT_LAYOUT_DESC GetActiveInputLayout12() const;
 

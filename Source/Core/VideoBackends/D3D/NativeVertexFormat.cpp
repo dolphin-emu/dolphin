@@ -20,7 +20,7 @@ public:
 	D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
 	~D3DVertexFormat() { SAFE_RELEASE(m_layout); }
 
-	void SetupVertexPointers();
+	void SetupVertexPointers() override;
 
 private:
 	std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
