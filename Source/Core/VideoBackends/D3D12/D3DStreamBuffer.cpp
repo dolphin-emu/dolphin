@@ -293,7 +293,7 @@ void D3DStreamBuffer::UpdateGPUProgress()
 		m_queued_fences.pop();
 
 		// Has fence gone past this point?
-		if (fence_value > tracking_information.fence_value)
+		if (fence_value >= tracking_information.fence_value)
 		{
 			m_buffer_gpu_completion_offset = tracking_information.buffer_offset;
 		}
@@ -307,7 +307,18 @@ void D3DStreamBuffer::UpdateGPUProgress()
 
 void D3DStreamBuffer::QueueFenceCallback(void* owning_object, UINT64 fence_value)
 {
-	reinterpret_cast<D3DStreamBuffer*>(owning_object)->QueueFence(fence_value);
+	D3DStreamBuffer* owning_stream_buffer = reinterpret_cast<D3DStreamBuffer*>(owning_object);
+	if (owning_stream_buffer->HasBufferOffsetChangedSinceLastFence())
+		owning_stream_buffer->QueueFence(fence_value);
+}
+
+bool D3DStreamBuffer::HasBufferOffsetChangedSinceLastFence()
+{
+	if (m_queued_fences.empty())
+		return true;
+
+	// Don't add a new fence tracking entry when our offset hasn't changed.
+	return (m_queued_fences.back().buffer_offset != m_buffer_offset);
 }
 
 void D3DStreamBuffer::QueueFence(UINT64 fence_value)

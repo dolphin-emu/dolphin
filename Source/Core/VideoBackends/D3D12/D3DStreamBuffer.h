@@ -39,6 +39,8 @@ private:
 	bool AttemptToFindExistingFenceToStallOn(size_t allocation_size);
 
 	void UpdateGPUProgress();
+
+	bool HasBufferOffsetChangedSinceLastFence();
 	void QueueFence(UINT64 fence_value);
 
 	struct FenceTrackingInformation
