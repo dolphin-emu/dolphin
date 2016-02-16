@@ -1287,6 +1287,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	// Copy the framebuffer to screen.
 	const XFBSource* xfbSource = nullptr;
 
+	GLuint dump_texture = 0;
+	TargetRectangle targetRc = ConvertEFBRectangle(rc);
+
+	TargetRectangle dump_rc = targetRc;
 	if (g_ActiveConfig.bUseXFB)
 	{
 		// draw each xfb source
@@ -1332,15 +1336,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
+			dump_texture = xfbSource->texture;
+			dump_rc = sourceRc;
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
 	}
 	else
 	{
-		TargetRectangle targetRc = ConvertEFBRectangle(rc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
+		dump_texture = tex;
 		BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 	}
 
@@ -1366,16 +1372,66 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	{
 		std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
-		if (frame_data.empty() ||
-		    w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
-		{
-			w = flipped_trc.GetWidth();
-			h = flipped_trc.GetHeight();
-			frame_data.resize(4 * w * h);
-		}
+		glGetError();
 
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
+		if (g_ogl_config.bSupportsCopySubImage && xfbCount <= 1)
+		{
+			static GLuint target_texture = 0;
+
+			if (frame_data.empty() ||
+			    w != dump_rc.GetWidth() || h != dump_rc.GetHeight())
+			{
+				w = dump_rc.GetWidth();
+				h = dump_rc.GetHeight();
+				frame_data.resize(4 * w * h);
+
+				if (target_texture)
+					glDeleteTextures(1, &target_texture);
+
+				glActiveTexture(GL_TEXTURE9);
+				glGenTextures(1, &target_texture);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, target_texture);
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
+				glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, w, h, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			}
+
+			glCopyImageSubData(
+				dump_texture,
+				GL_TEXTURE_2D_ARRAY,
+				0,
+				dump_rc.left,
+				dump_rc.bottom,
+				0,
+				target_texture,
+				GL_TEXTURE_2D_ARRAY,
+				0,
+				0,
+				0,
+				0,
+				w,
+				h,
+				1);
+
+			glActiveTexture(GL_TEXTURE9);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, target_texture);
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glGetTexImage(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
+		}
+		else
+		{
+			if (frame_data.empty() ||
+			    w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
+			{
+				w = flipped_trc.GetWidth();
+				h = flipped_trc.GetHeight();
+				frame_data.resize(4 * w * h);
+			}
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+			glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
+		}
+		int err = glGetError();
+		if (err)
+			printf("0x%04x\n", err);
 		if (w > 0 && h > 0)
 		{
 			if (!bLastFrameDumped)
