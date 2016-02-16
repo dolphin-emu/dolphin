@@ -4,6 +4,7 @@
 
 #include <cctype>
 #include <list>
+#include <memory>
 #include <string>
 
 #include "VideoBackends/D3D12/D3DBase.h"
@@ -58,11 +59,11 @@ class UtilVertexBuffer
 public:
 	explicit UtilVertexBuffer(size_t size)
 	{
-		m_stream_buffer = new D3DStreamBuffer(size, size * 4, nullptr);
+		m_stream_buffer = std::make_unique<D3DStreamBuffer>(size, size * 4, nullptr);
 	}
+
 	~UtilVertexBuffer()
 	{
-		SAFE_DELETE(m_stream_buffer);
 	}
 
 	size_t GetSize() const { return m_stream_buffer->GetSize(); }
@@ -97,14 +98,14 @@ public:
 	}
 
 private:
-	D3DStreamBuffer* m_stream_buffer = nullptr;
+	std::unique_ptr<D3DStreamBuffer> m_stream_buffer;
 };
 
 CD3DFont font;
-UtilVertexBuffer* util_vbuf_stq = nullptr;
-UtilVertexBuffer* util_vbuf_cq = nullptr;
-UtilVertexBuffer* util_vbuf_clearq = nullptr;
-UtilVertexBuffer* util_vbuf_efbpokequads = nullptr;
+static std::unique_ptr<UtilVertexBuffer> util_vbuf_stq;
+static std::unique_ptr<UtilVertexBuffer> util_vbuf_cq;
+static std::unique_ptr<UtilVertexBuffer> util_vbuf_clearq;
+static std::unique_ptr<UtilVertexBuffer> util_vbuf_efbpokequads;
 
 static const unsigned int s_max_num_vertices = 8000 * 6;
 
@@ -541,10 +542,10 @@ static size_t clearq_offset;
 
 void InitUtils()
 {
-	util_vbuf_stq = new UtilVertexBuffer(0x10000);
-	util_vbuf_cq = new UtilVertexBuffer(0x10000);
-	util_vbuf_clearq = new UtilVertexBuffer(0x10000);
-	util_vbuf_efbpokequads = new UtilVertexBuffer(0x100000);
+	util_vbuf_stq          = std::make_unique<UtilVertexBuffer>(0x10000);
+	util_vbuf_cq           = std::make_unique<UtilVertexBuffer>(0x10000);
+	util_vbuf_clearq       = std::make_unique<UtilVertexBuffer>(0x10000);
+	util_vbuf_efbpokequads = std::make_unique<UtilVertexBuffer>(0x100000);
 
 	D3D12_SAMPLER_DESC point_sampler_desc = {
 		D3D12_FILTER_MIN_MAG_MIP_POINT,
@@ -590,10 +591,10 @@ void ShutdownUtils()
 {
 	font.Shutdown();
 
-	SAFE_DELETE(util_vbuf_stq);
-	SAFE_DELETE(util_vbuf_cq);
-	SAFE_DELETE(util_vbuf_clearq);
-	SAFE_DELETE(util_vbuf_efbpokequads);
+	util_vbuf_stq.reset();
+	util_vbuf_cq.reset();
+	util_vbuf_clearq.reset();
+	util_vbuf_efbpokequads.reset();
 }
 
 void SetPointCopySampler()

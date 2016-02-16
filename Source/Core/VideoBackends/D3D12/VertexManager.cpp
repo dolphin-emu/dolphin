@@ -44,8 +44,8 @@ void VertexManager::CreateDeviceObjects()
 	m_vertex_draw_offset = 0;
 	m_index_draw_offset = 0;
 
-	m_vertex_stream_buffer = new D3DStreamBuffer(VertexManager::MAXVBUFFERSIZE * 2, MAX_VBUFFER_SIZE, &m_vertex_stream_buffer_reallocated);
-	m_index_stream_buffer = new D3DStreamBuffer(VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 2, VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16, &m_index_stream_buffer_reallocated);
+	m_vertex_stream_buffer = std::make_unique<D3DStreamBuffer>(MAXVBUFFERSIZE * 2, MAX_VBUFFER_SIZE, &m_vertex_stream_buffer_reallocated);
+	m_index_stream_buffer  = std::make_unique<D3DStreamBuffer>(MAXIBUFFERSIZE * sizeof(u16) * 2, MAXIBUFFERSIZE * sizeof(u16) * 16, &m_index_stream_buffer_reallocated);
 
 	SetIndexBuffer();
 
@@ -57,8 +57,8 @@ void VertexManager::CreateDeviceObjects()
 
 void VertexManager::DestroyDeviceObjects()
 {
-	SAFE_DELETE(m_vertex_stream_buffer);
-	SAFE_DELETE(m_index_stream_buffer);
+	m_vertex_stream_buffer.reset();
+	m_index_stream_buffer.reset();
 
 	m_vertex_cpu_buffer.clear();
 	m_index_cpu_buffer.clear();

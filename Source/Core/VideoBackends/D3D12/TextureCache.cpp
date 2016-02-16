@@ -563,7 +563,7 @@ TextureCache::TextureCache()
 	m_palette_pixel_shaders[GX_TL_RGB565] = GetConvertShader12(std::string("RGB565"));
 	m_palette_pixel_shaders[GX_TL_RGB5A3] = GetConvertShader12(std::string("RGB5A3"));
 
-	m_palette_stream_buffer = new D3DStreamBuffer(sizeof(u16) * 256 * 1024, sizeof(u16) * 256 * 1024 * 16, nullptr);
+	m_palette_stream_buffer = std::make_unique<D3DStreamBuffer>(sizeof(u16) * 256 * 1024, sizeof(u16) * 256 * 1024 * 16, nullptr);
 
 	// Right now, there are only two variants of palette_uniform data. So, we'll just create an upload heap to permanently store both of these.
 	CheckHR(
@@ -603,8 +603,6 @@ TextureCache::~TextureCache()
 	s_encoder.reset();
 
 	s_efb_copy_stream_buffer.reset();
-
-	SAFE_DELETE(m_palette_stream_buffer);
 
 	if (s_texture_cache_entry_readback_buffer)
 	{
