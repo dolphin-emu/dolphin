@@ -129,6 +129,7 @@ static void SetDebugObjectName12(ID3D12Resource* resource, LPCSTR name)
 static std::string GetDebugObjectName12(ID3D12Resource* resource)
 {
 	std::string name;
+
 	if (resource)
 	{
 		UINT size = 0;
@@ -136,6 +137,8 @@ static std::string GetDebugObjectName12(ID3D12Resource* resource)
 		name.resize(size);
 		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
 	}
+
+	return name;
 }
 
 }  // namespace D3D
