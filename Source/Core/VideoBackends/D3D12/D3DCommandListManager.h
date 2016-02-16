@@ -38,8 +38,6 @@ public:
 	void ExecuteQueuedWork(bool wait_for_gpu_completion = false);
 	void ExecuteQueuedWorkAndPresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
 
-	void WaitForQueuedWorkToBeExecutedOnGPU();
-
 	void ClearQueueAndWaitForCompletionOfInflightWork();
 	void DestroyResourceAfterCurrentCommandListExecuted(ID3D12Resource* resource);
 	void ImmediatelyDestroyAllResourcesScheduledForDestruction();
@@ -65,8 +63,10 @@ public:
 
 private:
 
+	void WaitForGPUCompletion();
 	void PerformGpuRolloverChecks();
-	void ResetCommandListWithIdleCommandAllocator();
+	void MoveToNextCommandList();
+	void ResetCommandList();
 
 	unsigned int m_command_list_dirty_state = UINT_MAX;
 	D3D_PRIMITIVE_TOPOLOGY m_command_list_current_topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
@@ -85,6 +85,7 @@ private:
 	UINT m_current_command_allocator;
 	UINT m_current_command_allocator_list;
 	std::array<std::vector<ID3D12CommandAllocator*>, 2> m_command_allocator_lists;
+	std::array<UINT64, 2> m_command_allocator_list_fences;
 
 	ID3D12GraphicsCommandList* m_backing_command_list;
 	ID3D12QueuedCommandList* m_queued_command_list;
@@ -93,6 +94,7 @@ private:
 
 	UINT m_current_deferred_destruction_list;
 	std::array<std::vector<ID3D12Resource*>, 2> m_deferred_destruction_lists;
+	std::array<UINT64, 2> m_deferred_destruction_list_fences;
 };
 
 }  // namespace
