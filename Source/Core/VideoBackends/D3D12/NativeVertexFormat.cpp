@@ -44,8 +44,7 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 	return retval;
 }
 
-D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration &vtx_decl)
-	: m_num_elems(0), m_layout12({}), m_elems()
+D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
 	this->vtx_decl = vtx_decl;
 
