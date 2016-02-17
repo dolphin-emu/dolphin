@@ -359,24 +359,7 @@ int CD3DFont::Init()
 
 	const unsigned int text_vb_size = s_max_num_vertices * sizeof(FONT2DVERTEX);
 
-	CheckHR(
-		device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(text_vb_size),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_vb12)
-			)
-		);
-
-	SetDebugObjectName12(m_vb12, "vertex buffer of a CD3DFont object");
-
-	m_vb12_view.BufferLocation = m_vb12->GetGPUVirtualAddress();
-	m_vb12_view.SizeInBytes = text_vb_size;
-	m_vb12_view.StrideInBytes = sizeof(FONT2DVERTEX);
-
-	CheckHR(m_vb12->Map(0, nullptr, &m_vb12_data));
+	m_vertex_buffer = std::make_unique<D3DStreamBuffer>(text_vb_size * 2, text_vb_size * 16, nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC text_pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
@@ -409,7 +392,7 @@ int CD3DFont::Init()
 
 int CD3DFont::Shutdown()
 {
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_vb12);
+	m_vertex_buffer.reset();
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_texture12);
 
 	return S_OK;
@@ -417,7 +400,7 @@ int CD3DFont::Shutdown()
 
 int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const std::string& text)
 {
-	if (!m_vb12)
+	if (!m_vertex_buffer)
 		return 0;
 
 	float scale_x = 1 / static_cast<float>(D3D::GetBackBufferWidth()) * 2.f;
@@ -428,10 +411,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	float sx = x * scale_x - 1.f;
 	float sy = 1.f - y * scale_y;
 
-	// Fill vertex buffer
-	FONT2DVERTEX* vertices12 = static_cast<FONT2DVERTEX*>(m_vb12_data) + m_vb12_offset / sizeof(FONT2DVERTEX);
-	int num_triangles = 0L;
-
 	// set general pipeline state
 	D3D::current_command_list->SetPipelineState(m_pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
@@ -441,13 +420,11 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, m_texture12_gpu);
 
-	// If we are close to running off edge of vertex buffer, jump back to beginning.
-	if (m_vb12_offset + text.length() * 6 * sizeof(FONT2DVERTEX) >= s_max_num_vertices * sizeof(FONT2DVERTEX))
-	{
-		m_vb12_offset = 0;
-		vertices12 = static_cast<FONT2DVERTEX*>(m_vb12_data);
-	}
+	// upper bound is nchars * 6, assuming no spaces
+	m_vertex_buffer->AllocateSpaceInBuffer(static_cast<u32>(text.length()) * 6 * sizeof(FONT2DVERTEX), sizeof(FONT2DVERTEX));
 
+	FONT2DVERTEX* vertices12 = reinterpret_cast<FONT2DVERTEX*>(m_vertex_buffer->GetCPUAddressOfCurrentAllocation());
+	int num_triangles = 0;
 	float start_x = sx;
 	for (char c : text)
 	{
@@ -487,12 +464,13 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	// Render the vertex buffer
 	if (num_triangles > 0)
 	{
-		D3D::current_command_list->IASetVertexBuffers(0, 1, &m_vb12_view);
+		u32 written_size = num_triangles * 3 * sizeof(FONT2DVERTEX);
+		m_vertex_buffer->OverrideSizeOfPreviousAllocation(written_size);
 
-		D3D::current_command_list->DrawInstanced(3 * num_triangles, 1, m_vb12_offset / sizeof(FONT2DVERTEX), 0);
+		D3D12_VERTEX_BUFFER_VIEW vb_view = { m_vertex_buffer->GetGPUAddressOfCurrentAllocation(), written_size, sizeof(FONT2DVERTEX) };
+		D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
+		D3D::current_command_list->DrawInstanced(3 * num_triangles, 1, 0, 0);
 	}
-
-	m_vb12_offset += 3 * num_triangles * sizeof(FONT2DVERTEX);
 
 	return S_OK;
 }
