@@ -423,52 +423,29 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	// Creating debug devices can sometimes fail if the user doesn't have the correct
-	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(USE_D3D12_DEBUG_LAYER)
+	// Enabling the debug layer will fail if the Graphics Tools feature is not installed.
+	if (SUCCEEDED(hr))
 	{
+		ID3D12Debug* debug_controller;
+		hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
 		if (SUCCEEDED(hr))
 		{
-			ID3D12Debug* debug_controller;
-			hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
-			if (SUCCEEDED(hr))
-			{
-				debug_controller->EnableDebugLayer();
-				debug_controller->Release();
-			}
-			else
-			{
-				MessageBox(wnd, _T("Failed to initialize Direct3D debug layer, please make sure it is installed."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-			}
-
-			hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
-
-			s_feat_level = D3D_FEATURE_LEVEL_11_0;
+			debug_controller->EnableDebugLayer();
+			debug_controller->Release();
+		}
+		else
+		{
+			MessageBox(wnd, _T("WARNING: Failed to enable D3D12 debug layer, please ensure the Graphics Tools feature is installed."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 		}
 	}
 
-	if (FAILED(hr))
 #endif
-	{
-		if (SUCCEEDED(hr))
-		{
-#ifdef USE_D3D12_DEBUG_LAYER
-			ID3D12Debug* debug_controller;
-			hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
-			if (SUCCEEDED(hr))
-			{
-				debug_controller->EnableDebugLayer();
-				debug_controller->Release();
-			}
-			else
-			{
-				MessageBox(wnd, _T("Failed to initialize Direct3D debug layer."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-			}
-#endif
-			hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
 
-			s_feat_level = D3D_FEATURE_LEVEL_11_0;
-		}
+	if (SUCCEEDED(hr))
+	{
+		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
+		s_feat_level = D3D_FEATURE_LEVEL_11_0;
 	}
 
 	if (SUCCEEDED(hr))
