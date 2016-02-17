@@ -241,10 +241,10 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 			return;
 		}
 
-		s_last_geometry_shader_bytecode = InsertByteCode<GeometryShaderUid, GsBytecodeCache>(gs_uid, &s_gs_bytecode_cache, gs_bytecode);
+		s_last_geometry_shader_bytecode = InsertByteCode(gs_uid, &s_gs_bytecode_cache, gs_bytecode);
 		s_gs_disk_cache.Append(gs_uid, reinterpret_cast<u8*>(gs_bytecode->GetBufferPointer()), static_cast<u32>(gs_bytecode->GetBufferSize()));
 
-		if (g_ActiveConfig.bEnableShaderDebugging && gs_bytecode)
+		if (g_ActiveConfig.bEnableShaderDebugging)
 		{
 			s_gs_hlsl_cache[gs_uid] = gs_code.GetBuffer();
 		}
@@ -278,13 +278,13 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
 			return;
 		}
 
-		s_last_pixel_shader_bytecode = InsertByteCode<PixelShaderUid, PsBytecodeCache>(ps_uid, &s_ps_bytecode_cache, ps_bytecode);
+		s_last_pixel_shader_bytecode = InsertByteCode(ps_uid, &s_ps_bytecode_cache, ps_bytecode);
 		s_ps_disk_cache.Append(ps_uid, reinterpret_cast<u8*>(ps_bytecode->GetBufferPointer()), static_cast<u32>(ps_bytecode->GetBufferSize()));
 
 		SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
 		INCSTAT(stats.numPixelShadersCreated);
 
-		if (g_ActiveConfig.bEnableShaderDebugging && ps_bytecode)
+		if (g_ActiveConfig.bEnableShaderDebugging)
 		{
 			s_ps_hlsl_cache[ps_uid] = ps_code.GetBuffer();
 		}
@@ -318,13 +318,13 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
 			return;
 		}
 
-		s_last_vertex_shader_bytecode = InsertByteCode<VertexShaderUid, VsBytecodeCache>(vs_uid, &s_vs_bytecode_cache, vs_bytecode);
+		s_last_vertex_shader_bytecode = InsertByteCode(vs_uid, &s_vs_bytecode_cache, vs_bytecode);
 		s_vs_disk_cache.Append(vs_uid, reinterpret_cast<u8*>(vs_bytecode->GetBufferPointer()), static_cast<u32>(vs_bytecode->GetBufferSize()));
 
 		SETSTAT(stats.numVertexShadersAlive, static_cast<int>(s_vs_bytecode_cache.size()));
 		INCSTAT(stats.numVertexShadersCreated);
 
-		if (g_ActiveConfig.bEnableShaderDebugging && vs_bytecode)
+		if (g_ActiveConfig.bEnableShaderDebugging)
 		{
 			s_vs_hlsl_cache[vs_uid] = vs_code.GetBuffer();
 		}
