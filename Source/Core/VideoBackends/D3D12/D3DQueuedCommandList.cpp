@@ -14,9 +14,8 @@ constexpr size_t BufferOffsetForQueueItemType()
 	return sizeof(T) + sizeof(D3DQueueItemType) * 2;
 }
 
-DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
+void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* parent_queued_command_list)
 {
-	ID3D12QueuedCommandList* parent_queued_command_list = static_cast<ID3D12QueuedCommandList*>(param);
 	ID3D12GraphicsCommandList* command_list = parent_queued_command_list->m_command_list;
 
 	byte* queue_array = parent_queued_command_list->m_queue_array;
@@ -26,6 +25,8 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 	while (true)
 	{
 		WaitForSingleObject(parent_queued_command_list->m_begin_execution_event, INFINITE);
+		if (parent_queued_command_list->m_background_thread_exit.load())
+			break;
 
 		byte* item = &queue_array[queue_array_front];
 
@@ -374,13 +375,14 @@ ID3D12QueuedCommandList::ID3D12QueuedCommandList(ID3D12GraphicsCommandList* back
 	m_begin_execution_event = CreateSemaphore(nullptr, 0, 256, nullptr);
 	m_stop_execution_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-	m_background_thread = CreateThread(nullptr, 0, BackgroundThreadFunction, this, 0, &m_background_thread_id);
+	m_background_thread = std::thread(BackgroundThreadFunction, this);
 }
 
 ID3D12QueuedCommandList::~ID3D12QueuedCommandList()
 {
-	TerminateThread(m_background_thread, 0);
-	CloseHandle(m_background_thread);
+	m_background_thread_exit.store(true);
+	ReleaseSemaphore(m_begin_execution_event, 1, nullptr);
+	m_background_thread.join();
 
 	CloseHandle(m_begin_execution_event);
 	CloseHandle(m_stop_execution_event);
