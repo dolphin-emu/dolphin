@@ -163,10 +163,14 @@ public:
 	BitSet operator|(BitSet other) const { return BitSet(m_val | other.m_val); }
 	BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
 	BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }
+	BitSet operator<<(size_t n) const { return BitSet(m_val << n); }
+	BitSet operator>>(size_t n) const { return BitSet(m_val >> n); }
 	BitSet operator~() const { return BitSet(~m_val); }
 	BitSet& operator|=(BitSet other) { return *this = *this | other; }
 	BitSet& operator&=(BitSet other) { return *this = *this & other; }
 	BitSet& operator^=(BitSet other) { return *this = *this ^ other; }
+	BitSet& operator<<=(size_t n) { return *this = *this << n; }
+	BitSet& operator>>=(size_t n) { return *this = *this >> n; }
 	explicit operator bool() const { return m_val != 0; }
 
 	// Warning: Even though on modern CPUs this is a single fast instruction,

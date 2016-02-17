@@ -136,8 +136,10 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
 	while ((u8*)disasmPtr < end)
 	{
 		char inst_disasm[256];
-		disasmPtr += m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
-		x86_disasm << inst_disasm << std::endl;
+		size_t inst_size = m_disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, inst_disasm);
+		disasmPtr += inst_size;
+		starting_pc += inst_size;
+		x86_disasm << "0x" << std::hex << starting_pc << "\t" << starting_pc << " " << inst_disasm << std::endl;
 		(*host_instructions_count)++;
 	}
 
