@@ -25,8 +25,6 @@ void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* 
 	while (true)
 	{
 		WaitForSingleObject(parent_queued_command_list->m_begin_execution_event, INFINITE);
-		if (parent_queued_command_list->m_background_thread_exit.load())
-			break;
 
 		byte* item = &queue_array[queue_array_front];
 
@@ -341,6 +339,7 @@ void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* 
 
 					bool eligible_to_move_to_front_of_queue = reinterpret_cast<D3DQueueItem*>(item)->Stop.eligible_to_move_to_front_of_queue;
 					bool signal_stop_event = reinterpret_cast<D3DQueueItem*>(item)->Stop.signal_stop_event;
+					bool terminate_worker_thread = reinterpret_cast<D3DQueueItem*>(item)->Stop.terminate_worker_thread;
 
 					item += BufferOffsetForQueueItemType<StopArguments>();
 
@@ -353,6 +352,9 @@ void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* 
 					{
 						SetEvent(parent_queued_command_list->m_stop_execution_event);
 					}
+
+					if (terminate_worker_thread)
+						return;
 
 					goto exitLoop;
 			}
@@ -380,8 +382,8 @@ ID3D12QueuedCommandList::ID3D12QueuedCommandList(ID3D12GraphicsCommandList* back
 
 ID3D12QueuedCommandList::~ID3D12QueuedCommandList()
 {
-	m_background_thread_exit.store(true);
-	ReleaseSemaphore(m_begin_execution_event, 1, nullptr);
+	// Kick worker thread, and tell it to exit.
+	ProcessQueuedItems(true, true, true);
 	m_background_thread.join();
 
 	CloseHandle(m_begin_execution_event);
@@ -463,22 +465,14 @@ void ID3D12QueuedCommandList::QueuePresent(IDXGISwapChain* swap_chain, UINT sync
 	CheckForOverflow();
 }
 
-void ID3D12QueuedCommandList::ClearQueue()
-{
-	// Drain semaphore to ensure no new previously queued work executes (though inflight work may continue).
-	while (WaitForSingleObject(m_begin_execution_event, 0) != WAIT_TIMEOUT) { }
-
-	// Assume that any inflight queued work will complete within 100ms. This is a safe assumption.
-	Sleep(100);
-}
-
-void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_of_queue, bool wait_for_stop)
+void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_of_queue, bool wait_for_stop, bool terminate_worker_thread)
 {
 	D3DQueueItem item = {};
 
 	item.Type = D3DQueueItemType::Stop;
 	item.Stop.eligible_to_move_to_front_of_queue = eligible_to_move_to_front_of_queue;
 	item.Stop.signal_stop_event = wait_for_stop;
+	item.Stop.terminate_worker_thread = terminate_worker_thread;
 
 	*reinterpret_cast<D3DQueueItem*>(m_queue_array_back) = item;
 
@@ -502,6 +496,7 @@ void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_
 	if (wait_for_stop)
 	{
 		WaitForSingleObject(m_stop_execution_event, INFINITE);
+		ResetEvent(m_stop_execution_event);
 	}
 }
 

@@ -315,7 +315,6 @@ Renderer::Renderer(void*& window_handle)
 Renderer::~Renderer()
 {
 	D3D::EndFrame();
-	D3D::WaitForOutstandingRenderingToComplete();
 	TeardownDeviceObjects();
 	D3D::Close();
 }
