@@ -160,6 +160,8 @@ public:
 	BitSet operator|(BitSet other) const { return BitSet(m_val | other.m_val); }
 	BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
 	BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }
+	BitSet operator<<(int n) const { return BitSet(m_val << n); }
+	BitSet operator>>(int n) const { return BitSet(m_val >> n); }
 	BitSet operator~() const { return BitSet(~m_val); }
 	BitSet& operator|=(BitSet other) { return *this = *this | other; }
 	BitSet& operator&=(BitSet other) { return *this = *this & other; }

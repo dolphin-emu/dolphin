@@ -62,6 +62,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::PIXELENGINE]        = new LogContainer("PE",              "PixelEngine");
 	m_Log[LogTypes::PROCESSORINTERFACE] = new LogContainer("PI",              "ProcessorInt");
 	m_Log[LogTypes::POWERPC]            = new LogContainer("PowerPC",         "IBM CPU");
+	m_Log[LogTypes::REGCACHE]           = new LogContainer("Register Cache",  "Register Cache");
 	m_Log[LogTypes::SERIALINTERFACE]    = new LogContainer("SI",              "Serial Interface (SI)");
 	m_Log[LogTypes::SP1]                = new LogContainer("SP1",             "Serial Port 1");
 	m_Log[LogTypes::VIDEO]              = new LogContainer("Video",           "Video Backend");

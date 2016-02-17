@@ -333,6 +333,7 @@ public:
 	const u8* GetCodePtr() const;
 	u8* GetWritableCodePtr();
 
+	bool FlagsLocked() { return flags_locked; }
 	void LockFlags() { flags_locked = true; }
 	void UnlockFlags() { flags_locked = false; }
 

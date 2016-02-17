@@ -187,9 +187,6 @@ void Jit64::Init()
 	js.fastmemLoadStore = nullptr;
 	js.compilerPC = 0;
 
-	gpr.SetEmitter(this);
-	fpr.SetEmitter(this);
-
 	trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
 	AllocCodeSpace(CODE_SIZE);
 
@@ -240,8 +237,7 @@ void Jit64::Shutdown()
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 {
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 	if (js.op->opinfo->flags & FL_ENDBLOCK)
 	{
 		MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
@@ -273,8 +269,7 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
 
 void Jit64::HLEFunction(UGeckoInstruction _inst)
 {
-	gpr.Flush();
-	fpr.Flush();
+	regs.Flush();
 	ABI_PushRegistersAndAdjustStack({}, 0);
 	ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
 	ABI_PopRegistersAndAdjustStack({}, 0);
@@ -504,13 +499,13 @@ void Jit64::SingleStep()
 
 void Jit64::Trace()
 {
-	std::string regs;
+	std::string gregs;
 	std::string fregs;
 
 #ifdef JIT_LOG_GPR
 	for (int i = 0; i < 32; i++)
 	{
-		regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+		gregs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 	}
 #endif
 
@@ -522,7 +517,7 @@ void Jit64::Trace()
 #endif
 
 	DEBUG_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x FPSCR: %08x MSR: %08x LR: %08x %s %s",
-		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs.c_str(), fregs.c_str());
+		PC, SRR0, SRR1, PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], gregs.c_str(), fregs.c_str());
 }
 
 void Jit64::Jit(u32 em_address)
@@ -630,8 +625,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	// Start up the register allocators
 	// They use the information in gpa/fpa to preload commonly used registers.
-	gpr.Start();
-	fpr.Start();
+	regs.Init();
 
 	js.downcountAmount = 0;
 	if (!SConfig::GetInstance().bEnableDebugging)
@@ -731,9 +725,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				                                                         ProcessorInterface::INT_CAUSE_PE_TOKEN |
 				                                                         ProcessorInterface::INT_CAUSE_PE_FINISH));
 				FixupBranch noCPInt = J_CC(CC_Z, true);
-
-				gpr.Flush(FLUSH_MAINTAIN_STATE);
-				fpr.Flush(FLUSH_MAINTAIN_STATE);
+				auto branch = regs.Branch();
+				branch.Flush();
 
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				WriteExternalExceptionExit();
@@ -774,8 +767,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 				SwitchToFarCode();
 					SetJumpTarget(b1);
-					gpr.Flush(FLUSH_MAINTAIN_STATE);
-					fpr.Flush(FLUSH_MAINTAIN_STATE);
+					auto branch = regs.Branch();
+					branch.Flush();
 
 					// If a FPU exception occurs, the exception handler will read
 					// from PC.  Update PC with the latest value in case that happens.
@@ -792,8 +785,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;
 
-				gpr.Flush();
-				fpr.Flush();
+				regs.Flush();
 
 				MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
 				ABI_PushRegistersAndAdjustStack({}, 0);
@@ -813,20 +805,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			// output, which needs to be bound in the actual instruction compilation.
 			// TODO: make this smarter in the case that we're actually register-starved, i.e.
 			// prioritize the more important registers.
-			for (int reg : ops[i].regsIn)
-			{
-				if (gpr.NumFreeRegisters() < 2)
-					break;
-				if (ops[i].gprInReg[reg] && !gpr.R(reg).IsImm())
-					gpr.BindToRegister(reg, true, false);
-			}
-			for (int reg : ops[i].fregsIn)
-			{
-				if (fpr.NumFreeRegisters() < 2)
-					break;
-				if (ops[i].fprInXmm[reg])
-					fpr.BindToRegister(reg, true, false);
-			}
+			regs.gpr.BindBatch(ops[i].regsIn & ops[i].gprInReg);
+			regs.fpu.BindBatch(ops[i].fregsIn & ops[i].fprInXmm);
 
 			Jit64Tables::CompileInstruction(ops[i]);
 
@@ -853,14 +833,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 						exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
 					}
 
-					BitSet32 gprToFlush = BitSet32::AllTrue(32);
-					BitSet32 fprToFlush = BitSet32::AllTrue(32);
-					if (js.revertGprLoad >= 0)
-						gprToFlush[js.revertGprLoad] = false;
-					if (js.revertFprLoad >= 0)
-						fprToFlush[js.revertFprLoad] = false;
-					gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
-					fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
+					auto branch = regs.Branch();
+					branch.Rollback();
+					branch.Flush();
 
 					// If a memory exception occurs, the exception handler will read
 					// from PC.  Update PC with the latest value in case that happens.
@@ -869,11 +844,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				SwitchToNearCode();
 			}
 
+			// Marks all transactions as successful
+			regs.Commit();
+
 			// If we have a register that will never be used again, flush it.
-			for (int j : ~ops[i].gprInUse)
-				gpr.StoreFromRegister(j);
-			for (int j : ~ops[i].fprInUse)
-				fpr.StoreFromRegister(j);
+			regs.gpr.FlushBatch(~ops[i].gprInUse);
+			regs.fpu.FlushBatch(~ops[i].fprInUse);
 
 			if (opinfo->flags & FL_LOADSTORE)
 				++js.numLoadStoreInst;
@@ -883,7 +859,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-		if (gpr.SanityCheck() || fpr.SanityCheck())
+		if (regs.SanityCheck())
 		{
 			std::string ppc_inst = GekkoDisassembler::Disassemble(ops[i].inst.hex, em_address);
 			//NOTICE_LOG(DYNA_REC, "Unflushed register: %s", ppc_inst.c_str());
@@ -895,8 +871,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (code_block.m_broken)
 	{
-		gpr.Flush();
-		fpr.Flush();
+		regs.Flush();
 		WriteExit(nextPC);
 	}
 
@@ -917,15 +892,7 @@ BitSet8 Jit64::ComputeStaticGQRs(PPCAnalyst::CodeBlock& code_block)
 
 BitSet32 Jit64::CallerSavedRegistersInUse()
 {
-	BitSet32 result;
-	for (int i = 0; i < NUMXREGS; i++)
-	{
-		if (!gpr.IsFreeX(i))
-			result[i] = true;
-		if (!fpr.IsFreeX(i))
-			result[16 + i] = true;
-	}
-	return result & ABI_ALL_CALLER_SAVED;
+	return (regs.gpr.InUse() | (regs.fpu.InUse() << 16)) & ABI_ALL_CALLER_SAVED;
 }
 
 void Jit64::EnableBlockLink()
