@@ -38,10 +38,7 @@ public:
 	void ExecuteQueuedWork(bool wait_for_gpu_completion = false);
 	void ExecuteQueuedWorkAndPresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
 
-	void ClearQueueAndWaitForCompletionOfInflightWork();
 	void DestroyResourceAfterCurrentCommandListExecuted(ID3D12Resource* resource);
-	void ImmediatelyDestroyAllResourcesScheduledForDestruction();
-	void ResetAllCommandAllocators();
 
 	void SetCommandListDirtyState(unsigned int command_list_state, bool dirty);
 	bool GetCommandListDirtyState(COMMAND_LIST_STATE command_list_state) const;
@@ -63,9 +60,11 @@ public:
 	void WaitOnCPUForFence(ID3D12Fence* fence, UINT64 fence_value);
 
 private:
-
+	void DestroyAllPendingResources();
+	void ResetAllCommandAllocators();
 	void WaitForGPUCompletion();
-	void PerformGpuRolloverChecks();
+
+	void PerformGPURolloverChecks();
 	void MoveToNextCommandAllocator();
 	void ResetCommandList();
 

@@ -715,7 +715,7 @@ void CreateRootSignatures()
 
 void WaitForOutstandingRenderingToComplete()
 {
-	command_list_mgr->ClearQueueAndWaitForCompletionOfInflightWork();
+	command_list_mgr->ExecuteQueuedWork(true);
 }
 
 void Close()
@@ -730,8 +730,6 @@ void Close()
 	}
 
 	D3D::CleanupPersistentD3DTextureResources();
-
-	command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
 	SAFE_RELEASE(s_swap_chain);
 
@@ -816,15 +814,15 @@ unsigned int GetMaxTextureSize()
 
 void Reset()
 {
-	command_list_mgr->ExecuteQueuedWork(true);
-
 	// release all back buffer references
 	for (UINT i = 0; i < ARRAYSIZE(s_backbuf); i++)
 	{
 		SAFE_RELEASE(s_backbuf[i]);
 	}
 
-	D3D::command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
+	// Block until all commands have finished.
+	// This will also final-release all pending resources (including the backbuffer above)
+	command_list_mgr->ExecuteQueuedWork(true);
 
 	// resize swapchain buffers
 	RECT client;
