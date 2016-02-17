@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 #include <d3d12.h>
 
 namespace DX12
@@ -612,15 +613,15 @@ private:
 	void ResetQueueOverflowTracking();
 	void CheckForOverflow();
 
-	static DWORD WINAPI BackgroundThreadFunction(LPVOID param);
+	static void BackgroundThreadFunction(ID3D12QueuedCommandList* parent_queued_command_list);
 
 	byte m_queue_array[QUEUE_ARRAY_SIZE];
 	byte* m_queue_array_back = m_queue_array;
 
 	byte* m_queue_array_back_at_start_of_frame = m_queue_array_back;
 
-	DWORD m_background_thread_id;
-	HANDLE m_background_thread;
+	std::thread m_background_thread;
+	std::atomic_bool m_background_thread_exit;
 
 	HANDLE m_begin_execution_event;
 	HANDLE m_stop_execution_event;
