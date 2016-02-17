@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -46,7 +47,7 @@ namespace D3D
 ID3D12Device* device12 = nullptr;
 
 ID3D12CommandQueue* command_queue = nullptr;
-D3DCommandListManager* command_list_mgr = nullptr;
+std::unique_ptr<D3DCommandListManager> command_list_mgr;
 ID3D12GraphicsCommandList* current_command_list = nullptr;
 ID3D12RootSignature* default_root_signature = nullptr;
 
@@ -55,10 +56,10 @@ D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu_shadow = {};
 
 unsigned int resource_descriptor_size = 0;
 unsigned int sampler_descriptor_size = 0;
-D3DDescriptorHeapManager* gpu_descriptor_heap_mgr = nullptr;
-D3DDescriptorHeapManager* sampler_descriptor_heap_mgr = nullptr;
-D3DDescriptorHeapManager* dsv_descriptor_heap_mgr = nullptr;
-D3DDescriptorHeapManager* rtv_descriptor_heap_mgr = nullptr;
+std::unique_ptr<D3DDescriptorHeapManager> gpu_descriptor_heap_mgr;
+std::unique_ptr<D3DDescriptorHeapManager> sampler_descriptor_heap_mgr;
+std::unique_ptr<D3DDescriptorHeapManager> dsv_descriptor_heap_mgr;
+std::unique_ptr<D3DDescriptorHeapManager> rtv_descriptor_heap_mgr;
 std::array<ID3D12DescriptorHeap*, 2> gpu_descriptor_heaps;
 
 HWND hWnd;
@@ -558,7 +559,7 @@ HRESULT Create(HWND wnd)
 	CreateDescriptorHeaps();
 	CreateRootSignatures();
 
-	command_list_mgr = new D3DCommandListManager(
+	command_list_mgr = std::make_unique<D3DCommandListManager>(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		device12,
 		command_queue
@@ -605,7 +606,7 @@ void CreateDescriptorHeaps()
 		gpu_descriptor_heap_desc.NumDescriptors = 500000;
 		gpu_descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-		gpu_descriptor_heap_mgr = new D3DDescriptorHeapManager(&gpu_descriptor_heap_desc, device12, 50000);
+		gpu_descriptor_heap_mgr = std::make_unique<D3DDescriptorHeapManager>(&gpu_descriptor_heap_desc, device12, 50000);
 
 		gpu_descriptor_heaps[0] = gpu_descriptor_heap_mgr->GetDescriptorHeap();
 
@@ -641,7 +642,7 @@ void CreateDescriptorHeaps()
 		sampler_descriptor_heap_desc.NumDescriptors = 2000;
 		sampler_descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 
-		sampler_descriptor_heap_mgr = new D3DDescriptorHeapManager(&sampler_descriptor_heap_desc, device12);
+		sampler_descriptor_heap_mgr = std::make_unique<D3DDescriptorHeapManager>(&sampler_descriptor_heap_desc, device12);
 
 		gpu_descriptor_heaps[1] = sampler_descriptor_heap_mgr->GetDescriptorHeap();
 	}
@@ -652,7 +653,7 @@ void CreateDescriptorHeaps()
 		dsv_descriptor_heap_desc.NumDescriptors = 2000;
 		dsv_descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 
-		dsv_descriptor_heap_mgr = new D3DDescriptorHeapManager(&dsv_descriptor_heap_desc, device12);
+		dsv_descriptor_heap_mgr = std::make_unique<D3DDescriptorHeapManager>(&dsv_descriptor_heap_desc, device12);
 	}
 
 	{
@@ -662,7 +663,7 @@ void CreateDescriptorHeaps()
 		rtv_descriptor_heap_desc.NumDescriptors = 1000000;
 		rtv_descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 
-		rtv_descriptor_heap_mgr = new D3DDescriptorHeapManager(&rtv_descriptor_heap_desc, device12);
+		rtv_descriptor_heap_mgr = std::make_unique<D3DDescriptorHeapManager>(&rtv_descriptor_heap_desc, device12);
 	}
 }
 
@@ -757,15 +758,15 @@ void Close()
 
 	SAFE_RELEASE(s_swap_chain);
 
-	SAFE_DELETE(command_list_mgr);
+	command_list_mgr.reset();
 	command_queue->Release();
 
 	default_root_signature->Release();
 
-	SAFE_DELETE(gpu_descriptor_heap_mgr);
-	SAFE_DELETE(sampler_descriptor_heap_mgr);
-	SAFE_DELETE(rtv_descriptor_heap_mgr);
-	SAFE_DELETE(dsv_descriptor_heap_mgr);
+	gpu_descriptor_heap_mgr.reset();
+	sampler_descriptor_heap_mgr.reset();
+	rtv_descriptor_heap_mgr.reset();
+	dsv_descriptor_heap_mgr.reset();
 
 	ULONG remaining_references = device12->Release();
 	if ((!s_debug_device12 && remaining_references) || (s_debug_device12 && remaining_references > 1))

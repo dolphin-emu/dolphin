@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3D12/D3DBase.h"
@@ -19,11 +21,11 @@ namespace DX12
 namespace D3D
 {
 
-static D3DStreamBuffer* s_texture_upload_stream_buffer = nullptr;
+static std::unique_ptr<D3DStreamBuffer> s_texture_upload_stream_buffer;
 
 void CleanupPersistentD3DTextureResources()
 {
-	SAFE_DELETE(s_texture_upload_stream_buffer);
+	s_texture_upload_stream_buffer.reset();
 }
 
 void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned int width, unsigned int height, unsigned int src_pitch, unsigned int level, D3D12_RESOURCE_STATES current_resource_state)
@@ -32,7 +34,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 
 	if (!s_texture_upload_stream_buffer)
 	{
-		s_texture_upload_stream_buffer = new D3DStreamBuffer(4 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
+		s_texture_upload_stream_buffer = std::make_unique<D3DStreamBuffer>(4 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
 	}
 
 	bool current_command_list_executed = s_texture_upload_stream_buffer->AllocateSpaceInBuffer(upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
