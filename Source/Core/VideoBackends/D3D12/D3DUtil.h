@@ -5,10 +5,12 @@
 #pragma once
 
 #include <d3d11.h>
+#include <memory>
 #include <string>
 
 #include "Common/MathUtil.h"
 #include "VideoBackends/D3D12/D3DState.h"
+#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 
 #include "VideoCommon/RenderBase.h"
 
@@ -48,10 +50,7 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE m_texture12_cpu = {};
 	D3D12_GPU_DESCRIPTOR_HANDLE m_texture12_gpu = {};
 
-	ID3D12Resource* m_vb12 = nullptr;
-	D3D12_VERTEX_BUFFER_VIEW m_vb12_view = {};
-	void* m_vb12_data = nullptr;
-	unsigned int m_vb12_offset = 0;
+	std::unique_ptr<D3DStreamBuffer> m_vertex_buffer = nullptr;
 
 	D3D12_INPUT_LAYOUT_DESC m_input_layout12 = {};
 	D3D12_SHADER_BYTECODE m_pshader12 = {};
