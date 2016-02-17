@@ -9,13 +9,138 @@
 #include "Common/GL/GLInterface/WGL.h"
 #include "Common/Logging/Log.h"
 
-static HDC hDC = nullptr;       // Private GDI Device Context
-static HGLRC hRC = nullptr;     // Permanent Rendering Context
-static HINSTANCE dllHandle = nullptr; // Handle to OpenGL32.dll
+// from wglext.h
+#ifndef WGL_ARB_pbuffer
+#define WGL_ARB_pbuffer 1
+DECLARE_HANDLE(HPBUFFERARB);
+#define WGL_DRAW_TO_PBUFFER_ARB           0x202D
+#define WGL_MAX_PBUFFER_PIXELS_ARB        0x202E
+#define WGL_MAX_PBUFFER_WIDTH_ARB         0x202F
+#define WGL_MAX_PBUFFER_HEIGHT_ARB        0x2030
+#define WGL_PBUFFER_LARGEST_ARB           0x2033
+#define WGL_PBUFFER_WIDTH_ARB             0x2034
+#define WGL_PBUFFER_HEIGHT_ARB            0x2035
+#define WGL_PBUFFER_LOST_ARB              0x2036
+typedef HPBUFFERARB(WINAPI * PFNWGLCREATEPBUFFERARBPROC) (HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int *piAttribList);
+typedef HDC(WINAPI * PFNWGLGETPBUFFERDCARBPROC) (HPBUFFERARB hPbuffer);
+typedef int (WINAPI * PFNWGLRELEASEPBUFFERDCARBPROC) (HPBUFFERARB hPbuffer, HDC hDC);
+typedef BOOL(WINAPI * PFNWGLDESTROYPBUFFERARBPROC) (HPBUFFERARB hPbuffer);
+typedef BOOL(WINAPI * PFNWGLQUERYPBUFFERARBPROC) (HPBUFFERARB hPbuffer, int iAttribute, int *piValue);
+#endif /* WGL_ARB_pbuffer */
 
-// typedef from wglext.h
-typedef BOOL(WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+
+#ifndef WGL_ARB_pixel_format
+#define WGL_ARB_pixel_format 1
+#define WGL_NUMBER_PIXEL_FORMATS_ARB      0x2000
+#define WGL_DRAW_TO_WINDOW_ARB            0x2001
+#define WGL_DRAW_TO_BITMAP_ARB            0x2002
+#define WGL_ACCELERATION_ARB              0x2003
+#define WGL_NEED_PALETTE_ARB              0x2004
+#define WGL_NEED_SYSTEM_PALETTE_ARB       0x2005
+#define WGL_SWAP_LAYER_BUFFERS_ARB        0x2006
+#define WGL_SWAP_METHOD_ARB               0x2007
+#define WGL_NUMBER_OVERLAYS_ARB           0x2008
+#define WGL_NUMBER_UNDERLAYS_ARB          0x2009
+#define WGL_TRANSPARENT_ARB               0x200A
+#define WGL_TRANSPARENT_RED_VALUE_ARB     0x2037
+#define WGL_TRANSPARENT_GREEN_VALUE_ARB   0x2038
+#define WGL_TRANSPARENT_BLUE_VALUE_ARB    0x2039
+#define WGL_TRANSPARENT_ALPHA_VALUE_ARB   0x203A
+#define WGL_TRANSPARENT_INDEX_VALUE_ARB   0x203B
+#define WGL_SHARE_DEPTH_ARB               0x200C
+#define WGL_SHARE_STENCIL_ARB             0x200D
+#define WGL_SHARE_ACCUM_ARB               0x200E
+#define WGL_SUPPORT_GDI_ARB               0x200F
+#define WGL_SUPPORT_OPENGL_ARB            0x2010
+#define WGL_DOUBLE_BUFFER_ARB             0x2011
+#define WGL_STEREO_ARB                    0x2012
+#define WGL_PIXEL_TYPE_ARB                0x2013
+#define WGL_COLOR_BITS_ARB                0x2014
+#define WGL_RED_BITS_ARB                  0x2015
+#define WGL_RED_SHIFT_ARB                 0x2016
+#define WGL_GREEN_BITS_ARB                0x2017
+#define WGL_GREEN_SHIFT_ARB               0x2018
+#define WGL_BLUE_BITS_ARB                 0x2019
+#define WGL_BLUE_SHIFT_ARB                0x201A
+#define WGL_ALPHA_BITS_ARB                0x201B
+#define WGL_ALPHA_SHIFT_ARB               0x201C
+#define WGL_ACCUM_BITS_ARB                0x201D
+#define WGL_ACCUM_RED_BITS_ARB            0x201E
+#define WGL_ACCUM_GREEN_BITS_ARB          0x201F
+#define WGL_ACCUM_BLUE_BITS_ARB           0x2020
+#define WGL_ACCUM_ALPHA_BITS_ARB          0x2021
+#define WGL_DEPTH_BITS_ARB                0x2022
+#define WGL_STENCIL_BITS_ARB              0x2023
+#define WGL_AUX_BUFFERS_ARB               0x2024
+#define WGL_NO_ACCELERATION_ARB           0x2025
+#define WGL_GENERIC_ACCELERATION_ARB      0x2026
+#define WGL_FULL_ACCELERATION_ARB         0x2027
+#define WGL_SWAP_EXCHANGE_ARB             0x2028
+#define WGL_SWAP_COPY_ARB                 0x2029
+#define WGL_SWAP_UNDEFINED_ARB            0x202A
+#define WGL_TYPE_RGBA_ARB                 0x202B
+#define WGL_TYPE_COLORINDEX_ARB           0x202C
+typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBIVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
+typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBFVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, FLOAT *pfValues);
+typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
+#endif /* WGL_ARB_pixel_format */
+
+#ifndef WGL_ARB_create_context
+#define WGL_ARB_create_context 1
+#define WGL_CONTEXT_DEBUG_BIT_ARB         0x00000001
+#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x00000002
+#define WGL_CONTEXT_MAJOR_VERSION_ARB     0x2091
+#define WGL_CONTEXT_MINOR_VERSION_ARB     0x2092
+#define WGL_CONTEXT_LAYER_PLANE_ARB       0x2093
+#define WGL_CONTEXT_FLAGS_ARB             0x2094
+#define ERROR_INVALID_VERSION_ARB         0x2095
+typedef HGLRC (WINAPI * PFNWGLCREATECONTEXTATTRIBSARBPROC) (HDC hDC, HGLRC hShareContext, const int *attribList);
+#endif /* WGL_ARB_create_context */
+
+#ifndef WGL_ARB_create_context_profile
+#define WGL_ARB_create_context_profile 1
+#define WGL_CONTEXT_PROFILE_MASK_ARB      0x9126
+#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB  0x00000001
+#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+#define ERROR_INVALID_PROFILE_ARB         0x2096
+#endif /* WGL_ARB_create_context_profile */
+
+#ifndef WGL_EXT_swap_control
+#define WGL_EXT_swap_control 1
+typedef BOOL (WINAPI * PFNWGLSWAPINTERVALEXTPROC) (int interval);
+typedef int (WINAPI * PFNWGLGETSWAPINTERVALEXTPROC) (void);
+#endif /* WGL_EXT_swap_control */
+
+// Persistent pointers
 static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
+static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
+static PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = nullptr;
+static PFNWGLCREATEPBUFFERARBPROC wglCreatePbufferARB = nullptr;
+static PFNWGLGETPBUFFERDCARBPROC wglGetPbufferDCARB = nullptr;
+static PFNWGLRELEASEPBUFFERDCARBPROC wglReleasePbufferDCARB = nullptr;
+static PFNWGLDESTROYPBUFFERARBPROC wglDestroyPbufferARB = nullptr;
+
+static void LoadWGLExtensions()
+{
+	wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
+	wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+	wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+	wglCreatePbufferARB = (PFNWGLCREATEPBUFFERARBPROC)wglGetProcAddress("wglCreatePbufferARB");
+	wglGetPbufferDCARB = (PFNWGLGETPBUFFERDCARBPROC)wglGetProcAddress("wglGetPbufferDCARB");
+	wglReleasePbufferDCARB = (PFNWGLRELEASEPBUFFERDCARBPROC)wglGetProcAddress("wglReleasePbufferDCARB");
+	wglDestroyPbufferARB = (PFNWGLDESTROYPBUFFERARBPROC)wglGetProcAddress("wglGetPbufferDCARB");
+}
+
+static void ClearWGLExtensionPointers()
+{
+	wglSwapIntervalEXT = nullptr;
+	wglCreateContextAttribsARB = nullptr;
+	wglChoosePixelFormatARB = nullptr;
+	wglCreatePbufferARB = nullptr;
+	wglGetPbufferDCARB = nullptr;
+	wglReleasePbufferDCARB = nullptr;
+	wglDestroyPbufferARB = nullptr;
+}
 
 void cInterfaceWGL::SwapInterval(int Interval)
 {
@@ -26,14 +151,19 @@ void cInterfaceWGL::SwapInterval(int Interval)
 }
 void cInterfaceWGL::Swap()
 {
-	SwapBuffers(hDC);
+	SwapBuffers(m_dc);
 }
 
 void* cInterfaceWGL::GetFuncAddress(const std::string& name)
 {
 	void* func = (void*)wglGetProcAddress((LPCSTR)name.c_str());
 	if (func == nullptr)
-		func = (void*)GetProcAddress(dllHandle, (LPCSTR)name.c_str());
+	{
+		// Using GetModuleHandle here is okay, since we import functions from opengl32.dll, it's guaranteed to be loaded.
+		HMODULE opengl_module = GetModuleHandle(TEXT("opengl32.dll"));
+		func = (void*)GetProcAddress(opengl_module, (LPCSTR)name.c_str());
+	}
+
 	return func;
 }
 
@@ -65,6 +195,9 @@ bool cInterfaceWGL::Create(void *window_handle, bool core)
 	if (!GetClientRect(window_handle_reified, &window_rect))
 		return false;
 
+	// Clear extension function pointers before creating the first context.
+	ClearWGLExtensionPointers();
+
 	// Control window size and picture scaling
 	int twidth  = (window_rect.right - window_rect.left);
 	int theight = (window_rect.bottom - window_rect.top);
@@ -72,8 +205,6 @@ bool cInterfaceWGL::Create(void *window_handle, bool core)
 	s_backbuffer_height = theight;
 
 	m_window_handle = window_handle_reified;
-
-	dllHandle = LoadLibrary(TEXT("OpenGL32.dll"));
 
 	PIXELFORMATDESCRIPTOR pfd =         // pfd Tells Windows How We Want Things To Be
 	{
@@ -99,47 +230,220 @@ bool cInterfaceWGL::Create(void *window_handle, bool core)
 
 	int      PixelFormat;               // Holds The Results After Searching For A Match
 
-	if (!(hDC = GetDC(window_handle_reified)))
+	if (!(m_dc = GetDC(window_handle_reified)))
 	{
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
 		return false;
 	}
 
-	if (!(PixelFormat = ChoosePixelFormat(hDC, &pfd)))
+	if (!(PixelFormat = ChoosePixelFormat(m_dc, &pfd)))
 	{
 		PanicAlert("(2) Can't find a suitable PixelFormat.");
 		return false;
 	}
 
-	if (!SetPixelFormat(hDC, PixelFormat, &pfd))
+	if (!SetPixelFormat(m_dc, PixelFormat, &pfd))
 	{
 		PanicAlert("(3) Can't set the PixelFormat.");
 		return false;
 	}
 
-	if (!(hRC = wglCreateContext(hDC)))
+	if (!(m_rc = wglCreateContext(m_dc)))
 	{
 		PanicAlert("(4) Can't create an OpenGL rendering context.");
 		return false;
 	}
 
+	// WGL only supports desktop GL, for now.
+	if (s_opengl_mode == GLInterfaceMode::MODE_DETECT)
+		s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
+
+	if (core)
+	{
+		// Make the fallback context current, temporarily.
+		// This is because we need an active context to use wglCreateContextAttribsARB.
+		if (!wglMakeCurrent(m_dc, m_rc))
+		{
+			PanicAlert("(5) Can't make dummy WGL context current.");
+			return false;
+		}
+
+		// Load WGL extension function pointers.
+		LoadWGLExtensions();
+
+		// Attempt creating a core context.
+		HGLRC core_context = CreateCoreContext(m_dc, nullptr);
+
+		// Switch out the temporary context before continuing, regardless of whether we got a core context.
+		if (!wglMakeCurrent(m_dc, nullptr))
+		{
+			PanicAlert("(6) Failed to switch out temporary context");
+			return false;
+		}
+
+		// If we got a core context, destroy and replace the temporary context.
+		if (core_context)
+		{
+			wglDeleteContext(m_rc);
+			m_rc = core_context;
+			m_core = true;
+		}
+		else
+		{
+			WARN_LOG(VIDEO, "Failed to create a core OpenGL context. Using fallback context.");
+		}
+	}
+
+	return true;
+}
+
+bool cInterfaceWGL::Create(cInterfaceBase* main_context)
+{
+	cInterfaceWGL* wgl_main_context = static_cast<cInterfaceWGL*>(main_context);
+
+	// WGL does not support surfaceless contexts, so we use a 1x1 pbuffer instead.
+	if (!CreatePBuffer(wgl_main_context->m_dc, 1, 1, &m_pbuffer_handle, &m_dc))
+		return false;
+
+	m_rc = CreateCoreContext(m_dc, wgl_main_context->m_rc);
+	if (!m_rc)
+		return false;
+
+	m_core = true;
+	return true;
+}
+
+std::unique_ptr<cInterfaceBase> cInterfaceWGL::CreateSharedContext()
+{
+	std::unique_ptr<cInterfaceWGL> context = std::make_unique<cInterfaceWGL>();
+	if (!context->Create(this))
+	{
+		context->Shutdown();
+		return nullptr;
+	}
+
+	return std::move(context);
+}
+
+HGLRC cInterfaceWGL::CreateCoreContext(HDC dc, HGLRC share_context)
+{
+	if (!wglCreateContextAttribsARB)
+	{
+		WARN_LOG(VIDEO, "Missing WGL_ARB_create_context extension");
+		return nullptr;
+	}
+
+	// List of versions to attempt context creation for. (4.5-3.2, geometry shaders is a minimum requirement since we're using core profile)
+	static constexpr std::pair<int, int> try_versions[] = {
+		{ 4, 5 },
+		{ 4, 4 },
+		{ 4, 3 },
+		{ 4, 2 },
+		{ 4, 1 },
+		{ 4, 0 },
+		{ 3, 3 },
+		{ 3, 2 }
+	};
+
+	HGLRC core_context = nullptr;
+	for (const auto& version : try_versions)
+	{
+		// Construct list of attributes. Prefer a forward-compatible, core context.
+		int attribs[] = {
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+#ifdef _DEBUG
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
+#else
+			WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+#endif
+			WGL_CONTEXT_MAJOR_VERSION_ARB, version.first,
+			WGL_CONTEXT_MINOR_VERSION_ARB, version.second,
+			0, 0
+		};
+
+		// Attempt creating this context.
+		core_context = wglCreateContextAttribsARB(dc, nullptr, attribs);
+		if (core_context)
+		{
+			// If we're creating a shared context, share the resources before the context is used.
+			if (share_context)
+			{
+				if (!wglShareLists(share_context, core_context))
+				{
+					ERROR_LOG(VIDEO, "wglShareLists failed");
+					wglDeleteContext(core_context);
+					return nullptr;
+				}
+			}
+
+			INFO_LOG(VIDEO, "WGL: Created a GL %d.%d core context", version.first, version.second);
+			return core_context;
+		}
+
+	}
+
+	WARN_LOG(VIDEO, "Unable to create a core OpenGL context of an acceptable version");
+	return nullptr;
+}
+
+bool cInterfaceWGL::CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle, HDC* pbuffer_dc)
+{
+	if (!wglChoosePixelFormatARB || !wglCreatePbufferARB || !wglGetPbufferDCARB || !wglReleasePbufferDCARB || !wglDestroyPbufferARB)
+	{
+		ERROR_LOG(VIDEO, "Missing WGL_ARB_pbuffer extension");
+		return false;
+	}
+
+	int pf_attribs[] = {
+		WGL_DRAW_TO_PBUFFER_ARB, 1,		// pixel format compatible with pbuffer rendering
+		WGL_RED_BITS_ARB, 0,
+		WGL_GREEN_BITS_ARB, 0,
+		WGL_BLUE_BITS_ARB, 0,
+		WGL_DEPTH_BITS_ARB, 0,
+		WGL_STENCIL_BITS_ARB, 0,
+		0, 0
+	};
+
+	int compatible_formats[16];
+	UINT num_compatible_formats = 0;
+	if (!wglChoosePixelFormatARB(onscreen_dc, pf_attribs, nullptr, ARRAYSIZE(compatible_formats), compatible_formats, &num_compatible_formats))
+	{
+		ERROR_LOG(VIDEO, "Failed to obtain a compatible pbuffer pixel format");
+		return false;
+	}
+
+	int pb_attribs[] = {
+		0, 0
+	};
+
+	HPBUFFERARB pbuffer = wglCreatePbufferARB(onscreen_dc, compatible_formats[0], width, height, pb_attribs);
+	if (!pbuffer)
+	{
+		ERROR_LOG(VIDEO, "Failed to create pbuffer");
+		return false;
+	}
+
+	HDC dc = wglGetPbufferDCARB(pbuffer);
+	if (!dc)
+	{
+		ERROR_LOG(VIDEO, "Failed to get drawing context from pbuffer");
+		wglDestroyPbufferARB(pbuffer);
+		return false;
+	}
+
+	*pbuffer_handle = pbuffer;
+	*pbuffer_dc = dc;
 	return true;
 }
 
 bool cInterfaceWGL::MakeCurrent()
 {
-	bool success = wglMakeCurrent(hDC, hRC) ? true : false;
-	if (success)
-	{
-		// Grab the swap interval function pointer
-		wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GLInterface->GetFuncAddress("wglSwapIntervalEXT");
-	}
-	return success;
+	return (wglMakeCurrent(m_dc, m_rc) == TRUE);
 }
 
 bool cInterfaceWGL::ClearCurrent()
 {
-	return wglMakeCurrent(hDC, nullptr) ? true : false;
+	return (wglMakeCurrent(m_dc, nullptr) == TRUE);
 }
 
 // Update window width, size and etc. Called from Render.cpp
@@ -156,23 +460,35 @@ void cInterfaceWGL::Update()
 // Close backend
 void cInterfaceWGL::Shutdown()
 {
-	if (hRC)
+	if (m_rc)
 	{
 		if (!wglMakeCurrent(nullptr, nullptr))
 			NOTICE_LOG(VIDEO, "Could not release drawing context.");
 
-		if (!wglDeleteContext(hRC))
+		if (!wglDeleteContext(m_rc))
 			ERROR_LOG(VIDEO, "Attempt to release rendering context failed.");
 
-		hRC = nullptr;
+		m_rc = nullptr;
 	}
 
-	if (hDC && !ReleaseDC(m_window_handle, hDC))
+	if (m_dc)
 	{
-		ERROR_LOG(VIDEO, "Attempt to release device context failed.");
-		hDC = nullptr;
+		if (m_pbuffer_handle)
+		{
+			wglReleasePbufferDCARB(static_cast<HPBUFFERARB>(m_pbuffer_handle), m_dc);
+			m_dc = nullptr;
+
+			wglDestroyPbufferARB(static_cast<HPBUFFERARB>(m_pbuffer_handle));
+			m_pbuffer_handle = nullptr;
+		}
+		else
+		{
+			if (!ReleaseDC(m_window_handle, m_dc))
+				ERROR_LOG(VIDEO, "Attempt to release device context failed.");
+
+			m_dc = nullptr;
+		}
 	}
-	FreeLibrary(dllHandle);
 }
 
 
