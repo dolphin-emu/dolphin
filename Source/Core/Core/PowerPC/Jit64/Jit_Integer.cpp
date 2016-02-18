@@ -1515,17 +1515,18 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA;
 	int s = inst.RS;
+	auto ra = regs.gpr.Lock(a);
+	auto rs = regs.gpr.Lock(s);
 
-	if (gpr.R(a).IsImm() && gpr.R(s).IsImm())
+	if (ra.IsImm() && rs.IsImm())
 	{
 		u32 mask = Helper_Mask(inst.MB,inst.ME);
-		gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) | (_rotl(gpr.R(s).Imm32(),inst.SH) & mask));
+		ra.SetImm32((ra.Imm32() & ~mask) | (_rotl(rs.Imm32(),inst.SH) & mask));
 		if (inst.Rc)
-			ComputeRC(gpr.R(a));
+			ComputeRC(ra);
 	}
 	else
 	{
-		gpr.Lock(a, s);
 		u32 mask = Helper_Mask(inst.MB, inst.ME);
 		bool needs_test = false;
 		if (mask == 0 || (a == s && inst.SH == 0))
@@ -1534,79 +1535,79 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		}
 		else if (mask == 0xFFFFFFFF)
 		{
-			gpr.BindToRegister(a, a == s, true);
+			auto xa = ra.BindWriteAndReadIf(a == s);
 			if (a != s)
-				MOV(32, gpr.R(a), gpr.R(s));
+				MOV(32, xa, rs);
 			if (inst.SH)
-				ROL(32, gpr.R(a), Imm8(inst.SH));
+				ROL(32, xa, Imm8(inst.SH));
 			needs_test = true;
 		}
-		else if(gpr.R(s).IsImm())
+		else if(rs.IsImm())
 		{
-			gpr.BindToRegister(a, true, true);
-			AndWithMask(gpr.RX(a), ~mask);
-			OR(32, gpr.R(a), Imm32(_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
+			auto xa = ra.Bind(BindMode::ReadWrite);
+			AndWithMask(xa, ~mask);
+			OR(32, xa, Imm32(_rotl(rs.Imm32(), inst.SH) & mask));
 		}
 		else if (inst.SH)
 		{
 			bool isLeftShift = mask == 0U - (1U << inst.SH);
 			bool isRightShift = mask == (1U << inst.SH) - 1;
-			if (gpr.R(a).IsImm())
+			if (ra.IsImm())
 			{
-				u32 maskA = gpr.R(a).Imm32() & ~mask;
-				gpr.BindToRegister(a, false, true);
-				MOV(32, gpr.R(a), gpr.R(s));
+				u32 maskA = ra.Imm32() & ~mask;
+				auto xa = ra.Bind(BindMode::Write);
+				MOV(32, xa, rs);
 				if (isLeftShift)
 				{
-					SHL(32, gpr.R(a), Imm8(inst.SH));
+					SHL(32, xa, Imm8(inst.SH));
 				}
 				else if (isRightShift)
 				{
-					SHR(32, gpr.R(a), Imm8(32 - inst.SH));
+					SHR(32, xa, Imm8(32 - inst.SH));
 				}
 				else
 				{
-					ROL(32, gpr.R(a), Imm8(inst.SH));
-					AND(32, gpr.R(a), Imm32(mask));
+					ROL(32, xa, Imm8(inst.SH));
+					AND(32, xa, Imm32(mask));
 				}
-				OR(32, gpr.R(a), Imm32(maskA));
+				OR(32, xa, Imm32(maskA));
 			}
 			else
 			{
 				// TODO: common cases of this might be faster with pinsrb or abuse of AH
-				gpr.BindToRegister(a, true, true);
-				MOV(32, R(RSCRATCH), gpr.R(s));
+				auto xa = ra.Bind(BindMode::ReadWrite);
+				auto scratch = regs.gpr.Borrow();
+				MOV(32, scratch, a == s ? xa : rs);
 				if (isLeftShift)
 				{
-					SHL(32, R(RSCRATCH), Imm8(inst.SH));
-					AndWithMask(gpr.RX(a), ~mask);
-					OR(32, gpr.R(a), R(RSCRATCH));
+					SHL(32, scratch, Imm8(inst.SH));
+					AndWithMask(xa, ~mask);
+					OR(32, xa, scratch);
 				}
 				else if (isRightShift)
 				{
-					SHR(32, R(RSCRATCH), Imm8(32 - inst.SH));
-					AndWithMask(gpr.RX(a), ~mask);
-					OR(32, gpr.R(a), R(RSCRATCH));
+					SHR(32, scratch, Imm8(32 - inst.SH));
+					AndWithMask(xa, ~mask);
+					OR(32, xa, scratch);
 				}
 				else
 				{
-					ROL(32, R(RSCRATCH), Imm8(inst.SH));
-					XOR(32, R(RSCRATCH), gpr.R(a));
-					AndWithMask(RSCRATCH, mask);
-					XOR(32, gpr.R(a), R(RSCRATCH));
+					ROL(32, scratch, Imm8(inst.SH));
+					XOR(32, scratch, xa);
+					AndWithMask(scratch, mask);
+					XOR(32, xa, scratch);
 				}
 			}
 		}
 		else
 		{
-			gpr.BindToRegister(a, true, true);
-			XOR(32, gpr.R(a), gpr.R(s));
-			AndWithMask(gpr.RX(a), ~mask);
-			XOR(32, gpr.R(a), gpr.R(s));
+			auto xa = ra.Bind(BindMode::ReadWrite);
+			XOR(32, xa, rs);
+			AndWithMask(xa, ~mask);
+			XOR(32, xa, rs);
 		}
 		if (inst.Rc)
-			ComputeRC(gpr.R(a), needs_test);
-		gpr.UnlockAll();
+			ComputeRC(ra, needs_test);
 	}
 }
 
@@ -1615,34 +1616,34 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, s = inst.RS;
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rs = regs.gpr.Lock(s);
 
 	u32 mask = Helper_Mask(inst.MB, inst.ME);
-	if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
+	if (rb.IsImm() && rs.IsImm())
 	{
-		gpr.SetImmediate32(a, _rotl(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);
+		ra.SetImm32(_rotl(rs.Imm32(), rb.Imm32() & 0x1F) & mask);
 	}
 	else
 	{
 		// no register choice
-		gpr.FlushLockX(ECX);
-		gpr.Lock(a, b, s);
-		MOV(32, R(ECX), gpr.R(b));
-		gpr.BindToRegister(a, (a == s), true);
+		auto ecx = regs.gpr.Borrow(ECX);
+		MOV(32, ecx, rb);
+		auto xa = ra.BindWriteAndReadIf(a == s);
 		if (a != s)
 		{
-			MOV(32, gpr.R(a), gpr.R(s));
+			MOV(32, xa, rs);
 		}
-		ROL(32, gpr.R(a), R(ECX));
+		ROL(32, xa, ecx);
 		// we need flags if we're merging the branch
 		if (inst.Rc && CheckMergedBranch(0))
-			AND(32, gpr.R(a), Imm32(mask));
+			AND(32, xa, Imm32(mask));
 		else
-			AndWithMask(gpr.RX(a), mask);
+			AndWithMask(xa, mask);
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(a), false);
-	gpr.UnlockAll();
-	gpr.UnlockAllX();
+		ComputeRC(ra, false);
 }
 
 void Jit64::negx(UGeckoInstruction inst)
