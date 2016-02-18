@@ -67,6 +67,7 @@ std::string Statistics::ToString()
 	str += StringFromFormat("Index streamed: %i kB\n", stats.thisFrame.bytesIndexStreamed / 1024);
 	str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed / 1024);
 	str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
+	str += StringFromFormat("EFB peek cache: %i hits, %i misses\n", stats.thisFrame.numEfbPeekCacheHits, stats.thisFrame.numEfbPeekCacheMisses);
 
 	std::string vertex_list;
 	VertexLoaderManager::AppendListToString(&vertex_list);

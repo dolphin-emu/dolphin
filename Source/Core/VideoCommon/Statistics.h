@@ -59,6 +59,9 @@ struct Statistics
 		int numVerticesLoaded;
 		int tevPixelsIn;
 		int tevPixelsOut;
+
+		int numEfbPeekCacheHits;
+		int numEfbPeekCacheMisses;
 	};
 	ThisFrame thisFrame;
 	void ResetFrame();

@@ -14,6 +14,7 @@
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/XFBEncoder.h"
+#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -251,7 +252,14 @@ void XFBSource::CopyEFB(float Gamma)
 u32 FramebufferManager::AccessEFBPeekColorCache(u32 x, u32 y)
 {
 	if (!m_efb.color_staging_buf_map.pData)
+	{
+		INCSTAT(stats.thisFrame.numEfbPeekCacheMisses);
 		PopulateEFBPeekColorCache();
+	}
+	else
+	{
+		INCSTAT(stats.thisFrame.numEfbPeekCacheHits);
+	}
 
 	u32 row_offset = y * m_efb.color_staging_buf_map.RowPitch;
 	u32* row = reinterpret_cast<u32*>(reinterpret_cast<u8*>(m_efb.color_staging_buf_map.pData) + row_offset);
@@ -261,7 +269,14 @@ u32 FramebufferManager::AccessEFBPeekColorCache(u32 x, u32 y)
 float FramebufferManager::AccessEFBPeekDepthCache(u32 x, u32 y)
 {
 	if (!m_efb.depth_staging_buf_map.pData)
+	{
+		INCSTAT(stats.thisFrame.numEfbPeekCacheMisses);
 		PopulateEFBPeekDepthCache();
+	}
+	else
+	{
+		INCSTAT(stats.thisFrame.numEfbPeekCacheHits);
+	}
 
 	u32 row_offset = y * m_efb.depth_staging_buf_map.RowPitch;
 	float* row = reinterpret_cast<float*>(reinterpret_cast<u8*>(m_efb.depth_staging_buf_map.pData) + row_offset);
