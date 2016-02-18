@@ -28,9 +28,7 @@
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
-#if defined(_DEBUG) || defined(DEBUGFAST)
 #include "Common/GekkoDisassembler.h"
-#endif
 
 using namespace Gen;
 using namespace PowerPC;
@@ -309,6 +307,24 @@ static void ImHere()
 	}
 	DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
 	been_here[PC] = 1;
+}
+
+void Jit64::WriteInvalidInstruction()
+{
+	MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
+	ABI_PushRegistersAndAdjustStack({}, 0);
+	ABI_CallFunction((void *)&JitInterface::InvalidInstruction);
+	ABI_PopRegistersAndAdjustStack({}, 0);
+}
+
+void Jit64::UnexpectedInstructionForm()
+{
+	u32 hex = PowerPC::HostRead_U32(js.compilerPC);
+	std::string ppc_inst = GekkoDisassembler::Disassemble(hex, js.compilerPC);
+	_assert_msg_(DYNA_REC, 0, "Unexpected instruction form: PC = %08x  %s", js.compilerPC, ppc_inst.c_str());
+
+	// Make these visible
+	NOP();
 }
 
 bool Jit64::Cleanup()
