@@ -20,7 +20,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A modern CPU (3 GHz and Dual Core, not older than 2008) is highly recommended.
 * Graphics
     * A reasonably modern graphics card (Direct3D 10.0 / OpenGL 3.0).
-    * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
+    * A graphics card that supports Direct3D 11 / OpenGL 4.5 is recommended.
 
 ### Android
 * OS
