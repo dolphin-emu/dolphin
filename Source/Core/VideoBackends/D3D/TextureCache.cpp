@@ -118,6 +118,9 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		float(dstrect.GetWidth()),
 		float(dstrect.GetHeight()));
 
+	D3D::stateman->UnsetTexture(texture->GetSRV());
+	D3D::stateman->Apply();
+
 	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::SetLinearCopySampler();
@@ -234,6 +237,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	// Make sure we don't draw with the texture set as both a source and target.
 	// (This can happen because we don't unbind textures when we free them.)
 	D3D::stateman->UnsetTexture(texture->GetSRV());
+	D3D::stateman->Apply();
 
 	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
 
@@ -364,6 +368,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	// Make sure we don't draw with the texture set as both a source and target.
 	// (This can happen because we don't unbind textures when we free them.)
 	D3D::stateman->UnsetTexture(static_cast<TCacheEntry*>(entry)->texture->GetSRV());
+	D3D::stateman->Apply();
 
 	D3D::context->OMSetRenderTargets(1, &static_cast<TCacheEntry*>(entry)->texture->GetRTV(), nullptr);
 
