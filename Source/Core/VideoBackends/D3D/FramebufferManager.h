@@ -63,11 +63,7 @@ public:
 	~FramebufferManager();
 
 	static D3DTexture2D* &GetEFBColorTexture();
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
-
 	static D3DTexture2D* &GetEFBDepthTexture();
-	static D3DTexture2D* &GetEFBDepthReadTexture();
-	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
 
 	static D3DTexture2D* &GetResolvedEFBColorTexture();
 	static D3DTexture2D* &GetResolvedEFBDepthTexture();
@@ -80,6 +76,17 @@ public:
 		m_efb.color_tex = swaptex;
 	}
 
+	// Access EFB from CPU
+	static u32 ReadEFBColorAccessCopy(u32 x, u32 y);
+	static float ReadEFBDepthAccessCopy(u32 x, u32 y);
+	static void UpdateEFBColorAccessCopy(u32 x, u32 y, u32 color);
+	static void UpdateEFBDepthAccessCopy(u32 x, u32 y, float depth);
+	static void InitializeEFBAccessCopies();
+	static void MapEFBColorAccessCopy();
+	static void MapEFBDepthAccessCopy();
+	static void InvalidateEFBAccessCopies();
+	static void DestroyEFBAccessCopies();
+
 private:
 	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height) override;
@@ -89,16 +96,21 @@ private:
 	static struct Efb
 	{
 		D3DTexture2D* color_tex;
-		ID3D11Texture2D* color_staging_buf;
 
 		D3DTexture2D* depth_tex;
-		ID3D11Texture2D* depth_staging_buf;
-		D3DTexture2D* depth_read_texture;
 
 		D3DTexture2D* color_temp_tex;
 
 		D3DTexture2D* resolved_color_tex;
 		D3DTexture2D* resolved_depth_tex;
+
+		D3DTexture2D* color_access_resize_tex;
+		ID3D11Texture2D* color_access_staging_tex;
+		D3D11_MAPPED_SUBRESOURCE color_access_staging_map;
+
+		D3DTexture2D* depth_access_resize_tex;
+		ID3D11Texture2D* depth_access_staging_tex;
+		D3D11_MAPPED_SUBRESOURCE depth_access_staging_map;
 
 		int slices;
 	} m_efb;
