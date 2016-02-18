@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
@@ -347,6 +348,11 @@ void JitIL::Cleanup()
 	// SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
 	if (MMCR0.Hex || MMCR1.Hex)
 		ABI_CallFunctionCCC((void *)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount, jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+}
+
+void JitIL::WriteInvalidInstruction()
+{
+	ABI_CallFunction((void *)JitInterface::InvalidInstruction);
 }
 
 void JitIL::WriteExit(u32 destination)
