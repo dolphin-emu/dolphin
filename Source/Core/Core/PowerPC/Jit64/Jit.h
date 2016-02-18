@@ -141,8 +141,7 @@ public:
 	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
 	void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-	                Gen::X64Reg clobber = Gen::XMM0);
+	void HandleNaNs(bool single, std::vector<FPURegister> inputs, Gen::X64Reg xmm_out, Gen::X64Reg xmm);
 
 	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
@@ -150,10 +149,6 @@ public:
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
 	              void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
 	              bool Rc = false, bool carry = false);
-	Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
-	                      void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
-	                      bool packed, bool preserve_inputs, bool roundRHS = false);
 	void UpdateMXCSR();
 
 	void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize, bool signExtend, bool swap, bool update);
