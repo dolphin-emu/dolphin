@@ -99,7 +99,12 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 
 			m_names = volume->GetNames(true);
 			m_descriptions = volume->GetDescriptions();
-			m_company = volume->GetCompany();
+			if(volume->GetLongMakers().count(DiscIO::IVolume::LANGUAGE_ENGLISH) > 0)
+			{
+				m_company = volume->GetLongMakers().at(DiscIO::IVolume::LANGUAGE_ENGLISH);
+				if (m_company.empty() && volume->GetShortMakers().count(DiscIO::IVolume::LANGUAGE_ENGLISH) > 0)
+					m_company = volume->GetShortMakers().at(DiscIO::IVolume::LANGUAGE_ENGLISH);
+			}
 
 			m_Country = volume->GetCountry();
 			m_blob_type = volume->GetBlobType();
