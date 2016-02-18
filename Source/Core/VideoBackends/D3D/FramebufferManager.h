@@ -80,6 +80,14 @@ public:
 		m_efb.color_tex = swaptex;
 	}
 
+	static u32 AccessEFBPeekColorCache(u32 x, u32 y);
+	static float AccessEFBPeekDepthCache(u32 x, u32 y);
+	static void UpdateEFBPeekColorCache(u32 x, u32 y, u32 value);
+	static void UpdateEFBPeekDepthCache(u32 x, u32 y, float value);
+	static void PopulateEFBPeekColorCache();
+	static void PopulateEFBPeekDepthCache();
+	static void InvalidateEFBPeekCache();
+
 private:
 	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
 	void GetTargetSize(unsigned int *width, unsigned int *height) override;
@@ -89,11 +97,14 @@ private:
 	static struct Efb
 	{
 		D3DTexture2D* color_tex;
+		D3DTexture2D* color_read_tex;
 		ID3D11Texture2D* color_staging_buf;
+		D3D11_MAPPED_SUBRESOURCE color_staging_buf_map;
 
 		D3DTexture2D* depth_tex;
-		ID3D11Texture2D* depth_staging_buf;
 		D3DTexture2D* depth_read_texture;
+		D3D11_MAPPED_SUBRESOURCE depth_staging_buf_map;
+		ID3D11Texture2D* depth_staging_buf;
 
 		D3DTexture2D* color_temp_tex;
 
