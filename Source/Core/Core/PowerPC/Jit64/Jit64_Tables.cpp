@@ -97,14 +97,14 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] =
 {    //SUBOP10
-	{0,    &Jit64::ps_cmpXX},              // ps_cmpu0
-	{32,   &Jit64::ps_cmpXX},              // ps_cmpo0
-	{40,   &Jit64::fsign},               // ps_neg
-	{136,  &Jit64::fsign},               // ps_nabs
-	{264,  &Jit64::fsign},               // ps_abs
-	{64,   &Jit64::ps_cmpXX},              // ps_cmpu1
+	{0,    &Jit64::fcmpX},                 // ps_cmpu0
+	{32,   &Jit64::fcmpX},                 // ps_cmpo0
+	{40,   &Jit64::fsign},                 // ps_neg
+	{136,  &Jit64::fsign},                 // ps_nabs
+	{264,  &Jit64::fsign},                 // ps_abs
+	{64,   &Jit64::fcmpX},                 // ps_cmpu1
 	{72,   &Jit64::ps_mr},                 // ps_mr
-	{96,   &Jit64::ps_cmpXX},              // ps_cmpo1
+	{96,   &Jit64::fcmpX},                 // ps_cmpo1
 	{528,  &Jit64::ps_mergeXX},            // ps_merge00
 	{560,  &Jit64::ps_mergeXX},            // ps_merge01
 	{592,  &Jit64::ps_mergeXX},            // ps_merge10

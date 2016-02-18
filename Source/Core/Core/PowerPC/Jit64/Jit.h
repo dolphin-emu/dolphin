@@ -154,7 +154,6 @@ public:
 	                      void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
 	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
 	                      bool packed, bool preserve_inputs, bool roundRHS = false);
-	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 	void UpdateMXCSR();
 
 	void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize, bool signExtend, bool swap, bool update);
@@ -220,7 +219,6 @@ public:
 	void ps_rsqrte(UGeckoInstruction inst);
 	void ps_sum(UGeckoInstruction inst);
 	void ps_muls(UGeckoInstruction inst);
-	void ps_cmpXX(UGeckoInstruction inst);
 
 	void fp_arith(UGeckoInstruction inst);
 
