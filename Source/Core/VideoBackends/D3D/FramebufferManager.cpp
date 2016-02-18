@@ -116,8 +116,17 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetSRV(), "EFB color temp texture shader resource view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetRTV(), "EFB color temp texture render target view");
 
+	// Render buffer for AccessEFB (color data)
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, EFB_WIDTH, EFB_HEIGHT, 1, 1, D3D11_BIND_RENDER_TARGET);
+	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
+	CHECK(hr == S_OK, "create EFB color read texture (hr=%#x)", hr);
+	m_efb.color_read_tex = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
+	SAFE_RELEASE(buf);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_read_tex->GetTex(), "EFB color read texture (used in Renderer::AccessEFB)");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_read_tex->GetRTV(), "EFB color read texture render target view (used in Renderer::AccessEFB)");
+
 	// AccessEFB - Sysmem buffer used to retrieve the pixel data from color_tex
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, m_efb.slices, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, EFB_WIDTH, EFB_HEIGHT, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &m_efb.color_staging_buf);
 	CHECK(hr==S_OK, "create EFB color staging buffer (hr=%#x)", hr);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
@@ -133,7 +142,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetSRV(), "EFB depth texture shader resource view");
 
 	// Render buffer for AccessEFB (depth data)
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, m_efb.slices, 1, D3D11_BIND_RENDER_TARGET);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, 1, D3D11_BIND_RENDER_TARGET);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 	CHECK(hr==S_OK, "create EFB depth read texture (hr=%#x)", hr);
 	m_efb.depth_read_texture = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
@@ -142,7 +151,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
 
 	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, m_efb.slices, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &m_efb.depth_staging_buf);
 	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_staging_buf, "EFB depth staging texture (used for Renderer::AccessEFB)");
@@ -182,6 +191,7 @@ FramebufferManager::~FramebufferManager()
 	SAFE_RELEASE(m_efb.color_tex);
 	SAFE_RELEASE(m_efb.color_temp_tex);
 	SAFE_RELEASE(m_efb.color_staging_buf);
+	SAFE_RELEASE(m_efb.color_read_tex);
 	SAFE_RELEASE(m_efb.resolved_color_tex);
 	SAFE_RELEASE(m_efb.depth_tex);
 	SAFE_RELEASE(m_efb.depth_staging_buf);
@@ -236,6 +246,138 @@ void XFBSource::CopyEFB(float Gamma)
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
+}
+
+u32 FramebufferManager::AccessEFBPeekColorCache(u32 x, u32 y)
+{
+	if (!m_efb.color_staging_buf_map.pData)
+		PopulateEFBPeekColorCache();
+
+	u32 row_offset = y * m_efb.color_staging_buf_map.RowPitch;
+	u32* row = reinterpret_cast<u32*>(reinterpret_cast<u8*>(m_efb.color_staging_buf_map.pData) + row_offset);
+	return row[x];
+}
+
+float FramebufferManager::AccessEFBPeekDepthCache(u32 x, u32 y)
+{
+	if (!m_efb.depth_staging_buf_map.pData)
+		PopulateEFBPeekDepthCache();
+
+	u32 row_offset = y * m_efb.depth_staging_buf_map.RowPitch;
+	float* row = reinterpret_cast<float*>(reinterpret_cast<u8*>(m_efb.depth_staging_buf_map.pData) + row_offset);
+	return row[x];
+}
+
+void FramebufferManager::UpdateEFBPeekColorCache(u32 x, u32 y, u32 value)
+{
+	if (!m_efb.color_staging_buf_map.pData)
+		return;
+
+	u32 row_offset = y * m_efb.color_staging_buf_map.RowPitch;
+	u32* row = reinterpret_cast<u32*>(reinterpret_cast<u8*>(m_efb.color_staging_buf_map.pData) + row_offset);
+	row[x] = value;
+}
+
+void FramebufferManager::UpdateEFBPeekDepthCache(u32 x, u32 y, float value)
+{
+	if (!m_efb.color_staging_buf_map.pData)
+		return;
+
+	u32 row_offset = y * m_efb.depth_staging_buf_map.RowPitch;
+	float* row = reinterpret_cast<float*>(reinterpret_cast<u8*>(m_efb.depth_staging_buf_map.pData) + row_offset);
+	row[x] = value;
+}
+
+void FramebufferManager::PopulateEFBPeekColorCache()
+{
+	_dbg_assert_(!m_efb.color_staging_buf_map.pData, "cache is invalid");
+
+	// for non-1xIR or multisampled cases, we need to copy to an intermediate texture first
+	ID3D11Texture2D* src_texture;
+	if (g_ActiveConfig.iEFBScale != SCALE_1X || g_ActiveConfig.iMultisamples > 1)
+	{
+		g_renderer->ResetAPIState();
+
+		CD3D11_RECT src_rect(0, 0, m_target_width, m_target_height);
+		CD3D11_VIEWPORT vp(0.0f, 0.0f, EFB_WIDTH, EFB_HEIGHT);
+		D3D::context->RSSetViewports(1, &vp);
+		D3D::context->OMSetRenderTargets(1, &m_efb.depth_read_texture->GetRTV(), nullptr);
+		D3D::SetPointCopySampler();
+
+		D3D::drawShadedTexQuad(m_efb.color_tex->GetSRV(), &src_rect, m_target_width, m_target_height,
+							   PixelShaderCache::GetColorCopyProgram(true),
+							   VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+							   nullptr, 1.0f, 0);
+
+		D3D::context->OMSetRenderTargets(1, &GetEFBColorTexture()->GetRTV(), GetEFBDepthTexture()->GetDSV());
+		g_renderer->RestoreAPIState();
+
+		src_texture = m_efb.depth_read_texture->GetTex();
+	}
+	else
+	{
+		// can copy directly from efb texture
+		src_texture = m_efb.color_tex->GetTex();
+	}
+
+	D3D::context->CopySubresourceRegion(m_efb.color_staging_buf, 0, 0, 0, 0, src_texture, 0, nullptr);
+
+	HRESULT hr = D3D::context->Map(m_efb.color_staging_buf, 0, D3D11_MAP_READ_WRITE, 0, &m_efb.color_staging_buf_map);
+	CHECK(SUCCEEDED(hr), "failed to map efb peek color cache texture (hr=%08X)", hr);
+}
+
+void FramebufferManager::PopulateEFBPeekDepthCache()
+{
+	_dbg_assert_(!m_efb.depth_staging_buf_map.pData, "cache is invalid");
+
+	// for non-1xIR or multisampled cases, we need to copy to an intermediate texture first
+	ID3D11Texture2D* src_texture;
+	if (g_ActiveConfig.iEFBScale != SCALE_1X || g_ActiveConfig.iMultisamples > 1)
+	{
+		g_renderer->ResetAPIState();
+
+		CD3D11_RECT src_rect(0, 0, m_target_width, m_target_height);
+		CD3D11_VIEWPORT vp(0.0f, 0.0f, EFB_WIDTH, EFB_HEIGHT);
+		D3D::context->RSSetViewports(1, &vp);
+		D3D::context->OMSetRenderTargets(1, &m_efb.depth_read_texture->GetRTV(), nullptr);
+		D3D::SetPointCopySampler();
+
+		// MSAA has to go through a different path for depth
+		D3D::drawShadedTexQuad(m_efb.depth_tex->GetSRV(), &src_rect, m_target_width, m_target_height,
+							   (g_ActiveConfig.iMultisamples > 1) ? PixelShaderCache::GetDepthResolveProgram() : PixelShaderCache::GetColorCopyProgram(false),
+							   VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
+							   nullptr, 1.0f, 0);
+
+		D3D::context->OMSetRenderTargets(1, &GetEFBColorTexture()->GetRTV(), GetEFBDepthTexture()->GetDSV());
+		g_renderer->RestoreAPIState();
+
+		src_texture = m_efb.depth_read_texture->GetTex();
+	}
+	else
+	{
+		// can copy directly from efb texture
+		src_texture = m_efb.depth_tex->GetTex();
+	}
+
+	D3D::context->CopySubresourceRegion(m_efb.depth_staging_buf, 0, 0, 0, 0, src_texture, 0, nullptr);
+
+	HRESULT hr = D3D::context->Map(m_efb.depth_staging_buf, 0, D3D11_MAP_READ_WRITE, 0, &m_efb.depth_staging_buf_map);
+	CHECK(SUCCEEDED(hr), "failed to map efb peek depth cache texture (hr=%08X)", hr);
+}
+
+void FramebufferManager::InvalidateEFBPeekCache()
+{
+	if (m_efb.color_staging_buf_map.pData)
+	{
+		D3D::context->Unmap(m_efb.color_staging_buf, 0);
+		m_efb.color_staging_buf_map.pData = nullptr;
+	}
+
+	if (m_efb.depth_staging_buf_map.pData)
+	{
+		D3D::context->Unmap(m_efb.depth_staging_buf, 0);
+		m_efb.depth_staging_buf_map.pData = nullptr;
+	}
 }
 
 }  // namespace DX11
