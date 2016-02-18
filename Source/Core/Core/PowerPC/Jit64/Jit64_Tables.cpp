@@ -372,6 +372,10 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 		info->compileCount++;
 		info->lastUse = jit->js.compilerPC;
 	}
+	else
+	{
+		jit64->WriteInvalidInstruction();
+	}
 }
 
 void InitTables()

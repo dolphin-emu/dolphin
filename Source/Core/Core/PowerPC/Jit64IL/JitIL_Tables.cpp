@@ -375,7 +375,7 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 	}
 	else
 	{
-		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex, jit->js.compilerPC);
+		jitil->WriteInvalidInstruction();
 	}
 }
 

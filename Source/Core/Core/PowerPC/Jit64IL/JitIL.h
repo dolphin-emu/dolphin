@@ -69,6 +69,7 @@ public:
 
 	// Utilities for use by opcodes
 
+	void WriteInvalidInstruction();
 	void WriteExit(u32 destination);
 	void WriteExitDestInOpArg(const Gen::OpArg& arg);
 	void WriteExceptionExit();
