@@ -24,7 +24,8 @@ namespace DiscIO
 {
 CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader)
 	: m_pReader(std::move(reader))
-{}
+{
+}
 
 CVolumeGC::~CVolumeGC()
 {
@@ -100,46 +101,45 @@ std::string CVolumeGC::GetInternalName() const
 	char name[0x60];
 	if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
 		return DecodeString(name);
-	else
-		return "";
+
+	return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames(bool prefer_long) const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortNames() const
 {
-	return ReadMultiLanguageStrings(false, prefer_long);
+	LoadBannerFile();
+	return m_short_names;
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongNames() const
+{
+	LoadBannerFile();
+	return m_long_names;
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortMakers() const
+{
+	LoadBannerFile();
+	return m_short_makers;
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongMakers() const
+{
+	LoadBannerFile();
+	return m_long_makers;
 }
 
 std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
 {
-	return ReadMultiLanguageStrings(true);
-}
-
-std::string CVolumeGC::GetCompany() const
-{
-	if (!LoadBannerFile())
-		return "";
-
-	std::string company = DecodeString(m_banner_file.comment[0].longMaker);
-
-	if (company.empty())
-		company = DecodeString(m_banner_file.comment[0].shortMaker);
-
-	return company;
+	LoadBannerFile();
+	return m_descriptions;
 }
 
 std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 {
-	if (!LoadBannerFile())
-	{
-		*width = 0;
-		*height = 0;
-		return std::vector<u32>();
-	}
-
-	std::vector<u32> image_buffer(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-	ColorUtil::decode5A3image(image_buffer.data(), m_banner_file.image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
-	*width = GC_BANNER_WIDTH;
-	*height = GC_BANNER_HEIGHT;
+	LoadBannerFile();
+	*width = m_image_width;
+	*height = m_image_height;
 	return image_buffer;
 }
 
@@ -200,101 +200,87 @@ IVolume::EPlatform CVolumeGC::GetVolumeType() const
 	return GAMECUBE_DISC;
 }
 
-// Returns true if the loaded banner file is valid,
-// regardless of whether it was loaded by the current call
-bool CVolumeGC::LoadBannerFile() const
+void CVolumeGC::LoadBannerFile() const
 {
-	// The methods ReadMultiLanguageStrings, GetCompany and GetBanner
-	// need to access the opening.bnr file. These methods are
-	// usually called one after another. The file is cached in
-	// RAM to avoid reading it from the disc several times, but
-	// if none of these methods are called, the file is never loaded.
-
 	// If opening.bnr has been loaded already, return immediately
-	if (m_banner_file_type != BANNER_NOT_LOADED)
-		return m_banner_file_type != BANNER_INVALID;
+	if (m_banner_loaded)
+		return;
 
+	GCBanner banner_file;
 	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
 	size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
-	if (file_size == BNR1_SIZE || file_size == BNR2_SIZE)
-	{
-		file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&m_banner_file), file_size);
 
-		if (file_size == BNR1_SIZE && m_banner_file.id == 0x31524e42)      // "BNR1"
-		{
-			m_banner_file_type = BANNER_BNR1;
-		}
-		else if (file_size == BNR2_SIZE && m_banner_file.id == 0x32524e42) // "BNR2"
-		{
-			m_banner_file_type = BANNER_BNR2;
-		}
-		else
-		{
-			m_banner_file_type = BANNER_INVALID;
-			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", m_banner_file.id, file_size);
-		}
-	}
-	else
+	const int BNR1_MAGIC = 0x31524e42;
+	const int BNR2_MAGIC = 0x32524e42;
+	if (file_size != BNR1_SIZE && file_size != BNR2_SIZE)
 	{
-		m_banner_file_type = BANNER_INVALID;
-		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", banner_file.id, file_size);
+		return;
 	}
 
-	return m_banner_file_type != BANNER_INVALID;
+	file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&banner_file), file_size);
+
+	if (banner_file.id != BNR1_MAGIC && banner_file.id != BNR2_MAGIC)
+	{
+		WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", banner_file.id, file_size);
+		return;
+	}
+
+	bool is_bnr1 = false;
+	if (banner_file.id == BNR1_MAGIC)
+		is_bnr1 = true;
+
+	ExtractBannerInformation(banner_file, is_bnr1);
+	m_banner_loaded = true;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bool description, bool prefer_long) const
+void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const
 {
-	std::map<ELanguage, std::string> strings;
-
-	if (!LoadBannerFile())
-		return strings;
-
 	u32 number_of_languages = 0;
 	ELanguage start_language = LANGUAGE_UNKNOWN;
 	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
 
-	switch (m_banner_file_type)
+	if (is_bnr1) // NTSC
 	{
-	case BANNER_BNR1:	// NTSC
 		number_of_languages = 1;
 		start_language = is_japanese ? ELanguage::LANGUAGE_JAPANESE : ELanguage::LANGUAGE_ENGLISH;
-		break;
-
-	case BANNER_BNR2:	// PAL
+	}
+	else //PAL
+	{
 		number_of_languages = 6;
 		start_language = ELanguage::LANGUAGE_ENGLISH;
-		break;
-
-	// Shouldn't happen
-	case BANNER_INVALID:
-	case BANNER_NOT_LOADED:
-		break;
 	}
+
+	m_image_width = GC_BANNER_WIDTH;
+	m_image_height = GC_BANNER_HEIGHT;
+	image_buffer = std::vector<u32>(m_image_width * m_image_height);
+	ColorUtil::decode5A3image(image_buffer.data(), banner_file.image, m_image_width, m_image_height);
 
 	for (u32 i = 0; i < number_of_languages; ++i)
 	{
-		const GCBannerComment& comment = m_banner_file.comment[i];
-		std::string string;
+		const GCBannerInformation& info = banner_file.information[i];
+		ELanguage language = static_cast<ELanguage>(start_language + i);
 
-		if (description)
-		{
-			string = DecodeString(comment.comment);
-		}
-		else // Title
-		{
-			if (prefer_long)
-				string = DecodeString(comment.longTitle);
+		std::string description = DecodeString(info.description);
+		if (!description.empty())
+			m_descriptions[language] = description;
 
-			if (string.empty())
-				string = DecodeString(comment.shortTitle);
-		}
+		std::string short_name = DecodeString(info.short_name);
+		if (!short_name.empty())
+			m_short_names[language] = short_name;
 
-		if (!string.empty())
-			strings[(ELanguage)(start_language + i)] = string;
+		std::string long_name = DecodeString(info.long_name);
+		if (!long_name.empty())
+			m_long_names[language] = long_name;
+
+		std::string short_maker = DecodeString(info.short_maker);
+		if (!short_maker.empty())
+			m_short_makers[language] = short_maker;
+
+		std::string long_maker = DecodeString(info.long_maker);
+		if (!long_maker.empty())
+			m_long_makers[language] = long_maker;
 	}
-
-	return strings;
 }
 
 } // namespace
