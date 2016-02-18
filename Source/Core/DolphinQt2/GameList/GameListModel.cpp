@@ -29,9 +29,9 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
 		case COL_TITLE:       return game->GetLongName();
 		case COL_ID:          return game->GetUniqueID();
 		case COL_DESCRIPTION: return game->GetDescription();
-		case COL_MAKER:       return game->GetCompany();
+		case COL_MAKER:       return game->GetMaker();
 		case COL_SIZE:        return game->GetFileSize();
-		case COL_COUNTRY:     return game->GetCountry();
+		case COL_COUNTRY:     return game->GetCountryID();
 		case COL_RATING:      return game->GetRating();
 		}
 	}
@@ -70,7 +70,7 @@ int GameListModel::columnCount(const QModelIndex& parent) const
 
 void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
 {
-	QString path = game->GetPath();
+	QString path = game->GetFilePath();
 
 	int entry = FindGame(path);
 	if (entry < 0)
@@ -96,7 +96,7 @@ int GameListModel::FindGame(const QString& path) const
 {
 	for (int i = 0; i < m_games.size(); i++)
 	{
-		if (m_games[i]->GetPath() == path)
+		if (m_games[i]->GetFilePath() == path)
 			return i;
 	}
 	return -1;

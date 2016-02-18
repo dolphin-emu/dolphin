@@ -24,7 +24,8 @@ namespace DiscIO
 {
 CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader)
 	: m_pReader(std::move(reader))
-{}
+{
+}
 
 CVolumeGC::~CVolumeGC()
 {
@@ -104,43 +105,60 @@ std::string CVolumeGC::GetInternalName() const
 		return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetNames(bool prefer_long) const
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortNames() const
 {
-	return ReadMultiLanguageStrings(false, prefer_long);
+	if (LoadBannerFile())
+        return m_short_names;
+	else
+		return std::map<IVolume::ELanguage, std::string>();
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongNames() const
+{
+	if (LoadBannerFile())
+		return m_long_names;
+	else
+		return std::map<IVolume::ELanguage, std::string>();
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortMakers() const
+{
+	if (LoadBannerFile())
+		return m_short_makers;
+	else
+		return std::map<IVolume::ELanguage, std::string>();
+}
+
+std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongMakers() const
+{
+	if (LoadBannerFile())
+		return m_long_makers;
+	else
+		return std::map<IVolume::ELanguage, std::string>();
 }
 
 std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
 {
-	return ReadMultiLanguageStrings(true);
-}
-
-std::string CVolumeGC::GetCompany() const
-{
-	if (!LoadBannerFile())
-		return "";
-
-	std::string company = DecodeString(m_banner_file.comment[0].longMaker);
-
-	if (company.empty())
-		company = DecodeString(m_banner_file.comment[0].shortMaker);
-
-	return company;
+	if (LoadBannerFile())
+		return m_descriptions;
+	else
+		return std::map<IVolume::ELanguage, std::string>();
 }
 
 std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 {
-	if (!LoadBannerFile())
+	if (LoadBannerFile())
+	{
+		*width = GC_BANNER_WIDTH;
+		*height = GC_BANNER_HEIGHT;
+		return image_buffer;
+	}
 	{
 		*width = 0;
 		*height = 0;
 		return std::vector<u32>();
 	}
 
-	std::vector<u32> image_buffer(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
-	ColorUtil::decode5A3image(image_buffer.data(), m_banner_file.image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
-	*width = GC_BANNER_WIDTH;
-	*height = GC_BANNER_HEIGHT;
-	return image_buffer;
 }
 
 u64 CVolumeGC::GetFSTSize() const
@@ -213,25 +231,26 @@ bool CVolumeGC::LoadBannerFile() const
 	// If opening.bnr has been loaded already, return immediately
 	if (m_banner_file_type != BANNER_NOT_LOADED)
 		return m_banner_file_type != BANNER_INVALID;
+	GCBanner banner_file;
 
 	std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
 	size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
 	if (file_size == BNR1_SIZE || file_size == BNR2_SIZE)
 	{
-		file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&m_banner_file), file_size);
+		file_system->ReadFile("opening.bnr", reinterpret_cast<u8*>(&banner_file), file_size);
 
-		if (file_size == BNR1_SIZE && m_banner_file.id == 0x31524e42)      // "BNR1"
+		if (file_size == BNR1_SIZE && banner_file.id == 0x31524e42)      // "BNR1"
 		{
 			m_banner_file_type = BANNER_BNR1;
 		}
-		else if (file_size == BNR2_SIZE && m_banner_file.id == 0x32524e42) // "BNR2"
+		else if (file_size == BNR2_SIZE && banner_file.id == 0x32524e42) // "BNR2"
 		{
 			m_banner_file_type = BANNER_BNR2;
 		}
 		else
 		{
 			m_banner_file_type = BANNER_INVALID;
-			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", m_banner_file.id, file_size);
+			WARN_LOG(DISCIO, "Invalid opening.bnr. Type: %0x Size: %0zx", banner_file.id, file_size);
 		}
 	}
 	else
@@ -240,16 +259,13 @@ bool CVolumeGC::LoadBannerFile() const
 		WARN_LOG(DISCIO, "Invalid opening.bnr. Size: %0zx", file_size);
 	}
 
+	ExtractBannerInformation(banner_file);
+
 	return m_banner_file_type != BANNER_INVALID;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bool description, bool prefer_long) const
+void CVolumeGC::ExtractBannerInformation(GCBanner banner_file) const
 {
-	std::map<ELanguage, std::string> strings;
-
-	if (!LoadBannerFile())
-		return strings;
-
 	u32 number_of_languages = 0;
 	ELanguage start_language = LANGUAGE_UNKNOWN;
 	bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
@@ -271,30 +287,34 @@ std::map<IVolume::ELanguage, std::string> CVolumeGC::ReadMultiLanguageStrings(bo
 	case BANNER_NOT_LOADED:
 		break;
 	}
+	image_buffer = std::vector<u32>(GC_BANNER_WIDTH * GC_BANNER_HEIGHT);
+	ColorUtil::decode5A3image(image_buffer.data(), banner_file.image, GC_BANNER_WIDTH, GC_BANNER_HEIGHT);
 
 	for (u32 i = 0; i < number_of_languages; ++i)
 	{
-		const GCBannerComment& comment = m_banner_file.comment[i];
-		std::string string;
+		const GCBannerInformation& info = banner_file.information[i];
+		ELanguage language = static_cast<ELanguage>(start_language + i);
 
-		if (description)
-		{
-			string = DecodeString(comment.comment);
-		}
-		else // Title
-		{
-			if (prefer_long)
-				string = DecodeString(comment.longTitle);
+		std::string description = DecodeString(info.description);
+		if (!description.empty())
+			m_descriptions[language] = description;
 
-			if (string.empty())
-				string = DecodeString(comment.shortTitle);
-		}
+		std::string short_name = DecodeString(info.short_name);
+		if (!short_name.empty())
+			m_short_names[language] = short_name;
 
-		if (!string.empty())
-			strings[(ELanguage)(start_language + i)] = string;
+		std::string long_name = DecodeString(info.long_name);
+		if (!long_name.empty())
+			m_long_names[language] = long_name;
+
+		std::string short_maker = DecodeString(info.short_maker);
+		if (!short_maker.empty())
+			m_short_makers[language] = short_maker;
+
+		std::string long_maker = DecodeString(info.long_maker);
+		if (!long_maker.empty())
+			m_long_makers[language] = long_maker;
 	}
-
-	return strings;
 }
 
 } // namespace
