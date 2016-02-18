@@ -195,11 +195,3 @@ void Jit64::ps_res(UGeckoInstruction inst)
 	fpr.UnlockAll();
 	gpr.UnlockAllX();
 }
-
-void Jit64::ps_cmpXX(UGeckoInstruction inst)
-{
-	INSTRUCTION_START
-	JITDISABLE(bJITFloatingPointOff);
-
-	FloatCompare(inst, !!(inst.SUBOP10 & 64));
-}
