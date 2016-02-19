@@ -21,7 +21,9 @@
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/SysConf.h"
+
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
@@ -83,7 +85,7 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
-	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+	OnionConfig::Save();
 
 	EndModal(wxID_OK);
 }
@@ -210,10 +212,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))))
 	, vconfig(g_Config)
 {
-	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-	else
-		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
+	vconfig.Load();
 
 	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
