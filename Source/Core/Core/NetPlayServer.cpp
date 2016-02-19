@@ -925,7 +925,7 @@ bool NetPlayServer::initUPnP()
 #endif
 	if (!devlist)
 	{
-		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
+		WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
 
 		m_upnp_error = true;
 		m_upnp_inited = false;

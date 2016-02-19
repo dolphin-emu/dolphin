@@ -143,7 +143,7 @@ void StateCache::Init()
 	{
 		// If a PSO fails to create, that means either:
 		// - The file itself is corrupt.
-		// - A driver/HW change has occured, causing the existing cache blobs to be invalid.
+		// - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
 		//
 		// In either case, we want to re-create the disk cache. This should not be a frequent occurence.
 
