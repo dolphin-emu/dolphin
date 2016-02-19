@@ -11,11 +11,7 @@
 
 void Interpreter::Helper_UpdateCR0(u32 value)
 {
-	s64 sign_extended = (s64)(s32)value;
-	u64 cr_val = (u64)sign_extended;
-	cr_val = (cr_val & ~(1ull << 61)) | ((u64)GetXER_SO() << 61);
-
-	PowerPC::ppcState.cr_val[0] = cr_val;
+	Helper_UpdateCRx(0, value);
 }
 
 void Interpreter::Helper_UpdateCRx(int idx, u32 value)
