@@ -958,7 +958,7 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::SetPredication(
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::SetDescriptorHeaps(
 	_In_  UINT NumDescriptorHeaps,
-	_In_reads_(NumDescriptorHeaps)  ID3D12DescriptorHeap** pDescriptorHeaps
+	_In_reads_(NumDescriptorHeaps) ID3D12DescriptorHeap *const * pDescriptorHeaps
 	)
 {
 	// No ignored parameters, no assumptions to DEBUGCHECK.
