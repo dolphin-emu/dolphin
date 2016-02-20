@@ -137,7 +137,7 @@ static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
-static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_MAIN, _trans("Hotkeys"), "Hotkeys");
 
 InputConfig* GetConfig()
 {
@@ -189,7 +189,7 @@ void Initialize(void* const hwnd)
 	g_controller_interface.Initialize(hwnd);
 
 	// load the saved controller config
-	s_config.LoadConfig(true);
+	s_config.LoadConfig();
 
 	for (u32& key : s_hotkeyDown)
 		key = 0;
@@ -199,7 +199,7 @@ void Initialize(void* const hwnd)
 
 void LoadConfig()
 {
-	s_config.LoadConfig(true);
+	s_config.LoadConfig();
 }
 
 void Shutdown()
