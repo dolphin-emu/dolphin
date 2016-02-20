@@ -466,7 +466,6 @@ void NetPlayDialog::OnAssignPads(wxCommandEvent&)
 	pmd.ShowModal();
 
 	netplay_server->SetPadMapping(pmd.GetModifiedPadMappings());
-	netplay_server->SetWiimoteMapping(pmd.GetModifiedWiimoteMappings());
 }
 
 void NetPlayDialog::OnKick(wxCommandEvent&)
