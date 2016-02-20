@@ -4,6 +4,11 @@
 
 #pragma once
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#endif
+
 #include <cstddef>
 #include <cstdio>
 #include <fstream>
@@ -150,9 +155,8 @@ std::string& GetExeDirectory();
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
-// simple wrapper for cstdlib file functions to
-// hopefully will make error checking easier
-// and make forgetting an fclose() harder
+// simple wrapper for cstdlib (UNIX) / WinAPI (Windows) file functions to
+// hopefully make error checking easier and make forgetting an fclose() harder
 class IOFile : public NonCopyable
 {
 public:
@@ -160,8 +164,8 @@ public:
 	// to get alternative behaviors.
 	enum OpenFlags
 	{
-		OPENFLAGS_DEFAULT = 0,
-		DISABLE_BUFFERING = 1,
+		OPENFLAGS_DEFAULT = 0x00,
+		DISABLE_BUFFERING = 0x01,
 	};
 
 	IOFile();
@@ -182,12 +186,36 @@ public:
 	template <typename T>
 	bool ReadArray(T* data, size_t length, size_t* pReadBytes = nullptr)
 	{
-		size_t read_bytes = 0;
-		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
+#ifdef _WIN32
+        // ReadFile demands an LPDWORD for it's lpNumberOfBytesRead.
+        DWORD read;
+        if (m_unbuf_buffer && IsOpen()) {
+            m_read_buf_pos = 0;
+            while (length > 0 || read > 0) {
+                if (m_read_buf_pos == 0) {
+                    if (FALSE == ReadFile(m_file, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_READ_OFFSET + m_read_buf_pos, Win32UnbufBufferValues::UNBUF_READ_BUFFER_SIZE - m_read_buf_pos, &read, nullptr)) {
+                        m_good = false;
+                        break;
+                    }
+                }
+                DWORD copy = std::min(length * sizeof(T), read);
+                memcpy(data, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_READ_OFFSET + m_read_buf_pos, copy);
+                m_read_buf_pos += read;
+                length -= read;
+                data = reinterpret_cast<LPBYTE>(data) + read;
+            }
+        }
+        else if (!IsOpen() || FALSE == ReadFile(m_file, data, length * sizeof(T), &read, nullptr)) {
+            m_good = false;
+        }
+#else
+        size_t read = 0;
+		if (!IsOpen() || length != (read = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
 
+#endif
 		if (pReadBytes)
-			*pReadBytes = read_bytes;
+			*pReadBytes = read;
 
 		return m_good;
 	}
@@ -195,8 +223,33 @@ public:
 	template <typename T>
 	bool WriteArray(const T* data, size_t length)
 	{
+#ifdef _WIN32
+        DWORD written;
+        if (m_unbuf_buffer && IsOpen()) {
+            while (length > 0) {
+                LARGE_INTEGER pos = { Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE * m_chunks_written };
+                DWORD copy = std::min(length * sizeof(T), Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE - m_write_buf_pos);
+                memcpy(m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_WRITE_OFFSET + m_write_buf_pos, data, copy);
+                m_write_buf_pos += copy;
+                SetFilePointerEx(m_file, pos, nullptr, FILE_BEGIN);
+                if (FALSE == WriteFile(m_file, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_WRITE_OFFSET, Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE, &written, nullptr)) {
+                    m_good = false;
+                    break;
+                }
+                if (m_write_buf_pos == Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE) {
+                    m_write_buf_pos = 0;
+                    m_chunks_written++;
+                }
+                data = reinterpret_cast<LPBYTE>(data) + written;
+                length -= written;
+            }
+        }
+        else if (!IsOpen() || FALSE == WriteFile(m_file, data, length * sizeof(T), &written, nullptr))
+            m_good = false;
+#else
 		if (!IsOpen() || length != std::fwrite(data, sizeof(T), length, m_file))
 			m_good = false;
+#endif
 
 		return m_good;
 	}
@@ -223,7 +276,7 @@ public:
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
-	bool IsEOF() const { return std::feof(m_file) != 0; }
+	bool IsEOF();
 	operator void*() { return m_good ? m_file : nullptr; }
 
 	bool Seek(s64 off, int origin);
@@ -233,10 +286,45 @@ public:
 	bool Flush();
 
 	// clear error state
-	void Clear() { m_good = true; std::clearerr(m_file); }
+	void Clear() {
+        m_good = true;
+#ifndef _WIN32
+        std::clearerr(m_file);
+#endif
+    }
 
 private:
+#ifdef _WIN32
+    HANDLE m_file;
+    // Required to support the UNBUFFERED flag, on Windows when CreateFile()
+    // is used to open a file unbuffered, reads and writes must be a multiple
+    // of the sector size of the underlaying media.
+    // It's rather ironic that the UNBUFFERED writing and reading needs a
+    // buffer...
+
+    // TODO: append support for UNBUFFERED.
+    LPBYTE m_unbuf_buffer;
+    // When the buffer wraps, a full chunk has been written
+    u32 m_chunks_written;
+    u32 m_write_buf_pos;
+    // Also keep track of where we are in the read buffer.
+    u32 m_read_buf_pos;
+
+    // The unbuffered buffer should have the read buffer first,
+    // as that one is more damaging if it's rounded up.
+    // Compared to the write buffer.
+    enum Win32UnbufBufferValues : u32 {
+        UNBUF_BUFFER_READ_OFFSET    = 0,
+        UNBUF_BUFFER_WRITE_OFFSET   = 64 * 1024 * 1024,
+        UNBUF_READ_BUFFER_SIZE      = 64 * 1024 * 1024,
+        UNBUF_WRITE_BUFFER_SIZE     = 4 * 1024 * 1024,
+        UNBUF_ALLOC_BUFFER_SIZE     = UNBUF_READ_BUFFER_SIZE
+                                      + UNBUF_WRITE_BUFFER_SIZE,
+    };
+
+#else
 	std::FILE* m_file;
+#endif
 	bool m_good;
 };
 
