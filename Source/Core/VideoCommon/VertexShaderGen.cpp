@@ -135,7 +135,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 		if (components & VB_HAS_NRMALL)
 		{
-			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+			out.Write("int normidx = posmtx & 31;\n");
 			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
