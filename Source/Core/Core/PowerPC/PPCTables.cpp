@@ -37,10 +37,9 @@ const u64 m_crTable[16] =
 GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 {
 	GekkoOPInfo *info = m_infoTable[_inst.OPCD];
-	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
+	if (info->type == OPTYPE_SUBTABLE)
 	{
-		int table = info->type>>24;
-		switch (table)
+		switch (_inst.OPCD)
 		{
 		case 4:  return m_infoTable4[_inst.SUBOP10];
 		case 19: return m_infoTable19[_inst.SUBOP10];
@@ -54,7 +53,7 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 	}
 	else
 	{
-		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
+		if (info->type == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetOpInfo - invalid op %08x @ %08x", _inst.hex, PC);
 			return nullptr;
@@ -66,10 +65,9 @@ GekkoOPInfo *GetOpInfo(UGeckoInstruction _inst)
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
 {
 	const GekkoOPInfo *info = m_infoTable[_inst.OPCD];
-	if ((info->type & 0xFFFFFF) == OPTYPE_SUBTABLE)
+	if (info->type == OPTYPE_SUBTABLE)
 	{
-		int table = info->type>>24;
-		switch (table)
+		switch (_inst.OPCD)
 		{
 		case 4:  return Interpreter::m_opTable4[_inst.SUBOP10];
 		case 19: return Interpreter::m_opTable19[_inst.SUBOP10];
@@ -83,7 +81,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
 	}
 	else
 	{
-		if ((info->type & 0xFFFFFF) == OPTYPE_INVALID)
+		if (info->type == OPTYPE_INVALID)
 		{
 			_assert_msg_(POWERPC,0,"GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
 			return nullptr;
