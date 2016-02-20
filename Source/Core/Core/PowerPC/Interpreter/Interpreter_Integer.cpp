@@ -33,7 +33,7 @@ u32 Interpreter::Helper_Mask(int mb, int me)
 	//first make 001111111111111 part
 	u32 begin = 0xFFFFFFFF >> mb;
 	//then make 000000000001111 part, which is used to flip the bits of the first one
-	u32 end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
+	u32 end = 0x7FFFFFFF >> me;
 	//do the bitflip
 	u32 mask = begin ^ end;
 	//and invert if backwards
