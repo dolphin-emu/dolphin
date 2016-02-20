@@ -154,7 +154,7 @@ static u32 s_hotkeyDown[NUM_HOTKEY_GROUPS];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
-static InputConfig s_config("Hotkeys", _trans("Hotkeys"), "Hotkeys");
+static InputConfig s_config(Config::System::Main, _trans("Hotkeys"), "Hotkeys");
 
 InputConfig* GetConfig()
 {
@@ -207,7 +207,7 @@ void Initialize()
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // load the saved controller config
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 
   for (u32& key : s_hotkeyDown)
     key = 0;
@@ -217,7 +217,7 @@ void Initialize()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 }
 
 ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
