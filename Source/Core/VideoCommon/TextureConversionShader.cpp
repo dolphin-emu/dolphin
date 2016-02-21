@@ -557,8 +557,8 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
 	WRITE(p, "  float3 expanded0;\n");
 	WRITE(p, "  float3 expanded1;\n");
 
-	WriteSampleColor(p, "r", "depth0", 0, ApiType);
-	WriteSampleColor(p, "r", "depth1", 1, ApiType);
+	WriteSampleColor(p, "r", "depth0", 0, ApiType, true);
+	WriteSampleColor(p, "r", "depth1", 1, ApiType, true);
 
 	for (int i = 0; i < 2; i++)
 	{
