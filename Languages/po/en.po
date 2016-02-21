@@ -1,5 +1,5 @@
 # Translation of dolphin-emu.pot to English
-# Copyright (C) 2003-2011
+# Copyright (C) 2003-2016
 # This file is distributed under the same license as the dolphin-emu package.
 # Glenn Rice <glennricster@gmail.com>, 2011
 #
