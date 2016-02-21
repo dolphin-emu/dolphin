@@ -82,8 +82,9 @@ public:
 protected:
 	void Event_Backend(wxCommandEvent &ev)
 	{
-		VideoBackendBase* new_backend = g_available_video_backends[ev.GetInt()];
-		if (g_video_backend != new_backend)
+		auto& new_backend = g_available_video_backends[ev.GetInt()];
+
+		if (g_video_backend != new_backend.get())
 		{
 			bool do_switch = !Core::IsRunning();
 			if (new_backend->GetName() == "Software Renderer")
@@ -99,7 +100,7 @@ protected:
 				// reopen the dialog
 				Close();
 
-				g_video_backend = new_backend;
+				g_video_backend = new_backend.get();
 				SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 				g_video_backend->ShowConfig(GetParent());

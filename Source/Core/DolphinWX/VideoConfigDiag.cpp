@@ -235,7 +235,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
-	for (const VideoBackendBase* backend : g_available_video_backends)
+	for (const auto& backend : g_available_video_backends)
 	{
 		choice_backend->AppendString(wxGetTranslation(StrToWxStr(backend->GetDisplayName())));
 	}
