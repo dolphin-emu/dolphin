@@ -362,7 +362,6 @@ HRESULT Create(HWND wnd)
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
-	IDXGIOutput* output;
 	hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
@@ -374,25 +373,6 @@ HRESULT Create(HWND wnd)
 		hr = factory->EnumAdapters(0, &adapter);
 		if (FAILED(hr))
 			MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-	}
-
-	// TODO: Make this configurable
-	hr = adapter->EnumOutputs(0, &output);
-	if (FAILED(hr))
-	{
-		// try using the first one
-		IDXGIAdapter* firstadapter;
-		hr = factory->EnumAdapters(0, &firstadapter);
-		if (!FAILED(hr))
-			hr = firstadapter->EnumOutputs(0, &output);
-		if (FAILED(hr))
-			MessageBox(wnd,
-				_T("Failed to enumerate outputs!\n")
-				_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
-				_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
-				_T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-
-		SAFE_RELEASE(firstadapter);
 	}
 
 	// get supported AA modes
@@ -530,7 +510,6 @@ HRESULT Create(HWND wnd)
 		MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 
 	SAFE_RELEASE(factory);
-	SAFE_RELEASE(output);
 	SAFE_RELEASE(adapter)
 
 	CreateDescriptorHeaps();
