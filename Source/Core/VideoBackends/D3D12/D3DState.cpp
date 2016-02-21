@@ -461,6 +461,18 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 	return S_OK;
 }
 
+void StateCache::OnMSAASettingsChanged()
+{
+	for (auto& it : m_small_pso_map)
+	{
+		SAFE_RELEASE(it.second);
+	}
+	m_small_pso_map.clear();
+
+	// Update sample count for new PSOs being created
+	gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
+}
+
 void StateCache::Clear()
 {
 	for (auto& it : m_pso_map)

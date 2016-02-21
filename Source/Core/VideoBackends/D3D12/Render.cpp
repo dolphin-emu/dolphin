@@ -984,9 +984,16 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 		s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-		s_last_multisamples = g_ActiveConfig.iMultisamples;
 
-		StaticShaderCache::InvalidateMSAAShaders();
+		// Block on any changes until the GPU catches up, so we can free resources safely.
+		D3D::command_list_mgr->ExecuteQueuedWork(true);
+
+		if (s_last_multisamples != g_ActiveConfig.iMultisamples)
+		{
+			s_last_multisamples = g_ActiveConfig.iMultisamples;
+			StaticShaderCache::InvalidateMSAAShaders();
+			gx_state_cache.OnMSAASettingsChanged();
+		}
 
 		if (window_resized)
 		{
