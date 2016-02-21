@@ -270,7 +270,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 	gpr.Lock(W0, W1, W30);
 	fpr.Lock(Q0);
 
-	bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS);
+	bool single = (flags & BackPatchInfo::FLAG_SIZE_F32) && fpr.IsSingle(inst.FS, true);
 
 	ARM64Reg V0 = fpr.R(inst.FS, single ? REG_IS_LOADED_SINGLE : REG_IS_LOADED);
 
