@@ -933,16 +933,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	}
 
 	// Reset viewport for drawing text
-	D3D12_VIEWPORT vp = {
-		0.0f,
-		0.0f,
-		static_cast<float>(GetBackbufferWidth()),
-		static_cast<float>(GetBackbufferHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
+	D3D12_VIEWPORT vp = { 0.0f, 0.0f, static_cast<float>(GetBackbufferWidth()), static_cast<float>(GetBackbufferHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	D3D12_RECT scissor = { 0, 0, GetBackbufferWidth(), GetBackbufferHeight() };
 	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::current_command_list->RSSetScissorRects(1, &scissor);
 
 	Renderer::DrawDebugText();
 
