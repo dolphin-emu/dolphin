@@ -22,11 +22,9 @@ enum RegType
 	REG_IMM, // Reg is really a IMM
 	REG_LOWER_PAIR, // Only the lower pair of a paired register
 	REG_DUP, // The lower reg is the same as the upper one (physical upper doesn't actually have the duplicated value)
-	REG_IS_LOADED, // We don't care what type it is, as long as the lower 64bits are loaded
 	REG_REG_SINGLE, // Both registers are loaded as single
 	REG_LOWER_PAIR_SINGLE, // Only the lower pair of a paired register, as single
 	REG_DUP_SINGLE, // The lower one contains both registers, as single
-	REG_IS_LOADED_SINGLE, // We only want to access the lower one as single
 };
 
 enum FlushMode
