@@ -51,8 +51,6 @@ static bool s_last_xfb_mode = false;
 
 static Television s_television;
 
-static ID3D12Resource* s_access_efb_constant_buffer = nullptr;
-
 enum CLEAR_BLEND_DESC
 {
 	CLEAR_BLEND_DESC_ALL_CHANNELS_ENABLED = 0,
@@ -109,25 +107,6 @@ static void SetupDeviceObjects()
 	s_television.Init();
 
 	g_framebuffer_manager = std::make_unique<FramebufferManager>();
-
-	float colmat[20] = { 0.0f };
-	colmat[0] = colmat[5] = colmat[10] = 1.0f;
-
-	CheckHR(
-		D3D::device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(sizeof(colmat)),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&s_access_efb_constant_buffer)
-			)
-		);
-
-	// Copy inital data to access_efb_cbuf12.
-	void* access_efb_constant_buffer_data = nullptr;
-	CheckHR(s_access_efb_constant_buffer->Map(0, nullptr, &access_efb_constant_buffer_data));
-	memcpy(access_efb_constant_buffer_data, colmat, sizeof(colmat));
 
 	D3D12_DEPTH_STENCIL_DESC depth_desc;
 	depth_desc.DepthEnable      = FALSE;
@@ -196,9 +175,6 @@ static void TeardownDeviceObjects()
 		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_screenshot_texture);
 		s_screenshot_texture = nullptr;
 	}
-
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_access_efb_constant_buffer);
-	s_access_efb_constant_buffer = nullptr;
 
 	s_television.Shutdown();
 
@@ -394,192 +370,60 @@ void Renderer::SetColorMask()
 //  - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
-	// EXISTINGD3D11TODO: This function currently is broken if anti-aliasing is enabled
-
-	// Convert EFB dimensions to the ones of our render target
-	EFBRectangle efb_pixel_rc;
-	efb_pixel_rc.left = x;
-	efb_pixel_rc.top = y;
-	efb_pixel_rc.right = x + 1;
-	efb_pixel_rc.bottom = y + 1;
-	TargetRectangle target_pixel_rc = Renderer::ConvertEFBRectangle(efb_pixel_rc);
-
-	// Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the average color instead
-	D3D12_RECT rect_to_lock;
-	if (type == PEEK_COLOR || type == PEEK_Z)
+	if (type == PEEK_COLOR)
 	{
-		rect_to_lock.left = (target_pixel_rc.left + target_pixel_rc.right) / 2;
-		rect_to_lock.top = (target_pixel_rc.top + target_pixel_rc.bottom) / 2;
-		rect_to_lock.right = rect_to_lock.left + 1;
-		rect_to_lock.bottom = rect_to_lock.top + 1;
-	}
-	else
-	{
-		rect_to_lock.left = target_pixel_rc.left;
-		rect_to_lock.right = target_pixel_rc.right;
-		rect_to_lock.top = target_pixel_rc.top;
-		rect_to_lock.bottom = target_pixel_rc.bottom;
-	}
+		u32 color = FramebufferManager::ReadEFBColorAccessCopy(x, y);
 
-	if (type == PEEK_Z)
-	{
-		D3D::command_list_mgr->CPUAccessNotify();
-
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using DrawShadedTexQuad instead
-		// D3D12TODO: Is above statement true on D3D12?
-		D3D12_VIEWPORT vp12 = { 0.f, 0.f, 1.f, 1.f, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		D3D::current_command_list->RSSetViewports(1, &vp12);
-
-		D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_access_efb_constant_buffer->GetGPUVirtualAddress());
-		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
-
-		FramebufferManager::GetEFBDepthReadTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV12(), FALSE, nullptr);
-
-		D3D::SetPointCopySampler();
-
-		D3D::DrawShadedTexQuad(
-			FramebufferManager::GetEFBDepthTexture(),
-			&rect_to_lock,
-			Renderer::GetTargetWidth(),
-			Renderer::GetTargetHeight(),
-			StaticShaderCache::GetColorCopyPixelShader(true),
-			StaticShaderCache::GetSimpleVertexShader(),
-			StaticShaderCache::GetSimpleVertexShaderInputLayout(),
-			D3D12_SHADER_BYTECODE(),
-			1.0f,
-			0,
-			DXGI_FORMAT_R32_FLOAT,
-			false,
-			FramebufferManager::GetEFBDepthReadTexture()->GetMultisampled()
-			);
-
-		// copy to system memory
-		D3D12_BOX src_box = CD3DX12_BOX(0, 0, 0, 1, 1, 1);
-		ID3D12Resource* readback_buffer = FramebufferManager::GetEFBDepthStagingBuffer();
-
-		D3D12_TEXTURE_COPY_LOCATION dst_location = {};
-		dst_location.pResource = readback_buffer;
-		dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dst_location.PlacedFootprint.Offset = 0;
-		dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R32_FLOAT;
-		dst_location.PlacedFootprint.Footprint.Width = 1;
-		dst_location.PlacedFootprint.Footprint.Height = 1;
-		dst_location.PlacedFootprint.Footprint.Depth = 1;
-		dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-
-		D3D12_TEXTURE_COPY_LOCATION src_location = {};
-		src_location.pResource = FramebufferManager::GetEFBDepthReadTexture()->GetTex12();
-		src_location.SubresourceIndex = 0;
-		src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-
-		FramebufferManager::GetEFBDepthReadTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &src_box);
-
-		// Need to wait for the CPU to complete the copy (and all prior operations) before we can read it on the CPU.
-		D3D::command_list_mgr->ExecuteQueuedWork(true);
-
-		FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
-
-		// Restores proper viewport/scissor settings.
-		g_renderer->RestoreAPIState();
-
-		// read the data from system memory
-		void* readback_buffer_data = nullptr;
-		CheckHR(readback_buffer->Map(0, nullptr, &readback_buffer_data));
-
-		// depth buffer is inverted in the d3d backend
-		float val = 1.0f - reinterpret_cast<float*>(readback_buffer_data)[0];
-		u32 ret = 0;
-
-		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
-		{
-			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 65536.0f), 0, 0xFFFF);
-		}
-		else
-		{
-			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 16777216.0f), 0, 0xFFFFFF);
-		}
-
-		// EXISTINGD3D11TODO: in RE0 this value is often off by one in Video_DX9 (where this code is derived from), which causes lighting to disappear
-		return ret;
-	}
-	else if (type == PEEK_COLOR)
-	{
-		D3D::command_list_mgr->CPUAccessNotify();
-
-		ID3D12Resource* readback_buffer = FramebufferManager::GetEFBColorStagingBuffer();
-
-		D3D12_BOX src_box = CD3DX12_BOX(rect_to_lock.left, rect_to_lock.top, 0, rect_to_lock.right, rect_to_lock.bottom, 1);
-
-		D3D12_TEXTURE_COPY_LOCATION dst_location = {};
-		dst_location.pResource = readback_buffer;
-		dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-		dst_location.PlacedFootprint.Offset = 0;
-		dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		dst_location.PlacedFootprint.Footprint.Width = 1;
-		dst_location.PlacedFootprint.Footprint.Height = 1;
-		dst_location.PlacedFootprint.Footprint.Depth = 1;
-		dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-
-		D3D12_TEXTURE_COPY_LOCATION src_location = {};
-		src_location.pResource = FramebufferManager::GetResolvedEFBColorTexture()->GetTex12();
-		src_location.SubresourceIndex = 0;
-		src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-
-		FramebufferManager::GetResolvedEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
-		D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &src_box);
-
-		// Need to wait for the CPU to complete the copy (and all prior operations) before we can read it on the CPU.
-		D3D::command_list_mgr->ExecuteQueuedWork(true);
-
-		FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-		FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
-
-		// Restores proper viewport/scissor settings.
-		g_renderer->RestoreAPIState();
-
-		// read the data from system memory
-		void* readback_buffer_data = nullptr;
-		CheckHR(readback_buffer->Map(0, nullptr, &readback_buffer_data));
-
-		u32 ret = reinterpret_cast<u32*>(readback_buffer_data)[0];
+		// a little-endian value is expected to be returned
+		color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
 		if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
 		{
-			ret = RGBA8ToRGBA6ToRGBA8(ret);
+			color = RGBA8ToRGBA6ToRGBA8(color);
 		}
 		else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
-			ret = RGBA8ToRGB565ToRGBA8(ret);
+			color = RGBA8ToRGB565ToRGBA8(color);
 		}
 		if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
 		{
-			ret |= 0xFF000000;
+			color |= 0xFF000000;
 		}
 
 		if (alpha_read_mode.ReadMode == 2)
 		{
-			return ret; // GX_READ_NONE
+			return color; // GX_READ_NONE
 		}
 		else if (alpha_read_mode.ReadMode == 1)
 		{
-			return (ret | 0xFF000000); // GX_READ_FF
+			return (color | 0xFF000000); // GX_READ_FF
 		}
 		else /*if(alpha_read_mode.ReadMode == 0)*/
 		{
-			return (ret & 0x00FFFFFF); // GX_READ_00
+			return (color & 0x00FFFFFF); // GX_READ_00
 		}
 	}
+	else // if (type == PEEK_Z)
+	{
+		// depth buffer is inverted in the d3d backend
+		float depth = 1.0f - FramebufferManager::ReadEFBDepthAccessCopy(x, y);
+		u32 ret = 0;
 
-	return 0;
+		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+		{
+			// if Z is in 16 bit format you must return a 16 bit integer
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
+		}
+		else
+		{
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+		}
+
+		return ret;
+	}
 }
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
@@ -706,6 +550,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
+
+	FramebufferManager::InvalidateEFBAccessCopies();
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
@@ -905,6 +751,9 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 		Core::Callback_VideoCopiedToXFB(false);
 		return;
 	}
+
+	// Invalidate EFB access copies. Not strictly necessary, but this avoids having the buffers mapped when calling Present().
+	FramebufferManager::InvalidateEFBAccessCopies();
 
 	// Prepare to copy the XFBs to our backbuffer
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
@@ -1272,6 +1121,9 @@ void Renderer::ApplyState(bool use_dst_alpha)
 
 		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, false);
 	}
+
+	// Always called prior to drawing, so we can invalidate the CPU EFB copies here.
+	FramebufferManager::InvalidateEFBAccessCopies();
 }
 
 void Renderer::RestoreState()
