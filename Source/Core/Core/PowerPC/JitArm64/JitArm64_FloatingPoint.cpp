@@ -61,7 +61,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 	}
 	else
 	{
-		RegType type = (inputs_are_singles && single) ? REG_IS_LOADED_SINGLE : REG_IS_LOADED;
+		RegType type = (inputs_are_singles && single) ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
 		RegType type_out = single ? (inputs_are_singles ? REG_DUP_SINGLE : REG_DUP) : REG_LOWER_PAIR;
 		ARM64Reg (*reg_encoder)(ARM64Reg) = (inputs_are_singles && single) ? EncodeRegToSingle : EncodeRegToDouble;
 
@@ -128,12 +128,11 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
 	}
 	else
 	{
-		RegType type = single ? REG_IS_LOADED_SINGLE : REG_IS_LOADED;
-		RegType type2 = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
+		RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
 		ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
 
 		ARM64Reg VB = fpr.R(b, type);
-		ARM64Reg VD = fpr.RW(d, type2);
+		ARM64Reg VD = fpr.RW(d, type);
 
 		switch (op10)
 		{
@@ -155,9 +154,9 @@ void JitArm64::fselx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_IS_LOADED);
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
-	ARM64Reg VC = fpr.R(c, REG_IS_LOADED);
+	ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR);
+	ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
+	ARM64Reg VC = fpr.R(c, REG_LOWER_PAIR);
 	ARM64Reg VD = fpr.RW(d);
 
 	m_float_emit.FCMPE(EncodeRegToDouble(VA));
@@ -176,7 +175,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 	if (fpr.IsSingle(b, true))
 	{
 		// Source is already in single precision, so no need to do anything but to copy to PSR1.
-		ARM64Reg VB = fpr.R(b, REG_IS_LOADED_SINGLE);
+		ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR_SINGLE);
 		ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
 
 		if (b != d)
@@ -184,7 +183,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 	}
 	else
 	{
-		ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
+		ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
 		ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
 
 		m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
@@ -201,7 +200,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 	int crf = inst.CRFD;
 
 	bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
-	RegType type = singles ? REG_IS_LOADED_SINGLE : REG_IS_LOADED;
+	RegType type = singles ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
 	ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToSingle : EncodeRegToDouble;
 
 	ARM64Reg VA = reg_encoder(fpr.R(a, type));
@@ -266,7 +265,7 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
-	ARM64Reg VB = fpr.R(b, REG_IS_LOADED);
+	ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
 	ARM64Reg VD = fpr.RW(d);
 
 	ARM64Reg V0 = fpr.GetReg();

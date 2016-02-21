@@ -314,7 +314,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	case REG_REG_SINGLE:
 	{
 		// We're asked for singles, so just return the register.
-		if (type == REG_REG_SINGLE || type == REG_IS_LOADED_SINGLE)
+		if (type == REG_REG_SINGLE || type == REG_LOWER_PAIR_SINGLE)
 			return host_reg;
 
 		// Else convert this register back to doubles.
@@ -330,7 +330,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	case REG_LOWER_PAIR_SINGLE:
 	{
 		// We're asked for the lower single, so just return the register.
-		if (type == REG_IS_LOADED_SINGLE)
+		if (type == REG_LOWER_PAIR_SINGLE)
 			return host_reg;
 
 		// Else convert this register back to a double.
@@ -356,7 +356,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 	}
 	case REG_DUP_SINGLE:
 	{
-		if (type == REG_IS_LOADED_SINGLE)
+		if (type == REG_LOWER_PAIR_SINGLE)
 			return host_reg;
 
 		if (type == REG_REG_SINGLE)
