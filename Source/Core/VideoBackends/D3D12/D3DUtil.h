@@ -86,8 +86,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	u32 slice = 0,
 	DXGI_FORMAT rt_format = DXGI_FORMAT_R8G8B8A8_UNORM,
 	bool inherit_srv_binding = false,
-	bool rt_multisampled = false,
-	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc_override = nullptr
+	bool rt_multisampled = false
 	);
 
 void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);

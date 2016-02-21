@@ -18,7 +18,7 @@ public:
 	static D3D12_SHADER_BYTECODE GetColorMatrixPixelShader(bool multisampled);
 	static D3D12_SHADER_BYTECODE GetColorCopyPixelShader(bool multisampled);
 	static D3D12_SHADER_BYTECODE GetDepthMatrixPixelShader(bool multisampled);
-	static D3D12_SHADER_BYTECODE GetDepthCopyPixelShader(bool multisampled);
+	static D3D12_SHADER_BYTECODE GetDepthResolveToColorPixelShader();
 	static D3D12_SHADER_BYTECODE GetClearPixelShader();
 	static D3D12_SHADER_BYTECODE GetAnaglyphPixelShader();
 	static D3D12_SHADER_BYTECODE GetReinterpRGBA6ToRGB8PixelShader(bool multisampled);
