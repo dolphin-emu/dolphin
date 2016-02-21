@@ -100,8 +100,6 @@ private:
 
 	static unsigned int m_target_width;
 	static unsigned int m_target_height;
-
-	static D3D12_DEPTH_STENCIL_DESC m_depth_resolve_depth_stencil_desc;
 };
 
 }  // namespace DX12

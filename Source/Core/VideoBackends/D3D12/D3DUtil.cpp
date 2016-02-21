@@ -599,8 +599,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	u32 slice,
 	DXGI_FORMAT rt_format,
 	bool inherit_srv_binding,
-	bool rt_multisampled,
-	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc_override
+	bool rt_multisampled
 	)
 {
 	float sw = 1.0f / static_cast<float>(source_width);
@@ -663,9 +662,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 		Renderer::GetResetBlendDesc(),                    // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
 		Renderer::GetResetRasterizerDesc(),               // D3D12_RASTERIZER_DESC RasterizerState
-		depth_stencil_desc_override ?
-			*depth_stencil_desc_override :
-			Renderer::GetResetDepthStencilDesc(),         // D3D12_DEPTH_STENCIL_DESC DepthStencilState
+		Renderer::GetResetDepthStencilDesc(),             // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		layout12,                                         // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
