@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
 
+#include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 
@@ -964,6 +965,11 @@ void DrawEFBPokeQuads(EFBAccessType type,
 			InitColVertex(&vertex[3], x1, y2, z, col);
 			InitColVertex(&vertex[4], x2, y1, z, col);
 			InitColVertex(&vertex[5], x2, y2, z, col);
+
+			if (type == POKE_COLOR)
+				FramebufferManager::UpdateEFBCopyColor(point->x, point->y, col);
+			else if (type == POKE_Z)
+				FramebufferManager::UpdateEFBCopyDepth(point->x, point->y, z);
 		}
 
 		// Issue the draw
