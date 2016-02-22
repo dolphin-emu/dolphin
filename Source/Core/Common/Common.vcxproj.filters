@@ -51,6 +51,7 @@
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
+    <ClInclude Include="OnionConfig.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="ScopeGuard.h" />
@@ -241,6 +242,7 @@
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />
+    <ClCompile Include="OnionConfig.cpp" />
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
