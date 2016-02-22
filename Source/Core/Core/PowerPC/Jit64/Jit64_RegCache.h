@@ -543,8 +543,6 @@ protected:
 			}
 		}
 	}
-
-public:
 	// TODO: not public
 	void Flush();
 
