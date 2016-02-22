@@ -245,6 +245,12 @@ namespace JitInterface
 			jit->GetBlockCache()->InvalidateICache(address, size, forced);
 	}
 
+	void InvalidateICacheLine(u32 address)
+	{
+		if (jit)
+			jit->GetBlockCache()->InvalidateICache(address, 32, false);
+	}
+
 	void CompileExceptionCheck(ExceptionType type)
 	{
 		if (!jit)
