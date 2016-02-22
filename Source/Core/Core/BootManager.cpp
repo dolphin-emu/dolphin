@@ -201,6 +201,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
 }
 
 static ConfigCache config_cache;
+static Core::StoppedCallbackFunc s_next_stop_callback = nullptr;
 
 static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 {
@@ -386,13 +387,24 @@ bool BootCore(const std::string& _rFilename)
 	return true;
 }
 
-void Stop()
+static void DoRestoreConfig()
 {
-	Core::Stop();
-
 	SConfig& StartUp = SConfig::GetInstance();
 	StartUp.m_strUniqueID = "00000000";
 	config_cache.RestoreConfig(&StartUp);
+
+	// This function is one-shot, so dequeue it.
+	Core::StoppedCallbackFunc callback = s_next_stop_callback;
+	s_next_stop_callback = nullptr;
+	Core::SetOnStoppedCallback(callback);
+	if (callback)
+		callback();
+}
+
+void Stop()
+{
+	s_next_stop_callback = Core::SetOnStoppedCallback(DoRestoreConfig);
+	Core::Stop();
 }
 
 } // namespace

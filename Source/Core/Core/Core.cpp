@@ -871,9 +871,11 @@ void Shutdown()
 		s_emu_thread.join();
 }
 
-void SetOnStoppedCallback(StoppedCallbackFunc callback)
+StoppedCallbackFunc SetOnStoppedCallback(StoppedCallbackFunc callback)
 {
+	StoppedCallbackFunc prev = s_on_stopped_callback;
 	s_on_stopped_callback = callback;
+	return prev;
 }
 
 void UpdateWantDeterminism(bool initial)
