@@ -12,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
