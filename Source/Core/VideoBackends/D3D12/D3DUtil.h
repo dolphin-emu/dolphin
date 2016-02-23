@@ -74,6 +74,8 @@ void ShutdownUtils();
 void SetPointCopySampler();
 void SetLinearCopySampler();
 
+void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth = D3D12_MIN_DEPTH, float max_depth = D3D12_MAX_DEPTH);
+
 void DrawShadedTexQuad(D3DTexture2D* texture,
 	const D3D12_RECT* source,
 	int source_width,
@@ -97,7 +99,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 	size_t num_points,
 	D3D12_BLEND_DESC* blend_desc,
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc,
-	D3D12_VIEWPORT* viewport,
 	D3D12_CPU_DESCRIPTOR_HANDLE* render_target,
 	D3D12_CPU_DESCRIPTOR_HANDLE* depth_buffer,
 	bool rt_multisampled);

@@ -173,9 +173,7 @@ void FramebufferManager::ResolveDepthTexture()
 {
 	// ResolveSubresource does not work with depth textures.
 	// Instead, we use a shader that selects the minimum depth from all samples.
-
-	const D3D12_VIEWPORT vp12 = { 0.f, 0.f, static_cast<float>(m_target_width), static_cast<float>(m_target_height), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp12);
+	D3D::SetViewportAndScissor(0, 0, m_target_width, m_target_height);
 
 	m_efb.resolved_depth_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	D3D::current_command_list->OMSetRenderTargets(0, nullptr, FALSE, &m_efb.resolved_depth_tex->GetDSV12());
@@ -292,10 +290,9 @@ void FramebufferManager::MapEFBColorAccessCopy()
 		// for non-1xIR or multisampled cases, we need to copy to an intermediate texture first
 		m_efb.color_access_resize_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		D3D12_VIEWPORT vp12 = { 0, 0, EFB_WIDTH, EFB_HEIGHT, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		D3D::current_command_list->RSSetViewports(1, &vp12);
-		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.color_access_resize_tex->GetRTV12(), FALSE, nullptr);
+		D3D::SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
 		D3D::SetPointCopySampler();
+		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.color_access_resize_tex->GetRTV12(), FALSE, nullptr);
 
 		CD3DX12_RECT src_rect(0, 0, m_target_width, m_target_height);
 		D3D::DrawShadedTexQuad(m_efb.color_tex, &src_rect, m_target_width, m_target_height,
@@ -345,10 +342,9 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 		// for non-1xIR or multisampled cases, we need to copy to an intermediate texture first
 		m_efb.depth_access_resize_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-		D3D12_VIEWPORT vp12 = { 0, 0, EFB_WIDTH, EFB_HEIGHT, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		D3D::current_command_list->RSSetViewports(1, &vp12);
-		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.depth_access_resize_tex->GetRTV12(), FALSE, nullptr);
+		D3D::SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
 		D3D::SetPointCopySampler();
+		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.color_access_resize_tex->GetRTV12(), FALSE, nullptr);
 
 		CD3DX12_RECT src_rect(0, 0, m_target_width, m_target_height);
 		D3D::DrawShadedTexQuad(m_efb.depth_tex, &src_rect, m_target_width, m_target_height,
@@ -425,8 +421,7 @@ void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 void XFBSource::CopyEFB(float gamma)
 {
 	// Copy EFB data to XFB and restore render target again
-	const D3D12_VIEWPORT vp12 = { 0.f, 0.f, static_cast<float>(texWidth), static_cast<float>(texHeight), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp12);
+	D3D::SetViewportAndScissor(0, 0, texWidth, texHeight);
 
 	const D3D12_RECT rect = CD3DX12_RECT(0, 0, texWidth, texHeight);
 

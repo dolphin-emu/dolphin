@@ -428,7 +428,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
-	D3D12_VIEWPORT vp = { 0.0f, 0.0f, static_cast<float>(GetTargetWidth()), static_cast<float>(GetTargetHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
+	D3D::SetViewportAndScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 
 	if (type == POKE_COLOR)
 	{
@@ -439,7 +439,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 			num_points,
 			&g_reset_blend_desc,
 			&g_reset_depth_desc,
-			&vp,
 			&FramebufferManager::GetEFBColorTexture()->GetRTV12(),
 			nullptr,
 			FramebufferManager::GetEFBColorTexture()->GetMultisampled()
@@ -453,7 +452,6 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 			num_points,
 			&s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED],
 			&s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED],
-			&vp,
 			&FramebufferManager::GetEFBColorTexture()->GetRTV12(),
 			&FramebufferManager::GetEFBDepthTexture()->GetDSV12(),
 			FramebufferManager::GetEFBColorTexture()->GetMultisampled()
@@ -533,19 +531,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 	// Update the view port for clearing the picture
 	TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
 
-	D3D12_VIEWPORT vp = {
-		static_cast<float>(target_rc.left),
-		static_cast<float>(target_rc.top),
-		static_cast<float>(target_rc.GetWidth()),
-		static_cast<float>(target_rc.GetHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
-	D3D::current_command_list->RSSetViewports(1, &vp);
-
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgba_color = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
+	D3D::SetViewportAndScissor(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 	D3D::DrawClearQuad(rgba_color, 1.0f - (z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
 	// Restores proper viewport/scissor settings.
@@ -575,16 +563,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 		return;
 	}
 
-	D3D12_VIEWPORT vp = {
-		0.f,
-		0.f,
-		static_cast<float>(g_renderer->GetTargetWidth()),
-		static_cast<float>(g_renderer->GetTargetHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 
 	FramebufferManager::GetEFBColorTempTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV12(), FALSE, nullptr);
@@ -765,27 +744,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	float clear_color[4] = { 0.f, 0.f, 0.f, 1.f };
 	D3D::current_command_list->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV12(), clear_color, 0, nullptr);
 
-	// D3D12: Because scissor-testing is always enabled, change scissor rect to backbuffer in case EFB is smaller
-	// than swap chain back buffer.
-	D3D12_RECT back_buffer_rect = { 0L, 0L, GetBackbufferWidth(), GetBackbufferHeight() };
-	D3D::current_command_list->RSSetScissorRects(1, &back_buffer_rect);
-
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
 
 	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
 	{
 		// EXISTINGD3D11TODO: Television should be used to render Virtual XFB mode as well.
-		D3D12_VIEWPORT vp12 = {
-			static_cast<float>(target_rc.left),
-			static_cast<float>(target_rc.top),
-			static_cast<float>(target_rc.GetWidth()),
-			static_cast<float>(target_rc.GetHeight()),
-			D3D12_MIN_DEPTH,
-			D3D12_MAX_DEPTH
-		};
-
-		D3D::current_command_list->RSSetViewports(1, &vp12);
+		D3D::SetViewportAndScissor(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
 		s_television.Submit(xfb_addr, fb_stride, fb_width, fb_height);
 		s_television.Render();
@@ -933,16 +898,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	}
 
 	// Reset viewport for drawing text
-	D3D12_VIEWPORT vp = {
-		0.0f,
-		0.0f,
-		static_cast<float>(GetBackbufferWidth()),
-		static_cast<float>(GetBackbufferHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(0, 0, GetBackbufferWidth(), GetBackbufferHeight());
 
 	Renderer::DrawDebugText();
 
@@ -1368,30 +1324,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		TargetRectangle left_rc, right_rc;
 		ConvertStereoRectangle(dst, left_rc, right_rc);
 
-		D3D12_VIEWPORT left_vp = {
-			static_cast<float>(left_rc.left),
-			static_cast<float>(left_rc.top),
-			static_cast<float>(left_rc.GetWidth()),
-			static_cast<float>(left_rc.GetHeight()),
-			D3D12_MIN_DEPTH,
-			D3D12_MAX_DEPTH
-		};
-
-		D3D12_VIEWPORT right_vp = {
-			static_cast<float>(right_rc.left),
-			static_cast<float>(right_rc.top),
-			static_cast<float>(right_rc.GetWidth()),
-			static_cast<float>(right_rc.GetHeight()),
-			D3D12_MIN_DEPTH,
-			D3D12_MAX_DEPTH
-		};
-
 		// Swap chain backbuffer is never multisampled..
 
-		D3D::current_command_list->RSSetViewports(1, &left_vp);
+		D3D::SetViewportAndScissor(left_rc.left, left_rc.top, left_rc.GetWidth(), left_rc.GetHeight());
 		D3D::DrawShadedTexQuad(src_texture, src.AsRECT(), src_width, src_height, StaticShaderCache::GetColorCopyPixelShader(false), StaticShaderCache::GetSimpleVertexShader(), StaticShaderCache::GetSimpleVertexShaderInputLayout(), D3D12_SHADER_BYTECODE(), gamma, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false, false);
 
-		D3D::current_command_list->RSSetViewports(1, &right_vp);
+		D3D::SetViewportAndScissor(right_rc.left, right_rc.top, right_rc.GetWidth(), right_rc.GetHeight());
 		D3D::DrawShadedTexQuad(src_texture, src.AsRECT(), src_width, src_height, StaticShaderCache::GetColorCopyPixelShader(false), StaticShaderCache::GetSimpleVertexShader(), StaticShaderCache::GetSimpleVertexShaderInputLayout(), D3D12_SHADER_BYTECODE(), gamma, 1, DXGI_FORMAT_R8G8B8A8_UNORM, false, false);
 	}
 	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
@@ -1433,8 +1371,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 	}
 	else
 	{
-		D3D12_VIEWPORT vp = { static_cast<float>(dst.left), static_cast<float>(dst.top), static_cast<float>(dst.GetWidth()), static_cast<float>(dst.GetHeight()), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-		D3D::current_command_list->RSSetViewports(1, &vp);
+		D3D::SetViewportAndScissor(dst.left, dst.top, dst.GetWidth(), dst.GetHeight());
 
 		D3D::DrawShadedTexQuad(
 			src_texture,

@@ -164,15 +164,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		return;
 	}
 
-	const D3D12_VIEWPORT vp = {
-		float(dst_rect.left),
-		float(dst_rect.top),
-		float(dst_rect.GetWidth()),
-		float(dst_rect.GetHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight());
 
 	m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	D3D::current_command_list->OMSetRenderTargets(1, &m_texture->GetRTV12(), FALSE, nullptr);
@@ -289,18 +281,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 			FramebufferManager::GetResolvedEFBColorTexture();
 	}
 
-	// stretch picture with increased internal resolution
-	const D3D12_VIEWPORT vp = {
-		0.f,
-		0.f,
-		static_cast<float>(config.width),
-		static_cast<float>(config.height),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
-	D3D::current_command_list->RSSetViewports(1, &vp);
-
 	// set transformation
 	if (cbuf_id != old_cbuf_id)
 	{
@@ -310,6 +290,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
 		old_cbuf_id = cbuf_id;
 	}
+
+	// stretch picture with increased internal resolution
+	D3D::SetViewportAndScissor(0, 0, config.width, config.height);
 
 	D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_stream_buffer->GetGPUAddressOfCurrentAllocation());
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
@@ -441,13 +424,12 @@ void main(
 
 void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format)
 {
-	// stretch picture with increased internal resolution
-	const D3D12_VIEWPORT vp = { 0.f, 0.f, static_cast<float>(unconverted->config.width), static_cast<float>(unconverted->config.height), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp);
-
 	const unsigned int palette_buffer_allocation_size = 512;
 	m_palette_stream_buffer->AllocateSpaceInBuffer(palette_buffer_allocation_size, 256);
 	memcpy(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation(), palette, palette_buffer_allocation_size);
+
+	// stretch picture with increased internal resolution
+	D3D::SetViewportAndScissor(0, 0, unconverted->config.width, unconverted->config.height);
 
 	// D3D12: Because the second SRV slot is occupied by this buffer, and an arbitrary texture occupies the first SRV slot,
 	// we need to allocate temporary space out of our descriptor heap, place the palette SRV in the second slot, then copy the

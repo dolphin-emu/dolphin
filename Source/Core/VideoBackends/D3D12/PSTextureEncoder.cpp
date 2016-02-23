@@ -152,8 +152,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	const u32 words_per_row = bytes_per_row / sizeof(u32);
 
-	D3D12_VIEWPORT vp = { 0.f, 0.f, FLOAT(words_per_row), FLOAT(num_blocks_y), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(0, 0, words_per_row, num_blocks_y);
 
 	constexpr EFBRectangle full_src_rect(0, 0, EFB_WIDTH, EFB_HEIGHT);
 

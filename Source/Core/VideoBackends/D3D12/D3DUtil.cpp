@@ -72,7 +72,7 @@ public:
 	// returns vertex offset to the new data
 	size_t AppendData(const void* data, size_t size, size_t vertex_size)
 	{
-		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size);
+		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size, false);
 
 		memcpy(static_cast<u8*>(m_stream_buffer->GetCPUAddressOfCurrentAllocation()), data, size);
 
@@ -81,7 +81,7 @@ public:
 
 	size_t BeginAppendData(void** write_ptr, size_t size, size_t vertex_size)
 	{
-		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size);
+		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size, false);
 
 		*write_ptr = m_stream_buffer->GetCPUAddressOfCurrentAllocation();
 
@@ -422,7 +422,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, m_texture12_gpu);
 
 	// upper bound is nchars * 6, assuming no spaces
-	m_vertex_buffer->AllocateSpaceInBuffer(static_cast<u32>(text.length()) * 6 * sizeof(FONT2DVERTEX), sizeof(FONT2DVERTEX));
+	m_vertex_buffer->AllocateSpaceInBuffer(static_cast<u32>(text.length()) * 6 * sizeof(FONT2DVERTEX), sizeof(FONT2DVERTEX), false);
 
 	FONT2DVERTEX* vertices12 = reinterpret_cast<FONT2DVERTEX*>(m_vertex_buffer->GetCPUAddressOfCurrentAllocation());
 	int num_triangles = 0;
@@ -588,6 +588,28 @@ void SetLinearCopySampler()
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 }
 
+void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth, float max_depth)
+{
+	D3D12_VIEWPORT viewport = {
+		static_cast<float>(top_left_x),
+		static_cast<float>(top_left_y),
+		static_cast<float>(width),
+		static_cast<float>(height),
+		min_depth,
+		max_depth
+	};
+
+	D3D12_RECT scissor = {
+		static_cast<LONG>(top_left_x),
+		static_cast<LONG>(top_left_y),
+		static_cast<LONG>(top_left_x + width),
+		static_cast<LONG>(top_left_y + height)
+	};
+
+	D3D::current_command_list->RSSetViewports(1, &viewport);
+	D3D::current_command_list->RSSetScissorRects(1, &scissor);
+};
+
 void DrawShadedTexQuad(D3DTexture2D* texture,
 	const D3D12_RECT* rSource,
 	int source_width,
@@ -683,13 +705,6 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 
 	D3D::current_command_list->SetPipelineState(pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
-
-	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
-	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
-	// dirtying state.
-
-	// 2 ^ D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP = 131072
-	D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
 
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(stq_offset), 0);
 
@@ -840,13 +855,6 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	D3D::current_command_list->SetPipelineState(pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
-	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
-	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
-	// dirtying state.
-
-	// 2 ^ D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP = 131072
-	D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
-
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(clearq_offset), 0);
 
 	g_renderer->RestoreAPIState();
@@ -865,7 +873,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 	size_t num_points,
 	D3D12_BLEND_DESC* blend_desc,
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc,
-	D3D12_VIEWPORT* viewport,
 	D3D12_CPU_DESCRIPTOR_HANDLE* render_target,
 	D3D12_CPU_DESCRIPTOR_HANDLE* depth_buffer,
 	bool rt_multisampled
@@ -925,7 +932,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 
 		// Corresponding dirty flags set outside loop.
 		D3D::current_command_list->OMSetRenderTargets(1, render_target, FALSE, depth_buffer);
-		D3D::current_command_list->RSSetViewports(1, viewport);
 		D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		D3D12_VERTEX_BUFFER_VIEW vb_view = {
