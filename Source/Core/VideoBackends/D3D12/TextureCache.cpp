@@ -25,6 +25,7 @@ namespace DX12
 static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
 
 static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
+static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
 static void* s_texture_cache_entry_readback_buffer_data = nullptr;
@@ -264,8 +265,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& srcRect,
 	bool scale_by_half, unsigned int cbuf_id, const float* colmat)
 {
-	static unsigned int old_cbuf_id = UINT_MAX;
-
 	// When copying at half size, in multisampled mode, resolve the color/depth buffer first.
 	// This is because multisampled texture reads go through Load, not Sample, and the linear
 	// filter is ignored.
@@ -282,13 +281,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	}
 
 	// set transformation
-	if (cbuf_id != old_cbuf_id)
+	if (s_efb_copy_last_cbuf_id != cbuf_id)
 	{
 		s_efb_copy_stream_buffer->AllocateSpaceInBuffer(28 * sizeof(float), 256);
 
 		memcpy(s_efb_copy_stream_buffer->GetCPUAddressOfCurrentAllocation(), colmat, 28 * sizeof(float));
 
-		old_cbuf_id = cbuf_id;
+		s_efb_copy_last_cbuf_id = cbuf_id;
 	}
 
 	// stretch picture with increased internal resolution
@@ -536,6 +535,7 @@ TextureCache::TextureCache()
 	s_encoder->Init();
 
 	s_efb_copy_stream_buffer = std::make_unique<D3DStreamBuffer>(1024 * 1024, 1024 * 1024, nullptr);
+	s_efb_copy_last_cbuf_id = UINT_MAX;
 
 	s_texture_cache_entry_readback_buffer = nullptr;
 	s_texture_cache_entry_readback_buffer_data = nullptr;
@@ -617,7 +617,7 @@ void TextureCache::BindTextures()
 	D3D12_GPU_DESCRIPTOR_HANDLE s_group_base_texture_gpu_handle;
 	DX12::D3D::gpu_descriptor_heap_mgr->AllocateGroup(&s_group_base_texture_cpu_handle, 8, &s_group_base_texture_gpu_handle, nullptr, true);
 
-	for (unsigned int stage = 0; stage <= last_texture; stage++)
+	for (unsigned int stage = 0; stage < 8; stage++)
 	{
 		if (bound_textures[stage] != nullptr)
 		{
