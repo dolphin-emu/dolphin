@@ -34,7 +34,6 @@ namespace DolphinWatch {
 
 	static int hijacksWii[NUM_WIIMOTES];
 	static int hijacksGC[NUM_GCPADS];
-	static CFrame* main_frame;
 
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote) {
 		return ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->GetController(i_wiimote));
@@ -151,9 +150,8 @@ namespace DolphinWatch {
 		}
 	}
 
-	void Init(unsigned short port, CFrame* _main_frame) {
+	void Init(unsigned short port) {
 		running = true;
-		main_frame = _main_frame;
 		server.listen(port);
 
 		memset(hijacksWii, 0, sizeof(hijacksWii));
@@ -535,7 +533,6 @@ namespace DolphinWatch {
 		else if (cmd == "STOP") {
 			//BootManager::Stop();
 			Core::Stop();
-			//main_frame->UpdateGUI();
 		}
 		else if (cmd == "INSERT") {
 			std::string file;
