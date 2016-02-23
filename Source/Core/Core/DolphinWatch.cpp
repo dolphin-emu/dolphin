@@ -656,4 +656,16 @@ namespace DolphinWatch {
 		AudioCommon::UpdateSoundStream();
 	}
 
+	void Log(LogTypes::LOG_LEVELS level, const char* msg)
+	{
+		if (!running) return;
+		for (auto& client : clients)
+		{
+			std::ostringstream stream;
+			stream << "LOG " << level << " " << msg;
+			const std::string str = stream.str();
+			client.socket->send(str.c_str(), str.size());
+		}
+	}
+
 }

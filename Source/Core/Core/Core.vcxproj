@@ -430,6 +430,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="PowerPC\SignatureDB.h" />
+    <ClInclude Include="RemoteListener.h" />
     <ClInclude Include="State.h" />
   </ItemGroup>
   <ItemGroup>

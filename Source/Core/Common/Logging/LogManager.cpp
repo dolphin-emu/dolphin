@@ -16,6 +16,7 @@
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
+#include "Core/RemoteListener.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 		const char* file, int line, const char* fmt, ...)
@@ -83,6 +84,7 @@ LogManager::LogManager()
 
 	RegisterListener(LogListener::FILE_LISTENER, new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
 	RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
+	RegisterListener(LogListener::DW_REMOTE_LISTENER, new DolphinWatch::RemoteListener());
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
@@ -102,6 +104,8 @@ LogManager::LogManager()
 			container->AddListener(LogListener::FILE_LISTENER);
 		if (enable && write_console)
 			container->AddListener(LogListener::CONSOLE_LISTENER);
+		if (enable)
+			container->AddListener(LogListener::DW_REMOTE_LISTENER);
 	}
 }
 
@@ -113,6 +117,7 @@ LogManager::~LogManager()
 	// The log window listener pointer is owned by the GUI code.
 	delete m_listeners[LogListener::CONSOLE_LISTENER];
 	delete m_listeners[LogListener::FILE_LISTENER];
+	delete m_listeners[LogListener::DW_REMOTE_LISTENER];
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,

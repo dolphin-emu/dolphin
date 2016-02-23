@@ -1256,6 +1256,9 @@
     <ClInclude Include="DolphinWatch.h">
       <Filter>DolphinWatch</Filter>
     </ClInclude>
+    <ClInclude Include="RemoteListener.h">
+      <Filter>DolphinWatch</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

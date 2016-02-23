@@ -21,7 +21,7 @@ namespace DolphinWatch {
 	struct Subscription {
 		u32 addr;
 		u32 mode;
-		u32 prev = ~0;
+		u32 prev = 0xdeadbeef;
 		Subscription(u32 val, u32 len) : addr(val), mode(len) {}
 		bool operator==(const Subscription& other) const { return other.addr == addr && other.mode == mode; }
 		Subscription& operator=(const Subscription& other) {
@@ -36,7 +36,7 @@ namespace DolphinWatch {
 		u32 addr;
 		u32 size;
 		std::vector<u32> prev;
-		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, ~0) {}
+		SubscriptionMulti(u32 val, u32 len) : addr(val), size(len), prev(len, 0xdeadbeef) {}
 		bool operator==(const SubscriptionMulti& other) const { return other.addr == addr && other.size == size; }
 		SubscriptionMulti& operator=(const SubscriptionMulti& other) {
 			addr = other.addr;
@@ -91,5 +91,7 @@ namespace DolphinWatch {
 	void SendButtonsWii(int i_wiimote, u16 _buttons);
 	void SendButtonsGC(int i_pad, u16 _buttons);
 	void CheckHijacks();
+
+	void Log(LogTypes::LOG_LEVELS level, const char* msg);
 
 }
