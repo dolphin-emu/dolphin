@@ -45,7 +45,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 #if defined(_WIN32)
 	void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-	static char *map_hint = nullptr;
+	static char* map_hint = nullptr;
 #if defined(_M_X86_64) && !defined(MAP_32BIT)
 	// This OS has no flag to enforce allocation below the 4 GB boundary,
 	// but if we hint that we want a low address it is very likely we will

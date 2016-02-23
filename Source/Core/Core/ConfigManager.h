@@ -196,8 +196,7 @@ struct SConfig : NonCopyable
 
 	// interface language
 	int m_InterfaceLanguage;
-	// framelimit choose
-	unsigned int m_Framelimit;
+	float m_EmulationSpeed;
 	bool m_OCEnable;
 	float m_OCFactor;
 	// other interface settings
@@ -266,8 +265,8 @@ struct SConfig : NonCopyable
 
 	// Input settings
 	bool m_BackgroundInput;
-	bool m_GameCubeAdapter;
-	bool m_AdapterRumble;
+	bool m_AdapterRumble[4];
+	bool m_AdapterKonga[4];
 
 	SysConf* m_SYSCONF;
 

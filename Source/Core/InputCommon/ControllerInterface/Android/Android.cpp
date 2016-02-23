@@ -72,6 +72,7 @@ Touchscreen::Touchscreen(int padID)
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_LEFT));
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_RIGHT));
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_IR_HIDE));
+	AddInput(new Button(_padID, ButtonManager::WIIMOTE_TILT_MODIFIER));
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_SHAKE_X));
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_SHAKE_Y));
 	AddInput(new Button(_padID, ButtonManager::WIIMOTE_SHAKE_Z));
@@ -87,6 +88,7 @@ Touchscreen::Touchscreen(int padID)
 	//Wii ext: Nunchuk
 	AddInput(new Button(_padID, ButtonManager::NUNCHUK_BUTTON_C));
 	AddInput(new Button(_padID, ButtonManager::NUNCHUK_BUTTON_Z));
+	AddInput(new Button(_padID, ButtonManager::NUNCHUK_TILT_MODIFIER));
 	AddInput(new Button(_padID, ButtonManager::NUNCHUK_SHAKE_X));
 	AddInput(new Button(_padID, ButtonManager::NUNCHUK_SHAKE_Y));
 	AddInput(new Button(_padID, ButtonManager::NUNCHUK_SHAKE_Z));

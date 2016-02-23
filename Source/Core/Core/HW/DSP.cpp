@@ -23,16 +23,14 @@
 // the just used buffer through the AXList (or whatever it might be called in
 // Nintendo games).
 
+#include <memory>
+
 #include "AudioCommon/AudioCommon.h"
-
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
-
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
-#include "Core/HW/AudioInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
@@ -169,7 +167,7 @@ static ARAM_Info g_ARAM_Info;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-static DSPEmulator *dsp_emulator;
+static std::unique_ptr<DSPEmulator> dsp_emulator;
 
 static int dsp_slice = 0;
 static bool dsp_is_lle = false;
@@ -232,9 +230,9 @@ void FlushInstantDMA(u32 address)
 	}
 }
 
-DSPEmulator *GetDSPEmulator()
+DSPEmulator* GetDSPEmulator()
 {
-	return dsp_emulator;
+	return dsp_emulator.get();
 }
 
 void Init(bool hle)
@@ -286,8 +284,7 @@ void Shutdown()
 	}
 
 	dsp_emulator->Shutdown();
-	delete dsp_emulator;
-	dsp_emulator = nullptr;
+	dsp_emulator.reset();
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)

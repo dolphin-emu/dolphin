@@ -37,6 +37,7 @@
 // otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
 #include <memory>
+#include <vector>
 #include <mbedtls/aes.h>
 
 #include "Common/ChunkFile.h"
@@ -227,7 +228,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_TitleID = TitleID;
 	Access.m_pFile = nullptr;
 
-	if (!pContent->m_pData)
+	if (pContent->m_data.empty())
 	{
 		std::string Filename = pContent->m_Filename;
 		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
@@ -403,12 +404,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			{
 				if (pDest)
 				{
-					if (rContent.m_pContent->m_pData)
-					{
-						u8* pSrc = &rContent.m_pContent->m_pData[rContent.m_Position];
-						memcpy(pDest, pSrc, Size);
-					}
-					else
+					if (rContent.m_pContent->m_data.empty())
 					{
 						auto& pFile = rContent.m_pFile;
 						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
@@ -421,8 +417,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
 						}
 					}
+					else
+					{
+						const u8* src = &rContent.m_pContent->m_data[rContent.m_Position];
+						memcpy(pDest, src, Size);
+					}
+
 					rContent.m_Position += Size;
-				} else {
+				}
+				else
+				{
 					PanicAlert("IOCTL_ES_READCONTENT - bad destination");
 				}
 			}
@@ -580,7 +584,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u32 retVal = 0;
 			const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-			u32 ViewCount = Loader.GetTIKSize() / DiscIO::CNANDContentLoader::TICKET_SIZE;
+			u32 ViewCount = static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
 
 			if (!ViewCount)
 			{
@@ -628,18 +632,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-			const u8 *Ticket = Loader.GetTIK();
-			if (Ticket)
-			{
-				u32 viewCnt = Loader.GetTIKSize() / DiscIO::CNANDContentLoader::TICKET_SIZE;
-				for (unsigned int View = 0; View != maxViews && View < viewCnt; ++View)
-				{
-					Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-					Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8,
-						Ticket + 0x1D0 + (View * DiscIO::CNANDContentLoader::TICKET_SIZE), 212);
-				}
-			}
-			else
+			const std::vector<u8>& ticket = Loader.GetTicket();
+
+			if (ticket.empty())
 			{
 				std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
 				if (File::Exists(TicketFilename))
@@ -674,6 +669,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 				}
 			}
+			else
+			{
+				u32 view_count = static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
+				for (unsigned int view = 0; view != maxViews && view < view_count; ++view)
+				{
+					Memory::Write_U32(view, Buffer.PayloadBuffer[0].m_Address + view * 0xD8);
+					Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + view * 0xD8,
+						&ticket[0x1D0 + (view * DiscIO::CNANDContentLoader::TICKET_SIZE)], 212);
+				}
+			}
+
 			INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
 			Memory::Write_U32(retVal, _CommandAddress + 0x4);
@@ -912,13 +918,13 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					{
 						tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
 						std::unique_ptr<CDolLoader> pDolLoader;
-						if (pContent->m_pData)
+						if (pContent->m_data.empty())
 						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
 						}
 						else
 						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
+							pDolLoader = std::make_unique<CDolLoader>(pContent->m_data);
 						}
 
 						if (pDolLoader->IsValid())
@@ -1096,26 +1102,26 @@ bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
 }
 
 
-u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
+u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 {
-	u64 titleID = 0xDEADBEEFDEADBEEFull;
-	u64 tmdTitleID = Common::swap64(*(u64*)(_pTMD+0x18c));
-	DVDInterface::GetVolume().GetTitleID(&titleID);
-	if (titleID != tmdTitleID)
-	{
+	u64 title_id = 0xDEADBEEFDEADBEEFull;
+	u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
+
+	DVDInterface::GetVolume().GetTitleID(&title_id);
+	if (title_id != tmd_title_id)
 		return -1;
-	}
-	std::string tmdPath  = Common::GetTMDFileName(tmdTitleID, Common::FROM_SESSION_ROOT);
 
-	File::CreateFullPath(tmdPath);
-	File::CreateFullPath(Common::GetTitleDataPath(tmdTitleID, Common::FROM_SESSION_ROOT));
+	std::string tmd_path  = Common::GetTMDFileName(tmd_title_id, Common::FROM_SESSION_ROOT);
 
-	Movie::g_titleID = tmdTitleID;
-	std::string savePath = Common::GetTitleDataPath(tmdTitleID, Common::FROM_SESSION_ROOT);
+	File::CreateFullPath(tmd_path);
+	File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
+
+	Movie::g_titleID = tmd_title_id;
+	std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
 	if (Movie::IsRecordingInput())
 	{
 		// TODO: Check for the actual save data
-		if (File::Exists(savePath + "banner.bin"))
+		if (File::Exists(save_path + "banner.bin"))
 			Movie::g_bClearSave = false;
 		else
 			Movie::g_bClearSave = true;
@@ -1124,44 +1130,44 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(u8* _pTMD, u32 _sz)
 	// TODO: Force the game to save to another location, instead of moving the user's save.
 	if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
 	{
-		if (File::Exists(savePath + "banner.bin"))
+		if (File::Exists(save_path + "banner.bin"))
 		{
-			if (File::Exists(savePath + "../backup/"))
+			if (File::Exists(save_path + "../backup/"))
 			{
 				// The last run of this game must have been to play back a movie, so their save is already backed up.
-				File::DeleteDirRecursively(savePath);
+				File::DeleteDirRecursively(save_path);
 			}
 			else
 			{
 				#ifdef _WIN32
-					MoveFile(UTF8ToTStr(savePath).c_str(), UTF8ToTStr(savePath + "../backup/").c_str());
+					MoveFile(UTF8ToTStr(save_path).c_str(), UTF8ToTStr(save_path + "../backup/").c_str());
 				#else
-					File::CopyDir(savePath, savePath + "../backup/");
-					File::DeleteDirRecursively(savePath);
+					File::CopyDir(save_path, save_path + "../backup/");
+					File::DeleteDirRecursively(save_path);
 				#endif
 			}
 		}
 	}
-	else if (File::Exists(savePath + "../backup/"))
+	else if (File::Exists(save_path + "../backup/"))
 	{
 		// Delete the save made by a previous movie, and copy back the user's save.
-		if (File::Exists(savePath + "banner.bin"))
-			File::DeleteDirRecursively(savePath);
+		if (File::Exists(save_path + "banner.bin"))
+			File::DeleteDirRecursively(save_path);
 		#ifdef _WIN32
-			MoveFile(UTF8ToTStr(savePath + "../backup/").c_str(), UTF8ToTStr(savePath).c_str());
+			MoveFile(UTF8ToTStr(save_path + "../backup/").c_str(), UTF8ToTStr(save_path).c_str());
 		#else
-			File::CopyDir(savePath + "../backup/", savePath);
-			File::DeleteDirRecursively(savePath + "../backup/");
+			File::CopyDir(save_path + "../backup/", save_path);
+			File::DeleteDirRecursively(save_path + "../backup/");
 		#endif
 	}
 
-	if (!File::Exists(tmdPath))
+	if (!File::Exists(tmd_path))
 	{
-		File::IOFile _pTMDFile(tmdPath, "wb");
-		if (!_pTMDFile.WriteBytes(_pTMD, _sz))
+		File::IOFile tmd_file(tmd_path, "wb");
+		if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
 			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
 	}
-	DiscIO::cUIDsys::AccessInstance().AddTitle(tmdTitleID);
+	DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
 	DiscIO::CNANDContentManager::Access().ClearCache();
 	return 0;
 }

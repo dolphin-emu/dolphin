@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.activities;
 
+import android.app.Activity;
 import android.content.AsyncQueryHandler;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -19,6 +20,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.adapters.FileAdapter;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
 import org.dolphinemu.dolphinemu.model.GameProvider;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 /**
  * An Activity that shows a list of files and folders, allowing the user to tell the app which folder(s)
@@ -130,5 +132,11 @@ public class AddDirectoryActivity extends AppCompatActivity implements FileAdapt
 	public void updateSubtitle(String path)
 	{
 		mToolbar.setSubtitle(path);
+	}
+
+	public static void launch(Activity activity)
+	{
+		Intent fileChooser = new Intent(activity, AddDirectoryActivity.class);
+		activity.startActivityForResult(fileChooser, MainPresenter.REQUEST_ADD_DIRECTORY);
 	}
 }

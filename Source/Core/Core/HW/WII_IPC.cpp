@@ -2,16 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <map>
-#include <queue>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/WII_IPC.h"

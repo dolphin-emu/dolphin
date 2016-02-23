@@ -8,12 +8,14 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/SWVideoConfig.h"
 #include "VideoBackends/Software/Tev.h"
 #include "VideoBackends/Software/TextureSampler.h"
-#include "VideoBackends/Software/XFMemLoader.h"
+
 #include "VideoCommon/BoundingBox.h"
+#include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 #ifdef _DEBUG
 #define ALLOW_TEV_DUMPS 1
@@ -373,15 +375,15 @@ static inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 		case ITW_OFF:
 			return coord;
 		case ITW_256:
-			return (coord % (256 << 7));
+			return (coord & ((256 << 7) - 1));
 		case ITW_128:
-			return (coord % (128 << 7));
+			return (coord & ((128 << 7) - 1));
 		case ITW_64:
-			return (coord % (64 << 7));
+			return (coord & ((64 << 7) - 1));
 		case ITW_32:
-			return (coord % (32 << 7));
+			return (coord & ((32 << 7) - 1));
 		case ITW_16:
-			return (coord % (16 << 7));
+			return (coord & ((16 << 7) - 1));
 		case ITW_0:
 			return 0;
 		default:
@@ -509,7 +511,7 @@ void Tev::Draw()
 	_assert_(Position[0] >= 0 && Position[0] < EFB_WIDTH);
 	_assert_(Position[1] >= 0 && Position[1] < EFB_HEIGHT);
 
-	INCSTAT(swstats.thisFrame.tevPixelsIn);
+	INCSTAT(stats.thisFrame.tevPixelsIn);
 
 	for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
 	{
@@ -527,7 +529,7 @@ void Tev::Draw()
 			IndirectLod[stageNum], IndirectLinear[stageNum], texmap, IndirectTex[stageNum]);
 
 #if ALLOW_TEV_DUMPS
-		if (g_SWVideoConfig.bDumpTevStages)
+		if (g_ActiveConfig.bDumpTevStages)
 		{
 			u8 stage[4] = {
 				IndirectTex[stageNum][TextureSampler::ALP_SMP],
@@ -565,7 +567,7 @@ void Tev::Draw()
 			TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
 
 #if ALLOW_TEV_DUMPS
-			if (g_SWVideoConfig.bDumpTevTextureFetches)
+			if (g_ActiveConfig.bDumpTevTextureFetches)
 				DebugUtil::DrawTempBuffer(texel, DIRECT_TFETCH + stageNum);
 #endif
 
@@ -632,7 +634,7 @@ void Tev::Draw()
 			Reg[ac.dest][ALP_C] = Clamp1024(Reg[ac.dest][ALP_C]);
 
 #if ALLOW_TEV_DUMPS
-		if (g_SWVideoConfig.bDumpTevStages)
+		if (g_ActiveConfig.bDumpTevStages)
 		{
 			u8 stage[4] = {(u8)Reg[0][RED_C], (u8)Reg[0][GRN_C], (u8)Reg[0][BLU_C], (u8)Reg[0][ALP_C]};
 			DebugUtil::DrawTempBuffer(stage, DIRECT + stageNum);
@@ -754,7 +756,7 @@ void Tev::Draw()
 		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
 	}
 
-	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_SWVideoConfig.bZComploc;
+	bool late_ztest = !bpmem.zcontrol.early_ztest || !g_ActiveConfig.bZComploc;
 	if (late_ztest && bpmem.zmode.testenable)
 	{
 		// TODO: Check against hw if these values get incremented even if depth testing is disabled
@@ -773,7 +775,7 @@ void Tev::Draw()
 	BoundingBox::coords[BoundingBox::BOTTOM] = std::max((u16)Position[1], BoundingBox::coords[BoundingBox::BOTTOM]);
 
 #if ALLOW_TEV_DUMPS
-	if (g_SWVideoConfig.bDumpTevStages)
+	if (g_ActiveConfig.bDumpTevStages)
 	{
 		for (u32 i = 0; i < bpmem.genMode.numindstages; ++i)
 			DebugUtil::CopyTempBuffer(Position[0], Position[1], INDIRECT, i, "Indirect");
@@ -781,7 +783,7 @@ void Tev::Draw()
 			DebugUtil::CopyTempBuffer(Position[0], Position[1], DIRECT, i, "Stage");
 	}
 
-	if (g_SWVideoConfig.bDumpTevTextureFetches)
+	if (g_ActiveConfig.bDumpTevTextureFetches)
 	{
 		for (u32 i = 0; i <= bpmem.genMode.numtevstages; ++i)
 		{
@@ -792,7 +794,7 @@ void Tev::Draw()
 	}
 #endif
 
-	INCSTAT(swstats.thisFrame.tevPixelsOut);
+	INCSTAT(stats.thisFrame.tevPixelsOut);
 	EfbInterface::IncPerfCounterQuadCount(PQ_BLEND_INPUT);
 
 	EfbInterface::BlendTev(Position[0], Position[1], output);
@@ -810,29 +812,3 @@ void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
 	}
 }
 
-void Tev::DoState(PointerWrap &p)
-{
-	p.DoArray(Reg);
-
-	p.DoArray(KonstantColors);
-	p.DoArray(TexColor);
-	p.DoArray(RasColor);
-	p.DoArray(StageKonst);
-
-	p.DoArray(FixedConstants);
-	p.Do(AlphaBump);
-	p.DoArray(IndirectTex);
-	p.Do(TexCoord);
-
-	p.DoArray(m_BiasLUT);
-	p.DoArray(m_ScaleLShiftLUT);
-	p.DoArray(m_ScaleRShiftLUT);
-
-	p.DoArray(Position);
-	p.DoArray(Color);
-	p.DoArray(Uv);
-	p.DoArray(IndirectLod);
-	p.DoArray(IndirectLinear);
-	p.DoArray(TextureLod);
-	p.DoArray(TextureLinear);
-}

@@ -38,6 +38,6 @@ void ChangeDevice(SIDevices device, int channel);
 
 SIDevices GetDeviceType(int channel);
 
-int GetTicksToNextSIPoll();
+u32 GetPollXLines();
 
 } // end of namespace SerialInterface

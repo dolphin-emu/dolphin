@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/Flag.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;

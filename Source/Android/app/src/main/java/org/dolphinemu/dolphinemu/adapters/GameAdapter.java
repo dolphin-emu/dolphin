@@ -1,14 +1,11 @@
 package org.dolphinemu.dolphinemu.adapters;
 
 import android.app.Activity;
-import android.app.ActivityOptions;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +14,9 @@ import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.activities.MainActivity;
 import org.dolphinemu.dolphinemu.dialogs.GameDetailsDialog;
 import org.dolphinemu.dolphinemu.model.GameDatabase;
+import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
 /**
@@ -109,12 +106,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			}
 			else
 			{
-				Log.e("DolphinEmu", "Can't bind view; Cursor is not valid.");
+				Log.error("[GameAdapter] Can't bind view; Cursor is not valid.");
 			}
 		}
 		else
 		{
-			Log.e("DolphinEmu", "Can't bind view; dataset is not valid.");
+			Log.error("[GameAdapter] Can't bind view; dataset is not valid.");
 		}
 	}
 
@@ -130,7 +127,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 		{
 			return mCursor.getCount();
 		}
-		Log.e("DolphinEmu", "Dataset is not valid.");
+		Log.error("[GameAdapter] Dataset is not valid.");
 		return 0;
 	}
 
@@ -151,7 +148,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 			}
 		}
 
-		Log.e("DolphinEmu", "Dataset is not valid.");
+		Log.error("[GameAdapter] Dataset is not valid.");
 		return 0;
 	}
 
@@ -217,22 +214,12 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 	{
 		GameViewHolder holder = (GameViewHolder) view.getTag();
 
-		// Start the emulation activity and send the path of the clicked ISO to it.
-		Intent intent = new Intent(view.getContext(), EmulationActivity.class);
-
-		intent.putExtra("SelectedGame", holder.path);
-		intent.putExtra("SelectedTitle", holder.title);
-		intent.putExtra("ScreenPath", holder.screenshotPath);
-		intent.putExtra("GridPosition", holder.getAdapterPosition());
-
-		ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(
-				(Activity) view.getContext(),
-				holder.imageScreenshot,
-				"image_game_screenshot");
-
-		((Activity) view.getContext()).startActivityForResult(intent,
-				MainActivity.REQUEST_EMULATE_GAME,
-				options.toBundle());
+		EmulationActivity.launch((Activity) view.getContext(),
+				holder.path,
+				holder.title,
+				holder.screenshotPath,
+				holder.getAdapterPosition(),
+				holder.imageScreenshot);
 	}
 
 	/**

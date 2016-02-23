@@ -6,12 +6,11 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
-#include "Common/CPUDetect.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/AudioInterface.h"
-#include "Core/HW/VideoInterface.h"
 
 // UGLINESS
 #include "Core/PowerPC/PowerPC.h"
@@ -21,15 +20,13 @@
 #endif
 
 CMixer::CMixer(unsigned int BackendSampleRate)
-	: m_dma_mixer(this, 32000)
-	, m_streaming_mixer(this, 48000)
-	, m_wiimote_speaker_mixer(this, 3000)
-	, m_sampleRate(BackendSampleRate)
-	, m_log_dtk_audio(false)
-	, m_log_dsp_audio(false)
-	, m_speed(0)
+	: m_sampleRate(BackendSampleRate)
 {
 	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
+
+CMixer::~CMixer()
+{
 }
 
 // Executed from sound stream thread
@@ -47,7 +44,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	u32 indexR = m_indexR.load();
 	u32 indexW = m_indexW.load();
 
-	int low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+	u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
 	low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
 
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
@@ -60,11 +57,11 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	//advance indexR with sample position
 	//remember fractional offset
 
-	u32 framelimit = SConfig::GetInstance().m_Framelimit;
+	float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
 	float aid_sample_rate = m_input_sample_rate + offset;
-	if (consider_framelimit && framelimit > 1)
+	if (consider_framelimit && emulationspeed > 0.0f)
 	{
-		aid_sample_rate = aid_sample_rate * (framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
+		aid_sample_rate = aid_sample_rate * emulationspeed;
 	}
 
 	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);

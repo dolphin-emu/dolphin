@@ -149,15 +149,13 @@ void OpenGLPostProcessing::ApplyShader()
 	std::string code = m_config.LoadShader();
 	code = LoadShaderOptions(code);
 
-	const char* vertex_shader = s_vertex_shader;
-
 	// and compile it
-	if (!ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str()))
+	if (!ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code))
 	{
 		ERROR_LOG(VIDEO, "Failed to compile post-processing shader %s", m_config.GetShader().c_str());
 		g_ActiveConfig.sPostProcessingShader.clear();
 		code = m_config.LoadShader();
-		ProgramShaderCache::CompileShader(m_shader, vertex_shader, code.c_str());
+		ProgramShaderCache::CompileShader(m_shader, s_vertex_shader, code);
 	}
 
 	// read uniform locations

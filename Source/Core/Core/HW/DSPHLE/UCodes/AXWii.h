@@ -6,6 +6,8 @@
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
+struct AXPBWii;
+
 class AXWiiUCode : public AXUCode
 {
 public:

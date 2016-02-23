@@ -4,12 +4,14 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <memory>
 #include <string>
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-#include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -30,13 +32,10 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/Statistics.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -86,7 +85,7 @@ static void SetupDeviceObjects()
 {
 	s_television.Init();
 
-	g_framebuffer_manager = new FramebufferManager;
+	g_framebuffer_manager = std::make_unique<FramebufferManager>();
 
 	HRESULT hr;
 	float colmat[20]= {0.0f};
@@ -169,7 +168,7 @@ static void SetupDeviceObjects()
 // Kill off all device objects
 static void TeardownDeviceObjects()
 {
-	delete g_framebuffer_manager;
+	g_framebuffer_manager.reset();
 
 	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(clearblendstates[0]);
@@ -474,55 +473,43 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
 		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
 	}
-	else if (type == POKE_COLOR)
-	{
-		u32 rgbaColor = (poke_data & 0xFF00FF00) | ((poke_data >> 16) & 0xFF) | ((poke_data << 16) & 0xFF0000);
-
-		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
-		ResetAPIState();
-
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
-		D3D::context->RSSetViewports(1, &vp);
-
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
-		D3D::drawColorQuad(rgbaColor, 0.f,
-		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
-		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
-
-		RestoreAPIState();
-	}
-	else // if (type == POKE_Z)
-	{
-		// TODO: The first five PE registers may change behavior of EFB pokes, this isn't implemented, yet.
-		ResetAPIState();
-
-		D3D::stateman->PushBlendState(clearblendstates[3]);
-		D3D::stateman->PushDepthState(cleardepthstates[1]);
-
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight(),
-			1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-			1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
-		D3D::context->RSSetViewports(1, &vp);
-
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-			FramebufferManager::GetEFBDepthTexture()->GetDSV());
-		D3D::drawColorQuad(0, 1.0f - float(poke_data & 0xFFFFFF) / 16777216.0f,
-		                  (float)RectToLock.left   * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.top    * 2.f / GetTargetHeight() + 1.f,
-		                  (float)RectToLock.right  * 2.f / GetTargetWidth()  - 1.f,
-		                - (float)RectToLock.bottom * 2.f / GetTargetHeight() + 1.f);
-
-		D3D::stateman->PopDepthState();
-		D3D::stateman->PopBlendState();
-
-		RestoreAPIState();
-	}
 
 	return 0;
 }
 
+void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
+{
+	ResetAPIState();
+
+	if (type == POKE_COLOR)
+	{
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
+		D3D::context->RSSetViewports(1, &vp);
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
+	}
+	else // if (type == POKE_Z)
+	{
+		D3D::stateman->PushBlendState(clearblendstates[3]);
+		D3D::stateman->PushDepthState(cleardepthstates[1]);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
+
+		D3D::context->RSSetViewports(1, &vp);
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	}
+
+	D3D::DrawEFBPokeQuads(type, points, num_points);
+
+	if (type == POKE_Z)
+	{
+		D3D::stateman->PopDepthState();
+		D3D::stateman->PopBlendState();
+	}
+
+	RestoreAPIState();
+}
 
 void Renderer::SetViewport()
 {
@@ -564,7 +551,7 @@ void Renderer::SetViewport()
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht,
 		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-		1.0f - MathUtil::Clamp<float>((xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f)), 0.0f, 16777215.0f) / 16777216.0f);
+		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777216.0f), 0.0f, 16777215.0f) / 16777216.0f);
 	D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -727,7 +714,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
-	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
+	if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
 		if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
 			AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
@@ -801,10 +788,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			//drawRc.right *= hScale;
 
 			TargetRectangle sourceRc;
-			sourceRc.left = 0;
-			sourceRc.top = 0;
-			sourceRc.right = (int)xfbSource->texWidth;
-			sourceRc.bottom = (int)xfbSource->texHeight;
+			sourceRc.left = xfbSource->sourceRc.left;
+			sourceRc.top = xfbSource->sourceRc.top;
+			sourceRc.right = xfbSource->sourceRc.right;
+			sourceRc.bottom = xfbSource->sourceRc.bottom;
 
 			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
@@ -849,7 +836,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		{
 			s_recordWidth = source_width;
 			s_recordHeight = source_height;
-			bAVIDumping = AVIDump::Start(D3D::hWnd, s_recordWidth, s_recordHeight);
+			bAVIDumping = AVIDump::Start(s_recordWidth, s_recordHeight, AVIDump::DumpFormat::FORMAT_BGR);
 			if (!bAVIDumping)
 			{
 				PanicAlert("Error dumping frames to AVI.");
@@ -874,6 +861,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				h = s_recordHeight;
 			}
 			formatBufferDump((u8*)map.pData, &frame_data[0], source_width, source_height, map.RowPitch);
+			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
 			D3D::context->Unmap(s_screenshot_texture, 0);
 		}
@@ -999,8 +987,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
-		delete g_framebuffer_manager;
-		g_framebuffer_manager = new FramebufferManager;
+		g_framebuffer_manager.reset();
+		g_framebuffer_manager = std::make_unique<FramebufferManager>();
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
 		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);

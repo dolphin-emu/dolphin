@@ -178,6 +178,9 @@
     <ClCompile Include="Config\GameCubeConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
+    <ClCompile Include="Config\GCAdapterConfigDiag.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
     <ClCompile Include="Config\WiiConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
@@ -337,6 +340,9 @@
       <Filter>GUI\Config</Filter>
     </ClInclude>
     <ClInclude Include="Config\GameCubeConfigPane.h">
+      <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\GCAdapterConfigDiag.h">
       <Filter>GUI\Config</Filter>
     </ClInclude>
     <ClInclude Include="Config\WiiConfigPane.h">

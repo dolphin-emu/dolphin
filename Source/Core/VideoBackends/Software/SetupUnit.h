@@ -7,8 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 
-class PointerWrap;
-
 class SetupUnit
 {
 	u8 m_PrimType;
@@ -29,8 +27,7 @@ class SetupUnit
 public:
 	void Init(u8 primitiveType);
 
-	OutputVertexData* GetVertex() { return m_VertWritePointer; }
+	OutputVertexData* GetVertex();
 
 	void SetupVertex();
-	void DoState(PointerWrap &p);
 };

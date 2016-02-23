@@ -86,7 +86,7 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	m_search_type = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, filters);
 	m_search_type->Select(0);
 
-	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search"));
+	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, _("Search (clear to use previous value)"));
 	sizer_cheat_search_filter->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
 	sizer_cheat_search_filter->Add(m_search_type, 0, wxALL, 5);
 
@@ -153,10 +153,14 @@ void CheatSearchTab::OnNextScanClicked(wxCommandEvent&)
 	}
 
 	u32 user_x_val = 0;
-	if (!ParseUserEnteredValue(&user_x_val))
-		return;
+	bool blank_user_value = m_textctrl_value_x->IsEmpty();
+	if (!blank_user_value)
+	{
+		if (!ParseUserEnteredValue(&user_x_val))
+			return;
+	}
 
-	FilterCheatSearchResults(user_x_val);
+	FilterCheatSearchResults(user_x_val, blank_user_value);
 
 	UpdateCheatSearchResultsList();
 }
@@ -232,7 +236,6 @@ void CheatSearchTab::UpdateCheatSearchResultItem(long index)
 {
 	u32 address_value = 0;
 	std::memcpy(&address_value, &Memory::m_pRAM[m_search_results[index].address], m_search_type_size);
-	m_search_results[index].old_value = address_value;
 
 	u32 display_value = SwapValue(address_value);
 
@@ -251,31 +254,55 @@ void CheatSearchTab::UpdateCheatSearchResultItem(long index)
 	m_lview_search_results->SetItem(index, 3, buf);
 }
 
-void CheatSearchTab::FilterCheatSearchResults(u32 value)
+enum class ComparisonMask
 {
-	// Determine the selected filter
-	// 1 : equal
-	// 2 : greater-than
-	// 4 : less-than
-	// 6 : not equal
-	static const int filters[] = { 6, 1, 2, 4 };
-	int filter_mask = filters[m_search_type->GetSelection()];
+	EQUAL        = 0x1,
+	GREATER_THAN = 0x2,
+	LESS_THAN    = 0x4
+};
+
+static ComparisonMask operator | (ComparisonMask comp1, ComparisonMask comp2)
+{
+	return static_cast<ComparisonMask>(static_cast<int>(comp1) |
+					   static_cast<int>(comp2));
+}
+
+static ComparisonMask operator & (ComparisonMask comp1, ComparisonMask comp2)
+{
+	return static_cast<ComparisonMask>(static_cast<int>(comp1) &
+					   static_cast<int>(comp2));
+}
+
+void CheatSearchTab::FilterCheatSearchResults(u32 value, bool prev)
+{
+	static const std::array<ComparisonMask, 5> filters{{
+	    ComparisonMask::EQUAL | ComparisonMask::GREATER_THAN | ComparisonMask::LESS_THAN, // Unknown
+	    ComparisonMask::GREATER_THAN | ComparisonMask::LESS_THAN, // Not Equal
+	    ComparisonMask::EQUAL,
+	    ComparisonMask::GREATER_THAN,
+	    ComparisonMask::LESS_THAN
+	}};
+	ComparisonMask filter_mask = filters[m_search_type->GetSelection()];
 
 	std::vector<CheatSearchResult> filtered_results;
 	filtered_results.reserve(m_search_results.size());
 
 	for (CheatSearchResult& result : m_search_results)
 	{
+		if (prev)
+			value = result.old_value;
+
 		// with big endian, can just use memcmp for ><= comparison
 		int cmp_result = std::memcmp(&Memory::m_pRAM[result.address], &value, m_search_type_size);
+		ComparisonMask cmp_mask;
 		if (cmp_result < 0)
-			cmp_result = 4;
+			cmp_mask = ComparisonMask::LESS_THAN;
 		else if (cmp_result)
-			cmp_result = 2;
+			cmp_mask = ComparisonMask::GREATER_THAN;
 		else
-			cmp_result = 1;
+			cmp_mask = ComparisonMask::EQUAL;
 
-		if (cmp_result & filter_mask)
+		if (static_cast<int>(cmp_mask & filter_mask))
 		{
 			std::memcpy(&result.old_value, &Memory::m_pRAM[result.address], m_search_type_size);
 			filtered_results.push_back(result);

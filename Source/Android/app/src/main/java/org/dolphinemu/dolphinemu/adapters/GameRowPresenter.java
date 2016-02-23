@@ -14,7 +14,7 @@ import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
 /**
  * The Leanback library / docs call this a Presenter, but it works very
- * similarly to a RecyclerView.ViewHolder.
+ * similarly to a RecyclerView.Adapter.
  */
 public final class GameRowPresenter extends Presenter
 {

@@ -2,11 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/MathUtil.h"
-
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
@@ -260,7 +264,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		u32 mmioAddress = PowerPC::IsOptimizableMMIOAccess(address, accessSize);
 		if (accessSize != 64 && mmioAddress)
 		{
-			MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+			MMIOLoadToReg(Memory::mmio_mapping.get(), reg_value, registersInUse,
 			              mmioAddress, accessSize, signExtend);
 			return;
 		}
@@ -1014,3 +1018,11 @@ void EmuCodeBlock::JitClearCA()
 {
 	MOV(8, PPCSTATE(xer_ca), Imm8(0));
 }
+
+void EmuCodeBlock::Clear()
+{
+	registersInUseAtLoc.clear();
+	pcAtLoc.clear();
+	exceptionHandlerAtLoc.clear();
+}
+

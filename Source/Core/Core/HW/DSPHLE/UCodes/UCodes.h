@@ -5,9 +5,8 @@
 #pragma once
 
 #include <cstring>
-#include "Common/ChunkFile.h"
+
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 
@@ -16,6 +15,7 @@
 #define UCODE_NULL                  0xFFFFFFFF
 
 class CMailHandler;
+class PointerWrap;
 
 constexpr bool ExramRead(u32 address)
 {

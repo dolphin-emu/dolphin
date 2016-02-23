@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <unistd.h>
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
 

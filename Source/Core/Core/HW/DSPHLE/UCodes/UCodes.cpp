@@ -2,13 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <string>
+
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"

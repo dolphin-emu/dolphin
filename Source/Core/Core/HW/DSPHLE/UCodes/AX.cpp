@@ -2,13 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
+#include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"

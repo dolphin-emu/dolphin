@@ -14,16 +14,18 @@
 
 #pragma once
 
+#include <memory>
 #include <mutex>
 #include <string>
+#include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Common/MathUtil.h"
-#include "Common/Thread.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
-#include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
@@ -37,8 +39,6 @@ struct EfbPokeData
 // TODO: Move these out of here.
 extern int frameCount;
 extern int OSDChoice;
-
-extern bool bLastFrameDumped;
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
@@ -115,10 +115,12 @@ public:
 	static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight, float Gamma = 1.0f);
 
 	virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
-	virtual void PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data);
+	virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) = 0;
 
 	virtual u16 BBoxRead(int index) = 0;
 	virtual void BBoxWrite(int index, u16 value) = 0;
+
+	static void FlipImageData(u8* data, int w, int h, int pixel_width = 3);
 
 	// Finish up the current frame, print some stats
 	static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,float Gamma = 1.0f);
@@ -129,11 +131,15 @@ public:
 	static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
 	static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
 
-	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor; }
+	PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
 	// Max height/width
 	virtual int GetMaxTextureSize() = 0;
 
 	static Common::Event s_screenshotCompleted;
+
+	// Final surface changing
+	static Common::Flag s_SurfaceNeedsChanged;
+	static Common::Event s_ChangedSurface;
 
 protected:
 
@@ -147,11 +153,8 @@ protected:
 	static std::mutex s_criticalScreenshot;
 	static std::string s_sScreenshotName;
 
-#if defined _WIN32 || defined HAVE_LIBAV
 	bool bAVIDumping;
-#else
-	File::IOFile pFrameDump;
-#endif
+
 	std::vector<u8> frame_data;
 	bool bLastFrameDumped;
 
@@ -172,7 +175,7 @@ protected:
 
 	FPSCounter m_fps_counter;
 
-	static PostProcessingShaderImplementation* m_post_processor;
+	static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
 private:
 	static PEControl::PixelFormat prev_efb_format;
@@ -182,5 +185,5 @@ private:
 	static unsigned int efb_scale_denominatorY;
 };
 
-extern Renderer *g_renderer;
+extern std::unique_ptr<Renderer> g_renderer;
 

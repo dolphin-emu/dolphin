@@ -11,10 +11,11 @@
 #include "Core/NetPlayServer.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 
+// Removed Wiimote UI elements due to Wiimotes being flat out broken in netplay.
+
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
 	: wxDialog(parent, wxID_ANY, _("Controller Ports"))
 	, m_pad_mapping(server->GetPadMapping())
-	, m_wii_mapping(server->GetWiimoteMapping())
 	, m_player_list(client->GetPlayers())
 {
 	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -47,33 +48,6 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
 		}
 
 		v_szr->Add(m_map_cbox[i], 1);
-
-		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
-		h_szr->AddSpacer(10);
-	}
-
-	for (unsigned int i = 0; i < 4; ++i)
-	{
-		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-		v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('1' + i))),
-			1, wxALIGN_CENTER_HORIZONTAL);
-
-		m_map_cbox[i + 4] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
-		m_map_cbox[i + 4]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-		if (m_wii_mapping[i] == -1)
-		{
-			m_map_cbox[i + 4]->Select(0);
-		}
-		else
-		{
-			for (unsigned int j = 0; j < m_player_list.size(); j++)
-			{
-				if (m_wii_mapping[i] == m_player_list[j]->pid)
-					m_map_cbox[i + 4]->Select(j + 1);
-			}
-		}
-
-		v_szr->Add(m_map_cbox[i + 4], 1);
 
 		h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
 		h_szr->AddSpacer(10);

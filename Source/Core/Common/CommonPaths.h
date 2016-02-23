@@ -73,6 +73,7 @@
 #define THEMES_DIR          "Themes"
 #define ANAGLYPH_DIR        "Anaglyph"
 #define PIPES_DIR           "Pipes"
+#define MEMORYWATCHER_DIR   "MemoryWatcher"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -93,6 +94,10 @@
 #define RAM_DUMP      "ram.raw"
 #define ARAM_DUMP     "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
+
+// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
+#define MEMORYWATCHER_LOCATIONS "Locations.txt"
+#define MEMORYWATCHER_SOCKET    "MemoryWatcher"
 
 // Sys files
 #define TOTALDB     "totaldb.dsy"

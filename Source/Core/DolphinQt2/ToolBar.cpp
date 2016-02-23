@@ -4,8 +4,7 @@
 
 #include <QIcon>
 
-#include "Common/FileUtil.h"
-#include "Core/ConfigManager.h"
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
 
 static constexpr QSize ICON_SIZE(32, 32);
@@ -50,10 +49,6 @@ void ToolBar::EmulationStopped()
 void ToolBar::MakeActions()
 {
 	m_open_action = addAction(tr("Open"), this, SIGNAL(OpenPressed()));
-	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
-
-	addSeparator();
-
 	m_play_action = addAction(tr("Play"), this, SIGNAL(PlayPressed()));
 
 	m_pause_action = addAction(tr("Pause"), this, SIGNAL(PausePressed()));
@@ -70,6 +65,8 @@ void ToolBar::MakeActions()
 
 	addSeparator();
 
+	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
+
 	m_config_action = addAction(tr("Settings"));
 	m_config_action->setEnabled(false);
 
@@ -82,7 +79,7 @@ void ToolBar::MakeActions()
 
 void ToolBar::UpdateIcons()
 {
-	QString dir = QString::fromStdString(File::GetThemeDir(SConfig::GetInstance().theme_name));
+	QString dir = Settings().GetThemeDir();
 
 	m_open_action->setIcon(QIcon(QStringLiteral("open.png").prepend(dir)));
 	m_paths_action->setIcon(QIcon(QStringLiteral("browse.png").prepend(dir)));

@@ -14,7 +14,6 @@
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
-#include "VideoBackends/D3D/Globals.h"
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderGen.h"

@@ -4,13 +4,12 @@
 
 #pragma once
 
-#include <functional>
 #include <map>
+#include <memory>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
@@ -22,26 +21,30 @@ class TextureCacheBase
 public:
 	struct TCacheEntryConfig
 	{
-		TCacheEntryConfig() : width(0), height(0), levels(1), layers(1), rendertarget(false) {}
+		constexpr TCacheEntryConfig() = default;
 
-		u32 width, height;
-		u32 levels, layers;
-		bool rendertarget;
-
-		bool operator == (const TCacheEntryConfig& b) const
+		bool operator==(const TCacheEntryConfig& o) const
 		{
-			return width == b.width && height == b.height && levels == b.levels && layers == b.layers && rendertarget == b.rendertarget;
+			return std::tie(width, height, levels, layers, rendertarget) ==
+			       std::tie(o.width, o.height, o.levels, o.layers, o.rendertarget);
 		}
 
 		struct Hasher : std::hash<u64>
 		{
-			size_t operator()(const TextureCacheBase::TCacheEntryConfig& c) const
+			size_t operator()(const TCacheEntryConfig& c) const
 			{
 				u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
 				return std::hash<u64>::operator()(id);
 			}
 		};
+
+		u32 width  = 0;
+		u32 height = 0;
+		u32 levels = 1;
+		u32 layers = 1;
+		bool rendertarget = false;
 	};
+
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
@@ -51,7 +54,7 @@ public:
 		u32 size_in_bytes;
 		u64 base_hash;
 		u64 hash; // for paletted textures, hash = base_hash ^ palette_hash
-		u32 format;
+		u32 format; // bits 0-3 will contain the in-memory format.
 		bool is_efb_copy;
 		bool is_custom_tex;
 		u32 memory_stride;
@@ -67,7 +70,6 @@ public:
 
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
-			_dbg_assert_msg_(VIDEO, _format < 0x10, "You shouldn't use dolphin's \"Extra\" texture formats in a texture cache entry");
 			addr = _addr;
 			size_in_bytes = _size;
 			format = _format;
@@ -136,7 +138,7 @@ public:
 
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
-	static void BindTextures();
+	virtual void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
@@ -147,6 +149,8 @@ protected:
 
 	alignas(16) static u8* temp;
 	static size_t temp_size;
+
+	static TCacheEntryBase* bound_textures[8];
 
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
@@ -163,7 +167,6 @@ private:
 	static TexCache textures_by_address;
 	static TexCache textures_by_hash;
 	static TexPool texture_pool;
-	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig
@@ -179,4 +182,4 @@ private:
 	} backup_config;
 };
 
-extern TextureCacheBase* g_texture_cache;
+extern std::unique_ptr<TextureCacheBase> g_texture_cache;

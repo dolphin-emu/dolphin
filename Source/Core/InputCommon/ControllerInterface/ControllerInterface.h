@@ -29,9 +29,6 @@
 #if defined(__APPLE__)
 	#define CIFACE_USE_OSX
 #endif
-#ifdef ANDROID
-	#define CIFACE_USE_ANDROID
-#endif
 #if defined(HAVE_SDL) && HAVE_SDL
 	#define CIFACE_USE_SDL
 #endif

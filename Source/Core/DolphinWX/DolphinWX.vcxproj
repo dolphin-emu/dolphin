@@ -40,12 +40,16 @@
       <BaseAddress>0x00400000</BaseAddress>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <FixedBaseAddress>true</FixedBaseAddress>
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;vfw32.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\$(PlatformName);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <ResourceCompile>
       <AdditionalIncludeDirectories>$(ExternalsDir)wxWidgets3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <ClCompile />
+    <ClCompile />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />
@@ -58,6 +62,7 @@
     <ClCompile Include="Config\AudioConfigPane.cpp" />
     <ClCompile Include="Config\ConfigMain.cpp" />
     <ClCompile Include="Config\GameCubeConfigPane.cpp" />
+    <ClCompile Include="Config\GCAdapterConfigDiag.cpp" />
     <ClCompile Include="Config\GeneralConfigPane.cpp" />
     <ClCompile Include="Config\InterfaceConfigPane.cpp" />
     <ClCompile Include="Config\PathConfigPane.cpp" />
@@ -113,6 +118,7 @@
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />
+    <ClInclude Include="Config\GCAdapterConfigDiag.h" />
     <ClInclude Include="Config\GeneralConfigPane.h" />
     <ClInclude Include="Config\InterfaceConfigPane.h" />
     <ClInclude Include="Config\PathConfigPane.h" />
@@ -226,6 +232,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj">
+      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

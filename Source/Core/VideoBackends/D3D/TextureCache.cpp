@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -21,7 +23,7 @@
 namespace DX11
 {
 
-static TextureEncoder* g_encoder = nullptr;
+static std::unique_ptr<TextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
@@ -188,6 +190,21 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool scaleByHalf, unsigned int cbufid, const float *colmat)
 {
+	// When copying at half size, in multisampled mode, resolve the color/depth buffer first.
+	// This is because multisampled texture reads go through Load, not Sample, and the linear
+	// filter is ignored.
+	bool multisampled = (g_ActiveConfig.iMultisamples > 1);
+	ID3D11ShaderResourceView* efbTexSRV = (srcFormat == PEControl::Z24) ?
+		FramebufferManager::GetEFBDepthTexture()->GetSRV() :
+		FramebufferManager::GetEFBColorTexture()->GetSRV();
+	if (multisampled && scaleByHalf)
+	{
+		multisampled = false;
+		efbTexSRV = (srcFormat == PEControl::Z24) ?
+			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+	}
+
 	g_renderer->ResetAPIState();
 
 	// stretch picture with increased internal resolution
@@ -224,10 +241,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
-		(srcFormat == PEControl::Z24 ? FramebufferManager::GetEFBDepthTexture() : FramebufferManager::GetEFBColorTexture())->GetSRV(),
+		efbTexSRV,
 		&sourcerect, Renderer::GetTargetWidth(),
 		Renderer::GetTargetHeight(),
-		srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(true) : PixelShaderCache::GetColorMatrixProgram(true),
+		srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(multisampled) : PixelShaderCache::GetColorMatrixProgram(multisampled),
 		VertexShaderCache::GetSimpleVertexShader(),
 		VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader());
@@ -338,7 +355,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	D3D::stateman->SetTexture(1, palette_buf_srv);
 
 	// TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
-	float params[4] = { (unconverted->format & 0xf) == 0 ? 15.f : 255.f };
+	float params[4] = { (unconverted->format & 0xf) == GX_TF_I4 ? 15.f : 255.f };
 	D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
 	D3D::stateman->SetPixelConstants(palette_uniform);
 
@@ -377,7 +394,7 @@ ID3D11PixelShader *GetConvertShader(const char* Type)
 TextureCache::TextureCache()
 {
 	// FIXME: Is it safe here?
-	g_encoder = new PSTextureEncoder;
+	g_encoder = std::make_unique<PSTextureEncoder>();
 	g_encoder->Init();
 
 	palette_buf = nullptr;
@@ -407,8 +424,7 @@ TextureCache::~TextureCache()
 		SAFE_RELEASE(efbcopycbuf[k]);
 
 	g_encoder->Shutdown();
-	delete g_encoder;
-	g_encoder = nullptr;
+	g_encoder.reset();
 
 	SAFE_RELEASE(palette_buf);
 	SAFE_RELEASE(palette_buf_srv);

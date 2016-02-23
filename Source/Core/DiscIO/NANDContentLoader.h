@@ -15,7 +15,8 @@
 
 namespace DiscIO
 {
-	bool Add_Ticket(u64 TitleID, const u8 *p_tik, u32 tikSize);
+bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
+
 struct SNANDContent
 {
 	u32 m_ContentID;
@@ -26,7 +27,7 @@ struct SNANDContent
 	u8 m_Header[36]; //all of the above
 
 	std::string m_Filename;
-	u8* m_pData;
+	std::vector<u8> m_data;
 };
 
 // Instances of this class must be created by CNANDContentManager
@@ -42,11 +43,10 @@ public:
 	u16 GetIosVersion() const { return m_IosVersion; }
 	u32 GetBootIndex() const  { return m_BootIndex; }
 	size_t GetContentSize() const { return m_Content.size(); }
-	const SNANDContent* GetContentByIndex(int _Index) const;
+	const SNANDContent* GetContentByIndex(int index) const;
 	const u8* GetTMDView() const { return m_TMDView; }
 	const u8* GetTMDHeader() const { return m_TMDHeader; }
-	u32 GetTIKSize() const { return m_TIKSize; }
-	const u8* GetTIK() const { return m_TIK; }
+	const std::vector<u8>& GetTicket() const { return m_ticket; }
 
 	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
@@ -64,6 +64,12 @@ public:
 	};
 
 private:
+	bool Initialize(const std::string& name);
+	void InitializeContentEntries(const std::vector<u8>& tmd, const std::vector<u8>& decrypted_title_key, const std::vector<u8>& data_app);
+
+	static std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
+	static std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
+
 	bool m_Valid;
 	bool m_isWAD;
 	std::string m_Path;
@@ -74,18 +80,10 @@ private:
 	u16 m_TitleVersion;
 	u8 m_TMDView[TMD_VIEW_SIZE];
 	u8 m_TMDHeader[TMD_HEADER_SIZE];
-	u32 m_TIKSize;
-	u8* m_TIK;
+	std::vector<u8> m_ticket;
 	u8 m_Country;
 
 	std::vector<SNANDContent> m_Content;
-
-
-	bool Initialize(const std::string& _rName);
-
-	void AESDecode(u8* _pKey, u8* _IV, u8* _pSrc, u32 _Size, u8* _pDest);
-
-	void GetKeyFromTicket(u8* pTicket, u8* pTicketKey);
 };
 
 

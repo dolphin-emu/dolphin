@@ -4,10 +4,11 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/CPUDetect.h"
 #include "Common/FPURoundMode.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 

@@ -3,7 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/SystemTimers.h"
+#include "Common/MsgHandler.h"
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
 void JitILBase::mtspr(UGeckoInstruction inst)

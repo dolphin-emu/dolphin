@@ -3,23 +3,32 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
+#include <memory>
 #include <string>
+#include <utility>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -28,7 +37,7 @@ static const int TEXTURE_KILL_THRESHOLD = 64; // Sonic the Fighters (inside Soni
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
-TextureCacheBase* g_texture_cache;
+std::unique_ptr<TextureCacheBase> g_texture_cache;
 
 alignas(16) u8* TextureCacheBase::temp = nullptr;
 size_t TextureCacheBase::temp_size;
@@ -215,9 +224,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		|| isPaletteTexture)
 		return entry_to_update;
 
-	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format);
-	u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format);
-	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(entry_to_update->format) / 2;
+	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xf);
+	u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format & 0xf);
+	u32 block_size = block_width * block_height * TexDecoder_GetTexelSizeInNibbles(entry_to_update->format & 0xf) / 2;
 
 	u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
@@ -327,7 +336,7 @@ void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename,
 
 static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 {
-	return (level_0_size + ((1 << level) - 1)) >> level;
+	return std::max(level_0_size >> level, 1u);
 }
 
 // Used by TextureCacheBase::Load
@@ -604,16 +613,16 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 		if (hires_tex)
 		{
-			auto& l = hires_tex->m_levels[0];
-			if (l.width != width || l.height != height)
+			const auto& level = hires_tex->m_levels[0];
+			if (level.width != width || level.height != height)
 			{
-				width = l.width;
-				height = l.height;
+				width = level.width;
+				height = level.height;
 			}
-			expandedWidth = l.width;
-			expandedHeight = l.height;
-			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
+			expandedWidth = level .width;
+			expandedHeight = level.height;
+			CheckTempSize(level.data_size);
+			memcpy(temp, level.data.get(), level.data_size);
 		}
 	}
 
@@ -677,12 +686,12 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 	if (hires_tex)
 	{
-		for (u32 level = 1; level != texLevels; ++level)
+		for (u32 level_index = 1; level_index != texLevels; ++level_index)
 		{
-			auto& l = hires_tex->m_levels[level];
-			CheckTempSize(l.data_size);
-			memcpy(temp, l.data, l.data_size);
-			entry->Load(l.width, l.height, l.width, level);
+			const auto& level = hires_tex->m_levels[level_index];
+			CheckTempSize(level.data_size);
+			memcpy(temp, level.data.get(), level.data_size);
+			entry->Load(level.width, level.height, level.width, level_index);
 		}
 	}
 	else
@@ -1104,6 +1113,21 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 			FifoRecorder::GetInstance().UseMemory(address, bytes_per_row, MemoryUpdate::TEXTURE_MAP, true);
 			address += dstStride;
 		}
+	}
+
+	if (dstStride < bytes_per_row)
+	{
+		// This kind of efb copy results in a scrambled image.
+		// I'm pretty sure no game actually wants to do this, it might be caused by a
+		// programming bug in the game, or a CPU/Bounding box emulation issue with dolphin.
+		// The copy_to_ram code path above handles this "correctly" and scrambles the image
+		// but the copy_to_vram code path just saves and uses unscrambled texture instead.
+
+		// To avoid a "incorrect" result, we simply skip doing the copy_to_vram code path
+		// so if the game does try to use the scrambled texture, dolphin will grab the scrambled
+		// texture (or black if copy_to_ram is also disabled) out of ram.
+		ERROR_LOG(VIDEO, "Memory stride too small (%i < %i)", dstStride, bytes_per_row);
+		copy_to_vram = false;
 	}
 
 	// Invalidate all textures that overlap the range of our efb copy.

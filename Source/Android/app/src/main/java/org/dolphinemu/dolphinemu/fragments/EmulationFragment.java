@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -16,6 +15,7 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
@@ -115,7 +115,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void onStop()
 	{
 		super.onStop();
-		pauseEmulation();
 	}
 
 	@Override
@@ -152,20 +151,22 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
-		Log.d("DolphinEmu", "Surface created.");
+		Log.debug("[EmulationFragment] Surface created.");
 	}
 
 	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
 	{
-		Log.d("DolphinEmu", "Surface changed. Resolution: " + width + "x" + height);
+		Log.debug("[EmulationFragment] Surface changed. Resolution: " + width + "x" + height);
 		mSurface = holder.getSurface();
+		NativeLibrary.SurfaceChanged(mSurface);
 	}
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder)
 	{
-		Log.d("DolphinEmu", "Surface destroyed.");
+		Log.debug("[EmulationFragment] Surface destroyed.");
+		NativeLibrary.SurfaceDestroyed();
 
 		if (mEmulationRunning)
 		{
@@ -177,13 +178,13 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	{
 		if (!mEmulationStarted)
 		{
-			Log.d("DolphinEmu", "Starting emulation thread.");
+			Log.debug("[EmulationFragment] Starting emulation thread.");
 
 			mEmulationThread.start();
 		}
 		else
 		{
-			Log.d("DolphinEmu", "Resuming emulation.");
+			Log.debug("[EmulationFragment] Resuming emulation.");
 			NativeLibrary.UnPauseEmulation();
 		}
 
@@ -192,7 +193,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
 	private void pauseEmulation()
 	{
-		Log.d("DolphinEmu", "Pausing emulation.");
+		Log.debug("[EmulationFragment] Pausing emulation.");
 
 		NativeLibrary.PauseEmulation();
 		mEmulationRunning = false;
@@ -216,20 +217,14 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			mEmulationRunning = true;
 			mEmulationStarted = true;
 
-			// Loop until onSurfaceCreated succeeds
 			while (mSurface == null)
-			{
 				if (!mEmulationRunning)
-				{
-					// So that if the user quits before this gets a surface, we don't loop infinitely.
 					return;
-				}
-			}
 
-			Log.i("DolphinEmu", "Starting emulation: " + mSurface);
+			Log.info("[EmulationFragment] Starting emulation: " + mSurface);
 
 			// Start emulation using the provided Surface.
-			NativeLibrary.Run(mSurface);
+			NativeLibrary.Run();
 		}
 	};
 }

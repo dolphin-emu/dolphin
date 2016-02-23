@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
 
-enum GLInterfaceMode {
-	MODE_DETECT = 0,
+enum class GLInterfaceMode
+{
+	MODE_DETECT,
 	MODE_OPENGL,
 	MODE_OPENGLES2,
 	MODE_OPENGLES3,
@@ -19,17 +21,20 @@ class cInterfaceBase
 {
 protected:
 	// Window dimensions.
-	u32 s_backbuffer_width;
-	u32 s_backbuffer_height;
+	u32 s_backbuffer_width = 0;
+	u32 s_backbuffer_height = 0;
+	bool m_core = false;
+	bool m_is_shared = false;
 
-	u32 s_opengl_mode;
+	GLInterfaceMode s_opengl_mode = GLInterfaceMode::MODE_DETECT;
 public:
 	virtual ~cInterfaceBase() {}
 	virtual void Swap() {}
-	virtual void SetMode(u32 mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
-	virtual u32 GetMode() { return s_opengl_mode; }
+	virtual void SetMode(GLInterfaceMode mode) { s_opengl_mode = GLInterfaceMode::MODE_OPENGL; }
+	virtual GLInterfaceMode GetMode() { return s_opengl_mode; }
 	virtual void* GetFuncAddress(const std::string& name) { return nullptr; }
 	virtual bool Create(void *window_handle, bool core = true) { return true; }
+	virtual bool Create(cInterfaceBase* main_context) { return true; }
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
 	virtual void Shutdown() {}
@@ -40,10 +45,13 @@ public:
 	virtual void SetBackBufferDimensions(u32 W, u32 H) {s_backbuffer_width = W; s_backbuffer_height = H; }
 	virtual void Update() { }
 	virtual bool PeekMessages() { return false; }
+	virtual void UpdateHandle(void* window_handle) {}
+	virtual void UpdateSurface() {}
+	virtual std::unique_ptr<cInterfaceBase> CreateSharedContext() { return nullptr; }
 };
 
-extern cInterfaceBase *GLInterface;
+extern std::unique_ptr<cInterfaceBase> GLInterface;
 
 // This function has to be defined along the Host_ functions from Core/Host.h.
 // Current canonical implementation: DolphinWX/GLInterface/GLInterface.cpp.
-cInterfaceBase* HostGL_CreateGLInterface();
+std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface();

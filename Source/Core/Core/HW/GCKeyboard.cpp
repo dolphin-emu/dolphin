@@ -2,9 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"
 #include "InputCommon/InputConfig.h"

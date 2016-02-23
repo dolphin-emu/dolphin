@@ -19,10 +19,11 @@
 #include <dbt.h>           //NOLINT
 #include <setupapi.h>      //NOLINT
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 

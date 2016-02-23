@@ -2,13 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cfloat>
-#include <cmath>
+#include <cstring>
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 

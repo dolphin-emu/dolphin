@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/StringUtil.h"
@@ -11,7 +12,6 @@
 #include "Core/ConfigManager.h"
 
 #include "VideoBackends/D3D/D3DShader.h"
-#include "VideoBackends/D3D/Globals.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
 #include "VideoCommon/Debugger.h"

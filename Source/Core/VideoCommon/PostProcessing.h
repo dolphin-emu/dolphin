@@ -8,9 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "Common/StringUtil.h"
+#include "Common/CommonTypes.h"
 #include "Common/Timer.h"
-
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderConfiguration

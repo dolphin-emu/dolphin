@@ -61,7 +61,7 @@ protected:
 
 	void CreateAndCheckSizes(size_t input_size, size_t output_size)
 	{
-		m_loader.reset(VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr));
+		m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
 		ASSERT_EQ((int)input_size, m_loader->m_VertexSize);
 		ASSERT_EQ((int)output_size, m_loader->m_native_vtx_decl.stride);
 	}

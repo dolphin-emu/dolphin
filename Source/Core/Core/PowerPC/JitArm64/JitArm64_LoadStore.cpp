@@ -3,12 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
-#include "Common/Common.h"
+#include "Common/BitSet.h"
+#include "Common/CommonTypes.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/GPFifo.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
-
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -151,7 +154,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 	}
 	else if (mmio_address)
 	{
-		MMIOLoadToReg(Memory::mmio_mapping, this,
+		MMIOLoadToReg(Memory::mmio_mapping.get(), this,
 		              regs_in_use, fprs_in_use, dest_reg,
 		              mmio_address, flags);
 	}
@@ -347,7 +350,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 	}
 	else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
 	{
-		MMIOWriteRegToAddr(Memory::mmio_mapping, this,
+		MMIOWriteRegToAddr(Memory::mmio_mapping.get(), this,
 		                   regs_in_use, fprs_in_use, RS,
 		                   mmio_address, flags);
 	}

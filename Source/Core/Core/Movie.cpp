@@ -12,7 +12,6 @@
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -29,12 +28,12 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.
@@ -228,9 +227,6 @@ void InputUpdate()
 		s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
 		s_tickCountAtLastInput = CoreTiming::GetTicks();
 	}
-
-	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount - 1) && SConfig::GetInstance().m_PauseMovie)
-		Core::SetState(Core::CORE_PAUSE);
 }
 
 void SetFrameSkipping(unsigned int framesToSkip)
@@ -243,7 +239,7 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// Don't forget to re-enable rendering in case it wasn't...
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
-		g_video_backend->Video_SetRendering(true);
+		Fifo::SetRendering(true);
 }
 
 void SetPolledDevice()
@@ -291,7 +287,7 @@ void FrameSkipping()
 		if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
 			s_frameSkipCounter = 0;
 
-		g_video_backend->Video_SetRendering(!s_frameSkipCounter);
+		Fifo::SetRendering(!s_frameSkipCounter);
 	}
 }
 
@@ -500,6 +496,14 @@ bool BeginRecordingInput(int controllers)
 		md5thread.detach();
 		GetSettings();
 	}
+
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	if (!Core::IsRunningAndStarted())
+	{
+	        // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+	        Wiimote::ResetAllWiimotes();
+	}
+
 	s_playMode = MODE_RECORDING;
 	s_author = SConfig::GetInstance().m_strMovieAuthor;
 	EnsureTmpInputSize(1);
@@ -854,6 +858,9 @@ bool PlayInput(const std::string& filename)
 
 	s_playMode = MODE_PLAYING;
 
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	Wiimote::ResetAllWiimotes();
+
 	Core::UpdateWantDeterminism();
 
 	s_totalBytes = g_recordfd.GetSize() - 256;
@@ -1194,6 +1201,9 @@ void EndPlayInput(bool cont)
 		//g_totalFrames = s_totalBytes = 0;
 		//delete tmpInput;
 		//tmpInput = nullptr;
+
+		if (SConfig::GetInstance().m_PauseMovie)
+			Core::SetState(Core::CORE_PAUSE);
 	}
 }
 

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <tuple>
 
 #include "Common/BreakPoints.h"

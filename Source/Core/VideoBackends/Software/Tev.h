@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "VideoBackends/Software/BPMemLoader.h"
-
-class PointerWrap;
+#include "VideoCommon/BPMemory.h"
 
 class Tev
 {
@@ -90,6 +88,4 @@ public:
 	void Draw();
 
 	void SetRegColor(int reg, int comp, bool konst, s16 color);
-
-	void DoState(PointerWrap &p);
 };

@@ -8,14 +8,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
-#include "Core/DSPEmulator.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/Fifo.h"
 
 namespace
 {
@@ -114,7 +111,7 @@ void EnableStepping(const bool stepping)
 	{
 		PowerPC::Pause();
 		m_StepEvent.Reset();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
+		Fifo::EmulatorState(false);
 		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
@@ -137,7 +134,7 @@ void EnableStepping(const bool stepping)
 		}
 		PowerPC::Start();
 		m_StepEvent.Set();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
+		Fifo::EmulatorState(true);
 		AudioCommon::ClearAudioBuffer(false);
 	}
 }

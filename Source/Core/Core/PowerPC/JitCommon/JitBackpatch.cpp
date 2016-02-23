@@ -3,9 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <string>
 
 #include "disasm.h"
 
+#include "Common/Assert.h"
+#include "Common/BitSet.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
+#include "Common/x64Analyzer.h"
+#include "Common/x64Emitter.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 using namespace Gen;

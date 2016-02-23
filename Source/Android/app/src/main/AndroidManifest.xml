@@ -18,6 +18,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".DolphinApplication"
         android:label="@string/app_name"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
@@ -26,7 +27,7 @@
         android:banner="@drawable/banner_tv">
 
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".ui.main.MainActivity"
             android:theme="@style/DolphinGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -38,7 +39,7 @@
         </activity>
 
         <activity
-            android:name=".activities.TvMainActivity"
+            android:name=".ui.main.TvMainActivity"
             android:theme="@style/DolphinTvGamecube">
 
             <!-- This intentfilter marks this Activity as the one that gets launched from Home screen. -->
@@ -55,9 +56,9 @@
             android:label="@string/add_directory_title"/>
 
         <activity
-            android:name=".activities.SettingsActivity"
+            android:name=".ui.settings.SettingsActivity"
             android:theme="@style/DolphinSettingsGamecube"
-            android:label="@string/grid_menu_settings"/>
+            android:label="@string/preferences_settings"/>
 
         <activity
             android:name=".activities.EmulationActivity"
@@ -69,8 +70,6 @@
 
 
         <service android:name=".services.AssetCopyService"/>
-
-        <service android:name=".services.SettingsSaveService"/>
 
         <provider
             android:name=".model.GameProvider"

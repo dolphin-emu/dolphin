@@ -15,7 +15,7 @@ namespace OGL
 {
 
 // moved out of constructor, so m_buffer is allowed to be const
-static u32 genBuffer()
+static u32 GenBuffer()
 {
 	u32 id;
 	glGenBuffers(1, &id);
@@ -23,7 +23,7 @@ static u32 genBuffer()
 }
 
 StreamBuffer::StreamBuffer(u32 type, u32 size)
-: m_buffer(genBuffer()), m_buffertype(type), m_size(ROUND_UP_POW2(size)), m_bit_per_slot(IntLog2(ROUND_UP_POW2(size) / SYNC_POINTS))
+	: m_buffer(GenBuffer()), m_buffertype(type), m_size(ROUND_UP_POW2(size)), m_bit_per_slot(IntLog2(ROUND_UP_POW2(size) / SYNC_POINTS))
 {
 	m_iterator = 0;
 	m_used_iterator = 0;
@@ -61,36 +61,36 @@ StreamBuffer::~StreamBuffer()
 
 void StreamBuffer::CreateFences()
 {
-	for (int i=0; i<SYNC_POINTS; i++)
+	for (int i = 0; i < SYNC_POINTS; i++)
 	{
-		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 }
 void StreamBuffer::DeleteFences()
 {
-	for (int i = SLOT(m_free_iterator) + 1; i < SYNC_POINTS; i++)
+	for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; i++)
 	{
-		glDeleteSync(fences[i]);
+		glDeleteSync(m_fences[i]);
 	}
-	for (int i = 0; i < SLOT(m_iterator); i++)
+	for (int i = 0; i < Slot(m_iterator); i++)
 	{
-		glDeleteSync(fences[i]);
+		glDeleteSync(m_fences[i]);
 	}
 }
 void StreamBuffer::AllocMemory(u32 size)
 {
 	// insert waiting slots for used memory
-	for (int i = SLOT(m_used_iterator); i < SLOT(m_iterator); i++)
+	for (int i = Slot(m_used_iterator); i < Slot(m_iterator); i++)
 	{
-		fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+		m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 	}
 	m_used_iterator = m_iterator;
 
 	// wait for new slots to end of buffer
-	for (int i = SLOT(m_free_iterator) + 1; i <= SLOT(m_iterator + size) && i < SYNC_POINTS; i++)
+	for (int i = Slot(m_free_iterator) + 1; i <= Slot(m_iterator + size) && i < SYNC_POINTS; i++)
 	{
-		glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-		glDeleteSync(fences[i]);
+		glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+		glDeleteSync(m_fences[i]);
 	}
 	m_free_iterator = m_iterator + size;
 
@@ -98,19 +98,19 @@ void StreamBuffer::AllocMemory(u32 size)
 	if (m_iterator + size >= m_size)
 	{
 		// insert waiting slots in unused space at the end of the buffer
-		for (int i = SLOT(m_used_iterator); i < SYNC_POINTS; i++)
+		for (int i = Slot(m_used_iterator); i < SYNC_POINTS; i++)
 		{
-			fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+			m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
 		}
 
 		// move to the start
 		m_used_iterator = m_iterator = 0; // offset 0 is always aligned
 
 		// wait for space at the start
-		for (int i = 0; i <= SLOT(m_iterator + size); i++)
+		for (int i = 0; i <= Slot(m_iterator + size); i++)
 		{
-			glClientWaitSync(fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
-			glDeleteSync(fences[i]);
+			glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+			glDeleteSync(m_fences[i]);
 		}
 		m_free_iterator = m_iterator + size;
 	}
@@ -355,17 +355,17 @@ public:
 	u8* m_pointer;
 };
 
-// choose best streaming library based on the supported extensions and known issues
-StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
+// Chooses the best streaming method based on the supported extensions and known issues
+std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
 {
 	// without basevertex support, only streaming methods whith uploads everything to zero works fine:
 	if (!g_ogl_config.bSupportsGLBaseVertex)
 	{
 		if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
-			return new BufferSubData(type, size);
+			return std::make_unique<BufferSubData>(type, size);
 
 		// BufferData is by far the worst way, only use it if needed
-		return new BufferData(type, size);
+		return std::make_unique<BufferData>(type, size);
 	}
 
 	// Prefer the syncing buffers over the orphaning one
@@ -374,25 +374,25 @@ StreamBuffer* StreamBuffer::Create(u32 type, u32 size)
 		// pinned memory is much faster than buffer storage on AMD cards
 		if (g_ogl_config.bSupportsGLPinnedMemory &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) && type == GL_ELEMENT_ARRAY_BUFFER))
-			return new PinnedMemory(type, size);
+			return std::make_unique<PinnedMemory>(type, size);
 
 		// buffer storage works well in most situations
 		if (g_ogl_config.bSupportsGLBufferStorage &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENBUFFERSTORAGE) && type == GL_ELEMENT_ARRAY_BUFFER))
-			return new BufferStorage(type, size);
+			return std::make_unique<BufferStorage>(type, size);
 
 		// don't fall back to MapAnd* for Nvidia drivers
 		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
-			return new BufferSubData(type, size);
+			return std::make_unique<BufferSubData>(type, size);
 
 		// mapping fallback
 		if (g_ogl_config.bSupportsGLSync)
-			return new MapAndSync(type, size);
+			return std::make_unique<MapAndSync>(type, size);
 	}
 
 	// default fallback, should work everywhere, but isn't the best way to do this job
-	return new MapAndOrphan(type, size);
+	return std::make_unique<MapAndOrphan>(type, size);
 }
 
 }

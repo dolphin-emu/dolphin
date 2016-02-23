@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/CPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -11,7 +13,6 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
 static void XFMemWritten(u32 transferSize, u32 baseAddress)
@@ -258,9 +259,9 @@ void LoadIndexedXF(u32 val, int refarray)
 
 	u32* currData = (u32*)(&xfmem) + address;
 	u32* newData;
-	if (g_use_deterministic_gpu_thread)
+	if (Fifo::UseDeterministicGPUThread())
 	{
-		newData = (u32*)PopFifoAuxBuffer(size * sizeof(u32));
+		newData = (u32*)Fifo::PopFifoAuxBuffer(size * sizeof(u32));
 	}
 	else
 	{
@@ -291,5 +292,5 @@ void PreprocessIndexedXF(u32 val, int refarray)
 	u32* new_data = (u32*)Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] + g_preprocess_cp_state.array_strides[refarray] * index);
 
 	size_t buf_size = size * sizeof(u32);
-	PushFifoAuxBuffer(new_data, buf_size);
+	Fifo::PushFifoAuxBuffer(new_data, buf_size);
 }

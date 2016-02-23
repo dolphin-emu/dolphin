@@ -6,34 +6,14 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "VideoCommon/VideoBackendBase.h"
-
 namespace ProcessorInterface
 {
-
-// Internal hardware addresses
-enum
-{
-	PI_INTERRUPT_CAUSE = 0x00,
-	PI_INTERRUPT_MASK  = 0x04,
-	PI_FIFO_BASE       = 0x0C,
-	PI_FIFO_END        = 0x10,
-	PI_FIFO_WPTR       = 0x14,
-	PI_FIFO_RESET      = 0x18, // ??? - GXAbortFrame writes to it
-	PI_RESET_CODE      = 0x24,
-	PI_FLIPPER_REV     = 0x2C,
-	PI_FLIPPER_UNK     = 0x30 // BS1 writes 0x0245248A to it - prolly some bootstrap thing
-};
-
 
 // STATE_TO_SAVE
 u32 m_InterruptCause;
@@ -223,8 +203,8 @@ void ToggleResetButtonCallback(u64 userdata, int cyclesLate)
 
 void ResetButton_Tap()
 {
-	CoreTiming::ScheduleEvent_Threadsafe(0, toggleResetButton, true);
-	CoreTiming::ScheduleEvent_Threadsafe(243000000, toggleResetButton, false);
+	CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
+	CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
 }
 
 } // namespace ProcessorInterface

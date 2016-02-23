@@ -9,22 +9,18 @@
 // may be redirected here (for example to Read_U32()).
 
 #include <cstring>
+#include <memory>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
-#include "Common/MemoryUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HW/AudioInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/MMIO.h"
@@ -34,9 +30,8 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace Memory
 {
@@ -64,31 +59,37 @@ u8* m_pEXRAM;
 u8* m_pFakeVMEM;
 
 // MMIO mapping object.
-MMIO::Mapping* mmio_mapping;
+std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
-static void InitMMIO(MMIO::Mapping* mmio)
+static std::unique_ptr<MMIO::Mapping> InitMMIO()
 {
-	g_video_backend->RegisterCPMMIO(mmio, 0x0C000000);
-	PixelEngine::RegisterMMIO(mmio, 0x0C001000);
-	VideoInterface::RegisterMMIO(mmio, 0x0C002000);
-	ProcessorInterface::RegisterMMIO(mmio, 0x0C003000);
-	MemoryInterface::RegisterMMIO(mmio, 0x0C004000);
-	DSP::RegisterMMIO(mmio, 0x0C005000);
-	DVDInterface::RegisterMMIO(mmio, 0x0C006000);
-	SerialInterface::RegisterMMIO(mmio, 0x0C006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0x0C006800);
-	AudioInterface::RegisterMMIO(mmio, 0x0C006C00);
+	auto mmio = std::make_unique<MMIO::Mapping>();
+
+	CommandProcessor  ::RegisterMMIO(mmio.get(), 0x0C000000);
+	PixelEngine       ::RegisterMMIO(mmio.get(), 0x0C001000);
+	VideoInterface    ::RegisterMMIO(mmio.get(), 0x0C002000);
+	ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
+	MemoryInterface   ::RegisterMMIO(mmio.get(), 0x0C004000);
+	DSP               ::RegisterMMIO(mmio.get(), 0x0C005000);
+	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0C006000);
+	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0C006400);
+	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
+	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0C006C00);
+
+	return mmio;
 }
 
-static void InitMMIOWii(MMIO::Mapping* mmio)
+static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
 {
-	InitMMIO(mmio);
+	auto mmio = InitMMIO();
 
-	WII_IPCInterface::RegisterMMIO(mmio, 0x0D000000);
-	DVDInterface::RegisterMMIO(mmio, 0x0D006000);
-	SerialInterface::RegisterMMIO(mmio, 0x0D006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0x0D006800);
-	AudioInterface::RegisterMMIO(mmio, 0x0D006C00);
+	WII_IPCInterface  ::RegisterMMIO(mmio.get(), 0x0D000000);
+	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0D006000);
+	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0D006400);
+	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
+	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0D006C00);
+
+	return mmio;
 }
 
 bool IsInitialized()
@@ -186,12 +187,10 @@ void Init()
 	logical_base = physical_base + 0x200000000;
 #endif
 
-	mmio_mapping = new MMIO::Mapping();
-
 	if (wii)
-		InitMMIOWii(mmio_mapping);
+		mmio_mapping = InitMMIOWii();
 	else
-		InitMMIO(mmio_mapping);
+		mmio_mapping = InitMMIO();
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
 	m_IsInitialized = true;
@@ -221,7 +220,7 @@ void Shutdown()
 	g_arena.ReleaseSHMSegment();
 	physical_base = nullptr;
 	logical_base = nullptr;
-	delete mmio_mapping;
+	mmio_mapping.reset();
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 

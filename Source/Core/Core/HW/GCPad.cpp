@@ -2,15 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-
-#include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace Pad
 {
@@ -52,14 +51,6 @@ void GetStatus(u8 pad_num, GCPadStatus* pad_status)
 {
 	memset(pad_status, 0, sizeof(*pad_status));
 	pad_status->err = PAD_ERR_NONE;
-
-	// If we are on the next input cycle, update output and input
-	static int last_pad_num = 4;
-	if (pad_num <= last_pad_num)
-	{
-		g_controller_interface.UpdateInput();
-	}
-	last_pad_num = pad_num;
 
 	// Get input
 	static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput(pad_status);

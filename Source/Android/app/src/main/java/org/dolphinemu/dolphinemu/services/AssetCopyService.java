@@ -10,10 +10,9 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.utils.UserPreferences;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,8 +26,6 @@ import java.io.OutputStream;
  */
 public final class AssetCopyService extends IntentService
 {
-	private static final String TAG = "DolphinEmulator";
-
 	public AssetCopyService()
 	{
 		// Superclass constructor is called to name the thread on which this service executes.
@@ -55,17 +52,13 @@ public final class AssetCopyService extends IntentService
 		}
 		else
 		{
-			Log.v(TAG, "Skipping asset copy operation.");
+			Log.verbose("[AssetCopyService] Skipping asset copy operation.");
 		}
 
 		// Always copy over the GCPad config in case of change or corruption.
 		// Not a user configurable file.
 		copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini");
 		copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini");
-
-		// Load the configuration keys set in the Dolphin ini and gfx ini files
-		// into the application's shared preferences.
-		UserPreferences.LoadIniToPrefs(this);
 
 		// Record the fact that we've done this before, so we don't do it on every launch.
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -77,7 +70,7 @@ public final class AssetCopyService extends IntentService
 
 	private void copyAsset(String asset, String output)
 	{
-		Log.v(TAG, "Copying " + asset + " to " + output);
+		Log.verbose("[AssetCopyService] Copying " + asset + " to " + output);
 		InputStream in = null;
 		OutputStream out = null;
 
@@ -91,13 +84,13 @@ public final class AssetCopyService extends IntentService
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Failed to copy asset file: " + asset, e);
+			Log.error("[AssetCopyService] Failed to copy asset file: " + asset + e.getMessage());
 		}
 	}
 
 	private void copyAssetFolder(String assetFolder, String outputFolder)
 	{
-		Log.v(TAG, "Copying " + assetFolder + " to " + outputFolder);
+		Log.verbose("[AssetCopyService] Copying " + assetFolder + " to " + outputFolder);
 
 		try
 		{
@@ -108,7 +101,7 @@ public final class AssetCopyService extends IntentService
 		}
 		catch (IOException e)
 		{
-			Log.e(TAG, "Failed to copy asset folder: " + assetFolder, e);
+			Log.error("[AssetCopyService] Failed to copy asset folder: " + assetFolder + e.getMessage());
 		}
 	}
 

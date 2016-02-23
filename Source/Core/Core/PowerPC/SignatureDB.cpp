@@ -6,9 +6,8 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-
-#include "Core/HW/Memmap.h"
-
+#include "Common/Logging/Log.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/SignatureDB.h"

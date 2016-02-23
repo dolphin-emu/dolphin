@@ -311,7 +311,7 @@ private:
 	}
 
 	__forceinline
-	void DoVoid(void *data, u32 size)
+	void DoVoid(void* data, u32 size)
 	{
 		switch (mode)
 		{
@@ -421,7 +421,7 @@ public:
 		}
 
 		// Get data
-		u8 *ptr = nullptr;
+		u8* ptr = nullptr;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
 		size_t const sz = (size_t)ptr;

@@ -24,7 +24,7 @@ public:
 
 	void AddSetting(const std::string& key, const std::string& value);
 
-	const u8 *GetData() const;
+	const u8* GetData() const;
 	const std::string GetValue(const std::string& key);
 
 	void Decrypt();

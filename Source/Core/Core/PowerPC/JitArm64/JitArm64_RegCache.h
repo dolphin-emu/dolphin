@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
@@ -276,6 +277,8 @@ public:
 	ARM64Reg RW(u32 preg, RegType type = REG_LOWER_PAIR);
 
 	BitSet32 GetCallerSavedUsed() override;
+
+	void FixSinglePrecision(u32 preg);
 
 protected:
 	// Get the order of the host registers

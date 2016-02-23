@@ -2,13 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
+#include <vector>
 #include <lzo/lzo1x.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
@@ -20,17 +25,14 @@
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/State.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/HW.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace State
@@ -69,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 49; // Last changed in PR 2149
+static const u32 STATE_VERSION = 51; // Last changed in PR 3530
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -189,7 +191,7 @@ static std::string DoState(PointerWrap& p)
 	Movie::DoState(p);
 	p.DoMarker("Movie");
 
-#if defined(HAVE_LIBAV) || defined (WIN32)
+#if defined(HAVE_LIBAV) || defined (_WIN32)
 	AVIDump::DoState();
 #endif
 
@@ -198,6 +200,12 @@ static std::string DoState(PointerWrap& p)
 
 void LoadFromBuffer(std::vector<u8>& buffer)
 {
+	if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return;
+	}
+
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	u8* ptr = &buffer[0];
@@ -531,7 +539,14 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 bool LoadAs(const std::string& filename)
 {
 	if (!Core::IsRunning())
+	{
 		return false;
+	}
+	else if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return false;
+	}
 
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);

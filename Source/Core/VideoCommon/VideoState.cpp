@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/BPMemory.h"
@@ -17,7 +19,7 @@
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
-static void DoState(PointerWrap &p)
+void VideoCommon_DoState(PointerWrap &p)
 {
 	// BP Memory
 	p.Do(bpmem);
@@ -35,7 +37,7 @@ static void DoState(PointerWrap &p)
 	p.DoMarker("texMem");
 
 	// FIFO
-	Fifo_DoState(p);
+	Fifo::DoState(p);
 	p.DoMarker("Fifo");
 
 	CommandProcessor::DoState(p);
@@ -62,16 +64,6 @@ static void DoState(PointerWrap &p)
 
 
 	// TODO: search for more data that should be saved and add it here
-}
-
-void VideoCommon_DoState(PointerWrap &p)
-{
-	DoState(p);
-}
-
-void VideoCommon_RunLoop(bool enable)
-{
-	EmulatorState(enable);
 }
 
 void VideoCommon_Init()

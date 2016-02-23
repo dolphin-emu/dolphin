@@ -79,7 +79,7 @@ IVolume::ECountry CountrySwitch(u8 country_code)
 {
 	switch (country_code)
 	{
-		// Region free - Uses European flag as placeholder
+		// Worldwide
 		case 'A':
 			return IVolume::COUNTRY_WORLD;
 

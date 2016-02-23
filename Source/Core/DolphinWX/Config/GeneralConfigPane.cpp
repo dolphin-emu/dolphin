@@ -39,10 +39,9 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 
 void GeneralConfigPane::InitializeGUI()
 {
-	m_frame_limit_array_string.Add(_("Off"));
-	m_frame_limit_array_string.Add(_("Auto"));
-	for (int i = 5; i <= 120; i += 5) // from 5 to 120
-		m_frame_limit_array_string.Add(wxString::Format("%i", i));
+	m_throttler_array_string.Add(_("Unlimited"));
+	for (int i = 10; i <= 200; i += 10) // from 10% to 200%
+		m_throttler_array_string.Add(wxString::Format("%i%%", i));
 
 	for (const CPUCore& cpu_core : cpu_cores)
 		m_cpu_engine_array_string.Add(cpu_core.name);
@@ -51,31 +50,31 @@ void GeneralConfigPane::InitializeGUI()
 	m_idle_skip_checkbox   = new wxCheckBox(this, wxID_ANY, _("Enable Idle Skipping (speedup)"));
 	m_cheats_checkbox      = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
 	m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
-	m_frame_limit_choice   = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_frame_limit_array_string);
+	m_throttler_choice     = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_throttler_array_string);
 	m_cpu_engine_radiobox  = new wxRadioBox(this, wxID_ANY, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
 
 	m_dual_core_checkbox->SetToolTip(_("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
 	m_idle_skip_checkbox->SetToolTip(_("Attempt to detect and skip wait-loops.\nIf unsure, leave this checked."));
 	m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
 	m_force_ntscj_checkbox->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
-	m_frame_limit_choice->SetToolTip(_("Limits the game speed to the specified number of frames per second (full speed is 60 for NTSC and 50 for PAL)."));
+	m_throttler_choice->SetToolTip(_("Limits the emulation speed to the specified percentage.\nNote that raising or lowering the emulation speed will also raise or lower the audio pitch to prevent audio from stuttering."));
 
 	m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
 	m_idle_skip_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnIdleSkipCheckBoxChanged, this);
 	m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
 	m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged, this);
-	m_frame_limit_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnFrameLimitChoiceChanged, this);
+	m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
 	m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
 
-	wxBoxSizer* const frame_limit_sizer = new wxBoxSizer(wxHORIZONTAL);
-	frame_limit_sizer->Add(new wxStaticText(this, wxID_ANY, _("Framelimit:")), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	frame_limit_sizer->Add(m_frame_limit_choice, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+	wxBoxSizer* const throttler_sizer = new wxBoxSizer(wxHORIZONTAL);
+	throttler_sizer->Add(new wxStaticText(this, wxID_ANY, _("Speed Limit:")), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	throttler_sizer->Add(m_throttler_choice, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
 	wxStaticBoxSizer* const basic_settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Basic Settings"));
 	basic_settings_sizer->Add(m_dual_core_checkbox, 0, wxALL, 5);
 	basic_settings_sizer->Add(m_idle_skip_checkbox, 0, wxALL, 5);
 	basic_settings_sizer->Add(m_cheats_checkbox, 0, wxALL, 5);
-	basic_settings_sizer->Add(frame_limit_sizer);
+	basic_settings_sizer->Add(throttler_sizer);
 
 	wxStaticBoxSizer* const advanced_settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Advanced Settings"));
 	advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxALL, 5);
@@ -96,7 +95,9 @@ void GeneralConfigPane::LoadGUIValues()
 	m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);
 	m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
 	m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
-	m_frame_limit_choice->SetSelection(SConfig::GetInstance().m_Framelimit);
+	u32 selection = std::lround(startup_params.m_EmulationSpeed * 10.0f);
+	if (selection < m_throttler_array_string.size())
+		m_throttler_choice->SetSelection(selection);
 
 	for (size_t i = 0; i < cpu_cores.size(); ++i)
 	{
@@ -140,9 +141,10 @@ void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
 	SConfig::GetInstance().bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
 }
 
-void GeneralConfigPane::OnFrameLimitChoiceChanged(wxCommandEvent& event)
+void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 {
-	SConfig::GetInstance().m_Framelimit = m_frame_limit_choice->GetSelection();
+	if (m_throttler_choice->GetSelection() != wxNOT_FOUND)
+		SConfig::GetInstance().m_EmulationSpeed = m_throttler_choice->GetSelection() * 0.1f;
 }
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)

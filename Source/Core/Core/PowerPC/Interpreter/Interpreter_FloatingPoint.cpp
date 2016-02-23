@@ -5,7 +5,9 @@
 #include <cmath>
 #include <limits>
 
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
@@ -24,7 +26,6 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 
 	if (std::isnan(fa) || std::isnan(fb))
 	{
-		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
@@ -68,7 +69,6 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.FX = 1;
 			SetFPException(FPSCR_VXSNAN);
 		}
 	}

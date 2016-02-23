@@ -2,23 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <QAction>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QIcon>
-#include <QLineEdit>
-#include <QMenu>
-#include <QMenuBar>
 #include <QMessageBox>
 
-#include "Common/FileUtil.h"
 #include "Core/BootManager.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
@@ -26,169 +22,75 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	setWindowTitle(tr("Dolphin"));
 	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
 
-	MakeGameList();
-	MakeToolBar();
-	MakeRenderWidget();
-	MakeStack();
-	MakeMenus();
+	CreateComponents();
+
+	ConnectGameList();
+	ConnectPathsDialog();
+	ConnectToolBar();
+	ConnectRenderWidget();
+	ConnectStack();
+	ConnectMenuBar();
 }
 
-MainWindow::~MainWindow()
+void MainWindow::CreateComponents()
 {
-	m_render_widget->deleteLater();
-}
-
-void MainWindow::MakeMenus()
-{
-	MakeFileMenu();
-	menuBar()->addMenu(tr("Emulation"));
-	menuBar()->addMenu(tr("Movie"));
-	menuBar()->addMenu(tr("Options"));
-	menuBar()->addMenu(tr("Tools"));
-	MakeViewMenu();
-	menuBar()->addMenu(tr("Help"));
-}
-
-void MainWindow::MakeFileMenu()
-{
-	QMenu* file_menu = menuBar()->addMenu(tr("File"));
-	file_menu->addAction(tr("Open"), this, SLOT(Open()));
-	file_menu->addAction(tr("Exit"), this, SLOT(close()));
-}
-
-void MainWindow::MakeViewMenu()
-{
-	QMenu* view_menu = menuBar()->addMenu(tr("View"));
-	AddTableColumnsMenu(view_menu);
-	AddListTypePicker(view_menu);
-}
-
-void MainWindow::AddTableColumnsMenu(QMenu* view_menu)
-{
-	QActionGroup* column_group = new QActionGroup(this);
-	QMenu* cols_menu = view_menu->addMenu(tr("Table Columns"));
-	column_group->setExclusive(false);
-
-	QStringList col_names{
-		tr("Platform"),
-		tr("ID"),
-		tr("Banner"),
-		tr("Title"),
-		tr("Description"),
-		tr("Maker"),
-		tr("Size"),
-		tr("Country"),
-		tr("Quality")
-	};
-	// TODO we'll need to update SConfig with the extra columns. Then we can
-	// clean this up significantly.
-	QList<bool> show_cols{
-		SConfig::GetInstance().m_showSystemColumn,
-		SConfig::GetInstance().m_showIDColumn,
-		SConfig::GetInstance().m_showBannerColumn,
-		true,
-		false,
-		SConfig::GetInstance().m_showMakerColumn,
-		SConfig::GetInstance().m_showSizeColumn,
-		SConfig::GetInstance().m_showRegionColumn,
-		SConfig::GetInstance().m_showStateColumn,
-	};
-	for (int i = 0; i < GameListModel::NUM_COLS; i++)
-	{
-		QAction* action = column_group->addAction(cols_menu->addAction(col_names[i]));
-		action->setCheckable(true);
-		action->setChecked(show_cols[i]);
-		m_game_list->SetViewColumn(i, show_cols[i]);
-		connect(action, &QAction::triggered, [=]()
-		{
-			m_game_list->SetViewColumn(i, action->isChecked());
-			switch (i)
-			{
-			case GameListModel::COL_PLATFORM:
-				SConfig::GetInstance().m_showSystemColumn = action->isChecked();
-				break;
-			case GameListModel::COL_ID:
-				SConfig::GetInstance().m_showIDColumn = action->isChecked();
-				break;
-			case GameListModel::COL_TITLE:
-				SConfig::GetInstance().m_showBannerColumn = action->isChecked();
-				break;
-			case GameListModel::COL_MAKER:
-				SConfig::GetInstance().m_showMakerColumn = action->isChecked();
-				break;
-			case GameListModel::COL_SIZE:
-				SConfig::GetInstance().m_showSizeColumn = action->isChecked();
-				break;
-			case GameListModel::COL_COUNTRY:
-				SConfig::GetInstance().m_showRegionColumn = action->isChecked();
-				break;
-			case GameListModel::COL_RATING:
-				SConfig::GetInstance().m_showStateColumn = action->isChecked();
-				break;
-			default: break;
-			}
-			SConfig::GetInstance().SaveSettings();
-		});
-	}
-}
-
-void MainWindow::AddListTypePicker(QMenu* view_menu)
-{
-	QActionGroup* list_group = new QActionGroup(this);
-	view_menu->addSection(tr("List Type"));
-	list_group->setExclusive(true);
-
-	QAction* set_table = list_group->addAction(view_menu->addAction(tr("Table")));
-	QAction* set_list = list_group->addAction(view_menu->addAction(tr("List")));
-
-	set_table->setCheckable(true);
-	set_table->setChecked(true);
-	set_list->setCheckable(true);
-
-	connect(set_table, &QAction::triggered, m_game_list, &GameList::SetTableView);
-	connect(set_list, &QAction::triggered, m_game_list, &GameList::SetListView);
-}
-
-void MainWindow::MakeToolBar()
-{
+	m_menu_bar = new MenuBar(this);
 	m_tool_bar = new ToolBar(this);
-	addToolBar(m_tool_bar);
+	m_game_list = new GameList(this);
+	m_render_widget = new RenderWidget(this);
+	m_stack = new QStackedWidget(this);
+	m_paths_dialog = new PathDialog(this);
+}
 
+void MainWindow::ConnectMenuBar()
+{
+	setMenuBar(m_menu_bar);
+	connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
+	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
+	connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
+	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+}
+
+void MainWindow::ConnectToolBar()
+{
+	addToolBar(m_tool_bar);
 	connect(m_tool_bar, &ToolBar::OpenPressed, this, &MainWindow::Open);
-	// TODO make this open the config paths dialog, not the current Browse menu.
-	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::Browse);
 	connect(m_tool_bar, &ToolBar::PlayPressed, this, &MainWindow::Play);
 	connect(m_tool_bar, &ToolBar::PausePressed, this, &MainWindow::Pause);
 	connect(m_tool_bar, &ToolBar::StopPressed, this, &MainWindow::Stop);
 	connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
 	connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
+	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
 
 	connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
 	connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
 	connect(this, &MainWindow::EmulationStopped, m_tool_bar, &ToolBar::EmulationStopped);
 }
 
-void MainWindow::MakeGameList()
+void MainWindow::ConnectGameList()
 {
-	m_game_list = new GameList(this);
 	connect(m_game_list, &GameList::GameSelected, this, &MainWindow::Play);
 }
 
-void MainWindow::MakeRenderWidget()
+void MainWindow::ConnectRenderWidget()
 {
-	m_render_widget = new RenderWidget;
+	m_rendering_to_main = false;
+	m_render_widget->hide();
 	connect(m_render_widget, &RenderWidget::EscapePressed, this, &MainWindow::Stop);
 	connect(m_render_widget, &RenderWidget::Closed, this, &MainWindow::ForceStop);
-	m_render_widget->hide();
-	m_rendering_to_main = false;
 }
 
-void MainWindow::MakeStack()
+void MainWindow::ConnectStack()
 {
-	m_stack = new QStackedWidget;
 	m_stack->setMinimumSize(800, 600);
 	m_stack->addWidget(m_game_list);
 	setCentralWidget(m_stack);
+}
+
+void MainWindow::ConnectPathsDialog()
+{
+	connect(m_paths_dialog, &PathDialog::PathAdded, m_game_list, &GameList::DirectoryAdded);
+	connect(m_paths_dialog, &PathDialog::PathRemoved, m_game_list, &GameList::DirectoryRemoved);
 }
 
 void MainWindow::Open()
@@ -202,28 +104,11 @@ void MainWindow::Open()
 		StartGame(file);
 }
 
-void MainWindow::Browse()
-{
-	QString dir = QFileDialog::getExistingDirectory(this,
-			tr("Select a Directory"),
-			QDir::currentPath());
-	if (!dir.isEmpty())
-	{
-		std::vector<std::string>& iso_folders = SConfig::GetInstance().m_ISOFolder;
-		auto found = std::find(iso_folders.begin(), iso_folders.end(), dir.toStdString());
-		if (found == iso_folders.end())
-		{
-			iso_folders.push_back(dir.toStdString());
-			SConfig::GetInstance().SaveSettings();
-			emit m_game_list->DirectoryAdded(dir);
-		}
-	}
-}
-
 void MainWindow::Play()
 {
 	// If we're in a paused game, start it up again.
 	// Otherwise, play the selected game, if there is one.
+	// Otherwise, play the default game.
 	// Otherwise, play the last played game, if there is one.
 	// Otherwise, prompt for a new game.
 	if (Core::GetState() == Core::CORE_PAUSE)
@@ -240,11 +125,19 @@ void MainWindow::Play()
 		}
 		else
 		{
-			QString path = QString::fromStdString(SConfig::GetInstance().m_LastFilename);
-			if (QFile::exists(path))
-				StartGame(path);
+			QString default_path = Settings().GetDefaultGame();
+			if (!default_path.isEmpty() && QFile::exists(default_path))
+			{
+				StartGame(default_path);
+			}
 			else
-				Open();
+			{
+				QString last_path = Settings().GetLastGame();
+				if (!last_path.isEmpty() && QFile::exists(last_path))
+					StartGame(last_path);
+				else
+					Open();
+			}
 		}
 	}
 }
@@ -258,7 +151,7 @@ void MainWindow::Pause()
 bool MainWindow::Stop()
 {
 	bool stop = true;
-	if (SConfig::GetInstance().bConfirmStop)
+	if (Settings().GetConfirmStop())
 	{
 		// We could pause the game here and resume it if they say no.
 		QMessageBox::StandardButton confirm;
@@ -282,7 +175,7 @@ void MainWindow::ForceStop()
 void MainWindow::FullScreen()
 {
 	// If the render widget is fullscreen we want to reset it to whatever is in
-	// SConfig. If it's set to be fullscreen then it just remakes the window,
+	// settings. If it's set to be fullscreen then it just remakes the window,
 	// which probably isn't ideal.
 	bool was_fullscreen = m_render_widget->isFullScreen();
 	HideRenderWidget();
@@ -297,7 +190,7 @@ void MainWindow::ScreenShot()
 	Core::SaveScreenShot();
 }
 
-void MainWindow::StartGame(QString path)
+void MainWindow::StartGame(const QString& path)
 {
 	// If we're running, only start a new game once we've stopped the last.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -311,13 +204,15 @@ void MainWindow::StartGame(QString path)
 		QMessageBox::critical(this, tr("Error"), tr("Failed to init core"), QMessageBox::Ok);
 		return;
 	}
+	Settings().SetLastGame(path);
 	ShowRenderWidget();
 	emit EmulationStarted();
 }
 
 void MainWindow::ShowRenderWidget()
 {
-	if (SConfig::GetInstance().bRenderToMain)
+	Settings settings;
+	if (settings.GetRenderToMain())
 	{
 		// If we're rendering to main, add it to the stack and update our title when necessary.
 		m_rendering_to_main = true;
@@ -328,15 +223,13 @@ void MainWindow::ShowRenderWidget()
 	{
 		// Otherwise, just show it.
 		m_rendering_to_main = false;
-		if (SConfig::GetInstance().bFullscreen)
+		if (settings.GetFullScreen())
 		{
 			m_render_widget->showFullScreen();
 		}
 		else
 		{
-			m_render_widget->setFixedSize(
-					SConfig::GetInstance().iRenderWindowWidth,
-					SConfig::GetInstance().iRenderWindowHeight);
+			m_render_widget->setFixedSize(settings.GetRenderWindowSize());
 			m_render_widget->showNormal();
 		}
 	}
@@ -355,4 +248,11 @@ void MainWindow::HideRenderWidget()
 		setWindowTitle(tr("Dolphin"));
 	}
 	m_render_widget->hide();
+}
+
+void MainWindow::ShowPathsDialog()
+{
+	m_paths_dialog->show();
+	m_paths_dialog->raise();
+	m_paths_dialog->activateWindow();
 }

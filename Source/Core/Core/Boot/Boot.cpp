@@ -60,7 +60,10 @@ void CBoot::Load_FST(bool _bIsWii)
 	if (_bIsWii)
 		shift = 2;
 
-	u32 fst_offset, fst_size, max_fst_size;
+	u32 fst_offset = 0;
+	u32 fst_size = 0;
+	u32 max_fst_size = 0;
+
 	volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
 	volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
 	volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
@@ -167,6 +170,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	const u32 USA_v1_0 = 0x6D740AE7; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
 	const u32 USA_v1_1 = 0xD5E6FEEA; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
 	const u32 USA_v1_2 = 0x86573808; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
+	const u32 BRA_v1_0 = 0x667D0B64; // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
 	const u32 JAP_v1_0 = 0x6DAC1F2A; // Redump
 	const u32 JAP_v1_1 = 0xD235E3F9; // https://bugs.dolphin-emu.org/issues/8936
 	const u32 PAL_v1_0 = 0x4F319F43; // Redump
@@ -186,6 +190,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 	case USA_v1_0:
 	case USA_v1_1:
 	case USA_v1_2:
+	case BRA_v1_0:
 		ipl_region = USA_DIR;
 		break;
 	case JAP_v1_0:
@@ -268,11 +273,10 @@ bool CBoot::BootUp()
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
 
-		u32 tmd_size;
-		std::unique_ptr<u8[]> tmd_buf = pVolume.GetTMD(&tmd_size);
-		if (tmd_size)
+		std::vector<u8> tmd_buffer = pVolume.GetTMD();
+		if (!tmd_buffer.empty())
 		{
-			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
 		}
 
 		_StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC;

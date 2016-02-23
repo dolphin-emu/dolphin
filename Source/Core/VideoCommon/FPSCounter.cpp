@@ -4,8 +4,8 @@
 
 #include <fstream>
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoConfig.h"

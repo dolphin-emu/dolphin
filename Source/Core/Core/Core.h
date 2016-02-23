@@ -24,8 +24,8 @@ extern bool g_aspect_wide;
 
 extern bool g_want_determinism;
 
-bool GetIsFramelimiterTempDisabled();
-void SetIsFramelimiterTempDisabled(bool disable);
+bool GetIsThrottlerTempDisabled();
+void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 

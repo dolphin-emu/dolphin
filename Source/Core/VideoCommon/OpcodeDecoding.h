@@ -5,7 +5,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
+
+class DataReader;
 
 #define GX_NOP                      0x00
 #define GX_UNKNOWN_RESET            0x01
@@ -38,8 +39,13 @@
 #define GX_DRAW_LINE_STRIP          0x6   // 0xB0
 #define GX_DRAW_POINTS              0x7   // 0xB8
 
-void OpcodeDecoder_Init();
-void OpcodeDecoder_Shutdown();
+namespace OpcodeDecoder
+{
+
+void Init();
+void Shutdown();
 
 template <bool is_preprocess = false>
-u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list);
+u8* Run(DataReader src, u32* cycles, bool in_display_list);
+
+} // namespace OpcodeDecoder

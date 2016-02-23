@@ -36,25 +36,21 @@ Make AA apply instantly during gameplay if possible
 
 */
 
-#include <algorithm>
-#include <cstdarg>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
-#include "Common/Thread.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
-#include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/Host.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
-#include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/PerfQuery.h"
-#include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -67,10 +63,7 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/MainBase.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
@@ -78,7 +71,6 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VideoState.h"
 
 namespace OGL
 {
@@ -100,11 +92,6 @@ std::string VideoBackend::GetDisplayName() const
 		return "OpenGLES";
 	else
 		return "OpenGL";
-}
-
-std::string VideoBackend::GetConfigName() const
-{
-	return "gfx_opengl";
 }
 
 static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
@@ -143,21 +130,25 @@ static void InitBackendInfo()
 	g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
-void VideoBackend::ShowConfig(void *_hParent)
+void VideoBackend::ShowConfig(void* parent_handle)
 {
-	if (!s_BackendInitialized)
+	if (!m_initialized)
 		InitBackendInfo();
-	Host_ShowVideoConfig(_hParent, GetDisplayName(), GetConfigName());
+
+	Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
 }
 
-bool VideoBackend::Initialize(void *window_handle)
+bool VideoBackend::Initialize(void* window_handle)
 {
 	InitializeShared();
 	InitBackendInfo();
 
 	frameCount = 0;
 
-	g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
+	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+	else
+		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
 	g_Config.GameIniLoad();
 	g_Config.UpdateProjectionHack();
 	g_Config.VerifyValidity();
@@ -169,9 +160,9 @@ bool VideoBackend::Initialize(void *window_handle)
 		return false;
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_INIT);
+	OSD::DoCallbacks(OSD::CallbackType::Initialization);
 
-	s_BackendInitialized = true;
+	m_initialized = true;
 
 	return true;
 }
@@ -182,23 +173,23 @@ void VideoBackend::Video_Prepare()
 {
 	GLInterface->MakeCurrent();
 
-	g_renderer = new Renderer;
+	g_renderer = std::make_unique<Renderer>();
 
 	CommandProcessor::Init();
 	PixelEngine::Init();
 
 	BPInit();
-	g_vertex_manager = new VertexManager;
+	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = GetPerfQuery();
-	Fifo_Init(); // must be done before OpcodeDecoder_Init()
-	OpcodeDecoder_Init();
+	Fifo::Init(); // must be done before OpcodeDecoder::Init()
+	OpcodeDecoder::Init();
 	IndexGenerator::Init();
 	VertexShaderManager::Init();
 	PixelShaderManager::Init();
 	GeometryShaderManager::Init();
 	ProgramShaderCache::Init();
-	g_texture_cache = new TextureCache();
-	g_sampler_cache = new SamplerCache();
+	g_texture_cache = std::make_unique<TextureCache>();
+	g_sampler_cache = std::make_unique<SamplerCache>();
 	Renderer::Init();
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
@@ -210,45 +201,41 @@ void VideoBackend::Video_Prepare()
 
 void VideoBackend::Shutdown()
 {
-	s_BackendInitialized = false;
+	m_initialized = false;
 
 	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::OSD_SHUTDOWN);
+	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
 
 	GLInterface->Shutdown();
-	delete GLInterface;
-	GLInterface = nullptr;
+	GLInterface.reset();
 }
 
 void VideoBackend::Video_Cleanup()
 {
-	if (g_renderer)
-	{
-		Fifo_Shutdown();
+	if (!g_renderer)
+		return;
 
-		// The following calls are NOT Thread Safe
-		// And need to be called from the video thread
-		Renderer::Shutdown();
-		BoundingBox::Shutdown();
-		TextureConverter::Shutdown();
-		VertexLoaderManager::Shutdown();
-		delete g_sampler_cache;
-		g_sampler_cache = nullptr;
-		delete g_texture_cache;
-		g_texture_cache = nullptr;
-		ProgramShaderCache::Shutdown();
-		VertexShaderManager::Shutdown();
-		PixelShaderManager::Shutdown();
-		GeometryShaderManager::Shutdown();
-		delete g_perf_query;
-		g_perf_query = nullptr;
-		delete g_vertex_manager;
-		g_vertex_manager = nullptr;
-		OpcodeDecoder_Shutdown();
-		delete g_renderer;
-		g_renderer = nullptr;
-		GLInterface->ClearCurrent();
-	}
+	Fifo::Shutdown();
+
+	// The following calls are NOT Thread Safe
+	// And need to be called from the video thread
+	Renderer::Shutdown();
+	BoundingBox::Shutdown();
+	TextureConverter::Shutdown();
+	VertexLoaderManager::Shutdown();
+	g_sampler_cache.reset();
+	g_texture_cache.reset();
+	ProgramShaderCache::Shutdown();
+	VertexShaderManager::Shutdown();
+	PixelShaderManager::Shutdown();
+	GeometryShaderManager::Shutdown();
+
+	g_perf_query.reset();
+	g_vertex_manager.reset();
+
+	OpcodeDecoder::Shutdown();
+	g_renderer.reset();
+	GLInterface->ClearCurrent();
 }
 
 }

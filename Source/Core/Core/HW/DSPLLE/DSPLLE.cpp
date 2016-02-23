@@ -3,18 +3,16 @@
 // Refer to the license.txt file included.
 
 #include <mutex>
+#include <string>
 #include <thread>
 
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/CPUDetect.h"
 #include "Common/Event.h"
-#include "Common/IniFile.h"
 #include "Common/Thread.h"
-#include "Common/Logging/LogManager.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -22,17 +20,13 @@
 #include "Core/NetPlayProto.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
-#include "Core/HW/AudioInterface.h"
 #include "Core/HW/Memmap.h"
-
 #include "Core/HW/DSPLLE/DSPLLE.h"
 #include "Core/HW/DSPLLE/DSPLLEGlobals.h"
-#include "Core/HW/DSPLLE/DSPSymbols.h"
 
 DSPLLE::DSPLLE()
 	: m_hDSPThread()
@@ -83,8 +77,8 @@ void DSPLLE::DoState(PointerWrap &p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 		DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
 	p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
-	p.Do(cyclesLeft);
-	p.Do(init_hax);
+	p.Do(g_cycles_left);
+	p.Do(g_init_hax);
 	p.Do(m_cycle_count);
 }
 
@@ -99,7 +93,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
 		if (cycles > 0)
 		{
 			std::lock_guard<std::mutex> dsp_thread_lock(dsp_lle->m_csDSPThreadActive);
-			if (dspjit)
+			if (g_dsp_jit)
 			{
 				DSPCore_RunCycles(cycles);
 			}
@@ -176,7 +170,7 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
 
 	// needs to be after DSPCore_Init for the dspjit ptr
 	if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() ||
-	    Core::g_want_determinism    || !dspjit)
+	    Core::g_want_determinism    || !g_dsp_jit)
 	{
 		bDSPThread = false;
 	}

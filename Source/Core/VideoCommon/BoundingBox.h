@@ -4,10 +4,11 @@
 
 #pragma once
 
-#include "VideoCommon/VertexLoader.h"
+#include "Common/CommonTypes.h"
+
+class PointerWrap;
 
 // Bounding Box manager
-
 namespace BoundingBox
 {
 
@@ -26,6 +27,6 @@ enum
 };
 
 // Save state
-void DoState(PointerWrap &p);
+void DoState(PointerWrap& p);
 
 }; // end of namespace BoundingBox

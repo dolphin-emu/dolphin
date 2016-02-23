@@ -59,8 +59,6 @@ endif()
 
 add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	if(LIBAV_FOUND)
-		target_link_libraries(videocommon ${LIBS} ${LIBAV_LIBRARIES})
-	endif()
+if(LIBAV_FOUND)
+	target_link_libraries(videocommon ${LIBS} ${LIBAV_LIBRARIES})
 endif()

@@ -3,14 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace BPFunctions

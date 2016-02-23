@@ -4,25 +4,30 @@
 
 #pragma once
 
-#include <algorithm>
 #include <cstdarg>
-#include <cstdio>
+#include <cstring>
+#include <fstream>
 #include <iomanip>
+#include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 /**
- * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GeneratePixelShader)
+ * Common interface for classes that need to go through the shader generation path (GenerateVertexShader, GenerateGeometryShader, GeneratePixelShader)
  * In particular, this includes the shader code generator (ShaderCode).
  * A different class (ShaderUid) can be used to uniquely identify each ShaderCode object.
  * More interesting things can be done with this, e.g. ShaderConstantProfile checks what shader constants are being used. This can be used to optimize buffer management.
- * Each of the ShaderCode, ShaderUid and ShaderConstantProfile child classes only implement the subset of ShaderGeneratorInterface methods that are required for the specific tasks.
+ * If the class does not use one or more of these methods (e.g. Uid class does not need code), the method will be defined as a no-op by the base class, and the call
+ * should be optimized out. The reason for this implementation is so that shader selection/generation can be done in two passes, with only a cache lookup being
+ * required if the shader has already been generated.
  */
 class ShaderGeneratorInterface
 {
@@ -36,25 +41,13 @@ public:
 #ifdef __GNUC__
 	__attribute__((format(printf, 2, 3)))
 #endif
-	{}
-
-	/*
-	 * Returns a read pointer to the internal buffer.
-	 * @note When implementing this method in a child class, you likely want to return the argument of the last SetBuffer call here
-	 * @note SetBuffer() should be called before using GetBuffer().
-	 */
-	const char* GetBuffer() { return nullptr; }
-
-	/*
-	 * Can be used to give the object a place to write to. This should be called before using Write().
-	 * @param buffer pointer to a char buffer that the object can write to
-	 */
-	void SetBuffer(char* buffer) { }
+	{
+	}
 
 	/*
 	 * Tells us that a specific constant range (including last_index) is being used by the shader
 	 */
-	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index) {}
 
 	/*
 	 * Returns a pointer to an internally stored object of the uid_data type.
@@ -64,22 +57,17 @@ public:
 	uid_data* GetUidData() { return nullptr; }
 };
 
-/**
+/*
  * Shader UID class used to uniquely identify the ShaderCode output written in the shader generator.
  * uid_data can be any struct of parameters that uniquely identify each shader code output.
  * Unless performance is not an issue, uid_data should be tightly packed to reduce memory footprint.
  * Shader generators will write to specific uid_data fields; ShaderUid methods will only read raw u32 values from a union.
+ * NOTE: Because LinearDiskCache reads and writes the storage associated with a ShaderUid instance, ShaderUid must be trivially copyable.
  */
 template<class uid_data>
 class ShaderUid : public ShaderGeneratorInterface
 {
 public:
-	ShaderUid()
-	{
-		// TODO: Move to Shadergen => can be optimized out
-		memset(values, 0, sizeof(values));
-	}
-
 	bool operator == (const ShaderUid& obj) const
 	{
 		return memcmp(this->values, obj.values, data.NumValues() * sizeof(*values)) == 0;
@@ -114,9 +102,12 @@ private:
 class ShaderCode : public ShaderGeneratorInterface
 {
 public:
-	ShaderCode() : buf(nullptr), write_ptr(nullptr)
+	ShaderCode()
 	{
+		m_buffer.reserve(16384);
 	}
+
+	const std::string& GetBuffer() const { return m_buffer; }
 
 	void Write(const char* fmt, ...)
 #ifdef __GNUC__
@@ -125,16 +116,12 @@ public:
 	{
 		va_list arglist;
 		va_start(arglist, fmt);
-		write_ptr += vsprintf(write_ptr, fmt, arglist);
+		m_buffer += StringFromFormatV(fmt, arglist);
 		va_end(arglist);
 	}
 
-	const char* GetBuffer() { return buf; }
-	void SetBuffer(char* buffer) { buf = buffer; write_ptr = buffer; }
-
-private:
-	const char* buf;
-	char* write_ptr;
+protected:
+	std::string m_buffer;
 };
 
 /**
@@ -145,18 +132,19 @@ class ShaderConstantProfile : public ShaderGeneratorInterface
 public:
 	ShaderConstantProfile(int num_constants) { constant_usage.resize(num_constants); }
 
-	inline void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
+	void SetConstantsUsed(unsigned int first_index, unsigned int last_index)
 	{
 		for (unsigned int i = first_index; i < last_index + 1; ++i)
 			constant_usage[i] = true;
 	}
 
-	inline bool ConstantIsUsed(unsigned int index)
+	bool ConstantIsUsed(unsigned int index) const
 	{
 		// TODO: Not ready for usage yet
 		return true;
 		//return constant_usage[index];
 	}
+
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
@@ -185,7 +173,7 @@ public:
 		{
 			// uid is already in the index => check if there's a shader with the same uid but different code
 			auto& old_code = m_shaders[new_uid];
-			if (strcmp(old_code.c_str(), new_code.GetBuffer()) != 0)
+			if (old_code != new_code.GetBuffer())
 			{
 				static int num_failures = 0;
 
@@ -226,7 +214,7 @@ private:
 };
 
 template<class T>
-static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
 {
 	if (qualifier != nullptr)
 		object.Write("\t%s %s %s", qualifier, type, name);
@@ -248,7 +236,7 @@ static void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
 {
 	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
@@ -267,7 +255,7 @@ static inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const c
 }
 
 template<class T>
-static inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 {
 	object.Write("\t%s.pos = %s.pos;\n", a, b);
 	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
@@ -293,7 +281,7 @@ static inline void AssignVSOutputMembers(T& object, const char* a, const char* b
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-static inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
+inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
 {
 	if (g_ActiveConfig.iMultisamples <= 1)
 		return "";

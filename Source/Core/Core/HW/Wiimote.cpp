@@ -2,14 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
-#include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -49,6 +47,12 @@ void Initialize(void* const hwnd, bool wait)
 	// Reload Wiimotes with our settings
 	if (Movie::IsMovieActive())
 		Movie::ChangeWiiPads();
+}
+
+void ResetAllWiimotes()
+{
+	for (int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
+	        static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
 }
 
 void LoadConfig()

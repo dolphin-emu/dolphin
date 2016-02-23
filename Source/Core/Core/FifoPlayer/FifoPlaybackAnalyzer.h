@@ -17,31 +17,7 @@ struct AnalyzedFrameInfo
 	std::vector<MemoryUpdate> memoryUpdates;
 };
 
-class FifoPlaybackAnalyzer
+namespace FifoPlaybackAnalyzer
 {
-public:
-	FifoPlaybackAnalyzer();
-
 	void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
-
-private:
-	struct MemoryRange
-	{
-		u32 begin;
-		u32 end;
-	};
-
-	void AddMemoryUpdate(MemoryUpdate memUpdate, AnalyzedFrameInfo& frameInfo);
-
-	u32 DecodeCommand(u8* data);
-
-	void StoreEfbCopyRegion();
-	void StoreWrittenRegion(u32 address, u32 size);
-
-	bool m_DrawingObject;
-
-	std::vector<MemoryRange> m_WrittenMemory;
-
-	BPMemory m_BpMem;
-	FifoAnalyzer::CPMemory m_CpMem;
 };

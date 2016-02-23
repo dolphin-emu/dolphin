@@ -5,14 +5,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import rx.Observable;
+import rx.Subscriber;
 
 /**
  * A helper class that provides several utilities simplifying interaction with
@@ -85,27 +88,27 @@ public final class GameDatabase extends SQLiteOpenHelper
 	@Override
 	public void onCreate(SQLiteDatabase database)
 	{
-		Log.d("DolphinEmu", "GameDatabase - Creating database...");
+		Log.debug("[GameDatabase] GameDatabase - Creating database...");
 
-		Log.v("DolphinEmu", "Executing SQL: " + SQL_CREATE_GAMES);
+		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_GAMES);
 		database.execSQL(SQL_CREATE_GAMES);
 
-		Log.v("DolphinEmu", "Executing SQL: " + SQL_CREATE_FOLDERS);
+		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_FOLDERS);
 		database.execSQL(SQL_CREATE_FOLDERS);
 	}
 
 	@Override
 	public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion)
 	{
-		Log.i("DolphinEmu", "Upgrading database from schema version " + oldVersion + " to " + newVersion);
+		Log.info("[GameDatabase] Upgrading database from schema version " + oldVersion + " to " + newVersion);
 
-		Log.v("DolphinEmu", "Executing SQL: " + SQL_DELETE_GAMES);
+		Log.verbose("[GameDatabase] Executing SQL: " + SQL_DELETE_GAMES);
 		database.execSQL(SQL_DELETE_GAMES);
 
-		Log.v("DolphinEmu", "Executing SQL: " + SQL_CREATE_GAMES);
+		Log.verbose("[GameDatabase] Executing SQL: " + SQL_CREATE_GAMES);
 		database.execSQL(SQL_CREATE_GAMES);
 
-		Log.v("DolphinEmu", "Re-scanning library with new schema.");
+		Log.verbose("[GameDatabase] Re-scanning library with new schema.");
 		scanLibrary(database);
 	}
 
@@ -130,7 +133,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 
 			if (!game.exists())
 			{
-				Log.e("DolphinEmu", "Game file no longer exists. Removing from the library: " + gamePath);
+				Log.error("[GameDatabase] Game file no longer exists. Removing from the library: " + gamePath);
 				database.delete(TABLE_NAME_GAMES,
 						KEY_DB_ID + " = ?",
 						new String[]{Long.toString(fileCursor.getLong(COLUMN_DB_ID))});
@@ -159,7 +162,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 			String folderPath = folderCursor.getString(FOLDER_COLUMN_PATH);
 			File folder = new File(folderPath);
 
-			Log.i("DolphinEmu", "Reading files from library folder: " + folderPath);
+			Log.info("[GameDatabase] Reading files from library folder: " + folderPath);
 
 			// Iterate through every file in the folder.
 			File[] children = folder.listFiles();
@@ -222,12 +225,12 @@ public final class GameDatabase extends SQLiteOpenHelper
 								// If update fails, insert a new game instead.
 								if (rowsMatched == 0)
 								{
-									Log.v("DolphinEmu", "Adding game: " + game.getAsString(KEY_GAME_TITLE));
+									Log.verbose("[GameDatabase] Adding game: " + game.getAsString(KEY_GAME_TITLE));
 									database.insert(TABLE_NAME_GAMES, null, game);
 								}
 								else
 								{
-									Log.v("DolphinEmu", "Updated game: " + game.getAsString(KEY_GAME_TITLE));
+									Log.verbose("[GameDatabase] Updated game: " + game.getAsString(KEY_GAME_TITLE));
 								}
 							}
 						}
@@ -237,19 +240,59 @@ public final class GameDatabase extends SQLiteOpenHelper
 			// If the folder is empty because it no longer exists, remove it from the library.
 			else if (!folder.exists())
 			{
-				Log.e("DolphinEmu", "Folder no longer exists. Removing from the library: " + folderPath);
+				Log.error("[GameDatabase] Folder no longer exists. Removing from the library: " + folderPath);
 				database.delete(TABLE_NAME_FOLDERS,
 						KEY_DB_ID + " = ?",
 						new String[]{Long.toString(folderCursor.getLong(COLUMN_DB_ID))});
 			}
 			else
 			{
-				Log.e("DolphinEmu", "Folder contains no games: " + folderPath);
+				Log.error("[GameDatabase] Folder contains no games: " + folderPath);
 			}
 		}
 
 
 		folderCursor.close();
 		database.close();
+	}
+
+	public Observable<Cursor> getGamesForPlatform(final int platform)
+	{
+		return Observable.create(new Observable.OnSubscribe<Cursor>()
+		{
+			@Override
+			public void call(Subscriber<? super Cursor> subscriber)
+			{
+				Log.info("[GameDatabase] [GameDatabase] Reading games list...");
+
+				String whereClause = null;
+				String[] whereArgs = null;
+
+				// If -1 passed in, return all games. Else, return games for one platform only.
+				if (platform >= 0)
+				{
+					whereClause = KEY_GAME_PLATFORM + " = ?";
+					whereArgs = new String[]{Integer.toString(platform)};
+				}
+
+				SQLiteDatabase database = getReadableDatabase();
+
+				Cursor resultCursor = database.query(
+						TABLE_NAME_GAMES,
+						null,
+						whereClause,
+						whereArgs,
+						null,
+						null,
+						KEY_GAME_TITLE + " ASC"
+				);
+
+				// Pass the result cursor to the consumer.
+				subscriber.onNext(resultCursor);
+
+				// Tell the consumer we're done; it will unsubscribe implicitly.
+				subscriber.onCompleted();
+			}
+		});
 	}
 }

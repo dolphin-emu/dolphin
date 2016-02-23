@@ -36,12 +36,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Common/ChunkFile.h"
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/XFMemLoader.h"
+
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace Clipper
 {
@@ -55,13 +56,6 @@ namespace Clipper
 
 	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
 	static OutputVertexData *Vertices[NUM_INDICES];
-
-	void DoState(PointerWrap &p)
-	{
-		p.DoArray(m_ViewOffset);
-		for (auto& ClippedVertice : ClippedVertices)
-			ClippedVertice.DoState(p);
-	}
 
 	void Init()
 	{
@@ -220,7 +214,7 @@ namespace Clipper
 				POLY_CLIP(CLIP_POS_Z_BIT,  0,  0,  0, 1);
 				POLY_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
 
-				INCSTAT(swstats.thisFrame.numTrianglesClipped);
+				INCSTAT(stats.thisFrame.numTrianglesClipped);
 
 				// transform the poly in inlist into triangles
 				indices[0] = inlist[0];
@@ -287,7 +281,7 @@ namespace Clipper
 
 	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 	{
-		INCSTAT(swstats.thisFrame.numTrianglesIn)
+		INCSTAT(stats.thisFrame.numTrianglesIn)
 
 		bool backface;
 
@@ -411,7 +405,7 @@ namespace Clipper
 
 		if (mask)
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesRejected)
+			INCSTAT(stats.thisFrame.numTrianglesRejected)
 			return false;
 		}
 
@@ -431,13 +425,13 @@ namespace Clipper
 
 		if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			INCSTAT(stats.thisFrame.numTrianglesCulled)
 			return false;
 		}
 
 		if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			INCSTAT(stats.thisFrame.numTrianglesCulled)
 			return false;
 		}
 

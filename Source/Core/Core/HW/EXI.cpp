@@ -16,7 +16,6 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"
-#include "Core/PowerPC/PowerPC.h"
 
 SRAM g_SRAM;
 bool g_SRAM_netplay_initialized = false;

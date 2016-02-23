@@ -83,7 +83,7 @@ void DoCallbacks(CallbackType type)
 	}
 
 	// Wipe all callbacks on shutdown
-	if (type == OSD_SHUTDOWN)
+	if (type == CallbackType::Shutdown)
 		s_callbacks.clear();
 }
 

@@ -9,9 +9,12 @@
 #include <QString>
 #include <QToolBar>
 
+#include "DolphinQt2/MenuBar.h"
 #include "DolphinQt2/RenderWidget.h"
 #include "DolphinQt2/ToolBar.h"
 #include "DolphinQt2/GameList/GameList.h"
+
+class PathDialog;
 
 class MainWindow final : public QMainWindow
 {
@@ -19,7 +22,6 @@ class MainWindow final : public QMainWindow
 
 public:
 	explicit MainWindow();
-	~MainWindow();
 
 signals:
 	void EmulationStarted();
@@ -28,33 +30,38 @@ signals:
 
 private slots:
 	void Open();
-	void Browse();
 	void Play();
 	void Pause();
+
+	// May ask for confirmation. Returns whether or not it actually stopped.
 	bool Stop();
 	void ForceStop();
+
 	void FullScreen();
 	void ScreenShot();
 
 private:
-	void MakeToolBar();
-	void MakeStack();
-	void MakeGameList();
-	void MakeRenderWidget();
+	void CreateComponents();
 
-	void MakeMenus();
-	void MakeFileMenu();
-	void MakeViewMenu();
-	void AddTableColumnsMenu(QMenu* view_menu);
-	void AddListTypePicker(QMenu* view_menu);
+	void ConnectGameList();
+	void ConnectMenuBar();
+	void ConnectRenderWidget();
+	void ConnectStack();
+	void ConnectToolBar();
+	void ConnectPathsDialog();
 
-	void StartGame(QString path);
+	void StartGame(const QString& path);
 	void ShowRenderWidget();
 	void HideRenderWidget();
 
+	void ShowPathsDialog();
+
 	QStackedWidget* m_stack;
 	ToolBar* m_tool_bar;
+	MenuBar* m_menu_bar;
 	GameList* m_game_list;
 	RenderWidget* m_render_widget;
 	bool m_rendering_to_main;
+
+	PathDialog* m_paths_dialog;
 };

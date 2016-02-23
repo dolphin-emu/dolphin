@@ -3,11 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <chrono>
+#include <cstring>
 #include <memory>
+#include <string>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Thread.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCMemcard.h"

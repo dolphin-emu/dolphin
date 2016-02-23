@@ -7,19 +7,15 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Common/StringUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/State.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/PowerPC/PowerPC.h"
-
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -53,7 +49,7 @@ static UVIBorderBlankRegister    m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
-u32 TargetRefreshRate = 0;
+static u32 s_target_refresh_rate = 0;
 
 static u32 s_clock_freqs[2] =
 {
@@ -63,7 +59,8 @@ static u32 s_clock_freqs[2] =
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;  // number of halflines that have occurred for this full frame
-
+static u32 s_half_line_of_next_si_poll; // halfline when next SI poll results should be available
+static constexpr u32 num_half_lines_for_si_poll = (7 * 2) + 1; // this is how long an SI poll takes
 
 static FieldType s_current_field;
 
@@ -97,9 +94,10 @@ void DoState(PointerWrap &p)
 	p.Do(m_DTVStatus);
 	p.Do(m_FBWidth);
 	p.Do(m_BorderHBlank);
-	p.Do(TargetRefreshRate);
+	p.Do(s_target_refresh_rate);
 	p.Do(s_ticks_last_line_start);
 	p.Do(s_half_line_count);
+	p.Do(s_half_line_of_next_si_poll);
 	p.Do(s_current_field);
 	p.Do(s_even_field_first_hl);
 	p.Do(s_odd_field_first_hl);
@@ -154,9 +152,11 @@ void Preset(bool _bNTSC)
 
 	// Say component cable is plugged
 	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
+	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
 
 	s_ticks_last_line_start = 0;
 	s_half_line_count = 1;
+	s_half_line_of_next_si_poll = num_half_lines_for_si_poll; // first sampling starts at vsync
 	s_current_field = FIELD_ODD;
 
 	UpdateParameters();
@@ -467,55 +467,90 @@ static u32 GetTicksPerOddField()
 	return GetTicksPerHalfLine() * GetHalfLinesPerOddField();
 }
 
-float GetAspectRatio(bool wide)
+// Get the aspect ratio of VI's active area.
+float GetAspectRatio()
 {
-	u32 multiplier = static_cast<u32>(m_PictureConfiguration.STD / m_PictureConfiguration.WPL);
-	int height = (multiplier * m_VerticalTimingRegister.ACV);
-	int width = ((2 * m_HTiming0.HLW) - (m_HTiming0.HLW - m_HTiming1.HBS640)
-		- m_HTiming1.HBE640);
-	float pixelAR;
-	if (m_DisplayControlRegister.FMT == 1)
+	// The picture of a PAL/NTSC TV signal is defined to have a 4:3 aspect ratio,
+	// but it's only 4:3 if the picture fill the entire active area.
+	// All games configure VideoInterface to add padding in both the horizontal and vertical
+	// directions and most games also do a slight horizontal scale.
+	// This means that XFB never fills the entire active area and is therefor almost never 4:3
+
+	// To work out the correct aspect ratio of the XFB, we need to know how VideoInterface's
+	// currently configured active area compares to the active area of a stock PAL or NTSC
+	// signal (which would be 4:3)
+
+	// This function only deals with standard aspect ratios. For widescreen aspect ratios,
+	// multiply the result by 1.33333..
+
+	// 1. Get our active area in BT.601 samples (more or less pixels)
+	int active_lines = m_VerticalTimingRegister.ACV;
+	int active_width_samples = (m_HTiming0.HLW + m_HTiming1.HBS640 - m_HTiming1.HBE640);
+
+	// 2. TVs are analog and don't have pixels. So we convert to seconds.
+	float tick_length = (1.0f / SystemTimers::GetTicksPerSecond());
+	float vertical_period = tick_length * GetTicksPerField();
+	float horizontal_period= tick_length * GetTicksPerHalfLine() * 2;
+	float vertical_active_area = active_lines * horizontal_period;
+	float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
+
+	// We are approximating the horizontal/vertical flyback transformers that control the
+	// position of the electron beam on the screen. Our flyback transformers create a
+	// perfect Sawtooth wave, with a smooth rise and a fall that takes zero time.
+	// For more accurate emulation of video signals out of the 525 or 625 line standards,
+	// it might be necessary to emulate a less precise flyback transformer with more flaws.
+	// But those modes aren't officially supported by TVs anyway and could behave differently
+	// on different TVs.
+
+	// 3. Calculate the ratio of active time to total time for VI's active area
+	float vertical_active_ratio = vertical_active_area / vertical_period;
+	float horizontal_active_ratio = horizontal_active_area / horizontal_period;
+
+	// 4. And then scale the ratios to typical PAL/NTSC signals.
+	//    NOTE: With the exception of selecting between PAL-M and NTSC color encoding on Brazilian
+	//          GameCubes, the FMT field doesn't actually do anything on real hardware. But
+	//          Nintendo's SDK always sets it appropriately to match the number of lines.
+	if (m_DisplayControlRegister.FMT == 1) // 625 line TV (PAL)
 	{
-		//PAL active frame is 702*576
-		//In square pixels, 1024*576 is 16:9, and 768*576 is 4:3
-		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 1024/702
-		//Similarly a 4:3 TV would have a ratio of 768/702
-		if (wide)
-		{
-			pixelAR = 1024.0f / 702.0f;
-		}
-		else
-		{
-			pixelAR = 768.0f / 702.0f;
-		}
+		// PAL defines the horizontal active area as 52us of the 64us line.
+		// BT.470-6 defines the blanking period as 12.0us +0.0 -0.3 [table on page 5]
+		horizontal_active_ratio *= 64.0f / 52.0f;
+		// PAL defines the vertical active area as 576 of 625 lines.
+		vertical_active_ratio *= 625.0f / 576.0f;
+		// TODO: Should PAL60 games go through the 625 or 525 line codepath?
+		//       The resulting aspect ratio is close, but not identical.
 	}
+	else // 525 line TV (NTSC or PAL-M)
+	{
+		// The NTSC standard doesn't define it's active area very well.
+		// The line is 63.55555..us long, which is derived from 1.001 / (30 * 525)
+		// but the blanking area is defined with a large amount of slack in the SMPTE 170M-2004
+		// standard, 10.7us +0.3 -0.2 [derived from table on page 9]
+		// The BT.470-6 standard provides a different number of 10.9us +/- 0.2 [table on page 5]
+		// This results in an active area between 52.5555us and 53.05555us
+		// Lots of different numbers float around the Internet including:
+		//   * 52.655555.. us -- http://web.archive.org/web/20140218044518/http://lipas.uwasa.fi/~f76998/video/conversion/
+		//   * 52.66 us -- http://www.ni.com/white-paper/4750/en/
+		//   * 52.6 us -- http://web.mit.edu/6.111/www/f2008/handouts/L12.pdf
+		//
+		// None of these website provide primary sources for their numbers, back in the days of
+		// analog, TV signal timings were not that precise to start with and it never got standardized
+		// during the move to digital.
+		// We are just going to use 52.655555.. as most other numbers on the Internet appear to be a
+		// simplification of it. 53.655555.. is a blanking period of 10.9us, matching the BT.470-6 standard
+		// and within tolerance of the SMPTE 170M-2004 standard.
+		horizontal_active_ratio *= 63.555555f / 52.655555f;
+		// Even 486 active lines isn't completely agreed upon.
+		// Depending on how you count the two half lines you could get 485 or 484
+		vertical_active_ratio *= 525.0f / 486.0f;
+	}
+
+	// 5. Calculate the final ratio and scale to 4:3
+	float ratio = horizontal_active_ratio / vertical_active_ratio;
+	if (std::isnormal(ratio))	// Check we have a sane ratio and haven't propagated any infs/nans/zeros
+		return ratio * (4.0f / 3.0f); // Scale to 4:3
 	else
-	{
-		//NTSC active frame is 710.85*486
-		//In square pixels, 864*486 is 16:9, and 648*486 is 4:3
-		//Therefore a 16:9 TV would have a "pixel" aspect ratio of 864/710.85
-		//Similarly a 4:3 TV would have a ratio of 648/710.85
-		if (wide)
-		{
-			pixelAR = 864.0f / 710.85f;
-		}
-		else
-		{
-			pixelAR = 648.0f / 710.85f;
-		}
-	}
-	if (width == 0 || height == 0)
-	{
-		if (wide)
-		{
-			return 16.0f / 9.0f;
-		}
-		else
-		{
-			return 4.0f / 3.0f;
-		}
-	}
-	return ((float)width / (float)height) * pixelAR;
+		return (4.0f / 3.0f); // VI isn't initialized correctly, just return 4:3 instead
 }
 
 // This function updates:
@@ -574,14 +609,23 @@ void UpdateParameters()
 	s_even_field_last_hl = s_even_field_first_hl + m_VerticalTimingRegister.ACV * 2;
 	s_odd_field_last_hl = s_odd_field_first_hl + m_VerticalTimingRegister.ACV * 2;
 
-	TargetRefreshRate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
+	s_target_refresh_rate = lround(2.0 * SystemTimers::GetTicksPerSecond() / (GetTicksPerEvenField() + GetTicksPerOddField()));
+}
+
+u32 GetTargetRefreshRate()
+{
+	return s_target_refresh_rate;
+}
+
+u32 GetTicksPerSample()
+{
+	return 2 * SystemTimers::GetTicksPerSecond() / s_clock_freqs[m_Clock];
 }
 
 u32 GetTicksPerHalfLine()
 {
-	return 2 * SystemTimers::GetTicksPerSecond() / s_clock_freqs[m_Clock] * m_HTiming0.HLW;
+	return GetTicksPerSample() * m_HTiming0.HLW;
 }
-
 
 u32 GetTicksPerField()
 {
@@ -606,7 +650,8 @@ static void BeginField(FieldType field)
 		xfbAddr = GetXFBAddressTop();
 	}
 
-	if (interlaced_xfb && g_ActiveConfig.bForceProgressive) {
+	if (interlaced_xfb && g_ActiveConfig.bForceProgressive)
+	{
 		// Strictly speaking, in interlaced mode, we're only supposed to read
 		// half of the lines of the XFB, and use that to display a field; the
 		// other lines are unspecified junk.  However, in practice, we can
@@ -617,17 +662,16 @@ static void BeginField(FieldType field)
 		fbStride /= 2;
 		fbHeight *= 2;
 
-                // PRB for the different fields should only ever differ by 1 in
-                // interlaced mode, and which is less determines which field
-                // has the first line. For the field with the second line, we
-                // offset the xfb by (-stride_of_one_line) to get the start
-                // address of the full xfb.
-		if ((field == FieldType::FIELD_ODD) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)) {
-			xfbAddr -= (fbStride * 2);
-		}
-		if ((field == FieldType::FIELD_EVEN) && (m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)) {
-			xfbAddr -= (fbStride * 2);
-		}
+		// PRB for the different fields should only ever differ by 1 in
+		// interlaced mode, and which is less determines which field
+		// has the first line. For the field with the second line, we
+		// offset the xfb by (-stride_of_one_line) to get the start
+		// address of the full xfb.
+		if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)
+			xfbAddr -= fbStride * 2;
+
+		if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)
+			xfbAddr -= fbStride * 2;
 	}
 
 	static const char* const fieldTypeNames[] = { "Odd", "Even" };
@@ -660,6 +704,11 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update()
 {
+	if (s_half_line_of_next_si_poll == s_half_line_count)
+	{
+		SerialInterface::UpdateDevices();
+		s_half_line_of_next_si_poll += SerialInterface::GetPollXLines();
+	}
 	if (s_half_line_count == s_even_field_first_hl)
 	{
 		BeginField(FIELD_EVEN);
@@ -679,7 +728,7 @@ void Update()
 
 	for (UVIInterruptRegister& reg : m_InterruptRegister)
 	{
-		if (s_half_line_count + 1 == 2 * reg.VCT)
+		if (s_half_line_count + 1 == 2u * reg.VCT)
 		{
 			reg.IR_INT = 1;
 		}
@@ -687,11 +736,19 @@ void Update()
 
 	s_half_line_count++;
 
-	if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField()) {
+	if (s_half_line_count > GetHalfLinesPerEvenField() + GetHalfLinesPerOddField())
+	{
 		s_half_line_count = 1;
+		s_half_line_of_next_si_poll = num_half_lines_for_si_poll; // first results start at vsync
 	}
 
-	if (s_half_line_count & 1) {
+	if (s_half_line_count == GetHalfLinesPerEvenField())
+	{
+		s_half_line_of_next_si_poll = GetHalfLinesPerEvenField() + num_half_lines_for_si_poll;
+	}
+
+	if (s_half_line_count & 1)
+	{
 		s_ticks_last_line_start = CoreTiming::GetTicks();
 	}
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VideoCommon/BPMemory.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
@@ -42,7 +42,7 @@ struct pixel_shader_uid_data
 	u32 fog_fsel : 3;
 	u32 fog_RangeBaseEnabled : 1;
 	u32 ztex_op : 2;
-	u32 fast_depth_calc : 1;
+	u32 forced_slow_depth : 1;
 	u32 per_pixel_depth : 1;
 	u32 forced_early_z : 1;
 	u32 early_ztest : 1;

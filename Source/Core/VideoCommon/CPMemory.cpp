@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
 
 // CP state

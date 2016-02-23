@@ -4,10 +4,8 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/MMIO.h"
-#include "Core/PowerPC/PowerPC.h"
 
 namespace MemoryInterface
 {

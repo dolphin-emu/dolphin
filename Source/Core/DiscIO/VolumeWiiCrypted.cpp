@@ -115,9 +115,8 @@ bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
 	return true;
 }
 
-std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
+std::vector<u8> CVolumeWiiCrypted::GetTMD() const
 {
-	*size = 0;
 	u32 tmd_size;
 	u32 tmd_address;
 
@@ -136,10 +135,10 @@ std::unique_ptr<u8[]> CVolumeWiiCrypted::GetTMD(u32 *size) const
 		tmd_size = 1024 * 1024 * 4;
 	}
 
-	std::unique_ptr<u8[]> buf{ new u8[tmd_size] };
-	Read(m_VolumeOffset + tmd_address, tmd_size, buf.get(), false);
-	*size = tmd_size;
-	return buf;
+	std::vector<u8> buffer(tmd_size);
+	Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false);
+
+	return buffer;
 }
 
 std::string CVolumeWiiCrypted::GetUniqueID() const
@@ -161,10 +160,51 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
 	if (!m_pReader)
 		return COUNTRY_UNKNOWN;
 
-	u8 country_code;
-	m_pReader->Read(3, 1, &country_code);
+	u8 country_byte;
+	if (!m_pReader->Read(3, 1, &country_byte))
+	{
+		return COUNTRY_UNKNOWN;
+	}
 
-	return CountrySwitch(country_code);
+	IVolume::ECountry country_value = CountrySwitch(country_byte);
+
+	u32 region_code;
+	if (!ReadSwapped(0x4E000, &region_code, false))
+	{
+		return country_value;
+	}
+
+	switch (region_code)
+	{
+	case 0:
+		switch (country_value)
+		{
+		case IVolume::COUNTRY_TAIWAN:
+			return IVolume::COUNTRY_TAIWAN;
+		default:
+			return IVolume::COUNTRY_JAPAN;
+		}
+	case 1:
+		return IVolume::COUNTRY_USA;
+	case 2:
+		switch (country_value)
+		{
+		case IVolume::COUNTRY_FRANCE:
+		case IVolume::COUNTRY_GERMANY:
+		case IVolume::COUNTRY_ITALY:
+		case IVolume::COUNTRY_NETHERLANDS:
+		case IVolume::COUNTRY_RUSSIA:
+		case IVolume::COUNTRY_SPAIN:
+		case IVolume::COUNTRY_AUSTRALIA:
+			return country_value;
+		default:
+			return IVolume::COUNTRY_EUROPE;
+	}
+	case 4:
+		return IVolume::COUNTRY_KOREA;
+	default:
+		return country_value;
+	}
 }
 
 std::string CVolumeWiiCrypted::GetMakerID() const

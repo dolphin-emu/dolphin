@@ -45,15 +45,26 @@ bool CEXIETHERNET::Activate()
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE;
 
-	strncpy(ifr.ifr_name, "Dolphin", IFNAMSIZ);
-
-	int err;
-	if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0)
+	const int MAX_INTERFACES = 32;
+	for (int i = 0; i < MAX_INTERFACES; ++i)
 	{
-		close(fd);
-		fd = -1;
-		ERROR_LOG(SP1, "TUNSETIFF failed: err=%d", err);
-		return false;
+		strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ);
+
+		int err;
+		if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0)
+		{
+			if (i == (MAX_INTERFACES - 1))
+			{
+				close(fd);
+				fd = -1;
+				ERROR_LOG(SP1, "TUNSETIFF failed: Interface=%s err=%d", ifr.ifr_name, err);
+				return false;
+			}
+		}
+		else
+		{
+			break;
+		}
 	}
 	ioctl(fd, TUNSETNOCSUM, 1);
 

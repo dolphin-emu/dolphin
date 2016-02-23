@@ -156,7 +156,7 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
-	CFrame* main_frame = (CFrame*)(GetParent()->GetParent()->GetParent());
+	CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
 	CCodeWindow* code_window = main_frame->g_pCodeWindow;
 	CWatchWindow* watch_window = code_window->m_WatchWindow;
 

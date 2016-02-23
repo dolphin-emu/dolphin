@@ -10,18 +10,16 @@
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/State.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VideoCommon.h"
 
 namespace PixelEngine
 {
@@ -298,7 +296,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 
 	CommandProcessor::SetInterruptTokenWaiting(true);
 
-	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
 		CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
@@ -310,7 +308,7 @@ void SetFinish()
 {
 	CommandProcessor::SetInterruptFinishWaiting(true);
 
-	if (!SConfig::GetInstance().bCPUThread || g_use_deterministic_gpu_thread)
+	if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
 		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
 	else
 		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);

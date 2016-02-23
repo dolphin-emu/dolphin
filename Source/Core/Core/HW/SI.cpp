@@ -4,11 +4,11 @@
 
 #include <algorithm>
 #include <array>
+#include <cstring>
 #include <memory>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
@@ -17,9 +17,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceGBA.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace SerialInterface
 {
@@ -513,6 +512,10 @@ void ChangeDevice(SIDevices device, int channel)
 
 void UpdateDevices()
 {
+	// Update inputs at the rate of SI
+	// Typically 120hz but is variable
+	g_controller_interface.UpdateInput();
+
 	// Update channels and set the status bit if there's new data
 	g_StatusReg.RDST0 = !!g_Channel[0].m_device->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
 	g_StatusReg.RDST1 = !!g_Channel[1].m_device->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
@@ -565,25 +568,9 @@ void RunSIBuffer(u64 userdata, int cyclesLate)
 	}
 }
 
-int GetTicksToNextSIPoll()
+u32 GetPollXLines()
 {
-	// Poll for input at regular intervals (once per frame) when playing or recording a movie
-	if (Movie::IsMovieActive())
-	{
-		if (Movie::IsNetPlayRecording())
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
-		else
-			return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate;
-	}
-	if (NetPlay::IsNetPlayRunning())
-		return SystemTimers::GetTicksPerSecond() / VideoInterface::TargetRefreshRate / 2;
-
-	if (!g_Poll.Y && g_Poll.X)
-		return 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X;
-	else if (!g_Poll.Y)
-		return SystemTimers::GetTicksPerSecond() / 60;
-
-	return std::min(VideoInterface::GetTicksPerField() / g_Poll.Y, 2 * VideoInterface::GetTicksPerHalfLine() * g_Poll.X);
+	return g_Poll.X;
 }
 
 } // end of namespace SerialInterface

@@ -3,34 +3,29 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-static char text[16768];
-
 template<class T>
-static inline T GenerateVertexShader(API_TYPE api_type)
+static T GenerateVertexShader(API_TYPE api_type)
 {
 	T out;
 	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
 	vertex_shader_uid_data* uid_data = out.template GetUidData<vertex_shader_uid_data>();
-	if (uid_data == nullptr)
+	if (uid_data != nullptr)
+		memset(uid_data, 0, sizeof(*uid_data));
+	else
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
@@ -140,7 +135,7 @@ static inline T GenerateVertexShader(API_TYPE api_type)
 
 		if (components & VB_HAS_NRMALL)
 		{
-			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+			out.Write("int normidx = posmtx & 31;\n");
 			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
@@ -178,7 +173,7 @@ static inline T GenerateVertexShader(API_TYPE api_type)
 		if (components & VB_HAS_COL0)
 			out.Write("o.colors_0 = color0;\n");
 		else
-			out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+			out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
 	}
 
 	GenerateLightingShader<T>(out, uid_data->lighting, components, "color", "o.colors_");
@@ -338,7 +333,7 @@ static inline T GenerateVertexShader(API_TYPE api_type)
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
-		// divide
+		// divide, but introduces a floating point round-trip error.
 		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:
@@ -389,12 +384,6 @@ static inline T GenerateVertexShader(API_TYPE api_type)
 		out.Write("return o;\n");
 	}
 	out.Write("}\n");
-
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-	}
 
 	return out;
 }

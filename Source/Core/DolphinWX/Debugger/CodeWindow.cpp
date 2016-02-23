@@ -45,12 +45,6 @@
 #include "DolphinWX/Debugger/RegisterWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 
-extern "C"  // Bitmaps
-{
-	#include "DolphinWX/resources/toolbar_add_memorycheck.c" // NOLINT
-	#include "DolphinWX/resources/toolbar_add_breakpoint.c" // NOLINT
-}
-
 CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, position, size, style, name)
@@ -93,7 +87,7 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame *pare
 
 	m_aui_manager.SetManagedWindow(this);
 	m_aui_manager.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
-	m_aui_manager.AddPane(m_aui_toolbar, wxAuiPaneInfo().ToolbarPane().Top().Floatable(false));
+	m_aui_manager.AddPane(m_aui_toolbar, wxAuiPaneInfo().MinSize(150, -1).ToolbarPane().Top().Floatable(false));
 	m_aui_manager.AddPane(callstack, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Callstack")));
 	m_aui_manager.AddPane(symbols, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Symbols")));
 	m_aui_manager.AddPane(calls, wxAuiPaneInfo().MinSize(150, 100).Left().CloseButton(false).Floatable(false).Caption(_("Function calls")));
@@ -654,17 +648,12 @@ bool CCodeWindow::JITNoBlockLinking()
 // Toolbar
 void CCodeWindow::InitBitmaps()
 {
-	// load original size 48x48
-	m_Bitmaps[Toolbar_Step] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
-	m_Bitmaps[Toolbar_StepOver] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_StepOut] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_Skip] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_GotoPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-	m_Bitmaps[Toolbar_SetPC] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-
-	// scale to 24x24 for toolbar
-	for (auto& bitmap : m_Bitmaps)
-		bitmap = wxBitmap(bitmap.ConvertToImage().Scale(24, 24));
+	m_Bitmaps[Toolbar_Step] = WxUtils::LoadResourceBitmap("toolbar_debugger_step");
+	m_Bitmaps[Toolbar_StepOver] = WxUtils::LoadResourceBitmap("toolbar_debugger_step_over");
+	m_Bitmaps[Toolbar_StepOut] = WxUtils::LoadResourceBitmap("toolbar_debugger_step_out");
+	m_Bitmaps[Toolbar_Skip] = WxUtils::LoadResourceBitmap("toolbar_debugger_skip");
+	m_Bitmaps[Toolbar_GotoPC] = WxUtils::LoadResourceBitmap("toolbar_debugger_goto_pc");
+	m_Bitmaps[Toolbar_SetPC] = WxUtils::LoadResourceBitmap("toolbar_debugger_set_pc");
 }
 
 void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)

@@ -5,11 +5,14 @@
 #include <cinttypes>
 #include <string>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Common/StringUtil.h"
 #include "Common/x64ABI.h"
-#include "Core/HW/Memmap.h"
+#include "Common/x64Analyzer.h"
+#include "Common/x64Emitter.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/TrampolineCache.h"
 

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonFuncs.h"
@@ -63,7 +64,7 @@ enum
 };
 
 // MMIO mapping object.
-extern MMIO::Mapping* mmio_mapping;
+extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
 // Init and Shutdown
 bool IsInitialized();

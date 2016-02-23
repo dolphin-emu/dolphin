@@ -4,14 +4,34 @@
 
 #include <array>
 #include <cstdlib>
+#include <sstream>
+#include <vector>
 
 #include "Common/GL/GLInterface/EGL.h"
 #include "Common/Logging/Log.h"
 
+#ifndef EGL_KHR_create_context
+#define EGL_KHR_create_context 1
+#define EGL_CONTEXT_MAJOR_VERSION_KHR     0x3098
+#define EGL_CONTEXT_MINOR_VERSION_KHR     0x30FB
+#define EGL_CONTEXT_FLAGS_KHR             0x30FC
+#define EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR 0x30FD
+#define EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR 0x31BD
+#define EGL_NO_RESET_NOTIFICATION_KHR     0x31BE
+#define EGL_LOSE_CONTEXT_ON_RESET_KHR     0x31BF
+#define EGL_CONTEXT_OPENGL_DEBUG_BIT_KHR  0x00000001
+#define EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR 0x00000002
+#define EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR 0x00000004
+#define EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR 0x00000001
+#define EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR 0x00000002
+#define EGL_OPENGL_ES3_BIT_KHR            0x00000040
+#endif /* EGL_KHR_create_context */
+
 // Show the current FPS
 void cInterfaceEGL::Swap()
 {
-	eglSwapBuffers(egl_dpy, egl_surf);
+	if (egl_surf != EGL_NO_SURFACE)
+		eglSwapBuffers(egl_dpy, egl_surf);
 }
 void cInterfaceEGL::SwapInterval(int Interval)
 {
@@ -25,7 +45,7 @@ void* cInterfaceEGL::GetFuncAddress(const std::string& name)
 
 void cInterfaceEGL::DetectMode()
 {
-	if (s_opengl_mode != MODE_DETECT)
+	if (s_opengl_mode != GLInterfaceMode::MODE_DETECT)
 		return;
 
 	EGLint num_configs;
@@ -98,10 +118,13 @@ void cInterfaceEGL::DetectMode()
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool cInterfaceEGL::Create(void *window_handle, bool core)
 {
-	const char *s;
 	EGLint egl_major, egl_minor;
+	bool supports_core_profile = false;
 
 	egl_dpy = OpenDisplay();
+	m_host_window = (EGLNativeWindowType) window_handle;
+	m_has_handle = !!window_handle;
+	m_core = core;
 
 	if (!egl_dpy)
 	{
@@ -116,7 +139,6 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 	}
 
 	/* Detection code */
-	EGLConfig config;
 	EGLint num_configs;
 
 	DetectMode();
@@ -130,76 +152,210 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 		EGL_BLUE_SIZE, 8,
 		EGL_NONE };
 
-	EGLint ctx_attribs[] = {
-		EGL_CONTEXT_CLIENT_VERSION, 2,
-		EGL_NONE
-	};
+	std::vector<EGLint> ctx_attribs;
 	switch (s_opengl_mode)
 	{
-		case MODE_OPENGL:
-			attribs[1] = EGL_OPENGL_BIT;
-			ctx_attribs[0] = EGL_NONE;
-		break;
-		case MODE_OPENGLES2:
-			attribs[1] = EGL_OPENGL_ES2_BIT;
-			ctx_attribs[1] = 2;
-		break;
-		case MODE_OPENGLES3:
-			attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
-			ctx_attribs[1] = 3;
-		break;
-		default:
-			ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
-			return false;
-		break;
+	case GLInterfaceMode::MODE_OPENGL:
+		attribs[1] = EGL_OPENGL_BIT;
+		ctx_attribs = { EGL_NONE };
+	break;
+	case GLInterfaceMode::MODE_OPENGLES2:
+		attribs[1] = EGL_OPENGL_ES2_BIT;
+		ctx_attribs = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE };
+	break;
+	case GLInterfaceMode::MODE_OPENGLES3:
+		attribs[1] = (1 << 6); /* EGL_OPENGL_ES3_BIT_KHR */
+		ctx_attribs = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
+	break;
+	default:
+		ERROR_LOG(VIDEO, "Unknown opengl mode set\n");
+		return false;
+	break;
 	}
 
-	if (!eglChooseConfig( egl_dpy, attribs, &config, 1, &num_configs))
+	if (!eglChooseConfig( egl_dpy, attribs, &m_config, 1, &num_configs))
 	{
 		INFO_LOG(VIDEO, "Error: couldn't get an EGL visual config\n");
-		exit(1);
+		return false;
 	}
 
-	if (s_opengl_mode == MODE_OPENGL)
+	if (s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
 		eglBindAPI(EGL_OPENGL_API);
 	else
 		eglBindAPI(EGL_OPENGL_ES_API);
 
-	EGLNativeWindowType host_window = (EGLNativeWindowType) window_handle;
-	EGLNativeWindowType native_window = InitializePlatform(host_window, config);
+	std::string tmp;
+	std::istringstream buffer(eglQueryString(egl_dpy, EGL_EXTENSIONS));
+	while (buffer >> tmp)
+	{
+		if (tmp == "EGL_KHR_surfaceless_context")
+			m_supports_surfaceless = true;
+		else if (tmp == "EGL_KHR_create_context")
+			supports_core_profile = true;
+	}
 
-	s = eglQueryString(egl_dpy, EGL_VERSION);
-	INFO_LOG(VIDEO, "EGL_VERSION = %s\n", s);
+	if (supports_core_profile && core && s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
+	{
+		std::array<std::pair<int, int>, 2> versions_to_try =
+		{{
+			{ 4, 0 },
+			{ 3, 3 },
+		}};
 
-	s = eglQueryString(egl_dpy, EGL_VENDOR);
-	INFO_LOG(VIDEO, "EGL_VENDOR = %s\n", s);
+		for (const auto& version : versions_to_try)
+		{
+			std::vector<EGLint> core_attribs =
+			{
+				EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR,
+				EGL_CONTEXT_FLAGS_KHR, EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR,
+				EGL_CONTEXT_MAJOR_VERSION_KHR, version.first,
+				EGL_CONTEXT_MINOR_VERSION_KHR, version.second,
+				EGL_NONE
+			};
 
-	s = eglQueryString(egl_dpy, EGL_EXTENSIONS);
-	INFO_LOG(VIDEO, "EGL_EXTENSIONS = %s\n", s);
+			egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &core_attribs[0]);
+			if (egl_ctx)
+				break;
+		}
+	}
 
-	s = eglQueryString(egl_dpy, EGL_CLIENT_APIS);
-	INFO_LOG(VIDEO, "EGL_CLIENT_APIS = %s\n", s);
+	if (!egl_ctx)
+	{
+		m_core = false;
+		egl_ctx = eglCreateContext(egl_dpy, m_config, EGL_NO_CONTEXT, &ctx_attribs[0]);
+	}
 
-	egl_ctx = eglCreateContext(egl_dpy, config, EGL_NO_CONTEXT, ctx_attribs );
 	if (!egl_ctx)
 	{
 		INFO_LOG(VIDEO, "Error: eglCreateContext failed\n");
-		exit(1);
+		return false;
 	}
 
-	egl_surf = eglCreateWindowSurface(egl_dpy, config, native_window, nullptr);
-	if (!egl_surf)
+	if (!CreateWindowSurface())
 	{
-		INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
-		exit(1);
+		ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x\n", eglGetError());
+		return false;
+	}
+	return true;
+}
+
+std::unique_ptr<cInterfaceBase> cInterfaceEGL::CreateSharedContext()
+{
+	std::unique_ptr<cInterfaceBase> context = std::make_unique<cInterfaceEGL>();
+	if (!context->Create(this))
+		return nullptr;
+	return context;
+}
+
+bool cInterfaceEGL::Create(cInterfaceBase* main_context)
+{
+	cInterfaceEGL* egl_context = static_cast<cInterfaceEGL*>(main_context);
+
+	egl_dpy = egl_context->egl_dpy;
+	m_core = egl_context->m_core;
+	m_config = egl_context->m_config;
+	m_supports_surfaceless = egl_context->m_supports_surfaceless;
+	m_is_shared = true;
+	m_has_handle = false;
+
+	EGLint ctx_attribs[] = {
+		EGL_CONTEXT_CLIENT_VERSION, 2,
+		EGL_NONE
+	};
+
+	switch (egl_context->GetMode())
+	{
+	case GLInterfaceMode::MODE_OPENGL:
+		ctx_attribs[0] = EGL_NONE;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES2:
+		ctx_attribs[1] = 2;
+	break;
+	case GLInterfaceMode::MODE_OPENGLES3:
+		ctx_attribs[1] = 3;
+	break;
+	default:
+		INFO_LOG(VIDEO, "Unknown opengl mode set\n");
+		return false;
+	break;
 	}
 
+	if (egl_context->GetMode() == GLInterfaceMode::MODE_OPENGL)
+		eglBindAPI(EGL_OPENGL_API);
+	else
+		eglBindAPI(EGL_OPENGL_ES_API);
+
+	egl_ctx = eglCreateContext(egl_dpy, m_config, egl_context->egl_ctx, ctx_attribs );
+	if (!egl_ctx)
+	{
+		INFO_LOG(VIDEO, "Error: eglCreateContext failed 0x%04x\n", eglGetError());
+		return false;
+	}
+
+	if (!CreateWindowSurface())
+	{
+		ERROR_LOG(VIDEO, "Error: CreateWindowSurface failed 0x%04x\n", eglGetError());
+		return false;
+	}
 	return true;
+}
+
+bool cInterfaceEGL::CreateWindowSurface()
+{
+	if (m_has_handle)
+	{
+		EGLNativeWindowType native_window = InitializePlatform(m_host_window, m_config);
+		egl_surf = eglCreateWindowSurface(egl_dpy, m_config, native_window, nullptr);
+		if (!egl_surf)
+		{
+			INFO_LOG(VIDEO, "Error: eglCreateWindowSurface failed\n");
+			return false;
+		}
+	}
+	else if (!m_supports_surfaceless)
+	{
+		EGLint attrib_list[] =
+		{
+			EGL_NONE,
+		};
+		egl_surf = eglCreatePbufferSurface(egl_dpy, m_config, attrib_list);
+		if (!egl_surf)
+		{
+			INFO_LOG(VIDEO, "Error: eglCreatePbufferSurface failed");
+			return false;
+		}
+	}
+	else
+	{
+		egl_surf = EGL_NO_SURFACE;
+	}
+	return true;
+}
+
+void cInterfaceEGL::DestroyWindowSurface()
+{
+	if (egl_surf != EGL_NO_SURFACE && !eglDestroySurface(egl_dpy, egl_surf))
+		NOTICE_LOG(VIDEO, "Could not destroy window surface.");
+	egl_surf = EGL_NO_SURFACE;
 }
 
 bool cInterfaceEGL::MakeCurrent()
 {
 	return eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx);
+}
+
+void cInterfaceEGL::UpdateHandle(void* window_handle)
+{
+	m_host_window = (EGLNativeWindowType)window_handle;
+	m_has_handle = !!window_handle;
+}
+
+void cInterfaceEGL::UpdateSurface()
+{
+	ClearCurrent();
+	DestroyWindowSurface();
+	CreateWindowSurface();
+	MakeCurrent();
 }
 
 bool cInterfaceEGL::ClearCurrent()
@@ -211,16 +367,15 @@ bool cInterfaceEGL::ClearCurrent()
 void cInterfaceEGL::Shutdown()
 {
 	ShutdownPlatform();
-	if (egl_ctx && !eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx))
-		NOTICE_LOG(VIDEO, "Could not release drawing context.");
 	if (egl_ctx)
 	{
+		if (!eglMakeCurrent(egl_dpy, egl_surf, egl_surf, egl_ctx))
+			NOTICE_LOG(VIDEO, "Could not release drawing context.");
 		eglMakeCurrent(egl_dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 		if (!eglDestroyContext(egl_dpy, egl_ctx))
 			NOTICE_LOG(VIDEO, "Could not destroy drawing context.");
-		if (!eglDestroySurface(egl_dpy, egl_surf))
-			NOTICE_LOG(VIDEO, "Could not destroy window surface.");
-		if (!eglTerminate(egl_dpy))
+		DestroyWindowSurface();
+		if (!m_is_shared && !eglTerminate(egl_dpy))
 			NOTICE_LOG(VIDEO, "Could not destroy display connection.");
 		egl_ctx = nullptr;
 	}

@@ -42,6 +42,7 @@ enum {
 	D_MAILLOGS_IDX,
 	D_THEMES_IDX,
 	D_PIPES_IDX,
+	D_MEMORYWATCHER_IDX,
 	F_DOLPHINCONFIG_IDX,
 	F_DEBUGGERCONFIG_IDX,
 	F_LOGGERCONFIG_IDX,
@@ -50,6 +51,8 @@ enum {
 	F_ARAMDUMP_IDX,
 	F_FAKEVMEMDUMP_IDX,
 	F_GCSRAM_IDX,
+	F_MEMORYWATCHERLOCATIONS_IDX,
+	F_MEMORYWATCHERSOCKET_IDX,
 	NUM_PATH_INDICES
 };
 
@@ -67,65 +70,65 @@ struct FSTEntry
 };
 
 // Returns true if file filename exists
-bool Exists(const std::string &filename);
+bool Exists(const std::string& filename);
 
 // Returns true if filename is a directory
-bool IsDirectory(const std::string &filename);
+bool IsDirectory(const std::string& filename);
 
 // Returns the size of filename (64bit)
-u64 GetSize(const std::string &filename);
+u64 GetSize(const std::string& filename);
 
 // Overloaded GetSize, accepts file descriptor
 u64 GetSize(const int fd);
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE *f);
+u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
-bool CreateDir(const std::string &filename);
+bool CreateDir(const std::string& filename);
 
 // Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string &fullPath);
+bool CreateFullPath(const std::string& fullPath);
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string &filename);
+bool Delete(const std::string& filename);
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string &filename);
+bool DeleteDir(const std::string& filename);
 
 // renames file srcFilename to destFilename, returns true on success
-bool Rename(const std::string &srcFilename, const std::string &destFilename);
+bool Rename(const std::string& srcFilename, const std::string& destFilename);
 
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
-bool RenameSync(const std::string &srcFilename, const std::string &destFilename);
+bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
 
 // copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string &srcFilename, const std::string &destFilename);
+bool Copy(const std::string& srcFilename, const std::string& destFilename);
 
 // creates an empty file filename, returns true on success
-bool CreateEmptyFile(const std::string &filename);
+bool CreateEmptyFile(const std::string& filename);
 
 // Recursive or non-recursive list of files under directory.
-FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive);
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
-bool DeleteDirRecursively(const std::string &directory);
+bool DeleteDirRecursively(const std::string& directory);
 
 // Returns the current directory
 std::string GetCurrentDir();
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string &source_path, const std::string &dest_path);
+void CopyDir(const std::string& source_path, const std::string& dest_path);
 
 // Set the current directory to given directory
-bool SetCurrentDir(const std::string &directory);
+bool SetCurrentDir(const std::string& directory);
 
 // Creates and returns the path to a new temporary directory.
 std::string CreateTempDir();
 
 // Get a filename that can hopefully be atomically renamed to the given path.
-std::string GetTempFilenameForAtomicWrite(const std::string &path);
+std::string GetTempFilenameForAtomicWrite(const std::string& path);
 
 // Gets a set user directory path
 // Don't call prior to setting the base user directory
@@ -145,7 +148,7 @@ std::string GetSysDirectory();
 std::string GetBundleDirectory();
 #endif
 
-std::string &GetExeDirectory();
+std::string& GetExeDirectory();
 
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);

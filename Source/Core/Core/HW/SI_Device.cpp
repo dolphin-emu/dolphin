@@ -5,12 +5,14 @@
 #include <memory>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SI_DeviceKeyboard.h"
@@ -72,6 +74,9 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
 	{
 	case SIDEVICE_GC_CONTROLLER:
 		return std::make_unique<CSIDevice_GCController>(device, port_number);
+
+	case SIDEVICE_WIIU_ADAPTER:
+		return std::make_unique<CSIDevice_GCAdapter>(device, port_number);
 
 	case SIDEVICE_DANCEMAT:
 		return std::make_unique<CSIDevice_DanceMat>(device, port_number);

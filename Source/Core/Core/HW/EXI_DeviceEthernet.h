@@ -5,12 +5,12 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-#include "Common/Thread.h"
 #include "Core/HW/EXI_Device.h"
 
 class PointerWrap;

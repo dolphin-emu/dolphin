@@ -256,6 +256,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
+		core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
+		core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
 	}
 	core->Set("WiiSDCard", m_WiiSDCard);
 	core->Set("WiiKeyboard", m_WiiKeyboard);
@@ -263,14 +265,12 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	core->Set("RunCompareServer", bRunCompareServer);
 	core->Set("RunCompareClient", bRunCompareClient);
-	core->Set("FrameLimit", m_Framelimit);
+	core->Set("EmulationSpeed", m_EmulationSpeed);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
 	core->Set("GFXBackend", m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
-	core->Set("GameCubeAdapter", m_GameCubeAdapter);
-	core->Set("AdapterRumble", m_AdapterRumble);
 	core->Set("PerfMapDir", m_perfDir);
 }
 
@@ -512,6 +512,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+		core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
+		core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
 	}
 	core->Get("WiiSDCard",                 &m_WiiSDCard,                                   false);
 	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
@@ -529,14 +531,12 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("DCBZ",                      &bDCBZOFF,          false);
 	core->Get("FPRF",                      &bFPRF,             false);
 	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
-	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	core->Get("EmulationSpeed",            &m_EmulationSpeed,                              1.0f);
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
-	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             false);
-	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
 	core->Get("PerfMapDir",                &m_perfDir, "");
 }
 
@@ -976,6 +976,12 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
 std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16 revision)
 {
 	std::vector<std::string> filenames;
+
+	if (id.empty())
+		return filenames;
+
+	// INIs that match the system code (unique for each Virtual Console system)
+	filenames.push_back(id.substr(0, 1) + ".ini");
 
 	// INIs that match all regions
 	if (id.size() >= 4)

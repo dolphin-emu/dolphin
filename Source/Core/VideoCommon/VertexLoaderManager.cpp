@@ -5,23 +5,25 @@
 #include <algorithm>
 #include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
-#include "VideoCommon/VideoCommon.h"
-
-
 
 namespace VertexLoaderManager
 {
@@ -29,7 +31,6 @@ namespace VertexLoaderManager
 float position_cache[3][4];
 u32 position_matrix_index[3];
 
-typedef std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>> NativeVertexFormatMap;
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
 u32 g_current_components;
@@ -40,6 +41,12 @@ static VertexLoaderMap s_vertex_loader_map;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
 u8 *cached_arraybases[12];
+
+// Used in D3D12 backend, to populate input layouts used by cached-to-disk PSOs.
+NativeVertexFormatMap* GetNativeVertexFormatMap()
+{
+	return &s_native_vertex_map;
+}
 
 void Init()
 {
@@ -124,6 +131,7 @@ void MarkAllDirty()
 static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = false)
 {
 	CPState* state = preprocess ? &g_preprocess_cp_state : &g_main_cp_state;
+	state->last_id = vtx_attr_group;
 
 	VertexLoaderBase* loader;
 	if (state->attr_dirty[vtx_attr_group])
@@ -141,8 +149,8 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 		}
 		else
 		{
-			loader = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
-			s_vertex_loader_map[uid] = std::unique_ptr<VertexLoaderBase>(loader);
+			s_vertex_loader_map[uid] = VertexLoaderBase::CreateVertexLoader(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
+			loader = s_vertex_loader_map[uid].get();
 			INCSTAT(stats.numVertexLoaders);
 		}
 		if (check_for_native_format)

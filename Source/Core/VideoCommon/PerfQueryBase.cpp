@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-PerfQueryBase* g_perf_query = nullptr;
+std::unique_ptr<PerfQueryBase> g_perf_query;
 
 bool PerfQueryBase::ShouldEmulate()
 {

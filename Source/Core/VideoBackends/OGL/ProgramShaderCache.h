@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Common/LinearDiskCache.h"
 #include "Common/GL/GLUtil.h"
 
@@ -23,33 +25,16 @@ public:
 	PixelShaderUid puid;
 	GeometryShaderUid guid;
 
-	SHADERUID() {}
-
-	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid), guid(r.guid) {}
-
 	bool operator <(const SHADERUID& r) const
 	{
-		if (puid < r.puid)
-			return true;
-
-		if (r.puid < puid)
-			return false;
-
-		if (vuid < r.vuid)
-			return true;
-
-		if (r.vuid < vuid)
-			return false;
-
-		if (guid < r.guid)
-			return true;
-
-		return false;
+		return std::tie(puid, vuid, guid) <
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 
 	bool operator ==(const SHADERUID& r) const
 	{
-		return puid == r.puid && vuid == r.vuid && guid == r.guid;
+		return std::tie(puid, vuid, guid) ==
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 };
 
@@ -91,8 +76,8 @@ public:
 	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
 	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
 
-	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode, const char* gcode = nullptr);
-	static GLuint CompileSingleShader(GLuint type, const char *code);
+	static bool CompileShader(SHADER &shader, const std::string& vcode, const std::string& pcode, const std::string& gcode = "");
+	static GLuint CompileSingleShader(GLuint type, const std::string& code);
 	static void UploadConstants();
 
 	static void Init();

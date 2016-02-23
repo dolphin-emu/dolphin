@@ -6,8 +6,19 @@
 #include <QDirIterator>
 #include <QFile>
 
-#include "Core/ConfigManager.h"
+#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameTracker.h"
+
+static const QStringList game_filters{
+	QStringLiteral("*.gcm"),
+	QStringLiteral("*.iso"),
+	QStringLiteral("*.ciso"),
+	QStringLiteral("*.gcz"),
+	QStringLiteral("*.wbfs"),
+	QStringLiteral("*.wad"),
+	QStringLiteral("*.elf"),
+	QStringLiteral("*.dol")
+};
 
 GameTracker::GameTracker(QObject* parent)
 	: QFileSystemWatcher(parent)
@@ -22,12 +33,10 @@ GameTracker::GameTracker(QObject* parent)
 	connect(this, &GameTracker::PathChanged, m_loader, &GameLoader::LoadGame);
 	connect(m_loader, &GameLoader::GameLoaded, this, &GameTracker::GameLoaded);
 
-	GenerateFilters();
-
 	m_loader_thread.start();
 
-	for (const std::string& dir : SConfig::GetInstance().m_ISOFolder)
-		AddDirectory(QString::fromStdString(dir));
+	for (QString dir : Settings().GetPaths())
+		AddDirectory(dir);
 }
 
 GameTracker::~GameTracker()
@@ -36,28 +45,54 @@ GameTracker::~GameTracker()
 	m_loader_thread.wait();
 }
 
-void GameTracker::AddDirectory(QString dir)
+void GameTracker::AddDirectory(const QString& dir)
 {
+	if (!QFileInfo(dir).exists())
+		return;
 	addPath(dir);
 	UpdateDirectory(dir);
 }
 
-void GameTracker::UpdateDirectory(QString dir)
+void GameTracker::RemoveDirectory(const QString& dir)
 {
-	QDirIterator it(dir, m_filters);
+	removePath(dir);
+	QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
 	while (it.hasNext())
 	{
 		QString path = QFileInfo(it.next()).canonicalFilePath();
-		if (!m_tracked_files.contains(path))
+		if (m_tracked_files.contains(path))
+		{
+			m_tracked_files[path]--;
+			if (m_tracked_files[path] == 0)
+			{
+				removePath(path);
+				m_tracked_files.remove(path);
+				emit GameRemoved(path);
+			}
+		}
+	}
+}
+
+void GameTracker::UpdateDirectory(const QString& dir)
+{
+	QDirIterator it(dir, game_filters, QDir::NoFilter, QDirIterator::Subdirectories);
+	while (it.hasNext())
+	{
+		QString path = QFileInfo(it.next()).canonicalFilePath();
+		if (m_tracked_files.contains(path))
+		{
+			m_tracked_files[path]++;
+		}
+		else
 		{
 			addPath(path);
-			m_tracked_files.insert(path);
+			m_tracked_files[path] = 1;
 			emit PathChanged(path);
 		}
 	}
 }
 
-void GameTracker::UpdateFile(QString file)
+void GameTracker::UpdateFile(const QString& file)
 {
 	if (QFileInfo(file).exists())
 	{
@@ -68,17 +103,4 @@ void GameTracker::UpdateFile(QString file)
 		m_tracked_files.remove(file);
 		emit GameRemoved(file);
 	}
-}
-
-void GameTracker::GenerateFilters()
-{
-	m_filters.clear();
-	if (SConfig::GetInstance().m_ListGC)
-		m_filters << tr("*.gcm");
-	if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
-		m_filters << tr("*.iso") << tr("*.ciso") << tr("*.gcz") << tr("*.wbfs");
-	if (SConfig::GetInstance().m_ListWad)
-		m_filters << tr("*.wad");
-	if (SConfig::GetInstance().m_ListElfDol)
-		m_filters << tr("*.elf") << tr("*.dol");
 }

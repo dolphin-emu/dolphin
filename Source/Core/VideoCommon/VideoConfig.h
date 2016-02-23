@@ -51,14 +51,6 @@ enum StereoMode
 	STEREO_3DVISION
 };
 
-constexpr int STEREOSCOPY_PRESETS_NUM = 3;
-
-struct StereoscopyPreset final
-{
-	int depth;
-	int convergence;
-};
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -88,8 +80,6 @@ struct VideoConfig final
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
-	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
-	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;
@@ -127,7 +117,7 @@ struct VideoConfig final
 	std::string sPhackvalue[2];
 	float fAspectRatioHackW, fAspectRatioHackH;
 	bool bEnablePixelLighting;
-	bool bFastDepthCalc;
+	bool bForcedSlowDepth;
 	int iLog; // CONF_ bits
 	int iSaveTargetId; // TODO: Should be dropped
 
@@ -145,6 +135,15 @@ struct VideoConfig final
 
 	// Debugging
 	bool bEnableShaderDebugging;
+
+	// VideoSW Debugging
+	int drawStart;
+	int drawEnd;
+	bool bZComploc;
+	bool bZFreeze;
+	bool bDumpObjects;
+	bool bDumpTevStages;
+	bool bDumpTevTextureFetches;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig

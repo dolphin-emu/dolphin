@@ -4,18 +4,21 @@ add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_
 set(CMAKE_AUTOMOC ON)
 
 set(SRCS
+	Host.cpp
 	Main.cpp
 	MainWindow.cpp
-	Host.cpp
+	MenuBar.cpp
 	RenderWidget.cpp
 	Resources.cpp
+	Settings.cpp
 	ToolBar.cpp
+	Config/PathDialog.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
-	GameList/GameTracker.cpp
 	GameList/GameListModel.cpp
-	GameList/TableProxyModel.cpp
+	GameList/GameTracker.cpp
 	GameList/ListProxyModel.cpp
+	GameList/TableDelegate.cpp
 	)
 
 list(APPEND LIBS core uicommon)

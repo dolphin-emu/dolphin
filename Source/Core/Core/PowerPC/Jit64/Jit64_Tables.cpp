@@ -322,8 +322,8 @@ static GekkoOPTemplate table59[] =
 static GekkoOPTemplate table63[] =
 {
 	{264, &Jit64::fsign},                 // fabsx
-	{32,  &Jit64::fcmpx},                 // fcmpo
-	{0,   &Jit64::fcmpx},                 // fcmpu
+	{32,  &Jit64::fcmpX},                 // fcmpo
+	{0,   &Jit64::fcmpX},                 // fcmpu
 	{14,  &Jit64::fctiwx},                // fctiwx
 	{15,  &Jit64::fctiwx},                // fctiwzx
 	{72,  &Jit64::fmrx},                  // fmrx

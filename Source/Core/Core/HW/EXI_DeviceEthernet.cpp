@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <string>
+
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "Common/Network.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/Memmap.h"
 

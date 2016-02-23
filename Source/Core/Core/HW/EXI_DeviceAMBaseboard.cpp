@@ -3,10 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/Core.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAMBaseboard.h"
 
 CEXIAMBaseboard::CEXIAMBaseboard()

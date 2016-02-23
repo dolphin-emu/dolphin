@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cctype>
+#include <cstdlib>
 #include <cstring>
 #include <ctime>
 

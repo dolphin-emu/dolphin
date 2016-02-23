@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VideoCommon/NativeVertexFormat.h"
+#include "Common/CommonTypes.h"
 
 class VertexLoader_TextCoord
 {

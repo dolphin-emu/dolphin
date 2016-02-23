@@ -2,9 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <fstream>
 #include <string>
 
+#include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoCommon/VideoConfig.h"

@@ -2,9 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
-
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/HLE/HLE.h"
 #include "Core/PowerPC/CachedInterpreter.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 void CachedInterpreter::Init()
 {

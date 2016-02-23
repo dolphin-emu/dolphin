@@ -1,15 +1,15 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.Context;
+import android.os.Build;
+
+import org.dolphinemu.dolphinemu.R;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
-import org.dolphinemu.dolphinemu.R;
-
-import android.content.Context;
-import android.os.Build;
-import android.util.Log;
 
 /**
  * Utility class for retrieving information
@@ -60,12 +60,12 @@ public final class CPUHelper
 			}
 			else
 			{
-				Log.e("CPUHelper", "CPU architecture not supported yet.");
+				Log.error("[CPUHelper] CPU architecture not supported yet.");
 			}
 		}
 		catch (IOException ioe)
 		{
-			Log.e("CPUHelper", ioe.getMessage());
+			Log.error("[CPUHelper] " + ioe.getMessage());
 		}
 	}
 

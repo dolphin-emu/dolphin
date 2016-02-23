@@ -5,17 +5,16 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <thread>
 
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceGBA.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 
 #include "SFML/Network.hpp"
 

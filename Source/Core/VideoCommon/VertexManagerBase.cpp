@@ -2,19 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/CommonTypes.h"
+#include <memory>
 
-#include "VideoCommon/BPStructs.h"
+#include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/MainBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -22,7 +26,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexManagerBase* g_vertex_manager;
+std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
 u8* VertexManagerBase::s_pCurBufferPointer;
 u8* VertexManagerBase::s_pBaseBufferPointer;
@@ -226,7 +230,7 @@ void VertexManagerBase::Flush()
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
-		TextureCacheBase::BindTextures();
+		g_texture_cache->BindTextures();
 	}
 
 	// set global vertex constants

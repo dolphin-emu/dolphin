@@ -142,7 +142,7 @@ void ControllerInterface::Shutdown()
 //
 // UpdateInput
 //
-// Update input for all devices, return true if all devices returned successful
+// Update input for all devices
 //
 void ControllerInterface::UpdateInput()
 {

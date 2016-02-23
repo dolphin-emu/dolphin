@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+#include <vector>
+
 #include "Common/Common.h"
 #include "Common/CommonFuncs.h"
 #include "Common/GL/GLInterfaceBase.h"
@@ -24,14 +27,14 @@ int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
 
 GLenum FramebufferManager::m_textureType;
-GLuint* FramebufferManager::m_efbFramebuffer;
+std::vector<GLuint> FramebufferManager::m_efbFramebuffer;
 GLuint FramebufferManager::m_xfbFramebuffer;
 GLuint FramebufferManager::m_efbColor;
 GLuint FramebufferManager::m_efbDepth;
 GLuint FramebufferManager::m_efbColorSwap; // for hot swap when reinterpreting EFB pixel formats
 
 // Only used in MSAA mode.
-GLuint* FramebufferManager::m_resolvedFramebuffer;
+std::vector<GLuint> FramebufferManager::m_resolvedFramebuffer;
 GLuint FramebufferManager::m_resolvedColorTexture;
 GLuint FramebufferManager::m_resolvedDepthTexture;
 
@@ -77,8 +80,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	m_efbColorSwap = glObj[2];
 
 	m_EFBLayers = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
-	m_efbFramebuffer = new GLuint[m_EFBLayers]();
-	m_resolvedFramebuffer = new GLuint[m_EFBLayers]();
+	m_efbFramebuffer.resize(m_EFBLayers);
+	m_resolvedFramebuffer.resize(m_EFBLayers);
 
 	// OpenGL MSAA textures are a different kind of texture type and must be allocated
 	// with a different function, so we create them separately.
@@ -181,7 +184,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 
 		// Bind resolved textures to resolved framebuffer.
-		glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer);
+		glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
 		glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[0]);
 		FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolvedType, m_resolvedColorTexture, 0);
 		FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, resolvedType, m_resolvedDepthTexture, 0);
@@ -199,7 +202,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 	glGenFramebuffers(1, &m_xfbFramebuffer);
 
 	// Bind target textures to EFB framebuffer.
-	glGenFramebuffers(m_EFBLayers, m_efbFramebuffer);
+	glGenFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
 	glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
 	FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
 	FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
@@ -279,7 +282,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 				"vec4 sampleEFB(ivec3 pos) {\n"
 				"	vec4 color = vec4(0.0, 0.0, 0.0, 0.0);\n"
 				"	for(int i=0; i<" + samples.str() + "; i++)\n"
-				"		color += texelFetch(samp9, pos, 0), i);\n"
+				"		color += texelFetch(samp9, pos, i);\n"
 				"	return color / " + samples.str() + ";\n"
 				"}\n";
 		}
@@ -344,8 +347,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	}\n"
 		"}\n";
 
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
-	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs.c_str() : nullptr);
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(), (m_EFBLayers > 1) ? gs : "");
+	ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(), (m_EFBLayers > 1) ? gs : "");
 
 	ProgramShaderCache::CompileShader(m_EfbPokes,
 		StringFromFormat(
@@ -359,7 +362,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"	gl_PointSize = %d.0 / 640.0;\n"
 		"	v_c = color0.bgra;\n"
 		"	v_z = float(color1 & 0xFFFFFF) / 16777216.0;\n"
-		"}\n", m_targetWidth).c_str(),
+		"}\n", m_targetWidth),
 
 		StringFromFormat(
 		"in vec4 %s_c;\n"
@@ -368,7 +371,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"void main(void) {\n"
 		"	ocol0 = %s_c;\n"
 		"	gl_FragDepth = %s_z;\n"
-		"}\n", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v").c_str(),
+		"}\n", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v", m_EFBLayers > 1 ? "g" : "v"),
 
 		m_EFBLayers > 1 ? StringFromFormat(
 		"layout(points) in;\n"
@@ -388,7 +391,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 		"		EmitVertex();\n"
 		"		EndPrimitive();\n"
 		"	}\n"
-		"}\n", m_EFBLayers, m_EFBLayers, m_targetWidth).c_str() : nullptr);
+		"}\n", m_EFBLayers, m_EFBLayers, m_targetWidth) : "");
 	glGenBuffers(1, &m_EfbPokes_VBO);
 	glGenVertexArrays(1, &m_EfbPokes_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_EfbPokes_VBO);
@@ -412,12 +415,12 @@ FramebufferManager::~FramebufferManager()
 
 	// Note: OpenGL deletion functions silently ignore parameters of "0".
 
-	glDeleteFramebuffers(m_EFBLayers, m_efbFramebuffer);
-	glDeleteFramebuffers(m_EFBLayers, m_resolvedFramebuffer);
-	delete [] m_efbFramebuffer;
-	delete [] m_resolvedFramebuffer;
-	m_efbFramebuffer = nullptr;
-	m_resolvedFramebuffer = nullptr;
+	glDeleteFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
+	glDeleteFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
+
+	// Required, as these are static class members
+	m_efbFramebuffer.clear();
+	m_resolvedFramebuffer.clear();
 
 	glDeleteFramebuffers(1, &m_xfbFramebuffer);
 	m_xfbFramebuffer = 0;
@@ -623,7 +626,7 @@ void XFBSource::CopyEFB(float Gamma)
 
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
+std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
 	GLuint texture;
 
@@ -634,7 +637,7 @@ XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, un
 	glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 0);
 	glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, target_width, target_height, layers, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-	return new XFBSource(texture, layers);
+	return std::make_unique<XFBSource>(texture, layers);
 }
 
 void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height)
@@ -643,7 +646,7 @@ void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height
 	*height = m_targetHeight;
 }
 
-void FramebufferManager::PokeEFB(EFBAccessType type, const std::vector<EfbPokeData>& data)
+void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
 	g_renderer->ResetAPIState();
 
@@ -657,10 +660,10 @@ void FramebufferManager::PokeEFB(EFBAccessType type, const std::vector<EfbPokeDa
 
 	glBindVertexArray(m_EfbPokes_VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_EfbPokes_VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(EfbPokeData) * data.size(), data.data(), GL_STREAM_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(EfbPokeData) * num_points, points, GL_STREAM_DRAW);
 	m_EfbPokes.Bind();
 	glViewport(0, 0, m_targetWidth, m_targetHeight);
-	glDrawArrays(GL_POINTS, 0, (GLsizei)data.size());
+	glDrawArrays(GL_POINTS, 0, (GLsizei)num_points);
 
 	g_renderer->RestoreAPIState();
 

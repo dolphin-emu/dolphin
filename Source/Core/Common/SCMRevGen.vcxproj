@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup>
     <PreBuildEvent>
-      <Command>cscript /nologo /E:JScript "make_scmrev.h.js"</Command>
+      <Command>"%windir%\Sysnative\cscript" /nologo /E:JScript "make_scmrev.h.js"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

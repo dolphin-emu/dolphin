@@ -123,8 +123,6 @@
     <ClInclude Include="XFBEncoder.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Globals.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="BoundingBox.h">
       <Filter>Render</Filter>

@@ -3,14 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;

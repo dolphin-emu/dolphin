@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <array>
 #include <list>
+#include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
 inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
@@ -70,7 +73,7 @@ protected:
 		u32 xfbWidth = 0;
 		u32 xfbHeight = 0;
 
-		XFBSourceBase* xfbSource = nullptr;
+		std::unique_ptr<XFBSourceBase> xfbSource;
 	};
 
 	typedef std::list<VirtualXFB> VirtualXFBListType;
@@ -78,7 +81,7 @@ protected:
 	static unsigned int m_EFBLayers;
 
 private:
-	virtual XFBSourceBase* CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
+	virtual std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
 	// TODO: figure out why OGL is different for this guy
 	virtual void GetTargetSize(unsigned int *width, unsigned int *height) = 0;
 
@@ -93,13 +96,13 @@ private:
 	static const XFBSourceBase* const* GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCount);
 	static const XFBSourceBase* const* GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32* xfbCount);
 
-	static XFBSourceBase *m_realXFBSource; // Only used in Real XFB mode
+	static std::unique_ptr<XFBSourceBase> m_realXFBSource; // Only used in Real XFB mode
 	static VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
 
-	static const XFBSourceBase* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
+	static std::array<const XFBSourceBase*, MAX_VIRTUAL_XFB> m_overlappingXFBArray;
 
 	static unsigned int s_last_xfb_width;
 	static unsigned int s_last_xfb_height;
 };
 
-extern FramebufferManagerBase *g_framebuffer_manager;
+extern std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;

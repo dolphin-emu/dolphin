@@ -11,10 +11,9 @@
 #include "Common/Logging/LogManager.h"
 
 #include "Core/ConfigManager.h"
-#if defined(__LIBUSB__) || defined (_WIN32)
-#include "Core/HW/SI_GCAdapter.h"
-#endif
 #include "Core/HW/Wiimote.h"
+
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
 
@@ -27,23 +26,19 @@ void Init()
 {
 	LogManager::Init();
 	SConfig::Init();
-	VideoBackend::PopulateList();
+	VideoBackendBase::PopulateList();
 	WiimoteReal::LoadSettings();
-#if defined(__LIBUSB__) || defined (_WIN32)
-	SI_GCAdapter::Init();
-#endif
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+	GCAdapter::Init();
+	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
 
 void Shutdown()
 {
-#if defined(__LIBUSB__) || defined (_WIN32)
-	SI_GCAdapter::Shutdown();
-#endif
+	GCAdapter::Shutdown();
 	WiimoteReal::Shutdown();
-	VideoBackend::ClearList();
+	VideoBackendBase::ClearList();
 	SConfig::Shutdown();
 	LogManager::Shutdown();
 }

@@ -14,7 +14,7 @@ ConsoleListener::~ConsoleListener()
 {
 }
 
-void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char *text)
+void ConsoleListener::Log(LogTypes::LOG_LEVELS level, const char* text)
 {
 	android_LogPriority logLevel = ANDROID_LOG_UNKNOWN;
 
