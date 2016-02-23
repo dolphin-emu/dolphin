@@ -76,7 +76,6 @@ D3D12_DEPTH_STENCIL_DESC g_reset_depth_desc = {};
 D3D12_RASTERIZER_DESC g_reset_rast_desc = {};
 
 static ID3D12Resource* s_screenshot_texture = nullptr;
-static void* s_screenshot_texture_data = nullptr;
 
 // Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
 typedef struct _Nv_Stereo_Image_Header
@@ -162,7 +161,6 @@ static void SetupDeviceObjects()
 	g_reset_rast_desc = rast_desc;
 
 	s_screenshot_texture = nullptr;
-	s_screenshot_texture_data = nullptr;
 }
 
 // Kill off all device objects
@@ -200,8 +198,6 @@ void CreateScreenshotTexture()
 			IID_PPV_ARGS(&s_screenshot_texture)
 			)
 		);
-
-	CheckHR(s_screenshot_texture->Map(0, nullptr, &s_screenshot_texture_data));
 }
 
 static D3D12_BOX GetScreenshotSourceBox(const TargetRectangle& target_rc)
@@ -677,7 +673,12 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-	saved_png = TextureToPng(static_cast<u8*>(s_screenshot_texture_data), dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
+	void* screenshot_texture_map;
+	CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+
+	saved_png = TextureToPng(static_cast<u8*>(screenshot_texture_map), dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
+
+	s_screenshot_texture->Unmap(0, nullptr);
 
 	if (saved_png)
 	{
@@ -877,7 +878,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 				w = s_record_width;
 				h = s_record_height;
 			}
-			formatBufferDump(static_cast<u8*>(s_screenshot_texture_data), &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
+
+			void* screenshot_texture_map;
+			CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+			formatBufferDump(static_cast<u8*>(screenshot_texture_map), &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
+			s_screenshot_texture->Unmap(0, nullptr);
+
 			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
 		}
