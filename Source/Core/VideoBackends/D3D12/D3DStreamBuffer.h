@@ -17,7 +17,7 @@ public:
 	D3DStreamBuffer(size_t initial_size, size_t max_size, bool* buffer_reallocation_notification);
 	~D3DStreamBuffer();
 
-	bool AllocateSpaceInBuffer(size_t allocation_size, size_t alignment);
+	bool AllocateSpaceInBuffer(size_t allocation_size, size_t alignment, bool allow_execute = true);
 	void OverrideSizeOfPreviousAllocation(size_t override_allocation_size);
 
 	void*                     GetBaseCPUAddress() const;
@@ -32,7 +32,7 @@ public:
 
 private:
 	void AllocateBuffer(size_t size);
-	bool AttemptBufferResizeOrElseStall(size_t new_size);
+	bool AttemptBufferResizeOrElseStall(size_t allocation_size, bool allow_execute);
 
 	bool AttemptToAllocateOutOfExistingUnusedSpaceInBuffer(size_t allocation_size);
 
@@ -40,6 +40,7 @@ private:
 
 	void UpdateGPUProgress();
 
+	void ClearFences();
 	bool HasBufferOffsetChangedSinceLastFence() const;
 	void QueueFence(UINT64 fence_value);
 

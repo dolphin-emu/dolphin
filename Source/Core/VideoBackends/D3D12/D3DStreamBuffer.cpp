@@ -39,7 +39,7 @@ D3DStreamBuffer::~D3DStreamBuffer()
 
 // Obviously this is non-performant, so the buffer max_size should be large enough to
 // ensure this never happens.
-bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t alignment)
+bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t alignment, bool allow_execute)
 {
 	CHECK(allocation_size <= m_buffer_max_size, "Error: Requested allocation size in D3DStreamBuffer is greater than max allowed size of backing buffer.");
 
@@ -75,7 +75,7 @@ bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t align
 
 	// Slow path. No room at front, or back, due to the GPU still (possibly) accessing parts of the buffer.
 	// Resize if possible, else stall.
-	bool command_list_executed = AttemptBufferResizeOrElseStall(allocation_size);
+	bool command_list_executed = AttemptBufferResizeOrElseStall(allocation_size, allow_execute);
 
 	return command_list_executed;
 }
@@ -113,14 +113,25 @@ void D3DStreamBuffer::AllocateBuffer(size_t size)
 	CheckHR(m_buffer->Map(0, nullptr, &m_buffer_cpu_address));
 
 	m_buffer_gpu_address = m_buffer->GetGPUVirtualAddress();
-
 	m_buffer_size = size;
+
+	// Start at the beginning of the new buffer.
+	m_buffer_gpu_completion_offset = 0;
+	m_buffer_current_allocation_offset = 0;
+	m_buffer_offset = 0;
+
+	// Notify observers.
+	if (m_buffer_reallocation_notification != nullptr)
+		*m_buffer_reallocation_notification = true;
+
+	// If we had any fences queued, they are no longer relevant.
+	ClearFences();
 }
 
 // Function returns true if current command list executed as a result of current command list
 // referencing all of buffer's contents, AND we are already at max_size. No alternative but to
 // flush. See comments above AllocateSpaceInBuffer for more details.
-bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size)
+bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size, bool allow_execute)
 {
 	// This function will attempt to increase the size of the buffer, in response
 	// to running out of room. If the buffer is already at its maximum size specified
@@ -155,14 +166,7 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size)
 	if (new_size > m_buffer_size)
 	{
 		AllocateBuffer(new_size);
-		m_buffer_current_allocation_offset = 0;
 		m_buffer_offset = allocation_size;
-
-		if (m_buffer_reallocation_notification != nullptr)
-		{
-			*m_buffer_reallocation_notification = true;
-		}
-
 		return false;
 	}
 
@@ -177,6 +181,14 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size)
 		return false;
 	}
 
+	// If allow_execute is false, the caller cannot handle command list execution (and the associated reset), so re-allocate the same-sized buffer.
+	if (!allow_execute)
+	{
+		AllocateBuffer(new_size);
+		m_buffer_offset = allocation_size;
+		return false;
+	}
+
 	// 4) If we get to this point, that means there is no outstanding queued GPU work, and we're still out of room.
 	// This is bad - and performance will suffer due to the CPU/GPU serialization, but the show must go on.
 
@@ -188,6 +200,7 @@ bool D3DStreamBuffer::AttemptBufferResizeOrElseStall(size_t allocation_size)
 	m_buffer_offset = allocation_size;
 	m_buffer_current_allocation_offset = 0;
 	m_buffer_gpu_completion_offset = 0;
+	ClearFences();
 
 	return true;
 }
@@ -299,7 +312,7 @@ void D3DStreamBuffer::UpdateGPUProgress()
 		}
 		else
 		{
-			// Fences are stored in assending order, so once we hit a fence we haven't yet crossed on GPU, abort search.
+			// Fences are stored in ascending order, so once we hit a fence we haven't yet crossed on GPU, abort search.
 			break;
 		}
 	}
@@ -310,6 +323,12 @@ void D3DStreamBuffer::QueueFenceCallback(void* owning_object, UINT64 fence_value
 	D3DStreamBuffer* owning_stream_buffer = reinterpret_cast<D3DStreamBuffer*>(owning_object);
 	if (owning_stream_buffer->HasBufferOffsetChangedSinceLastFence())
 		owning_stream_buffer->QueueFence(fence_value);
+}
+
+void D3DStreamBuffer::ClearFences()
+{
+	while (!m_queued_fences.empty())
+		m_queued_fences.pop();
 }
 
 bool D3DStreamBuffer::HasBufferOffsetChangedSinceLastFence() const
