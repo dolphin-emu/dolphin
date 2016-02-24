@@ -137,7 +137,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 		s32 offset = (s32)(s16)inst.SIMM_16;
 		gpr.BindToRegister(a, true, false);
 		gpr.BindToRegister(d, false, true);
-		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, CallerSavedRegistersInUse(), signExtend);
+		SafeLoadToReg(gpr.RX(d), gpr.R(a), accessSize, offset, CallerSavedRegistersInUse(), signExtend, 0, RSCRATCH);
 
 		// if it's still 0, we can wait until the next event
 		TEST(32, gpr.R(d), gpr.R(d));
@@ -262,7 +262,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	if (update && storeAddress)
 		registersInUse[RSCRATCH2] = true;
 
-	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend);
+	SafeLoadToReg(gpr.RX(d), opAddress, accessSize, loadOffset, registersInUse, signExtend, 0, RSCRATCH);
 
 	if (update && storeAddress)
 		MOV(32, gpr.R(a), opAddress);
@@ -556,7 +556,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 		ADD(32, R(RSCRATCH2), gpr.R(inst.RA));
 	for (int i = inst.RD; i < 32; i++)
 	{
-		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | BitSet32 { RSCRATCH2 }, false);
+		SafeLoadToReg(RSCRATCH, R(RSCRATCH2), 32, (i - inst.RD) * 4, CallerSavedRegistersInUse() | BitSet32 { RSCRATCH2 }, false, 0, RSCRATCH);
 		gpr.BindToRegister(i, false, true);
 		MOV(32, gpr.R(i), R(RSCRATCH));
 	}
