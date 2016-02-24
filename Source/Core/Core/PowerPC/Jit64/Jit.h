@@ -157,6 +157,9 @@ public:
 	void FloatCompare(UGeckoInstruction inst, bool upper = false);
 	void UpdateMXCSR();
 
+	void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize, bool signExtend, bool swap, bool update);
+	void SafeWrite(GPRRegister& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize, bool swap, bool update);
+
 	// OPCODES
 	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
 	void FallBackToInterpreter(UGeckoInstruction _inst);
