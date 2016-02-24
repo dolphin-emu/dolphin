@@ -70,7 +70,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 	BitSet32 registersInUse = CallerSavedRegistersInUse();
 	if (update && jo.memcheck)
 		registersInUse[RSCRATCH2] = true;
-	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false);
+	SafeLoadToReg(RSCRATCH, addr, single ? 32 : 64, offset, registersInUse, false, 0, RSCRATCH);
 
 	if (single)
 	{
