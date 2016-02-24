@@ -234,9 +234,9 @@ void DoState(PointerWrap &p)
 		{
 			// If no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if (!Movie::IsMovieActive())
-				return;
-
+			// However, change the devices anyways in case they add or remove
+			// a device after the savestate was created.
+			ChangeDeviceDeterministic(type, i);
 			std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
 			save_device->DoState(p);
 			AddDevice(std::move(save_device));
@@ -507,6 +507,16 @@ void ChangeDevice(SIDevices device, int channel)
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
 		CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
+	}
+}
+
+void ChangeDeviceDeterministic(SIDevices device, int channel)
+{
+	// Called from savestates, so it needs to make it available immediately.
+	if (GetDeviceType(channel) != device)
+	{
+		CoreTiming::ScheduleEvent_Immediate(changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
+		CoreTiming::ScheduleEvent_Immediate(changeDevice, ((u64)channel << 32) | device);
 	}
 }
 
