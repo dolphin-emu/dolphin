@@ -102,7 +102,8 @@ struct DTMHeader
 	bool bSyncGPU;
 	bool bNetPlay;
 	bool bPAL60;
-	u8   reserved[12];      // Padding for any new config options
+	u8   language;
+	u8   reserved[11];      // Padding for any new config options
 	u8   discChange[40];    // Name of iso file to switch to, for two disc games.
 	u8   revision[20];      // Git hash
 	u32  DSPiromHash;
@@ -153,6 +154,7 @@ void ChangeWiiPads(bool instantly = false);
 void DoFrameStep();
 void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
+void SetWiiSettings();
 
 void SetFrameSkipping(unsigned int framesToSkip);
 void FrameSkipping();

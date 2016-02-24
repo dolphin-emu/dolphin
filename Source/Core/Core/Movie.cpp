@@ -80,6 +80,7 @@ static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
+static u8 s_language = 10; //Set to unknown until language is known
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
@@ -274,6 +275,22 @@ void SetReadOnly(bool bEnabled)
 		Core::DisplayMessage(bEnabled ? "Read-only mode." :  "Read+Write mode.", 1000);
 
 	s_bReadOnly = bEnabled;
+}
+
+void SetWiiSettings()
+{
+	if (SConfig::GetInstance().bWii)
+	{
+		// Set language to stored language option
+		DiscIO::IVolume::ELanguage wii_system_lang = (DiscIO::IVolume::ELanguage)s_language;
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
+
+		// Set PAL60 to stored PAL60 option
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", IsPAL60());
+
+		// Set Progressive Scan to stored Progressive Scan option
+		SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", IsProgressive());
+	}
 }
 
 void FrameSkipping()
@@ -511,6 +528,9 @@ bool BeginRecordingInput(int controllers)
 	s_currentByte = s_totalBytes = 0;
 
 	Core::UpdateWantDeterminism();
+
+	// Apply saved Wii settings
+	SetWiiSettings();
 
 	Core::PauseAndLock(false, was_unpaused);
 
@@ -810,6 +830,7 @@ void ReadHeader()
 		s_bongos = tmpHeader.bongos;
 		s_bSyncGPU = tmpHeader.bSyncGPU;
 		s_bNetPlay = tmpHeader.bNetPlay;
+		s_language = tmpHeader.language;
 		memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
 	}
 	else
@@ -862,6 +883,9 @@ bool PlayInput(const std::string& filename)
 	Wiimote::ResetAllWiimotes();
 
 	Core::UpdateWantDeterminism();
+
+	// Apply saved Wii settings
+	SetWiiSettings();
 
 	s_totalBytes = g_recordfd.GetSize() - 256;
 	EnsureTmpInputSize((size_t)s_totalBytes);
@@ -1254,6 +1278,7 @@ void SaveRecording(const std::string& filename)
 	header.DSPiromHash = s_DSPiromHash;
 	header.DSPcoefHash = s_DSPcoefHash;
 	header.tickCount = s_totalTickCount;
+	header.language = s_language;
 
 	// TODO
 	header.uniqueID = 0;
@@ -1317,6 +1342,7 @@ void GetSettings()
 	s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
 	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	s_bNetPlay = NetPlay::IsNetPlayRunning();
+	s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	if (!SConfig::GetInstance().bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
