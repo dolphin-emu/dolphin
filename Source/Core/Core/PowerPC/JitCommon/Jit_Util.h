@@ -85,6 +85,7 @@ struct TrampolineInfo final
 	s32 offset;
 	Gen::X64Reg op_reg;
 	Gen::OpArg op_arg;
+	Gen::X64Reg scratch;
 };
 
 // Like XCodeBlock but has some utilities for memory access.
@@ -136,7 +137,7 @@ public:
 		SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
 	};
 
-	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags = 0);
+	void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg & opAddress, int accessSize, s32 offset, BitSet32 registersInUse, bool signExtend, int flags, Gen::X64Reg offsetScratch = Gen::INVALID_REG);
 	void SafeLoadToRegImmediate(Gen::X64Reg reg_value, u32 address, int accessSize, BitSet32 registersInUse, bool signExtend);
 
 	// Clobbers RSCRATCH or reg_addr depending on the relevant flag.  Preserves
