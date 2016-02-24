@@ -45,6 +45,13 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 		owned_sysconf.reset(new SysConf());
 		sysconf = owned_sysconf.get();
 		sysconf->LoadFromFile(File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF);
+		// Apply Wii settings from normal SYSCONF on Movie recording/playback
+		if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+		{
+			sysconf->SetData("IPL.LNG", Movie::GetLanguage());
+			sysconf->SetData("IPL.E60", Movie::IsPAL60());
+			sysconf->SetData("IPL.PGS", Movie::IsProgressive());
+		}
 	}
 	else
 	{

@@ -80,6 +80,7 @@ static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
+static u8 s_language = 10; //Set to unknown until language is known
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
@@ -383,6 +384,11 @@ bool IsFastDiscSpeed()
 int GetCPUMode()
 {
 	return s_iCPUCore;
+}
+
+u8 GetLanguage()
+{
+	return s_language;
 }
 
 bool IsStartingFromClearSave()
@@ -810,6 +816,7 @@ void ReadHeader()
 		s_bongos = tmpHeader.bongos;
 		s_bSyncGPU = tmpHeader.bSyncGPU;
 		s_bNetPlay = tmpHeader.bNetPlay;
+		s_language = tmpHeader.language;
 		memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
 	}
 	else
@@ -1254,6 +1261,7 @@ void SaveRecording(const std::string& filename)
 	header.DSPiromHash = s_DSPiromHash;
 	header.DSPcoefHash = s_DSPcoefHash;
 	header.tickCount = s_totalTickCount;
+	header.language = s_language;
 
 	// TODO
 	header.uniqueID = 0;
@@ -1317,6 +1325,7 @@ void GetSettings()
 	s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
 	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	s_bNetPlay = NetPlay::IsNetPlayRunning();
+	s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	if (!SConfig::GetInstance().bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
