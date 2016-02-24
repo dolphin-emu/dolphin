@@ -5,7 +5,6 @@
 #pragma once
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #endif
 
@@ -186,36 +185,69 @@ public:
 	template <typename T>
 	bool ReadArray(T* data, size_t length, size_t* pReadBytes = nullptr)
 	{
+		size_t read_bytes = 0;
 #ifdef _WIN32
-        // ReadFile demands an LPDWORD for it's lpNumberOfBytesRead.
-        DWORD read;
-        if (m_unbuf_buffer && IsOpen()) {
-            m_read_buf_pos = 0;
-            while (length > 0 || read > 0) {
-                if (m_read_buf_pos == 0) {
-                    if (FALSE == ReadFile(m_file, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_READ_OFFSET + m_read_buf_pos, Win32UnbufBufferValues::UNBUF_READ_BUFFER_SIZE - m_read_buf_pos, &read, nullptr)) {
-                        m_good = false;
-                        break;
-                    }
-                }
-                DWORD copy = std::min(length * sizeof(T), read);
-                memcpy(data, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_READ_OFFSET + m_read_buf_pos, copy);
-                m_read_buf_pos += read;
-                length -= read;
-                data = reinterpret_cast<LPBYTE>(data) + read;
-            }
-        }
-        else if (!IsOpen() || FALSE == ReadFile(m_file, data, length * sizeof(T), &read, nullptr)) {
-            m_good = false;
-        }
+		// ReadFile can only really handle 4GB reads at the time.
+		// Loop over the API call to read more if 'length' would be larger.
+		DWORD read = 1;
+		LPBYTE data_buf = reinterpret_cast<LPBYTE>(data);
+		size_t remaining_length = length * sizeof(T);
+		size_t copy;
+		BOOL rv;
+		if (IsOpen()) {
+			if (m_unbuf_buffer) {
+				m_read_buf_pos = 0;
+				while (remaining_length > 0 && read > 0) {
+					if (m_read_buf_pos == 0) {
+						rv = ReadFile(m_file,
+						              m_unbuf_buffer + UNBUF_BUFFER_READ_OFFSET,
+						              UNBUF_READ_BUFFER_SIZE,
+						              &read,
+						              nullptr);
+						if (FALSE == rv) {
+							m_good = false;
+							break;
+						}
+						m_read_buf_pos += read;
+						m_read_last_pos = 0;
+					}
+					copy = std::min(remaining_length, static_cast<size_t>(read));
+					memcpy(data_buf,
+					       m_unbuf_buffer + UNBUF_BUFFER_READ_OFFSET + m_read_last_pos,
+					       copy);
+					m_read_last_pos += copy;
+					m_read_buf_pos -= copy;
+					remaining_length -= copy;
+					data_buf += copy;
+					read_bytes += copy;
+				}
+			}
+			else {
+				while (remaining_length > 0 && read > 0) {
+					// Always within the limit of what a DWORD can hold.
+					copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+					// So this cast is safe.
+					rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
+					if (FALSE == rv || copy != read) {
+						m_good = false;
+						break;
+					}
+					remaining_length -= copy;
+					data_buf += copy;
+					read_bytes += copy;
+				}
+			}
+		}
+		else {
+			m_good = false;
+		}
 #else
-        size_t read = 0;
-		if (!IsOpen() || length != (read = std::fread(data, sizeof(T), length, m_file)))
+		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
 
 #endif
 		if (pReadBytes)
-			*pReadBytes = read;
+			*pReadBytes = read_bytes;
 
 		return m_good;
 	}
@@ -224,28 +256,62 @@ public:
 	bool WriteArray(const T* data, size_t length)
 	{
 #ifdef _WIN32
-        DWORD written;
-        if (m_unbuf_buffer && IsOpen()) {
-            while (length > 0) {
-                LARGE_INTEGER pos = { Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE * m_chunks_written };
-                DWORD copy = std::min(length * sizeof(T), Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE - m_write_buf_pos);
-                memcpy(m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_WRITE_OFFSET + m_write_buf_pos, data, copy);
-                m_write_buf_pos += copy;
-                SetFilePointerEx(m_file, pos, nullptr, FILE_BEGIN);
-                if (FALSE == WriteFile(m_file, m_unbuf_buffer + Win32UnbufBufferValues::UNBUF_BUFFER_WRITE_OFFSET, Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE, &written, nullptr)) {
-                    m_good = false;
-                    break;
-                }
-                if (m_write_buf_pos == Win32UnbufBufferValues::UNBUF_WRITE_BUFFER_SIZE) {
-                    m_write_buf_pos = 0;
-                    m_chunks_written++;
-                }
-                data = reinterpret_cast<LPBYTE>(data) + written;
-                length -= written;
-            }
-        }
-        else if (!IsOpen() || FALSE == WriteFile(m_file, data, length * sizeof(T), &written, nullptr))
-            m_good = false;
+		// WriteFile can only really handle 4GB at the time.
+		// Loop over the API call to read more if 'length' would be larger.
+		DWORD written;
+		LPBYTE data_buf = reinterpret_cast<LPBYTE>(const_cast<T*>(data));
+		size_t remaining_length = length * sizeof(T);
+		size_t copy;
+		BOOL rv;
+		if (IsOpen()) {
+			if (m_unbuf_buffer) {
+				while (remaining_length > 0) {
+					LARGE_INTEGER pos;
+					pos.QuadPart = UNBUF_WRITE_BUFFER_SIZE * m_chunks_written;
+					copy = std::min(remaining_length,
+					                static_cast<size_t>(UNBUF_WRITE_BUFFER_SIZE - m_write_buf_pos));
+					memcpy(m_unbuf_buffer + UNBUF_BUFFER_WRITE_OFFSET + m_write_buf_pos, data_buf, copy);
+					m_write_buf_pos += copy;
+					rv = SetFilePointerEx(m_file, pos, nullptr, FILE_BEGIN);
+					if (FALSE == rv) {
+						m_good = false;
+						break;
+					}
+					rv = WriteFile(m_file,
+					               m_unbuf_buffer + UNBUF_BUFFER_WRITE_OFFSET,
+					               UNBUF_WRITE_BUFFER_SIZE,
+					               &written,
+					               nullptr);
+					if (FALSE == rv) {
+						m_good = false;
+						break;
+					}
+					if (m_write_buf_pos == UNBUF_WRITE_BUFFER_SIZE) {
+						m_write_buf_pos = 0;
+						m_chunks_written++;
+					}
+					remaining_length -= copy;
+					data_buf += copy;
+				}
+			}
+			else {
+				while (remaining_length > 0) {
+					// Always within the limit of what a DWORD can hold.
+					copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+					// So this cast is safe.
+					rv = WriteFile(m_file, data_buf, static_cast<DWORD>(copy), &written, nullptr);
+					if (FALSE == rv) {
+						m_good = false;
+						break;
+					}
+					remaining_length -= written;
+					data_buf += written;
+				}
+			}
+		}
+		else {
+			m_good = false;
+		}
 #else
 		if (!IsOpen() || length != std::fwrite(data, sizeof(T), length, m_file))
 			m_good = false;
@@ -272,7 +338,13 @@ public:
 		return WriteBytes(text.c_str(), text.size());
 	}
 
-	bool IsOpen() const { return nullptr != m_file; }
+	bool IsOpen() const {
+#ifdef _WIN32
+		return INVALID_HANDLE_VALUE != m_file;
+#else
+		return nullptr != m_file;
+#endif
+	}
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
@@ -305,15 +377,16 @@ private:
     // TODO: append support for UNBUFFERED.
     LPBYTE m_unbuf_buffer;
     // When the buffer wraps, a full chunk has been written
-    u32 m_chunks_written;
-    u32 m_write_buf_pos;
+    size_t m_chunks_written;
+    size_t m_write_buf_pos;
     // Also keep track of where we are in the read buffer.
-    u32 m_read_buf_pos;
+    size_t m_read_buf_pos;
+	size_t m_read_last_pos;
 
     // The unbuffered buffer should have the read buffer first,
     // as that one is more damaging if it's rounded up.
     // Compared to the write buffer.
-    enum Win32UnbufBufferValues : u32 {
+    enum : u32 {
         UNBUF_BUFFER_READ_OFFSET    = 0,
         UNBUF_BUFFER_WRITE_OFFSET   = 64 * 1024 * 1024,
         UNBUF_READ_BUFFER_SIZE      = 64 * 1024 * 1024,
