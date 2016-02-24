@@ -29,7 +29,30 @@ Following this guide and formatting your code as detailed will likely get your p
 ### General
 - Try to limit lines of code to a maximum of 100 characters.
     - Note that this does not mean you should try and use all 100 characters every time you have the chance. Typically with well formatted code, you normally shouldn't hit a line count of anything over 80 or 90 characters.
-- The indentation style we use is tabs for initial indentation and then, if vertical alignment is needed, spaces are to be used.
+- The indentation style we use is tabs for initial indentation and then, if vertical alignment is needed, spaces are to be used:
+```c++
+class IndentAndAlignmentSample
+{
+public:
+	void ThisMethodIsIndentedByOneLevel(int using_one_single_tab)
+	{
+		// this method, along with its opening and closing braces are
+		// indented with a single tab. This comment however is indented
+		// with two tabs. There is no vertical alignment yet, so no
+		// spaces are involved at this point.
+		m_other->DoStuff(m_first_parameter,
+		                 m_second_parameter,
+		                 m_third_parameter);
+		// Indent for the three previous lines is done using two tabs
+		// each (which brings the lines to the column where the word
+		// m_other begins in the first line).
+		// However, lines two and three are vertically aligned using
+		// 17 spaces (that's the length of "m_other->DoStuff(") in order
+		// to line up the method parameters correctly, regardless of
+		// tab-width settings used in your editor/IDE.
+	}
+}
+```
 - The opening brace for namespaces, classes, functions, enums, structs, unions, conditionals, and loops go on the next line.
   - With array initializer lists and lambda expressions it is OK to keep the brace on the same line.
 - References and pointers have the ampersand or asterisk against the type name, not the variable name. Example: `int* var`, not `int *var`.
