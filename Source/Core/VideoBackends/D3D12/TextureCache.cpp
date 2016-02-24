@@ -28,8 +28,7 @@ static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
 static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
-static void* s_texture_cache_entry_readback_buffer_data = nullptr;
-static UINT s_texture_cache_entry_readback_buffer_size = 0;
+static size_t s_texture_cache_entry_readback_buffer_size = 0;
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -43,46 +42,26 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-	// EXISTINGD3D11TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
-	static bool warn_once = true;
-	if (level && warn_once)
+	u32 level_width = std::max(config.width >> level, 1u);
+	u32 level_height = std::max(config.height >> level, 1u);
+	size_t level_pitch = D3D::AlignValue(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	size_t required_readback_buffer_size = level_pitch * level_height;
+
+	// Check if the current readback buffer is large enough
+	if (required_readback_buffer_size > s_texture_cache_entry_readback_buffer_size)
 	{
-		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D12 backend!");
-		warn_once = false;
-		return false;
-	}
+		// Reallocate the buffer with the new size. Safe to immediately release because we're the only user and we block until completion.
+		if (s_texture_cache_entry_readback_buffer)
+			s_texture_cache_entry_readback_buffer->Release();
 
-	D3D12_RESOURCE_DESC texture_desc = m_texture->GetTex12()->GetDesc();
-
-	const unsigned int required_readback_buffer_size = D3D::AlignValue(static_cast<unsigned int>(texture_desc.Width) * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-
-	if (s_texture_cache_entry_readback_buffer_size < required_readback_buffer_size)
-	{
 		s_texture_cache_entry_readback_buffer_size = required_readback_buffer_size;
-
-		// We know the readback buffer won't be in use right now, since we wait on this thread
-		// for the GPU to finish execution right after copying to it.
-
-		SAFE_RELEASE(s_texture_cache_entry_readback_buffer);
+		CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
+		                                               D3D12_HEAP_FLAG_NONE,
+		                                               &CD3DX12_RESOURCE_DESC::Buffer(s_texture_cache_entry_readback_buffer_size),
+		                                               D3D12_RESOURCE_STATE_COPY_DEST,
+		                                               nullptr,
+		                                               IID_PPV_ARGS(&s_texture_cache_entry_readback_buffer)));
 	}
-
-	if (!s_texture_cache_entry_readback_buffer_size)
-	{
-		CheckHR(
-			D3D::device12->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
-				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(s_texture_cache_entry_readback_buffer_size),
-				D3D12_RESOURCE_STATE_COPY_DEST,
-				nullptr,
-				IID_PPV_ARGS(&s_texture_cache_entry_readback_buffer)
-				)
-			);
-
-		CheckHR(s_texture_cache_entry_readback_buffer->Map(0, nullptr, &s_texture_cache_entry_readback_buffer_data));
-	}
-
-	bool saved_png = false;
 
 	m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
@@ -91,26 +70,31 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 	dst_location.PlacedFootprint.Offset = 0;
 	dst_location.PlacedFootprint.Footprint.Depth = 1;
-	dst_location.PlacedFootprint.Footprint.Format = texture_desc.Format;
-	dst_location.PlacedFootprint.Footprint.Width = static_cast<UINT>(texture_desc.Width);
-	dst_location.PlacedFootprint.Footprint.Height = texture_desc.Height;
-	dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	dst_location.PlacedFootprint.Footprint.Width = level_width;
+	dst_location.PlacedFootprint.Footprint.Height = level_height;
+	dst_location.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(level_pitch);
 
-	D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), 0);
+	D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), level);
 
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-	saved_png = TextureToPng(
-		static_cast<u8*>(s_texture_cache_entry_readback_buffer_data),
+	// Map readback buffer and save to file.
+	void* readback_texture_map;
+	CheckHR(s_texture_cache_entry_readback_buffer->Map(0, nullptr, &readback_texture_map));
+
+	bool saved = TextureToPng(
+		static_cast<u8*>(readback_texture_map),
 		dst_location.PlacedFootprint.Footprint.RowPitch,
 		filename,
 		dst_location.PlacedFootprint.Footprint.Width,
 		dst_location.PlacedFootprint.Footprint.Height
 		);
 
-	return saved_png;
+	s_texture_cache_entry_readback_buffer->Unmap(0, nullptr);
+	return saved;
 }
 
 void TextureCache::TCacheEntry::CopyRectangleFromTexture(
@@ -538,7 +522,6 @@ TextureCache::TextureCache()
 	s_efb_copy_last_cbuf_id = UINT_MAX;
 
 	s_texture_cache_entry_readback_buffer = nullptr;
-	s_texture_cache_entry_readback_buffer_data = nullptr;
 	s_texture_cache_entry_readback_buffer_size = 0;
 
 	m_palette_pixel_shaders[GX_TL_IA8] = GetConvertShader12(std::string("IA8"));
@@ -588,8 +571,10 @@ TextureCache::~TextureCache()
 
 	if (s_texture_cache_entry_readback_buffer)
 	{
-		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_texture_cache_entry_readback_buffer);
+		// Safe to destroy the readback buffer immediately, as the only time it's used is blocked until completion.
+		s_texture_cache_entry_readback_buffer->Release();
 		s_texture_cache_entry_readback_buffer = nullptr;
+		s_texture_cache_entry_readback_buffer_size = 0;
 	}
 
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_palette_uniform_buffer);
