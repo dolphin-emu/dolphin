@@ -234,12 +234,11 @@ void DoState(PointerWrap &p)
 		{
 			// If no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if (!Movie::IsMovieActive())
-				return;
-
+			// But we need to restore the current devices first just in case.
 			std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
 			save_device->DoState(p);
 			AddDevice(std::move(save_device));
+			AddDevice(device->GetDeviceType(), i);
 		}
 	}
 
