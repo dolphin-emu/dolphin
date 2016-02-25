@@ -155,6 +155,12 @@ These folders are installed read-only and should not be changed:
 * `Resources`: icons that are theme-agnostic
 * `Wii`: default Wii NAND contents
 
+## Packaging and udev
+In the Data folder there is a udev rule file for official GameCube controller
+adapters. Package maintainers can use that file in their packages for Dolphin.
+Users compiling Dolphin on Linux can also just copy the file to their udev 
+rules folder.
+
 ## User Folder Structure
 A number of user writeable directories are created for caching purposes or for
 allowing the user to edit their contents. On OS X and Linux these folders are
