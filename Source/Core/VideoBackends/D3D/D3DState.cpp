@@ -9,6 +9,7 @@
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoCommon/SamplerCommon.h"
 
 namespace DX11
 {
@@ -259,7 +260,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 	unsigned int mip = d3dMipFilters[state.min_filter & 3];
 
-	if (state.max_anisotropy > 1)
+	if (state.max_anisotropy > 1 && !IsBpTexMode0PointFiltering(state))
 	{
 		sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
