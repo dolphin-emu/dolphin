@@ -278,7 +278,9 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 
 	u32 b = inst.FB, d = inst.FD;
 
-	ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
+	bool single = fpr.IsSingle(b, true);
+
+	ARM64Reg VB = fpr.R(b, single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR);
 	ARM64Reg VD = fpr.RW(d);
 
 	ARM64Reg V0 = fpr.GetReg();
@@ -287,8 +289,15 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
 	m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF000000000000ULL);
 	m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
 
-	m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-	m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
+	if (single)
+	{
+		m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), ROUND_Z);
+	}
+	else
+	{
+		m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
+		m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
+	}
 	m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
 	fpr.Unlock(V0);
 }
