@@ -220,7 +220,6 @@
     <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_Util.cpp" />
     <ClCompile Include="PowerPC\Jit64\JitAsm.cpp" />
-    <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_FloatingPoint.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Integer.cpp" />
@@ -413,7 +412,6 @@
     <ClInclude Include="PowerPC\Jit64\Jit64_RegCache.h" />
     <ClInclude Include="PowerPC\Jit64\Jit64_Tables.h" />
     <ClInclude Include="PowerPC\Jit64\JitAsm.h" />
-    <ClInclude Include="PowerPC\Jit64\JitRegCache.h" />
     <ClInclude Include="PowerPC\JitILCommon\IR.h" />
     <ClInclude Include="PowerPC\JitILCommon\JitILBase.h" />
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
