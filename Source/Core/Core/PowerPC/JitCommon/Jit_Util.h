@@ -174,7 +174,7 @@ public:
 	// RSCRATCH might get trashed
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, Gen::X64Reg scratch, bool src_is_gpr = false);
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
-	void SetFPRF(Gen::X64Reg xmm);
+	void SetFPRF(Gen::X64Reg xmm, Gen::X64Reg scratch);
 	void Clear();
 protected:
 	std::unordered_map<u8 *, TrampolineInfo> backPatchInfo;
