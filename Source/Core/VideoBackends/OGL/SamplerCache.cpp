@@ -122,9 +122,6 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 	auto& tm0 = params.tm0;
 	auto& tm1 = params.tm1;
 
-	glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filters[tm0.min_filter % ArraySize(min_filters)]);
-	glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, tm0.mag_filter ? GL_LINEAR : GL_NEAREST);
-
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, wrap_settings[tm0.wrap_s]);
 	glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, wrap_settings[tm0.wrap_t]);
 
@@ -134,8 +131,26 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 	if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
 		glSamplerParameterf(sampler_id, GL_TEXTURE_LOD_BIAS, (s32)tm0.lod_bias / 32.f);
 
-	if (g_ActiveConfig.iMaxAnisotropy > 0 && g_ogl_config.bSupportsAniso)
+	// Only ever use anisotropic filtering on textures which do not explicitly have
+	// Point Filtering modes set. Applying arbitrary filtering to those textures
+	// has incorrect results in some games. Only bForceFiltering should force it.
+	if (g_ActiveConfig.iMaxAnisotropy > 0 && g_ogl_config.bSupportsAniso &&
+	    (tm0.min_filter & 4 || tm0.mag_filter))
+	{
+		// https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
+		// When using Anisotropic Filtering, only GL_LINEAR+GL_LINEAR_MIPMAP_LINEAR
+		// has guaranteed behavior. All other filter value combinations are implementation
+		// defined (They're valid, but the results are driver specific). This combination
+		// guarantees "best effort" and should match Direct3D's D3Dxx_FILTER_ANISOTROPIC.
+		glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_ActiveConfig.iMaxAnisotropy));
+	}
+	else
+	{
+		glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, min_filters[tm0.min_filter % ArraySize(min_filters)]);
+		glSamplerParameteri(sampler_id, GL_TEXTURE_MAG_FILTER, tm0.mag_filter ? GL_LINEAR : GL_NEAREST);
+	}
 }
 
 void SamplerCache::Clear()

@@ -185,7 +185,10 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 	unsigned int mip = d3d_mip_filters[state.min_filter & 3];
 
 	sampdc.MaxAnisotropy = 1;
-	if (g_ActiveConfig.iMaxAnisotropy > 1)
+	// Only use anisotropic filtering if one or both of the filters are set to Linear.
+	// If both filters are set to Point then using anisotropy is equivalent
+	// to "forced filtering" which will cause visual glitches.
+	if (g_ActiveConfig.iMaxAnisotropy > 0 && (state.min_filter & 4 || state.mag_filter))
 	{
 		sampdc.Filter = D3D12_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = 1 << g_ActiveConfig.iMaxAnisotropy;

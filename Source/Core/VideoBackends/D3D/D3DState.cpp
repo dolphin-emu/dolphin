@@ -259,7 +259,10 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 	unsigned int mip = d3dMipFilters[state.min_filter & 3];
 
-	if (state.max_anisotropy > 1)
+	// Only use anisotropic filtering if one or both of the filters are set to Linear.
+	// If both filters are set to Point then using anisotropy is equivalent
+	// to "forced filtering" which will cause visual glitches.
+	if (state.max_anisotropy > 1 && (state.min_filter & 4 || state.mag_filter))
 	{
 		sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
