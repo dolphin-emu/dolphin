@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -133,6 +133,7 @@
     <ClInclude Include="PixelShaderManager.h" />
     <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="RenderBase.h" />
+    <ClInclude Include="SamplerCommon.h" />
     <ClInclude Include="ShaderGenCommon.h" />
     <ClInclude Include="Statistics.h" />
     <ClInclude Include="GeometryShaderGen.h" />

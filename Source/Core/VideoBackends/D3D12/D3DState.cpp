@@ -20,6 +20,7 @@
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -185,7 +186,7 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 	unsigned int mip = d3d_mip_filters[state.min_filter & 3];
 
 	sampdc.MaxAnisotropy = 1;
-	if (g_ActiveConfig.iMaxAnisotropy > 1)
+	if (g_ActiveConfig.iMaxAnisotropy > 0 && !IsBpTexMode0PointFiltering(state))
 	{
 		sampdc.Filter = D3D12_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = 1 << g_ActiveConfig.iMaxAnisotropy;
