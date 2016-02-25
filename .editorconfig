@@ -1,0 +1,10 @@
+root = true
+
+[*.{cpp,h,java}]
+indent_style = tab
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+max_line_length = 100
+curly_bracket_next_line = true
+spaces_around_brackets = true
