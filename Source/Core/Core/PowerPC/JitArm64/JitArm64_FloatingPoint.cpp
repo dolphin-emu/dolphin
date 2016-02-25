@@ -154,13 +154,26 @@ void JitArm64::fselx(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR);
-	ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
-	ARM64Reg VC = fpr.R(c, REG_LOWER_PAIR);
-	ARM64Reg VD = fpr.RW(d);
+	if (fpr.IsSingle(a, true))
+	{
+		ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR_SINGLE);
+		m_float_emit.FCMPE(EncodeRegToSingle(VA));
+	}
+	else
+	{
+		ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR);
+		m_float_emit.FCMPE(EncodeRegToDouble(VA));
+	}
 
-	m_float_emit.FCMPE(EncodeRegToDouble(VA));
-	m_float_emit.FCSEL(EncodeRegToDouble(VD), EncodeRegToDouble(VC), EncodeRegToDouble(VB), CC_GE);
+	bool single = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
+	RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
+	ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
+
+	ARM64Reg VB = fpr.R(b, type);
+	ARM64Reg VC = fpr.R(c, type);
+	ARM64Reg VD = fpr.RW(d, type);
+
+	m_float_emit.FCSEL(reg_encoder(VD), reg_encoder(VC), reg_encoder(VB), CC_GE);
 }
 
 void JitArm64::frspx(UGeckoInstruction inst)
