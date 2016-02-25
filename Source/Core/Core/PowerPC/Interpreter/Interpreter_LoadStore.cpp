@@ -329,7 +329,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 		NPC = PC + 12;
 	}*/
 	u32 address = Helper_Get_EA_X(_inst);
-	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+	JitInterface::InvalidateICacheLine(address & ~0x1f);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
@@ -337,7 +337,7 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
 	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything to the data cache
 	// However, we invalidate the jit block cache on dcbi
 	u32 address = Helper_Get_EA_X(_inst);
-	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+	JitInterface::InvalidateICacheLine(address & ~0x1f);
 
 	// The following detects a situation where the game is writing to the dcache at the address being DMA'd. As we do not
 	// have dcache emulation, invalid data is being DMA'd causing audio glitches. The following code detects this and
@@ -350,7 +350,7 @@ void Interpreter::dcbst(UGeckoInstruction _inst)
 	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
 	// Invalidate the jit block cache on dcbst in case new code has been loaded via the data cache
 	u32 address = Helper_Get_EA_X(_inst);
-	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+	JitInterface::InvalidateICacheLine(address & ~0x1f);
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)
