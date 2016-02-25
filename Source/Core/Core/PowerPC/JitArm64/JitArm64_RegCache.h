@@ -58,34 +58,9 @@ public:
 	{
 		return m_value;
 	}
-	void Load(ARM64Reg reg, RegType type)
+	void Load(ARM64Reg reg, RegType type = REG_REG)
 	{
 		m_type = type;
-		m_reg = reg;
-	}
-	void LoadToReg(ARM64Reg reg)
-	{
-		m_type = REG_REG;
-		m_reg = reg;
-	}
-	void LoadToRegSingle(ARM64Reg reg)
-	{
-		m_type = REG_REG_SINGLE;
-		m_reg = reg;
-	}
-	void LoadLowerReg(ARM64Reg reg)
-	{
-		m_type = REG_LOWER_PAIR;
-		m_reg = reg;
-	}
-	void LoadDup(ARM64Reg reg)
-	{
-		m_type = REG_DUP;
-		m_reg = reg;
-	}
-	void LoadDupSingle(ARM64Reg reg)
-	{
-		m_type = REG_DUP_SINGLE;
 		m_reg = reg;
 	}
 	void LoadToImm(u32 imm)

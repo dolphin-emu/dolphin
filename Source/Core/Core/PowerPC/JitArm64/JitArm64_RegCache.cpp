@@ -198,7 +198,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 	{
 		ARM64Reg host_reg = GetReg();
 		m_emit->MOVI2R(host_reg, reg.GetImm());
-		reg.LoadToReg(host_reg);
+		reg.Load(host_reg);
 		reg.SetDirty(true);
 		return host_reg;
 	}
@@ -208,7 +208,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
 		// This is a bit annoying. We try to keep these preloaded as much as possible
 		// This can also happen on cases where PPCAnalyst isn't feeing us proper register usage statistics
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
+		reg.Load(host_reg);
 		reg.SetDirty(false);
 		m_emit->LDR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 		return host_reg;
@@ -240,7 +240,7 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 	if (reg.GetType() == REG_NOTLOADED)
 	{
 		ARM64Reg host_reg = GetReg();
-		reg.LoadToReg(host_reg);
+		reg.Load(host_reg);
 		if (do_load)
 			m_emit->LDR(INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(gpr[preg]));
 	}
@@ -319,7 +319,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 
 		// Else convert this register back to doubles.
 		m_float_emit->FCVTL(64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		reg.LoadToReg(host_reg);
+		reg.Load(host_reg, REG_REG);
 
 		// fall through
 	}
@@ -335,7 +335,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 
 		// Else convert this register back to a double.
 		m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		reg.LoadLowerReg(host_reg);
+		reg.Load(host_reg, REG_LOWER_PAIR);
 
 		// fall through
 	}
@@ -350,7 +350,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 			UnlockRegister(tmp_reg);
 
 			// Change it over to a full 128bit register
-			reg.LoadToReg(host_reg);
+			reg.Load(host_reg, REG_REG);
 		}
 		return host_reg;
 	}
@@ -363,12 +363,12 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 		{
 			// Duplicate to the top and change over
 			m_float_emit->INS(32, host_reg, 1, host_reg, 0);
-			reg.LoadToRegSingle(host_reg);
+			reg.Load(host_reg, REG_REG_SINGLE);
 			return host_reg;
 		}
 
 		m_float_emit->FCVT(64, 32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		reg.LoadDup(host_reg);
+		reg.Load(host_reg, REG_DUP);
 
 		// fall through
 	}
@@ -380,7 +380,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 			// but we are only available in the lower 64bits
 			// Duplicate to the top and change over
 			m_float_emit->INS(64, host_reg, 1, host_reg, 0);
-			reg.LoadToReg(host_reg);
+			reg.Load(host_reg, REG_REG);
 		}
 		return host_reg;
 	}
@@ -391,12 +391,12 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
 		if (type == REG_REG)
 		{
 			load_size = 128;
-			reg.LoadToReg(host_reg);
+			reg.Load(host_reg, REG_REG);
 		}
 		else
 		{
 			load_size = 64;
-			reg.LoadLowerReg(host_reg);
+			reg.Load(host_reg, REG_LOWER_PAIR);
 		}
 		reg.SetDirty(false);
 		m_float_emit->LDR(load_size, INDEX_UNSIGNED, host_reg, X29, PPCSTATE_OFF(ps[preg][0]));
@@ -599,11 +599,11 @@ void Arm64FPRCache::FixSinglePrecision(u32 preg)
 	{
 	case REG_DUP: // only PS0 needs to be converted
 		m_float_emit->FCVT(32, 64, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		reg.LoadDupSingle(host_reg);
+		reg.Load(host_reg, REG_DUP_SINGLE);
 		break;
 	case REG_REG: // PS0 and PS1 needs to be converted
 		m_float_emit->FCVTN(32, EncodeRegToDouble(host_reg), EncodeRegToDouble(host_reg));
-		reg.LoadToRegSingle(host_reg);
+		reg.Load(host_reg, REG_REG_SINGLE);
 		break;
 	default:
 		break;
