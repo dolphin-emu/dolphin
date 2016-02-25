@@ -188,23 +188,29 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
 
 	u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-	ARM64Reg VA = fpr.R(a, REG_REG);
-	ARM64Reg VB = fpr.R(b, REG_REG);
-	ARM64Reg VC = fpr.R(c, REG_REG);
-	ARM64Reg VD = fpr.RW(d, REG_REG);
+	bool singles = fpr.IsSingle(a) && fpr.IsSingle(b) && fpr.IsSingle(c);
+	RegType type = singles ? REG_REG_SINGLE : REG_REG;
+	u8 size = singles ? 32 : 64;
+	ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToDouble : EncodeRegToQuad;
 
-	if (d != a && d != b && d != c)
+	ARM64Reg VA = reg_encoder(fpr.R(a, type));
+	ARM64Reg VB = reg_encoder(fpr.R(b, type));
+	ARM64Reg VC = reg_encoder(fpr.R(c, type));
+	ARM64Reg VD = reg_encoder(fpr.RW(d, type));
+
+	if (d != b && d != c)
 	{
-		m_float_emit.FCMGE(64, VD, VA);
+		m_float_emit.FCMGE(size, VD, VA);
 		m_float_emit.BSL(VD, VC, VB);
 	}
 	else
 	{
-		ARM64Reg V0 = fpr.GetReg();
-		m_float_emit.FCMGE(64, V0, VA);
+		ARM64Reg V0Q = fpr.GetReg();
+		ARM64Reg V0 = reg_encoder(V0Q);
+		m_float_emit.FCMGE(size, V0, VA);
 		m_float_emit.BSL(V0, VC, VB);
 		m_float_emit.ORR(VD, V0, V0);
-		fpr.Unlock(V0);
+		fpr.Unlock(V0Q);
 	}
 }
 
