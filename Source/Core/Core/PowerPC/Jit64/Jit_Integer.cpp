@@ -170,8 +170,9 @@ void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
 				// better to flush it here so that we don't have to flush it on both sides of the branch.
 				// We don't want to do this if a test is needed though, because it would interrupt macro-op
 				// fusion.
+				gpr.UnlockAll();
 				for (int j : ~js.op->gprInUse)
-					gpr.StoreFromRegister(j);
+					gpr.StoreFromRegister(j, FLUSH_ALL);
 			}
 			DoMergedBranchCondition();
 		}

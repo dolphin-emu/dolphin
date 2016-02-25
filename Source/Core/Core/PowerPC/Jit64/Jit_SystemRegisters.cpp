@@ -236,14 +236,15 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
 	case SPR_HID0:
 		{
+			gpr.Lock(d);
 			gpr.BindToRegister(d, true, false);
 			BTR(32, gpr.R(d), Imm8(31 - 20)); // ICFI
 			MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
 			FixupBranch dont_reset_icache = J_CC(CC_NC);
-			BitSet32 regs = CallerSavedRegistersInUse();
-			ABI_PushRegistersAndAdjustStack(regs, 0);
+			BitSet32 r = CallerSavedRegistersInUse();
+			ABI_PushRegistersAndAdjustStack(r, 0);
 			ABI_CallFunction((void*)DoICacheReset);
-			ABI_PopRegistersAndAdjustStack(regs, 0);
+			ABI_PopRegistersAndAdjustStack(r, 0);
 			SetJumpTarget(dont_reset_icache);
 			break;
 		}
