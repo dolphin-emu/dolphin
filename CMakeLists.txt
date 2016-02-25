@@ -952,6 +952,10 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps)
 	install(FILES Installer/dolphin-emu.desktop
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+	# Install udev rule
+	install(FILES Installer/51-gcadapter.rules
+		DESTINATION /usr/lib/udev/rules.d
+		OPTIONAL)
 endif()
 
 # packaging information
