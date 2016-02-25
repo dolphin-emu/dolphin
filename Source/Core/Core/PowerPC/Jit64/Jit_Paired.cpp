@@ -23,8 +23,11 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 	if (d == b)
 		return;
 
-	fpr.BindToRegister(d, false);
-	MOVAPD(fpr.RX(d), fpr.R(b));
+	auto rb = regs.fpu.Lock(b);
+	auto rd = regs.fpu.Lock(d);
+
+	auto xd = rd.Bind(BindMode::Write);
+	MOVAPD(xd, rb);
 }
 
 void Jit64::ps_sum(UGeckoInstruction inst)
@@ -119,27 +122,29 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
-	fpr.Lock(a, b, d);
-	fpr.BindToRegister(d, d == a || d == b);
+	auto rd = regs.fpu.Lock(d);
+	auto xd = rd.BindWriteAndReadIf(d == a || d == b);
+	auto ra = a == d ? xd : regs.fpu.Lock(a);
+	auto rb = b == d ? xd : regs.fpu.Lock(b);
 
 	switch (inst.SUBOP10)
 	{
 	case 528:
-		avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, fpr.RX(d), fpr.R(a), fpr.R(b));
+		avx_op(&XEmitter::VUNPCKLPD, &XEmitter::UNPCKLPD, xd, ra, rb);
 		break; //00
 	case 560:
-		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, fpr.RX(d), fpr.R(a), fpr.R(b), 2);
+		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, xd, ra, rb, 2);
 		break; //01
 	case 592:
-		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, fpr.RX(d), fpr.R(a), fpr.R(b), 1);
+		avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, xd, ra, rb, 1);
 		break; //10
 	case 624:
-		avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, fpr.RX(d), fpr.R(a), fpr.R(b));
+		avx_op(&XEmitter::VUNPCKHPD, &XEmitter::UNPCKHPD, xd, ra, rb);
 		break; //11
 	default:
-		_assert_msg_(DYNA_REC, 0, "ps_merge - invalid op");
+		UnexpectedInstructionForm();
+		return;
 	}
-	fpr.UnlockAll();
 }
 
 void Jit64::ps_rsqrte(UGeckoInstruction inst)
@@ -149,24 +154,24 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 	int b = inst.FB;
 	int d = inst.FD;
+	auto rd = regs.fpu.Lock(d);
+	auto rb = regs.fpu.Lock(b);
+	auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
 
-	gpr.FlushLockX(RSCRATCH_EXTRA);
-	fpr.Lock(b, d);
-	fpr.BindToRegister(b, true, false);
-	fpr.BindToRegister(d, false);
+	auto xb = rb.Bind(BindMode::Read);
+	auto xd = rd.Bind(BindMode::Write);
+	auto tmp = regs.fpu.Borrow(XMM0);
 
-	MOVSD(XMM0, fpr.R(b));
+	MOVSD(R(tmp), xb);
 	CALL(asm_routines.frsqrte);
-	MOVSD(fpr.R(d), XMM0);
+	MOVSD(R(xd), tmp);
 
-	MOVHLPS(XMM0, fpr.RX(b));
+	MOVHLPS(tmp, xb);
 	CALL(asm_routines.frsqrte);
-	MOVLHPS(fpr.RX(d), XMM0);
+	MOVLHPS(xd, tmp);
 
-	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-	SetFPRFIfNeeded(fpr.RX(d));
-	fpr.UnlockAll();
-	gpr.UnlockAllX();
+	ForceSinglePrecision(xd, xd);
+	SetFPRFIfNeeded(xd);
 }
 
 void Jit64::ps_res(UGeckoInstruction inst)
@@ -176,22 +181,22 @@ void Jit64::ps_res(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 	int b = inst.FB;
 	int d = inst.FD;
+	auto rd = regs.fpu.Lock(d);
+	auto rb = regs.fpu.Lock(b);
+	auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
 
-	gpr.FlushLockX(RSCRATCH_EXTRA);
-	fpr.Lock(b, d);
-	fpr.BindToRegister(b, true, false);
-	fpr.BindToRegister(d, false);
+	auto xb = rb.Bind(BindMode::Read);
+	auto xd = rd.Bind(BindMode::Write);
+	auto tmp = regs.fpu.Borrow(XMM0);
 
-	MOVSD(XMM0, fpr.R(b));
+	MOVSD(R(tmp), xb);
 	CALL(asm_routines.fres);
-	MOVSD(fpr.R(d), XMM0);
+	MOVSD(R(xd), tmp);
 
-	MOVHLPS(XMM0, fpr.RX(b));
+	MOVHLPS(tmp, xb);
 	CALL(asm_routines.fres);
-	MOVLHPS(fpr.RX(d), XMM0);
+	MOVLHPS(xd, tmp);
 
-	ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-	SetFPRFIfNeeded(fpr.RX(d));
-	fpr.UnlockAll();
-	gpr.UnlockAllX();
+	ForceSinglePrecision(xd, xd);
+	SetFPRFIfNeeded(xd);
 }
