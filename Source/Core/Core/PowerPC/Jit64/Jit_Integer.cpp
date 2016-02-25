@@ -862,19 +862,20 @@ void Jit64::extsXx(UGeckoInstruction inst)
 	int a = inst.RA, s = inst.RS;
 	int size = inst.SUBOP10 == 922 ? 16 : 8;
 
-	if (gpr.R(s).IsImm())
+	auto ra = regs.gpr.Lock(a);
+	auto rs = regs.gpr.Lock(s);
+
+	if (rs.IsImm())
 	{
-		gpr.SetImmediate32(a, (u32)(s32)(size == 16 ? (s16)gpr.R(s).Imm32() : (s8)gpr.R(s).Imm32()));
+		ra.SetImm32((u32)(s32)(size == 16 ? (s16)rs.Imm32() : (s8)rs.Imm32()));
 	}
 	else
 	{
-		gpr.Lock(a, s);
-		gpr.BindToRegister(a, a == s, true);
-		MOVSX(32, size, gpr.RX(a), gpr.R(s));
+		auto xa = ra.BindWriteAndReadIf(a == s);
+		MOVSX(32, size, xa, a == s ? xa : rs);
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(a));
-	gpr.UnlockAll();
+		ComputeRC(ra);
 }
 
 void Jit64::subfic(UGeckoInstruction inst)
@@ -882,40 +883,41 @@ void Jit64::subfic(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, d = inst.RD;
-	gpr.Lock(a, d);
-	gpr.BindToRegister(d, a == d, true);
+	auto ra = regs.gpr.Lock(a);
+	auto rd = regs.gpr.Lock(d);
+
+	auto xd = rd.BindWriteAndReadIf(a == d);
 	int imm = inst.SIMM_16;
 	if (d == a)
 	{
 		if (imm == 0)
 		{
 			// Flags act exactly like subtracting from 0
-			NEG(32, gpr.R(d));
+			NEG(32, xd);
 			// Output carry is inverted
 			FinalizeCarry(CC_NC);
 		}
 		else if (imm == -1)
 		{
-			NOT(32, gpr.R(d));
+			NOT(32, xd);
 			// CA is always set in this case
 			FinalizeCarry(true);
 		}
 		else
 		{
-			NOT(32, gpr.R(d));
-			ADD(32, gpr.R(d), Imm32(imm+1));
+			NOT(32, xd);
+			ADD(32, xd, Imm32(imm+1));
 			// Output carry is normal
 			FinalizeCarry(CC_C);
 		}
 	}
 	else
 	{
-		MOV(32, gpr.R(d), Imm32(imm));
-		SUB(32, gpr.R(d), gpr.R(a));
+		MOV(32, xd, Imm32(imm));
+		SUB(32, xd, ra);
 		// Output carry is inverted
 		FinalizeCarry(CC_NC);
 	}
-	gpr.UnlockAll();
 	// This instruction has no RC flag
 }
 
@@ -924,39 +926,45 @@ void Jit64::subfx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rd = regs.gpr.Lock(d);
 
-	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+	if (rb.IsImm() && ra.IsImm())
 	{
-		s32 i = gpr.R(b).SImm32(), j = gpr.R(a).SImm32();
-		gpr.SetImmediate32(d, i - j);
+		s32 i = rb.SImm32(), j = ra.SImm32();
+		rd.SetImm32(i - j);
 		if (inst.OE)
 			GenerateConstantOverflow((s64)i - (s64)j);
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, (d == a || d == b), true);
-		if (d == b)
+		auto xd = rd.BindWriteAndReadIf((d == a || d == b));
+		if (d == b && d == a)
 		{
-			SUB(32, gpr.R(d), gpr.R(a));
+			SUB(32, xd, xd);
+		}
+		else if (d == b)
+		{
+			SUB(32, xd, ra);
 		}
 		else if (d == a)
 		{
-			MOV(32, R(RSCRATCH), gpr.R(a));
-			MOV(32, gpr.R(d), gpr.R(b));
-			SUB(32, gpr.R(d), R(RSCRATCH));
+			auto scratch = regs.gpr.Borrow();
+			MOV(32, scratch, xd);
+			MOV(32, xd, rb);
+			SUB(32, xd, scratch);
 		}
 		else
 		{
-			MOV(32, gpr.R(d), gpr.R(b));
-			SUB(32, gpr.R(d), gpr.R(a));
+			MOV(32, xd, rb);
+			SUB(32, xd, ra);
 		}
 		if (inst.OE)
 			GenerateOverflow();
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
+		ComputeRC(rd);
 }
 
 void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
