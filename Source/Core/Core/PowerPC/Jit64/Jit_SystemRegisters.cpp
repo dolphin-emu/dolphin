@@ -641,11 +641,12 @@ static const u32 s_fpscr_to_mxcsr[] = {
 };
 
 // Needs value of FPSCR in RSCRATCH.
-void Jit64::UpdateMXCSR()
+void Jit64::UpdateMXCSR(X64Reg fpscr)
 {
-	LEA(64, RSCRATCH2, M(&s_fpscr_to_mxcsr));
-	AND(32, R(RSCRATCH), Imm32(7));
-	LDMXCSR(MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0));
+	auto scratch = regs.gpr.Borrow();
+	LEA(64, scratch, M(&s_fpscr_to_mxcsr));
+	AND(32, R(fpscr), Imm32(7));
+	LDMXCSR(MComplex(scratch, fpscr, SCALE_4, 0));
 }
 
 void Jit64::mtfsb0x(UGeckoInstruction inst)
@@ -661,10 +662,11 @@ void Jit64::mtfsb0x(UGeckoInstruction inst)
 	}
 	else
 	{
-		MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-		AND(32, R(RSCRATCH), Imm32(mask));
-		MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-		UpdateMXCSR();
+		auto scratch = regs.gpr.Borrow();
+		MOV(32, scratch, PPCSTATE(fpscr));
+		AND(32, scratch, Imm32(mask));
+		MOV(32, PPCSTATE(fpscr), scratch);
+		UpdateMXCSR(scratch);
 	}
 }
 
@@ -674,22 +676,23 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	FALLBACK_IF(inst.Rc);
 
+	auto scratch = regs.gpr.Borrow();
 	u32 mask = 0x80000000 >> inst.CRBD;
-	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+	MOV(32, scratch, PPCSTATE(fpscr));
 	if (mask & FPSCR_ANY_X)
 	{
-		BTS(32, R(RSCRATCH), Imm32(31 - inst.CRBD));
+		BTS(32, scratch, Imm8(31 - inst.CRBD));
 		FixupBranch dont_set_fx = J_CC(CC_C);
-		OR(32, R(RSCRATCH), Imm32(1u << 31));
+		OR(32, scratch, Imm32(1u << 31));
 		SetJumpTarget(dont_set_fx);
 	}
 	else
 	{
-		OR(32, R(RSCRATCH), Imm32(mask));
+		OR(32, scratch, Imm32(mask));
 	}
-	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+	MOV(32, PPCSTATE(fpscr), scratch);
 	if (inst.CRBD >= 29)
-		UpdateMXCSR();
+		UpdateMXCSR(scratch);
 }
 
 void Jit64::mtfsfix(UGeckoInstruction inst)
@@ -702,10 +705,11 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
 	u32 or_mask = imm << (28 - 4 * inst.CRFD);
 	u32 and_mask = ~(0xF0000000 >> (4 * inst.CRFD));
 
-	MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
-	AND(32, R(RSCRATCH), Imm32(and_mask));
-	OR(32, R(RSCRATCH), Imm32(or_mask));
-	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+	auto scratch = regs.gpr.Borrow();
+	MOV(32, scratch, PPCSTATE(fpscr));
+	AND(32, scratch, Imm32(and_mask));
+	OR(32, scratch, Imm32(or_mask));
+	MOV(32, PPCSTATE(fpscr), scratch);
 
 	// Field 7 contains NI and RN.
 	if (inst.CRFD == 7)
@@ -726,17 +730,27 @@ void Jit64::mtfsfx(UGeckoInstruction inst)
 	}
 
 	int b = inst.FB;
-	if (fpr.R(b).IsSimpleReg())
-		MOVQ_xmm(R(RSCRATCH), fpr.RX(b));
-	else
-		MOV(32, R(RSCRATCH), fpr.R(b));
+	auto rb = regs.fpu.Lock(b);
 
-	MOV(32, R(RSCRATCH2), PPCSTATE(fpscr));
-	AND(32, R(RSCRATCH), Imm32(mask));
-	AND(32, R(RSCRATCH2), Imm32(~mask));
-	OR(32, R(RSCRATCH), R(RSCRATCH2));
-	MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+	auto scratch = regs.gpr.Borrow();
+	auto scratch2 = regs.gpr.Borrow();
+
+	if (rb.IsRegBound())
+	{
+		auto xb = rb.Bind(BindMode::Reuse);
+		MOVQ_xmm(R(scratch), xb);
+	}
+	else
+	{
+		MOV(32, scratch, rb);
+	}
+
+	MOV(32, scratch2, PPCSTATE(fpscr));
+	AND(32, scratch, Imm32(mask));
+	AND(32, scratch2, Imm32(~mask));
+	OR(32, scratch, scratch2);
+	MOV(32, PPCSTATE(fpscr), scratch);
 
 	if (inst.FM & 1)
-		UpdateMXCSR();
+		UpdateMXCSR(scratch);
 }
