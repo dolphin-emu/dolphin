@@ -14,9 +14,9 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -292,17 +292,7 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
-	std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
-	NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
-	Dolphin_Debugger::PrintCallstack();
-	NOTICE_LOG(POWERPC, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
-	for (int i = 0; i < 32; i += 4)
-		NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x",
-			i, rGPR[i],
-			i + 1, rGPR[i + 1],
-			i + 2, rGPR[i + 2],
-			i + 3, rGPR[i + 3]);
-	_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+	JitInterface::InvalidInstruction();
 }
 
 void Interpreter::ClearCache()

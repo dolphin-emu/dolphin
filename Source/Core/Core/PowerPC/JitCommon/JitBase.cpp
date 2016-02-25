@@ -12,6 +12,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -63,6 +64,22 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 		}
 		DEBUG_LOG(DYNA_REC,"IR_X86 bin: %s\n\n\n", ss.str().c_str());
 	}
+}
+
+void JitBase::HandleInvalidInstruction()
+{
+	u32 hex = PowerPC::HostRead_U32(PC);
+	std::string disasm = GekkoDisassembler::Disassemble(hex, PC);
+	NOTICE_LOG(POWERPC, "Last PC = %08x : %s", PC, disasm.c_str());
+	Dolphin_Debugger::PrintCallstack();
+	NOTICE_LOG(POWERPC, "\nCPU: Invalid instruction %08x at PC = %08x  LR = %08x\n", hex, PC, LR);
+	for (int i = 0; i < 32; i += 4)
+		NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x",
+			i, rGPR[i],
+			i + 1, rGPR[i + 1],
+			i + 2, rGPR[i + 2],
+			i + 3, rGPR[i + 3]);
+	_assert_msg_(POWERPC, 0, "\nCPU: Invalid instruction %08x\nat PC = %08x  LR = %08x\n%s", hex, PC, LR, disasm.c_str());
 }
 
 bool JitBase::MergeAllowedNextInstructions(int count)
