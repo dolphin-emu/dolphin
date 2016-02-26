@@ -326,7 +326,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 	// Write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
 	// if not early z culling will improve speed. We also process the gamecube depth equation here to avoid early clamps.
-	out.Write("o.pos.z = clamp(" I_PIXELCENTERCORRECTION".z * o.pos.z + " I_PIXELCENTERCORRECTION".w * o.pos.w, 0.0, o.pos.w);\n");
+	out.Write("o.pos.z = " I_PIXELCENTERCORRECTION".z * o.pos.z + " I_PIXELCENTERCORRECTION".w * o.pos.w;\n");
 
 	// The console GPU places the pixel center at 7/12 in screen space unless
 	// antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
