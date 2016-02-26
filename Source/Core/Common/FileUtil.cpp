@@ -905,11 +905,6 @@ bool ReadFileToString(const std::string& filename, std::string& str)
 IOFile::IOFile()
 #ifdef _WIN32
 	: m_file(INVALID_HANDLE_VALUE),
-	m_unbuf_buffer(nullptr),
-	m_chunks_written(0),
-	m_write_buf_pos(0),
-	m_read_buf_pos(0),
-	m_read_last_pos(0),
 #else
 	: m_file(nullptr),
 #endif
@@ -920,11 +915,6 @@ IOFile::IOFile(const std::string& filename, const char openmode[],
                OpenFlags flags)
 #ifdef _WIN32
 	: m_file(INVALID_HANDLE_VALUE),
-	  m_unbuf_buffer(nullptr),
-	  m_chunks_written(0),
-	  m_write_buf_pos(0),
-	  m_read_buf_pos(0),
-	  m_read_last_pos(0),
 #else
 	: m_file(nullptr),
 #endif
@@ -941,11 +931,6 @@ IOFile::~IOFile()
 IOFile::IOFile(IOFile&& other)
 #ifdef _WIN32
 	: m_file(INVALID_HANDLE_VALUE),
-	m_unbuf_buffer(nullptr),
-	m_chunks_written(0),
-	m_write_buf_pos(0),
-	m_read_buf_pos(0),
-	m_read_last_pos(0),
 #else
 	: m_file(nullptr),
 #endif
@@ -963,13 +948,6 @@ IOFile& IOFile::operator=(IOFile&& other)
 void IOFile::Swap(IOFile& other)
 {
 	std::swap(m_file, other.m_file);
-#ifdef _WIN32
-	std::swap(m_unbuf_buffer, other.m_unbuf_buffer);
-	std::swap(m_chunks_written, other.m_chunks_written);
-	std::swap(m_write_buf_pos, other.m_write_buf_pos);
-	std::swap(m_read_buf_pos, other.m_read_buf_pos);
-	std::swap(m_read_last_pos, other.m_read_last_pos);
-#endif
 	std::swap(m_good, other.m_good);
 }
 
@@ -982,7 +960,9 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 	// We'll ignore 'b' here, it's all the same in Windows.
 	u32 access = 0;
 	u32 create = 0;
-	u32 attributes = FILE_ATTRIBUTE_NORMAL;
+	// Attempt to optimize the file access method.
+	// Assumes any file open for a single operation is open for sequential access.
+	u32 attributes = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN;
 
 	// Check write last, so that write can over-write the create flag.
 	if (std::strchr(openmode, 'r')) {
@@ -999,18 +979,14 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 	}
 	// Update mode opens for both read and write, no matter what.
 	// It maintains the create configuration of the previous setting.
+	// Change the file access method to random access to improve performance.
 	if (std::strchr(openmode, '+')) {
+		attributes &= ~FILE_FLAG_SEQUENTIAL_SCAN;
+		attributes |= FILE_FLAG_RANDOM_ACCESS;
 		access = GENERIC_WRITE | GENERIC_READ;
 	}
 	if (flags & OpenFlags::DISABLE_BUFFERING) {
-		attributes |= FILE_FLAG_NO_BUFFERING;
-		m_unbuf_buffer = (LPBYTE)VirtualAlloc(nullptr,
-		                                      UNBUF_ALLOC_BUFFER_SIZE,
-		                                      MEM_COMMIT,
-		                                      PAGE_READWRITE);
-		if (m_unbuf_buffer == nullptr)
-			return m_good;
-		VirtualLock(m_unbuf_buffer, UNBUF_ALLOC_BUFFER_SIZE);
+		attributes |= FILE_FLAG_WRITE_THROUGH;
 	}
 
 	m_file = CreateFile(UTF8ToTStr(filename).c_str(),
@@ -1040,19 +1016,6 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 bool IOFile::Close()
 {
 #ifdef _WIN32
-	if (m_unbuf_buffer) {
-		VirtualUnlock(m_unbuf_buffer, UNBUF_ALLOC_BUFFER_SIZE);
-		VirtualFree(m_unbuf_buffer, 0, MEM_RELEASE);
-		if (IsOpen()) {
-			u64 target_size = (UNBUF_WRITE_BUFFER_SIZE * m_chunks_written) + m_write_buf_pos;
-			// Try to truncate the file from any over-writing that happened.
-			HANDLE h = ReOpenFile(m_file, GENERIC_WRITE, 0, FILE_ATTRIBUTE_NORMAL);
-			CloseHandle(m_file);
-			m_file = h;
-			Resize(target_size);
-		}
-	}
-
 	if (!IsOpen() || FALSE == CloseHandle(m_file))
 #else
 	if (!IsOpen() || 0 != std::fclose(m_file))
@@ -1067,7 +1030,7 @@ bool IOFile::Close()
 	return m_good;
 }
 
-u64 IOFile::GetSize()
+u64 IOFile::GetSize() const
 {
 	if (IsOpen()) {
 #ifdef _WIN32
@@ -1080,12 +1043,12 @@ u64 IOFile::GetSize()
 #else
 		return File::GetSize(m_file);
 #endif
-    }
+	}
 	else
 		return 0;
 }
 
-bool IOFile::IsEOF()
+bool IOFile::IsEOF() const
 {
 #ifdef _WIN32
 	if (Tell() >= GetSize())

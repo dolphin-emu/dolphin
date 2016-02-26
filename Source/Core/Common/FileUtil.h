@@ -195,47 +195,18 @@ public:
 		size_t copy;
 		BOOL rv;
 		if (IsOpen()) {
-			if (m_unbuf_buffer) {
-				m_read_buf_pos = 0;
-				while (remaining_length > 0 && read > 0) {
-					if (m_read_buf_pos == 0) {
-						rv = ReadFile(m_file,
-						              m_unbuf_buffer + UNBUF_BUFFER_READ_OFFSET,
-						              UNBUF_READ_BUFFER_SIZE,
-						              &read,
-						              nullptr);
-						if (FALSE == rv) {
-							m_good = false;
-							break;
-						}
-						m_read_buf_pos += read;
-						m_read_last_pos = 0;
-					}
-					copy = std::min(remaining_length, static_cast<size_t>(read));
-					memcpy(data_buf,
-					       m_unbuf_buffer + UNBUF_BUFFER_READ_OFFSET + m_read_last_pos,
-					       copy);
-					m_read_last_pos += copy;
-					m_read_buf_pos -= copy;
-					remaining_length -= copy;
-					data_buf += copy;
-					read_bytes += copy;
+			while (remaining_length > 0 && read > 0) {
+				// Always within the limit of what a DWORD can hold.
+				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+				// So this cast is safe.
+				rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
+				if (FALSE == rv || copy != read) {
+					m_good = false;
+					break;
 				}
-			}
-			else {
-				while (remaining_length > 0 && read > 0) {
-					// Always within the limit of what a DWORD can hold.
-					copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
-					// So this cast is safe.
-					rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
-					if (FALSE == rv || copy != read) {
-						m_good = false;
-						break;
-					}
-					remaining_length -= copy;
-					data_buf += copy;
-					read_bytes += copy;
-				}
+				remaining_length -= copy;
+				data_buf += copy;
+				read_bytes += copy;
 			}
 		}
 		else {
@@ -264,49 +235,17 @@ public:
 		size_t copy;
 		BOOL rv;
 		if (IsOpen()) {
-			if (m_unbuf_buffer) {
-				while (remaining_length > 0) {
-					LARGE_INTEGER pos;
-					pos.QuadPart = UNBUF_WRITE_BUFFER_SIZE * m_chunks_written;
-					copy = std::min(remaining_length,
-					                static_cast<size_t>(UNBUF_WRITE_BUFFER_SIZE - m_write_buf_pos));
-					memcpy(m_unbuf_buffer + UNBUF_BUFFER_WRITE_OFFSET + m_write_buf_pos, data_buf, copy);
-					m_write_buf_pos += copy;
-					rv = SetFilePointerEx(m_file, pos, nullptr, FILE_BEGIN);
-					if (FALSE == rv) {
-						m_good = false;
-						break;
-					}
-					rv = WriteFile(m_file,
-					               m_unbuf_buffer + UNBUF_BUFFER_WRITE_OFFSET,
-					               UNBUF_WRITE_BUFFER_SIZE,
-					               &written,
-					               nullptr);
-					if (FALSE == rv) {
-						m_good = false;
-						break;
-					}
-					if (m_write_buf_pos == UNBUF_WRITE_BUFFER_SIZE) {
-						m_write_buf_pos = 0;
-						m_chunks_written++;
-					}
-					remaining_length -= copy;
-					data_buf += copy;
+			while (remaining_length > 0) {
+				// Always within the limit of what a DWORD can hold.
+				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+				// So this cast is safe.
+				rv = WriteFile(m_file, data_buf, static_cast<DWORD>(copy), &written, nullptr);
+				if (FALSE == rv) {
+					m_good = false;
+					break;
 				}
-			}
-			else {
-				while (remaining_length > 0) {
-					// Always within the limit of what a DWORD can hold.
-					copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
-					// So this cast is safe.
-					rv = WriteFile(m_file, data_buf, static_cast<DWORD>(copy), &written, nullptr);
-					if (FALSE == rv) {
-						m_good = false;
-						break;
-					}
-					remaining_length -= written;
-					data_buf += written;
-				}
+				remaining_length -= written;
+				data_buf += written;
 			}
 		}
 		else {
@@ -348,53 +287,26 @@ public:
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
-	bool IsEOF();
+	bool IsEOF() const;
 	operator void*() { return m_good ? m_file : nullptr; }
 
 	bool Seek(s64 off, int origin);
 	u64 Tell() const;
-	u64 GetSize();
+	u64 GetSize() const;
 	bool Resize(u64 size);
 	bool Flush();
 
 	// clear error state
 	void Clear() {
-        m_good = true;
+		m_good = true;
 #ifndef _WIN32
-        std::clearerr(m_file);
+		std::clearerr(m_file);
 #endif
-    }
+	}
 
 private:
 #ifdef _WIN32
-    HANDLE m_file;
-    // Required to support the UNBUFFERED flag, on Windows when CreateFile()
-    // is used to open a file unbuffered, reads and writes must be a multiple
-    // of the sector size of the underlaying media.
-    // It's rather ironic that the UNBUFFERED writing and reading needs a
-    // buffer...
-
-    // TODO: append support for UNBUFFERED.
-    LPBYTE m_unbuf_buffer;
-    // When the buffer wraps, a full chunk has been written
-    size_t m_chunks_written;
-    size_t m_write_buf_pos;
-    // Also keep track of where we are in the read buffer.
-    size_t m_read_buf_pos;
-	size_t m_read_last_pos;
-
-    // The unbuffered buffer should have the read buffer first,
-    // as that one is more damaging if it's rounded up.
-    // Compared to the write buffer.
-    enum : u32 {
-        UNBUF_BUFFER_READ_OFFSET    = 0,
-        UNBUF_BUFFER_WRITE_OFFSET   = 64 * 1024 * 1024,
-        UNBUF_READ_BUFFER_SIZE      = 64 * 1024 * 1024,
-        UNBUF_WRITE_BUFFER_SIZE     = 4 * 1024 * 1024,
-        UNBUF_ALLOC_BUFFER_SIZE     = UNBUF_READ_BUFFER_SIZE
-                                      + UNBUF_WRITE_BUFFER_SIZE,
-    };
-
+	HANDLE m_file;
 #else
 	std::FILE* m_file;
 #endif
