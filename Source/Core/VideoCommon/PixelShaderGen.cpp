@@ -577,11 +577,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	}
 	else
 	{
-		// Our D3D backend uses inverse depth values, so we invert them to the expected value here.
-		if (ApiType == API_D3D)
-			out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
-		else
-			out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+		out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
 	}
 	out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
@@ -599,11 +595,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	// Note: z-textures are not written to depth buffer if early depth test is used
 	if (per_pixel_depth && bpmem.UseEarlyDepthTest())
 	{
-		// Our D3D backend uses inverse depth values, so we invert them back to the depth buffer value here.
-		if (ApiType == API_D3D)
-			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
-		else
-			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	// Note: depth texture output is only written to depth buffer if late depth test is used
@@ -619,11 +611,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 
 	if (per_pixel_depth && bpmem.UseLateDepthTest())
 	{
-		// Our D3D backend uses inverse depth values, so we invert them back to the depth buffer value here.
-		if (ApiType == API_D3D)
-			out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
-		else
-			out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+		out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
 	}
 
 	if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
