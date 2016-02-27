@@ -153,6 +153,9 @@ public:
   }
 
   __forceinline operator T() const { return Value(); }
+  static const unsigned int size = bits;
+  static const unsigned int offset = position;
+
 private:
   // StorageType is T for non-enum types and the underlying type of T if
   // T is an enumeration. Note that T is wrapped within an enable_if in the
@@ -173,7 +176,8 @@ private:
 
   static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
-  // And, you know, just in case people specify something stupid like bits=position=0x80000000
+  // And, you know, just in case people specify something stupid like
+  // bits=position=0x80000000
   static_assert(position < 8 * sizeof(T), "Invalid position");
   static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
   static_assert(bits > 0, "Invalid number of bits");
