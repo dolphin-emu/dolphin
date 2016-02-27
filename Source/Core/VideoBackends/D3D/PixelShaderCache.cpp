@@ -507,9 +507,6 @@ void PixelShaderCache::Init()
 	PixelShaderCacheInserter inserter;
 	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (g_Config.bEnableShaderDebugging)
-		Clear();
-
 	last_entry = nullptr;
 }
 
@@ -598,11 +595,6 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 
 	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	pbytecode->Release();
-
-	if (g_ActiveConfig.bEnableShaderDebugging && success)
-	{
-		PixelShaders[uid].code = code.GetBuffer();
-	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
 	return success;
