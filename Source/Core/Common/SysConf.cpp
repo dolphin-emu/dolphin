@@ -52,7 +52,8 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		return true;
 	}
 
-	u64 size = File::GetSize(filename);
+	File::IOFile f(filename, "rb");
+	u64 size = f.GetSize();
 	if (size != SYSCONF_SIZE)
 	{
 		if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04" PRIx64 ")\nDo you want to generate a new one?",
@@ -67,7 +68,6 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		}
 	}
 
-	File::IOFile f(filename, "rb");
 	if (f.IsOpen())
 	{
 		if (LoadFromFileInternal(&f))
