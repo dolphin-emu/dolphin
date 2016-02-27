@@ -206,14 +206,14 @@ void CWiiSaveCrypted::WriteHDR()
 	memset(&m_header, 0, HEADER_SZ);
 
 	std::string banner_file_path = m_wii_title_path + "banner.bin";
-	u32 banner_size = static_cast<u32>(File::GetSize(banner_file_path));
+	File::IOFile banner_file(banner_file_path, "rb");
+	u32 banner_size = static_cast<u32>(banner_file.GetSize());
 	m_header.hdr.BannerSize = Common::swap32(banner_size);
 
 	m_header.hdr.SaveGameTitle = Common::swap64(m_title_id);
 	memcpy(m_header.hdr.Md5, s_md5_blanker, 0x10);
 	m_header.hdr.Permissions = 0x3C;
 
-	File::IOFile banner_file(banner_file_path, "rb");
 	if (!banner_file.ReadBytes(m_header.BNR, banner_size))
 	{
 		ERROR_LOG(CONSOLE, "Failed to read banner.bin");
