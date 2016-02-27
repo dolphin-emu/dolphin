@@ -152,9 +152,6 @@ void VertexShaderCache::Init()
 	VertexShaderCacheInserter inserter;
 	g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (g_Config.bEnableShaderDebugging)
-		Clear();
-
 	last_entry = nullptr;
 }
 
@@ -221,11 +218,6 @@ bool VertexShaderCache::SetShader()
 
 	bool success = InsertByteCode(uid, pbytecode);
 	pbytecode->Release();
-
-	if (g_ActiveConfig.bEnableShaderDebugging && success)
-	{
-		vshaders[uid].code = code.GetBuffer();
-	}
 
 	GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
 	return success;

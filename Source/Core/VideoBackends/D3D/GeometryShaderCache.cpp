@@ -157,9 +157,6 @@ void GeometryShaderCache::Init()
 	GeometryShaderCacheInserter inserter;
 	g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
 
-	if (g_Config.bEnableShaderDebugging)
-		Clear();
-
 	last_entry = nullptr;
 }
 
@@ -235,11 +232,6 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
 
 	bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	pbytecode->Release();
-
-	if (g_ActiveConfig.bEnableShaderDebugging && success)
-	{
-		GeometryShaders[uid].code = code.GetBuffer();
-	}
 
 	return success;
 }
