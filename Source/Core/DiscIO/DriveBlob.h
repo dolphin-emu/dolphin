@@ -39,7 +39,7 @@ private:
 	bool IsOK() { return m_disc_handle != INVALID_HANDLE_VALUE; }
 #else
 	File::IOFile m_file;
-	bool IsOK() { return m_file != nullptr; }
+	bool IsOK() { return m_file.IsOpen(); }
 #endif
 	s64 m_size;
 };

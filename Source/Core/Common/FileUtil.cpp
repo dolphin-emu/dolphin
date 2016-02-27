@@ -894,7 +894,7 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
                   OpenFlags flags)
 {
 	Close();
-	DEBUG_LOG(COMMON, "IOFile::Open file %s, mode %s, flags 0x%lX", filename.c_str(), openmode, flags);
+	DEBUG_LOG(COMMON, "IOFile::Open file %s, mode %s, flags 0x%X", filename.c_str(), openmode, flags);
 #ifdef _WIN32
 	// We'll ignore 'b' here, it's all the same to Windows.
 	u32 access = 0;

@@ -155,7 +155,7 @@ class IOFile : public NonCopyable
 public:
 	// Flags that can be provided to the Open method or to the IOFile constructor
 	// to get alternative behaviors.
-	enum OpenFlags
+	enum OpenFlags : u32
 	{
 		OPENFLAGS_DEFAULT = 0x00,
 		DISABLE_BUFFERING = 0x01,
