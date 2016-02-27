@@ -188,13 +188,16 @@ public:
 		size_t remaining_length = length * sizeof(T);
 		size_t copy;
 		BOOL rv;
-		if (IsOpen()) {
-			while (remaining_length > 0 && read > 0) {
+		if (IsOpen())
+		{
+			while (remaining_length > 0 && read > 0)
+			{
 				// Always within the limit of what a DWORD can hold.
 				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
 				// So this cast is safe.
 				rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
-				if (FALSE == rv || copy != read) {
+				if (FALSE == rv || copy != read)
+				{
 					m_good = false;
 					break;
 				}
@@ -203,7 +206,8 @@ public:
 				read_bytes += copy;
 			}
 		}
-		else {
+		else
+		{
 			m_good = false;
 		}
 #else
@@ -228,13 +232,16 @@ public:
 		size_t remaining_length = length * sizeof(T);
 		size_t copy;
 		BOOL rv;
-		if (IsOpen()) {
-			while (remaining_length > 0) {
+		if (IsOpen())
+		{
+			while (remaining_length > 0)
+			{
 				// Always within the limit of what a DWORD can hold.
 				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
 				// So this cast is safe.
 				rv = WriteFile(m_file, data_buf, static_cast<DWORD>(copy), &written, nullptr);
-				if (FALSE == rv) {
+				if (FALSE == rv)
+				{
 					m_good = false;
 					break;
 				}
@@ -242,7 +249,8 @@ public:
 				data_buf += written;
 			}
 		}
-		else {
+		else
+		{
 			m_good = false;
 		}
 #else
@@ -271,7 +279,8 @@ public:
 		return WriteBytes(text.c_str(), text.size());
 	}
 
-	bool IsOpen() const {
+	bool IsOpen() const
+	{
 #ifdef _WIN32
 		return INVALID_HANDLE_VALUE != m_file;
 #else
@@ -291,7 +300,8 @@ public:
 	bool Flush();
 
 	// clear error state
-	void Clear() {
+	void Clear()
+	{
 		m_good = true;
 #ifndef _WIN32
 		std::clearerr(m_file);

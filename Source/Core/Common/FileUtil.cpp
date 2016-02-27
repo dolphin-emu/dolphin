@@ -896,7 +896,7 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 	Close();
 	DEBUG_LOG(COMMON, "IOFile::Open file %s, mode %s, flags 0x%lX", filename.c_str(), openmode, flags);
 #ifdef _WIN32
-	// We'll ignore 'b' here, it's all the same in Windows.
+	// We'll ignore 'b' here, it's all the same to Windows.
 	u32 access = 0;
 	u32 create = 0;
 	// Attempt to optimize the file access method.
@@ -904,27 +904,32 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 	u32 attributes = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN;
 
 	// Check write last, so that write can over-write the create flag.
-	if (std::strchr(openmode, 'r')) {
+	if (std::strchr(openmode, 'r'))
+	{
 		access |= GENERIC_READ;
 		create = OPEN_EXISTING;
 	}
-	else if (std::strchr(openmode, 'a')) {
+	else if (std::strchr(openmode, 'a'))
+	{
 		access |= GENERIC_WRITE;
 		create = OPEN_ALWAYS;
 	}
-	else if (std::strchr(openmode, 'w')) {
+	else if (std::strchr(openmode, 'w'))
+	{
 		access |= GENERIC_WRITE;
 		create = CREATE_ALWAYS;
 	}
 	// Update mode opens for both read and write, no matter what.
 	// It maintains the create configuration of the previous setting.
 	// Change the file access method to random access to improve performance.
-	if (std::strchr(openmode, '+')) {
+	if (std::strchr(openmode, '+'))
+	{
 		attributes &= ~FILE_FLAG_SEQUENTIAL_SCAN;
 		attributes |= FILE_FLAG_RANDOM_ACCESS;
 		access = GENERIC_WRITE | GENERIC_READ;
 	}
-	if (flags & OpenFlags::DISABLE_BUFFERING) {
+	if (flags & OpenFlags::DISABLE_BUFFERING)
+	{
 		attributes |= FILE_FLAG_WRITE_THROUGH;
 	}
 
@@ -971,7 +976,8 @@ bool IOFile::Close()
 
 u64 IOFile::GetSize() const
 {
-	if (IsOpen()) {
+	if (IsOpen())
+	{
 #ifdef _WIN32
 		LARGE_INTEGER size;
 		BOOL rv = GetFileSizeEx(m_file, &size);
@@ -1030,7 +1036,8 @@ bool IOFile::Seek(s64 off, int origin)
 	offset.QuadPart = off;
 	DWORD method;
 	// origin and method may not always map 1:1, so switch-set them.
-	switch (origin) {
+	switch (origin)
+	{
 	case SEEK_SET:
 		method = FILE_BEGIN;
 		break;
@@ -1052,7 +1059,8 @@ bool IOFile::Seek(s64 off, int origin)
 
 u64 IOFile::Tell() const
 {
-	if (IsOpen()) {
+	if (IsOpen())
+	{
 #ifdef _WIN32
 		LARGE_INTEGER move;
 		memset(&move, 0, sizeof(move));
@@ -1083,7 +1091,8 @@ bool IOFile::Flush()
 bool IOFile::Resize(u64 size)
 {
 #ifdef _WIN32
-	if (!IsOpen() || !IsGood()) {
+	if (!IsOpen() || !IsGood())
+	{
 		m_good = false;
 		return m_good;
 	}
@@ -1092,10 +1101,12 @@ bool IOFile::Resize(u64 size)
 	LARGE_INTEGER pos;
 	pos.QuadPart = Tell();
 	DWORD method;
-	if (static_cast<u64>(pos.QuadPart) < size) {
+	if (static_cast<u64>(pos.QuadPart) < size)
+	{
 		method = FILE_BEGIN;
 	}
-	else {
+	else
+	{
 		method = FILE_END;
 		pos.QuadPart = 0;
 	}
