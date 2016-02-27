@@ -1401,4 +1401,21 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
 	return (s64)(SystemTimers::GetTicksPerSecond() / speed * length);
 }
 
+void FlushInstantDMA(u32 address)
+{
+	u64 dma_in_progress = s_DICR.TSTART;
+	if (dma_in_progress != 0)
+	{
+		u32 start_addr = s_DIMAR.Hex & Memory::RAM_MASK;
+		u32 end_addr = ((s_DIMAR.Hex & Memory::RAM_MASK) + s_DILENGTH.Hex) & 0xffffffff;
+		u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
+
+		NOTICE_LOG(COMMON, "Start: %08x End: %08x  Addr: %08x", start_addr, end_addr, invalidated_addr);
+
+		if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
+		{
+			SConfig::GetInstance().bFastDiscSpeed = true;
+		}
+	}
+}
 }  // namespace

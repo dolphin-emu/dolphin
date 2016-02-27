@@ -109,4 +109,5 @@ bool ChangePartition(u64 offset);
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address, u32 output_length,
                     bool write_to_DIIMMBUF, int callback_event_type);
 
+void FlushInstantDMA(u32 address);
 } // end of namespace DVDInterface

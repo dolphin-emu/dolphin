@@ -7,6 +7,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DVDInterface.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -330,6 +331,8 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
 	}*/
 	u32 address = Helper_Get_EA_X(_inst);
 	JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+
+	DVDInterface::FlushInstantDMA(address);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
