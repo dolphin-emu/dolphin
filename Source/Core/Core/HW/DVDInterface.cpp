@@ -1308,7 +1308,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	if (offset + length > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
 	{
 		// No buffer; just use the simple seek time + read time.
-		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
+		DEBUG_LOG(DVDINTERFACE, "Unbuffered read of %" PRId64 " bytes",
 		          s64(s_last_read_offset) - s64(offset));
 		ticks_until_completion = disk_read_duration;
 		s_last_read_time = current_time + ticks_until_completion;
@@ -1329,20 +1329,20 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 
 		if (current_time > buffer_fill_time)
 		{
-			DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRIx64, offset);
+			DEBUG_LOG(DVDINTERFACE, "Full buffer read at %" PRIx64, offset);
 			ticks_until_completion = buffer_read_duration;
 			s_last_read_time = buffer_fill_time;
 		}
 		else if (current_time + disk_read_duration > buffer_fill_time)
 		{
-			DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRIx64, offset);
-			ticks_until_completion = std::max(buffer_fill_time - current_time,
+			DEBUG_LOG(DVDINTERFACE, "Partial buffer read at %" PRIx64, offset);
+			ticks_until_completion = std::min(buffer_fill_time - current_time,
 			                                  buffer_read_duration);
 			s_last_read_time = buffer_fill_time;
 		}
 		else
 		{
-			DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
+			DEBUG_LOG(DVDINTERFACE, "Missed buffer read %" PRId64 " bytes",
 			          s64(s_last_read_offset) - s64(offset));
 			ticks_until_completion = disk_read_duration;
 			s_last_read_time = current_time + ticks_until_completion;
