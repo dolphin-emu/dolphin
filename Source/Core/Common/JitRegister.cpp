@@ -47,6 +47,8 @@ void Init(const std::string& perf_dir)
 	{
 		std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
 		std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
+		// Disable buffering in order to avoid missing some mappings
+		// in the event of a crash.
 		s_perf_map_file.Open(filename, "w", File::IOFile::DISABLE_BUFFERING);
 	}
 }
