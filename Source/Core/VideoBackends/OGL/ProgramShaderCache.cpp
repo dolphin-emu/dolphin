@@ -210,7 +210,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL, uid.guid.GetUidData());
+    gcode = GenerateGeometryShaderCode(API_OPENGL, uid.guid.GetUidData());
 
   if (g_ActiveConfig.bEnableShaderDebugging)
   {
@@ -393,9 +393,9 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
 void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
 {
-	uid->puid = GetPixelShaderUid(dstAlphaMode);
-	uid->vuid = GetVertexShaderUid();
-	uid->guid = GetGeometryShaderUid(primitive_type);
+  uid->puid = GetPixelShaderUid(dstAlphaMode);
+  uid->vuid = GetVertexShaderUid();
+  uid->guid = GetGeometryShaderUid(primitive_type);
 }
 
 ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram()
@@ -500,7 +500,7 @@ void ProgramShaderCache::Shutdown()
   }
   pshaders.clear();
 
-	s_buffer.reset();
+  s_buffer.reset();
 }
 
 void ProgramShaderCache::CreateHeader()

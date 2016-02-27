@@ -26,8 +26,7 @@ public:
 
 protected:
   virtual Uid GetUid(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type, API_TYPE api_type) = 0;
-  virtual ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
-                                  API_TYPE api_type, Uid uid) = 0;
+  virtual ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, API_TYPE api_type, Uid uid) = 0;
 
 private:
   std::map<Uid, std::string> m_shaders;
@@ -46,7 +45,7 @@ protected:
   {
     return GetVertexShaderUid();
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
+  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode,
                           API_TYPE api_type, VertexShaderUid uid) override
   {
     return GenerateVertexShaderCode(api_type, uid.GetUidData());
@@ -64,10 +63,10 @@ protected:
   {
     return GetGeometryShaderUid(primitive_type);
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
+  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode,
                           API_TYPE api_type, GeometryShaderUid uid) override
   {
-    return GenerateGeometryShaderCode(primitive_type, api_type, uid.GetUidData());
+    return GenerateGeometryShaderCode(api_type, uid.GetUidData());
   }
 };
 
@@ -82,7 +81,7 @@ protected:
   {
     return GetPixelShaderUid(dst_alpha_mode);
   }
-  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type,
+  ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode,
                           API_TYPE api_type, PixelShaderUid uid) override
   {
     return GeneratePixelShaderCode(dst_alpha_mode, api_type, uid.GetUidData());
