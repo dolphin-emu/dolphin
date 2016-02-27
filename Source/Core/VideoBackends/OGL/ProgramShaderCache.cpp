@@ -212,13 +212,6 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders && !uid.guid.GetUidData()->IsPassthrough())
     gcode = GenerateGeometryShaderCode(API_OPENGL, uid.guid.GetUidData());
 
-  if (g_ActiveConfig.bEnableShaderDebugging)
-  {
-    newentry.shader.strvprog = vcode.GetBuffer();
-    newentry.shader.strpprog = pcode.GetBuffer();
-    newentry.shader.strgprog = gcode.GetBuffer();
-  }
-
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
   {
@@ -420,14 +413,13 @@ void ProgramShaderCache::Init()
   s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
 
   // Read our shader cache, only if supported
-  if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
+  if (g_ogl_config.bSupportsGLSLCache)
   {
     GLint Supported;
     glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
     if (!Supported)
     {
-      ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So "
-                "disable shader cache.");
+      ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So disable shader cache.");
       g_ogl_config.bSupportsGLSLCache = false;
     }
     else
@@ -454,7 +446,7 @@ void ProgramShaderCache::Init()
 void ProgramShaderCache::Shutdown()
 {
   // store all shaders in cache on disk
-  if (g_ogl_config.bSupportsGLSLCache && !g_Config.bEnableShaderDebugging)
+  if (g_ogl_config.bSupportsGLSLCache)
   {
     for (auto& entry : pshaders)
     {
