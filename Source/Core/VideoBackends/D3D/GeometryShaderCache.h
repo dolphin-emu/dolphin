@@ -30,8 +30,6 @@ private:
   struct GSCacheEntry {
     ID3D11GeometryShader *shader;
 
-    std::string code;
-
     GSCacheEntry() : shader(nullptr) {}
     void Destroy() { SAFE_RELEASE(shader); }
   };

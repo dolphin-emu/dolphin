@@ -40,8 +40,6 @@ private:
   struct PSCacheEntry {
     ID3D11PixelShader *shader;
 
-    std::string code;
-
     PSCacheEntry() : shader(nullptr) {}
     void Destroy() { SAFE_RELEASE(shader); }
   };

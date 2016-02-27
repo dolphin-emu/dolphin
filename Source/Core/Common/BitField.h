@@ -109,9 +109,7 @@
  * symptoms.
  */
 #pragma pack(1)
-template <std::size_t position, std::size_t bits, typename T>
-struct BitField
-{
+template <std::size_t position, std::size_t bits, typename T> struct BitField {
 private:
   // This constructor might be considered ambiguous:
   // Would it initialize the storage or just the bitfield?
@@ -131,41 +129,41 @@ public:
   // unions.
   // TODO: Implement this operator properly once all target compilers
   // support unrestricted unions.
-  BitField& operator=(const BitField&) = delete;
+  BitField &operator=(const BitField &) = delete;
 
-  __forceinline BitField& operator=(T val)
-  {
+  __forceinline BitField &operator=(T val) {
     storage = (storage & ~GetMask()) | ((val << position) & GetMask());
     return *this;
   }
 
-  __forceinline T Value() const
-  {
-    if (std::numeric_limits<T>::is_signed)
-    {
+  __forceinline T Value() const {
+    if (std::numeric_limits<T>::is_signed) {
       std::size_t shift = 8 * sizeof(T) - bits;
       return (T)((storage << (shift - position)) >> shift);
-    }
-    else
-    {
+    } else {
       return (T)((storage & GetMask()) >> position);
     }
   }
 
   __forceinline operator T() const { return Value(); }
+
+  static const unsigned int size = bits;
+  static const unsigned int offset = position;
+
 private:
   // StorageType is T for non-enum types and the underlying type of T if
   // T is an enumeration. Note that T is wrapped within an enable_if in the
   // former case to workaround compile errors which arise when using
   // std::underlying_type<T>::type directly.
-  typedef typename std::conditional<std::is_enum<T>::value, std::underlying_type<T>,
-                                    std::enable_if<true, T>>::type::type StorageType;
+  typedef
+      typename std::conditional<std::is_enum<T>::value, std::underlying_type<T>,
+                                std::enable_if<true, T>>::type::type
+          StorageType;
 
   // Unsigned version of StorageType
   typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
 
-  __forceinline StorageType GetMask() const
-  {
+  __forceinline StorageType GetMask() const {
     return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
   }
 
@@ -173,7 +171,8 @@ private:
 
   static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
-  // And, you know, just in case people specify something stupid like bits=position=0x80000000
+  // And, you know, just in case people specify something stupid like
+  // bits=position=0x80000000
   static_assert(position < 8 * sizeof(T), "Invalid position");
   static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
   static_assert(bits > 0, "Invalid number of bits");

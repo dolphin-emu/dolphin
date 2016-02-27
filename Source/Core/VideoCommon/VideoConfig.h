@@ -2,10 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
-// The reason for this is to get rid of race conditions etc when the configuration
-// changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
-// at the start of every frame. Noone should ever change members of g_ActiveConfig
+// IMPORTANT: UI etc should modify g_Config. Graphics code should read
+// g_ActiveConfig.
+// The reason for this is to get rid of race conditions etc when the
+// configuration
+// changes in the middle of a frame. This is done by copying g_Config to
+// g_ActiveConfig
+// at the start of every frame. Noone should ever change members of
+// g_ActiveConfig
 // directly.
 
 #pragma once
@@ -22,16 +26,14 @@
 #define CONF_SAVETARGETS 8
 #define CONF_SAVESHADERS 16
 
-enum AspectMode
-{
+enum AspectMode {
   ASPECT_AUTO = 0,
   ASPECT_ANALOG_WIDE = 1,
   ASPECT_ANALOG = 2,
   ASPECT_STRETCH = 3,
 };
 
-enum EFBScale
-{
+enum EFBScale {
   SCALE_FORCE_INTEGRAL = -1,
   SCALE_AUTO,
   SCALE_AUTO_INTEGRAL,
@@ -41,8 +43,7 @@ enum EFBScale
   SCALE_2_5X,
 };
 
-enum StereoMode
-{
+enum StereoMode {
   STEREO_OFF = 0,
   STEREO_SBS,
   STEREO_TAB,
@@ -51,13 +52,12 @@ enum StereoMode
 };
 
 // NEVER inherit from this class.
-struct VideoConfig final
-{
+struct VideoConfig final {
   VideoConfig();
-  void Load(const std::string& ini_file);
+  void Load(const std::string &ini_file);
   void GameIniLoad();
   void VerifyValidity();
-  void Save(const std::string& ini_file);
+  void Save(const std::string &ini_file);
   void UpdateProjectionHack();
   bool IsVSync();
 
@@ -68,7 +68,7 @@ struct VideoConfig final
   bool bRunning;
   bool bWidescreenHack;
   int iAspectRatio;
-  bool bCrop;  // Aspect ratio controls.
+  bool bCrop; // Aspect ratio controls.
   bool bUseXFB;
   bool bUseRealXFB;
 
@@ -117,8 +117,8 @@ struct VideoConfig final
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
-  int iLog;           // CONF_ bits
-  int iSaveTargetId;  // TODO: Should be dropped
+  int iLog;          // CONF_ bits
+  int iSaveTargetId; // TODO: Should be dropped
 
   // Stereoscopy
   int iStereoMode;
@@ -132,9 +132,6 @@ struct VideoConfig final
   // D3D only config, mostly to be merged into the above
   int iAdapter;
 
-  // Debugging
-  bool bEnableShaderDebugging;
-
   // VideoSW Debugging
   int drawStart;
   int drawEnd;
@@ -146,17 +143,16 @@ struct VideoConfig final
 
   // Static config per API
   // TODO: Move this out of VideoConfig
-  struct
-  {
+  struct {
     API_TYPE APIType;
 
-    std::vector<std::string> Adapters;  // for D3D
+    std::vector<std::string> Adapters; // for D3D
     std::vector<int> AAModes;
-    std::vector<std::string> PPShaders;        // post-processing shaders
-    std::vector<std::string> AnaglyphShaders;  // anaglyph shaders
+    std::vector<std::string> PPShaders;       // post-processing shaders
+    std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
     // TODO: merge AdapterName and Adapters array
-    std::string AdapterName;  // for OpenGL
+    std::string AdapterName; // for OpenGL
 
     bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
@@ -164,21 +160,24 @@ struct VideoConfig final
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
     bool bSupports3DVision;
-    bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
-    bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
+    bool bSupportsEarlyZ;        // needed by PixelShaderGen, so must stay in
+                                 // VideoCommon
+    bool bSupportsBindingLayout; // Needed by ShaderGen, so must stay in
+                                 // VideoCommon
     bool bSupportsBBox;
-    bool bSupportsGSInstancing;  // Needed by GeometryShaderGen, so must stay in VideoCommon
+    bool bSupportsGSInstancing; // Needed by GeometryShaderGen, so must stay in
+                                // VideoCommon
     bool bSupportsPostProcessing;
     bool bSupportsPaletteConversion;
-    bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsClipControl; // Needed by VertexShaderGen, so must stay in
+                               // VideoCommon
     bool bSupportsSSAA;
   } backend_info;
 
   // Utility
   bool RealXFBEnabled() const { return bUseXFB && bUseRealXFB; }
   bool VirtualXFBEnabled() const { return bUseXFB && !bUseRealXFB; }
-  bool ExclusiveFullscreenEnabled() const
-  {
+  bool ExclusiveFullscreenEnabled() const {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
   }
 };

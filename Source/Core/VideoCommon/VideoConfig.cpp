@@ -19,15 +19,13 @@
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 
-void UpdateActiveConfig()
-{
+void UpdateActiveConfig() {
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
     Movie::SetGraphicsConfig();
   g_ActiveConfig = g_Config;
 }
 
-VideoConfig::VideoConfig()
-{
+VideoConfig::VideoConfig() {
   bRunning = false;
 
   // Exclusive fullscreen flags
@@ -43,22 +41,22 @@ VideoConfig::VideoConfig()
   backend_info.bSupportsExclusiveFullscreen = false;
 }
 
-void VideoConfig::Load(const std::string& ini_file)
-{
+void VideoConfig::Load(const std::string &ini_file) {
   IniFile iniFile;
   iniFile.Load(ini_file);
 
-  IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
+  IniFile::Section *hardware = iniFile.GetOrCreateSection("Hardware");
   hardware->Get("VSync", &bVSync, 0);
   hardware->Get("Adapter", &iAdapter, 0);
 
-  IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
+  IniFile::Section *settings = iniFile.GetOrCreateSection("Settings");
   settings->Get("wideScreenHack", &bWidescreenHack, false);
   settings->Get("AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
   settings->Get("Crop", &bCrop, false);
   settings->Get("UseXFB", &bUseXFB, 0);
   settings->Get("UseRealXFB", &bUseRealXFB, 0);
-  settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
+  settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,
+                128);
   settings->Get("ShowFPS", &bShowFPS, false);
   settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
   settings->Get("OverlayStats", &bOverlayStats, false);
@@ -74,12 +72,11 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
   settings->Get("MSAA", &iMultisamples, 1);
   settings->Get("SSAA", &bSSAA, false);
-  settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X);  // native
+  settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
   settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
   settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
   settings->Get("WireFrame", &bWireFrame, 0);
   settings->Get("DisableFog", &bDisableFog, 0);
-  settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
   settings->Get("SWZComploc", &bZComploc, true);
@@ -90,18 +87,20 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("SWDrawStart", &drawStart, 0);
   settings->Get("SWDrawEnd", &drawEnd, 100000);
 
-  IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
+  IniFile::Section *enhancements = iniFile.GetOrCreateSection("Enhancements");
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
-  enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
+  enhancements->Get("MaxAnisotropy", &iMaxAnisotropy,
+                    0); // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 
-  IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+  IniFile::Section *stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Get("StereoMode", &iStereoMode, 0);
   stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
-  stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
+  stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage,
+                   100);
   stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
-  IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
+  IniFile::Section *hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
   hacks->Get("BBoxEnable", &bBBoxEnable, false);
   hacks->Get("ForceProgressive", &bForceProgressive, true);
@@ -115,42 +114,28 @@ void VideoConfig::Load(const std::string& ini_file)
 
   // Load common settings
   iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  IniFile::Section* interface = iniFile.GetOrCreateSection("Interface");
+  IniFile::Section *interface = iniFile.GetOrCreateSection("Interface");
   bool bTmp;
   interface->Get("UsePanicHandlers", &bTmp, true);
   SetEnableAlert(bTmp);
 
-  // Shader Debugging causes a huge slowdown and it's easy to forget about it
-  // since it's not exposed in the settings dialog. It's only used by
-  // developers, so displaying an obnoxious message avoids some confusion and
-  // is not too annoying/confusing for users.
-  //
-  // XXX(delroth): This is kind of a bad place to put this, but the current
-  // VideoCommon is a mess and we don't have a central initialization
-  // function to do these kind of checks. Instead, the init code is
-  // triplicated for each video backend.
-  if (bEnableShaderDebugging)
-    OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
-
   VerifyValidity();
 }
 
-void VideoConfig::GameIniLoad()
-{
+void VideoConfig::GameIniLoad() {
   bool gfx_override_exists = false;
 
 // XXX: Again, bad place to put OSD messages at (see delroth's comment above)
 // XXX: This will add an OSD message for each projection hack value... meh
-#define CHECK_SETTING(section, key, var)                                                           \
-  do                                                                                               \
-  {                                                                                                \
-    decltype(var) temp = var;                                                                      \
-    if (iniFile.GetIfExists(section, key, &var) && var != temp)                                    \
-    {                                                                                              \
-      std::string msg = StringFromFormat("Note: Option \"%s\" is overridden by game ini.", key);   \
-      OSD::AddMessage(msg, 7500);                                                                  \
-      gfx_override_exists = true;                                                                  \
-    }                                                                                              \
+#define CHECK_SETTING(section, key, var)                                       \
+  do {                                                                         \
+    decltype(var) temp = var;                                                  \
+    if (iniFile.GetIfExists(section, key, &var) && var != temp) {              \
+      std::string msg = StringFromFormat(                                      \
+          "Note: Option \"%s\" is overridden by game ini.", key);              \
+      OSD::AddMessage(msg, 7500);                                              \
+      gfx_override_exists = true;                                              \
+    }                                                                          \
   } while (0)
 
   IniFile iniFile = SConfig::GetInstance().LoadGameIni();
@@ -162,9 +147,11 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Settings", "Crop", bCrop);
   CHECK_SETTING("Video_Settings", "UseXFB", bUseXFB);
   CHECK_SETTING("Video_Settings", "UseRealXFB", bUseRealXFB);
-  CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
+  CHECK_SETTING("Video_Settings", "SafeTextureCacheColorSamples",
+                iSafeTextureCache_ColorSamples);
   CHECK_SETTING("Video_Settings", "HiresTextures", bHiresTextures);
-  CHECK_SETTING("Video_Settings", "ConvertHiresTextures", bConvertHiresTextures);
+  CHECK_SETTING("Video_Settings", "ConvertHiresTextures",
+                bConvertHiresTextures);
   CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
   CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
   CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
@@ -172,17 +159,13 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
 
   int tmp = -9000;
-  CHECK_SETTING("Video_Settings", "EFBScale", tmp);  // integral
-  if (tmp != -9000)
-  {
-    if (tmp != SCALE_FORCE_INTEGRAL)
-    {
+  CHECK_SETTING("Video_Settings", "EFBScale", tmp); // integral
+  if (tmp != -9000) {
+    if (tmp != SCALE_FORCE_INTEGRAL) {
       iEFBScale = tmp;
-    }
-    else  // Round down to multiple of native IR
+    } else // Round down to multiple of native IR
     {
-      switch (iEFBScale)
-      {
+      switch (iEFBScale) {
       case SCALE_AUTO:
         iEFBScale = SCALE_AUTO_INTEGRAL;
         break;
@@ -202,13 +185,18 @@ void VideoConfig::GameIniLoad()
 
   CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
   CHECK_SETTING("Video_Enhancements", "MaxAnisotropy",
-                iMaxAnisotropy);  // NOTE - this is x in (1 << x)
-  CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
+                iMaxAnisotropy); // NOTE - this is x in (1 << x)
+  CHECK_SETTING("Video_Enhancements", "PostProcessingShader",
+                sPostProcessingShader);
 
-  // These are not overrides, they are per-game stereoscopy parameters, hence no warning
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
-  iniFile.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iStereoDepthPercentage, 100);
+  // These are not overrides, they are per-game stereoscopy parameters, hence no
+  // warning
+  iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence",
+                      &iStereoConvergence, 20);
+  iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth",
+                      &bStereoEFBMonoDepth, false);
+  iniFile.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage",
+                      &iStereoDepthPercentage, 100);
 
   CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
   CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
@@ -219,7 +207,8 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Hacks", "ForceProgressive", bForceProgressive);
   CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
   CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
-  CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
+  CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges",
+                bEFBEmulateFormatChanges);
 
   CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
   CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
@@ -229,50 +218,46 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
   if (gfx_override_exists)
-    OSD::AddMessage(
-        "Warning: Opening the graphics configuration will reset settings and might cause issues!",
-        10000);
+    OSD::AddMessage("Warning: Opening the graphics configuration will reset "
+                    "settings and might cause issues!",
+                    10000);
 }
 
-void VideoConfig::VerifyValidity()
-{
+void VideoConfig::VerifyValidity() {
   // TODO: Check iMaxAnisotropy value
   if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
     iAdapter = 0;
 
-  if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) ==
-      backend_info.AAModes.end())
+  if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(),
+                iMultisamples) == backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (iStereoMode > 0)
-  {
-    if (!backend_info.bSupportsGeometryShaders)
-    {
-      OSD::AddMessage(
-          "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
-          10000);
+  if (iStereoMode > 0) {
+    if (!backend_info.bSupportsGeometryShaders) {
+      OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support "
+                      "for OpenGL 3.2 is required.",
+                      10000);
       iStereoMode = 0;
     }
 
-    if (bUseXFB && bUseRealXFB)
-    {
-      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.",
+    if (bUseXFB && bUseRealXFB) {
+      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning "
+                      "off stereoscopy.",
                       10000);
       iStereoMode = 0;
     }
   }
 }
 
-void VideoConfig::Save(const std::string& ini_file)
-{
+void VideoConfig::Save(const std::string &ini_file) {
   IniFile iniFile;
   iniFile.Load(ini_file);
 
-  IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
+  IniFile::Section *hardware = iniFile.GetOrCreateSection("Hardware");
   hardware->Set("VSync", bVSync);
   hardware->Set("Adapter", iAdapter);
 
-  IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
+  IniFile::Section *settings = iniFile.GetOrCreateSection("Settings");
   settings->Set("AspectRatio", iAspectRatio);
   settings->Set("Crop", bCrop);
   settings->Set("wideScreenHack", bWidescreenHack);
@@ -299,7 +284,6 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
   settings->Set("Wireframe", bWireFrame);
   settings->Set("DisableFog", bDisableFog);
-  settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
   settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
 
   settings->Set("SWZComploc", bZComploc);
@@ -310,18 +294,18 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("SWDrawStart", drawStart);
   settings->Set("SWDrawEnd", drawEnd);
 
-  IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
+  IniFile::Section *enhancements = iniFile.GetOrCreateSection("Enhancements");
   enhancements->Set("ForceFiltering", bForceFiltering);
   enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
   enhancements->Set("PostProcessingShader", sPostProcessingShader);
 
-  IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+  IniFile::Section *stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Set("StereoMode", iStereoMode);
   stereoscopy->Set("StereoDepth", iStereoDepth);
   stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
   stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
 
-  IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
+  IniFile::Section *hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Set("EFBAccessEnable", bEFBAccessEnable);
   hacks->Set("BBoxEnable", bBBoxEnable);
   hacks->Set("ForceProgressive", bForceProgressive);
@@ -332,7 +316,6 @@ void VideoConfig::Save(const std::string& ini_file)
   iniFile.Save(ini_file);
 }
 
-bool VideoConfig::IsVSync()
-{
+bool VideoConfig::IsVSync() {
   return bVSync && !Core::GetIsThrottlerTempDisabled();
 }
