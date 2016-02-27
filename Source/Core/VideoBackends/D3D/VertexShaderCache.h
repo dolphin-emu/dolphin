@@ -38,8 +38,6 @@ private:
     ID3D11VertexShader* shader;
     D3DBlob* bytecode;  // needed to initialize the input layout
 
-    std::string code;
-
     VSCacheEntry() : shader(nullptr), bytecode(nullptr) {}
     void SetByteCode(D3DBlob* blob)
     {

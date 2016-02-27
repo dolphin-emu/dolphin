@@ -85,7 +85,6 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
             "\tint4 " I_TEXOFFSET ";\n"
             "};\n");
 
-
   out.Write("struct VS_OUTPUT {\n");
   GenerateVSOutputMembers<ShaderCode>(out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
                                       "");
