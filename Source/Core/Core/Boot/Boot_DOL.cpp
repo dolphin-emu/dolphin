@@ -19,11 +19,12 @@ CDolLoader::CDolLoader(const std::vector<u8>& buffer)
 
 CDolLoader::CDolLoader(const std::string& filename)
 {
-	const u64 size = File::GetSize(filename);
-	std::vector<u8> temp_buffer(size);
+	std::vector<u8> temp_buffer;
 
 	{
 	File::IOFile pStream(filename, "rb");
+	const u64 size = pStream.GetSize();
+	temp_buffer.resize(size);
 	pStream.ReadBytes(temp_buffer.data(), temp_buffer.size());
 	}
 
