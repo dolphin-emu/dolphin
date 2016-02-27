@@ -670,7 +670,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 
 	if (SConfig::GetInstance().bFastDiscSpeed)
 		// An optional hack to speed up loading times
-		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+		*ticks_until_completion = (u64)output_length * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
 	else
 		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
@@ -1324,8 +1324,8 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		                       CalculateRawDiscReadTime(s_last_read_offset,
 		                       offset + length - s_last_read_offset);
 		// Number of ticks it takes to transfer the data from the buffer to memory.
-		u64 buffer_read_duration = length *
-			(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+		u64 buffer_read_duration = (u64)length *
+			SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
 
 		if (current_time > buffer_fill_time)
 		{
