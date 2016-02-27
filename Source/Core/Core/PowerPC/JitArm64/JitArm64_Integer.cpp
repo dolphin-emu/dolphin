@@ -50,6 +50,9 @@ void JitArm64::ComputeRC(u64 imm, int crf, bool needs_sext)
 
 void JitArm64::ComputeCarry(bool Carry)
 {
+	if (!js.op->wantsCA)
+		return;
+
 	if (Carry)
 	{
 		ARM64Reg WA = gpr.GetReg();
@@ -64,6 +67,9 @@ void JitArm64::ComputeCarry(bool Carry)
 
 void JitArm64::ComputeCarry()
 {
+	if (!js.op->wantsCA)
+		return;
+
 	ARM64Reg WA = gpr.GetReg();
 	CSINC(WA, WSP, WSP, CC_CC);
 	STRB(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(xer_ca));
