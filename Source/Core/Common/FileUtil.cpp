@@ -374,69 +374,8 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
 // Returns the size of filename (64bit)
 u64 GetSize(const std::string& filename)
 {
-	if (!Exists(filename))
-	{
-		WARN_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
-		return 0;
-	}
-
-	if (IsDirectory(filename))
-	{
-		WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
-		return 0;
-	}
-
-	struct stat64 buf;
-#ifdef _WIN32
-	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
-#else
-	if (stat64(filename.c_str(), &buf) == 0)
-#endif
-	{
-		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
-				filename.c_str(), (long long)buf.st_size);
-		return buf.st_size;
-	}
-
-	ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s",
-			filename.c_str(), GetLastErrorMsg().c_str());
-	return 0;
-}
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd)
-{
-	struct stat64 buf;
-	if (fstat64(fd, &buf) != 0)
-	{
-		ERROR_LOG(COMMON, "GetSize: stat failed %i: %s",
-			fd, GetLastErrorMsg().c_str());
-		return 0;
-	}
-	return buf.st_size;
-}
-
-// Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f)
-{
-	// can't use off_t here because it can be 32-bit
-	u64 pos = ftello(f);
-	if (fseeko(f, 0, SEEK_END) != 0)
-	{
-		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg().c_str());
-		return 0;
-	}
-
-	u64 size = ftello(f);
-	if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
-	{
-		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg().c_str());
-		return 0;
-	}
-
-	return size;
+	IOFile f(filename, "rb");
+	return f.GetSize();
 }
 
 // creates an empty file filename, returns true on success
@@ -1037,15 +976,40 @@ u64 IOFile::GetSize() const
 		LARGE_INTEGER size;
 		BOOL rv = GetFileSizeEx(m_file, &size);
 		if (rv == FALSE)
+		{
+			ERROR_LOG(COMMON, "GetSize: failed %p: %s",
+				m_file, GetLastErrorMsg().c_str());
 			return 0;
+		}
 		else
+		{
 			return size.QuadPart;
+		}
 #else
-		return File::GetSize(m_file);
+		// can't use off_t here because it can be 32-bit
+		u64 pos = ftello(m_file);
+		if (fseeko(m_file, 0, SEEK_END) != 0)
+		{
+			ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+					m_file, GetLastErrorMsg().c_str());
+			return 0;
+		}
+
+		u64 size = ftello(m_file);
+		if ((size != pos) && (fseeko(m_file, pos, SEEK_SET) != 0))
+		{
+			ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+					m_file, GetLastErrorMsg().c_str());
+			return 0;
+		}
+		return size;
 #endif
 	}
 	else
+	{
+		WARN_LOG(COMMON, "GetSize: failed %p: Invalid file", m_file);
 		return 0;
+	}
 }
 
 bool IOFile::IsEOF() const
