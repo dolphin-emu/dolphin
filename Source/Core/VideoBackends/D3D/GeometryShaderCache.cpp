@@ -222,8 +222,7 @@ bool GeometryShaderCache::SetShader(u32 primitive_type) {
   }
 
   // Need to compile a new shader
-  ShaderCode code =
-      GenerateGeometryShaderCode(primitive_type, API_D3D, uid.GetUidData());
+  ShaderCode code = GenerateGeometryShaderCode(API_D3D, uid.GetUidData());
 
   D3DBlob *pbytecode;
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode)) {

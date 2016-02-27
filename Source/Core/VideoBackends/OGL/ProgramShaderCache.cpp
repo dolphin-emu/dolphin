@@ -204,8 +204,7 @@ SHADER *ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode,
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(primitive_type, API_OPENGL,
-                                       uid.guid.GetUidData());
+    gcode = GenerateGeometryShaderCode(API_OPENGL, uid.guid.GetUidData());
 
   if (g_ActiveConfig.bEnableShaderDebugging) {
     newentry.shader.strvprog = vcode.GetBuffer();

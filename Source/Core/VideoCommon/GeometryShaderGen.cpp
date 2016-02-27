@@ -41,14 +41,15 @@ static void EndPrimitive(ShaderCode &out,
                          API_TYPE ApiType);
 
 ShaderCode
-GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
+GenerateGeometryShaderCode(API_TYPE ApiType,
                            const geometry_shader_uid_data *uid_data) {
   ShaderCode out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized
   // out)
 
-  const unsigned int vertex_in = primitive_type + 1;
-  unsigned int vertex_out = primitive_type == PRIMITIVE_TRIANGLES ? 3 : 4;
+  const unsigned int vertex_in = uid_data->primitive_type + 1;
+  unsigned int vertex_out =
+      uid_data->primitive_type == PRIMITIVE_TRIANGLES ? 3 : 4;
 
   if (uid_data->wireframe)
     vertex_out++;
@@ -57,11 +58,12 @@ GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
     // Insert layout parameters
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing) {
       out.Write("layout(%s, invocations = %d) in;\n",
-                primitives_ogl[primitive_type], uid_data->stereo ? 2 : 1);
+                primitives_ogl[uid_data->primitive_type],
+                uid_data->stereo ? 2 : 1);
       out.Write("layout(%s_strip, max_vertices = %d) out;\n",
                 uid_data->wireframe ? "line" : "triangle", vertex_out);
     } else {
-      out.Write("layout(%s) in;\n", primitives_ogl[primitive_type]);
+      out.Write("layout(%s) in;\n", primitives_ogl[uid_data->primitive_type]);
       out.Write("layout(%s_strip, max_vertices = %d) out;\n",
                 uid_data->wireframe ? "line" : "triangle",
                 uid_data->stereo ? vertex_out * 2 : vertex_out);
@@ -125,21 +127,21 @@ GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> "
                 "output, in uint "
                 "InstanceID : SV_GSInstanceID)\n{\n",
-                primitives_d3d[primitive_type], vertex_in,
+                primitives_d3d[uid_data->primitive_type], vertex_in,
                 uid_data->wireframe ? "Line" : "Triangle");
     } else {
       out.Write("[maxvertexcount(%d)]\n",
                 uid_data->stereo ? vertex_out * 2 : vertex_out);
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> "
                 "output)\n{\n",
-                primitives_d3d[primitive_type], vertex_in,
+                primitives_d3d[uid_data->primitive_type], vertex_in,
                 uid_data->wireframe ? "Line" : "Triangle");
     }
 
     out.Write("\tVertexData ps;\n");
   }
 
-  if (primitive_type == PRIMITIVE_LINES) {
+  if (uid_data->primitive_type == PRIMITIVE_LINES) {
     if (ApiType == API_OPENGL) {
       out.Write("\tVS_OUTPUT start, end;\n");
       AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens,
@@ -171,7 +173,7 @@ GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
         "\t\toffset = float2(0, -" I_LINEPTPARAMS ".z / " I_LINEPTPARAMS
         ".y);\n"
         "\t}\n");
-  } else if (primitive_type == PRIMITIVE_POINTS) {
+  } else if (uid_data->primitive_type == PRIMITIVE_POINTS) {
     if (ApiType == API_OPENGL) {
       out.Write("\tVS_OUTPUT center;\n");
       AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens,
@@ -233,7 +235,7 @@ GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
               "[eye] * (f.pos.w - " I_STEREOPARAMS "[2]);\n");
   }
 
-  if (primitive_type == PRIMITIVE_LINES) {
+  if (uid_data->primitive_type == PRIMITIVE_LINES) {
     out.Write("\tVS_OUTPUT l = f;\n"
               "\tVS_OUTPUT r = f;\n");
 
@@ -251,7 +253,7 @@ GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType,
 
     EmitVertex(out, uid_data, "l", ApiType, true);
     EmitVertex(out, uid_data, "r", ApiType);
-  } else if (primitive_type == PRIMITIVE_POINTS) {
+  } else if (uid_data->primitive_type == PRIMITIVE_POINTS) {
     out.Write("\tVS_OUTPUT ll = f;\n"
               "\tVS_OUTPUT lr = f;\n"
               "\tVS_OUTPUT ul = f;\n"
