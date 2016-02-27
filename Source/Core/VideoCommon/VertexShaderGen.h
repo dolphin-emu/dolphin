@@ -39,9 +39,10 @@ struct vertex_shader_uid_data
   u32 pixel_lighting : 1;
   u32 msaa : 1;
 
-  u32 ssaa : 1;
   u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the
-                                     // texMtxInfo struct is 8 bits wide
+                                     // texMtxInfo struct is
+                                     // 8 bits wide
+  u32 ssaa : 1;
   u32 pad : 15;
 
   struct
