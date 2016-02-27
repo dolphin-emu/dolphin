@@ -218,7 +218,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
 	}
 	else
 	{
-		ShaderCode gs_code = GenerateGeometryShaderCode(gs_primitive_type, API_D3D, gs_uid.GetUidData());
+		ShaderCode gs_code = GenerateGeometryShaderCode(API_D3D, gs_uid.GetUidData());
 		ID3DBlob* gs_bytecode = nullptr;
 
 		if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))

@@ -746,7 +746,8 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
 		out.Write("\tocol0.a = float(" I_ALPHA".a) / 255.0;\n");
 	}
 
-	if (uid_data->bounding_box) {
+	if (uid_data->bounding_box)
+	{
 		const char* atomic_op = ApiType == API_OPENGL ? "atomic" : "Interlocked";
 		out.Write(
 			"\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
