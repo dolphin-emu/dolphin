@@ -282,7 +282,7 @@ public:
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
 	bool IsEOF() const;
-	operator void*() { return m_good ? m_file : nullptr; }
+	operator bool() { return IsOpen(); }
 
 	bool Seek(s64 off, int origin);
 	u64 Tell() const;
