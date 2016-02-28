@@ -478,120 +478,137 @@ void Jit64::cmpXX(UGeckoInstruction inst)
   int crf = inst.CRFD;
   bool merge_branch = CheckMergedBranch(crf);
 
-  OpArg comparand;
+  u32 immediate;
+  bool useImmediate = true;
   bool signedCompare;
+
   if (inst.OPCD == 31)
   {
     // cmp / cmpl
-    gpr.Lock(a, b);
-    comparand = gpr.R(b);
+    useImmediate = false;
     signedCompare = (inst.SUBOP10 == 0);
   }
   else
   {
-    gpr.Lock(a);
     if (inst.OPCD == 10)
     {
       // cmpli
-      comparand = Imm32((u32)inst.UIMM);
+      immediate = (u32)inst.UIMM;
       signedCompare = false;
     }
     else if (inst.OPCD == 11)
     {
       // cmpi
-      comparand = Imm32((u32)(s32)(s16)inst.UIMM);
+      immediate = (u32)(s32)(s16)inst.UIMM;
       signedCompare = true;
     }
     else
     {
-      signedCompare = false;  // silence compiler warning
-      PanicAlert("cmpXX");
+      UnexpectedInstructionForm();
+      return;
     }
   }
 
-  if (gpr.R(a).IsImm() && comparand.IsImm())
+  auto ra = regs.gpr.Lock(a);
+  auto rb = useImmediate ? regs.gpr.Imm32(immediate) : regs.gpr.Lock(b);
+
+  if (ra.IsImm() && rb.IsImm())
   {
+    OpArg comparand = rb;
+
     // Both registers contain immediate values, so we can pre-compile the compare result
-    s64 compareResult = signedCompare ? (s64)gpr.R(a).SImm32() - (s64)comparand.SImm32() :
-                                        (u64)gpr.R(a).Imm32() - (u64)comparand.Imm32();
+    s64 compareResult = signedCompare ? (s64)ra.SImm32() - (s64)comparand.SImm32() :
+                                        (u64)ra.Imm32() - (u64)comparand.Imm32();
     if (compareResult == (s32)compareResult)
     {
       MOV(64, PPCSTATE(cr_val[crf]), Imm32((u32)compareResult));
     }
     else
     {
-      MOV(64, R(RSCRATCH), Imm64(compareResult));
-      MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
+      auto scratch = regs.gpr.Borrow();
+      MOV(64, scratch, Imm64(compareResult));
+      MOV(64, PPCSTATE(cr_val[crf]), scratch);
     }
 
     if (merge_branch)
       DoMergedBranchImmediate(compareResult);
+
+    return;
+  }
+
+  if (signedCompare)
+  {
+    auto input = regs.gpr.Borrow();
+
+    if (ra.IsImm())
+      MOV(64, input, Imm32(ra.SImm32()));
+    else
+      MOVSX(64, 32, input, ra);
+
+    if (!rb.IsImm())
+    {
+      auto scratch2 = regs.gpr.Borrow();
+      MOVSX(64, 32, scratch2, rb);
+      Compare(crf, merge_branch, input, scratch2);
+    }
+    else
+    {
+      Compare(crf, merge_branch, input, rb);
+    }
   }
   else
   {
-    X64Reg input = RSCRATCH;
-    if (signedCompare)
-    {
-      if (gpr.R(a).IsImm())
-        MOV(64, R(input), Imm32(gpr.R(a).SImm32()));
-      else
-        MOVSX(64, 32, input, gpr.R(a));
+    // If we're comparing against zero we know that the input won't be clobbered
+    auto input = rb.IsZero() ? ra.Bind(BindMode::Read) : regs.gpr.Borrow();
 
-      if (!comparand.IsImm())
+    if (ra.IsImm())
+    {
+      MOV(32, input, Imm32(ra.Imm32()));
+    }
+    else if (!rb.IsZero())
+    {
+      MOVZX(64, 32, input, ra);
+    }
+
+    if (rb.IsImm())
+    {
+      // sign extension will ruin this, so store it in a register
+      if (rb.Imm32() & 0x80000000U)
       {
-        MOVSX(64, 32, RSCRATCH2, comparand);
-        comparand = R(RSCRATCH2);
+        auto scratch2 = regs.gpr.Borrow();
+        MOV(32, scratch2, rb);
+        Compare(crf, merge_branch, input, scratch2);
+      }
+      else
+      {
+        Compare(crf, merge_branch, input, rb);
       }
     }
     else
     {
-      if (gpr.R(a).IsImm())
-      {
-        MOV(32, R(input), Imm32(gpr.R(a).Imm32()));
-      }
-      else if (comparand.IsImm() && !comparand.Imm32())
-      {
-        gpr.BindToRegister(a, true, false);
-        input = gpr.RX(a);
-      }
-      else
-      {
-        MOVZX(64, 32, input, gpr.R(a));
-      }
-
-      if (comparand.IsImm())
-      {
-        // sign extension will ruin this, so store it in a register
-        if (comparand.Imm32() & 0x80000000U)
-        {
-          MOV(32, R(RSCRATCH2), comparand);
-          comparand = R(RSCRATCH2);
-        }
-      }
-      else
-      {
-        gpr.BindToRegister(b, true, false);
-        comparand = gpr.R(b);
-      }
+      auto xb = rb.Bind(BindMode::Read);
+      Compare(crf, merge_branch, input, xb);
     }
-    if (comparand.IsImm() && !comparand.Imm32())
-    {
-      MOV(64, PPCSTATE(cr_val[crf]), R(input));
-      // Place the comparison next to the branch for macro-op fusion
-      if (merge_branch)
-        TEST(64, R(input), R(input));
-    }
-    else
-    {
-      SUB(64, R(input), comparand);
-      MOV(64, PPCSTATE(cr_val[crf]), R(input));
-    }
-
-    if (merge_branch)
-      DoMergedBranchCondition();
   }
 
-  gpr.UnlockAll();
+  if (merge_branch)
+    DoMergedBranchCondition();
+}
+
+void Jit64::Compare(int crf, bool merge_branch, GPRNative& input, GPRRegister& comparand)
+{
+  if (comparand.IsZero())
+  {
+    MOV(64, PPCSTATE(cr_val[crf]), input);
+    // Place the comparison next to the branch for macro-op fusion
+    if (merge_branch)
+      TEST(64, input, input);
+  }
+  else
+  {
+    SUB(64, input, comparand);
+    MOV(64, PPCSTATE(cr_val[crf]), input);
+  }
 }
 
 void Jit64::boolX(UGeckoInstruction inst)
