@@ -50,10 +50,11 @@ void Jit64::GenerateOverflow()
   // We need to do this without modifying flags so as not to break stuff that assumes flags
   // aren't clobbered (carry, branch merging): speed doesn't really matter here (this is really
   // rare).
+  auto scratch = regs.gpr.Borrow();
   static const u8 ovtable[4] = {0, 0, XER_SO_MASK, XER_SO_MASK};
-  MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
-  MOV(8, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)ovtable));
-  MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
+  MOVZX(32, 8, scratch, PPCSTATE(xer_so_ov));
+  MOV(8, scratch, MDisp(scratch, (u32)(u64)ovtable));
+  MOV(8, PPCSTATE(xer_so_ov), scratch);
   SetJumpTarget(exit);
 }
 
@@ -74,8 +75,9 @@ void Jit64::FinalizeCarry(CCFlags cond)
       else
       {
         // convert the condition to a carry flag (is there a better way?)
-        SETcc(cond, R(RSCRATCH));
-        SHR(8, R(RSCRATCH), Imm8(1));
+        auto scratch = regs.gpr.Borrow();
+        SETcc(cond, scratch);
+        SHR(8, scratch, Imm8(1));
       }
       LockFlags();
       js.carryFlagSet = true;
@@ -147,8 +149,9 @@ void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
   }
   else if (needs_sext)
   {
-    MOVSX(64, 32, RSCRATCH, arg);
-    MOV(64, PPCSTATE(cr_val[0]), R(RSCRATCH));
+    auto scratch = regs.gpr.Borrow();
+    MOVSX(64, 32, scratch, arg);
+    MOV(64, PPCSTATE(cr_val[0]), scratch);
   }
   else
   {
@@ -173,24 +176,24 @@ void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
         // We don't want to do this if a test is needed though, because it would interrupt macro-op
         // fusion.
         gpr.UnlockAll();
-        for (int j : ~js.op->gprInUse)
-          gpr.StoreFromRegister(j, FLUSH_ALL);
+        regs.gpr.FlushBatch(~js.op->gprInUse);
       }
       DoMergedBranchCondition();
     }
   }
 }
 
-OpArg Jit64::ExtractFromReg(int reg, int offset)
+OpArg Jit64::ExtractFromReg(GPRRegister& src, int offset)
 {
-  OpArg src = gpr.R(reg);
   // store to load forwarding should handle this case efficiently
+  // TODO: BEXTR
   if (offset)
   {
-    gpr.StoreFromRegister(reg, FLUSH_MAINTAIN_STATE);
-    src = gpr.GetDefaultLocation(reg);
-    src.AddMemOffset(offset);
+    OpArg loc = src.Sync();
+    loc.AddMemOffset(offset);
+    return loc;
   }
+
   return src;
 }
 
@@ -1420,16 +1423,22 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA;
   int s = inst.RS;
+  auto ra = regs.gpr.Lock(a);
+  auto rs = regs.gpr.Lock(s);
 
-  if (gpr.R(s).IsImm())
+  // In case of a merged branch, track whether or not we've set flags.
+  // If not, we need to do a test later to get them.
+  bool needs_test = true;
+  // If we know the high bit can't be set, we can avoid doing a sign extend for flag storage.
+  bool needs_sext = true;
+
+  if (rs.IsImm())
   {
-    u32 result = gpr.R(s).Imm32();
+    u32 result = rs.Imm32();
     if (inst.SH != 0)
       result = _rotl(result, inst.SH);
     result &= Helper_Mask(inst.MB, inst.ME);
-    gpr.SetImmediate32(a, result);
-    if (inst.Rc)
-      ComputeRC(gpr.R(a));
+    ra.SetImm32(result);
   }
   else
   {
@@ -1437,67 +1446,70 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
     bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
     u32 mask = Helper_Mask(inst.MB, inst.ME);
     bool simple_mask = mask == 0xff || mask == 0xffff;
-    // In case of a merged branch, track whether or not we've set flags.
-    // If not, we need to do a test later to get them.
-    bool needs_test = true;
-    // If we know the high bit can't be set, we can avoid doing a sign extend for flag storage.
-    bool needs_sext = true;
     int mask_size = inst.ME - inst.MB + 1;
 
-    gpr.Lock(a, s);
-    gpr.BindToRegister(a, a == s);
-    if (a != s && left_shift && gpr.R(s).IsSimpleReg() && inst.SH <= 3)
+    auto xa = ra.BindWriteAndReadIf(a == s);
+    if (a != s && left_shift && rs.IsRegBound() && inst.SH <= 3)
     {
-      LEA(32, gpr.RX(a), MScaled(gpr.RX(s), SCALE_1 << inst.SH, 0));
+      auto xs = rs.Bind(BindMode::Reuse);
+      LEA(32, xa, MScaled(xs, SCALE_1 << inst.SH, 0));
     }
     // common optimized case: byte/word extract
     else if (simple_mask && !(inst.SH & (mask_size - 1)))
     {
-      MOVZX(32, mask_size, gpr.RX(a), ExtractFromReg(s, inst.SH ? (32 - inst.SH) >> 3 : 0));
+      if (a == s)
+      {
+        if (inst.SH)
+          SHR(32, xa, Imm8(32 - inst.SH));
+        MOVZX(32, mask_size, xa, xa);
+      }
+      else
+      {
+        MOVZX(32, mask_size, xa, ExtractFromReg(rs, inst.SH ? (32 - inst.SH) >> 3 : 0));
+      }
       needs_sext = false;
     }
     // another optimized special case: byte/word extract plus shift
     else if (((mask >> inst.SH) << inst.SH) == mask && !left_shift &&
              ((mask >> inst.SH) == 0xff || (mask >> inst.SH) == 0xffff))
     {
-      MOVZX(32, mask_size, gpr.RX(a), gpr.R(s));
-      SHL(32, gpr.R(a), Imm8(inst.SH));
+      MOVZX(32, mask_size, xa, a == s ? xa : rs);
+      SHL(32, xa, Imm8(inst.SH));
       needs_sext = inst.SH + mask_size >= 32;
     }
     else
     {
       if (a != s)
-        MOV(32, gpr.R(a), gpr.R(s));
+        MOV(32, xa, rs);
 
       if (left_shift)
       {
-        SHL(32, gpr.R(a), Imm8(inst.SH));
+        SHL(32, xa, Imm8(inst.SH));
       }
       else if (right_shift)
       {
-        SHR(32, gpr.R(a), Imm8(inst.MB));
+        SHR(32, xa, Imm8(inst.MB));
         needs_sext = false;
       }
       else
       {
         if (inst.SH != 0)
-          ROL(32, gpr.R(a), Imm8(inst.SH));
+          ROL(32, xa, Imm8(inst.SH));
         if (!(inst.MB == 0 && inst.ME == 31))
         {
           // we need flags if we're merging the branch
           if (inst.Rc && CheckMergedBranch(0))
-            AND(32, gpr.R(a), Imm32(mask));
+            AND(32, xa, Imm32(mask));
           else
-            AndWithMask(gpr.RX(a), mask);
+            AndWithMask(xa, mask);
           needs_sext = inst.MB == 0;
           needs_test = false;
         }
       }
     }
-    if (inst.Rc)
-      ComputeRC(gpr.R(a), needs_test, needs_sext);
-    gpr.UnlockAll();
   }
+  if (inst.Rc)
+    ComputeRC(ra, needs_test, needs_sext);
 }
 
 void Jit64::rlwimix(UGeckoInstruction inst)
