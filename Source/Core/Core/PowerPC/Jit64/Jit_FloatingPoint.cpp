@@ -62,7 +62,10 @@ void Jit64::SetFPRFIfNeeded(X64Reg xmm)
   // FPRF is fast enough in JIT that we might as well just enable it for every float instruction
   // if the FPRF flag is set.
   if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
-    SetFPRF(xmm);
+  {
+    auto scratch = regs.gpr.Borrow();
+    SetFPRF(xmm, scratch);
+  }
 }
 
 void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Reg clobber)
@@ -594,8 +597,8 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 
   int d = inst.RD;
   int b = inst.RB;
-  fpr.Lock(d, b);
-  fpr.BindToRegister(d);
+  auto rb = regs.fpu.Lock(b);
+  auto rd = regs.fpu.Lock(d);
 
   // Intel uses 0x80000000 as a generic error code while PowerPC uses clamping:
   //
@@ -608,23 +611,24 @@ void Jit64::fctiwx(UGeckoInstruction inst)
   // The upper 32 bits of the result are set to 0xfff80000,
   // except for -0.0 where they are set to 0xfff80001 (TODO).
 
-  MOVAPD(XMM0, M(half_qnan_and_s32_max));
-  MINSD(XMM0, fpr.R(b));
+  auto xmm = regs.fpu.Borrow();
+  MOVAPD(xmm, M(half_qnan_and_s32_max));
+  MINSD(xmm, rb);
   switch (inst.SUBOP10)
   {
   // fctiwx
   case 14:
-    CVTPD2DQ(XMM0, R(XMM0));
+    CVTPD2DQ(xmm, R(xmm));
     break;
 
   // fctiwzx
   case 15:
-    CVTTPD2DQ(XMM0, R(XMM0));
+    CVTTPD2DQ(xmm, R(xmm));
     break;
   }
   // d[64+] must not be modified
-  MOVSD(fpr.R(d), XMM0);
-  fpr.UnlockAll();
+  auto xd = rd.Bind(BindMode::Write);
+  MOVSD(xd, R(xmm));
 }
 
 void Jit64::frspx(UGeckoInstruction inst)
@@ -636,12 +640,10 @@ void Jit64::frspx(UGeckoInstruction inst)
   int d = inst.FD;
   bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
-  fpr.Lock(b, d);
-  OpArg src = fpr.R(b);
-  fpr.BindToRegister(d, false);
-  ForceSinglePrecision(fpr.RX(d), src, packed, true);
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+  auto rb = regs.fpu.Lock(b), rd = regs.fpu.Lock(d);
+  auto xd = rd.BindWriteAndReadIf(b == d);
+  ForceSinglePrecision(xd, d == b ? xd : rb, packed, true);
+  SetFPRFIfNeeded(xd);
 }
 
 void Jit64::frsqrtex(UGeckoInstruction inst)
@@ -652,15 +654,14 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   int b = inst.FB;
   int d = inst.FD;
 
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  fpr.Lock(b, d);
-  fpr.BindToRegister(d);
-  MOVAPD(XMM0, fpr.R(b));
+  auto rb = regs.fpu.Lock(b), rd = regs.fpu.Lock(d);
+  auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
+  auto xmm0 = regs.fpu.Borrow(XMM0);
+  MOVAPD((X64Reg)xmm0, rb);
   CALL(asm_routines.frsqrte);
-  MOVSD(fpr.R(d), XMM0);
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
-  gpr.UnlockAllX();
+  auto xd = rd.Bind(BindMode::Write);
+  MOVSD(xd, R(xmm0));
+  SetFPRFIfNeeded(xd);
 }
 
 void Jit64::fresx(UGeckoInstruction inst)
@@ -671,13 +672,12 @@ void Jit64::fresx(UGeckoInstruction inst)
   int b = inst.FB;
   int d = inst.FD;
 
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  fpr.Lock(b, d);
-  MOVAPD(XMM0, fpr.R(b));
-  fpr.BindToRegister(d, false);
+  auto rb = regs.fpu.Lock(b), rd = regs.fpu.Lock(d);
+  auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
+  auto xmm0 = regs.fpu.Borrow(XMM0);
+  MOVAPD((X64Reg)xmm0, rb);
   CALL(asm_routines.fres);
-  MOVDDUP(fpr.RX(d), R(XMM0));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
-  gpr.UnlockAllX();
+  auto xd = rd.Bind(BindMode::Write);
+  MOVDDUP(xd, R(xmm0));
+  SetFPRFIfNeeded(xd);
 }
