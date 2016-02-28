@@ -175,7 +175,6 @@ void Jit64::ComputeRC(const OpArg& arg, bool needs_test, bool needs_sext)
         // better to flush it here so that we don't have to flush it on both sides of the branch.
         // We don't want to do this if a test is needed though, because it would interrupt macro-op
         // fusion.
-        gpr.UnlockAll();
         regs.gpr.FlushBatch(~js.op->gprInUse);
       }
       DoMergedBranchCondition();
@@ -411,8 +410,6 @@ void Jit64::DoMergedBranchCondition()
   bool condition = !!(next.BO & BO_BRANCH_IF_TRUE);
   const u32 nextPC = js.op[1].address;
 
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
   FixupBranch pDontBranch;
   if (test_bit & 8)
     pDontBranch = J_CC(condition ? CC_GE : CC_L, true);  // Test < 0, so jump over if >= 0.
