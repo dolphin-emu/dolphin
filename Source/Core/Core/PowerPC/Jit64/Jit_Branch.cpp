@@ -164,9 +164,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     // BO_2 == 1z1zz -> b always
 
     // NPC = CTR & 0xfffffffc;
-    gpr.Flush();
-    fpr.Flush();
-
+    regs.Flush();
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
@@ -182,22 +180,21 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
     FixupBranch b =
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+    Jit64Reg::Registers branch = regs.Branch();
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
+    branch.Flush();
     WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
     // Would really like to continue the block here, but it ends. TODO.
     SetJumpTarget(b);
 
     if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
     {
-      gpr.Flush();
-      fpr.Flush();
+      regs.Flush();
       WriteExit(js.compilerPC + 4);
     }
   }
@@ -218,6 +215,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
       pCTRDontBranch = J_CC(CC_Z, true);
   }
 
+  Jit64Reg::Registers branch = regs.Branch();
   FixupBranch pConditionDontBranch;
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
@@ -242,8 +240,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  branch.Flush();
   WriteBLRExit();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -253,8 +250,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
+    regs.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }
