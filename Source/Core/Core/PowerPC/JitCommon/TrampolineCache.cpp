@@ -54,7 +54,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
   const u8* trampoline = GetCodePtr();
 
   SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
-                info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
+                info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM, info.scratch);
 
   JMP(info.start + info.len, true);
 

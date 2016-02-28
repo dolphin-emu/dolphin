@@ -605,7 +605,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size)
   X64Reg reg;
   auto info = regBuildMemAddress(RI, I, getOp1(I), 1, &reg);
 
-  RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false);
+  RI.Jit->SafeLoadToReg(reg, info.first, Size, info.second, regsInUse(RI), false, 0, RSCRATCH);
   if (regReadUse(RI, I))
     RI.regs[reg] = I;
 }
@@ -1584,7 +1584,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       X64Reg reg = fregFindFreeReg(RI);
       auto info = regBuildMemAddress(RI, I, getOp1(I), 1, nullptr);
 
-      RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 32, info.second, regsInUse(RI), false);
+      RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 32, info.second, regsInUse(RI), false, 0,
+                            RSCRATCH);
       Jit->MOVD_xmm(reg, R(RSCRATCH2));
       RI.fregs[reg] = I;
       break;
@@ -1597,7 +1598,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       X64Reg reg = fregFindFreeReg(RI);
       auto info = regBuildMemAddress(RI, I, getOp1(I), 1, nullptr);
 
-      RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 64, info.second, regsInUse(RI), false);
+      RI.Jit->SafeLoadToReg(RSCRATCH2, info.first, 64, info.second, regsInUse(RI), false, 0,
+                            RSCRATCH);
       Jit->MOVQ_xmm(reg, R(RSCRATCH2));
       RI.fregs[reg] = I;
       break;
