@@ -83,6 +83,7 @@ public:
 	void arith_imm(UGeckoInstruction inst);
 	void boolX(UGeckoInstruction inst);
 	void addx(UGeckoInstruction inst);
+	void addix(UGeckoInstruction inst);
 	void extsXx(UGeckoInstruction inst);
 	void cntlzwx(UGeckoInstruction inst);
 	void negx(UGeckoInstruction inst);
@@ -249,6 +250,6 @@ private:
 	void ComputeCarry();
 
 	typedef u32 (*Operation)(u32, u32);
-	void reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);
+	void reg_imm(u32 d, u32 a, u32 value, Operation do_op, void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, ArithOption), bool Rc = false);
 };
 

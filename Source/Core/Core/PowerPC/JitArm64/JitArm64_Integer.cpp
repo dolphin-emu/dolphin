@@ -77,11 +77,6 @@ void JitArm64::ComputeCarry()
 }
 
 // Following static functions are used in conjunction with reg_imm
-static u32 Add(u32 a, u32 b)
-{
-	return a + b;
-}
-
 static u32 Or(u32 a, u32 b)
 {
 	return a | b;
@@ -97,38 +92,24 @@ static u32 Xor(u32 a, u32 b)
 	return a ^ b;
 }
 
-void JitArm64::reg_imm(u32 d, u32 a, bool binary, u32 value, Operation do_op, void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, ARM64Reg, ArithOption), bool Rc)
+void JitArm64::reg_imm(u32 d, u32 a, u32 value, Operation do_op, void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, ARM64Reg, ArithOption), bool Rc)
 {
-	if (a || binary)
+	if (gpr.IsImm(a))
 	{
-		if (gpr.IsImm(a))
-		{
-			gpr.SetImmediate(d, do_op(gpr.GetImm(a), value));
-			if (Rc)
-				ComputeRC(gpr.GetImm(d));
-		}
-		else
-		{
-			gpr.BindToRegister(d, d == a);
-			ARM64Reg WA = gpr.GetReg();
-			MOVI2R(WA, value);
-			(this->*op)(gpr.R(d), gpr.R(a), WA, ArithOption(WA, ST_LSL, 0));
-			gpr.Unlock(WA);
-
-			if (Rc)
-				ComputeRC(gpr.R(d), 0);
-		}
-	}
-	else if (do_op == Add)
-	{
-		// a == 0, implies zero register
-		gpr.SetImmediate(d, value);
+		gpr.SetImmediate(d, do_op(gpr.GetImm(a), value));
 		if (Rc)
-			ComputeRC(value, 0);
+			ComputeRC(gpr.GetImm(d));
 	}
 	else
 	{
-		_assert_msg_(DYNA_REC, false, "Hit impossible condition in reg_imm!");
+		gpr.BindToRegister(d, d == a);
+		ARM64Reg WA = gpr.GetReg();
+		MOVI2R(WA, value);
+		(this->*op)(gpr.R(d), gpr.R(a), WA, ArithOption(WA, ST_LSL, 0));
+		gpr.Unlock(WA);
+
+		if (Rc)
+			ComputeRC(gpr.R(d), 0);
 	}
 }
 
@@ -140,35 +121,63 @@ void JitArm64::arith_imm(UGeckoInstruction inst)
 
 	switch (inst.OPCD)
 	{
-	case 14: // addi
-		reg_imm(d, a, false, (u32)(s32)inst.SIMM_16, Add, &ARM64XEmitter::ADD);
-	break;
-	case 15: // addis
-		reg_imm(d, a, false, (u32)inst.SIMM_16 << 16, Add, &ARM64XEmitter::ADD);
-	break;
 	case 24: // ori
 		if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  //check for nop
 		{
 			// NOP
 			return;
 		}
-		reg_imm(a, s, true, inst.UIMM, Or, &ARM64XEmitter::ORR);
+		reg_imm(a, s, inst.UIMM,       Or,  &ARM64XEmitter::ORR);
 	break;
 	case 25: // oris
-		reg_imm(a, s, true, inst.UIMM << 16, Or,  &ARM64XEmitter::ORR);
+		reg_imm(a, s, inst.UIMM << 16, Or,  &ARM64XEmitter::ORR);
 	break;
 	case 28: // andi
-		reg_imm(a, s, true, inst.UIMM,       And, &ARM64XEmitter::AND, true);
+		reg_imm(a, s, inst.UIMM,       And, &ARM64XEmitter::AND, true);
 	break;
 	case 29: // andis
-		reg_imm(a, s, true, inst.UIMM << 16, And, &ARM64XEmitter::AND, true);
+		reg_imm(a, s, inst.UIMM << 16, And, &ARM64XEmitter::AND, true);
 	break;
 	case 26: // xori
-		reg_imm(a, s, true, inst.UIMM,       Xor, &ARM64XEmitter::EOR);
+		reg_imm(a, s, inst.UIMM,       Xor, &ARM64XEmitter::EOR);
 	break;
 	case 27: // xoris
-		reg_imm(a, s, true, inst.UIMM << 16, Xor, &ARM64XEmitter::EOR);
+		reg_imm(a, s, inst.UIMM << 16, Xor, &ARM64XEmitter::EOR);
 	break;
+	}
+}
+
+void JitArm64::addix(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+	u32 d = inst.RD, a = inst.RA, s = inst.RS;
+
+	u32 value = (u32)(s32)inst.SIMM_16;
+
+	if (inst.OPCD == 15)
+		value <<= 16;
+
+	if (a)
+	{
+		if (gpr.IsImm(a))
+		{
+			gpr.SetImmediate(d, gpr.GetImm(a) + value);
+		}
+		else
+		{
+			gpr.BindToRegister(d, d == a);
+
+			ARM64Reg WA = gpr.GetReg();
+			MOVI2R(WA, value);
+			ADD(gpr.R(d), gpr.R(a), WA);
+			gpr.Unlock(WA);
+		}
+	}
+	else
+	{
+		// a == 0, implies zero register
+		gpr.SetImmediate(d, value);
 	}
 }
 
