@@ -603,23 +603,26 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   // Only clear exception bits (but not FEX/VX).
   mask &= 0x9FF87000;
 
-  MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+  auto scratch = regs.gpr.Borrow();
+  auto scratch2 = regs.gpr.Borrow();
+
+  MOV(32, scratch, PPCSTATE(fpscr));
   if (cpu_info.bBMI1)
   {
-    MOV(32, R(RSCRATCH2), Imm32((4 << 8) | shift));
-    BEXTR(32, RSCRATCH2, R(RSCRATCH), RSCRATCH2);
+    MOV(32, scratch2, Imm32((4 << 8) | shift));
+    BEXTR(32, scratch2, scratch, scratch2);
   }
   else
   {
-    MOV(32, R(RSCRATCH2), R(RSCRATCH));
-    SHR(32, R(RSCRATCH2), Imm8(shift));
-    AND(32, R(RSCRATCH2), Imm32(0xF));
+    MOV(32, scratch2, scratch);
+    SHR(32, scratch2, Imm8(shift));
+    AND(32, scratch2, Imm32(0xF));
   }
-  AND(32, R(RSCRATCH), Imm32(mask));
-  MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-  LEA(64, RSCRATCH, M(&m_crTable));
-  MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
-  MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
+  AND(32, scratch, Imm32(mask));
+  MOV(32, PPCSTATE(fpscr), scratch);
+  LEA(64, scratch, M(&m_crTable));
+  MOV(64, scratch, MComplex(scratch, scratch2, SCALE_8, 0));
+  MOV(64, PPCSTATE(cr_val[inst.CRFD]), scratch);
 }
 
 void Jit64::mffsx(UGeckoInstruction inst)
@@ -628,26 +631,32 @@ void Jit64::mffsx(UGeckoInstruction inst)
   JITDISABLE(bJITSystemRegistersOff);
   FALLBACK_IF(inst.Rc);
 
-  MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
+  int d = inst.FD;
+  auto rd = regs.fpu.Lock(d);
+
+  auto fpscr = regs.gpr.Borrow();
+  auto scratch = regs.gpr.Borrow();
+
+  MOV(32, R(fpscr), PPCSTATE(fpscr));
 
   // FPSCR.FEX = 0 (and VX for below)
-  AND(32, R(RSCRATCH), Imm32(~0x60000000));
+  AND(32, R(fpscr), Imm32(~0x60000000));
 
   // FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-  XOR(32, R(RSCRATCH2), R(RSCRATCH2));
-  TEST(32, R(RSCRATCH), Imm32(FPSCR_VX_ANY));
-  SETcc(CC_NZ, R(RSCRATCH2));
-  SHL(32, R(RSCRATCH2), Imm8(31 - 2));
-  OR(32, R(RSCRATCH), R(RSCRATCH2));
+  XOR(32, R(scratch), R(scratch));
+  TEST(32, R(fpscr), Imm32(FPSCR_VX_ANY));
+  SETcc(CC_NZ, R(scratch));
+  SHL(32, R(scratch), Imm8(31 - 2));
+  OR(32, R(fpscr), R(scratch));
 
-  MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
+  MOV(32, PPCSTATE(fpscr), R(fpscr));
 
-  int d = inst.FD;
-  fpr.BindToRegister(d, false, true);
-  MOV(64, R(RSCRATCH2), Imm64(0xFFF8000000000000));
-  OR(64, R(RSCRATCH), R(RSCRATCH2));
-  MOVQ_xmm(XMM0, R(RSCRATCH));
-  MOVSD(fpr.RX(d), R(XMM0));
+  MOV(64, R(scratch), Imm64(0xFFF8000000000000));
+  OR(64, R(fpscr), R(scratch));
+  auto xmm = regs.fpu.Borrow();
+  MOVQ_xmm(xmm, R(fpscr));
+  auto xd = rd.Bind(BindMode::Write);
+  MOVSD(xd, R(xmm));
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
