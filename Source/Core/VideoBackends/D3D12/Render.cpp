@@ -698,7 +698,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgba_color = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::DrawClearQuad(rgba_color, (z & 0xFFFFFF) / 16777215.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
+	D3D::DrawClearQuad(rgba_color, float(z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
