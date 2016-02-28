@@ -195,18 +195,16 @@ static T GenerateVertexShader(API_TYPE api_type)
 		out.Write("{\n");
 		out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
 		uid_data->texMtxInfo[i].sourcerow = xfmem.texMtxInfo[i].sourcerow;
+		uid_data->texMtxInfo[i].inputform = xfmem.texMtxInfo[i].inputform;
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			// The following assert was triggered in Super Smash Bros. Project M 3.6.
-			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-			out.Write("coord = rawpos;\n"); // pos.w is 1
+			out.Write("coord.xyz = rawpos.xyz;\n");
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm0.xyz;\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
@@ -215,15 +213,13 @@ static T GenerateVertexShader(API_TYPE api_type)
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm1.xyz;\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm2.xyz;\n");
 			}
 			break;
 		default:
@@ -232,6 +228,11 @@ static T GenerateVertexShader(API_TYPE api_type)
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
+		// An input form other than ABC1 or AB11 doesn't exist
+		// But the hardware has it as a two bit field
+		_assert_(texinfo.inputform == XF_TEXINPUT_ABC1 || texinfo.inputform == XF_TEXINPUT_AB11);
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
+			out.Write("coord.z = 1.0;\n");
 
 		// first transformation
 		uid_data->texMtxInfo[i].texgentype = xfmem.texMtxInfo[i].texgentype;
