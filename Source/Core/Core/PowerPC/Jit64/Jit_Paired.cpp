@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
 using namespace Gen;
@@ -192,12 +192,4 @@ void Jit64::ps_res(UGeckoInstruction inst)
   SetFPRFIfNeeded(fpr.RX(d));
   fpr.UnlockAll();
   gpr.UnlockAllX();
-}
-
-void Jit64::ps_cmpXX(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
-
-  FloatCompare(inst, !!(inst.SUBOP10 & 64));
 }
