@@ -17,6 +17,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
