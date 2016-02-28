@@ -133,6 +133,7 @@ public:
 
   virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
   virtual bool HandleStackFault() { return false; }
+  virtual void HandleInvalidInstruction();
 };
 
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
