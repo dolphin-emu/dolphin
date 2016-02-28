@@ -1046,8 +1046,14 @@ void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src)
   WriteMOVBE(bits, 0xF1, src, dest);
 }
 
-void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend)
+void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend, MovInfo* info)
 {
+  if (info)
+  {
+    info->address = GetWritableCodePtr();
+    info->nonAtomicSwapStore = false;
+  }
+
   switch (size)
   {
   case 8:
@@ -1083,20 +1089,28 @@ void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_ext
   }
 }
 
-u8* XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src)
+void XEmitter::SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* info)
 {
-  u8* mov_location = GetWritableCodePtr();
   if (cpu_info.bMOVBE)
   {
+    if (info)
+    {
+      info->address = GetWritableCodePtr();
+      info->nonAtomicSwapStore = false;
+    }
     MOVBE(size, dst, src);
   }
   else
   {
     BSWAP(size, src);
-    mov_location = GetWritableCodePtr();
+    if (info)
+    {
+      info->address = GetWritableCodePtr();
+      info->nonAtomicSwapStore = true;
+      info->nonAtomicSwapStoreSrc = src;
+    }
     MOV(size, dst, R(src));
   }
-  return mov_location;
 }
 
 void XEmitter::LEA(int bits, X64Reg dest, OpArg src)
