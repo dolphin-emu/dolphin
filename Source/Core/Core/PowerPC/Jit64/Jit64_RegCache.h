@@ -576,8 +576,6 @@ protected:
 		UnlockAllPPC();
 		UnlockAllBorrowedNative();
 	}
-
-public:
 	// TODO: not public
 	void Flush();
 
