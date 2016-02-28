@@ -1046,6 +1046,24 @@ void XEmitter::MOVBE(int bits, const OpArg& dest, X64Reg src)
   WriteMOVBE(bits, 0xF1, src, dest);
 }
 
+void XEmitter::LoadAndExtend(int size, X64Reg dst, const OpArg& src, bool sign_extend)
+{
+  switch (size)
+  {
+  case 8:
+  case 16:
+    if (sign_extend)
+      MOVSX(32, size, dst, src);
+    else
+      MOVZX(32, size, dst, src);
+    break;
+  case 32:
+  case 64:
+    MOV(size, R(dst), src);
+    break;
+  }
+}
+
 void XEmitter::LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend, MovInfo* info)
 {
   if (info)
