@@ -149,6 +149,21 @@ public:
   void FloatCompare(UGeckoInstruction inst, bool upper = false);
   void UpdateMXCSR();
 
+  void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize,
+                bool signExtend, bool swap, bool update);
+  bool UnsafeReadFromConstAddress(int accessSize, GPRNative& value, u32 address, bool signExtend,
+                                  bool swap);
+  void UnsafeReadFromConstRamAddress(int accessSize, GPRNative& value, u32 address, bool signExtend,
+                                     bool swap);
+  void UnsafeReadFromMemory(int accessSize, GPRNative& value, Gen::OpArg target, bool signExtend,
+                            bool swap);
+  void SafeWrite(GPRRegister& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize,
+                 bool swap, bool update);
+  bool UnsafeWriteToConstAddress(int accessSize, GPRRegister& value, u32 address, bool swap);
+  void UnsafeWriteToMemory(int accessSize, GPRRegister& value, Gen::OpArg target, bool swap);
+  void UnsafeWriteGatherPipe(int accessSize, GPRRegister& value, bool swap);
+  void UnsafeWriteToConstRamAddress(int accessSize, GPRRegister& value, u32 address, bool swap);
+
   // OPCODES
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
   void FallBackToInterpreter(UGeckoInstruction _inst);

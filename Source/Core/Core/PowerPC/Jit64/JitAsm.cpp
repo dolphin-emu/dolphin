@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -11,7 +11,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
@@ -242,14 +242,6 @@ void Jit64AsmRoutineManager::ResetStack()
 
 void Jit64AsmRoutineManager::GenerateCommon()
 {
-  fifoDirectWrite8 = AlignCode4();
-  GenFifoWrite(8);
-  fifoDirectWrite16 = AlignCode4();
-  GenFifoWrite(16);
-  fifoDirectWrite32 = AlignCode4();
-  GenFifoWrite(32);
-  fifoDirectWrite64 = AlignCode4();
-  GenFifoWrite(64);
   frsqrte = AlignCode4();
   GenFrsqrte();
   fres = AlignCode4();
