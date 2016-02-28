@@ -149,7 +149,7 @@ public:
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
 	              void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
 	              bool Rc = false, bool carry = false);
-	void UpdateMXCSR();
+	void UpdateMXCSR(Gen::X64Reg fpscr);
 
 	void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize, bool signExtend, bool swap, bool update);
 	bool UnsafeReadFromConstAddress(int accessSize, GPRNative& value, u32 address, bool signExtend, bool swap);
