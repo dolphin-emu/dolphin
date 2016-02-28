@@ -369,26 +369,25 @@ void Jit64::fsign(UGeckoInstruction inst)
 	int b = inst.FB;
 	bool packed = inst.OPCD == 4;
 
-	fpr.Lock(b, d);
-	OpArg src = fpr.R(b);
-	fpr.BindToRegister(d, false);
+	auto rd = regs.fpu.Lock(d);
+	auto xd = rd.BindWriteAndReadIf(d == b);
+	auto rb = b == d ? xd : regs.fpu.Lock(b);
 
 	switch (inst.SUBOP10)
 	{
 	case 40: // neg
-		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
+		avx_op(&XEmitter::VPXOR, &XEmitter::PXOR, xd, rb, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
 	case 136: // nabs
-		avx_op(&XEmitter::VPOR, &XEmitter::POR, fpr.RX(d), src, M(packed ? psSignBits2 : psSignBits), packed);
+		avx_op(&XEmitter::VPOR, &XEmitter::POR, xd, rb, M(packed ? psSignBits2 : psSignBits), packed);
 		break;
 	case 264: // abs
-		avx_op(&XEmitter::VPAND, &XEmitter::PAND, fpr.RX(d), src, M(packed ? psAbsMask2 : psAbsMask), packed);
+		avx_op(&XEmitter::VPAND, &XEmitter::PAND, xd, rb, M(packed ? psAbsMask2 : psAbsMask), packed);
 		break;
 	default:
-		PanicAlert("fsign bleh");
-		break;
+		UnexpectedInstructionForm();
+		return;
 	}
-	fpr.UnlockAll();
 }
 
 void Jit64::fselx(UGeckoInstruction inst)
@@ -404,35 +403,41 @@ void Jit64::fselx(UGeckoInstruction inst)
 
 	bool packed = inst.OPCD == 4; // ps_sel
 
-	fpr.Lock(a, b, c, d);
-	PXOR(XMM0, R(XMM0));
+	auto ra = regs.fpu.Lock(a);
+	auto rb = regs.fpu.Lock(b);
+	auto rc = regs.fpu.Lock(c);
+	auto rd = regs.fpu.Lock(d);
+
+	auto xmm0 = regs.fpu.Borrow(XMM0); // blendvpd will clobber XMM0 so we have to be careful
+	auto xmm1 = regs.fpu.Borrow();
+
+	PXOR(xmm0, R(xmm0));
 	// This condition is very tricky; there's only one right way to handle both the case of
 	// negative/positive zero and NaN properly.
 	// (a >= -0.0 ? c : b) transforms into (0 > a ? b : c), hence the NLE.
 	if (packed)
-		CMPPD(XMM0, fpr.R(a), CMP_NLE);
+		CMPPD(xmm0, ra, CMP_NLE);
 	else
-		CMPSD(XMM0, fpr.R(a), CMP_NLE);
+		CMPSD(xmm0, ra, CMP_NLE);
 
 	if (cpu_info.bSSE4_1)
 	{
-		MOVAPD(XMM1, fpr.R(c));
-		BLENDVPD(XMM1, fpr.R(b));
+		MOVAPD(xmm1, rc);
+		BLENDVPD(xmm1, rb);
 	}
 	else
 	{
-		MOVAPD(XMM1, R(XMM0));
-		PAND(XMM0, fpr.R(b));
-		PANDN(XMM1, fpr.R(c));
-		POR(XMM1, R(XMM0));
+		MOVAPD(xmm1, R(xmm0));
+		PAND(xmm0, rb);
+		PANDN(xmm1, rc);
+		POR(xmm1, R(xmm0));
 	}
 
-	fpr.BindToRegister(d, !packed);
+	auto xd = rd.BindWriteAndReadIf(!packed);
 	if (packed)
-		MOVAPD(fpr.RX(d), R(XMM1));
+		MOVAPD(xd, R(xmm1));
 	else
-		MOVSD(fpr.RX(d), R(XMM1));
-	fpr.UnlockAll();
+		MOVSD(xd, R(xmm1));
 }
 
 void Jit64::fmrx(UGeckoInstruction inst)
@@ -447,26 +452,17 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	if (d == b)
 		return;
 
-	fpr.Lock(b, d);
+	auto rb = regs.fpu.Lock(b);
+	auto rd = regs.fpu.Lock(d);
 
-	if (fpr.IsBound(d))
-	{
-		// We don't need to load d, but if it is loaded, we need to mark it as dirty.
-		fpr.BindToRegister(d);
-		// We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
-		// to zero and we don't want that.
-		if (!fpr.R(b).IsSimpleReg())
-			MOVLPD(fpr.RX(d), fpr.R(b));
-		else
-			MOVSD(fpr.R(d), fpr.RX(b));
-	}
+	auto xd = rd.Bind(BindMode::Write);
+
+	// We have to use MOVLPD if b isn't loaded because "MOVSD reg, mem" sets the upper bits (64+)
+	// to zero and we don't want that.
+	if (!rb.IsRegBound())
+		MOVLPD(xd, rb);
 	else
-	{
-		fpr.BindToRegister(b, true, false);
-		MOVSD(fpr.R(d), fpr.RX(b));
-	}
-
-	fpr.UnlockAll();
+		MOVSD(xd, rb);
 }
 
 void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
