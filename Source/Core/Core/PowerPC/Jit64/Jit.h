@@ -124,7 +124,7 @@ public:
   // Reads a given bit of a given CR register part.
   void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
   // Clobbers RDX.
-  void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
+  void SetCRFieldBit(int field, int bit, GPRNative& in);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
 
