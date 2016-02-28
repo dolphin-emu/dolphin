@@ -324,28 +324,10 @@ static T GenerateVertexShader(API_TYPE api_type)
 			out.Write("o.colors_1 = color1;\n");
 	}
 
-	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
-	//if not early z culling will improve speed
-	if (g_ActiveConfig.backend_info.bSupportsClipControl)
-	{
-		out.Write("o.pos.z = -o.pos.z;\n");
-	}
-	else // OGL
-	{
-		// this results in a scale from -1..0 to -1..1 after perspective
-		// divide, but introduces a floating point round-trip error.
-		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
-
-		// the next steps of the OGL pipeline are:
-		// (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
-		// clipping to -w_c <= (x_c,y_c,z_c) <= w_c
-		// (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
-		// z_w = (f-n)/2*z_d + (n+f)/2
-		// z_w now contains the value to go to the 0..1 depth buffer
-
-		//trying to get the correct semantic while not using glDepthRange
-		//seems to get rather complicated
-	}
+	// Write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
+	// if not early z culling will improve speed. We also process the gamecube depth equation here to avoid early clamps.
+	// We need to stay within the 24-bit range after the perspective division, thus we clamp to 16777215 / 16777216.
+	out.Write("o.pos.z = clamp(" I_PIXELCENTERCORRECTION".z * (o.pos.z / o.pos.w) + " I_PIXELCENTERCORRECTION".w, 0.0, 16777215.0 / 16777216.0) * o.pos.w;\n");
 
 	// The console GPU places the pixel center at 7/12 in screen space unless
 	// antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results

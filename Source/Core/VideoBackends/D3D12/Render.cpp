@@ -489,9 +489,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		// read the data from system memory
 		void* readback_buffer_data = nullptr;
 		CheckHR(readback_buffer->Map(0, nullptr, &readback_buffer_data));
-
-		// depth buffer is inverted in the d3d backend
-		float val = 1.0f - reinterpret_cast<float*>(readback_buffer_data)[0];
+		float val = reinterpret_cast<float*>(readback_buffer_data)[0];
 		u32 ret = 0;
 
 		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
@@ -657,9 +655,7 @@ void Renderer::SetViewport()
 	width = (x + width <= GetTargetWidth()) ? width : (GetTargetWidth() - x);
 	height = (y + height <= GetTargetHeight()) ? height : (GetTargetHeight() - y);
 
-	D3D12_VIEWPORT vp = { x, y, width, height,
-		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-		1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777216.0f), 0.0f, 16777215.0f) / 16777216.0f };
+	D3D12_VIEWPORT vp = { x, y, width, height, D3D12_MIN_DEPTH, D3D12_MAX_DEPTH};
 
 	D3D::current_command_list->RSSetViewports(1, &vp);
 }
@@ -702,7 +698,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
 	// Color is passed in bgra mode so we need to convert it to rgba
 	u32 rgba_color = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-	D3D::DrawClearQuad(rgba_color, 1.0f - (z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
+	D3D::DrawClearQuad(rgba_color, float(z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
