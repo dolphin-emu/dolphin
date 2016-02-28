@@ -119,8 +119,9 @@ public:
 	void FinalizeCarryOverflow(bool oe, bool inv = false);
 	void FinalizeCarry(Gen::CCFlags cond);
 	void FinalizeCarry(bool ca);
+	void Compare(int crf, bool merge_branch, GPRNative& input, GPRRegister& comparand);
 	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
-
+	
 	// Use to extract bytes from a register using the regcache. offset is in bytes.
 	Gen::OpArg ExtractFromReg(GPRRegister& reg, int offset);
 	void AndWithMask(Gen::X64Reg reg, u32 mask);
