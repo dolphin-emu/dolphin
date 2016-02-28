@@ -50,14 +50,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
     else
     {
       addr = R(RSCRATCH2);
-      if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-        LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
-      else
-      {
-        MOV(32, addr, gpr.R(b));
-        if (a)
-          ADD(32, addr, gpr.R(a));
-      }
+      MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
     }
   }
   else
@@ -162,14 +155,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
     gpr.BindToRegister(a, true, true);
   if (indexed)
   {
-    if (a && gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
-      LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
-    else
-    {
-      MOV(32, R(RSCRATCH2), gpr.R(b));
-      if (a)
-        ADD(32, R(RSCRATCH2), gpr.R(a));
-    }
+    MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
   }
   else
   {
@@ -209,9 +195,7 @@ void Jit64::stfiwx(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  MOV(32, R(RSCRATCH2), gpr.R(b));
-  if (a)
-    ADD(32, R(RSCRATCH2), gpr.R(a));
+  MOV_sum(32, RSCRATCH2, a ? gpr.R(a) : Imm32(0), gpr.R(b));
 
   if (fpr.R(s).IsSimpleReg())
     MOVD_xmm(R(RSCRATCH), fpr.RX(s));
