@@ -201,7 +201,8 @@ public:
   void Force25BitPrecision(Gen::X64Reg output, const Gen::OpArg& input, Gen::X64Reg tmp);
 
   // RSCRATCH might get trashed
-  void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
+  void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, Gen::X64Reg scratch,
+                             bool src_is_gpr = false);
   void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
   void SetFPRF(Gen::X64Reg xmm);
   void Clear();
