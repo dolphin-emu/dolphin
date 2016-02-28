@@ -476,8 +476,12 @@ void Jit64::fmrx(UGeckoInstruction inst)
     MOVSD(xd, rb);
 }
 
-void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
+void Jit64::fcmpX(UGeckoInstruction inst)
 {
+  INSTRUCTION_START
+  JITDISABLE(bJITFloatingPointOff);
+
+  bool upper = inst.OPCD == 4 && !!(inst.SUBOP10 & 64);  // ps_cmpX1
   bool fprf = SConfig::GetInstance().bFPRF && js.op->wantsFPRF;
   // bool ordered = !!(inst.SUBOP10 & 32);
   int a = inst.FA;
@@ -499,22 +503,25 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     output[3 - (next.CRBB & 3)] |= 1 << dst;
   }
 
-  fpr.Lock(a, b);
-  fpr.BindToRegister(b, true, false);
+  auto ra = regs.fpu.Lock(a);
+  auto rb = regs.fpu.Lock(b);
+  auto xb = rb.Bind(BindMode::Read);
 
   if (fprf)
     AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 
   if (upper)
   {
-    fpr.BindToRegister(a, true, false);
-    MOVHLPS(XMM0, fpr.RX(a));
-    MOVHLPS(XMM1, fpr.RX(b));
-    UCOMISD(XMM1, R(XMM0));
+    auto xa = ra.Bind(BindMode::Read);
+    auto xmm0 = regs.fpu.Borrow();
+    auto xmm1 = regs.fpu.Borrow();
+    MOVHLPS(xmm0, xa);
+    MOVHLPS(xmm1, xb);
+    UCOMISD(xmm1, R(xmm0));
   }
   else
   {
-    UCOMISD(fpr.RX(b), fpr.R(a));
+    UCOMISD(xb, a == b ? xb : ra);
   }
 
   FixupBranch pNaN, pLesser, pGreater;
@@ -536,14 +543,15 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     pGreater = J_CC(CC_B);
   }
 
-  MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_EQ_BIT])));
+  auto scratch = regs.gpr.Borrow();
+  MOV(64, scratch, Imm64(PPCCRToInternal(output[CR_EQ_BIT])));
   if (fprf)
     OR(32, PPCSTATE(fpscr), Imm32(CR_EQ << FPRF_SHIFT));
 
   continue1 = J();
 
   SetJumpTarget(pNaN);
-  MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_SO_BIT])));
+  MOV(64, scratch, Imm64(PPCCRToInternal(output[CR_SO_BIT])));
   if (fprf)
     OR(32, PPCSTATE(fpscr), Imm32(CR_SO << FPRF_SHIFT));
 
@@ -552,13 +560,13 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     continue2 = J();
 
     SetJumpTarget(pGreater);
-    MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_GT_BIT])));
+    MOV(64, scratch, Imm64(PPCCRToInternal(output[CR_GT_BIT])));
     if (fprf)
       OR(32, PPCSTATE(fpscr), Imm32(CR_GT << FPRF_SHIFT));
     continue3 = J();
 
     SetJumpTarget(pLesser);
-    MOV(64, R(RSCRATCH), Imm64(PPCCRToInternal(output[CR_LT_BIT])));
+    MOV(64, scratch, Imm64(PPCCRToInternal(output[CR_LT_BIT])));
     if (fprf)
       OR(32, PPCSTATE(fpscr), Imm32(CR_LT << FPRF_SHIFT));
   }
@@ -570,16 +578,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     SetJumpTarget(continue3);
   }
 
-  MOV(64, PPCSTATE(cr_val[crf]), R(RSCRATCH));
-  fpr.UnlockAll();
-}
-
-void Jit64::fcmpX(UGeckoInstruction inst)
-{
-  INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
-
-  FloatCompare(inst);
+  MOV(64, PPCSTATE(cr_val[crf]), scratch);
 }
 
 void Jit64::fctiwx(UGeckoInstruction inst)
