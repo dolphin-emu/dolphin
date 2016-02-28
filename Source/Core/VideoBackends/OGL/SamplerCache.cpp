@@ -136,7 +136,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 	GLint mag_filter = tm0.mag_filter ? GL_LINEAR : GL_NEAREST;
 
 	if (g_ActiveConfig.iMaxAnisotropy > 0 && g_ogl_config.bSupportsAniso &&
-	    !IsBpTexMode0PointFiltering(tm0))
+	    !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
 	{
 		// https://www.opengl.org/registry/specs/EXT/texture_filter_anisotropic.txt
 		// For predictable results on all hardware/drivers, only use one of:
@@ -145,7 +145,7 @@ void SamplerCache::SetParameters(GLuint sampler_id, const Params& params)
 		// Letting the game set other combinations will have varying arbitrary results;
 		// possibly being interpreted as equal to bilinear/trilinear, implicitly
 		// disabling anisotropy, or changing the anisotropic algorithm employed.
-		min_filter = (tm0.min_filter & 3) == TexMode0::TEXF_NONE ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR;
+		min_filter = SamplerCommon::IsBpTexMode0MipmapsDisabled(tm0) ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR;
 		mag_filter = GL_LINEAR;
 		glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_ActiveConfig.iMaxAnisotropy));
 	}
