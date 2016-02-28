@@ -40,43 +40,51 @@ void Jit64::ps_sum(UGeckoInstruction inst)
   int a = inst.FA;
   int b = inst.FB;
   int c = inst.FC;
-  fpr.Lock(a, b, c, d);
-  OpArg op_a = fpr.R(a);
-  fpr.BindToRegister(d, d == b || d == c);
-  X64Reg tmp = XMM1;
-  MOVDDUP(tmp, op_a);    // {a.ps0, a.ps0}
-  ADDPD(tmp, fpr.R(b));  // {a.ps0 + b.ps0, a.ps0 + b.ps1}
+
+  auto rd = regs.fpu.Lock(d);
+  auto ra = regs.fpu.Lock(a);
+  auto rb = regs.fpu.Lock(b);
+  auto rc = regs.fpu.Lock(c);
+
+  auto tmp = regs.fpu.Borrow();
+  MOVDDUP(tmp, ra);  // {a.ps0, a.ps0}
+  ADDPD(tmp, rb);    // {a.ps0 + b.ps0, a.ps0 + b.ps1}
   switch (inst.SUBOP5)
   {
   case 10:  // ps_sum0: {a.ps0 + b.ps1, c.ps1}
-    UNPCKHPD(tmp, fpr.R(c));
+    UNPCKHPD(tmp, rc);
     break;
   case 11:  // ps_sum1: {c.ps0, a.ps0 + b.ps1}
-    if (fpr.R(c).IsSimpleReg())
+    if (rc.IsRegBound())
     {
+      auto xc = rc.Bind(BindMode::Reuse);
       if (cpu_info.bSSE4_1)
       {
-        BLENDPD(tmp, fpr.R(c), 1);
+        BLENDPD(tmp, xc, 1);
       }
       else
       {
-        MOVAPD(XMM0, fpr.R(c));
-        SHUFPD(XMM0, R(tmp), 2);
-        tmp = XMM0;
+        auto tmp2 = regs.fpu.Borrow();
+        MOVAPD((X64Reg)tmp2, xc);
+        SHUFPD(tmp2, tmp, 2);
+        // tmp can get released here
+        tmp = tmp2;
       }
     }
     else
     {
-      MOVLPD(tmp, fpr.R(c));
+      MOVLPD(tmp, rc);
     }
     break;
   default:
-    PanicAlert("ps_sum WTF!!!");
+    UnexpectedInstructionForm();
+    return;
   }
-  HandleNaNs(inst, fpr.RX(d), tmp, tmp == XMM1 ? XMM0 : XMM1);
-  ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+
+  auto xd = rd.BindWriteAndReadIf(d == b || d == c);
+  HandleNaNs(true, std::vector<FPURegister>{ra, rb, rc}, xd, tmp);
+  ForceSinglePrecision(xd, xd);
+  SetFPRFIfNeeded(xd);
 }
 
 void Jit64::ps_muls(UGeckoInstruction inst)
@@ -89,26 +97,30 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   int a = inst.FA;
   int c = inst.FC;
   bool round_input = !jit->js.op->fprIsSingle[c];
-  fpr.Lock(a, c, d);
+  auto rd = regs.fpu.Lock(d);
+  auto ra = regs.fpu.Lock(a);
+  auto rc = regs.fpu.Lock(c);
+  auto tmp = regs.fpu.Borrow();
+
   switch (inst.SUBOP5)
   {
   case 12:  // ps_muls0
-    MOVDDUP(XMM1, fpr.R(c));
+    MOVDDUP(tmp, rc);
     break;
   case 13:  // ps_muls1
-    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, XMM1, fpr.R(c), fpr.R(c), 3);
+    avx_op(&XEmitter::VSHUFPD, &XEmitter::SHUFPD, tmp, rc, rc, 3);
     break;
   default:
-    PanicAlert("ps_muls WTF!!!");
+    UnexpectedInstructionForm();
+    return;
   }
   if (round_input)
-    Force25BitPrecision(XMM1, R(XMM1), XMM0);
-  MULPD(XMM1, fpr.R(a));
-  fpr.BindToRegister(d, false);
-  HandleNaNs(inst, fpr.RX(d), XMM1);
-  ForceSinglePrecision(fpr.RX(d), fpr.R(d));
-  SetFPRFIfNeeded(fpr.RX(d));
-  fpr.UnlockAll();
+    Force25BitPrecision(tmp, R(tmp), regs.fpu.Borrow());
+  MULPD(tmp, ra);
+  auto xd = rd.Bind(BindMode::Write);
+  HandleNaNs(true, std::vector<FPURegister>{ra, rc}, xd, tmp);
+  ForceSinglePrecision(xd, xd);
+  SetFPRFIfNeeded(xd);
 }
 
 void Jit64::ps_mergeXX(UGeckoInstruction inst)
