@@ -705,6 +705,12 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
     else
       MOVAPD(output, input);
   }
+  else
+  {
+    // input == output, only need to deal with the duplicate case
+    if (duplicate)
+      MOVDDUP(output, R(output));
+  }
 }
 
 // Abstract between AVX and SSE: automatically handle 3-operand instructions
@@ -1016,22 +1022,22 @@ alignas(16) static const u64 psDoubleNoSign[2] = {0x7FFFFFFFFFFFFFFFULL, 0};
 // Fortunately, PPCAnalyzer can optimize out a large portion of FPRF calculations, so maybe this
 // isn't
 // quite that necessary.
-void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
+void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm, Gen::X64Reg scratch)
 {
   AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
 
   FixupBranch continue1, continue2, continue3, continue4;
   if (cpu_info.bSSE4_1)
   {
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));  // Get the sign bit; almost all the branches need it.
+    MOVQ_xmm(R(scratch), xmm);
+    SHR(64, R(scratch), Imm8(63));  // Get the sign bit; almost all the branches need it.
     PTEST(xmm, M(psDoubleExp));
     FixupBranch maxExponent = J_CC(CC_C);
     FixupBranch zeroExponent = J_CC(CC_Z);
 
     // Nice normalized number: sign ? PPC_FPCLASS_NN : PPC_FPCLASS_PN;
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
-                              MathUtil::PPC_FPCLASS_PN));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
+                             MathUtil::PPC_FPCLASS_PN));
     continue1 = J();
 
     SetJumpTarget(maxExponent);
@@ -1039,13 +1045,13 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     FixupBranch notNAN = J_CC(CC_Z);
 
     // Max exponent + mantissa: PPC_FPCLASS_QNAN
-    MOV(32, R(RSCRATCH), Imm32(MathUtil::PPC_FPCLASS_QNAN));
+    MOV(32, R(scratch), Imm32(MathUtil::PPC_FPCLASS_QNAN));
     continue2 = J();
 
     // Max exponent + no mantissa: sign ? PPC_FPCLASS_NINF : PPC_FPCLASS_PINF;
     SetJumpTarget(notNAN);
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
-                              MathUtil::PPC_FPCLASS_PINF));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
+                             MathUtil::PPC_FPCLASS_PINF));
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
@@ -1053,60 +1059,59 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
-                              MathUtil::PPC_FPCLASS_PD));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
+                             MathUtil::PPC_FPCLASS_PD));
     continue4 = J();
 
     // Zero: sign ? PPC_FPCLASS_NZ : PPC_FPCLASS_PZ;
     SetJumpTarget(zero);
-    SHL(32, R(RSCRATCH), Imm8(4));
-    ADD(32, R(RSCRATCH), Imm8(MathUtil::PPC_FPCLASS_PZ));
+    SHL(32, R(scratch), Imm8(4));
+    ADD(32, R(scratch), Imm8(MathUtil::PPC_FPCLASS_PZ));
   }
   else
   {
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    TEST(64, R(RSCRATCH), M(psDoubleExp));
+    MOVQ_xmm(R(scratch), xmm);
+    TEST(64, R(scratch), M(psDoubleExp));
     FixupBranch zeroExponent = J_CC(CC_Z);
-    AND(64, R(RSCRATCH), M(psDoubleNoSign));
-    CMP(64, R(RSCRATCH), M(psDoubleExp));
-    FixupBranch nan =
-        J_CC(CC_G);  // This works because if the sign bit is set, RSCRATCH is negative
+    AND(64, R(scratch), M(psDoubleNoSign));
+    CMP(64, R(scratch), M(psDoubleExp));
+    FixupBranch nan = J_CC(CC_G);  // This works because if the sign bit is set, scratch is negative
     FixupBranch infinity = J_CC(CC_E);
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
-                              MathUtil::PPC_FPCLASS_PN));
+    MOVQ_xmm(R(scratch), xmm);
+    SHR(64, R(scratch), Imm8(63));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_NN - MathUtil::PPC_FPCLASS_PN,
+                             MathUtil::PPC_FPCLASS_PN));
     continue1 = J();
     SetJumpTarget(nan);
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));
-    MOV(32, R(RSCRATCH), Imm32(MathUtil::PPC_FPCLASS_QNAN));
+    MOVQ_xmm(R(scratch), xmm);
+    SHR(64, R(scratch), Imm8(63));
+    MOV(32, R(scratch), Imm32(MathUtil::PPC_FPCLASS_QNAN));
     continue2 = J();
     SetJumpTarget(infinity);
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
-                              MathUtil::PPC_FPCLASS_PINF));
+    MOVQ_xmm(R(scratch), xmm);
+    SHR(64, R(scratch), Imm8(63));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_NINF - MathUtil::PPC_FPCLASS_PINF,
+                             MathUtil::PPC_FPCLASS_PINF));
     continue3 = J();
     SetJumpTarget(zeroExponent);
-    TEST(64, R(RSCRATCH), R(RSCRATCH));
+    TEST(64, R(scratch), R(scratch));
     FixupBranch zero = J_CC(CC_Z);
-    SHR(64, R(RSCRATCH), Imm8(63));
-    LEA(32, RSCRATCH, MScaled(RSCRATCH, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
-                              MathUtil::PPC_FPCLASS_PD));
+    SHR(64, R(scratch), Imm8(63));
+    LEA(32, scratch, MScaled(scratch, MathUtil::PPC_FPCLASS_ND - MathUtil::PPC_FPCLASS_PD,
+                             MathUtil::PPC_FPCLASS_PD));
     continue4 = J();
     SetJumpTarget(zero);
-    SHR(64, R(RSCRATCH), Imm8(63));
-    SHL(32, R(RSCRATCH), Imm8(4));
-    ADD(32, R(RSCRATCH), Imm8(MathUtil::PPC_FPCLASS_PZ));
+    SHR(64, R(scratch), Imm8(63));
+    SHL(32, R(scratch), Imm8(4));
+    ADD(32, R(scratch), Imm8(MathUtil::PPC_FPCLASS_PZ));
   }
 
   SetJumpTarget(continue1);
   SetJumpTarget(continue2);
   SetJumpTarget(continue3);
   SetJumpTarget(continue4);
-  SHL(32, R(RSCRATCH), Imm8(FPRF_SHIFT));
-  OR(32, PPCSTATE(fpscr), R(RSCRATCH));
+  SHL(32, R(scratch), Imm8(FPRF_SHIFT));
+  OR(32, PPCSTATE(fpscr), R(scratch));
 }
 
 void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
