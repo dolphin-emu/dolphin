@@ -218,34 +218,36 @@ void Jit64::mtspr(UGeckoInstruction inst)
     break;
 
   case SPR_XER:
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-    MOV(32, R(RSCRATCH), gpr.R(d));
-    AND(32, R(RSCRATCH), Imm32(0xff7f));
-    MOV(16, PPCSTATE(xer_stringctrl), R(RSCRATCH));
+  {
+    auto rd = regs.gpr.Lock(d);
+    auto xd = rd.Bind(BindMode::Read);
+    auto scratch = regs.gpr.Borrow();
+    MOV(32, scratch, xd);
+    AND(32, scratch, Imm32(0xff7f));
+    MOV(16, PPCSTATE(xer_stringctrl), scratch);
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
-    SHR(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-    AND(8, R(RSCRATCH), Imm8(1));
-    MOV(8, PPCSTATE(xer_ca), R(RSCRATCH));
+    MOV(32, scratch, xd);
+    SHR(32, scratch, Imm8(XER_CA_SHIFT));
+    AND(8, scratch, Imm8(1));
+    MOV(8, PPCSTATE(xer_ca), scratch);
 
-    MOV(32, R(RSCRATCH), gpr.R(d));
-    SHR(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-    MOV(8, PPCSTATE(xer_so_ov), R(RSCRATCH));
-    gpr.UnlockAll();
+    MOV(32, scratch, xd);
+    SHR(32, scratch, Imm8(XER_OV_SHIFT));
+    MOV(8, PPCSTATE(xer_so_ov), scratch);
+  }
     return;
 
   case SPR_HID0:
   {
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-    BTR(32, gpr.R(d), Imm8(31 - 20));  // ICFI
-    MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
+    auto rd = regs.gpr.Lock(d);
+    auto xd = rd.Bind(BindMode::Read);
+    BTR(32, xd, Imm8(31 - 20));  // ICFI
+    MOV(32, PPCSTATE(spr[iIndex]), xd);
     FixupBranch dont_reset_icache = J_CC(CC_NC);
-    BitSet32 r = CallerSavedRegistersInUse();
-    ABI_PushRegistersAndAdjustStack(r, 0);
+    BitSet32 inuse = CallerSavedRegistersInUse();
+    ABI_PushRegistersAndAdjustStack(inuse, 0);
     ABI_CallFunction((void*)DoICacheReset);
-    ABI_PopRegistersAndAdjustStack(r, 0);
+    ABI_PopRegistersAndAdjustStack(inuse, 0);
     SetJumpTarget(dont_reset_icache);
     break;
   }
@@ -254,14 +256,9 @@ void Jit64::mtspr(UGeckoInstruction inst)
     FALLBACK_IF(true);
   }
 
-  // OK, this is easy.
-  if (!gpr.R(d).IsImm())
-  {
-    gpr.Lock(d);
-    gpr.BindToRegister(d, true, false);
-  }
-  MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
-  gpr.UnlockAll();
+  auto rd = regs.gpr.Lock(d);
+  rd.LoadIfNotImmediate();
+  MOV(32, PPCSTATE(spr[iIndex]), rd);
 }
 
 void Jit64::mfspr(UGeckoInstruction inst)
@@ -426,10 +423,10 @@ void Jit64::mfmsr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   // Privileged?
-  gpr.Lock(inst.RD);
-  gpr.BindToRegister(inst.RD, false, true);
-  MOV(32, gpr.R(inst.RD), PPCSTATE(msr));
-  gpr.UnlockAll();
+  int d = inst.RD;
+  auto rd = regs.gpr.Lock(d);
+  auto xd = rd.Bind(BindMode::Write);
+  MOV(32, xd, PPCSTATE(msr));
 }
 
 void Jit64::mftb(UGeckoInstruction inst)
@@ -444,13 +441,15 @@ void Jit64::mfcr(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   int d = inst.RD;
-  gpr.FlushLockX(RSCRATCH_EXTRA);
+  auto rd = regs.gpr.Lock(d);
+  // mfcr needs these three registers
+  // TODO: this is not ideal
+  auto scratch_extra = regs.gpr.Borrow(RSCRATCH_EXTRA);
+  auto scratch = regs.gpr.Borrow(RSCRATCH);
+  auto scratch2 = regs.gpr.Borrow(RSCRATCH2);
   CALL(asm_routines.mfcr);
-  gpr.Lock(d);
-  gpr.BindToRegister(d, false, true);
-  MOV(32, gpr.R(d), R(RSCRATCH));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+  auto xd = rd.Bind(BindMode::Write);
+  MOV(32, xd, scratch);
 }
 
 void Jit64::mtcrf(UGeckoInstruction inst)
