@@ -24,22 +24,6 @@
 
 using namespace Gen;
 
-void CommonAsmRoutines::GenFifoWrite(int size)
-{
-	const void* start = GetCodePtr();
-
-	// Assume value in RSCRATCH
-	u32 gather_pipe = (u32)(u64)GPFifo::m_gatherPipe;
-	_assert_msg_(DYNA_REC, gather_pipe <= 0x7FFFFFFF, "Gather pipe not in low 2GB of memory!");
-	MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-	SwapAndStore(size, MDisp(RSCRATCH2, gather_pipe), RSCRATCH);
-	ADD(32, R(RSCRATCH2), Imm8(size >> 3));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
-	RET();
-
-	JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
-}
-
 void CommonAsmRoutines::GenFrsqrte()
 {
 	const void* start = GetCodePtr();
