@@ -26,6 +26,8 @@ void JitArm64AsmRoutineManager::Generate()
 	ABI_PushRegisters(regs_to_save);
 
 	MOVI2R(X29, (u64)&PowerPC::ppcState);
+	MOVI2R(X28, (u64)Memory::logical_base);
+
 	FixupBranch to_dispatcher = B();
 
 	// If we align the dispatcher to a page then we can load its location with one ADRP instruction
@@ -44,11 +46,11 @@ void JitArm64AsmRoutineManager::Generate()
 
 		// This block of code gets the address of the compiled block of code
 		// It runs though to the compiling portion if it isn't found
-		LDR(INDEX_UNSIGNED, W28, X29, PPCSTATE_OFF(pc)); // Load the current PC into W28
-		BFM(W28, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
+		LDR(INDEX_UNSIGNED, W26, X29, PPCSTATE_OFF(pc)); // Load the current PC into W26
+		BFM(W26, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
 
 		MOVI2R(X27, (u64)jit->GetBlockCache()->iCache.data());
-		LDR(W27, X27, X28);
+		LDR(W27, X27, X26);
 
 		FixupBranch JitBlock = TBNZ(W27, 7); // Test the 7th bit
 			// Success, it is our Jitblock.
