@@ -153,31 +153,52 @@ void JitArm64::addix(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	u32 d = inst.RD, a = inst.RA;
 
-	u32 value = (u32)(s32)inst.SIMM_16;
-
+	u32 imm = (u32)(s32)inst.SIMM_16;
 	if (inst.OPCD == 15)
-		value <<= 16;
+	{
+		imm <<= 16;
+	}
+	u32 imm_neg = 0u - imm;
 
 	if (a)
 	{
 		if (gpr.IsImm(a))
 		{
-			gpr.SetImmediate(d, gpr.GetImm(a) + value);
+			gpr.SetImmediate(d, gpr.GetImm(a) + imm);
 		}
 		else
 		{
 			gpr.BindToRegister(d, d == a);
 
-			ARM64Reg WA = gpr.GetReg();
-			MOVI2R(WA, value);
-			ADD(gpr.R(d), gpr.R(a), WA);
-			gpr.Unlock(WA);
+			if (imm < 4096)
+			{
+				ADD(gpr.R(d), gpr.R(a), imm);
+			}
+			else if (imm % 4096 == 0 && imm < 4096 * 4096)
+			{
+				ADD(gpr.R(d), gpr.R(a), imm / 4096, true);
+			}
+			else if (imm_neg < 4096)
+			{
+				SUB(gpr.R(d), gpr.R(a), imm_neg);
+			}
+			else if (imm_neg % 4096 == 0 && imm_neg < 4096 * 4096)
+			{
+				SUB(gpr.R(d), gpr.R(a), imm_neg / 4096, true);
+			}
+			else
+			{
+				ARM64Reg WA = gpr.GetReg();
+				MOVI2R(WA, imm);
+				ADD(gpr.R(d), gpr.R(a), WA);
+				gpr.Unlock(WA);
+			}
 		}
 	}
 	else
 	{
 		// a == 0, implies zero register
-		gpr.SetImmediate(d, value);
+		gpr.SetImmediate(d, imm);
 	}
 }
 
