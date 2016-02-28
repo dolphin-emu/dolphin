@@ -8,7 +8,6 @@
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 
 using namespace Gen;
 
