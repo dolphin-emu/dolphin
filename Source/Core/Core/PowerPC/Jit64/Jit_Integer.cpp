@@ -234,31 +234,34 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
                      void (XEmitter::*op)(int, const OpArg&, const OpArg&), bool Rc, bool carry)
 {
   bool needs_test = doop == Add;
-  gpr.Lock(d, a);
+  auto rd = regs.gpr.Lock(d);
+
   // Be careful; addic treats r0 as r0, but addi treats r0 as zero.
   if (a || binary || carry)
   {
+    auto ra = regs.gpr.Lock(a);
     carry &= js.op->wantsCA;
-    if (gpr.R(a).IsImm() && !carry)
+    if (ra.IsImm() && !carry)
     {
-      gpr.SetImmediate32(d, doop(gpr.R(a).Imm32(), value));
+      rd.SetImm32(doop(ra.Imm32(), value));
     }
     else if (a == d)
     {
-      gpr.BindToRegister(d, true);
-      (this->*op)(32, gpr.R(d), Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+      auto xd = rd.Bind(BindMode::ReadWrite);
+      (this->*op)(32, xd, Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
     }
     else
     {
-      gpr.BindToRegister(d, false);
-      if (doop == Add && gpr.R(a).IsSimpleReg() && !carry)
+      auto xd = rd.Bind(BindMode::Write);
+      if (doop == Add && ra.IsRegBound() && !carry)
       {
-        LEA(32, gpr.RX(d), MDisp(gpr.RX(a), value));
+        auto xa = ra.Bind(BindMode::Reuse);
+        LEA(32, xd, MDisp(xa, value));
       }
       else
       {
-        MOV(32, gpr.R(d), gpr.R(a));
-        (this->*op)(32, gpr.R(d), Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
+        MOV(32, xd, ra);
+        (this->*op)(32, xd, Imm32(value));  // m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
       }
     }
     if (carry)
@@ -267,15 +270,15 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop,
   else if (doop == Add)
   {
     // a == 0, which for these instructions imply value = 0
-    gpr.SetImmediate32(d, value);
+    rd.SetImm32(value);
   }
   else
   {
-    _assert_msg_(DYNA_REC, 0, "WTF regimmop");
+    UnexpectedInstructionForm();
+    return;
   }
   if (Rc)
-    ComputeRC(gpr.R(d), needs_test, doop != And || (value & 0x80000000));
-  gpr.UnlockAll();
+    ComputeRC(rd, needs_test, doop != And || (value & 0x80000000));
 }
 
 void Jit64::reg_imm(UGeckoInstruction inst)
@@ -286,23 +289,24 @@ void Jit64::reg_imm(UGeckoInstruction inst)
   switch (inst.OPCD)
   {
   case 14:  // addi
+  {
+    auto ra = regs.gpr.Lock(a);
     // occasionally used as MOV - emulate, with immediate propagation
-    if (gpr.R(a).IsImm() && d != a && a != 0)
+    if (ra.IsImm() && d != a && a != 0)
     {
-      gpr.SetImmediate32(d, gpr.R(a).Imm32() + (u32)(s32)inst.SIMM_16);
+      auto rd = regs.gpr.Lock(d);
+      rd.SetImm32(ra.Imm32() + (u32)(s32)inst.SIMM_16);
     }
     else if (inst.SIMM_16 == 0 && d != a && a != 0)
     {
-      gpr.Lock(a, d);
-      gpr.BindToRegister(d, false, true);
-      MOV(32, gpr.R(d), gpr.R(a));
-      gpr.UnlockAll();
+      regs.gpr.Lock(d).SetFrom(ra);
     }
     else
     {
       regimmop(d, a, false, (u32)(s32)inst.SIMM_16, Add, &XEmitter::ADD);  // addi
     }
     break;
+  }
   case 15:  // addis
     regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
     break;
