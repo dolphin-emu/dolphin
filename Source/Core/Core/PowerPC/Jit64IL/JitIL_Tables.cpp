@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/PPCTables.h"
 
 static JitIL::Instruction dynaOpTable[64];
@@ -396,8 +396,7 @@ void CompileInstruction(PPCAnalyst::CodeOp& op)
   }
   else
   {
-    PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex,
-               jit->js.compilerPC);
+    jitil->WriteInvalidInstruction();
   }
 }
 
