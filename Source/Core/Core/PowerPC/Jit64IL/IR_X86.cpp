@@ -1696,7 +1696,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg input = fregEnsureInReg(RI, getOp1(I));
       X64Reg output = fregURegWithoutMov(RI, I);
-      Jit->ConvertSingleToDouble(output, input);
+      Jit->ConvertSingleToDouble(output, input, RSCRATCH);
 
       RI.fregs[output] = I;
       fregNormalRegClear(RI, I);
