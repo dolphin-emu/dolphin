@@ -219,6 +219,7 @@
     <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_RegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
+    <ClCompile Include="PowerPC\Jit64\Jit64_Util.cpp" />
     <ClCompile Include="PowerPC\Jit64\JitAsm.cpp" />
     <ClCompile Include="PowerPC\Jit64\JitRegCache.cpp" />
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp" />
