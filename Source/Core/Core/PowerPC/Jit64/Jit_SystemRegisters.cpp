@@ -268,6 +268,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 	u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	int d = inst.RD;
+
 	switch (iIndex)
 	{
 	case SPR_TL:
@@ -279,27 +280,29 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// redundant for the JIT.
 		// no register choice
 
-		gpr.FlushLockX(RDX, RAX);
+		auto rdx = regs.gpr.Borrow(RDX);
+		auto rax = regs.gpr.Borrow(RAX);
 
 		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
 		// cost of calling out to C for this is actually significant.
-		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
-		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
+		MOV(64, rax, M(&CoreTiming::globalTimer));
+		SUB(64, rax, M(&CoreTiming::fakeTBStartTicks));
 		// It might seem convenient to correct the timer for the block position here for even more accurate
 		// timing, but as of currently, this can break games. If we end up reading a time *after* the time
 		// at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with only
 		// 50 downcount remaining, some games don't function correctly, such as Karaoke Party Revolution,
 		// which won't get past the loading screen.
 		//if (js.downcountAmount)
-		//	ADD(64, R(RAX), Imm32(js.downcountAmount));
+		//	ADD(64, rax, Imm32(js.downcountAmount));
 		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
-		MUL(64, R(RDX));
-		MOV(64, R(RAX), M(&CoreTiming::fakeTBStartValue));
-		SHR(64, R(RDX), Imm8(3));
-		ADD(64, R(RAX), R(RDX));
-		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
+		MOV(64, rdx, Imm64(0xAAAAAAAAAAAAAAABULL));
+		MUL(64, rdx);
+		MOV(64, rax, M(&CoreTiming::fakeTBStartValue));
+		SHR(64, rdx, Imm8(3));
+		ADD(64, rax, rdx);
+		MOV(64, PPCSTATE(spr[SPR_TL]), rax);
 
+		auto rd = regs.gpr.Lock(d);
 		if (MergeAllowedNextInstructions(1))
 		{
 			const UGeckoInstruction& next = js.op[1].inst;
@@ -312,40 +315,45 @@ void Jit64::mfspr(UGeckoInstruction inst)
 			{
 				js.downcountAmount++;
 				js.skipInstructions = 1;
-				gpr.Lock(d, n);
-				gpr.BindToRegister(d, false);
-				gpr.BindToRegister(n, false);
+
+				auto rn = regs.gpr.Lock(n);
+
+				auto xd = rd.Bind(BindMode::Write);
+				auto xn = rn.Bind(BindMode::Write);
 				if (iIndex == SPR_TL)
-					MOV(32, gpr.R(d), R(RAX));
+					MOV(32, xd, rax);
 				if (nextIndex == SPR_TL)
-					MOV(32, gpr.R(n), R(RAX));
-				SHR(64, R(RAX), Imm8(32));
+					MOV(32, xn, rax);
+				SHR(64, rax, Imm8(32));
 				if (iIndex == SPR_TU)
-					MOV(32, gpr.R(d), R(RAX));
+					MOV(32, xd, rax);
 				if (nextIndex == SPR_TU)
-					MOV(32, gpr.R(n), R(RAX));
+					MOV(32, xn, rax);
 				break;
 			}
 		}
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
+
+		auto xd = rd.Bind(BindMode::Write);
 		if (iIndex == SPR_TU)
-			SHR(64, R(RAX), Imm8(32));
-		MOV(32, gpr.R(d), R(RAX));
+			SHR(64, rax, Imm8(32));
+		MOV(32, xd, rax);
 		break;
 	}
 	case SPR_XER:
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
-		MOVZX(32, 16, gpr.RX(d), PPCSTATE(xer_stringctrl));
-		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
-		SHL(32, R(RSCRATCH), Imm8(XER_CA_SHIFT));
-		OR(32, gpr.R(d), R(RSCRATCH));
+	{
+		auto rd = regs.gpr.Lock(d);
+		auto xd = rd.Bind(BindMode::Write);
+		MOVZX(32, 16, xd, PPCSTATE(xer_stringctrl));
+		auto scratch = regs.gpr.Borrow();
+		MOVZX(32, 8, scratch, PPCSTATE(xer_ca));
+		SHL(32, scratch, Imm8(XER_CA_SHIFT));
+		OR(32, xd, scratch);
 
-		MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_so_ov));
-		SHL(32, R(RSCRATCH), Imm8(XER_OV_SHIFT));
-		OR(32, gpr.R(d), R(RSCRATCH));
+		MOVZX(32, 8, scratch, PPCSTATE(xer_so_ov));
+		SHL(32, scratch, Imm8(XER_OV_SHIFT));
+		OR(32, xd, scratch);
 		break;
+	}
 	case SPR_WPAR:
 	case SPR_DEC:
 	case SPR_PMC1:
@@ -354,13 +362,13 @@ void Jit64::mfspr(UGeckoInstruction inst)
 	case SPR_PMC4:
 		FALLBACK_IF(true);
 	default:
-		gpr.Lock(d);
-		gpr.BindToRegister(d, false);
-		MOV(32, gpr.R(d), PPCSTATE(spr[iIndex]));
+	{
+		auto rd = regs.gpr.Lock(d);
+		auto xd = rd.Bind(BindMode::Write);
+		MOV(32, xd, PPCSTATE(spr[iIndex]));
 		break;
 	}
-	gpr.UnlockAllX();
-	gpr.UnlockAll();
+	}
 }
 
 void Jit64::mtmsr(UGeckoInstruction inst)
