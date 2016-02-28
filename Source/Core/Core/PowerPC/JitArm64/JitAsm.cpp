@@ -71,12 +71,15 @@ void JitArm64AsmRoutineManager::Generate()
 		BLR(X30);
 
 		// Does exception checking
+		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(Exceptions));
+		FixupBranch no_exceptions = CBZ(W0);
 		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
 		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
 			MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
 			BLR(X30);
 		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
 		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+		SetJumpTarget(no_exceptions);
 
 		// Check the state pointer to see if we are exiting
 		// Gets checked on every exception check

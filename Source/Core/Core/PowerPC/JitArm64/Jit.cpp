@@ -207,48 +207,61 @@ void JitArm64::WriteExit(u32 destination)
 }
 void JitArm64::WriteExceptionExit(ARM64Reg dest)
 {
+	Cleanup();
+	DoDownCount();
+
+	ARM64Reg WA = gpr.GetReg();
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	FixupBranch no_exceptions = CBZ(WA);
+	gpr.Unlock(WA);
+
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	gpr.Unlock(dest);
-		Cleanup();
-		DoDownCount();
-
-		if (Profiler::g_ProfileBlocks)
-			EndTimeProfile(js.curBlock);
-
-		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
-		BLR(EncodeRegTo64(dest));
+	MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
+	BLR(EncodeRegTo64(dest));
 	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
 
+	SetJumpTarget(no_exceptions);
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
+
 	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
 	BR(EncodeRegTo64(dest));
+
+	gpr.Unlock(dest);
 }
 
 void JitArm64::WriteExternalExceptionExit(ARM64Reg dest)
 {
+	Cleanup();
+	DoDownCount();
+
+	ARM64Reg WA = gpr.GetReg();
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	FixupBranch no_exceptions = CBZ(WA);
+	gpr.Unlock(WA);
+
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	gpr.Unlock(dest);
-		Cleanup();
-		DoDownCount();
-
-		if (Profiler::g_ProfileBlocks)
-			EndTimeProfile(js.curBlock);
-
-		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
-		BLR(EncodeRegTo64(dest));
+	MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
+	BLR(EncodeRegTo64(dest));
 	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	SetJumpTarget(no_exceptions);
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
 
 	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
 	BR(EncodeRegTo64(dest));
+	gpr.Unlock(dest);
 }
 
 void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 {
 	STR(INDEX_UNSIGNED, Reg, X29, PPCSTATE_OFF(pc));
-	gpr.Unlock(Reg);
 	Cleanup();
 	DoDownCount();
 
@@ -257,6 +270,7 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 
 	MOVI2R(EncodeRegTo64(Reg), (u64)asm_routines.dispatcher);
 	BR(EncodeRegTo64(Reg));
+	gpr.Unlock(Reg);
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
