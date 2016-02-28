@@ -136,7 +136,7 @@ public:
 
   void HandleNaNs(bool single, std::vector<FPURegister> inputs, FPUNative out, Gen::X64Reg xmm);
 
-  void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
+  void MultiplyImmediate(u32 imm, GPRRegister& ra, GPRNative& xd, bool overflow);
 
   typedef u32 (*Operation)(u32 a, u32 b);
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
