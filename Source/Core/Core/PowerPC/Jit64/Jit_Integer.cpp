@@ -1343,40 +1343,44 @@ void Jit64::addx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 
-	if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rd = regs.gpr.Lock(d);
+
+	if (rb.IsImm() && ra.IsImm())
 	{
-		s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
-		gpr.SetImmediate32(d, i + j);
+		s32 i = ra.SImm32(), j = rb.SImm32();
+		rd.SetImm32(i + j);
 		if (inst.OE)
 			GenerateConstantOverflow((s64)i + (s64)j);
 	}
 	else if ((d == a) || (d == b))
 	{
-		int operand = ((d == a) ? b : a);
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, true);
-		ADD(32, gpr.R(d), gpr.R(operand));
+		auto xd = rd.Bind(BindMode::ReadWrite);
+		if (d == a && d == b)
+			ADD(32, xd, xd);
+		else
+			ADD(32, xd, d == a ? rb : ra);
 		if (inst.OE)
 			GenerateOverflow();
 	}
-	else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg() && !inst.OE)
+	else if (ra.IsRegBound() && rb.IsRegBound() && !inst.OE)
 	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, false);
-		LEA(32, gpr.RX(d), MRegSum(gpr.RX(a), gpr.RX(b)));
+		auto xa = ra.Bind(BindMode::Reuse);
+		auto xb = rb.Bind(BindMode::Reuse);
+		auto xd = rd.Bind(BindMode::Write);
+		LEA(32, xd, MRegSum(xa, xb));
 	}
 	else
 	{
-		gpr.Lock(a, b, d);
-		gpr.BindToRegister(d, false);
-		MOV(32, gpr.R(d), gpr.R(a));
-		ADD(32, gpr.R(d), gpr.R(b));
+		auto xd = rd.Bind(BindMode::Write);
+		MOV(32, xd, ra);
+		ADD(32, xd, rb);
 		if (inst.OE)
 			GenerateOverflow();
 	}
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
+		ComputeRC(rd);
 }
 
 void Jit64::arithXex(UGeckoInstruction inst)
@@ -1390,58 +1394,63 @@ void Jit64::arithXex(UGeckoInstruction inst)
 	int b = regsource ? inst.RB : a;
 	int d = inst.RD;
 	bool same_input_sub = !add && regsource && a == b;
+	auto rd = regs.gpr.Lock(d);
 
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, !same_input_sub && (d == a || d == b));
-	if (!js.carryFlagSet)
-		JitGetAndClearCAOV(inst.OE);
-	else
-		UnlockFlags();
+	{
+		auto xd = rd.BindWriteAndReadIf(!same_input_sub && (d == a || d == b));
+		auto ra = regs.gpr.Lock(a);
+		auto rb = regsource ? regs.gpr.Lock(b) : regs.gpr.Imm32(mex ? 0xFFFFFFFF : 0);
 
-	bool invertedCarry = false;
-	// Special case: subfe A, B, B is a common compiler idiom
-	if (same_input_sub)
-	{
-		// Convert carry to borrow
-		if (!js.carryFlagInverted)
-			CMC();
-		SBB(32, gpr.R(d), gpr.R(d));
-		invertedCarry = true;
-	}
-	else if (!add && regsource && d == b)
-	{
-		if (!js.carryFlagInverted)
-			CMC();
-		if (d != b)
-			MOV(32, gpr.R(d), gpr.R(b));
-		SBB(32, gpr.R(d), gpr.R(a));
-		invertedCarry = true;
-	}
-	else
-	{
-		OpArg source = regsource ? gpr.R(d == b ? a : b) : Imm32(mex ? 0xFFFFFFFF : 0);
-		if (d != a && d != b)
-			MOV(32, gpr.R(d), gpr.R(a));
-		if (!add)
-			NOT(32, gpr.R(d));
-		// if the source is an immediate, we can invert carry by going from add -> sub and doing src = -1 - src
-		if (js.carryFlagInverted && source.IsImm())
+		if (!js.carryFlagSet)
+			JitGetAndClearCAOV(inst.OE);
+		else
+			UnlockFlags();
+
+		// The carry flag is precious in this block, so let's inform the register cache of that
+		auto carry = regs.gpr.LockCarry();
+
+		bool invertedCarry = false;
+		// Special case: subfe A, B, B is a common compiler idiom
+		if (same_input_sub)
 		{
-			source = Imm32(-1 - source.SImm32());
-			SBB(32, gpr.R(d), source);
+			// Convert carry to borrow
+			if (!js.carryFlagInverted)
+				CMC();
+			SBB(32, xd, xd);
+			invertedCarry = true;
+		}
+		else if (!add && regsource && d == b)
+		{
+			if (!js.carryFlagInverted)
+				CMC();
+			SBB(32, xd, ra);
 			invertedCarry = true;
 		}
 		else
 		{
-			if (js.carryFlagInverted)
-				CMC();
-			ADC(32, gpr.R(d), source);
+			auto source = regsource ? (d == b ? (d == a ? xd : ra) : rb) : rb;
+			if (d != a && d != b)
+				MOV(32, xd, ra);
+			if (!add)
+				NOT(32, xd);
+			// if the source is an immediate, we can invert carry by going from add -> sub and doing src = -1 - src
+			if (js.carryFlagInverted && source.IsImm())
+			{
+				source = regs.gpr.Imm32(-1 - source.SImm32());
+				SBB(32, xd, source);
+				invertedCarry = true;
+			}
+			else
+			{
+				if (js.carryFlagInverted)
+					CMC();
+				ADC(32, xd, source);
+			}
 		}
+		FinalizeCarryOverflow(inst.OE, invertedCarry);
 	}
-	FinalizeCarryOverflow(inst.OE, invertedCarry);
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
+		ComputeRC(rd);
 }
 
 void Jit64::arithcx(UGeckoInstruction inst)
@@ -1450,37 +1459,39 @@ void Jit64::arithcx(UGeckoInstruction inst)
 	JITDISABLE(bJITIntegerOff);
 	bool add = !!(inst.SUBOP10 & 2); // add or sub
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.Lock(a, b, d);
-	gpr.BindToRegister(d, d == a || d == b, true);
+	auto ra = regs.gpr.Lock(a);
+	auto rb = regs.gpr.Lock(b);
+	auto rd = regs.gpr.Lock(d);
+	auto xd = rd.BindWriteAndReadIf(d == a || d == b);
 
 	if (d == a && d != b)
 	{
 		if (add)
 		{
-			ADD(32, gpr.R(d), gpr.R(b));
+			ADD(32, xd, rb);
 		}
 		else
 		{
 			// special case, because sub isn't reversible
-			MOV(32, R(RSCRATCH), gpr.R(a));
-			MOV(32, gpr.R(d), gpr.R(b));
-			SUB(32, gpr.R(d), R(RSCRATCH));
+			auto scratch = regs.gpr.Borrow();
+			MOV(32, scratch, xd);
+			MOV(32, xd, rb);
+			SUB(32, xd, scratch);
 		}
 	}
 	else
 	{
 		if (d != b)
-			MOV(32, gpr.R(d), gpr.R(b));
+			MOV(32, xd, rb);
 		if (add)
-			ADD(32, gpr.R(d), gpr.R(a));
+			ADD(32, xd, ra);
 		else
-			SUB(32, gpr.R(d), gpr.R(a));
+			SUB(32, xd, ra);
 	}
 
 	FinalizeCarryOverflow(inst.OE, !add);
 	if (inst.Rc)
-		ComputeRC(gpr.R(d));
-	gpr.UnlockAll();
+		ComputeRC(xd);
 }
 
 void Jit64::rlwinmx(UGeckoInstruction inst)
