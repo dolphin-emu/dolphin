@@ -13,6 +13,7 @@
 
 // Dedicated host registers
 // X29 = ppcState pointer
+// X28 = memory base register
 using namespace Arm64Gen;
 
 enum RegType
