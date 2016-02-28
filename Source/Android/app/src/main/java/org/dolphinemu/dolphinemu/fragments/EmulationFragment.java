@@ -224,7 +224,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			Log.info("[EmulationFragment] Starting emulation: " + mSurface);
 
 			// Start emulation using the provided Surface.
-			NativeLibrary.Run();
+			NativeLibrary.Run(NativeLibrary.sEmulationActivity.getClassLoader());
 		}
 	};
 }

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <jni.h>
 #include <memory>
+
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
@@ -18,6 +19,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
+#include "Common/JavaHelper.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/LogManager.h"
 
@@ -45,7 +47,6 @@ ANativeWindow* surf;
 std::string g_filename;
 std::string g_set_userpath = "";
 
-JavaVM* g_java_vm;
 jclass g_jni_class;
 jmethodID g_jni_method_alert;
 jmethodID g_jni_method_end;
@@ -57,7 +58,7 @@ jmethodID g_jni_method_end;
  */
 jint JNI_OnLoad(JavaVM* vm, void* reserved)
 {
-	g_java_vm = vm;
+	JavaHelper::SetVM(vm);
 
 	return JNI_VERSION_1_6;
 }
@@ -121,13 +122,13 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*S
 
 	// Associate the current Thread with the Java VM.
 	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
+	bool attached = JavaHelper::AttachThread(&env);
 
 	// Execute the Java method.
 	env->CallStaticVoidMethod(g_jni_class, g_jni_method_alert, env->NewStringUTF(text));
 
 	// Must be called before the current thread exits; might as well do it here.
-	g_java_vm->DetachCurrentThread();
+	JavaHelper::DetachThread(!attached);
 
 	return false;
 }
@@ -382,7 +383,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv *env, jobject obj, jboolean enable);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv *env, jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CacheClassesAndMethods(JNIEnv *env, jobject obj);
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject class_loader);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChanged(JNIEnv *env, jobject obj, jobject _surf);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv *env, jobject obj);
 
@@ -638,7 +639,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimo
 	WiimoteReal::Refresh();
 }
 
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj)
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *env, jobject obj, jobject class_loader)
 {
 	__android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", g_filename.c_str());
 
@@ -651,7 +652,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	UICommon::SetUserDirectory(g_set_userpath);
 	UICommon::Init();
 
-	WiimoteReal::InitAdapterClass();
+	JavaHelper::Init(class_loader);
 
 	// No use running the loop when booting fails
 	if ( BootManager::BootCore( g_filename.c_str() ) )
@@ -669,6 +670,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 		ANativeWindow_release(surf);
 		surf = nullptr;
 	}
+
+	JavaHelper::Shutdown();
 
 	// Execute the Java method.
 	env->CallStaticVoidMethod(g_jni_class, g_jni_method_end);

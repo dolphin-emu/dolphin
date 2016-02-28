@@ -36,6 +36,7 @@ set(SRCS BreakPoints.cpp
 
 if(ANDROID)
 	set(SRCS ${SRCS}
+	         JavaHelper.cpp
 	         Logging/ConsoleListenerDroid.cpp)
 else()
 	set(SRCS ${SRCS}
