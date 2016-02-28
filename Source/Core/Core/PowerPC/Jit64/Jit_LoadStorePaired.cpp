@@ -5,12 +5,12 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticeable speed boost to paired single heavy code.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
@@ -35,8 +35,12 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
+  auto it = js.constantGqr.find(i);
+  bool gqrIsConstant = it != js.constantGqr.end();
+  u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
+
   gpr.Lock(a, b);
-  if (js.assumeNoPairedQuantize)
+  if (gqrIsConstant && gqrValue == 0)
   {
     int storeOffset = 0;
     gpr.BindToRegister(a, true, update);
@@ -125,25 +129,68 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   // In memcheck mode, don't update the address until the exception check
   if (update && !jo.memcheck)
     MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-  // Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
-  // Hence, we need to mask out the unused bits. The layout of the GQR register is
-  // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
-  // 0b0011111100000111, or 0x3F07.
-  MOV(32, R(RSCRATCH2), Imm32(0x3F07));
-  AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-  MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-  if (w)
+  if (gqrIsConstant)
   {
-    // One value
-    CVTSD2SS(XMM0, fpr.R(s));
-    CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+// Paired stores don't yield any real change in performance right now, but if we can
+// improve fastmem support this might change
+//#define INLINE_PAIRED_STORES
+#ifdef INLINE_PAIRED_STORES
+    if (w)
+    {
+      // One value
+      CVTSD2SS(XMM0, fpr.R(s));
+      GenQuantizedStore(true, static_cast<EQuantizeType>(gqrValue & 0x7), (gqrValue & 0x3F00) >> 8);
+    }
+    else
+    {
+      // Pair of values
+      CVTPD2PS(XMM0, fpr.R(s));
+      GenQuantizedStore(false, static_cast<EQuantizeType>(gqrValue & 0x7),
+                        (gqrValue & 0x3F00) >> 8);
+    }
+#else
+    // We know what GQR is here, so we can load RSCRATCH2 and call into the store method directly
+    // with just the scale bits.
+    int type = gqrValue & 0x7;
+    MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
+
+    if (w)
+    {
+      // One value
+      CVTSD2SS(XMM0, fpr.R(s));
+      CALL(asm_routines.singleStoreQuantized[type]);
+    }
+    else
+    {
+      // Pair of values
+      CVTPD2PS(XMM0, fpr.R(s));
+      CALL(asm_routines.pairedStoreQuantized[type]);
+    }
+#endif
   }
   else
   {
-    // Pair of values
-    CVTPD2PS(XMM0, fpr.R(s));
-    CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+    // Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
+    // Hence, we need to mask out the unused bits. The layout of the GQR register is
+    // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
+    // 0b0011111100000111, or 0x3F07.
+    MOV(32, R(RSCRATCH2), Imm32(0x3F07));
+    AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
+    MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+
+    if (w)
+    {
+      // One value
+      CVTSD2SS(XMM0, fpr.R(s));
+      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+    }
+    else
+    {
+      // Pair of values
+      CVTPD2PS(XMM0, fpr.R(s));
+      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+    }
   }
 
   if (update && jo.memcheck)
@@ -173,8 +220,13 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
+  auto it = js.constantGqr.find(i);
+  bool gqrIsConstant = it != js.constantGqr.end();
+  u32 gqrValue = gqrIsConstant ? it->second >> 16 : 0;
+
   gpr.Lock(a, b);
-  if (js.assumeNoPairedQuantize)
+
+  if (gqrIsConstant && gqrValue == 0)
   {
     s32 loadOffset = 0;
     gpr.BindToRegister(a, true, update);
@@ -302,16 +354,24 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   // In memcheck mode, don't update the address until the exception check
   if (update && !jo.memcheck)
     MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
-  MOV(32, R(RSCRATCH2), Imm32(0x3F07));
 
-  // Get the high part of the GQR register
-  OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
-  gqr.AddMemOffset(2);
+  if (gqrIsConstant)
+  {
+    GenQuantizedLoad(w == 1, static_cast<EQuantizeType>(gqrValue & 0x7), (gqrValue & 0x3F00) >> 8);
+  }
+  else
+  {
+    MOV(32, R(RSCRATCH2), Imm32(0x3F07));
 
-  AND(32, R(RSCRATCH2), gqr);
-  MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+    // Get the high part of the GQR register
+    OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
+    gqr.AddMemOffset(2);
 
-  CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+    AND(32, R(RSCRATCH2), gqr);
+    MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
+
+    CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+  }
 
   MemoryExceptionCheck();
   CVTPS2PD(fpr.RX(s), R(XMM0));
