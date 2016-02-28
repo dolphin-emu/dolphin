@@ -969,20 +969,20 @@ void Jit64::subfx(UGeckoInstruction inst)
     ComputeRC(rd);
 }
 
-void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
+void Jit64::MultiplyImmediate(u32 imm, GPRRegister& ra, GPRNative& xd, bool overflow)
 {
   // simplest cases first
   if (imm == 0)
   {
-    XOR(32, gpr.R(d), gpr.R(d));
+    XOR(32, xd, xd);
     return;
   }
 
   if (imm == (u32)-1)
   {
-    if (d != a)
-      MOV(32, gpr.R(d), gpr.R(a));
-    NEG(32, gpr.R(d));
+    if (!xd.IsAliasOf(ra))
+      MOV(32, xd, ra);
+    NEG(32, xd);
     return;
   }
 
@@ -994,16 +994,17 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     {
       u32 shift = IntLog2(imm);
       // use LEA if it saves an op
-      if (d != a && shift <= 3 && shift >= 1 && gpr.R(a).IsSimpleReg())
+      if (!xd.IsAliasOf(ra) && shift <= 3 && shift >= 1 && ra.IsRegBound())
       {
-        LEA(32, gpr.RX(d), MScaled(gpr.RX(a), SCALE_1 << shift, 0));
+        auto xa = ra.Bind(BindMode::Reuse);
+        LEA(32, xd, MScaled(xa, SCALE_1 << shift, 0));
       }
       else
       {
-        if (d != a)
-          MOV(32, gpr.R(d), gpr.R(a));
+        if (!xd.IsAliasOf(ra))
+          MOV(32, xd, ra);
         if (shift)
-          SHL(32, gpr.R(d), Imm8(shift));
+          SHL(32, xd, Imm8(shift));
       }
       return;
     }
@@ -1015,16 +1016,16 @@ void Jit64::MultiplyImmediate(u32 imm, int a, int d, bool overflow)
     {
       if (imm == lea_scales[i])
       {
-        if (d != a)
-          gpr.BindToRegister(a, true, false);
-        LEA(32, gpr.RX(d), MComplex(gpr.RX(a), gpr.RX(a), SCALE_2 << i, 0));
+        // If 'a' is the same PPC register as 'd' it will re-use the same binding
+        auto xa = ra.Bind(BindMode::Read);
+        LEA(32, xd, MComplex(xa, xa, SCALE_2 << i, 0));
         return;
       }
     }
   }
 
   // if we didn't find any better options
-  IMUL(32, gpr.RX(d), gpr.R(a), Imm32(imm));
+  IMUL(32, xd, xd.IsAliasOf(ra) ? xd : ra, Imm32(imm));
 }
 
 void Jit64::mulli(UGeckoInstruction inst)
@@ -1034,16 +1035,17 @@ void Jit64::mulli(UGeckoInstruction inst)
   int a = inst.RA, d = inst.RD;
   u32 imm = inst.SIMM_16;
 
-  if (gpr.R(a).IsImm())
+  auto ra = regs.gpr.Lock(a);
+  auto rd = regs.gpr.Lock(d);
+
+  if (ra.IsImm())
   {
-    gpr.SetImmediate32(d, gpr.R(a).Imm32() * imm);
+    rd.SetImm32(ra.Imm32() * imm);
   }
   else
   {
-    gpr.Lock(a, d);
-    gpr.BindToRegister(d, (d == a), true);
-    MultiplyImmediate(imm, a, d, false);
-    gpr.UnlockAll();
+    auto xd = rd.BindWriteAndReadIf(d == a);
+    MultiplyImmediate(imm, ra, xd, false);
   }
 }
 
@@ -1053,42 +1055,48 @@ void Jit64::mullwx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  auto ra = regs.gpr.Lock(a);
+  auto rb = regs.gpr.Lock(b);
+  auto rd = regs.gpr.Lock(d);
+
+  if (ra.IsImm() && rb.IsImm())
   {
-    s32 i = gpr.R(a).SImm32(), j = gpr.R(b).SImm32();
-    gpr.SetImmediate32(d, i * j);
+    s32 i = ra.SImm32(), j = rb.SImm32();
+    rd.SetImm32(i * j);
     if (inst.OE)
       GenerateConstantOverflow((s64)i * (s64)j);
   }
   else
   {
-    gpr.Lock(a, b, d);
-    gpr.BindToRegister(d, (d == a || d == b), true);
-    if (gpr.R(a).IsImm() || gpr.R(b).IsImm())
+    auto xd = rd.BindWriteAndReadIf((d == a || d == b));
+    if (ra.IsImm() || rb.IsImm())
     {
-      u32 imm = gpr.R(a).IsImm() ? gpr.R(a).Imm32() : gpr.R(b).Imm32();
-      int src = gpr.R(a).IsImm() ? b : a;
-      MultiplyImmediate(imm, src, d, inst.OE);
+      u32 imm = ra.IsImm() ? ra.Imm32() : rb.Imm32();
+      auto& src = ra.IsImm() ? rb : ra;
+      MultiplyImmediate(imm, src, xd, inst.OE);
+    }
+    else if (d == a && d == b)
+    {
+      IMUL(32, xd, xd);
     }
     else if (d == a)
     {
-      IMUL(32, gpr.RX(d), gpr.R(b));
+      IMUL(32, xd, rb);
     }
     else if (d == b)
     {
-      IMUL(32, gpr.RX(d), gpr.R(a));
+      IMUL(32, xd, ra);
     }
     else
     {
-      MOV(32, gpr.R(d), gpr.R(b));
-      IMUL(32, gpr.RX(d), gpr.R(a));
+      MOV(32, xd, rb);
+      IMUL(32, xd, ra);
     }
     if (inst.OE)
       GenerateOverflow();
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
+    ComputeRC(rd);
 }
 
 void Jit64::mulhwXx(UGeckoInstruction inst)
@@ -1098,41 +1106,45 @@ void Jit64::mulhwXx(UGeckoInstruction inst)
   int a = inst.RA, b = inst.RB, d = inst.RD;
   bool sign = inst.SUBOP10 == 75;
 
-  if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+  if (inst.OE)
+    DEBUG_LOG(DYNA_REC, "Weird instruction encoding: OE requested but ignored");
+
+  auto ra = regs.gpr.Lock(a);
+  auto rb = regs.gpr.Lock(b);
+  auto rd = regs.gpr.Lock(d);
+
+  if (ra.IsImm() && rb.IsImm())
   {
     if (sign)
-      gpr.SetImmediate32(d, (u32)((u64)(((s64)gpr.R(a).SImm32() * (s64)gpr.R(b).SImm32())) >> 32));
+      rd.SetImm32((u32)((u64)(((s64)ra.SImm32() * (s64)rb.SImm32())) >> 32));
     else
-      gpr.SetImmediate32(d, (u32)(((u64)gpr.R(a).Imm32() * (u64)gpr.R(b).Imm32()) >> 32));
+      rd.SetImm32((u32)(((u64)ra.Imm32() * (u64)rb.Imm32()) >> 32));
   }
   else if (sign)
   {
-    gpr.Lock(a, b, d);
     // no register choice
-    gpr.FlushLockX(EDX, EAX);
-    gpr.BindToRegister(d, d == a || d == b, true);
-    MOV(32, R(EAX), gpr.R(a));
-    gpr.KillImmediate(b, true, false);
-    IMUL(32, gpr.R(b));
-    MOV(32, gpr.R(d), R(EDX));
+    auto eax = regs.gpr.Borrow(EAX);
+    auto edx = regs.gpr.Borrow(EDX);
+
+    auto xd = rd.BindWriteAndReadIf(d == a || d == b);
+    MOV(32, eax, d == a ? xd : ra);
+    rb.RealizeImmediate();
+    IMUL(32, d == b ? xd : rb);
+    MOV(32, xd, edx);
   }
   else
   {
     // Not faster for signed because we'd need two movsx.
-    gpr.Lock(a, b, d);
     // We need to bind everything to registers since the top 32 bits need to be zero.
-    int src = d == b ? a : b;
-    gpr.BindToRegister(d, d == a || d == b, true);
-    gpr.BindToRegister(src, true, false);
+    auto xd = rd.BindWriteAndReadIf(d == a || d == b);
+    auto src = d == b ? ra.Bind(BindMode::Read) : rb.Bind(BindMode::Read);
     if (d != a && d != b)
-      MOV(32, gpr.R(d), gpr.R(a));
-    IMUL(64, gpr.RX(d), gpr.R(src));
-    SHR(64, gpr.R(d), Imm8(32));
+      MOV(32, xd, ra);
+    IMUL(64, xd, src);
+    SHR(64, xd, Imm8(32));
   }
   if (inst.Rc)
-    ComputeRC(gpr.R(d));
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
+    ComputeRC(rd);
 }
 
 void Jit64::divwux(UGeckoInstruction inst)
