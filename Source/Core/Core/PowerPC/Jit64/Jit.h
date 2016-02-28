@@ -23,7 +23,6 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/Jit64_RegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -45,8 +44,6 @@ private:
   void FreeStack();
 
   Jit64Reg::Registers regs{this, this};
-  GPRRegCache gpr{regs.gpr};
-  FPURegCache fpr{regs.fpu};
 
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
