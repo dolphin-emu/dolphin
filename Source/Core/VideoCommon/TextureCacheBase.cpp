@@ -307,28 +307,30 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		TCacheEntryBase* entry = iter->second;
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
-			&& entry_to_update->addr <= entry->addr
-			&& entry->addr + entry->size_in_bytes <= entry_to_update->addr + entry_to_update->size_in_bytes
+			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
 			&& entry->frameCount == FRAMECOUNT_INVALID
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
 			if (entry->hash == entry->CalculateHash())
 			{
-				u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+				u32 block_offset = std::abs((int)((entry->addr - entry_to_update->addr) / block_size));
 				u32 block_x = block_offset % numBlocksX;
 				u32 block_y = block_offset / numBlocksX;
+				u32 src_x, src_y, dst_x, dst_y;
 
-				u32 dst_x = block_x * block_width;
-				u32 dst_y = block_y * block_height;
-				u32 src_x = 0;
-				u32 src_y = 0;
-
-				// If the EFB copy doesn't fully fit, cancel the copy process
-				if (entry->native_width - src_x > entry_to_update->native_width - dst_x
-					|| entry->native_height - src_y > entry_to_update->native_height - dst_y)
+				if (entry->addr >= entry_to_update->addr)
 				{
-					iter++;
-					continue;
+					src_x = 0;
+					src_y = 0;
+					dst_x = block_x * block_width;
+					dst_y = block_y * block_height;
+				}
+				else
+				{
+					src_x = block_x * block_width;
+					src_y = block_y * block_height;
+					dst_x = 0;
+					dst_y = 0;
 				}
 
 				u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
