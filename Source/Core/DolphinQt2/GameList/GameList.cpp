@@ -9,6 +9,7 @@
 #include <QUrl>
 
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 #include "DolphinQt2/GameList/TableDelegate.h"
@@ -103,10 +104,24 @@ void GameList::MakeListView()
 void GameList::ShowContextMenu(const QPoint&)
 {
 	QMenu* menu = new QMenu(this);
-	menu->addAction(tr("Properties"));
-	menu->addAction(tr("Open Wiki Page"), this, SLOT(OpenWiki()));
-	menu->addAction(tr("Set as Default ISO"), this, SLOT(SetDefaultISO()));
+	DiscIO::IVolume::EPlatform platform = GameFile(GetSelectedGame()).GetPlatformID();
+	if (platform == DiscIO::IVolume::GAMECUBE_DISC || platform == DiscIO::IVolume::WII_DISC)
+	{
+		menu->addAction(tr("Properties"), this, SLOT(OpenProperties()));
+		menu->addAction(tr("Open Wiki Page"), this, SLOT(OpenWiki()));
+		menu->addAction(tr("Set as Default ISO"), this, SLOT(SetDefaultISO()));
+	}
+	else
+	{
+		return;
+	}
 	menu->exec(QCursor::pos());
+}
+
+void GameList::OpenProperties()
+{
+	PropertiesDialog* properties = new PropertiesDialog(this, GameFile(GetSelectedGame()));
+	properties->show();
 }
 
 void GameList::OpenWiki()

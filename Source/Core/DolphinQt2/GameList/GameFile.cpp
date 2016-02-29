@@ -5,8 +5,6 @@
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QDir>
-#include <QFile>
-#include <QFileInfo>
 #include <QImage>
 #include <QSharedPointer>
 
@@ -19,6 +17,11 @@
 
 static const int CACHE_VERSION = 13; // Last changed in PR #3261
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;
+
+QList<DiscIO::IVolume::ELanguage> GameFile::GetAvailableLanguages() const
+{
+	return m_long_names.keys();
+}
 
 static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLanguageMap(
 		const std::map<DiscIO::IVolume::ELanguage, std::string>& map)
@@ -140,22 +143,22 @@ bool GameFile::TryLoadVolume()
 		return false;
 
 	m_unique_id = QString::fromStdString(volume->GetUniqueID());
-	m_maker_id = QString::fromStdString(volume->GetMakerID());
+	std::string maker_id = volume->GetMakerID();
+	m_maker = QString::fromStdString(DiscIO::GetCompanyFromID(maker_id));
+	m_maker_id = QString::fromStdString(maker_id);
 	m_revision = volume->GetRevision();
 	m_internal_name = QString::fromStdString(volume->GetInternalName());
-	m_short_names = ConvertLanguageMap(volume->GetNames(false));
-	m_long_names = ConvertLanguageMap(volume->GetNames(true));
+	m_short_names = ConvertLanguageMap(volume->GetShortNames());
+	m_long_names = ConvertLanguageMap(volume->GetLongNames());
+	m_short_makers = ConvertLanguageMap(volume->GetShortMakers());
+	m_long_makers = ConvertLanguageMap(volume->GetLongMakers());
 	m_descriptions = ConvertLanguageMap(volume->GetDescriptions());
-	m_company = QString::fromStdString(volume->GetCompany());
 	m_disc_number = volume->GetDiscNumber();
 	m_platform = volume->GetVolumeType();
 	m_country = volume->GetCountry();
 	m_blob_type = volume->GetBlobType();
 	m_raw_size = volume->GetRawSize();
-
-	if (m_company.isEmpty() && m_unique_id.size() >= 6)
-		m_company = QString::fromStdString(
-				DiscIO::GetCompanyFromID(m_unique_id.mid(4, 2).toStdString()));
+	m_apploader_date = QString::fromStdString(volume->GetApploaderDate());
 
 	ReadBanner(*volume);
 
@@ -179,12 +182,13 @@ bool GameFile::TryLoadElfDol()
 
 	return true;
 }
+
 void GameFile::SaveCache()
 {
 	// TODO
 }
 
-QString GameFile::GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const
+QString GameFile::GetBannerString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const
 {
 	// Try the settings language, then English, then just pick one.
 	if (m.isEmpty())
@@ -202,4 +206,75 @@ QString GameFile::GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QStri
 	if (m.contains(DiscIO::IVolume::LANGUAGE_ENGLISH))
 		return m[DiscIO::IVolume::LANGUAGE_ENGLISH];
 	return m.first();
+}
+
+QString GameFile::GetPlatform() const
+{
+	switch (m_platform)
+	{
+		case DiscIO::IVolume::GAMECUBE_DISC: return QObject::tr("GameCube");
+		case DiscIO::IVolume::WII_DISC:      return QObject::tr("Wii");
+		case DiscIO::IVolume::WII_WAD:       return QObject::tr("Wii Channel");
+		case DiscIO::IVolume::ELF_DOL:       return QObject::tr("ELF/DOL");
+		default:                             return QObject::tr("Unknown");
+	}
+}
+
+QString GameFile::GetCountry() const
+{
+	switch (m_country)
+	{
+	case DiscIO::IVolume::COUNTRY_EUROPE:      return QObject::tr("Europe");
+	case DiscIO::IVolume::COUNTRY_JAPAN:       return QObject::tr("Japan");
+	case DiscIO::IVolume::COUNTRY_USA:         return QObject::tr("USA");
+	case DiscIO::IVolume::COUNTRY_AUSTRALIA:   return QObject::tr("Australia");
+	case DiscIO::IVolume::COUNTRY_FRANCE:      return QObject::tr("France");
+	case DiscIO::IVolume::COUNTRY_GERMANY:     return QObject::tr("Germany");
+	case DiscIO::IVolume::COUNTRY_ITALY:       return QObject::tr("Italy");
+	case DiscIO::IVolume::COUNTRY_KOREA:       return QObject::tr("Korea");
+	case DiscIO::IVolume::COUNTRY_NETHERLANDS: return QObject::tr("Netherlands");
+	case DiscIO::IVolume::COUNTRY_RUSSIA:      return QObject::tr("Russia");
+	case DiscIO::IVolume::COUNTRY_SPAIN:       return QObject::tr("Spain");
+	case DiscIO::IVolume::COUNTRY_TAIWAN:      return QObject::tr("Taiwan");
+	case DiscIO::IVolume::COUNTRY_WORLD:       return QObject::tr("World");
+	default:                                   return QObject::tr("Unknown");
+	}
+}
+
+QString GameFile::GetLanguage(DiscIO::IVolume::ELanguage lang) const
+{
+	switch (lang)
+	{
+	case DiscIO::IVolume::LANGUAGE_JAPANESE:            return QObject::tr("Japanese");
+	case DiscIO::IVolume::LANGUAGE_ENGLISH:             return QObject::tr("English");
+	case DiscIO::IVolume::LANGUAGE_GERMAN:              return QObject::tr("German");
+	case DiscIO::IVolume::LANGUAGE_FRENCH:              return QObject::tr("French");
+	case DiscIO::IVolume::LANGUAGE_SPANISH:             return QObject::tr("Spanish");
+	case DiscIO::IVolume::LANGUAGE_ITALIAN:             return QObject::tr("Italian");
+	case DiscIO::IVolume::LANGUAGE_DUTCH:               return QObject::tr("Dutch");
+	case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:  return QObject::tr("Simplified Chinese");
+	case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE: return QObject::tr("Traditional Chinese");
+	case DiscIO::IVolume::LANGUAGE_KOREAN:              return QObject::tr("Korean");
+	default:                                            return QObject::tr("Unknown");
+	}
+}
+
+// Convert an integer size to a friendly string representation.
+QString FormatSize(qint64 size)
+{
+	QStringList units{
+		QStringLiteral("KB"),
+		QStringLiteral("MB"),
+		QStringLiteral("GB"),
+		QStringLiteral("TB")
+	};
+	QStringListIterator i(units);
+	QString unit = QStringLiteral("B");
+	double num = (double) size;
+	while (num > 1024.0 && i.hasNext())
+	{
+		unit = i.next();
+		num /= 1024.0;
+	}
+	return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
 }

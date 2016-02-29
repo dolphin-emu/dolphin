@@ -30,6 +30,7 @@ public slots:
 
 private slots:
 	void ShowContextMenu(const QPoint&);
+	void OpenProperties();
 	void OpenWiki();
 	void SetDefaultISO();
 
