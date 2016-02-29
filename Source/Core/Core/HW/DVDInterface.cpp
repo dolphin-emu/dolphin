@@ -1309,7 +1309,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	{
 		// No buffer; just use the simple seek time + read time.
 		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
-		          s64(s_last_read_offset) - s64(offset));
+		          s64(offset) - s64(s_last_read_offset));
 		ticks_until_completion = disk_read_duration;
 		s_last_read_time = current_time + ticks_until_completion;
 	}
@@ -1343,7 +1343,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		else
 		{
 			DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
-			          s64(s_last_read_offset) - s64(offset));
+			          s64(offset) - s64(s_last_read_offset));
 			ticks_until_completion = disk_read_duration;
 			s_last_read_time = current_time + ticks_until_completion;
 		}
