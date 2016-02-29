@@ -24,7 +24,7 @@ public:
 	int columnCount(const QModelIndex& parent) const override;
 
 	// Path of the Game at the specified index.
-	QString GetPath(int index) const { return m_games[index]->GetPath(); }
+	QString GetPath(int index) const { return m_games[index]->GetFilePath(); }
 
 	enum
 	{
