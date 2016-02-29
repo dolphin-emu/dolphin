@@ -362,7 +362,6 @@ HRESULT Create(HWND wnd)
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
-	IDXGIOutput* output;
 	hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
@@ -374,25 +373,6 @@ HRESULT Create(HWND wnd)
 		hr = factory->EnumAdapters(0, &adapter);
 		if (FAILED(hr))
 			MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-	}
-
-	// TODO: Make this configurable
-	hr = adapter->EnumOutputs(0, &output);
-	if (FAILED(hr))
-	{
-		// try using the first one
-		IDXGIAdapter* firstadapter;
-		hr = factory->EnumAdapters(0, &firstadapter);
-		if (!FAILED(hr))
-			hr = firstadapter->EnumOutputs(0, &output);
-		if (FAILED(hr))
-			MessageBox(wnd,
-				_T("Failed to enumerate outputs!\n")
-				_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
-				_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
-				_T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-
-		SAFE_RELEASE(firstadapter);
 	}
 
 	// get supported AA modes
@@ -423,52 +403,29 @@ HRESULT Create(HWND wnd)
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	// Creating debug devices can sometimes fail if the user doesn't have the correct
-	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
+#if defined(_DEBUG) || defined(DEBUGFAST) || defined(USE_D3D12_DEBUG_LAYER)
+	// Enabling the debug layer will fail if the Graphics Tools feature is not installed.
+	if (SUCCEEDED(hr))
 	{
+		ID3D12Debug* debug_controller;
+		hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
 		if (SUCCEEDED(hr))
 		{
-			ID3D12Debug* debug_controller;
-			hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
-			if (SUCCEEDED(hr))
-			{
-				debug_controller->EnableDebugLayer();
-				debug_controller->Release();
-			}
-			else
-			{
-				MessageBox(wnd, _T("Failed to initialize Direct3D debug layer, please make sure it is installed."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-			}
-
-			hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
-
-			s_feat_level = D3D_FEATURE_LEVEL_11_0;
+			debug_controller->EnableDebugLayer();
+			debug_controller->Release();
+		}
+		else
+		{
+			MessageBox(wnd, _T("WARNING: Failed to enable D3D12 debug layer, please ensure the Graphics Tools feature is installed."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 		}
 	}
 
-	if (FAILED(hr))
 #endif
-	{
-		if (SUCCEEDED(hr))
-		{
-#ifdef USE_D3D12_DEBUG_LAYER
-			ID3D12Debug* debug_controller;
-			hr = d3d12_get_debug_interface(IID_PPV_ARGS(&debug_controller));
-			if (SUCCEEDED(hr))
-			{
-				debug_controller->EnableDebugLayer();
-				debug_controller->Release();
-			}
-			else
-			{
-				MessageBox(wnd, _T("Failed to initialize Direct3D debug layer."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-			}
-#endif
-			hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
 
-			s_feat_level = D3D_FEATURE_LEVEL_11_0;
-		}
+	if (SUCCEEDED(hr))
+	{
+		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
+		s_feat_level = D3D_FEATURE_LEVEL_11_0;
 	}
 
 	if (SUCCEEDED(hr))
@@ -529,11 +486,7 @@ HRESULT Create(HWND wnd)
 			D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_DEPTHSTENCILVIEW_NOT_SET, // Benign.
 			D3D12_MESSAGE_ID_CREATEGRAPHICSPIPELINESTATE_RENDERTARGETVIEW_NOT_SET, // Benign.
 			D3D12_MESSAGE_ID_CREATEINPUTLAYOUT_TYPE_MISMATCH, // Benign.
-			D3D12_MESSAGE_ID_DRAW_EMPTY_SCISSOR_RECTANGLE, // Benign. Probably.
-			D3D12_MESSAGE_ID_INVALID_SUBRESOURCE_STATE,
 			D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE, // Benign.
-			D3D12_MESSAGE_ID_EXECUTECOMMANDLISTS_GPU_WRITTEN_READBACK_RESOURCE_MAPPED, // Benign.
-			D3D12_MESSAGE_ID_RESOURCE_BARRIER_BEFORE_AFTER_MISMATCH // Benign. Probably.
 		};
 		filter.DenyList.NumIDs = ARRAYSIZE(id_list);
 		filter.DenyList.pIDList = id_list;
@@ -553,7 +506,6 @@ HRESULT Create(HWND wnd)
 		MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 
 	SAFE_RELEASE(factory);
-	SAFE_RELEASE(output);
 	SAFE_RELEASE(adapter)
 
 	CreateDescriptorHeaps();
@@ -738,7 +690,7 @@ void CreateRootSignatures()
 
 void WaitForOutstandingRenderingToComplete()
 {
-	command_list_mgr->ClearQueueAndWaitForCompletionOfInflightWork();
+	command_list_mgr->ExecuteQueuedWork(true);
 }
 
 void Close()
@@ -753,8 +705,6 @@ void Close()
 	}
 
 	D3D::CleanupPersistentD3DTextureResources();
-
-	command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
 
 	SAFE_RELEASE(s_swap_chain);
 
@@ -839,15 +789,15 @@ unsigned int GetMaxTextureSize()
 
 void Reset()
 {
-	command_list_mgr->ExecuteQueuedWork(true);
-
 	// release all back buffer references
 	for (UINT i = 0; i < ARRAYSIZE(s_backbuf); i++)
 	{
 		SAFE_RELEASE(s_backbuf[i]);
 	}
 
-	D3D::command_list_mgr->ImmediatelyDestroyAllResourcesScheduledForDestruction();
+	// Block until all commands have finished.
+	// This will also final-release all pending resources (including the backbuffer above)
+	command_list_mgr->ExecuteQueuedWork(true);
 
 	// resize swapchain buffers
 	RECT client;

@@ -89,8 +89,6 @@ void PSTextureEncoder::Init()
 
 	D3D::SetDebugObjectName12(m_out_readback_buffer, "efb encoder output staging buffer");
 
-	CheckHR(m_out_readback_buffer->Map(0, nullptr, &m_out_readback_buffer_data));
-
 	// Create constant buffer for uploading data to shaders. Need to align to 256 bytes.
 	unsigned int encode_params_buffer_size = (sizeof(EFBEncodeParams) + 0xff) & ~0xff;
 
@@ -152,8 +150,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	const u32 words_per_row = bytes_per_row / sizeof(u32);
 
-	D3D12_VIEWPORT vp = { 0.f, 0.f, FLOAT(words_per_row), FLOAT(num_blocks_y), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(0, 0, words_per_row, num_blocks_y);
 
 	constexpr EFBRectangle full_src_rect(0, 0, EFB_WIDTH, EFB_HEIGHT);
 
@@ -221,8 +218,10 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Transfer staging buffer to GameCube/Wii RAM
+	void* readback_data_map;
+	CheckHR(m_out_readback_buffer->Map(0, nullptr, &readback_data_map));
 
-	u8* src = static_cast<u8*>(m_out_readback_buffer_data);
+	u8* src = static_cast<u8*>(readback_data_map);
 	u32 read_stride = std::min(bytes_per_row, dst_location.PlacedFootprint.Footprint.RowPitch);
 	for (unsigned int y = 0; y < num_blocks_y; ++y)
 	{
@@ -231,6 +230,8 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		dst += memory_stride;
 		src += dst_location.PlacedFootprint.Footprint.RowPitch;
 	}
+
+	m_out_readback_buffer->Unmap(0, nullptr);
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();

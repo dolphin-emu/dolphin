@@ -25,10 +25,10 @@ namespace DX12
 static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
 
 static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
+static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 
 static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
-static void* s_texture_cache_entry_readback_buffer_data = nullptr;
-static UINT s_texture_cache_entry_readback_buffer_size = 0;
+static size_t s_texture_cache_entry_readback_buffer_size = 0;
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -42,46 +42,26 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-	// EXISTINGD3D11TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
-	static bool warn_once = true;
-	if (level && warn_once)
+	u32 level_width = std::max(config.width >> level, 1u);
+	u32 level_height = std::max(config.height >> level, 1u);
+	size_t level_pitch = D3D::AlignValue(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	size_t required_readback_buffer_size = level_pitch * level_height;
+
+	// Check if the current readback buffer is large enough
+	if (required_readback_buffer_size > s_texture_cache_entry_readback_buffer_size)
 	{
-		WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D12 backend!");
-		warn_once = false;
-		return false;
-	}
+		// Reallocate the buffer with the new size. Safe to immediately release because we're the only user and we block until completion.
+		if (s_texture_cache_entry_readback_buffer)
+			s_texture_cache_entry_readback_buffer->Release();
 
-	D3D12_RESOURCE_DESC texture_desc = m_texture->GetTex12()->GetDesc();
-
-	const unsigned int required_readback_buffer_size = D3D::AlignValue(static_cast<unsigned int>(texture_desc.Width) * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-
-	if (s_texture_cache_entry_readback_buffer_size < required_readback_buffer_size)
-	{
 		s_texture_cache_entry_readback_buffer_size = required_readback_buffer_size;
-
-		// We know the readback buffer won't be in use right now, since we wait on this thread
-		// for the GPU to finish execution right after copying to it.
-
-		SAFE_RELEASE(s_texture_cache_entry_readback_buffer);
+		CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
+		                                               D3D12_HEAP_FLAG_NONE,
+		                                               &CD3DX12_RESOURCE_DESC::Buffer(s_texture_cache_entry_readback_buffer_size),
+		                                               D3D12_RESOURCE_STATE_COPY_DEST,
+		                                               nullptr,
+		                                               IID_PPV_ARGS(&s_texture_cache_entry_readback_buffer)));
 	}
-
-	if (!s_texture_cache_entry_readback_buffer_size)
-	{
-		CheckHR(
-			D3D::device12->CreateCommittedResource(
-				&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK),
-				D3D12_HEAP_FLAG_NONE,
-				&CD3DX12_RESOURCE_DESC::Buffer(s_texture_cache_entry_readback_buffer_size),
-				D3D12_RESOURCE_STATE_COPY_DEST,
-				nullptr,
-				IID_PPV_ARGS(&s_texture_cache_entry_readback_buffer)
-				)
-			);
-
-		CheckHR(s_texture_cache_entry_readback_buffer->Map(0, nullptr, &s_texture_cache_entry_readback_buffer_data));
-	}
-
-	bool saved_png = false;
 
 	m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
@@ -90,26 +70,31 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 	dst_location.PlacedFootprint.Offset = 0;
 	dst_location.PlacedFootprint.Footprint.Depth = 1;
-	dst_location.PlacedFootprint.Footprint.Format = texture_desc.Format;
-	dst_location.PlacedFootprint.Footprint.Width = static_cast<UINT>(texture_desc.Width);
-	dst_location.PlacedFootprint.Footprint.Height = texture_desc.Height;
-	dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	dst_location.PlacedFootprint.Footprint.Width = level_width;
+	dst_location.PlacedFootprint.Footprint.Height = level_height;
+	dst_location.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(level_pitch);
 
-	D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), 0);
+	D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), level);
 
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-	saved_png = TextureToPng(
-		static_cast<u8*>(s_texture_cache_entry_readback_buffer_data),
+	// Map readback buffer and save to file.
+	void* readback_texture_map;
+	CheckHR(s_texture_cache_entry_readback_buffer->Map(0, nullptr, &readback_texture_map));
+
+	bool saved = TextureToPng(
+		static_cast<u8*>(readback_texture_map),
 		dst_location.PlacedFootprint.Footprint.RowPitch,
 		filename,
 		dst_location.PlacedFootprint.Footprint.Width,
 		dst_location.PlacedFootprint.Footprint.Height
 		);
 
-	return saved_png;
+	s_texture_cache_entry_readback_buffer->Unmap(0, nullptr);
+	return saved;
 }
 
 void TextureCache::TCacheEntry::CopyRectangleFromTexture(
@@ -164,15 +149,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		return;
 	}
 
-	const D3D12_VIEWPORT vp = {
-		float(dst_rect.left),
-		float(dst_rect.top),
-		float(dst_rect.GetWidth()),
-		float(dst_rect.GetHeight()),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-	D3D::current_command_list->RSSetViewports(1, &vp);
+	D3D::SetViewportAndScissor(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight());
 
 	m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	D3D::current_command_list->OMSetRenderTargets(1, &m_texture->GetRTV12(), FALSE, nullptr);
@@ -272,8 +249,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& srcRect,
 	bool scale_by_half, unsigned int cbuf_id, const float* colmat)
 {
-	static unsigned int old_cbuf_id = UINT_MAX;
-
 	// When copying at half size, in multisampled mode, resolve the color/depth buffer first.
 	// This is because multisampled texture reads go through Load, not Sample, and the linear
 	// filter is ignored.
@@ -289,27 +264,18 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 			FramebufferManager::GetResolvedEFBColorTexture();
 	}
 
-	// stretch picture with increased internal resolution
-	const D3D12_VIEWPORT vp = {
-		0.f,
-		0.f,
-		static_cast<float>(config.width),
-		static_cast<float>(config.height),
-		D3D12_MIN_DEPTH,
-		D3D12_MAX_DEPTH
-	};
-
-	D3D::current_command_list->RSSetViewports(1, &vp);
-
 	// set transformation
-	if (cbuf_id != old_cbuf_id)
+	if (s_efb_copy_last_cbuf_id != cbuf_id)
 	{
 		s_efb_copy_stream_buffer->AllocateSpaceInBuffer(28 * sizeof(float), 256);
 
 		memcpy(s_efb_copy_stream_buffer->GetCPUAddressOfCurrentAllocation(), colmat, 28 * sizeof(float));
 
-		old_cbuf_id = cbuf_id;
+		s_efb_copy_last_cbuf_id = cbuf_id;
 	}
+
+	// stretch picture with increased internal resolution
+	D3D::SetViewportAndScissor(0, 0, config.width, config.height);
 
 	D3D::current_command_list->SetGraphicsRootConstantBufferView(DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_stream_buffer->GetGPUAddressOfCurrentAllocation());
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
@@ -441,13 +407,12 @@ void main(
 
 void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format)
 {
-	// stretch picture with increased internal resolution
-	const D3D12_VIEWPORT vp = { 0.f, 0.f, static_cast<float>(unconverted->config.width), static_cast<float>(unconverted->config.height), D3D12_MIN_DEPTH, D3D12_MAX_DEPTH };
-	D3D::current_command_list->RSSetViewports(1, &vp);
-
 	const unsigned int palette_buffer_allocation_size = 512;
 	m_palette_stream_buffer->AllocateSpaceInBuffer(palette_buffer_allocation_size, 256);
 	memcpy(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation(), palette, palette_buffer_allocation_size);
+
+	// stretch picture with increased internal resolution
+	D3D::SetViewportAndScissor(0, 0, unconverted->config.width, unconverted->config.height);
 
 	// D3D12: Because the second SRV slot is occupied by this buffer, and an arbitrary texture occupies the first SRV slot,
 	// we need to allocate temporary space out of our descriptor heap, place the palette SRV in the second slot, then copy the
@@ -554,9 +519,9 @@ TextureCache::TextureCache()
 	s_encoder->Init();
 
 	s_efb_copy_stream_buffer = std::make_unique<D3DStreamBuffer>(1024 * 1024, 1024 * 1024, nullptr);
+	s_efb_copy_last_cbuf_id = UINT_MAX;
 
 	s_texture_cache_entry_readback_buffer = nullptr;
-	s_texture_cache_entry_readback_buffer_data = nullptr;
 	s_texture_cache_entry_readback_buffer_size = 0;
 
 	m_palette_pixel_shaders[GX_TL_IA8] = GetConvertShader12(std::string("IA8"));
@@ -606,8 +571,10 @@ TextureCache::~TextureCache()
 
 	if (s_texture_cache_entry_readback_buffer)
 	{
-		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_texture_cache_entry_readback_buffer);
+		// Safe to destroy the readback buffer immediately, as the only time it's used is blocked until completion.
+		s_texture_cache_entry_readback_buffer->Release();
 		s_texture_cache_entry_readback_buffer = nullptr;
+		s_texture_cache_entry_readback_buffer_size = 0;
 	}
 
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_palette_uniform_buffer);
@@ -635,7 +602,7 @@ void TextureCache::BindTextures()
 	D3D12_GPU_DESCRIPTOR_HANDLE s_group_base_texture_gpu_handle;
 	DX12::D3D::gpu_descriptor_heap_mgr->AllocateGroup(&s_group_base_texture_cpu_handle, 8, &s_group_base_texture_gpu_handle, nullptr, true);
 
-	for (unsigned int stage = 0; stage <= last_texture; stage++)
+	for (unsigned int stage = 0; stage < 8; stage++)
 	{
 		if (bound_textures[stage] != nullptr)
 		{

@@ -5,10 +5,12 @@
 #pragma once
 
 #include <d3d11.h>
+#include <memory>
 #include <string>
 
 #include "Common/MathUtil.h"
 #include "VideoBackends/D3D12/D3DState.h"
+#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 
 #include "VideoCommon/RenderBase.h"
 
@@ -48,10 +50,7 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE m_texture12_cpu = {};
 	D3D12_GPU_DESCRIPTOR_HANDLE m_texture12_gpu = {};
 
-	ID3D12Resource* m_vb12 = nullptr;
-	D3D12_VERTEX_BUFFER_VIEW m_vb12_view = {};
-	void* m_vb12_data = nullptr;
-	unsigned int m_vb12_offset = 0;
+	std::unique_ptr<D3DStreamBuffer> m_vertex_buffer;
 
 	D3D12_INPUT_LAYOUT_DESC m_input_layout12 = {};
 	D3D12_SHADER_BYTECODE m_pshader12 = {};
@@ -75,6 +74,8 @@ void ShutdownUtils();
 void SetPointCopySampler();
 void SetLinearCopySampler();
 
+void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth = D3D12_MIN_DEPTH, float max_depth = D3D12_MAX_DEPTH);
+
 void DrawShadedTexQuad(D3DTexture2D* texture,
 	const D3D12_RECT* source,
 	int source_width,
@@ -87,8 +88,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	u32 slice = 0,
 	DXGI_FORMAT rt_format = DXGI_FORMAT_R8G8B8A8_UNORM,
 	bool inherit_srv_binding = false,
-	bool rt_multisampled = false,
-	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc_override = nullptr
+	bool rt_multisampled = false
 	);
 
 void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);
@@ -99,7 +99,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 	size_t num_points,
 	D3D12_BLEND_DESC* blend_desc,
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc,
-	D3D12_VIEWPORT* viewport,
 	D3D12_CPU_DESCRIPTOR_HANDLE* render_target,
 	D3D12_CPU_DESCRIPTOR_HANDLE* depth_buffer,
 	bool rt_multisampled);
