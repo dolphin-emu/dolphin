@@ -185,7 +185,7 @@ std::string CVolumeDirectory::GetInternalName() const
 		return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetNames(bool prefer_long) const
+std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetLongNames() const
 {
 	std::string name = GetInternalName();
 	if (name.empty())

@@ -48,7 +48,7 @@ static u32 Decode5A3(u16 val)
 	return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-void decode5A3image(u32* dst, u16* src, int width, int height)
+void decode5A3image(u32* dst, const u16* src, int width, int height)
 {
 	for (int y = 0; y < height; y += 4)
 	{
@@ -66,7 +66,7 @@ void decode5A3image(u32* dst, u16* src, int width, int height)
 	}
 }
 
-void decodeCI8image(u32* dst, u8* src, u16* pal, int width, int height)
+void decodeCI8image(u32* dst, const u8* src, u16* pal, int width, int height)
 {
 	for (int y = 0; y < height; y += 4)
 	{

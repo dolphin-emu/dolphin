@@ -231,7 +231,9 @@ static std::string GetTitle(std::string filename)
 	std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(filename));
 
 	if (pVolume != nullptr) {
-		std::map <DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetNames(true);
+		std::map <DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetLongNames();
+		if (titles.empty())
+			titles = pVolume->GetShortNames();
 
 		/*
 		bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
