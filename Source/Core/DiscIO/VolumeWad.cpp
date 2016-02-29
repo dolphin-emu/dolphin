@@ -89,7 +89,8 @@ std::string CVolumeWAD::GetUniqueID() const
 std::string CVolumeWAD::GetMakerID() const
 {
   char temp[2] = {1};
-  // Some weird channels use 0x0000 in place of the MakerID, so we need a check there
+  // Some weird channels use 0x0000 in place of the MakerID, so we need a check
+  // there
   if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
     return "00";
 
@@ -119,7 +120,7 @@ IVolume::EPlatform CVolumeWAD::GetVolumeType() const
   return WII_WAD;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetNames(bool prefer_long) const
+std::map<IVolume::ELanguage, std::string> CVolumeWAD::GetLongNames() const
 {
   std::vector<u8> name_data(NAMES_TOTAL_BYTES);
   if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))

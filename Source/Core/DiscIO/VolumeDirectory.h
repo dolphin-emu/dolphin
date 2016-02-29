@@ -19,7 +19,8 @@ struct FSTEntry;
 }
 
 //
-// --- this volume type is used for reading files directly from the hard drive ---
+// --- this volume type is used for reading files directly from the hard drive
+// ---
 //
 
 namespace DiscIO
@@ -43,7 +44,7 @@ public:
 
   u16 GetRevision() const override { return 0; }
   std::string GetInternalName() const override;
-  std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
+  std::map<IVolume::ELanguage, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   void SetName(const std::string&);
 
