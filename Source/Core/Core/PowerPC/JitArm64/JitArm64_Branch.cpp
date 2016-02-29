@@ -26,12 +26,12 @@ void JitArm64::sc(UGeckoInstruction inst)
 
 	ARM64Reg WA = gpr.GetReg();
 
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 	ORR(WA, WA, 31, 0); // Same as WA | EXCEPTION_SYSCALL
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
 	MOVI2R(WA, js.compilerPC + 4);
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
 
 	// WA is unlocked in this function
 	WriteExceptionExit(WA);
@@ -60,18 +60,18 @@ void JitArm64::rfi(UGeckoInstruction inst)
 	MOVI2R(WA, (~mask) & clearMSR13);
 	MOVI2R(WB, mask & clearMSR13);
 
-	LDR(INDEX_UNSIGNED, WC, X29, PPCSTATE_OFF(msr));
+	LDR(INDEX_UNSIGNED, WC, PPC_REG, PPCSTATE_OFF(msr));
 
 	AND(WC, WC, WB, ArithOption(WC, ST_LSL, 0)); // rD = Masked MSR
 
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_SRR1])); // rB contains SRR1 here
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR1])); // rB contains SRR1 here
 
 	AND(WA, WA, WB, ArithOption(WA, ST_LSL, 0)); // rB contains masked SRR1 here
 	ORR(WA, WA, WC, ArithOption(WA, ST_LSL, 0)); // rB = Masked MSR OR masked SRR1
 
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr)); // STR rB in to rA
+	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr)); // STR rB in to rA
 
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_SRR0]));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR0]));
 	gpr.Unlock(WB, WC);
 
 	// WA is unlocked in this function
@@ -97,7 +97,7 @@ void JitArm64::bx(UGeckoInstruction inst)
 		u32 Jumpto = js.compilerPC + 4;
 		ARM64Reg WA = gpr.GetReg();
 		MOVI2R(WA, Jumpto);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_LR]));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WA);
 	}
 
@@ -125,9 +125,9 @@ void JitArm64::bcx(UGeckoInstruction inst)
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
-		LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+		LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
 		SUBS(WA, WA, 1);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
 
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = B(CC_NEQ);
@@ -151,7 +151,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
 	{
 		u32 Jumpto = js.compilerPC + 4;
 		MOVI2R(WA, Jumpto);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_LR]));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 	}
 	gpr.Unlock(WA);
 
@@ -205,13 +205,13 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 		ARM64Reg WB = gpr.GetReg();
 		u32 Jumpto = js.compilerPC + 4;
 		MOVI2R(WB, Jumpto);
-		STR(INDEX_UNSIGNED, WB, X29, PPCSTATE_OFF(spr[SPR_LR]));
+		STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WB);
 	}
 
 	ARM64Reg WA = gpr.GetReg();
 
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
 	WriteExit(WA);
 }
@@ -225,9 +225,9 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
-		LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+		LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
 		SUBS(WA, WA, 1);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_CTR]));
 
 		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			pCTRDontBranch = B(CC_NEQ);
@@ -246,7 +246,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	SwitchToFarCode();
 	SetJumpTarget(far);
 
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_LR]));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
 
 	if (inst.LK)
@@ -254,7 +254,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		ARM64Reg WB = gpr.GetReg();
 		u32 Jumpto = js.compilerPC + 4;
 		MOVI2R(WB, Jumpto);
-		STR(INDEX_UNSIGNED, WB, X29, PPCSTATE_OFF(spr[SPR_LR]));
+		STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WB);
 	}
 

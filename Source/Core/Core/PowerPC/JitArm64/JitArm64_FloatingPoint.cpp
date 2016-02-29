@@ -264,7 +264,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 	}
 	SetJumpTarget(continue1);
 
-	STR(INDEX_UNSIGNED, XA, X29, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+	STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
 
 	gpr.Unlock(WA);
 }

@@ -25,8 +25,8 @@ void JitArm64AsmRoutineManager::Generate()
 
 	ABI_PushRegisters(regs_to_save);
 
-	MOVI2R(X29, (u64)&PowerPC::ppcState);
-	MOVI2R(X28, (u64)Memory::logical_base);
+	MOVI2R(PPC_REG, (u64)&PowerPC::ppcState);
+	MOVI2R(MEM_REG, (u64)Memory::logical_base);
 
 	FixupBranch to_dispatcher = B();
 
@@ -46,7 +46,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 		// This block of code gets the address of the compiled block of code
 		// It runs though to the compiling portion if it isn't found
-		LDR(INDEX_UNSIGNED, W26, X29, PPCSTATE_OFF(pc)); // Load the current PC into W26
+		LDR(INDEX_UNSIGNED, W26, PPC_REG, PPCSTATE_OFF(pc)); // Load the current PC into W26
 		BFM(W26, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
 
 		MOVI2R(X27, (u64)jit->GetBlockCache()->iCache.data());
@@ -73,14 +73,14 @@ void JitArm64AsmRoutineManager::Generate()
 		BLR(X30);
 
 		// Does exception checking
-		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(Exceptions));
+		LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(Exceptions));
 		FixupBranch no_exceptions = CBZ(W0);
-		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
-		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
+		LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(pc));
+		STR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(npc));
 			MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
 			BLR(X30);
-		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
-		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+		LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(npc));
+		STR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(pc));
 		SetJumpTarget(no_exceptions);
 
 		// Check the state pointer to see if we are exiting
@@ -588,7 +588,7 @@ void JitArm64AsmRoutineManager::GenMfcr()
 	const u8* start = GetCodePtr();
 	for (int i = 0; i < 8; i++)
 	{
-		LDR(INDEX_UNSIGNED, X1, X29, PPCSTATE_OFF(cr_val) + 8 * i);
+		LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * i);
 
 		// SO
 		if (i == 0)
