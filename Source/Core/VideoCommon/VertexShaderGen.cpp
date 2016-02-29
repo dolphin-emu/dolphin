@@ -227,9 +227,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
-		// An input form other than ABC1 or AB11 doesn't exist
-		// But the hardware has it as a two bit field
-		_assert_(texinfo.inputform == XF_TEXINPUT_ABC1 || texinfo.inputform == XF_TEXINPUT_AB11);
+		// Input form of AB11 sets z element to 1.0
 		uid_data->texMtxInfo[i].inputform = xfmem.texMtxInfo[i].inputform;
 		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			out.Write("coord.z = 1.0;\n");
