@@ -256,11 +256,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_REGULAR:
