@@ -17,6 +17,7 @@ using namespace Arm64Gen;
 // Dedicated host registers
 static const ARM64Reg MEM_REG = X28; // memory base register
 static const ARM64Reg PPC_REG = X29; // ppcState pointer
+static const ARM64Reg DISPATCHER_PC = W26; // register for PC when calling the dispatcher
 
 #define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
 
