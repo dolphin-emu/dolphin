@@ -595,7 +595,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 		MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
 	}
 
-	ADD(XA, XA, X28);
+	ADD(XA, XA, MEM_REG);
 
 	for (int i = inst.RD; i < 32; i++)
 	{

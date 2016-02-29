@@ -31,7 +31,7 @@ void JitArm64BlockCache::WriteDestroyBlock(const u8* location, u32 address)
 	ARM64XEmitter emit((u8 *)location);
 	emit.MOVI2R(W0, address);
 	emit.MOVI2R(X30, (u64)jit->GetAsmRoutines()->dispatcher);
-	emit.STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+	emit.STR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(pc));
 	emit.BR(X30);
 	emit.FlushIcache();
 }

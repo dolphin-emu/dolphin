@@ -86,9 +86,9 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 		// also flush the program counter
 		ARM64Reg WA = gpr.GetReg();
 		MOVI2R(WA, js.compilerPC);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
 		ADD(WA, WA, 4);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
 		gpr.Unlock(WA);
 	}
 
@@ -102,14 +102,14 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 		if (js.isLastInstruction)
 		{
 			ARM64Reg WA = gpr.GetReg();
-			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+			LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
 			WriteExceptionExit(WA);
 		}
 		else
 		{
 			// only exit if ppcstate.npc was changed
 			ARM64Reg WA = gpr.GetReg();
-			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+			LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
 			ARM64Reg WB = gpr.GetReg();
 			MOVI2R(WB, js.compilerPC + 4);
 			CMP(WB, WA);
@@ -132,7 +132,7 @@ void JitArm64::HLEFunction(UGeckoInstruction inst)
 	BLR(X30);
 
 	ARM64Reg WA = gpr.GetReg();
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
 	WriteExit(WA);
 }
 
@@ -161,18 +161,18 @@ void JitArm64::Cleanup()
 void JitArm64::DoDownCount()
 {
 	ARM64Reg WA = gpr.GetReg();
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(downcount));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(downcount));
 	if (js.downcountAmount < 4096) // We can enlarge this if we used rotations
 	{
 		SUBS(WA, WA, js.downcountAmount);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(downcount));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(downcount));
 	}
 	else
 	{
 		ARM64Reg WB = gpr.GetReg();
 		MOVI2R(WB, js.downcountAmount);
 		SUBS(WA, WA, WB);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(downcount));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(downcount));
 		gpr.Unlock(WB);
 	}
 	gpr.Unlock(WA);
@@ -198,7 +198,7 @@ void JitArm64::WriteExit(u32 destination)
 	ARM64Reg WA = gpr.GetReg();
 	ARM64Reg XA = EncodeRegTo64(WA);
 	MOVI2R(WA, destination);
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
 	MOVI2R(XA, (u64)asm_routines.dispatcher);
 	BR(XA);
 	gpr.Unlock(WA);
@@ -226,19 +226,19 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 	DoDownCount();
 
 	ARM64Reg WA = gpr.GetReg();
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+	STR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(pc));
 	FixupBranch no_exceptions = CBZ(WA);
 	gpr.Unlock(WA);
 
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
+	STR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(npc));
 	if (only_external)
 		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
 	else
 		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
 	BLR(EncodeRegTo64(dest));
-	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	LDR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(npc));
+	STR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(pc));
 
 	SetJumpTarget(no_exceptions);
 
@@ -390,7 +390,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
 		MOVI2R(WA, js.blockStart);
-		STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
+		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
 		MOVI2R(XA, (u64)asm_routines.doTiming);
 		BR(XA);
 		gpr.Unlock(WA);
@@ -418,13 +418,13 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		int gqr = *code_block.m_gqr_used.begin();
 		if (!code_block.m_gqr_modified[gqr] && !GQR(gqr))
 		{
-			LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
+			LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0]) + gqr * 4);
 			FixupBranch no_fail = CBZ(W0);
 			FixupBranch fail = B();
 			SwitchToFarCode();
 				SetJumpTarget(fail);
 				MOVI2R(W0, js.blockStart);
-				STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+				STR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(pc));
 				MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
 				MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
 				BLR(X1);
@@ -482,9 +482,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				ABI_PopRegisters(regs_in_use);
 
 				// Inline exception check
-				LDR(INDEX_UNSIGNED, W30, X29, PPCSTATE_OFF(Exceptions));
+				LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
 				TBZ(W30, 3, done_here); // EXCEPTION_EXTERNAL_INT
-				LDR(INDEX_UNSIGNED, W30, X29, PPCSTATE_OFF(msr));
+				LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(msr));
 				TBZ(W30, 11, done_here);
 				MOVI2R(X30, (u64)&ProcessorInterface::m_InterruptCause);
 				LDR(INDEX_UNSIGNED, W30, X30, 0);
@@ -509,14 +509,14 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		{
 			ARM64Reg WA = gpr.GetReg();
 			ARM64Reg XA = EncodeRegTo64(WA);
-			LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+			LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 			FixupBranch NoExtException = TBZ(WA, 3); // EXCEPTION_EXTERNAL_INT
 			FixupBranch Exception = B();
 			SwitchToFarCode();
 				const u8* done_here = GetCodePtr();
 				FixupBranch exit = B();
 				SetJumpTarget(Exception);
-				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr));
+				LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
 				TBZ(WA, 11, done_here);
 				MOVI2R(XA, (u64)&ProcessorInterface::m_InterruptCause);
 				LDR(INDEX_UNSIGNED, WA, XA, 0);
@@ -538,7 +538,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			{
 				//This instruction uses FPU - needs to add FP exception bailout
 				ARM64Reg WA = gpr.GetReg();
-				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(msr));
+				LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
 				FixupBranch b1 = TBNZ(WA, 13); // Test FP enabled bit
 
 				FixupBranch far = B();
@@ -548,9 +548,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-				LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+				LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 				ORR(WA, WA, 26, 0); // EXCEPTION_FPU_UNAVAILABLE
-				STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+				STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
 				MOVI2R(WA, js.compilerPC);
 				WriteExceptionExit(WA);
