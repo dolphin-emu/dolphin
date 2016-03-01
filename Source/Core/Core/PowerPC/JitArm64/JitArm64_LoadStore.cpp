@@ -467,15 +467,13 @@ void JitArm64::lXX(UGeckoInstruction inst)
 		MOVI2R(XA, (u64)&CoreTiming::Idle);
 		BLR(XA);
 
-		gpr.Unlock(WA);
-		WriteExceptionExit();
+		MOVI2R(WA, js.compilerPC);
+
+		WriteExceptionExit(WA);
 
 		SwitchToNearCode();
 
 		SetJumpTarget(noIdle);
-
-		//js.compilerPC += 8;
-		return;
 	}
 }
 
