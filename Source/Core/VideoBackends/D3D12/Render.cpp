@@ -90,7 +90,7 @@ typedef struct _Nv_Stereo_Image_Header
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
 // GX pipeline state
-struct
+static struct
 {
 	SamplerState sampler[8];
 	BlendState blend;
@@ -1235,14 +1235,14 @@ void Renderer::SetDitherMode()
 
 void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 {
-	SamplerState s_previous_sampler_state[8];
-
 	const FourTexUnits& tex = bpmem.tex[tex_index];
 	const TexMode0& tm0 = tex.texMode0[stage];
 	const TexMode1& tm1 = tex.texMode1[stage];
 
 	if (tex_index)
 		stage += 4;
+
+	const auto original_hex = gx_state.sampler[stage].hex;
 
 	if (g_ActiveConfig.bForceFiltering)
 	{
@@ -1251,15 +1251,15 @@ void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 	}
 	else
 	{
-		gx_state.sampler[stage].min_filter = static_cast<u32>(tm0.min_filter);
-		gx_state.sampler[stage].mag_filter = static_cast<u32>(tm0.mag_filter);
+		gx_state.sampler[stage].min_filter = tm0.min_filter;
+		gx_state.sampler[stage].mag_filter = tm0.mag_filter;
 	}
 
-	gx_state.sampler[stage].wrap_s = static_cast<u32>(tm0.wrap_s);
-	gx_state.sampler[stage].wrap_t = static_cast<u32>(tm0.wrap_t);
-	gx_state.sampler[stage].max_lod = static_cast<u32>(tm1.max_lod);
-	gx_state.sampler[stage].min_lod = static_cast<u32>(tm1.min_lod);
-	gx_state.sampler[stage].lod_bias = static_cast<s32>(tm0.lod_bias);
+	gx_state.sampler[stage].wrap_s   = tm0.wrap_s;
+	gx_state.sampler[stage].wrap_t   = tm0.wrap_t;
+	gx_state.sampler[stage].max_lod  = tm1.max_lod;
+	gx_state.sampler[stage].min_lod  = tm1.min_lod;
+	gx_state.sampler[stage].lod_bias = tm0.lod_bias;
 
 	// custom textures may have higher resolution, so disable the max_lod
 	if (custom_tex)
@@ -1267,10 +1267,9 @@ void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 		gx_state.sampler[stage].max_lod = 255;
 	}
 
-	if (gx_state.sampler[stage].hex != s_previous_sampler_state[stage].hex)
+	if (gx_state.sampler[stage].hex != original_hex)
 	{
 		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
-		s_previous_sampler_state[stage].hex = gx_state.sampler[stage].hex;
 	}
 }
 
