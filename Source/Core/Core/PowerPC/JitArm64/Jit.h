@@ -238,7 +238,6 @@ private:
 	// Exits
 	void WriteExit(u32 destination);
 	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
-	void WriteExceptionExit();
 	void WriteExternalExceptionExit(ARM64Reg dest);
 	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
 
