@@ -103,6 +103,9 @@ bool FifoPlayer::Play()
 				++m_CurrentFrame;
 			}
 		}
+
+		// Let the waiting thread know we are done leaving
+		PowerPC::FinishStateMove();
 	}
 
 	IsPlayingBackFifologWithBrokenEFBCopies = false;
