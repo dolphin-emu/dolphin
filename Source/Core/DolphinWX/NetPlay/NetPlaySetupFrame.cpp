@@ -117,15 +117,11 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 		wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY,
 			_("ALERT:\n\n"
-			"Netplay will only work with the following settings:\n"
-			" - DSP Emulator Engine Must be the same on all computers!\n"
-			" - Manually set the extensions for each Wiimote\n"
+			"All players must use the same Dolphin version.\n"
+			"All memory cards, SD cards and cheats must be identical between players or disabled.\n"
+			"If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
 			"\n"
-			"All players should use the same Dolphin version and settings.\n"
-			"All memory cards must be identical between players or disabled.\n"
-			"Wiimote support is probably terrible. Don't use it.\n"
-			"\n"
-			"If connecting directly, the host must have the chosen UDP port open/forwarded!\n"));
+			"Wiimote support is broken in netplay and therefore disabled.\n"));
 
 		wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 

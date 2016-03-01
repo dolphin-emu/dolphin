@@ -67,11 +67,6 @@ PadMappingArray PadMapDialog::GetModifiedPadMappings() const
 	return m_pad_mapping;
 }
 
-PadMappingArray PadMapDialog::GetModifiedWiimoteMappings() const
-{
-	return m_wii_mapping;
-}
-
 void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
 {
 	for (unsigned int i = 0; i < 4; i++)
@@ -81,11 +76,5 @@ void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
 			m_pad_mapping[i] = m_player_list[player_idx - 1]->pid;
 		else
 			m_pad_mapping[i] = -1;
-
-		player_idx = m_map_cbox[i + 4]->GetSelection();
-		if (player_idx > 0)
-			m_wii_mapping[i] = m_player_list[player_idx - 1]->pid;
-		else
-			m_wii_mapping[i] = -1;
 	}
 }
