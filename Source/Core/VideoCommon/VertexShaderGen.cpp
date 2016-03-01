@@ -242,6 +242,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 				if (components & (VB_HAS_NRM1|VB_HAS_NRM2))
 				{
 					// transform the light dir into tangent space
+					assert(i < texinfo.embosssourceshift);
 					uid_data->texMtxInfo[i].embosslightshift = xfmem.texMtxInfo[i].embosslightshift;
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("ldir = normalize(" LIGHT_POS".xyz - pos.xyz);\n", LIGHT_POS_PARAMS(texinfo.embosslightshift));
@@ -250,7 +251,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 				else
 				{
 					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
-					//_assert_(0); // should have normals
+					_assert_(0); // should have normals
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
 					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
 				}
