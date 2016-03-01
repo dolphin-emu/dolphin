@@ -244,8 +244,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
 	SetJumpTarget(pNaN);
 
-	ORR(XA, XA, 64 - 61, 0, true);
-	ORR(XA, XA, 0, 0, true);
+	MOVI2R(XA, PPCCRToInternal(CR_SO));
 
 	if (a != b)
 	{
