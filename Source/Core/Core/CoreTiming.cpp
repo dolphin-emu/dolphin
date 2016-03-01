@@ -421,8 +421,12 @@ void Idle()
 		Fifo::FlushGpu();
 	}
 
-	idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);
-	PowerPC::ppcState.downcount = 0;
+	do
+	{
+		idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);
+		PowerPC::ppcState.downcount = 0;
+		Advance();
+	} while (!PowerPC::ppcState.Exceptions);
 }
 
 std::string GetScheduledEventsSummary()
