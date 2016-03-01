@@ -196,8 +196,13 @@ bool cInterfaceEGL::Create(void *window_handle, bool core)
 
 	if (supports_core_profile && core && s_opengl_mode == GLInterfaceMode::MODE_OPENGL)
 	{
-		std::array<std::pair<int, int>, 2> versions_to_try =
+		std::array<std::pair<int, int>, 7> versions_to_try =
 		{{
+			{ 4, 5 },
+			{ 4, 4 },
+			{ 4, 3 },
+			{ 4, 2 },
+			{ 4, 1 },
 			{ 4, 0 },
 			{ 3, 3 },
 		}};
