@@ -225,29 +225,6 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest)
 	BR(EncodeRegTo64(dest));
 }
 
-void JitArm64::WriteExceptionExit()
-{
-	Cleanup();
-	DoDownCount();
-
-	if (Profiler::g_ProfileBlocks)
-		EndTimeProfile(js.curBlock);
-
-	ARM64Reg WA = gpr.GetReg();
-	ARM64Reg XA = EncodeRegTo64(WA);
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
-		MOVI2R(XA, (u64)&PowerPC::CheckExceptions);
-		BLR(XA);
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
-	STR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(pc));
-
-	MOVI2R(XA, (u64)asm_routines.dispatcher);
-	BR(XA);
-
-	gpr.Unlock(WA);
-}
-
 void JitArm64::WriteExternalExceptionExit(ARM64Reg dest)
 {
 	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
