@@ -243,7 +243,7 @@ void Pause()
 
 	// Wait for the CPU core to leave
 	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
+		s_state_change.WaitFor(std::chrono::milliseconds(1000/60));
 	Host_UpdateDisasmDialog();
 }
 
@@ -254,7 +254,7 @@ void Stop()
 
 	// Wait for the CPU core to leave
 	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
+		s_state_change.WaitFor(std::chrono::milliseconds(1000/60));
 	Host_UpdateDisasmDialog();
 }
 
