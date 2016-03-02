@@ -1252,6 +1252,10 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 	if (!HotkeyManagerEmu::IsEnabled())
 		return;
 
+	// Stop the poll hotkey timer to prevent another
+	// poll hotkeys event being called while one is running
+	m_poll_hotkey_timer.Stop();
+
 	if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
 		g_controller_interface.UpdateInput();
 
@@ -1260,6 +1264,8 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 		HotkeyManagerEmu::GetStatus();
 		ParseHotkeys();
 	}
+
+	m_poll_hotkey_timer.Start();
 }
 
 void CFrame::ParseHotkeys()
