@@ -20,10 +20,10 @@ namespace D3D
 {
 
 // bytecode->shader
-ID3D11VertexShader* CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len)
+ComPtr<ID3D11VertexShader> CreateVertexShaderFromByteCode(const void* bytecode, unsigned int len)
 {
-	ID3D11VertexShader* v_shader;
-	HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, nullptr, &v_shader);
+	ComPtr<ID3D11VertexShader> v_shader;
+	HRESULT hr = D3D::device->CreateVertexShader(bytecode, len, nullptr, v_shader.GetAddressOf());
 	if (FAILED(hr))
 		return nullptr;
 
@@ -73,10 +73,10 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
 }
 
 // bytecode->shader
-ID3D11GeometryShader* CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len)
+ComPtr<ID3D11GeometryShader> CreateGeometryShaderFromByteCode(const void* bytecode, unsigned int len)
 {
-	ID3D11GeometryShader* g_shader;
-	HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, nullptr, &g_shader);
+	ComPtr<ID3D11GeometryShader> g_shader;
+	HRESULT hr = D3D::device->CreateGeometryShader(bytecode, len, nullptr, g_shader.GetAddressOf());
 	if (FAILED(hr))
 		return nullptr;
 
@@ -127,10 +127,10 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob, const D3D_SH
 }
 
 // bytecode->shader
-ID3D11PixelShader* CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
+ComPtr<ID3D11PixelShader> CreatePixelShaderFromByteCode(const void* bytecode, unsigned int len)
 {
-	ID3D11PixelShader* p_shader;
-	HRESULT hr = D3D::device->CreatePixelShader(bytecode, len, nullptr, &p_shader);
+	ComPtr<ID3D11PixelShader> p_shader;
+	HRESULT hr = D3D::device->CreatePixelShader(bytecode, len, nullptr, p_shader.GetAddressOf());
 	if (FAILED(hr))
 	{
 		PanicAlert("CreatePixelShaderFromByteCode failed at %s %d\n", __FILE__, __LINE__);
@@ -183,37 +183,37 @@ bool CompilePixelShader(const std::string& code, D3DBlob** blob, const D3D_SHADE
 	return SUCCEEDED(hr);
 }
 
-ID3D11VertexShader* CompileAndCreateVertexShader(const std::string& code)
+ComPtr<ID3D11VertexShader> CompileAndCreateVertexShader(const std::string& code)
 {
 	D3DBlob* blob = nullptr;
 	if (CompileVertexShader(code, &blob))
 	{
-		ID3D11VertexShader* v_shader = CreateVertexShaderFromByteCode(blob);
+		ComPtr<ID3D11VertexShader> v_shader = CreateVertexShaderFromByteCode(blob);
 		blob->Release();
 		return v_shader;
 	}
 	return nullptr;
 }
 
-ID3D11GeometryShader* CompileAndCreateGeometryShader(const std::string& code, const D3D_SHADER_MACRO* pDefines)
+ComPtr<ID3D11GeometryShader> CompileAndCreateGeometryShader(const std::string& code, const D3D_SHADER_MACRO* pDefines)
 {
 	D3DBlob* blob = nullptr;
 	if (CompileGeometryShader(code, &blob, pDefines))
 	{
-		ID3D11GeometryShader* g_shader = CreateGeometryShaderFromByteCode(blob);
+		ComPtr<ID3D11GeometryShader> g_shader = CreateGeometryShaderFromByteCode(blob);
 		blob->Release();
 		return g_shader;
 	}
 	return nullptr;
 }
 
-ID3D11PixelShader* CompileAndCreatePixelShader(const std::string& code)
+ComPtr<ID3D11PixelShader> CompileAndCreatePixelShader(const std::string& code)
 {
 	D3DBlob* blob = nullptr;
 	CompilePixelShader(code, &blob);
 	if (blob)
 	{
-		ID3D11PixelShader* p_shader = CreatePixelShaderFromByteCode(blob);
+		ComPtr<ID3D11PixelShader> p_shader = CreatePixelShaderFromByteCode(blob);
 		blob->Release();
 		return p_shader;
 	}

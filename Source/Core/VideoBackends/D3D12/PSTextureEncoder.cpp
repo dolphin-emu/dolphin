@@ -118,11 +118,6 @@ void PSTextureEncoder::Shutdown()
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_out_readback_buffer);
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_encode_params_buffer);
 
-	for (auto& it : m_static_shaders_blobs)
-	{
-		SAFE_RELEASE(it);
-	}
-
 	m_static_shaders_blobs.clear();
 	m_static_shaders_map.clear();
 }
@@ -273,13 +268,13 @@ D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
 				format |= _GX_TF_CTF;
 		}
 
-		ID3DBlob* bytecode = nullptr;
+		ComPtr<ID3DBlob> bytecode = nullptr;
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_D3D);
-		if (!D3D::CompilePixelShader(shader, &bytecode))
+		if (!D3D::CompilePixelShader(shader, bytecode.GetAddressOf()))
 		{
 			WARN_LOG(VIDEO, "EFB encoder shader for dst_format 0x%X, src_format %d, is_intensity %d, scale_by_half %d failed to compile",
 				dst_format, static_cast<int>(src_format), is_intensity ? 1 : 0, scale_by_half ? 1 : 0);
-			m_static_shaders_blobs[key] = {};
+			m_static_shaders_blobs[key] = nullptr;
 			return {};
 		}
 

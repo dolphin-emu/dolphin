@@ -68,10 +68,10 @@ public:
 
 private:
 
-	std::unordered_map<u32, ID3D11DepthStencilState*> m_depth;
-	std::unordered_map<u32, ID3D11RasterizerState*> m_raster;
-	std::unordered_map<u32, ID3D11BlendState*> m_blend;
-	std::unordered_map<u64, ID3D11SamplerState*> m_sampler;
+	std::unordered_map<u32, ComPtr<ID3D11DepthStencilState>> m_depth;
+	std::unordered_map<u32, ComPtr<ID3D11RasterizerState>> m_raster;
+	std::unordered_map<u32, ComPtr<ID3D11BlendState>> m_blend;
+	std::unordered_map<u64, ComPtr<ID3D11SamplerState>> m_sampler;
 };
 
 namespace D3D

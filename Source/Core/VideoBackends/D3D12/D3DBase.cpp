@@ -65,12 +65,12 @@ std::array<ID3D12DescriptorHeap*, 2> gpu_descriptor_heaps;
 HWND hWnd;
 // End extern'd variables.
 
-static IDXGISwapChain* s_swap_chain = nullptr;
+static ComPtr<IDXGISwapChain> s_swap_chain = nullptr;
 static unsigned int s_monitor_refresh_rate = 0;
 
 static LARGE_INTEGER s_qpc_frequency;
 
-static ID3D12DebugDevice* s_debug_device12 = nullptr;
+static ComPtr<ID3D12DebugDevice> s_debug_device12 = nullptr;
 
 static D3D_FEATURE_LEVEL s_feat_level;
 static D3DTexture2D* s_backbuf[SWAP_CHAIN_BUFFER_COUNT];
@@ -248,9 +248,9 @@ bool AlertUserIfSelectedAdapterDoesNotSupportD3D12()
 		return false;
 	}
 
-	IDXGIFactory* factory = nullptr;
-	IDXGIAdapter* adapter = nullptr;
-	ID3D12Device* device = nullptr;
+	ComPtr<IDXGIFactory> factory = nullptr;
+	ComPtr<IDXGIAdapter> adapter = nullptr;
+	ComPtr<ID3D12Device> device = nullptr;
 
 	if (SUCCEEDED(hr))
 	{
@@ -259,16 +259,16 @@ bool AlertUserIfSelectedAdapterDoesNotSupportD3D12()
 
 	if (SUCCEEDED(hr))
 	{
-		hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+		hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, adapter.GetAddressOf());
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+		hr = d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(device.GetAddressOf()));
 
-		SAFE_RELEASE(device);
-		SAFE_RELEASE(adapter);
-		SAFE_RELEASE(factory);
+		device.Reset();
+		adapter.Reset();
+		factory.Reset();
 
 		if (FAILED(hr))
 		{
@@ -284,8 +284,8 @@ bool AlertUserIfSelectedAdapterDoesNotSupportD3D12()
 
 	// DXGI failed to create factory/enumerate adapter. This should be very uncommon.
 	MessageBoxA(nullptr, "Failed to create enumerate selected adapter. Please select a different graphics adapter.", "Critical error", MB_OK | MB_ICONERROR);
-	SAFE_RELEASE(adapter);
-	SAFE_RELEASE(factory);
+	adapter.Reset();
+	factory.Reset();
 
 	UnloadD3D();
 	UnloadDXGI();
@@ -360,23 +360,23 @@ HRESULT Create(HWND wnd)
 		return hr;
 	}
 
-	IDXGIFactory* factory;
-	IDXGIAdapter* adapter;
+	ComPtr<IDXGIFactory> factory;
+	ComPtr<IDXGIAdapter> adapter;
 	hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
 		MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 
-	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, adapter.GetAddressOf());
 	if (FAILED(hr))
 	{
 		// try using the first one
-		hr = factory->EnumAdapters(0, &adapter);
+		hr = factory->EnumAdapters(0, adapter.GetAddressOf());
 		if (FAILED(hr))
 			MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 	}
 
 	// get supported AA modes
-	s_aa_modes = EnumAAModes(adapter);
+	s_aa_modes = EnumAAModes(adapter.Get());
 
 	if (std::find_if(
 		s_aa_modes.begin(),
@@ -424,7 +424,7 @@ HRESULT Create(HWND wnd)
 
 	if (SUCCEEDED(hr))
 	{
-		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
+		hr = d3d12_create_device(adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
 		s_feat_level = D3D_FEATURE_LEVEL_11_0;
 	}
 
@@ -442,7 +442,7 @@ HRESULT Create(HWND wnd)
 		IDXGIFactory* factory = nullptr;
 		adapter->GetParent(IID_PPV_ARGS(&factory));
 
-		CheckHR(factory->CreateSwapChain(command_queue, &swap_chain_desc, &s_swap_chain));
+		CheckHR(factory->CreateSwapChain(command_queue, &swap_chain_desc, s_swap_chain.GetAddressOf()));
 
 		s_current_back_buf = 0;
 
@@ -471,7 +471,7 @@ HRESULT Create(HWND wnd)
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports Direct3D 12 and your drivers are up-to-date."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(s_swap_chain);
+		s_swap_chain.Reset();
 		return E_FAIL;
 	}
 
@@ -495,7 +495,7 @@ HRESULT Create(HWND wnd)
 		info_queue->Release();
 
 		// Used at Close time to report live objects.
-		CheckHR(device12->QueryInterface(&s_debug_device12));
+		CheckHR(device12->QueryInterface(s_debug_device12.GetAddressOf()));
 	}
 
 	// prevent DXGI from responding to Alt+Enter, unfortunately DXGI_MWA_NO_ALT_ENTER
@@ -505,8 +505,8 @@ HRESULT Create(HWND wnd)
 	if (FAILED(hr))
 		MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 
-	SAFE_RELEASE(factory);
-	SAFE_RELEASE(adapter)
+	factory.Reset();
+	adapter.Reset();
 
 	CreateDescriptorHeaps();
 	CreateRootSignatures();
@@ -522,12 +522,12 @@ HRESULT Create(HWND wnd)
 
 	for (UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
 	{
-		ID3D12Resource* buf12 = nullptr;
-		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(&buf12));
+		ComPtr<ID3D12Resource> buf12 = nullptr;
+		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(buf12.GetAddressOf()));
 
 		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
-		s_backbuf[i] = new D3DTexture2D(buf12,
+		s_backbuf[i] = new D3DTexture2D(buf12.Get(),
 			D3D11_BIND_RENDER_TARGET,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
@@ -536,7 +536,7 @@ HRESULT Create(HWND wnd)
 			D3D12_RESOURCE_STATE_PRESENT // Swap Chain back buffers start out in D3D12_RESOURCE_STATE_PRESENT.
 			);
 
-		SAFE_RELEASE(buf12);
+		buf12.Reset();
 		SetDebugObjectName12(s_backbuf[i]->GetTex12(), "backbuffer texture");
 	}
 
@@ -706,7 +706,7 @@ void Close()
 
 	D3D::CleanupPersistentD3DTextureResources();
 
-	SAFE_RELEASE(s_swap_chain);
+	s_swap_chain.Reset();
 
 	command_list_mgr.reset();
 	command_queue->Release();
@@ -738,7 +738,7 @@ void Close()
 			// note this will also print out internal live objects to the debug console
 			s_debug_device12->ReportLiveDeviceObjects(D3D12_RLDO_DETAIL);
 		}
-		SAFE_RELEASE(s_debug_device12);
+		s_debug_device12.Reset();
 	}
 #endif
 
@@ -813,12 +813,12 @@ void Reset()
 
 	for (UINT i = 0; i < SWAP_CHAIN_BUFFER_COUNT; i++)
 	{
-		ID3D12Resource* buf12 = nullptr;
-		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(&buf12));
+		ComPtr<ID3D12Resource> buf12 = nullptr;
+		hr = s_swap_chain->GetBuffer(i, IID_PPV_ARGS(buf12.GetAddressOf()));
 
 		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
-		s_backbuf[i] = new D3DTexture2D(buf12,
+		s_backbuf[i] = new D3DTexture2D(buf12.Get(),
 			D3D11_BIND_RENDER_TARGET,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
@@ -827,7 +827,7 @@ void Reset()
 			D3D12_RESOURCE_STATE_PRESENT
 			);
 
-		SAFE_RELEASE(buf12);
+		buf12.Reset();
 		SetDebugObjectName12(s_backbuf[i]->GetTex12(), "backbuffer texture");
 	}
 
@@ -896,7 +896,7 @@ void Present()
 		s_current_back_buf = (s_current_back_buf + 1) % SWAP_CHAIN_BUFFER_COUNT;
 	}
 
-	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swap_chain, g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
+	command_list_mgr->ExecuteQueuedWorkAndPresent(s_swap_chain.Get(), g_ActiveConfig.IsVSync() ? 1 : 0, present_flags);
 
 	command_list_mgr->m_cpu_access_last_frame = command_list_mgr->m_cpu_access_this_frame;
 	command_list_mgr->m_cpu_access_this_frame = false;

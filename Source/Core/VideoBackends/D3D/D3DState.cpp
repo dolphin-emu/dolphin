@@ -237,7 +237,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 	if (it != m_sampler.end())
 	{
-		return it->second;
+		return it->second.Get();
 	}
 
 	const unsigned int d3dMipFilters[4] =
@@ -314,16 +314,16 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 	sampdc.MinLOD = (float)state.min_lod / 16.f;
 	sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
 
-	ID3D11SamplerState* res = nullptr;
+	ComPtr<ID3D11SamplerState> res = nullptr;
 
-	HRESULT hr = D3D::device->CreateSamplerState(&sampdc, &res);
+	HRESULT hr = D3D::device->CreateSamplerState(&sampdc, res.GetAddressOf());
 	if (FAILED(hr))
 		PanicAlert("Fail %s %d\n", __FILE__, __LINE__);
 
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "sampler state used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(res.Get(), "sampler state used to emulate the GX pipeline");
 	m_sampler.emplace(state.packed, res);
 
-	return res;
+	return res.Get();
 }
 
 ID3D11BlendState* StateCache::Get(BlendState state)
@@ -339,7 +339,7 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 	auto it = m_blend.find(state.packed);
 
 	if (it != m_blend.end())
-		return it->second;
+		return it->second.Get();
 
 	D3D11_BLEND_DESC blenddc = CD3D11_BLEND_DESC(CD3D11_DEFAULT());
 
@@ -395,16 +395,16 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 		blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	}
 
-	ID3D11BlendState* res = nullptr;
+	ComPtr<ID3D11BlendState> res = nullptr;
 
-	HRESULT hr = D3D::device->CreateBlendState(&blenddc, &res);
+	HRESULT hr = D3D::device->CreateBlendState(&blenddc, res.GetAddressOf());
 	if (FAILED(hr))
 		PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "blend state used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(res.Get(), "blend state used to emulate the GX pipeline");
 	m_blend.emplace(state.packed, res);
 
-	return res;
+	return res.Get();
 }
 
 ID3D11RasterizerState* StateCache::Get(RasterizerState state)
@@ -412,22 +412,22 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
 	auto it = m_raster.find(state.packed);
 
 	if (it != m_raster.end())
-		return it->second;
+		return it->second.Get();
 
 	D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID,
 		state.cull_mode,
 		false, 0, 0.f, 0, true, true, false, false);
 
-	ID3D11RasterizerState* res = nullptr;
+	ComPtr<ID3D11RasterizerState> res = nullptr;
 
-	HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, &res);
+	HRESULT hr = D3D::device->CreateRasterizerState(&rastdc, res.GetAddressOf());
 	if (FAILED(hr))
 		PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "rasterizer state used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(res.Get(), "rasterizer state used to emulate the GX pipeline");
 	m_raster.emplace(state.packed, res);
 
-	return res;
+	return res.Get();
 }
 
 ID3D11DepthStencilState* StateCache::Get(ZMode state)
@@ -435,7 +435,7 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 	auto it = m_depth.find(state.hex);
 
 	if (it != m_depth.end())
-		return it->second;
+		return it->second.Get();
 
 	D3D11_DEPTH_STENCIL_DESC depthdc = CD3D11_DEPTH_STENCIL_DESC(CD3D11_DEFAULT());
 
@@ -471,43 +471,24 @@ ID3D11DepthStencilState* StateCache::Get(ZMode state)
 		depthdc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	}
 
-	ID3D11DepthStencilState* res = nullptr;
+	ComPtr<ID3D11DepthStencilState> res = nullptr;
 
-	HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, &res);
+	HRESULT hr = D3D::device->CreateDepthStencilState(&depthdc, res.GetAddressOf());
 	if (SUCCEEDED(hr))
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)res, "depth-stencil state used to emulate the GX pipeline");
+		D3D::SetDebugObjectName(res.Get(), "depth-stencil state used to emulate the GX pipeline");
 	else
 		PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
 
 	m_depth.emplace(state.hex, res);
 
-	return res;
+	return res.Get();
 }
 
 void StateCache::Clear()
 {
-	for (auto it : m_depth)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_depth.clear();
-
-	for (auto it : m_raster)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_raster.clear();
-
-	for (auto it : m_blend)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_blend.clear();
-
-	for (auto it : m_sampler)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_sampler.clear();
 }
 

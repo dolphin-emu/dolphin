@@ -40,8 +40,8 @@ void VertexManager::CreateDeviceObjects()
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
 	{
 		m_buffers[i] = nullptr;
-		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, &m_buffers[i])), "Failed to create buffer.");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_buffers[i], "Buffer of VertexManager");
+		CHECK(SUCCEEDED(D3D::device->CreateBuffer(&bufdesc, nullptr, m_buffers[i].GetAddressOf())), "Failed to create buffer.");
+		D3D::SetDebugObjectName(m_buffers[i].Get(), "Buffer of VertexManager");
 	}
 
 	m_currentBuffer = 0;
@@ -52,7 +52,7 @@ void VertexManager::DestroyDeviceObjects()
 {
 	for (int i = 0; i < MAX_BUFFER_COUNT; i++)
 	{
-		SAFE_RELEASE(m_buffers[i]);
+		m_buffers[i].Reset();
 	}
 
 }
@@ -101,11 +101,11 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	m_vertexDrawOffset = cursor;
 	m_indexDrawOffset = cursor + vertexBufferSize;
 
-	D3D::context->Map(m_buffers[m_currentBuffer], 0, MapType, 0, &map);
+	D3D::context->Map(m_buffers[m_currentBuffer].Get(), 0, MapType, 0, &map);
 	u8* mappedData = reinterpret_cast<u8*>(map.pData);
 	memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
 	memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
-	D3D::context->Unmap(m_buffers[m_currentBuffer], 0);
+	D3D::context->Unmap(m_buffers[m_currentBuffer].Get(), 0);
 
 	m_bufferCursor = cursor + totalBufferSize;
 
@@ -117,8 +117,8 @@ void VertexManager::Draw(u32 stride)
 {
 	u32 indices = IndexGenerator::GetIndexLen();
 
-	D3D::stateman->SetVertexBuffer(m_buffers[m_currentBuffer], stride, 0);
-	D3D::stateman->SetIndexBuffer(m_buffers[m_currentBuffer]);
+	D3D::stateman->SetVertexBuffer(m_buffers[m_currentBuffer].Get(), stride, 0);
+	D3D::stateman->SetIndexBuffer(m_buffers[m_currentBuffer].Get());
 
 	u32 baseVertex = m_vertexDrawOffset / stride;
 	u32 startIndex = m_indexDrawOffset / sizeof(u16);
@@ -170,7 +170,8 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
 	{
-		D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
+		ID3D11UnorderedAccessView* uav = BBox::GetUAV();
+		D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &uav, nullptr);
 	}
 
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();

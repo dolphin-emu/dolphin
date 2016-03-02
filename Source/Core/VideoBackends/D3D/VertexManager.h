@@ -36,7 +36,7 @@ private:
 	u32 m_bufferCursor;
 
 	enum { MAX_BUFFER_COUNT = 2 };
-	ID3D11Buffer* m_buffers[MAX_BUFFER_COUNT];
+	ComPtr<ID3D11Buffer> m_buffers[MAX_BUFFER_COUNT];
 
 	std::vector<u8> LocalVBuffer;
 	std::vector<u16> LocalIBuffer;

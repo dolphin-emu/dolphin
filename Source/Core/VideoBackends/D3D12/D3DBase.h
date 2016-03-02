@@ -15,6 +15,7 @@
 #include <dxgi1_4.h>
 #include <memory>
 #include <vector>
+#include <wrl/client.h>
 
 #include "../../Externals/d3dx12/d3dx12.h"
 
@@ -24,6 +25,8 @@
 
 namespace DX12
 {
+
+using Microsoft::WRL::ComPtr;
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = nullptr; }
 #define CHECK(cond, Message, ...) if (!(cond)) { __debugbreak(); PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
