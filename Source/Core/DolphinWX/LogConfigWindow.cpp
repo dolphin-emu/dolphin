@@ -12,7 +12,7 @@
 #include <wx/validate.h>
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
@@ -87,10 +87,8 @@ void LogConfigWindow::CreateGUIControls()
 
 void LogConfigWindow::LoadSettings()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
-	IniFile::Section* options = ini.GetOrCreateSection("Options");
+	OnionConfig::OnionPetal* options = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
+	OnionConfig::OnionPetal* logs = OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
 
 	// Retrieve the verbosity value from the config ini file.
 	int verbosity;
@@ -118,7 +116,7 @@ void LogConfigWindow::LoadSettings()
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool log_enabled;
-		ini.GetOrCreateSection("Logs")->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, false);
+		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &log_enabled, false);
 
 		if (log_enabled)
 			enableAll = false;
@@ -129,10 +127,10 @@ void LogConfigWindow::LoadSettings()
 
 void LogConfigWindow::SaveSettings()
 {
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	OnionConfig::BloomLayer* base_layer = OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+	OnionConfig::OnionPetal* options = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
+	OnionConfig::OnionPetal* logs = base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
 
-	IniFile::Section* options = ini.GetOrCreateSection("Options");
 	options->Set("Verbosity", m_verbosity->GetSelection() + 1);
 	options->Set("WriteToFile", m_writeFile);
 	options->Set("WriteToConsole", m_writeConsole);
@@ -140,11 +138,9 @@ void LogConfigWindow::SaveSettings()
 
 	// Save all enabled/disabled states of the log types to the config ini.
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-	{
-		ini.GetOrCreateSection("Logs")->Set(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
-	}
+		logs->Set(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 
-	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	base_layer->Save();
 }
 
 // If the verbosity changes while logging

@@ -20,6 +20,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
+
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_Device.h"
@@ -30,6 +31,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/OnionCoreLoaders/MovieConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/Fifo.h"
@@ -63,12 +65,8 @@ static u64 s_totalLagCount = 0; // just stats
 u64 g_currentInputCount = 0, g_totalInputCount = 0; // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0; // just stats
 static u64 s_recordingStartTime; // seconds since 1970 that recording started
-static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
-static bool s_bProgressive = false, s_bPAL60 = false;
-static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
-static bool s_bSyncGPU = false, s_bNetPlay = false;
-static std::string s_videoBackend = "unknown";
-static int s_iCPUCore = 1;
+static bool s_bSaveConfig = false;
+static bool s_bNetPlay = false;
 bool g_bClearSave = false;
 bool g_bDiscChange = false;
 bool g_bReset = false;
@@ -178,7 +176,6 @@ void Init()
 	s_bFrameStep = false;
 	s_bFrameStop = false;
 	s_bSaveConfig = false;
-	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	if (IsPlayingInput())
 	{
 		ReadHeader();
@@ -350,40 +347,6 @@ bool IsConfigSaved()
 {
 	return s_bSaveConfig;
 }
-bool IsDualCore()
-{
-	return s_bDualCore;
-}
-
-bool IsProgressive()
-{
-	return s_bProgressive;
-}
-
-bool IsPAL60()
-{
-	return s_bPAL60;
-}
-
-bool IsSkipIdle()
-{
-	return s_bSkipIdle;
-}
-
-bool IsDSPHLE()
-{
-	return s_bDSPHLE;
-}
-
-bool IsFastDiscSpeed()
-{
-	return s_bFastDiscSpeed;
-}
-
-int GetCPUMode()
-{
-	return s_iCPUCore;
-}
 
 bool IsStartingFromClearSave()
 {
@@ -393,10 +356,6 @@ bool IsStartingFromClearSave()
 bool IsUsingMemcard(int memcard)
 {
 	return (s_memcards & (1 << memcard)) != 0;
-}
-bool IsSyncGPU()
-{
-	return s_bSyncGPU;
 }
 
 bool IsNetPlayRecording()
@@ -798,17 +757,10 @@ void ReadHeader()
 	if (tmpHeader.bSaveConfig)
 	{
 		s_bSaveConfig = true;
-		s_bSkipIdle = tmpHeader.bSkipIdle;
-		s_bDualCore = tmpHeader.bDualCore;
-		s_bProgressive = tmpHeader.bProgressive;
-		s_bPAL60 = tmpHeader.bPAL60;
-		s_bDSPHLE = tmpHeader.bDSPHLE;
-		s_bFastDiscSpeed = tmpHeader.bFastDiscSpeed;
-		s_iCPUCore = tmpHeader.CPUCore;
+		OnionConfig::AddLoadLayer(GenerateMovieConfigLoader(&tmpHeader));
 		g_bClearSave = tmpHeader.bClearSave;
 		s_memcards = tmpHeader.memcards;
 		s_bongos = tmpHeader.bongos;
-		s_bSyncGPU = tmpHeader.bSyncGPU;
 		s_bNetPlay = tmpHeader.bNetPlay;
 		memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
 	}
@@ -817,7 +769,6 @@ void ReadHeader()
 		GetSettings();
 	}
 
-	s_videoBackend = (char*) tmpHeader.videoBackend;
 	g_discChange = (char*) tmpHeader.discChange;
 	s_author = (char*) tmpHeader.author;
 	memcpy(s_MD5, tmpHeader.md5, 16);
@@ -1227,24 +1178,13 @@ void SaveRecording(const std::string& filename)
 	header.recordingStartTime = s_recordingStartTime;
 
 	header.bSaveConfig = true;
-	header.bSkipIdle = s_bSkipIdle;
-	header.bDualCore = s_bDualCore;
-	header.bProgressive = s_bProgressive;
-	header.bPAL60 = s_bPAL60;
-	header.bDSPHLE = s_bDSPHLE;
-	header.bFastDiscSpeed = s_bFastDiscSpeed;
-	strncpy((char *)header.videoBackend, s_videoBackend.c_str(),ArraySize(header.videoBackend));
-	header.CPUCore = s_iCPUCore;
-	header.bEFBAccessEnable = g_ActiveConfig.bEFBAccessEnable;
-	header.bEFBCopyEnable = true;
-	header.bSkipEFBCopyToRam = g_ActiveConfig.bSkipEFBCopyToRam;
-	header.bEFBCopyCacheEnable = false;
-	header.bEFBEmulateFormatChanges = g_ActiveConfig.bEFBEmulateFormatChanges;
-	header.bUseXFB = g_ActiveConfig.bUseXFB;
-	header.bUseRealXFB = g_ActiveConfig.bUseRealXFB;
+	OnionConfig::BloomLayer* movie_layer = OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_MOVIE);
+	MovieConfigLayerLoader* movie_loader = static_cast<MovieConfigLayerLoader*>(movie_layer->GetLoader());
+	movie_loader->ChangeDTMHeader(&header);
+	movie_layer->Save();
+
 	header.memcards = s_memcards;
 	header.bClearSave = g_bClearSave;
-	header.bSyncGPU = s_bSyncGPU;
 	header.bNetPlay = s_bNetPlay;
 	strncpy((char *)header.discChange, g_discChange.c_str(),ArraySize(header.discChange));
 	strncpy((char *)header.author, s_author.c_str(),ArraySize(header.author));
@@ -1295,27 +1235,9 @@ void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controller
 		(*wiimfunc)(data, rptf, controllerID, ext, key);
 }
 
-void SetGraphicsConfig()
-{
-	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
-	g_Config.bSkipEFBCopyToRam = tmpHeader.bSkipEFBCopyToRam;
-	g_Config.bEFBEmulateFormatChanges = tmpHeader.bEFBEmulateFormatChanges;
-	g_Config.bUseXFB = tmpHeader.bUseXFB;
-	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
-}
-
 void GetSettings()
 {
 	s_bSaveConfig = true;
-	s_bSkipIdle = SConfig::GetInstance().bSkipIdle;
-	s_bDualCore = SConfig::GetInstance().bCPUThread;
-	s_bProgressive = SConfig::GetInstance().bProgressive;
-	s_bPAL60 = SConfig::GetInstance().bPAL60;
-	s_bDSPHLE = SConfig::GetInstance().bDSPHLE;
-	s_bFastDiscSpeed = SConfig::GetInstance().bFastDiscSpeed;
-	s_videoBackend = g_video_backend->GetName();
-	s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
-	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	s_bNetPlay = NetPlay::IsNetPlayRunning();
 	if (!SConfig::GetInstance().bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
@@ -1327,7 +1249,7 @@ void GetSettings()
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		s_revision[i] = tmp;
 	}
-	if (!s_bDSPHLE)
+	if (!SConfig::GetInstance().bDSPHLE)
 	{
 		std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
 		std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;

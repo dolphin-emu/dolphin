@@ -11,6 +11,8 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/ConfigManager.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -151,8 +153,8 @@ public:
 			: name(_name), ui_name(_ui_name), type(_type) {}
 		virtual ~ControlGroup() {}
 
-		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
-		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
+		virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "", const std::string& base = "" );
+		virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "", const std::string& base = "" );
 
 		void SetControlExpression(int index, const std::string& expression);
 
@@ -445,8 +447,8 @@ public:
 
 	virtual void LoadDefaults(const ControllerInterface& ciface);
 
-	virtual void LoadConfig(IniFile::Section *sec, const std::string& base = "");
-	virtual void SaveConfig(IniFile::Section *sec, const std::string& base = "");
+	virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
+	virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
 	void UpdateDefaultDevice();
 
 	void UpdateReferences(ControllerInterface& devi);

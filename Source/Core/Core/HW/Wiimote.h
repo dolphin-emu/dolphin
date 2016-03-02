@@ -20,9 +20,6 @@ enum
 	MAX_BBMOTES = 5,
 };
 
-
-#define WIIMOTE_INI_NAME  "WiimoteNew"
-
 enum
 {
 	WIIMOTE_SRC_NONE   = 0,

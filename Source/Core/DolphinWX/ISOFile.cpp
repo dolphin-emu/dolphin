@@ -22,11 +22,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Boot/Boot.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -124,10 +125,18 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 
 	if (IsValid())
 	{
-		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
-		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
-		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
-		m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+		std::unique_ptr<OnionConfig::BloomLayer> global_config(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateGlobalGameConfigLoader(m_UniqueID, m_Revision))));
+		std::unique_ptr<OnionConfig::BloomLayer> local_config(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateLocalGameConfigLoader(m_UniqueID, m_Revision))));
+
+		global_config->Load();
+		local_config->Load();
+
+		if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId", &m_emu_state))
+			global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId", &m_emu_state);
+		if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues", &m_issues))
+			global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues", &m_issues);
+		if (!(m_has_custom_name = local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "Title", &m_custom_name)))
+			m_has_custom_name = global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "Title", &m_custom_name);
 
 		if (!m_has_custom_name)
 		{
