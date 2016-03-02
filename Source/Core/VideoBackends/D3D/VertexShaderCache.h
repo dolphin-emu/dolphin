@@ -21,9 +21,9 @@ public:
 	static void Shutdown();
 	static bool SetShader(); // TODO: Should be renamed to LoadShader
 
-	static ID3D11VertexShader* GetActiveShader() { return last_entry->shader; }
-	static D3DBlob* GetActiveShaderBytecode() { return last_entry->bytecode; }
-	static ID3D11Buffer* &GetConstantBuffer();
+	static ID3D11VertexShader* GetActiveShader() { return last_entry->shader.Get(); }
+	static D3DBlob* GetActiveShaderBytecode() { return last_entry->bytecode.Get(); }
+	static ID3D11Buffer* GetConstantBuffer();
 
 	static ID3D11VertexShader* GetSimpleVertexShader();
 	static ID3D11VertexShader* GetClearVertexShader();
@@ -35,22 +35,20 @@ public:
 private:
 	struct VSCacheEntry
 	{
-		ID3D11VertexShader* shader;
-		D3DBlob* bytecode; // needed to initialize the input layout
+		ComPtr<ID3D11VertexShader> shader;
+		ComPtr<D3DBlob> bytecode; // needed to initialize the input layout
 
 		std::string code;
 
 		VSCacheEntry() : shader(nullptr), bytecode(nullptr) {}
 		void SetByteCode(D3DBlob* blob)
 		{
-			SAFE_RELEASE(bytecode);
-			bytecode = blob;
-			blob->AddRef();
+			bytecode.Copy(blob);
 		}
 		void Destroy()
 		{
-			SAFE_RELEASE(shader);
-			SAFE_RELEASE(bytecode);
+			shader.Release();
+			bytecode.Release();
 		}
 	};
 	typedef std::map<VertexShaderUid, VSCacheEntry> VSCache;

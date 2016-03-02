@@ -62,22 +62,22 @@ public:
 	FramebufferManager();
 	~FramebufferManager();
 
-	static D3DTexture2D* &GetEFBColorTexture();
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
+	static D3DTexture2D* GetEFBColorTexture();
+	static ID3D11Texture2D* GetEFBColorStagingBuffer();
 
-	static D3DTexture2D* &GetEFBDepthTexture();
-	static D3DTexture2D* &GetEFBDepthReadTexture();
-	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
+	static D3DTexture2D* GetEFBDepthTexture();
+	static D3DTexture2D* GetEFBDepthReadTexture();
+	static ID3D11Texture2D* GetEFBDepthStagingBuffer();
 
-	static D3DTexture2D* &GetResolvedEFBColorTexture();
-	static D3DTexture2D* &GetResolvedEFBDepthTexture();
+	static D3DTexture2D* GetResolvedEFBColorTexture();
+	static D3DTexture2D* GetResolvedEFBDepthTexture();
 
-	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
+	static D3DTexture2D* GetEFBColorTempTexture() { return m_efb.color_temp_tex.Get(); }
 	static void SwapReinterpretTexture()
 	{
 		D3DTexture2D* swaptex = GetEFBColorTempTexture();
-		m_efb.color_temp_tex = GetEFBColorTexture();
-		m_efb.color_tex = swaptex;
+		m_efb.color_temp_tex.Copy(GetEFBColorTexture());
+		m_efb.color_tex.Copy(swaptex);
 	}
 
 private:
@@ -88,24 +88,24 @@ private:
 
 	static struct Efb
 	{
-		D3DTexture2D* color_tex;
-		ID3D11Texture2D* color_staging_buf;
+		ComPtr<D3DTexture2D> color_tex;
+		ComPtr<ID3D11Texture2D> color_staging_buf;
 
-		D3DTexture2D* depth_tex;
-		ID3D11Texture2D* depth_staging_buf;
-		D3DTexture2D* depth_read_texture;
+		ComPtr<D3DTexture2D> depth_tex;
+		ComPtr<ID3D11Texture2D> depth_staging_buf;
+		ComPtr<D3DTexture2D> depth_read_texture;
 
-		D3DTexture2D* color_temp_tex;
+		ComPtr<D3DTexture2D> color_temp_tex;
 
-		D3DTexture2D* resolved_color_tex;
-		D3DTexture2D* resolved_depth_tex;
+		ComPtr<D3DTexture2D> resolved_color_tex;
+		ComPtr<D3DTexture2D> resolved_depth_tex;
 
 		int slices;
 	} m_efb;
 
 	static unsigned int m_target_width;
 	static unsigned int m_target_height;
-	static ID3D11DepthStencilState* m_depth_resolve_depth_state;
+	static ComPtr<ID3D11DepthStencilState> m_depth_resolve_depth_state;
 };
 
 }  // namespace DX11

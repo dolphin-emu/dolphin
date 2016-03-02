@@ -42,31 +42,31 @@ void PSTextureEncoder::Init()
 	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
 		DXGI_FORMAT_B8G8R8A8_UNORM,
 		EFB_WIDTH * 4, EFB_HEIGHT / 4, 1, 1, D3D11_BIND_RENDER_TARGET);
-	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
+	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, m_out.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create efb encode output texture");
-	D3D::SetDebugObjectName(m_out, "efb encoder output texture");
+	D3D::SetDebugObjectName(m_out.Get(), "efb encoder output texture");
 
 	// Create output render target view
-	D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(m_out,
+	D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(m_out.Get(),
 		D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_B8G8R8A8_UNORM);
-	hr = D3D::device->CreateRenderTargetView(m_out, &rtvd, &m_outRTV);
+	hr = D3D::device->CreateRenderTargetView(m_out.Get(), &rtvd, m_outRTV.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create efb encode output render target view");
-	D3D::SetDebugObjectName(m_outRTV, "efb encoder output rtv");
+	D3D::SetDebugObjectName(m_outRTV.Get(), "efb encoder output rtv");
 
 	// Create output staging buffer
 	t2dd.Usage = D3D11_USAGE_STAGING;
 	t2dd.BindFlags = 0;
 	t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_outStage);
+	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, m_outStage.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create efb encode output staging buffer");
-	D3D::SetDebugObjectName(m_outStage, "efb encoder output staging buffer");
+	D3D::SetDebugObjectName(m_outStage.Get(), "efb encoder output staging buffer");
 
 	// Create constant buffer for uploading data to shaders
 	D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(EFBEncodeParams),
 		D3D11_BIND_CONSTANT_BUFFER);
-	hr = D3D::device->CreateBuffer(&bd, nullptr, &m_encodeParams);
+	hr = D3D::device->CreateBuffer(&bd, nullptr, m_encodeParams.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create efb encode params buffer");
-	D3D::SetDebugObjectName(m_encodeParams, "efb encoder params buffer");
+	D3D::SetDebugObjectName(m_encodeParams.Get(), "efb encoder params buffer");
 
 	m_ready = true;
 }
@@ -75,16 +75,12 @@ void PSTextureEncoder::Shutdown()
 {
 	m_ready = false;
 
-	for (auto& it : m_staticShaders)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_staticShaders.clear();
 
-	SAFE_RELEASE(m_encodeParams);
-	SAFE_RELEASE(m_outStage);
-	SAFE_RELEASE(m_outRTV);
-	SAFE_RELEASE(m_out);
+	m_encodeParams.Release();
+	m_outStage.Release();
+	m_outRTV.Release();
+	m_out.Release();
 }
 
 void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
@@ -117,15 +113,15 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		constexpr EFBRectangle fullSrcRect(0, 0, EFB_WIDTH, EFB_HEIGHT);
 		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
 
-		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
+		D3D::SetRenderTarget(m_outRTV.Get(), nullptr);
 
 		EFBEncodeParams params;
 		params.SrcLeft = srcRect.left;
 		params.SrcTop = srcRect.top;
 		params.DestWidth = native_width;
 		params.ScaleFactor = scaleByHalf ? 2 : 1;
-		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
-		D3D::stateman->SetPixelConstants(m_encodeParams);
+		D3D::context->UpdateSubresource(m_encodeParams.Get(), 0, nullptr, &params, 0, 0);
+		D3D::stateman->SetPixelConstants(m_encodeParams.Get());
 
 		// Use linear filtering if (bScaleByHalf), use point filtering otherwise
 		if (scaleByHalf)
@@ -143,11 +139,11 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 		// Copy to staging buffer
 		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, words_per_row, num_blocks_y, 1);
-		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
+		D3D::context->CopySubresourceRegion(m_outStage.Get(), 0, 0, 0, 0, m_out.Get(), 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
 		D3D11_MAPPED_SUBRESOURCE map = { 0 };
-		hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
+		hr = D3D::context->Map(m_outStage.Get(), 0, D3D11_MAP_READ, 0, &map);
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
@@ -159,13 +155,13 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 			src += map.RowPitch;
 		}
 
-		D3D::context->Unmap(m_outStage, 0);
+		D3D::context->Unmap(m_outStage.Get(), 0);
 	}
 
 	// Restore API
 	g_renderer->RestoreAPIState();
-	D3D::context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+	D3D::SetRenderTarget(
+		FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
@@ -211,20 +207,20 @@ ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEC
 			return nullptr;
 		}
 
-		ID3D11PixelShader* newShader;
-		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), nullptr, &newShader);
+		ComPtr<ID3D11PixelShader> newShader;
+		HRESULT hr = D3D::device->CreatePixelShader(bytecode->Data(), bytecode->Size(), nullptr, newShader.GetAddressOf());
 		CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
 		char debugName[255] = {};
 		sprintf_s(debugName, "efb encoder pixel shader (dst:%d, src:%d, intensity:%d, scale:%d)",
 			dstFormat, srcFormat, isIntensity, scaleByHalf);
-		D3D::SetDebugObjectName(newShader, debugName);
+		D3D::SetDebugObjectName(newShader.Get(), debugName);
 
 		it = m_staticShaders.emplace(key, newShader).first;
 		bytecode->Release();
 	}
 
-	return it->second;
+	return it->second.Get();
 }
 
 }

@@ -30,30 +30,30 @@ GeometryShaderUid GeometryShaderCache::last_uid;
 UidChecker<GeometryShaderUid,ShaderCode> GeometryShaderCache::geometry_uid_checker;
 const GeometryShaderCache::GSCacheEntry GeometryShaderCache::pass_entry;
 
-ID3D11GeometryShader* ClearGeometryShader = nullptr;
-ID3D11GeometryShader* CopyGeometryShader = nullptr;
+ComPtr<ID3D11GeometryShader> ClearGeometryShader = nullptr;
+ComPtr<ID3D11GeometryShader> CopyGeometryShader = nullptr;
 
 LinearDiskCache<GeometryShaderUid, u8> g_gs_disk_cache;
 
-ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? ClearGeometryShader: nullptr; }
-ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? CopyGeometryShader : nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? ClearGeometryShader.Get() : nullptr; }
+ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader() { return (g_ActiveConfig.iStereoMode > 0) ? CopyGeometryShader.Get() : nullptr; }
 
-ID3D11Buffer* gscbuf = nullptr;
+ComPtr<ID3D11Buffer> gscbuf = nullptr;
 
-ID3D11Buffer* &GeometryShaderCache::GetConstantBuffer()
+ID3D11Buffer* GeometryShaderCache::GetConstantBuffer()
 {
 	// TODO: divide the global variables of the generated shaders into about 5 constant buffers to speed this up
 	if (GeometryShaderManager::dirty)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(gscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		D3D::context->Map(gscbuf.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
-		D3D::context->Unmap(gscbuf, 0);
+		D3D::context->Unmap(gscbuf.Get(), 0);
 		GeometryShaderManager::dirty = false;
 
 		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(GeometryShaderConstants));
 	}
-	return gscbuf;
+	return gscbuf.Get();
 }
 
 // this class will load the precompiled shaders into our cache
@@ -134,19 +134,19 @@ void GeometryShaderCache::Init()
 {
 	unsigned int gbsize = ROUND_UP(sizeof(GeometryShaderConstants), 16); // must be a multiple of 16
 	D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
+	HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, gscbuf.GetAddressOf());
 	CHECK(hr == S_OK, "Create geometry shader constant buffer (size=%u)", gbsize);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)gscbuf, "geometry shader constant buffer used to emulate the GX pipeline");
+	D3D::SetDebugObjectName(gscbuf.Get(), "geometry shader constant buffer used to emulate the GX pipeline");
 
 	// used when drawing clear quads
 	ClearGeometryShader = D3D::CompileAndCreateGeometryShader(clear_shader_code);
 	CHECK(ClearGeometryShader != nullptr, "Create clear geometry shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearGeometryShader, "clear geometry shader");
+	D3D::SetDebugObjectName(ClearGeometryShader.Get(), "clear geometry shader");
 
 	// used for buffer copy
 	CopyGeometryShader = D3D::CompileAndCreateGeometryShader(copy_shader_code);
 	CHECK(CopyGeometryShader != nullptr, "Create copy geometry shader");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)CopyGeometryShader, "copy geometry shader");
+	D3D::SetDebugObjectName(CopyGeometryShader.Get(), "copy geometry shader");
 
 	Clear();
 
@@ -177,10 +177,9 @@ void GeometryShaderCache::Clear()
 
 void GeometryShaderCache::Shutdown()
 {
-	SAFE_RELEASE(gscbuf);
-
-	SAFE_RELEASE(ClearGeometryShader);
-	SAFE_RELEASE(CopyGeometryShader);
+	gscbuf.Release();
+	ClearGeometryShader.Release();
+	CopyGeometryShader.Release();
 
 	Clear();
 	g_gs_disk_cache.Sync();
@@ -253,12 +252,12 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
 
 bool GeometryShaderCache::InsertByteCode(const GeometryShaderUid &uid, const void* bytecode, unsigned int bytecodelen)
 {
-	ID3D11GeometryShader* shader = D3D::CreateGeometryShaderFromByteCode(bytecode, bytecodelen);
+	ComPtr<ID3D11GeometryShader> shader = D3D::CreateGeometryShaderFromByteCode(bytecode, bytecodelen);
 	if (shader == nullptr)
 		return false;
 
 	// TODO: Somehow make the debug name a bit more specific
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of GeometryShaderCache");
+	D3D::SetDebugObjectName(shader.Get(), "a pixel shader of GeometryShaderCache");
 
 	// Make an entry in the table
 	GSCacheEntry newentry;

@@ -28,18 +28,18 @@ public:
 	void AddRef();
 	UINT Release();
 
-	ID3D11Texture2D* &GetTex();
-	ID3D11ShaderResourceView* &GetSRV();
-	ID3D11RenderTargetView* &GetRTV();
-	ID3D11DepthStencilView* &GetDSV();
+	ID3D11Texture2D* GetTex();
+	ID3D11ShaderResourceView* GetSRV();
+	ID3D11RenderTargetView* GetRTV();
+	ID3D11DepthStencilView* GetDSV();
 
 private:
 	~D3DTexture2D();
 
-	ID3D11Texture2D* tex;
-	ID3D11ShaderResourceView* srv;
-	ID3D11RenderTargetView* rtv;
-	ID3D11DepthStencilView* dsv;
+	ComPtr<ID3D11Texture2D> tex;
+	ComPtr<ID3D11ShaderResourceView> srv;
+	ComPtr<ID3D11RenderTargetView> rtv;
+	ComPtr<ID3D11DepthStencilView> dsv;
 	D3D11_BIND_FLAG bindflags;
 	UINT ref;
 };

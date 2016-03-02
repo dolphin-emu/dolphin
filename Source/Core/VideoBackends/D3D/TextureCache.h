@@ -54,10 +54,10 @@ private:
 	void CompileShaders() override { }
 	void DeleteShaders() override { }
 
-	ID3D11Buffer* palette_buf;
-	ID3D11ShaderResourceView* palette_buf_srv;
-	ID3D11Buffer* palette_uniform;
-	ID3D11PixelShader* palette_pixel_shader[3];
+	ComPtr<ID3D11Buffer> palette_buf;
+	ComPtr<ID3D11ShaderResourceView> palette_buf_srv;
+	ComPtr<ID3D11Buffer> palette_uniform;
+	ComPtr<ID3D11PixelShader> palette_pixel_shader[3];
 };
 
 }

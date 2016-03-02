@@ -25,7 +25,7 @@ namespace DX11
 
 static std::unique_ptr<TextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
-ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
+ComPtr<ID3D11Buffer> efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
@@ -48,7 +48,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 		return false;
 	}
 
-	ID3D11Texture2D* pNewTexture = nullptr;
+	ComPtr<ID3D11Texture2D> pNewTexture = nullptr;
 	ID3D11Texture2D* pSurface = texture->GetTex();
 	D3D11_TEXTURE2D_DESC desc;
 	pSurface->GetDesc(&desc);
@@ -57,22 +57,21 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
 	desc.Usage = D3D11_USAGE_STAGING;
 
-	HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &pNewTexture);
+	HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, pNewTexture.GetAddressOf());
 
 	bool saved_png = false;
 
 	if (SUCCEEDED(hr) && pNewTexture)
 	{
-		D3D::context->CopyResource(pNewTexture, pSurface);
+		D3D::context->CopyResource(pNewTexture.Get(), pSurface);
 
 		D3D11_MAPPED_SUBRESOURCE map;
-		hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
+		hr = D3D::context->Map(pNewTexture.Get(), 0, D3D11_MAP_READ_WRITE, 0, &map);
 		if (SUCCEEDED(hr))
 		{
 			saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
-			D3D::context->Unmap(pNewTexture, 0);
+			D3D::context->Unmap(pNewTexture.Get(), 0);
 		}
-		SAFE_RELEASE(pNewTexture);
 	}
 
 	return saved_png;
@@ -118,7 +117,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		float(dstrect.GetWidth()),
 		float(dstrect.GetHeight()));
 
-	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(texture->GetRTV(), nullptr);
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::SetLinearCopySampler();
 	D3D11_RECT srcRC;
@@ -132,8 +131,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		VertexShaderCache::GetSimpleVertexShader(),
 		VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
-	D3D::context->OMSetRenderTargets(1,
-		&FramebufferManager::GetEFBColorTexture()->GetRTV(),
+	D3D::SetRenderTarget(
+		FramebufferManager::GetEFBColorTexture()->GetRTV(),
 		FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
@@ -168,18 +167,16 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 		const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
 			config.width, config.height, 1, config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
-		ID3D11Texture2D *pTexture;
-		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
+		ComPtr<ID3D11Texture2D> pTexture;
+		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, pTexture.GetAddressOf());
 		CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
 
-		TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE));
+		TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture.Get(), D3D11_BIND_SHADER_RESOURCE));
 		entry->usage = usage;
 
 		// TODO: better debug names
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
-
-		SAFE_RELEASE(pTexture);
 
 		return entry;
 	}
@@ -215,11 +212,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 		const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(28 * sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = colmat;
-		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
+		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, efbcopycbuf[cbufid].GetAddressOf());
 		CHECK(SUCCEEDED(hr), "Create efb copy constant buffer %d", cbufid);
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+		D3D::SetDebugObjectName(efbcopycbuf[cbufid].Get(), "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 	}
-	D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid]);
+	D3D::stateman->SetPixelConstants(efbcopycbuf[cbufid].Get());
 
 	const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
 	// TODO: try targetSource.asRECT();
@@ -235,7 +232,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	// (This can happen because we don't unbind textures when we free them.)
 	D3D::stateman->UnsetTexture(texture->GetSRV());
 
-	D3D::context->OMSetRenderTargets(1, &texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(texture->GetRTV(), nullptr);
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
@@ -247,7 +244,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 		VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader());
 
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
 }
@@ -348,14 +345,14 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	D3D::context->RSSetViewports(1, &vp);
 
 	D3D11_BOX box{ 0, 0, 0, 512, 1, 1 };
-	D3D::context->UpdateSubresource(palette_buf, 0, &box, palette, 0, 0);
+	D3D::context->UpdateSubresource(palette_buf.Get(), 0, &box, palette, 0, 0);
 
-	D3D::stateman->SetTexture(1, palette_buf_srv);
+	D3D::stateman->SetTexture(1, palette_buf_srv.Get());
 
 	// TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
 	float params[4] = { (unconverted->format & 0xf) == GX_TF_I4 ? 15.f : 255.f };
-	D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
-	D3D::stateman->SetPixelConstants(palette_uniform);
+	D3D::context->UpdateSubresource(palette_uniform.Get(), 0, nullptr, &params, 0, 0);
+	D3D::stateman->SetPixelConstants(palette_uniform.Get());
 
 	const D3D11_RECT sourcerect = CD3D11_RECT(0, 0, unconverted->config.width, unconverted->config.height);
 
@@ -365,22 +362,22 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 	// (This can happen because we don't unbind textures when we free them.)
 	D3D::stateman->UnsetTexture(static_cast<TCacheEntry*>(entry)->texture->GetSRV());
 
-	D3D::context->OMSetRenderTargets(1, &static_cast<TCacheEntry*>(entry)->texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(static_cast<TCacheEntry*>(entry)->texture->GetRTV(), nullptr);
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
 		static_cast<TCacheEntry*>(unconverted)->texture->GetSRV(),
 		&sourcerect, unconverted->config.width, unconverted->config.height,
-		palette_pixel_shader[format],
+		palette_pixel_shader[format].Get(),
 		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader());
 
-	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
 
 	g_renderer->RestoreAPIState();
 }
 
-ID3D11PixelShader *GetConvertShader(const char* Type)
+static ComPtr<ID3D11PixelShader> GetConvertShader(const char* Type)
 {
 	std::string shader = "#define DECODE DecodePixel_";
 	shader.append(Type);
@@ -402,33 +399,33 @@ TextureCache::TextureCache()
 	palette_pixel_shader[GX_TL_RGB565] = GetConvertShader("RGB565");
 	palette_pixel_shader[GX_TL_RGB5A3] = GetConvertShader("RGB5A3");
 	auto lutBd = CD3D11_BUFFER_DESC(sizeof(u16) * 256, D3D11_BIND_SHADER_RESOURCE);
-	HRESULT hr = D3D::device->CreateBuffer(&lutBd, nullptr, &palette_buf);
+	HRESULT hr = D3D::device->CreateBuffer(&lutBd, nullptr, palette_buf.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create palette decoder lut buffer");
-	D3D::SetDebugObjectName(palette_buf, "texture decoder lut buffer");
+	D3D::SetDebugObjectName(palette_buf.Get(), "texture decoder lut buffer");
 	// TODO: C14X2 format.
-	auto outlutUavDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(palette_buf, DXGI_FORMAT_R16_UINT, 0, 256, 0);
-	hr = D3D::device->CreateShaderResourceView(palette_buf, &outlutUavDesc, &palette_buf_srv);
+	auto outlutUavDesc = CD3D11_SHADER_RESOURCE_VIEW_DESC(palette_buf.Get(), DXGI_FORMAT_R16_UINT, 0, 256, 0);
+	hr = D3D::device->CreateShaderResourceView(palette_buf.Get(), &outlutUavDesc, palette_buf_srv.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "create palette decoder lut srv");
-	D3D::SetDebugObjectName(palette_buf_srv, "texture decoder lut srv");
+	D3D::SetDebugObjectName(palette_buf_srv.Get(), "texture decoder lut srv");
 	const D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(16, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-	hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &palette_uniform);
+	hr = D3D::device->CreateBuffer(&cbdesc, nullptr, palette_uniform.GetAddressOf());
 	CHECK(SUCCEEDED(hr), "Create palette decoder constant buffer");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)palette_uniform, "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
+	D3D::SetDebugObjectName(palette_uniform.Get(), "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 }
 
 TextureCache::~TextureCache()
 {
 	for (unsigned int k = 0; k < MAX_COPY_BUFFERS; ++k)
-		SAFE_RELEASE(efbcopycbuf[k]);
+		efbcopycbuf[k].Release();
 
 	g_encoder->Shutdown();
 	g_encoder.reset();
 
-	SAFE_RELEASE(palette_buf);
-	SAFE_RELEASE(palette_buf_srv);
-	SAFE_RELEASE(palette_uniform);
-	for (ID3D11PixelShader*& shader : palette_pixel_shader)
-		SAFE_RELEASE(shader);
+	palette_buf.Release();
+	palette_buf_srv.Release();
+	palette_uniform.Release();
+	for (ComPtr<ID3D11PixelShader>& shader : palette_pixel_shader)
+		shader.Release();
 }
 
 }

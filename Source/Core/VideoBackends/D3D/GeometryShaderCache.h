@@ -24,18 +24,18 @@ public:
 	static ID3D11GeometryShader* GeometryShaderCache::GetClearGeometryShader();
 	static ID3D11GeometryShader* GeometryShaderCache::GetCopyGeometryShader();
 
-	static ID3D11GeometryShader* GetActiveShader() { return last_entry->shader; }
-	static ID3D11Buffer* &GetConstantBuffer();
+	static ID3D11GeometryShader* GetActiveShader() { return last_entry->shader.Get(); }
+	static ID3D11Buffer* GetConstantBuffer();
 
 private:
 	struct GSCacheEntry
 	{
-		ID3D11GeometryShader* shader;
+		ComPtr<ID3D11GeometryShader> shader;
 
 		std::string code;
 
 		GSCacheEntry() : shader(nullptr) {}
-		void Destroy() { SAFE_RELEASE(shader); }
+		void Destroy() { shader.Release(); }
 	};
 
 	typedef std::map<GeometryShaderUid, GSCacheEntry> GSCache;
