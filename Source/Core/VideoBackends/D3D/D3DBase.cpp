@@ -39,7 +39,7 @@ ComPtr<ID3D11DeviceContext> context = nullptr;
 static ComPtr<IDXGISwapChain> swapchain = nullptr;
 static ComPtr<ID3D11Debug> debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
-ComPtr<D3DTexture2D> backbuf = nullptr;
+D3DTexture2D backbuf;
 HWND hWnd;
 
 std::vector<DXGI_SAMPLE_DESC> aa_modes; // supported AA modes of the current adapter
@@ -364,13 +364,11 @@ HRESULT Create(HWND wnd)
 		swapchain.Release();
 		return E_FAIL;
 	}
-	backbuf.Attach(new D3DTexture2D(buf.Get(), D3D11_BIND_RENDER_TARGET));
-	buf.Release();
-	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	backbuf.Attach(buf.Detach(), D3D11_BIND_RENDER_TARGET);
+	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
+	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 
-	SetRenderTarget(backbuf->GetRTV());
+	SetRenderTarget(backbuf.GetRTV());
 
 	// BGRA textures are easier to deal with in TextureCache, but might not be supported by the hardware
 	UINT format_support;
@@ -446,7 +444,7 @@ const char* PixelShaderVersionString()
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "ps_4_0";
 }
 
-D3DTexture2D* GetBackBuffer() { return backbuf.Get(); }
+D3DTexture2D* GetBackBuffer() { return &backbuf; }
 unsigned int GetBackBufferWidth() { return xres; }
 unsigned int GetBackBufferHeight() { return yres; }
 
@@ -499,11 +497,9 @@ void Reset()
 		swapchain.Release();
 		return;
 	}
-	backbuf.Attach(new D3DTexture2D(buf.Get(), D3D11_BIND_RENDER_TARGET));
-	buf.Release();
-	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	backbuf.Attach(buf.Detach(), D3D11_BIND_RENDER_TARGET);
+	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
+	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 }
 
 bool BeginFrame()

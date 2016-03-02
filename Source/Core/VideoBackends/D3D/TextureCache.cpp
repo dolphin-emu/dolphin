@@ -27,14 +27,9 @@ static std::unique_ptr<TextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ComPtr<ID3D11Buffer> efbcopycbuf[MAX_COPY_BUFFERS] = { 0 };
 
-TextureCache::TCacheEntry::~TCacheEntry()
-{
-	texture->Release();
-}
-
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-	D3D::stateman->SetTexture(stage, texture->GetSRV());
+	D3D::stateman->SetTexture(stage, texture.GetSRV());
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
@@ -49,7 +44,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 	}
 
 	ComPtr<ID3D11Texture2D> pNewTexture = nullptr;
-	ID3D11Texture2D* pSurface = texture->GetTex();
+	ID3D11Texture2D* pSurface = texture.GetTex();
 	D3D11_TEXTURE2D_DESC desc;
 	pSurface->GetDesc(&desc);
 
@@ -95,12 +90,12 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		srcbox.back = srcentry->config.layers;
 
 		D3D::context->CopySubresourceRegion(
-			texture->GetTex(),
+			texture.GetTex(),
 			0,
 			dstrect.left,
 			dstrect.top,
 			0,
-			srcentry->texture->GetTex(),
+			srcentry->texture.GetTex(),
 			0,
 			&srcbox);
 		return;
@@ -117,7 +112,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		float(dstrect.GetWidth()),
 		float(dstrect.GetHeight()));
 
-	D3D::SetRenderTarget(texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(texture.GetRTV(), nullptr);
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::SetLinearCopySampler();
 	D3D11_RECT srcRC;
@@ -125,15 +120,15 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 	srcRC.right = srcrect.right;
 	srcRC.top = srcrect.top;
 	srcRC.bottom = srcrect.bottom;
-	D3D::drawShadedTexQuad(srcentry->texture->GetSRV(), &srcRC,
+	D3D::drawShadedTexQuad(srcentry->texture.GetSRV(), &srcRC,
 		srcentry->config.width, srcentry->config.height,
 		PixelShaderCache::GetColorCopyProgram(false),
 		VertexShaderCache::GetSimpleVertexShader(),
 		VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader(), 1.0, 0);
 
 	D3D::SetRenderTarget(
-		FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		FramebufferManager::GetEFBColorTexture().GetRTV(),
+		FramebufferManager::GetEFBDepthTexture().GetDSV());
 
 	g_renderer->RestoreAPIState();
 }
@@ -142,16 +137,20 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 	unsigned int expanded_width, unsigned int level)
 {
 	unsigned int src_pitch = 4 * expanded_width;
-	D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, src_pitch, level, usage);
+	D3D::ReplaceRGBATexture2D(texture.GetTex(), TextureCache::temp, width, height, src_pitch, level, usage);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
 	if (config.rendertarget)
 	{
-		return new TCacheEntry(config, D3DTexture2D::Create(config.width, config.height,
-			(D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET | (int)D3D11_BIND_SHADER_RESOURCE),
-			D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers));
+		D3DTexture2D newTex;
+		newTex.Create(DXGI_FORMAT_R8G8B8A8_UNORM, config.width, config.height,
+			(D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE),
+			D3D11_USAGE_DEFAULT, 1, config.layers);
+		TCacheEntry* const entry = new TCacheEntry(config, std::move(newTex));
+		entry->usage = D3D11_USAGE_DEFAULT;
+		return entry;
 	}
 	else
 	{
@@ -167,16 +166,18 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 		const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
 			config.width, config.height, 1, config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
-		ComPtr<ID3D11Texture2D> pTexture;
-		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, pTexture.GetAddressOf());
+		ID3D11Texture2D* pTexture;
+		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
 		CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
-
-		TCacheEntry* const entry = new TCacheEntry(config, new D3DTexture2D(pTexture.Get(), D3D11_BIND_SHADER_RESOURCE));
+		
+		D3DTexture2D newTex;
+		newTex.Attach(pTexture, D3D11_BIND_SHADER_RESOURCE);
+		TCacheEntry* const entry = new TCacheEntry(config, std::move(newTex));
 		entry->usage = usage;
 
 		// TODO: better debug names
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetTex(), "a texture of the TextureCache");
-		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry->texture->GetSRV(), "shader resource view of a texture of the TextureCache");
+		D3D::SetDebugObjectName(entry->texture.GetTex(), "a texture of the TextureCache");
+		D3D::SetDebugObjectName(entry->texture.GetSRV(), "shader resource view of a texture of the TextureCache");
 
 		return entry;
 	}
@@ -190,14 +191,14 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 	// filter is ignored.
 	bool multisampled = (g_ActiveConfig.iMultisamples > 1);
 	ID3D11ShaderResourceView* efbTexSRV = (srcFormat == PEControl::Z24) ?
-		FramebufferManager::GetEFBDepthTexture()->GetSRV() :
-		FramebufferManager::GetEFBColorTexture()->GetSRV();
+		FramebufferManager::GetEFBDepthTexture().GetSRV() :
+		FramebufferManager::GetEFBColorTexture().GetSRV();
 	if (multisampled && scaleByHalf)
 	{
 		multisampled = false;
 		efbTexSRV = (srcFormat == PEControl::Z24) ?
-			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+			FramebufferManager::GetResolvedEFBDepthTexture().GetSRV() :
+			FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
 	}
 
 	g_renderer->ResetAPIState();
@@ -230,9 +231,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
 	// Make sure we don't draw with the texture set as both a source and target.
 	// (This can happen because we don't unbind textures when we free them.)
-	D3D::stateman->UnsetTexture(texture->GetSRV());
+	D3D::stateman->UnsetTexture(texture.GetSRV());
 
-	D3D::SetRenderTarget(texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(texture.GetRTV(), nullptr);
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
@@ -244,7 +245,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 		VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader());
 
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 
 	g_renderer->RestoreAPIState();
 }
@@ -360,19 +361,19 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 
 	// Make sure we don't draw with the texture set as both a source and target.
 	// (This can happen because we don't unbind textures when we free them.)
-	D3D::stateman->UnsetTexture(static_cast<TCacheEntry*>(entry)->texture->GetSRV());
+	D3D::stateman->UnsetTexture(static_cast<TCacheEntry*>(entry)->texture.GetSRV());
 
-	D3D::SetRenderTarget(static_cast<TCacheEntry*>(entry)->texture->GetRTV(), nullptr);
+	D3D::SetRenderTarget(static_cast<TCacheEntry*>(entry)->texture.GetRTV(), nullptr);
 
 	// Create texture copy
 	D3D::drawShadedTexQuad(
-		static_cast<TCacheEntry*>(unconverted)->texture->GetSRV(),
+		static_cast<TCacheEntry*>(unconverted)->texture.GetSRV(),
 		&sourcerect, unconverted->config.width, unconverted->config.height,
 		palette_pixel_shader[format].Get(),
 		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader());
 
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 
 	g_renderer->RestoreAPIState();
 }

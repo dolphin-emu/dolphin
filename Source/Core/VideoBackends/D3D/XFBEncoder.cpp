@@ -313,7 +313,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
 	D3D::SetRenderTarget(m_outRTV.Get(), nullptr);
 
-	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
 
 	D3D::stateman->SetVertexConstants(m_encodeParams.Get());
 	D3D::stateman->SetPixelConstants(m_encodeParams.Get());
@@ -366,8 +366,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	g_renderer->RestoreAPIState();
 	D3D::stateman->Apply(); // force unbind efb texture as shader resource
 	D3D::SetRenderTarget(
-		FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		FramebufferManager::GetEFBColorTexture().GetRTV(),
+		FramebufferManager::GetEFBDepthTexture().GetDSV());
 }
 
 }

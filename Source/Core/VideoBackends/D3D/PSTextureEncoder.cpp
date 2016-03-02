@@ -94,11 +94,11 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	// Resolve MSAA targets before copying.
 	ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
-			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+			FramebufferManager::GetResolvedEFBDepthTexture().GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
 			// expecting the blurred edges around multisampled shapes.
-			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+			FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
 
 	// Reset API
 	g_renderer->ResetAPIState();
@@ -161,8 +161,8 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	// Restore API
 	g_renderer->RestoreAPIState();
 	D3D::SetRenderTarget(
-		FramebufferManager::GetEFBColorTexture()->GetRTV(),
-		FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		FramebufferManager::GetEFBColorTexture().GetRTV(),
+		FramebufferManager::GetEFBDepthTexture().GetDSV());
 }
 
 ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat, PEControl::PixelFormat srcFormat,

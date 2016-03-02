@@ -19,12 +19,10 @@ public:
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
-		D3DTexture2D *const texture;
-
+		D3DTexture2D texture;
 		D3D11_USAGE usage;
 
-		TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D *_tex) : TCacheEntryBase(config), texture(_tex) {}
-		~TCacheEntry();
+		TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D&& _tex) : TCacheEntryBase(config), texture(_tex) {}
 
 		void CopyRectangleFromTexture(
 			const TCacheEntryBase* source,

@@ -55,7 +55,7 @@ ComPtr<ID3D11DepthStencilState> resetdepthstate = nullptr;
 ComPtr<ID3D11RasterizerState> resetraststate = nullptr;
 
 static ComPtr<ID3D11Texture2D> s_screenshot_texture = nullptr;
-static ComPtr<D3DTexture2D> s_3d_vision_texture = nullptr;
+static D3DTexture2D s_3d_vision_texture;
 
 // Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
 typedef struct _Nv_Stereo_Image_Header
@@ -227,8 +227,8 @@ static void Create3DVisionTexture(int width, int height)
 	header->dwHeight = height + 1;
 	header->dwBPP = 32;
 	header->dwFlags = 0;
-
-	s_3d_vision_texture.Attach(D3DTexture2D::Create(width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sysData));
+	
+	s_3d_vision_texture.Create(DXGI_FORMAT_R8G8B8A8_UNORM, width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 1, 1, &sysData);
 	delete[] sysData.pSysMem;
 }
 
@@ -274,12 +274,12 @@ Renderer::Renderer(void *&window_handle)
 
 	// Clear EFB textures
 	float ClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
-	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), ClearColor);
-	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
+	D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture().GetRTV(), ClearColor);
+	D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture().GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)s_target_width, (float)s_target_height);
 	D3D::context->RSSetViewports(1, &vp);
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 	D3D::BeginFrame();
 }
 
@@ -400,9 +400,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::stateman->SetPixelConstants(0, access_efb_cbuf.Get());
-		D3D::SetRenderTarget(FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
+		D3D::SetRenderTarget(FramebufferManager::GetEFBDepthReadTexture().GetRTV(), nullptr);
 		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
+		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture().GetSRV(),
 								&RectToLock,
 								Renderer::GetTargetWidth(),
 								Renderer::GetTargetHeight(),
@@ -410,12 +410,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
-		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 
 		// copy to system memory
 		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
+		read_tex = FramebufferManager::GetEFBDepthStagingBuffer().Get();
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture().GetTex(), 0, &box);
 
 		RestoreAPIState(); // restore game state
 
@@ -441,9 +441,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 	else if (type == PEEK_COLOR)
 	{
 		// we can directly copy to system memory here
-		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
+		read_tex = FramebufferManager::GetEFBColorStagingBuffer().Get();
 		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture().GetTex(), 0, &box);
 
 		// read the data from system memory
 		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
@@ -484,7 +484,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 	{
 		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
 		D3D::context->RSSetViewports(1, &vp);
-		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), nullptr);
+		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), nullptr);
 	}
 	else // if (type == POKE_Z)
 	{
@@ -495,8 +495,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 
 		D3D::context->RSSetViewports(1, &vp);
 
-		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(),
-			FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(),
+			FramebufferManager::GetEFBDepthTexture().GetDSV());
 	}
 
 	D3D::DrawEFBPokeQuads(type, points, num_points);
@@ -603,15 +603,15 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(), (float)g_renderer->GetTargetHeight());
 	D3D::context->RSSetViewports(1, &vp);
 
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTempTexture()->GetRTV(), nullptr);
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTempTexture().GetRTV(), nullptr);
 	D3D::SetPointCopySampler();
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture().GetSRV(), &source, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
 		pixel_shader, VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
 	g_renderer->RestoreAPIState();
 
 	FramebufferManager::SwapReinterpretTexture();
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -758,12 +758,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 	}
 	else if (g_ActiveConfig.bUseXFB)
 	{
-		const XFBSource* xfbSource;
+		XFBSource* xfbSource;
 
 		// draw each xfb source
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			xfbSource = (const XFBSource*)xfbSourceList[i];
+			xfbSource = (XFBSource*)xfbSourceList[i];
 
 			TargetRectangle drawRc;
 
@@ -794,7 +794,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 			sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
 
-			BlitScreen(sourceRc, drawRc, xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
+			BlitScreen(sourceRc, drawRc, &xfbSource->tex, xfbSource->texWidth, xfbSource->texHeight, Gamma);
 		}
 	}
 	else
@@ -802,8 +802,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
 
 		// TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB texture as source
-		D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-		BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
+		D3DTexture2D& read_texture = FramebufferManager::GetResolvedEFBColorTexture();
+		BlitScreen(sourceRc, targetRc, &read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
 	}
 
 	// done with drawing the game stuff, good moment to save a screenshot
@@ -989,14 +989,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		g_framebuffer_manager.reset();
 		g_framebuffer_manager = std::make_unique<FramebufferManager>();
 		float clear_col[4] = { 0.f, 0.f, 0.f, 1.f };
-		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_col);
-		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
+		D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture().GetRTV(), clear_col);
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture().GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
 	}
 
 	// begin next frame
 	RestoreAPIState();
 	D3D::BeginFrame();
-	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	D3D::SetRenderTarget(FramebufferManager::GetEFBColorTexture().GetRTV(), FramebufferManager::GetEFBDepthTexture().GetDSV());
 	SetViewport();
 }
 
@@ -1288,14 +1288,14 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 	}
 	else if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
 	{
-		if (!s_3d_vision_texture)
+		if (!s_3d_vision_texture.GetTex())
 			Create3DVisionTexture(s_backbuffer_width, s_backbuffer_height);
 
 		D3D11_VIEWPORT leftVp = CD3D11_VIEWPORT((float)dst.left, (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
 		D3D11_VIEWPORT rightVp = CD3D11_VIEWPORT((float)(dst.left + s_backbuffer_width), (float)dst.top, (float)dst.GetWidth(), (float)dst.GetHeight());
 
 		// Render to staging texture which is double the width of the backbuffer
-		D3D::SetRenderTarget(s_3d_vision_texture->GetRTV(), nullptr);
+		D3D::SetRenderTarget(s_3d_vision_texture.GetRTV(), nullptr);
 
 		D3D::context->RSSetViewports(1, &leftVp);
 		D3D::drawShadedTexQuad(src_texture->GetSRV(), src.AsRECT(), src_width, src_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
@@ -1306,7 +1306,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 		// Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
 		// recognize the signature and automatically include the right eye frame.
 		D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
-		D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture->GetTex(), 0, &box);
+		D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0, s_3d_vision_texture.GetTex(), 0, &box);
 
 		// Restore render target to backbuffer
 		D3D::SetRenderTarget(D3D::GetBackBuffer()->GetRTV(), nullptr);
