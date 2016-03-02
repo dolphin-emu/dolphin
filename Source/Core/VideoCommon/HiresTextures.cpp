@@ -417,13 +417,17 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 				break;
 			}
 
-			// calculate the size of the next mipmap
-			width >>= 1;
-			height >>= 1;
-
 			if (!ret)
 				ret = std::unique_ptr<HiresTexture>(new HiresTexture);
 			ret->m_levels.push_back(std::move(l));
+
+			// no more mipmaps available
+			if (width == 1 && height == 1)
+				break;
+
+			// calculate the size of the next mipmap
+			width = std::max(1u, width >> 1);
+			height = std::max(1u, height >> 1);
 		}
 		else
 		{
