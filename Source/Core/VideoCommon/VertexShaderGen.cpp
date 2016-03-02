@@ -252,7 +252,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 					// The following assert was triggered in House of the Dead Overkill and Star Wars Rogue Squadron 2
 					//_assert_(0); // should have normals
 					uid_data->texMtxInfo[i].embosssourceshift = xfmem.texMtxInfo[i].embosssourceshift;
-					out.Write("o.tex%d.xyz = o.tex%d.xyz;\n", i, texinfo.embosssourceshift);
+					out.Write("o.tex%d.xyz = o.tex%d.xyz + pos.xyz;\n", i, texinfo.embosssourceshift);
 				}
 
 				break;
