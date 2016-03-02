@@ -237,9 +237,8 @@ private:
 
 	// Exits
 	void WriteExit(u32 destination);
-	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
-	void WriteExternalExceptionExit(ARM64Reg dest);
-	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
+	void WriteExit(Arm64Gen::ARM64Reg dest);
+	void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 

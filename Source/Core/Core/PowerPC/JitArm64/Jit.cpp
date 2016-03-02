@@ -133,7 +133,7 @@ void JitArm64::HLEFunction(UGeckoInstruction inst)
 
 	ARM64Reg WA = gpr.GetReg();
 	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(npc));
-	WriteExitDestInR(WA);
+	WriteExit(WA);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -206,61 +206,7 @@ void JitArm64::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 }
 
-void JitArm64::WriteExceptionExit(ARM64Reg dest)
-{
-	Cleanup();
-	DoDownCount();
-
-	ARM64Reg WA = gpr.GetReg();
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
-	FixupBranch no_exceptions = CBZ(WA);
-	gpr.Unlock(WA);
-
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
-	BLR(EncodeRegTo64(dest));
-	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
-
-	SetJumpTarget(no_exceptions);
-
-	if (Profiler::g_ProfileBlocks)
-		EndTimeProfile(js.curBlock);
-
-	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
-	BR(EncodeRegTo64(dest));
-
-	gpr.Unlock(dest);
-}
-
-void JitArm64::WriteExternalExceptionExit(ARM64Reg dest)
-{
-	Cleanup();
-	DoDownCount();
-
-	ARM64Reg WA = gpr.GetReg();
-	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
-	FixupBranch no_exceptions = CBZ(WA);
-	gpr.Unlock(WA);
-
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
-	BLR(EncodeRegTo64(dest));
-	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
-	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
-	SetJumpTarget(no_exceptions);
-
-	if (Profiler::g_ProfileBlocks)
-		EndTimeProfile(js.curBlock);
-
-	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
-	BR(EncodeRegTo64(dest));
-	gpr.Unlock(dest);
-}
-
-void JitArm64::WriteExitDestInR(ARM64Reg Reg)
+void JitArm64::WriteExit(ARM64Reg Reg)
 {
 	STR(INDEX_UNSIGNED, Reg, X29, PPCSTATE_OFF(pc));
 	Cleanup();
@@ -272,6 +218,37 @@ void JitArm64::WriteExitDestInR(ARM64Reg Reg)
 	MOVI2R(EncodeRegTo64(Reg), (u64)asm_routines.dispatcher);
 	BR(EncodeRegTo64(Reg));
 	gpr.Unlock(Reg);
+}
+
+void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
+{
+	Cleanup();
+	DoDownCount();
+
+	ARM64Reg WA = gpr.GetReg();
+	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(Exceptions));
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+	FixupBranch no_exceptions = CBZ(WA);
+	gpr.Unlock(WA);
+
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
+	if (only_external)
+		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
+	else
+		MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
+	BLR(EncodeRegTo64(dest));
+	LDR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(npc));
+	STR(INDEX_UNSIGNED, dest, X29, PPCSTATE_OFF(pc));
+
+	SetJumpTarget(no_exceptions);
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
+
+	MOVI2R(EncodeRegTo64(dest), (u64)asm_routines.dispatcher);
+	BR(EncodeRegTo64(dest));
+
+	gpr.Unlock(dest);
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
@@ -517,7 +494,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
 				MOVI2R(W30, ops[i].address);
-				WriteExternalExceptionExit(W30);
+				WriteExceptionExit(W30, true);
 			SwitchToNearCode();
 			SetJumpTarget(exit);
 			gpr.Unlock(W30);
@@ -549,7 +526,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
 				MOVI2R(WA, ops[i].address);
-				WriteExternalExceptionExit(WA);
+				WriteExceptionExit(WA, true);
 			SwitchToNearCode();
 			SetJumpTarget(NoExtException);
 			SetJumpTarget(exit);

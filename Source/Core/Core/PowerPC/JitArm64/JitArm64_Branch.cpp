@@ -213,7 +213,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 
 	LDR(INDEX_UNSIGNED, WA, X29, PPCSTATE_OFF(spr[SPR_CTR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
-	WriteExitDestInR(WA);
+	WriteExit(WA);
 }
 
 void JitArm64::bclrx(UGeckoInstruction inst)
@@ -261,7 +261,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
 
-	WriteExitDestInR(WA);
+	WriteExit(WA);
 
 	SwitchToNearCode();
 
