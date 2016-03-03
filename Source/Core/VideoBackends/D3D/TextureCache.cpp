@@ -166,12 +166,13 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 		const D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM,
 			config.width, config.height, 1, config.levels, D3D11_BIND_SHADER_RESOURCE, usage, cpu_access);
 
-		ID3D11Texture2D* pTexture;
-		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &pTexture);
+		ComPtr<ID3D11Texture2D> pTexture;
+		const HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, pTexture.GetAddressOf());
 		CHECK(SUCCEEDED(hr), "Create texture of the TextureCache");
 		
 		D3DTexture2D newTex;
-		newTex.Attach(pTexture, D3D11_BIND_SHADER_RESOURCE);
+		newTex.CreateFromExisting(pTexture.Get(), D3D11_BIND_SHADER_RESOURCE);
+		pTexture.Release();
 		TCacheEntry* const entry = new TCacheEntry(config, std::move(newTex));
 		entry->usage = usage;
 

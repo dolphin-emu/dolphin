@@ -364,7 +364,8 @@ HRESULT Create(HWND wnd)
 		swapchain.Release();
 		return E_FAIL;
 	}
-	backbuf.Attach(buf.Detach(), D3D11_BIND_RENDER_TARGET);
+	backbuf.CreateFromExisting(buf.Get(), D3D11_BIND_RENDER_TARGET);
+	buf.Release();
 	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
 	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 
@@ -497,7 +498,8 @@ void Reset()
 		swapchain.Release();
 		return;
 	}
-	backbuf.Attach(buf.Detach(), D3D11_BIND_RENDER_TARGET);
+	backbuf.CreateFromExisting(buf.Get(), D3D11_BIND_RENDER_TARGET);
+	buf.Release();
 	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
 	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 }

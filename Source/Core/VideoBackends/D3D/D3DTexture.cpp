@@ -49,7 +49,7 @@ void D3DTexture2D::Create(DXGI_FORMAT format, unsigned int width, unsigned int h
 	unsigned int levels, unsigned int slices,
 	const D3D11_SUBRESOURCE_DATA* data)
 {
-	ID3D11Texture2D* pTexture = nullptr;
+	ComPtr<ID3D11Texture2D> pTexture = nullptr;
 	HRESULT hr;
 
 	D3D11_CPU_ACCESS_FLAG cpuflags;
@@ -60,21 +60,22 @@ void D3DTexture2D::Create(DXGI_FORMAT format, unsigned int width, unsigned int h
 	else
 		cpuflags = (D3D11_CPU_ACCESS_FLAG)0;
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(format, width, height, slices, levels, bind, usage, cpuflags);
-	hr = D3D::device->CreateTexture2D(&texdesc, data, &pTexture);
+	hr = D3D::device->CreateTexture2D(&texdesc, data, pTexture.GetAddressOf());
 	if (FAILED(hr))
 	{
 		PanicAlert("Failed to create texture at %s, line %d: hr=%#x\n", __FILE__, __LINE__, hr);
 		return;
 	}
 
-	Attach(pTexture, bind);
+	CreateFromExisting(pTexture.Get(), bind);
 }
 
-void D3DTexture2D::Attach(ID3D11Texture2D* tex, D3D11_BIND_FLAG bind,
+void D3DTexture2D::CreateFromExisting(ID3D11Texture2D* tex, D3D11_BIND_FLAG bind,
 	DXGI_FORMAT srv_format, DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled)
 {
 	Release();
-	m_tex.Attach(tex);
+	m_tex.Copy(tex);
+
 	if (bind & D3D11_BIND_SHADER_RESOURCE)
 	{
 		D3D11_SRV_DIMENSION srv_dim = multisampled ?
