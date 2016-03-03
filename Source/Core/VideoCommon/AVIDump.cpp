@@ -21,6 +21,7 @@ extern "C" {
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/Movie.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h" //for TargetRefreshRate
 #include "VideoCommon/AVIDump.h"
@@ -177,7 +178,9 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 	int error = 0;
 	u64 delta;
 	s64 last_pts;
-	if (!s_start_dumping && s_last_frame <= SystemTimers::GetTicksPerSecond())
+	// Check to see if the first frame being dumped is the first frame of output from the emulator.
+	// This prevents an issue with starting dumping later in emulation from placing the frames incorrectly.
+	if (!s_start_dumping && Movie::g_currentFrame < 1)
 	{
 		delta = CoreTiming::GetTicks();
 		last_pts = AV_NOPTS_VALUE;
