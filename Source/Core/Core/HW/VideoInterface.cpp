@@ -495,7 +495,7 @@ float GetAspectRatio()
 	float horizontal_active_area = tick_length * GetTicksPerSample() * active_width_samples;
 
 	// We are approximating the horizontal/vertical flyback transformers that control the
-	// position of the election beam on the screen. Our flyback transformers create a
+	// position of the electron beam on the screen. Our flyback transformers create a
 	// perfect Sawtooth wave, with a smooth rise and a fall that takes zero time.
 	// For more accurate emulation of video signals out of the 525 or 625 line standards,
 	// it might be necessary to emulate a less precise flyback transformer with more flaws.

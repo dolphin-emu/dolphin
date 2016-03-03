@@ -138,7 +138,7 @@ public:
 
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
-	static void BindTextures();
+	virtual void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf);
 
@@ -150,9 +150,12 @@ protected:
 	alignas(16) static u8* temp;
 	static size_t temp_size;
 
+	static TCacheEntryBase* bound_textures[8];
+
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
+	static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
 	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
@@ -165,7 +168,6 @@ private:
 	static TexCache textures_by_address;
 	static TexCache textures_by_hash;
 	static TexPool texture_pool;
-	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig

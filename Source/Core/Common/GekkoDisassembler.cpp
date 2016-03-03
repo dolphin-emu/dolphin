@@ -1182,7 +1182,7 @@ void GekkoDisassembler::ps_mem(u32 inst)
 }
 
 // Disassemble PPC instruction and return a pointer to the next
-// instruction, or nullptr if an error occured.
+// instruction, or nullptr if an error occurred.
 u32* GekkoDisassembler::DoDisassembly(bool big_endian)
 {
 	u32 in = *m_instr;

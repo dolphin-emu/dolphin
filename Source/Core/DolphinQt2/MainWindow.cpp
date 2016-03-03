@@ -32,12 +32,17 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	ConnectMenuBar();
 }
 
+MainWindow::~MainWindow()
+{
+	m_render_widget->deleteLater();
+}
+
 void MainWindow::CreateComponents()
 {
 	m_menu_bar = new MenuBar(this);
 	m_tool_bar = new ToolBar(this);
 	m_game_list = new GameList(this);
-	m_render_widget = new RenderWidget(this);
+	m_render_widget = new RenderWidget;
 	m_stack = new QStackedWidget(this);
 	m_paths_dialog = new PathDialog(this);
 }

@@ -40,12 +40,12 @@ static std::atomic<int> s_controller_payload_size{0};
 // Output handling
 static std::mutex s_write_mutex;
 static u8 s_controller_write_payload[5];
+static std::atomic<int> s_controller_write_payload_size{0};
 
 // Adapter running thread
 static std::thread s_read_adapter_thread;
 static Common::Flag s_read_adapter_thread_running;
 
-static std::thread s_write_adapter_thread;
 static Common::Flag s_write_adapter_thread_running;
 static Common::Event s_write_happened;
 
@@ -77,6 +77,47 @@ static void ScanThreadFunc()
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
 
+static void Write()
+{
+	Common::SetCurrentThreadName("GC Adapter Write Thread");
+	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
+
+	JNIEnv* env;
+	g_java_vm->AttachCurrentThread(&env, NULL);
+	jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
+
+	while (s_write_adapter_thread_running.IsSet())
+	{
+		s_write_happened.Wait();
+		int write_size = s_controller_write_payload_size.load();
+		if (write_size)
+		{
+			jbyteArray jrumble_array = env->NewByteArray(5);
+			jbyte* jrumble = env->GetByteArrayElements(jrumble_array, NULL);
+
+			{
+			std::lock_guard<std::mutex> lk(s_write_mutex);
+			memcpy(jrumble, s_controller_write_payload, write_size);
+			}
+
+			env->ReleaseByteArrayElements(jrumble_array, jrumble, 0);
+			int size = env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
+			// Netplay sends invalid data which results in size = 0x00.  Ignore it.
+			if (size != write_size && size != 0x00)
+			{
+				ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+				Reset();
+			}
+		}
+
+		Common::YieldCPU();
+	}
+
+	g_java_vm->DetachCurrentThread();
+
+	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
+}
+
 static void Read()
 {
 	Common::SetCurrentThreadName("GC Adapter Read Thread");
@@ -93,74 +134,54 @@ static void Read()
 	// Get function pointers
 	jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
 	jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "Input", "()I");
-	jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()V");
+	jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
 
-	env->CallStaticVoidMethod(s_adapter_class, openadapter_func);
+	bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
 
-	// Reset rumble once on initial reading
-	ResetRumble();
-
-	while (s_read_adapter_thread_running.IsSet())
+	if (connected)
 	{
-		int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
+		s_write_adapter_thread_running.Set(true);
+		std::thread write_adapter_thread(Write);
 
-		jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
+		// Reset rumble once on initial reading
+		ResetRumble();
+
+		while (s_read_adapter_thread_running.IsSet())
 		{
-		std::lock_guard<std::mutex> lk(s_read_mutex);
-		memcpy(s_controller_payload, java_data, 0x37);
-		s_controller_payload_size.store(read_size);
-		}
-		env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
+			int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
 
-		if (first_read)
+			jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
+			{
+			std::lock_guard<std::mutex> lk(s_read_mutex);
+			memcpy(s_controller_payload, java_data, 0x37);
+			s_controller_payload_size.store(read_size);
+			}
+			env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
+
+			if (first_read)
+			{
+				first_read = false;
+				s_fd = env->CallStaticIntMethod(s_adapter_class, getfd_func);
+			}
+
+			Common::YieldCPU();
+		}
+
+		// Terminate the write thread on leaving
+		if (s_write_adapter_thread_running.TestAndClear())
 		{
-			first_read = false;
-			s_fd = env->CallStaticIntMethod(s_adapter_class, getfd_func);
+			s_controller_write_payload_size.store(0);
+			s_write_happened.Set(); // Kick the waiting event
+			write_adapter_thread.join();
 		}
-
-		Common::YieldCPU();
 	}
+
+	s_fd = 0;
+	s_detected = false;
 
 	g_java_vm->DetachCurrentThread();
 
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread stopped");
-}
-
-static void Write()
-{
-	Common::SetCurrentThreadName("GC Adapter Write Thread");
-	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
-
-	JNIEnv* env;
-	g_java_vm->AttachCurrentThread(&env, NULL);
-	jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
-
-	while (s_write_adapter_thread_running.IsSet())
-	{
-		jbyteArray jrumble_array = env->NewByteArray(5);
-		jbyte* jrumble = env->GetByteArrayElements(jrumble_array, NULL);
-
-		s_write_happened.Wait();
-		{
-		std::lock_guard<std::mutex> lk(s_write_mutex);
-		memcpy(jrumble, s_controller_write_payload, 5);
-		}
-
-		env->ReleaseByteArrayElements(jrumble_array, jrumble, 0);
-		int size = env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
-		// Netplay sends invalid data which results in size = 0x00.  Ignore it.
-		if (size != 0x05 && size != 0x00)
-		{
-			ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
-			Reset();
-		}
-
-		Common::YieldCPU();
-	}
-
-	g_java_vm->DetachCurrentThread();
-
-	NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
 }
 
 void Init()
@@ -189,14 +210,14 @@ void Init()
 void Setup()
 {
 	s_fd = 0;
+	s_detected = true;
+
+	// Make sure the thread isn't in the middle of shutting down while starting a new one
+	if (s_read_adapter_thread_running.TestAndClear())
+		s_read_adapter_thread.join();
 
 	s_read_adapter_thread_running.Set(true);
 	s_read_adapter_thread = std::thread(Read);
-
-	s_write_adapter_thread_running.Set(true);
-	s_write_adapter_thread = std::thread(Write);
-
-	s_detected = true;
 }
 
 void Reset()
@@ -206,12 +227,6 @@ void Reset()
 
 	if (s_read_adapter_thread_running.TestAndClear())
 		s_read_adapter_thread.join();
-
-	if (s_write_adapter_thread_running.TestAndClear())
-	{
-		s_write_happened.Set(); // Kick the waiting event
-		s_write_adapter_thread.join();
-	}
 
 	for (int i = 0; i < MAX_SI_CHANNELS; i++)
 		s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
@@ -323,6 +338,7 @@ void Output(int chan, u8 rumble_command)
 		{
 		std::lock_guard<std::mutex> lk(s_write_mutex);
 		memcpy(s_controller_write_payload, rumble, 5);
+		s_controller_write_payload_size.store(5);
 		}
 		s_write_happened.Set();
 	}
@@ -349,6 +365,7 @@ void ResetRumble()
 	{
 	std::lock_guard<std::mutex> lk(s_read_mutex);
 	memcpy(s_controller_write_payload, rumble, 5);
+	s_controller_write_payload_size.store(5);
 	}
 	s_write_happened.Set();
 }

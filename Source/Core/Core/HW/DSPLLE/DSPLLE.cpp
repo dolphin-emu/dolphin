@@ -257,7 +257,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, u16 _uHighMail)
 	{
 		if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
 		{
-			ERROR_LOG(DSPLLE, "Mailbox isnt empty ... strange");
+			ERROR_LOG(DSPLLE, "Mailbox isn't empty ... strange");
 		}
 
 #if PROFILE

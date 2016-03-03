@@ -49,8 +49,8 @@ static GekkoOPTemplate primarytable[] =
 	{11, &JitArm64::cmpi},                      // cmpi
 	{12, &JitArm64::addic},                     // addic
 	{13, &JitArm64::addic},                     // addic_rc
-	{14, &JitArm64::arith_imm},                 // addi
-	{15, &JitArm64::arith_imm},                 // addis
+	{14, &JitArm64::addix},                     // addi
+	{15, &JitArm64::addix},                     // addis
 
 	{20, &JitArm64::rlwimix},                   // rlwimix
 	{21, &JitArm64::rlwinmx},                   // rlwinmx

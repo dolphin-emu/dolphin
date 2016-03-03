@@ -189,6 +189,15 @@
     <ClInclude Include="GL\GLExtensions\gl_4_2.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_4_3.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_4_4.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLExtensions\gl_4_5.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
     <ClInclude Include="GL\GLExtensions\gl_common.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>

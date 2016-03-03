@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -99,5 +100,5 @@ protected:
 	bool m_invalid = false;
 };
 
-extern std::vector<VideoBackendBase*> g_available_video_backends;
+extern std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;
 extern VideoBackendBase* g_video_backend;

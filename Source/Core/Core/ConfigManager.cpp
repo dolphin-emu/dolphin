@@ -973,6 +973,12 @@ std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16
 {
 	std::vector<std::string> filenames;
 
+	if (id.empty())
+		return filenames;
+
+	// INIs that match the system code (unique for each Virtual Console system)
+	filenames.push_back(id.substr(0, 1) + ".ini");
+
 	// INIs that match all regions
 	if (id.size() >= 4)
 		filenames.push_back(id.substr(0, 3) + ".ini");

@@ -39,11 +39,10 @@ Visual Studio 2015 is a hard requirement. Other compilers might be able to
 build Dolphin on Windows but have not been tested and are not recommended to
 be used.
 
-An installer can be created by using the `Installer_win32.nsi` and
-`Installer_x64.nsi` scripts in the Installer directory. This will require the
-Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
-installer is not necessary to run Dolphin since the Build directory contains
-a working Dolphin distribution.
+An installer can be created by using the `Installer_x64.nsi` script in the
+Installer directory. This will require the Nullsoft Scriptable Install System
+(NSIS) to be installed. Creating an installer is not necessary to run Dolphin
+since the Binary directory contains a working Dolphin distribution.
 
 ## Building for Linux and OS X
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are

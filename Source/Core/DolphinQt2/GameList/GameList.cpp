@@ -2,20 +2,25 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QDesktopServices>
 #include <QHeaderView>
+#include <QMenu>
+#include <QUrl>
 
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
-#include "DolphinQt2/GameList/TableProxyModel.h"
+#include "DolphinQt2/GameList/TableDelegate.h"
 
 GameList::GameList(QWidget* parent): QStackedWidget(parent)
 {
 	m_model = new GameListModel(this);
-	m_table_proxy = new TableProxyModel(this);
+	m_table_proxy = new QSortFilterProxyModel(this);
 	m_table_proxy->setSourceModel(m_model);
 	m_list_proxy = new ListProxyModel(this);
 	m_list_proxy->setSourceModel(m_model);
+
+	m_delegate = new TableDelegate(this);
 
 	MakeTableView();
 	MakeListView();
@@ -39,12 +44,15 @@ void GameList::MakeTableView()
 {
 	m_table = new QTableView(this);
 	m_table->setModel(m_table_proxy);
+	m_table->setItemDelegate(m_delegate);
 	m_table->setSelectionMode(QAbstractItemView::SingleSelection);
 	m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_table->setAlternatingRowColors(true);
 	m_table->setShowGrid(false);
 	m_table->setSortingEnabled(true);
 	m_table->setCurrentIndex(QModelIndex());
+	m_table->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_table, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
 
 	// TODO load from config
 	m_table->setColumnHidden(GameListModel::COL_PLATFORM, false);
@@ -58,15 +66,15 @@ void GameList::MakeTableView()
 	m_table->setColumnHidden(GameListModel::COL_RATING, false);
 
 	QHeaderView* hor_header = m_table->horizontalHeader();
-	hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
-	hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
+	hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::ResizeToContents);
+	hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::ResizeToContents);
 	hor_header->setSectionResizeMode(GameListModel::COL_ID, QHeaderView::ResizeToContents);
 	hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::ResizeToContents);
 	hor_header->setSectionResizeMode(GameListModel::COL_TITLE, QHeaderView::Stretch);
 	hor_header->setSectionResizeMode(GameListModel::COL_MAKER, QHeaderView::Stretch);
 	hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::ResizeToContents);
 	hor_header->setSectionResizeMode(GameListModel::COL_DESCRIPTION, QHeaderView::Stretch);
-	hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::Fixed);
+	hor_header->setSectionResizeMode(GameListModel::COL_RATING, QHeaderView::ResizeToContents);
 
 	QHeaderView* ver_header = m_table->verticalHeader();
 	ver_header->setSectionResizeMode(QHeaderView::ResizeToContents);
@@ -87,6 +95,29 @@ void GameList::MakeListView()
 	m_list->setViewMode(QListView::IconMode);
 	m_list->setResizeMode(QListView::Adjust);
 	m_list->setUniformItemSizes(true);
+	m_list->setContextMenuPolicy(Qt::CustomContextMenu);
+	connect(m_list, &QTableView::customContextMenuRequested, this, &GameList::ShowContextMenu);
+}
+
+void GameList::ShowContextMenu(const QPoint&)
+{
+	QMenu* menu = new QMenu(this);
+	menu->addAction(tr("Properties"));
+	menu->addAction(tr("Open Wiki Page"), this, SLOT(OpenWiki()));
+	menu->addAction(tr("Set as Default ISO"), this, SLOT(SetDefaultISO()));
+	menu->exec(QCursor::pos());
+}
+
+void GameList::OpenWiki()
+{
+	QString game_id = GameFile(GetSelectedGame()).GetUniqueID();
+	QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
+	QDesktopServices::openUrl(QUrl(url));
+}
+
+void GameList::SetDefaultISO()
+{
+	Settings().SetDefaultGame(GetSelectedGame());
 }
 
 QString GameList::GetSelectedGame() const

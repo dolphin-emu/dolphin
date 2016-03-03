@@ -264,7 +264,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg & opAddress,
 		u32 mmioAddress = PowerPC::IsOptimizableMMIOAccess(address, accessSize);
 		if (accessSize != 64 && mmioAddress)
 		{
-			MMIOLoadToReg(Memory::mmio_mapping, reg_value, registersInUse,
+			MMIOLoadToReg(Memory::mmio_mapping.get(), reg_value, registersInUse,
 			              mmioAddress, accessSize, signExtend);
 			return;
 		}

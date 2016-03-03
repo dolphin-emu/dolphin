@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-12 19:56+0000\n"
+"POT-Creation-Date: 2016-02-24 19:48+0000\n"
 "PO-Revision-Date: 2015-12-15 20:17+0000\n"
 "Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
@@ -33,7 +33,7 @@ msgstr ""
 "Questo software non dovrebbe essere utilizzato per la riproduzione di giochi "
 "di cui non sei legalmente in possesso..\n"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:520
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:519
 msgid " (internal IP)"
 msgstr "(IP interno)"
 
@@ -51,7 +51,7 @@ msgstr " Gioco : "
 msgid "! NOT"
 msgstr "! NOT"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:33
+#: Source/Core/Core/HW/GCMemcard.cpp:36
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
@@ -87,7 +87,7 @@ msgstr "%1$sCopia%1$s"
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i blocchi su %i. Rapporto di compressione %i%%"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:68
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
 msgid ""
 "%s\n"
@@ -100,7 +100,7 @@ msgstr ""
 "salvataggio precedentemente caricato\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:88
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:94
 #, c-format
 msgid ""
 "%s\n"
@@ -113,7 +113,7 @@ msgstr ""
 "Le dimensioni (0x%<PRIx64>) non corrispondono a quelle indicate nell'header "
 "(0x%x)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:79
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:85
 #, c-format
 msgid ""
 "%s\n"
@@ -124,7 +124,7 @@ msgstr ""
 "non è stato caricato perché è un GCI non valido.\n"
 "Il numero di blocchi dichiarato è %u"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:118
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:124
 #, c-format
 msgid ""
 "%s\n"
@@ -135,7 +135,7 @@ msgstr ""
 "non è stato caricato perché non ci sono abbastanza blocchi liberi nella "
 "memory card virtuale"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:109
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:115
 #, c-format
 msgid ""
 "%s\n"
@@ -148,7 +148,7 @@ msgstr ""
 "blocchi liberi\n"
 "Blocchi totali: %d; Blocchi liberi: %d"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:390
+#: Source/Core/DolphinWX/GameListCtrl.cpp:400
 #, c-format
 msgid "%s (Disc %i)"
 msgstr "%s (Disco %i)"
@@ -165,7 +165,7 @@ msgstr ""
 msgid "%s already exists, overwrite?"
 msgstr "%s esiste già, vuoi sovrascrivere?"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:58
+#: Source/Core/Core/HW/GCMemcard.cpp:61
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -174,7 +174,7 @@ msgstr ""
 "Fallito il tentativo di caricare %s come memory card\n"
 "La dimensione del file non è valida (0x%x bytes)"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:73
+#: Source/Core/Core/HW/GCMemcard.cpp:76
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -183,7 +183,7 @@ msgstr ""
 "Fallito il tentativo di caricare %s come memory card\n"
 "La dimensione della card non è valida (0x%x bytes)"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:53
+#: Source/Core/Core/HW/GCMemcard.cpp:56
 #, c-format
 msgid ""
 "%s failed to load as a memory card.\n"
@@ -193,7 +193,7 @@ msgstr ""
 "Il file non è abbastanza largo per essere un valido file memory card (0x%x "
 "bytes)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:220
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:224
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -203,7 +203,7 @@ msgstr ""
 " Si prega di verificare i permessi di scrittura o di spostare il file al di "
 "fuori di Dolphin"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:214
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:218
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s non è una directory, spostato in *.original"
@@ -281,11 +281,11 @@ msgstr "Gestore &Trucchi"
 msgid "&Controller Settings"
 msgstr "Impostazioni &Controller"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:894
+#: Source/Core/DolphinWX/GameListCtrl.cpp:904
 msgid "&Delete File..."
 msgstr "&Elimina File..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:916
+#: Source/Core/DolphinWX/GameListCtrl.cpp:926
 msgid "&Delete selected ISOs..."
 msgstr "&Elimina ISO selezionate..."
 
@@ -357,7 +357,7 @@ msgstr "&Pausa"
 msgid "&Play"
 msgstr "&Gioca"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:875
+#: Source/Core/DolphinWX/GameListCtrl.cpp:885
 msgid "&Properties"
 msgstr "&Proprietà"
 
@@ -405,7 +405,7 @@ msgstr "&Guarda"
 msgid "&Website"
 msgstr "&Website"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:876
+#: Source/Core/DolphinWX/GameListCtrl.cpp:886
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -441,7 +441,7 @@ msgstr ""
 "(c) 2003-2015+ Dolphin Team. \"GameCube\" e \"Wii\" sono marchi registrati "
 "Nintendo. Dolphin non è in alcun modo associato con Nintendo."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:722
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:720
 msgid "(off)"
 msgstr "(nessuno)"
 
@@ -449,7 +449,7 @@ msgstr "(nessuno)"
 msgid "+ ADD"
 msgstr "+ ADD"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "1.5x Native (960x792)"
 msgstr "1.5x Nativo (960x792)"
 
@@ -457,11 +457,11 @@ msgstr "1.5x Nativo (960x792)"
 msgid "16-bit"
 msgstr "16-bit"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "2.5x Native (1600x1320)"
 msgstr "2.5x Nativo (1600x1320)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "2x Native (1280x1056) for 720p"
 msgstr "2x Nativo (1280x1056) per 720p"
 
@@ -469,23 +469,23 @@ msgstr "2x Nativo (1280x1056) per 720p"
 msgid "32-bit"
 msgstr "32-bit"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x Nativo (1920x1584) per 1080p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "4x Nativo (2560x2112) per 1440p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "5x Native (3200x2640)"
 msgstr "5x Nativo (3200x2640)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "6x Native (3840x3168) for 4K"
 msgstr "6x Nativo (3840x3168) per 4K"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "7x Native (4480x3696)"
 msgstr "7x Nativo (4480x3696)"
 
@@ -493,7 +493,7 @@ msgstr "7x Nativo (4480x3696)"
 msgid "8-bit"
 msgstr "8-bit"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "8x Native (5120x4224) for 5K"
 msgstr "8x Nativo (5120x4224) per 5K"
 
@@ -501,7 +501,7 @@ msgstr "8x Nativo (5120x4224) per 5K"
 msgid "<Insert name here>"
 msgstr "<Inserisci il nome>"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:278
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:277
 msgid "<No resolutions found>"
 msgstr "<Nessuna risoluzione trovata>"
 
@@ -575,7 +575,7 @@ msgstr "Codici AR"
 msgid "About Dolphin"
 msgstr "A proposito di Dolphin"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:494
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:493
 msgid "Accuracy:"
 msgstr "Precisione:"
 
@@ -680,7 +680,7 @@ msgstr "Rilevato adattatore"
 msgid "Adapter Not Detected"
 msgstr "Adattatore non rilevato"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:262
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:261
 msgid "Adapter:"
 msgstr "Adattatore:"
 
@@ -718,7 +718,7 @@ msgid "Advance Game Port"
 msgstr "Porta Gioco Advance"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:76
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:534
 msgid "Advanced"
 msgstr "Avanzate"
 
@@ -731,7 +731,7 @@ msgstr "Impostazioni Avanzate"
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Tutti i file GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1228
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1239
 msgid "All GameCube GCM files (gcm)"
 msgstr "Tutti i file GameCube GCM (gcm)"
 
@@ -740,11 +740,11 @@ msgstr "Tutti i file GameCube GCM (gcm)"
 msgid "All Save States (sav, s##)"
 msgstr "Tutti i Salvataggi di Stati di Gioco (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1226
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1237
 msgid "All Wii ISO files (iso)"
 msgstr "Tutti i file ISO Wii (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1249
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1260
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Tutti i file GC/Wii ISO compressi (gcz)"
 
@@ -765,7 +765,7 @@ msgstr ""
 "\n"
 "Ignorare e continuare?"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
 msgid "Anaglyph"
 msgstr "Anaglifo"
 
@@ -777,11 +777,11 @@ msgstr "Analizza"
 msgid "Angle"
 msgstr "Angolo"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:384
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:383
 msgid "Anisotropic Filtering:"
 msgstr "Filtraggio Anisotropico:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:370
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:369
 msgid "Anti-Aliasing:"
 msgstr "Anti-Aliasing:"
 
@@ -805,7 +805,7 @@ msgstr "Apploader:"
 msgid "Apply"
 msgstr "Applica"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:137
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
 "\n"
@@ -820,16 +820,16 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Sei sicuro di voler eliminare \"%s\"?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
-msgid ""
-"Are you sure you want to delete these files?\n"
-"They will be gone forever!"
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1048
+#, fuzzy
+msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 "Sei sicuro di voler eliminare questi file?\n"
 "Andranno persi definitivamente!"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1040
-msgid "Are you sure you want to delete this file?  It will be gone forever!"
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1047
+#, fuzzy
+msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
 "Sei sicuro di voler eliminare questo file? Sarà cancellato definitivamente!"
 
@@ -838,7 +838,7 @@ msgid "Are you trying to use the same file in both slots?"
 msgstr "Stai cercando di utilizzare lo stesso file in entrambi gli slot?"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:295
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
 msgid "Aspect Ratio:"
 msgstr "Rapporto d'Aspetto:"
 
@@ -878,20 +878,20 @@ msgstr "Australia"
 msgid "Authors"
 msgstr "Autori"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:150
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:149
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
 msgid "Auto"
 msgstr "Auto"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:349
 msgid "Auto (Multiple of 640x528)"
 msgstr "Auto (Multiplo di 640x528)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:349
 msgid "Auto (Window Size)"
 msgstr "Auto (Dimensione Finestra)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:313
 msgid "Auto adjust Window Size"
 msgstr "Autoridimensiona la Finestra"
 
@@ -906,7 +906,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:531
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:537
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT errato. Dolphin verrà chiuso."
 
@@ -923,14 +923,14 @@ msgid "Backend Settings"
 msgstr "Impostazioni Motore"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:61
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:234
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
 msgid "Backend:"
 msgstr "Motore:"
 
 #: Source/Core/Core/HotkeyManager.cpp:227
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:247
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:301
-#: Source/Core/Core/HW/GCPadEmu.cpp:83
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
+#: Source/Core/Core/HW/GCPadEmu.cpp:84
 msgid "Background Input"
 msgstr "Input in Background"
 
@@ -942,7 +942,7 @@ msgstr "all'Indietro"
 msgid "Balance Board"
 msgstr "Balance Board"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:259
+#: Source/Core/DolphinWX/GameListCtrl.cpp:269
 #: Source/Core/DolphinWX/MemcardManager.cpp:644
 #: Source/Core/DolphinWX/FrameTools.cpp:347
 msgid "Banner"
@@ -956,11 +956,11 @@ msgstr "Dettagli Banner"
 msgid "Banner:"
 msgstr "Banner:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:62
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:65
 msgid "Bar"
 msgstr "Leva"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:321
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
 msgid "Basic"
 msgstr "Impostazioni di Base"
 
@@ -968,15 +968,15 @@ msgstr "Impostazioni di Base"
 msgid "Basic Settings"
 msgstr "Impostazioni di Base"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:30
 msgid "Bass"
 msgstr "Basso"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
 msgid "Battery"
 msgstr "Batteria"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:149
+#: Source/Core/Core/HW/GCMemcard.cpp:152
 msgid "Block Allocation Table checksum failed"
 msgstr "Fallita verifica checksum della Tabella di Allocazione Blocchi"
 
@@ -984,19 +984,19 @@ msgstr "Fallita verifica checksum della Tabella di Allocazione Blocchi"
 msgid "Blocks"
 msgstr "Blocchi"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
 msgid "Blue"
 msgstr "Blu"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
 msgid "Blue Left"
 msgstr "Blu Sinistro"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:30
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:33
 msgid "Blue Right"
 msgstr "Blu Destro"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:590
 msgid "Borderless Fullscreen"
 msgstr "Schermo Intero senza bordi"
 
@@ -1026,7 +1026,7 @@ msgstr "Corrotto"
 msgid "Browse"
 msgstr "Sfoglia"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:212
+#: Source/Core/DolphinWX/GameListCtrl.cpp:222
 msgid "Browse for a directory to add"
 msgstr "Cerca una directory da aggiungere"
 
@@ -1034,7 +1034,7 @@ msgstr "Cerca una directory da aggiungere"
 msgid "Browse for an ISO directory..."
 msgstr "Seleziona una directory per le ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1109
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1128
 msgid "Browse for output directory"
 msgstr "Seleziona la directory di destinazione"
 
@@ -1042,10 +1042,10 @@ msgstr "Seleziona la directory di destinazione"
 msgid "Buffer:"
 msgstr "Buffer:"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:129
-#: Source/Core/DolphinWX/TASInputDlg.cpp:243
-#: Source/Core/DolphinWX/TASInputDlg.cpp:343
-#: Source/Core/Core/HW/GCPadEmu.cpp:59
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
+#: Source/Core/DolphinWX/TASInputDlg.cpp:247
+#: Source/Core/DolphinWX/TASInputDlg.cpp:347
+#: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "Pulsanti"
 
@@ -1061,8 +1061,8 @@ msgstr ""
 "Bypassa la ripulitura della cache dei dati da parte dell'istruzione DCBZ. Di "
 "solito l'opzione è disabilitata."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:327
-#: Source/Core/Core/HW/GCPadEmu.cpp:65
+#: Source/Core/DolphinWX/TASInputDlg.cpp:331
+#: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "C Stick"
 msgstr "C Stick"
 
@@ -1078,7 +1078,7 @@ msgstr "CPU Emulator Engine"
 msgid "CPU Options"
 msgstr "Opzioni CPU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
 msgid ""
 "Cache custom textures to system RAM on startup.\n"
 "This can require exponentially more RAM but fixes possible stuttering.\n"
@@ -1144,7 +1144,7 @@ msgstr "Area Centrale"
 msgid "Change"
 msgstr "Cambia"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:903
+#: Source/Core/DolphinWX/GameListCtrl.cpp:913
 msgid "Change &Disc"
 msgstr "Cambia &Disco"
 
@@ -1160,7 +1160,7 @@ msgstr "Cambia Disco"
 msgid "Change Game"
 msgstr "Cambia Gioco"
 
-#: Source/Core/Core/Movie.cpp:1133
+#: Source/Core/Core/Movie.cpp:1132
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Inserire il disco %s"
@@ -1248,7 +1248,7 @@ msgstr "Scegli la cartella in cui estrarre"
 msgid "Circle Stick"
 msgstr "Stick Circolare"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:57
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Classic"
 msgstr "Classic Controller"
 
@@ -1259,7 +1259,7 @@ msgstr "Classic Controller"
 msgid "Clear"
 msgstr "Pulisci"
 
-#: Source/Core/Core/NetPlayServer.cpp:359
+#: Source/Core/Core/NetPlayServer.cpp:348
 msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
@@ -1272,7 +1272,7 @@ msgstr ""
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:279
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:132
 #: Source/Core/DolphinWX/MemcardManager.cpp:252
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:606
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:604
 msgid "Close"
 msgstr "Chiudi"
 
@@ -1300,20 +1300,20 @@ msgstr "Comando"
 msgid "Comment"
 msgstr "Note"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:901
+#: Source/Core/DolphinWX/GameListCtrl.cpp:911
 msgid "Compress ISO..."
 msgstr "Comprimi ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:918
+#: Source/Core/DolphinWX/GameListCtrl.cpp:928
 msgid "Compress selected ISOs..."
 msgstr "Comprimi le ISO selezionate..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1118
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1266
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1137
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1277
 msgid "Compressing ISO"
 msgstr "Compressione ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1418
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1429
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1330,7 +1330,7 @@ msgstr "Calcola"
 msgid "Computing MD5 checksum"
 msgstr "Calcolo del checksum MD5 in corso"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:394
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:393
 #: Source/Core/DolphinWX/FrameTools.cpp:554
 msgid "Config"
 msgstr "Configurazione"
@@ -1349,9 +1349,9 @@ msgstr "Configura Controlli"
 msgid "Configure..."
 msgstr "Configura..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1157
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1185
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1259
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1167
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1195
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1270
 msgid "Confirm File Overwrite"
 msgstr "Conferma la Sovrascrittura del File"
 
@@ -1414,11 +1414,11 @@ msgstr "Scansione Continua"
 msgid "Control"
 msgstr "Control"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:64
+#: Source/Core/Core/HW/GCPadEmu.cpp:65
 msgid "Control Stick"
 msgstr "Control Stick"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:15
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:17
 msgid "Controller Ports"
 msgstr "Porte Controller"
 
@@ -1430,7 +1430,7 @@ msgstr "Impostazioni Controller"
 msgid "Controllers"
 msgstr "Controller"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:142
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.\n"
@@ -1442,7 +1442,7 @@ msgstr ""
 "Un valore alto crea un maggiore effetto di fuori-dallo-schermo, mentre un "
 "valore più basso potrebbe risultare meno fastidioso."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
 msgid ""
 "Controls the separation distance between the virtual cameras.\n"
 "A higher value creates a stronger feeling of depth while a lower value is "
@@ -1452,7 +1452,7 @@ msgstr ""
 "Un valore alto crea una sensazione più forte di distanza, mentre un valore "
 "più basso potrebbe risultare meno fastidioso."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:449
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:448
 msgid "Convergence:"
 msgstr "Convergenza:"
 
@@ -1466,9 +1466,9 @@ msgid "Convert to GCI"
 msgstr "Converti in GCI"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:159
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:540
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:546
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:563
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:539
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:545
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:562
 msgid "Copy"
 msgstr "Copia"
 
@@ -1506,7 +1506,7 @@ msgstr "Impossibile riconoscere il file ISO %s"
 msgid "Could not save %s."
 msgstr "Impossibile salvare %s."
 
-#: Source/Core/Core/HW/GCMemcardRaw.cpp:110
+#: Source/Core/Core/HW/GCMemcardRaw.cpp:114
 #, c-format
 msgid ""
 "Could not write memory card file %s.\n"
@@ -1527,11 +1527,11 @@ msgstr ""
 "Se è così, allora potresti dover reimpostare la posizione della memory card "
 "nelle opzioni."
 
-#: Source/Core/Core/NetPlayClient.cpp:92
+#: Source/Core/Core/NetPlayClient.cpp:76
 msgid "Couldn't Create Client"
 msgstr "Impossibile creare il Client"
 
-#: Source/Core/Core/NetPlayClient.cpp:103
+#: Source/Core/Core/NetPlayClient.cpp:87
 msgid "Couldn't create peer."
 msgstr "Impossibile creare il peer."
 
@@ -1539,7 +1539,7 @@ msgstr "Impossibile creare il peer."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Impossibile trovare il comando di apertura per l'estensione 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:374
+#: Source/Core/Core/BootManager.cpp:382
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1582,11 +1582,11 @@ msgstr "Autore: "
 msgid "Critical"
 msgstr "Critico"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:575
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:573
 msgid "Crop"
 msgstr "Taglia Immagine lungo i Bordi"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:137
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:136
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
@@ -1597,7 +1597,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:53
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:56
 msgid "Crossfade"
 msgstr "Crossfade"
 
@@ -1606,11 +1606,11 @@ msgstr "Crossfade"
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Directory attuale cambiata da %s a %s dopo wxFileSelector!"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:77
+#: Source/Core/Core/HW/GCPadEmu.cpp:78
 msgid "D-Pad"
 msgstr "D-Pad"
 
@@ -1668,7 +1668,7 @@ msgstr "Debug"
 msgid "Debug Only"
 msgstr "Solo Debug"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:547
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
 msgid "Debugging"
 msgstr "Debugging"
 
@@ -1676,16 +1676,16 @@ msgstr "Debugging"
 msgid "Decimal"
 msgstr "Decimal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:899
+#: Source/Core/DolphinWX/GameListCtrl.cpp:909
 msgid "Decompress ISO..."
 msgstr "Decomprimi ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:919
+#: Source/Core/DolphinWX/GameListCtrl.cpp:929
 msgid "Decompress selected ISOs..."
 msgstr "Decomprimi ISO selezionate..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1118
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1266
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1137
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1277
 msgid "Decompressing ISO"
 msgstr "Decompressione ISO"
 
@@ -1726,7 +1726,7 @@ msgstr "Elimina"
 msgid "Delete Save"
 msgstr "Elimina Salvataggio"
 
-#: Source/Core/VideoCommon/AVIDump.cpp:86
+#: Source/Core/VideoCommon/AVIDump.cpp:91
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "Eliminare il file esistente '%s'?"
@@ -1735,11 +1735,11 @@ msgstr "Eliminare il file esistente '%s'?"
 msgid "Depth Percentage: "
 msgstr "Percentuale Profondità:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:440
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:439
 msgid "Depth:"
 msgstr "Profondità:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:699
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:697
 msgid "Description"
 msgstr "Descrizione"
 
@@ -1769,7 +1769,7 @@ msgstr "Impostazioni Periferica"
 msgid "Device not found"
 msgstr "Dispositivo non trovato"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:50
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:53
 msgid "Dial"
 msgstr "Manopola"
 
@@ -1781,23 +1781,27 @@ msgstr "Oscura lo schermo dopo cinque minuti di inattività."
 msgid "Direct"
 msgstr "Diretto"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:130
+#: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
 msgstr "Falliti i checksum della directory e del backup della directory"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:506
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
 msgid "Disable"
 msgstr "Disabilita"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:519
 msgid "Disable Bounding Box"
 msgstr "Disabilita Bounding Box"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:417
+#: Source/Core/Core/HotkeyManager.cpp:53
+msgid "Disable Emulation Speed Limit"
+msgstr ""
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
 msgid "Disable Fog"
 msgstr "Disabilita Nebbia"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:125
 msgid ""
 "Disable any XFB emulation.\n"
 "Speeds up emulation a lot but causes heavy glitches in many games which rely "
@@ -1811,7 +1815,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia selezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
 msgid ""
 "Disable the bounding box emulation.\n"
 "This may improve the GPU performance a lot, but some games will break.\n"
@@ -1840,7 +1844,7 @@ msgstr "Disconnesso"
 msgid "Disconnected from traversal server"
 msgstr "Disconnesso dal server traversal"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:325
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:324
 msgid "Display"
 msgstr "Aspetto"
 
@@ -1872,7 +1876,7 @@ msgid "Dolphin"
 msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:210
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:209
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin - Configurazione Video %s"
@@ -1910,7 +1914,7 @@ msgstr "Dolphin NetPlay Setup"
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Filmati TAS Dolphin (*.dtm)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:322
+#: Source/Core/DolphinWX/GameListCtrl.cpp:332
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "browse for files..."
@@ -1918,7 +1922,7 @@ msgstr ""
 "Dolphin non è riuscito a trovare alcun ISO o WAD GameCube/Wii. Doppioclicca "
 "qui per cercare manualmente i file..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:318
+#: Source/Core/DolphinWX/GameListCtrl.cpp:328
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
@@ -1930,8 +1934,8 @@ msgstr ""
 msgid "Dolphin too old for traversal server"
 msgstr "Dolphin troppo vecchio per il server traversal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1197
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1288
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1208
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1299
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin è impossibilitato a completare l'azione richiesta."
 
@@ -1961,7 +1965,7 @@ msgstr "Distanza Disegno Oggetti"
 msgid "Driver Not Detected"
 msgstr "Driver Non Rilevato"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:36
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:39
 msgid "Drums"
 msgstr "Percussioni/Batteria"
 
@@ -1973,7 +1977,7 @@ msgstr "Fittizio"
 msgid "Dump Audio"
 msgstr "Dump Audio"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:560
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
 msgid "Dump EFB Target"
 msgstr "Dump del Target EFB"
 
@@ -1994,11 +1998,11 @@ msgid "Dump Texture Fetches"
 msgstr "Dump Fetch delle Texture"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
 msgid "Dump Textures"
 msgstr "Dump delle Texture"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:128
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/.\n"
 "\n"
@@ -2008,7 +2012,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:132
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
 msgid ""
 "Dump the contents of EFB copies to User/Dump/Textures/.\n"
 "\n"
@@ -2062,11 +2066,11 @@ msgstr "Modifica Patch"
 msgid "Edit..."
 msgstr "Modifica..."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:49
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:52
 msgid "Effect"
 msgstr "Effetto"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:472
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:471
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Embedded Frame Buffer (EFB)"
 
@@ -2074,11 +2078,11 @@ msgstr "Embedded Frame Buffer (EFB)"
 msgid "Empty"
 msgstr "Vuoto"
 
-#: Source/Core/Core/Core.cpp:222
+#: Source/Core/Core/Core.cpp:224
 msgid "Emu Thread already running"
 msgstr "Thread dell'Emulatore già in esecuzione"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:128
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
 msgid ""
 "Emulate XFBs accurately.\n"
 "Slows down emulation a lot and prohibits high-resolution rendering but is "
@@ -2092,7 +2096,7 @@ msgstr ""
 "\n"
 "Nel dubbio, seleziona invece Virtuale."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
 msgid ""
 "Emulate XFBs using GPU texture objects.\n"
 "Fixes many games which don't work without XFB emulation while not being as "
@@ -2153,7 +2157,7 @@ msgstr "Abilita Idle Skipping (aumenta la velocità)"
 msgid "Enable MMU"
 msgstr "Abilita MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:579
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:577
 msgid "Enable Progressive Scan"
 msgstr "Abilita Scansione Progressiva"
 
@@ -2169,7 +2173,7 @@ msgstr "Abilita Dati Altoparlante"
 msgid "Enable WideScreen"
 msgstr "Abilita WideScreen"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
 msgid "Enable Wireframe"
 msgstr "Abilita Wireframe"
 
@@ -2277,7 +2281,7 @@ msgstr ""
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "Abilita l'utilizzo dei codici Action Replay e Gecko."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:133
 msgid ""
 "Encode frame dumps using the FFV1 codec.\n"
 "\n"
@@ -2292,7 +2296,7 @@ msgstr ""
 msgid "End"
 msgstr "Fine"
 
-#: Source/Core/Core/NetPlayServer.cpp:76
+#: Source/Core/Core/NetPlayServer.cpp:65
 msgid "Enet Didn't Initialize"
 msgstr "Enet non è stato inizializzato"
 
@@ -2302,8 +2306,8 @@ msgstr "Enet non è stato inizializzato"
 msgid "English"
 msgstr "Inglese"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:342
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:341
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:418
 msgid "Enhancements"
 msgstr "Miglioramenti"
 
@@ -2352,7 +2356,7 @@ msgstr ""
 "Errore: Dopo \"%s\", trovato %d (0x%X) invece del save marker %d (0x%X). "
 "Interruzione del caricamento dello stato di gioco..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:384
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:383
 #, c-format
 msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
@@ -2365,7 +2369,7 @@ msgstr ""
 msgid "Escape"
 msgstr "Esc"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:31
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:34
 msgid "Euphoria"
 msgstr "Euforia"
 
@@ -2402,7 +2406,7 @@ msgstr "Esporta Registrazione..."
 msgid "Export Save"
 msgstr "Esporta Salvataggio"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:882
+#: Source/Core/DolphinWX/GameListCtrl.cpp:892
 msgid "Export Wii save (Experimental)"
 msgstr "Esporta salvataggio Wii (Sperimentale)"
 
@@ -2419,11 +2423,11 @@ msgstr "Esportazione non riuscita"
 msgid "Export save as..."
 msgstr "Esporta salvataggio come..."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:280
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:282
 msgid "Extension"
 msgstr "Estensione"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:504
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:503
 msgid "External Frame Buffer (XFB)"
 msgstr "External Frame Buffer (XFB)"
 
@@ -2477,11 +2481,11 @@ msgstr "Lettore FIFO"
 msgid "FST Size:"
 msgstr "Dimensione FST:"
 
-#: Source/Core/Core/NetPlayClient.cpp:174
+#: Source/Core/Core/NetPlayClient.cpp:158
 msgid "Failed To Connect!"
 msgstr "Connessione non riuscita!"
 
-#: Source/Core/Core/NetPlayClient.cpp:118
+#: Source/Core/Core/NetPlayClient.cpp:102
 msgid "Failed to Connect!"
 msgstr "Connessione non riuscita!"
 
@@ -2494,7 +2498,7 @@ msgstr "Download dei codici non riuscito."
 msgid "Failed to extract to %s!"
 msgstr "Estrazione in %s non riuscita!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:579
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:585
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -2535,12 +2539,12 @@ msgstr ""
 "Controlla di avere i permessi di scrittura nella cartella di destinazione e "
 "che sia possibile scrivere sul dispositivo."
 
-#: Source/Core/Core/Movie.cpp:904
+#: Source/Core/Core/Movie.cpp:903
 #, c-format
 msgid "Failed to read %s"
 msgstr "Fallita lettura di %s"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:186
+#: Source/Core/Core/HW/GCMemcard.cpp:189
 #, c-format
 msgid ""
 "Failed to read block %u of the save data\n"
@@ -2551,7 +2555,7 @@ msgstr ""
 "La Memory Card potrebbe essere incompleta\n"
 "Posizione del file: 0x%<PRIx64>"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:111
+#: Source/Core/Core/HW/GCMemcard.cpp:114
 msgid ""
 "Failed to read block allocation table backup correctly\n"
 "(0x8000-0x9FFF)"
@@ -2559,7 +2563,7 @@ msgstr ""
 "Fallita lettura del backup della tabella di allocazione blocchi\n"
 "(0x8000-0x9FFF)"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:105
+#: Source/Core/Core/HW/GCMemcard.cpp:108
 msgid ""
 "Failed to read block allocation table correctly\n"
 "(0x6000-0x7FFF)"
@@ -2567,12 +2571,12 @@ msgstr ""
 "Fallita lettura della tabella di allocazione blocchi\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:672
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:678
 #, c-format
 msgid "Failed to read data from GCI file %s"
 msgstr "Fallita la lettura dei dati dal file GCI %s"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:99
+#: Source/Core/Core/HW/GCMemcard.cpp:102
 msgid ""
 "Failed to read directory backup correctly\n"
 "(0x4000-0x5FFF)"
@@ -2580,7 +2584,7 @@ msgstr ""
 "Accesso alla directory di backup non riuscito\n"
 "(0x4000-0x5FFF)"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:93
+#: Source/Core/Core/HW/GCMemcard.cpp:96
 msgid ""
 "Failed to read directory correctly\n"
 "(0x2000-0x3FFF)"
@@ -2588,7 +2592,7 @@ msgstr ""
 "Accesso alla directory non riuscito\n"
 "(0x2000-0x3FFF)"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:82
+#: Source/Core/Core/HW/GCMemcard.cpp:85
 msgid ""
 "Failed to read header correctly\n"
 "(0x0000-0x1FFF)"
@@ -2618,15 +2622,11 @@ msgstr ""
 "Fallita la scrittura del file di output \"%s\".\n"
 "Controlla di avere abbastanza spazio sul dispositivo di destinazione."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:498
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:497
 msgid "Fast"
 msgstr "Rapida"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
-msgid "Fast Depth Calculation"
-msgstr "Calcolo Rapido di Profondità"
-
-#: Source/Core/Core/Movie.cpp:1162
+#: Source/Core/Core/Movie.cpp:1161
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2634,7 +2634,7 @@ msgstr ""
 "Desincronizzazione fatale. Interruzione della riproduzione. (Errore in "
 "PlayWiimote: %u != %u, byte %u.)%s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:263
+#: Source/Core/DolphinWX/GameListCtrl.cpp:273
 msgid "File"
 msgstr "File"
 
@@ -2666,7 +2666,7 @@ msgstr ""
 "Il file non può essere aperto\n"
 "o non possiede un'estensione valida"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:47
+#: Source/Core/Core/HW/GCMemcard.cpp:50
 #, c-format
 msgid ""
 "File has the extension \"%s\".\n"
@@ -2701,7 +2701,7 @@ msgstr "Filesystem"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Il tipo 'ini' è sconosciuto! Il file non verrà aperto!"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
 msgid ""
 "Filter all textures, including any that the game explicitly set as "
 "unfiltered.\n"
@@ -2737,11 +2737,11 @@ msgstr "Primo Blocco"
 msgid "Fix Checksums"
 msgstr "Ripara Checksum"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
 msgid "Force 16:9"
 msgstr "Forza 16:9"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
 msgid "Force 4:3"
 msgstr "Forza 4:3"
 
@@ -2753,7 +2753,7 @@ msgstr "Forza Console a NTSC-J"
 msgid "Force Listen Port: "
 msgstr "Forza Ascolto Porta:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
 msgid "Force Texture Filtering"
 msgstr "Forza Filtraggio Texture"
 
@@ -2790,7 +2790,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/Core/HW/GCMemcard.cpp:35
+#: Source/Core/Core/HW/GCMemcard.cpp:38
 msgid ""
 "Format as ASCII (NTSC\\PAL)?\n"
 "Choose no for Shift JIS (NTSC-J)"
@@ -2842,7 +2842,7 @@ msgstr "Aumenta Velocità Avanzamento Frame"
 msgid "Frame Advance Reset Speed"
 msgstr "Reimposta Velocità Avanzamento Frame"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:561
 msgid "Frame Dumps use FFV1"
 msgstr "Dump dei Frame con FFV1"
 
@@ -2866,7 +2866,7 @@ msgstr "Fotogrammi da Registrare:"
 msgid "France"
 msgstr "Francia"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:561
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:559
 msgid "Free Look"
 msgstr "Visuale Libera"
 
@@ -2916,7 +2916,7 @@ msgstr "Zoom Out Telecamera Libera"
 msgid "French"
 msgstr "Francese"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:46
 msgid "Frets"
 msgstr "Tasti"
 
@@ -2929,7 +2929,7 @@ msgstr "Da"
 msgid "FullScr"
 msgstr "Schermo Intero"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:278
 msgid "Fullscreen Resolution:"
 msgstr "Risoluzione a schermo Intero"
 
@@ -2937,7 +2937,7 @@ msgstr "Risoluzione a schermo Intero"
 msgid "GBA"
 msgstr "GBA"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:31
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:32
 msgid "GC Port "
 msgstr "Porta GC"
 
@@ -2949,7 +2949,7 @@ msgstr "File GCI(*.gci)"
 msgid "GCI Folder"
 msgstr "Cartella GCI"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:57
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:63
 #, c-format
 msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
@@ -2960,7 +2960,7 @@ msgstr ""
 "sbagliata per questa memory card:\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:362
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:368
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock chiamato con indirizzo non valido"
 
@@ -2999,11 +2999,11 @@ msgstr "ID Gioco"
 msgid "Game ID:"
 msgstr "ID Gioco:"
 
-#: Source/Core/Core/NetPlayClient.cpp:682
+#: Source/Core/Core/NetPlayClient.cpp:695
 msgid "Game is already running!"
 msgstr "Il Gioco è già in esecuzione!"
 
-#: Source/Core/Core/NetPlayClient.cpp:990
+#: Source/Core/Core/NetPlayClient.cpp:1029
 msgid "Game isn't running!"
 msgstr "Il Gioco non è in esecuzione!"
 
@@ -3011,7 +3011,7 @@ msgstr "Il Gioco non è in esecuzione!"
 msgid "Game not found!"
 msgstr "Gioco non trovato!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:431
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:437
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -3062,7 +3062,7 @@ msgstr "Codici Gecko"
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:114
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:70
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:225
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:224
 msgid "General"
 msgstr "Generale"
 
@@ -3116,27 +3116,27 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia selezionato."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:30
 msgid "Green"
 msgstr "Verde"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
 msgid "Green Left"
 msgstr "Verde Sinistro"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:30
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:33
 msgid "Green Right"
 msgstr "Verde Destro"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:40
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Guitar"
 msgstr "Chitarra"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:467
 msgid "Hacks"
 msgstr "Hacks"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:121
+#: Source/Core/Core/HW/GCMemcard.cpp:124
 msgid "Header checksum failed"
 msgstr "Somma di controllo dell'intestazione non riuscita"
 
@@ -3152,7 +3152,7 @@ msgstr "Aiuto"
 msgid "Hide"
 msgstr "Nascondi"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:316
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:315
 msgid "Hide Mouse Cursor"
 msgstr "Nascondi il Cursore del Mouse"
 
@@ -3199,7 +3199,7 @@ msgstr "Host"
 msgid "Host Code :"
 msgstr "Codice Host :"
 
-#: Source/Core/Core/NetPlayClient.cpp:126
+#: Source/Core/Core/NetPlayClient.cpp:110
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -3215,7 +3215,7 @@ msgstr "Tasti di Scelta Rapida"
 msgid "Hybrid Wiimote"
 msgstr "Wiimote Ibrido"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:264
+#: Source/Core/DolphinWX/GameListCtrl.cpp:274
 msgid "ID"
 msgstr "ID"
 
@@ -3256,8 +3256,8 @@ msgstr "Impostazioni IPL"
 msgid "IPL with unknown hash %x"
 msgstr "IPL con hash sconosciuto %x"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:122
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:265
+#: Source/Core/DolphinWX/TASInputDlg.cpp:126
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "IR"
 msgstr "Puntamento IR"
 
@@ -3277,11 +3277,11 @@ msgstr "Directory ISO"
 msgid "Icon"
 msgstr "Icona"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
 msgid "Ignore Format Changes"
 msgstr "Ignora Cambiamenti di Formato"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:117
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:116
 msgid ""
 "Ignore any changes to the EFB format.\n"
 "Improves performance in many games without any negative effect. Causes "
@@ -3295,7 +3295,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia selezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:116
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:115
 msgid ""
 "Ignore any requests from the CPU to read from or write to the EFB.\n"
 "Improves performance in some games, but might disable some gameplay-related "
@@ -3310,7 +3310,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
 msgid ""
 "Implement fullscreen mode with a borderless window spanning the whole screen "
 "instead of using exclusive mode.\n"
@@ -3409,7 +3409,7 @@ msgstr "Inserisci SD Card"
 msgid "Install WAD"
 msgstr "Installa WAD"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:908
+#: Source/Core/DolphinWX/GameListCtrl.cpp:918
 msgid "Install to Wii Menu"
 msgstr "Installa nel Menu Wii"
 
@@ -3467,7 +3467,7 @@ msgstr "Errore Interno LZO - lzo_init() fallito"
 msgid "Internal Name:"
 msgstr "Nome Interno:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:363
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:362
 msgid "Internal Resolution:"
 msgstr "Risoluzione Interna:"
 
@@ -3483,16 +3483,16 @@ msgstr "Intro"
 msgid "Invalid bat.map or dir entry."
 msgstr "bat.map o voce directory non valide."
 
-#: Source/Core/Core/CoreTiming.cpp:464
+#: Source/Core/Core/CoreTiming.cpp:465
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Tipo di evento %i non valido"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:481
+#: Source/Core/Core/HW/DVDInterface.cpp:480
 msgid "Invalid file"
 msgstr "File non valido"
 
-#: Source/Core/Core/NetPlayClient.cpp:809
+#: Source/Core/Core/NetPlayClient.cpp:848
 msgid "Invalid host"
 msgstr "Host non valido"
 
@@ -3500,7 +3500,7 @@ msgstr "Host non valido"
 msgid "Invalid index"
 msgstr "Indice non valido"
 
-#: Source/Core/Core/Movie.cpp:846
+#: Source/Core/Core/Movie.cpp:845
 msgid "Invalid recording file"
 msgstr "File di registrazione non valido"
 
@@ -3534,8 +3534,8 @@ msgstr "Italia"
 
 #: Source/Core/Core/HotkeyManager.cpp:228
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:248
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
-#: Source/Core/Core/HW/GCPadEmu.cpp:84
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
+#: Source/Core/Core/HW/GCPadEmu.cpp:85
 msgid "Iterative Input"
 msgstr "Input Iterativo"
 
@@ -3560,7 +3560,7 @@ msgstr "Giappone"
 msgid "Japanese"
 msgstr "Giapponese"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:315
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
 msgid "Keep Window on Top"
 msgstr "Finestra sempre in cima"
 
@@ -3575,7 +3575,7 @@ msgstr ""
 "Nel dubbio, lascia deselezionato."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
-#: Source/Core/Core/HW/GCKeyboard.cpp:17
+#: Source/Core/Core/HW/GCKeyboard.cpp:18
 msgid "Keyboard"
 msgstr "Tastiera"
 
@@ -3603,7 +3603,7 @@ msgid "Korean"
 msgstr "Coreano"
 
 #. i18n:  Left
-#: Source/Core/Core/HW/GCPadEmu.cpp:45
+#: Source/Core/Core/HW/GCPadEmu.cpp:46
 msgid "L"
 msgstr "L"
 
@@ -3612,7 +3612,7 @@ msgid "L Button"
 msgstr "Pulsante L"
 
 #. i18n:  Left-Analog
-#: Source/Core/Core/HW/GCPadEmu.cpp:49
+#: Source/Core/Core/HW/GCPadEmu.cpp:50
 msgid "L-Analog"
 msgstr "L-Analogico"
 
@@ -3634,11 +3634,11 @@ msgstr "Latenza:"
 msgid "Left"
 msgstr "Sinistra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:65
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:68
 msgid "Left Stick"
 msgstr "Levetta Sinistra"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:231
+#: Source/Core/DolphinWX/TASInputDlg.cpp:235
 msgid "Left stick"
 msgstr "Levetta sinistra"
 
@@ -3689,7 +3689,7 @@ msgstr ""
 msgid "Load"
 msgstr "Carica"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:557
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
 msgid "Load Custom Textures"
 msgstr "Carica Texture Personalizzate"
 
@@ -3790,7 +3790,7 @@ msgstr "Carica Menu di Sistema Wii"
 msgid "Load Wii System Menu %d%c"
 msgstr "Carica il Menu di Sistema Wii %d%c"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/.\n"
 "\n"
@@ -3813,8 +3813,8 @@ msgstr "Carica stato dallo slot selezionato"
 msgid "Loaded %d good functions, ignored %d bad functions."
 msgstr "Caricate %d funzioni valide, ignorate %d funzioni non valide."
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:522
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:528
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:521
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:527
 msgid "Localhost"
 msgstr "Localhost"
 
@@ -3826,7 +3826,7 @@ msgstr "Log"
 msgid "Log Configuration"
 msgstr "Configurazione Log"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:313
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:312
 msgid "Log Render Time to File"
 msgstr "Scrivi log del tempo di rendering su file"
 
@@ -3834,7 +3834,7 @@ msgstr "Scrivi log del tempo di rendering su file"
 msgid "Log Types"
 msgstr "Tipi di Log"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:123
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:122
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
@@ -3856,7 +3856,7 @@ msgstr "Destinazione Logger"
 msgid "Logging"
 msgstr "Registrazione Eventi"
 
-#: Source/Core/Core/NetPlayClient.cpp:572
+#: Source/Core/Core/NetPlayClient.cpp:565
 msgid "Lost connection to server!"
 msgstr "Persa connessione al server!"
 
@@ -3873,11 +3873,11 @@ msgstr "Checksum MD5:"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "File Gameshark MadCatz(*.gcs)"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:324
+#: Source/Core/DolphinWX/TASInputDlg.cpp:328
 msgid "Main Stick"
 msgstr "Levetta Principale"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:262
+#: Source/Core/DolphinWX/GameListCtrl.cpp:272
 #: Source/Core/DolphinWX/FrameTools.cpp:349
 msgid "Maker"
 msgstr "Produttore"
@@ -3890,7 +3890,7 @@ msgstr "ID Produttore:"
 msgid "Maker:"
 msgstr "Produttore:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:121
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3949,23 +3949,23 @@ msgstr ""
 "%s\n"
 "Si desidera copiare il precedente file in questa nuova locazione?\n"
 
-#: Source/Core/Core/HW/GCMemcard.cpp:87
+#: Source/Core/Core/HW/GCMemcard.cpp:90
 msgid "Memory card file size does not match the header size"
 msgstr ""
 "La dimensione della Memory Card non coincide con la dimensione "
 "dell'intestazione"
 
-#: Source/Core/Core/HW/GCMemcardRaw.cpp:180
+#: Source/Core/Core/HW/GCMemcardRaw.cpp:184
 #, c-format
 msgid "MemoryCard: ClearBlock called on invalid address (0x%x)"
 msgstr "MemoryCard: ClearBlock chiamato su indirizzo non valido (0x%x)"
 
-#: Source/Core/Core/HW/GCMemcardRaw.cpp:150
+#: Source/Core/Core/HW/GCMemcardRaw.cpp:154
 #, c-format
 msgid "MemoryCard: Read called with invalid source address (0x%x)"
 msgstr "MemoryCard: Read chiamata su indirizzo d'origine non valido (0x%x)"
 
-#: Source/Core/Core/HW/GCMemcardRaw.cpp:163
+#: Source/Core/Core/HW/GCMemcardRaw.cpp:167
 #, c-format
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr ""
@@ -3975,7 +3975,7 @@ msgstr ""
 msgid "Menu"
 msgstr "Menu"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:39
+#: Source/Core/Core/HW/GCPadEmu.cpp:40
 msgid "Mic"
 msgstr "Mic"
 
@@ -3988,7 +3988,7 @@ msgstr "Microphone"
 msgid "Min"
 msgstr "Min"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:596
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
 msgid "Misc"
 msgstr "Varie"
 
@@ -4001,7 +4001,7 @@ msgstr "Impostazioni Varie"
 msgid "Modifier"
 msgstr "Mezza Incl."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:125
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
 msgid ""
 "Modify textures to show the format they're encoded in. Needs an emulation "
 "reset in most cases.\n"
@@ -4021,16 +4021,16 @@ msgstr "Ombre Monoscopiche"
 msgid "Monospaced font"
 msgstr "Carattere a spaziatura fissa"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:290
 msgid "Motion Plus"
 msgstr "Motion Plus"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:292
-#: Source/Core/Core/HW/GCPadEmu.cpp:74
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:294
+#: Source/Core/Core/HW/GCPadEmu.cpp:75
 msgid "Motor"
 msgstr "Motore"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:680
 msgid ""
 "Move the mouse pointer over an option to display a detailed description.\n"
 "\n"
@@ -4154,7 +4154,7 @@ msgstr "Nome:"
 msgid "Name: "
 msgstr "Nome: "
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "Native (640x528)"
 msgstr "Nativo (640x528)"
 
@@ -4167,7 +4167,7 @@ msgstr "File GCI nativi(*.gci)"
 msgid "Netherlands"
 msgstr "Olanda"
 
-#: Source/Core/Core/NetPlayClient.cpp:975
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "Il NetPlay è stato desincronizzato. Non è possibile ripristinare la "
@@ -4221,8 +4221,8 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:44
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:163
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:233
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:759
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:24
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:757
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:25
 msgid "None"
 msgstr "Nessuno"
 
@@ -4232,7 +4232,7 @@ msgstr "Diverso"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:338
 #: Source/Core/DolphinWX/ISOProperties.cpp:370
-#: Source/Core/DolphinWX/GameListCtrl.cpp:807
+#: Source/Core/DolphinWX/GameListCtrl.cpp:817
 msgid "Not Set"
 msgstr "Non Impostato"
 
@@ -4260,19 +4260,19 @@ msgstr "Bloc Num"
 msgid "Number Of Codes: "
 msgstr "Numero Di Codici:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:21
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:24
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:174
+#: Source/Core/DolphinWX/TASInputDlg.cpp:178
 msgid "Nunchuk orientation"
 msgstr "Orientamento Nunchuk"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:169
+#: Source/Core/DolphinWX/TASInputDlg.cpp:173
 msgid "Nunchuk stick"
 msgstr "Levetta Nunchuk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
 msgid "Nvidia 3D Vision"
 msgstr "Nvidia 3D Vision"
 
@@ -4285,7 +4285,7 @@ msgstr "Oggetto %zu"
 msgid "Object Range"
 msgstr "Intervallo Oggetto"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
 msgid "Off"
 msgstr "Off"
 
@@ -4311,11 +4311,11 @@ msgstr "Solo %d blocchi disponibili"
 msgid "Open"
 msgstr "Apri"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:884
+#: Source/Core/DolphinWX/GameListCtrl.cpp:894
 msgid "Open &containing folder"
 msgstr "Apri &percorso file"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:881
+#: Source/Core/DolphinWX/GameListCtrl.cpp:891
 msgid "Open Wii &save folder"
 msgstr "Apri cartella dei &salvataggi"
 
@@ -4347,12 +4347,12 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:226
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:246
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:300
-#: Source/Core/Core/HW/GCPadEmu.cpp:82
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
+#: Source/Core/Core/HW/GCPadEmu.cpp:83
 msgid "Options"
 msgstr "Opzioni"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:30
 msgid "Orange"
 msgstr "Arancione"
 
@@ -4366,16 +4366,16 @@ msgstr ""
 "Clicca con il tasto destro ed esporta tutti i salvataggi,\n"
 "poi importali in una nuova memory card.\n"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:127
+#: Source/Core/DolphinWX/TASInputDlg.cpp:131
 msgid "Orientation"
 msgstr "Orientamento"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:329
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:328
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
 msgid "Other"
 msgstr "Altro"
 
-#: Source/Core/Core/NetPlayClient.cpp:419
+#: Source/Core/Core/NetPlayClient.cpp:412
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
@@ -4399,11 +4399,11 @@ msgstr "Ignora Lingua su Giochi NTSC"
 msgid "P&lay Input Recording..."
 msgstr "&Riproduci Registrazione Input..."
 
-#: Source/Core/Core/HW/GCPad.cpp:18
+#: Source/Core/Core/HW/GCPad.cpp:17
 msgid "Pad"
 msgstr "Pad"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:39
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:42
 msgid "Pads"
 msgstr "Pad"
 
@@ -4452,7 +4452,7 @@ msgstr ""
 "Mette l'emulatore in pausa quando la finestra di emulazione non è più la "
 "finestra principale."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:413
 msgid "Per-Pixel Lighting"
 msgstr "Illuminazione Per-Pixel"
 
@@ -4518,25 +4518,25 @@ msgstr "Porta:"
 msgid "Post Processing Shader Configuration"
 msgstr "Configura Shader di Post Processing"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:401
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:400
 msgid "Post-Processing Effect:"
 msgstr "Effetto di Post-Processing:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
 msgid "Prefetch Custom Textures"
 msgstr "Precarica Texture Personalizzate"
 
-#: Source/Core/Core/Movie.cpp:1053
+#: Source/Core/Core/Movie.cpp:1052
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Termine prematuro del filmato in PlayController.  %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1172
+#: Source/Core/Core/Movie.cpp:1171
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Termine prematuro del filmato in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1151
+#: Source/Core/Core/Movie.cpp:1150
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Termine prematuro del filmato in PlayWiimote. %u > %u"
@@ -4579,7 +4579,7 @@ msgid "Quit"
 msgstr "Esci"
 
 #. i18n:  Right
-#: Source/Core/Core/HW/GCPadEmu.cpp:47
+#: Source/Core/Core/HW/GCPadEmu.cpp:48
 msgid "R"
 msgstr "R"
 
@@ -4588,7 +4588,7 @@ msgid "R Button"
 msgstr "Pulsante R"
 
 #. i18n:  Right-Analog
-#: Source/Core/Core/HW/GCPadEmu.cpp:51
+#: Source/Core/Core/HW/GCPadEmu.cpp:52
 msgid "R-Analog"
 msgstr "R-Analogico"
 
@@ -4604,7 +4604,7 @@ msgstr "Intensità"
 msgid "Read-only mode"
 msgstr "Modalità in Sola-lettura"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:508
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:507
 msgid "Real"
 msgstr "Reale"
 
@@ -4639,15 +4639,15 @@ msgstr "Info di Registrazione"
 msgid "Recording Options"
 msgstr "Opzioni di Registrazione"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
 msgid "Red"
 msgstr "Rosso"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
 msgid "Red Left"
 msgstr "Rosso Sinistro"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:30
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:33
 msgid "Red Right"
 msgstr "Rosso Destro"
 
@@ -4696,7 +4696,7 @@ msgstr "Regione"
 msgid "Remove"
 msgstr "Rimuovi"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
@@ -4706,7 +4706,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:317
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:316
 msgid "Render to Main Window"
 msgstr "Renderizza nella Finestra Principale"
 
@@ -4714,7 +4714,7 @@ msgstr "Renderizza nella Finestra Principale"
 msgid "Rendering"
 msgstr "Rendering"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:342
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:348
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Report: GCIFolder Scrittura su blocco non allocato 0x%x"
@@ -4732,7 +4732,7 @@ msgstr "Reset Impostazioni Traversal"
 msgid "Results"
 msgstr "Risultati"
 
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:553
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:552
 msgid "Retry"
 msgstr "Riprova"
 
@@ -4754,17 +4754,17 @@ msgstr "Revisione: %s"
 msgid "Right"
 msgstr "Destra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:66
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:69
 msgid "Right Stick"
 msgstr "Levetta Destra"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:232
+#: Source/Core/DolphinWX/TASInputDlg.cpp:236
 msgid "Right stick"
 msgstr "Levetta destra"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
-#: Source/Core/Core/HW/GCPadEmu.cpp:73
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
+#: Source/Core/Core/HW/GCPadEmu.cpp:74
 msgid "Rumble"
 msgstr "Vibrazione"
 
@@ -4776,7 +4776,7 @@ msgstr "Russia"
 msgid "Sa&ve State"
 msgstr "Sal&va Stato di Gioco"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:496
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:495
 msgid "Safe"
 msgstr "Sicura"
 
@@ -4847,11 +4847,11 @@ msgstr "Salva Stato di Gioco..."
 msgid "Save as..."
 msgstr "Salva come..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1245
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1256
 msgid "Save compressed GCM/ISO"
 msgstr "Salva GCM/ISO compressa"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1231
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1242
 msgid "Save decompressed GCM/ISO"
 msgstr "Salva GCM/ISO decompressa"
 
@@ -4867,25 +4867,25 @@ msgstr "Salva nello slot selezionato"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Salvato su /Wii/sd.raw (le dimensioni standard sono 128mb)"
 
-#: Source/Core/Core/Movie.cpp:913
+#: Source/Core/Core/Movie.cpp:912
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Il salvataggio del filmato %s è corrotto, arresto registrazione..."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:413
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:412
 msgid "Scaled EFB Copy"
 msgstr "Copia EFB in scala"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:533
+#: Source/Core/DolphinWX/GameListCtrl.cpp:543
 #, c-format
 msgid "Scanning %s"
 msgstr "Analizzo %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:516
+#: Source/Core/DolphinWX/GameListCtrl.cpp:526
 msgid "Scanning for ISOs"
 msgstr "Ricerca ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:517
+#: Source/Core/DolphinWX/GameListCtrl.cpp:527
 msgid "Scanning..."
 msgstr "Ricerca..."
 
@@ -4893,7 +4893,7 @@ msgstr "Ricerca..."
 msgid "ScrShot"
 msgstr "Screenshot"
 
-#: Source/Core/VideoCommon/ImageWrite.cpp:48
+#: Source/Core/VideoCommon/ImageWrite.cpp:47
 #, c-format
 msgid "Screenshot failed: Could not open file \"%s\" (error %d)"
 msgstr "Cattura schermo fallita: Impossibile aprire il file \"%s\" (errore %d)"
@@ -5070,7 +5070,7 @@ msgstr ""
 "\n"
 "Nel dubbio, seleziona Auto"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:139
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better "
 "feeling of depth if you have the necessary hardware.\n"
@@ -5144,12 +5144,12 @@ msgstr ""
 "Porta Seriale 1 - Questa porta viene utilizzata da dispositivi come "
 "l'adattatore di rete."
 
-#: Source/Core/Core/NetPlayClient.cpp:806
+#: Source/Core/Core/NetPlayClient.cpp:845
 msgid "Server rejected traversal attempt"
 msgstr ""
 "Il server ha rifiutato il tentativo di connessione in modalità traversal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:887
+#: Source/Core/DolphinWX/GameListCtrl.cpp:897
 msgid "Set as &default ISO"
 msgstr "Imposta come ISO &predefinita"
 
@@ -5195,12 +5195,12 @@ msgstr ""
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Impossibile creare il file setting.txt"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:274
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Shake"
 msgstr "Scuoti"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:237
-#: Source/Core/DolphinWX/TASInputDlg.cpp:329
+#: Source/Core/DolphinWX/TASInputDlg.cpp:241
+#: Source/Core/DolphinWX/TASInputDlg.cpp:333
 msgid "Shoulder Buttons"
 msgstr "Tasti Dorsali"
 
@@ -5232,7 +5232,7 @@ msgstr "Mostra Unità a Disco"
 msgid "Show ELF/DOL"
 msgstr "Mostra ELF/DOL"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:312
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
 msgid "Show FPS"
 msgstr "Mostra FPS"
 
@@ -5304,7 +5304,7 @@ msgstr "Mostra Russia"
 msgid "Show Spain"
 msgstr "Mostra Spagna"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
 msgid "Show Statistics"
 msgstr "Mostra Informazioni"
 
@@ -5367,7 +5367,7 @@ msgstr "Mostra icona di salvataggio"
 msgid "Show save title"
 msgstr "Mostra titolo del salvataggio"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:122
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:121
 msgid ""
 "Show the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -5379,7 +5379,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:123
 msgid ""
 "Show various rendering statistics.\n"
 "\n"
@@ -5389,11 +5389,11 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
 msgid "Side-by-Side"
 msgstr "Fianco-a-Fianco"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
 msgid "Sideways Wiimote"
 msgstr "Wiimote in posizione di traverso"
 
@@ -5406,7 +5406,7 @@ msgstr "Cinese Semplificato"
 msgid "Simulate DK Bongos"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:266
+#: Source/Core/DolphinWX/GameListCtrl.cpp:276
 msgid "Size"
 msgstr "Dimensioni"
 
@@ -5418,11 +5418,11 @@ msgstr "Salta BIOS"
 msgid "Skip DCBZ clearing"
 msgstr "Salta ripulitura DCBZ"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:473
 msgid "Skip EFB Access from CPU"
 msgstr "Salta Accesso della CPU all'EFB"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:139
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
 "If you're experiencing any issues, try raising texture cache accuracy or "
@@ -5459,7 +5459,7 @@ msgstr "Stamp"
 msgid "Socket error sending to traversal server"
 msgstr "Errore socket durante la comunicazione con il server traversal."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.h:91
+#: Source/Core/DolphinWX/VideoConfigDiag.h:92
 msgid ""
 "Software rendering is an order of magnitude slower than using the other "
 "backends.\n"
@@ -5494,7 +5494,7 @@ msgstr "Spagna"
 msgid "Spanish"
 msgstr "Spagnolo"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:305
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:307
 msgid "Speaker Pan"
 msgstr "Panning Altoparlante"
 
@@ -5502,7 +5502,7 @@ msgstr "Panning Altoparlante"
 msgid "Speaker Volume:"
 msgstr "Volume Altoparlante:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:115
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
 msgid ""
 "Specifies the resolution used to render at. A high resolution greatly "
 "improves visual quality, but also greatly increases GPU load and can cause "
@@ -5550,7 +5550,7 @@ msgstr "Controller Standard"
 #: Source/Core/DolphinWX/WXInputBase.cpp:30
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:123
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:195
-#: Source/Core/Core/HW/GCPadEmu.cpp:38
+#: Source/Core/Core/HW/GCPadEmu.cpp:39
 msgid "Start"
 msgstr "Start"
 
@@ -5566,7 +5566,7 @@ msgstr "Avvia Re&gistrazione Input"
 msgid "Start Recording"
 msgstr "Avvia Registrazione"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:267
+#: Source/Core/DolphinWX/GameListCtrl.cpp:277
 #: Source/Core/DolphinWX/FrameTools.cpp:359
 msgid "State"
 msgstr "Stato"
@@ -5575,16 +5575,16 @@ msgstr "Stato"
 msgid "Steering Wheel"
 msgstr "Volante"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:429
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:428
 msgid "Stereoscopic 3D Mode:"
 msgstr "Modalità Stereoscopia 3D"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:401
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:454
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:453
 msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:58
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:61
 msgid "Stick"
 msgstr "Levetta"
 
@@ -5594,11 +5594,11 @@ msgstr "Levetta"
 msgid "Stop"
 msgstr "Arresta"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:476
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Store EFB Copies to Texture Only"
 msgstr "Salva le copie dell'EFB solo su texture"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:117
 msgid ""
 "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.\n"
@@ -5616,11 +5616,11 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
 msgid "Stretch to Window"
 msgstr "Adatta a Finestra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:48
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:51
 msgid "Strum"
 msgstr "Strimpellata"
 
@@ -5646,11 +5646,11 @@ msgstr "I file di salvataggio sono stati importati con successo."
 msgid "Support"
 msgstr "Supporto"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:451
 msgid "Swap Eyes"
 msgstr "Inverti Occhi"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:143
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:142
 msgid ""
 "Swaps the left and right eye. Mostly useful if you want to view side-by-side "
 "cross-eyed.\n"
@@ -5662,7 +5662,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:268
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 msgid "Swing"
 msgstr "Ruota/Oscilla"
 
@@ -5706,11 +5706,11 @@ msgstr "TAS Input - Wiimote %d"
 msgid "Tab"
 msgstr "Tab"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:42
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Table Left"
 msgstr "Semipiano sinistro"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:46
 msgid "Table Right"
 msgstr "Semipiano destro"
 
@@ -5731,15 +5731,15 @@ msgstr "Cattura uno screenshot"
 msgid "Test"
 msgstr "Prova"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:482
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:481
 msgid "Texture Cache"
 msgstr "Cache Texture"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
 msgid "Texture Format Overlay"
 msgstr "Overlay Formato Texture"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
 msgid ""
 "The \"Safe\" setting eliminates the likelihood of the GPU missing texture "
 "updates from RAM.\n"
@@ -5770,7 +5770,7 @@ msgstr "Il checksum è stato corretto con successo."
 msgid "The chosen directory is already in the list."
 msgstr "La directory scelta è già in lista."
 
-#: Source/Core/Core/HW/DVDInterface.cpp:501
+#: Source/Core/Core/HW/DVDInterface.cpp:500
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -5793,9 +5793,9 @@ msgstr ""
 "L'immagine disco \"%s\" è corrotta.\n"
 "L'hash del blocco %<PRIu64> è %08x anziché %08x."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1155
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1183
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1258
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1165
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1193
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1269
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -5826,7 +5826,7 @@ msgstr "Il nome non può essere vuoto"
 msgid "The name cannot contain the character ','"
 msgstr "Il nome non può contenere il carattere ','"
 
-#: Source/Core/Core/Movie.cpp:190
+#: Source/Core/Core/Movie.cpp:189
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "Il gioco registrato (%s) non coincide con il gioco selezionato (%s)"
@@ -5848,19 +5848,19 @@ msgstr ""
 "La lingua selezionata non è supportata dal tuo sistema. Ritorno alla "
 "predefinita di sistema."
 
-#: Source/Core/Core/NetPlayClient.cpp:212
+#: Source/Core/Core/NetPlayClient.cpp:196
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "Le versioni di NetPlay del server e del client non sono compatibili!"
 
-#: Source/Core/Core/NetPlayClient.cpp:209
+#: Source/Core/Core/NetPlayClient.cpp:193
 msgid "The server is full!"
 msgstr "Il server è pieno!"
 
-#: Source/Core/Core/NetPlayClient.cpp:215
+#: Source/Core/Core/NetPlayClient.cpp:199
 msgid "The server responded: the game is currently running!"
 msgstr "Il server ha risposto: il gioco è attualmente in esecuzione!"
 
-#: Source/Core/Core/NetPlayClient.cpp:218
+#: Source/Core/Core/NetPlayClient.cpp:202
 msgid "The server sent an unknown error message!"
 msgstr "Il server ha inviato un messaggio d'errore sconosciuto!"
 
@@ -5877,7 +5877,7 @@ msgstr "Il valore non è valido"
 msgid "Theme:"
 msgstr "Tema:"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:169
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:175
 #, c-format
 msgid ""
 "There are too many GCI files in the folder\n"
@@ -5915,7 +5915,7 @@ msgid ""
 msgstr ""
 "Questo simulatore di action replay non supporta codici automodificanti."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:136
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:135
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5936,7 +5936,7 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:89
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:94
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -5949,7 +5949,7 @@ msgstr ""
 "\n"
 "DSPHLE: Ucode sconosciuto (CRC = %08x) - AX forzato"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:83
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:88
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -5986,7 +5986,7 @@ msgstr "Ti permette di editare manualmente il file di configurazione INI."
 msgid "Threshold"
 msgstr "Sensibilità"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:271
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
 msgid "Tilt"
 msgstr "Inclina"
 
@@ -5994,7 +5994,7 @@ msgstr "Inclina"
 msgid "Timeout connecting to traversal server"
 msgstr "Timeout durante la connessione al server traversal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:260
+#: Source/Core/DolphinWX/GameListCtrl.cpp:270
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
 msgid "Title"
 msgstr "Titolo"
@@ -6041,10 +6041,6 @@ msgstr "Imposta Copie EFB"
 msgid "Toggle Fog"
 msgstr "Imposta Nebbia"
 
-#: Source/Core/Core/HotkeyManager.cpp:53
-msgid "Toggle Frame limit"
-msgstr "Attiva/Disattiva limitatore Frame"
-
 #: Source/Core/Core/HotkeyManager.cpp:32
 msgid "Toggle Fullscreen"
 msgstr "Visualizza a Schermo Intero"
@@ -6061,7 +6057,7 @@ msgstr "Attiva/Disattiva schermo intero"
 msgid "Top"
 msgstr "Sopra"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
 msgid "Top-and-Bottom"
 msgstr "Sopra-e-Sotto"
 
@@ -6074,7 +6070,7 @@ msgstr "Cinese Tradizionale"
 msgid "Traversal"
 msgstr "Traversal"
 
-#: Source/Core/Core/NetPlayClient.cpp:803
+#: Source/Core/Core/NetPlayClient.cpp:842
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 "Il server traversal è andato in time out durante la connessione con l'host."
@@ -6093,11 +6089,11 @@ msgstr "Tentata decriptazione di informazioni da un'unità non-Wii"
 msgid "Tried to load an unknown file type."
 msgstr "Tentativo di caricamento di un tipo di file sconosciuto."
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:68
+#: Source/Core/Core/HW/GCPadEmu.cpp:69
 msgid "Triggers"
 msgstr "Grilletti"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:87
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:91
 msgid "Trying to create invalid memory card index."
 msgstr "Tentativo di creazione di indice di memory card non valido"
 
@@ -6113,7 +6109,7 @@ msgstr ""
 "Tentativo di lettura da una SYSCONF non valida\n"
 "Gli identificativi Wiimote bt non sono disponibili"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:37
 msgid "Turntable"
 msgstr "Mixer"
 
@@ -6188,7 +6184,7 @@ msgstr "Comando DVD %08x sconosciuto - errore fatale"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Voce sconosciuta di tipo %i in SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:812
+#: Source/Core/Core/NetPlayClient.cpp:851
 #, c-format
 msgid "Unknown error %x"
 msgstr "Errore sconosciuto %x"
@@ -6198,12 +6194,12 @@ msgstr "Errore sconosciuto %x"
 msgid "Unknown memory card error"
 msgstr "Errore sconosciuto memory card"
 
-#: Source/Core/Core/NetPlayClient.cpp:490
+#: Source/Core/Core/NetPlayClient.cpp:483
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Ricevuto messaggio sconosciuto con id : %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:649
+#: Source/Core/Core/NetPlayServer.cpp:658
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
@@ -6227,11 +6223,11 @@ msgstr "Su"
 msgid "Update"
 msgstr "Aggiorna"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:305
 msgid "Upright Wiimote"
 msgstr "Wiimote in posizione verticale"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
 msgid "Use Fullscreen"
 msgstr "Usa Schermo Intero"
 
@@ -6247,20 +6243,6 @@ msgstr "Usa Modalità PAL60 (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Avvisi di Errore"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
-msgid ""
-"Use a less accurate algorithm to calculate depth values.\n"
-"Causes issues in a few games, but can give a decent speedup depending on the "
-"game and/or your GPU.\n"
-"\n"
-"If unsure, leave this checked."
-msgstr ""
-"Utilizza un algoritmo meno preciso per calcolare i valori di profondità.\n"
-"Causa problemi in alcuni giochi ma potrebbe fornire un buon aumento di "
-"velocità a seconda del gioco e/o della tua GPU.\n"
-"\n"
-"Nel dubbio, lascia selezionato."
-
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr ""
@@ -6268,11 +6250,11 @@ msgstr ""
 "per alcuni giochi."
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:98
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:564
 msgid "Utility"
 msgstr "Utilità"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:302
 msgid "V-Sync"
 msgstr "V-Sync"
 
@@ -6304,7 +6286,7 @@ msgstr "Statistiche"
 msgid "Verbosity"
 msgstr "Verboso"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:507
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:506
 msgid "Virtual"
 msgstr "Virtuale"
 
@@ -6346,11 +6328,10 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1041
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1050
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1419
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1430
 #: Source/Core/DolphinWX/MemcardManager.cpp:598
-#: Source/Core/DolphinWX/VideoConfigDiag.h:92
+#: Source/Core/DolphinWX/VideoConfigDiag.h:93
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/Common/MsgHandler.cpp:63
 msgid "Warning"
@@ -6376,7 +6357,7 @@ msgstr ""
 "%s\n"
 "Vuoi proseguire?"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:540
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:546
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -6399,7 +6380,7 @@ msgstr ""
 "dal nome uguale a quello dei file sulla tua memory card\n"
 "Continuare?"
 
-#: Source/Core/Core/Movie.cpp:959
+#: Source/Core/Core/Movie.cpp:958
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6411,7 +6392,7 @@ msgstr ""
 "salvataggio prima di continuare, o caricare questo stesso stato con modalità "
 "sola-lettura off."
 
-#: Source/Core/Core/Movie.cpp:936
+#: Source/Core/Core/Movie.cpp:935
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6422,7 +6403,7 @@ msgstr ""
 "l'attuale frame nel salvataggio (byte %u < %u) (frame %u < %u). Dovresti "
 "caricare un altro salvataggio prima di andare oltre."
 
-#: Source/Core/Core/Movie.cpp:976
+#: Source/Core/Core/Movie.cpp:975
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6434,7 +6415,7 @@ msgstr ""
 "caricare questo stato in modalità sola-lettura off. Altrimenti probabilmente "
 "riscontrerai una desincronizzazione."
 
-#: Source/Core/Core/Movie.cpp:986
+#: Source/Core/Core/Movie.cpp:985
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6473,11 +6454,11 @@ msgstr ""
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - file non aperto."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:61
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:64
 msgid "Whammy"
 msgstr "Tremolo"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
 msgid "Widescreen Hack"
 msgstr "Hack Widescreen"
 
@@ -6514,13 +6495,9 @@ msgstr "File di salvataggio Wii (*.bin)"
 msgid "WiiWAD: Could not read from file"
 msgstr "WiiWAD: Impossibile leggere dal file"
 
-#: Source/Core/Core/HW/Wiimote.cpp:19
+#: Source/Core/Core/HW/Wiimote.cpp:17
 msgid "Wiimote"
 msgstr "Wiimote"
-
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:58
-msgid "Wiimote "
-msgstr "Wiimote "
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:160
 #, c-format
@@ -6562,8 +6539,8 @@ msgstr "Adatta Testo"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:958
 #: Source/Core/DolphinWX/ISOProperties.cpp:1240
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1119
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1267
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1138
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 #: Source/Core/DolphinWX/FrameTools.cpp:1501
 msgid "Working..."
 msgstr "Attività in corso..."
@@ -6588,7 +6565,7 @@ msgstr "Scrivi su File"
 msgid "Write to Window"
 msgstr "Scrivi in Finestra"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:426
+#: Source/Core/DolphinWX/TASInputDlg.cpp:430
 msgid "X"
 msgstr "X"
 
@@ -6596,11 +6573,11 @@ msgstr "X"
 msgid "XF register "
 msgstr "Registro XF"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:427
+#: Source/Core/DolphinWX/TASInputDlg.cpp:431
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
 msgid "Yellow"
 msgstr "Giallo"
 
@@ -6657,7 +6634,7 @@ msgstr ""
 "Dovrebbe essere 0x%04x (invece di 0x%04<PRIx64>)\n"
 "Desideri generarne uno nuovo?"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:428
+#: Source/Core/DolphinWX/TASInputDlg.cpp:432
 msgid "Z"
 msgstr "Z"
 
@@ -6711,6 +6688,9 @@ msgstr "| OR"
 #~ msgid "Direct Connect"
 #~ msgstr "Connessione Diretta"
 
+#~ msgid "Fast Depth Calculation"
+#~ msgstr "Calcolo Rapido di Profondità"
+
 #~ msgid "Framelimit:"
 #~ msgstr "Framelimiter:"
 
@@ -6739,6 +6719,9 @@ msgstr "| OR"
 #~ msgid "Toggle 3D Preset"
 #~ msgstr "Attiva/Disattiva Preset 3D"
 
+#~ msgid "Toggle Frame limit"
+#~ msgstr "Attiva/Disattiva limitatore Frame"
+
 #~ msgid "Use 3D Preset 1"
 #~ msgstr "Usa Preset 3D 1"
 
@@ -6747,6 +6730,22 @@ msgstr "| OR"
 
 #~ msgid "Use 3D Preset 3"
 #~ msgstr "Usa Preset 3D 3"
+
+#~ msgid ""
+#~ "Use a less accurate algorithm to calculate depth values.\n"
+#~ "Causes issues in a few games, but can give a decent speedup depending on "
+#~ "the game and/or your GPU.\n"
+#~ "\n"
+#~ "If unsure, leave this checked."
+#~ msgstr ""
+#~ "Utilizza un algoritmo meno preciso per calcolare i valori di profondità.\n"
+#~ "Causa problemi in alcuni giochi ma potrebbe fornire un buon aumento di "
+#~ "velocità a seconda del gioco e/o della tua GPU.\n"
+#~ "\n"
+#~ "Nel dubbio, lascia selezionato."
+
+#~ msgid "Wiimote "
+#~ msgstr "Wiimote "
 
 #~ msgid ""
 #~ "You have resized the window while dumping frames.\n"
