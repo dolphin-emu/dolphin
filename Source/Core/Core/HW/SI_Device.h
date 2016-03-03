@@ -107,4 +107,6 @@ public:
 	}
 };
 
+bool SIDevice_IsGCController(SIDevices type);
+
 std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number);
