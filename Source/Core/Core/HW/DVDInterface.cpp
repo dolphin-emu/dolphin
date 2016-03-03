@@ -31,6 +31,16 @@
 
 static const double PI = 3.14159265358979323846264338328;
 
+// The minimum time it takes for the DVD drive to process a command (in
+// microseconds)ß
+static const u32 COMMAND_LATENCY_US = 300;
+
+// The size of the streaming buffer.
+static const u32 STREAMING_BUFFER_SIZE = 1024 * 1024;
+
+// The minimum amount that a drive will read.
+static const u32 SECTOR_READ_SIZE = 16 * 0x800;
+
 // Rate the drive can transfer data to main memory, given the data
 // is already buffered. Measured in bytes per second.
 static const u32 BUFFER_TRANSFER_RATE = 1024 * 1024 * 16;
@@ -245,10 +255,18 @@ static bool s_disc_inside = false;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
 static int  s_finish_execute_command = 0;
+static int  s_finish_read = 0;
 static int  s_dtk = 0;
 
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
+
+static u32  s_current_read_index;
+static u64  s_current_read_offset;
+static u32  s_current_read_dma_address;
+static u64  s_current_read_length;
+static int  s_current_read_finish_command;
+static bool s_current_read_decrypt;
 
 // GC-AM only
 static unsigned char s_media_buffer[0x40];
@@ -266,9 +284,9 @@ void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length, bool decrypt,
-                        int callback_event_type, DIInterruptType* interrupt_type, u64* ticks_until_completion);
+                        int callback_event_type, DIInterruptType* interrupt_type);
 
-u64 SimulateDiscReadTime(u64 offset, u32 length);
+void ScheduleNextRead();
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
 
 void DoState(PointerWrap &p)
@@ -309,6 +327,11 @@ static void FinishExecuteCommand(u64 userdata, int cyclesLate)
 		s_DILENGTH.Length = 0;
 		GenerateDIInterrupt((DIInterruptType)userdata);
 	}
+}
+
+static void FinishRead(u64 userdata, int cyclesLate)
+{
+	ScheduleNextRead();
 }
 
 static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
@@ -408,6 +431,7 @@ void Init()
 	s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
+	s_finish_read = CoreTiming::RegisterEvent("FinishRead", FinishRead);
 	s_finish_execute_command = CoreTiming::RegisterEvent("FinishExecuteCommand", FinishExecuteCommand);
 	s_dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
@@ -647,7 +671,7 @@ void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF)
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length, bool decrypt,
-                        int callback_event_type, DIInterruptType* interrupt_type, u64* ticks_until_completion)
+                        int callback_event_type, DIInterruptType* interrupt_type)
 {
 	if (!s_disc_inside)
 	{
@@ -668,14 +692,13 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 		DVD_length = output_length;
 	}
 
-	if (SConfig::GetInstance().bFastDiscSpeed)
-		// An optional hack to speed up loading times
-		*ticks_until_completion = output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
-	else
-		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
-
-	DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt,
-	                     callback_event_type, (int)*ticks_until_completion);
+	s_current_read_index = 0;
+	s_current_read_offset = DVD_offset;
+	s_current_read_length = DVD_length;
+	s_current_read_dma_address = output_address;
+	s_current_read_decrypt = decrypt;
+	s_current_read_finish_command = callback_event_type;
+	ScheduleNextRead();
 	return true;
 }
 
@@ -733,14 +756,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
 		command_handled_by_thread = ExecuteReadCommand(0, output_address, 0x20, output_length, false,
-		                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+		                                               callback_event_type, &interrupt_type);
 		break;
 
 	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
 		command_handled_by_thread = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true,
-		                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+		                                               callback_event_type, &interrupt_type);
 		break;
 
 	// Probably only used by Wii
@@ -820,7 +843,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
 		{
 			command_handled_by_thread = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false,
-			                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+			                                               callback_event_type, &interrupt_type);
 		}
 		else
 		{
@@ -917,14 +940,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 				}
 
 				command_handled_by_thread = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false,
-				                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+				                                               callback_event_type, &interrupt_type);
 			}
 			break;
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
 			command_handled_by_thread = ExecuteReadCommand(0, output_address, 0x20, output_length, false,
-			                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+			                                               callback_event_type, &interrupt_type);
 			break;
 
 		default:
@@ -1266,10 +1289,9 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 		CoreTiming::ScheduleEvent((int)ticks_until_completion, callback_event_type, interrupt_type);
 }
 
-// Simulates the timing aspects of reading data from a disc.
-// Returns the amount of ticks needed to finish executing the command,
-// and sets some state that is used the next time this function runs.
-u64 SimulateDiscReadTime(u64 offset, u32 length)
+// Determines from a given read request how much of the request is buffered,
+// and how much is required to be read from disc.
+void ScheduleNextRead()
 {
 	// The drive buffers 1 MiB (?) of data after every read request;
 	// if a read request is covered by this buffer (or if it's
@@ -1288,70 +1310,89 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	// right places, doors open too quickly, and if there's too
 	// much latency in the wrong places, the video before the
 	// save-file select screen lags.
-	//
-	// For now, just use a very rough approximation: 50 ms seek
-	// for reads outside 1 MiB, accelerated reads within 1 MiB.
-	// We can refine this if someone comes up with a more complete
-	// model for seek times.
 
 	u64 current_time = CoreTiming::GetTicks();
 	u64 ticks_until_completion;
+	u32 latency = s_current_read_index == 0
+	              ? COMMAND_LATENCY_US * SystemTimers::GetTicksPerSecond() / 1000000
+	              : 0;
 
-	// Number of ticks it takes to seek and read directly from the disk.
-	u64 disk_read_duration = CalculateRawDiscReadTime(offset, length) +
-		SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+	DEBUG_LOG(DVDINTERFACE, "Schedule read: offset=0x%" PRIx64 " length=0x%" PRIx64 " address=0x%08x",
+	          s_current_read_offset, s_current_read_length, s_current_read_dma_address);
 
-	// Assume unbuffered read if the read we are performing asks for data >
-	// 1MB past the end of the last read *or* asks for data before the last
-	// read. It assumes the buffer is only used when reading small amounts
-	// forward.
-	if (offset + length > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
+	// This is where the read actually takes place on disc
+	u64 rounded_offset = ROUND_DOWN(s_current_read_offset, SECTOR_READ_SIZE);
+
+	// The length of this read for DMA purposes
+	u64 length = ROUND_UP(s_current_read_offset, SECTOR_READ_SIZE) - s_current_read_offset;
+	if (length == 0)
+		length = SECTOR_READ_SIZE;
+
+	// The last read may be short
+	if (length > s_current_read_length)
+		length = s_current_read_length;
+
+	bool buffered;
+
+	if (SConfig::GetInstance().bFastDiscSpeed)
 	{
-		// No buffer; just use the simple seek time + read time.
-		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
-		          s64(s_last_read_offset) - s64(offset));
-		ticks_until_completion = disk_read_duration;
-		s_last_read_time = current_time + ticks_until_completion;
+		// SUDTR pretends that all reads are buffered reads.
+		buffered = true;
+	}
+	else if (rounded_offset > s_last_read_offset + STREAMING_BUFFER_SIZE
+		    || rounded_offset < s_last_read_offset)
+	{
+		// This will be a pure disk read. Note that the streaming buffer is
+		// unused when stepping backwards, even if there is overlap.
+		buffered = false;
 	}
 	else
 	{
-		// Possibly buffered; use the buffer if it saves time.
-		// It's not proven that the buffer actually behaves like this, but
-		// it appears to be a decent approximation.
-
-		// Time at which the buffer will contain the data we need.
+		// Time at which the buffer will be full based on our last read
 		u64 buffer_fill_time = s_last_read_time +
 		                       CalculateRawDiscReadTime(s_last_read_offset,
-		                       offset + length - s_last_read_offset);
-		// Number of ticks it takes to transfer the data from the buffer to memory.
-		u64 buffer_read_duration = length *
-			(SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+		                       STREAMING_BUFFER_SIZE);
 
-		if (current_time > buffer_fill_time)
-		{
-			DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRIx64, offset);
-			ticks_until_completion = buffer_read_duration;
-			s_last_read_time = buffer_fill_time;
-		}
-		else if (current_time + disk_read_duration > buffer_fill_time)
-		{
-			DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRIx64, offset);
-			ticks_until_completion = std::max(buffer_fill_time - current_time,
-			                                  buffer_read_duration);
-			s_last_read_time = buffer_fill_time;
-		}
-		else
-		{
-			DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
-			          s64(s_last_read_offset) - s64(offset));
-			ticks_until_completion = disk_read_duration;
-			s_last_read_time = current_time + ticks_until_completion;
-		}
+		// The amount of data the buffer contains *right now*
+		u64 buffer_end = s_last_read_offset
+		             + ROUND_DOWN((current_time - s_last_read_time) * STREAMING_BUFFER_SIZE
+			         / (buffer_fill_time - s_last_read_time), SECTOR_READ_SIZE);
+
+		buffered = buffer_end > rounded_offset;
 	}
 
-	s_last_read_offset = ROUND_DOWN(offset + length - 2048, 2048);
+	if (buffered)
+	{
+		// Number of ticks it takes to transfer the data from the buffer to memory.
+		ticks_until_completion = (length * SystemTimers::GetTicksPerSecond())
+		                          / BUFFER_TRANSFER_RATE;
+		DEBUG_LOG(DVDINTERFACE, "Buffered read 0x%" PRIx64 " bytes @ 0x%" PRIx64 " ticks=%" PRId64,
+		          length, s_current_read_offset, ticks_until_completion);
+	}
+	else
+	{
+		// Unbuffered read
+		ticks_until_completion = CalculateRawDiscReadTime(rounded_offset, SECTOR_READ_SIZE) +
+                                 SystemTimers::GetTicksPerSecond() * DISC_ACCESS_TIME_MS / 1000;
+		s_last_read_time = current_time;
+		s_last_read_offset = rounded_offset;
+		DEBUG_LOG(DVDINTERFACE, "Unbuffered read 0x%" PRIx64 " bytes @ 0x%" PRIx64 " ticks=%" PRId64,
+		          length, s_current_read_offset, ticks_until_completion);
+	}
 
-	return ticks_until_completion;
+	u64 read_offset = s_current_read_offset;
+	u32 read_dma_address = s_current_read_dma_address;
+
+	// Advance the read window
+	s_current_read_index++;
+	s_current_read_offset += length;
+	s_current_read_length -= length;
+	s_current_read_dma_address += length;
+
+	DVDThread::StartRead(read_offset, read_dma_address,
+		                 length, s_current_read_decrypt,
+		                 s_current_read_length == 0 ? s_current_read_finish_command : s_finish_read,
+		                 ticks_until_completion + latency);
 }
 
 // Returns the number of ticks it takes to read an amount of
