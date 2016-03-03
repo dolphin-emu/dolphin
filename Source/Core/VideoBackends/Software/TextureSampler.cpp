@@ -10,6 +10,7 @@
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureDecoder.h"
 
 #define ALLOW_MIPMAP 1
@@ -69,7 +70,7 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8 *sample)
 
 	s32 lodFract = lod & 0xf;
 
-	if (lod > 0 && tm0.min_filter & 3)
+	if (lod > 0 && !SamplerCommon::IsBpTexMode0MipmapsDisabled(tm0))
 	{
 		// use mipmap
 		baseMip = lod >> 4;
