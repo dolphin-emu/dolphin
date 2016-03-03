@@ -32,7 +32,7 @@ public class Java_GCAdapter {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 			{
 				if (!manager.hasPermission(dev))
@@ -58,7 +58,7 @@ public class Java_GCAdapter {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 			{
 				if (manager.hasPermission(dev))
@@ -77,41 +77,34 @@ public class Java_GCAdapter {
 	}
 
 	public static int Input() {
-		int read = usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
-		return read;
+		return usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
 	}
 
 	public static int Output(byte[] rumble) {
-		int size = usb_con.bulkTransfer(usb_out, rumble, 5, 16);
-		return size;
+		return usb_con.bulkTransfer(usb_out, rumble, 5, 16);
 	}
 
 	public static boolean OpenAdapter()
 	{
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		Iterator it = devices.entrySet().iterator();
-		while (it.hasNext())
-		{
-			HashMap.Entry pair = (HashMap.Entry)it.next();
-			UsbDevice dev = (UsbDevice)pair.getValue();
+		for (Object o : devices.entrySet()) {
+			HashMap.Entry pair = (HashMap.Entry) o;
+			UsbDevice dev = (UsbDevice) pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e) {
-				if (manager.hasPermission(dev))
-				{
+				if (manager.hasPermission(dev)) {
 					usb_con = manager.openDevice(dev);
 
 					Log.info("GCAdapter: Number of configurations: " + dev.getConfigurationCount());
 					Log.info("GCAdapter: Number of interfaces: " + dev.getInterfaceCount());
 
-					if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0)
-					{
+					if (dev.getConfigurationCount() > 0 && dev.getInterfaceCount() > 0) {
 						UsbConfiguration conf = dev.getConfiguration(0);
 						usb_intf = conf.getInterface(0);
 						usb_con.claimInterface(usb_intf, true);
 
 						Log.info("GCAdapter: Number of endpoints: " + usb_intf.getEndpointCount());
 
-						if (usb_intf.getEndpointCount() == 2)
-						{
+						if (usb_intf.getEndpointCount() == 2) {
 							for (int i = 0; i < usb_intf.getEndpointCount(); ++i)
 								if (usb_intf.getEndpoint(i).getDirection() == UsbConstants.USB_DIR_IN)
 									usb_in = usb_intf.getEndpoint(i);
@@ -120,18 +113,14 @@ public class Java_GCAdapter {
 
 							InitAdapter();
 							return true;
-						}
-						else
-						{
+						} else {
 							usb_con.releaseInterface(usb_intf);
 						}
 					}
 
-					NativeLibrary.sEmulationActivity.runOnUiThread(new Runnable()
-					{
+					NativeLibrary.sEmulationActivity.runOnUiThread(new Runnable() {
 						@Override
-						public void run()
-						{
+						public void run() {
 							Toast.makeText(NativeLibrary.sEmulationActivity, "GameCube Adapter couldn't be opened. Please re-plug the device.", Toast.LENGTH_LONG).show();
 						}
 					});

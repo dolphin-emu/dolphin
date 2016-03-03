@@ -252,7 +252,7 @@ public final class SettingsFile
 
 			return new IntSetting(key, current.getName(), valueAsInt);
 		}
-		catch (NumberFormatException ex)
+		catch (NumberFormatException ignored)
 		{
 		}
 
@@ -262,7 +262,7 @@ public final class SettingsFile
 
 			return new FloatSetting(key, current.getName(), valueAsFloat);
 		}
-		catch (NumberFormatException ex)
+		catch (NumberFormatException ignored)
 		{
 		}
 

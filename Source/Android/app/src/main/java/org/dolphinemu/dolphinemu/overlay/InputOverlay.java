@@ -36,8 +36,8 @@ import java.util.Set;
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
-	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<InputOverlayDrawableButton>();
-	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<InputOverlayDrawableJoystick>();
+	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
+	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
 
 	/**
 	 * Resizes a {@link Bitmap} by a given scale factor
@@ -53,11 +53,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Retrieve screen dimensions.
 		DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
-		Bitmap bitmapResized = Bitmap.createScaledBitmap(bitmap,
+		return Bitmap.createScaledBitmap(bitmap,
 				(int)(dm.heightPixels * scale),
 				(int)(dm.heightPixels * scale),
 				true);
-		return bitmapResized;
 	}
 
 	/**
@@ -277,14 +276,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, outerSize / 4, outerSize / 4);
 
-		final InputOverlayDrawableJoystick overlayDrawable
-				= new InputOverlayDrawableJoystick(res,
-					bitmapOuter, bitmapInner,
-					outerRect, innerRect,
-					joystick);
 
-
-		return overlayDrawable;
+		return new InputOverlayDrawableJoystick(res,
+            bitmapOuter, bitmapInner,
+            outerRect, innerRect,
+            joystick);
 	}
 	
 }

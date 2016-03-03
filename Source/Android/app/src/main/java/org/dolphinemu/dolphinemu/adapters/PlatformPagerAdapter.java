@@ -49,7 +49,9 @@ public class PlatformPagerAdapter extends FragmentPagerAdapter
 		// TODO This workaround will eventually not be necessary; switch to more legit methods when that is the case
 		// TODO Also remove additional hax from styles.xml
 		Drawable drawable = mContext.getResources().getDrawable(TAB_ICONS[position]);
-		drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+		if (drawable != null) {
+			drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+		}
 
 		ImageSpan imageSpan = new ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM);
 

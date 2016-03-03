@@ -38,7 +38,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (!manager.hasPermission(dev))
@@ -59,7 +59,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (manager.hasPermission(dev))
@@ -86,13 +86,12 @@ public class Java_WiimoteAdapter
 
 		final int LIBUSB_REQUEST_TYPE_CLASS  = (1 << 5);
 		final int LIBUSB_RECIPIENT_INTERFACE = 0x1;
-		final int LIBUSB_ENDPOINT_OUT        = 0;
 
 		final int HID_SET_REPORT = 0x9;
 		final int HID_OUTPUT     = (2 << 8);
 
 		int write = usb_con.controlTransfer(
-				LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE | LIBUSB_ENDPOINT_OUT,
+				LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE,
 				HID_SET_REPORT,
 				HID_OUTPUT | report_number,
 				index,
@@ -114,7 +113,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (manager.hasPermission(dev))
