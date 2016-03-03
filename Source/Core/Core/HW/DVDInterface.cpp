@@ -32,54 +32,47 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-static const double PI = 3.14159265358979323846264338328;
+// The minimum time it takes for the DVD drive to process a command (in
+// microseconds)
+constexpr u64 COMMAND_LATENCY_US = 300;
+
+// The size of the streaming buffer.
+constexpr u64 STREAMING_BUFFER_SIZE = 1024 * 1024;
+
+// A single DVD disc sector
+constexpr u64 DVD_SECTOR_SIZE = 0x800;
+
+// The minimum amount that a drive will read
+constexpr u64 DVD_ECC_BLOCK_SIZE = 16 * DVD_SECTOR_SIZE;
 
 // Rate the drive can transfer data to main memory, given the data
 // is already buffered. Measured in bytes per second.
-static const u32 BUFFER_TRANSFER_RATE = 1024 * 1024 * 16;
+constexpr u64 BUFFER_TRANSFER_RATE = 32 * 1024 * 1024;
 
-// Disc access time measured in milliseconds
-static const u32 DISC_ACCESS_TIME_MS = 50;
+// The size of the first Wii disc layer in bytes (2294912 sectors per layer)
+constexpr u64 WII_DISC_LAYER_SIZE = 2294912 * DVD_SECTOR_SIZE;
 
-// The size of a Wii disc layer in bytes (is this correct?)
-static const u64 WII_DISC_LAYER_SIZE = 4699979776;
+// 24 mm
+constexpr double DVD_INNER_RADIUS = 0.024;
+// 58 mm
+constexpr double WII_DVD_OUTER_RADIUS = 0.058;
+// 38 mm
+constexpr double GC_DVD_OUTER_RADIUS = 0.038;
 
-// By knowing the disc read speed at two locations defined here,
-// the program can calulate the speed at arbitrary locations.
-// Offsets are in bytes, and speeds are in bytes per second.
-//
-// These speeds are approximations of speeds measured on real Wiis.
+// Approximate read speeds at the inner and outer locations of Wii and GC
+// discs. These speeds are approximations of speeds measured on real Wiis.
+constexpr double GC_DISC_INNER_READ_SPEED = 1024 * 1024 * 2.1;    // bytes/s
+constexpr double GC_DISC_OUTER_READ_SPEED = 1024 * 1024 * 3.325;  // bytes/s
+constexpr double WII_DISC_INNER_READ_SPEED = 1024 * 1024 * 3.48;  // bytes/s
+constexpr double WII_DISC_OUTER_READ_SPEED = 1024 * 1024 * 8.41;  // bytes/s
 
-static const u32 GC_DISC_LOCATION_1_OFFSET = 0;  // The beginning of a GC disc - 48 mm
-static const u32 GC_DISC_LOCATION_1_READ_SPEED = (u32)(1024 * 1024 * 2.1);
-static const u32 GC_DISC_LOCATION_2_OFFSET = 1459978239;  // The end of a GC disc - 76 mm
-static const u32 GC_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 3.325);
-
-static const u32 WII_DISC_LOCATION_1_OFFSET = 0;  // The beginning of a Wii disc - 48 mm
-static const u32 WII_DISC_LOCATION_1_READ_SPEED = (u32)(1024 * 1024 * 3.5);
-static const u64 WII_DISC_LOCATION_2_OFFSET =
-    WII_DISC_LAYER_SIZE;  // The end of a Wii disc - 116 mm
-static const u32 WII_DISC_LOCATION_2_READ_SPEED = (u32)(1024 * 1024 * 8.45);
-
-// These values are used for disc read speed calculations. Calculations
-// are done using an arbitrary length unit where the radius of a disc track
-// is the same as the read speed at that track in bytes per second.
-
-static const double GC_DISC_AREA_UP_TO_LOCATION_1 =
-    PI * GC_DISC_LOCATION_1_READ_SPEED * GC_DISC_LOCATION_1_READ_SPEED;
-static const double GC_DISC_AREA_UP_TO_LOCATION_2 =
-    PI * GC_DISC_LOCATION_2_READ_SPEED * GC_DISC_LOCATION_2_READ_SPEED;
-static const double GC_BYTES_PER_AREA_UNIT =
-    (GC_DISC_LOCATION_2_OFFSET - GC_DISC_LOCATION_1_OFFSET) /
-    (GC_DISC_AREA_UP_TO_LOCATION_2 - GC_DISC_AREA_UP_TO_LOCATION_1);
-
-static const double WII_DISC_AREA_UP_TO_LOCATION_1 =
-    PI * WII_DISC_LOCATION_1_READ_SPEED * WII_DISC_LOCATION_1_READ_SPEED;
-static const double WII_DISC_AREA_UP_TO_LOCATION_2 =
-    PI * WII_DISC_LOCATION_2_READ_SPEED * WII_DISC_LOCATION_2_READ_SPEED;
-static const double WII_BYTES_PER_AREA_UNIT =
-    (WII_DISC_LOCATION_2_OFFSET - WII_DISC_LOCATION_1_OFFSET) /
-    (WII_DISC_AREA_UP_TO_LOCATION_2 - WII_DISC_AREA_UP_TO_LOCATION_1);
+// Experimentally measured seek constants. The time to seek appears to be
+// linear, but short seeks appear to be lower velocity.
+constexpr double SHORT_SEEK_MAX_DISTANCE = 0.001;   // 1 mm
+constexpr double SHORT_SEEK_CONSTANT = 0.045;       // seconds
+constexpr double SHORT_SEEK_VELOCITY_INVERSE = 50;  // inverse: s/m
+constexpr double LONG_SEEK_CONSTANT = 0.085;        // seconds
+constexpr double LONG_SEEK_VELOCITY_INVERSE = 4.5;  // inverse: s/m
 
 namespace DVDInterface
 {
@@ -252,8 +245,10 @@ static u32 s_error_code = 0;
 static bool s_disc_inside = false;
 
 // Disc drive timing
-static u64 s_last_read_offset;
-static u64 s_last_read_time;
+static u64 s_read_buffer_start_time;
+static u64 s_read_buffer_end_time;
+static u64 s_read_buffer_start_offset;
+static u64 s_read_buffer_end_offset;
 
 // Disc changing
 static std::string s_disc_path_to_insert;
@@ -278,8 +273,11 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 
 u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type);
 
-u64 SimulateDiscReadTime(u64 offset, u32 length);
-s64 CalculateRawDiscReadTime(u64 offset, s64 length);
+void ScheduleReads(u64 dvd_offset, u32 length, bool decrypt, u32 output_address,
+                   ReplyType reply_type);
+double CalculatePhysicalDiscPosition(u64 offset);
+u64 CalculateSeekTime(u64 offset_from, u64 offset_to);
+u64 CalculateRawDiscReadTime(u64 offset, u64 length);
 
 void DoState(PointerWrap& p)
 {
@@ -304,8 +302,10 @@ void DoState(PointerWrap& p)
   p.Do(s_error_code);
   p.Do(s_disc_inside);
 
-  p.Do(s_last_read_offset);
-  p.Do(s_last_read_time);
+  p.Do(s_read_buffer_start_time);
+  p.Do(s_read_buffer_end_time);
+  p.Do(s_read_buffer_start_offset);
+  p.Do(s_read_buffer_end_offset);
 
   p.Do(s_disc_path_to_insert);
 
@@ -443,8 +443,11 @@ void Init()
   s_error_code = 0;
   s_disc_inside = false;
 
-  s_last_read_offset = 0;
-  s_last_read_time = 0;
+  // The buffer is empty at start
+  s_read_buffer_start_offset = 0;
+  s_read_buffer_end_offset = 0;
+  s_read_buffer_start_time = 0;
+  s_read_buffer_end_time = 0;
 
   s_disc_path_to_insert.clear();
 
@@ -709,29 +712,18 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
     DVD_length = output_length;
   }
 
-  u64 ticks_until_completion;
-  if (SConfig::GetInstance().bFastDiscSpeed)
-  {
-    // An optional hack to speed up loading times
-    ticks_until_completion =
-        output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
-  }
-  else
-  {
-    ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
-  }
-
-  DVDThread::StartReadToEmulatedRAM(output_address, DVD_offset, DVD_length, decrypt, reply_type,
-                                    ticks_until_completion);
+  ScheduleReads(DVD_offset, DVD_length, decrypt, output_address, reply_type);
   return true;
 }
 
+// When the command has finished executing, callback_event_type
+// will be called using CoreTiming::ScheduleEvent,
+// with the userdata set to the interrupt type.
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios)
 {
   ReplyType reply_type = reply_to_ios ? ReplyType::IOS : ReplyType::Interrupt;
   DIInterruptType interrupt_type = INT_TCINT;
-  s64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
   bool command_handled_by_thread = false;
 
   // DVDLowRequestError needs access to the error code set by the previous command
@@ -1116,11 +1108,11 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     break;
   }
 
-  // The command will finish executing after a delay
-  // to simulate the speed of a real disc drive
   if (!command_handled_by_thread)
   {
-    CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_executing_command,
+    // TODO: Needs testing to determine if COMMAND_LATENCY_US is accurate for this
+    CoreTiming::ScheduleEvent(COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000),
+                              s_finish_executing_command,
                               PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
 }
@@ -1142,6 +1134,11 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 {
   switch (reply_type)
   {
+  case ReplyType::NoReply:
+  {
+    break;
+  }
+
   case ReplyType::Interrupt:
   {
     if (s_DICR.TSTART)
@@ -1169,138 +1166,298 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
   }
 }
 
-// Simulates the timing aspects of reading data from a disc.
-// Returns the amount of ticks needed to finish executing the command,
-// and sets some state that is used the next time this function runs.
-u64 SimulateDiscReadTime(u64 offset, u32 length)
+// Determines from a given read request how much of the request is buffered,
+// and how much is required to be read from disc.
+void ScheduleReads(u64 dvd_offset, u32 dvd_length, bool decrypt, u32 output_address,
+                   ReplyType reply_type)
 {
-  // The drive buffers 1 MiB (?) of data after every read request;
-  // if a read request is covered by this buffer (or if it's
-  // faster to wait for the data to be buffered), the drive
-  // doesn't seek; it returns buffered data.  Data can be
-  // transferred from the buffer at up to 16 MiB/s.
-  //
-  // If the drive has to seek, the time this takes varies a lot.
-  // A short seek is around 50 ms; a long seek is around 150 ms.
-  // However, the time isn't purely dependent on the distance; the
-  // pattern of previous seeks seems to matter in a way I'm
-  // not sure how to explain.
-  //
-  // Metroid Prime is a good example of a game that's sensitive to
-  // all of these details; if there isn't enough latency in the
-  // right places, doors open too quickly, and if there's too
-  // much latency in the wrong places, the video before the
-  // save-file select screen lags.
-  //
-  // For now, just use a very rough approximation: 50 ms seek
-  // for reads outside 1 MiB, accelerated reads within 1 MiB.
-  // We can refine this if someone comes up with a more complete
-  // model for seek times.
+  // The drive continues to read 1 MiB beyond the last read position when idle.
+  // If a future read falls within this window, part of the read may be returned
+  // from the buffer. Data can be transferred from the buffer at up to 16 MiB/s.
 
-  u64 current_time = CoreTiming::GetTicks();
-  u64 ticks_until_completion;
+  // Metroid Prime is a good example of a game that's sensitive to disc timing
+  // details; if there isn't enough latency in the right places, doors can open
+  // faster than on real hardware, and if there's too much latency in the wrong
+  // places, the video before the save-file select screen lags.
 
-  // Number of ticks it takes to seek and read directly from the disk.
-  u64 disk_read_duration = CalculateRawDiscReadTime(offset, length) +
-                           SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
+  const u64 current_time = CoreTiming::GetTicks();
 
-  // Assume unbuffered read if the read we are performing asks for data >
-  // 1MB past the end of the last read *or* asks for data before the last
-  // read. It assumes the buffer is only used when reading small amounts
-  // forward.
-  if (offset + length > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
+  // Where the DVD read head is (usually parked at the end of the buffer,
+  // unless we've interrupted it mid-buffer-read).
+  u64 head_position;
+
+  // Compute the start (inclusive) and end (exclusive) of the buffer.
+  // If we fall within its bounds, we get DMA-speed reads.
+  u64 buffer_start, buffer_end;
+
+  if (SConfig::GetInstance().bFastDiscSpeed)
   {
-    // No buffer; just use the simple seek time + read time.
-    DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes", s64(offset) - s64(s_last_read_offset));
-    ticks_until_completion = disk_read_duration;
-    s_last_read_time = current_time + ticks_until_completion;
+    // The SUDTR setting makes us act as if all reads are buffered
+    buffer_start = std::numeric_limits<u64>::min();
+    buffer_end = std::numeric_limits<u64>::max();
+    head_position = 0;
   }
   else
   {
-    // Possibly buffered; use the buffer if it saves time.
-    // It's not proven that the buffer actually behaves like this, but
-    // it appears to be a decent approximation.
-
-    // Time at which the buffer will contain the data we need.
-    u64 buffer_fill_time =
-        s_last_read_time +
-        CalculateRawDiscReadTime(s_last_read_offset, offset + length - s_last_read_offset);
-    // Number of ticks it takes to transfer the data from the buffer to memory.
-    u64 buffer_read_duration = length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
-
-    if (current_time > buffer_fill_time)
+    if (s_read_buffer_start_time == s_read_buffer_end_time)
     {
-      DEBUG_LOG(DVDINTERFACE, "Fast buffer read at %" PRIx64, offset);
-      ticks_until_completion = buffer_read_duration;
-      s_last_read_time = buffer_fill_time;
-    }
-    else if (current_time + disk_read_duration > buffer_fill_time)
-    {
-      DEBUG_LOG(DVDINTERFACE, "Slow buffer read at %" PRIx64, offset);
-      ticks_until_completion = std::max(buffer_fill_time - current_time, buffer_read_duration);
-      s_last_read_time = buffer_fill_time;
+      // No buffer
+      buffer_start = buffer_end = head_position = 0;
     }
     else
     {
-      DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
-                s64(offset) - s64(s_last_read_offset));
-      ticks_until_completion = disk_read_duration;
-      s_last_read_time = current_time + ticks_until_completion;
+      buffer_start = s_read_buffer_end_offset > STREAMING_BUFFER_SIZE ?
+                         s_read_buffer_end_offset - STREAMING_BUFFER_SIZE :
+                         0;
+
+      DEBUG_LOG(DVDINTERFACE,
+                "Buffer: now=0x%" PRIx64 " start time=0x%" PRIx64 " end time=0x%" PRIx64,
+                current_time, s_read_buffer_start_time, s_read_buffer_end_time);
+
+      if (current_time >= s_read_buffer_end_time)
+      {
+        // Buffer is fully read
+        buffer_end = s_read_buffer_end_offset;
+      }
+      else
+      {
+        // The amount of data the buffer contains *right now*, rounded to a DVD ECC block.
+        buffer_end = s_read_buffer_start_offset +
+                     Common::AlignDown((current_time - s_read_buffer_start_time) *
+                                           (s_read_buffer_end_offset - s_read_buffer_start_offset) /
+                                           (s_read_buffer_end_time - s_read_buffer_start_time),
+                                       DVD_ECC_BLOCK_SIZE);
+      }
+      head_position = buffer_end;
+
+      // Reading before the buffer is not only unbuffered,
+      // but also destroys the old buffer for future reads.
+      if (dvd_offset < buffer_start)
+      {
+        // Kill the buffer, but maintain the head position for seeks.
+        buffer_start = buffer_end = 0;
+      }
     }
   }
 
-  s_last_read_offset = Common::AlignDown(offset + length - 2048, 2048);
+  DEBUG_LOG(DVDINTERFACE, "Buffer: start=0x%" PRIx64 " end=0x%" PRIx64 " avail=0x%" PRIx64,
+            buffer_start, buffer_end, buffer_end - buffer_start);
 
-  return ticks_until_completion;
-}
+  DEBUG_LOG(DVDINTERFACE,
+            "Schedule reads: offset=0x%" PRIx64 " length=0x%" PRIx32 " address=0x%" PRIx32,
+            dvd_offset, dvd_length, output_address);
 
-// Returns the number of ticks it takes to read an amount of
-// data from a disc, ignoring factors such as seek times.
-// The result will be negative if the length is negative.
-s64 CalculateRawDiscReadTime(u64 offset, s64 length)
-{
-  // The speed will be calculated using the average offset. This is a bit
-  // inaccurate since the speed doesn't increase linearly with the offset,
-  // but since reads only span a small part of the disc, it's insignificant.
-  u64 average_offset = offset + (length / 2);
+  // The DVD drive's minimum turnaround time on a command, based on a hardware test.
+  s64 ticks_until_completion = COMMAND_LATENCY_US * (SystemTimers::GetTicksPerSecond() / 1000000);
 
-  // Here, addresses on the second layer of Wii discs are replaced with equivalent
-  // addresses on the first layer so that the speed calculation works correctly.
-  // This is wrong for reads spanning two layers, but those should be rare.
-  average_offset %= WII_DISC_LAYER_SIZE;
+  u32 buffered_blocks = 0;
+  u32 unbuffered_blocks = 0;
 
-  // The area on the disc between position 1 and the arbitrary position X is:
-  // LOCATION_X_SPEED * LOCATION_X_SPEED * pi - AREA_UP_TO_LOCATION_1
-  //
-  // The number of bytes between position 1 and position X is:
-  // LOCATION_X_OFFSET - LOCATION_1_OFFSET
-  //
-  // This means that the following equation is true:
-  // (LOCATION_X_SPEED * LOCATION_X_SPEED * pi - AREA_UP_TO_LOCATION_1) *
-  // BYTES_PER_AREA_UNIT = LOCATION_X_OFFSET - LOCATION_1_OFFSET
-  //
-  // Solving this equation for LOCATION_X_SPEED results in this:
-  // LOCATION_X_SPEED = sqrt(((LOCATION_X_OFFSET - LOCATION_1_OFFSET) /
-  // BYTES_PER_AREA_UNIT + AREA_UP_TO_LOCATION_1) / pi)
-  //
-  // Note that the speed at a track (in bytes per second) is the same as
-  // the radius of that track because of the length unit used.
-  double speed;
-  if (s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
+  while (dvd_length > 0)
   {
-    speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) / WII_BYTES_PER_AREA_UNIT +
-                       WII_DISC_AREA_UP_TO_LOCATION_1) /
-                      PI);
+    // Where the read actually takes place on disc
+    u64 rounded_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
+
+    // The length of this read - "+1" so that if this read is already
+    // aligned to an ECC block we'll read the entire block.
+    u32 chunk_length =
+        static_cast<u32>(Common::AlignUp(dvd_offset + 1, DVD_ECC_BLOCK_SIZE) - dvd_offset);
+
+    // The last chunk may be short
+    if (chunk_length > dvd_length)
+      chunk_length = dvd_length;
+
+    if (rounded_offset >= buffer_start && rounded_offset < buffer_end)
+    {
+      // Number of ticks it takes to transfer the data from the buffer to memory.
+      ticks_until_completion +=
+          static_cast<u64>(chunk_length) * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
+      buffered_blocks++;
+    }
+    else
+    {
+      // In practice we'll only ever seek if this is the first time
+      // through this loop.
+      if (rounded_offset != head_position)
+      {
+        // Unbuffered seek+read
+        ticks_until_completion += CalculateSeekTime(head_position, rounded_offset);
+        DEBUG_LOG(DVDINTERFACE, "Seek+read 0x%" PRIx32 " bytes @ 0x%" PRIx64 " ticks=%" PRId64,
+                  chunk_length, rounded_offset, ticks_until_completion);
+      }
+      else
+      {
+        // Unbuffered read
+        ticks_until_completion += CalculateRawDiscReadTime(rounded_offset, DVD_ECC_BLOCK_SIZE);
+      }
+
+      unbuffered_blocks++;
+      head_position = rounded_offset + DVD_ECC_BLOCK_SIZE;
+    }
+
+    // Schedule this read to complete at the appropriate time
+    const ReplyType chunk_reply_type = chunk_length == dvd_length ? reply_type : ReplyType::NoReply;
+    DVDThread::StartReadToEmulatedRAM(output_address, dvd_offset, chunk_length, decrypt,
+                                      chunk_reply_type, ticks_until_completion);
+
+    // Advance the read window
+    output_address += chunk_length;
+    dvd_offset += chunk_length;
+    dvd_length -= chunk_length;
+  }
+
+  // Update the buffer based on this read. Based on experimental testing,
+  // we will only reuse the old buffer while reading forward. Note that the
+  // buffer start we calculate here is not the actual start of the buffer -
+  // it is just the start of the portion we need to read.
+  u64 last_block = Common::AlignUp(dvd_offset, DVD_ECC_BLOCK_SIZE);
+  if (last_block == buffer_start + DVD_ECC_BLOCK_SIZE && buffer_start != buffer_end)
+  {
+    // Special case: reading less than one block at the start of the
+    // buffer won't change the buffer state
   }
   else
   {
-    speed = std::sqrt(((average_offset - GC_DISC_LOCATION_1_OFFSET) / GC_BYTES_PER_AREA_UNIT +
-                       GC_DISC_AREA_UP_TO_LOCATION_1) /
-                      PI);
-  }
-  DEBUG_LOG(DVDINTERFACE, "Disc speed: %f MiB/s", speed / 1024 / 1024);
+    if (last_block >= buffer_end)
+      // Full buffer read
+      s_read_buffer_start_offset = last_block;
+    else
+      // Partial buffer read
+      s_read_buffer_start_offset = buffer_end;
 
-  return (s64)(SystemTimers::GetTicksPerSecond() / speed * length);
+    s_read_buffer_end_offset = last_block + STREAMING_BUFFER_SIZE - DVD_ECC_BLOCK_SIZE;
+    // Assume the buffer starts reading right after the end of the last operation
+    s_read_buffer_start_time = current_time + ticks_until_completion;
+    s_read_buffer_end_time =
+        s_read_buffer_start_time +
+        CalculateRawDiscReadTime(s_read_buffer_start_offset,
+                                 s_read_buffer_end_offset - s_read_buffer_start_offset);
+  }
+
+  DEBUG_LOG(DVDINTERFACE, "Schedule reads: ECC blocks unbuffered=%d, buffered=%d, "
+                          "ticks=%" PRId64 ", time=%" PRId64 " us",
+            unbuffered_blocks, buffered_blocks, ticks_until_completion,
+            ticks_until_completion * 1000000 / SystemTimers::GetTicksPerSecond());
+}
+
+// We can approximate the relationship between a byte offset on disc and its
+// radial distance from the center by using an approximation for the length of
+// a rolled material, which is the area of the material divided by the pitch
+// (ie: assume that you can squish and deform the area of the disc into a
+// rectangle as thick as the track pitch).
+//
+// In practice this yields good-enough numbers as a more exact formula
+// involving the integral over a polar equation (too complex to describe here)
+// or the approximation of a DVD as a set of concentric circles (which is a
+// better approximation, but makes futher derivations more complicated than
+// they need to be).
+//
+// From the area approximation, we end up with this formula:
+//
+// L = pi*(r.outer^2-r.inner^2)/pitch
+//
+// Where:
+//   L = the data track's physical length
+//   r.{inner,outer} = the inner/outer radii (24 mm and 58 mm)
+//   pitch = the track pitch (.74 um)
+//
+// We can then use this equation to compute the radius for a given sector in
+// the disc by mapping it along the length to a linear position and inverting
+// the equation and solving for r.outer (using the DVD's r.inner and pitch)
+// given that linear position:
+//
+// r.outer = sqrt(L * pitch / pi + r.inner^2)
+//
+// Where:
+//   L = the offset's linear position, as offset/density
+//   r.outer = the radius for the offset
+//   r.inner and pitch are the same as before.
+//
+// The data density of the disc is just the number of bytes addressable on a
+// DVD, divided by the spiral length holding that data. offset/density yields
+// the linear position for a given offset.
+//
+// When we put it all together and simplify, we can compute the radius for a
+// given byte offset as a drastically simplified:
+//
+// r = sqrt(offset/total_bytes*(r.outer^2-r.inner^2) + r.inner^2)
+double CalculatePhysicalDiscPosition(u64 offset)
+{
+  // Just in case someone has an overly large disc image
+  // that can't exist in reality...
+  offset %= WII_DISC_LAYER_SIZE * 2;
+
+  // Assumption: the layout on the second disc layer is opposite of the first,
+  // ie layer 2 starts where layer 1 ends and goes backwards.
+  if (offset > WII_DISC_LAYER_SIZE)
+    offset = WII_DISC_LAYER_SIZE * 2 - offset;
+
+  // The track pitch here is 0.74 um, but it cancels out and we don't need it
+
+  // Note that because Wii and GC discs have identical data densities
+  // we can simply use the Wii numbers in both cases
+  return std::sqrt(
+      static_cast<double>(offset) / WII_DISC_LAYER_SIZE *
+          (WII_DVD_OUTER_RADIUS * WII_DVD_OUTER_RADIUS - DVD_INNER_RADIUS * DVD_INNER_RADIUS) +
+      DVD_INNER_RADIUS * DVD_INNER_RADIUS);
+}
+
+// Returns the number of ticks to move the read head from one offset to
+// another, plus the number of ticks to read one ECC block immediately
+// afterwards. Based on hardware testing, this appears to be a function of the
+// linear distance between the radius of the first and second positions on the
+// disc, though the head speed varies depending on the length of the seek.
+u64 CalculateSeekTime(u64 offset_from, u64 offset_to)
+{
+  const double position_from = CalculatePhysicalDiscPosition(offset_from);
+  const double position_to = CalculatePhysicalDiscPosition(offset_to);
+
+  // Seek time is roughly linear based on head distance travelled
+  const double distance = fabs(position_from - position_to);
+
+  double time_in_seconds;
+  if (distance < SHORT_SEEK_MAX_DISTANCE)
+    time_in_seconds = distance * SHORT_SEEK_VELOCITY_INVERSE + SHORT_SEEK_CONSTANT;
+  else
+    time_in_seconds = distance * LONG_SEEK_VELOCITY_INVERSE + LONG_SEEK_CONSTANT;
+
+  return static_cast<u64>(time_in_seconds * SystemTimers::GetTicksPerSecond());
+}
+
+// Returns the number of ticks it takes to read an amount of data from a disc,
+// ignoring factors such as seek times. This is the streaming rate of the
+// drive and varies between ~3-8MiB/s for Wii discs. Note that there is technically
+// a DMA delay on top of this, but we model that as part of this read time.
+u64 CalculateRawDiscReadTime(u64 offset, u64 length)
+{
+  // The Wii/GC have a CAV drive and the data has a constant pit length
+  // regardless of location on disc. This means we can linearly interpolate
+  // speed from the inner to outer radius. This matches a hardware test.
+  // We're just picking a point halfway into the read as our benchmark for
+  // read speed as speeds don't change materially in this small window.
+  const double physical_offset = CalculatePhysicalDiscPosition(offset + length / 2);
+
+  double speed;
+  if (s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
+  {
+    speed = (physical_offset - DVD_INNER_RADIUS) / (WII_DVD_OUTER_RADIUS - DVD_INNER_RADIUS) *
+                (WII_DISC_OUTER_READ_SPEED - WII_DISC_INNER_READ_SPEED) +
+            WII_DISC_INNER_READ_SPEED;
+  }
+  else
+  {
+    speed = (physical_offset - DVD_INNER_RADIUS) / (GC_DVD_OUTER_RADIUS - DVD_INNER_RADIUS) *
+                (GC_DISC_OUTER_READ_SPEED - GC_DISC_INNER_READ_SPEED) +
+            GC_DISC_INNER_READ_SPEED;
+  }
+
+  DEBUG_LOG(DVDINTERFACE, "Read 0x%" PRIx64 " @ 0x%" PRIx64 " @%lf mm: %lf us, %lf MiB/s", length,
+            offset, physical_offset * 1000, length / speed * 1000 * 1000, speed / 1024 / 1024);
+
+  // (ticks/second) / (bytes/second) * bytes = ticks
+  const double ticks = static_cast<double>(SystemTimers::GetTicksPerSecond()) * length / speed;
+
+  return static_cast<u64>(ticks);
 }
 
 }  // namespace
