@@ -525,7 +525,7 @@ void Interpreter::divwx(UGeckoInstruction _inst)
 			PanicAlert("OE: divwx");
 		}
 
-		if (((u32)a & 0x80000000) && b == 0)
+		if (((u32)a & 0x80000000) && b == -1)
 			rGPR[_inst.RD] = -1;
 		else
 			rGPR[_inst.RD] = 0;
