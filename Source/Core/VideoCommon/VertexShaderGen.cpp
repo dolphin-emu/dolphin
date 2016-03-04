@@ -304,6 +304,14 @@ static T GenerateVertexShader(API_TYPE api_type)
 			out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
 		}
 
+		// TODO write comment
+		// TODO check if it only affects XF_TEXGEN_REGULAR more
+		if(texinfo.texgentype == XF_TEXGEN_REGULAR)
+		{
+			out.Write("if(o.tex%d.z == 0.0f)\n", i);
+			out.Write("\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f), float2(1.0f));\n", i, i);
+		}
+
 		out.Write("}\n");
 	}
 
