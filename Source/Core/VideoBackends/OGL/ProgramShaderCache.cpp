@@ -153,6 +153,14 @@ void ProgramShaderCache::UploadConstants()
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
 			&VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
+		for(int i = 0; i < 24; i++)
+		{
+			WARN_LOG(VIDEO, "texmatrices[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.texmatrices[i][0],
+								 VertexShaderManager::constants.texmatrices[i][1],
+								 VertexShaderManager::constants.texmatrices[i][2],
+								 VertexShaderManager::constants.texmatrices[i][3]);
+		}
+
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
 			&GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
