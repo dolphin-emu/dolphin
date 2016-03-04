@@ -56,7 +56,8 @@ BuildRequires:  lzo-devel
 # Disable miniupnpc in OBS for F20
 BuildRequires:  miniupnpc-devel
 BuildRequires:  openal-soft-devel
-BuildRequires:  polarssl-devel
+#polarssl is now mbedtls:
+BuildRequires:  mbedtls-devel
 BuildRequires:  portaudio-devel
 BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
