@@ -263,7 +263,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
                         bool decrypt, bool reply_to_ios, DIInterruptType* interrupt_type,
                         u64* ticks_until_completion);
 
-u64 SimulateDiscReadTime(u64 offset, u32 length);
+u64 SimulateDiscReadTime(u64 offset, u64 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
 
 void DoState(PointerWrap& p)
@@ -651,11 +651,15 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
   }
 
   if (SConfig::GetInstance().bFastDiscSpeed)
+  {
     // An optional hack to speed up loading times
     *ticks_until_completion =
-        output_length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+        static_cast<u64>(output_length) * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
+  }
   else
+  {
     *ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
+  }
 
   DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt, reply_to_ios,
                        (int)*ticks_until_completion);
@@ -1294,7 +1298,7 @@ void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type)
 // Simulates the timing aspects of reading data from a disc.
 // Returns the amount of ticks needed to finish executing the command,
 // and sets some state that is used the next time this function runs.
-u64 SimulateDiscReadTime(u64 offset, u32 length)
+u64 SimulateDiscReadTime(u64 offset, u64 length)
 {
   // The drive buffers 1 MiB (?) of data after every read request;
   // if a read request is covered by this buffer (or if it's
@@ -1348,7 +1352,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
         s_last_read_time +
         CalculateRawDiscReadTime(s_last_read_offset, offset + length - s_last_read_offset);
     // Number of ticks it takes to transfer the data from the buffer to memory.
-    u64 buffer_read_duration = length * (SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE);
+    u64 buffer_read_duration = length * SystemTimers::GetTicksPerSecond() / BUFFER_TRANSFER_RATE;
 
     if (current_time > buffer_fill_time)
     {
