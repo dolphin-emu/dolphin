@@ -17,14 +17,6 @@
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-#define PPCSTATE_OFF(elem) (offsetof(PowerPC::PowerPCState, elem))
-
-// Some asserts to make sure we will be able to load everything
-static_assert(PPCSTATE_OFF(spr[1023]) <= 16380, "LDR(32bit) can't reach the last SPR");
-static_assert((PPCSTATE_OFF(ps[0][0]) % 8) == 0, "LDR(64bit VFP) requires FPRs to be 8 byte aligned");
-static_assert(PPCSTATE_OFF(xer_ca) < 4096, "STRB can't store xer_ca!");
-static_assert(PPCSTATE_OFF(xer_so_ov) < 4096, "STRB can't store xer_so_ov!");
-
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
 {
 public:
@@ -95,6 +87,8 @@ public:
 	void rlwnmx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
+	void mulhwx(UGeckoInstruction inst);
+	void mulhwux(UGeckoInstruction inst);
 	void addic(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void addzex(UGeckoInstruction inst);
@@ -206,6 +200,7 @@ private:
 	{
 		nearcode = GetWritableCodePtr();
 		SetCodePtrUnsafe(farcode.GetWritableCodePtr());
+		AlignCode16();
 	}
 
 	void SwitchToNearCode()
@@ -237,10 +232,9 @@ private:
 
 	// Exits
 	void WriteExit(u32 destination);
-	void WriteExceptionExit(Arm64Gen::ARM64Reg dest);
-	void WriteExceptionExit();
-	void WriteExternalExceptionExit(ARM64Reg dest);
-	void WriteExitDestInR(Arm64Gen::ARM64Reg dest);
+	void WriteExit(Arm64Gen::ARM64Reg dest);
+	void WriteExceptionExit(u32 destination, bool only_external = false);
+	void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
 
 	FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 

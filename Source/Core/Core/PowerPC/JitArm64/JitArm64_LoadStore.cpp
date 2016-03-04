@@ -463,19 +463,15 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
-
 		MOVI2R(XA, (u64)&CoreTiming::Idle);
 		BLR(XA);
-
 		gpr.Unlock(WA);
-		WriteExceptionExit();
+
+		WriteExceptionExit(js.compilerPC);
 
 		SwitchToNearCode();
 
 		SetJumpTarget(noIdle);
-
-		//js.compilerPC += 8;
-		return;
 	}
 }
 
@@ -597,7 +593,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 		MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
 	}
 
-	ADD(XA, XA, X28);
+	ADD(XA, XA, MEM_REG);
 
 	for (int i = inst.RD; i < 32; i++)
 	{

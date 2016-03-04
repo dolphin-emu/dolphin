@@ -45,9 +45,9 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	if (inst.RA || update) // Always uses the register on update
 	{
 		if (offset >= 0)
-			ADD(addr_reg, gpr.R(inst.RA), offset);
+			ADD(addr_reg, arm_addr, offset);
 		else
-			SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
+			SUB(addr_reg, arm_addr, std::abs(offset));
 	}
 	else
 	{
@@ -65,18 +65,18 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 		VS = fpr.RW(inst.RS, REG_REG_SINGLE);
 		if (!inst.W)
 		{
-			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), X28);
+			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
 			m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
 		}
 		else
 		{
-			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), X28);
+			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), MEM_REG);
 		}
 		m_float_emit.REV32(8, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
 	}
 	else
 	{
-		LDR(INDEX_UNSIGNED, scale_reg, X29, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+		LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 		UBFM(type_reg, scale_reg, 16, 18); // Type
 		UBFM(scale_reg, scale_reg, 24, 29); // Scale
 
@@ -179,7 +179,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 				m_float_emit.FCVTN(32, D0, VS);
 		}
 
-		LDR(INDEX_UNSIGNED, scale_reg, X29, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+		LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 		UBFM(type_reg, scale_reg, 0, 2); // Type
 		UBFM(scale_reg, scale_reg, 8, 13); // Scale
 
