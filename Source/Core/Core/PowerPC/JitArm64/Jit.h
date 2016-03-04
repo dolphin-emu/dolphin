@@ -87,6 +87,8 @@ public:
 	void rlwnmx(UGeckoInstruction inst);
 	void srawix(UGeckoInstruction inst);
 	void mullwx(UGeckoInstruction inst);
+	void mulhwx(UGeckoInstruction inst);
+	void mulhwux(UGeckoInstruction inst);
 	void addic(UGeckoInstruction inst);
 	void mulli(UGeckoInstruction inst);
 	void addzex(UGeckoInstruction inst);

@@ -747,6 +747,56 @@ void JitArm64::mullwx(UGeckoInstruction inst)
 	}
 }
 
+void JitArm64::mulhwx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		s32 i = (s32)gpr.GetImm(a), j = (s32)gpr.GetImm(b);
+		gpr.SetImmediate(d, (u32)((u64)(((s64)i * (s64)j) ) >> 32));
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+		SMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
+		LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
+void JitArm64::mulhwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITIntegerOff);
+
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+
+	if (gpr.IsImm(a) && gpr.IsImm(b))
+	{
+		u32 i = gpr.GetImm(a), j = gpr.GetImm(b);
+		gpr.SetImmediate(d, (u32)( ( (u64)i * (u64)j) >> 32) );
+		if (inst.Rc)
+			ComputeRC(gpr.GetImm(d), 0);
+	}
+	else
+	{
+		gpr.BindToRegister(d, d == a || d == b);
+		UMULL(EncodeRegTo64(gpr.R(d)), gpr.R(a), gpr.R(b));
+		LSR(EncodeRegTo64(gpr.R(d)), EncodeRegTo64(gpr.R(d)), 32);
+
+		if (inst.Rc)
+			ComputeRC(gpr.R(d), 0);
+	}
+}
+
 void JitArm64::addzex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

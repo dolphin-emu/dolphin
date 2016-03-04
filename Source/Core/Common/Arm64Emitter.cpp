@@ -1389,6 +1389,10 @@ void ARM64XEmitter::UMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
 	EncodeData3SrcInst(5, Rd, Rn, Rm, Ra);
 }
+void ARM64XEmitter::UMULL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm)
+{
+	UMADDL(Rd, Rn, Rm, SP);
+}
 void ARM64XEmitter::UMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra)
 {
 	EncodeData3SrcInst(6, Rd, Rn, Rm, Ra);
