@@ -387,6 +387,8 @@ public final class CPUHelper
 			case 0xD07:
 				return "ARM Cortex A57 MPCore";
 
+			case 0xD08:
+				return "ARM Cortex A72";
 
 			default: // Unknown/Not yet added to list.
 				return String.format(ctx.getString(R.string.unknown_part_num), partNum);
