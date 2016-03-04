@@ -1,0 +1,56 @@
+.TH DOLPHIN-EMU-NOGUI 6 "March 4, 2016"
+.SH NAME
+dolphin-emu-nogui - an emulator for running GameCube, Wii, and Triforce
+games on
+Windows, Linux, OS X, and recent Android devices.
+.SH SYNOPSIS
+.B dolphin-emu-nogui
+[\fB-h\fR] [\fB-d\fR] [\fB-l\fR] [\fB-e \fIfile\fR] [\fB-b\fR] [\fB-c\fR] [\fB-V
+\fIvideo\fR] [\fB-A \fIaudio\fR] [\fB-m
+\fIfile\fR] [\fB-u \fIpath\fR]
+.SH DESCRIPTION
+Dolphin is an emulator for two recent Nintendo video game consoles: the
+GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles
+in full HD (1080p) with several enhancements: compatibility with all PC
+controllers, turbo speed, networked multiplayer, and even more!
+.P
+\fBdolphin-emu-nogui\fR does not have a graphical user interface.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show this help message
+.TP
+.BR \-d ", " \-\-debugger
+Opens the debugger
+.TP
+.BR \-l ", " \-\-logger
+Opens the logger
+.TP
+.BR \-e ", " \-\-exec =\fIfile\fR
+Loads the specified file
+(\fBDOL\fR,\fBELF\fR,\fBWAD\fR,\fBGCM\fR,\fBISO\fR)
+.TP
+.BR \-b ", " \-\-batch
+Exit Dolphin with emulator
+.TP
+.BR \-c ", " \-\-confirm =\fItext\fR
+Set Confirm on Stop
+.TP
+.BR \-V ", " \-\-video_backend =\fIvideo\fR
+OpenGL (\fBOGL\fR) or \fBSoftware Renderer\fR video backend
+.TP
+.BR \-A ", " \-\-audio_emulation =\fIaudio\fR
+Low level (\fBLLE\fR) or high level (\fBHLE\fR) audio
+.TP
+.BR \-m ", " \-\-movie =\fIfile\fR
+Play a movie file
+.TP
+.BR \-u ", " \-\-user =\fIpath\fR
+User folder path
+.SH FILES
+.TP
+.I $HOME/.dolphin-emu
+Default user configuration directory.
+.SH AUTHOR
+This manual page was written by Jeremy Newton, but may be distributed freely
+using the CC BY license.
