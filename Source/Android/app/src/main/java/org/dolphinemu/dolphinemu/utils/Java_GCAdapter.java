@@ -32,7 +32,7 @@ public class Java_GCAdapter {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 			{
 				if (!manager.hasPermission(dev))
@@ -58,7 +58,7 @@ public class Java_GCAdapter {
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 			{
 				if (manager.hasPermission(dev))
@@ -77,24 +77,22 @@ public class Java_GCAdapter {
 	}
 
 	public static int Input() {
-		int read = usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
-		return read;
+		return usb_con.bulkTransfer(usb_in, controller_payload, controller_payload.length, 16);
 	}
 
 	public static int Output(byte[] rumble) {
-		int size = usb_con.bulkTransfer(usb_out, rumble, 5, 16);
-		return size;
+		return usb_con.bulkTransfer(usb_out, rumble, 5, 16);
 	}
 
 	public static boolean OpenAdapter()
 	{
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		Iterator it = devices.entrySet().iterator();
-		while (it.hasNext())
+		for (Map.Entry<String, UsbDevice> entry : devices.entrySet())
 		{
-			HashMap.Entry pair = (HashMap.Entry)it.next();
-			UsbDevice dev = (UsbDevice)pair.getValue();
-			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e) {
+			HashMap.Entry pair = (HashMap.Entry) entry;
+			UsbDevice dev = (UsbDevice) pair.getValue();
+			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
+			{
 				if (manager.hasPermission(dev))
 				{
 					usb_con = manager.openDevice(dev);

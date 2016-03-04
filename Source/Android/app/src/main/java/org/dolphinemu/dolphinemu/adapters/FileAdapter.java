@@ -160,12 +160,12 @@ public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> impl
 	{
 		File[] children = directory.listFiles();
 		mPath = directory.getAbsolutePath();
-		ArrayList<FileListItem> fileList = new ArrayList<FileListItem>(0);
+		ArrayList<FileListItem> fileList = new ArrayList<>(0);
 
 		if (children != null)
 		{
 
-			fileList = new ArrayList<FileListItem>(children.length);
+			fileList = new ArrayList<>(children.length);
 
 			for (File child : children)
 			{
