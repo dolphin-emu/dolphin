@@ -78,7 +78,7 @@ FramebufferManager::FramebufferManager()
 	sample_desc.Count = g_ActiveConfig.iMultisamples;
 	sample_desc.Quality = 0;
 
-	ID3D12Resource* buf12;
+	ComPtr<ID3D12Resource> buf12;
 	D3D12_RESOURCE_DESC texdesc12;
 	D3D12_CLEAR_VALUE optimized_clear_valueRTV = { DXGI_FORMAT_R8G8B8A8_UNORM, { 0.0f, 0.0f, 0.0f, 1.0f } };
 	D3D12_CLEAR_VALUE optimized_clear_valueDSV = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 0.0f, 0);
@@ -89,41 +89,41 @@ FramebufferManager::FramebufferManager()
 
 	// EFB color texture - primary render target
 	texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1, sample_desc.Count, sample_desc.Quality, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueRTV, IID_PPV_ARGS(&buf12));
+	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueRTV, IID_PPV_ARGS(buf12.GetAddressOf()));
 
-	m_efb.color_tex = new D3DTexture2D(buf12, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
-	SAFE_RELEASE(buf12);
+	m_efb.color_tex = new D3DTexture2D(buf12.Get(), (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
+	buf12.Release();
 
 	// Temporary EFB color texture - used in ReinterpretPixelData
 	texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1, sample_desc.Count, sample_desc.Quality, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueRTV, IID_PPV_ARGS(&buf12)));
-	m_efb.color_temp_tex = new D3DTexture2D(buf12, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
-	SAFE_RELEASE(buf12);
+	CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueRTV, IID_PPV_ARGS(buf12.GetAddressOf())));
+	m_efb.color_temp_tex = new D3DTexture2D(buf12.Get(), (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
+	buf12.Release();
 	D3D::SetDebugObjectName12(m_efb.color_temp_tex->GetTex12(), "EFB color temp texture");
 
 	// EFB depth buffer - primary depth buffer
 	texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, sample_desc.Count, sample_desc.Quality, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
-	CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueDSV, IID_PPV_ARGS(&buf12)));
+	CheckHR(D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, &optimized_clear_valueDSV, IID_PPV_ARGS(buf12.GetAddressOf())));
 
-	m_efb.depth_tex = new D3DTexture2D(buf12, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
-	SAFE_RELEASE(buf12);
+	m_efb.depth_tex = new D3DTexture2D(buf12.Get(), (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1), D3D12_RESOURCE_STATE_COMMON);
+	buf12.Release();
 	D3D::SetDebugObjectName12(m_efb.depth_tex->GetTex12(), "EFB depth texture");
 
 	if (g_ActiveConfig.iMultisamples > 1)
 	{
 		// Framebuffer resolve textures (color+depth)
 		texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1);
-		hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buf12));
+		hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(buf12.GetAddressOf()));
 		CHECK(hr == S_OK, "create EFB color resolve texture (size: %dx%d)", m_target_width, m_target_height);
-		m_efb.resolved_color_tex = new D3DTexture2D(buf12, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_COMMON);
-		SAFE_RELEASE(buf12);
+		m_efb.resolved_color_tex = new D3DTexture2D(buf12.Get(), D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_COMMON);
+		buf12.Release();
 		D3D::SetDebugObjectName12(m_efb.resolved_color_tex->GetTex12(), "EFB color resolve texture shader resource view");
 
 		texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, m_target_width, m_target_height, m_efb.slices, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-		hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&buf12));
+		hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(buf12.GetAddressOf()));
 		CHECK(hr == S_OK, "create EFB depth resolve texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
-		m_efb.resolved_depth_tex = new D3DTexture2D(buf12, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_COMMON);
-		SAFE_RELEASE(buf12);
+		m_efb.resolved_depth_tex = new D3DTexture2D(buf12.Get(), (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_COMMON);
+		buf12.Release();
 		D3D::SetDebugObjectName12(m_efb.resolved_depth_tex->GetTex12(), "EFB depth resolve texture shader resource view");
 	}
 	else
@@ -262,8 +262,8 @@ void FramebufferManager::InitializeEFBAccessCopies()
 	// EFB access - color staging/readback buffer
 	m_efb.color_access_readback_pitch = D3D::AlignValue(EFB_WIDTH * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	texdesc12 = CD3DX12_RESOURCE_DESC::Buffer(m_efb.color_access_readback_pitch * EFB_HEIGHT);
-	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_efb.color_access_readback_buffer));
-	D3D::SetDebugObjectName12(m_efb.color_access_readback_buffer, "EFB access color readback buffer");
+	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(m_efb.color_access_readback_buffer.GetAddressOf()));
+	D3D::SetDebugObjectName12(m_efb.color_access_readback_buffer.Get(), "EFB access color readback buffer");
 
 	// EFB access - depth resize buffer
 	texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, 1, 1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET, D3D12_TEXTURE_LAYOUT_UNKNOWN, 0);
@@ -276,8 +276,8 @@ void FramebufferManager::InitializeEFBAccessCopies()
 	// EFB access - depth staging/readback buffer
 	m_efb.depth_access_readback_pitch = D3D::AlignValue(EFB_WIDTH * sizeof(float), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	texdesc12 = CD3DX12_RESOURCE_DESC::Buffer(m_efb.depth_access_readback_pitch * EFB_HEIGHT);
-	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&m_efb.depth_access_readback_buffer));
-	D3D::SetDebugObjectName12(m_efb.color_access_readback_buffer, "EFB access depth readback buffer");
+	hr = D3D::device12->CreateCommittedResource(&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12, D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(m_efb.depth_access_readback_buffer.GetAddressOf()));
+	D3D::SetDebugObjectName12(m_efb.color_access_readback_buffer.Get(), "EFB access depth readback buffer");
 }
 
 void FramebufferManager::MapEFBColorAccessCopy()
@@ -313,7 +313,7 @@ void FramebufferManager::MapEFBColorAccessCopy()
 
 	// Copy to staging resource
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT dst_footprint = { 0, { DXGI_FORMAT_R8G8B8A8_UNORM, EFB_WIDTH, EFB_HEIGHT, 1, m_efb.color_access_readback_pitch } };
-	CD3DX12_TEXTURE_COPY_LOCATION dst_location(m_efb.color_access_readback_buffer, dst_footprint);
+	CD3DX12_TEXTURE_COPY_LOCATION dst_location(m_efb.color_access_readback_buffer.Get(), dst_footprint);
 	CD3DX12_TEXTURE_COPY_LOCATION src_location(src_resource, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
@@ -365,7 +365,7 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 
 	// Copy to staging resource
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT dst_footprint = { 0,{ DXGI_FORMAT_R32_FLOAT, EFB_WIDTH, EFB_HEIGHT, 1, m_efb.depth_access_readback_pitch } };
-	CD3DX12_TEXTURE_COPY_LOCATION dst_location(m_efb.depth_access_readback_buffer, dst_footprint);
+	CD3DX12_TEXTURE_COPY_LOCATION dst_location(m_efb.depth_access_readback_buffer.Get(), dst_footprint);
 	CD3DX12_TEXTURE_COPY_LOCATION src_location(src_resource, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
@@ -404,12 +404,10 @@ void FramebufferManager::DestroyEFBAccessCopies()
 	InvalidateEFBAccessCopies();
 
 	SAFE_RELEASE(m_efb.color_access_resize_tex);
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_efb.color_access_readback_buffer);
-	m_efb.color_access_readback_buffer = nullptr;
+	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_efb.color_access_readback_buffer.Detach());
 
 	SAFE_RELEASE(m_efb.depth_access_resize_tex);
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_efb.depth_access_readback_buffer);
-	m_efb.depth_access_readback_buffer = nullptr;
+	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_efb.depth_access_readback_buffer.Detach());
 }
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)

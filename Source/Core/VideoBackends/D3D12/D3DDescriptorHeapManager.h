@@ -18,7 +18,6 @@ class D3DDescriptorHeapManager
 public:
 
 	D3DDescriptorHeapManager(D3D12_DESCRIPTOR_HEAP_DESC* desc, ID3D12Device* device, unsigned int temporarySlots = 0);
-	~D3DDescriptorHeapManager();
 
 	bool Allocate(D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle = nullptr, D3D12_CPU_DESCRIPTOR_HANDLE* gpu_handle_cpu_shadow = nullptr, bool temporary = false);
 	bool AllocateGroup(D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handles, unsigned int num_handles, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handles = nullptr, D3D12_CPU_DESCRIPTOR_HANDLE* gpu_handle_cpu_shadows = nullptr, bool temporary = false);
@@ -42,8 +41,8 @@ public:
 private:
 
 	ID3D12Device* m_device = nullptr;
-	ID3D12DescriptorHeap* m_descriptor_heap = nullptr;
-	ID3D12DescriptorHeap* m_descriptor_heap_cpu_shadow = nullptr;
+	ComPtr<ID3D12DescriptorHeap> m_descriptor_heap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> m_descriptor_heap_cpu_shadow = nullptr;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE m_heap_base_cpu;
 	D3D12_GPU_DESCRIPTOR_HANDLE m_heap_base_gpu;

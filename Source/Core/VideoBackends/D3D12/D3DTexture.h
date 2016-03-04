@@ -47,7 +47,7 @@ public:
 private:
 	~D3DTexture2D();
 
-	ID3D12Resource* m_tex12 = nullptr;
+	ComPtr<ID3D12Resource> m_tex12 = nullptr;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE m_srv12_cpu = {};
 	D3D12_GPU_DESCRIPTOR_HANDLE m_srv12_gpu = {};

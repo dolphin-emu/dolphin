@@ -6,6 +6,7 @@
 
 #include "VideoBackends/D3D/TextureEncoder.h"
 
+#include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/TextureCacheBase.h"
 
 struct ID3D11Texture2D;
@@ -38,10 +39,9 @@ public:
 private:
 	bool m_ready;
 
-	ID3D11Texture2D* m_out;
-	ID3D11RenderTargetView* m_outRTV;
-	ID3D11Texture2D* m_outStage;
-	ID3D11Buffer* m_encodeParams;
+	D3DTexture2D m_out;
+	ComPtr<ID3D11Texture2D> m_outStage;
+	ComPtr<ID3D11Buffer> m_encodeParams;
 
 	ID3D11PixelShader* SetStaticShader(unsigned int dstFormat,
 		PEControl::PixelFormat srcFormat, bool isIntensity, bool scaleByHalf);
@@ -55,7 +55,7 @@ private:
 			| (scaleByHalf ? (1<<0) : 0);
 	}
 
-	typedef std::map<ComboKey, ID3D11PixelShader*> ComboMap;
+	typedef std::map<ComboKey, ComPtr<ID3D11PixelShader>> ComboMap;
 
 	ComboMap m_staticShaders;
 };

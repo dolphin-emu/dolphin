@@ -85,8 +85,8 @@ public:
 		desc.CachedPSO.CachedBlobSizeInBytes = value_size;
 		desc.CachedPSO.pCachedBlob = value;
 
-		ID3D12PipelineState* pso = nullptr;
-		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pso));
+		ComPtr<ID3D12PipelineState> pso = nullptr;
+		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(pso.GetAddressOf()));
 
 		if (FAILED(hr))
 		{
@@ -149,10 +149,6 @@ void StateCache::Init()
 
 		s_pso_disk_cache.Close();
 
-		for (auto it : gx_state_cache.m_small_pso_map)
-		{
-			SAFE_RELEASE(it.second);
-		}
 		gx_state_cache.m_small_pso_map.clear();
 
 		File::Delete(cache_filename);
@@ -383,8 +379,8 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(D3D12_GRAPHICS_PIPELINE_STAT
 	{
 		// Not found, create new PSO.
 
-		ID3D12PipelineState* new_pso = nullptr;
-		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(pso_desc, IID_PPV_ARGS(&new_pso));
+		ComPtr<ID3D12PipelineState> new_pso = nullptr;
+		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(pso_desc, IID_PPV_ARGS(new_pso.GetAddressOf()));
 
 		if (FAILED(hr))
 		{
@@ -392,11 +388,11 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(D3D12_GRAPHICS_PIPELINE_STAT
 		}
 
 		m_pso_map[*pso_desc] = new_pso;
-		*pso = new_pso;
+		*pso = new_pso.Get();
 	}
 	else
 	{
-		*pso = it->second;
+		*pso = it->second.Get();
 	}
 
 	return S_OK;
@@ -421,8 +417,8 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 		m_current_pso_desc.PrimitiveTopologyType = topology;
 		m_current_pso_desc.InputLayout = pso_desc->input_layout->GetActiveInputLayout12();
 
-		ID3D12PipelineState* new_pso = nullptr;
-		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(&m_current_pso_desc, IID_PPV_ARGS(&new_pso));
+		ComPtr<ID3D12PipelineState> new_pso = nullptr;
+		HRESULT hr = D3D::device12->CreateGraphicsPipelineState(&m_current_pso_desc, IID_PPV_ARGS(new_pso.GetAddressOf()));
 
 		if (FAILED(hr))
 		{
@@ -430,7 +426,7 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 		}
 
 		m_small_pso_map[*pso_desc] = new_pso;
-		*pso = new_pso;
+		*pso = new_pso.Get();
 
 		// This contains all of the information needed to reconstruct a PSO at startup.
 		SmallPsoDiskDesc disk_desc = {};
@@ -455,7 +451,7 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 	}
 	else
 	{
-		*pso = it->second;
+		*pso = it->second.Get();
 	}
 
 	return S_OK;
@@ -463,10 +459,6 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 
 void StateCache::OnMSAASettingsChanged()
 {
-	for (auto& it : m_small_pso_map)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_small_pso_map.clear();
 
 	// Update sample count for new PSOs being created
@@ -475,16 +467,8 @@ void StateCache::OnMSAASettingsChanged()
 
 void StateCache::Clear()
 {
-	for (auto& it : m_pso_map)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_pso_map.clear();
 
-	for (auto& it : m_small_pso_map)
-	{
-		SAFE_RELEASE(it.second);
-	}
 	m_small_pso_map.clear();
 
 	s_pso_disk_cache.Sync();

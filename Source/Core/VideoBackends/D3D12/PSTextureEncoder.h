@@ -46,7 +46,7 @@ private:
 
 	using ComboMap = std::map<ComboKey, D3D12_SHADER_BYTECODE>;
 	ComboMap m_static_shaders_map;
-	std::vector<ID3DBlob*> m_static_shaders_blobs;
+	std::vector<ComPtr<ID3DBlob>> m_static_shaders_blobs;
 };
 
 }

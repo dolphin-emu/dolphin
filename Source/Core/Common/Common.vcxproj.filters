@@ -224,6 +224,7 @@
     </ClInclude>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="NonCopyable.h" />
+    <ClInclude Include="ComPtr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
