@@ -906,8 +906,15 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
 ########################################
 # Unit testing.
 #
-include_directories(Externals/gtest/include)
-add_subdirectory(Externals/gtest)
+include(FindGTest)
+if(GTEST_FOUND)
+	message("Using shared gtest")
+	include_directories(${GTEST_INCLUDE_DIRS})
+else()
+	message("Using static gtest from Externals")
+	include_directories(Externals/gtest/include)
+	add_subdirectory(Externals/gtest)
+endif(GTEST_FOUND)
 
 enable_testing()
 add_custom_target(unittests)
