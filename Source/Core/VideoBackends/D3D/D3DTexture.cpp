@@ -117,15 +117,12 @@ ID3D11DepthStencilView* D3DTexture2D::GetDSV() { return m_dsv.Get(); }
 
 ComPtr<ID3D11Texture2D> CreateStagingTexture(DXGI_FORMAT format,
 	unsigned int width, unsigned int height,
+	unsigned int levels, unsigned int slices,
 	D3D11_CPU_ACCESS_FLAG cpuAccess)
 {
 	ComPtr<ID3D11Texture2D> result;
 
-	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(format, width, height);
-	texdesc.MipLevels = 1;
-	texdesc.BindFlags = 0;
-	texdesc.Usage = D3D11_USAGE_STAGING;
-	texdesc.CPUAccessFlags = cpuAccess;
+	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(format, width, height, slices, levels, 0, D3D11_USAGE_STAGING, cpuAccess);
 	HRESULT hr = D3D::device->CreateTexture2D(&texdesc, nullptr, result.GetAddressOf());
 	if (FAILED(hr))
 	{

@@ -45,6 +45,7 @@ private:
 
 ComPtr<ID3D11Texture2D> CreateStagingTexture(DXGI_FORMAT format,
 	unsigned int width, unsigned int height,
+	unsigned int levels = 1, unsigned int slices = 1,
 	D3D11_CPU_ACCESS_FLAG cpuAccess = D3D11_CPU_ACCESS_READ);
 
 }  // namespace DX11

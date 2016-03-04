@@ -24,9 +24,6 @@ class XFBEncoder
 {
 
 public:
-
-	XFBEncoder();
-
 	void Init();
 	void Shutdown();
 
@@ -34,9 +31,9 @@ public:
 
 private:
 
-	ComPtr<ID3D11Texture2D> m_out;
-	ComPtr<ID3D11RenderTargetView> m_outRTV;
+	D3DTexture2D m_out;
 	ComPtr<ID3D11Texture2D> m_outStage;
+
 	ComPtr<ID3D11Buffer> m_encodeParams;
 	ComPtr<ID3D11Buffer> m_quad;
 	ComPtr<ID3D11VertexShader> m_vShader;

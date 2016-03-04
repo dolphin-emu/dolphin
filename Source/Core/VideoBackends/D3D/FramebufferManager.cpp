@@ -27,14 +27,14 @@ unsigned int FramebufferManager::m_target_height;
 ComPtr<ID3D11DepthStencilState> FramebufferManager::m_depth_resolve_depth_state;
 
 D3DTexture2D &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
-const ComPtr<ID3D11Texture2D>& FramebufferManager::GetEFBColorStagingBuffer() {
-	return m_efb.color_staging_buf;
+ID3D11Texture2D* FramebufferManager::GetEFBColorStagingBuffer() {
+	return m_efb.color_staging_buf.Get();
 }
 
 D3DTexture2D &FramebufferManager::GetEFBDepthTexture() { return m_efb.depth_tex; }
 D3DTexture2D &FramebufferManager::GetEFBDepthReadTexture() { return m_efb.depth_read_texture; }
-const ComPtr<ID3D11Texture2D>& FramebufferManager::GetEFBDepthStagingBuffer() {
-	return m_efb.depth_staging_buf;
+ID3D11Texture2D* FramebufferManager::GetEFBDepthStagingBuffer() {
+	return m_efb.depth_staging_buf.Get();
 }
 
 D3DTexture2D &FramebufferManager::GetResolvedEFBColorTexture()
@@ -127,9 +127,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName(m_efb.color_temp_tex.GetRTV(), "EFB color temp texture render target view");
 
 	// AccessEFB - Sysmem buffer used to retrieve the pixel data from color_tex
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, m_efb.slices, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, m_efb.color_staging_buf.GetAddressOf());
-	CHECK(hr==S_OK, "create EFB color staging buffer (hr=%#x)", hr);
+	m_efb.color_staging_buf = CreateStagingTexture(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, m_efb.slices);
 	D3D::SetDebugObjectName(m_efb.color_staging_buf.Get(), "EFB color staging texture (used for Renderer::AccessEFB)");
 
 	// EFB depth buffer - primary depth buffer
@@ -152,9 +150,7 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName(m_efb.depth_read_texture.GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
 
 	// AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, 1, 1, m_efb.slices, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
-	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, m_efb.depth_staging_buf.GetAddressOf());
-	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
+	m_efb.depth_staging_buf = CreateStagingTexture(DXGI_FORMAT_R32_FLOAT, 1, 1, 1, m_efb.slices);
 	D3D::SetDebugObjectName(m_efb.depth_staging_buf.Get(), "EFB depth staging texture (used for Renderer::AccessEFB)");
 
 	if (g_ActiveConfig.iMultisamples > 1)

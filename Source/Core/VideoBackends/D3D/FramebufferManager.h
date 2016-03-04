@@ -62,11 +62,11 @@ public:
 	~FramebufferManager();
 
 	static D3DTexture2D& GetEFBColorTexture();
-	static const ComPtr<ID3D11Texture2D>& GetEFBColorStagingBuffer();
+	static ID3D11Texture2D* GetEFBColorStagingBuffer();
 
 	static D3DTexture2D& GetEFBDepthTexture();
 	static D3DTexture2D& GetEFBDepthReadTexture();
-	static const ComPtr<ID3D11Texture2D>& GetEFBDepthStagingBuffer();
+	static ID3D11Texture2D* GetEFBDepthStagingBuffer();
 
 	static D3DTexture2D& GetResolvedEFBColorTexture();
 	static D3DTexture2D& GetResolvedEFBDepthTexture();

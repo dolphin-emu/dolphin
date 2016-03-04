@@ -59,10 +59,6 @@ static const char YUYV_DECODER_PS[] =
 "}\n"
 ;
 
-Television::Television()
-	: m_yuyvTexture(nullptr), m_yuyvTextureSRV(nullptr), m_pShader(nullptr)
-{ }
-
 void Television::Init()
 {
 	HRESULT hr;
@@ -82,20 +78,9 @@ void Television::Init()
 	D3D11_SUBRESOURCE_DATA srd = { fill.data(), 2*(MAX_XFB_WIDTH), 0 };
 
 	// This texture format is designed for YUYV data.
-	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-		DXGI_FORMAT_G8R8_G8B8_UNORM, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 1, 1);
-	hr = D3D::device->CreateTexture2D(&t2dd, &srd, m_yuyvTexture.GetAddressOf());
-	CHECK(SUCCEEDED(hr), "create tv yuyv texture");
-	D3D::SetDebugObjectName(m_yuyvTexture.Get(), "tv yuyv texture");
-
-	// Create shader resource view for YUYV texture
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvd = CD3D11_SHADER_RESOURCE_VIEW_DESC(
-		m_yuyvTexture.Get(), D3D11_SRV_DIMENSION_TEXTURE2D,
-		DXGI_FORMAT_G8R8_G8B8_UNORM);
-	hr = D3D::device->CreateShaderResourceView(m_yuyvTexture.Get(), &srvd, m_yuyvTextureSRV.GetAddressOf());
-	CHECK(SUCCEEDED(hr), "create tv yuyv texture srv");
-	D3D::SetDebugObjectName(m_yuyvTextureSRV.Get(), "tv yuyv texture srv");
+	m_yuyvTexture.Create(DXGI_FORMAT_G8R8_G8B8_UNORM, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 1, 1, &srd);
+	D3D::SetDebugObjectName(m_yuyvTexture.GetTex(), "tv yuyv texture");
+	D3D::SetDebugObjectName(m_yuyvTexture.GetSRV(), "tv yuyv texture srv");
 
 	// Create YUYV-decoding pixel shader
 
@@ -122,7 +107,6 @@ void Television::Init()
 void Television::Shutdown()
 {
 	m_pShader.Release();
-	m_yuyvTextureSRV.Release();
 	m_yuyvTexture.Release();
 	m_samplerState.Release();
 }
@@ -136,7 +120,7 @@ void Television::Submit(u32 xfbAddr, u32 stride, u32 width, u32 height)
 	// Load data from GameCube RAM to YUYV texture
 	u8* yuyvSrc = Memory::GetPointer(xfbAddr);
 	D3D11_BOX box = CD3D11_BOX(0, 0, 0, stride, height, 1);
-	D3D::context->UpdateSubresource(m_yuyvTexture.Get(), 0, &box, yuyvSrc, 2 * stride, 2 * stride * height);
+	D3D::context->UpdateSubresource(m_yuyvTexture.GetTex(), 0, &box, yuyvSrc, 2 * stride, 2 * stride * height);
 }
 
 void Television::Render()
@@ -153,7 +137,7 @@ void Television::Render()
 		D3D::stateman->SetSampler(0, m_samplerState.Get());
 
 		D3D::drawShadedTexQuad(
-			m_yuyvTextureSRV.Get(), &sourceRc,
+			m_yuyvTexture.GetSRV(), &sourceRc,
 			MAX_XFB_WIDTH, MAX_XFB_HEIGHT,
 			m_pShader.Get(),
 			VertexShaderCache::GetSimpleVertexShader(),

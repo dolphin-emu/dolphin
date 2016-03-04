@@ -133,13 +133,6 @@ static const struct QuadVertex
 	float posY;
 } QUAD_VERTS[4] = { { 0, 0 }, { 1, 0 }, { 0, 1 }, { 1, 1 } };
 
-XFBEncoder::XFBEncoder()
-	: m_out(nullptr), m_outRTV(nullptr), m_outStage(nullptr), m_encodeParams(nullptr),
-	m_quad(nullptr), m_vShader(nullptr), m_quadLayout(nullptr), m_pShader(nullptr),
-	m_xfbEncodeBlendState(nullptr), m_xfbEncodeDepthState(nullptr),
-	m_xfbEncodeRastState(nullptr), m_efbSampler(nullptr)
-{ }
-
 void XFBEncoder::Init()
 {
 	HRESULT hr;
@@ -148,28 +141,12 @@ void XFBEncoder::Init()
 
 	// The pixel shader can generate one YUYV entry per pixel. One YUYV entry
 	// is created for every two EFB pixels.
-	D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(
-		DXGI_FORMAT_R8G8B8A8_UNORM, MAX_XFB_WIDTH/2, MAX_XFB_HEIGHT, 1, 1,
-		D3D11_BIND_RENDER_TARGET);
-	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, m_out.GetAddressOf());
-	CHECK(SUCCEEDED(hr), "create xfb encoder output texture");
-	D3D::SetDebugObjectName(m_out.Get(), "xfb encoder output texture");
-
-	// Create output render target view
-
-	D3D11_RENDER_TARGET_VIEW_DESC rtvd = CD3D11_RENDER_TARGET_VIEW_DESC(m_out.Get(),
-		D3D11_RTV_DIMENSION_TEXTURE2D, DXGI_FORMAT_R8G8B8A8_UNORM);
-	hr = D3D::device->CreateRenderTargetView(m_out.Get(), &rtvd, m_outRTV.GetAddressOf());
-	CHECK(SUCCEEDED(hr), "create xfb encoder output texture rtv");
-	D3D::SetDebugObjectName(m_outRTV.Get(), "xfb encoder output rtv");
+	m_out.Create(DXGI_FORMAT_R8G8B8A8_UNORM, MAX_XFB_WIDTH/2, MAX_XFB_HEIGHT, D3D11_BIND_RENDER_TARGET);
+	D3D::SetDebugObjectName(m_out.GetTex(), "xfb encoder output texture");
+	D3D::SetDebugObjectName(m_out.GetRTV(), "xfb encoder output rtv");
 
 	// Create output staging buffer
-
-	t2dd.Usage = D3D11_USAGE_STAGING;
-	t2dd.BindFlags = 0;
-	t2dd.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-	hr = D3D::device->CreateTexture2D(&t2dd, nullptr, m_outStage.GetAddressOf());
-	CHECK(SUCCEEDED(hr), "create xfb encoder output staging buffer");
+	m_outStage = CreateStagingTexture(DXGI_FORMAT_R8G8B8A8_UNORM, MAX_XFB_WIDTH/2, MAX_XFB_HEIGHT);
 	D3D::SetDebugObjectName(m_outStage.Get(), "xfb encoder output staging buffer");
 
 	// Create constant buffer for uploading params to shaders
@@ -268,7 +245,6 @@ void XFBEncoder::Shutdown()
 	m_quad.Release();
 	m_encodeParams.Release();
 	m_outStage.Release();
-	m_outRTV.Release();
 	m_out.Release();
 }
 
@@ -311,7 +287,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	params.Gamma = gamma;
 	D3D::context->UpdateSubresource(m_encodeParams.Get(), 0, nullptr, &params, 0, 0);
 
-	D3D::SetRenderTarget(m_outRTV.Get(), nullptr);
+	D3D::SetRenderTarget(m_out.GetRTV(), nullptr);
 
 	ID3D11ShaderResourceView* pEFB = FramebufferManager::GetResolvedEFBColorTexture().GetSRV();
 
@@ -328,7 +304,7 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 	// Copy to staging buffer
 
 	D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, width/2, height, 1);
-	D3D::context->CopySubresourceRegion(m_outStage.Get(), 0, 0, 0, 0, m_out.Get(), 0, &srcBox);
+	D3D::context->CopySubresourceRegion(m_outStage.Get(), 0, 0, 0, 0, m_out.GetTex(), 0, &srcBox);
 
 	// Clean up state
 
