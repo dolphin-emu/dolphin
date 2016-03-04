@@ -960,6 +960,11 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps)
 	install(FILES Installer/dolphin-emu.desktop
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+	# Install manpages
+	install(FILES Installer/dolphin-emu.6
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/usr/share/man/man6)
+	install(FILES Installer/dolphin-emu-nogui.6
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/usr/share/man/man6)
 endif()
 
 # packaging information
