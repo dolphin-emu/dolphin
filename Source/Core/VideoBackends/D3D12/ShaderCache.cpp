@@ -28,7 +28,7 @@ PsBytecodeCache s_ps_bytecode_cache;
 VsBytecodeCache s_vs_bytecode_cache;
 
 // Used to keep track of blobs to release at Shutdown time.
-static std::vector<ID3DBlob*> s_shader_blob_list;
+static std::vector<ComPtr<ID3DBlob>> s_shader_blob_list;
 
 // Only used for shader debugging..
 using GsHlslCache = std::map<GeometryShaderUid, std::string>;
@@ -112,9 +112,6 @@ void ShaderCache::Init()
 
 void ShaderCache::Clear()
 {
-	for (auto& iter : s_shader_blob_list)
-		SAFE_RELEASE(iter);
-
 	s_shader_blob_list.clear();
 
 	s_gs_bytecode_cache.clear();
@@ -337,7 +334,7 @@ D3D12_SHADER_BYTECODE ShaderCache::InsertByteCode(const UidType& uid, ShaderCach
 	// Note: Don't release the incoming bytecode, we need it to stick around, since in D3D12
 	// the raw bytecode itself is bound. It is released at Shutdown() time.
 
-	s_shader_blob_list.push_back(bytecode_blob);
+	s_shader_blob_list.push_back(Common::AttachComPtr(bytecode_blob));
 
 	D3D12_SHADER_BYTECODE shader_bytecode;
 	shader_bytecode.pShaderBytecode = bytecode_blob->GetBufferPointer();

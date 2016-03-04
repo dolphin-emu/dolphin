@@ -203,7 +203,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 	}
 	else
 	{
-		ID3D12Resource* texture_resource = nullptr;
+		ComPtr<ID3D12Resource> texture_resource = nullptr;
 
 		D3D12_RESOURCE_DESC texture_resource_desc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM,
 			config.width, config.height, 1, config.levels);
@@ -215,12 +215,12 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 			&CD3DX12_RESOURCE_DESC(texture_resource_desc),
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			nullptr,
-			IID_PPV_ARGS(&texture_resource)
+			IID_PPV_ARGS(texture_resource.GetAddressOf())
 			)
 			);
 
 		D3DTexture2D* texture = new D3DTexture2D(
-			texture_resource,
+			texture_resource.Get(),
 			D3D11_BIND_SHADER_RESOURCE,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
@@ -239,8 +239,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
 		// EXISTINGD3D11TODO: better debug names
 		D3D::SetDebugObjectName12(entry->m_texture->GetTex12(), "a texture of the TextureCache");
-
-		SAFE_RELEASE(texture_resource);
 
 		return entry;
 	}

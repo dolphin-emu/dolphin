@@ -21,9 +21,12 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/ComPtr.h"
 
 namespace DX12
 {
+
+using Common::ComPtr;
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = nullptr; }
 #define CHECK(cond, Message, ...) if (!(cond)) { __debugbreak(); PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }

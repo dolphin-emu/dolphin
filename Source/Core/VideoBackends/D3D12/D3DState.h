@@ -146,7 +146,7 @@ private:
 		}
 	};
 
-	std::unordered_map<D3D12_GRAPHICS_PIPELINE_STATE_DESC, ID3D12PipelineState*, hash_pso_desc, equality_pipeline_state_desc> m_pso_map;
+	std::unordered_map<D3D12_GRAPHICS_PIPELINE_STATE_DESC, ComPtr<ID3D12PipelineState>, hash_pso_desc, equality_pipeline_state_desc> m_pso_map;
 
 	struct hash_small_pso_desc
 	{
@@ -186,7 +186,7 @@ private:
 		}
 	};
 
-	std::unordered_map<SmallPsoDesc, ID3D12PipelineState*, hash_small_pso_desc, equality_small_pipeline_state_desc> m_small_pso_map;
+	std::unordered_map<SmallPsoDesc, ComPtr<ID3D12PipelineState>, hash_small_pso_desc, equality_small_pipeline_state_desc> m_small_pso_map;
 };
 
 }  // namespace DX12
