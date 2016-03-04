@@ -356,6 +356,11 @@ void VertexShaderManager::SetConstants()
 			&xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex3MtxIdx * 4]
 		};
 
+		float* mat = (float*)pos_matrix_ptrs[0];
+		NOTICE_LOG(VIDEO, "tex0_index=0x%08x", g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4);
+		NOTICE_LOG(VIDEO, "tex0_addr=0x%08x", xfmem.posMatrices[g_main_cp_state.matrix_index_a.Tex0MtxIdx * 4]);
+		NOTICE_LOG(VIDEO, "tex0_matrix=(%f, %f, %f, %f)", mat[0], mat[1], mat[2], mat[3]);
+
 		for (size_t i = 0; i < ArraySize(pos_matrix_ptrs); ++i)
 		{
 			memcpy(constants.texmatrices[3 * i], pos_matrix_ptrs[i], 3 * sizeof(float4));
