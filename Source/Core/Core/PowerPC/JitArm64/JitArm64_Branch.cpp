@@ -30,11 +30,9 @@ void JitArm64::sc(UGeckoInstruction inst)
 	ORR(WA, WA, 31, 0); // Same as WA | EXCEPTION_SYSCALL
 	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
-	MOVI2R(WA, js.compilerPC + 4);
-	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(pc));
+	gpr.Unlock(WA);
 
-	// WA is unlocked in this function
-	WriteExceptionExit(WA);
+	WriteExceptionExit(js.compilerPC + 4);
 }
 
 void JitArm64::rfi(UGeckoInstruction inst)
@@ -108,8 +106,9 @@ void JitArm64::bx(UGeckoInstruction inst)
 
 		MOVI2R(XA, (u64)&CoreTiming::Idle);
 		BLR(XA);
-		MOVI2R(WA, js.compilerPC);
-		WriteExceptionExit(WA);
+		gpr.Unlock(WA);
+
+		WriteExceptionExit(js.compilerPC);
 	}
 
 	WriteExit(destination);

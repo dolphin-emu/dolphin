@@ -217,6 +217,33 @@ void JitArm64::WriteExit(ARM64Reg Reg)
 	BR(X30);
 }
 
+void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
+{
+	Cleanup();
+	DoDownCount();
+
+	LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(Exceptions));
+	MOVI2R(DISPATCHER_PC, destination);
+	FixupBranch no_exceptions = CBZ(W30);
+
+	STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+	STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+	if (only_external)
+		MOVI2R(X30, (u64)&PowerPC::CheckExternalExceptions);
+	else
+		MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
+	BLR(X30);
+	LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+
+	SetJumpTarget(no_exceptions);
+
+	if (Profiler::g_ProfileBlocks)
+		EndTimeProfile(js.curBlock);
+
+	MOVI2R(X30, (u64)asm_routines.dispatcher);
+	BR(X30);
+}
+
 void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 {
 	Cleanup();
@@ -490,8 +517,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
-				MOVI2R(W30, js.compilerPC);
-				WriteExceptionExit(W30, true);
+				WriteExceptionExit(js.compilerPC, true);
 			SwitchToNearCode();
 			SetJumpTarget(exit);
 			gpr.Unlock(W30);
@@ -519,11 +545,11 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				LDR(INDEX_UNSIGNED, WA, XA, 0);
 				TST(WA, 23, 2);
 				B(CC_EQ, done_here);
+				gpr.Unlock(WA);
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
-				MOVI2R(WA, js.compilerPC);
-				WriteExceptionExit(WA, true);
+				WriteExceptionExit(js.compilerPC, true);
 			SwitchToNearCode();
 			SetJumpTarget(NoExtException);
 			SetJumpTarget(exit);
@@ -549,8 +575,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				ORR(WA, WA, 26, 0); // EXCEPTION_FPU_UNAVAILABLE
 				STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 
-				MOVI2R(WA, js.compilerPC);
-				WriteExceptionExit(WA);
+				gpr.Unlock(WA);
+
+				WriteExceptionExit(js.compilerPC);
 
 				SwitchToNearCode();
 

@@ -196,11 +196,9 @@ void JitArm64::twx(UGeckoInstruction inst)
 	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
 	ORR(WA, WA, 24, 0); // Same as WA | EXCEPTION_PROGRAM
 	STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+	gpr.Unlock(WA);
 
-	MOVI2R(WA, js.compilerPC);
-
-	// WA is unlocked in this function
-	WriteExceptionExit(WA);
+	WriteExceptionExit(js.compilerPC);
 
 	SwitchToNearCode();
 

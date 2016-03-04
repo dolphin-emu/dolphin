@@ -463,13 +463,11 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
-
 		MOVI2R(XA, (u64)&CoreTiming::Idle);
 		BLR(XA);
+		gpr.Unlock(WA);
 
-		MOVI2R(WA, js.compilerPC);
-
-		WriteExceptionExit(WA);
+		WriteExceptionExit(js.compilerPC);
 
 		SwitchToNearCode();
 
