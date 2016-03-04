@@ -198,6 +198,7 @@ private:
 	{
 		nearcode = GetWritableCodePtr();
 		SetCodePtrUnsafe(farcode.GetWritableCodePtr());
+		AlignCode16();
 	}
 
 	void SwitchToNearCode()
