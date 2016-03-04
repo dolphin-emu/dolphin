@@ -704,7 +704,6 @@ void JitArm64::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITIntegerOff);
-	FALLBACK_IF(inst.OE);
 
 	int a = inst.RA, d = inst.RD;
 
