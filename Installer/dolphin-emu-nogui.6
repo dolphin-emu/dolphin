@@ -1,0 +1,41 @@
+.TH DOLPHIN-EMU-NOGUI 6 "March 3, 2016"
+.SH NAME
+\fBdolphin-emu-nogui\fR is an emulator for running GameCube, Wii, and Triforce games on
+Windows, Linux, OS X, and recent Android devices.
+.SH SYNOPSIS
+.B dolphin-emu-nogui
+[\fB-h\fR] [\fB-d\fR] [\fB-l\fR] [\fB-e \fIROM\fR] [\fB-b\fR] [\fB-V \fIVIDEO\fR] [\fB-A \fIAUDIO\fR]
+.SH DESCRIPTION
+Dolphin is a Gamecube, Wii and Triforce (the arcade machine based on the
+Gamecube) emulator, which supports full HD video with several enhancements such
+as compatibility with all PC controllers, turbo speed, networked multiplayer,
+and more.
+.P
+Most games run perfectly or with minor bugs.
+.P
+\fBdolphin-emu-nogui\fR does not have a graphical user interface.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show this help message
+.TP
+.BR \-d ", " \-\-debugger
+Opens the debugger
+.TP
+.BR \-l ", " \-\-logger
+Opens the logger
+.TP
+.BR \-e ", " \-\-exec =\fIROM\fR
+Loads the specified file (\fBDOL,ELF,WAD,GCM,ISO\fR)
+.TP
+.BR \-b ", " \-\-batch
+Exit Dolphin with emulator
+.TP
+.BR \-V ", " \-\-video_backend =\fIVIDEO\fR
+OpenGL (\fBOGL\fR) or \fBSoftware Renderer\fR video backend
+.TP
+.BR \-A ", " \-\-audio_emulation =\fIAUDIO\fR
+Low level (\fBLLE\fR) or high level (\fBHLE\fR) audio
+.SH AUTHOR
+This manual page was written by Jeremy Newton, but may be distributed freely
+using the CC BY license.

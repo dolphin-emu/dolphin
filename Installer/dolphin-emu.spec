@@ -111,6 +111,7 @@ Dolphin Emulator without a graphical user interface
 
 %files nogui
 %{_bindir}/%{name}-nogui
+%{_mandir}/man6/%{name}-nogui.*
 
 # ------------------------------------------------------
 
@@ -139,6 +140,7 @@ make %{?_smp_mflags} install DESTDIR="%{?buildroot}"
 %{_datadir}/%{name}
 %{_datadir}/pixmaps/dolphin-emu.xpm
 %{_datadir}/applications/%{name}.desktop
+%{_mandir}/man6/%{name}.*
 
 %clean
 rm -rf %{buildroot}
