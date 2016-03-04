@@ -425,44 +425,9 @@ void CheckExceptions()
 	}
 
 	// EXTERNAL INTERRUPT
-	else if (MSR & 0x0008000)  // Handling is delayed until MSR.EE=1.
+	else
 	{
-		if (exceptions & EXCEPTION_EXTERNAL_INT)
-		{
-			// Pokemon gets this "too early", it hasn't a handler yet
-			SRR0 = NPC;
-			SRR1 = MSR & 0x87C0FFFF;
-			MSR |= (MSR >> 16) & 1;
-			MSR &= ~0x04EF36;
-			PC = NPC = 0x00000500;
-
-			INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
-			ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
-
-			_dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
-		}
-		else if (exceptions & EXCEPTION_PERFORMANCE_MONITOR)
-		{
-			SRR0 = NPC;
-			SRR1 = MSR & 0x87C0FFFF;
-			MSR |= (MSR >> 16) & 1;
-			MSR &= ~0x04EF36;
-			PC = NPC = 0x00000F00;
-
-			INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
-			ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
-		}
-		else if (exceptions & EXCEPTION_DECREMENTER)
-		{
-			SRR0 = NPC;
-			SRR1 = MSR & 0x87C0FFFF;
-			MSR |= (MSR >> 16) & 1;
-			MSR &= ~0x04EF36;
-			PC = NPC = 0x00000900;
-
-			INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
-			ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
-		}
+		CheckExternalExceptions();
 	}
 }
 
