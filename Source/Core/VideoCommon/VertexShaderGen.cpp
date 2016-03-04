@@ -380,6 +380,14 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
                 i, i, i, i);
     }
 
+    // TODO write comment
+    // TODO check if it only affects XF_TEXGEN_REGULAR more
+    if (texinfo.texgentype == XF_TEXGEN_REGULAR)
+    {
+      out.Write("if(o.tex%d.z == 0.0f)\n", i);
+      out.Write("\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f), float2(1.0f));\n", i, i);
+    }
+
     out.Write("}\n");
   }
 
