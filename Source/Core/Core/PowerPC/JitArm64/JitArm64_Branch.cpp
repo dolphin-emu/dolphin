@@ -94,9 +94,8 @@ void JitArm64::bx(UGeckoInstruction inst)
 
 	if (inst.LK)
 	{
-		u32 Jumpto = js.compilerPC + 4;
 		ARM64Reg WA = gpr.GetReg();
-		MOVI2R(WA, Jumpto);
+		MOVI2R(WA, js.compilerPC + 4);
 		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WA);
 	}
@@ -149,8 +148,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
 
 	if (inst.LK)
 	{
-		u32 Jumpto = js.compilerPC + 4;
-		MOVI2R(WA, Jumpto);
+		MOVI2R(WA, js.compilerPC + 4);
 		STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 	}
 	gpr.Unlock(WA);
@@ -203,8 +201,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 	if (inst.LK_3)
 	{
 		ARM64Reg WB = gpr.GetReg();
-		u32 Jumpto = js.compilerPC + 4;
-		MOVI2R(WB, Jumpto);
+		MOVI2R(WB, js.compilerPC + 4);
 		STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WB);
 	}
@@ -252,8 +249,7 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	if (inst.LK)
 	{
 		ARM64Reg WB = gpr.GetReg();
-		u32 Jumpto = js.compilerPC + 4;
-		MOVI2R(WB, Jumpto);
+		MOVI2R(WB, js.compilerPC + 4);
 		STR(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 		gpr.Unlock(WB);
 	}

@@ -490,7 +490,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
-				MOVI2R(W30, ops[i].address);
+				MOVI2R(W30, js.compilerPC);
 				WriteExceptionExit(W30, true);
 			SwitchToNearCode();
 			SetJumpTarget(exit);
@@ -522,7 +522,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 				gpr.Flush(FLUSH_MAINTAIN_STATE);
 				fpr.Flush(FLUSH_MAINTAIN_STATE);
-				MOVI2R(WA, ops[i].address);
+				MOVI2R(WA, js.compilerPC);
 				WriteExceptionExit(WA, true);
 			SwitchToNearCode();
 			SetJumpTarget(NoExtException);

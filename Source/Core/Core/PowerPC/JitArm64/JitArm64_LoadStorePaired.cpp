@@ -45,9 +45,9 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	if (inst.RA || update) // Always uses the register on update
 	{
 		if (offset >= 0)
-			ADD(addr_reg, gpr.R(inst.RA), offset);
+			ADD(addr_reg, arm_addr, offset);
 		else
-			SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
+			SUB(addr_reg, arm_addr, std::abs(offset));
 	}
 	else
 	{
