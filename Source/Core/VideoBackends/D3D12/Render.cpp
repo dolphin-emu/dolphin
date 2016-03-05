@@ -534,7 +534,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 	D3D::DrawClearQuad(rgba_color, 1.0f - (z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
 	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
+	g_renderer->SetViewport();
+	BPFunctions::SetScissor();
 
 	FramebufferManager::InvalidateEFBAccessCopies();
 }
@@ -582,14 +583,13 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 		FramebufferManager::GetEFBColorTempTexture()->GetMultisampled()
 		);
 
-	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
-
 	FramebufferManager::SwapReinterpretTexture();
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	FramebufferManager::RestoreEFBRenderTargets();
+	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	// Restores proper viewport/scissor settings.
+	RestoreAPIState();
 }
 
 void Renderer::SetBlendMode(bool force_update)
@@ -996,14 +996,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	}
 
 	// begin next frame
-	RestoreAPIState();
 	D3D::BeginFrame();
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	FramebufferManager::RestoreEFBRenderTargets();
 
-	SetViewport();
+	RestoreAPIState();
 }
 
 void Renderer::ResetAPIState()
@@ -1017,6 +1015,9 @@ void Renderer::RestoreAPIState()
 	// overwritten elsewhere (particularly the viewport).
 	SetViewport();
 	BPFunctions::SetScissor();
+
+	FramebufferManager::RestoreEFBRenderTargets();
+	BBox::Bind();
 }
 
 static bool s_previous_use_dst_alpha = false;
