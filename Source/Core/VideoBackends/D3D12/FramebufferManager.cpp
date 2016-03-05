@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/Memmap.h"
-#include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
@@ -198,7 +197,6 @@ void FramebufferManager::ResolveDepthTexture()
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	FramebufferManager::RestoreEFBRenderTargets();
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
@@ -209,8 +207,6 @@ void FramebufferManager::RestoreEFBRenderTargets()
 	D3D::current_command_list->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE,
 		&FramebufferManager::GetEFBDepthTexture()->GetDSV12());
-
-	BBox::Bind();
 }
 
 u32 FramebufferManager::ReadEFBColorAccessCopy(u32 x, u32 y)
@@ -327,16 +323,12 @@ void FramebufferManager::MapEFBColorAccessCopy()
 	CD3DX12_TEXTURE_COPY_LOCATION src_location(src_resource, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
-	// Block until completion
-	D3D::command_list_mgr->ExecuteQueuedWork(true);
-
 	// Restore EFB resource state if it was sourced from here
 	if (src_resource == m_efb.color_tex->GetTex12())
 		m_efb.color_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
-	// Restore state after resetting command list
-	RestoreEFBRenderTargets();
-	g_renderer->RestoreAPIState();
+	// Block until completion - state is automatically restored
+	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Resource copy has finished, so safe to map now
 	m_efb.color_access_readback_buffer->Map(0, nullptr, reinterpret_cast<void**>(&m_efb.color_access_readback_map));
@@ -379,16 +371,12 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 	CD3DX12_TEXTURE_COPY_LOCATION src_location(src_resource, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
 
-	// Block until completion
-	D3D::command_list_mgr->ExecuteQueuedWork(true);
-
 	// Restore EFB resource state if it was sourced from here
 	if (src_resource == m_efb.depth_tex->GetTex12())
 		m_efb.depth_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
-	// Restore state after resetting command list
-	RestoreEFBRenderTargets();
-	g_renderer->RestoreAPIState();
+	// Block until completion - state is automatically restored
+	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Resource copy has finished, so safe to map now
 	m_efb.depth_access_readback_buffer->Map(0, nullptr, reinterpret_cast<void**>(&m_efb.depth_access_readback_map));
@@ -458,7 +446,6 @@ void XFBSource::CopyEFB(float gamma)
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	FramebufferManager::RestoreEFBRenderTargets();
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
