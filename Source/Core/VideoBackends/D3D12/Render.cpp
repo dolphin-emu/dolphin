@@ -735,6 +735,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	// Invalidate EFB access copies. Not strictly necessary, but this avoids having the buffers mapped when calling Present().
 	FramebufferManager::InvalidateEFBAccessCopies();
+	BBox::Invalidate();
 
 	// Prepare to copy the XFBs to our backbuffer
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
