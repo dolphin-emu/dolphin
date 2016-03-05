@@ -5,7 +5,6 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
@@ -32,7 +31,6 @@ static volatile CPUState state = CPU_POWERDOWN;
 
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
-static Common::Event s_state_change;
 
 Watches watches;
 BreakPoints breakpoints;
@@ -238,29 +236,14 @@ void Start()
 
 void Pause()
 {
-	volatile CPUState old_state = state;
 	state = CPU_STEPPING;
-
-	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
 	Host_UpdateDisasmDialog();
 }
 
 void Stop()
 {
-	volatile CPUState old_state = state;
 	state = CPU_POWERDOWN;
-
-	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
 	Host_UpdateDisasmDialog();
-}
-
-void FinishStateMove()
-{
-	s_state_change.Set();
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
