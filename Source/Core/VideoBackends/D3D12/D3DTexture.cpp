@@ -62,7 +62,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 		if (current_command_list_executed)
 		{
 			g_renderer->SetViewport();
-			D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+			FramebufferManager::RestoreEFBRenderTargets();
 		}
 
 		upload_buffer = s_texture_upload_stream_buffer->GetBuffer();
