@@ -588,7 +588,7 @@ void SetLinearCopySampler()
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 }
 
-void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth, float max_depth)
+void SetViewportAndScissor(int top_left_x, int top_left_y, int width, int height, float min_depth, float max_depth)
 {
 	D3D12_VIEWPORT viewport = {
 		static_cast<float>(top_left_x),
