@@ -42,12 +42,7 @@ int BoundingBox::Get(int index)
 {
 	int data = 0;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
-	void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), GL_MAP_READ_BIT);
-	if (ptr)
-	{
-		data = *(int*)ptr;
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-	}
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), &data);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	return data;
 }
