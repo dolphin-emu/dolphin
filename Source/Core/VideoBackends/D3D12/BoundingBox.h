@@ -11,8 +11,9 @@ namespace DX12
 class BBox
 {
 public:
-	static ID3D11UnorderedAccessView* GetUAV();
 	static void Init();
+	static void Bind();
+	static void Invalidate();
 	static void Shutdown();
 
 	static void Set(int index, int value);

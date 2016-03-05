@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/Memmap.h"
+#include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
@@ -208,6 +209,8 @@ void FramebufferManager::RestoreEFBRenderTargets()
 	D3D::current_command_list->OMSetRenderTargets(1,
 		&FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE,
 		&FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+
+	BBox::Bind();
 }
 
 u32 FramebufferManager::ReadEFBColorAccessCopy(u32 x, u32 y)
