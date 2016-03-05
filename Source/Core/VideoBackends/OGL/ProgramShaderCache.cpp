@@ -153,12 +153,50 @@ void ProgramShaderCache::UploadConstants()
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
 			&VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
+		for(int i = 0; i < 6; i++)
+		{
+			WARN_LOG(VIDEO, "posnormalmatrix[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.posnormalmatrix[i][0],
+								 VertexShaderManager::constants.posnormalmatrix[i][1],
+								 VertexShaderManager::constants.posnormalmatrix[i][2],
+								 VertexShaderManager::constants.posnormalmatrix[i][3]);
+		}
+
+		WARN_LOG(VIDEO, "projection[4]: %f, %f, %f, %f",      *VertexShaderManager::constants.projection[0],
+								      *VertexShaderManager::constants.projection[1],
+								      *VertexShaderManager::constants.projection[2],
+								      *VertexShaderManager::constants.projection[3]);
+
+
 		for(int i = 0; i < 24; i++)
 		{
 			WARN_LOG(VIDEO, "texmatrices[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.texmatrices[i][0],
 								 VertexShaderManager::constants.texmatrices[i][1],
 								 VertexShaderManager::constants.texmatrices[i][2],
 								 VertexShaderManager::constants.texmatrices[i][3]);
+		}
+
+		for(int i = 0; i < 32; i++)
+		{
+			WARN_LOG(VIDEO, "normalmatrices[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.normalmatrices[i][0],
+								 VertexShaderManager::constants.normalmatrices[i][1],
+								 VertexShaderManager::constants.normalmatrices[i][2],
+								 VertexShaderManager::constants.normalmatrices[i][3]);
+		}
+
+		for(int i = 0; i < 64; i++)
+		{
+			WARN_LOG(VIDEO, "transformmatrices[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.transformmatrices[i][0],
+								 VertexShaderManager::constants.transformmatrices[i][1],
+								 VertexShaderManager::constants.transformmatrices[i][2],
+								 VertexShaderManager::constants.transformmatrices[i][3]);
+		}
+
+		for(int i = 0; i < 64; i++)
+		{
+			WARN_LOG(VIDEO, "posttransformmatrices[%i]: %f, %f, %f, %f", i, VertexShaderManager::constants.posttransformmatrices[i][0],
+								 VertexShaderManager::constants.posttransformmatrices[i][1],
+								 VertexShaderManager::constants.posttransformmatrices[i][2],
+								 VertexShaderManager::constants.posttransformmatrices[i][3]);
 		}
 
 		memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) + ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
