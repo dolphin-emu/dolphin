@@ -197,10 +197,17 @@ void FramebufferManager::ResolveDepthTexture()
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();
+}
+
+void FramebufferManager::RestoreEFBRenderTargets()
+{
+	D3D::current_command_list->OMSetRenderTargets(1,
+		&FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE,
+		&FramebufferManager::GetEFBDepthTexture()->GetDSV12());
 }
 
 u32 FramebufferManager::ReadEFBColorAccessCopy(u32 x, u32 y)
@@ -325,7 +332,7 @@ void FramebufferManager::MapEFBColorAccessCopy()
 		m_efb.color_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	// Restore state after resetting command list
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	RestoreEFBRenderTargets();
 	g_renderer->RestoreAPIState();
 
 	// Resource copy has finished, so safe to map now
@@ -377,7 +384,7 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 		m_efb.depth_tex->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
 
 	// Restore state after resetting command list
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	RestoreEFBRenderTargets();
 	g_renderer->RestoreAPIState();
 
 	// Resource copy has finished, so safe to map now
@@ -448,7 +455,7 @@ void XFBSource::CopyEFB(float gamma)
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 
 	// Restores proper viewport/scissor settings.
 	g_renderer->RestoreAPIState();

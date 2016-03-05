@@ -279,7 +279,7 @@ Renderer::Renderer(void*& window_handle)
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// Already transitioned to appropriate states a few lines up for the clears.
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 
 	D3D::BeginFrame();
 }
@@ -588,7 +588,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 }
 
 void Renderer::SetBlendMode(bool force_update)
@@ -999,7 +999,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 
 	SetViewport();
 }
