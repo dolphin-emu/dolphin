@@ -215,6 +215,10 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	D3D::ResourceBarrier(D3D::current_command_list, m_out, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &src_box);
 
+	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	// State is automatically restored after executing command list.
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Transfer staging buffer to GameCube/Wii RAM
@@ -232,13 +236,6 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	}
 
 	m_out_readback_buffer->Unmap(0, nullptr);
-
-	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
-
-	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	FramebufferManager::RestoreEFBRenderTargets();
 }
 
 D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format, PEControl::PixelFormat src_format,

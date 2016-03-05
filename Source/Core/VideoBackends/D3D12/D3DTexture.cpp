@@ -58,12 +58,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 		if (!s_texture_upload_stream_buffer)
 			s_texture_upload_stream_buffer = std::make_unique<D3DStreamBuffer>(INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE, MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE, nullptr);
 
-		bool current_command_list_executed = s_texture_upload_stream_buffer->AllocateSpaceInBuffer(upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-		if (current_command_list_executed)
-		{
-			g_renderer->SetViewport();
-			FramebufferManager::RestoreEFBRenderTargets();
-		}
+		s_texture_upload_stream_buffer->AllocateSpaceInBuffer(upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
 
 		upload_buffer = s_texture_upload_stream_buffer->GetBuffer();
 		upload_buffer_offset = s_texture_upload_stream_buffer->GetOffsetOfCurrentAllocation();

@@ -163,10 +163,6 @@ void VertexManager::vFlush(bool use_dst_alpha)
 		D3D::command_list_mgr->m_draws_since_last_execution = 0;
 
 		D3D::command_list_mgr->ExecuteQueuedWork();
-
-		g_renderer->SetViewport();
-
-		FramebufferManager::RestoreEFBRenderTargets();
 	}
 }
 
@@ -182,7 +178,7 @@ void VertexManager::ResetBuffer(u32 stride)
 		return;
 	}
 
-	bool command_list_executed = m_vertex_stream_buffer->AllocateSpaceInBuffer(MAXVBUFFERSIZE, stride);
+	m_vertex_stream_buffer->AllocateSpaceInBuffer(MAXVBUFFERSIZE, stride);
 
 	if (m_vertex_stream_buffer_reallocated)
 	{
@@ -195,12 +191,7 @@ void VertexManager::ResetBuffer(u32 stride)
 	s_pCurBufferPointer  = static_cast<u8*>(m_vertex_stream_buffer->GetCPUAddressOfCurrentAllocation());
 	m_vertex_draw_offset = static_cast<u32>(m_vertex_stream_buffer->GetOffsetOfCurrentAllocation());
 
-	command_list_executed |= m_index_stream_buffer->AllocateSpaceInBuffer(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
-	if (command_list_executed)
-	{
-		g_renderer->SetViewport();
-		FramebufferManager::RestoreEFBRenderTargets();
-	}
+	m_index_stream_buffer->AllocateSpaceInBuffer(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
 
 	if (m_index_stream_buffer_reallocated)
 	{
