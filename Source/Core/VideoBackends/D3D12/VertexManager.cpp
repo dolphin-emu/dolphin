@@ -169,7 +169,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 
 		g_renderer->SetViewport();
 
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+		FramebufferManager::RestoreEFBRenderTargets();
 	}
 }
 
@@ -202,7 +202,7 @@ void VertexManager::ResetBuffer(u32 stride)
 	if (command_list_executed)
 	{
 		g_renderer->SetViewport();
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+		FramebufferManager::RestoreEFBRenderTargets();
 	}
 
 	if (m_index_stream_buffer_reallocated)

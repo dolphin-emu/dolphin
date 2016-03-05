@@ -70,6 +70,8 @@ public:
 
 	static void ResolveDepthTexture();
 
+	static void RestoreEFBRenderTargets();
+
 	// Access EFB from CPU
 	static u32 ReadEFBColorAccessCopy(u32 x, u32 y);
 	static float ReadEFBDepthAccessCopy(u32 x, u32 y);
