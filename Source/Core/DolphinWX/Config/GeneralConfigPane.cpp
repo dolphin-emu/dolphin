@@ -41,7 +41,12 @@ void GeneralConfigPane::InitializeGUI()
 {
 	m_throttler_array_string.Add(_("Unlimited"));
 	for (int i = 10; i <= 200; i += 10) // from 10% to 200%
-		m_throttler_array_string.Add(wxString::Format("%i%%", i));
+	{
+		if (i == 100)
+			m_throttler_array_string.Add(wxString::Format(_("%i%% (Normal Speed)"), i));
+		else
+			m_throttler_array_string.Add(wxString::Format(_("%i%%"), i));
+	}
 
 	for (const CPUCore& cpu_core : cpu_cores)
 		m_cpu_engine_array_string.Add(cpu_core.name);
