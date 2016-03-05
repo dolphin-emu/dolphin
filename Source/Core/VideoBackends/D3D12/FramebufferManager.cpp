@@ -354,7 +354,7 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 
 		D3D::SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
 		D3D::SetPointCopySampler();
-		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.color_access_resize_tex->GetRTV12(), FALSE, nullptr);
+		D3D::current_command_list->OMSetRenderTargets(1, &m_efb.depth_access_resize_tex->GetRTV12(), FALSE, nullptr);
 
 		CD3DX12_RECT src_rect(0, 0, m_target_width, m_target_height);
 		D3D::DrawShadedTexQuad(m_efb.depth_tex, &src_rect, m_target_width, m_target_height,
