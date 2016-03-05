@@ -137,10 +137,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	ShaderCache::LoadAndSetActiveShaders(use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, current_primitive_type);
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
-	{
-		// D3D12TODO: Support GPU-side bounding box.
-		// D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
-	}
+		BBox::Invalidate();
 
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
