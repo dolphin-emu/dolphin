@@ -92,7 +92,6 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	);
 
 void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);
-void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);
 
 void DrawEFBPokeQuads(EFBAccessType type,
 	const EfbPokeData* points,
