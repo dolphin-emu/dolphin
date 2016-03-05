@@ -352,7 +352,7 @@ public final class NativeLibrary
 
 	/**
 	 * Enables or disables CPU block profiling
-	 * @param enable
+	 * @param enable Enable or disable profiling.
 	 */
 	public static native void SetProfiling(boolean enable);
 
