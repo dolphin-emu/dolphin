@@ -104,7 +104,6 @@ private:
 
 CD3DFont font;
 static std::unique_ptr<UtilVertexBuffer> util_vbuf_stq;
-static std::unique_ptr<UtilVertexBuffer> util_vbuf_cq;
 static std::unique_ptr<UtilVertexBuffer> util_vbuf_clearq;
 static std::unique_ptr<UtilVertexBuffer> util_vbuf_efbpokequads;
 
@@ -504,25 +503,17 @@ struct
 
 struct
 {
-	float x1, y1, x2, y2, z;
-	u32 col;
-} draw_quad_data;
-
-struct
-{
 	u32 col;
 	float z;
 } clear_quad_data;
 
 // ring buffer offsets
 static size_t stq_offset;
-static size_t cq_offset;
 static size_t clearq_offset;
 
 void InitUtils()
 {
 	util_vbuf_stq          = std::make_unique<UtilVertexBuffer>(0x10000);
-	util_vbuf_cq           = std::make_unique<UtilVertexBuffer>(0x10000);
 	util_vbuf_clearq       = std::make_unique<UtilVertexBuffer>(0x10000);
 	util_vbuf_efbpokequads = std::make_unique<UtilVertexBuffer>(0x100000);
 
@@ -560,7 +551,6 @@ void InitUtils()
 
 	// cached data used to avoid unnecessarily reloading the vertex buffers
 	memset(&tex_quad_data, 0, sizeof(tex_quad_data));
-	memset(&draw_quad_data, 0, sizeof(draw_quad_data));
 	memset(&clear_quad_data, 0, sizeof(clear_quad_data));
 
 	font.Init();
@@ -571,7 +561,6 @@ void ShutdownUtils()
 	font.Shutdown();
 
 	util_vbuf_stq.reset();
-	util_vbuf_cq.reset();
 	util_vbuf_clearq.reset();
 	util_vbuf_efbpokequads.reset();
 }
@@ -707,89 +696,6 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(stq_offset), 0);
-
-	g_renderer->RestoreAPIState();
-}
-
-// Fills a certain area of the current render target with the specified color
-// destination coordinates normalized to (-1;1)
-void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled)
-{
-	ColVertex coords[4] = {
-		{ x1, y2, z, Color },
-		{ x2, y2, z, Color },
-		{ x1, y1, z, Color },
-		{ x2, y1, z, Color },
-	};
-
-	if (draw_quad_data.x1 != x1 || draw_quad_data.y1 != y1 ||
-	    draw_quad_data.x2 != x2 || draw_quad_data.y2 != y2 ||
-	    draw_quad_data.col != Color || draw_quad_data.z != z)
-	{
-		cq_offset = util_vbuf_cq->AppendData(coords, sizeof(coords), sizeof(ColVertex));
-
-		draw_quad_data.x1 = x1;
-		draw_quad_data.y1 = y1;
-		draw_quad_data.x2 = x2;
-		draw_quad_data.y2 = y2;
-		draw_quad_data.col = Color;
-		draw_quad_data.z = z;
-	}
-
-	D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-	D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-	D3D12_VERTEX_BUFFER_VIEW vb_view = {
-		util_vbuf_cq->GetBuffer12()->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
-		static_cast<UINT>(util_vbuf_cq->GetSize()),          // UINT SizeInBytes; This is the size of the entire buffer, not just the size of the vertex data for one draw call, since the offsetting is done in the draw call itself.
-		sizeof(ColVertex)                                    // UINT StrideInBytes;
-	};
-
-	D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
-	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_VERTEX_BUFFER, true);
-
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC pso_desc = {
-		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
-		StaticShaderCache::GetClearVertexShader(),        // D3D12_SHADER_BYTECODE VS;
-		StaticShaderCache::GetClearPixelShader(),         // D3D12_SHADER_BYTECODE PS;
-		{},                                               // D3D12_SHADER_BYTECODE DS;
-		{},                                               // D3D12_SHADER_BYTECODE HS;
-		StaticShaderCache::GetClearGeometryShader(),      // D3D12_SHADER_BYTECODE GS;
-		{},                                               // D3D12_STREAM_OUTPUT_DESC StreamOutput
-		*blend_desc,                                      // D3D12_BLEND_DESC BlendState;
-		UINT_MAX,                                         // UINT SampleMask;
-		Renderer::GetResetRasterizerDesc(),               // D3D12_RASTERIZER_DESC RasterizerState
-		*depth_stencil_desc,                              // D3D12_DEPTH_STENCIL_DESC DepthStencilState
-		StaticShaderCache::GetClearVertexShaderInputLayout(), // D3D12_INPUT_LAYOUT_DESC InputLayout
-		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
-		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
-		1,                                                // UINT NumRenderTargets
-		{ DXGI_FORMAT_R8G8B8A8_UNORM },                   // DXGI_FORMAT RTVFormats[8]
-		DXGI_FORMAT_D32_FLOAT,                            // DXGI_FORMAT DSVFormat
-		{ 1 /* UINT Count */, 0 /* UINT Quality */ }      // DXGI_SAMPLE_DESC SampleDesc
-	};
-
-	if (rt_multisampled)
-	{
-		pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
-	}
-
-	ID3D12PipelineState* pso = nullptr;
-	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&pso_desc, &pso));
-
-	D3D::current_command_list->SetPipelineState(pso);
-	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
-
-	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
-	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
-	// dirtying state.
-
-	// 2 ^ D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP = 131072
-	D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
-
-	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(cq_offset), 0);
-
-	g_renderer->RestoreAPIState();
 }
 
 void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled)
@@ -856,8 +762,6 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(clearq_offset), 0);
-
-	g_renderer->RestoreAPIState();
 }
 
 static void InitColVertex(ColVertex* vert, float x, float y, float z, u32 col)
@@ -933,6 +837,7 @@ void DrawEFBPokeQuads(EFBAccessType type,
 		// Corresponding dirty flags set outside loop.
 		D3D::current_command_list->OMSetRenderTargets(1, render_target, FALSE, depth_buffer);
 		D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		D3D::command_list_mgr->SetCommandListPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		D3D12_VERTEX_BUFFER_VIEW vb_view = {
 			util_vbuf_efbpokequads->GetBuffer12()->GetGPUVirtualAddress(), // D3D12_GPU_VIRTUAL_ADDRESS BufferLocation;
@@ -945,9 +850,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 
 		D3D::current_command_list->SetPipelineState(pso);
 		D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
-
-		// Disable scissor testing.
-		D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
 
 		// generate quads for each efb point
 		ColVertex* base_vertex_ptr = reinterpret_cast<ColVertex*>(buffer_ptr);

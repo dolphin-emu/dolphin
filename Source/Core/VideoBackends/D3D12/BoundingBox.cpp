@@ -122,12 +122,7 @@ void BBox::Set(int index, int value)
 		memcpy(&reinterpret_cast<int*>(s_bbox_staging_buffer_map)[index], &value, sizeof(int));
 	}
 
-	if (s_bbox_stream_buffer->AllocateSpaceInBuffer(sizeof(int), sizeof(int)))
-	{
-		// Command list was executed, reset state
-		g_renderer->SetViewport();
-		FramebufferManager::RestoreEFBRenderTargets();
-	}
+	s_bbox_stream_buffer->AllocateSpaceInBuffer(sizeof(int), sizeof(int));
 
 	// Allocate temporary bytes in upload buffer, then copy to real buffer.
 	memcpy(s_bbox_stream_buffer->GetCPUAddressOfCurrentAllocation(), &value, sizeof(int));
@@ -151,8 +146,6 @@ int BBox::Get(int index)
 		D3D::ResourceBarrier(D3D::current_command_list, s_bbox_buffer, D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, 0);
 
 		D3D::command_list_mgr->ExecuteQueuedWork(true);
-		g_renderer->SetViewport();
-		FramebufferManager::RestoreEFBRenderTargets();
 
 		CheckHR(s_bbox_staging_buffer->Map(0, nullptr, &s_bbox_staging_buffer_map));
 	}
