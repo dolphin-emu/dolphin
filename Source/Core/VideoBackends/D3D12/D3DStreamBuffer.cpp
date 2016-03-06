@@ -43,7 +43,7 @@ bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t align
 {
 	CHECK(allocation_size <= m_buffer_max_size, "Error: Requested allocation size in D3DStreamBuffer is greater than max allowed size of backing buffer.");
 
-	if (alignment)
+	if (alignment && m_buffer_offset > 0)
 	{
 		size_t padding = m_buffer_offset % alignment;
 
