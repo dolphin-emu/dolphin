@@ -29,7 +29,6 @@
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/ShaderConstantsManager.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
-#include "VideoBackends/D3D12/Television.h"
 #include "VideoBackends/D3D12/TextureCache.h"
 
 #include "VideoCommon/AVIDump.h"
@@ -48,8 +47,6 @@ namespace DX12
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
-
-static Television s_television;
 
 enum CLEAR_BLEND_DESC
 {
@@ -103,8 +100,6 @@ StateCache gx_state_cache;
 
 static void SetupDeviceObjects()
 {
-	s_television.Init();
-
 	g_framebuffer_manager = std::make_unique<FramebufferManager>();
 
 	D3D12_DEPTH_STENCIL_DESC depth_desc;
@@ -173,8 +168,6 @@ static void TeardownDeviceObjects()
 		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(s_screenshot_texture);
 		s_screenshot_texture = nullptr;
 	}
-
-	s_television.Shutdown();
 
 	gx_state_cache.Clear();
 }
@@ -749,15 +742,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
 
-	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
-	{
-		// EXISTINGD3D11TODO: Television should be used to render Virtual XFB mode as well.
-		D3D::SetViewportAndScissor(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
-
-		s_television.Submit(xfb_addr, fb_stride, fb_width, fb_height);
-		s_television.Render();
-	}
-	else if (g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
 		const XFBSource* xfb_source;
 
@@ -767,33 +752,40 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 			xfb_source = static_cast<const XFBSource*>(xfb_source_list[i]);
 
 			TargetRectangle drawRc;
-
-			// use virtual xfb with offset
-			int xfb_height = xfb_source->srcHeight;
-			int xfb_width = xfb_source->srcWidth;
-			int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) / (static_cast<s32>(fb_stride) * 2);
-
-			drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
-			drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
-			drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
-			drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
-
-			// The following code disables auto stretch.  Kept for reference.
-			// scale draw area for a 1 to 1 pixel mapping with the draw target
-			//float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
-			//float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
-			//drawRc.top *= vScale;
-			//drawRc.bottom *= vScale;
-			//drawRc.left *= hScale;
-			//drawRc.right *= hScale;
-
 			TargetRectangle source_rc;
 			source_rc.left = xfb_source->sourceRc.left;
 			source_rc.top = xfb_source->sourceRc.top;
 			source_rc.right = xfb_source->sourceRc.right;
 			source_rc.bottom = xfb_source->sourceRc.bottom;
 
-			source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+			// use virtual xfb with offset
+			int xfb_height = xfb_source->srcHeight;
+			int xfb_width = xfb_source->srcWidth;
+			int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) / (static_cast<s32>(fb_stride) * 2);
+
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc = target_rc;
+				source_rc.right -= fb_stride - fb_width;
+			}
+			else
+			{
+				drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
+				drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
+				drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+				drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+
+				// The following code disables auto stretch.  Kept for reference.
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				//float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
+				//float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
+				//drawRc.top *= vScale;
+				//drawRc.bottom *= vScale;
+				//drawRc.left *= hScale;
+				//drawRc.right *= hScale;
+
+				source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+			}
 
 			BlitScreen(source_rc, drawRc, xfb_source->m_tex, xfb_source->texWidth, xfb_source->texHeight, gamma);
 		}

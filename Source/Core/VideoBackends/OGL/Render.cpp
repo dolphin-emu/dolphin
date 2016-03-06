@@ -1309,6 +1309,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			{
 				drawRc = flipped_trc;
 				sourceRc.right -= fbStride - fbWidth;
+
+				// RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a top-left origin.
+				// The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
+				sourceRc.top = sourceRc.bottom;
+				sourceRc.bottom = 0;
 			}
 			else
 			{
