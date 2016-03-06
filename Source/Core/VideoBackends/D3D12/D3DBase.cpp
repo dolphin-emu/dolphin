@@ -528,7 +528,7 @@ HRESULT Create(HWND wnd)
 		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
 		s_backbuf[i] = new D3DTexture2D(buf12,
-			D3D11_BIND_RENDER_TARGET,
+			TEXTURE_BIND_FLAG_RENDER_TARGET,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
@@ -795,7 +795,7 @@ unsigned int GetBackBufferHeight()
 // Returns the maximum width/height of a texture.
 unsigned int GetMaxTextureSize()
 {
-	return D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
+	return D3D12_REQ_TEXTURE2D_U_OR_V_DIMENSION;
 }
 
 void Reset()
@@ -830,7 +830,7 @@ void Reset()
 		CHECK(SUCCEEDED(hr), "Retrieve back buffer texture");
 
 		s_backbuf[i] = new D3DTexture2D(buf12,
-			D3D11_BIND_RENDER_TARGET,
+			TEXTURE_BIND_FLAG_RENDER_TARGET,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,

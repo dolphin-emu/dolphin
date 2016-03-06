@@ -27,7 +27,7 @@ public:
 private:
 	struct ActiveQuery
 	{
-		ID3D11Query* query;
+		//ID3D11Query* query;
 		PerfQueryGroup query_type;
 	};
 
