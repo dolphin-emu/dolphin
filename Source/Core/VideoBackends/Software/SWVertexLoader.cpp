@@ -79,7 +79,6 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
 	m_SetupUnit->Init(primitiveType);
 
 	// set all states with are stored within video sw
-	Rasterizer::SetScissor();
 	for (int i = 0; i < 4; i++)
 	{
 		Rasterizer::SetTevReg(i, Tev::RED_C, false, PixelShaderManager::constants.colors[i][0]);
