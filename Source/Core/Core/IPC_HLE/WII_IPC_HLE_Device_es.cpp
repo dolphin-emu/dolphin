@@ -64,7 +64,6 @@ std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pContentLoader(nullptr)
 	, m_TitleID(-1)
 	, m_AccessIdentID(0x6000000)
 {
@@ -99,12 +98,12 @@ void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
 
 void CWII_IPC_HLE_Device_es::OpenInternal()
 {
-	m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
+	auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
 	// check for cd ...
-	if (m_pContentLoader->IsValid())
+	if (contentLoader.IsValid())
 	{
-		m_TitleID = m_pContentLoader->GetTitleID();
+		m_TitleID = contentLoader.GetTitleID();
 
 		m_TitleIDs.clear();
 		DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
@@ -186,14 +185,11 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
-	// Leave deletion of the CNANDContentLoader objects to CNANDContentManager, don't do it here!
-	m_NANDContent.clear();
 	for (auto& pair : m_ContentAccessMap)
 	{
 		delete pair.second.m_pFile;
 	}
 	m_ContentAccessMap.clear();
-	m_pContentLoader = nullptr;
 	m_TitleIDs.clear();
 	m_TitleID = -1;
 	m_AccessIdentID = 0x6000000;
@@ -1077,30 +1073,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	return GetDefaultReply();
 }
 
-// TODO: This cache is redundant with the one in CNANDContentManager.h
 const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)
 {
-	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == title_id)
-		return *m_pContentLoader;
-
-	CTitleToContentMap::iterator itr = m_NANDContent.find(title_id);
-	if (itr != m_NANDContent.end())
-		return *itr->second;
-
-	m_NANDContent[title_id] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
-
-	_dbg_assert_msg_(WII_IPC_ES, ((u32)(title_id >> 32) == 0x00010000) || m_NANDContent[title_id]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(title_id >> 32), (u32)title_id);
-	return *m_NANDContent[title_id];
+	return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
-
-bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
-{
-	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
-		return true;
-
-	return false;
-}
-
 
 u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 {
