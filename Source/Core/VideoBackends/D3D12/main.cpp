@@ -65,11 +65,14 @@ std::string VideoBackend::GetDisplayName() const
 
 void InitBackendInfo()
 {
-	HRESULT hr = DX12::D3D::LoadDXGI();
-	if (SUCCEEDED(hr)) hr = DX12::D3D::LoadD3D();
+	HRESULT hr = D3D::LoadDXGI();
+	if (FAILED(hr))
+		return;
+
+	hr = D3D::LoadD3D();
 	if (FAILED(hr))
 	{
-		DX12::D3D::UnloadDXGI();
+		D3D::UnloadDXGI();
 		return;
 	}
 
@@ -86,9 +89,14 @@ void InitBackendInfo()
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
-	hr = DX12::create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
+	{
 		PanicAlert("Failed to create IDXGIFactory object");
+		D3D::UnloadD3D();
+		D3D::UnloadDXGI();
+		return;
+	}
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
@@ -103,8 +111,13 @@ void InitBackendInfo()
 		// TODO: These don't get updated on adapter change, yet
 		if (adapter_index == g_Config.iAdapter)
 		{
+			ID3D12Device* temp_device;
+			hr = d3d12_create_device(ad, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
+			if (FAILED(hr))
+				continue;
+
 			std::string samples;
-			std::vector<DXGI_SAMPLE_DESC> modes = DX12::D3D::EnumAAModes(ad);
+			std::vector<DXGI_SAMPLE_DESC> modes = D3D::EnumAAModes(temp_device);
 			// First iteration will be 1. This equals no AA.
 			for (unsigned int i = 0; i < modes.size(); ++i)
 			{
@@ -122,6 +135,8 @@ void InitBackendInfo()
 
 			// Sample shading requires shader model 5
 			g_Config.backend_info.bSupportsSSAA = true;
+
+			temp_device->Release();
 		}
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
@@ -132,8 +147,8 @@ void InitBackendInfo()
 	g_Config.backend_info.PPShaders.clear();
 	g_Config.backend_info.AnaglyphShaders.clear();
 
-	DX12::D3D::UnloadDXGI();
-	DX12::D3D::UnloadD3D();
+	D3D::UnloadD3D();
+	D3D::UnloadDXGI();
 }
 
 void VideoBackend::ShowConfig(void *hParent)
@@ -144,12 +159,10 @@ void VideoBackend::ShowConfig(void *hParent)
 
 bool VideoBackend::Initialize(void *window_handle)
 {
-	bool d3d12_supported = D3D::AlertUserIfSelectedAdapterDoesNotSupportD3D12();
-
-	if (!d3d12_supported)
+	if (window_handle == nullptr)
 		return false;
 
-	if (window_handle == nullptr)
+	if (FAILED(D3D::Create((HWND)window_handle)))
 		return false;
 
 	InitializeShared();
@@ -235,6 +248,8 @@ void VideoBackend::Shutdown()
 		g_vertex_manager.reset();
 		g_texture_cache.reset();
 		g_renderer.reset();
+
+		D3D::Close();
 	}
 }
 
