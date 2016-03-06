@@ -87,10 +87,9 @@ public class Java_GCAdapter {
 	public static boolean OpenAdapter()
 	{
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
-		for (Map.Entry<String, UsbDevice> entry : devices.entrySet())
+		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			HashMap.Entry pair = (HashMap.Entry) entry;
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == 0x0337 && dev.getVendorId() == 0x057e)
 			{
 				if (manager.hasPermission(dev))
