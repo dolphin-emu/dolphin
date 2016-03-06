@@ -15,8 +15,6 @@
 namespace DX12
 {
 
-static XFBEncoder s_xfbEncoder;
-
 FramebufferManager::Efb FramebufferManager::m_efb;
 unsigned int FramebufferManager::m_target_width;
 unsigned int FramebufferManager::m_target_height;
@@ -133,14 +131,10 @@ FramebufferManager::FramebufferManager()
 	}
 
 	InitializeEFBAccessCopies();
-
-	s_xfbEncoder.Init();
 }
 
 FramebufferManager::~FramebufferManager()
 {
-	s_xfbEncoder.Shutdown();
-
 	DestroyEFBAccessCopies();
 
 	SAFE_RELEASE(m_efb.color_tex);
@@ -153,7 +147,9 @@ FramebufferManager::~FramebufferManager()
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc, float gamma)
 {
 	u8* dst = Memory::GetPointer(xfbAddr);
-	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, gamma);
+	D3DTexture2D* src_texture = GetResolvedEFBColorTexture();
+	TargetRectangle scaled_rect = g_renderer->ConvertEFBRectangle(sourceRc);
+	g_xfb_encoder->EncodeTextureToRam(dst, fbStride, fbHeight, src_texture, scaled_rect, m_target_width, m_target_height, gamma);
 }
 
 std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
@@ -412,8 +408,8 @@ void FramebufferManager::DestroyEFBAccessCopies()
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	// DX12's XFB decoder does not use this function.
-	// YUYV data is decoded in Render::Swap.
+	u8* src = Memory::GetPointer(xfbAddr);
+	g_xfb_encoder->DecodeToTexture(m_tex, src, fbWidth, fbHeight);
 }
 
 void XFBSource::CopyEFB(float gamma)
