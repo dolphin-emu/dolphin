@@ -125,6 +125,10 @@ Section "Base" SEC01
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
   File /r "${BASE_DIR}\Languages"
+  ; Delete old system directories if they exist to prevent
+  ; outdated configurations and themes being used
+  IfFileExists "$INSTDIR\Sys\*.*" 0 +2
+  RMDir /r "$INSTDIR\Sys"
   File /r "${BASE_DIR}\Sys"
   
   ; This needs to be done after Dolphin.exe is copied
