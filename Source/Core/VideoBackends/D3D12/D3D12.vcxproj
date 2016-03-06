@@ -67,7 +67,6 @@
     <ClCompile Include="ShaderCache.cpp" />
     <ClCompile Include="ShaderConstantsManager.cpp" />
     <ClCompile Include="StaticShaderCache.cpp" />
-    <ClCompile Include="Television.cpp" />
     <ClCompile Include="TextureCache.cpp" />
     <ClCompile Include="VertexManager.cpp" />
     <ClCompile Include="XFBEncoder.cpp" />
@@ -91,7 +90,6 @@
     <ClInclude Include="ShaderCache.h" />
     <ClInclude Include="ShaderConstantsManager.h" />
     <ClInclude Include="StaticShaderCache.h" />
-    <ClInclude Include="Television.h" />
     <ClInclude Include="TextureCache.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="VertexManager.h" />
