@@ -100,7 +100,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 
 }  // namespace
 
-D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D12_SUBRESOURCE_DATA* data)
+D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, u32 bind, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D12_SUBRESOURCE_DATA* data)
 {
 	ID3D12Resource* texture12 = nullptr;
 
@@ -115,7 +115,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	D3D12_CLEAR_VALUE optimized_clear_value = {};
 	optimized_clear_value.Format = fmt;
 
-	if (bind & D3D11_BIND_RENDER_TARGET)
+	if (bind & TEXTURE_BIND_FLAG_RENDER_TARGET)
 	{
 		texdesc12.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		optimized_clear_value.Color[0] = 0.0f;
@@ -124,7 +124,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 		optimized_clear_value.Color[3] = 1.0f;
 	}
 
-	if (bind & D3D11_BIND_DEPTH_STENCIL)
+	if (bind & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
 	{
 		texdesc12.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 		optimized_clear_value.DepthStencil.Depth = 0.0f;
@@ -210,7 +210,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetRTV12() const
 	return m_rtv12;
 }
 
-D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
+D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind,
 							DXGI_FORMAT srv_format, DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled, D3D12_RESOURCE_STATES resource_state)
 							: m_tex12(texptr), m_resource_state(resource_state), m_multisampled(multisampled)
 {
@@ -218,7 +218,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 	D3D12_DSV_DIMENSION dsv_dim12 = multisampled ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 	D3D12_RTV_DIMENSION rtv_dim12 = multisampled ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 
-	if (bind & D3D11_BIND_SHADER_RESOURCE)
+	if (bind & TEXTURE_BIND_FLAG_SHADER_RESOURCE)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
 			srv_format, // DXGI_FORMAT Format
@@ -245,7 +245,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 		D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_gpu_cpu_shadow);
 	}
 
-	if (bind & D3D11_BIND_DEPTH_STENCIL)
+	if (bind & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc = {
 			dsv_format,          // DXGI_FORMAT Format
@@ -262,7 +262,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 		D3D::device12->CreateDepthStencilView(m_tex12, &dsv_desc, m_dsv12);
 	}
 
-	if (bind & D3D11_BIND_RENDER_TARGET)
+	if (bind & TEXTURE_BIND_FLAG_RENDER_TARGET)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = {
 			rtv_format, // DXGI_FORMAT Format
