@@ -375,7 +375,7 @@ void Advance()
 	int cyclesExecuted = slicelength - DowncountToCycles(PowerPC::ppcState.downcount);
 	globalTimer += cyclesExecuted;
 	lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-	PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
+	slicelength = maxSliceLength;
 
 	while (first && first->time <= globalTimer)
 	{
@@ -387,18 +387,14 @@ void Advance()
 		FreeEvent(evt);
 	}
 
-	if (!first)
-	{
-		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
-		PowerPC::ppcState.downcount += CyclesToDowncount(10000);
-	}
-	else
+	if (first)
 	{
 		slicelength = (int)(first->time - globalTimer);
 		if (slicelength > maxSliceLength)
 			slicelength = maxSliceLength;
-		PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 	}
+
+	PowerPC::ppcState.downcount = CyclesToDowncount(slicelength);
 }
 
 void LogPendingEvents()
