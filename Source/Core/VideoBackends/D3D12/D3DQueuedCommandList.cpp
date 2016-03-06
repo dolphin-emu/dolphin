@@ -274,6 +274,45 @@ void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* 
 					break;
 				}
 
+				case D3DQueueItemType::BeginQuery:
+				{
+					command_list->BeginQuery(
+						reinterpret_cast<D3DQueueItem*>(item)->BeginQuery.pQueryHeap,
+						reinterpret_cast<D3DQueueItem*>(item)->BeginQuery.Type,
+						reinterpret_cast<D3DQueueItem*>(item)->BeginQuery.Index
+						);
+
+					item += BufferOffsetForQueueItemType<BeginQueryArguments>();
+					break;
+				}
+
+				case D3DQueueItemType::EndQuery:
+				{
+					command_list->EndQuery(
+						reinterpret_cast<D3DQueueItem*>(item)->EndQuery.pQueryHeap,
+						reinterpret_cast<D3DQueueItem*>(item)->EndQuery.Type,
+						reinterpret_cast<D3DQueueItem*>(item)->EndQuery.Index
+						);
+
+					item += BufferOffsetForQueueItemType<EndQueryArguments>();
+					break;
+				}
+
+				case D3DQueueItemType::ResolveQueryData:
+				{
+					command_list->ResolveQueryData(
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.pQueryHeap,
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.Type,
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.StartElement,
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.ElementCount,
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.pDestinationBuffer,
+						reinterpret_cast<D3DQueueItem*>(item)->ResolveQueryData.AlignedDestinationBufferOffset
+						);
+
+					item += BufferOffsetForQueueItemType<ResolveQueryDataArguments>();
+					break;
+				}
+
 				case D3DQueueItemType::CloseCommandList:
 				{
 					CheckHR(command_list->Close());
@@ -916,8 +955,14 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::BeginQuery(
 	_In_  UINT Index
 	)
 {
-	// Function not implemented yet.
-	DEBUGCHECK(0, "Function not implemented yet.");
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->Type = D3DQueueItemType::BeginQuery;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->BeginQuery.pQueryHeap = pQueryHeap;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->BeginQuery.Type = Type;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->BeginQuery.Index = Index;
+
+	m_queue_array_back += BufferOffsetForQueueItemType<BeginQueryArguments>();
+
+	CheckForOverflow();
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::EndQuery(
@@ -926,8 +971,14 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::EndQuery(
 	_In_  UINT Index
 	)
 {
-	// Function not implemented yet.
-	DEBUGCHECK(0, "Function not implemented yet.");
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->Type = D3DQueueItemType::EndQuery;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->EndQuery.pQueryHeap = pQueryHeap;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->EndQuery.Type = Type;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->EndQuery.Index = Index;
+
+	m_queue_array_back += BufferOffsetForQueueItemType<EndQueryArguments>();
+
+	CheckForOverflow();
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::ResolveQueryData(
@@ -939,8 +990,17 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::ResolveQueryData(
 	_In_  UINT64 AlignedDestinationBufferOffset
 	)
 {
-	// Function not implemented yet.
-	DEBUGCHECK(0, "Function not implemented yet.");
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->Type = D3DQueueItemType::ResolveQueryData;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.pQueryHeap = pQueryHeap;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.Type = Type;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.StartElement = StartElement;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.ElementCount = ElementCount;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.pDestinationBuffer = pDestinationBuffer;
+	reinterpret_cast<D3DQueueItem*>(m_queue_array_back)->ResolveQueryData.AlignedDestinationBufferOffset = AlignedDestinationBufferOffset;
+
+	m_queue_array_back += BufferOffsetForQueueItemType<ResolveQueryDataArguments>();
+
+	CheckForOverflow();
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::SetPredication(
