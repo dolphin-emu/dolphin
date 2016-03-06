@@ -52,8 +52,6 @@ namespace Clipper
 		NUM_INDICES = NUM_CLIPPED_VERTICES + 3
 	};
 
-	static float m_ViewOffset[2];
-
 	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
 	static OutputVertexData *Vertices[NUM_INDICES];
 
@@ -61,12 +59,6 @@ namespace Clipper
 	{
 		for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
 			Vertices[i+3] = &ClippedVertices[i];
-	}
-
-	void SetViewOffset()
-	{
-		m_ViewOffset[0] = xfmem.viewport.xOrig - 342;
-		m_ViewOffset[1] = xfmem.viewport.yOrig - 342;
 	}
 
 
@@ -444,8 +436,8 @@ namespace Clipper
 		Vec3 &screen = vertex->screenPosition;
 
 		float wInverse = 1.0f/projected.w;
-		screen.x = projected.x * wInverse * xfmem.viewport.wd + m_ViewOffset[0];
-		screen.y = projected.y * wInverse * xfmem.viewport.ht + m_ViewOffset[1];
+		screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
+		screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
 		screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 
