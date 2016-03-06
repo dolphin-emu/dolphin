@@ -133,11 +133,6 @@ private:
 	typedef std::map<u32, SContentAccess> CContentAccessMap;
 	CContentAccessMap m_ContentAccessMap;
 
-	typedef std::map<u64, const DiscIO::CNANDContentLoader*> CTitleToContentMap;
-	CTitleToContentMap m_NANDContent;
-
-	const DiscIO::CNANDContentLoader* m_pContentLoader;
-
 	std::vector<u64> m_TitleIDs;
 	u64 m_TitleID;
 	u32 m_AccessIdentID;
@@ -146,8 +141,6 @@ private:
 
 	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
-
-	bool IsValid(u64 _TitleID) const;
 
 	struct ecc_cert_t
 	{
