@@ -80,9 +80,6 @@ static unsigned int s_yres = 0;
 static bool s_frame_in_progress = false;
 
 static std::vector<DXGI_SAMPLE_DESC> s_aa_modes; // supported AA modes of the current adapter
-static const D3D_FEATURE_LEVEL s_supported_feature_levels[] = {
-	D3D_FEATURE_LEVEL_11_0
-};
 
 HRESULT LoadDXGI()
 {
@@ -233,106 +230,27 @@ void UnloadD3DCompiler()
 	d3d_reflect = nullptr;
 }
 
-bool AlertUserIfSelectedAdapterDoesNotSupportD3D12()
-{
-	HRESULT hr = LoadDXGI();
-	if (SUCCEEDED(hr))
-	{
-		hr = LoadD3D();
-	}
-
-	if (FAILED(hr))
-	{
-		// LoadDXGI / LoadD3D display a specific error message,
-		// no need to do that here.
-		return false;
-	}
-
-	IDXGIFactory* factory = nullptr;
-	IDXGIAdapter* adapter = nullptr;
-	ID3D12Device* device = nullptr;
-
-	if (SUCCEEDED(hr))
-	{
-		hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
-
-		SAFE_RELEASE(device);
-		SAFE_RELEASE(adapter);
-		SAFE_RELEASE(factory);
-
-		if (FAILED(hr))
-		{
-			UnloadD3D();
-			UnloadDXGI();
-			MessageBoxA(nullptr, "Failed to create a D3D12 device on the selected adapter.\n\nPlease make sure it supports Direct3D 12, and that your graphics drivers are up-to-date.", "Critical error", MB_OK | MB_ICONERROR);
-			return false;
-		}
-
-		// If succeeded, leave DXGI and D3D libraries loaded since we'll use them in Create().
-		return true;
-	}
-
-	// DXGI failed to create factory/enumerate adapter. This should be very uncommon.
-	MessageBoxA(nullptr, "Failed to create enumerate selected adapter. Please select a different graphics adapter.", "Critical error", MB_OK | MB_ICONERROR);
-	SAFE_RELEASE(adapter);
-	SAFE_RELEASE(factory);
-
-	UnloadD3D();
-	UnloadDXGI();
-	return false;
-}
-
-std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
+std::vector<DXGI_SAMPLE_DESC> EnumAAModes(ID3D12Device* device)
 {
 	std::vector<DXGI_SAMPLE_DESC> aa_modes;
 
-	bool d3d12_supported = AlertUserIfSelectedAdapterDoesNotSupportD3D12();
-
-	if (!d3d12_supported)
-		return aa_modes;
-
-	ID3D12Device* device12 = nullptr;
-	d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
-
-	if (device12)
+	for (int samples = 0; samples < D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
 	{
-		for (int samples = 0; samples < D3D12_MAX_MULTISAMPLE_SAMPLE_COUNT; ++samples)
-		{
-			D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS multisample_quality_levels = {};
-			multisample_quality_levels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-			multisample_quality_levels.SampleCount = samples;
+		D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS multisample_quality_levels = {};
+		multisample_quality_levels.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		multisample_quality_levels.SampleCount = samples;
 
-			device12->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &multisample_quality_levels, sizeof(multisample_quality_levels));
+		device->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &multisample_quality_levels, sizeof(multisample_quality_levels));
 
-			DXGI_SAMPLE_DESC desc;
-			desc.Count = samples;
-			desc.Quality = 0;
+		DXGI_SAMPLE_DESC desc;
+		desc.Count = samples;
+		desc.Quality = 0;
 
-			if (multisample_quality_levels.NumQualityLevels > 0)
-			{
-				aa_modes.push_back(desc);
-			}
-		}
-
-		device12->Release();
+		if (multisample_quality_levels.NumQualityLevels > 0)
+			aa_modes.push_back(desc);
 	}
 
 	return aa_modes;
-}
-
-D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
-{
-	return D3D_FEATURE_LEVEL_11_0;
 }
 
 HRESULT Create(HWND wnd)
@@ -346,17 +264,21 @@ HRESULT Create(HWND wnd)
 	s_yres = client.bottom - client.top;
 
 	hr = LoadDXGI();
-	if (SUCCEEDED(hr))
-		hr = LoadD3D();
+	if (FAILED(hr))
+		return hr;
 
-	if (SUCCEEDED(hr))
-		hr = LoadD3DCompiler();
-
+	hr = LoadD3D();
 	if (FAILED(hr))
 	{
 		UnloadDXGI();
+		return hr;
+	}
+
+	hr = LoadD3DCompiler();
+	if (FAILED(hr))
+	{
 		UnloadD3D();
-		UnloadD3DCompiler();
+		UnloadDXGI();
 		return hr;
 	}
 
@@ -373,19 +295,6 @@ HRESULT Create(HWND wnd)
 		hr = factory->EnumAdapters(0, &adapter);
 		if (FAILED(hr))
 			MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
-	}
-
-	// get supported AA modes
-	s_aa_modes = EnumAAModes(adapter);
-
-	if (std::find_if(
-		s_aa_modes.begin(),
-		s_aa_modes.end(),
-		[](const DXGI_SAMPLE_DESC& desc) {return desc.Count == g_Config.iMultisamples; }
-		) == s_aa_modes.end())
-	{
-		g_Config.iMultisamples = 1;
-		UpdateActiveConfig();
 	}
 
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc = {};
@@ -425,7 +334,26 @@ HRESULT Create(HWND wnd)
 	if (SUCCEEDED(hr))
 	{
 		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
+		if (FAILED(hr))
+			MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports Direct3D 12 and your drivers are up-to-date."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
+
 		s_feat_level = D3D_FEATURE_LEVEL_11_0;
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		// get supported AA modes
+		s_aa_modes = EnumAAModes(device12);
+
+		if (std::find_if(
+			s_aa_modes.begin(),
+			s_aa_modes.end(),
+			[](const DXGI_SAMPLE_DESC& desc) {return desc.Count == g_Config.iMultisamples; }
+			) == s_aa_modes.end())
+		{
+			g_Config.iMultisamples = 1;
+			UpdateActiveConfig();
+		}
 	}
 
 	if (SUCCEEDED(hr))
@@ -472,6 +400,12 @@ HRESULT Create(HWND wnd)
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports Direct3D 12 and your drivers are up-to-date."), _T("Dolphin Direct3D 12 backend"), MB_OK | MB_ICONERROR);
 		SAFE_RELEASE(s_swap_chain);
+		SAFE_RELEASE(device12);
+		SAFE_RELEASE(adapter);
+		SAFE_RELEASE(factory);
+		UnloadD3DCompiler();
+		UnloadD3D();
+		UnloadDXGI();
 		return E_FAIL;
 	}
 
@@ -757,9 +691,9 @@ void Close()
 	current_command_list = nullptr;
 
 	// unload DLLs
-	UnloadDXGI();
 	UnloadD3DCompiler();
 	UnloadD3D();
+	UnloadDXGI();
 }
 
 const std::string VertexShaderVersionString()
