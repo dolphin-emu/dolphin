@@ -81,14 +81,10 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
 	// set all states with are stored within video sw
 	for (int i = 0; i < 4; i++)
 	{
-		Rasterizer::SetTevReg(i, Tev::RED_C, false, PixelShaderManager::constants.colors[i][0]);
-		Rasterizer::SetTevReg(i, Tev::GRN_C, false, PixelShaderManager::constants.colors[i][1]);
-		Rasterizer::SetTevReg(i, Tev::BLU_C, false, PixelShaderManager::constants.colors[i][2]);
-		Rasterizer::SetTevReg(i, Tev::ALP_C, false, PixelShaderManager::constants.colors[i][3]);
-		Rasterizer::SetTevReg(i, Tev::RED_C, true, PixelShaderManager::constants.kcolors[i][0]);
-		Rasterizer::SetTevReg(i, Tev::GRN_C, true, PixelShaderManager::constants.kcolors[i][1]);
-		Rasterizer::SetTevReg(i, Tev::BLU_C, true, PixelShaderManager::constants.kcolors[i][2]);
-		Rasterizer::SetTevReg(i, Tev::ALP_C, true, PixelShaderManager::constants.kcolors[i][3]);
+		Rasterizer::SetTevReg(i, Tev::RED_C, PixelShaderManager::constants.kcolors[i][0]);
+		Rasterizer::SetTevReg(i, Tev::GRN_C, PixelShaderManager::constants.kcolors[i][1]);
+		Rasterizer::SetTevReg(i, Tev::BLU_C, PixelShaderManager::constants.kcolors[i][2]);
+		Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
 	}
 
 	for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)

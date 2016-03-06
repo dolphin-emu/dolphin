@@ -14,7 +14,7 @@ namespace Rasterizer
 
 	void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
-	void SetTevReg(int reg, int comp, bool konst, s16 color);
+	void SetTevReg(int reg, int comp, s16 color);
 
 	struct Slope
 	{

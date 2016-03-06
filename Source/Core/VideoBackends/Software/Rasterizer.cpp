@@ -64,9 +64,9 @@ static inline int iround(float x)
 	return t;
 }
 
-void SetTevReg(int reg, int comp, bool konst, s16 color)
+void SetTevReg(int reg, int comp, s16 color)
 {
-	tev.SetRegColor(reg, comp, konst, color);
+	tev.SetRegColor(reg, comp, color);
 }
 
 static void Draw(s32 x, s32 y, s32 xi, s32 yi)

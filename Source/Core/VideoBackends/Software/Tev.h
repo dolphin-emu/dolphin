@@ -87,5 +87,5 @@ public:
 
 	void Draw();
 
-	void SetRegColor(int reg, int comp, bool konst, s16 color);
+	void SetRegColor(int reg, int comp, s16 color);
 };
