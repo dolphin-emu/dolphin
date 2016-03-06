@@ -223,8 +223,6 @@ Renderer::Renderer(void*& window_handle)
 		return;
 	}
 
-	D3D::Create((HWND)window_handle);
-
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
@@ -282,7 +280,6 @@ Renderer::~Renderer()
 	D3D::EndFrame();
 	D3D::WaitForOutstandingRenderingToComplete();
 	TeardownDeviceObjects();
-	D3D::Close();
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
