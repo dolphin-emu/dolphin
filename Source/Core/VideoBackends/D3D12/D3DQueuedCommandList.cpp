@@ -804,7 +804,7 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::ResolveSubresource(
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::IASetPrimitiveTopology(
-	_In_  D3D11_PRIMITIVE_TOPOLOGY PrimitiveTopology
+	_In_  D3D12_PRIMITIVE_TOPOLOGY PrimitiveTopology
 	)
 {
 	// No ignored parameters, no assumptions to DEBUGCHECK.
@@ -818,7 +818,7 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::IASetPrimitiveTopology(
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::RSSetViewports(
-	_In_range_(0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE)  UINT Count,
+	_In_range_(0, D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE)  UINT Count,
 	_In_reads_(Count)  const D3D12_VIEWPORT* pViewports
 	)
 {
@@ -838,7 +838,7 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::RSSetViewports(
 }
 
 void STDMETHODCALLTYPE ID3D12QueuedCommandList::RSSetScissorRects(
-	_In_range_(0, D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE)  UINT Count,
+	_In_range_(0, D3D12_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE)  UINT Count,
 	_In_reads_(Count)  const D3D12_RECT* pRects
 	)
 {
@@ -1199,7 +1199,7 @@ void STDMETHODCALLTYPE ID3D12QueuedCommandList::ClearDepthStencilView(
 	_In_reads_opt_(NumRects)  const D3D12_RECT* pRect
 	)
 {
-	DEBUGCHECK(ClearFlags == D3D11_CLEAR_DEPTH, "Error: Invalid assumption in ID3D12QueuedCommandList.");
+	DEBUGCHECK(ClearFlags == D3D12_CLEAR_FLAG_DEPTH, "Error: Invalid assumption in ID3D12QueuedCommandList.");
 	DEBUGCHECK(Depth == 0.0f, "Error: Invalid assumption in ID3D12QueuedCommandList.");
 	DEBUGCHECK(Stencil == 0, "Error: Invalid assumption in ID3D12QueuedCommandList.");
 	DEBUGCHECK(pRect == nullptr, "Error: Invalid assumption in ID3D12QueuedCommandList.");

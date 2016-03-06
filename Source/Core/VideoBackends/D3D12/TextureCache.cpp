@@ -189,8 +189,8 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 	if (config.rendertarget)
 	{
 		D3DTexture2D* texture = D3DTexture2D::Create(config.width, config.height,
-			static_cast<D3D11_BIND_FLAG>((static_cast<int>(D3D11_BIND_RENDER_TARGET) | static_cast<int>(D3D11_BIND_SHADER_RESOURCE))),
-			D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers);
+			TEXTURE_BIND_FLAG_SHADER_RESOURCE | TEXTURE_BIND_FLAG_RENDER_TARGET,
+			DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers);
 
 		TCacheEntry* entry = new TCacheEntry(config, texture);
 
@@ -220,7 +220,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
 		D3DTexture2D* texture = new D3DTexture2D(
 			texture_resource,
-			D3D11_BIND_SHADER_RESOURCE,
+			TEXTURE_BIND_FLAG_SHADER_RESOURCE,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
 			DXGI_FORMAT_UNKNOWN,
