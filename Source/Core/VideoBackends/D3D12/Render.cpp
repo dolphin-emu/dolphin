@@ -245,7 +245,7 @@ Renderer::Renderer(void*& window_handle)
 
 	// Setup GX pipeline state
 	gx_state.blend.blend_enable = false;
-	gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	gx_state.blend.write_mask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	gx_state.blend.src_blend = D3D12_BLEND_ONE;
 	gx_state.blend.dst_blend = D3D12_BLEND_ZERO;
 	gx_state.blend.blend_op = D3D12_BLEND_OP_ADD;

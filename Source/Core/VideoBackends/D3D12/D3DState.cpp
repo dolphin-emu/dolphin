@@ -343,8 +343,8 @@ inline D3D12_DEPTH_STENCIL_DESC StateCache::GetDesc12(ZMode state)
 	D3D12_DEPTH_STENCIL_DESC depthdc;
 
 	depthdc.StencilEnable = FALSE;
-	depthdc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
-	depthdc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
+	depthdc.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK;
+	depthdc.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK;
 
 	D3D12_DEPTH_STENCILOP_DESC defaultStencilOp = { D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_STENCIL_OP_KEEP, D3D12_COMPARISON_FUNC_ALWAYS };
 	depthdc.FrontFace = defaultStencilOp;
