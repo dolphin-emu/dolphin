@@ -30,9 +30,6 @@ static D3D12_GPU_DESCRIPTOR_HANDLE s_bbox_descriptor_handle;
 
 void BBox::Init()
 {
-	if (!g_ActiveConfig.backend_info.bSupportsBBox)
-		return;
-
 	CD3DX12_RESOURCE_DESC buffer_desc(CD3DX12_RESOURCE_DESC::Buffer(BBOX_BUFFER_SIZE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS, 0));
 	CD3DX12_RESOURCE_DESC staging_buffer_desc(CD3DX12_RESOURCE_DESC::Buffer(BBOX_BUFFER_SIZE, D3D12_RESOURCE_FLAG_NONE, 0));
 
@@ -73,8 +70,7 @@ void BBox::Init()
 
 void BBox::Bind()
 {
-	if (s_bbox_buffer)
-		D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_UAV, s_bbox_descriptor_handle);
+	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_UAV, s_bbox_descriptor_handle);
 }
 
 void BBox::Invalidate()
