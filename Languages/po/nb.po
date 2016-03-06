@@ -4,7 +4,7 @@
 #
 # Translators:
 # Christer Hansen <chriztr@gmail.com>, 2013
-# KHRZ <e-k-nut@hotmail.com>, 2013-2015
+# KHRZ <e-k-nut@hotmail.com>, 2013-2016
 # KHRZ <e-k-nut@hotmail.com>, 2011,2013
 # KHRZ <e-k-nut@hotmail.com>, 2011
 # Tokiko <tokikoenai@gmail.com>, 2015
@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-02-24 19:48+0000\n"
-"PO-Revision-Date: 2015-12-15 19:36+0000\n"
+"POT-Creation-Date: 2016-03-06 01:10+0000\n"
+"PO-Revision-Date: 2016-03-06 01:10+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -85,6 +85,16 @@ msgstr "%1$sKopier%1$s"
 #: Source/Core/DiscIO/CompressedBlob.cpp:222
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
+msgstr "%i av %i blokker. Komprimeringsratio %i%%"
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
+#, c-format
+msgid "%i%%"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
+#, c-format
+msgid "%i%% (Normal Speed)"
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
@@ -228,22 +238,22 @@ msgstr "%u ledige blokker; %u ledige dir-oppføringer"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
 #, c-format
 msgid "%u frames"
-msgstr ""
+msgstr "%u bilder"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
 #, c-format
 msgid "%u objects"
-msgstr ""
+msgstr "%u objekter"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
 #, c-format
 msgid "%zu FIFO bytes"
-msgstr ""
+msgstr "%zu FIFO byte"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:930
 #, c-format
 msgid "%zu memory bytes"
-msgstr ""
+msgstr "%zu minnebyte"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:597
 msgid "&& AND"
@@ -437,7 +447,7 @@ msgstr ""
 "(c) 2003-2015 Dolphin-teamet. \"GameCube\" og \"Wii\" er varemerker av "
 "Nintendo. Dolphin er på ingen måte affiliert med Nintendo."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:720
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:722
 msgid "(off)"
 msgstr "(av)"
 
@@ -445,7 +455,7 @@ msgstr "(av)"
 msgid "+ ADD"
 msgstr "+ LEGG TIL"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "1.5x Native (960x792)"
 msgstr "1.5x Opprinnelig størrelse (960x792)"
 
@@ -453,11 +463,11 @@ msgstr "1.5x Opprinnelig størrelse (960x792)"
 msgid "16-bit"
 msgstr "16-bits"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "2.5x Native (1600x1320)"
 msgstr "2.5x Opprinnelig størrelse (1600x1320)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "2x Native (1280x1056) for 720p"
 msgstr "2x Opprinnelig størrelse (1280x1056) for 720p"
 
@@ -465,23 +475,23 @@ msgstr "2x Opprinnelig størrelse (1280x1056) for 720p"
 msgid "32-bit"
 msgstr "32-bits"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x Opprinnelig størrelse (1920x1584) for 1080p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "4x Opprinnelig størrelse (2560x2112) for 1440p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "5x Native (3200x2640)"
 msgstr "5x Opprinnelig størrelse (3200x2640)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "6x Native (3840x3168) for 4K"
 msgstr "6x Opprinnelig størrelse (3840x3168) for 4K"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "7x Native (4480x3696)"
 msgstr "7x Opprinnelig størrelse (4480x3696)"
 
@@ -489,7 +499,7 @@ msgstr "7x Opprinnelig størrelse (4480x3696)"
 msgid "8-bit"
 msgstr "8-bits"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "8x Native (5120x4224) for 5K"
 msgstr "8x Opprinnelig størrelse (5120x4224) for 5K"
 
@@ -497,7 +507,7 @@ msgstr "8x Opprinnelig størrelse (5120x4224) for 5K"
 msgid "<Insert name here>"
 msgstr "<Sett inn navn her>"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:277
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:278
 msgid "<No resolutions found>"
 msgstr "<Ingen oppløsning funnet>"
 
@@ -509,8 +519,8 @@ msgstr "<Ingenting>"
 msgid "<System Language>"
 msgstr "<Systemspråk>"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:312
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:376
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:309
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:373
 msgid "A NetPlay window is already open!"
 msgstr "Et NetPlay-vindu er allerede åpent!"
 
@@ -531,33 +541,20 @@ msgstr ""
 msgid ""
 "ALERT:\n"
 "\n"
-"Netplay will only work with the following settings:\n"
-" - DSP Emulator Engine Must be the same on all computers!\n"
-" - Manually set the extensions for each Wiimote\n"
-"\n"
-"All players should use the same Dolphin version and settings.\n"
-"All memory cards must be identical between players or disabled.\n"
-"Wiimote support is probably terrible. Don't use it.\n"
-"\n"
+"All players must use the same Dolphin version.\n"
+"All memory cards, SD cards and cheats must be identical between players or "
+"disabled.\n"
+"If DSP LLE is used, DSP ROMs must be identical between players.\n"
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
+"\n"
+"Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
-"ADVARSEL:\n"
-"\n"
-"NetPlay vil kun fungere under følgende innstillinger:\n"
-" - DSP Emulator Motor må være det samme på alle maskiner!\n"
-"- Set ekstensjonene mauelt for hver Wiimote\n"
-"\n"
-"Alle spillere burde bruke samme Dolphin-versjon og innstillinger.\n"
-"Alle minnekort burde være identiske mellom spillerne eller deaktivert.\n"
-"Wiimote støtte er dårlig. Ikke bruk dem.\n"
-"\n"
-"Hvis koblet direkte må hosten ha valgt UDP-port åpen/forward!\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
 msgid "AM Baseboard"
-msgstr ""
+msgstr "AM baseboard"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:116
 #: Source/Core/DolphinWX/ISOProperties.cpp:312
@@ -568,7 +565,7 @@ msgstr "<AR-koder>"
 msgid "About Dolphin"
 msgstr "Om Dolphin"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:493
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:494
 msgid "Accuracy:"
 msgstr "Nøyaktighet:"
 
@@ -672,7 +669,7 @@ msgstr "Adapter Oppdaget"
 msgid "Adapter Not Detected"
 msgstr "Ingen Adapter Oppdaget"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:261
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:262
 msgid "Adapter:"
 msgstr "Adapter:"
 
@@ -705,14 +702,14 @@ msgstr "Juster analogkontrolltrykket som kreves for å aktivere knapper."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:35
 msgid "Advance Game Port"
-msgstr ""
+msgstr "Advance spillport"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:76
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:534
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
 msgid "Advanced"
 msgstr "Avansert"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:79
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
 msgid "Advanced Settings"
 msgstr "Avanserte innstillinger"
 
@@ -748,8 +745,14 @@ msgid ""
 "\n"
 "Ignore and continue?"
 msgstr ""
+"En feil har skjedd.\n"
+"\n"
+"Linje: %d\n"
+"Fil: %s\n"
+"\n"
+"Ignorer og fortsett?"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Anaglyph"
 msgstr "Anaglyph"
 
@@ -761,11 +764,11 @@ msgstr "Analyser"
 msgid "Angle"
 msgstr "Vinkel"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:383
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:384
 msgid "Anisotropic Filtering:"
 msgstr "Anisotropisk filtrering:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:369
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:370
 msgid "Anti-Aliasing:"
 msgstr "Kantutjevning:"
 
@@ -791,7 +794,7 @@ msgstr "Applikasjonslaster:"
 msgid "Apply"
 msgstr "Bruk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:137
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
 "\n"
@@ -807,25 +810,21 @@ msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Er du sikker på at du vil slette \"%s\"?"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1048
-#, fuzzy
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
-"Er du sikker på at du vil slette disse filene?\n"
-"De vil bli borte for alltid!"
+"Er du sikker på at du vil slette disse filene? De vil bli borte for alltid!"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1047
-#, fuzzy
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
-"Er du sikker på at du vil slette denne filen?\n"
-"Den vil bli borte for alltid!"
+"Er du sikker på at du vil slette denne filene? Den vil bli borte for alltid!"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:383
 msgid "Are you trying to use the same file in both slots?"
 msgstr "Prøver du å bruke samme fil i begge slotter?"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:294
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:295
 msgid "Aspect Ratio:"
 msgstr "Aspektforhold:"
 
@@ -837,7 +836,7 @@ msgstr "Velg Kontrollerporter"
 msgid "At least one pane must remain open."
 msgstr "Minst en rute må stå åpen."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid ""
 "Attempt to detect and skip wait-loops.\n"
 "If unsure, leave this checked."
@@ -865,20 +864,20 @@ msgstr "Australia"
 msgid "Authors"
 msgstr "Forfattere"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:149
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:150
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Auto"
 msgstr "Automatisk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:349
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "Auto (Multiple of 640x528)"
 msgstr "Auto (Multiplum av 640x528)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:349
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
 msgid "Auto (Window Size)"
 msgstr "Automatisk (Vindusstørrelse):"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:313
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
 msgid "Auto adjust Window Size"
 msgstr "Automatisk juster Vindusstørrelse"
 
@@ -909,7 +908,7 @@ msgid "Backend Settings"
 msgstr "Backend-innstillinger"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:61
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:234
 msgid "Backend:"
 msgstr "Backend:"
 
@@ -946,11 +945,11 @@ msgstr "Banner:"
 msgid "Bar"
 msgstr "Bar"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:320
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:321
 msgid "Basic"
 msgstr "Grunnleggende"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:78
 msgid "Basic Settings"
 msgstr "Grunnleggende Innstillinger"
 
@@ -982,7 +981,7 @@ msgstr "Blå Venstre"
 msgid "Blue Right"
 msgstr "Blå Høyre"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:590
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Borderless Fullscreen"
 msgstr "Rammefri Fullskjerm"
 
@@ -1002,7 +1001,7 @@ msgstr "Gren: %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Broadband Adapter"
-msgstr ""
+msgstr "Bredbåndsadapter"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:371
 msgid "Broken"
@@ -1056,7 +1055,7 @@ msgstr "C-joystick"
 msgid "CP register "
 msgstr "CP-register"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:54
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
 msgid "CPU Emulator Engine"
 msgstr "CPU-emulatormotor"
 
@@ -1064,7 +1063,7 @@ msgstr "CPU-emulatormotor"
 msgid "CPU Options"
 msgstr "CPU-alternativer"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
 msgid ""
 "Cache custom textures to system RAM on startup.\n"
 "This can require exponentially more RAM but fixes possible stuttering.\n"
@@ -1254,7 +1253,7 @@ msgstr ""
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:279
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:132
 #: Source/Core/DolphinWX/MemcardManager.cpp:252
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:604
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:606
 msgid "Close"
 msgstr "Lukk"
 
@@ -1311,7 +1310,7 @@ msgstr "Beregn"
 msgid "Computing MD5 checksum"
 msgstr "Beregner MD5-sjekkSum"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:393
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:394
 #: Source/Core/DolphinWX/FrameTools.cpp:554
 msgid "Config"
 msgstr "Konfig"
@@ -1411,7 +1410,7 @@ msgstr "&Kontrol-innstillinger"
 msgid "Controllers"
 msgstr "Kontrollere"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:142
 msgid ""
 "Controls the distance of the convergence plane. This is the distance at "
 "which virtual objects will appear to be in front of the screen.\n"
@@ -1423,7 +1422,7 @@ msgstr ""
 "En høyere verdi lager sterkere ut-av-skjermen effekter, mens en lavere verdi "
 "er mer komfortabel."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:141
 msgid ""
 "Controls the separation distance between the virtual cameras.\n"
 "A higher value creates a stronger feeling of depth while a lower value is "
@@ -1433,12 +1432,11 @@ msgstr ""
 "En høyere verdi lager en sterkere følelse av dybe, mens en lavere verdi er "
 "mer komfortabelt."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:448
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:449
 msgid "Convergence:"
 msgstr "Konvergens:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:358
-#, fuzzy
 msgid "Convergence: "
 msgstr "Konvergens:"
 
@@ -1513,11 +1511,11 @@ msgstr ""
 "I så tilfelle, må du kanskje re-spesifisere minnekortslokasjonen i "
 "innstillingene."
 
-#: Source/Core/Core/NetPlayClient.cpp:76
+#: Source/Core/Core/NetPlayClient.cpp:75
 msgid "Couldn't Create Client"
 msgstr "Kunne Ikke Lage Klient"
 
-#: Source/Core/Core/NetPlayClient.cpp:87
+#: Source/Core/Core/NetPlayClient.cpp:86
 msgid "Couldn't create peer."
 msgstr "Kunne ikke lage peer."
 
@@ -1568,11 +1566,11 @@ msgstr "Skaper:"
 msgid "Critical"
 msgstr "Kritisk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:573
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:575
 msgid "Crop"
 msgstr "Krum"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:136
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:137
 msgid ""
 "Crop the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
@@ -1591,7 +1589,7 @@ msgstr "Kryssutfase"
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Nåværende mappe endret fra %s til %s etter wxFileSelector!"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "Custom"
 msgstr "Egendefinert"
 
@@ -1601,7 +1599,7 @@ msgstr "D-Pad"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:49
 msgid "DK Bongos"
-msgstr ""
+msgstr "DK bongotrommer"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:37
 msgid "DSP Emulator Engine"
@@ -1653,7 +1651,7 @@ msgstr "Debug"
 msgid "Debug Only"
 msgstr "Kun Debug"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:547
 msgid "Debugging"
 msgstr "Debugging"
 
@@ -1684,7 +1682,7 @@ msgstr "Reduser Dybde"
 
 #: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Decrease Emulation Speed"
-msgstr ""
+msgstr "Senk Emulasjonshastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Decrease IR"
@@ -1711,7 +1709,7 @@ msgstr "Slett"
 msgid "Delete Save"
 msgstr "Slett lagringsfil"
 
-#: Source/Core/VideoCommon/AVIDump.cpp:91
+#: Source/Core/VideoCommon/AVIDump.cpp:92
 #, c-format
 msgid "Delete the existing file '%s'?"
 msgstr "Slett den eksiterende filen '%s'?"
@@ -1720,11 +1718,11 @@ msgstr "Slett den eksiterende filen '%s'?"
 msgid "Depth Percentage: "
 msgstr "Dybde Prosent:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:439
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:440
 msgid "Depth:"
 msgstr "Dybde:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:697
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:699
 msgid "Description"
 msgstr "Beskrivelse"
 
@@ -1770,23 +1768,23 @@ msgstr "Direkte"
 msgid "Directory checksum and directory backup checksum failed"
 msgstr "Mappesjekksummen og mappe-backup-sjekksummen mislyktes"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:506
 msgid "Disable"
 msgstr "Deaktiver"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:519
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
 msgid "Disable Bounding Box"
 msgstr "Deaktiver Bounding Box-kalkulasjoner"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Disable Emulation Speed Limit"
-msgstr ""
+msgstr "Deaktiver Emulasjonshastighetsbegrensning"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:417
 msgid "Disable Fog"
 msgstr "Deaktiver tåke (fog)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:125
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
 msgid ""
 "Disable any XFB emulation.\n"
 "Speeds up emulation a lot but causes heavy glitches in many games which rely "
@@ -1800,7 +1798,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå på."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
 msgid ""
 "Disable the bounding box emulation.\n"
 "This may improve the GPU performance a lot, but some games will break.\n"
@@ -1828,7 +1826,7 @@ msgstr "Frakoblet"
 msgid "Disconnected from traversal server"
 msgstr "Frakoblet fra traverseringsserver"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:324
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:325
 msgid "Display"
 msgstr "Visning"
 
@@ -1860,7 +1858,7 @@ msgid "Dolphin"
 msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:209
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:210
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin %s Grafikkinnstillinger"
@@ -1925,7 +1923,7 @@ msgstr "Dolphin kunne ikke fullføre den forespurte handligen."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:316
 msgid "Done compressing disc image."
-msgstr ""
+msgstr "Ferdig med å komprimere disk bildefil."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:50
 #: Source/Core/InputCommon/ControllerEmu.cpp:195
@@ -1961,7 +1959,7 @@ msgstr "Juksedukke"
 msgid "Dump Audio"
 msgstr "Dump Audio"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:560
 msgid "Dump EFB Target"
 msgstr "Dump EFB Target"
 
@@ -1982,11 +1980,11 @@ msgid "Dump Texture Fetches"
 msgstr "Dump Tekstur Lastinger"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
 msgid "Dump Textures"
 msgstr "Dump teksturer"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:128
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/.\n"
 "\n"
@@ -1996,7 +1994,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:132
 msgid ""
 "Dump the contents of EFB copies to User/Dump/Textures/.\n"
 "\n"
@@ -2016,7 +2014,7 @@ msgstr "Nederlansk"
 msgid "E&xit"
 msgstr "&Avslutt"
 
-#: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:207
+#: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:208
 #, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
@@ -2053,19 +2051,19 @@ msgstr "Endre..."
 msgid "Effect"
 msgstr "Effekt"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:471
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:472
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Ekstern Bildebuffer (EFB)"
 
-#: Source/Core/Core/State.cpp:464
+#: Source/Core/Core/State.cpp:466
 msgid "Empty"
-msgstr ""
+msgstr "Tom"
 
 #: Source/Core/Core/Core.cpp:224
 msgid "Emu Thread already running"
 msgstr "Emulator-CPU-tråden kjører allerede"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:128
 msgid ""
 "Emulate XFBs accurately.\n"
 "Slows down emulation a lot and prohibits high-resolution rendering but is "
@@ -2079,7 +2077,7 @@ msgstr ""
 "\n"
 "Hvis usikker, benytt virtuell XFB isteden."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:127
 msgid ""
 "Emulate XFBs using GPU texture objects.\n"
 "Fixes many games which don't work without XFB emulation while not being as "
@@ -2111,7 +2109,7 @@ msgstr "Aktiver AR-logging"
 msgid "Enable CPU Clock Override"
 msgstr "Aktiver CPU-klokke Overskrivning"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:56
 msgid "Enable Cheats"
 msgstr "Aktiver juksekoder"
 
@@ -2119,7 +2117,7 @@ msgstr "Aktiver juksekoder"
 msgid "Enable Dual Core"
 msgstr "Aktiver bruk av dobbelkjerne"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:49
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:54
 msgid "Enable Dual Core (speedup)"
 msgstr "Aktiver bruk av dobbelkjerne (for bedre ytelse)"
 
@@ -2131,7 +2129,7 @@ msgstr "Aktiver FPRF"
 msgid "Enable Idle Skipping"
 msgstr "Aktiver Idle Skipping"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:55
 msgid "Enable Idle Skipping (speedup)"
 msgstr "Aktiver Idle Skipping (for bedre ytelse)"
 
@@ -2139,7 +2137,7 @@ msgstr "Aktiver Idle Skipping (for bedre ytelse)"
 msgid "Enable MMU"
 msgstr "Aktiver MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:577
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:579
 msgid "Enable Progressive Scan"
 msgstr "Aktiver progressiv skanning"
 
@@ -2155,7 +2153,7 @@ msgstr "Tillat høytaler data"
 msgid "Enable WideScreen"
 msgstr "Aktiver widescreen"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
 msgid "Enable Wireframe"
 msgstr "Aktiver wireframe"
 
@@ -2258,11 +2256,11 @@ msgstr ""
 "Tillater Memory Management Unit (MMU), som trengs for noen spill. (PÅ = "
 "Kompitabelt, AV = Raskt)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:58
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:63
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "Tillater bruk ac Action Replay og Gecko-koder."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:133
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:134
 msgid ""
 "Encode frame dumps using the FFV1 codec.\n"
 "\n"
@@ -2287,8 +2285,8 @@ msgstr "Enet ble ikke initialisert"
 msgid "English"
 msgstr "Engelsk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:341
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:418
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:342
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:419
 msgid "Enhancements"
 msgstr "Forbedringer"
 
@@ -2406,7 +2404,7 @@ msgstr "Eksporter lagringsfil som..."
 msgid "Extension"
 msgstr "Utvidelse"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:503
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:504
 msgid "External Frame Buffer (XFB)"
 msgstr "Ekstern Bildebuffer (EFB)"
 
@@ -2460,11 +2458,11 @@ msgstr "FIFO-spiller"
 msgid "FST Size:"
 msgstr "FST-størrelse:"
 
-#: Source/Core/Core/NetPlayClient.cpp:158
+#: Source/Core/Core/NetPlayClient.cpp:157
 msgid "Failed To Connect!"
 msgstr "Tilkobling mislyktes!"
 
-#: Source/Core/Core/NetPlayClient.cpp:102
+#: Source/Core/Core/NetPlayClient.cpp:101
 msgid "Failed to Connect!"
 msgstr "Tilkobling mislyktes!"
 
@@ -2488,15 +2486,17 @@ msgstr ""
 "%s\n"
 "vil bli overskrevet"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:367
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:364
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Kune ikke lytte. Kjører en annen instans av NetPlay-serveren?"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:365
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:362
 msgid ""
 "Failed to listen. Someone is probably already listening on the port you "
 "specified."
 msgstr ""
+"Kunne ikke lytte. Noen lytter antagelig allerede på porten du forsøkte å "
+"lytte på."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:154
 #: Source/Core/DiscIO/CompressedBlob.cpp:332
@@ -2598,9 +2598,13 @@ msgstr ""
 "Kunne ikke skrive tiloutput-filen \"%s\".\n"
 "Sjekk at du har nok plass på målharddisken."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:497
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:498
 msgid "Fast"
 msgstr "Rask"
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
+msgid "Fast Depth Calculation"
+msgstr ""
 
 #: Source/Core/Core/Movie.cpp:1161
 #, c-format
@@ -2612,7 +2616,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:273
 msgid "File"
-msgstr ""
+msgstr "Fil"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -2620,7 +2624,7 @@ msgstr "Filinformasjon"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "File Name"
-msgstr ""
+msgstr "Filnavn"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:357
 msgid "File Size"
@@ -2667,7 +2671,7 @@ msgstr "Filskriving mislyktes"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:185
 msgid "Files opened, ready to compress."
-msgstr ""
+msgstr "Fil åpnet, klar for komprimering."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:595
 msgid "Filesystem"
@@ -2677,7 +2681,7 @@ msgstr "Filsystem"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Filtypen 'ini' er ukjent! kan ikke åpnes!"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:112
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
 msgid ""
 "Filter all textures, including any that the game explicitly set as "
 "unfiltered.\n"
@@ -2713,27 +2717,27 @@ msgstr "Første blokk"
 msgid "Fix Checksums"
 msgstr "Fiks sjekksummer"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Force 16:9"
 msgstr "Tving 16:9"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Force 4:3"
 msgstr "Tving 4:3"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:52
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
 msgid "Force Console as NTSC-J"
 msgstr "Tving konsoll til NTSC-J"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:156
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:153
 msgid "Force Listen Port: "
-msgstr ""
+msgstr "Tving Portlytting:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
 msgid "Force Texture Filtering"
 msgstr "Tving teksturfiltrering"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:64
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "If left unchecked, Dolphin defaults to NTSC-U and automatically enables this "
@@ -2777,7 +2781,7 @@ msgstr ""
 msgid "Forward"
 msgstr "Send frem"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:180
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:177
 msgid "Forward port (UPnP)"
 msgstr "Forward port (UPnP)"
 
@@ -2794,12 +2798,12 @@ msgstr "Fant %zu lagringsfiler"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:885
 #, c-format
 msgid "Frame %u"
-msgstr ""
+msgstr "Bildenummer %u"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:861
 #, c-format
 msgid "Frame %zu"
-msgstr ""
+msgstr "Bildenummer %zu"
 
 #: Source/Core/Core/HotkeyManager.cpp:22
 msgid "Frame Advance"
@@ -2817,7 +2821,7 @@ msgstr "Bilde-for-bilde Øk Hastighet"
 msgid "Frame Advance Reset Speed"
 msgstr "Bilde-for-bilde Tilbakestill Hastighet"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:561
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Frame Dumps use FFV1"
 msgstr "Spillopptak bruker FFV1"
 
@@ -2841,7 +2845,7 @@ msgstr "Bilder til opptak:"
 msgid "France"
 msgstr "Frankrike"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:559
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:561
 msgid "Free Look"
 msgstr "Fri utkikk"
 
@@ -2904,7 +2908,7 @@ msgstr "Fra"
 msgid "FullScr"
 msgstr "Fullskjerm"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:278
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
 msgid "Fullscreen Resolution:"
 msgstr "Fullskjermsoppløsning:"
 
@@ -2952,6 +2956,16 @@ msgid ""
 "Further errors will be sent to the Video Backend log and\n"
 "Dolphin will now likely crash or hang. Enjoy."
 msgstr ""
+"GFX FIFO: Ukjent Op-kode (0x%02x @ %p, %s).\n"
+"Dette betyr en av følgende:\n"
+"* Den emulerte GPU-en ble desynkronisert, å deaktivere dobbelkjerne kan "
+"hjelpe\n"
+"*  Kommandostrømmen ble korruptert av en ukjent minne-bug\n"
+"* Det er virkelig en ukjent Op-kode (usannsynlig)\n"
+"* En annen type bug\n"
+"\n"
+"Videre feil vil bli sent til Video-backend-loggen og \n"
+"Dolphin vil nå sannsynligvis krasje eller fryse. Nyt."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:319
 msgid "Game Boy Advance Carts (*.gba)"
@@ -2965,11 +2979,11 @@ msgstr "Spill-ID"
 msgid "Game ID:"
 msgstr "Spill-ID:"
 
-#: Source/Core/Core/NetPlayClient.cpp:695
+#: Source/Core/Core/NetPlayClient.cpp:694
 msgid "Game is already running!"
 msgstr "Spillet kjører allerede!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1029
+#: Source/Core/Core/NetPlayClient.cpp:1010
 msgid "Game isn't running!"
 msgstr "Et spill kjører ikke!"
 
@@ -2998,9 +3012,8 @@ msgid "GameCube"
 msgstr "GameCube"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:46
-#, fuzzy
 msgid "GameCube Adapter for Wii U"
-msgstr "GameCube-adapter"
+msgstr "GameCube Adapter for Wii U"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:509
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:519
@@ -3028,7 +3041,7 @@ msgstr "Gecko-juksekoder"
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:114
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:70
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:50
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:224
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:225
 msgid "General"
 msgstr "Generelt"
 
@@ -3095,7 +3108,7 @@ msgstr "Grønn høyre"
 msgid "Guitar"
 msgstr "Gitar"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:467
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:468
 msgid "Hacks"
 msgstr "Hacks"
 
@@ -3115,7 +3128,7 @@ msgstr "Hjelp"
 msgid "Hide"
 msgstr "Gjem"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:315
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:316
 msgid "Hide Mouse Cursor"
 msgstr "Gjem musepeker"
 
@@ -3152,7 +3165,7 @@ msgid "Home"
 msgstr "Hjem"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:98
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:168
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:165
 msgid "Host"
 msgstr "Vert"
 
@@ -3160,7 +3173,7 @@ msgstr "Vert"
 msgid "Host Code :"
 msgstr "Host-kode :"
 
-#: Source/Core/Core/NetPlayClient.cpp:110
+#: Source/Core/Core/NetPlayClient.cpp:109
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -3238,11 +3251,11 @@ msgstr "ISO-mapper"
 msgid "Icon"
 msgstr "Ikon"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
 msgstr "Ignorer formatendringer"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:116
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:117
 msgid ""
 "Ignore any changes to the EFB format.\n"
 "Improves performance in many games without any negative effect. Causes "
@@ -3256,7 +3269,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå på."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:115
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:116
 msgid ""
 "Ignore any requests from the CPU to read from or write to the EFB.\n"
 "Improves performance in some games, but might disable some gameplay-related "
@@ -3270,7 +3283,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå avslått."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:113
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
 msgid ""
 "Implement fullscreen mode with a borderless window spanning the whole screen "
 "instead of using exclusive mode.\n"
@@ -3337,7 +3350,7 @@ msgstr "Øk Dybde"
 
 #: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Increase Emulation Speed"
-msgstr ""
+msgstr "Øk Emulasjonshastighet"
 
 #: Source/Core/Core/HotkeyManager.cpp:46
 msgid "Increase IR"
@@ -3405,11 +3418,11 @@ msgstr "Kontrollpanel"
 msgid "Interface Settings"
 msgstr "Innstillinger for kontrollpanel"
 
-#: Source/Core/Core/State.cpp:379
+#: Source/Core/Core/State.cpp:381
 msgid "Internal LZO Error - compression failed"
 msgstr "Intern LZO-feil - komprimering mislyktes"
 
-#: Source/Core/Core/State.cpp:515
+#: Source/Core/Core/State.cpp:517
 #, c-format
 msgid ""
 "Internal LZO Error - decompression failed (%d) (%li, %li) \n"
@@ -3418,7 +3431,7 @@ msgstr ""
 "Intern LZO-feil - dekomprimering mislyktes (%d) (%li, %li) \n"
 "Prøv å laste Save State'en igjen"
 
-#: Source/Core/Core/State.cpp:649
+#: Source/Core/Core/State.cpp:651
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Intern LZO-feil - lzo_init() mislyktes"
 
@@ -3426,7 +3439,7 @@ msgstr "Intern LZO-feil - lzo_init() mislyktes"
 msgid "Internal Name:"
 msgstr "Internt Navn:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:362
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:363
 msgid "Internal Resolution:"
 msgstr "Intern bildeoppløsning:"
 
@@ -3451,7 +3464,7 @@ msgstr "Ugyldig event-type %i"
 msgid "Invalid file"
 msgstr "Ugyldig fil"
 
-#: Source/Core/Core/NetPlayClient.cpp:848
+#: Source/Core/Core/NetPlayClient.cpp:829
 msgid "Invalid host"
 msgstr "Ugyldig host"
 
@@ -3517,7 +3530,7 @@ msgstr "Japan"
 msgid "Japanese"
 msgstr "Japansk"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:314
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:315
 msgid "Keep Window on Top"
 msgstr "Hold vindu på toppen"
 
@@ -3635,18 +3648,21 @@ msgstr ""
 msgid "License"
 msgstr "Lisens"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:65
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
 "the audio pitch to prevent audio from stuttering."
 msgstr ""
+"Begrenser emulasjonshastigheten til den valgte prosent.\n"
+"Merk at å øke eller senke emulasjonshastigheten vil også øke eller senke "
+"audiopitchen for å hindre audio i å stuttre."
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1026
 msgid "Load"
 msgstr "Last inn"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:555
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:557
 msgid "Load Custom Textures"
 msgstr "Last inn brukerlagde teksturer"
 
@@ -3747,7 +3763,7 @@ msgstr "Last inn Wii System Meny"
 msgid "Load Wii System Menu %d%c"
 msgstr "Last inn Wii System Meny %d %c"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:130
 msgid ""
 "Load custom textures from User/Load/Textures/<game_id>/.\n"
 "\n"
@@ -3783,7 +3799,7 @@ msgstr "Logg"
 msgid "Log Configuration"
 msgstr "Logg-innstillinger"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:312
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:313
 msgid "Log Render Time to File"
 msgstr "Loggfør Renderingstid til Fil"
 
@@ -3791,7 +3807,7 @@ msgstr "Loggfør Renderingstid til Fil"
 msgid "Log Types"
 msgstr "Loggtyper"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:122
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:123
 msgid ""
 "Log the render time of every frame to User/Logs/render_time.txt. Use this "
 "feature when you want to measure the performance of Dolphin.\n"
@@ -3812,7 +3828,7 @@ msgstr "Logger utdata"
 msgid "Logging"
 msgstr "Logging"
 
-#: Source/Core/Core/NetPlayClient.cpp:565
+#: Source/Core/Core/NetPlayClient.cpp:564
 msgid "Lost connection to server!"
 msgstr "Mistet koblingen til server!"
 
@@ -3846,7 +3862,7 @@ msgstr "Skaper-ID:"
 msgid "Maker:"
 msgstr "Skaper:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:121
 msgid ""
 "Makes distant objects more visible by removing fog, thus increasing the "
 "overall detail.\n"
@@ -3933,14 +3949,14 @@ msgstr "Mic"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:33
 msgid "Microphone"
-msgstr ""
+msgstr "Mikrofon"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:293
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:296
 msgid "Min"
 msgstr "Minimum"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:594
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:596
 msgid "Misc"
 msgstr "Diverse"
 
@@ -3953,7 +3969,7 @@ msgstr "Diverse Innstillinger"
 msgid "Modifier"
 msgstr "Modifiserer"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:125
 msgid ""
 "Modify textures to show the format they're encoded in. Needs an emulation "
 "reset in most cases.\n"
@@ -3982,7 +3998,7 @@ msgstr "Motion Plus"
 msgid "Motor"
 msgstr "Motor"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:680
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
 msgid ""
 "Move the mouse pointer over an option to display a detailed description.\n"
 "\n"
@@ -4105,7 +4121,7 @@ msgstr "Navn:"
 msgid "Name: "
 msgstr "Navn:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:350
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "Native (640x528)"
 msgstr "Opprinnelig størrelse (640x528)"
 
@@ -4118,7 +4134,7 @@ msgstr "Maskinvare-innfødte GCI-filer(*.gci)"
 msgid "Netherlands"
 msgstr "Nederland"
 
-#: Source/Core/Core/NetPlayClient.cpp:1014
+#: Source/Core/Core/NetPlayClient.cpp:995
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "NetPlay har desynkronisert. Dette kan ikke fortsettes fra."
 
@@ -4160,7 +4176,7 @@ msgstr "Ingen ledige mappeindeks-oppføringer."
 msgid "No recorded file"
 msgstr "Ingen opptaksfil"
 
-#: Source/Core/Core/State.cpp:742
+#: Source/Core/Core/State.cpp:744
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
 "Ingen undo.dtm funnet, avbryter angre lasting av savestate for å unngå film-"
@@ -4169,7 +4185,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:44
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:163
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:233
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:757
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:759
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:25
 msgid "None"
 msgstr "Ingen"
@@ -4220,20 +4236,20 @@ msgstr "Nunchuk-orientering"
 msgid "Nunchuk stick"
 msgstr "Nunchuck-Joystick"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Nvidia 3D Vision"
 msgstr "Nvidia 3D-visjon"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:598
 #, c-format
 msgid "Object %zu"
-msgstr ""
+msgstr "Objekt %zu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:117
 msgid "Object Range"
 msgstr "Objekt Radius"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Off"
 msgstr "Av"
 
@@ -4319,12 +4335,12 @@ msgstr ""
 msgid "Orientation"
 msgstr "Orientering"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:328
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:521
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:329
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:523
 msgid "Other"
 msgstr "Annet"
 
-#: Source/Core/Core/NetPlayClient.cpp:412
+#: Source/Core/Core/NetPlayClient.cpp:411
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
@@ -4399,7 +4415,7 @@ msgstr "Pause ved Tapt Fokus"
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "Pause emulatoren når programfokus taes vekk fra emulatorvinduet."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:413
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
 msgid "Per-Pixel Lighting"
 msgstr "Per-Pikselbelysning"
 
@@ -4457,7 +4473,7 @@ msgid "Port %i"
 msgstr "Port %i"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:108
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:149
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:146
 msgid "Port :"
 msgstr "Port :"
 
@@ -4465,11 +4481,11 @@ msgstr "Port :"
 msgid "Post Processing Shader Configuration"
 msgstr "Pos-prosesserings-shader Konfigurasjon"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:400
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:401
 msgid "Post-Processing Effect:"
 msgstr "postprosesseringseffekt:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
 msgid "Prefetch Custom Textures"
 msgstr "Pre-last inn brukerlagde teksturer"
 
@@ -4510,7 +4526,7 @@ msgstr "Egenskaper"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:341
 msgid "Purge Game List Cache"
-msgstr ""
+msgstr "Tøm Spilliste Lager"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:75
 msgid "Put BIOS roms in User/GC/{region}."
@@ -4521,7 +4537,7 @@ msgid "Question"
 msgstr "Spørsmål"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:189
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:199
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:196
 msgid "Quit"
 msgstr "Avslutt"
 
@@ -4551,7 +4567,7 @@ msgstr "Rekkevidde"
 msgid "Read-only mode"
 msgstr "Skrivebeskyttet-modus"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:507
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:508
 msgid "Real"
 msgstr "Ekte"
 
@@ -4609,6 +4625,11 @@ msgid ""
 "\n"
 "If unsure, select None."
 msgstr ""
+"Reduserer mengden kanter forårsaket av 3D grafikk-rasterisering. Denne "
+"mykner ut kantede sider på objekter.\n"
+"Økter GPU-belastningen og forårsaker noen ganger grafiske feil. SSAA er "
+"langt mer krevende enn MSAA, men gir topp kvalitet geometri og "
+"kantutjevning, i tillegg til å kantutjevne lys, shader-effekter og teksturer."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:256
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1005
@@ -4635,7 +4656,7 @@ msgstr "Region"
 msgid "Remove"
 msgstr "Fjern"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:120
 msgid ""
 "Render the scene as a wireframe.\n"
 "\n"
@@ -4645,7 +4666,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå deaktivert."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:316
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:317
 msgid "Render to Main Window"
 msgstr "Spill i hovedvinduet"
 
@@ -4715,7 +4736,7 @@ msgstr "Russland"
 msgid "Sa&ve State"
 msgstr "Lagre Sa&ve State"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:495
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:496
 msgid "Safe"
 msgstr "Sikker"
 
@@ -4811,7 +4832,7 @@ msgstr "Lagret til /Wii/sd.raw (vanlig størrelse er 128mb)"
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Save State-film %s er korrupt, opptak avsluttes..."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:412
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:413
 msgid "Scaled EFB Copy"
 msgstr "Skalert EFB-kopi"
 
@@ -4847,7 +4868,7 @@ msgstr "Søk"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:89
 msgid "Search (clear to use previous value)"
-msgstr ""
+msgstr "Søk (tøm for å bruke forrige verdi)"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -4879,11 +4900,11 @@ msgstr "Velg Kolonner"
 #: Source/Core/DolphinWX/FrameTools.cpp:522
 #, c-format
 msgid "Select Slot %i - %s"
-msgstr ""
+msgstr "Velg slot %i - %s"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:167
 msgid "Select State Slot"
-msgstr ""
+msgstr "Velg Savestate Slot"
 
 #: Source/Core/Core/HotkeyManager.cpp:100
 msgid "Select State Slot 1"
@@ -5008,7 +5029,7 @@ msgstr ""
 "\n"
 "Hvis usikker, velg auto."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:139
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
 msgid ""
 "Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better "
 "feeling of depth if you have the necessary hardware.\n"
@@ -5076,7 +5097,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr "Serieport 1 - Dette er porten brukt enheter som nettadapteren."
 
-#: Source/Core/Core/NetPlayClient.cpp:845
+#: Source/Core/Core/NetPlayClient.cpp:826
 msgid "Server rejected traversal attempt"
 msgstr "Server avslo traverseringsforsøk"
 
@@ -5139,7 +5160,7 @@ msgstr "Vis &Logg"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:261
 msgid "Show &Status Bar"
-msgstr ""
+msgstr "Vis &Statusbar"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:259
 msgid "Show &Toolbar"
@@ -5159,9 +5180,9 @@ msgstr "Vis DVD-stasjoner"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:304
 msgid "Show ELF/DOL"
-msgstr ""
+msgstr "Vis ELF/DOL"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:311
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:312
 msgid "Show FPS"
 msgstr "Vis Bildefrekvens (FPS)"
 
@@ -5233,7 +5254,7 @@ msgstr "Vis Russland"
 msgid "Show Spain"
 msgstr "Vis Spania"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
 msgid "Show Statistics"
 msgstr "Vis Statistikker"
 
@@ -5251,7 +5272,7 @@ msgstr "Vis Ukjent"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:302
 msgid "Show WAD"
-msgstr ""
+msgstr "Vis WAD"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:298
 msgid "Show Wii"
@@ -5295,7 +5316,7 @@ msgstr "Vis lagringsikon"
 msgid "Show save title"
 msgstr "Vis lagringstittel"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:121
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:122
 msgid ""
 "Show the number of frames rendered per second as a measure of emulation "
 "speed.\n"
@@ -5306,7 +5327,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå avslått."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:123
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
 msgid ""
 "Show various rendering statistics.\n"
 "\n"
@@ -5316,7 +5337,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Side-by-Side"
 msgstr "Side-ved-side"
 
@@ -5331,7 +5352,7 @@ msgstr "Simplifisert Kinesisk"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:27
 msgid "Simulate DK Bongos"
-msgstr ""
+msgstr "Simuler DK Bongotrommer"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:276
 msgid "Size"
@@ -5345,11 +5366,11 @@ msgstr "Dropp BIOS"
 msgid "Skip DCBZ clearing"
 msgstr "Hopp over DCBZ-tømming"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:473
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
 msgid "Skip EFB Access from CPU"
 msgstr "Dropp EFB Access fra CPU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:139
 msgid ""
 "Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\n"
 "If you're experiencing any issues, try raising texture cache accuracy or "
@@ -5367,7 +5388,7 @@ msgstr ""
 #: Source/Core/DolphinWX/FrameTools.cpp:475
 #, c-format
 msgid "Slot %i - %s"
-msgstr ""
+msgstr "Slot %i - %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:81
 msgid "Slot A"
@@ -5427,7 +5448,7 @@ msgstr "Høytaler Panning"
 msgid "Speaker Volume:"
 msgstr "Høytalervolum:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:115
 msgid ""
 "Specifies the resolution used to render at. A high resolution greatly "
 "improves visual quality, but also greatly increases GPU load and can cause "
@@ -5449,15 +5470,15 @@ msgstr ""
 "\n"
 "Hvis usikker, velg Opprinnelig Oppløsning."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:70
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:75
 msgid "Speed Limit:"
-msgstr ""
+msgstr "Fartsgrense:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:332
 msgid "Speed up Disc Transfer Rate"
 msgstr "Øk diskoverføringshatighet"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid ""
 "Splits the CPU and GPU threads so they can be run on separate cores.\n"
 "Provides major speed improvements on most modern PCs, but can cause "
@@ -5500,12 +5521,12 @@ msgstr "Hurtiglagring"
 msgid "Steering Wheel"
 msgstr "Ratt"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:428
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:429
 msgid "Stereoscopic 3D Mode:"
 msgstr "Stereoskopisk 3D-modus:"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:401
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:453
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:454
 msgid "Stereoscopy"
 msgstr "Stereoskopi"
 
@@ -5519,11 +5540,11 @@ msgstr "Joystick"
 msgid "Stop"
 msgstr "Stopp"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:476
 msgid "Store EFB Copies to Texture Only"
 msgstr "Lagre EFB-kopier Kun til Tekstur"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:117
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
 msgid ""
 "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.\n"
@@ -5541,7 +5562,7 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå merket."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:292
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Stretch to Window"
 msgstr "Strekk til Vindu"
 
@@ -5571,11 +5592,11 @@ msgstr "Importering av lagringsfiler vellykket"
 msgid "Support"
 msgstr "Støtte"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:451
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:452
 msgid "Swap Eyes"
 msgstr "Bytt Øyne"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:142
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:143
 msgid ""
 "Swaps the left and right eye. Mostly useful if you want to view side-by-side "
 "cross-eyed.\n"
@@ -5650,21 +5671,21 @@ msgstr "Ta skjermbilde"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:552
 msgid "Take screenshot"
-msgstr ""
+msgstr "Ta skjermbilde"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:577
 msgid "Test"
 msgstr "Test"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:481
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:482
 msgid "Texture Cache"
 msgstr "Tekstur-cache"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
 msgid "Texture Format Overlay"
 msgstr "Teksturformat overlegg"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:118
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:119
 msgid ""
 "The \"Safe\" setting eliminates the likelihood of the GPU missing texture "
 "updates from RAM.\n"
@@ -5707,7 +5728,7 @@ msgstr ""
 #: Source/Core/Core/HW/DVDThread.cpp:145
 #, c-format
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
-msgstr ""
+msgstr "Disken kunne ikke lses (ved 0x%<PRIx64> - 0x%<PRIx64>)."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:105
 #, c-format
@@ -5771,19 +5792,19 @@ msgid ""
 msgstr ""
 "Det valgte språket støttes ikke av ditt system. Går tilbake til standard."
 
-#: Source/Core/Core/NetPlayClient.cpp:196
+#: Source/Core/Core/NetPlayClient.cpp:195
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "Serverens og klientens NetPlay-versjoner er ukompitable!"
 
-#: Source/Core/Core/NetPlayClient.cpp:193
+#: Source/Core/Core/NetPlayClient.cpp:192
 msgid "The server is full!"
 msgstr "Serveren er full!"
 
-#: Source/Core/Core/NetPlayClient.cpp:199
+#: Source/Core/Core/NetPlayClient.cpp:198
 msgid "The server responded: the game is currently running!"
 msgstr "Serveren responderte: Spillet kjører!"
 
-#: Source/Core/Core/NetPlayClient.cpp:202
+#: Source/Core/Core/NetPlayClient.cpp:201
 msgid "The server sent an unknown error message!"
 msgstr "Serveren sendte en ukjent feilmelding!"
 
@@ -5811,7 +5832,7 @@ msgstr ""
 "%s\n"
 "Bare de 127 første vil være tilgjengelige"
 
-#: Source/Core/Core/State.cpp:747
+#: Source/Core/Core/State.cpp:749
 msgid "There is nothing to undo!"
 msgstr "Det er ingenting å angre!"
 
@@ -5838,7 +5859,7 @@ msgstr ""
 "Denne Action Replay-simulatoren støtter ikke koder som modifiserer selve "
 "Action Replay."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:135
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:136
 msgid ""
 "This feature allows you to change the game's camera.\n"
 "Move the mouse while holding the right mouse button to pan and while holding "
@@ -5927,19 +5948,19 @@ msgstr "Til"
 
 #: Source/Core/Core/HotkeyManager.cpp:70
 msgid "Toggle 3D Anaglyph"
-msgstr ""
+msgstr "Flipp 3D Anaglyph"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Toggle 3D Side-by-side"
-msgstr ""
+msgstr "Flipp 3D side-ved-side"
 
 #: Source/Core/Core/HotkeyManager.cpp:69
 msgid "Toggle 3D Top-bottom"
-msgstr ""
+msgstr "Flipp 3D Topp-ned"
 
 #: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Toggle 3D Vision"
-msgstr ""
+msgstr "Flipp 3D-visjon"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:61
 msgid "Toggle All Log Types"
@@ -5950,9 +5971,8 @@ msgid "Toggle Aspect Ratio"
 msgstr "Skift bildestørrelse"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
-#, fuzzy
 msgid "Toggle Crop"
-msgstr "Slå på tåke"
+msgstr "Flipp Krumningsinstilling"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Toggle EFB Copies"
@@ -5972,13 +5992,13 @@ msgstr "Slå Av/På Pause"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:551
 msgid "Toggle fullscreen"
-msgstr ""
+msgstr "Bytt til/fra fullskjerm"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Top"
 msgstr "Topp"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:430
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Top-and-Bottom"
 msgstr "Topp-og-Bunn"
 
@@ -5991,12 +6011,12 @@ msgstr "Tradisjonell Kinesisk"
 msgid "Traversal"
 msgstr "Traversering"
 
-#: Source/Core/Core/NetPlayClient.cpp:842
+#: Source/Core/Core/NetPlayClient.cpp:823
 msgid "Traversal server timed out connecting to the host"
 msgstr "Traverseringsserver timet ut under tilkobling til hosten"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:91
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:395
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:392
 msgid "Traversal: "
 msgstr "Traversering:"
 
@@ -6048,7 +6068,7 @@ msgstr "USA"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:37
 msgid "USB Gecko"
-msgstr ""
+msgstr "USB Gecko"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 msgid ""
@@ -6091,7 +6111,7 @@ msgstr "Uforventet 0x80 kall? Avbryter..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:80
 #: Source/Core/DolphinWX/ISOProperties.cpp:168
-#: Source/Core/DolphinWX/ISOProperties.cpp:525 Source/Core/Core/State.cpp:468
+#: Source/Core/DolphinWX/ISOProperties.cpp:525 Source/Core/Core/State.cpp:470
 msgid "Unknown"
 msgstr "Ukjent"
 
@@ -6105,7 +6125,7 @@ msgstr "Ukjent DVD-kommando%08x - fatal feil"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Ukjent entry-type %i in SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:851
+#: Source/Core/Core/NetPlayClient.cpp:832
 #, c-format
 msgid "Unknown error %x"
 msgstr "Ukjent feil %x"
@@ -6115,7 +6135,7 @@ msgstr "Ukjent feil %x"
 msgid "Unknown memory card error"
 msgstr "Ukjent minnekortfeil"
 
-#: Source/Core/Core/NetPlayClient.cpp:483
+#: Source/Core/Core/NetPlayClient.cpp:482
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Ukjent melding mottatt med ID: %d"
@@ -6127,11 +6147,11 @@ msgstr "Ukjent melding mottatt med ID: %d fra spiller: %d Sparker spiller!"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:42
 msgid "Unlimited"
-msgstr ""
+msgstr "Ubegrenset"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:359
 msgid "Unpacking"
-msgstr ""
+msgstr "Utpakning"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:48
 #: Source/Core/InputCommon/ControllerEmu.cpp:194
@@ -6146,7 +6166,7 @@ msgstr "Oppdater"
 msgid "Upright Wiimote"
 msgstr "Mot-skjerm-pekende Wiimote"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
 msgstr "Bruk fullskjerm"
 
@@ -6162,16 +6182,25 @@ msgstr "Bruk PAL60-modus (EuRGB60)"
 msgid "Use Panic Handlers"
 msgstr "Bruk panikkadvarslere"
 
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:111
+msgid ""
+"Use a less accurate algorithm to calculate depth values.\n"
+"Causes issues in a few games, but can give a decent speedup depending on the "
+"game and/or your GPU.\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr "Bruk kun en dybdebuffer for begge øyne. Trengs for noen få spill."
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:98
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:564
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "Utility"
 msgstr "Verktøyet"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:302
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:303
 msgid "V-Sync"
 msgstr "Vertikal synkronisering"
 
@@ -6203,7 +6232,7 @@ msgstr "Diverse Statistikker"
 msgid "Verbosity"
 msgstr "Verbøsitet"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:506
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:507
 msgid "Virtual"
 msgstr "Virtuell"
 
@@ -6372,7 +6401,7 @@ msgstr "WaveFileWriter - fil ikke åpen."
 msgid "Whammy"
 msgstr "Whammy"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
 msgid "Widescreen Hack"
 msgstr "Widescreen Hack"
 
@@ -6393,17 +6422,16 @@ msgid "Wii NAND Root:"
 msgstr "Wii NAND-rot:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:514
-#, fuzzy
 msgid "Wii U Gamecube Controller Adapter Configuration"
-msgstr "GameCube-kontroll Konfigurasjon"
+msgstr "Wii U GameCube-kontroller Adapter Konfigurasjon"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1490
 msgid "Wii WAD files (*.wad)"
-msgstr ""
+msgstr "Wii WAD-filer (*.wad)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1450
 msgid "Wii save files (*.bin)"
-msgstr ""
+msgstr "Wii lagringsfiler (*:bin)"
 
 #: Source/Core/DiscIO/WiiWad.cpp:47
 msgid "WiiWAD: Could not read from file"
@@ -6499,7 +6527,7 @@ msgstr "Gul"
 msgid "You can't close panes that have pages in them."
 msgstr "Du kan ikke lukke panelene som har sider/faner i dem."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:318
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:315
 msgid "You must choose a game!"
 msgstr "Du må velge et spill!"
 
@@ -6591,83 +6619,3 @@ msgstr "wxExecute returnerte -1 på applikasjonskjøring!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "AM-Baseboard"
-#~ msgstr "AM-Baseboard"
-
-#~ msgid "Convergence Minimum: "
-#~ msgstr "Konvergens-minimum:"
-
-#~ msgid "Decrease Frame limit"
-#~ msgstr "Reduser bilder i sekundet begrensning"
-
-#~ msgid "Direct Connect"
-#~ msgstr "Direkte Tilkobling"
-
-#~ msgid "Fast Depth Calculation"
-#~ msgstr "Kjapp dyp kalkulasjon"
-
-#~ msgid "Framelimit:"
-#~ msgstr "Framelimit:"
-
-#~ msgid "Increase Frame limit"
-#~ msgstr "Øke bilder i sekundet begrensning"
-
-#~ msgid ""
-#~ "Limits the game speed to the specified number of frames per second (full "
-#~ "speed is 60 for NTSC and 50 for PAL)."
-#~ msgstr ""
-#~ "Begrens spillet til et bestemt antall bilder per sekund (full hastighet "
-#~ "er 60 for NTSC og 50 for PAL)."
-
-#~ msgid ""
-#~ "Something has gone seriously wrong.\n"
-#~ "Stopping video recording.\n"
-#~ "Your video will likely be broken."
-#~ msgstr ""
-#~ "Noe har gått veldig feil.\n"
-#~ "Avslutter videoopptak.\n"
-#~ "Din video vil mest sannsynlig være korrupt."
-
-#~ msgid "TaruKonga (Bongos)"
-#~ msgstr "TaruKonga (Bongoer)"
-
-#~ msgid "Toggle 3D Preset"
-#~ msgstr "Slå Av/På Preset"
-
-#~ msgid "Toggle Frame limit"
-#~ msgstr "Slå Av/På Bildebegrensning"
-
-#~ msgid "Use 3D Preset 1"
-#~ msgstr "Bruk 3D-preset 1"
-
-#~ msgid "Use 3D Preset 2"
-#~ msgstr "Bruk 3D-preset 2"
-
-#~ msgid "Use 3D Preset 3"
-#~ msgstr "Bruk 3D-preset 3"
-
-#~ msgid ""
-#~ "Use a less accurate algorithm to calculate depth values.\n"
-#~ "Causes issues in a few games, but can give a decent speedup depending on "
-#~ "the game and/or your GPU.\n"
-#~ "\n"
-#~ "If unsure, leave this checked."
-#~ msgstr ""
-#~ "Bruk en mindre nøyaktig algoritme for å beregne dybdeverdier.\n"
-#~ "Kan forårsake problemer i enkelte spill, men kan gi en anstendig "
-#~ "hastighetsøkning avhenging av spillet og/eller din GPU.\n"
-#~ "\n"
-#~ "Hvis usikker, la stå merket."
-
-#~ msgid "Wiimote "
-#~ msgstr "WiiMote"
-
-#~ msgid ""
-#~ "You have resized the window while dumping frames.\n"
-#~ "Nothing can be done to handle this properly.\n"
-#~ "Your video will likely be broken."
-#~ msgstr ""
-#~ "Du har endret vindusstørrelsen mens du dumper bilder.\n"
-#~ "Ingenting kan gjøres for å håndtere dette skikkelig.\n"
-#~ "Din video vil mest sannsynlig være korrupt."
