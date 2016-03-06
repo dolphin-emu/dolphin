@@ -19,7 +19,7 @@ namespace DX12
 namespace D3D
 {
 
-bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines, std::string shader_version_string)
+bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines, const std::string& shader_version_string)
 {
 	ID3D10Blob* shader_buffer = nullptr;
 	ID3D10Blob* error_buffer = nullptr;
@@ -34,21 +34,26 @@ bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MA
 
 	if (error_buffer)
 	{
-		INFO_LOG(VIDEO, "Shader compiler messages:\n%s\n",
+		WARN_LOG(VIDEO, "Warning generated when compiling %s shader:\n%s\n",
+			shader_version_string.c_str(),
 			static_cast<const char*>(error_buffer->GetBufferPointer()));
 	}
 
 	if (FAILED(hr))
 	{
 		static int num_failures = 0;
-		std::string filename = StringFromFormat("%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), shader_version_string, num_failures++);
+		std::string filename = StringFromFormat("%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), shader_version_string.c_str(), num_failures++);
 		std::ofstream file;
 		OpenFStream(file, filename, std::ios_base::out);
 		file << code;
+		file << std::endl << "Errors:" << std::endl;
+		file << static_cast<const char*>(error_buffer->GetBufferPointer());
 		file.close();
 
 		PanicAlert("Failed to compile shader: %s\nDebug info (%s):\n%s",
-			filename.c_str(), shader_version_string, static_cast<const char*>(error_buffer->GetBufferPointer()));
+			filename.c_str(),
+			shader_version_string.c_str(),
+			static_cast<const char*>(error_buffer->GetBufferPointer()));
 
 		*blob = nullptr;
 		error_buffer->Release();
