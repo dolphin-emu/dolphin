@@ -282,14 +282,14 @@ static T GenerateVertexShader(API_TYPE api_type)
 					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 
-						// TODO: Does it effect this type too?
+						// TODO: Weird errors when z == 0, make it stick out
 						out.Write("if(o.tex%d.z == 0.0f)\n", i);
 						out.Write("{\n");
-						out.Write("\tfloat4 test = " I_TEXMATRICES"[%d];\n", 3*i+2);
+						out.Write("\tfloat4 test = " I_TRANSFORMMATRICES"[tmp+2];\n");
 						out.Write("\tif(test.x != 0.0f || test.y != 0.0f)\n");
 						out.Write("\t\to.tex%d.xy = float2(0.0f, 0.0f);\n", i);
 						out.Write("\telse\n");
-						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);//float2(clamp(o.tex%d.x, -1.0f, 1.0f), clamp(o.tex%d.y, -1.0f, 1.0f));\n", i, i, i);
+						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);
 						out.Write("}\n");
 					}
 					else
@@ -310,7 +310,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 						out.Write("\tif(test.x != 0.0f || test.y != 0.0f)\n");
 						out.Write("\t\to.tex%d.xy = float2(0.0f, 0.0f);\n", i);
 						out.Write("\telse\n");
-						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);//float2(clamp(o.tex%d.x, -1.0f, 1.0f), clamp(o.tex%d.y, -1.0f, 1.0f));\n", i, i, i);
+						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);
 						out.Write("}\n");
 					}
 					else
