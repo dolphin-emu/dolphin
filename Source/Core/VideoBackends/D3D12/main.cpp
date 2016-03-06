@@ -110,19 +110,17 @@ void InitBackendInfo()
 				g_Config.backend_info.AAModes.push_back(modes[i].Count);
 			}
 
-			bool shader_model_5_supported = (DX12::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
-
 			// Requires the earlydepthstencil attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
+			g_Config.backend_info.bSupportsEarlyZ = true;
 
 			// Requires full UAV functionality (only available in shader model 5)
-			g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
+			g_Config.backend_info.bSupportsBBox = true;
 
 			// Requires the instance attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
+			g_Config.backend_info.bSupportsGSInstancing = true;
 
 			// Sample shading requires shader model 5
-			g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
+			g_Config.backend_info.bSupportsSSAA = true;
 		}
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
