@@ -18,6 +18,8 @@ static ID3DBlob* s_depth_matrix_program_blob[2] = {};
 static ID3DBlob* s_depth_resolve_to_color_program_blob = {};
 static ID3DBlob* s_clear_program_blob = {};
 static ID3DBlob* s_anaglyph_program_blob = {};
+static ID3DBlob* s_xfb_encode_shader_blob = {};
+static ID3DBlob* s_xfb_decode_shader_blob = {};
 static ID3DBlob* s_rgba6_to_rgb8_program_blob[2] = {};
 static ID3DBlob* s_rgb8_to_rgba6_program_blob[2] = {};
 
@@ -411,6 +413,93 @@ static constexpr const char s_copy_geometry_shader_hlsl[] = {
 	"}\n"
 };
 
+static const char s_xfb_encode_shader_hlsl[] = R"(
+
+Texture2DArray tex0 : register(t0);
+SamplerState samp0 : register(s0);
+
+cbuffer EncodeParams : register(b0)
+{
+	float4 srcRect;
+	float2 texelSize;
+}
+
+// GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
+// <http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion>
+static const float3x4 RGB_TO_YCBCR = float3x4(
+	0.257, 0.504, 0.098, 16.0/255.0,
+	-0.148, -0.291, 0.439, 128.0/255.0,
+	0.439, -0.368, -0.071, 128.0/255.0
+);
+
+void main(
+	out float4 ocol0 : SV_Target,
+	in float4 pos : SV_Position,
+	in float3 uv0 : TEXCOORD0,
+	in float gamma : TEXCOORD1)
+{
+	// Load three input pixels, emulate clamp sampler by clamping to the source rectangle.
+	// Subtract 0.5 from the x coordinate because we're doubling the width, and want the pixel center shifted back to 0.5.
+	// The native resolution is used as a reference here so bilinear filtering works as expected.
+	float2 baseCoords = lerp(srcRect.xy, srcRect.zw, float2(uv0.x - 0.5 * texelSize.x, uv0.y));
+	float3 sampleL = tex0.Sample(samp0, float3(max(srcRect.xy, baseCoords - float2(texelSize.x, 0)), 0)).rgb;
+	float3 sampleM = tex0.Sample(samp0, float3(baseCoords, 0)).rgb;
+	float3 sampleR = tex0.Sample(samp0, float3(min(srcRect.zw, baseCoords + float2(texelSize.x, 0)), 0)).rgb;
+
+	// Gamma correction (gamma is already rcp(gamma))
+	// abs() here because the HLSL compiler throws a warning otherwise.
+	sampleL = pow(abs(sampleL), gamma);
+	sampleM = pow(abs(sampleM), gamma);
+	sampleR = pow(abs(sampleR), gamma);
+
+	// RGB -> YUV
+	float3 yuvL = mul(RGB_TO_YCBCR, float4(sampleL,1));
+	float3 yuvM = mul(RGB_TO_YCBCR, float4(sampleM,1));
+	float3 yuvR = mul(RGB_TO_YCBCR, float4(sampleR,1));
+
+	// The Y components correspond to two EFB pixels, while the U and V are
+	// made from a blend of three EFB pixels.
+	float y0 = yuvM.r;
+	float y1 = yuvR.r;
+	float u0 = 0.25*yuvL.g + 0.5*yuvM.g + 0.25*yuvR.g;
+	float v0 = 0.25*yuvL.b + 0.5*yuvM.b + 0.25*yuvR.b;
+	ocol0 = float4(y0, u0, y1, v0);
+}
+
+)";
+
+static const char s_xfb_decode_shader_hlsl[] = R"(
+
+Texture2DArray tex0 : register(t0);
+
+static const float3x3 YCBCR_TO_RGB = float3x3(
+	1.164, 0.000, 1.596,
+	1.164, -0.392, -0.813,
+	1.164, 2.017, 0.000
+);
+
+void main(
+	out float4 ocol0 : SV_Target,
+	in float4 pos : SV_Position,
+	in float3 uv0 : TEXCOORD0)
+{
+	// Divide coordinates by 2 due to half-width YUYV texure.
+	int2 ipos = int2(pos.xy);
+	int2 texpos = int2(ipos.x >> 1, ipos.y);
+	float4 yuyv = tex0.Load(int4(texpos, 0, 0));
+
+	// Select U for even pixels, V for odd pixels.
+	float y = lerp(yuyv.r, yuyv.b, float(ipos.x & 1));
+
+	// Recover RGB components
+	float3 yuv_601_sub = float3(y, yuyv.ga) - float3(16.0/255.0, 128.0/255.0, 128.0/255.0);
+	float3 rgb_601 = mul(YCBCR_TO_RGB, yuv_601_sub);
+
+	ocol0 = float4(rgb_601, 1);
+}
+
+)";
+
 D3D12_SHADER_BYTECODE StaticShaderCache::GetReinterpRGBA6ToRGB8PixelShader(bool multisampled)
 {
 	D3D12_SHADER_BYTECODE bytecode = {};
@@ -625,6 +714,28 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetCopyGeometryShader()
 	return bytecode;
 }
 
+D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBEncodePixelShader()
+{
+	D3D12_SHADER_BYTECODE bytecode =
+	{
+		s_xfb_encode_shader_blob->GetBufferPointer(),
+		s_xfb_encode_shader_blob->GetBufferSize()
+	};
+
+	return bytecode;
+}
+
+D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBDecodePixelShader()
+{
+	D3D12_SHADER_BYTECODE bytecode =
+	{
+		s_xfb_decode_shader_blob->GetBufferPointer(),
+		s_xfb_decode_shader_blob->GetBufferSize()
+	};
+
+	return bytecode;
+}
+
 void StaticShaderCache::Init()
 {
 	// Compile static pixel shaders
@@ -633,6 +744,8 @@ void StaticShaderCache::Init()
 	D3D::CompilePixelShader(s_color_copy_program_hlsl, &s_color_copy_program_blob[0]);
 	D3D::CompilePixelShader(s_color_matrix_program_hlsl, &s_color_matrix_program_blob[0]);
 	D3D::CompilePixelShader(s_depth_matrix_program_hlsl, &s_depth_matrix_program_blob[0]);
+	D3D::CompilePixelShader(s_xfb_encode_shader_hlsl, &s_xfb_encode_shader_blob);
+	D3D::CompilePixelShader(s_xfb_decode_shader_hlsl, &s_xfb_decode_shader_blob);
 
 	// Compile static vertex shaders
 	D3D::CompileVertexShader(s_simple_vertex_shader_hlsl, &s_simple_vertex_shader_blob);
@@ -657,7 +770,8 @@ void StaticShaderCache::InvalidateMSAAShaders()
 void StaticShaderCache::Shutdown()
 {
 	// Free pixel shader blobs
-
+	SAFE_RELEASE(s_xfb_decode_shader_blob);
+	SAFE_RELEASE(s_xfb_encode_shader_blob);
 	SAFE_RELEASE(s_clear_program_blob);
 	SAFE_RELEASE(s_anaglyph_program_blob);
 	SAFE_RELEASE(s_depth_resolve_to_color_program_blob);

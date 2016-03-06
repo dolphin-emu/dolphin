@@ -23,6 +23,8 @@ public:
 	static D3D12_SHADER_BYTECODE GetAnaglyphPixelShader();
 	static D3D12_SHADER_BYTECODE GetReinterpRGBA6ToRGB8PixelShader(bool multisampled);
 	static D3D12_SHADER_BYTECODE GetReinterpRGB8ToRGBA6PixelShader(bool multisampled);
+	static D3D12_SHADER_BYTECODE GetXFBEncodePixelShader();
+	static D3D12_SHADER_BYTECODE GetXFBDecodePixelShader();
 
 	// Vertex shaders
 	static D3D12_SHADER_BYTECODE GetSimpleVertexShader();

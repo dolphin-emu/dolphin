@@ -23,6 +23,7 @@
 #include "VideoBackends/D3D12/TextureCache.h"
 #include "VideoBackends/D3D12/VertexManager.h"
 #include "VideoBackends/D3D12/VideoBackend.h"
+#include "VideoBackends/D3D12/XFBEncoder.h"
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -179,6 +180,7 @@ void VideoBackend::Video_Prepare()
 	g_texture_cache = std::make_unique<TextureCache>();
 	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = std::make_unique<PerfQuery>();
+	g_xfb_encoder = std::make_unique<XFBEncoder>();
 	ShaderCache::Init();
 	ShaderConstantsManager::Init();
 	StaticShaderCache::Init();
@@ -228,6 +230,7 @@ void VideoBackend::Shutdown()
 		StaticShaderCache::Shutdown();
 		BBox::Shutdown();
 
+		g_xfb_encoder.reset();
 		g_perf_query.reset();
 		g_vertex_manager.reset();
 		g_texture_cache.reset();
