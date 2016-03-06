@@ -90,8 +90,6 @@ private:
 	ID3D12GraphicsCommandList* m_backing_command_list;
 	ID3D12QueuedCommandList* m_queued_command_list;
 
-	ID3D12RootSignature* m_default_root_signature;
-
 	UINT m_current_deferred_destruction_list;
 	std::array<std::vector<ID3D12Resource*>, 2> m_deferred_destruction_lists;
 	std::array<UINT64, 2> m_deferred_destruction_list_fences;
