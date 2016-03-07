@@ -146,8 +146,17 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
 
-	if(dst->z == 0.0f)
+	if(src->z != 0.0f && dst->z == 0.0f)
 	{
+		NOTICE_LOG(VIDEO, "tex_sourcerow: %d\n", texinfo.sourcerow);
+		NOTICE_LOG(VIDEO, "tex_inputform: %d\n", texinfo.inputform);
+		NOTICE_LOG(VIDEO, "tex_projection: %d\n", texinfo.projection);
+		NOTICE_LOG(VIDEO, "tex_coords: %f, %f, %f\n", src->x, src->y, src->z);
+		NOTICE_LOG(VIDEO, "matrix[0]: %f, %f, %f, %f\n", mat[0], mat[1], mat[2], mat[3]);
+		NOTICE_LOG(VIDEO, "matrix[1]: %f, %f, %f, %f\n", mat[4], mat[5], mat[6], mat[7]);
+		NOTICE_LOG(VIDEO, "matrix[2]: %f, %f, %f, %f\n", mat[8], mat[9], mat[10], mat[11]);
+		NOTICE_LOG(VIDEO, "matrix_tex_coords: %f, %f, %f\n", dst->x, dst->y, dst->z);
+
 		if(mat[8] != 0.0f || mat[9] != 0.0f)
 		{
 			dst->x = 0.0f;
@@ -158,6 +167,8 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
 			dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
 		}
+
+		NOTICE_LOG(VIDEO, "result_tex_coords: %f, %f, %f\n", dst->x, dst->y, dst->z);
 	}
 
 	if (xfmem.dualTexTrans.enabled)

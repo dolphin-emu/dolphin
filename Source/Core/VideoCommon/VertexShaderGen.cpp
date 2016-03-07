@@ -186,18 +186,11 @@ static T GenerateVertexShader(API_TYPE api_type)
 			out.Write("o.colors_1 = o.colors_0;\n");
 	}
 
-	WARN_LOG(VIDEO, "texgen_number=%u", xfmem.numTexGen.numTexGens);
-
 	// transform texcoords
 	out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
 	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
 	{
 		TexMtxInfo& texinfo = xfmem.texMtxInfo[i];
-
-		WARN_LOG(VIDEO, "texgen_index=%u", i);
-		WARN_LOG(VIDEO, "texgen_source=%u", texinfo.sourcerow);
-		WARN_LOG(VIDEO, "texgen_type=%u", texinfo.texgentype);
-		WARN_LOG(VIDEO, "texgen_projection=%u", texinfo.projection);
 
 		out.Write("{\n");
 		out.Write("coord = float4(0.0, 0.0, 1.0, 1.0);\n");
@@ -235,7 +228,6 @@ static T GenerateVertexShader(API_TYPE api_type)
 			break;
 		default:
 			_assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
-			WARN_LOG(VIDEO, "XF_SRCTEX%u_INROW; components=0x%08x", texinfo.sourcerow - XF_SRCTEX0_INROW, components);
 			if (components & (VB_HAS_UV0 << (texinfo.sourcerow - XF_SRCTEX0_INROW)))
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
@@ -282,7 +274,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
 
-						// TODO: Weird errors when z == 0, make it stick out
+						// TODO: Write something here
 						out.Write("if(o.tex%d.z == 0.0f)\n", i);
 						out.Write("{\n");
 						out.Write("\tfloat4 test = " I_TRANSFORMMATRICES"[tmp+2];\n");
@@ -303,7 +295,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
 
-						// TODO: Weird errors when z == 0, make it stick out
+						// TODO: Write something here
 						out.Write("if(o.tex%d.z == 0.0f)\n", i);
 						out.Write("{\n");
 						out.Write("\tfloat4 test = " I_TEXMATRICES"[%d];\n", 3*i+2);
