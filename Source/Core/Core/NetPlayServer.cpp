@@ -942,8 +942,14 @@ bool NetPlayServer::initUPnP()
 
 	for (const UPNPDev* dev : igds)
 	{
-		char* descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0);
-		if (descXML)
+		char* descXML;
+		int statusCode = 200;
+#if MINIUPNPC_API_VERSION >= 16
+		descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0, &statusCode);
+#else
+		descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0);
+#endif
+		if (descXML && (statusCode == 200))
 		{
 			parserootdesc(descXML, descXMLsize, &m_upnp_data);
 			free(descXML);
@@ -955,6 +961,11 @@ bool NetPlayServer::initUPnP()
 		}
 		else
 		{
+			if (descXML)
+			{
+				free(descXML);
+				descXML = nullptr;
+			}
 			WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
 		}
 	}
