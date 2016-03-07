@@ -148,6 +148,13 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 
 	if(dst->z == 0.0f)
 	{
+		printf("tex_coords: %f, %f, %f\n", src->x, src->y, src->z);
+
+		printf("matrix[0]: %f, %f, %f, %f\n", mat[0], mat[1], mat[2], mat[3]);
+		printf("matrix[1]: %f, %f, %f, %f\n", mat[4], mat[5], mat[6], mat[7]);
+		printf("matrix[2]: %f, %f, %f, %f\n", mat[8], mat[9], mat[10], mat[11]);
+		printf("matrix_tex_coords: %f, %f, %f\n", dst->x, dst->y, dst->z);
+
 		if(mat[8] != 0.0f || mat[9] != 0.0f)
 		{
 			dst->x = 0.0f;
@@ -158,6 +165,8 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
 			dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
 		}
+
+		printf("result_tex_coords: %f, %f, %f\n", dst->x, dst->y, dst->z);
 	}
 
 	if (xfmem.dualTexTrans.enabled)
