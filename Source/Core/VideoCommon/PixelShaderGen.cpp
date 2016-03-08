@@ -282,7 +282,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	}
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, "");
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
@@ -354,11 +354,12 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
+			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+			GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier(ApiType, true, true));
 
 			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat int layer;\n");
+				out.Write("\tflat in int layer;\n");
 
 			out.Write("};\n");
 		}

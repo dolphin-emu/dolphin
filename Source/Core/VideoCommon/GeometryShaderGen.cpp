@@ -82,7 +82,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, "");
 	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
@@ -90,15 +90,16 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 			out.Write("#define InstanceID gl_InvocationID\n");
 
+		out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+		GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier(ApiType, true, true));
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, false, true));
+		GenerateVSOutputMembers<T>(out, ApiType, "out", GetInterpolationQualifier(ApiType, false, true));
 
 		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("\tflat int layer;\n");
+			out.Write("\tflat out int layer;\n");
 
 		out.Write("} ps;\n");
 

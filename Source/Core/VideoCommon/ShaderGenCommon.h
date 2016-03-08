@@ -214,12 +214,12 @@ private:
 };
 
 template<class T>
-inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
+inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* in_out, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
 {
 	if (qualifier != nullptr)
-		object.Write("\t%s %s %s", qualifier, type, name);
+		object.Write("\t%s %s %s %s", qualifier, in_out, type, name);
 	else
-		object.Write("\t%s %s", type, name);
+		object.Write("\t%s %s %s", in_out, type, name);
 
 	if (var_index != -1)
 		object.Write("%d", var_index);
@@ -236,21 +236,21 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* in_out, const char* qualifier = nullptr)
 {
-	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
-	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
-	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
+	DefineOutputMember(object, api_type, qualifier, in_out, "float4", "pos", -1, "POSITION");
+	DefineOutputMember(object, api_type, qualifier, in_out, "float4", "colors_", 0, "COLOR", 0);
+	DefineOutputMember(object, api_type, qualifier, in_out, "float4", "colors_", 1, "COLOR", 1);
 
 	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
+		DefineOutputMember(object, api_type, qualifier, in_out, "float3", "tex", i, "TEXCOORD", i);
 
-	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
+	DefineOutputMember(object, api_type, qualifier, in_out, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
 
 	if (g_ActiveConfig.bEnablePixelLighting)
 	{
-		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
-		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
+		DefineOutputMember(object, api_type, qualifier, in_out, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
+		DefineOutputMember(object, api_type, qualifier, in_out, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
 	}
 }
 
