@@ -31,6 +31,7 @@
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
+#include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -74,6 +75,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 {
 	wxStaticBoxSizer* const gamecube_static_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("GameCube Controllers"));
 	wxFlexGridSizer* const gamecube_flex_sizer = new wxFlexGridSizer(3, 5, 5);
+	gamecube_flex_sizer->AddGrowableCol(1);
 
 	wxStaticText* pad_labels[4];
 	wxChoice* pad_type_choices[4];
@@ -85,7 +87,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 		// Create an ID for the config button.
 		const wxWindowID button_id = wxWindow::NewControlId();
 		m_gc_port_config_ids.emplace(button_id, i);
-		gamecube_configure_bt[i] = new wxButton(this, button_id, _("Configure"), wxDefaultPosition, wxSize(100, 25));
+		gamecube_configure_bt[i] = WxUtils::CreateButtonWithMinSize(this, button_id, _("Configure"), wxSize(100, 25));
 		gamecube_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnGameCubeConfigButton, this);
 
 		// Create a control ID for the choice boxes on the fly.
@@ -138,14 +140,16 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
 			break;
 		}
 
+		wxBoxSizer* const anti_stretch_sizer = new wxBoxSizer(wxHORIZONTAL);
+		anti_stretch_sizer->Add(pad_type_choices[i], 1, wxALIGN_CENTER_VERTICAL);
+
 		// Add to the sizer
 		gamecube_flex_sizer->Add(pad_labels[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->Add(pad_type_choices[i], 0, wxALIGN_CENTER_VERTICAL);
-		gamecube_flex_sizer->Add(gamecube_configure_bt[i], 1, wxEXPAND);
+		gamecube_flex_sizer->Add(anti_stretch_sizer, 0, wxEXPAND);
+		gamecube_flex_sizer->Add(gamecube_configure_bt[i], 0, wxALIGN_CENTER_VERTICAL);
 	}
 
-	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND, 5);
-	gamecube_static_sizer->AddSpacer(5);
+	gamecube_static_sizer->Add(gamecube_flex_sizer, 1, wxEXPAND | wxBOTTOM, 5);
 
 	return gamecube_static_sizer;
 }
@@ -174,7 +178,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 		wiimote_label[i] = new wxStaticText(this, wxID_ANY, wiimote_str);
 		wiimote_source_ch[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize, src_choices.size(), src_choices.data());
 		wiimote_source_ch[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::SelectSource, this);
-		wiimote_configure_bt[i] = new wxButton(this, config_bt_id, _("Configure"), wxDefaultPosition, wxSize(80, 25));
+		wiimote_configure_bt[i] = WxUtils::CreateButtonWithMinSize(this, config_bt_id, _("Configure"), wxSize(100, 25));
 		wiimote_configure_bt[i]->Bind(wxEVT_BUTTON, &ControllerConfigDiag::ConfigEmulatedWiimote, this);
 
 		// Disable controller type selection for certain circumstances.
@@ -192,13 +196,17 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 	wxStaticBoxSizer* const wiimote_group = new wxStaticBoxSizer(wxVERTICAL,this, _("Wiimotes"));
 	wxBoxSizer* const wiimote_control_section = new wxBoxSizer(wxHORIZONTAL);
 	wxFlexGridSizer* const wiimote_sizer = new wxFlexGridSizer(3, 5, 5);
+	wiimote_sizer->AddGrowableCol(1);
 	for (unsigned int i = 0; i < 4; ++i)
 	{
+		wxBoxSizer* const anti_stretch_sizer = new wxBoxSizer(wxHORIZONTAL);
+		anti_stretch_sizer->Add(wiimote_source_ch[i], 1, wxALIGN_CENTER_VERTICAL);
+
 		wiimote_sizer->Add(wiimote_label[i], 0, wxALIGN_CENTER_VERTICAL);
-		wiimote_sizer->Add(wiimote_source_ch[i], 0, wxALIGN_CENTER_VERTICAL);
+		wiimote_sizer->Add(anti_stretch_sizer, 0, wxEXPAND);
 		wiimote_sizer->Add(wiimote_configure_bt[i]);
 	}
-	wiimote_control_section->Add(wiimote_sizer, 1, wxEXPAND, 5 );
+	wiimote_control_section->Add(wiimote_sizer, 1, wxEXPAND);
 
 	// Disable some controls when emulation is running
 	if (Core::GetState() != Core::CORE_UNINITIALIZED && NetPlay::IsNetPlayRunning())
@@ -224,7 +232,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 {
 	wxStaticBoxSizer* const bb_group = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Balance Board"));
-	wxFlexGridSizer* const bb_sizer = new wxFlexGridSizer(1, 5, 5);
 	int source_ctrl_id =  wxWindow::NewControlId();
 
 	m_wiimote_index_from_ctrl_id.emplace(source_ctrl_id, WIIMOTE_BALANCE_BOARD);
@@ -239,9 +246,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 	m_orig_wiimote_sources[WIIMOTE_BALANCE_BOARD] = g_wiimote_sources[WIIMOTE_BALANCE_BOARD];
 	bb_source->Select(m_orig_wiimote_sources[WIIMOTE_BALANCE_BOARD] ? 1 : 0);
 
-	bb_sizer->Add(bb_source, 0, wxALIGN_CENTER_VERTICAL);
-
-	bb_group->Add(bb_sizer, 1, wxEXPAND, 5);
+	bb_group->Add(bb_source, 1, wxALIGN_CENTER_VERTICAL);
 
 	// Disable when emulation is running.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -331,29 +336,30 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
 	wxStaticBoxSizer* const general_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("General Settings"));
 	wxFlexGridSizer* const choice_sizer = new wxFlexGridSizer(2, 5, 5);
 
+	wxBoxSizer* const sens_bar_pos_sizer = new wxBoxSizer(wxHORIZONTAL);
+	sens_bar_pos_sizer->Add(WiiSensBarPos, 1, wxALIGN_CENTER_VERTICAL);
+
 	wxBoxSizer* const sensbarsens_sizer = new wxBoxSizer(wxHORIZONTAL);
 	sensbarsens_sizer->Add(WiiSensBarSensMinText, 0, wxALIGN_CENTER_VERTICAL);
-	sensbarsens_sizer->Add(WiiSensBarSens);
+	sensbarsens_sizer->Add(WiiSensBarSens, 1, wxALIGN_CENTER_VERTICAL);
 	sensbarsens_sizer->Add(WiiSensBarSensMaxText, 0, wxALIGN_CENTER_VERTICAL);
 
 	wxBoxSizer* const spkvol_sizer = new wxBoxSizer(wxHORIZONTAL);
 	spkvol_sizer->Add(WiimoteSpkVolumeMinText, 0, wxALIGN_CENTER_VERTICAL);
-	spkvol_sizer->Add(WiimoteSpkVolume);
+	spkvol_sizer->Add(WiimoteSpkVolume, 1, wxALIGN_CENTER_VERTICAL);
 	spkvol_sizer->Add(WiimoteSpkVolumeMaxText, 0, wxALIGN_CENTER_VERTICAL);
 
 	choice_sizer->Add(WiiSensBarPosText, 0, wxALIGN_CENTER_VERTICAL);
-	choice_sizer->Add(WiiSensBarPos);
+	choice_sizer->Add(sens_bar_pos_sizer, 0, wxEXPAND);
 	choice_sizer->Add(WiiSensBarSensText, 0, wxALIGN_CENTER_VERTICAL);
-	choice_sizer->Add(sensbarsens_sizer);
+	choice_sizer->Add(sensbarsens_sizer, 0, wxEXPAND);
 	choice_sizer->Add(WiimoteSpkVolumeText, 0, wxALIGN_CENTER_VERTICAL);
-	choice_sizer->Add(spkvol_sizer);
+	choice_sizer->Add(spkvol_sizer, 0, wxEXPAND);
+	choice_sizer->AddGrowableCol(1);
 
-	wxGridSizer* const general_wiimote_sizer = new wxGridSizer(1, 5, 5);
-	general_wiimote_sizer->Add(WiimoteMotor);
-	general_wiimote_sizer->Add(wiimote_speaker);
-
-	general_sizer->Add(choice_sizer);
-	general_sizer->Add(general_wiimote_sizer);
+	general_sizer->Add(choice_sizer, 0, wxEXPAND);
+	general_sizer->Add(WiimoteMotor);
+	general_sizer->Add(wiimote_speaker, 0, wxTOP, 5);
 
 	return general_sizer;
 }

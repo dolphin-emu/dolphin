@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <string>
 #include <wx/app.h>
 #include <wx/bitmap.h>
+#include <wx/button.h>
 #include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/msgdlg.h>
@@ -104,6 +106,18 @@ void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, con
 	// Must explicitly set the disabled button bitmap because wxWidgets
 	// incorrectly desaturates it instead of lightening it.
 	toolbar->AddTool(toolID, label, bitmap, WxUtils::CreateDisabledButtonBitmap(bitmap), wxITEM_NORMAL, shortHelp);
+}
+
+wxButton* CreateButtonWithMinSize(wxWindow* parent, wxWindowID id, const wxString& label, wxSize size)
+{
+	wxButton* btn = new wxButton(parent, id, label);
+	// For High-DPI displays, WX does not handle MinSize well on buttons.
+	// We need to do what the API should be doing internally (but isn't).
+	wxSize best_size = btn->GetBestSize();
+	size.SetWidth(size.GetWidth() != wxDefaultCoord ? std::max(size.GetWidth(), best_size.GetWidth()) : wxDefaultCoord);
+	size.SetHeight(size.GetHeight() != wxDefaultCoord ? std::max(size.GetHeight(), best_size.GetHeight()) : wxDefaultCoord);
+	btn->SetMinSize(size);
+	return btn;
 }
 
 }  // namespace
