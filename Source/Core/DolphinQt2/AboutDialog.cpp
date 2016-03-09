@@ -44,7 +44,7 @@ AboutDialog::AboutDialog(QWidget* parent)
 	text_label->setOpenExternalLinks(true);
 
 	QLabel* copyright = new QLabel(tr(
-		"© 2003-%1 Dolphin Team. “GameCube” and “Wii” are"
+		"Copyright © 2003–%1 Dolphin authors. “GameCube” and “Wii” are"
 		" trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way."
 	).arg(QStringLiteral(__DATE__).right(4)));
 
