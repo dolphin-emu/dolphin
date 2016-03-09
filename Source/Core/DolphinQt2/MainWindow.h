@@ -56,6 +56,7 @@ private:
 	void HideRenderWidget();
 
 	void ShowPathsDialog();
+	void ShowAboutDialog();
 
 	QStackedWidget* m_stack;
 	ToolBar* m_tool_bar;
