@@ -918,10 +918,11 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
+	std::unique_ptr<UPNPDev, decltype(&freeUPNPDevlist)> devlist(nullptr, freeUPNPDevlist);
 #if MINIUPNPC_API_VERSION >= 14
-	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror);
+	devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror));
 #else
-	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror);
+	devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror));
 #endif
 	if (!devlist)
 	{
@@ -934,7 +935,7 @@ bool NetPlayServer::initUPnP()
 	}
 
 	// Look for the IGD
-	for (UPNPDev* dev = devlist; dev; dev = dev->pNext)
+	for (UPNPDev* dev = devlist.get(); dev; dev = dev->pNext)
 	{
 		if (strstr(dev->st, "InternetGatewayDevice"))
 			igds.push_back(dev);
@@ -942,18 +943,16 @@ bool NetPlayServer::initUPnP()
 
 	for (const UPNPDev* dev : igds)
 	{
-		char* descXML;
+		std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
 		int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-		descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0, &statusCode);
+		descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0, &statusCode)));
 #else
-		descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0);
+		descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0)));
 #endif
-		if (descXML && (statusCode == 200))
+		if (descXML && statusCode == 200)
 		{
-			parserootdesc(descXML, descXMLsize, &m_upnp_data);
-			free(descXML);
-			descXML = nullptr;
+			parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
 			GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
 
 			NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
@@ -961,16 +960,9 @@ bool NetPlayServer::initUPnP()
 		}
 		else
 		{
-			if (descXML)
-			{
-				free(descXML);
-				descXML = nullptr;
-			}
 			WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
 		}
 	}
-
-	freeUPNPDevlist(devlist);
 
 	return true;
 }
