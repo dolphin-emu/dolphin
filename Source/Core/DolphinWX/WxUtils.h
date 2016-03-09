@@ -7,9 +7,12 @@
 #include <string>
 #include <wx/gdicmn.h>
 #include <wx/string.h>
+#include <wx/windowid.h>
 
 class wxBitmap;
+class wxButton;
 class wxToolBar;
+class wxWindow;
 
 namespace WxUtils
 {
@@ -31,6 +34,9 @@ wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original);
 
 // Helper function to add a button to a toolbar
 void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, const wxBitmap& bitmap, const wxString& shortHelp);
+
+// Create a wxButton with a custom MinSize that doesn't break in High-DPI display modes
+wxButton* CreateButtonWithMinSize(wxWindow* parent, wxWindowID id, const wxString& label, wxSize size);
 
 }  // namespace
 
