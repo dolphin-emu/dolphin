@@ -104,6 +104,9 @@ bool FifoPlayer::Play()
 		}
 	}
 
+	// Let the waiting thread know we are done leaving
+	PowerPC::FinishStateMove();
+
 	IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 	return true;
