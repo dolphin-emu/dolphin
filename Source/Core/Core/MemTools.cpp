@@ -218,11 +218,28 @@ void UninstallExceptionHandler() {}
 
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
+static void DumpCode(const u8* start, const u8* end)
+{
+	std::string output = "";
+	for (u8* code = (u8*)start; code < end; code += 4)
+		output += StringFromFormat("%08x", Common::swap32(*(u32*)code));
+	WARN_LOG(DYNA_REC, "Code dump from %p to %p:\n%s", start, end, output.c_str());
+}
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
-	if (sig != SIGSEGV && sig != SIGBUS)
+	if (sig != SIGSEGV && sig != SIGBUS && sig != SIGILL)
 	{
 		// We are not interested in other signals - handle it as usual.
+		return;
+	}
+
+	uintptr_t bad_address = (uintptr_t)info->si_addr;
+	if (sig == SIGILL)
+	{
+		WARN_LOG(DYNA_REC, "Caught ourselves a SIGILL");
+		u8* pc_start = (u8*)(bad_address - 32);
+		u8* pc_end = (u8*)(bad_address + 32);
+		DumpCode(pc_start, pc_end);
 		return;
 	}
 	ucontext_t *context = (ucontext_t *)raw_context;
@@ -232,7 +249,6 @@ static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 		// Huh? Return.
 		return;
 	}
-	uintptr_t bad_address = (uintptr_t)info->si_addr;
 
 	// Get all the information we can out of the context.
 	mcontext_t *ctx = &context->uc_mcontext;
@@ -271,6 +287,7 @@ void InstallExceptionHandler()
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	sigaction(SIGSEGV, &sa, nullptr);
+	sigaction(SIGILL, &sa, nullptr);
 #ifdef __APPLE__
 	sigaction(SIGBUS, &sa, nullptr);
 #endif
