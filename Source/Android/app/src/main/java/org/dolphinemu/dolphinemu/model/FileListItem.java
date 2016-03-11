@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.model;
 
 
+import android.support.annotation.NonNull;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import java.io.File;
@@ -42,7 +44,7 @@ public class FileListItem implements Comparable<FileListItem>
 				String fileExtension = mPath.substring(extensionStart);
 
 				// The extensions we care about.
-				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
+				Set<String> allowedExtensions = new HashSet<>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
 				// Check that the file has an extension we care about before trying to read out of it.
 				if (allowedExtensions.contains(fileExtension.toLowerCase()))
@@ -74,7 +76,7 @@ public class FileListItem implements Comparable<FileListItem>
 	}
 
 	@Override
-	public int compareTo(FileListItem theOther)
+	public int compareTo(@NonNull FileListItem theOther)
 	{
 		if (theOther.getType() == getType())
 		{

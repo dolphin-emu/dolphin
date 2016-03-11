@@ -20,11 +20,10 @@ public final class LoadStateFragment extends Fragment implements View.OnClickLis
 
 	public static LoadStateFragment newInstance()
 	{
-		LoadStateFragment fragment = new LoadStateFragment();
 
 		// TODO Add any appropriate arguments to this fragment.
 
-		return fragment;
+		return new LoadStateFragment();
 	}
 
 	@Nullable

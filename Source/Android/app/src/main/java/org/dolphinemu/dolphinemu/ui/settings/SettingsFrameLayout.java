@@ -9,7 +9,6 @@ import android.widget.FrameLayout;
  */
 public final class SettingsFrameLayout extends FrameLayout
 {
-	private float mVisibleness = 1.0f;
 
 	public SettingsFrameLayout(Context context)
 	{
@@ -44,7 +43,7 @@ public final class SettingsFrameLayout extends FrameLayout
 
 	public float getVisibleness()
 	{
-		return mVisibleness;
+		return 1.0f;
 	}
 
 	public void setVisibleness(float visibleness)
