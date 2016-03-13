@@ -915,7 +915,7 @@ else()
 	message("Using static gtest from Externals")
 	include_directories(Externals/gtest/include)
 	add_subdirectory(Externals/gtest)
-endif(GTEST_FOUND)
+endif()
 
 enable_testing()
 add_custom_target(unittests)
