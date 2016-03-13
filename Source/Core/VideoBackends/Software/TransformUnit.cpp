@@ -146,6 +146,20 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
 
+	if(dst->z == 0.0f)
+	{
+		if(mat[8] != 0.0f || mat[9] != 0.0f)
+		{
+			dst->x = 0.0f;
+			dst->y = 0.0f;
+		}
+		else
+		{
+			dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
+			dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
+		}
+	}
+
 	if (xfmem.dualTexTrans.enabled)
 	{
 		Vec3 tempCoord;
