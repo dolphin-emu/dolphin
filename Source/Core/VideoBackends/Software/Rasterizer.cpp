@@ -29,11 +29,6 @@ static s32 vertex0Y;
 static float vertexOffsetX;
 static float vertexOffsetY;
 
-static s32 scissorLeft = 0;
-static s32 scissorTop = 0;
-static s32 scissorRight = 0;
-static s32 scissorBottom = 0;
-
 static Tev tev;
 static RasterBlock rasterBlock;
 
@@ -69,31 +64,9 @@ static inline int iround(float x)
 	return t;
 }
 
-void SetScissor()
+void SetTevReg(int reg, int comp, s16 color)
 {
-	int xoff = bpmem.scissorOffset.x * 2 - 342;
-	int yoff = bpmem.scissorOffset.y * 2 - 342;
-
-	scissorLeft = bpmem.scissorTL.x - xoff - 342;
-	if (scissorLeft < 0)
-		scissorLeft = 0;
-
-	scissorTop = bpmem.scissorTL.y - yoff - 342;
-	if (scissorTop < 0)
-		scissorTop = 0;
-
-	scissorRight = bpmem.scissorBR.x - xoff - 341;
-	if (scissorRight > EFB_WIDTH)
-		scissorRight = EFB_WIDTH;
-
-	scissorBottom = bpmem.scissorBR.y - yoff - 341;
-	if (scissorBottom > EFB_HEIGHT)
-		scissorBottom = EFB_HEIGHT;
-}
-
-void SetTevReg(int reg, int comp, bool konst, s16 color)
-{
-	tev.SetRegColor(reg, comp, konst, color);
+	tev.SetRegColor(reg, comp, color);
 }
 
 static void Draw(s32 x, s32 y, s32 xi, s32 yi)
@@ -330,6 +303,25 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 	s32 maxy = (std::max(std::max(Y1, Y2), Y3) + 0xF) >> 4;
 
 	// scissor
+	int xoff = bpmem.scissorOffset.x * 2 - 342;
+	int yoff = bpmem.scissorOffset.y * 2 - 342;
+
+	s32 scissorLeft = bpmem.scissorTL.x - xoff - 342;
+	if (scissorLeft < 0)
+		scissorLeft = 0;
+
+	s32 scissorTop = bpmem.scissorTL.y - yoff - 342;
+	if (scissorTop < 0)
+		scissorTop = 0;
+
+	s32 scissorRight = bpmem.scissorBR.x - xoff - 341;
+	if (scissorRight > EFB_WIDTH)
+		scissorRight = EFB_WIDTH;
+
+	s32 scissorBottom = bpmem.scissorBR.y - yoff - 341;
+	if (scissorBottom > EFB_HEIGHT)
+		scissorBottom = EFB_HEIGHT;
+
 	minx = std::max(minx, scissorLeft);
 	maxx = std::min(maxx, scissorRight);
 	miny = std::max(miny, scissorTop);
