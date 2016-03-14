@@ -163,7 +163,7 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 			SContentAccess& Access = pair.second;
 			Position = Access.m_Position;
 			TitleID = Access.m_TitleID;
-			Index = Access.m_pContent->m_Index;
+			Index = Access.m_Index;
 			p.Do(CFD);
 			p.Do(Position);
 			p.Do(TitleID);
@@ -220,7 +220,8 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	SContentAccess Access;
 	Access.m_Position = 0;
-	Access.m_pContent = pContent;
+	Access.m_Index = pContent->m_Index;
+	Access.m_Size = pContent->m_Size;
 	Access.m_TitleID = TitleID;
 	Access.m_pFile = nullptr;
 
@@ -391,16 +392,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u8* pDest = Memory::GetPointer(Addr);
 
-			if (rContent.m_Position + Size > rContent.m_pContent->m_Size)
+			if (rContent.m_Position + Size > rContent.m_Size)
 			{
-				Size = rContent.m_pContent->m_Size-rContent.m_Position;
+				Size = rContent.m_Size - rContent.m_Position;
 			}
 
 			if (Size > 0)
 			{
 				if (pDest)
 				{
-					if (rContent.m_pContent->m_data.empty())
+					// FIXME: this breaks WAD access (the else part), fixed in the next commit
+					//if (rContent.m_pContent->m_data.empty())
 					{
 						auto& pFile = rContent.m_pFile;
 						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
@@ -413,11 +415,11 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
 						}
 					}
-					else
+					/*else
 					{
 						const u8* src = &rContent.m_pContent->m_data[rContent.m_Position];
 						memcpy(pDest, src, Size);
-					}
+					}*/
 
 					rContent.m_Position += Size;
 				}
@@ -427,7 +429,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				}
 			}
 
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_Index);
 
 			Memory::Write_U32(Size, _CommandAddress + 0x4);
 			return GetDefaultReply();
@@ -486,7 +488,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				break;
 
 			case 2:  // END
-				rContent.m_Position = rContent.m_pContent->m_Size + Addr;
+				rContent.m_Position = rContent.m_Size + Addr;
 				break;
 			}
 
