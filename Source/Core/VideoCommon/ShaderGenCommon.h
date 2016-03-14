@@ -148,70 +148,6 @@ public:
 private:
 	std::vector<bool> constant_usage; // TODO: Is vector<bool> appropriate here?
 };
-/**
- * Checks if there has been
- */
-template<class UidT, class CodeT>
-class UidChecker
-{
-public:
-	void Invalidate()
-	{
-		m_shaders.clear();
-		m_uids.clear();
-	}
-
-	void AddToIndexAndCheck(CodeT& new_code, const UidT& new_uid, const char* shader_type, const char* dump_prefix)
-	{
-		bool uid_is_indexed = std::find(m_uids.begin(), m_uids.end(), new_uid) != m_uids.end();
-		if (!uid_is_indexed)
-		{
-			m_uids.push_back(new_uid);
-			m_shaders[new_uid] = new_code.GetBuffer();
-		}
-		else
-		{
-			// uid is already in the index => check if there's a shader with the same uid but different code
-			auto& old_code = m_shaders[new_uid];
-			if (old_code != new_code.GetBuffer())
-			{
-				static int num_failures = 0;
-
-				std::string temp = StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-						dump_prefix, ++num_failures);
-
-				// TODO: Should also dump uids
-				std::ofstream file;
-				OpenFStream(file, temp, std::ios_base::out);
-				file << "Old shader code:\n" << old_code;
-				file << "\n\nNew shader code:\n" << new_code.GetBuffer();
-				file << "\n\nShader uid:\n";
-				for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
-				{
-					u8 value = new_uid.GetUidDataRaw()[i];
-					if ((i % 4) == 0)
-					{
-						auto last_value = (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
-						file << std::setfill(' ') << std::dec;
-						file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
-					}
-
-					file << std::setw(2) << std::setfill('0') << std::hex << value << std::setw(1);
-					if ((i % 4) < 3)
-						file << ' ';
-					else
-						file << std::endl;
-				}
-
-				ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, temp.c_str());
-			}
-		}
-	}
-
-private:
-	std::map<UidT, std::string> m_shaders;
-	std::vector<UidT> m_uids;
-};
 
 template<class T>
 inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier, const char* type, const char* name, int var_index, const char* semantic = "", int semantic_index = -1)
@@ -236,37 +172,41 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template<class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, const char* qualifier = nullptr)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens, bool per_pixel_lighting, const char* qualifier = nullptr)
 {
 	DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
 	DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
-
-	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens);
-
-	if (g_ActiveConfig.bEnablePixelLighting)
+	//for (unsigned int i = 0; i < 8; ++i)
+	if (texgens != 0)
 	{
-		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 1);
-		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", xfmem.numTexGen.numTexGens + 2);
+		std::string tex = StringFromFormat("tex[%d]", texgens);
+		DefineOutputMember(object, api_type, qualifier, "float3", tex.c_str(), -1, "TEXCOORD", 0);
+	}
+
+	DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
+
+	if (per_pixel_lighting)
+	{
+		DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD", texgens + 1);
+		DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD", texgens + 2);
 	}
 }
 
 template<class T>
-inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 texgens, bool per_pixel_lighting)
 {
 	object.Write("\t%s.pos = %s.pos;\n", a, b);
 	object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
 	object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
-	for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
-		object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
+	for (unsigned int i = 0; i < texgens; ++i)
+		object.Write("\t%s.tex[%d] = %s.tex[%d];\n", a, i, b, i);
 
 	object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
-	if (g_ActiveConfig.bEnablePixelLighting)
+	if (per_pixel_lighting)
 	{
 		object.Write("\t%s.Normal = %s.Normal;\n", a, b);
 		object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
@@ -281,12 +221,12 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-inline const char* GetInterpolationQualifier(API_TYPE api_type, bool in = true, bool in_out = false)
+inline const char* GetInterpolationQualifier(API_TYPE api_type, bool msaa, bool ssaa, bool in = true, bool in_out = false)
 {
-	if (g_ActiveConfig.iMultisamples <= 1)
+	if (!msaa)
 		return "";
 
-	if (!g_ActiveConfig.bSSAA)
+	if (!ssaa)
 	{
 		if (in_out && api_type == API_OPENGL && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
 			return in ? "centroid in" : "centroid out";
@@ -333,4 +273,5 @@ static const char s_shader_uniforms[] =
 	"\tfloat4 " I_TRANSFORMMATRICES"[64];\n"
 	"\tfloat4 " I_NORMALMATRICES"[32];\n"
 	"\tfloat4 " I_POSTTRANSFORMMATRICES"[64];\n"
-	"\tfloat4 " I_PIXELCENTERCORRECTION";\n";
+	"\tfloat4 " I_PIXELCENTERCORRECTION";\n"
+	"\tuint    components;\n";

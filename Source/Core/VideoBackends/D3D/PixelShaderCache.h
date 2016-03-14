@@ -8,11 +8,15 @@
 #include <map>
 
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/UberShaderPixel.h"
 
 enum DSTALPHA_MODE;
 
 namespace DX11
 {
+
+// HACK!
+extern ID3D11Buffer* uber_bufffer;
 
 class PixelShaderCache
 {
@@ -49,12 +53,12 @@ private:
 	};
 
 	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;
+	//typedef std::map<UberShader::PixelShaderUid, PSCacheEntry> PSCache;
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry* last_entry;
 	static PixelShaderUid last_uid;
-
-	static UidChecker<PixelShaderUid, ShaderCode> pixel_uid_checker;
+	//static UberShader::PixelShaderUid last_uid;
 };
 
 }  // namespace DX11

@@ -19,6 +19,7 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -27,9 +28,10 @@ namespace DX11
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
 PixelShaderUid PixelShaderCache::last_uid;
-UidChecker<PixelShaderUid, ShaderCode> PixelShaderCache::pixel_uid_checker;
+//UberShader::PixelShaderUid PixelShaderCache::last_uid;
 
 LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
+//LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
@@ -40,6 +42,7 @@ ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
+ID3D11Buffer* uber_bufffer = nullptr;
 
 const char clear_program_code[] = {
 	"void main(\n"
@@ -445,9 +448,14 @@ ID3D11Buffer* &PixelShaderCache::GetConstantBuffer()
 		D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 		D3D::context->Unmap(pscbuf, 0);
+
+		// Again, this is hacky.
+		D3D::context->Map(uber_bufffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		memcpy(map.pData, &PixelShaderManager::more_constants, sizeof(UberShaderConstants));
+		D3D::context->Unmap(uber_bufffer, 0);
 		PixelShaderManager::dirty = false;
 
-		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+		ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants) + sizeof(UberShaderConstants));
 	}
 	return pscbuf;
 }
@@ -469,6 +477,13 @@ void PixelShaderCache::Init()
 	D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
 	CHECK(pscbuf!=nullptr, "Create pixel shader constant buffer");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "pixel shader constant buffer used to emulate the GX pipeline");
+
+	// Second constant buffer for ubershaders
+	unsigned int ubsize = ROUND_UP(sizeof(UberShaderConstants), 16); // must be a multiple of 16
+	D3D11_BUFFER_DESC uber_desc = CD3D11_BUFFER_DESC(ubsize, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+	D3D::device->CreateBuffer(&uber_desc, nullptr, &uber_bufffer);
+	CHECK(uber_bufffer != nullptr, "Create ubershader constant buffer");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)uber_bufffer, "pixel shader constant buffer used for Ubershader emulation of TEV.");
 
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
@@ -506,7 +521,10 @@ void PixelShaderCache::Init()
 	std::string cache_filename = StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
 			SConfig::GetInstance().m_strUniqueID.c_str());
 	PixelShaderCacheInserter inserter;
-	g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+
+	// Temporally disable DirectX's Pixel Shader cache, so it stops messing me up while testing.
+	// TODO: Rembmer to add this back in before merging to master.
+	//g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
 	if (g_Config.bEnableShaderDebugging)
 		Clear();
@@ -520,7 +538,6 @@ void PixelShaderCache::Clear()
 	for (auto& iter : PixelShaders)
 		iter.second.Destroy();
 	PixelShaders.clear();
-	pixel_uid_checker.Invalidate();
 
 	last_entry = nullptr;
 }
@@ -559,12 +576,8 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
-	PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode, API_D3D);
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
-		pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
-	}
+	PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
+	//UberShader::PixelShaderUid uid = UberShader::GetPixelShaderUid(dstAlphaMode);
 
 	// Check if the shader is already set
 	if (last_entry)
@@ -591,7 +604,8 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 	}
 
 	// Need to compile a new shader
-	ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+	ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D, uid.GetUidData());
+	//ShaderCode code = UberShader::GenPixelShader(dstAlphaMode, API_D3D, false, g_ActiveConfig.iMultisamples > 1, g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 
 	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))

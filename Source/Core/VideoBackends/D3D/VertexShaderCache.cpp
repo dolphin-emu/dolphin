@@ -16,6 +16,7 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderVertex.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 
@@ -24,7 +25,6 @@ namespace DX11 {
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 VertexShaderUid VertexShaderCache::last_uid;
-UidChecker<VertexShaderUid, ShaderCode> VertexShaderCache::vertex_uid_checker;
 
 static ID3D11VertexShader* SimpleVertexShader = nullptr;
 static ID3D11VertexShader* ClearVertexShader = nullptr;
@@ -63,7 +63,7 @@ public:
 	void Read(const VertexShaderUid &key, const u8* value, u32 value_size)
 	{
 		D3DBlob* blob = new D3DBlob(value_size, value);
-		VertexShaderCache::InsertByteCode(key, blob);
+		//VertexShaderCache::InsertByteCode(key, blob);
 		blob->Release();
 
 	}
@@ -164,7 +164,6 @@ void VertexShaderCache::Clear()
 	for (auto& iter : vshaders)
 		iter.second.Destroy();
 	vshaders.clear();
-	vertex_uid_checker.Invalidate();
 
 	last_entry = nullptr;
 }
@@ -186,12 +185,7 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader()
 {
-	VertexShaderUid uid = GetVertexShaderUid(API_D3D);
-	if (g_ActiveConfig.bEnableShaderDebugging)
-	{
-		ShaderCode code = GenerateVertexShaderCode(API_D3D);
-		vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
-	}
+	VertexShaderUid uid = GetVertexShaderUid();
 
 	if (last_entry)
 	{
@@ -214,7 +208,8 @@ bool VertexShaderCache::SetShader()
 		return (entry.shader != nullptr);
 	}
 
-	ShaderCode code = GenerateVertexShaderCode(API_D3D);
+	//ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
+	ShaderCode code = UberShader::GenVertexShader(API_D3D);
 
 	D3DBlob* pbytecode = nullptr;
 	D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);
