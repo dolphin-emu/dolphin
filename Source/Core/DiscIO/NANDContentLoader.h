@@ -34,26 +34,26 @@ struct SNANDContent
 class CNANDContentLoader final
 {
 public:
-	CNANDContentLoader(const std::string& _rName);
+	CNANDContentLoader(const std::string& content_name);
 	virtual ~CNANDContentLoader();
 
 	bool IsValid() const { return m_Valid; }
 	void RemoveTitle() const;
-	u64 GetTitleID() const  { return m_TitleID; }
+	u64 GetTitleID() const { return m_TitleID; }
 	u16 GetIosVersion() const { return m_IosVersion; }
-	u32 GetBootIndex() const  { return m_BootIndex; }
+	u32 GetBootIndex() const { return m_BootIndex; }
 	size_t GetContentSize() const { return m_Content.size(); }
 	const SNANDContent* GetContentByIndex(int index) const;
 	const u8* GetTMDView() const { return m_TMDView; }
 	const u8* GetTMDHeader() const { return m_TMDHeader; }
-	const std::vector<u8>& GetTicket() const { return m_ticket; }
+	const std::vector<u8>& GetTicket() const { return m_Ticket; }
 
 	const std::vector<SNANDContent>& GetContent() const { return m_Content; }
 
-	u16 GetTitleVersion() const {return m_TitleVersion;}
-	u16 GetNumEntries() const {return m_numEntries;}
+	u16 GetTitleVersion() const { return m_TitleVersion; }
+	u16 GetNumEntries() const { return m_NumEntries; }
 	DiscIO::IVolume::ECountry GetCountry() const;
-	u8 GetCountryChar() const {return m_Country; }
+	u8 GetCountryChar() const { return m_Country; }
 
 	enum
 	{
@@ -71,16 +71,16 @@ private:
 	static std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
 
 	bool m_Valid;
-	bool m_isWAD;
+	bool m_IsWAD;
 	std::string m_Path;
 	u64 m_TitleID;
 	u16 m_IosVersion;
 	u32 m_BootIndex;
-	u16 m_numEntries;
+	u16 m_NumEntries;
 	u16 m_TitleVersion;
 	u8 m_TMDView[TMD_VIEW_SIZE];
 	u8 m_TMDHeader[TMD_HEADER_SIZE];
-	std::vector<u8> m_ticket;
+	std::vector<u8> m_Ticket;
 	u8 m_Country;
 
 	std::vector<SNANDContent> m_Content;
@@ -96,7 +96,7 @@ public:
 
 	const CNANDContentLoader& GetNANDLoader(const std::string& content_path);
 	const CNANDContentLoader& GetNANDLoader(u64 title_id, Common::FromWhichRoot from);
-	bool RemoveTitle(u64 titl_id, Common::FromWhichRoot from);
+	bool RemoveTitle(u64 title_id, Common::FromWhichRoot from);
 	void ClearCache();
 
 private:
@@ -114,8 +114,8 @@ class CSharedContent
 public:
 	static CSharedContent& AccessInstance() { static CSharedContent instance; return instance; }
 
-	std::string GetFilenameFromSHA1(const u8* _pHash);
-	std::string AddSharedContent(const u8* _pHash);
+	std::string GetFilenameFromSHA1(const u8* hash);
+	std::string AddSharedContent(const u8* hash);
 	void UpdateLocation();
 
 private:
@@ -133,8 +133,8 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 m_lastID;
-	std::string m_contentMap;
+	u32 m_LastID;
+	std::string m_ContentMap;
 	std::vector<SElement> m_Elements;
 };
 
@@ -143,9 +143,9 @@ class cUIDsys
 public:
 	static cUIDsys& AccessInstance() { static cUIDsys instance; return instance; }
 
-	u32 GetUIDFromTitle(u64 _Title);
-	void AddTitle(u64 _Title);
-	void GetTitleIDs(std::vector<u64>& _TitleIDs, bool _owned = false);
+	u32 GetUIDFromTitle(u64 title_id);
+	void AddTitle(u64 title_id);
+	void GetTitleIDs(std::vector<u64>& title_ids, bool owned = false);
 	void UpdateLocation();
 
 private:
@@ -163,8 +163,8 @@ private:
 	};
 #pragma pack(pop)
 
-	u32 m_lastUID;
-	std::string m_uidSys;
+	u32 m_LastUID;
+	std::string m_UidSys;
 	std::vector<SElement> m_Elements;
 };
 

@@ -144,7 +144,7 @@ private:
 
 	static u8 *keyTable[11];
 
-	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID);
+	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
 	bool IsValid(u64 _TitleID) const;

@@ -323,21 +323,21 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-			const DiscIO::CNANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
-			if (rNANDCOntent.IsValid()) // Not sure if dolphin will ever fail this check
+			const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
+			if (rNANDContent.IsValid()) // Not sure if dolphin will ever fail this check
 			{
-				for (u16 i = 0; i < rNANDCOntent.GetNumEntries(); i++)
+				for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
 				{
-					Memory::Write_U32(rNANDCOntent.GetContentByIndex(i)->m_ContentID, Buffer.PayloadBuffer[0].m_Address + i*4);
-					INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i, rNANDCOntent.GetContentByIndex(i)->m_ContentID);
+					Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID, Buffer.PayloadBuffer[0].m_Address + i*4);
+					INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i, rNANDContent.GetContentByIndex(i)->m_ContentID);
 				}
 				Memory::Write_U32(0, _CommandAddress + 0x4);
 			}
 			else
 			{
-				Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), _CommandAddress + 0x4);
+				Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
 				INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
-					rNANDCOntent.GetContentSize());
+					rNANDContent.GetContentSize());
 			}
 
 			return GetDefaultReply();
@@ -1078,19 +1078,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 }
 
 // TODO: This cache is redundant with the one in CNANDContentManager.h
-const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
+const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)
 {
-	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
+	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == title_id)
 		return *m_pContentLoader;
 
-	CTitleToContentMap::iterator itr = m_NANDContent.find(_TitleID);
+	CTitleToContentMap::iterator itr = m_NANDContent.find(title_id);
 	if (itr != m_NANDContent.end())
 		return *itr->second;
 
-	m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_TitleID, Common::FROM_SESSION_ROOT);
+	m_NANDContent[title_id] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 
-	_dbg_assert_msg_(WII_IPC_ES, ((u32)(_TitleID >> 32) == 0x00010000) || m_NANDContent[_TitleID]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(_TitleID >> 32), (u32)_TitleID);
-	return *m_NANDContent[_TitleID];
+	_dbg_assert_msg_(WII_IPC_ES, ((u32)(title_id >> 32) == 0x00010000) || m_NANDContent[title_id]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(title_id >> 32), (u32)title_id);
+	return *m_NANDContent[title_id];
 }
 
 bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
