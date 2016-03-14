@@ -125,7 +125,8 @@ private:
 	{
 		u32 m_Position;
 		u64 m_TitleID;
-		const DiscIO::SNANDContent* m_pContent;
+		u16 m_Index;
+		u32 m_Size;
 		// This is a (raw) pointer to work around a MSVC bug.
 		File::IOFile* m_pFile;
 	};
