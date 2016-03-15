@@ -51,7 +51,8 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 			nullptr,
 			IID_PPV_ARGS(&upload_buffer)));
 
-		CheckHR(upload_buffer->Map(0, nullptr, reinterpret_cast<void**>(&dest_data)));
+		D3D12_RANGE read_range = {};
+		CheckHR(upload_buffer->Map(0, &read_range, reinterpret_cast<void**>(&dest_data)));
 	}
 	else
 	{
@@ -92,8 +93,11 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 	// We block here because otherwise if there was a large number of texture uploads, we may run out of memory.
 	if (!s_texture_upload_stream_buffer || upload_buffer != s_texture_upload_stream_buffer->GetBuffer())
 	{
+		D3D12_RANGE write_range = { 0, upload_size };
+		upload_buffer->Unmap(0, &write_range);
+
 		D3D::command_list_mgr->ExecuteQueuedWork(true);
-		upload_buffer->Unmap(0, nullptr);
+
 		upload_buffer->Release();
 	}
 }

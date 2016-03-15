@@ -83,7 +83,8 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 
 	// Map readback buffer and save to file.
 	void* readback_texture_map;
-	CheckHR(s_texture_cache_entry_readback_buffer->Map(0, nullptr, &readback_texture_map));
+	D3D12_RANGE read_range = { 0, required_readback_buffer_size };
+	CheckHR(s_texture_cache_entry_readback_buffer->Map(0, &read_range, &readback_texture_map));
 
 	bool saved = TextureToPng(
 		static_cast<u8*>(readback_texture_map),
@@ -93,7 +94,8 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 		dst_location.PlacedFootprint.Footprint.Height
 		);
 
-	s_texture_cache_entry_readback_buffer->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	s_texture_cache_entry_readback_buffer->Unmap(0, &write_range);
 	return saved;
 }
 
