@@ -132,7 +132,8 @@ void XFBEncoder::EncodeTextureToRam(u8* dst, u32 dst_pitch, u32 dst_height,
 	// Copy from the readback buffer to dst.
 	// Can't be done as one memcpy due to pitch difference.
 	void* readback_texture_map;
-	CheckHR(m_readback_buffer->Map(0, nullptr, &readback_texture_map));
+	D3D12_RANGE read_range = { 0, readback_pitch * dst_height };
+	CheckHR(m_readback_buffer->Map(0, &read_range, &readback_texture_map));
 
 	for (u32 row = 0; row < dst_height; row++)
 	{
@@ -141,7 +142,8 @@ void XFBEncoder::EncodeTextureToRam(u8* dst, u32 dst_pitch, u32 dst_height,
 		memcpy(row_dst, row_src, std::min(dst_pitch, readback_pitch));
 	}
 
-	m_readback_buffer->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	m_readback_buffer->Unmap(0, &write_range);
 }
 
 void XFBEncoder::DecodeToTexture(D3DTexture2D* dst_texture, const u8* src, u32 src_width, u32 src_height)
