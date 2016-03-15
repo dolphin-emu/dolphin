@@ -332,7 +332,8 @@ void FramebufferManager::MapEFBColorAccessCopy()
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Resource copy has finished, so safe to map now
-	m_efb.color_access_readback_buffer->Map(0, nullptr, reinterpret_cast<void**>(&m_efb.color_access_readback_map));
+	D3D12_RANGE read_range = { 0, m_efb.color_access_readback_pitch * EFB_HEIGHT };
+	m_efb.color_access_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&m_efb.color_access_readback_map));
 }
 
 void FramebufferManager::MapEFBDepthAccessCopy()
@@ -380,20 +381,23 @@ void FramebufferManager::MapEFBDepthAccessCopy()
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Resource copy has finished, so safe to map now
-	m_efb.depth_access_readback_buffer->Map(0, nullptr, reinterpret_cast<void**>(&m_efb.depth_access_readback_map));
+	D3D12_RANGE read_range = { 0, m_efb.depth_access_readback_pitch * EFB_HEIGHT };
+	m_efb.depth_access_readback_buffer->Map(0, &read_range, reinterpret_cast<void**>(&m_efb.depth_access_readback_map));
 }
 
 void FramebufferManager::InvalidateEFBAccessCopies()
 {
+	D3D12_RANGE write_range = {};
+
 	if (m_efb.color_access_readback_map)
 	{
-		m_efb.color_access_readback_buffer->Unmap(0, nullptr);
+		m_efb.color_access_readback_buffer->Unmap(0, &write_range);
 		m_efb.color_access_readback_map = nullptr;
 	}
 
 	if (m_efb.depth_access_readback_map)
 	{
-		m_efb.depth_access_readback_buffer->Unmap(0, nullptr);
+		m_efb.depth_access_readback_buffer->Unmap(0, &write_range);
 		m_efb.depth_access_readback_map = nullptr;
 	}
 }

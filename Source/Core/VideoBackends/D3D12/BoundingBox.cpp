@@ -78,7 +78,8 @@ void BBox::Invalidate()
 	if (!s_bbox_staging_buffer_map)
 		return;
 
-	s_bbox_staging_buffer->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	s_bbox_staging_buffer->Unmap(0, &write_range);
 	s_bbox_staging_buffer_map = nullptr;
 }
 
@@ -139,7 +140,8 @@ int BBox::Get(int index)
 
 		D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-		CheckHR(s_bbox_staging_buffer->Map(0, nullptr, &s_bbox_staging_buffer_map));
+		D3D12_RANGE read_range = { 0, BBOX_BUFFER_SIZE };
+		CheckHR(s_bbox_staging_buffer->Map(0, &read_range, &s_bbox_staging_buffer_map));
 	}
 
 	int value;
