@@ -665,11 +665,13 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	void* screenshot_texture_map;
-	CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+	D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * (source_box.bottom - source_box.top) };
+	CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 
 	saved_png = TextureToPng(static_cast<u8*>(screenshot_texture_map), dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
 
-	s_screenshot_texture->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	s_screenshot_texture->Unmap(0, &write_range);
 
 	if (saved_png)
 	{
@@ -871,9 +873,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 			}
 
 			void* screenshot_texture_map;
-			CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+			D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height };
+			CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 			formatBufferDump(static_cast<u8*>(screenshot_texture_map), &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
-			s_screenshot_texture->Unmap(0, nullptr);
+
+			D3D12_RANGE write_range = {};
+			s_screenshot_texture->Unmap(0, &write_range);
 
 			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
