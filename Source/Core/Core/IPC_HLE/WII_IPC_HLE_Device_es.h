@@ -127,8 +127,6 @@ private:
 		u64 m_TitleID;
 		u16 m_Index;
 		u32 m_Size;
-		// This is a (raw) pointer to work around a MSVC bug.
-		File::IOFile* m_pFile;
 	};
 
 	typedef std::map<u32, SContentAccess> CContentAccessMap;
