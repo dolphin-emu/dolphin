@@ -105,7 +105,9 @@ void PSTextureEncoder::Init()
 
 	D3D::SetDebugObjectName12(m_encode_params_buffer, "efb encoder params buffer");
 
-	CheckHR(m_encode_params_buffer->Map(0, nullptr, &m_encode_params_buffer_data));
+	// NOTE: This upload buffer is okay to overwrite each time, since we block until completion when it's used anyway.
+	D3D12_RANGE read_range = {};
+	CheckHR(m_encode_params_buffer->Map(0, &read_range, &m_encode_params_buffer_data));
 
 	m_ready = true;
 }
@@ -223,7 +225,8 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
 	// Transfer staging buffer to GameCube/Wii RAM
 	void* readback_data_map;
-	CheckHR(m_out_readback_buffer->Map(0, nullptr, &readback_data_map));
+	D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * num_blocks_y };
+	CheckHR(m_out_readback_buffer->Map(0, &read_range, &readback_data_map));
 
 	u8* src = static_cast<u8*>(readback_data_map);
 	u32 read_stride = std::min(bytes_per_row, dst_location.PlacedFootprint.Footprint.RowPitch);
@@ -235,7 +238,8 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		src += dst_location.PlacedFootprint.Footprint.RowPitch;
 	}
 
-	m_out_readback_buffer->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	m_out_readback_buffer->Unmap(0, &write_range);
 }
 
 D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format, PEControl::PixelFormat src_format,
