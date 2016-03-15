@@ -185,10 +185,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
-	for (auto& pair : m_ContentAccessMap)
-	{
-		delete pair.second.m_pFile;
-	}
 	m_ContentAccessMap.clear();
 	m_TitleIDs.clear();
 	m_TitleID = -1;
@@ -223,20 +219,8 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_Index = pContent->m_Index;
 	Access.m_Size = pContent->m_Size;
 	Access.m_TitleID = TitleID;
-	Access.m_pFile = nullptr;
 
-	if (pContent->m_data.empty())
-	{
-		std::string Filename = pContent->m_Filename;
-		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
 
-		Access.m_pFile = new File::IOFile(Filename, "rb");
-		if (!Access.m_pFile->IsGood())
-		{
-			WARN_LOG(WII_IPC_ES, "ES: couldn't load %s", Filename.c_str());
-			return 0xffffffff;
-		}
-	}
 
 	m_ContentAccessMap[CFD] = Access;
 	return CFD;
@@ -401,25 +385,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			{
 				if (pDest)
 				{
-					// FIXME: this breaks WAD access (the else part), fixed in the next commit
-					//if (rContent.m_pContent->m_data.empty())
+					const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
+					// ContentLoader should never be invalid; rContent has been created by it.
+					if (ContentLoader.IsValid())
 					{
-						auto& pFile = rContent.m_pFile;
-						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
-						{
-							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
-						}
-						WARN_LOG(WII_IPC_ES, "2 %p", pFile->GetHandle());
-						if (!pFile->ReadBytes(pDest, Size))
-						{
-							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
-						}
+						const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
+						if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
+							ERROR_LOG(WII_IPC_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
 					}
-					/*else
-					{
-						const u8* src = &rContent.m_pContent->m_data[rContent.m_Position];
-						memcpy(pDest, src, Size);
-					}*/
 
 					rContent.m_Position += Size;
 				}
@@ -452,7 +425,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				return GetDefaultReply();
 			}
 
-			delete itr->second.m_pFile;
 			m_ContentAccessMap.erase(itr);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
@@ -915,15 +887,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					if (pContent)
 					{
 						tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
-						std::unique_ptr<CDolLoader> pDolLoader;
-						if (pContent->m_data.empty())
-						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
-						}
-						else
-						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_data);
-						}
+						std::unique_ptr<CDolLoader> pDolLoader = std::make_unique<CDolLoader>(pContent->m_Data->Get());
 
 						if (pDolLoader->IsValid())
 						{

@@ -92,6 +92,46 @@ std::string CSharedContent::AddSharedContent(const u8* hash)
 }
 
 
+const std::vector<u8> CNANDContentData_File::Get()
+{
+	std::vector<u8> result;
+	File::IOFile file(m_filename, "rb");
+	if (!file.IsGood())
+		return result;
+
+	u64 size = file.GetSize();
+	if (size == 0)
+		return result;
+
+	result.resize(size);
+	file.ReadBytes(result.data(), result.size());
+
+	return result;
+}
+
+bool CNANDContentData_File::GetRange(u32 start, u32 size, u8* buffer)
+{
+	File::IOFile file(m_filename, "rb");
+	if (!file.IsGood())
+		return false;
+
+	if (!file.Seek(start, SEEK_SET))
+		return false;
+
+	return file.ReadBytes(buffer, static_cast<size_t>(size));
+}
+
+
+bool CNANDContentData_Buffer::GetRange(u32 start, u32 size, u8* buffer)
+{
+	if (start + size > m_buffer.size())
+		return false;
+
+	std::copy(&m_buffer[start], &m_buffer[start + size], buffer);
+	return true;
+}
+
+
 CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
 	: m_Valid(false)
 	, m_IsWAD(false)
@@ -207,20 +247,23 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd, co
 			iv.fill(0);
 			std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());
 
-			content.m_data = AESDecode(decrypted_title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size);
+			content.m_Data = std::make_unique<CNANDContentData_Buffer>(AESDecode(decrypted_title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
 
 			data_app_offset += rounded_size;
 			continue;
 		}
 
+		std::string filename;
 		if (content.m_Type & 0x8000)  // shared app
-			content.m_Filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(content.m_SHA1Hash);
+			filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(content.m_SHA1Hash);
 		else
-			content.m_Filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
+			filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
+
+		content.m_Data = std::make_unique<CNANDContentData_File>(filename);
 
 		// Be graceful about incorrect TMDs.
-		if (File::Exists(content.m_Filename))
-			content.m_Size = static_cast<u32>(File::GetSize(content.m_Filename));
+		if (File::Exists(filename))
+			content.m_Size = static_cast<u32>(File::GetSize(filename));
 	}
 }
 
@@ -429,7 +472,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 				return 0;
 			}
 
-			app_file.WriteBytes(content.m_data.data(), content.m_Size);
+			app_file.WriteBytes(content.m_Data->Get().data(), content.m_Size);
 		}
 		else
 		{
