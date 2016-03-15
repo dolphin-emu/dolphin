@@ -106,33 +106,24 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 	if (src_rect.GetWidth() == dst_rect.GetWidth()
 		&& src_rect.GetHeight() == dst_rect.GetHeight())
 	{
-		D3D12_BOX srcbox;
-		srcbox.left = src_rect.left;
-		srcbox.top = src_rect.top;
-		srcbox.right = src_rect.right;
-		srcbox.bottom = src_rect.bottom;
-		srcbox.front = 0;
-		srcbox.back = srcentry->config.layers;
+		// These assertions should hold true unless the base code is passing us sizes too large, in which case it should be fixed instead.
+		_assert_msg_(VIDEO,
+			static_cast<u32>(src_rect.GetWidth()) <= source->config.width &&
+			static_cast<u32>(src_rect.GetHeight()) <= source->config.height,
+			"Source rect is too large for CopyRectangleFromTexture");
 
-		if (static_cast<u32>(src_rect.GetHeight()) > config.height ||
-			static_cast<u32>(src_rect.GetWidth()) > config.width)
-		{
-			// To mimic D3D11 behavior, we're just going to drop the clear since it is invalid.
-			// This invalid copy needs to be fixed above the Backend level.
+		_assert_msg_(VIDEO,
+			static_cast<u32>(dst_rect.GetWidth()) <= config.width &&
+			static_cast<u32>(dst_rect.GetHeight()) <= config.height,
+			"Dest rect is too large for CopyRectangleFromTexture");
 
-			// On D3D12, instead of silently dropping this invalid clear, the runtime throws an exception
-			// so we need to filter it out ourselves.
-
-			return;
-		}
-
+		CD3DX12_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom, srcentry->config.layers);
 		D3D12_TEXTURE_COPY_LOCATION dst_location = CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), 0);
 		D3D12_TEXTURE_COPY_LOCATION src_location = CD3DX12_TEXTURE_COPY_LOCATION(srcentry->m_texture->GetTex12(), 0);
 
 		m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_DEST);
 		srcentry->m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-		D3D::current_command_list->CopyTextureRegion(&dst_location, dst_rect.left, dst_rect.top, 0, &src_location, &srcbox);
+		D3D::current_command_list->CopyTextureRegion(&dst_location, dst_rect.left, dst_rect.top, 0, &src_location, &src_box);
 
 		m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		srcentry->m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
