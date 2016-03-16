@@ -28,7 +28,7 @@
 
 #include "wx/osx/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxControl, wxWindow)
+wxIMPLEMENT_ABSTRACT_CLASS(wxControl, wxWindow);
 
 
 wxControl::wxControl()
@@ -75,16 +75,5 @@ void  wxControl::OnKeyDown( wxKeyEvent &WXUNUSED(event) )
     if ( GetPeer() == NULL || !GetPeer()->IsOk() )
         return;
 
-#if wxOSX_USE_CARBON
-    UInt32 keyCode, modifiers;
-    char charCode;
-
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyCode, typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode  );
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyMacCharCodes, typeChar, NULL, 1, NULL, &charCode );
-    GetEventParameter( (EventRef)wxTheApp->MacGetCurrentEvent(), kEventParamKeyModifiers, typeUInt32, NULL, sizeof(UInt32), NULL, &modifiers );
-
-    GetPeer()->HandleKey( keyCode, charCode, modifiers );
-#else
     // TODO
-#endif
 }

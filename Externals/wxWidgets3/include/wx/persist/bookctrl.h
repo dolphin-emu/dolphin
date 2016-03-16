@@ -34,12 +34,12 @@ public:
     {
     }
 
-    virtual void Save() const
+    virtual void Save() const wxOVERRIDE
     {
         SaveValue(wxPERSIST_BOOK_SELECTION, Get()->GetSelection());
     }
 
-    virtual bool Restore()
+    virtual bool Restore() wxOVERRIDE
     {
         long sel;
         if ( RestoreValue(wxPERSIST_BOOK_SELECTION, &sel) )
@@ -55,7 +55,7 @@ public:
         return false;
     }
 
-    virtual wxString GetKind() const { return wxPERSIST_BOOK_KIND; }
+    virtual wxString GetKind() const wxOVERRIDE { return wxPERSIST_BOOK_KIND; }
 };
 
 inline wxPersistentObject *wxCreatePersistentObject(wxBookCtrlBase *book)

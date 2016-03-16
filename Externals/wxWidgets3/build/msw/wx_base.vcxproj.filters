@@ -34,6 +34,12 @@
     <Filter Include="MSW\ole">
       <UniqueIdentifier>{302035ca-b308-4626-83f9-60c08f3015c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers\AUI">
+      <UniqueIdentifier>{73f456f5-1828-4572-86a5-6dc15050fb79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Generic\private">
+      <UniqueIdentifier>{f6d51fb6-68c8-4855-8b5c-ef3717f3e1d3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\wx\setup.h">
@@ -136,9 +142,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\button.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\cairo.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\calctrl.h">
@@ -873,9 +876,6 @@
     <ClInclude Include="..\..\include\wx\settings.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\setup_gccxml.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\setup_inc.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -1173,33 +1173,6 @@
     <ClInclude Include="..\..\include\wx\wx.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cw.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cw_cm.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cw_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwc.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwc_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa_cm.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wx_cwu_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\wxchar.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -1216,30 +1189,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\wxprec.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlb_cw.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlb_cw_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlb_cwc.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlb_cwc_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlba_cw.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlba_cw_d.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlba_cwc.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\wxshlba_cwc_d.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\xlocale.h">
@@ -1488,9 +1437,6 @@
     <ClInclude Include="..\..\include\wx\msw\metafile.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\microwin.h">
-      <Filter>Headers\MSW</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\mimetype.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
@@ -1500,9 +1446,6 @@
     <ClInclude Include="..\..\include\wx\msw\missing.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\mslu.h">
-      <Filter>Headers\MSW</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\msvcrt.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
@@ -1510,9 +1453,6 @@
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\notebook.h">
-      <Filter>Headers\MSW</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wx\msw\notifmsg.h">
       <Filter>Headers\MSW</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\ownerdrw.h">
@@ -1976,6 +1916,96 @@
     </ClInclude>
     <ClInclude Include="..\..\include\wx\msw\ole\uuid.h">
       <Filter>Headers\MSW\ole</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\activityindicator.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\addremovectrl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\appprogress.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\collheaderctrl.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\activityindicator.h">
+      <Filter>Headers\Generic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\collheaderctrl.h">
+      <Filter>Headers\Generic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\appprogress.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\ownerdrawnbutton.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\taskbarbutton.h">
+      <Filter>Headers\MSW</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\msw\private\event.h">
+      <Filter>Headers\MSW\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\aui.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\auibar.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\auibook.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\barartmsw.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\dockart.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\floatpane.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\framemanager.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\tabart.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\tabartgtk.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\tabartmsw.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\aui\tabmdi.h">
+      <Filter>Headers\AUI</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\addremovectrl.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\grid.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\listctrl.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\markuptext.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\notifmsg.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\richtooltip.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\textmeasure.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\timer.h">
+      <Filter>Headers\Generic\private</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\wx\generic\private\widthcalc.h">
+      <Filter>Headers\Generic\private</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3218,9 +3248,6 @@
     <ClCompile Include="..\..\src\msw\metafile.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\msw\microwin.c">
-      <Filter>MSW</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\msw\mimetype.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
@@ -3228,9 +3255,6 @@
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\msgdlg.cpp">
-      <Filter>MSW</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\msw\mslu.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\nativdlg.cpp">
@@ -3258,9 +3282,6 @@
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\pen.cpp">
-      <Filter>MSW</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\msw\penwin.cpp">
       <Filter>MSW</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\popupwin.cpp">
@@ -3443,6 +3464,39 @@
     <ClCompile Include="..\..\src\common\textmeasurecmn.cpp" />
     <ClCompile Include="..\..\src\common\threadinfo.cpp" />
     <ClCompile Include="..\..\src\msw\ole\safearray.cpp" />
+    <ClCompile Include="..\..\src\aui\barartmsw.cpp">
+      <Filter>AUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\aui\tabartgtk.cpp">
+      <Filter>AUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\aui\tabartmsw.cpp">
+      <Filter>AUI</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\addremovectrl.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\common\notifmsgcmn.cpp">
+      <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\generic\activityindicator.cpp">
+      <Filter>Generic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\generic\collheaderctrlg.cpp">
+      <Filter>Generic</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\appprogress.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\graphicsd2d.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\systhemectrl.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\taskbarbutton.cpp">
+      <Filter>MSW</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\src\common\unictabl.inc">

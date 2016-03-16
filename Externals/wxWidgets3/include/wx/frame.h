@@ -71,7 +71,7 @@ public:
 
     // get the origin of the client area (which may be different from (0, 0)
     // if the frame has a toolbar) in client coordinates
-    virtual wxPoint GetClientAreaOrigin() const;
+    virtual wxPoint GetClientAreaOrigin() const wxOVERRIDE;
 
 
     // menu bar functions
@@ -164,10 +164,10 @@ public:
 #endif // wxUSE_MENUS
 
     // do the UI update processing for this window
-    virtual void UpdateWindowUI(long flags = wxUPDATE_UI_NONE);
+    virtual void UpdateWindowUI(long flags = wxUPDATE_UI_NONE) wxOVERRIDE;
 
     // Implement internal behaviour (menu updating on some platforms)
-    virtual void OnInternalIdle();
+    virtual void OnInternalIdle() wxOVERRIDE;
 
 #if wxUSE_MENUS || wxUSE_TOOLBAR
     // show help text for the currently selected menu or toolbar item
@@ -176,7 +176,7 @@ public:
     virtual void DoGiveHelp(const wxString& text, bool show);
 #endif
 
-    virtual bool IsClientAreaChild(const wxWindow *child) const
+    virtual bool IsClientAreaChild(const wxWindow *child) const wxOVERRIDE
     {
         return !IsOneOfBars(child) && wxTopLevelWindow::IsClientAreaChild(child);
     }
@@ -190,7 +190,7 @@ protected:
     void DeleteAllBars();
 
     // test whether this window makes part of the frame
-    virtual bool IsOneOfBars(const wxWindow *win) const;
+    virtual bool IsOneOfBars(const wxWindow *win) const wxOVERRIDE;
 
 #if wxUSE_MENUS
     // override to update menu bar position when the frame size changes
@@ -244,14 +244,14 @@ protected:
 #endif // wxUSE_TOOLBAR
 
 #if wxUSE_MENUS && wxUSE_STATUSBAR
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 #endif // wxUSE_MENUS && wxUSE_STATUSBAR
 
     wxDECLARE_NO_COPY_CLASS(wxFrameBase);
 };
 
 // include the real class declaration
-#if defined(__WXUNIVERSAL__) // && !defined(__WXMICROWIN__)
+#if defined(__WXUNIVERSAL__)
     #include "wx/univ/frame.h"
 #else // !__WXUNIVERSAL__
     #if defined(__WXMSW__)
@@ -264,10 +264,8 @@ protected:
         #include "wx/motif/frame.h"
     #elif defined(__WXMAC__)
         #include "wx/osx/frame.h"
-    #elif defined(__WXCOCOA__)
-        #include "wx/cocoa/frame.h"
-    #elif defined(__WXPM__)
-        #include "wx/os2/frame.h"
+    #elif defined(__WXQT__)
+        #include "wx/qt/frame.h"
     #endif
 #endif
 

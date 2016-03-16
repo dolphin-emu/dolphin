@@ -101,7 +101,7 @@ public:
 private:
     T * m_ptr;
 
-    DECLARE_NO_COPY_TEMPLATE_CLASS(wxScopedPtr, T)
+    wxDECLARE_NO_COPY_TEMPLATE_CLASS(wxScopedPtr, T);
 };
 
 // ----------------------------------------------------------------------------

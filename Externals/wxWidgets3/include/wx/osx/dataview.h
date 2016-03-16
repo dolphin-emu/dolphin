@@ -54,7 +54,7 @@ public:
 
     virtual void SetAlignment  (wxAlignment align);
     virtual void SetBitmap     (wxBitmap const& bitmap);
-    virtual void SetFlags      (int flags) { SetIndividualFlags(flags); }
+    virtual void SetFlags      (int flags) { m_flags = flags; /*SetIndividualFlags(flags); */ }
     virtual void SetHidden     (bool hidden);
     virtual void SetMaxWidth   (int maxWidth);
     virtual void SetMinWidth   (int minWidth);
@@ -155,39 +155,39 @@ public:
   }
 
  // inherited methods from wxDataViewCtrlBase:
-  virtual bool AssociateModel(wxDataViewModel* model);
+  virtual bool AssociateModel(wxDataViewModel* model) wxOVERRIDE;
 
-  virtual bool              AppendColumn     (wxDataViewColumn* columnPtr);
-  virtual bool              ClearColumns     ();
-  virtual bool              DeleteColumn     (wxDataViewColumn* columnPtr);
-  virtual wxDataViewColumn* GetColumn        (unsigned int pos) const;
-  virtual unsigned int      GetColumnCount   () const;
-  virtual int               GetColumnPosition(const wxDataViewColumn* columnPtr) const;
-  virtual wxDataViewColumn* GetSortingColumn () const;
-  virtual bool              InsertColumn     (unsigned int pos, wxDataViewColumn *col);
-  virtual bool              PrependColumn    (wxDataViewColumn* columnPtr);
+  virtual bool              AppendColumn     (wxDataViewColumn* columnPtr) wxOVERRIDE;
+  virtual bool              ClearColumns     () wxOVERRIDE;
+  virtual bool              DeleteColumn     (wxDataViewColumn* columnPtr) wxOVERRIDE;
+  virtual wxDataViewColumn* GetColumn        (unsigned int pos) const wxOVERRIDE;
+  virtual unsigned int      GetColumnCount   () const wxOVERRIDE;
+  virtual int               GetColumnPosition(const wxDataViewColumn* columnPtr) const wxOVERRIDE;
+  virtual wxDataViewColumn* GetSortingColumn () const wxOVERRIDE;
+  virtual bool              InsertColumn     (unsigned int pos, wxDataViewColumn *col) wxOVERRIDE;
+  virtual bool              PrependColumn    (wxDataViewColumn* columnPtr) wxOVERRIDE;
 
-  virtual void Collapse( const wxDataViewItem& item);
-  virtual void EnsureVisible(const wxDataViewItem& item, const wxDataViewColumn* columnPtr=NULL);
-  virtual void Expand(const wxDataViewItem& item);
-  virtual bool IsExpanded(const wxDataViewItem & item) const;
+  virtual void Collapse( const wxDataViewItem& item) wxOVERRIDE;
+  virtual void EnsureVisible(const wxDataViewItem& item, const wxDataViewColumn* columnPtr=NULL) wxOVERRIDE;
+  virtual void Expand(const wxDataViewItem& item) wxOVERRIDE;
+  virtual bool IsExpanded(const wxDataViewItem & item) const wxOVERRIDE;
 
   virtual unsigned int GetCount() const;
   virtual wxRect GetItemRect(const wxDataViewItem& item,
-                             const wxDataViewColumn* columnPtr = NULL) const;
-  virtual int GetSelectedItemsCount() const;
-  virtual int GetSelections(wxDataViewItemArray& sel) const;
+                             const wxDataViewColumn* columnPtr = NULL) const wxOVERRIDE;
+  virtual int GetSelectedItemsCount() const wxOVERRIDE;
+  virtual int GetSelections(wxDataViewItemArray& sel) const wxOVERRIDE;
 
-  virtual void HitTest(const wxPoint& point, wxDataViewItem& item, wxDataViewColumn*& columnPtr) const;
+  virtual void HitTest(const wxPoint& point, wxDataViewItem& item, wxDataViewColumn*& columnPtr) const wxOVERRIDE;
 
-  virtual bool IsSelected(const wxDataViewItem& item) const;
+  virtual bool IsSelected(const wxDataViewItem& item) const wxOVERRIDE;
 
-  virtual void SelectAll();
-  virtual void Select(const wxDataViewItem& item);
-  virtual void SetSelections(const wxDataViewItemArray& sel);
+  virtual void SelectAll() wxOVERRIDE;
+  virtual void Select(const wxDataViewItem& item) wxOVERRIDE;
+  virtual void SetSelections(const wxDataViewItemArray& sel) wxOVERRIDE;
 
-  virtual void Unselect(const wxDataViewItem& item);
-  virtual void UnselectAll();
+  virtual void Unselect(const wxDataViewItem& item) wxOVERRIDE;
+  virtual void UnselectAll() wxOVERRIDE;
 
 //
 // implementation
@@ -201,7 +201,7 @@ public:
  // finishes editing of custom items; if no custom item is currently edited the method does nothing
   void FinishCustomItemEditing();
   
-  virtual void EditItem(const wxDataViewItem& item, const wxDataViewColumn *column);
+  virtual void EditItem(const wxDataViewItem& item, const wxDataViewColumn *column) wxOVERRIDE;
 
  // returns the n-th pointer to a column;
  // this method is different from GetColumn(unsigned int pos) because here 'n' is not a position in the control but the n-th
@@ -256,9 +256,9 @@ public:
     m_Deleting = deleting;
   }
 
-  virtual wxDataViewColumn *GetCurrentColumn() const;
+  virtual wxDataViewColumn *GetCurrentColumn() const wxOVERRIDE;
 
-  virtual wxVisualAttributes GetDefaultAttributes() const
+  virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
   {
       return GetClassDefaultAttributes(GetWindowVariant());
   }
@@ -268,10 +268,10 @@ public:
 
 protected:
  // inherited methods from wxDataViewCtrlBase
-  virtual void DoSetExpanderColumn();
-  virtual void DoSetIndent();
+  virtual void DoSetExpanderColumn() wxOVERRIDE;
+  virtual void DoSetIndent() wxOVERRIDE;
 
-  virtual wxSize DoGetBestSize() const;
+  virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
  // event handling
   void OnSize(wxSizeEvent &event);
@@ -281,8 +281,8 @@ private:
  // initializing of local variables:
   void Init();
 
-  virtual wxDataViewItem DoGetCurrentItem() const;
-  virtual void DoSetCurrentItem(const wxDataViewItem& item);
+  virtual wxDataViewItem DoGetCurrentItem() const wxOVERRIDE;
+  virtual void DoSetCurrentItem(const wxDataViewItem& item) wxOVERRIDE;
 
  //
  // variables
@@ -302,9 +302,9 @@ private:
   wxDataViewModelNotifier* m_ModelNotifier; // stores the model notifier for the control (does not own the notifier)
 
  // wxWidget internal stuff:
-  DECLARE_DYNAMIC_CLASS(wxDataViewCtrl)
-  DECLARE_NO_COPY_CLASS(wxDataViewCtrl)
-  DECLARE_EVENT_TABLE()
+  wxDECLARE_DYNAMIC_CLASS(wxDataViewCtrl);
+  wxDECLARE_NO_COPY_CLASS(wxDataViewCtrl);
+  wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_DATAVIEWCTRL_OSX_H_

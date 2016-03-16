@@ -96,7 +96,7 @@ public:
 protected:
     wxWindow* m_parentWindow;
 private:
-    DECLARE_CLASS(wxHelpControllerBase)
+    wxDECLARE_CLASS(wxHelpControllerBase);
 };
 
 #endif // wxUSE_HELP

@@ -433,7 +433,7 @@ protected:
                 // If there's a filespec, assume he's not
                 if ( watch.GetFilespec().empty() )
                 {
-                    // The the only way to know the path for the first event,
+                    // The only way to know the path for the first event,
                     // normally the IN_MOVED_FROM, is to retrieve the watch
                     // corresponding to oldinevt. This is needed for a move
                     // within a watch.

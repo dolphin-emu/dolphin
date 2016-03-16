@@ -53,19 +53,17 @@ public:
 
 #define M_BRUSHDATA ((wxBrushRefData *)m_refData)
 
-IMPLEMENT_DYNAMIC_CLASS(wxBrush,wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBrush,wxGDIObject);
 
 wxBrush::wxBrush( const wxColour &colour, wxBrushStyle style )
 {
     m_refData = new wxBrushRefData(colour, style);
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxBrush::wxBrush(const wxColour& col, int style)
 {
     m_refData = new wxBrushRefData(col, (wxBrushStyle)style);
 }
-#endif
 
 wxBrush::wxBrush( const wxBitmap &stippleBitmap )
 {

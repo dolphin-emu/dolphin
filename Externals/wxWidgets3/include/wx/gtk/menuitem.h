@@ -27,10 +27,10 @@ public:
     virtual ~wxMenuItem();
 
     // implement base class virtuals
-    virtual void SetItemLabel( const wxString& str );
-    virtual void Enable( bool enable = true );
-    virtual void Check( bool check = true );
-    virtual bool IsChecked() const;
+    virtual void SetItemLabel( const wxString& str ) wxOVERRIDE;
+    virtual void Enable( bool enable = true ) wxOVERRIDE;
+    virtual void Check( bool check = true ) wxOVERRIDE;
+    virtual bool IsChecked() const wxOVERRIDE;
     virtual void SetBitmap(const wxBitmap& bitmap);
     virtual const wxBitmap& GetBitmap() const { return m_bitmap; }
 
@@ -55,7 +55,7 @@ private:
     wxBitmap  m_bitmap; // Bitmap for menuitem, if any
     GtkWidget *m_menuItem;  // GtkMenuItem
 
-    DECLARE_DYNAMIC_CLASS(wxMenuItem)
+    wxDECLARE_DYNAMIC_CLASS(wxMenuItem);
 };
 
 #endif // _WX_GTKMENUITEM_H_

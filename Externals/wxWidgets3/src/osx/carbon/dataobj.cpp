@@ -24,14 +24,11 @@
 
 #include "wx/mstream.h"
 #include "wx/metafile.h"
+#include "wx/scopedarray.h"
 #include "wx/tokenzr.h"
 #include "wx/filename.h"
 
 #include "wx/osx/private.h"
-
-#if wxOSX_USE_COCOA_OR_CARBON
-    #include <QuickTime/QuickTime.h>
-#endif
 
 // ----------------------------------------------------------------------------
 // wxDataFormat
@@ -395,8 +392,8 @@ bool wxDataObject::GetFromPasteboard( void * pb )
     PasteboardRef pasteboard = (PasteboardRef) pb;
 
     size_t formatcount = GetFormatCount(wxDataObject::Set);
-    wxDataFormat *array = new wxDataFormat[ formatcount ];
-    GetAllFormats(array, wxDataObject::Set);
+    wxScopedArray<wxDataFormat> array(formatcount);
+    GetAllFormats(array.get(), wxDataObject::Set);
     
     ItemCount itemCount = 0;
     wxString filenamesPassed;
@@ -539,8 +536,8 @@ bool wxDataObject::HasDataInPasteboard( void * pb )
 {
     PasteboardRef pasteboard = (PasteboardRef) pb;
     size_t formatcount = GetFormatCount(wxDataObject::Set);
-    wxDataFormat *array = new wxDataFormat[ formatcount ];
-    GetAllFormats(array, wxDataObject::Set);
+    wxScopedArray<wxDataFormat> array(formatcount);
+    GetAllFormats(array.get(), wxDataObject::Set);
     ItemCount itemCount = 0;
     bool hasData = false;
 
@@ -840,10 +837,7 @@ bool wxBitmapDataObject::SetData( size_t nSize, const void *pBuf )
 
     if ( cgImageRef )
     {
-        m_bitmap.Create( CGImageGetWidth(cgImageRef)  , CGImageGetHeight(cgImageRef) );
-        CGRect r = CGRectMake( 0 , 0 , CGImageGetWidth(cgImageRef)  , CGImageGetHeight(cgImageRef) );
-        // since our context is upside down we dont use CGContextDrawImage
-        wxMacDrawCGImage( (CGContextRef) m_bitmap.GetHBITMAP() , &r, cgImageRef ) ;
+        m_bitmap.Create( cgImageRef );
         CGImageRelease(cgImageRef);
         cgImageRef = NULL;
     }

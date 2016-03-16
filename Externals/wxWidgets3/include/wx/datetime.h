@@ -16,11 +16,7 @@
 
 #if wxUSE_DATETIME
 
-#ifdef __WXWINCE__
-    #include "wx/msw/wince/time.h"
-#else
-    #include <time.h>
-#endif // OS
+#include <time.h>
 
 #include <limits.h>             // for INT_MIN
 
@@ -120,8 +116,8 @@ extern WXDLLIMPEXP_DATA_BASE(const wxDateTime) wxDefaultDateTime;
 // if configure detected strftime(), we have it too
 #ifdef HAVE_STRFTIME
     #define wxHAS_STRFTIME
-// suppose everyone else has strftime except Win CE unless VC8 is used
-#elif !defined(__WXWINCE__) || defined(__VISUALC8__)
+// suppose everyone else has strftime
+#else
     #define wxHAS_STRFTIME
 #endif
 
@@ -226,11 +222,6 @@ public:
         // day or not
         //
         // TODO move this to intl.h
-
-// Required for WinCE
-#ifdef USA
-#undef USA
-#endif
 
     enum Country
     {
@@ -462,10 +453,7 @@ public:
     wxDateTime() { m_time = wxLongLong(wxINT32_MIN, 0); }
 
         // from time_t: seconds since the Epoch 00:00:00 UTC, Jan 1, 1970)
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
-// VA C++ confuses this with wxDateTime(double jdn) thinking it is a duplicate declaration
     inline wxDateTime(time_t timet);
-#endif
         // from broken down time/date (only for standard Unix range)
     inline wxDateTime(const struct tm& tm);
         // from broken down time/date (any range)
@@ -506,11 +494,8 @@ public:
         // set to the current time
     inline wxDateTime& SetToCurrent();
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
-// VA C++ confuses this with wxDateTime(double jdn) thinking it is a duplicate declaration
         // set to given time_t value
     inline wxDateTime& Set(time_t timet);
-#endif
 
         // set to given broken down time/date
     wxDateTime& Set(const struct tm& tm);
@@ -612,21 +597,6 @@ public:
     inline wxDateTime GetLastWeekDay(WeekDay weekday,
                                      Month month = Inv_Month,
                                      int year = Inv_Year);
-
-#if WXWIN_COMPATIBILITY_2_6
-        // sets the date to the given day of the given week in the year,
-        // returns true on success and false if given date doesn't exist (e.g.
-        // numWeek is > 53)
-        //
-        // these functions are badly defined as they're not the reverse of
-        // GetWeekOfYear(), use SetToTheWeekOfYear() instead
-    wxDEPRECATED( bool SetToTheWeek(wxDateTime_t numWeek,
-                                    WeekDay weekday = Mon,
-                                    WeekFlags flags = Monday_First) );
-    wxDEPRECATED( wxDateTime GetWeek(wxDateTime_t numWeek,
-                                     WeekDay weekday = Mon,
-                                     WeekFlags flags = Monday_First) const );
-#endif // WXWIN_COMPATIBILITY_2_6
 
         // returns the date corresponding to the given week day of the given
         // week (in ISO notation) of the specified year
@@ -781,6 +751,9 @@ public:
         // invalid)
     wxDateTime_t GetWeekOfYear(WeekFlags flags = Monday_First,
                                const TimeZone& tz = Local) const;
+        // get the year to which the number returned from GetWeekOfYear()
+        // belongs
+    int GetWeekBasedYear(const TimeZone& tz = Local) const;
         // get the week number since the month start (1..5, 0 if date is
         // invalid)
     wxDateTime_t GetWeekOfMonth(WeekFlags flags = Monday_First,
@@ -1599,10 +1572,10 @@ private:
 class WXDLLIMPEXP_BASE wxDateTimeWorkDays : public wxDateTimeHolidayAuthority
 {
 protected:
-    virtual bool DoIsHoliday(const wxDateTime& dt) const;
+    virtual bool DoIsHoliday(const wxDateTime& dt) const wxOVERRIDE;
     virtual size_t DoGetHolidaysInRange(const wxDateTime& dtStart,
                                         const wxDateTime& dtEnd,
-                                        wxDateTimeArray& holidays) const;
+                                        wxDateTimeArray& holidays) const wxOVERRIDE;
 };
 
 // ============================================================================
@@ -1651,7 +1624,6 @@ inline wxDateTime wxDateTime::Today()
     return dt;
 }
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
 inline wxDateTime& wxDateTime::Set(time_t timet)
 {
     if ( timet == (time_t)-1 )
@@ -1667,7 +1639,6 @@ inline wxDateTime& wxDateTime::Set(time_t timet)
 
     return *this;
 }
-#endif
 
 inline wxDateTime& wxDateTime::SetToCurrent()
 {
@@ -1675,12 +1646,10 @@ inline wxDateTime& wxDateTime::SetToCurrent()
     return *this;
 }
 
-#if (!(defined(__VISAGECPP__) && __IBMCPP__ >= 400))
 inline wxDateTime::wxDateTime(time_t timet)
 {
     Set(timet);
 }
-#endif
 
 inline wxDateTime::wxDateTime(const struct tm& tm)
 {

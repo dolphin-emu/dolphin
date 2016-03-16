@@ -37,7 +37,7 @@
 #include <wctype.h>
 #include <time.h>
 
-#if defined(__WINDOWS__) && !defined(__WXWINCE__)
+#if defined(__WINDOWS__)
     #include <io.h>
 #endif
 
@@ -46,60 +46,28 @@
 #endif
 
 /*
-    Using -std=c++{98,0x} option with mingw32 disables most of standard
-    library extensions, so we can't rely on the presence of common non-ANSI
-    functions, define a special symbol to test for this. Notice that this
-    doesn't need to be done for g++ under Linux where _GNU_SOURCE (which is
-    defined by default) still makes all common extensions available even in
-    ANSI mode.
- */
-#if defined(__MINGW32__) && defined(__STRICT_ANSI__)
-    #define __WX_STRICT_ANSI_GCC__
-#endif
-
-/*
-   a few compilers don't have the (non standard but common) isascii function,
-   define it ourselves for them
+   Traditional MinGW doesn't declare isascii() in strict ANSI mode and we can't
+   declare it here ourselves as it's an inline function, so use our own
+   replacement instead.
  */
 #ifndef isascii
-    #if defined(__WX_STRICT_ANSI_GCC__)
+    #if defined(wxNEEDS_STRICT_ANSI_WORKAROUNDS)
         #define wxNEED_ISASCII
-    #elif defined(_WIN32_WCE)
-        #if _WIN32_WCE <= 211
-            #define wxNEED_ISASCII
-        #endif
     #endif
 #endif /* isascii */
 
 #ifdef wxNEED_ISASCII
     inline int isascii(int c) { return (unsigned)c < 0x80; }
+
+    // Avoid further (re)definitions of it.
+    #define isascii isascii
 #endif
 
-#ifdef _WIN32_WCE
-    #if _WIN32_WCE <= 211
-        #define isspace(c) ((c) == wxT(' ') || (c) == wxT('\t'))
-    #endif
-#endif /* _WIN32_WCE */
-
 /* string.h functions */
-#ifndef strdup
-    #if defined(__WXWINCE__)
-        #if _WIN32_WCE <= 211
-            #define wxNEED_STRDUP
-        #endif
-    #endif
-#endif /* strdup */
 
 #ifdef wxNEED_STRDUP
     WXDLLIMPEXP_BASE char *strdup(const char* s);
 #endif
-
-/* missing functions in some WinCE versions */
-#ifdef _WIN32_WCE
-#if (_WIN32_WCE < 300)
-WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
-#endif
-#endif /* _WIN32_WCE */
 
 
 /* -------------------------------------------------------------------------
@@ -154,30 +122,26 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
 #define wxCRT_StrspnW    wcsspn
 #define wxCRT_StrstrW    wcsstr
 
-/* these functions are not defined under CE, at least in VC8 CRT */
-#if !defined(__WXWINCE__)
-    #define wxCRT_StrcollA   strcoll
-    #define wxCRT_StrxfrmA   strxfrm
+#define wxCRT_StrcollA   strcoll
+#define wxCRT_StrxfrmA   strxfrm
 
-    #define wxCRT_StrcollW   wcscoll
-    #define wxCRT_StrxfrmW   wcsxfrm
-#endif /* __WXWINCE__ */
+#define wxCRT_StrcollW   wcscoll
+#define wxCRT_StrxfrmW   wcsxfrm
 
 /* Almost all compilers have strdup(), but VC++ and MinGW call it _strdup().
-   And it's not available in MinGW strict ANSI mode nor under Windows CE. */
+   And we need to declare it manually for MinGW in strict ANSI mode. */
 #if (defined(__VISUALC__) && __VISUALC__ >= 1400)
     #define wxCRT_StrdupA _strdup
 #elif defined(__MINGW32__)
-    #ifndef __WX_STRICT_ANSI_GCC__
-        #define wxCRT_StrdupA _strdup
-    #endif
-#elif !defined(__WXWINCE__)
+    wxDECL_FOR_STRICT_MINGW32(char*, _strdup, (const char *))
+    #define wxCRT_StrdupA _strdup
+#else
     #define wxCRT_StrdupA strdup
 #endif
 
-/* most Windows compilers provide _wcsdup() */
-#if defined(__WINDOWS__) && \
-        !(defined(__CYGWIN__) || defined(__WX_STRICT_ANSI_GCC__))
+/* Windows compilers provide _wcsdup() except for (old) Cygwin */
+#if defined(__WINDOWS__) && !defined(__CYGWIN__)
+    wxDECL_FOR_STRICT_MINGW32(wchar_t*, _wcsdup, (const wchar_t*))
     #define wxCRT_StrdupW _wcsdup
 #elif defined(HAVE_WCSDUP)
     #define wxCRT_StrdupW wcsdup
@@ -197,18 +161,38 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
 #define wxCRT_StrtodA    strtod
 #define wxCRT_StrtolA    strtol
 #define wxCRT_StrtoulA   strtoul
+
+#ifdef __ANDROID__ // these functions are broken on android
+
+extern double android_wcstod(const wchar_t *nptr, wchar_t **endptr);
+extern long android_wcstol(const wchar_t *nptr, wchar_t **endptr, int base);
+extern unsigned long android_wcstoul(const wchar_t *nptr, wchar_t **endptr, int base);
+
+#define wxCRT_StrtodW    android_wcstod
+#define wxCRT_StrtolW    android_wcstol
+#define wxCRT_StrtoulW   android_wcstoul
+#else
 #define wxCRT_StrtodW    wcstod
 #define wxCRT_StrtolW    wcstol
 #define wxCRT_StrtoulW   wcstoul
+#endif
 
 #ifdef __VISUALC__
-    #if __VISUALC__ >= 1300 && !defined(__WXWINCE__)
-        #define wxCRT_StrtollA   _strtoi64
-        #define wxCRT_StrtoullA  _strtoui64
-        #define wxCRT_StrtollW   _wcstoi64
-        #define wxCRT_StrtoullW  _wcstoui64
-    #endif /* VC++ 7+ */
+    #define wxCRT_StrtollA   _strtoi64
+    #define wxCRT_StrtoullA  _strtoui64
+    #define wxCRT_StrtollW   _wcstoi64
+    #define wxCRT_StrtoullW  _wcstoui64
 #else
+    /* Both of these functions are implemented in C++11 compilers */
+    #if defined(__cplusplus) && __cplusplus >= 201103L
+        #ifndef HAVE_STRTOULL
+            #define HAVE_STRTOULL
+        #endif
+        #ifndef HAVE_WCSTOULL
+            #define HAVE_WCSTOULL
+        #endif
+    #endif
+
     #ifdef HAVE_STRTOULL
         #define wxCRT_StrtollA   strtoll
         #define wxCRT_StrtoullA  strtoull
@@ -221,10 +205,9 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
 #endif
 
 /*
-    Only VC8 and later provide strnlen() and wcsnlen() functions under Windows
-    and it's also only available starting from Windows CE 6.0 only in CE build.
+    Only VC8 and later provide strnlen() and wcsnlen() functions under Windows.
  */
-#if wxCHECK_VISUALC_VERSION(8) && (!defined(_WIN32_WCE) || (_WIN32_WCE >= 0x600))
+#if wxCHECK_VISUALC_VERSION(8)
     #ifndef HAVE_STRNLEN
         #define HAVE_STRNLEN
     #endif
@@ -243,15 +226,16 @@ WXDLLIMPEXP_BASE void *calloc( size_t num, size_t size );
 
 /* define wxCRT_StricmpA/W and wxCRT_StrnicmpA/W for various compilers */
 
-#if defined(__BORLANDC__) || defined(__WATCOMC__) || \
-        defined(__VISAGECPP__) || \
-        defined(__EMX__) || defined(__DJGPP__)
+#if defined(__BORLANDC__)
     #define wxCRT_StricmpA stricmp
     #define wxCRT_StrnicmpA strnicmp
-#elif defined(__SYMANTEC__) || (defined(__VISUALC__) && !defined(__WXWINCE__))
+#elif defined(__VISUALC__) || defined(__MINGW32__)
+    wxDECL_FOR_STRICT_MINGW32(int, _stricmp, (const char*, const char*))
+    wxDECL_FOR_STRICT_MINGW32(int, _strnicmp, (const char*, const char*, size_t))
+
     #define wxCRT_StricmpA _stricmp
     #define wxCRT_StrnicmpA _strnicmp
-#elif defined(__UNIX__) || (defined(__GNUWIN32__) && !defined(__WX_STRICT_ANSI_GCC__))
+#elif defined(__UNIX__)
     #define wxCRT_StricmpA strcasecmp
     #define wxCRT_StrnicmpA strncasecmp
 /* #else -- use wxWidgets implementation */
@@ -443,30 +427,15 @@ WXDLLIMPEXP_BASE wchar_t *wxCRT_StrtokW(wchar_t *psz, const wchar_t *delim, wcha
     #define wxCRT_Rename  rename
 
 #else /* Unicode filenames */
-    /* special case: these functions are missing under Win9x with Unicows so we
-       have to implement them ourselves */
-    #if wxUSE_UNICODE_MSLU || defined(__WX_STRICT_ANSI_GCC__)
-            WXDLLIMPEXP_BASE FILE* wxMSLU__wfopen(const wchar_t *name, const wchar_t *mode);
-            WXDLLIMPEXP_BASE FILE* wxMSLU__wfreopen(const wchar_t *name, const wchar_t *mode, FILE *stream);
-            WXDLLIMPEXP_BASE int wxMSLU__wrename(const wchar_t *oldname, const wchar_t *newname);
-            WXDLLIMPEXP_BASE int wxMSLU__wremove(const wchar_t *name);
-            #define wxCRT_Fopen     wxMSLU__wfopen
-            #define wxCRT_Freopen   wxMSLU__wfreopen
-            #define wxCRT_Remove    wxMSLU__wremove
-            #define wxCRT_Rename    wxMSLU__wrename
-    #else
-        /* WinCE CRT doesn't provide these functions so use our own */
-        #ifdef __WXWINCE__
-            WXDLLIMPEXP_BASE int wxCRT_Rename(const wchar_t *src,
-                                              const wchar_t *dst);
-            WXDLLIMPEXP_BASE int wxCRT_Remove(const wchar_t *path);
-        #else
-            #define wxCRT_Rename   _wrename
-            #define wxCRT_Remove _wremove
-        #endif
-        #define wxCRT_Fopen    _wfopen
-        #define wxCRT_Freopen  _wfreopen
-    #endif
+    wxDECL_FOR_STRICT_MINGW32(FILE*, _wfopen, (const wchar_t*, const wchar_t*))
+    wxDECL_FOR_STRICT_MINGW32(FILE*, _wfreopen, (const wchar_t*, const wchar_t*, FILE*))
+    wxDECL_FOR_STRICT_MINGW32(int, _wrename, (const wchar_t*, const wchar_t*))
+    wxDECL_FOR_STRICT_MINGW32(int, _wremove, (const wchar_t*))
+
+    #define wxCRT_Rename   _wrename
+    #define wxCRT_Remove _wremove
+    #define wxCRT_Fopen    _wfopen
+    #define wxCRT_Freopen  _wfreopen
 
 #endif /* wxMBFILES/!wxMBFILES */
 
@@ -512,30 +481,18 @@ WXDLLIMPEXP_BASE int wxCRT_FputcW(wchar_t wc, FILE *stream);
 */
 #define wxTmpnam(x)         wxTmpnam_is_insecure_use_wxTempFile_instead
 
-/* FIXME-CE: provide our own perror() using ::GetLastError() */
-#ifndef __WXWINCE__
-
 #define wxCRT_PerrorA   perror
 #ifdef wxHAVE_TCHAR_SUPPORT
     #define wxCRT_PerrorW _wperror
 #endif
 
-#endif /* !__WXWINCE__ */
-
 /* -------------------------------------------------------------------------
                                   stdlib.h
    ------------------------------------------------------------------------- */
 
-/* there are no env vars at all under CE, so no _tgetenv neither */
-#ifdef __WXWINCE__
-    /* can't define as inline function as this is a C file... */
-    #define wxCRT_GetenvA(name)     (name, NULL)
-    #define wxCRT_GetenvW(name)     (name, NULL)
-#else
-    #define wxCRT_GetenvA           getenv
-    #ifdef _tgetenv
-        #define wxCRT_GetenvW       _wgetenv
-    #endif
+#define wxCRT_GetenvA           getenv
+#ifdef _tgetenv
+    #define wxCRT_GetenvW       _wgetenv
 #endif
 
 #ifndef wxCRT_GetenvW
@@ -553,7 +510,10 @@ WXDLLIMPEXP_BASE wchar_t * wxCRT_GetenvW(const wchar_t *name);
 #define wxCRT_AtoiA                 atoi
 #define wxCRT_AtolA                 atol
 
-#if defined(wxHAVE_TCHAR_SUPPORT) && !defined(__WX_STRICT_ANSI_GCC__)
+#if defined(wxHAVE_TCHAR_SUPPORT)
+    wxDECL_FOR_STRICT_MINGW32(int, _wtoi, (const wchar_t*))
+    wxDECL_FOR_STRICT_MINGW32(long, _wtol, (const wchar_t*))
+
     #define  wxCRT_AtoiW           _wtoi
     #define  wxCRT_AtolW           _wtol
     /* _wtof doesn't exist */
@@ -613,23 +573,17 @@ WXDLLIMPEXP_BASE size_t wxCRT_StrftimeW(wchar_t *s, size_t max,
                                 ctype.h
    ------------------------------------------------------------------------- */
 
-#ifdef __WATCOMC__
-  #define WXWCHAR_T_CAST(c) (wint_t)(c)
-#else
-  #define WXWCHAR_T_CAST(c) c
-#endif
-
-#define wxCRT_IsalnumW(c)   iswalnum(WXWCHAR_T_CAST(c))
-#define wxCRT_IsalphaW(c)   iswalpha(WXWCHAR_T_CAST(c))
-#define wxCRT_IscntrlW(c)   iswcntrl(WXWCHAR_T_CAST(c))
-#define wxCRT_IsdigitW(c)   iswdigit(WXWCHAR_T_CAST(c))
-#define wxCRT_IsgraphW(c)   iswgraph(WXWCHAR_T_CAST(c))
-#define wxCRT_IslowerW(c)   iswlower(WXWCHAR_T_CAST(c))
-#define wxCRT_IsprintW(c)   iswprint(WXWCHAR_T_CAST(c))
-#define wxCRT_IspunctW(c)   iswpunct(WXWCHAR_T_CAST(c))
-#define wxCRT_IsspaceW(c)   iswspace(WXWCHAR_T_CAST(c))
-#define wxCRT_IsupperW(c)   iswupper(WXWCHAR_T_CAST(c))
-#define wxCRT_IsxdigitW(c)  iswxdigit(WXWCHAR_T_CAST(c))
+#define wxCRT_IsalnumW(c)   iswalnum(c)
+#define wxCRT_IsalphaW(c)   iswalpha(c)
+#define wxCRT_IscntrlW(c)   iswcntrl(c)
+#define wxCRT_IsdigitW(c)   iswdigit(c)
+#define wxCRT_IsgraphW(c)   iswgraph(c)
+#define wxCRT_IslowerW(c)   iswlower(c)
+#define wxCRT_IsprintW(c)   iswprint(c)
+#define wxCRT_IspunctW(c)   iswpunct(c)
+#define wxCRT_IsspaceW(c)   iswspace(c)
+#define wxCRT_IsupperW(c)   iswupper(c)
+#define wxCRT_IsxdigitW(c)  iswxdigit(c)
 
 #ifdef __GLIBC__
     #if defined(__GLIBC__) && (__GLIBC__ == 2) && (__GLIBC_MINOR__ == 0)
@@ -643,14 +597,34 @@ WXDLLIMPEXP_BASE size_t wxCRT_StrftimeW(wchar_t *s, size_t max,
         #define wxCRT_ToupperW   towupper
     #endif
 #else /* !__GLIBC__ */
-    /* There is a bug in VC6 C RTL: toxxx() functions dosn't do anything
+    /* There is a bug in MSVC RTL: toxxx() functions dosn't do anything
        with signed chars < 0, so "fix" it here. */
     #define wxCRT_TolowerW(c)   towlower((wxUChar)(wxChar)(c))
     #define wxCRT_ToupperW(c)   towupper((wxUChar)(wxChar)(c))
 #endif /* __GLIBC__/!__GLIBC__ */
 
+/* The Android platform, as of 2014, only support most wide-char function with
+   the exception of multi-byte encoding/decoding functions & wsprintf/wsscanf
+   See android-ndk-r9d/docs/STANDALONE-TOOLCHAIN.html (section 7.2)
+   In fact, mbstowcs/wcstombs are defined and compile, but don't work correctly
+*/
 
+#if defined(__WXQT__) && defined(__ANDROID__)
+    #define wxNEED_WX_MBSTOWCS
+    #undef HAVE_WCSRTOMBS
+    // TODO: use Qt built-in required functionality
+#endif
 
+#if defined(wxNEED_WX_MBSTOWCS) && defined(__ANDROID__)
+    #warning "Custom mb/wchar conv. only works for ASCII, see Android NDK notes"
+    WXDLLIMPEXP_BASE size_t android_mbstowcs(wchar_t *, const char *, size_t);
+    WXDLLIMPEXP_BASE size_t android_wcstombs(char *, const wchar_t *, size_t);
+    #define wxMbstowcs android_mbstowcs
+    #define wxWcstombs android_wcstombs
+#else
+    #define wxMbstowcs mbstowcs
+    #define wxWcstombs wcstombs
+#endif
 
 
 /* -------------------------------------------------------------------------

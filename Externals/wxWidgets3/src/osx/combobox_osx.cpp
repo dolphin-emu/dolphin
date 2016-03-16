@@ -56,9 +56,6 @@ bool wxComboBox::Create(wxWindow *parent, wxWindowID id,
     if ( !wxControl::Create( parent, id, pos, size, style, validator, name ) )
         return false;
 
-    wxASSERT_MSG( !(style & wxCB_SORT),
-                  "wxCB_SORT not currently supported by wxOSX/Cocoa");
-
     SetPeer(wxWidgetImpl::CreateComboBox( this, parent, id, NULL, pos, size, style, GetExtraStyle() ));
 
     MacPostControlCreate( pos, size );

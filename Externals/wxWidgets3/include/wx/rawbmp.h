@@ -121,14 +121,11 @@ struct wxPixelFormat
     // the type which may hold the entire pixel value
     typedef Pixel PixelType;
 
-    // NB: using static ints initialized inside the class declaration is not
-    //     portable as it doesn't work with VC++ 6, so we must use enums
-
     // size of one pixel in bits
-    enum { BitsPerPixel = Bpp };
+    static const int BitsPerPixel = Bpp;
 
     // size of one pixel in ChannelType units (usually bytes)
-    enum { SizePixel = Bpp / (8 * sizeof(Channel)) };
+    static const int SizePixel = Bpp / (8 * sizeof(Channel));
 
     // the channels indices inside the pixel
     enum
@@ -162,18 +159,8 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
     typedef wxPixelFormat<unsigned char, 32, 1, 2, 3> wxNativePixelFormat;
 
     #define wxPIXEL_FORMAT_ALPHA 0
-#elif defined(__WXCOCOA__)
-    // Cocoa is standard RGB or RGBA (normally it is RGBA)
-    typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
-
-    #define wxPIXEL_FORMAT_ALPHA 3
 #elif defined(__WXGTK__)
     // Under GTK+ 2.X we use GdkPixbuf, which is standard RGB or RGBA
-    typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
-
-    #define wxPIXEL_FORMAT_ALPHA 3
-#elif defined(__WXPM__)
-    // Under PM, we can use standard RGB or RGBA
     typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
 
     #define wxPIXEL_FORMAT_ALPHA 3
@@ -181,6 +168,10 @@ typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxImagePixelFormat;
     // Under DirectFB, RGB components are reversed, they're in BGR order
     typedef wxPixelFormat<unsigned char, 24, 2, 1, 0> wxNativePixelFormat;
 
+    #define wxPIXEL_FORMAT_ALPHA 3
+#elif defined(__WXQT__)
+    typedef wxPixelFormat<unsigned char, 24, 0, 1, 2> wxNativePixelFormat;
+    
     #define wxPIXEL_FORMAT_ALPHA 3
 #endif
 
@@ -271,10 +262,10 @@ protected:
     into the CPU registers by the compiler any more.
 
     Implementation note: we use the standard workaround for lack of partial
-    template specialization support in VC (both 6 and 7): instead of partly
-    specializing the class Foo<T, U> for some T we introduce FooOut<T> and
-    FooIn<U> nested in it, make Foo<T, U> equivalent to FooOut<T>::FooIn<U> and
-    fully specialize FooOut.
+    template specialization support in VC7: instead of partly specializing the
+    class Foo<T, U> for some T we introduce FooOut<T> and FooIn<U> nested in
+    it, make Foo<T, U> equivalent to FooOut<T>::FooIn<U> and fully specialize
+    FooOut (FIXME-VC7).
 
     Also note that this class doesn't have any default definition because we
     can't really do anything without knowing the exact image class. We do
@@ -381,7 +372,7 @@ struct wxPixelDataOut<wxImage>
             {
                 m_pRGB += data.GetRowStride()*y + PixelFormat::SizePixel*x;
                 if ( m_pAlpha )
-                    m_pAlpha += data.GetWidth() + x;
+                    m_pAlpha += data.GetWidth()*y + x;
             }
 
             // move x pixels to the right (again, no row wrapping)
@@ -397,7 +388,7 @@ struct wxPixelDataOut<wxImage>
             {
                 m_pRGB += data.GetRowStride()*y;
                 if ( m_pAlpha )
-                    m_pAlpha += data.GetWidth();
+                    m_pAlpha += data.GetWidth()*y;
             }
 
             // go to the given position
@@ -693,18 +684,8 @@ struct wxPixelDataOut<wxBitmap>
 
 #endif //wxUSE_GUI
 
-// FIXME-VC6: VC6 doesn't like typename in default template parameters while
-//            it is necessary with standard-conforming compilers, remove this
-//            #define and just use typename when we drop VC6 support
-#if defined(__VISUALC__) && !wxCHECK_VISUALC_VERSION(7)
-    #define wxTYPENAME_IN_TEMPLATE_DEFAULT_PARAM
-#else
-    #define wxTYPENAME_IN_TEMPLATE_DEFAULT_PARAM typename
-#endif
-
 template <class Image,
-          class PixelFormat = wxTYPENAME_IN_TEMPLATE_DEFAULT_PARAM
-                                wxPixelFormatFor<Image>::Format >
+          class PixelFormat = typename wxPixelFormatFor<Image>::Format >
 class wxPixelData :
     public wxPixelDataOut<Image>::template wxPixelDataIn<PixelFormat>
 {
@@ -747,7 +728,7 @@ typedef wxPixelData<wxBitmap, wxAlphaPixelFormat> wxAlphaPixelData;
     Note that although it would have been much more intuitive to have a real
     class here instead of what we have now, this class would need two template
     parameters, and this can't be done because we'd need compiler support for
-    partial template specialization then and neither VC6 nor VC7 provide it.
+    partial template specialization then and VC7 doesn't provide it.
  */
 template < class Image, class PixelFormat = wxPixelFormatFor<Image> >
 struct wxPixelIterator : public wxPixelData<Image, PixelFormat>::Iterator

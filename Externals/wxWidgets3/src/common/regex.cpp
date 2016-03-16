@@ -35,11 +35,8 @@
     #include "wx/crt.h"
 #endif //WX_PRECOMP
 
-// FreeBSD, Watcom and DMars require this, CW doesn't have nor need it.
-// Others also don't seem to need it. If you have an error related to
-// (not) including <sys/types.h> please report details to
-// wx-dev@lists.wxwindows.org
-#if defined(__UNIX__) || defined(__WATCOMC__) || defined(__DIGITALMARS__)
+// At least FreeBSD requires this.
+#if defined(__UNIX__)
 #   include <sys/types.h>
 #endif
 
@@ -433,7 +430,7 @@ bool wxRegExImpl::Matches(const wxRegChar *str,
             // an error occurred
             wxLogError(_("Failed to find match for regular expression: %s"),
                        GetErrorMsg(rc, !str).c_str());
-            // fall through
+            wxFALLTHROUGH;
 
         case REG_NOMATCH:
             // no match

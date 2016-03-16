@@ -24,7 +24,7 @@
 
 #include "wx/msw/private.h"
 
-IMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxMSWDCImpl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxScreenDCImpl, wxMSWDCImpl);
 
 // Create a DC representing the whole screen
 wxScreenDCImpl::wxScreenDCImpl( wxScreenDC *owner ) :

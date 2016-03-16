@@ -12,6 +12,9 @@
 
 #include <GL/glx.h>
 
+class wxGLContextAttrs;
+class wxGLAttributes;
+
 // ----------------------------------------------------------------------------
 // wxGLContext
 // ----------------------------------------------------------------------------
@@ -19,10 +22,12 @@
 class WXDLLIMPEXP_GL wxGLContext : public wxGLContextBase
 {
 public:
-    wxGLContext(wxGLCanvas *win, const wxGLContext *other = NULL);
+    wxGLContext(wxGLCanvas *win,
+                const wxGLContext *other = NULL,
+                const wxGLContextAttrs *ctxAttrs = NULL);
     virtual ~wxGLContext();
 
-    virtual bool SetCurrent(const wxGLCanvas& win) const;
+    virtual bool SetCurrent(const wxGLCanvas& win) const wxOVERRIDE;
 
 private:
     // attach context to the drawable or unset it (if NULL)
@@ -30,7 +35,7 @@ private:
 
     GLXContext m_glContext;
 
-    DECLARE_CLASS(wxGLContext)
+    wxDECLARE_CLASS(wxGLContext);
 };
 
 // ----------------------------------------------------------------------------
@@ -46,8 +51,8 @@ public:
     // default ctor doesn't do anything, InitVisual() must be called
     wxGLCanvasX11();
 
-    // initializes the XVisualInfo corresponding to the given attributes
-    bool InitVisual(const int *attribList);
+    // initializes GLXFBConfig and XVisualInfo corresponding to the given attributes
+    bool InitVisual(const wxGLAttributes& dispAttrs);
 
     // frees XVisualInfo info
     virtual ~wxGLCanvasX11();
@@ -56,7 +61,7 @@ public:
     // implement wxGLCanvasBase methods
     // --------------------------------
 
-    virtual bool SwapBuffers();
+    virtual bool SwapBuffers() wxOVERRIDE;
 
 
     // X11-specific methods
@@ -72,12 +77,15 @@ public:
     virtual Window GetXWindow() const = 0;
 
 
+    // GLX-specific methods
+    // --------------------
+
     // override some wxWindow methods
     // ------------------------------
 
     // return true only if the window is realized: OpenGL context can't be
     // created until we are
-    virtual bool IsShownOnScreen() const;
+    virtual bool IsShownOnScreen() const wxOVERRIDE;
 
 
     // implementation only from now on
@@ -101,17 +109,10 @@ public:
     //
     // returns false if XVisualInfo couldn't be initialized, otherwise caller
     // is responsible for freeing the pointers
-    static bool InitXVisualInfo(const int *attribList,
+    static bool InitXVisualInfo(const wxGLAttributes& dispAttrs,
                                 GLXFBConfig **pFBC, XVisualInfo **pXVisual);
 
 private:
-    // fills in glattrs with attributes defined by wxattrs which must be
-    // 0-terminated if it is non-NULL
-    //
-    // n is the max size of glattrs, false is returned if we overflow it, it
-    // should be at least 16 to accommodate the default attributes
-    static bool ConvertWXAttrsToGL(const int *wxattrs, int *glattrs, size_t n);
-
 
     // this is only used if it's supported i.e. if GL >= 1.3
     GLXFBConfig *m_fbc;
@@ -137,19 +138,19 @@ public:
     wxGLApp() : wxGLAppBase() { }
 
     // implement wxGLAppBase method
-    virtual bool InitGLVisual(const int *attribList)
+    virtual bool InitGLVisual(const int *attribList) wxOVERRIDE
     {
         return wxGLCanvasX11::InitDefaultVisualInfo(attribList);
     }
 
     // and implement this wxGTK::wxApp method too
-    virtual void *GetXVisualInfo()
+    virtual void *GetXVisualInfo() wxOVERRIDE
     {
         return wxGLCanvasX11::GetDefaultXVisualInfo();
     }
 
     // and override this wxApp method to clean up
-    virtual int OnExit()
+    virtual int OnExit() wxOVERRIDE
     {
         wxGLCanvasX11::FreeDefaultVisualInfo();
 
@@ -157,7 +158,7 @@ public:
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxGLApp)
+    wxDECLARE_DYNAMIC_CLASS(wxGLApp);
 };
 
 #endif // _WX_UNIX_GLX11_H_

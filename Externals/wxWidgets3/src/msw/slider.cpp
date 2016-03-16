@@ -74,6 +74,8 @@ void wxSlider::Init()
 {
     m_labels = NULL;
 
+    m_hBrushBg = NULL;
+
     m_pageSize = 1;
     m_lineSize = 1;
     m_rangeMax = 0;
@@ -429,6 +431,8 @@ void wxSlider::DoMoveWindow(int x, int y, int width, int height)
             labelOffset = longestLabelWidth + HGAP;
         }
 
+        int labelHeightUsed = 0 ;
+
         if ( HasFlag(wxSL_MIN_MAX_LABELS) )
         {
             if ( HasFlag(wxSL_INVERSE) )
@@ -444,6 +448,8 @@ void wxSlider::DoMoveWindow(int x, int y, int width, int height)
                 holdBottomX,
                 y + height - labelHeight,
                 maxLabelWidth, labelHeight);
+
+            labelHeightUsed = labelHeight ;
         }
 
         if ( HasFlag(wxSL_VALUE_LABEL) )
@@ -457,9 +463,9 @@ void wxSlider::DoMoveWindow(int x, int y, int width, int height)
         // position the slider itself along the left/right edge
         wxSliderBase::DoMoveWindow(
             x + labelOffset,
-            y + labelHeight,
+            y + labelHeightUsed,
             THUMB + tickOffset + HGAP,
-            height - (labelHeight * 2));
+            height - (labelHeightUsed * 2));
     }
     else // horizontal
     {
@@ -471,6 +477,8 @@ void wxSlider::DoMoveWindow(int x, int y, int width, int height)
             (longestLabelWidth / 2);
 
         int ySlider = y;
+        int minLabelWidthUsed = 0 ;
+        int maxLabelWidthUsed = 0 ;
 
         if ( HasFlag(wxSL_VALUE_LABEL) )
         {
@@ -496,13 +504,16 @@ void wxSlider::DoMoveWindow(int x, int y, int width, int height)
                 x + width - maxLabelWidth,
                 yLabelMinMax,
                 maxLabelWidth, labelHeight);
+
+            minLabelWidthUsed = minLabelWidth + VGAP ;
+            maxLabelWidthUsed = maxLabelWidth + VGAP ;
         }
 
         // position the slider itself along the top/bottom edge
         wxSliderBase::DoMoveWindow(
-            x + minLabelWidth + VGAP,
+            x + minLabelWidthUsed,
             ySlider,
-            width  - (minLabelWidth + maxLabelWidth  + (VGAP*2)),
+            width - (minLabelWidthUsed + maxLabelWidthUsed),
             THUMB + tickOffset);
     }
 }
@@ -544,10 +555,8 @@ wxSize wxSlider::DoGetBestSize() const
         {
             int labelSize = GetLabelsSize();
 
-            // Min/max labels are compensated by the ticks so we don't need
-            // extra space for them if we're also showing ticks.
-            if ( HasFlag(wxSL_MIN_MAX_LABELS) && !HasFlag(wxSL_TICKS) )
-                size.y += labelSize;
+            // Min/max labels are compensated by the thumb so we don't need
+            // extra space for them
 
             // The value label is always on top of the control and so does need
             // extra space in any case.
@@ -565,6 +574,25 @@ wxSize wxSlider::DoGetBestSize() const
             *width += TICK;
     }
     return size;
+}
+
+WXHBRUSH wxSlider::DoMSWControlColor(WXHDC pDC, wxColour colBg, WXHWND hWnd)
+{
+    const WXHBRUSH hBrush = wxSliderBase::DoMSWControlColor(pDC, colBg, hWnd);
+
+    // The native control doesn't repaint itself when it's invalidated, so we
+    // do it explicitly from here, as this is the only way to propagate the
+    // parent background colour to the slider when it changes.
+    if ( hWnd == GetHwnd() && hBrush != m_hBrushBg )
+    {
+        m_hBrushBg = hBrush;
+
+        // Anything really refreshing the slider would work here, we use a
+        // dummy WM_ENABLE but using TBM_SETPOS would work too, for example.
+        ::PostMessage(hWnd, WM_ENABLE, ::IsWindowEnabled(hWnd), 0);
+    }
+
+    return hBrush;
 }
 
 // ----------------------------------------------------------------------------
@@ -601,6 +629,14 @@ void wxSlider::SetRange(int minValue, int maxValue)
 
     if ( m_labels )
     {
+        Move(wxDefaultPosition); // Force a re-layout the labels.
+
+        // Update the label with the value adjusted by the control as
+        // old value can be out of the new range.
+        if ( HasFlag(wxSL_VALUE_LABEL) )
+        {
+            SetValue(GetValue());
+        }
         ::SetWindowText((*m_labels)[SliderLabel_Min],
                         Format(ValueInvertOrNot(m_rangeMin)).t_str());
         ::SetWindowText((*m_labels)[SliderLabel_Max],

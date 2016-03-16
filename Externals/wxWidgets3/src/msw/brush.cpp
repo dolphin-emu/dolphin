@@ -78,7 +78,7 @@ private:
 // wxBrushRefData implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBrush, wxGDIObject);
 
 // ----------------------------------------------------------------------------
 // wxBrushRefData ctors/dtor
@@ -148,8 +148,6 @@ void wxBrushRefData::Free()
     }
 }
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-
 static int TranslateHatchStyle(int style)
 {
     switch ( style )
@@ -164,16 +162,12 @@ static int TranslateHatchStyle(int style)
     }
 }
 
-#endif // !__WXMICROWIN__ && !__WXWINCE__
-
 HBRUSH wxBrushRefData::GetHBRUSH()
 {
     if ( !m_hBrush )
     {
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
         int hatchStyle = TranslateHatchStyle(m_style);
         if ( hatchStyle == -1 )
-#endif // !__WXMICROWIN__ && !__WXWINCE__
         {
             switch ( m_style )
             {
@@ -199,12 +193,10 @@ HBRUSH wxBrushRefData::GetHBRUSH()
                     break;
             }
         }
-#ifndef __WXWINCE__
         else // create a hatched brush
         {
             m_hBrush = ::CreateHatchBrush(hatchStyle, m_colour.GetPixel());
         }
-#endif
 
         if ( !m_hBrush )
         {
@@ -232,12 +224,10 @@ wxBrush::wxBrush(const wxColour& col, wxBrushStyle style)
     m_refData = new wxBrushRefData(col, style);
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxBrush::wxBrush(const wxColour& col, int style)
 {
     m_refData = new wxBrushRefData(col, (wxBrushStyle)style);
 }
-#endif
 
 wxBrush::wxBrush(const wxBitmap& stipple)
 {

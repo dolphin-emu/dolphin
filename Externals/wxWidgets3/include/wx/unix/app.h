@@ -22,7 +22,7 @@ public:
     virtual ~wxAppConsole();
 
     // override base class initialization
-    virtual bool Initialize(int& argc, wxChar** argv);
+    virtual bool Initialize(int& argc, wxChar** argv) wxOVERRIDE;
 
 
     // Unix-specific: Unix signal handling

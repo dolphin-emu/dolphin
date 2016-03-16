@@ -11,6 +11,7 @@
 #include "wx/wxprec.h"
 
 #include "wx/utils.h"
+#include "wx/platinfo.h"
 
 #ifndef WX_PRECOMP
     #include "wx/intl.h"
@@ -33,8 +34,6 @@
     #include "wx/osx/private/timer.h"
 #endif
 #endif // wxUSE_GUI
-
-#if wxOSX_USE_COCOA
 
 #if wxUSE_GUI
 
@@ -60,7 +59,10 @@ void wxBell()
     
     [appleEventManager setEventHandler:self andSelector:@selector(handleOpenAppEvent:withReplyEvent:)
                          forEventClass:kCoreEventClass andEventID:kAEOpenApplication];
-    
+
+    [appleEventManager setEventHandler:self andSelector:@selector(handleQuitAppEvent:withReplyEvent:)
+                         forEventClass:kCoreEventClass andEventID:kAEQuitApplication];
+
     wxTheApp->OSXOnWillFinishLaunching();
 }
 
@@ -109,7 +111,16 @@ void wxBell()
 {
     wxUnusedVar(flag);
     wxUnusedVar(sender);
-    wxTheApp->MacReopenApp() ;
+    if ( wxTheApp->OSXInitWasCalled() )
+        wxTheApp->MacReopenApp();
+    // else: It's possible that this function was called as the first thing.
+    //       This can happen when OS X restores running apps when starting a new
+    //       user session. Apps that were hidden (dock only) when the previous
+    //       session terminated are only restored in a limited, resources-saving
+    //       way. When the user clicks the icon, applicationShouldHandleReopen:
+    //       is called, but we didn't call OnInit() yet. In this case, we
+    //       shouldn't call MacReopenApp(), but should proceed with normal
+    //       initialization.
     return NO;
 }
 
@@ -123,6 +134,16 @@ void wxBell()
         wxTheApp->MacOpenURL(cf.AsString()) ;
     else
         wxTheApp->OSXStoreOpenURL(cf.AsString());
+}
+
+- (void)handleQuitAppEvent:(NSAppleEventDescriptor *)event
+            withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+    if ( wxTheApp->OSXOnShouldTerminate() )
+    {
+        wxTheApp->OSXOnWillTerminate();
+        wxTheApp->ExitMainLoop();
+    }
 }
 
 - (void)handleOpenAppEvent:(NSAppleEventDescriptor *)event
@@ -324,14 +345,12 @@ void wxBell()
     ProcessSerialNumber psn = { 0, kCurrentProcess };
     TransformProcessType(&psn, kProcessTransformToForegroundApplication);
     
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
-    if ( UMAGetSystemVersion() >= 0x1090 )
+    if ( wxPlatformInfo::Get().CheckOSVersion(10, 9) )
     {
         [[NSRunningApplication currentApplication] activateWithOptions:
          (NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
     }
     else
-#endif
     {
         [self deactivate];
         [self activateIgnoringOtherApps:YES];
@@ -391,7 +410,7 @@ bool wxApp::DoInitGui()
         }
 
         appcontroller = OSXCreateAppController();
-        [NSApp setDelegate:appcontroller];
+        [[NSApplication sharedApplication] setDelegate:(id <NSApplicationDelegate>)appcontroller];
         [NSColor setIgnoresAlpha:NO];
 
         // calling finishLaunching so early before running the loop seems to trigger some 'MenuManager compatibility' which leads
@@ -480,8 +499,6 @@ void wxGetMousePosition( int* x, int* y )
         *y = pt.y;
 };
 
-#if wxOSX_USE_COCOA && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_6
-
 wxMouseState wxGetMouseState()
 {
     wxMouseState ms;
@@ -504,9 +521,6 @@ wxMouseState wxGetMouseState()
     
     return ms;
 }
-
-
-#endif
 
 wxTimerImpl* wxGUIAppTraits::CreateTimerImpl(wxTimer *timer)
 {
@@ -572,12 +586,9 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
     if (!m_window)
         return wxNullBitmap;
 
-    wxSize sz = m_window->GetSize();
-
-    int width = subrect != NULL ? subrect->width : sz.x;
-    int height = subrect !=  NULL ? subrect->height : sz.y ;
-
-    wxBitmap bitmap(width, height);
+    const wxSize bitmapSize(subrect ? subrect->GetSize() : m_window->GetSize());
+    wxBitmap bitmap;
+    bitmap.CreateScaled(bitmapSize.x, bitmapSize.y, -1, m_contentScaleFactor);
 
     NSView* view = (NSView*) m_window->GetHandle();
     if ( [view isHiddenOrHasHiddenAncestor] == NO )
@@ -592,6 +603,12 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
             CGImageRef cgImageRef = (CGImageRef)[rep CGImage];
 
             CGRect r = CGRectMake( 0 , 0 , CGImageGetWidth(cgImageRef)  , CGImageGetHeight(cgImageRef) );
+
+            // The bitmap created by wxBitmap::CreateScaled() above is scaled,
+            // so we need to adjust the coordinates for it.
+            r.size.width /= m_contentScaleFactor;
+            r.size.height /= m_contentScaleFactor;
+
             // since our context is upside down we dont use CGContextDrawImage
             wxMacDrawCGImage( (CGContextRef) bitmap.GetHBITMAP() , &r, cgImageRef ) ;
         }
@@ -607,4 +624,3 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 
 #endif // wxUSE_GUI
 
-#endif // wxOSX_USE_COCOA

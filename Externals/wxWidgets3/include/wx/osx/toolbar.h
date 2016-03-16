@@ -18,17 +18,17 @@
 
 class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
 {
-  DECLARE_DYNAMIC_CLASS(wxToolBar)
- public:
+    wxDECLARE_DYNAMIC_CLASS(wxToolBar);
+public:
   /*
    * Public interface
    */
 
    wxToolBar() { Init(); }
 
-  inline wxToolBar(wxWindow *parent, wxWindowID id,
+  wxToolBar(wxWindow *parent, wxWindowID id,
                    const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-                   long style = wxTB_HORIZONTAL,
+                   long style = wxTB_DEFAULT_STYLE,
                    const wxString& name = wxToolBarNameStr)
   {
     Init();
@@ -37,37 +37,37 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
   virtual ~wxToolBar();
 
   bool Create(wxWindow *parent, wxWindowID id, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-            long style = wxTB_HORIZONTAL,
+            long style = wxTB_DEFAULT_STYLE,
             const wxString& name = wxToolBarNameStr);
 
-    virtual void SetWindowStyleFlag(long style);
+    virtual void SetWindowStyleFlag(long style) wxOVERRIDE;
 
-    virtual bool Destroy();
+    virtual bool Destroy() wxOVERRIDE;
 
     // override/implement base class virtuals
-    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const;
+    virtual wxToolBarToolBase *FindToolForPosition(wxCoord x, wxCoord y) const wxOVERRIDE;
 
 #ifndef __WXOSX_IPHONE__
-    virtual bool Show(bool show = true);
-    virtual bool IsShown() const;
+    virtual bool Show(bool show = true) wxOVERRIDE;
+    virtual bool IsShown() const wxOVERRIDE;
 #endif
-    virtual bool Realize();
+    virtual bool Realize() wxOVERRIDE;
 
-    virtual void SetToolBitmapSize(const wxSize& size);
-    virtual wxSize GetToolSize() const;
+    virtual void SetToolBitmapSize(const wxSize& size) wxOVERRIDE;
+    virtual wxSize GetToolSize() const wxOVERRIDE;
 
-    virtual void SetRows(int nRows);
+    virtual void SetRows(int nRows) wxOVERRIDE;
 
-    virtual void SetToolNormalBitmap(int id, const wxBitmap& bitmap);
-    virtual void SetToolDisabledBitmap(int id, const wxBitmap& bitmap);
+    virtual void SetToolNormalBitmap(int id, const wxBitmap& bitmap) wxOVERRIDE;
+    virtual void SetToolDisabledBitmap(int id, const wxBitmap& bitmap) wxOVERRIDE;
 
 #ifndef __WXOSX_IPHONE__
     // Add all the buttons
 
-    virtual wxString MacGetToolTipString( wxPoint &where ) ;
+    virtual wxString MacGetToolTipString( wxPoint &where ) wxOVERRIDE;
     void OnPaint(wxPaintEvent& event) ;
     void OnMouse(wxMouseEvent& event) ;
-    virtual void MacSuperChangedPosition() ;
+    virtual void MacSuperChangedPosition() wxOVERRIDE;
 #endif
 
 #if wxOSX_USE_NATIVE_TOOLBAR
@@ -88,9 +88,9 @@ class WXDLLIMPEXP_CORE wxToolBar: public wxToolBarBase
                                           wxItemKind kind = wxITEM_NORMAL,
                                           wxObject *clientData = NULL,
                                           const wxString& shortHelp = wxEmptyString,
-                                          const wxString& longHelp = wxEmptyString);
+                                          const wxString& longHelp = wxEmptyString) wxOVERRIDE;
     virtual wxToolBarToolBase *CreateTool(wxControl *control,
-                                          const wxString& label);
+                                          const wxString& label) wxOVERRIDE;
 
 protected:
     // common part of all ctors
@@ -98,23 +98,23 @@ protected:
     
     void DoLayout();
     
-    void DoSetSize(int x, int y, int width, int height, int sizeFlags);
+    void DoSetSize(int x, int y, int width, int height, int sizeFlags) wxOVERRIDE;
 
 #ifndef __WXOSX_IPHONE__
-    virtual void DoGetSize(int *width, int *height) const;
-    virtual wxSize DoGetBestSize() const;
+    virtual void DoGetSize(int *width, int *height) const wxOVERRIDE;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 #endif
 #ifdef __WXOSX_COCOA__
-    virtual void DoGetPosition(int*x, int *y) const;
+    virtual void DoGetPosition(int*x, int *y) const wxOVERRIDE;
 #endif
-    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool);
-    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool);
+    virtual bool DoInsertTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
+    virtual bool DoDeleteTool(size_t pos, wxToolBarToolBase *tool) wxOVERRIDE;
 
-    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable);
-    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle);
-    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle);
+    virtual void DoEnableTool(wxToolBarToolBase *tool, bool enable) wxOVERRIDE;
+    virtual void DoToggleTool(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
+    virtual void DoSetToggle(wxToolBarToolBase *tool, bool toggle) wxOVERRIDE;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 #if wxOSX_USE_NATIVE_TOOLBAR
     bool m_macUsesNativeToolbar ;
     void* m_macToolbar ;

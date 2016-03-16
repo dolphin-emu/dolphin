@@ -24,14 +24,9 @@
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
-// compatibility with older GTK+ versions:
-#ifndef GTK_STOCK_FILE
-    #define GTK_STOCK_FILE "gtk-file"
+#if !GTK_CHECK_VERSION(2,8,0)
+    #define GTK_STOCK_FULLSCREEN "gtk-fullscreen"
 #endif
-#ifndef GTK_STOCK_DIRECTORY
-    #define GTK_STOCK_DIRECTORY "gtk-directory"
-#endif
-
 
 // ----------------------------------------------------------------------------
 // wxGTK2ArtProvider
@@ -41,9 +36,9 @@ class wxGTK2ArtProvider : public wxArtProvider
 {
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client,
-                                  const wxSize& size);
+                                  const wxSize& size) wxOVERRIDE;
     virtual wxIconBundle CreateIconBundle(const wxArtID& id,
-                                          const wxArtClient& client);
+                                          const wxArtClient& client) wxOVERRIDE;
 };
 
 /*static*/ void wxArtProvider::InitNativeProvider()
@@ -124,6 +119,7 @@ wxString wxArtIDToStock(const wxArtID& id)
 
     ART(wxART_FIND,                                GTK_STOCK_FIND)
     ART(wxART_FIND_AND_REPLACE,                    GTK_STOCK_FIND_AND_REPLACE)
+    ART(wxART_FULL_SCREEN,                         GTK_STOCK_FULLSCREEN)
 
     #undef ART
 

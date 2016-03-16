@@ -50,12 +50,8 @@
    having been defined in sys/types.h" when winsock.h is included later and
    doesn't seem to be necessary anyhow. It's not needed under Mac neither.
  */
-#if !defined(__WXMAC__) && !defined(__WXMSW__) && !defined(__WXWINCE__)
+#if !defined(__WXMAC__) && !defined(__WXMSW__)
 #include <sys/types.h>
-#endif
-
-#ifdef __WXWINCE__
-#include <stdlib.h>
 #endif
 
 // include the header defining timeval: under Windows this struct is used only
@@ -307,6 +303,9 @@ public:
 
 protected:
     wxSocketImpl(wxSocketBase& wxsocket);
+
+    // get the associated socket flags
+    wxSocketFlags GetSocketFlags() const { return m_wxsocket->GetFlags(); }
 
     // true if we're a listening stream socket
     bool m_server;

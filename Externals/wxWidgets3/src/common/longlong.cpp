@@ -132,22 +132,6 @@ wxULongLongNative& wxULongLongNative::operator=(const class wxULongLongWx &ll)
 }
 #endif
 
-#ifdef __VISUALC6__
-double wxULongLongNative::ToDouble() const
-{
-    // Work around the problem of casting unsigned __int64 to double in VC6
-    // (which for unknown reasons only manifests itself in DLL builds, i.e.
-    // when using /MD).
-    static const __int64 int64_t_max = 9223372036854775807i64;
-    if ( m_ll <= int64_t_max )
-        return wx_truncate_cast(double, (wxLongLong_t)m_ll);
-
-    double d = wx_truncate_cast(double, int64_t_max);
-    d += (__int64)(m_ll - int64_t_max - 1); // The cast is safe because of -1
-    return d + 1;
-}
-#endif // __VISUALC6__
-
 #endif // wxUSE_LONGLONG_NATIVE
 
 // ============================================================================

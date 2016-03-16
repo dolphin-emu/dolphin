@@ -34,6 +34,7 @@
     #include "wx/menuitem.h"
     #include "wx/treectrl.h"
     #include "wx/listctrl.h"
+    #include "wx/platinfo.h"
 #endif
 
 #include "wx/tooltip.h"
@@ -63,11 +64,7 @@
 
 #include "wx/graphics.h"
 
-#if wxOSX_USE_CARBON
-    #include "wx/osx/uma.h"
-#else
-    #include "wx/osx/private.h"
-#endif
+#include "wx/osx/private.h"
 
 #define MAC_SCROLLBAR_SIZE 15
 #define MAC_SMALL_SCROLLBAR_SIZE 11
@@ -75,12 +72,12 @@
 #include <string.h>
 
 #ifdef __WXUNIVERSAL__
-    IMPLEMENT_ABSTRACT_CLASS(wxWindowMac, wxWindowBase)
+    wxIMPLEMENT_ABSTRACT_CLASS(wxWindowMac, wxWindowBase);
 #endif
 
-BEGIN_EVENT_TABLE(wxWindowMac, wxWindowBase)
+wxBEGIN_EVENT_TABLE(wxWindowMac, wxWindowBase)
     EVT_MOUSE_EVENTS(wxWindowMac::OnMouseEvent)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define wxMAC_DEBUG_REDRAW 0
 #ifndef wxMAC_DEBUG_REDRAW
@@ -156,7 +153,7 @@ public:
 
     virtual ~wxBlindPlateWindow();
 
-    virtual bool AcceptsFocus() const
+    virtual bool AcceptsFocus() const wxOVERRIDE
     {
         return false;
     }
@@ -167,18 +164,18 @@ protected:
     {
     }
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxBlindPlateWindow)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxBlindPlateWindow);
+    wxDECLARE_EVENT_TABLE();
 };
 
 wxBlindPlateWindow::~wxBlindPlateWindow()
 {
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxBlindPlateWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBlindPlateWindow, wxWindow);
 
-BEGIN_EVENT_TABLE(wxBlindPlateWindow, wxWindow)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxBlindPlateWindow, wxWindow)
+wxEND_EVENT_TABLE()
 
 
 // ----------------------------------------------------------------------------
@@ -356,7 +353,8 @@ void wxWindowMac::SetPeer(wxOSXWidgetImpl* peer)
         if ( !m_hasFont )
             DoSetWindowVariant( m_windowVariant );
         
-        GetPeer()->SetLabel( wxStripMenuCodes(m_label, wxStrip_Mnemonics), GetFont().GetEncoding() ) ;
+        if ( !m_label.empty() )
+            GetPeer()->SetLabel( wxStripMenuCodes(m_label, wxStrip_Mnemonics), GetFont().GetEncoding() ) ;
         
         // for controls we want to use best size for wxDefaultSize params )
         if ( !GetPeer()->IsUserPane() )
@@ -456,32 +454,15 @@ void wxWindowMac::MacChildAdded()
 #endif
 }
 
-void wxWindowMac::MacPostControlCreate(const wxPoint& WXUNUSED(pos),
+void wxWindowMac::MacPostControlCreate(const wxPoint& pos,
                                        const wxSize& WXUNUSED(size))
 {
-    // todo remove if refactoring works correctly
-#if 0
-    wxASSERT_MSG( GetPeer() != NULL && GetPeer()->IsOk() , wxT("No valid mac control") ) ;
-
-    if (!GetParent()->GetChildren().Find((wxWindow*)this))
-        GetParent()->AddChild( this );
-
-    GetPeer()->InstallEventHandler();
-    GetPeer()->Embed(GetParent()->GetPeer());
-
-    GetParent()->MacChildAdded() ;
-
-    // adjust font, controlsize etc
-    DoSetWindowVariant( m_windowVariant ) ;
-
-    GetPeer()->SetLabel( wxStripMenuCodes(m_label, wxStrip_Mnemonics), GetFont().GetEncoding() ) ;
-
-    // for controls we want to use best size for wxDefaultSize params )
-    if ( !GetPeer()->IsUserPane() )
-        SetInitialSize(size);
-
-    SetCursor( *wxSTANDARD_CURSOR ) ;
-#endif
+    // Some controls may have a nonzero layout inset,
+    // so we may need to adjust control position.
+    if ( pos.IsFullySpecified() && GetPosition() != pos )
+    {
+        SetPosition(pos);
+    }
 }
 
 void wxWindowMac::DoSetWindowVariant( wxWindowVariant variant )
@@ -925,8 +906,6 @@ bool wxWindowMac::SetCursor(const wxCursor& cursor)
 bool wxWindowMac::DoPopupMenu(wxMenu *menu, int x, int y)
 {
 #ifndef __WXUNIVERSAL__
-    menu->UpdateUI();
-
     if ( x == wxDefaultCoord && y == wxDefaultCoord )
     {
         wxPoint mouse = wxGetMousePosition();
@@ -1233,7 +1212,8 @@ void wxWindowMac::DoSetClientSize(int clientwidth, int clientheight)
         GetClientSize( &currentclientwidth , &currentclientheight ) ;
         GetSize( &currentwidth , &currentheight ) ;
 
-        DoSetSize( wxDefaultCoord , wxDefaultCoord , currentwidth + clientwidth - currentclientwidth ,
+	   // XXX: Dolphin. Do not allow internal semantic call to become visible to derived classes.
+        wxWindowMac::DoSetSize( wxDefaultCoord , wxDefaultCoord , currentwidth + clientwidth - currentclientwidth ,
             currentheight + clientheight - currentclientheight , wxSIZE_USE_EXISTING ) ;
     }
 }
@@ -1337,11 +1317,7 @@ bool wxWindowMac::MacIsReallyEnabled()
 
 bool wxWindowMac::MacIsReallyHilited()
 {
-#if wxOSX_USE_CARBON
-    return GetPeer()->IsActive();
-#else
     return true; // TODO
-#endif
 }
 
 int wxWindowMac::GetCharHeight() const
@@ -1438,6 +1414,7 @@ void wxWindowMac::WarpPointer(int x_pos, int y_pos)
     DoClientToScreen(&x, &y);
     CGPoint cgpoint = CGPointMake( x, y );
     CGWarpMouseCursorPosition( cgpoint );
+    CGAssociateMouseAndMouseCursorPosition(true);
 
     // At least GTK sends a mouse moved event after WarpMouse
     wxMouseEvent event(wxEVT_MOTION);
@@ -1606,8 +1583,6 @@ void wxWindowMac::MacPaintBorders( int WXUNUSED(leftOrigin) , int WXUNUSED(right
     if ( IsTopLevel() )
         return ;
 
-    bool hasFocus = GetPeer()->NeedsFocusRect() && HasFocus();
-
     // back to the surrounding frame rectangle
     int tx,ty,tw,th;
 
@@ -1615,8 +1590,9 @@ void wxWindowMac::MacPaintBorders( int WXUNUSED(leftOrigin) , int WXUNUSED(right
     GetPeer()->GetPosition( tx, ty );
 
 #if wxOSX_USE_COCOA_OR_CARBON
-
     {
+        const bool hasFocus = GetPeer()->NeedsFocusRect() && HasFocus();
+
         CGRect cgrect = CGRectMake( tx-1 , ty-1 , tw+2 ,
             th+2 ) ;
 
@@ -1945,97 +1921,6 @@ const wxRegion& wxWindowMac::MacGetVisibleRegion( bool includeOuterStructures )
 
 void wxWindowMac::MacUpdateClippedRects() const
 {
-#if wxOSX_USE_CARBON
-    if ( m_cachedClippedRectValid )
-        return ;
-
-    // includeOuterStructures is true if we try to draw somthing like a focus ring etc.
-    // also a window dc uses this, in this case we only clip in the hierarchy for hard
-    // borders like a scrollwindow, splitter etc otherwise we end up in a paranoia having
-    // to add focus borders everywhere
-
-    Rect rIncludingOuterStructures ;
-
-    int tx,ty,tw,th;
-
-    GetPeer()->GetSize( tw, th );
-    GetPeer()->GetPosition( tx, ty );
-
-    Rect r  = { ty,tx, ty+th, tx+tw };
-
-    r.left -= MacGetLeftBorderSize() ;
-    r.top -= MacGetTopBorderSize() ;
-    r.bottom += MacGetBottomBorderSize() ;
-    r.right += MacGetRightBorderSize() ;
-
-    r.right -= r.left ;
-    r.bottom -= r.top ;
-    r.left = 0 ;
-    r.top = 0 ;
-
-    rIncludingOuterStructures = r ;
-    InsetRect( &rIncludingOuterStructures , -4 , -4 ) ;
-
-    wxRect cl = GetClientRect() ;
-    Rect rClient = { cl.y , cl.x , cl.y + cl.height , cl.x + cl.width } ;
-
-    int x , y ;
-    wxSize size ;
-    const wxWindow* child = (wxWindow*) this ;
-    const wxWindow* parent = NULL ;
-
-    while ( !child->IsTopLevel() && ( parent = child->GetParent() ) != NULL )
-    {
-        if ( parent->MacIsChildOfClientArea(child) )
-        {
-            size = parent->GetClientSize() ;
-            wxPoint origin = parent->GetClientAreaOrigin() ;
-            x = origin.x ;
-            y = origin.y ;
-        }
-        else
-        {
-            // this will be true for scrollbars, toolbars etc.
-            size = parent->GetSize() ;
-            y = parent->MacGetTopBorderSize() ;
-            x = parent->MacGetLeftBorderSize() ;
-            size.x -= parent->MacGetLeftBorderSize() + parent->MacGetRightBorderSize() ;
-            size.y -= parent->MacGetTopBorderSize() + parent->MacGetBottomBorderSize() ;
-        }
-
-        parent->MacWindowToRootWindow( &x, &y ) ;
-        MacRootWindowToWindow( &x , &y ) ;
-
-        Rect rparent = { y , x , y + size.y , x + size.x } ;
-
-        // the wxwindow and client rects will always be clipped
-        SectRect( &r , &rparent , &r ) ;
-        SectRect( &rClient , &rparent , &rClient ) ;
-
-        // the structure only at 'hard' borders
-        if ( parent->MacClipChildren() ||
-            ( parent->GetParent() && parent->GetParent()->MacClipGrandChildren() ) )
-        {
-            SectRect( &rIncludingOuterStructures , &rparent , &rIncludingOuterStructures ) ;
-        }
-
-        child = parent ;
-    }
-
-    m_cachedClippedRect = wxRect( r.left , r.top , r.right - r.left , r.bottom - r.top ) ;
-    m_cachedClippedClientRect = wxRect( rClient.left , rClient.top ,
-        rClient.right - rClient.left , rClient.bottom - rClient.top ) ;
-    m_cachedClippedRectWithOuterStructure = wxRect(
-        rIncludingOuterStructures.left , rIncludingOuterStructures.top ,
-        rIncludingOuterStructures.right - rIncludingOuterStructures.left ,
-        rIncludingOuterStructures.bottom - rIncludingOuterStructures.top ) ;
-
-    m_cachedClippedRegionWithOuterStructure = wxRegion( m_cachedClippedRectWithOuterStructure ) ;
-    m_cachedClippedRegion = wxRegion( m_cachedClippedRect ) ;
-    m_cachedClippedClientRegion = wxRegion( m_cachedClippedClientRect ) ;
-
-    m_cachedClippedRectValid = true ;
-#endif
 }
 
 /*
@@ -2178,7 +2063,7 @@ WXWindow wxWindowMac::MacGetTopLevelWindowRef() const
 
 bool wxWindowMac::MacHasScrollBarCorner() const
 {
-#if wxUSE_SCROLLBAR
+#if wxUSE_SCROLLBAR && !wxOSX_USE_IPHONE
     /* Returns whether the scroll bars in a wxScrolledWindow should be
      * shortened. Scroll bars should be shortened if either:
      *
@@ -2208,7 +2093,7 @@ bool wxWindowMac::MacHasScrollBarCorner() const
             if ( frame )
             {
                 // starting from 10.7 there are no resize indicators anymore
-                if ( (frame->GetWindowStyleFlag() & wxRESIZE_BORDER) && UMAGetSystemVersion() < 0x1070)
+                if ( (frame->GetWindowStyleFlag() & wxRESIZE_BORDER) && !wxPlatformInfo::Get().CheckOSVersion(10, 7) )
                 {
                     // Parent frame has resize handle
                     wxPoint frameBottomRight = frame->GetScreenRect().GetBottomRight();
@@ -2778,7 +2663,7 @@ bool wxWindowMac::OSXHandleKeyEvent( wxKeyEvent& event )
                 break;
             }
 
-            if (ancestor->IsTopLevel())
+            if (ancestor->IsTopNavigationDomain(wxWindow::Navigation_Accel))
                 break;
 
             ancestor = ancestor->GetParent();
@@ -2856,7 +2741,7 @@ void wxWidgetImpl::RemoveAssociations(wxWidgetImpl* impl)
     }
 }
 
-IMPLEMENT_ABSTRACT_CLASS( wxWidgetImpl , wxObject )
+wxIMPLEMENT_ABSTRACT_CLASS(wxWidgetImpl, wxObject);
 
 wxWidgetImpl::wxWidgetImpl( wxWindowMac* peer , bool isRootControl, bool isUserPane )
 {
@@ -2874,6 +2759,7 @@ wxWidgetImpl::wxWidgetImpl()
 
 wxWidgetImpl::~wxWidgetImpl()
 {
+    m_wxPeer = NULL;
 }
 
 void wxWidgetImpl::Init()

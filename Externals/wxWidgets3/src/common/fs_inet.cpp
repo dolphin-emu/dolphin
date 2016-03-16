@@ -135,7 +135,7 @@ wxFSFile* wxInternetFSHandler::OpenFile(wxFileSystem& WXUNUSED(fs),
 
 class wxFileSystemInternetModule : public wxModule
 {
-    DECLARE_DYNAMIC_CLASS(wxFileSystemInternetModule)
+    wxDECLARE_DYNAMIC_CLASS(wxFileSystemInternetModule);
 
     public:
         wxFileSystemInternetModule() :
@@ -144,14 +144,14 @@ class wxFileSystemInternetModule : public wxModule
         {
         }
 
-        virtual bool OnInit()
+        virtual bool OnInit() wxOVERRIDE
         {
             m_handler = new wxInternetFSHandler;
             wxFileSystem::AddHandler(m_handler);
             return true;
         }
 
-        virtual void OnExit()
+        virtual void OnExit() wxOVERRIDE
         {
             delete wxFileSystem::RemoveHandler(m_handler);
         }
@@ -160,6 +160,6 @@ class wxFileSystemInternetModule : public wxModule
         wxFileSystemHandler* m_handler;
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxFileSystemInternetModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFileSystemInternetModule, wxModule);
 
 #endif // wxUSE_FILESYSTEM && wxUSE_FS_INET
