@@ -73,7 +73,7 @@ public:
   wxIPCFormat   m_dataType;
 
   wxDECLARE_NO_COPY_CLASS(wxDDEConnection);
-  DECLARE_DYNAMIC_CLASS(wxDDEConnection)
+  wxDECLARE_DYNAMIC_CLASS(wxDDEConnection);
 };
 
 class WXDLLIMPEXP_BASE wxDDEServer : public wxServerBase
@@ -98,7 +98,7 @@ protected:
     wxString  m_serviceName;
     wxDDEConnectionList m_connections;
 
-    DECLARE_DYNAMIC_CLASS(wxDDEServer)
+    wxDECLARE_DYNAMIC_CLASS(wxDDEServer);
 };
 
 class WXDLLIMPEXP_BASE wxDDEClient: public wxClientBase
@@ -128,7 +128,7 @@ protected:
     int       m_lastError;
     wxDDEConnectionList m_connections;
 
-    DECLARE_DYNAMIC_CLASS(wxDDEClient)
+    wxDECLARE_DYNAMIC_CLASS(wxDDEClient);
 };
 
 void WXDLLIMPEXP_BASE wxDDEInitialize();

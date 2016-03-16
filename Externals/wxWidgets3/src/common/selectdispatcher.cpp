@@ -133,6 +133,8 @@ bool wxSelectSets::Handle(int fd, wxFDIOHandler& handler) const
 
 bool wxSelectDispatcher::RegisterFD(int fd, wxFDIOHandler *handler, int flags)
 {
+    wxCRIT_SECT_LOCKER(lock, m_cs);
+
     if ( !wxMappedFDIODispatcher::RegisterFD(fd, handler, flags) )
         return false;
 
@@ -149,6 +151,8 @@ bool wxSelectDispatcher::RegisterFD(int fd, wxFDIOHandler *handler, int flags)
 
 bool wxSelectDispatcher::ModifyFD(int fd, wxFDIOHandler *handler, int flags)
 {
+    wxCRIT_SECT_LOCKER(lock, m_cs);
+
     if ( !wxMappedFDIODispatcher::ModifyFD(fd, handler, flags) )
         return false;
 
@@ -161,6 +165,8 @@ bool wxSelectDispatcher::ModifyFD(int fd, wxFDIOHandler *handler, int flags)
 
 bool wxSelectDispatcher::UnregisterFD(int fd)
 {
+    wxCRIT_SECT_LOCKER(lock, m_cs);
+
     m_sets.ClearFD(fd);
 
     if ( !wxMappedFDIODispatcher::UnregisterFD(fd) )

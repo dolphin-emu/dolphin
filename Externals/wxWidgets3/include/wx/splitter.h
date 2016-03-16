@@ -28,12 +28,6 @@
 #define wxSP_BORDER           wxSP_3DBORDER
 #define wxSP_3D               (wxSP_3DBORDER | wxSP_3DSASH)
 
-#if WXWIN_COMPATIBILITY_2_6
-    // obsolete styles, don't do anything
-    #define wxSP_SASH_AQUA        0
-    #define wxSP_FULLSASH         0
-#endif // WXWIN_COMPATIBILITY_2_6
-
 class WXDLLIMPEXP_FWD_CORE wxSplitterEvent;
 
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_SPLITTER_SASH_POS_CHANGED, wxSplitterEvent );

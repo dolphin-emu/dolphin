@@ -46,17 +46,11 @@
 #include "wx/vector.h"
 
 // other standard headers
-#ifndef __WXWINCE__
 #include <errno.h>
-#endif
 
 #include <stdlib.h>
 
-#ifndef __WXWINCE__
 #include <time.h>
-#else
-#include "wx/msw/wince/time.h"
-#endif
 
 #if defined(__WINDOWS__)
     #include "wx/msw/private.h" // includes windows.h
@@ -170,7 +164,7 @@ public:
     wxLogOutputBest() { }
 
 protected:
-    virtual void DoLogText(const wxString& msg)
+    virtual void DoLogText(const wxString& msg) wxOVERRIDE
     {
         wxMessageOutputBest().Output(msg);
     }
@@ -278,13 +272,13 @@ unsigned wxLog::LogLastRepeatIfNeeded()
             // Notice that we still use wxPLURAL() to ensure that multiple
             // numbers of times are correctly formatted, even though we never
             // actually use the singular string.
-            msg.Printf(wxPLURAL("The previous message repeated %lu time.",
-                                "The previous message repeated %lu times.",
+            msg.Printf(wxPLURAL("The previous message repeated %u time.",
+                                "The previous message repeated %u times.",
                                 gs_prevLog.numRepeated),
                        gs_prevLog.numRepeated);
         }
 #else
-        msg.Printf(wxS("The previous message was repeated %lu time(s)."),
+        msg.Printf(wxS("The previous message was repeated %u time(s)."),
                    gs_prevLog.numRepeated);
 #endif
         gs_prevLog.numRepeated = 0;
@@ -306,12 +300,12 @@ wxLog::~wxLog()
 #if wxUSE_INTL
             wxPLURAL
             (
-                "Last repeated message (\"%s\", %lu time) wasn't output",
-                "Last repeated message (\"%s\", %lu times) wasn't output",
+                "Last repeated message (\"%s\", %u time) wasn't output",
+                "Last repeated message (\"%s\", %u times) wasn't output",
                 gs_prevLog.numRepeated
             ),
 #else
-            wxS("Last repeated message (\"%s\", %lu time(s)) wasn't output"),
+            wxS("Last repeated message (\"%s\", %u time(s)) wasn't output"),
 #endif
             gs_prevLog.msg,
             gs_prevLog.numRepeated
@@ -1054,7 +1048,7 @@ static void wxLogWrap(FILE *f, const char *pszPrefix, const char *psz)
 // get error code from syste
 unsigned long wxSysErrorCode()
 {
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__)
     return ::GetLastError();
 #else   //Unix
     return errno;
@@ -1067,7 +1061,7 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
     if ( nErrCode == 0 )
         nErrCode = wxSysErrorCode();
 
-#if defined(__WINDOWS__) && !defined(__WXMICROWIN__)
+#if defined(__WINDOWS__)
     static wxChar s_szBuf[1024];
 
     // get error message from system
@@ -1092,7 +1086,6 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
 
     // copy it to our buffer and free memory
     // Crashes on SmartPhone (FIXME)
-#if !defined(__SMARTPHONE__) /* of WinCE */
     if( lpMsgBuf != 0 )
     {
         wxStrlcpy(s_szBuf, (const wxChar *)lpMsgBuf, WXSIZEOF(s_szBuf));
@@ -1109,7 +1102,6 @@ const wxChar *wxSysErrorMsg(unsigned long nErrCode)
         }
     }
     else
-#endif // !__SMARTPHONE__
     {
         s_szBuf[0] = wxS('\0');
     }

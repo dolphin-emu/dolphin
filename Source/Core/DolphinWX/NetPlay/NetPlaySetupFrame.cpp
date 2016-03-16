@@ -69,11 +69,11 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 		m_direct_traversal->Select(0);
 	}
 
-	trav_szr->Add(m_direct_traversal, 0, wxRIGHT);
+	trav_szr->Add(m_direct_traversal);
 
 	m_trav_reset_btn = new wxButton(panel, wxID_ANY, _("Reset Traversal Settings"));
 	m_trav_reset_btn->Bind(wxEVT_BUTTON, &NetPlaySetupFrame::OnResetTraversal, this);
-	trav_szr->Add(m_trav_reset_btn, 0, wxCENTER | wxRIGHT);
+	trav_szr->Add(m_trav_reset_btn, 0, wxALIGN_CENTER_VERTICAL);
 
 	wxBoxSizer* const nick_szr = new wxBoxSizer(wxHORIZONTAL);
 	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"));
@@ -126,9 +126,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 		wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 
-		top_szr->Add(m_ip_lbl, 0, wxCENTER | wxRIGHT, 5);
+		top_szr->Add(m_ip_lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
 		top_szr->Add(m_connect_ip_text, 3);
-		top_szr->Add(m_client_port_lbl, 0, wxCENTER | wxRIGHT | wxLEFT, 5);
+		top_szr->Add(m_client_port_lbl, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT | wxLEFT, 5);
 		top_szr->Add(m_connect_port_text, 1);
 
 		wxBoxSizer* const con_szr = new wxBoxSizer(wxVERTICAL);
@@ -175,7 +175,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 		top_szr->Add(m_host_port_text, 0);
 #ifdef USE_UPNP
 		m_upnp_chk = new wxCheckBox(host_tab, wxID_ANY, _("Forward port (UPnP)"));
-		top_szr->Add(m_upnp_chk, 0, wxALL | wxALIGN_RIGHT, 5);
+		top_szr->Add(m_upnp_chk, 0, wxALL, 5);
 #endif
 		wxBoxSizer* const bottom_szr = new wxBoxSizer(wxHORIZONTAL);
 		bottom_szr->Add(m_traversal_listen_port_enabled, 0, wxCENTER | wxLEFT, 5);

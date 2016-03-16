@@ -22,8 +22,8 @@
 
 #if wxUSE_SCROLLBAR
 
-BEGIN_EVENT_TABLE(wxScrollBar, wxControl)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxScrollBar, wxControl)
+wxEND_EVENT_TABLE()
 
 
 bool wxScrollBar::Create( wxWindow *parent,

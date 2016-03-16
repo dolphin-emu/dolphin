@@ -35,7 +35,7 @@ class wxDefaultArtProvider : public wxArtProvider
 {
 protected:
     virtual wxBitmap CreateBitmap(const wxArtID& id, const wxArtClient& client,
-                                  const wxSize& size);
+                                  const wxSize& size) wxOVERRIDE;
 };
 
 // ----------------------------------------------------------------------------
@@ -126,6 +126,8 @@ protected:
 #include "../../art/quit.xpm"
 #include "../../art/find.xpm"
 #include "../../art/findrepl.xpm"
+#include "../../art/fullscreen.xpm"
+#include "../../art/edit.xpm"
 
 wxBitmap wxDefaultArtProvider_CreateBitmap(const wxArtID& id)
 {
@@ -189,7 +191,9 @@ wxBitmap wxDefaultArtProvider_CreateBitmap(const wxArtID& id)
     ART(wxART_QUIT,                                quit)
     ART(wxART_FIND,                                find)
     ART(wxART_FIND_AND_REPLACE,                    findrepl)
+    ART(wxART_FULL_SCREEN,                         fullscreen)
     ART(wxART_NEW,                                 new)
+    ART(wxART_EDIT,                                edit)
 
 
     return wxNullBitmap;

@@ -41,6 +41,9 @@ public:
     virtual void SetSelectedFont(const wxFont &f)
         { m_selectedFont = f; UpdateFont(); }
 
+    virtual wxColour GetSelectedColour() const = 0;
+    virtual void SetSelectedColour(const wxColour &colour) = 0;
+
 protected:
 
     virtual void UpdateFont() = 0;
@@ -133,12 +136,20 @@ public:         // public API
 
     // get the font chosen
     wxFont GetSelectedFont() const
-        { return ((wxFontPickerWidget *)m_picker)->GetSelectedFont(); }
+        { return GetPickerWidget()->GetSelectedFont(); }
 
     // sets currently displayed font
     void SetSelectedFont(const wxFont& f);
 
-    // set/get the max pointsize
+    // returns the selected color
+    wxColour GetSelectedColour() const
+        { return GetPickerWidget()->GetSelectedColour(); }
+
+    // sets the currently selected color
+    void SetSelectedColour(const wxColour& colour)
+        { GetPickerWidget()->SetSelectedColour(colour); }
+
+    // set/get the max point size
     void SetMaxPointSize(unsigned int max)
         { m_nMaxPointSize=max; }
     unsigned int GetMaxPointSize() const
@@ -146,8 +157,8 @@ public:         // public API
 
 public:        // internal functions
 
-    void UpdatePickerFromTextCtrl();
-    void UpdateTextCtrlFromPicker();
+    void UpdatePickerFromTextCtrl() wxOVERRIDE;
+    void UpdateTextCtrlFromPicker() wxOVERRIDE;
 
     // event handler for our picker
     void OnFontChange(wxFontPickerEvent &);
@@ -159,14 +170,17 @@ public:        // internal functions
 protected:
 
     // extracts the style for our picker from wxFontPickerCtrl's style
-    long GetPickerStyle(long style) const
+    long GetPickerStyle(long style) const wxOVERRIDE
         { return (style & (wxFNTP_FONTDESC_AS_LABEL|wxFNTP_USEFONT_FOR_LABEL)); }
 
     // the maximum pointsize allowed to the user
     unsigned int m_nMaxPointSize;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxFontPickerCtrl)
+    wxFontPickerWidget* GetPickerWidget() const
+        { return static_cast<wxFontPickerWidget*>(m_picker); }
+
+    wxDECLARE_DYNAMIC_CLASS(wxFontPickerCtrl);
 };
 
 
@@ -191,12 +205,12 @@ public:
     void SetFont(const wxFont &c) { m_font = c; }
 
     // default copy ctor, assignment operator and dtor are ok
-    virtual wxEvent *Clone() const { return new wxFontPickerEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxFontPickerEvent(*this); }
 
 private:
     wxFont m_font;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFontPickerEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFontPickerEvent);
 };
 
 // ----------------------------------------------------------------------------

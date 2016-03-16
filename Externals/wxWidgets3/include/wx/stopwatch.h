@@ -89,16 +89,4 @@ private:
 
 #endif // wxUSE_STOPWATCH
 
-#if wxUSE_LONGLONG && WXWIN_COMPATIBILITY_2_6
-
-    // Starts a global timer
-    // -- DEPRECATED: use wxStopWatch instead
-    wxDEPRECATED( void WXDLLIMPEXP_BASE wxStartTimer() );
-
-    // Gets elapsed milliseconds since last wxStartTimer or wxGetElapsedTime
-    // -- DEPRECATED: use wxStopWatch instead
-    wxDEPRECATED( long WXDLLIMPEXP_BASE wxGetElapsedTime(bool resetTimer = true) );
-
-#endif // wxUSE_LONGLONG && WXWIN_COMPATIBILITY_2_6
-
 #endif // _WX_STOPWATCH_H_

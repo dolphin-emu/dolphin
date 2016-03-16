@@ -23,7 +23,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_COLOURDLG && !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
+#if wxUSE_COLOURDLG
 
 #include "wx/colordlg.h"
 #include "wx/modalhook.h"
@@ -55,7 +55,7 @@ static wxRect gs_rectDialog(0, 0, 222, 324);
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourDialog, wxDialog);
 
 // ============================================================================
 // implementation
@@ -116,6 +116,9 @@ int wxColourDialog::ShowModal()
 {
     WX_HOOK_MODAL_DIALOG();
 
+    wxWindow* const parent = GetParentForModalDialog(m_parent, GetWindowStyle());
+    WXHWND hWndParent = parent ? GetHwndOf(parent) : NULL;
+
     // initialize the struct used by Windows
     CHOOSECOLOR chooseColorStruct;
     memset(&chooseColorStruct, 0, sizeof(CHOOSECOLOR));
@@ -133,8 +136,7 @@ int wxColourDialog::ShowModal()
     }
 
     chooseColorStruct.lStructSize = sizeof(CHOOSECOLOR);
-    if ( m_parent )
-        chooseColorStruct.hwndOwner = GetHwndOf(m_parent);
+    chooseColorStruct.hwndOwner = hWndParent;
     chooseColorStruct.rgbResult = wxColourToRGB(m_colourData.GetColour());
     chooseColorStruct.lpCustColors = custColours;
 
@@ -275,4 +277,4 @@ void wxColourDialog::MSWOnInitDone(WXHWND hDlg)
     SetHWND(NULL);
 }
 
-#endif // wxUSE_COLOURDLG && !(__SMARTPHONE__ && __WXWINCE__)
+#endif // wxUSE_COLOURDLG

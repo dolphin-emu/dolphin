@@ -22,7 +22,7 @@
   #include "wx/protocol/http.h"
 #endif
 
-typedef enum {
+enum wxURLError {
   wxURL_NOERR = 0,
   wxURL_SNTXERR,
   wxURL_NOPROTO,
@@ -30,7 +30,7 @@ typedef enum {
   wxURL_NOPATH,
   wxURL_CONNERR,
   wxURL_PROTOERR
-} wxURLError;
+};
 
 #if wxUSE_URL_NATIVE
 class WXDLLIMPEXP_FWD_NET wxURL;
@@ -107,7 +107,7 @@ protected:
     friend class wxURLModule;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxURL)
+    wxDECLARE_DYNAMIC_CLASS(wxURL);
 };
 
 #endif // wxUSE_URL

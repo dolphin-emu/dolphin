@@ -30,6 +30,7 @@ public:
 
     virtual int GetImageCount() const;
     virtual bool GetSize( int index, int &width, int &height ) const;
+    virtual wxSize GetSize() const { return wxSize(m_width, m_height); }
 
     int Add( const wxIcon& bitmap );
     int Add( const wxBitmap& bitmap );
@@ -53,7 +54,7 @@ private:
     int     m_width;
     int     m_height;
 
-    DECLARE_DYNAMIC_CLASS(wxImageList)
+    wxDECLARE_DYNAMIC_CLASS(wxImageList);
 };
 
 #endif  // _WX_IMAGLIST_H_

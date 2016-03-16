@@ -33,6 +33,7 @@
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/string.h"
 
 // ============================================================================
 // signal handlers implementation
@@ -43,8 +44,8 @@ extern "C"
 void
 wx_gtk_insert_text_callback(GtkEditable *editable,
                             const gchar * new_text,
-                            gint WXUNUSED(new_text_length),
-                            gint * WXUNUSED(position),
+                            gint new_text_length,
+                            gint * position,
                             wxTextEntry *text)
 {
     GtkEntry *entry = GTK_ENTRY (editable);
@@ -76,6 +77,40 @@ wx_gtk_insert_text_callback(GtkEditable *editable,
             // Notify the user code about overflow.
             text->SendMaxLenEvent();
         }
+    }
+
+    // Check if we have to convert all input to upper-case
+    if ( !handled && text->GTKIsUpperCase() )
+    {
+        const wxGtkString upper(g_utf8_strup(new_text, new_text_length));
+
+        // Use the converted text to generate events
+        if ( !text->GTKEntryOnInsertText(upper) )
+        {
+            // Event not handled, so do insert the text: we have to do it
+            // ourselves to use the upper-case version of it
+
+            // Prevent recursive call to this handler again
+            g_signal_handlers_block_by_func
+            (
+                editable,
+                (gpointer)wx_gtk_insert_text_callback,
+                text
+            );
+
+            gtk_editable_insert_text(editable, upper, strlen(upper), position);
+
+            g_signal_handlers_unblock_by_func
+            (
+                editable,
+                (gpointer)wx_gtk_insert_text_callback,
+                text
+            );
+        }
+
+        // Don't call the default handler in any case, either the event was
+        // handled in the user code or we've already inserted the text.
+        handled = true;
     }
 
     if ( !handled && text->GTKEntryOnInsertText(new_text) )
@@ -173,9 +208,9 @@ void wxTextEntry::DoSetValue(const wxString& value, int flags)
 {
     if (value != DoGetValue())
     {
-        // use Remove() rather than SelectAll() to avoid unnecessary clipboard
+        // Use Remove() rather than SelectAll() to avoid unnecessary clipboard
         // operations, and prevent triggering an apparent bug in GTK which
-        // causes the the subsequent WriteText() to append rather than overwrite
+        // causes the subsequent WriteText() to append rather than overwrite.
         {
             EventsSuppressor noevents(this);
             Remove(0, -1);
@@ -386,7 +421,7 @@ void wxTextEntry::SetEditable(bool editable)
 }
 
 // ----------------------------------------------------------------------------
-// max text length
+// input restrictions
 // ----------------------------------------------------------------------------
 
 void wxTextEntry::SetMaxLength(unsigned long len)
@@ -411,20 +446,37 @@ void wxTextEntry::SendMaxLenEvent()
     win->HandleWindowEvent(event);
 }
 
+void wxTextEntry::ForceUpper()
+{
+    if ( !m_isUpperCase )
+    {
+        ConvertToUpperCase();
+
+        m_isUpperCase = true;
+    }
+}
+
 // ----------------------------------------------------------------------------
 // IM handling
 // ----------------------------------------------------------------------------
 
 int wxTextEntry::GTKIMFilterKeypress(GdkEventKey* event) const
 {
+    int result;
 #if GTK_CHECK_VERSION(2, 22, 0)
-    if ( gtk_check_version(2, 12, 0) == 0 )
-        return gtk_entry_im_context_filter_keypress(GetEntry(), event);
+#ifndef __WXGTK3__
+    result = false;
+    if (gtk_check_version(2,22,0) == NULL)
+#endif
+    {
+        result = gtk_entry_im_context_filter_keypress(GetEntry(), event);
+    }
 #else // GTK+ < 2.22
     wxUnusedVar(event);
+    result = false;
 #endif // GTK+ 2.22+
 
-    return FALSE;
+    return result;
 }
 
 void wxTextEntry::GTKConnectInsertTextSignal(GtkEntry* entry)
@@ -449,44 +501,35 @@ bool wxTextEntry::DoSetMargins(const wxPoint& margins)
 
     if ( !entry )
         return false;
+#ifndef __WXGTK3__
+    if (gtk_check_version(2,10,0))
+        return false;
+#endif
 
     const GtkBorder* oldBorder = gtk_entry_get_inner_border(entry);
-    GtkBorder* newBorder;
+    GtkBorder newBorder;
 
     if ( oldBorder )
-    {
-        newBorder = gtk_border_copy(oldBorder);
-    }
+        newBorder = *oldBorder;
     else
     {
-    #if GTK_CHECK_VERSION(2,14,0)
-        newBorder = gtk_border_new();
-    #else
-        newBorder = g_slice_new0(GtkBorder);
-    #endif
         // Use some reasonable defaults for initial margins
-        newBorder->left = 2;
-        newBorder->right = 2;
+        newBorder.left = 2;
+        newBorder.right = 2;
 
         // These numbers seem to let the text remain vertically centered
         // in common use scenarios when margins.y == -1.
-        newBorder->top = 3;
-        newBorder->bottom = 3;
+        newBorder.top = 3;
+        newBorder.bottom = 3;
     }
 
     if ( margins.x != -1 )
-        newBorder->left = (gint) margins.x;
+        newBorder.left = margins.x;
 
     if ( margins.y != -1 )
-        newBorder->top = (gint) margins.y;
+        newBorder.top = margins.y;
 
-    gtk_entry_set_inner_border(entry, newBorder);
-
-#if GTK_CHECK_VERSION(2,14,0)
-    gtk_border_free(newBorder);
-#else
-    g_slice_free(GtkBorder, newBorder);
-#endif
+    gtk_entry_set_inner_border(entry, &newBorder);
 
     return true;
 #else
@@ -497,21 +540,25 @@ bool wxTextEntry::DoSetMargins(const wxPoint& margins)
 
 wxPoint wxTextEntry::DoGetMargins() const
 {
+    wxPoint point(-1, -1);
 #if GTK_CHECK_VERSION(2,10,0)
     GtkEntry* entry = GetEntry();
-
-    if ( !entry )
-        return wxPoint(-1, -1);
-
-    const GtkBorder* border = gtk_entry_get_inner_border(entry);
-
-    if ( !border )
-        return wxPoint(-1, -1);
-
-    return wxPoint((wxCoord) border->left, (wxCoord) border->top);
-#else
-    return wxPoint(-1, -1);
+    if (entry)
+    {
+#ifndef __WXGTK3__
+        if (gtk_check_version(2,10,0) == NULL)
 #endif
+        {
+            const GtkBorder* border = gtk_entry_get_inner_border(entry);
+            if (border)
+            {
+                point.x = border->left;
+                point.y = border->top;
+            }
+        }
+    }
+#endif
+    return point;
 }
 
 #ifdef __WXGTK3__
@@ -519,25 +566,23 @@ bool wxTextEntry::SetHint(const wxString& hint)
 {
 #if GTK_CHECK_VERSION(3,2,0)
     GtkEntry *entry = GetEntry();
-    if ( entry )
+    if (entry && gtk_check_version(3,2,0) == NULL)
     {
         gtk_entry_set_placeholder_text(entry, wxGTK_CONV(hint));
         return true;
     }
-    else
 #endif
-        return wxTextEntryBase::SetHint(hint);
+    return wxTextEntryBase::SetHint(hint);
 }
 
 wxString wxTextEntry::GetHint() const
 {
 #if GTK_CHECK_VERSION(3,2,0)
     GtkEntry *entry = GetEntry();
-    if ( entry )
+    if (entry && gtk_check_version(3,2,0) == NULL)
         return wxGTK_CONV_BACK(gtk_entry_get_placeholder_text(entry));
-    else
 #endif
-        return wxTextEntryBase::GetHint();
+    return wxTextEntryBase::GetHint();
 }
 #endif // __WXGTK3__
 

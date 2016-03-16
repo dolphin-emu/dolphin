@@ -60,39 +60,39 @@ public:
 
     virtual ~wxGenericFileDialog();
 
-    virtual void SetDirectory(const wxString& dir)
+    virtual void SetDirectory(const wxString& dir) wxOVERRIDE
         { m_filectrl->SetDirectory(dir); }
-    virtual void SetFilename(const wxString& name)
+    virtual void SetFilename(const wxString& name) wxOVERRIDE
         { m_filectrl->SetFilename(name); }
-    virtual void SetMessage(const wxString& message) { SetTitle(message); }
-    virtual void SetPath(const wxString& path)
+    virtual void SetMessage(const wxString& message) wxOVERRIDE { SetTitle(message); }
+    virtual void SetPath(const wxString& path) wxOVERRIDE
         { m_filectrl->SetPath(path); }
-    virtual void SetFilterIndex(int filterIndex)
+    virtual void SetFilterIndex(int filterIndex) wxOVERRIDE
         { m_filectrl->SetFilterIndex(filterIndex); }
-    virtual void SetWildcard(const wxString& wildCard)
+    virtual void SetWildcard(const wxString& wildCard) wxOVERRIDE
         { m_filectrl->SetWildcard(wildCard); }
 
-    virtual wxString GetPath() const
+    virtual wxString GetPath() const wxOVERRIDE
         { return m_filectrl->GetPath(); }
-    virtual void GetPaths(wxArrayString& paths) const
+    virtual void GetPaths(wxArrayString& paths) const wxOVERRIDE
         { m_filectrl->GetPaths(paths); }
-    virtual wxString GetDirectory() const
+    virtual wxString GetDirectory() const wxOVERRIDE
         { return m_filectrl->GetDirectory(); }
-    virtual wxString GetFilename() const
+    virtual wxString GetFilename() const wxOVERRIDE
         { return m_filectrl->GetFilename(); }
-    virtual void GetFilenames(wxArrayString& files) const
+    virtual void GetFilenames(wxArrayString& files) const wxOVERRIDE
         { m_filectrl->GetFilenames(files); }
-    virtual wxString GetWildcard() const
+    virtual wxString GetWildcard() const wxOVERRIDE
         { return m_filectrl->GetWildcard(); }
-    virtual int GetFilterIndex() const
+    virtual int GetFilterIndex() const wxOVERRIDE
         { return m_filectrl->GetFilterIndex(); }
-    virtual bool SupportsExtraControl() const { return true; }
+    virtual bool SupportsExtraControl() const wxOVERRIDE { return true; }
 
     // implementation only from now on
     // -------------------------------
 
-    virtual int ShowModal();
-    virtual bool Show( bool show = true );
+    virtual int ShowModal() wxOVERRIDE;
+    virtual bool Show( bool show = true ) wxOVERRIDE;
 
     void OnList( wxCommandEvent &event );
     void OnReport( wxCommandEvent &event );
@@ -121,8 +121,8 @@ private:
     wxBitmapButton* AddBitmapButton( wxWindowID winId, const wxArtID& artId,
                                      const wxString& tip, wxSizer *sizer );
 
-    DECLARE_DYNAMIC_CLASS(wxGenericFileDialog)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxGenericFileDialog);
+    wxDECLARE_EVENT_TABLE();
 
     // these variables are preserved between wxGenericFileDialog calls
     static long ms_lastViewStyle;     // list or report?
@@ -148,11 +148,11 @@ public:
                                defaultDir, defaultFile, wildCard,
                                style,
                                pos, size)
-     {
-     }
+    {
+    }
 
 private:
-     DECLARE_DYNAMIC_CLASS(wxFileDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFileDialog);
 };
 
 #endif // wxHAS_GENERIC_FILEDIALOG

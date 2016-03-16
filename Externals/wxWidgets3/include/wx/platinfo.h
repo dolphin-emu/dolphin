@@ -75,10 +75,11 @@ enum wxPortId
     wxPORT_X11      = 1 << 5,       // wxX11, using wxUniversal
     wxPORT_PM       = 1 << 6,       // wxOS2, using OS/2 Presentation Manager
     wxPORT_OS2      = wxPORT_PM,    // wxOS2, using OS/2 Presentation Manager
-    wxPORT_MAC      = 1 << 7,       // wxOSX (former wxMac), using Cocoa, Carbon or iPhone API
-    wxPORT_OSX      = wxPORT_MAC,   // wxOSX, using Cocoa, Carbon or iPhone API
+    wxPORT_MAC      = 1 << 7,       // wxOSX (former wxMac), using Cocoa or iPhone API
+    wxPORT_OSX      = wxPORT_MAC,   // wxOSX, using Cocoa or iPhone API
     wxPORT_COCOA    = 1 << 8,       // wxCocoa, using Cocoa NextStep/Mac API
-    wxPORT_WINCE    = 1 << 9        // wxWinCE, toolkit is WinCE SDK API
+    wxPORT_WINCE    = 1 << 9,       // wxWinCE, toolkit is WinCE SDK API
+    wxPORT_QT       = 1 << 10       // wxQT, using QT4
 };
 
 // architecture of the operating system
@@ -187,27 +188,27 @@ public:
         { return m_osVersionMajor; }
     int GetOSMinorVersion() const
         { return m_osVersionMinor; }
+    int GetOSMicroVersion() const
+        { return m_osVersionMicro; }
 
     // return true if the OS version >= major.minor
-    bool CheckOSVersion(int major, int minor) const
-    {
-        return DoCheckVersion(GetOSMajorVersion(),
-                              GetOSMinorVersion(),
-                              major,
-                              minor);
-    }
+    bool CheckOSVersion(int major, int minor, int micro = 0) const;
 
     int GetToolkitMajorVersion() const
         { return m_tkVersionMajor; }
     int GetToolkitMinorVersion() const
         { return m_tkVersionMinor; }
+    int GetToolkitMicroVersion() const
+        { return m_tkVersionMicro; }
 
-    bool CheckToolkitVersion(int major, int minor) const
+    bool CheckToolkitVersion(int major, int minor, int micro = 0) const
     {
         return DoCheckVersion(GetToolkitMajorVersion(),
                               GetToolkitMinorVersion(),
+                              GetToolkitMicroVersion(),
                               major,
-                              minor);
+                              minor,
+                              micro);
     }
 
     bool IsUsingUniversalWidgets() const
@@ -254,10 +255,19 @@ public:
     // setters
     // -----------------
 
-    void SetOSVersion(int major, int minor)
-        { m_osVersionMajor=major; m_osVersionMinor=minor; }
-    void SetToolkitVersion(int major, int minor)
-        { m_tkVersionMajor=major; m_tkVersionMinor=minor; }
+    void SetOSVersion(int major, int minor, int micro = 0)
+    {
+        m_osVersionMajor = major;
+        m_osVersionMinor = minor;
+        m_osVersionMicro = micro;
+    }
+
+    void SetToolkitVersion(int major, int minor, int micro = 0)
+    {
+        m_tkVersionMajor = major;
+        m_tkVersionMinor = minor;
+        m_tkVersionMicro = micro;
+    }
 
     void SetOperatingSystemId(wxOperatingSystemId n)
         { m_os = n; }
@@ -282,9 +292,11 @@ public:
     bool IsOk() const
     {
         return m_osVersionMajor != -1 && m_osVersionMinor != -1 &&
+               m_osVersionMicro != -1 &&
                m_os != wxOS_UNKNOWN &&
                !m_osDesc.IsEmpty() &&
                m_tkVersionMajor != -1 && m_tkVersionMinor != -1 &&
+               m_tkVersionMicro != -1 &&
                m_port != wxPORT_UNKNOWN &&
                m_arch != wxARCH_INVALID &&
                m_endian != wxENDIAN_INVALID;
@@ -294,10 +306,15 @@ public:
 
 
 protected:
-    static bool DoCheckVersion(int majorCur, int minorCur, int major, int minor)
+    static bool DoCheckVersion(int majorCur, int minorCur, int microCur,
+                               int major, int minor, int micro)
     {
-        return majorCur > major || (majorCur == major && minorCur >= minor);
+        return majorCur > major
+            || (majorCur == major && minorCur > minor)
+            || (majorCur == major && minorCur == minor && microCur >= micro);
     }
+
+    bool m_initializedForCurrentPlatform;
 
     void InitForCurrentPlatform();
 
@@ -308,7 +325,8 @@ protected:
     // Version of the OS; valid if m_os != wxOS_UNKNOWN
     // (-1 means not initialized yet).
     int m_osVersionMajor,
-        m_osVersionMinor;
+        m_osVersionMinor,
+        m_osVersionMicro;
 
     // Operating system ID.
     wxOperatingSystemId m_os;
@@ -329,7 +347,7 @@ protected:
 
     // Version of the underlying toolkit
     // (-1 means not initialized yet; zero means no toolkit).
-    int m_tkVersionMajor, m_tkVersionMinor;
+    int m_tkVersionMajor, m_tkVersionMinor, m_tkVersionMicro;
 
     // name of the wxWidgets port
     wxPortId m_port;
@@ -349,21 +367,5 @@ protected:
 };
 
 
-#if WXWIN_COMPATIBILITY_2_6
-    #define wxUNKNOWN_PLATFORM      wxOS_UNKNOWN
-    #define wxUnix                  wxOS_UNIX
-    #define wxWin95                 wxOS_WINDOWS_9X
-    #define wxWIN95                 wxOS_WINDOWS_9X
-    #define wxWINDOWS_NT            wxOS_WINDOWS_NT
-    #define wxMSW                   wxOS_WINDOWS
-    #define wxWinCE                 wxOS_WINDOWS_CE
-    #define wxWIN32S                wxOS_WINDOWS_9X
-
-    #define wxOS2                   wxPORT_OS2
-    #define wxCocoa                 wxPORT_MAC
-    #define wxMac                   wxPORT_MAC
-    #define wxMotif                 wxPORT_MOTIF
-    #define wxGTK                   wxPORT_GTK
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #endif // _WX_PLATINFO_H_

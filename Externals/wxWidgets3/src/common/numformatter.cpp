@@ -223,6 +223,10 @@ wxString wxNumberFormatter::ToString(double val, int precision, int style)
 
 void wxNumberFormatter::AddThousandsSeparators(wxString& s)
 {
+    // Thousands separators for numbers in scientific format are not relevant.
+    if ( s.find_first_of("eE") != wxString::npos )
+        return;
+
     wxChar thousandsSep;
     if ( !GetThousandsSeparatorIfUsed(&thousandsSep) )
         return;
@@ -254,9 +258,14 @@ void wxNumberFormatter::AddThousandsSeparators(wxString& s)
 
 void wxNumberFormatter::RemoveTrailingZeroes(wxString& s)
 {
+    // If number is in scientific format, trailing zeroes belong to the exponent and cannot be removed.
+    if ( s.find_first_of("eE") != wxString::npos )
+        return;
+
     const size_t posDecSep = s.find(GetDecimalSeparator());
-    wxCHECK_RET( posDecSep != wxString::npos,
-                 wxString::Format("No decimal separator in \"%s\"", s) );
+    // No decimal point => removing trailing zeroes irrelevant for integer number.
+    if ( posDecSep == wxString::npos )
+        return;
     wxCHECK_RET( posDecSep, "Can't start with decimal separator" );
 
     // Find the last character to keep.
@@ -267,6 +276,9 @@ void wxNumberFormatter::RemoveTrailingZeroes(wxString& s)
         posLastNonZero--;
 
     s.erase(posLastNonZero + 1);
+    // Remove sign from orphaned zero.
+    if ( s.compare("-0") == 0 )
+        s = "0";
 }
 
 // ----------------------------------------------------------------------------

@@ -41,7 +41,12 @@
 #endif
 
 
-#define IMAGE_SPACING_CTRL_VERTICAL 7  // Spacing used in control size calculation
+// Spacing used in control size calculation
+#ifdef __WXOSX__
+    #define IMAGE_SPACING_CTRL_VERTICAL 12
+#else
+    #define IMAGE_SPACING_CTRL_VERTICAL 7
+#endif
 
 
 // ============================================================================
@@ -49,12 +54,12 @@
 // ============================================================================
 
 
-BEGIN_EVENT_TABLE(wxBitmapComboBox, wxOwnerDrawnComboBox)
+wxBEGIN_EVENT_TABLE(wxBitmapComboBox, wxOwnerDrawnComboBox)
     EVT_SIZE(wxBitmapComboBox::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmapComboBox, wxOwnerDrawnComboBox)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBitmapComboBox, wxOwnerDrawnComboBox);
 
 void wxBitmapComboBox::Init()
 {

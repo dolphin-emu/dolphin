@@ -23,7 +23,7 @@
 #include "wx/commandlinkbutton.h"
 #include "wx/artprov.h"
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCommandLinkButton, wxButton, "wx/commandlinkbutton.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxCommandLinkButton, wxButton, "wx/commandlinkbutton.h");
 
 wxDEFINE_FLAGS( wxCommandLinkButtonStyle )
 wxBEGIN_FLAGS( wxCommandLinkButtonStyle )

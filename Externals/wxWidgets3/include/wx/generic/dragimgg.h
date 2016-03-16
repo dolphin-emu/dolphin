@@ -121,18 +121,6 @@ public:
         Create(str, cursor);
     }
 
-#if WXWIN_COMPATIBILITY_2_6
-    // don't use in new code, use versions without hot spot parameter
-    wxDEPRECATED( wxGenericDragImage(const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( wxGenericDragImage(const wxBitmap& image, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( wxGenericDragImage(const wxIcon& image, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( wxGenericDragImage(const wxString& str, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( bool Create(const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( bool Create(const wxBitmap& image, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( bool Create(const wxIcon& image, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-    wxDEPRECATED( bool Create(const wxString& str, const wxCursor& cursor, const wxPoint& cursorHotspot) );
-#endif // WXWIN_COMPATIBILITY_2_6
-
 #if wxUSE_TREECTRL
     wxGenericDragImage(const wxTreeCtrl& treeCtrl, wxTreeItemId& id)
     {
@@ -263,7 +251,7 @@ protected:
     bool            m_fullScreen;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxGenericDragImage)
+    wxDECLARE_DYNAMIC_CLASS(wxGenericDragImage);
     wxDECLARE_NO_COPY_CLASS(wxGenericDragImage);
 };
 

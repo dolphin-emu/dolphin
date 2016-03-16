@@ -28,19 +28,19 @@ public:
     }
 
     // Implement base class pure virtual methods.
-    virtual void Set(const wxMatrix2D& mat2D, const wxPoint2DDouble& tr);
-    virtual void Get(wxMatrix2D* mat2D, wxPoint2DDouble* tr) const;
-    virtual void Concat(const wxAffineMatrix2DBase& t);
-    virtual bool Invert();
-    virtual bool IsIdentity() const;
-    virtual bool IsEqual(const wxAffineMatrix2DBase& t) const;
-    virtual void Translate(wxDouble dx, wxDouble dy);
-    virtual void Scale(wxDouble xScale, wxDouble yScale);
-    virtual void Rotate(wxDouble cRadians);
+    virtual void Set(const wxMatrix2D& mat2D, const wxPoint2DDouble& tr) wxOVERRIDE;
+    virtual void Get(wxMatrix2D* mat2D, wxPoint2DDouble* tr) const wxOVERRIDE;
+    virtual void Concat(const wxAffineMatrix2DBase& t) wxOVERRIDE;
+    virtual bool Invert() wxOVERRIDE;
+    virtual bool IsIdentity() const wxOVERRIDE;
+    virtual bool IsEqual(const wxAffineMatrix2DBase& t) const wxOVERRIDE;
+    virtual void Translate(wxDouble dx, wxDouble dy) wxOVERRIDE;
+    virtual void Scale(wxDouble xScale, wxDouble yScale) wxOVERRIDE;
+    virtual void Rotate(wxDouble cRadians) wxOVERRIDE;
 
 protected:
-    virtual wxPoint2DDouble DoTransformPoint(const wxPoint2DDouble& p) const;
-    virtual wxPoint2DDouble DoTransformDistance(const wxPoint2DDouble& p) const;
+    virtual wxPoint2DDouble DoTransformPoint(const wxPoint2DDouble& p) const wxOVERRIDE;
+    virtual wxPoint2DDouble DoTransformDistance(const wxPoint2DDouble& p) const wxOVERRIDE;
 
 private:
     wxDouble m_11, m_12, m_21, m_22, m_tx, m_ty;

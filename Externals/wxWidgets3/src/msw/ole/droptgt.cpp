@@ -32,18 +32,7 @@
 
 #include "wx/msw/private.h"
 
-#ifdef __WXWINCE__
-    #include <winreg.h>
-    #include <ole2.h>
-#endif
-
-#ifdef __WIN32__
-    #if !defined(__GNUWIN32__) || wxUSE_NORLANDER_HEADERS
-        #include <shlobj.h>            // for DROPFILES structure
-    #endif
-#else
-    #include <shellapi.h>
-#endif
+#include <shlobj.h>            // for DROPFILES structure
 
 #include "wx/dnd.h"
 
@@ -218,6 +207,16 @@ STDMETHODIMP wxIDropTarget::DragEnter(IDataObject *pIDataSource,
     }
 #endif // 0
 
+    if ( !m_pTarget->MSWIsAcceptedData(pIDataSource) ) {
+      // we don't accept this kind of data
+      *pdwEffect = DROPEFFECT_NONE;
+
+      // Don't do anything else if we don't support this format at all, notably
+      // don't call our OnEnter() below which would show misleading cursor to
+      // the user.
+      return S_OK;
+    }
+
     // for use in OnEnter and OnDrag calls
     m_pTarget->MSWSetDataSource(pIDataSource);
 
@@ -225,25 +224,18 @@ STDMETHODIMP wxIDropTarget::DragEnter(IDataObject *pIDataSource,
     m_pIDataObject = pIDataSource;
     m_pIDataObject->AddRef();
 
-    if ( !m_pTarget->MSWIsAcceptedData(pIDataSource) ) {
-        // we don't accept this kind of data
-        *pdwEffect = DROPEFFECT_NONE;
-    }
-    else
+    // we need client coordinates to pass to wxWin functions
+    if ( !ScreenToClient(m_hwnd, (POINT *)&pt) )
     {
-        // we need client coordinates to pass to wxWin functions
-        if ( !ScreenToClient(m_hwnd, (POINT *)&pt) )
-        {
-            wxLogLastError(wxT("ScreenToClient"));
-        }
-
-        // give some visual feedback
-        *pdwEffect = ConvertDragResultToEffect(
-            m_pTarget->OnEnter(pt.x, pt.y, ConvertDragEffectToResult(
-                GetDropEffect(grfKeyState, m_pTarget->GetDefaultAction(), *pdwEffect))
-                        )
-                     );
+        wxLogLastError(wxT("ScreenToClient"));
     }
+
+    // give some visual feedback
+    *pdwEffect = ConvertDragResultToEffect(
+        m_pTarget->OnEnter(pt.x, pt.y, ConvertDragEffectToResult(
+            GetDropEffect(grfKeyState, m_pTarget->GetDefaultAction(), *pdwEffect))
+                    )
+                  );
 
     // update drag image
     const wxDragResult res = ConvertDragEffectToResult(*pdwEffect);
@@ -409,31 +401,17 @@ wxDropTarget::~wxDropTarget()
 
 bool wxDropTarget::Register(WXHWND hwnd)
 {
-    // FIXME
-    // RegisterDragDrop not available on Windows CE >= 400?
-    // Or maybe we can dynamically load them from ceshell.dll
-    // or similar.
-#if defined(__WXWINCE__) && _WIN32_WCE >= 400
-    wxUnusedVar(hwnd);
-    return false;
-#else
     HRESULT hr;
 
-    // May exist in later WinCE versions
-#ifndef __WXWINCE__
     hr = ::CoLockObjectExternal(m_pIDropTarget, TRUE, FALSE);
     if ( FAILED(hr) ) {
         wxLogApiError(wxT("CoLockObjectExternal"), hr);
         return false;
     }
-#endif
 
     hr = ::RegisterDragDrop((HWND) hwnd, m_pIDropTarget);
     if ( FAILED(hr) ) {
-    // May exist in later WinCE versions
-#ifndef __WXWINCE__
         ::CoLockObjectExternal(m_pIDropTarget, FALSE, FALSE);
-#endif
         wxLogApiError(wxT("RegisterDragDrop"), hr);
         return false;
     }
@@ -444,31 +422,22 @@ bool wxDropTarget::Register(WXHWND hwnd)
     MSWInitDragImageSupport();
 
     return true;
-#endif
 }
 
 void wxDropTarget::Revoke(WXHWND hwnd)
 {
-#if defined(__WXWINCE__) && _WIN32_WCE >= 400
-    // Not available, see note above
-    wxUnusedVar(hwnd);
-#else
     HRESULT hr = ::RevokeDragDrop((HWND) hwnd);
 
     if ( FAILED(hr) ) {
         wxLogApiError(wxT("RevokeDragDrop"), hr);
     }
 
-    // May exist in later WinCE versions
-#ifndef __WXWINCE__
     ::CoLockObjectExternal(m_pIDropTarget, FALSE, TRUE);
-#endif
 
     MSWEndDragImageSupport();
 
     // remove window reference
     m_pIDropTarget->SetHwnd(0);
-#endif
 }
 
 // ----------------------------------------------------------------------------

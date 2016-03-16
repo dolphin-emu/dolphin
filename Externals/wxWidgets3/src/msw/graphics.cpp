@@ -16,7 +16,7 @@
 
 #include "wx/dc.h"
 
-#if wxUSE_GRAPHICS_CONTEXT
+#if wxUSE_GRAPHICS_GDIPLUS
 
 #ifndef WX_PRECOMP
     #include "wx/msw/wrapcdlg.h"
@@ -28,6 +28,7 @@
     #include "wx/bitmap.h"
     #include "wx/log.h"
     #include "wx/icon.h"
+    #include "wx/math.h"
     #include "wx/module.h"
     // include all dc types that are used as a param
     #include "wx/dc.h"
@@ -45,10 +46,11 @@
     #include "wx/msw/enhmeta.h"
 #endif
 #include "wx/dcgraph.h"
+#include "wx/rawbmp.h"
 
 #include "wx/msw/private.h" // needs to be before #include <commdlg.h>
 
-#if wxUSE_COMMON_DIALOGS && !defined(__WXMICROWIN__)
+#if wxUSE_COMMON_DIALOGS
 #include <commdlg.h>
 #endif
 
@@ -56,20 +58,11 @@ namespace
 {
 
 //-----------------------------------------------------------------------------
-// constants
-//-----------------------------------------------------------------------------
-
-const double RAD2DEG = 180.0 / M_PI;
-
-//-----------------------------------------------------------------------------
 // Local functions
 //-----------------------------------------------------------------------------
 
 inline double dmin(double a, double b) { return a < b ? a : b; }
 inline double dmax(double a, double b) { return a > b ? a : b; }
-
-inline double DegToRad(double deg) { return (deg * M_PI) / 180.0; }
-inline double RadToDeg(double deg) { return (deg * 180.0) / M_PI; }
 
 // translate a wxColour to a Color
 inline Color wxColourToColor(const wxColour& col)
@@ -289,7 +282,9 @@ protected:
 private:
     // common part of Create{Linear,Radial}GradientBrush()
     template <typename T>
-    void SetGradientStops(T *brush, const wxGraphicsGradientStops& stops);
+    void SetGradientStops(T *brush,
+                          const wxGraphicsGradientStops& stops,
+                          bool reversed = false);
 
     Brush* m_brush;
     Image* m_brushImage;
@@ -458,6 +453,11 @@ public:
 
     virtual ~wxGDIPlusImageContext()
     {
+        Flush();
+    }
+
+    virtual void Flush() wxOVERRIDE
+    {
         m_image = m_bitmap.ConvertToImage();
     }
 
@@ -587,6 +587,9 @@ public :
     // create a subimage from a native image representation
     virtual wxGraphicsBitmap CreateSubBitmap( const wxGraphicsBitmap &bitmap, wxDouble x, wxDouble y, wxDouble w, wxDouble h  );
 
+    virtual wxString GetName() const wxOVERRIDE;
+    virtual void GetVersion(int *major, int *minor, int *micro) const wxOVERRIDE;
+
 protected :
     bool EnsureIsLoaded();
     void Load();
@@ -597,7 +600,7 @@ private :
     int m_loaded;
     ULONG_PTR m_gditoken;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGDIPlusRenderer)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGDIPlusRenderer);
 } ;
 
 //-----------------------------------------------------------------------------
@@ -785,7 +788,7 @@ wxGDIPlusBrushData::wxGDIPlusBrushData( wxGraphicsRenderer* renderer , const wxB
 : wxGraphicsObjectRefData(renderer)
 {
     Init();
-    if ( brush.GetStyle() == wxSOLID)
+    if ( brush.GetStyle() == wxBRUSHSTYLE_SOLID)
     {
         m_brush = new SolidBrush(wxColourToColor( brush.GetColour()));
     }
@@ -857,7 +860,8 @@ void wxGDIPlusBrushData::Init()
 template <typename T>
 void
 wxGDIPlusBrushData::SetGradientStops(T *brush,
-        const wxGraphicsGradientStops& stops)
+        const wxGraphicsGradientStops& stops,
+        bool reversed)
 {
     const unsigned numStops = stops.GetCount();
     if ( numStops <= 2 )
@@ -870,12 +874,25 @@ wxGDIPlusBrushData::SetGradientStops(T *brush,
     wxVector<Color> colors(numStops);
     wxVector<REAL> positions(numStops);
 
-    for ( unsigned i = 0; i < numStops; i++ )
+    if ( reversed )
     {
-        wxGraphicsGradientStop stop = stops.Item(i);
+        for ( unsigned i = 0; i < numStops; i++ )
+        {
+            wxGraphicsGradientStop stop = stops.Item(numStops - i - 1);
 
-        colors[i] = wxColourToColor(stop.GetColour());
-        positions[i] = stop.GetPosition();
+            colors[i] = wxColourToColor(stop.GetColour());
+            positions[i] = 1.0 - stop.GetPosition();
+        }
+    }
+    else
+    {
+        for ( unsigned i = 0; i < numStops; i++ )
+        {
+            wxGraphicsGradientStop stop = stops.Item(i);
+
+            colors[i] = wxColourToColor(stop.GetColour());
+            positions[i] = stop.GetPosition();
+        }
     }
 
     brush->SetInterpolationColors(&colors[0], &positions[0], numStops);
@@ -914,7 +931,9 @@ wxGDIPlusBrushData::CreateRadialGradientBrush(wxDouble xo, wxDouble yo,
     int count = 1;
     brush->SetSurroundColors(&col, &count);
 
-    SetGradientStops(brush, stops);
+    // Because the GDI+ API draws radial gradients from outside towards the
+    // center we have to reverse the order of the gradient stops.
+    SetGradientStops(brush, stops, true);
 }
 
 //-----------------------------------------------------------------------------
@@ -943,10 +962,14 @@ wxGDIPlusFontData::wxGDIPlusFontData( wxGraphicsRenderer* renderer,
         style |= FontStyleItalic;
     if ( font.GetUnderlined() )
         style |= FontStyleUnderline;
+    if ( font.GetStrikethrough() )
+        style |= FontStyleStrikeout;
     if ( font.GetWeight() == wxFONTWEIGHT_BOLD )
         style |= FontStyleBold;
 
-    Init(font.GetFaceName(), font.GetPointSize(), style, col, UnitPoint);
+    // Create font which size is measured in logical units
+    // and let the system rescale it according to the target resolution.
+    Init(font.GetFaceName(), font.GetPixelSize().GetHeight(), style, col, UnitPixel);
 }
 
 wxGDIPlusFontData::wxGDIPlusFontData(wxGraphicsRenderer* renderer,
@@ -1084,20 +1107,45 @@ wxGDIPlusBitmapData::wxGDIPlusBitmapData( wxGraphicsRenderer* renderer,
 
 wxImage wxGDIPlusBitmapData::ConvertToImage() const
 {
-    // We could use Bitmap::LockBits() and convert to wxImage directly but
-    // passing by wxBitmap is easier. It would be nice to measure performance
-    // of the two methods but for this the second one would need to be written
-    // first...
-    HBITMAP hbmp;
-    if ( m_bitmap->GetHBITMAP(Color(0xffffffff), &hbmp) != Gdiplus::Ok )
-        return wxNullImage;
+    // We need to use Bitmap::LockBits() to convert bitmap to wxImage
+    // because this way we can retrieve also alpha channel data.
+    // Alternative way by retrieving bitmap handle with Bitmap::GetHBITMAP
+    // (to pass it to wxBitmap) doesn't preserve real alpha channel data.
+    const UINT w = m_bitmap->GetWidth();
+    const UINT h = m_bitmap->GetHeight();
 
-    wxBitmap bmp;
-    bmp.SetWidth(m_bitmap->GetWidth());
-    bmp.SetHeight(m_bitmap->GetHeight());
-    bmp.SetHBITMAP(hbmp);
-    bmp.SetDepth(IsAlphaPixelFormat(m_bitmap->GetPixelFormat()) ? 32 : 24);
-    return bmp.ConvertToImage();
+    wxImage img(w, h);
+    // Set up wxImage buffer for alpha channel values
+    // only if bitmap contains alpha channel.
+    if ( IsAlphaPixelFormat(m_bitmap->GetPixelFormat()) )
+    {
+        img.InitAlpha();
+    }
+
+    BitmapData bitmapData;
+    Rect rect(0, 0, w, h);
+    m_bitmap->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData);
+
+    unsigned char *imgRGB = img.GetData();    // destination RGB buffer
+    unsigned char *imgAlpha = img.GetAlpha(); // destination alpha buffer
+    const BYTE* pixels = static_cast<const BYTE*>(bitmapData.Scan0);
+    for( UINT y = 0; y < h; y++ )
+    {
+        for( UINT x = 0; x < w; x++ )
+        {
+            ARGB c = reinterpret_cast<const ARGB*>(pixels)[x];
+            *imgRGB++ = (c >> 16) & 0xFF;  // R
+            *imgRGB++ = (c >> 8) & 0xFF;   // G
+            *imgRGB++ = (c >> 0) & 0xFF;   // B
+            if ( imgAlpha )
+                *imgAlpha++ = (c >> 24) & 0xFF;
+        }
+
+        pixels += bitmapData.Stride;
+    }
+    m_bitmap->UnlockBits(&bitmapData);
+
+    return img;
 }
 
 #endif // wxUSE_IMAGE
@@ -1190,7 +1238,7 @@ void wxGDIPlusPathData::AddArc( wxDouble x, wxDouble y, wxDouble r, double start
 
         }
    }
-   m_path->AddArc((REAL) (x-r),(REAL) (y-r),(REAL) (2*r),(REAL) (2*r),RadToDeg(startAngle),RadToDeg(sweepAngle));
+   m_path->AddArc((REAL) (x-r),(REAL) (y-r),(REAL) (2*r),(REAL) (2*r),wxRadToDeg(startAngle),wxRadToDeg(sweepAngle));
 }
 
 void wxGDIPlusPathData::AddRectangle( wxDouble x, wxDouble y, wxDouble w, wxDouble h )
@@ -1314,7 +1362,7 @@ void wxGDIPlusMatrixData::Scale( wxDouble xScale , wxDouble yScale )
 // add the rotation to this matrix (radians)
 void wxGDIPlusMatrixData::Rotate( wxDouble angle )
 {
-    m_matrix->Rotate( RadToDeg(angle) );
+    m_matrix->Rotate( wxRadToDeg(angle) );
 }
 
 //
@@ -1419,7 +1467,7 @@ void wxGDIPlusContext::Init(Graphics* graphics, int width, int height)
     m_context->SetTextRenderingHint(TextRenderingHintSystemDefault);
     m_context->SetPixelOffsetMode(PixelOffsetModeHalf);
     m_context->SetSmoothingMode(SmoothingModeHighQuality);
-    m_context->SetInterpolationMode(InterpolationModeHighQuality);
+
     m_state1 = m_context->Save();
     m_state2 = m_context->Save();
 }
@@ -1484,11 +1532,11 @@ void wxGDIPlusContext::StrokeLines( size_t n, const wxPoint2DDouble *points)
    if ( !m_pen.IsNull() )
    {
        wxGDIPlusOffsetHelper helper( m_context , ShouldOffset() );
-       Point *cpoints = new Point[n];
+       PointF *cpoints = new PointF[n];
        for (size_t i = 0; i < n; i++)
        {
-           cpoints[i].X = (int)(points[i].m_x );
-           cpoints[i].Y = (int)(points[i].m_y );
+           cpoints[i].X = static_cast<REAL>(points[i].m_x);
+           cpoints[i].Y = static_cast<REAL>(points[i].m_y);
 
        } // for (size_t i = 0; i < n; i++)
        m_context->DrawLines( ((wxGDIPlusPenData*)m_pen.GetGraphicsData())->GetGDIPlusPen() , cpoints , n ) ;
@@ -1502,11 +1550,11 @@ void wxGDIPlusContext::DrawLines( size_t n, const wxPoint2DDouble *points, wxPol
         return;
 
     wxGDIPlusOffsetHelper helper( m_context , ShouldOffset() );
-    Point *cpoints = new Point[n];
+    PointF *cpoints = new PointF[n];
     for (size_t i = 0; i < n; i++)
     {
-        cpoints[i].X = (int)(points[i].m_x );
-        cpoints[i].Y = (int)(points[i].m_y );
+        cpoints[i].X = static_cast<REAL>(points[i].m_x);
+        cpoints[i].Y = static_cast<REAL>(points[i].m_y);
 
     } // for (int i = 0; i < n; i++)
     if ( !m_brush.IsNull() )
@@ -1547,21 +1595,31 @@ bool wxGDIPlusContext::SetAntialiasMode(wxAntialiasMode antialias)
     if (m_antialias == antialias)
         return true;
 
-    m_antialias = antialias;
+    // MinGW currently doesn't provide InterpolationModeInvalid in its headers,
+    // so use our own definition.
+    static const SmoothingMode
+        wxSmoothingModeInvalid = static_cast<SmoothingMode>(-1);
 
-    SmoothingMode antialiasMode;
+    SmoothingMode antialiasMode = wxSmoothingModeInvalid;
     switch (antialias)
     {
         case wxANTIALIAS_DEFAULT:
             antialiasMode = SmoothingModeHighQuality;
             break;
+
         case wxANTIALIAS_NONE:
             antialiasMode = SmoothingModeNone;
             break;
-        default:
-            return false;
     }
-    m_context->SetSmoothingMode(antialiasMode);
+
+    wxCHECK_MSG( antialiasMode != wxSmoothingModeInvalid, false,
+                 wxS("Unknown antialias mode") );
+
+    if ( m_context->SetSmoothingMode(antialiasMode) != Gdiplus::Ok )
+        return false;
+
+    m_antialias = antialias;
+
     return true;
 }
 
@@ -1570,7 +1628,12 @@ bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality interpolat
     if (m_interpolation == interpolation)
         return true;
 
-    InterpolationMode interpolationMode = InterpolationModeDefault;
+    // MinGW currently doesn't provide InterpolationModeInvalid in its headers,
+    // so use our own definition.
+    static const InterpolationMode
+        wxInterpolationModeInvalid = static_cast<InterpolationMode>(-1);
+
+    InterpolationMode interpolationMode = wxInterpolationModeInvalid;
     switch (interpolation)
     {
         case wxINTERPOLATION_DEFAULT:
@@ -1592,10 +1655,10 @@ bool wxGDIPlusContext::SetInterpolationQuality(wxInterpolationQuality interpolat
         case wxINTERPOLATION_BEST:
             interpolationMode = InterpolationModeHighQualityBicubic;
             break;
-
-        default:
-            return false;
     }
+
+    wxCHECK_MSG( interpolationMode != wxInterpolationModeInvalid, false,
+                 wxS("Unknown interpolation mode") );
 
     if ( m_context->SetInterpolationMode(interpolationMode) != Gdiplus::Ok )
         return false;
@@ -1644,7 +1707,7 @@ void wxGDIPlusContext::EndLayer()
 
 void wxGDIPlusContext::Rotate( wxDouble angle )
 {
-    m_context->RotateTransform( RadToDeg(angle) );
+    m_context->RotateTransform( wxRadToDeg(angle) );
 }
 
 void wxGDIPlusContext::Translate( wxDouble dx , wxDouble dy )
@@ -1706,9 +1769,8 @@ void wxGDIPlusContext::DrawIcon( const wxIcon &icon, wxDouble x, wxDouble y, wxD
     // the built-in conversion fails when there is alpha in the HICON (eg XP style icons), we can only
     // find out by looking at the bitmap data whether there really was alpha in it
     HICON hIcon = (HICON)icon.GetHICON();
-    ICONINFO iconInfo ;
-    // IconInfo creates the bitmaps for color and mask, we must dispose of them after use
-    if (!GetIconInfo(hIcon,&iconInfo))
+    AutoIconInfo iconInfo ;
+    if (!iconInfo.GetFrom(hIcon))
         return;
 
     Bitmap interim(iconInfo.hbmColor,NULL);
@@ -1732,11 +1794,11 @@ void wxGDIPlusContext::DrawIcon( const wxIcon &icon, wxDouble x, wxDouble y, wxD
             interim.GetPixelFormat(),&data);
 
         bool hasAlpha = false;
-        for ( size_t y = 0 ; y < height && !hasAlpha ; ++y)
+        for ( size_t yy = 0 ; yy < height && !hasAlpha ; ++yy)
         {
-            for( size_t x = 0 ; x < width && !hasAlpha; ++x)
+            for( size_t xx = 0 ; xx < width && !hasAlpha; ++xx)
             {
-                ARGB *dest = (ARGB*)((BYTE*)data.Scan0 + data.Stride*y + x*4);
+                ARGB *dest = (ARGB*)((BYTE*)data.Scan0 + data.Stride*yy + xx*4);
                 if ( ( *dest & Color::AlphaMask ) != 0 )
                     hasAlpha = true;
             }
@@ -1758,8 +1820,6 @@ void wxGDIPlusContext::DrawIcon( const wxIcon &icon, wxDouble x, wxDouble y, wxD
     m_context->DrawImage(image,(REAL) x,(REAL) y,(REAL) w,(REAL) h) ;
 
     delete image ;
-    DeleteObject(iconInfo.hbmColor);
-    DeleteObject(iconInfo.hbmMask);
 }
 
 void wxGDIPlusContext::DoDrawText(const wxString& str,
@@ -1961,13 +2021,18 @@ wxGDIPlusPrintingContext::wxGDIPlusPrintingContext( wxGraphicsRenderer* renderer
 // wxGDIPlusRenderer implementation
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGDIPlusRenderer,wxGraphicsRenderer)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGDIPlusRenderer, wxGraphicsRenderer);
 
 static wxGDIPlusRenderer gs_GDIPlusRenderer;
 
-wxGraphicsRenderer* wxGraphicsRenderer::GetDefaultRenderer()
+wxGraphicsRenderer* wxGraphicsRenderer::GetGDIPlusRenderer()
 {
     return &gs_GDIPlusRenderer;
+}
+
+wxGraphicsRenderer* wxGraphicsRenderer::GetDefaultRenderer()
+{
+    return wxGraphicsRenderer::GetGDIPlusRenderer();
 }
 
 bool wxGDIPlusRenderer::EnsureIsLoaded()
@@ -2045,6 +2110,61 @@ wxGraphicsContext * wxGDIPlusRenderer::CreateContext( const wxEnhMetaFileDC& dc)
 wxGraphicsContext * wxGDIPlusRenderer::CreateContext( const wxMemoryDC& dc)
 {
     ENSURE_LOADED_OR_RETURN(NULL);
+#if wxUSE_WXDIB
+    // It seems that GDI+ sets invalid values for alpha channel when used with
+    // a compatible bitmap (DDB). So we need to convert the currently selected
+    // bitmap to a DIB before using it with any GDI+ functions to ensure that
+    // we get the correct alpha channel values in it at the end.
+
+    wxBitmap bmp = dc.GetSelectedBitmap();
+    wxASSERT_MSG( bmp.IsOk(), "Should select a bitmap before creating wxGCDC" );
+
+    // We don't need to convert it if it can't have alpha at all (any depth but
+    // 32) or is already a DIB with alpha.
+    if ( bmp.GetDepth() == 32 && (!bmp.IsDIB() || !bmp.HasAlpha()) )
+    {
+        // We need to temporarily deselect this bitmap from the memory DC
+        // before modifying it.
+        const_cast<wxMemoryDC&>(dc).SelectObject(wxNullBitmap);
+
+        bmp.ConvertToDIB(); // Does nothing if already a DIB.
+
+        if( !bmp.HasAlpha() )
+        {
+            // Initialize alpha channel, even if we don't have any alpha yet,
+            // we should have correct (opaque) alpha values in it for GDI+
+            // functions to work correctly.
+            {
+                wxAlphaPixelData data(bmp);
+                if ( data )
+                {
+                    wxAlphaPixelData::Iterator p(data);
+                    for ( int y = 0; y < data.GetHeight(); y++ )
+                    {
+                        wxAlphaPixelData::Iterator rowStart = p;
+
+                        for ( int x = 0; x < data.GetWidth(); x++ )
+                        {
+                            p.Alpha() = wxALPHA_OPAQUE;
+                            ++p;
+                        }
+
+                        p = rowStart;
+                        p.OffsetY(data, 1);
+                    }
+                }
+            } // End of block modifying the bitmap.
+
+            // Using wxAlphaPixelData sets the internal "has alpha" flag but we
+            // don't really have any alpha yet, so reset it back for now.
+            bmp.ResetAlpha();
+        }
+
+        // Undo SelectObject() at the beginning of this block.
+        const_cast<wxMemoryDC&>(dc).SelectObjectAsSource(bmp);
+    }
+#endif // wxUSE_WXDIB
+
     wxGDIPlusContext* context = new wxGDIPlusContext(this, dc);
     context->EnableOffset(true);
     return context;
@@ -2114,7 +2234,7 @@ wxGraphicsMatrix wxGDIPlusRenderer::CreateMatrix( wxDouble a, wxDouble b, wxDoub
 wxGraphicsPen wxGDIPlusRenderer::CreatePen(const wxPen& pen)
 {
     ENSURE_LOADED_OR_RETURN(wxNullGraphicsPen);
-    if ( !pen.IsOk() || pen.GetStyle() == wxTRANSPARENT )
+    if ( !pen.IsOk() || pen.GetStyle() == wxPENSTYLE_TRANSPARENT )
         return wxNullGraphicsPen;
     else
     {
@@ -2127,7 +2247,7 @@ wxGraphicsPen wxGDIPlusRenderer::CreatePen(const wxPen& pen)
 wxGraphicsBrush wxGDIPlusRenderer::CreateBrush(const wxBrush& brush )
 {
     ENSURE_LOADED_OR_RETURN(wxNullGraphicsBrush);
-    if ( !brush.IsOk() || brush.GetStyle() == wxTRANSPARENT )
+    if ( !brush.IsOk() || brush.GetStyle() == wxBRUSHSTYLE_TRANSPARENT )
         return wxNullGraphicsBrush;
     else
     {
@@ -2278,6 +2398,21 @@ wxGraphicsBitmap wxGDIPlusRenderer::CreateSubBitmap( const wxGraphicsBitmap &bit
         return wxNullGraphicsBitmap;
 }
 
+wxString wxGDIPlusRenderer::GetName() const
+{
+    return "gdiplus";
+}
+
+void wxGDIPlusRenderer::GetVersion(int *major, int *minor, int *micro) const
+{
+    if ( major )
+        *major = wxPlatformInfo::Get().GetOSMajorVersion();
+    if ( minor )
+        *minor = wxPlatformInfo::Get().GetOSMinorVersion();
+    if ( micro )
+        *micro = 0;
+}
+
 // Shutdown GDI+ at app exit, before possible dll unload
 class wxGDIPlusRendererModule : public wxModule
 {
@@ -2297,10 +2432,10 @@ public:
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxGDIPlusRendererModule)
+    wxDECLARE_DYNAMIC_CLASS(wxGDIPlusRendererModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxGDIPlusRendererModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGDIPlusRendererModule, wxModule);
 
 // ----------------------------------------------------------------------------
 // wxMSW-specific parts of wxGCDC
@@ -2346,4 +2481,4 @@ void wxGCDC::ReleaseHDC(WXHDC hdc)
     g->ReleaseHDC((HDC)hdc);
 }
 
-#endif  // wxUSE_GRAPHICS_CONTEXT
+#endif // wxUSE_GRAPHICS_GDIPLUS

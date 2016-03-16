@@ -35,16 +35,16 @@ public:
                 long style = 0,
                 const wxString& name = wxStaticBitmapNameStr);
 
-    virtual void SetBitmap(const wxBitmap& bitmap)
+    virtual void SetBitmap(const wxBitmap& bitmap) wxOVERRIDE
     {
         m_bitmap = bitmap;
         SetInitialSize(GetBitmapSize());
         Refresh();
     }
 
-    virtual wxBitmap GetBitmap() const { return m_bitmap; }
+    virtual wxBitmap GetBitmap() const wxOVERRIDE { return m_bitmap; }
 
-    virtual void SetIcon(const wxIcon& icon)
+    virtual void SetIcon(const wxIcon& icon) wxOVERRIDE
     {
         m_bitmap.CopyFromIcon(icon);
         SetInitialSize(GetBitmapSize());
@@ -53,9 +53,16 @@ public:
 
 #if defined(__WXGTK20__) || defined(__WXMAC__)
     // icons and bitmaps are really the same thing in wxGTK and wxMac
-    wxIcon GetIcon() const  { return (const wxIcon &)m_bitmap; }
+    wxIcon GetIcon() const wxOVERRIDE  { return (const wxIcon &)m_bitmap; }
 #endif
 
+    virtual void SetScaleMode(ScaleMode scaleMode) wxOVERRIDE
+    {
+        m_scaleMode = scaleMode;
+        Refresh();
+    }
+
+    virtual ScaleMode GetScaleMode() const wxOVERRIDE { return m_scaleMode; }
 
 private:
     wxSize GetBitmapSize()
@@ -67,8 +74,9 @@ private:
     void OnPaint(wxPaintEvent& event);
 
     wxBitmap m_bitmap;
+    ScaleMode m_scaleMode;
 
-    DECLARE_DYNAMIC_CLASS(wxGenericStaticBitmap)
+    wxDECLARE_DYNAMIC_CLASS(wxGenericStaticBitmap);
 };
 
 

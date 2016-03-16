@@ -55,7 +55,7 @@ static void gtk_clrbutton_setcolor_callback(GtkColorButton *widget,
 // wxColourButton
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourButton, wxButton)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourButton, wxButton);
 
 bool wxColourButton::Create( wxWindow *parent, wxWindowID id,
                         const wxColour &col,
@@ -78,6 +78,9 @@ bool wxColourButton::Create( wxWindow *parent, wxWindowID id,
 #endif
     g_object_ref(m_widget);
 
+    // Display opacity slider
+    g_object_set(G_OBJECT(m_widget), "use-alpha",
+                 static_cast<bool>(style & wxCLRP_SHOW_ALPHA), NULL);
     // GtkColourButton signals
     g_signal_connect(m_widget, "color-set",
                     G_CALLBACK(gtk_clrbutton_setcolor_callback), this);

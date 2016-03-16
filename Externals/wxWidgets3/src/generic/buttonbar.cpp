@@ -95,13 +95,13 @@ private:
 // wxButtonToolBar implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxButtonToolBar, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxButtonToolBar, wxControl);
 
-BEGIN_EVENT_TABLE(wxButtonToolBar, wxControl)
+wxBEGIN_EVENT_TABLE(wxButtonToolBar, wxControl)
     EVT_BUTTON(wxID_ANY, wxButtonToolBar::OnCommand)
     EVT_PAINT(wxButtonToolBar::OnPaint)
     EVT_LEFT_UP(wxButtonToolBar::OnLeftUp)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // wxButtonToolBar creation

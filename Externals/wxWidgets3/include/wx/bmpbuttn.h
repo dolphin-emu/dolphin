@@ -20,7 +20,7 @@
 // FIXME: right now only wxMSW, wxGTK and wxOSX implement bitmap support in wxButton
 //        itself, this shouldn't be used for the other platforms neither
 //        when all of them do it
-#if (defined(__WXMSW__) || defined(__WXGTK20__) || defined(__WXOSX__)) && !defined(__WXUNIVERSAL__)
+#if (defined(__WXMSW__) || defined(__WXGTK20__) || defined(__WXOSX__) || defined(__WXQT__)) && !defined(__WXUNIVERSAL__)
     #define wxHAS_BUTTON_BITMAP
 #endif
 
@@ -66,7 +66,7 @@ public:
     }
 
     // Special creation function for a standard "Close" bitmap. It allows to
-    // simply create a close button with the image appropriate for the common
+    // simply create a close button with the image appropriate for the current
     // platform.
     static wxBitmapButton* NewCloseButton(wxWindow* parent, wxWindowID winid);
 
@@ -79,16 +79,6 @@ public:
 
     int GetMarginX() const { return DoGetBitmapMargins().x; }
     int GetMarginY() const { return DoGetBitmapMargins().y; }
-
-    // deprecated synonym for SetBitmapLabel()
-#if WXWIN_COMPATIBILITY_2_6
-    wxDEPRECATED_INLINE( void SetLabel(const wxBitmap& bitmap),
-       SetBitmapLabel(bitmap); )
-
-    // prevent virtual function hiding
-    virtual void SetLabel(const wxString& label)
-        { wxWindow::SetLabel(label); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 protected:
 #ifndef wxHAS_BUTTON_BITMAP
@@ -133,10 +123,8 @@ protected:
     #include "wx/gtk1/bmpbuttn.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/bmpbuttn.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/bmpbuttn.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/bmpbuttn.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/bmpbuttn.h"
 #endif
 
 #endif // wxUSE_BMPBUTTON

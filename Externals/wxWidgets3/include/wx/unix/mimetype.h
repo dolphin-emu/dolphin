@@ -157,11 +157,10 @@ public:
     bool SetCommand(const wxString& cmd, const wxString& verb, bool overwriteprompt = true);
     bool SetDefaultIcon(const wxString& strIcon = wxEmptyString, int index = 0);
 
-private:
     wxString
     GetExpandedCommand(const wxString & verb,
                        const wxFileType::MessageParameters& params) const;
-
+private:
     wxMimeTypesManagerImpl *m_manager;
     wxArrayInt              m_index; // in the wxMimeTypesManagerImpl arrays
 };
