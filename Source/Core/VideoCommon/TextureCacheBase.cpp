@@ -236,7 +236,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 		newentry->SetDimensions((*entry)->native_width, (*entry)->native_height, 1);
 		newentry->SetHashes((*entry)->base_hash, (*entry)->hash);
 		newentry->frameCount = frameCount;
-		newentry->is_efb_copy = false;
+		newentry->is_efb_copy = (*entry)->is_efb_copy;
 		MathUtil::Rectangle<int> srcrect, dstrect;
 		srcrect.left = 0;
 		srcrect.top = 0;
@@ -289,7 +289,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 	// Efb copies and paletted textures are excluded from these updates, until there's an example where a game would
 	// benefit from this. Both would require more work to be done.
-	// TODO: Implement upscaling support for normal textures, and then remove the efb to ram and the scaled efb restrictions
 	if (entry_to_update->IsEfbCopy()
 		|| isPaletteTexture)
 		return entry_to_update;
