@@ -29,8 +29,7 @@ public:
     // default ctor, use setters below to initialize it later
     wxNotificationMessageBase()
     {
-        m_parent = NULL;
-        m_flags = wxICON_INFORMATION;
+        Init();
     }
 
     // create a notification object with the given title and message (the
@@ -39,39 +38,38 @@ public:
                               const wxString& message = wxEmptyString,
                               wxWindow *parent = NULL,
                               int flags = wxICON_INFORMATION)
-        : m_title(title),
-          m_message(message),
-          m_parent(parent)
     {
-        SetFlags(flags);
+        Init();
+        Create(title, message, parent, flags);
     }
+
+    virtual ~wxNotificationMessageBase();
 
     // note that the setters must be called before Show()
 
     // set the title: short string, markup not allowed
-    void SetTitle(const wxString& title) { m_title = title; }
+    void SetTitle(const wxString& title);
 
     // set the text of the message: this is a longer string than the title and
     // some platforms allow simple HTML-like markup in it
-    void SetMessage(const wxString& message) { m_message = message; }
+    void SetMessage(const wxString& message);
 
     // set the parent for this notification: we'll be associated with the top
     // level parent of this window or, if this method is not called, with the
     // main application window by default
-    void SetParent(wxWindow *parent) { m_parent = parent; }
+    void SetParent(wxWindow *parent);
 
     // this method can currently be used to choose a standard icon to use: the
     // parameter may be one of wxICON_INFORMATION, wxICON_WARNING or
     // wxICON_ERROR only (but not wxICON_QUESTION)
-    void SetFlags(int flags)
-    {
-        wxASSERT_MSG( flags == wxICON_INFORMATION ||
-                        flags == wxICON_WARNING || flags == wxICON_ERROR,
-                            "Invalid icon flags specified" );
+    void SetFlags(int flags);
 
-        m_flags = flags;
-    }
+    // set a custom icon to use instead of the system provided specified via SetFlags
+    virtual void SetIcon(const wxIcon& icon);
 
+    // Add a button to the notification, returns false if the platform does not support
+    // actions in notifications
+    virtual bool AddAction(wxWindowID actionid, const wxString &label = wxString());
 
     // showing and hiding
     // ------------------
@@ -87,71 +85,96 @@ public:
     // pass (special values Timeout_Auto and Timeout_Never can be used)
     //
     // returns false if an error occurred
-    virtual bool Show(int timeout = Timeout_Auto) = 0;
+    bool Show(int timeout = Timeout_Auto);
 
     // hide the notification, returns true if it was hidden or false if it
     // couldn't be done (e.g. on some systems automatically hidden
     // notifications can't be hidden manually)
-    virtual bool Close() = 0;
+    bool Close();
 
 protected:
-    // accessors for the derived classes
-    const wxString& GetTitle() const { return m_title; }
-    const wxString& GetMessage() const { return m_message; }
-    wxWindow *GetParent() const { return m_parent; }
-    int GetFlags() const { return m_flags; }
-
-    // return the concatenation of title and message separated by a new line,
-    // this is suitable for simple implementation which have no support for
-    // separate title and message parts of the notification
-    wxString GetFullMessage() const
+    // Common part of all ctors.
+    void Create(const wxString& title = wxEmptyString,
+        const wxString& message = wxEmptyString,
+        wxWindow *parent = NULL,
+        int flags = wxICON_INFORMATION)
     {
-        wxString text(m_title);
-        if ( !m_message.empty() )
-        {
-            text << "\n\n" << m_message;
-        }
-
-        return text;
+        SetTitle(title);
+        SetMessage(message);
+        SetParent(parent);
+        SetFlags(flags);
     }
 
+    class wxNotificationMessageImpl* m_impl;
+
 private:
-    wxString m_title,
-             m_message;
 
-    wxWindow *m_parent;
-
-    int m_flags;
+    void Init()
+    {
+        m_impl = NULL;
+    }
 
     wxDECLARE_NO_COPY_CLASS(wxNotificationMessageBase);
 };
 
-/*
-    TODO: Implement under OS X using notification centre (10.8+) or
-          Growl (http://growl.info/) for the previous versions.
- */
-#if defined(__WXGTK__) && wxUSE_LIBNOTIFY
-    #include "wx/gtk/notifmsg.h"
-#elif defined(__WXGTK__) && (wxUSE_LIBHILDON || wxUSE_LIBHILDON2)
-    #include "wx/gtk/hildon/notifmsg.h"
-#elif defined(__WXMSW__) && wxUSE_TASKBARICON && wxUSE_TASKBARICON_BALLOONS
-    #include "wx/msw/notifmsg.h"
-#else
-    #include "wx/generic/notifmsg.h"
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_NOTIFICATION_MESSAGE_CLICK, wxCommandEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_NOTIFICATION_MESSAGE_DISMISSED, wxCommandEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_ADV, wxEVT_NOTIFICATION_MESSAGE_ACTION, wxCommandEvent );
 
-    class wxNotificationMessage : public wxGenericNotificationMessage
-    {
-    public:
-        wxNotificationMessage() { }
-        wxNotificationMessage(const wxString& title,
-                              const wxString& message = wxEmptyString,
-                              wxWindow *parent = NULL,
-                              int flags = wxICON_INFORMATION)
-            : wxGenericNotificationMessage(title, message, parent, flags)
-        {
-        }
-    };
+#if (defined(__WXGTK__) && wxUSE_LIBNOTIFY) || \
+    (defined(__WXMSW__) && wxUSE_TASKBARICON && wxUSE_TASKBARICON_BALLOONS) || \
+    (defined(__WXOSX_COCOA__) && (MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8))
+    #define wxHAS_NATIVE_NOTIFICATION_MESSAGE
 #endif
+
+// ----------------------------------------------------------------------------
+// wxNotificationMessage
+// ----------------------------------------------------------------------------
+
+#ifdef wxHAS_NATIVE_NOTIFICATION_MESSAGE
+
+#if defined(__WXMSW__)
+class WXDLLIMPEXP_FWD_ADV wxTaskBarIcon;
+#endif // defined(__WXMSW__)
+
+#else
+#include "wx/generic/notifmsg.h"
+#endif // wxHAS_NATIVE_NOTIFICATION_MESSAGE
+
+class WXDLLIMPEXP_ADV wxNotificationMessage : public 
+#ifdef wxHAS_NATIVE_NOTIFICATION_MESSAGE
+    wxNotificationMessageBase
+#else
+    wxGenericNotificationMessage
+#endif
+{
+public:
+    wxNotificationMessage() { Init(); }
+    wxNotificationMessage(const wxString& title,
+                          const wxString& message = wxString(),
+                          wxWindow *parent = NULL,
+                          int flags = wxICON_INFORMATION)
+    {
+        Init();
+        Create(title, message, parent, flags);
+    }
+
+#if defined(__WXMSW__) && defined(wxHAS_NATIVE_NOTIFICATION_MESSAGE)
+    static bool MSWUseToasts(
+        const wxString& shortcutPath = wxString(),
+        const wxString& appId = wxString());
+
+    // returns the task bar icon which was used previously (may be NULL)
+    static wxTaskBarIcon *UseTaskBarIcon(wxTaskBarIcon *icon);
+
+#endif // defined(__WXMSW__) && defined(wxHAS_NATIVE_NOTIFICATION_MESSAGE)
+
+private:
+    // common part of all ctors
+    void Init();
+
+    wxDECLARE_NO_COPY_CLASS(wxNotificationMessage);
+};
 
 #endif // wxUSE_NOTIFICATION_MESSAGE
 

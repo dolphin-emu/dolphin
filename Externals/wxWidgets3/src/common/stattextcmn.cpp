@@ -81,7 +81,7 @@ wxFLAGS_MEMBER(wxALIGN_RIGHT)
 wxFLAGS_MEMBER(wxALIGN_CENTRE)
 wxEND_FLAGS( wxStaticTextStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticText, wxControl, "wx/stattext.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticText, wxControl, "wx/stattext.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxStaticText)
 wxPROPERTY( Label,wxString, SetLabel, GetLabel, wxString(), 0 /*flags*/, \
@@ -169,12 +169,12 @@ public:
     }
 
 protected:
-    virtual void OnOutputLine(const wxString& line)
+    virtual void OnOutputLine(const wxString& line) wxOVERRIDE
     {
         m_text += line;
     }
 
-    virtual void OnNewLine()
+    virtual void OnNewLine() wxOVERRIDE
     {
         m_text += wxT('\n');
     }
@@ -192,6 +192,17 @@ void wxStaticTextBase::Wrap(int width)
 {
     wxLabelWrapper wrapper;
     wrapper.WrapLabel(this, width);
+}
+
+void wxStaticTextBase::AutoResizeIfNecessary()
+{
+    // adjust the size of the window to fit to the label unless autoresizing is
+    // disabled
+    if ( !HasFlag(wxST_NO_AUTORESIZE) )
+    {
+        DoSetSize(wxDefaultCoord, wxDefaultCoord, wxDefaultCoord, wxDefaultCoord,
+                  wxSIZE_AUTO_WIDTH | wxSIZE_AUTO_HEIGHT);
+    }
 }
 
 // ----------------------------------------------------------------------------

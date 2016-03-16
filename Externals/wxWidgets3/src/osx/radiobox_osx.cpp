@@ -25,12 +25,12 @@
 // spacing between InterfaceBuild and the Human Interface Guidelines, we stick
 // to the latter, as those are also used eg in the System Preferences Dialogs
 
-IMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxRadioBox, wxControl);
 
 
-BEGIN_EVENT_TABLE(wxRadioBox, wxControl)
+wxBEGIN_EVENT_TABLE(wxRadioBox, wxControl)
     EVT_RADIOBUTTON( wxID_ANY , wxRadioBox::OnRadioButton )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 void wxRadioBox::OnRadioButton( wxCommandEvent &outer )
@@ -363,12 +363,8 @@ void wxRadioBox::SetFocus()
 
 // Simulates the effect of the user issuing a command to the item
 //
-#if wxOSX_USE_CARBON
-    #define RADIO_SIZE 20
-#else
-    // Cocoa has an additional border are of about 3 pixels
-    #define RADIO_SIZE 23
-#endif
+// Cocoa has an additional border are of about 3 pixels
+#define RADIO_SIZE 23
 
 void wxRadioBox::DoSetSize(int x, int y, int width, int height, int sizeFlags)
 {

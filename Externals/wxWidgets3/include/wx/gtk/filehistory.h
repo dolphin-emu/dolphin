@@ -16,9 +16,9 @@ public:
     wxFileHistory(size_t maxFiles = 9, wxWindowID idBase = wxID_FILE1)
         : wxFileHistoryBase(maxFiles, idBase) {}
 
-    virtual void AddFileToHistory(const wxString& file);
+    virtual void AddFileToHistory(const wxString& file) wxOVERRIDE;
 
-    DECLARE_DYNAMIC_CLASS(wxFileHistory)
+    wxDECLARE_DYNAMIC_CLASS(wxFileHistory);
 };
 
 #endif // _WX_GTK_FILEHISTORY_H_

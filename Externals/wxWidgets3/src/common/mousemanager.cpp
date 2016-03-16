@@ -33,12 +33,12 @@
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxMouseEventsManager, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxMouseEventsManager, wxEvtHandler)
     EVT_MOUSE_CAPTURE_LOST(wxMouseEventsManager::OnCaptureLost)
     EVT_LEFT_DOWN(wxMouseEventsManager::OnLeftDown)
     EVT_LEFT_UP(wxMouseEventsManager::OnLeftUp)
     EVT_MOTION(wxMouseEventsManager::OnMove)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxMouseEventsManager implementation

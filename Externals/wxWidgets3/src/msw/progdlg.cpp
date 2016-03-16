@@ -22,7 +22,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_PROGRESSDLG && wxUSE_THREADS
+#if wxUSE_PROGRESSDLG && wxUSE_THREADS && wxUSE_NATIVE_PROGRESSDLG
 
 #include "wx/progdlg.h"
 

@@ -15,6 +15,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/eventsdisabler.h"
 
 //-----------------------------------------------------------------------------
 // data
@@ -45,7 +46,7 @@ static void gtk_checkbox_toggled_callback(GtkWidget *widget, wxCheckBox *cb)
             bool active = gtk_toggle_button_get_active(toggle) != 0;
             bool inconsistent = gtk_toggle_button_get_inconsistent(toggle) != 0;
 
-            cb->GTKDisableEvents();
+            wxGtkEventsDisabler<wxCheckBox> noEvents(cb);
 
             if (!active && !inconsistent)
             {
@@ -67,8 +68,6 @@ static void gtk_checkbox_toggled_callback(GtkWidget *widget, wxCheckBox *cb)
             {
                 wxFAIL_MSG(wxT("3state wxCheckBox in unexpected state!"));
             }
-
-            cb->GTKEnableEvents();
         }
         else
         {
@@ -171,11 +170,8 @@ void wxCheckBox::SetValue( bool state )
     if (state == GetValue())
         return;
 
-    GTKDisableEvents();
-
+    wxGtkEventsDisabler<wxCheckBox> noEvents(this);
     gtk_toggle_button_set_active( GTK_TOGGLE_BUTTON(m_widgetCheckbox), state );
-
-    GTKEnableEvents();
 }
 
 bool wxCheckBox::GetValue() const

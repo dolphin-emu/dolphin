@@ -27,17 +27,17 @@ wxFORCE_LINK_THIS_MODULE(gdiobj)
 class wxStockGDIMac: public wxStockGDI, public wxModule
 {
 public:
-    virtual const wxFont* GetFont(Item item);
+    virtual const wxFont* GetFont(Item item) wxOVERRIDE;
 
-    virtual bool OnInit();
-    virtual void OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
 private:
     typedef wxStockGDI super;
-    DECLARE_DYNAMIC_CLASS(wxStockGDIMac)
+    wxDECLARE_DYNAMIC_CLASS(wxStockGDIMac);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxStockGDIMac, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxStockGDIMac, wxModule);
 
 bool wxStockGDIMac::OnInit()
 {

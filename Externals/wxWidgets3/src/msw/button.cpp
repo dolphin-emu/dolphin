@@ -61,9 +61,9 @@
 // macros
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxButton, wxButtonBase)
+wxBEGIN_EVENT_TABLE(wxButton, wxButtonBase)
     EVT_CHAR_HOOK(wxButton::OnCharHook)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
@@ -82,17 +82,21 @@ bool wxButton::Create(wxWindow *parent,
                       const wxValidator& validator,
                       const wxString& name)
 {
-    wxString label(lbl);
-    if (label.empty() && wxIsStockID(id))
+    wxString label;
+    if ( !(style & wxBU_NOTEXT) )
     {
-        // On Windows, some buttons aren't supposed to have mnemonics
-        label = wxGetStockLabel
-                (
-                    id,
-                    id == wxID_OK || id == wxID_CANCEL || id == wxID_CLOSE
-                        ? wxSTOCK_NOFLAGS
-                        : wxSTOCK_WITH_MNEMONIC
-                );
+        label = lbl;
+        if (label.empty() && wxIsStockID(id))
+        {
+            // On Windows, some buttons aren't supposed to have mnemonics
+            label = wxGetStockLabel
+                    (
+                        id,
+                        id == wxID_OK || id == wxID_CANCEL || id == wxID_CLOSE
+                            ? wxSTOCK_NOFLAGS
+                            : wxSTOCK_WITH_MNEMONIC
+                    );
+        }
     }
 
     if ( !CreateControl(parent, id, pos, size, style, validator, name) )
@@ -148,11 +152,9 @@ WXDWORD wxButton::MSWGetStyle(long style, WXDWORD *exstyle) const
         msStyle |= BS_TOP;
     if ( style & wxBU_BOTTOM )
         msStyle |= BS_BOTTOM;
-#ifndef __WXWINCE__
     // flat 2d buttons
     if ( style & wxNO_BORDER )
         msStyle |= BS_FLAT;
-#endif // __WXWINCE__
 
     return msStyle;
 }
@@ -284,8 +286,11 @@ void wxButton::SetTmpDefault()
     wxWindow *winOldDefault = tlw->GetDefaultItem();
     tlw->SetTmpDefaultItem(this);
 
-    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
+    // Notice that the order of these statements is important, the old button
+    // is not reset if we do it the other way round, probably because of
+    // something done by the default DM_SETDEFID handler.
     SetDefaultStyle(this, true);
+    SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), false);
 }
 
 // unset this button as currently default, it may still stay permanent default
@@ -299,8 +304,9 @@ void wxButton::UnsetTmpDefault()
 
     wxWindow *winOldDefault = tlw->GetDefaultItem();
 
-    SetDefaultStyle(this, false);
+    // Just as in SetTmpDefault() above, the order is important here.
     SetDefaultStyle(wxDynamicCast(winOldDefault, wxButton), true);
+    SetDefaultStyle(this, false);
 }
 
 /* static */

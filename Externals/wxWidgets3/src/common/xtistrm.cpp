@@ -119,34 +119,30 @@ void wxObjectWriter::FindConnectEntry(const wxEvtHandler * evSource,
                                 const wxObject* &sink, 
                                 const wxHandlerInfo *&handler)
 {
-    wxList *dynamicEvents = evSource->GetDynamicEventTable();
-
-    if ( dynamicEvents )
+    size_t cookie;
+    for ( wxDynamicEventTableEntry* entry = evSource->GetFirstDynamicEntry(cookie);
+          entry;
+          entry = evSource->GetNextDynamicEntry(cookie) )
     {
-        for ( wxList::const_iterator node = dynamicEvents->begin(); node != dynamicEvents->end(); ++node )
+        // find the match
+        if ( entry->m_fn &&
+            (dti->GetEventType() == entry->m_eventType) &&
+            (entry->m_id == -1 ) &&
+            (entry->m_fn->GetEvtHandler() != NULL ) )
         {
-            wxDynamicEventTableEntry *entry = (wxDynamicEventTableEntry*)(*node);
-
-            // find the match
-            if ( entry->m_fn &&
-                (dti->GetEventType() == entry->m_eventType) &&
-                (entry->m_id == -1 ) &&
-                (entry->m_fn->GetEvtHandler() != NULL ) )
+            sink = entry->m_fn->GetEvtHandler();
+            const wxClassInfo* sinkClassInfo = sink->GetClassInfo();
+            const wxHandlerInfo* sinkHandler = sinkClassInfo->GetFirstHandler();
+            while ( sinkHandler )
             {
-                sink = entry->m_fn->GetEvtHandler();
-                const wxClassInfo* sinkClassInfo = sink->GetClassInfo();
-                const wxHandlerInfo* sinkHandler = sinkClassInfo->GetFirstHandler();
-                while ( sinkHandler )
+                if ( sinkHandler->GetEventFunction() == entry->m_fn->GetEvtMethod() )
                 {
-                    if ( sinkHandler->GetEventFunction() == entry->m_fn->GetEvtMethod() )
-                    {
-                        handler = sinkHandler;
-                        break;
-                    }
-                    sinkHandler = sinkHandler->GetNext();
+                    handler = sinkHandler;
+                    break;
                 }
-                break;
+                sinkHandler = sinkHandler->GetNext();
             }
+            break;
         }
     }
 }
@@ -315,7 +311,7 @@ void wxObjectWriter::WriteOneProperty( const wxObject *obj, const wxClassInfo* c
                     wx_dynamic_cast(const wxEnumTypeInfo*,  pi->GetTypeInfo() );
                 if ( eti )
                 {
-                    eti->ConvertFromLong( wxANY_AS(value, long ), value );
+                    eti->ConvertFromLong( value.As<long >(), value );
                 }
                 else
                 {

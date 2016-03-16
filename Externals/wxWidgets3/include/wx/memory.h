@@ -42,18 +42,13 @@ WXDLLIMPEXP_BASE void wxDebugFree(void * buf, bool isVect = false);
 
 #if defined(__SUNCC__)
     #define wxUSE_ARRAY_MEMORY_OPERATORS 0
-#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) )
-    #define wxUSE_ARRAY_MEMORY_OPERATORS 1
 #elif defined (__SGI_CC_)
     // only supported by -n32 compilers
     #ifndef __EDG_ABI_COMPATIBILITY_VERSION
         #define wxUSE_ARRAY_MEMORY_OPERATORS 0
     #endif
-#elif !( defined (__VISUALC__) && (__VISUALC__ <= 1020) )
-    #define wxUSE_ARRAY_MEMORY_OPERATORS 1
 #else
-    // ::operator new[] is a recent C++ feature, so assume it's not supported
-    #define wxUSE_ARRAY_MEMORY_OPERATORS 0
+    #define wxUSE_ARRAY_MEMORY_OPERATORS 1
 #endif
 
 // devik 2000-8-29: All new/delete ops are now inline because they can't
@@ -109,8 +104,7 @@ void operator delete[] (void * buf);
 #endif // wxUSE_ARRAY_MEMORY_OPERATORS
 #endif // defined(__WINDOWS__) && (defined(WXUSINGDLL) || defined(WXMAKINGDLL_BASE))
 
-// VC++ 6.0
-#if ( defined(__VISUALC__) && (__VISUALC__ >= 1200) )
+#if defined(__VISUALC__)
 inline void operator delete(void* pData, wxChar* /* fileName */, int /* lineNum */)
 {
     wxDebugFree(pData, false);
@@ -119,7 +113,7 @@ inline void operator delete[](void* pData, wxChar* /* fileName */, int /* lineNu
 {
     wxDebugFree(pData, true);
 }
-#endif // __VISUALC__>=1200
+#endif // __VISUALC__
 #endif // wxUSE_GLOBAL_MEMORY_OPERATORS
 
 //**********************************************************************************
@@ -221,7 +215,7 @@ protected:
     // Returns the amount of padding needed after something of the given
     // size. This is so that when we cast pointers backwards and forwards
     // the pointer value will be valid for a wxMarkerType.
-    static size_t GetPadding (const size_t size) ;
+    static size_t GetPadding (size_t size) ;
 
     // Traverse the list.
     static void TraverseList (PmSFV, wxMemStruct *from = NULL);
@@ -250,17 +244,17 @@ public:
 
     // Calculated from the request size and any padding needed
     // before the final marker.
-    static size_t PaddedSize (const size_t reqSize);
+    static size_t PaddedSize (size_t reqSize);
 
     // Calc the total amount of space we need from the system
     // to satisfy a caller request. This includes all padding.
-    static size_t TotSize (const size_t reqSize);
+    static size_t TotSize (size_t reqSize);
 
     // Return valid pointers to offsets within the allocated memory.
     static char * StructPos (const char * buf);
     static char * MidMarkerPos (const char * buf);
     static char * CallerMemPos (const char * buf);
-    static char * EndMarkerPos (const char * buf, const size_t size);
+    static char * EndMarkerPos (const char * buf, size_t size);
 
     // Given a pointer to the start of the caller requested area
     // return a pointer to the start of the entire alloc\'d buffer.

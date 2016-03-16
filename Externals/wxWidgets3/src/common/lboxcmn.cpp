@@ -31,6 +31,16 @@
     #include "wx/dynarray.h"
     #include "wx/arrstr.h"
     #include "wx/log.h"
+    #include "wx/dcclient.h"
+#endif
+
+// the spacing between the lines (in report mode)
+static const int LINE_SPACING = 0;
+
+#ifdef __WXGTK__
+static const int EXTRA_HEIGHT = 6;
+#else
+static const int EXTRA_HEIGHT = 4;
 #endif
 
 extern WXDLLEXPORT_DATA(const char) wxListBoxNameStr[] = "listBox";
@@ -86,7 +96,7 @@ wxFLAGS_MEMBER(wxLB_NEEDED_SB)
 wxFLAGS_MEMBER(wxLB_SORT)
 wxEND_FLAGS( wxListBoxStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListBox, wxControl, "wx/listbox.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxListBox)
 wxEVENT_PROPERTY( Select, wxEVT_LISTBOX, wxCommandEvent )
@@ -340,4 +350,23 @@ void wxListBoxBase::EnsureVisible(int WXUNUSED(n))
     // call SetFirstItem() but this is probably even more stupid)
 }
 
+wxCoord wxListBoxBase::GetLineHeight() const
+{
+    wxListBoxBase *self = wxConstCast(this, wxListBoxBase);
+
+    wxClientDC dc( self );
+    dc.SetFont( GetFont() );
+
+    wxCoord y;
+    dc.GetTextExtent(wxT("H"), NULL, &y);
+
+    y += EXTRA_HEIGHT;
+
+    return y + LINE_SPACING;
+}
+
+int wxListBoxBase::GetCountPerPage() const
+{
+    return GetClientSize().y / GetLineHeight();
+}
 #endif // wxUSE_LISTBOX

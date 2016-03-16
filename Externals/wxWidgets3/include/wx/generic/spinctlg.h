@@ -64,30 +64,27 @@ public:
     // T GetMin() const
     // T GetMax() const
     // T GetIncrement() const
-    virtual bool GetSnapToTicks() const { return m_snap_to_ticks; }
+    virtual bool GetSnapToTicks() const wxOVERRIDE { return m_snap_to_ticks; }
     // unsigned GetDigits() const                   - wxSpinCtrlDouble only
 
     // operations
-    virtual void SetValue(const wxString& text);
+    virtual void SetValue(const wxString& text) wxOVERRIDE;
     // void SetValue(T val)
     // void SetRange(T minVal, T maxVal)
     // void SetIncrement(T inc)
-    virtual void SetSnapToTicks(bool snap_to_ticks);
+    virtual void SetSnapToTicks(bool snap_to_ticks) wxOVERRIDE;
     // void SetDigits(unsigned digits)              - wxSpinCtrlDouble only
 
     // Select text in the textctrl
-    void SetSelection(long from, long to);
+    void SetSelection(long from, long to) wxOVERRIDE;
 
     // implementation from now on
 
     // forward these functions to all subcontrols
-    virtual bool Enable(bool enable = true);
-    virtual bool Show(bool show = true);
-#if wxUSE_TOOLTIPS
-    virtual void DoSetToolTip(wxToolTip *tip);
-#endif // wxUSE_TOOLTIPS
+    virtual bool Enable(bool enable = true) wxOVERRIDE;
+    virtual bool Show(bool show = true) wxOVERRIDE;
 
-    virtual bool SetBackgroundColour(const wxColour& colour);
+    virtual bool SetBackgroundColour(const wxColour& colour) wxOVERRIDE;
 
     // get the subcontrols
     wxTextCtrl   *GetText() const       { return m_textCtrl; }
@@ -101,16 +98,16 @@ public:
     // this window itself is used only as a container for its sub windows so it
     // shouldn't accept the focus at all and any attempts to explicitly set
     // focus to it should give focus to its text constol part
-    virtual bool AcceptsFocus() const { return false; }
-    virtual void SetFocus();
+    virtual bool AcceptsFocus() const wxOVERRIDE { return false; }
+    virtual void SetFocus() wxOVERRIDE;
 
     friend class wxSpinCtrlTextGeneric;
 
 protected:
     // override the base class virtuals involved into geometry calculations
-    virtual wxSize DoGetBestSize() const;
-    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const;
-    virtual void DoMoveWindow(int x, int y, int width, int height);
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual wxSize DoGetSizeFromTextSize(int xlen, int ylen = -1) const wxOVERRIDE;
+    virtual void DoMoveWindow(int x, int y, int width, int height) wxOVERRIDE;
 
 #ifdef __WXMSW__
     // and, for MSW, enabling this window itself
@@ -168,9 +165,9 @@ private:
     void Init();
 
     // Implement pure virtual function inherited from wxCompositeWindow.
-    virtual wxWindowList GetCompositeWindowParts() const;
+    virtual wxWindowList GetCompositeWindowParts() const wxOVERRIDE;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 #else // !wxUSE_SPINBTN
@@ -344,7 +341,7 @@ private:
 
     int m_base;
 
-    DECLARE_DYNAMIC_CLASS(wxSpinCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxSpinCtrl);
 };
 
 #endif // wxHAS_NATIVE_SPINCTRL
@@ -426,7 +423,7 @@ private:
 
     wxString m_format;
 
-    DECLARE_DYNAMIC_CLASS(wxSpinCtrlDouble)
+    wxDECLARE_DYNAMIC_CLASS(wxSpinCtrlDouble);
 };
 
 #endif // _WX_GENERIC_SPINCTRL_H_

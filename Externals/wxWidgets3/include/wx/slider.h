@@ -41,11 +41,6 @@
 #define wxSL_VALUE_LABEL     0x4000
 #define wxSL_LABELS          (wxSL_MIN_MAX_LABELS|wxSL_VALUE_LABEL)
 
-#if WXWIN_COMPATIBILITY_2_6
-    // obsolete
-    #define wxSL_NOTIFY_DRAG     0x0000
-#endif // WXWIN_COMPATIBILITY_2_6
-
 extern WXDLLIMPEXP_DATA_CORE(const char) wxSliderNameStr[];
 
 // ----------------------------------------------------------------------------
@@ -113,7 +108,7 @@ protected:
     virtual void DoSetTickFreq(int WXUNUSED(freq)) { /* unsupported by default */ }
 
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_NONE; }
 
     // adjust value according to wxSL_INVERSE style
     virtual int ValueInvertOrNot(int value) const
@@ -144,10 +139,8 @@ private:
     #include "wx/gtk1/slider.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/slider.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/slider.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/slider.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/slider.h"
 #endif
 
 #endif // wxUSE_SLIDER

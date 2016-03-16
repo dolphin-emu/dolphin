@@ -215,6 +215,8 @@ bool ReadLine(FILE* fp, unsigned long num, wxString* line)
 {
     if ( !fgets(g_buf, WXSIZEOF(g_buf), fp) )
     {
+        wxUnusedVar(num); // could be unused if debug tracing is disabled
+
         wxLogDebug(wxS("cannot read address information for stack frame #%lu"),
                    num);
         return false;

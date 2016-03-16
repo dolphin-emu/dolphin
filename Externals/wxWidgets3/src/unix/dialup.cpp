@@ -78,53 +78,53 @@ public:
        to call this function and check its result before calling any other
        wxDialUpManager methods.
    */
-   virtual bool IsOk() const
+   virtual bool IsOk() const wxOVERRIDE
       { return true; }
 
    /** The simplest way to initiate a dial up: this function dials the given
        ISP (exact meaning of the parameter depends on the platform), returns
        true on success or false on failure and logs the appropriate error
        message in the latter case.
-       @param nameOfISP optional paramater for dial program
+       @param nameOfISP optional parameter for dial program
        @param username unused
        @param password unused
    */
    virtual bool Dial(const wxString& nameOfISP,
                      const wxString& WXUNUSED(username),
                      const wxString& WXUNUSED(password),
-                     bool async);
+                     bool async) wxOVERRIDE;
 
    // Hang up the currently active dial up connection.
-   virtual bool HangUp();
+   virtual bool HangUp() wxOVERRIDE;
 
    // returns true if the computer is connected to the network: under Windows,
    // this just means that a RAS connection exists, under Unix we check that
    // the "well-known host" (as specified by SetWellKnownHost) is reachable
-   virtual bool IsOnline() const
+   virtual bool IsOnline() const wxOVERRIDE
       {
          CheckStatus();
          return m_IsOnline == Net_Connected;
       }
 
    // do we have a constant net connection?
-   virtual bool IsAlwaysOnline() const;
+   virtual bool IsAlwaysOnline() const wxOVERRIDE;
 
    // returns true if (async) dialing is in progress
-   virtual bool IsDialing() const
+   virtual bool IsDialing() const wxOVERRIDE
       { return m_DialProcess != NULL; }
 
    // cancel dialing the number initiated with Dial(async = true)
    // NB: this won't result in DISCONNECTED event being sent
-   virtual bool CancelDialing();
+   virtual bool CancelDialing() wxOVERRIDE;
 
-   size_t GetISPNames(class wxArrayString &) const
+   size_t GetISPNames(class wxArrayString &) const wxOVERRIDE
       { return 0; }
 
    // sometimes the built-in logic for determining the online status may fail,
    // so, in general, the user should be allowed to override it. This function
    // allows to forcefully set the online status - whatever our internal
    // algorithm may think about it.
-   virtual void SetOnlineStatus(bool isOnline = true)
+   virtual void SetOnlineStatus(bool isOnline = true) wxOVERRIDE
       { m_IsOnline = isOnline ? Net_Connected : Net_No; }
 
    // set misc wxDialUpManager options
@@ -137,21 +137,21 @@ public:
    // instantenous.
    //
    // Returns false if couldn't set up automatic check for online status.
-   virtual bool EnableAutoCheckOnlineStatus(size_t nSeconds);
+   virtual bool EnableAutoCheckOnlineStatus(size_t nSeconds) wxOVERRIDE;
 
    // disable automatic check for connection status change - notice that the
    // wxEVT_DIALUP_XXX events won't be sent any more neither.
-   virtual void DisableAutoCheckOnlineStatus();
+   virtual void DisableAutoCheckOnlineStatus() wxOVERRIDE;
 
    // under Unix, the value of well-known host is used to check whether we're
    // connected to the internet. It's unused under Windows, but this function
    // is always safe to call. The default value is www.yahoo.com.
    virtual void SetWellKnownHost(const wxString& hostname,
-                                 int portno = 80);
+                                 int portno = 80) wxOVERRIDE;
    /** Sets the commands to start up the network and to hang up
        again. Used by the Unix implementations only.
    */
-   virtual void SetConnectCommand(const wxString &command, const wxString &hupcmd)
+   virtual void SetConnectCommand(const wxString &command, const wxString &hupcmd) wxOVERRIDE
       { m_ConnectCommand = command; m_HangUpCommand = hupcmd; }
 
 //private: -- Sun CC 4.2 objects to using NetConnection enum as the return
@@ -246,7 +246,7 @@ public:
        m_dupman = dupman;
    }
 
-   virtual void Notify()
+   virtual void Notify() wxOVERRIDE
    {
        wxLogTrace(wxT("dialup"), wxT("Checking dial up network status."));
 
@@ -265,7 +265,7 @@ public:
          m_DupMan = dupman;
       }
    void Disconnect() { m_DupMan = NULL; }
-   virtual void OnTerminate(int WXUNUSED(pid), int WXUNUSED(status))
+   virtual void OnTerminate(int WXUNUSED(pid), int WXUNUSED(status)) wxOVERRIDE
       {
          if(m_DupMan)
          {

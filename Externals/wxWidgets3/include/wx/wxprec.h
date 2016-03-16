@@ -13,23 +13,12 @@
 
 // check if to use precompiled headers: do it for most Windows compilers unless
 // explicitly disabled by defining NOPCH
-#if defined(__VISUALC__)   || \
-    defined(__DMC__)       || \
-    defined(__VISAGECPP__) || \
-    defined(__WATCOMC__)   || \
-    defined(__BORLANDC__)
-
-
+#if defined(__VISUALC__) || defined(__BORLANDC__)
     // If user did not request NOCPH and we're not building using configure
     // then assume user wants precompiled headers.
     #if !defined(NOPCH) && !defined(__WX_SETUP_H__)
         #define WX_PRECOMP
     #endif
-#endif
-
-// For some reason, this must be defined for common dialogs to work.
-#ifdef __WATCOMC__
-    #define INCLUDE_COMMDLG_H  1
 #endif
 
 #ifdef WX_PRECOMP
@@ -47,11 +36,6 @@
     #include "wx/msw/wrapcctl.h"
     #include "wx/msw/wrapcdlg.h"
     #include "wx/msw/missing.h"
-#endif
-
-// include <os2.h>
-#ifdef __OS2__
-#   include "wx/os2/private.h"
 #endif
 
 // include the most common wx headers

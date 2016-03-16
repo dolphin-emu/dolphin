@@ -18,9 +18,8 @@
 #include "wx/object.h"          // the base class
 
 #include "wx/intl.h"            // for wxLayoutDirection
-#include "wx/cursor.h"          // we have member variables of these classes
+#include "wx/colour.h"          // we have member variables of these classes
 #include "wx/font.h"            // so we can't do without them
-#include "wx/colour.h"
 #include "wx/bitmap.h"          // for wxNullBitmap
 #include "wx/brush.h"
 #include "wx/pen.h"
@@ -41,6 +40,7 @@ class WXDLLIMPEXP_FWD_CORE wxScreenDC;
 class WXDLLIMPEXP_FWD_CORE wxMemoryDC;
 class WXDLLIMPEXP_FWD_CORE wxPrinterDC;
 class WXDLLIMPEXP_FWD_CORE wxPrintData;
+class WXDLLIMPEXP_FWD_CORE wxWindow;
 
 #if wxUSE_GRAPHICS_CONTEXT
 class WXDLLIMPEXP_FWD_CORE wxGraphicsContext;
@@ -243,15 +243,15 @@ class WXDLLIMPEXP_CORE wxNativeDCFactory: public wxDCFactory
 public:
     wxNativeDCFactory() {}
 
-    virtual wxDCImpl* CreateWindowDC( wxWindowDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreateClientDC( wxClientDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreatePaintDC( wxPaintDC *owner, wxWindow *window );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxBitmap &bitmap );
-    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxDC *dc );
-    virtual wxDCImpl* CreateScreenDC( wxScreenDC *owner );
+    virtual wxDCImpl* CreateWindowDC( wxWindowDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreateClientDC( wxClientDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreatePaintDC( wxPaintDC *owner, wxWindow *window ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxBitmap &bitmap ) wxOVERRIDE;
+    virtual wxDCImpl* CreateMemoryDC( wxMemoryDC *owner, wxDC *dc ) wxOVERRIDE;
+    virtual wxDCImpl* CreateScreenDC( wxScreenDC *owner ) wxOVERRIDE;
 #if wxUSE_PRINTING_ARCHITECTURE
-    virtual wxDCImpl* CreatePrinterDC( wxPrinterDC *owner, const wxPrintData &data  );
+    virtual wxDCImpl* CreatePrinterDC( wxPrinterDC *owner, const wxPrintData &data  ) wxOVERRIDE;
 #endif
 };
 
@@ -670,53 +670,6 @@ protected:
         m_clipX1 = m_clipX2 = m_clipY1 = m_clipY2 = 0;
     }
 
-#ifdef __WXWINCE__
-    //! Generic method to draw ellipses, circles and arcs with current pen and brush.
-    /*! \param x Upper left corner of bounding box.
-     *  \param y Upper left corner of bounding box.
-     *  \param w Width of bounding box.
-     *  \param h Height of bounding box.
-     *  \param sa Starting angle of arc
-     *            (counterclockwise, start at 3 o'clock, 360 is full circle).
-     *  \param ea Ending angle of arc.
-     *  \param angle Rotation angle, the Arc will be rotated after
-     *               calculating begin and end.
-     */
-    void DrawEllipticArcRot( wxCoord x, wxCoord y,
-                             wxCoord width, wxCoord height,
-                             double sa = 0, double ea = 0, double angle = 0 )
-    { DoDrawEllipticArcRot( x, y, width, height, sa, ea, angle ); }
-
-    void DrawEllipticArcRot( const wxPoint& pt,
-                             const wxSize& sz,
-                             double sa = 0, double ea = 0, double angle = 0 )
-    { DoDrawEllipticArcRot( pt.x, pt.y, sz.x, sz.y, sa, ea, angle ); }
-
-    void DrawEllipticArcRot( const wxRect& rect,
-                             double sa = 0, double ea = 0, double angle = 0 )
-    { DoDrawEllipticArcRot( rect.x, rect.y, rect.width, rect.height, sa, ea, angle ); }
-
-    virtual void DoDrawEllipticArcRot( wxCoord x, wxCoord y,
-                                       wxCoord w, wxCoord h,
-                                       double sa = 0, double ea = 0, double angle = 0 );
-
-    //! Rotates points around center.
-    /*! This is a quite straight method, it calculates in pixels
-     *  and so it produces rounding errors.
-     *  \param points The points inside will be rotated.
-     *  \param angle Rotating angle (counterclockwise, start at 3 o'clock, 360 is full circle).
-     *  \param center Center of rotation.
-     */
-    void Rotate( wxPointList* points, double angle, wxPoint center = wxPoint(0,0) );
-
-    // used by DrawEllipticArcRot
-    // Careful: wxList gets filled with points you have to delete later.
-    void CalculateEllipticPoints( wxPointList* points,
-                                  wxCoord xStart, wxCoord yStart,
-                                  wxCoord w, wxCoord h,
-                                  double sa, double ea );
-#endif // __WXWINCE__
-
     // returns adjustment factor for converting wxFont "point size"; in wx
     // it is point size on screen and needs to be multiplied by this value
     // for rendering on higher-resolution DCs such as printer ones
@@ -776,7 +729,7 @@ protected:
 #endif // wxUSE_PALETTE
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxDCImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxDCImpl);
 };
 
 
@@ -1373,7 +1326,7 @@ protected:
     wxDCImpl * const m_pimpl;
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxDC)
+    wxDECLARE_ABSTRACT_CLASS(wxDC);
     wxDECLARE_NO_COPY_CLASS(wxDC);
 };
 

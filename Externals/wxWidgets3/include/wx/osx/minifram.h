@@ -17,11 +17,11 @@
 
 class WXDLLIMPEXP_CORE wxMiniFrame: public wxFrame {
 
-  DECLARE_DYNAMIC_CLASS(wxMiniFrame)
+  wxDECLARE_DYNAMIC_CLASS(wxMiniFrame);
 
 public:
-  inline wxMiniFrame() {}
-  inline wxMiniFrame(wxWindow *parent,
+  wxMiniFrame() {}
+  wxMiniFrame(wxWindow *parent,
            wxWindowID id,
            const wxString& title,
            const wxPoint& pos = wxDefaultPosition,

@@ -28,7 +28,7 @@
     #include "wx/utils.h"
 #endif // WX_PRECOMP
 
-#include "wx/unix/execute.h"
+#include "wx/unix/private/execute.h"
 #include "wx/evtloop.h"
 
 // ============================================================================

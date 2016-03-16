@@ -13,8 +13,6 @@
 
 #if defined(__WXMSW__)
 #include "wx/msw/helpwin.h"
-#elif defined(__WXPM__)
-#include "wx/os2/helpwin.h"
 #endif
 
 #endif

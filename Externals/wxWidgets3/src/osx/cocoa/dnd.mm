@@ -56,11 +56,15 @@ wxDragResult NSDragOperationToWxDragResult(NSDragOperation code)
     BOOL dragFinished;
     int resultCode;
     wxDropSource* impl;
+
+    // Flags for drag and drop operations (wxDrag_* ).
+    int m_dragFlags;
 }
 
-- (void)setImplementation: (wxDropSource *)dropSource;
+- (void)setImplementation:(wxDropSource *)dropSource flags:(int)flags;
 - (BOOL)finished;
 - (NSDragOperation)code;
+- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)forLocal;
 - (void)draggedImage:(NSImage *)anImage movedTo:(NSPoint)aPoint;
 - (void)draggedImage:(NSImage *)anImage endedAt:(NSPoint)aPoint operation:(NSDragOperation)operation;
 @end
@@ -73,12 +77,14 @@ wxDragResult NSDragOperationToWxDragResult(NSDragOperation code)
     dragFinished = NO;
     resultCode = NSDragOperationNone;
     impl = 0;
+    m_dragFlags = wxDrag_CopyOnly;
     return self;
 }
 
-- (void)setImplementation: (wxDropSource *)dropSource
+- (void)setImplementation:(wxDropSource *)dropSource flags:(int)flags
 {
     impl = dropSource;
+    m_dragFlags = flags;
 }
 
 - (BOOL)finished
@@ -89,6 +95,31 @@ wxDragResult NSDragOperationToWxDragResult(NSDragOperation code)
 - (NSDragOperation)code
 {
     return resultCode;
+}
+
+- (NSDragOperation)draggingSourceOperationMaskForLocal:(BOOL)forLocal
+{
+    /*
+    By default drag targets receive a mask of NSDragOperationAll (0xf)
+    which, despite its name, does not include the later added
+    NSDragOperationMove (0x10) that sometimes is wanted.
+    Use NSDragOperationEvery instead because it includes all flags.
+
+    Note that this, compared to the previous behaviour, adds
+    NSDragOperationDelete to the mask which seems harmless.
+
+    We are also keeping NSDragOperationLink and NSDragOperationPrivate
+    in to preserve previous behaviour.
+    */
+
+    NSDragOperation allowedDragOperations = NSDragOperationEvery;
+
+    if (m_dragFlags == wxDrag_CopyOnly)
+    {
+        allowedDragOperations &= ~NSDragOperationMove;
+    }
+
+    return allowedDragOperations;
 }
 
 - (void)draggedImage:(NSImage *)anImage movedTo:(NSPoint)aPoint
@@ -186,7 +217,7 @@ wxDropSource* wxDropSource::GetCurrentDropSource()
     return gCurrentSource;
 }
 
-wxDragResult wxDropSource::DoDragDrop(int WXUNUSED(flags))
+wxDragResult wxDropSource::DoDragDrop(int flags)
 {
     wxASSERT_MSG( m_data, wxT("Drop source: no data") );
 
@@ -240,7 +271,7 @@ wxDragResult wxDropSource::DoDragDrop(int WXUNUSED(flags))
         
         
         DropSourceDelegate* delegate = [[DropSourceDelegate alloc] init];
-        [delegate setImplementation: this];
+        [delegate setImplementation:this flags:flags];
         [view dragImage:image at:p offset:NSMakeSize(0.0,0.0) 
             event: theEvent pasteboard: pboard source:delegate slideBack: NO];
         

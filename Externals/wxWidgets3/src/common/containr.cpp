@@ -505,7 +505,7 @@ void wxControlContainer::HandleOnNavigationKey( wxNavigationKeyEvent& event )
                     // even an MDI child frame, so test for this explicitly
                     // (and in particular don't just use IsTopLevel() which
                     // would return false in the latter case).
-                    if ( focusedParent->IsTopNavigationDomain() )
+                    if ( focusedParent->IsTopNavigationDomain(wxWindow::Navigation_Tab) )
                         break;
 
                     event.SetCurrentFocus( focusedParent );

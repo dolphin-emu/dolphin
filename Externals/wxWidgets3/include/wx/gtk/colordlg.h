@@ -25,16 +25,16 @@ public:
 
     wxColourData &GetColourData() { return m_data; }
 
-    virtual int ShowModal();
+    virtual int ShowModal() wxOVERRIDE;
 
 protected:
     // implement some base class methods to do nothing to avoid asserts and
     // GTK warnings, since this is not a real wxDialog.
     virtual void DoSetSize(int WXUNUSED(x), int WXUNUSED(y),
                            int WXUNUSED(width), int WXUNUSED(height),
-                           int WXUNUSED(sizeFlags) = wxSIZE_AUTO) {}
+                           int WXUNUSED(sizeFlags) = wxSIZE_AUTO) wxOVERRIDE {}
     virtual void DoMoveWindow(int WXUNUSED(x), int WXUNUSED(y),
-                              int WXUNUSED(width), int WXUNUSED(height)) {}
+                              int WXUNUSED(width), int WXUNUSED(height)) wxOVERRIDE {}
 
     // copy data between the dialog and m_colourData:
     void ColourDataToDialog();
@@ -42,7 +42,7 @@ protected:
 
     wxColourData m_data;
 
-    DECLARE_DYNAMIC_CLASS(wxColourDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxColourDialog);
 };
 
 #endif

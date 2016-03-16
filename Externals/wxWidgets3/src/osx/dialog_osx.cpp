@@ -178,5 +178,9 @@ void wxDialog::EndModal(int retCode)
 
     SetReturnCode(retCode);
     Show(false);
+
+    // Prevent app frame from taking z-order precedence
+    if( GetParent() )
+        GetParent()->Raise();
 }
 

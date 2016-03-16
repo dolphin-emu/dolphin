@@ -43,7 +43,7 @@ wxDEFINE_EVENT( wxEVT_SPLITTER_SASH_POS_CHANGING, wxSplitterEvent );
 wxDEFINE_EVENT( wxEVT_SPLITTER_DOUBLECLICKED, wxSplitterEvent );
 wxDEFINE_EVENT( wxEVT_SPLITTER_UNSPLIT, wxSplitterEvent );
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow);
 
 /*
     TODO PROPERTIES
@@ -54,9 +54,9 @@ IMPLEMENT_DYNAMIC_CLASS(wxSplitterWindow, wxWindow)
         orientation
 */
 
-IMPLEMENT_DYNAMIC_CLASS(wxSplitterEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSplitterEvent, wxNotifyEvent);
 
-BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
+wxBEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
     EVT_PAINT(wxSplitterWindow::OnPaint)
     EVT_SIZE(wxSplitterWindow::OnSize)
     EVT_MOUSE_EVENTS(wxSplitterWindow::OnMouseEvent)
@@ -65,7 +65,7 @@ BEGIN_EVENT_TABLE(wxSplitterWindow, wxWindow)
 #if defined( __WXMSW__ ) || defined( __WXMAC__)
     EVT_SET_CURSOR(wxSplitterWindow::OnSetCursor)
 #endif // wxMSW
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 static bool IsLive(wxSplitterWindow* wnd)
 {
@@ -192,21 +192,15 @@ void wxSplitterWindow::OnInternalIdle()
 {
     wxWindow::OnInternalIdle();
 
-    // We may need to update the children sizes in two cases: either because
-    // we're in the middle of a live update as indicated by m_needUpdating or
-    // because we have a requested but not yet set sash position as indicated
-    // by m_requestedSashPosition having a valid value.
+    // We may need to update the children sizes if we're in the middle of
+    // a live update as indicated by m_needUpdating. The other possible case,
+    // when we have a requested but not yet set sash position (as indicated
+    // by m_requestedSashPosition having a valid value) is handled by OnSize.
     if ( m_needUpdating )
     {
         m_needUpdating = false;
+        SizeWindows();
     }
-    else if ( m_requestedSashPosition == INT_MAX )
-    {
-        // We don't need to resize the children.
-        return;
-    }
-
-    SizeWindows();
 }
 
 void wxSplitterWindow::OnMouseEvent(wxMouseEvent& event)
@@ -662,6 +656,8 @@ void wxSplitterWindow::SetSashPositionAndNotify(int sashPos)
 // including the edges next to the sash.
 void wxSplitterWindow::SizeWindows()
 {
+    int oldSashPosition = m_sashPosition;
+
     // check if we have delayed setting the real sash position
     if ( m_requestedSashPosition != INT_MAX )
     {
@@ -727,8 +723,11 @@ void wxSplitterWindow::SizeWindows()
         GetWindow1()->SetSize(border, border, w1, h1);
     }
 
-    wxClientDC dc(this);
-    DrawSash(dc);
+    if ( oldSashPosition != m_sashPosition )
+    {
+        wxClientDC dc(this);
+        DrawSash(dc);
+    }
 }
 
 // Set pane for unsplit window

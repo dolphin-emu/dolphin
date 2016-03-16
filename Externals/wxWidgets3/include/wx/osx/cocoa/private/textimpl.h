@@ -14,6 +14,8 @@
 #include "wx/combobox.h"
 #include "wx/osx/private.h"
 
+@class wxTextEntryFormatter;
+
 // implementation exposed, so that search control can pull it
 
 class wxNSTextFieldControl : public wxWidgetCocoaImpl, public wxTextWidgetImpl
@@ -29,7 +31,10 @@ public :
 
     virtual bool CanClipMaxLength() const { return true; }
     virtual void SetMaxLength(unsigned long len);
-        
+
+    virtual bool CanForceUpper() { return true; }
+    virtual void ForceUpper();
+
     virtual wxString GetStringValue() const ;
     virtual void SetStringValue( const wxString &str) ;
     virtual void Copy() ;
@@ -48,7 +53,7 @@ public :
     virtual bool resignFirstResponder(WXWidget slf, void *_cmd);
 
     virtual void SetInternalSelection( long from , long to );
-
+    virtual void UpdateInternalSelectionFromEditor( wxNSTextFieldEditor* editor);
 protected :
     NSTextField* m_textField;
     long m_selStart;
@@ -57,14 +62,19 @@ protected :
 private:
     // Common part of both ctors.
     void Init(WXWidget w);
+
+    // Get our formatter, creating it if necessary.
+    wxTextEntryFormatter* GetFormatter();
 };
 
 class wxNSTextViewControl : public wxWidgetCocoaImpl, public wxTextWidgetImpl
 {
 public:
-    wxNSTextViewControl( wxTextCtrl *wxPeer, WXWidget w );
+    wxNSTextViewControl( wxTextCtrl *wxPeer, WXWidget w, long style );
     virtual ~wxNSTextViewControl();
 
+    virtual void insertText(NSString* text, WXWidget slf, void *_cmd);
+    
     virtual wxString GetStringValue() const ;
     virtual void SetStringValue( const wxString &str) ;
     virtual void Copy() ;

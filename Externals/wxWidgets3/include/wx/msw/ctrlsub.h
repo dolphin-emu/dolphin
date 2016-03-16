@@ -34,7 +34,7 @@ protected:
     virtual WXHWND MSWGetItemsHWND() const { return GetHWND(); }
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxControlWithItems)
+    wxDECLARE_ABSTRACT_CLASS(wxControlWithItems);
     wxDECLARE_NO_COPY_CLASS(wxControlWithItems);
 };
 

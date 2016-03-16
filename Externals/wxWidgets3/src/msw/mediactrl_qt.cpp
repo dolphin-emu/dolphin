@@ -45,8 +45,8 @@
 extern "C" WXDLLIMPEXP_BASE HINSTANCE wxGetInstance(void);
 extern WXDLLIMPEXP_CORE const wxChar *wxCanvasClassName;
 
-LRESULT WXDLLIMPEXP_CORE APIENTRY _EXPORT wxWndProc(HWND hWnd, UINT message,
-                                   WPARAM wParam, LPARAM lParam);
+LRESULT WXDLLIMPEXP_CORE APIENTRY
+wxWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 //---------------------------------------------------------------------------
 // Killed MSVC warnings
@@ -101,7 +101,7 @@ typedef struct ComponentInstanceRecord * ComponentInstance;
 #define MovieController ComponentInstance
 
 #ifndef URLDataHandlerSubType
-#if defined(__WATCOMC__) || defined(__MINGW32__)
+#if defined(__MINGW32__)
 // use magic numbers for compilers which complain about multicharacter integers
 const OSType URLDataHandlerSubType     = 1970433056;
 const OSType VisualMediaCharacteristic = 1702454643;
@@ -407,7 +407,7 @@ public:
 
     friend class wxQTMediaEvtHandler;
 
-    DECLARE_DYNAMIC_CLASS(wxQTMediaBackend)
+    wxDECLARE_DYNAMIC_CLASS(wxQTMediaBackend);
 };
 
 // helper to hijack background erasing for the QT window
@@ -448,7 +448,7 @@ private:
 // with this backend are treated as playable anyway - not verified though.
 //---------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend)
+wxIMPLEMENT_DYNAMIC_CLASS(wxQTMediaBackend, wxMediaBackend);
 
 // Time between timer calls - this is the Apple recommendation to the TCL
 // team I believe
@@ -625,7 +625,7 @@ wxQTMediaBackend::~wxQTMediaBackend()
 //---------------------------------------------------------------------------
 // wxQTMediaBackend::CreateControl
 //
-// 1) Intializes QuickTime
+// 1) Initializes QuickTime
 // 2) Creates the control window
 //---------------------------------------------------------------------------
 bool wxQTMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
@@ -690,7 +690,7 @@ bool wxQTMediaBackend::Load(const wxString& fileName)
     if (m_movie)
         Cleanup();
 
-    short movieResFile = 0; //= 0 because of annoying VC6 warning
+    short movieResFile wxDUMMY_INITIALIZE(0);
     FSSpec sfFile;
 
     OSErr err = m_lib.NativePathNameToFSSpec(
@@ -838,7 +838,7 @@ void wxQTMediaBackend::FinishLoad()
 
     // get the real size of the movie
     Rect outRect;
-    memset(&outRect, 0, sizeof(Rect)); // suppress annoying VC6 warning
+    memset(&outRect, 0, sizeof(Rect));
     m_lib.GetMovieNaturalBoundsRect (m_movie, &outRect);
     wxASSERT(m_lib.GetMoviesError() == noErr);
 

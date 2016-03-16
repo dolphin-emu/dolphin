@@ -51,6 +51,7 @@
 #endif
 #ifdef __WXGTK3__
     #include "wx/graphics.h"
+    #include "wx/gtk/private.h"
 #endif
 #endif
 
@@ -171,32 +172,27 @@ wxAuiDefaultDockArt::wxAuiDefaultDockArt()
     }
 
     m_baseColour = baseColour;
-    wxColor darker1Colour = baseColour.ChangeLightness(85);
-    wxColor darker2Colour = baseColour.ChangeLightness(75);
-    wxColor darker3Colour = baseColour.ChangeLightness(60);
-    //wxColor darker4Colour = baseColour.ChangeLightness(50);
-    wxColor darker5Colour = baseColour.ChangeLightness(40);
 
-    m_activeCaptionColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT);
-    m_activeCaptionGradientColour = wxAuiLightContrastColour(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
-    m_activeCaptionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
-    m_inactiveCaptionColour = darker1Colour;
-    m_inactiveCaptionGradientColour = baseColour.ChangeLightness(97);
-    m_inactiveCaptionTextColour = *wxBLACK;
+    m_activeCaptionColour = wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION);
+    m_activeCaptionGradientColour = wxSystemSettings::GetColour(wxSYS_COLOUR_GRADIENTACTIVECAPTION);
+    m_activeCaptionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_CAPTIONTEXT);
+    m_inactiveCaptionColour = wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTION);
+    m_inactiveCaptionGradientColour = wxSystemSettings::GetColour(wxSYS_COLOUR_GRADIENTINACTIVECAPTION);
+    m_inactiveCaptionTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_INACTIVECAPTIONTEXT);
 
     m_sashBrush = wxBrush(baseColour);
     m_backgroundBrush = wxBrush(baseColour);
     m_gripperBrush = wxBrush(baseColour);
 
-    m_borderPen = wxPen(darker2Colour);
-    m_gripperPen1 = wxPen(darker5Colour);
-    m_gripperPen2 = wxPen(darker3Colour);
+    m_borderPen = wxPen(baseColour.ChangeLightness(75));
+    m_gripperPen1 = wxPen(baseColour.ChangeLightness(40));
+    m_gripperPen2 = wxPen(baseColour.ChangeLightness(60));
     m_gripperPen3 = *wxWHITE_PEN;
 
 #ifdef __WXMAC__
     m_captionFont = *wxSMALL_FONT;
 #else
-    m_captionFont = wxFont(8, wxDEFAULT, wxNORMAL, wxNORMAL, FALSE);
+    m_captionFont = wxFont(8, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 #endif
 
     // default metric values
@@ -421,20 +417,27 @@ void wxAuiDefaultDockArt::DrawSash(wxDC& dc, wxWindow *window, int orientation, 
     if (!window->m_wxwindow) return;
     if (!gtk_widget_is_drawable(window->m_wxwindow)) return;
 
+#ifdef __WXGTK3__
+    cairo_t* cr = static_cast<cairo_t*>(dc.GetGraphicsContext()->GetNativeContext());
+    // invert orientation for widget (horizontal GtkPaned has a vertical splitter)
+    wxOrientation orient = orientation == wxVERTICAL ? wxHORIZONTAL : wxVERTICAL;
+    GtkWidget* widget = wxGTKPrivate::GetSplitterWidget(orient);
+    GtkStyleContext* sc = gtk_widget_get_style_context(widget);
+    gtk_style_context_save(sc);
+
+    gtk_style_context_add_class(sc, GTK_STYLE_CLASS_PANE_SEPARATOR);
+    gtk_render_handle(sc, cr, rect.x, rect.y, rect.width, rect.height);
+
+    gtk_style_context_restore(sc);
+#else
     gtk_paint_handle
     (
         gtk_widget_get_style(window->m_wxwindow),
-#ifdef __WXGTK3__
-        static_cast<cairo_t*>(dc.GetGraphicsContext()->GetNativeContext()),
-#else
         window->GTKGetDrawingWindow(),
-#endif
         // flags & wxCONTROL_CURRENT ? GTK_STATE_PRELIGHT : GTK_STATE_NORMAL,
         GTK_STATE_NORMAL,
         GTK_SHADOW_NONE,
-#ifndef __WXGTK3__
         NULL /* no clipping */,
-#endif
         window->m_wxwindow,
         "paned",
         rect.x,
@@ -443,6 +446,7 @@ void wxAuiDefaultDockArt::DrawSash(wxDC& dc, wxWindow *window, int orientation, 
         rect.height,
         (orientation == wxVERTICAL) ? GTK_ORIENTATION_VERTICAL : GTK_ORIENTATION_HORIZONTAL
     );
+#endif // !__WXGTK3__
 
 #else
     wxUnusedVar(window);
@@ -674,8 +678,6 @@ void wxAuiDefaultDockArt::DrawPaneButton(wxDC& dc, wxWindow *WXUNUSED(window),
                                       wxAuiPaneInfo& pane)
 {
     wxBitmap bmp;
-    if (!(&pane))
-        return;
     switch (button)
     {
         default:

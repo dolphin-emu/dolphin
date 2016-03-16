@@ -34,6 +34,8 @@
 #endif
 
 #include "wx/msw/private.h"
+#include "wx/renderer.h"
+#include "wx/msw/uxtheme.h"
 
 // ============================================================================
 // wxRadioButton implementation
@@ -82,10 +84,13 @@ bool wxRadioButton::Create(wxWindow *parent,
 
 void wxRadioButton::SetValue(bool value)
 {
-    ::SendMessage(GetHwnd(), BM_SETCHECK,
-                  value ? BST_CHECKED : BST_UNCHECKED, 0);
-
     m_isChecked = value;
+
+    if ( !IsOwnerDrawn() )
+        ::SendMessage(GetHwnd(), BM_SETCHECK,
+                      value ? BST_CHECKED : BST_UNCHECKED, 0);
+    else // owner drawn buttons don't react to this message
+        Refresh();
 
     if ( !value )
         return;
@@ -188,9 +193,12 @@ void wxRadioButton::SetValue(bool value)
 
 bool wxRadioButton::GetValue() const
 {
-    wxASSERT_MSG( m_isChecked ==
-                    (::SendMessage(GetHwnd(), BM_GETCHECK, 0, 0L) != 0),
-                  wxT("wxRadioButton::m_isChecked is out of sync?") );
+    if ( !IsOwnerDrawn() )
+    {
+        wxASSERT_MSG( m_isChecked ==
+                        (::SendMessage(GetHwnd(), BM_GETCHECK, 0, 0L) != 0),
+                      wxT("wxRadioButton::m_isChecked is out of sync?") );
+    }
 
     return m_isChecked;
 }
@@ -240,13 +248,6 @@ wxSize wxRadioButton::DoGetBestSize() const
         dc.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
 
         s_radioSize = dc.GetCharHeight();
-
-        // radio button bitmap size under CE is bigger than the font height,
-        // adding just one pixel seems to work fine for the default font but it
-        // would be nice to find some better way to find the correct height
-#ifdef __WXWINCE__
-        s_radioSize++;
-#endif // __WXWINCE__
     }
 
     wxString str = GetLabel();
@@ -294,6 +295,32 @@ WXDWORD wxRadioButton::MSWGetStyle(long style, WXDWORD *exstyle) const
 
 
     return msStyle;
+}
+
+// ----------------------------------------------------------------------------
+// owner drawn radio button stuff
+// ----------------------------------------------------------------------------
+
+int wxRadioButton::MSWGetButtonStyle() const
+{
+    return BS_RADIOBUTTON;
+}
+
+void wxRadioButton::MSWOnButtonResetOwnerDrawn()
+{
+    // ensure that controls state is consistent with internal state
+    ::SendMessage(GetHwnd(), BM_SETCHECK,
+                  m_isChecked ? BST_CHECKED : BST_UNCHECKED, 0);
+}
+
+int wxRadioButton::MSWGetButtonCheckedFlag() const
+{
+    return m_isChecked ? wxCONTROL_CHECKED : wxCONTROL_NONE;
+}
+
+void wxRadioButton::MSWDrawButtonBitmap(wxDC& dc, const wxRect& rect, int flags)
+{
+    wxRendererNative::Get().DrawRadioBitmap(this, dc, rect, flags);
 }
 
 #endif // wxUSE_RADIOBTN

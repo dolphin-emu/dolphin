@@ -28,6 +28,7 @@
 #include "wx/osx/private.h"
 
 #if wxUSE_GUI
+    #include "wx/private/launchbrowser.h"
     #include "wx/osx/private/timer.h"
     #include "wx/osx/dcclient.h"
 #endif // wxUSE_GUI
@@ -102,9 +103,9 @@ void wxBell()
 // Launch default browser
 // ----------------------------------------------------------------------------
 
-bool wxDoLaunchDefaultBrowser(const wxString& url, int flags)
+bool wxDoLaunchDefaultBrowser(const wxLaunchBrowserParams& params)
 {
-    return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:wxCFStringRef(url).AsNSString()]]
+    return [[UIApplication sharedApplication] openURL:[NSURL URLWithString:wxCFStringRef(params.url).AsNSString()]]
         == YES;
 }
 
@@ -315,37 +316,5 @@ wxBitmap wxWindowDCImpl::DoGetAsBitmap(const wxRect *subrect) const
 }
 
 #endif // wxUSE_GUI
-
-wxOperatingSystemId wxGetOsVersion(int *verMaj, int *verMin)
-{
-    // get OS version
-    int major, minor;
-
-    wxString release = wxCFStringRef( wxCFRetain( [ [UIDevice currentDevice] systemVersion] ) ).AsString() ;
-
-    if ( release.empty() ||
-        // TODO use wx method
-         scanf(release.c_str(), wxT("%d.%d"), &major, &minor) != 2 )
-    {
-        // failed to get version string or unrecognized format
-        major =
-        minor = -1;
-    }
-
-    if ( verMaj )
-        *verMaj = major;
-    if ( verMin )
-        *verMin = minor;
-
-    return wxOS_MAC_OSX_DARWIN;
-}
-
-wxString wxGetOsDescription()
-{
-    wxString release = wxCFStringRef( wxCFRetain([ [UIDevice currentDevice] systemName] )).AsString() ;
-
-    return release;
-}
-
 
 #endif // wxOSX_USE_IPHONE

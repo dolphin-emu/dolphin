@@ -520,6 +520,9 @@ wxString wxControlBase::Ellipsize(const wxString& label, const wxDC& dc,
                                   wxEllipsizeMode mode, int maxFinalWidth,
                                   int flags)
 {
+    if (mode == wxELLIPSIZE_NONE)
+        return label;
+    
     wxString ret;
 
     // these cannot be cached between different Ellipsize() calls as they can

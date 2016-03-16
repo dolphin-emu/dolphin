@@ -94,7 +94,7 @@ bool wxStringOperationsUtf8::IsValidUtf8String(const char *str, size_t len)
     const unsigned char *c = (const unsigned char*)str;
     const unsigned char * const end = (len == wxStringImpl::npos) ? NULL : c + len;
 
-    for ( ; c != end && *c; ++c )
+    for ( ; end != NULL ? c != end : *c; ++c )
     {
         unsigned char b = *c;
 

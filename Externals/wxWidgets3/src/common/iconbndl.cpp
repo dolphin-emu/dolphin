@@ -30,7 +30,7 @@
 #include "wx/arrimpl.cpp"
 WX_DEFINE_OBJARRAY(wxIconArray)
 
-IMPLEMENT_DYNAMIC_CLASS(wxIconBundle, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIconBundle, wxGDIObject);
 
 #define M_ICONBUNDLEDATA static_cast<wxIconBundleRefData*>(m_refData)
 
@@ -53,7 +53,7 @@ public:
 
     // default assignment operator and dtor are ok
 
-    virtual bool IsOk() const { return !m_icons.empty(); }
+    virtual bool IsOk() const wxOVERRIDE { return !m_icons.empty(); }
 
     wxIconArray m_icons;
 };
@@ -273,14 +273,7 @@ wxIcon wxIconBundle::GetIcon(const wxSize& size, int flags) const
         }
     }
 
-#if defined( __WXMAC__ ) && wxOSX_USE_CARBON
-    if (!iconBest.IsOk())
-        return wxNullIcon;
-
-    return wxIcon(iconBest.GetHICON(), size);
-#else
     return iconBest;
-#endif
 }
 
 wxIcon wxIconBundle::GetIconOfExactSize(const wxSize& size) const

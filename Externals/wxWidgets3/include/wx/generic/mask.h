@@ -46,7 +46,7 @@ private:
 
     wxBitmap m_bitmap;
 
-    DECLARE_DYNAMIC_CLASS(wxMask)
+    wxDECLARE_DYNAMIC_CLASS(wxMask);
 };
 
 #endif // _WX_GENERIC_MASKG_H_

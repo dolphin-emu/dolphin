@@ -68,7 +68,7 @@ wxBEGIN_FLAGS( wxBitmapButtonStyle )
     wxFLAGS_MEMBER(wxBU_BOTTOM)
 wxEND_FLAGS( wxBitmapButtonStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxBitmapButton, wxButton, "wx/bmpbuttn.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxBitmapButton, wxButton, "wx/bmpbuttn.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxBitmapButton)
     wxPROPERTY_FLAGS( WindowStyle, wxBitmapButtonStyle, long, \
@@ -103,12 +103,13 @@ GetCloseButtonBitmap(wxWindow *win,
                      const wxColour& colBg,
                      int flags = 0)
 {
-    wxBitmap bmp(size);
+    wxBitmap bmp;
+    bmp.CreateScaled(size.x, size.y, wxBITMAP_SCREEN_DEPTH, win->GetContentScaleFactor());
     wxMemoryDC dc(bmp);
     dc.SetBackground(colBg);
     dc.Clear();
     wxRendererNative::Get().
-        DrawTitleBarBitmap(win, dc, size, wxTITLEBAR_BUTTON_CLOSE, flags);
+        DrawTitleBarBitmap(win, dc, win->FromDIP(size), wxTITLEBAR_BUTTON_CLOSE, flags);
     return bmp;
 }
 

@@ -19,12 +19,12 @@
 
     If you get an error saying "wxUSE_FOO must be defined", it means that you
     are not using the correct up-to-date version of setup.h. This happens most
-    often when using svn or daily snapshots and a new symbol was added to
-    setup0.h and you haven't updated your local setup.h to reflect it. If
-    this is the case, you need to propagate the changes from setup0.h to your
-    setup.h and, if using makefiles under MSW, also remove setup.h under the
-    build directory (lib/$(COMPILER)_{lib,dll}/msw[u][d][dll]/wx) so that
-    the new setup.h is copied there.
+    often when using git or snapshots and a new symbol was added to setup0.h
+    and you haven't updated your local setup.h to reflect it. If this is the
+    case, you need to propagate the changes from setup0.h to your setup.h and,
+    if using makefiles under MSW, also remove setup.h under the build directory
+    (lib/$(COMPILER)_{lib,dll}/msw[u][d][dll]/wx) so that the new setup.h is
+    copied there.
 
     If you get an error of the form "wxFoo requires wxBar", then the settings
     in your setup.h are inconsistent. You have the choice between correcting
@@ -309,6 +309,14 @@
 #   endif
 #endif /* !defined(wxUSE_STD_CONTAINERS) */
 
+#ifndef wxUSE_STD_CONTAINERS_COMPATIBLY
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_STD_CONTAINERS_COMPATIBLY must be defined, please read comment near the top of this file."
+#   else
+#       define wxUSE_STD_CONTAINERS_COMPATIBLY 0
+#   endif
+#endif /* !defined(wxUSE_STD_CONTAINERS_COMPATIBLY) */
+
 #ifndef wxUSE_STD_STRING_CONV_IN_WXSTRING
 #   ifdef wxABORT_ON_CONFIG_ERROR
 #       error "wxUSE_STD_STRING_CONV_IN_WXSTRING must be defined, please read comment near the top of this file."
@@ -416,6 +424,22 @@
 #       define wxUSE_ACCESSIBILITY 0
 #   endif
 #endif /* !defined(wxUSE_ACCESSIBILITY) */
+
+#ifndef wxUSE_ADDREMOVECTRL
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_ADDREMOVECTRL must be defined, please read comment near the top of this file."
+#   else
+#       define wxUSE_ADDREMOVECTRL 0
+#   endif
+#endif /* !defined(wxUSE_ADDREMOVECTRL) */
+
+#ifndef wxUSE_ACTIVITYINDICATOR
+#   ifdef wxABORT_ON_CONFIG_ERROR
+#       error "wxUSE_ACTIVITYINDICATOR must be defined, please read comment near the top of this file."
+#   else
+#       define wxUSE_ACTIVITYINDICATOR 0
+#   endif
+#endif /* !defined(wxUSE_ACTIVITYINDICATOR) */
 
 #ifndef wxUSE_ANIMATIONCTRL
 #   ifdef wxABORT_ON_CONFIG_ERROR
@@ -1216,21 +1240,15 @@
    checks use wxUSE_XXX symbols in #if tests.
  */
 
-#if defined(__WXWINCE__)
-#  include "wx/msw/wince/chkconf.h"
-#elif defined(__WINDOWS__)
+#if defined(__WINDOWS__)
 #  include "wx/msw/chkconf.h"
 #  if defined(__WXGTK__)
 #      include "wx/gtk/chkconf.h"
 #  endif
 #elif defined(__WXGTK__)
 #  include "wx/gtk/chkconf.h"
-#elif defined(__WXCOCOA__)
-#  include "wx/cocoa/chkconf.h"
 #elif defined(__WXMAC__)
 #  include "wx/osx/chkconf.h"
-#elif defined(__OS2__)
-#  include "wx/os2/chkconf.h"
 #elif defined(__WXDFB__)
 #  include "wx/dfb/chkconf.h"
 #elif defined(__WXMOTIF__)
@@ -1257,16 +1275,16 @@
    Section 3a: check consistency of the non-GUI settings.
  */
 
-#if WXWIN_COMPATIBILITY_2_6
-#   if !WXWIN_COMPATIBILITY_2_8
+#if WXWIN_COMPATIBILITY_2_8
+#   if !WXWIN_COMPATIBILITY_3_0
 #       ifdef wxABORT_ON_CONFIG_ERROR
-#           error "2.6.X compatibility requires 2.8.X compatibility"
+#           error "2.8.X compatibility requires 3.0.X compatibility"
 #       else
-#           undef WXWIN_COMPATIBILITY_2_8
-#           define WXWIN_COMPATIBILITY_2_8 1
+#           undef WXWIN_COMPATIBILITY_3_0
+#           define WXWIN_COMPATIBILITY_3_0 1
 #       endif
 #   endif
-#endif /* WXWIN_COMPATIBILITY_2_6 */
+#endif /* WXWIN_COMPATIBILITY_2_8 */
 
 #if wxUSE_ARCHIVE_STREAMS
 #   if !wxUSE_DATETIME
@@ -1518,6 +1536,28 @@
 #    endif
 #endif /* controls */
 
+#if wxUSE_ADDREMOVECTRL
+#   if !wxUSE_BMPBUTTON
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_ADDREMOVECTRL requires wxUSE_BMPBUTTON"
+#       else
+#           undef wxUSE_ADDREMOVECTRL
+#           define wxUSE_ADDREMOVECTRL 0
+#       endif
+#   endif
+#endif /* wxUSE_ADDREMOVECTRL */
+
+#if wxUSE_ANIMATIONCTRL
+#   if !wxUSE_STREAMS
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxUSE_ANIMATIONCTRL requires wxUSE_STREAMS"
+#       else
+#           undef wxUSE_ANIMATIONCTRL
+#           define wxUSE_ANIMATIONCTRL 0
+#       endif
+#   endif
+#endif /* wxUSE_ANIMATIONCTRL */
+
 #if wxUSE_BMPBUTTON
 #    if !wxUSE_BUTTON
 #        ifdef wxABORT_ON_CONFIG_ERROR
@@ -1552,7 +1592,8 @@
 #   endif
 #endif
 
-#define wxUSE_BOOKCTRL (wxUSE_NOTEBOOK || \
+#define wxUSE_BOOKCTRL (wxUSE_AUI || \
+                        wxUSE_NOTEBOOK || \
                         wxUSE_LISTBOOK || \
                         wxUSE_CHOICEBOOK || \
                         wxUSE_TOOLBOOK || \
@@ -1737,6 +1778,20 @@
 #       endif
 #   endif
 #endif /* wxUSE_CALENDARCTRL */
+
+#if wxUSE_DATEPICKCTRL
+    /* Only the generic implementation, not used under MSW and OSX, needs
+     * wxComboCtrl. */
+#   if !wxUSE_COMBOCTRL && (defined(__WXUNIVERSAL__) || \
+            !(defined(__WXMSW__) || defined(__WXOSX_COCOA__)))
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxDatePickerCtrl requires wxUSE_COMBOCTRL"
+#       else
+#           undef wxUSE_COMBOCTRL
+#           define wxUSE_COMBOCTRL 1
+#       endif
+#   endif
+#endif /* wxUSE_DATEPICKCTRL */
 
 #if wxUSE_DATEPICKCTRL || wxUSE_TIMEPICKCTRL
 #   if !wxUSE_DATETIME
@@ -2225,6 +2280,47 @@
 #       endif
 #   endif
 #endif /* wxUSE_PREFERENCES_EDITOR */
+
+#if wxUSE_MEDIACTRL
+#   if !wxUSE_LONGLONG
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxMediaCtrl requires wxUSE_LONLONG"
+#       else
+#           undef wxUSE_LONLONG
+#           define wxUSE_LONLONG 1
+#       endif
+#   endif
+#endif /* wxUSE_MEDIACTRL */
+
+#if wxUSE_STC
+#   if !wxUSE_STOPWATCH
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxStyledTextCtrl requires wxUSE_STOPWATCH"
+#       else
+#           undef wxUSE_STC
+#           define wxUSE_STC 0
+#       endif
+#   endif
+#endif /* wxUSE_STC */
+
+#if wxUSE_RICHTEXT
+#   if !wxUSE_HTML
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxRichTextCtrl requires wxUSE_HTML"
+#       else
+#           undef wxUSE_RICHTEXT
+#           define wxUSE_RICHTEXT 0
+#       endif
+#   endif
+#   if !wxUSE_LONGLONG
+#       ifdef wxABORT_ON_CONFIG_ERROR
+#           error "wxRichTextCtrl requires wxUSE_LONLONG"
+#       else
+#           undef wxUSE_LONLONG
+#           define wxUSE_LONLONG 1
+#       endif
+#   endif
+#endif /* wxUSE_RICHTEXT */
 
 #endif /* wxUSE_GUI */
 

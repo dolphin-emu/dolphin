@@ -13,8 +13,7 @@
 
 #include "wx/osx/webview_webkit.h"
 
-#if wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT && (defined(__WXOSX_COCOA__) \
-                                          ||  defined(__WXOSX_CARBON__))
+#if wxUSE_WEBVIEW && wxUSE_WEBVIEW_WEBKIT && defined(__WXOSX__) 
 
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
@@ -24,15 +23,21 @@
 #endif
 
 #include "wx/osx/private.h"
-#include "wx/cocoa/string.h"
+#include "wx/osx/core/cfref.h"
+
 #include "wx/hashmap.h"
 #include "wx/filesys.h"
 
+#if wxOSX_USE_IPHONE
+#include <UIKit/UIWebView.h>
+#else
 #include <WebKit/WebKit.h>
 #include <WebKit/HIWebView.h>
 #include <WebKit/CarbonUtils.h>
-
+#endif
 #include <Foundation/NSURLError.h>
+
+// using native types to get compile errors and warnings
 
 #define DEBUG_WEBKIT_SIZING 0
 
@@ -42,261 +47,15 @@
 
 wxIMPLEMENT_DYNAMIC_CLASS(wxWebViewWebKit, wxWebView);
 
-BEGIN_EVENT_TABLE(wxWebViewWebKit, wxControl)
-#if defined(__WXMAC__) && wxOSX_USE_CARBON
-    EVT_SIZE(wxWebViewWebKit::OnSize)
-#endif
-END_EVENT_TABLE()
-
-#if defined(__WXOSX__) && wxOSX_USE_CARBON
-
-// ----------------------------------------------------------------------------
-// Carbon Events handlers
-// ----------------------------------------------------------------------------
-
-// prototype for function in src/osx/carbon/nonownedwnd.cpp
-void SetupMouseEvent( wxMouseEvent &wxevent , wxMacCarbonEvent &cEvent );
-
-static const EventTypeSpec eventList[] =
-{
-    //{ kEventClassControl, kEventControlTrack } ,
-    { kEventClassMouse, kEventMouseUp },
-    { kEventClassMouse, kEventMouseDown },
-    { kEventClassMouse, kEventMouseMoved },
-    { kEventClassMouse, kEventMouseDragged },
-
-    { kEventClassKeyboard, kEventRawKeyDown } ,
-    { kEventClassKeyboard, kEventRawKeyRepeat } ,
-    { kEventClassKeyboard, kEventRawKeyUp } ,
-    { kEventClassKeyboard, kEventRawKeyModifiersChanged } ,
-
-    { kEventClassTextInput, kEventTextInputUnicodeForKeyEvent } ,
-    { kEventClassTextInput, kEventTextInputUpdateActiveInputArea } ,
-
-#if DEBUG_WEBKIT_SIZING == 1
-    { kEventClassControl, kEventControlBoundsChanged } ,
-#endif
-};
-
-// mix this in from window.cpp
-pascal OSStatus wxMacUnicodeTextEventHandler(EventHandlerCallRef handler,
-                                             EventRef event, void *data) ;
-
-// NOTE: This is mostly taken from KeyboardEventHandler in toplevel.cpp, but
-// that expects the data pointer is a top-level window, so I needed to change
-// that in this case. However, once 2.8 is out, we should factor out the common
-// logic among the two functions and merge them.
-static pascal OSStatus wxWebKitKeyEventHandler(EventHandlerCallRef handler,
-                                               EventRef event, void *data)
-{
-    OSStatus result = eventNotHandledErr ;
-    wxMacCarbonEvent cEvent( event ) ;
-
-    wxWebViewWebKit* thisWindow = (wxWebViewWebKit*) data ;
-    wxWindow* focus = thisWindow ;
-
-    unsigned char charCode ;
-    wxChar uniChar[2] ;
-    uniChar[0] = 0;
-    uniChar[1] = 0;
-
-    UInt32 keyCode ;
-    UInt32 modifiers ;
-    UInt32 when = EventTimeToTicks( GetEventTime( event ) ) ;
-
-#if wxUSE_UNICODE
-    ByteCount dataSize = 0 ;
-    if ( GetEventParameter(event, kEventParamKeyUnicodes, typeUnicodeText,
-                           NULL, 0 , &dataSize, NULL ) == noErr)
-    {
-        UniChar buf[2] ;
-        int numChars = dataSize / sizeof( UniChar) + 1;
-
-        UniChar* charBuf = buf ;
-
-        if ( numChars * 2 > 4 )
-            charBuf = new UniChar[ numChars ] ;
-        GetEventParameter(event, kEventParamKeyUnicodes, typeUnicodeText, NULL,
-                          dataSize , NULL , charBuf) ;
-        charBuf[ numChars - 1 ] = 0;
-
-#if SIZEOF_WCHAR_T == 2
-        uniChar = charBuf[0] ;
-#else
-        wxMBConvUTF16 converter ;
-        converter.MB2WC( uniChar , (const char*)charBuf , 2 ) ;
-#endif
-
-        if ( numChars * 2 > 4 )
-            delete[] charBuf ;
-    }
-#endif
-
-    GetEventParameter(event, kEventParamKeyMacCharCodes, typeChar, NULL,
-                      1, NULL, &charCode );
-    GetEventParameter(event, kEventParamKeyCode, typeUInt32, NULL,
-                      sizeof(UInt32), NULL, &keyCode );
-    GetEventParameter(event, kEventParamKeyModifiers, typeUInt32, NULL,
-                      sizeof(UInt32), NULL, &modifiers );
-
-    UInt32 message = (keyCode << 8) + charCode;
-    switch ( GetEventKind( event ) )
-    {
-        case kEventRawKeyRepeat :
-        case kEventRawKeyDown :
-        {
-            WXEVENTREF formerEvent = wxTheApp->MacGetCurrentEvent() ;
-            WXEVENTHANDLERCALLREF formerHandler =
-                wxTheApp->MacGetCurrentEventHandlerCallRef() ;
-
-            wxTheApp->MacSetCurrentEvent( event , handler ) ;
-            if ( /* focus && */ wxTheApp->MacSendKeyDownEvent(
-                focus, message, modifiers, when, uniChar[0]))
-            {
-                result = noErr ;
-            }
-            wxTheApp->MacSetCurrentEvent( formerEvent , formerHandler ) ;
-        }
-        break ;
-
-        case kEventRawKeyUp :
-            if ( /* focus && */ wxTheApp->MacSendKeyUpEvent(
-                focus , message , modifiers , when , uniChar[0] ) )
-            {
-                result = noErr ;
-            }
-            break ;
-
-        case kEventRawKeyModifiersChanged :
-            {
-                wxKeyEvent event(wxEVT_KEY_DOWN);
-
-                event.m_shiftDown = modifiers & shiftKey;
-                event.m_controlDown = modifiers & controlKey;
-                event.m_altDown = modifiers & optionKey;
-                event.m_metaDown = modifiers & cmdKey;
-
-#if wxUSE_UNICODE
-                event.m_uniChar = uniChar[0] ;
-#endif
-
-                event.SetTimestamp(when);
-                event.SetEventObject(focus);
-
-                if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & controlKey )
-                {
-                    event.m_keyCode = WXK_CONTROL ;
-                    event.SetEventType( ( modifiers & controlKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
-                    focus->GetEventHandler()->ProcessEvent( event ) ;
-                }
-                if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & shiftKey )
-                {
-                    event.m_keyCode = WXK_SHIFT ;
-                    event.SetEventType( ( modifiers & shiftKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
-                    focus->GetEventHandler()->ProcessEvent( event ) ;
-                }
-                if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & optionKey )
-                {
-                    event.m_keyCode = WXK_ALT ;
-                    event.SetEventType( ( modifiers & optionKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
-                    focus->GetEventHandler()->ProcessEvent( event ) ;
-                }
-                if ( /* focus && */ (modifiers ^ wxApp::s_lastModifiers ) & cmdKey )
-                {
-                    event.m_keyCode = WXK_COMMAND ;
-                    event.SetEventType( ( modifiers & cmdKey ) ? wxEVT_KEY_DOWN : wxEVT_KEY_UP ) ;
-                    focus->GetEventHandler()->ProcessEvent( event ) ;
-                }
-
-                wxApp::s_lastModifiers = modifiers ;
-            }
-            break ;
-
-        default:
-            break;
-    }
-
-    return result ;
-}
-
-static pascal OSStatus wxWebViewWebKitEventHandler( EventHandlerCallRef handler , EventRef event , void *data )
-{
-    OSStatus result = eventNotHandledErr ;
-
-    wxMacCarbonEvent cEvent( event ) ;
-
-    ControlRef controlRef ;
-    wxWebViewWebKit* thisWindow = (wxWebViewWebKit*) data ;
-    wxNonOwnedWindow* tlw = NULL;
-    if (thisWindow)
-        tlw = thisWindow->MacGetTopLevelWindow();
-
-    cEvent.GetParameter( kEventParamDirectObject , &controlRef ) ;
-
-    wxWindow* currentMouseWindow = thisWindow ;
-
-    if ( wxApp::s_captureWindow )
-        currentMouseWindow = wxApp::s_captureWindow;
-
-    switch ( GetEventClass( event ) )
-    {
-        case kEventClassKeyboard:
-        {
-            result = wxWebKitKeyEventHandler(handler, event, data);
-            break;
-        }
-
-        case kEventClassTextInput:
-        {
-            result = wxMacUnicodeTextEventHandler(handler, event, data);
-            break;
-        }
-
-        case kEventClassMouse:
-        {
-            switch ( GetEventKind( event ) )
-            {
-                case kEventMouseDragged :
-                case kEventMouseMoved :
-                case kEventMouseDown :
-                case kEventMouseUp :
-                {
-                    wxMouseEvent wxevent(wxEVT_LEFT_DOWN);
-                    SetupMouseEvent( wxevent , cEvent ) ;
-
-                    currentMouseWindow->ScreenToClient( &wxevent.m_x , &wxevent.m_y ) ;
-                    wxevent.SetEventObject( currentMouseWindow ) ;
-                    wxevent.SetId( currentMouseWindow->GetId() ) ;
-
-                    if ( currentMouseWindow->GetEventHandler()->ProcessEvent(wxevent) )
-                    {
-                        result = noErr;
-                    }
-
-                    break; // this should enable WebKit to fire mouse dragged and mouse up events...
-                }
-                default :
-                    break ;
-            }
-        }
-        default:
-            break;
-    }
-
-    result = CallNextEventHandler(handler, event);
-    return result ;
-}
-
-DEFINE_ONE_SHOT_HANDLER_GETTER( wxWebViewWebKitEventHandler )
-
-#endif
+wxBEGIN_EVENT_TABLE(wxWebViewWebKit, wxControl)
+wxEND_EVENT_TABLE()
 
 @interface WebViewLoadDelegate : NSObject
 {
     wxWebViewWebKit* webKitWindow;
 }
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow;
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow;
 
 @end
 
@@ -305,7 +64,7 @@ DEFINE_ONE_SHOT_HANDLER_GETTER( wxWebViewWebKitEventHandler )
     wxWebViewWebKit* webKitWindow;
 }
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow;
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow;
 
 @end
 
@@ -314,7 +73,7 @@ DEFINE_ONE_SHOT_HANDLER_GETTER( wxWebViewWebKitEventHandler )
     wxWebViewWebKit* webKitWindow;
 }
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow;
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow;
 
 @end
 
@@ -340,23 +99,17 @@ bool wxWebViewWebKit::Create(wxWindow *parent,
                                  const wxString& name)
 {
     m_busy = false;
+    m_nextNavigationIsNewWindow = false;
 
     DontCreatePeer();
     wxControl::Create(parent, winID, pos, size, style, wxDefaultValidator, name);
 
-#if wxOSX_USE_CARBON
-    wxMacControl* peer = new wxMacControl(this);
-    WebInitForCarbon();
-    HIWebViewCreate( peer->GetControlRefAddr() );
+#if wxOSX_USE_IPHONE
+    CGRect r = wxOSXGetFrameForControl( this, pos , size ) ;
+    m_webView = [[UIWebView alloc] initWithFrame:r];
+    
+    SetPeer( new wxWidgetIPhoneImpl( this, m_webView ) );
 
-    m_webView = (WebView*) HIWebViewGetWebView( peer->GetControlRef() );
-
-    HIViewChangeFeatures( peer->GetControlRef() , kHIViewIsOpaque , 0 ) ;
-    InstallControlEventHandler(peer->GetControlRef(),
-                               GetwxWebViewWebKitEventHandlerUPP(),
-                               GetEventTypeCount(eventList), eventList, this,
-                              (EventHandlerRef *)&m_webKitCtrlEventHandler);
-    SetPeer(peer);
 #else
     NSRect r = wxOSXGetFrameForControl( this, pos , size ) ;
     m_webView = [[WebView alloc] initWithFrame:r
@@ -367,14 +120,12 @@ bool wxWebViewWebKit::Create(wxWindow *parent,
 
     MacPostControlCreate(pos, size);
 
-#if wxOSX_USE_CARBON
-    HIViewSetVisible( GetPeer()->GetControlRef(), true );
-#endif
     [m_webView setHidden:false];
 
 
-
     // Register event listener interfaces
+#if wxOSX_USE_IPHONE
+#else
     WebViewLoadDelegate* loadDelegate =
             [[WebViewLoadDelegate alloc] initWithWxWindow: this];
 
@@ -390,7 +141,7 @@ bool wxWebViewWebKit::Create(wxWindow *parent,
             [[WebViewUIDelegate alloc] initWithWxWindow: this];
 
     [m_webView setUIDelegate:uiDelegate];
-
+#endif
     //Register our own class for custom scheme handling
     [NSURLProtocol registerClass:[WebViewCustomProtocol class]];
 
@@ -400,6 +151,8 @@ bool wxWebViewWebKit::Create(wxWindow *parent,
 
 wxWebViewWebKit::~wxWebViewWebKit()
 {
+#if wxOSX_USE_IPHONE
+#else
     WebViewLoadDelegate* loadDelegate = [m_webView frameLoadDelegate];
     WebViewPolicyDelegate* policyDelegate = [m_webView policyDelegate];
     WebViewUIDelegate* uiDelegate = [m_webView UIDelegate];
@@ -415,6 +168,7 @@ wxWebViewWebKit::~wxWebViewWebKit()
 
     if (uiDelegate)
         [uiDelegate release];
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -442,7 +196,7 @@ void wxWebViewWebKit::GoBack()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView goBack];
+    [m_webView goBack];
 }
 
 void wxWebViewWebKit::GoForward()
@@ -450,7 +204,7 @@ void wxWebViewWebKit::GoForward()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView goForward];
+    [m_webView goForward];
 }
 
 void wxWebViewWebKit::Reload(wxWebViewReloadFlags flags)
@@ -505,7 +259,7 @@ wxString wxWebViewWebKit::GetPageSource() const
             return wxEmptyString;
         }
 
-        return wxStringWithNSString( source );
+        return wxCFStringRef::AsString( source );
     }
 
     return wxEmptyString;
@@ -636,7 +390,7 @@ void wxWebViewWebKit::SetScrollPos(int pos)
     wxString javascript;
     javascript.Printf(wxT("document.body.scrollTop = %d;"), pos);
     [[m_webView windowScriptObject] evaluateWebScript:
-            (NSString*)wxNSStringWithWxString( javascript )];
+            wxCFStringRef( javascript ).AsNSString()];
 }
 
 wxString wxWebViewWebKit::GetSelectedText() const
@@ -645,7 +399,7 @@ wxString wxWebViewWebKit::GetSelectedText() const
     if ( !dr )
         return wxString();
 
-    return wxStringWithNSString([dr toString]);
+    return wxCFStringRef::AsString([dr toString]);
 }
 
 void wxWebViewWebKit::RunScript(const wxString& javascript)
@@ -654,112 +408,30 @@ void wxWebViewWebKit::RunScript(const wxString& javascript)
         return;
 
     [[m_webView windowScriptObject] evaluateWebScript:
-                    (NSString*)wxNSStringWithWxString( javascript )];
+                    wxCFStringRef( javascript ).AsNSString()];
 }
 
 void wxWebViewWebKit::OnSize(wxSizeEvent &event)
 {
-#if defined(__WXMAC__) && wxOSX_USE_CARBON
-    // This is a nasty hack because WebKit seems to lose its position when it is
-    // embedded in a control that is not itself the content view for a TLW.
-    // I put it in OnSize because these calcs are not perfect, and in fact are
-    // basically guesses based on reverse engineering, so it's best to give
-    // people the option of overriding OnSize with their own calcs if need be.
-    // I also left some test debugging print statements as a convenience if
-    // a(nother) problem crops up.
-
-    wxWindow* tlw = MacGetTopLevelWindow();
-
-    NSRect frame = [(WebView*)m_webView frame];
-    NSRect bounds = [(WebView*)m_webView bounds];
-
-#if DEBUG_WEBKIT_SIZING
-    fprintf(stderr,"Carbon window x=%d, y=%d, width=%d, height=%d\n",
-            GetPosition().x, GetPosition().y, GetSize().x, GetSize().y);
-    fprintf(stderr, "Cocoa window frame x=%G, y=%G, width=%G, height=%G\n",
-            frame.origin.x, frame.origin.y,
-            frame.size.width, frame.size.height);
-    fprintf(stderr, "Cocoa window bounds x=%G, y=%G, width=%G, height=%G\n",
-            bounds.origin.x, bounds.origin.y,
-            bounds.size.width, bounds.size.height);
-#endif
-
-    // This must be the case that Apple tested with, because well, in this one case
-    // we don't need to do anything! It just works. ;)
-    if (GetParent() == tlw) return;
-
-    // since we no longer use parent coordinates, we always want 0,0.
-    int x = 0;
-    int y = 0;
-
-    HIRect rect;
-    rect.origin.x = x;
-    rect.origin.y = y;
-
-#if DEBUG_WEBKIT_SIZING
-    printf("Before conversion, origin is: x = %d, y = %d\n", x, y);
-#endif
-
-    // NB: In most cases, when calling HIViewConvertRect, what people want is to
-    // use GetRootControl(), and this tripped me up at first. But in fact, what
-    // we want is the root view, because we need to make the y origin relative
-    // to the very top of the window, not its contents, since we later flip
-    // the y coordinate for Cocoa.
-    HIViewConvertRect (&rect, GetPeer()->GetControlRef(),
-                                HIViewGetRoot(
-                                    (WindowRef) MacGetTopLevelWindowRef()
-                                 ));
-
-    x = (int)rect.origin.x;
-    y = (int)rect.origin.y;
-
-#if DEBUG_WEBKIT_SIZING
-    printf("Moving Cocoa frame origin to: x = %d, y = %d\n", x, y);
-#endif
-
-    if (tlw){
-        //flip the y coordinate to convert to Cocoa coordinates
-        y = tlw->GetSize().y - ((GetSize().y) + y);
-    }
-
-#if DEBUG_WEBKIT_SIZING
-    printf("y = %d after flipping value\n", y);
-#endif
-
-    frame.origin.x = x;
-    frame.origin.y = y;
-    [(WebView*)m_webView setFrame:frame];
-
-    if (IsShown())
-        [(WebView*)m_webView display];
-    event.Skip();
-#endif
 }
 
 void wxWebViewWebKit::MacVisibilityChanged(){
-#if defined(__WXMAC__) && wxOSX_USE_CARBON
-    bool isHidden = !IsControlVisible( GetPeer()->GetControlRef());
-    if (!isHidden)
-        [(WebView*)m_webView display];
-
-    [m_webView setHidden:isHidden];
-#endif
 }
 
 void wxWebViewWebKit::LoadURL(const wxString& url)
 {
     [[m_webView mainFrame] loadRequest:[NSURLRequest requestWithURL:
-            [NSURL URLWithString:wxNSStringWithWxString(url)]]];
+            [NSURL URLWithString:wxCFStringRef(url).AsNSString()]]];
 }
 
 wxString wxWebViewWebKit::GetCurrentURL() const
 {
-    return wxStringWithNSString([m_webView mainFrameURL]);
+    return wxCFStringRef::AsString([m_webView mainFrameURL]);
 }
 
 wxString wxWebViewWebKit::GetCurrentTitle() const
 {
-    return wxStringWithNSString([m_webView mainFrameTitle]);
+    return wxCFStringRef::AsString([m_webView mainFrameTitle]);
 }
 
 float wxWebViewWebKit::GetWebkitZoom() const
@@ -839,9 +511,9 @@ void wxWebViewWebKit::DoSetPage(const wxString& src, const wxString& baseUrl)
    if ( !m_webView )
         return;
 
-    [[m_webView mainFrame] loadHTMLString:(NSString*)wxNSStringWithWxString(src)
+    [[m_webView mainFrame] loadHTMLString:wxCFStringRef( src ).AsNSString()
                                   baseURL:[NSURL URLWithString:
-                                    wxNSStringWithWxString( baseUrl )]];
+                                    wxCFStringRef( baseUrl ).AsNSString()]];
 }
 
 void wxWebViewWebKit::Cut()
@@ -849,7 +521,7 @@ void wxWebViewWebKit::Cut()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView cut:m_webView];
+    [m_webView cut:m_webView];
 }
 
 void wxWebViewWebKit::Copy()
@@ -857,7 +529,7 @@ void wxWebViewWebKit::Copy()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView copy:m_webView];
+    [m_webView copy:m_webView];
 }
 
 void wxWebViewWebKit::Paste()
@@ -865,7 +537,7 @@ void wxWebViewWebKit::Paste()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView paste:m_webView];
+    [m_webView paste:m_webView];
 }
 
 void wxWebViewWebKit::DeleteSelection()
@@ -873,7 +545,7 @@ void wxWebViewWebKit::DeleteSelection()
     if ( !m_webView )
         return;
 
-    [(WebView*)m_webView deleteSelection];
+    [m_webView deleteSelection];
 }
 
 bool wxWebViewWebKit::HasSelection() const
@@ -906,14 +578,14 @@ wxString wxWebViewWebKit::GetSelectedSource() const
     if ( !dr )
         return wxString();
 
-    return wxStringWithNSString([dr markupString]);
+    return wxCFStringRef::AsString([dr markupString]);
 }
 
 wxString wxWebViewWebKit::GetPageText() const
 {
     NSString *result = [m_webView stringByEvaluatingJavaScriptFromString:
                                   @"document.body.textContent"];
-    return wxStringWithNSString(result);
+    return wxCFStringRef::AsString(result);
 }
 
 void wxWebViewWebKit::EnableHistory(bool enable)
@@ -938,8 +610,8 @@ wxVector<wxSharedPtr<wxWebViewHistoryItem> > wxWebViewWebKit::GetBackwardHistory
     for(int i = -count; i < 0; i++)
     {
         WebHistoryItem* item = [history itemAtIndex:i];
-        wxString url = wxStringWithNSString([item URLString]);
-        wxString title = wxStringWithNSString([item title]);
+        wxString url = wxCFStringRef::AsString([item URLString]);
+        wxString title = wxCFStringRef::AsString([item title]);
         wxWebViewHistoryItem* wxitem = new wxWebViewHistoryItem(url, title);
         wxitem->m_histItem = item;
         wxSharedPtr<wxWebViewHistoryItem> itemptr(wxitem);
@@ -956,8 +628,8 @@ wxVector<wxSharedPtr<wxWebViewHistoryItem> > wxWebViewWebKit::GetForwardHistory(
     for(int i = 1; i <= count; i++)
     {
         WebHistoryItem* item = [history itemAtIndex:i];
-        wxString url = wxStringWithNSString([item URLString]);
-        wxString title = wxStringWithNSString([item title]);
+        wxString url = wxCFStringRef::AsString([item URLString]);
+        wxString title = wxCFStringRef::AsString([item title]);
         wxWebViewHistoryItem* wxitem = new wxWebViewHistoryItem(url, title);
         wxitem->m_histItem = item;
         wxSharedPtr<wxWebViewHistoryItem> itemptr(wxitem);
@@ -1000,6 +672,9 @@ void wxWebViewWebKit::RegisterHandler(wxSharedPtr<wxWebViewHandler> handler)
 // Listener interfaces
 //------------------------------------------------------------
 
+#if wxOSX_USE_IPHONE
+#else
+
 // NB: I'm still tracking this down, but it appears the Cocoa window
 // still has these events fired on it while the Carbon control is being
 // destroyed. Therefore, we must be careful to check both the existence
@@ -1007,7 +682,7 @@ void wxWebViewWebKit::RegisterHandler(wxSharedPtr<wxWebViewHandler> handler)
 
 @implementation WebViewLoadDelegate
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow
 {
     [super init];
     webKitWindow = inWindow;    // non retained
@@ -1026,10 +701,10 @@ void wxWebViewWebKit::RegisterHandler(wxSharedPtr<wxWebViewHandler> handler)
 
     if (webKitWindow && frame == [sender mainFrame]){
         NSString *url = [[[[frame dataSource] request] URL] absoluteString];
-        wxString target = wxStringWithNSString([frame name]);
+        wxString target = wxCFStringRef::AsString([frame name]);
         wxWebViewEvent event(wxEVT_WEBVIEW_NAVIGATED,
                              webKitWindow->GetId(),
-                             wxStringWithNSString( url ),
+                             wxCFStringRef::AsString( url ),
                              target);
 
         if (webKitWindow && webKitWindow->GetEventHandler())
@@ -1044,10 +719,10 @@ void wxWebViewWebKit::RegisterHandler(wxSharedPtr<wxWebViewHandler> handler)
     if (webKitWindow && frame == [sender mainFrame]){
         NSString *url = [[[[frame dataSource] request] URL] absoluteString];
 
-        wxString target = wxStringWithNSString([frame name]);
+        wxString target = wxCFStringRef::AsString([frame name]);
         wxWebViewEvent event(wxEVT_WEBVIEW_LOADED,
                              webKitWindow->GetId(),
-                             wxStringWithNSString( url ),
+                             wxCFStringRef::AsString( url ),
                              target);
 
         if (webKitWindow && webKitWindow->GetEventHandler())
@@ -1102,9 +777,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
             case NSURLErrorUserAuthenticationRequired:
             case NSURLErrorSecureConnectionFailed:
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_6
             case NSURLErrorClientCertificateRequired:
-#endif
                 *out = wxWEBVIEW_NAV_ERR_AUTH;
                 break;
 
@@ -1122,11 +795,11 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
         }
     }
 
-    wxString message = wxStringWithNSString([error localizedDescription]);
+    wxString message = wxCFStringRef::AsString([error localizedDescription]);
     NSString* detail = [error localizedFailureReason];
     if (detail != NULL)
     {
-        message = message + " (" + wxStringWithNSString(detail) + ")";
+        message = message + " (" + wxCFStringRef::AsString(detail) + ")";
     }
     return message;
 }
@@ -1143,7 +816,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
         wxString description = nsErrorToWxHtmlError(error, &type);
         wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
                              webKitWindow->GetId(),
-                             wxStringWithNSString( url ),
+                             wxCFStringRef::AsString( url ),
                              wxEmptyString);
         event.SetString(description);
         event.SetInt(type);
@@ -1169,7 +842,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
         wxString description = nsErrorToWxHtmlError(error, &type);
         wxWebViewEvent event(wxEVT_WEBVIEW_ERROR,
                              webKitWindow->GetId(),
-                             wxStringWithNSString( url ),
+                             wxCFStringRef::AsString( url ),
                              wxEmptyString);
         event.SetString(description);
         event.SetInt(type);
@@ -1182,13 +855,13 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 - (void)webView:(WebView *)sender didReceiveTitle:(NSString *)title
                                          forFrame:(WebFrame *)frame
 {
-    wxString target = wxStringWithNSString([frame name]);
+    wxString target = wxCFStringRef::AsString([frame name]);
     wxWebViewEvent event(wxEVT_WEBVIEW_TITLE_CHANGED,
                          webKitWindow->GetId(),
                          webKitWindow->GetCurrentURL(),
                          target);
 
-    event.SetString(wxStringWithNSString(title));
+    event.SetString(wxCFStringRef::AsString(title));
 
     if (webKitWindow && webKitWindow->GetEventHandler())
         webKitWindow->GetEventHandler()->ProcessEvent(event);
@@ -1197,7 +870,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
 @implementation WebViewPolicyDelegate
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow
 {
     [super init];
     webKitWindow = inWindow;    // non retained
@@ -1212,12 +885,30 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 {
     wxUnusedVar(frame);
 
-    webKitWindow->m_busy = true;
     NSString *url = [[request URL] absoluteString];
-    wxString target = wxStringWithNSString([frame name]);
+    if (webKitWindow->m_nextNavigationIsNewWindow)
+    {
+        // This navigation has been marked as a new window
+        // cancel the request here and send an apropriate event
+        // to the application code
+        webKitWindow->m_nextNavigationIsNewWindow = false;
+
+        wxWebViewEvent event(wxEVT_WEBVIEW_NEWWINDOW,
+                             webKitWindow->GetId(),
+                             wxCFStringRef::AsString( url ), "");
+
+        if (webKitWindow && webKitWindow->GetEventHandler())
+            webKitWindow->GetEventHandler()->ProcessEvent(event);
+
+        [listener ignore];
+        return;
+    }
+
+    webKitWindow->m_busy = true;
+    wxString target = wxCFStringRef::AsString([frame name]);
     wxWebViewEvent event(wxEVT_WEBVIEW_NAVIGATING,
                          webKitWindow->GetId(),
-                         wxStringWithNSString( url ), target);
+                         wxCFStringRef::AsString( url ), target);
 
     if (webKitWindow && webKitWindow->GetEventHandler())
         webKitWindow->GetEventHandler()->ProcessEvent(event);
@@ -1244,7 +935,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
     NSString *url = [[request URL] absoluteString];
     wxWebViewEvent event(wxEVT_WEBVIEW_NEWWINDOW,
                          webKitWindow->GetId(),
-                         wxStringWithNSString( url ), "");
+                         wxCFStringRef::AsString( url ), "");
 
     if (webKitWindow && webKitWindow->GetEventHandler())
         webKitWindow->GetEventHandler()->ProcessEvent(event);
@@ -1252,6 +943,8 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
     [listener ignore];
 }
 @end
+
+#endif
 
 @implementation WebViewCustomProtocol
 
@@ -1262,7 +955,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
     wxStringToWebHandlerMap::const_iterator it;
     for( it = g_stringHandlerMap.begin(); it != g_stringHandlerMap.end(); ++it )
     {
-        if(it->first.IsSameAs(wxStringWithNSString(scheme)))
+        if(it->first.IsSameAs(wxCFStringRef::AsString(scheme)))
         {
             return YES;
         }
@@ -1284,8 +977,8 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
     id<NSURLProtocolClient> client = [self client];
 
-    wxString wxpath = wxStringWithNSString(path);
-    wxString scheme = wxStringWithNSString([[request URL] scheme]);
+    wxString wxpath = wxCFStringRef::AsString(path);
+    wxString scheme = wxCFStringRef::AsString([[request URL] scheme]);
     wxFSFile* file = g_stringHandlerMap[scheme]->GetFile(wxpath);
 
     if (!file)
@@ -1303,7 +996,7 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
 
     NSURLResponse *response =  [[NSURLResponse alloc] initWithURL:[request URL]
-                               MIMEType:wxNSStringWithWxString(file->GetMimeType())
+                               MIMEType:wxCFStringRef(file->GetMimeType()).AsNSString()
                                expectedContentLength:length
                                textEncodingName:nil];
 
@@ -1335,11 +1028,20 @@ wxString nsErrorToWxHtmlError(NSError* error, wxWebViewNavigationError* out)
 
 @implementation WebViewUIDelegate
 
-- initWithWxWindow: (wxWebViewWebKit*)inWindow
+- (id)initWithWxWindow: (wxWebViewWebKit*)inWindow
 {
     [super init];
     webKitWindow = inWindow;    // non retained
     return self;
+}
+
+- (WebView *)webView:(WebView *)sender createWebViewWithRequest:(NSURLRequest *)request
+{
+    // This method is called when window.open() is used in javascript with a target != _self
+    // request is always nil, so it can't be used for event generation
+    // Mark the next navigation as "new window"
+    webKitWindow->m_nextNavigationIsNewWindow = true;
+    return sender;
 }
 
 - (void)webView:(WebView *)sender printFrameView:(WebFrameView *)frameView
