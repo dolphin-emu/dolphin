@@ -17,6 +17,34 @@ namespace DiscIO
 {
 bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
 
+class CNANDContentData
+{
+public:
+	virtual const std::vector<u8> Get() = 0;
+	virtual bool GetRange(u32 start, u32 size, u8* buffer) = 0;
+};
+
+class CNANDContentDataFile final : public CNANDContentData
+{
+public:
+	CNANDContentDataFile(const std::string& filename) : m_filename(filename) { };
+
+	const std::vector<u8> Get() override;
+	bool GetRange(u32 start, u32 size, u8* buffer) override;
+private:
+	const std::string m_filename;
+};
+class CNANDContentDataBuffer final : public CNANDContentData
+{
+public:
+	CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer) { };
+
+	const std::vector<u8> Get() override { return m_buffer; };
+	bool GetRange(u32 start, u32 size, u8* buffer) override;
+private:
+	const std::vector<u8> m_buffer;
+};
+
 struct SNANDContent
 {
 	u32 m_ContentID;
@@ -26,8 +54,7 @@ struct SNANDContent
 	u8 m_SHA1Hash[20];
 	u8 m_Header[36]; //all of the above
 
-	std::string m_Filename;
-	std::vector<u8> m_data;
+	std::unique_ptr<CNANDContentData> m_Data;
 };
 
 // Instances of this class must be created by CNANDContentManager
