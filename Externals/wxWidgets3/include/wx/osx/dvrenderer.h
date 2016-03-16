@@ -31,31 +31,31 @@ public:
     // inherited methods from wxDataViewRendererBase
     // ---------------------------------------------
 
-    virtual int GetAlignment() const
+    virtual int GetAlignment() const wxOVERRIDE
     {
         return m_alignment;
     }
-    virtual wxDataViewCellMode GetMode() const
+    virtual wxDataViewCellMode GetMode() const wxOVERRIDE
     {
         return m_mode;
     }
-    virtual bool GetValue(wxVariant& value) const
+    virtual bool GetValue(wxVariant& value) const wxOVERRIDE
     {
         value = m_value;
         return true;
     }
 
     // NB: in Carbon this is always identical to the header alignment
-    virtual void SetAlignment(int align);
-    virtual void SetMode(wxDataViewCellMode mode);
-    virtual bool SetValue(const wxVariant& newValue)
+    virtual void SetAlignment(int align) wxOVERRIDE;
+    virtual void SetMode(wxDataViewCellMode mode) wxOVERRIDE;
+    virtual bool SetValue(const wxVariant& newValue) wxOVERRIDE
     {
         m_value = newValue;
         return true;
     }
 
-    virtual void EnableEllipsize(wxEllipsizeMode mode = wxELLIPSIZE_MIDDLE);
-    virtual wxEllipsizeMode GetEllipsizeMode() const;
+    virtual void EnableEllipsize(wxEllipsizeMode mode = wxELLIPSIZE_MIDDLE) wxOVERRIDE;
+    virtual wxEllipsizeMode GetEllipsizeMode() const wxOVERRIDE;
 
     // implementation
     // --------------
@@ -83,13 +83,14 @@ public:
                                   const wxDataViewItem& item,
                                   unsigned col);
 
-    // called to ensure that the given attribute will be used for rendering the
-    // next cell (which had been already associated with this renderer before)
-    virtual void OSXApplyAttr(const wxDataViewItemAttr& attr);
-
-    // called to set the state of the next cell to be rendered
-    virtual void OSXApplyEnabled(bool enabled);
-#endif // Cocoa
+protected:
+    virtual void SetAttr(const wxDataViewItemAttr& attr) wxOVERRIDE;
+    virtual void SetEnabled(bool enabled) wxOVERRIDE;
+#else
+protected:
+    void SetAttr(const wxDataViewItemAttr& WXUNUSED(attr)) wxOVERRIDE { };
+    void SetEnabled(bool WXUNUSED(enabled)) wxOVERRIDE { };
+#endif
 
 private:
     // contains the alignment flags
@@ -104,7 +105,7 @@ private:
     // value that is going to be rendered
     wxVariant m_value;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewRenderer)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxDataViewRenderer);
 };
 
 #endif // _WX_OSX_DVRENDERER_H_

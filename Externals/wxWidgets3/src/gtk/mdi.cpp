@@ -76,7 +76,7 @@ switch_page(GtkNotebook* widget, GtkNotebookPage*, guint page_num, wxMDIParentFr
 // wxMDIParentFrame
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame,wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIParentFrame, wxFrame);
 
 void wxMDIParentFrame::Init()
 {
@@ -256,12 +256,12 @@ void wxMDIParentFrame::ActivatePrevious()
 // wxMDIChildFrame
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame,wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIChildFrame, wxFrame);
 
-BEGIN_EVENT_TABLE(wxMDIChildFrame, wxFrame)
+wxBEGIN_EVENT_TABLE(wxMDIChildFrame, wxFrame)
     EVT_ACTIVATE(wxMDIChildFrame::OnActivate)
     EVT_MENU_HIGHLIGHT_ALL(wxMDIChildFrame::OnMenuHighlight)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxMDIChildFrame::Init()
 {
@@ -375,7 +375,7 @@ void wxMDIChildFrame::SetTitle( const wxString &title )
 // wxMDIClientWindow
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMDIClientWindow, wxWindow);
 
 wxMDIClientWindow::~wxMDIClientWindow()
 {

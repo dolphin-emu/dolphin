@@ -155,6 +155,7 @@ public:
     virtual int GetColumnPosition( const wxDataViewColumn *column ) const;
 
     virtual wxDataViewColumn *GetSortingColumn() const;
+    virtual wxVector<wxDataViewColumn *> GetSortingColumns() const;
 
     virtual int GetSelectedItemsCount() const;
     virtual int GetSelections( wxDataViewItemArray & sel ) const;
@@ -183,6 +184,10 @@ public:
 
     virtual bool SetFont(const wxFont & font);
 
+    virtual bool AllowMultiColumnSort(bool allow);
+    virtual bool IsMultiColumnSortAllowed() { return m_allowMultiColumnSort; }
+    virtual void ToggleSortByColumn(int column);
+
 #if wxUSE_DRAG_AND_DROP
     virtual bool EnableDragSource( const wxDataFormat &format );
     virtual bool EnableDropTarget( const wxDataFormat &format );
@@ -205,8 +210,17 @@ protected:
     virtual wxDataViewItem GetItemByRow( unsigned int row ) const;
     virtual int GetRowByItem( const wxDataViewItem & item ) const;
 
-    int GetSortingColumnIndex() const { return m_sortingColumnIdx; }
-    void SetSortingColumnIndex(int idx) { m_sortingColumnIdx = idx; }
+    // Mark the column as being used or not for sorting.
+    void UseColumnForSorting(int idx);
+    void DontUseColumnForSorting(int idx);
+
+    // Return true if the given column is sorted
+    bool IsColumnSorted(int idx) const;
+
+    // Reset all columns currently used for sorting.
+    void ResetAllSortColumns();
+
+    virtual void DoEnableSystemTheme(bool enable, wxWindow* window) wxOVERRIDE;
 
 public:     // utility functions not part of the API
 
@@ -267,8 +281,11 @@ private:
     // user defined color to draw row lines, may be invalid
     wxColour m_alternateRowColour;
 
-    // the index of the column currently used for sorting or -1
-    int m_sortingColumnIdx;
+    // columns indices used for sorting, empty if nothing is sorted
+    wxVector<int> m_sortingColumnIdxs;
+
+    // if true, allow sorting by more than one column
+    bool m_allowMultiColumnSort;
 
 private:
     void OnSize( wxSizeEvent &event );
@@ -283,9 +300,9 @@ private:
     WX_FORWARD_TO_SCROLL_HELPER()
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDataViewCtrl)
+    wxDECLARE_DYNAMIC_CLASS(wxDataViewCtrl);
     wxDECLARE_NO_COPY_CLASS(wxDataViewCtrl);
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 

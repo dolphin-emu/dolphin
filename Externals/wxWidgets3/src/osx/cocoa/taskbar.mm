@@ -44,7 +44,7 @@ public:
     
 private:
     wxTaskBarIconImpl *m_impl;
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 // ============================================================================
@@ -88,9 +88,9 @@ class wxTaskBarIconDockImpl: public wxTaskBarIconImpl
 public:
     wxTaskBarIconDockImpl(wxTaskBarIcon *taskBarIcon);
     virtual ~wxTaskBarIconDockImpl();
-    virtual bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString);
-    virtual bool RemoveIcon();
-    virtual bool PopupMenu(wxMenu *menu);
+    virtual bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString) wxOVERRIDE;
+    virtual bool RemoveIcon() wxOVERRIDE;
+    virtual bool PopupMenu(wxMenu *menu) wxOVERRIDE;
 
     static WX_NSMenu OSXGetDockHMenu();
 protected:
@@ -120,11 +120,11 @@ public:
     wxTaskBarIconCustomStatusItemImpl(wxTaskBarIcon *taskBarIcon);
     virtual ~wxTaskBarIconCustomStatusItemImpl();
     
-    virtual bool IsStatusItem() const { return true; }
+    virtual bool IsStatusItem() const wxOVERRIDE { return true; }
 
-    virtual bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString);
-    virtual bool RemoveIcon();
-    virtual bool PopupMenu(wxMenu *menu);
+    virtual bool SetIcon(const wxIcon& icon, const wxString& tooltip = wxEmptyString) wxOVERRIDE;
+    virtual bool RemoveIcon() wxOVERRIDE;
+    virtual bool PopupMenu(wxMenu *menu) wxOVERRIDE;
 protected:
     NSStatusItem *m_statusItem;
     wxOSXStatusItemTarget *m_target;
@@ -136,7 +136,7 @@ private:
 // wxTaskBarIcon implementation
 //     The facade class.
 // ============================================================================
-IMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTaskBarIcon, wxEvtHandler);
 
 wxTaskBarIcon::wxTaskBarIcon(wxTaskBarIconType iconType)
 {
@@ -355,18 +355,32 @@ bool wxTaskBarIconCustomStatusItemImpl::SetIcon(const wxIcon& icon, const wxStri
     m_icon.CopyFromIcon(icon);
     
     // status item doesn't scale automatically
+    // first scale to optimal pixel resolution
     
-    int dimension = m_icon.GetHeight();
-    if ( m_icon.GetWidth() > dimension )
-        dimension = m_icon.GetWidth();
-    if ( dimension > 16 )
+    int dimension = wxMax( m_icon.GetHeight(), m_icon.GetWidth() );
+    int target_dimension = 16 * wxOSXGetMainScreenContentScaleFactor();
+    if ( dimension > target_dimension )
     {
         wxImage img = m_icon.ConvertToImage();
-        int factor = (dimension+15)/16;
+        int factor = (dimension+(target_dimension-1))/target_dimension;
         m_icon = img.ShrinkBy(factor, factor);
     }
-
-    [m_statusItem setImage:m_icon.GetNSImage()];
+    
+    NSImage* nsimage = m_icon.GetNSImage();
+    NSSize size = [nsimage size];
+    
+    // then scale to optimal point resolution
+    
+    dimension = wxMax(size.width,size.height);
+    if ( dimension > 16 )
+    {
+        int factor = (dimension+15)/16;
+        size.width /= factor;
+        size.height /= factor;
+        [nsimage setSize:size];
+    }
+    [m_statusItem setImage:nsimage];
+    
     wxCFStringRef cfTooltip(tooltip);
     [m_statusItem setToolTip:cfTooltip.AsNSString()];
     return true;
@@ -401,10 +415,10 @@ bool wxTaskBarIconCustomStatusItemImpl::PopupMenu(wxMenu *menu)
 // wxTaskBarIconWindow
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxTaskBarIconWindow, wxWindow)
-EVT_MENU(-1, wxTaskBarIconWindow::OnMenuEvent)
-EVT_UPDATE_UI(-1, wxTaskBarIconWindow::OnUpdateUIEvent)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxTaskBarIconWindow, wxWindow)
+    EVT_MENU(-1, wxTaskBarIconWindow::OnMenuEvent)
+    EVT_UPDATE_UI(-1, wxTaskBarIconWindow::OnUpdateUIEvent)
+wxEND_EVENT_TABLE()
 
 wxTaskBarIconWindow::wxTaskBarIconWindow(wxTaskBarIconImpl *impl) 
 : m_impl(impl)

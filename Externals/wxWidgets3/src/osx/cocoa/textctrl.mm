@@ -116,27 +116,34 @@ protected :
 
 NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 
-// a minimal NSFormatter that just avoids getting too long entries
-@interface wxMaximumLengthFormatter : NSFormatter
+// an NSFormatter used to implement SetMaxLength() and ForceUpper() methods
+@interface wxTextEntryFormatter : NSFormatter
 {
     int maxLength;
     wxTextEntry* field;
+    bool forceUpper;
 }
 
 @end
 
-@implementation wxMaximumLengthFormatter
+@implementation wxTextEntryFormatter
 
 - (id)init 
 {
     self = [super init];
     maxLength = 0;
+    forceUpper = false;
     return self;
 }
 
 - (void) setMaxLength:(int) maxlen 
 {
     maxLength = maxlen;
+}
+
+- (void) forceUpper
+{
+    forceUpper = true;
 }
 
 - (NSString *)stringForObjectValue:(id)anObject 
@@ -155,12 +162,25 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 - (BOOL)isPartialStringValid:(NSString **)partialStringPtr proposedSelectedRange:(NSRangePointer)proposedSelRangePtr 
               originalString:(NSString *)origString originalSelectedRange:(NSRange)origSelRange errorDescription:(NSString **)error
 {
-    int len = [*partialStringPtr length];
-    if ( maxLength > 0 && len > maxLength )
+    if ( maxLength > 0 )
     {
-        field->SendMaxLenEvent();
-        return NO;
+        if ( [*partialStringPtr length] > maxLength )
+        {
+            field->SendMaxLenEvent();
+            return NO;
+        }
     }
+
+    if ( forceUpper )
+    {
+        NSString* upper = [*partialStringPtr uppercaseString];
+        if ( ![*partialStringPtr isEqual:upper] )
+        {
+            *partialStringPtr = upper;
+            return NO;
+        }
+    }
+
     return YES;
 }
 
@@ -196,13 +216,7 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     wxUnusedVar(aNotification);
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
-    {
-        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
-        NSView* otherView = wxOSXGetViewFromResponder(responder);
-        
-        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
-        impl->DoNotifyFocusEvent( false, otherWindow );
-    }
+        impl->DoNotifyFocusLost();
 }
 
 - (BOOL)control:(NSControl*)control textView:(NSTextView*)textView doCommandBySelector:(SEL)commandSelector
@@ -219,17 +233,29 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
         {
             if (commandSelector == @selector(insertNewline:))
             {
-                wxTopLevelWindow *tlw = wxDynamicCast(wxGetTopLevelParent(wxpeer), wxTopLevelWindow);
-                if ( tlw && tlw->GetDefaultItem() )
+                if ( wxpeer->GetWindowStyle() & wxTE_PROCESS_ENTER )
                 {
-                    wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
-                    if ( def && def->IsEnabled() )
+                    wxCommandEvent event(wxEVT_TEXT_ENTER, wxpeer->GetId());
+                    event.SetEventObject( wxpeer );
+                    wxTextWidgetImpl* impl = (wxNSTextFieldControl * ) wxWidgetImpl::FindFromWXWidget( self );
+                    wxTextEntry * const entry = impl->GetTextEntry();
+                    event.SetString( entry->GetValue() );
+                    handled = wxpeer->HandleWindowEvent( event );
+                }
+                else
+                {
+                    wxTopLevelWindow *tlw = wxDynamicCast(wxGetTopLevelParent(wxpeer), wxTopLevelWindow);
+                    if ( tlw && tlw->GetDefaultItem() )
                     {
-                        wxCommandEvent event(wxEVT_BUTTON, def->GetId() );
-                        event.SetEventObject(def);
-                        def->Command(event);
-                        handled = YES;
-                    }
+                        wxButton *def = wxDynamicCast(tlw->GetDefaultItem(), wxButton);
+                        if ( def && def->IsEnabled() )
+                        {
+                            wxCommandEvent event(wxEVT_BUTTON, def->GetId() );
+                            event.SetEventObject(def);
+                            def->Command(event);
+                            handled = YES;
+                        }
+                     }
                 }
             }
         }
@@ -296,13 +322,37 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     // programmatically.
     if ( !wxMacEditHelper::IsCurrentEditor(self) )
     {
+        NSString *text = [str isKindOfClass:[NSAttributedString class]] ? [str string] : str;
         wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( (WXWidget) [self delegate] );
-        if ( impl && lastKeyDownEvent && impl->DoHandleCharEvent(lastKeyDownEvent, str) )
+        if ( impl && lastKeyDownEvent && impl->DoHandleCharEvent(lastKeyDownEvent, text) )
             return;
     }
 
     [super insertText:str];
 }
+
+- (BOOL) resignFirstResponder
+{
+    return [super resignFirstResponder];
+}
+
+- (BOOL) becomeFirstResponder
+{
+    // we need the stored text field, as at this point the delegate is not yet set
+    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( (WXWidget) textField );
+
+    BOOL r = [super becomeFirstResponder];
+    if ( impl != NULL && r )
+        impl->DoNotifyFocusSet();
+    
+    return r;
+}
+
+- (void) setTextField:(NSTextField*) field
+{
+    textField = field;
+}
+
 
 @end
 
@@ -359,13 +409,24 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
 
     wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( self );
     if ( impl )
+        impl->DoNotifyFocusLost();
+}
+
+-(BOOL)textView:(NSTextView *)aTextView clickedOnLink:(id)link atIndex:(NSUInteger)charIndex
+{
+    wxWidgetCocoaImpl* impl = (wxWidgetCocoaImpl* ) wxWidgetImpl::FindFromWXWidget( aTextView );
+    if ( impl  )
     {
-        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
-        NSView* otherView = wxOSXGetViewFromResponder(responder);
-        
-        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
-        impl->DoNotifyFocusEvent( false, otherWindow );
+        wxWindow* wxpeer = (wxWindow*) impl->GetWXPeer();
+        if ( wxpeer )
+        {
+            wxMouseEvent evtMouse( wxEVT_LEFT_DOWN );
+            wxTextUrlEvent event( wxpeer->GetId(), evtMouse, (long int)charIndex, (long int)charIndex );
+            event.SetEventObject( wxpeer );
+            wxpeer->HandleWindowEvent( event );
+        }
     }
+    return NO;
 }
 
 @end
@@ -528,42 +589,64 @@ NSView* wxMacEditHelper::ms_viewCurrentlyEdited = nil;
     if ( impl )
     {
         wxNSTextFieldControl* timpl = dynamic_cast<wxNSTextFieldControl*>(impl);
-        if ( fieldEditor )
-        {
-            NSRange range = [fieldEditor selectedRange];
-            timpl->SetInternalSelection(range.location, range.location + range.length);
-        }
-
-        NSResponder * responder = wxNonOwnedWindowCocoaImpl::GetNextFirstResponder();
-        NSView* otherView = wxOSXGetViewFromResponder(responder);
-        
-        wxWidgetImpl* otherWindow = impl->FindBestFromWXWidget(otherView);
-        impl->DoNotifyFocusEvent( false, otherWindow );
+        if ( timpl )
+            timpl->UpdateInternalSelectionFromEditor(fieldEditor);
+        impl->DoNotifyFocusLost();
     }
 }
 @end
 
 // wxNSTextViewControl
 
-wxNSTextViewControl::wxNSTextViewControl( wxTextCtrl *wxPeer, WXWidget w )
+wxNSTextViewControl::wxNSTextViewControl( wxTextCtrl *wxPeer, WXWidget w, long style )
     : wxWidgetCocoaImpl(wxPeer, w),
       wxTextWidgetImpl(wxPeer)
 {
     wxNSTextScrollView* sv = (wxNSTextScrollView*) w;
     m_scrollView = sv;
 
-    [m_scrollView setHasVerticalScroller:YES];
-    [m_scrollView setHasHorizontalScroller:NO];
-    // TODO Remove if no regression, this was causing automatic resizes of multi-line textfields when the tlw changed
-    // [m_scrollView setAutoresizingMask:NSViewWidthSizable | NSViewHeightSizable];
-    NSSize contentSize = [m_scrollView contentSize];
+    const bool hasHScroll = (style & wxHSCROLL) != 0;
 
-    wxNSTextView* tv = [[wxNSTextView alloc] initWithFrame: NSMakeRect(0, 0,
-            contentSize.width, contentSize.height)];
+    [m_scrollView setHasVerticalScroller:YES];
+    [m_scrollView setHasHorizontalScroller:hasHScroll];
+    NSSize contentSize = [m_scrollView contentSize];
+    NSRect viewFrame = NSMakeRect(
+            0, 0,
+            hasHScroll ? FLT_MAX : contentSize.width, contentSize.height
+        );
+
+    wxNSTextView* const tv = [[wxNSTextView alloc] initWithFrame: viewFrame];
     m_textView = tv;
     [tv setVerticallyResizable:YES];
-    [tv setHorizontallyResizable:NO];
+    [tv setHorizontallyResizable:hasHScroll];
     [tv setAutoresizingMask:NSViewWidthSizable];
+    [tv setAutomaticDashSubstitutionEnabled:false];
+    [tv setAutomaticQuoteSubstitutionEnabled:false];
+    
+    if ( hasHScroll )
+    {
+        [[tv textContainer] setContainerSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+        [[tv textContainer] setWidthTracksTextView:NO];
+    }
+
+    if ( style & wxTE_RIGHT)
+    {
+        [tv setAlignment:NSRightTextAlignment];
+    }
+    else if ( style & wxTE_CENTRE)
+    {
+        [tv setAlignment:NSCenterTextAlignment];
+    }
+
+    if ( !wxPeer->HasFlag(wxTE_RICH | wxTE_RICH2) )
+    {
+        [tv setRichText:NO];
+    }
+
+    if ( wxPeer->HasFlag(wxTE_AUTO_URL) )
+    {
+        [tv setAutomaticLinkDetectionEnabled:YES];
+    }
 
     [m_scrollView setDocumentView: tv];
 
@@ -586,6 +669,15 @@ bool wxNSTextViewControl::CanFocus() const
     return true;
 }
 
+void wxNSTextViewControl::insertText(NSString* text, WXWidget slf, void *_cmd)
+{
+    if ( m_lastKeyDownEvent ==NULL || !DoHandleCharEvent(m_lastKeyDownEvent, text) )
+    {
+        wxOSX_TextEventHandlerPtr superimpl = (wxOSX_TextEventHandlerPtr) [[slf superclass] instanceMethodForSelector:(SEL)_cmd];
+        superimpl(slf, (SEL)_cmd, text);
+    }
+}
+
 wxString wxNSTextViewControl::GetStringValue() const
 {
     if (m_textView)
@@ -603,7 +695,14 @@ void wxNSTextViewControl::SetStringValue( const wxString &str)
     wxMacEditHelper helper(m_textView);
 
     if (m_textView)
+    {
         [m_textView setString: wxCFStringRef( st , m_wxPeer->GetFont().GetEncoding() ).AsNSString()];
+        if ( m_wxPeer->HasFlag(wxTE_AUTO_URL) )
+        {
+            // Make sure that any URLs in the new text are highlighted.
+            [m_textView checkTextInDocument:nil];
+        }
+    }
 }
 
 void wxNSTextViewControl::Copy()
@@ -797,7 +896,7 @@ wxNSTextFieldControl::wxNSTextFieldControl(wxWindow *wxPeer,
 
 void wxNSTextFieldControl::Init(WXWidget w)
 {
-    NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>) *tf = (NSTextField wxOSX_10_6_AND_LATER(<NSTextFieldDelegate>)*) w;
+    NSTextField <NSTextFieldDelegate> *tf = (NSTextField <NSTextFieldDelegate>*) w;
     m_textField = tf;
     [m_textField setDelegate: tf];
     m_selStart = m_selEnd = 0;
@@ -821,12 +920,30 @@ void wxNSTextFieldControl::SetStringValue( const wxString &str)
     [m_textField setStringValue: wxCFStringRef( str , m_wxPeer->GetFont().GetEncoding() ).AsNSString()];
 }
 
+wxTextEntryFormatter* wxNSTextFieldControl::GetFormatter()
+{
+    // We only ever call setFormatter with wxTextEntryFormatter, so the cast is
+    // safe.
+    wxTextEntryFormatter*
+        formatter = (wxTextEntryFormatter*)[m_textField formatter];
+    if ( !formatter )
+    {
+        formatter = [[[wxTextEntryFormatter alloc] init] autorelease];
+        [formatter setTextEntry:GetTextEntry()];
+        [m_textField setFormatter:formatter];
+    }
+
+    return formatter;
+}
+
 void wxNSTextFieldControl::SetMaxLength(unsigned long len)
 {
-    wxMaximumLengthFormatter* formatter = [[[wxMaximumLengthFormatter alloc] init] autorelease];
-    [formatter setMaxLength:len];
-    [formatter setTextEntry:GetTextEntry()];
-    [m_textField setFormatter:formatter];
+    [GetFormatter() setMaxLength:len];
+}
+
+void wxNSTextFieldControl::ForceUpper()
+{
+    [GetFormatter() forceUpper];
 }
 
 void wxNSTextFieldControl::Copy()
@@ -958,6 +1075,15 @@ void wxNSTextFieldControl::SetInternalSelection( long from , long to )
     m_selEnd = to;
 }
 
+void wxNSTextFieldControl::UpdateInternalSelectionFromEditor( wxNSTextFieldEditor* fieldEditor )
+{
+    if ( fieldEditor )
+    {
+        NSRange range = [fieldEditor selectedRange];
+        SetInternalSelection(range.location, range.location + range.length);
+    }
+}
+
 // as becoming first responder on a window - triggers a resign on the same control, we have to avoid
 // the resign notification writing back native selection values before we can set our own
 
@@ -968,18 +1094,6 @@ bool wxNSTextFieldControl::becomeFirstResponder(WXWidget slf, void *_cmd)
     s_widgetBecomingFirstResponder = slf;
     bool retval = wxWidgetCocoaImpl::becomeFirstResponder(slf, _cmd);
     s_widgetBecomingFirstResponder = nil;
-    if ( retval )
-    {
-        NSText* editor = [m_textField currentEditor];
-        if ( editor )
-        {
-            long textLength = [[m_textField stringValue] length];
-            m_selStart = wxMin(textLength,wxMax(m_selStart,0)) ;
-            m_selEnd = wxMax(0,wxMin(textLength,m_selEnd)) ;
-            
-            [editor setSelectedRange:NSMakeRange(m_selStart, m_selEnd-m_selStart)];
-        }
-    }
     return retval;
 }
 
@@ -1025,7 +1139,7 @@ wxWidgetImplType* wxWidgetImpl::CreateTextControl( wxTextCtrl* wxpeer,
     {
         wxNSTextScrollView* v = nil;
         v = [[wxNSTextScrollView alloc] initWithFrame:r];
-        c = new wxNSTextViewControl( wxpeer, v );
+        c = new wxNSTextViewControl( wxpeer, v, style );
         c->SetNeedsFocusRect( true );
     }
     else
@@ -1060,8 +1174,6 @@ wxWidgetImplType* wxWidgetImpl::CreateTextControl( wxTextCtrl* wxpeer,
             // we have to emulate this
             [v setBezeled:NO];
             [v setBordered:NO];
-            if ( UMAGetSystemVersion() < 0x1070 )
-                c->SetNeedsFocusRect( true );
         }
         else
         {

@@ -32,7 +32,7 @@ enum wxAcceleratorEntryFlags
     wxACCEL_ALT     = 0x0001,   // hold Alt key down
     wxACCEL_CTRL    = 0x0002,   // hold Ctrl key down
     wxACCEL_SHIFT   = 0x0004,   // hold Shift key down
-#if defined(__WXMAC__) || defined(__WXCOCOA__)
+#if defined(__WXMAC__)
     wxACCEL_RAW_CTRL= 0x0008,   // 
 #else
     wxACCEL_RAW_CTRL= wxACCEL_CTRL,
@@ -164,10 +164,8 @@ private:
     #include "wx/gtk1/accel.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/accel.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/generic/accel.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/accel.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/accel.h"
 #endif
 
 extern WXDLLIMPEXP_DATA_CORE(wxAcceleratorTable) wxNullAcceleratorTable;

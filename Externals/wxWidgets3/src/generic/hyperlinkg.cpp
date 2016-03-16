@@ -83,7 +83,7 @@ bool wxGenericHyperlinkCtrl::Create(wxWindow *parent, wxWindowID id,
 
     // connect our event handlers:
     // NOTE: since this class is the base class of the GTK+'s native implementation
-    //       of wxHyperlinkCtrl, we cannot use the static macros in BEGIN/END_EVENT_TABLE
+    //       of wxHyperlinkCtrl, we cannot use the static macros in wxBEGIN/wxEND_EVENT_TABLE
     //       blocks, otherwise the GTK+'s native impl of wxHyperlinkCtrl would not
     //       behave correctly (as we intercept events doing things which interfere
     //       with GTK+'s native handling):

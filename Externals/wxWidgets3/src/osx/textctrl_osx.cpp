@@ -47,7 +47,7 @@
 
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
+wxBEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_DROP_FILES(wxTextCtrl::OnDropFiles)
     EVT_CHAR(wxTextCtrl::OnChar)
     EVT_KEY_DOWN(wxTextCtrl::OnKeyDown)
@@ -68,7 +68,7 @@ BEGIN_EVENT_TABLE(wxTextCtrl, wxTextCtrlBase)
     EVT_UPDATE_UI(wxID_REDO, wxTextCtrl::OnUpdateRedo)
     EVT_UPDATE_UI(wxID_CLEAR, wxTextCtrl::OnUpdateDelete)
     EVT_UPDATE_UI(wxID_SELECTALL, wxTextCtrl::OnUpdateSelectAll)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 void wxTextCtrl::Init()
@@ -103,14 +103,6 @@ bool wxTextCtrl::Create( wxWindow *parent,
     if ( !wxTextCtrlBase::Create( parent, id, pos, size, style & ~(wxHSCROLL | wxVSCROLL), validator, name ) )
         return false;
 
-    if ( m_windowStyle & wxTE_MULTILINE )
-    {
-        // always turn on this style for multi-line controls
-        m_windowStyle |= wxTE_PROCESS_ENTER;
-        style |= wxTE_PROCESS_ENTER ;
-    }
-
-
     SetPeer(wxWidgetImpl::CreateTextControl( this, GetParent(), GetId(), str, pos, size, style, GetExtraStyle() ));
 
     MacPostControlCreate(pos, size) ;
@@ -136,16 +128,10 @@ bool wxTextCtrl::Create( wxWindow *parent,
 void wxTextCtrl::MacSuperChangedPosition()
 {
     wxWindow::MacSuperChangedPosition() ;
-#if wxOSX_USE_CARBON
-    GetPeer()->SuperChangedPosition() ;
-#endif
 }
 
 void wxTextCtrl::MacVisibilityChanged()
 {
-#if wxOSX_USE_CARBON
-    GetPeer()->VisibilityChanged( GetPeer()->IsVisible() );
-#endif
 }
 
 void wxTextCtrl::MacCheckSpelling(bool check)
@@ -366,8 +352,10 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     bool eat_key = false ;
     long from, to;
 
-    if ( !IsEditable() && !event.IsKeyInCategory(WXK_CATEGORY_ARROW | WXK_CATEGORY_TAB) &&
-        !( key == WXK_RETURN && ( (m_windowStyle & wxTE_PROCESS_ENTER) || (m_windowStyle & wxTE_MULTILINE) ) )
+    if ( !IsEditable() &&
+        !event.IsKeyInCategory(WXK_CATEGORY_ARROW | WXK_CATEGORY_TAB) &&
+        !( (key == WXK_RETURN || key == WXK_NUMPAD_ENTER) &&
+        ( (m_windowStyle & wxTE_PROCESS_ENTER) || (m_windowStyle & wxTE_MULTILINE) ) )
 //        && key != WXK_PAGEUP && key != WXK_PAGEDOWN && key != WXK_HOME && key != WXK_END
         )
     {
@@ -382,7 +370,8 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
         GetSelection( &from, &to );
         if ( !IsMultiLine() && m_maxLength && GetValue().length() >= m_maxLength &&
             !event.IsKeyInCategory(WXK_CATEGORY_ARROW | WXK_CATEGORY_TAB | WXK_CATEGORY_CUT) &&
-            !( key == WXK_RETURN && (m_windowStyle & wxTE_PROCESS_ENTER) ) &&
+            !( (key == WXK_RETURN || key == WXK_NUMPAD_ENTER) &&
+            (m_windowStyle & wxTE_PROCESS_ENTER) ) &&
             from == to )
         {
             // eat it, we don't want to add more than allowed # of characters
@@ -398,6 +387,7 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     switch ( key )
     {
         case WXK_RETURN:
+        case WXK_NUMPAD_ENTER:
             if (m_windowStyle & wxTE_PROCESS_ENTER)
             {
                 wxCommandEvent event(wxEVT_TEXT_ENTER, m_windowId);
@@ -461,18 +451,6 @@ void wxTextCtrl::OnChar(wxKeyEvent& event)
     }
 
     // osx_cocoa sends its event upon insertText
-#if wxOSX_USE_CARBON
-    if ( ( key >= 0x20 && key < WXK_START ) ||
-         ( key >= WXK_NUMPAD0 && key <= WXK_DIVIDE ) ||
-         key == WXK_RETURN ||
-         key == WXK_DELETE ||
-         key == WXK_BACK)
-    {
-        wxCommandEvent event1(wxEVT_TEXT, m_windowId);
-        event1.SetEventObject( this );
-        wxPostEvent( GetEventHandler(), event1 );
-    }
-#endif
 }
 
 void wxTextCtrl::Command(wxCommandEvent & event)

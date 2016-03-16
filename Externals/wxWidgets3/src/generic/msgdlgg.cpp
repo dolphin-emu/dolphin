@@ -57,7 +57,7 @@ public:
     }
 
 protected:
-    virtual wxWindow *OnCreateLine(const wxString& s)
+    virtual wxWindow *OnCreateLine(const wxString& s) wxOVERRIDE
     {
         wxWindow * const win = wxTextSizerWrapper::OnCreateLine(s);
 
@@ -71,14 +71,14 @@ protected:
 // icons
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxGenericMessageDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxGenericMessageDialog, wxDialog)
         EVT_BUTTON(wxID_YES, wxGenericMessageDialog::OnYes)
         EVT_BUTTON(wxID_NO, wxGenericMessageDialog::OnNo)
         EVT_BUTTON(wxID_HELP, wxGenericMessageDialog::OnHelp)
         EVT_BUTTON(wxID_CANCEL, wxGenericMessageDialog::OnCancel)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-IMPLEMENT_CLASS(wxGenericMessageDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxGenericMessageDialog, wxDialog);
 
 wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
                                                 const wxString& message,
@@ -96,7 +96,6 @@ wxGenericMessageDialog::wxGenericMessageDialog( wxWindow *parent,
 
 wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
 {
-#ifndef __SMARTPHONE__
     if ( HasCustomLabels() )
     {
         wxStdDialogButtonSizer * const sizerStd = new wxStdDialogButtonSizer;
@@ -151,7 +150,6 @@ wxSizer *wxGenericMessageDialog::CreateMsgDlgButtonSizer()
 
         return CreateSeparatedSizer(sizerStd);
     }
-#endif // !__SMARTPHONE__
 
     // Use standard labels for all buttons
     return CreateSeparatedButtonSizer

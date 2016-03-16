@@ -23,6 +23,10 @@
 #include "wx/geometry.h"
 #include "wx/osx/uma.h"
 
+#if wxOSX_USE_COCOA_OR_CARBON
+    #include <Appkit/Appkit.h>
+#endif
+
 // FYI a link to help with implementing: http://www.cocoadev.com/index.pl?LittleYellowBox
 
 
@@ -30,7 +34,7 @@
 // wxToolTip
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxToolTip, wxObject);
 
 
 wxToolTip::wxToolTip( const wxString &tip )
@@ -59,8 +63,12 @@ void wxToolTip::Enable( bool WXUNUSED(flag) )
 {
 }
 
-void wxToolTip::SetDelay( long WXUNUSED(msecs) )
+void wxToolTip::SetDelay( long msecs )
 {
+#if wxOSX_USE_COCOA_OR_CARBON
+    [[NSUserDefaults standardUserDefaults] setObject: [NSNumber numberWithInt: msecs]
+                                              forKey: @"NSInitialToolTipDelay"];
+#endif
 }
 
 void wxToolTip::SetAutoPop( long WXUNUSED(msecs) )

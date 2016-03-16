@@ -83,38 +83,38 @@ public:
 
 
     // implement wxItemContainerImmutable methods
-    virtual unsigned int GetCount() const;
+    virtual unsigned int GetCount() const wxOVERRIDE;
 
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& s);
+    virtual wxString GetString(unsigned int n) const wxOVERRIDE;
+    virtual void SetString(unsigned int n, const wxString& s) wxOVERRIDE;
 
-    virtual void SetSelection(int n);
-    virtual int GetSelection() const;
+    virtual void SetSelection(int n) wxOVERRIDE;
+    virtual int GetSelection() const wxOVERRIDE;
 
 
     // implement wxRadioBoxBase methods
-    virtual bool Show(unsigned int n, bool show = true);
-    virtual bool Enable(unsigned int n, bool enable = true);
+    virtual bool Show(unsigned int n, bool show = true) wxOVERRIDE;
+    virtual bool Enable(unsigned int n, bool enable = true) wxOVERRIDE;
 
-    virtual bool IsItemEnabled(unsigned int n) const;
-    virtual bool IsItemShown(unsigned int n) const;
+    virtual bool IsItemEnabled(unsigned int n) const wxOVERRIDE;
+    virtual bool IsItemShown(unsigned int n) const wxOVERRIDE;
 
 
     // override some base class methods to operate on radiobox itself too
-    virtual bool Show( bool show = true );
-    virtual bool Enable( bool enable = true );
+    virtual bool Show( bool show = true ) wxOVERRIDE;
+    virtual bool Enable( bool enable = true ) wxOVERRIDE;
 
-    virtual void SetLabel( const wxString& label );
+    virtual void SetLabel( const wxString& label ) wxOVERRIDE;
 
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
-    virtual int GetItemFromPoint( const wxPoint& pt ) const;
+    virtual int GetItemFromPoint( const wxPoint& pt ) const wxOVERRIDE;
 #if wxUSE_HELP
     // override virtual wxWindow::GetHelpTextAtPoint to use common platform independent
     // wxRadioBoxBase::DoGetHelpTextAtPoint from the platform independent
     // base class-interface wxRadioBoxBase.
-    virtual wxString GetHelpTextAtPoint(const wxPoint & pt, wxHelpEvent::Origin origin) const
+    virtual wxString GetHelpTextAtPoint(const wxPoint & pt, wxHelpEvent::Origin origin) const wxOVERRIDE
     {
         return wxRadioBoxBase::DoGetHelpTextAtPoint( this, pt, origin );
     }
@@ -126,28 +126,28 @@ public:
     void GtkDisableEvents();
     void GtkEnableEvents();
 #if wxUSE_TOOLTIPS
-    virtual void GTKApplyToolTip(const char* tip);
+    virtual void GTKApplyToolTip(const char* tip) wxOVERRIDE;
 #endif // wxUSE_TOOLTIPS
 
     wxRadioBoxButtonsInfoList   m_buttonsInfo;
 
 protected:
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_NONE; }
 
 #if wxUSE_TOOLTIPS
-    virtual void DoSetItemToolTip(unsigned int n, wxToolTip *tooltip);
+    virtual void DoSetItemToolTip(unsigned int n, wxToolTip *tooltip) wxOVERRIDE;
 #endif
 
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
-    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
+    virtual GdkWindow *GTKGetWindow(wxArrayGdkWindows& windows) const wxOVERRIDE;
 
-    virtual bool GTKNeedsToFilterSameWindowFocus() const { return true; }
+    virtual bool GTKNeedsToFilterSameWindowFocus() const wxOVERRIDE { return true; }
 
-    virtual bool GTKWidgetNeedsMnemonic() const;
-    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w);
+    virtual bool GTKWidgetNeedsMnemonic() const wxOVERRIDE;
+    virtual void GTKWidgetDoSetMnemonic(GtkWidget* w) wxOVERRIDE;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxRadioBox)
+    wxDECLARE_DYNAMIC_CLASS(wxRadioBox);
 };
 
 #endif // _WX_GTK_RADIOBOX_H_

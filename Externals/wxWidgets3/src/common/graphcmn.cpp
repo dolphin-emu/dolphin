@@ -23,6 +23,7 @@
     #include "wx/icon.h"
     #include "wx/bitmap.h"
     #include "wx/dcmemory.h"
+    #include "wx/math.h"
     #include "wx/region.h"
     #include "wx/log.h"
 #endif
@@ -30,21 +31,12 @@
 #include "wx/private/graphics.h"
 
 //-----------------------------------------------------------------------------
-// Local functions
-//-----------------------------------------------------------------------------
-
-static inline double DegToRad(double deg)
-{
-    return (deg * M_PI) / 180.0;
-}
-
-//-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // wxGraphicsObject
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsObject, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsObject, wxObject);
 
 wxGraphicsObjectRefData::wxGraphicsObjectRefData( wxGraphicsRenderer* renderer )
 {
@@ -108,10 +100,10 @@ wxObjectRefData* wxGraphicsObject::CloneRefData(const wxObjectRefData* data) con
 // pens etc.
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsPen, wxGraphicsObject)
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsBrush, wxGraphicsObject)
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsFont, wxGraphicsObject)
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsBitmap, wxGraphicsObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsPen, wxGraphicsObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsBrush, wxGraphicsObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsFont, wxGraphicsObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsBitmap, wxGraphicsObject);
 
 WXDLLIMPEXP_DATA_CORE(wxGraphicsPen) wxNullGraphicsPen;
 WXDLLIMPEXP_DATA_CORE(wxGraphicsBrush) wxNullGraphicsBrush;
@@ -122,7 +114,7 @@ WXDLLIMPEXP_DATA_CORE(wxGraphicsBitmap) wxNullGraphicsBitmap;
 // matrix
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsMatrix, wxGraphicsObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsMatrix, wxGraphicsObject);
 WXDLLIMPEXP_DATA_CORE(wxGraphicsMatrix) wxNullGraphicsMatrix;
 
 // concatenates the matrix
@@ -213,7 +205,7 @@ void * wxGraphicsMatrix::GetNativeMatrix() const
 // path
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxGraphicsPath, wxGraphicsObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGraphicsPath, wxGraphicsObject);
 WXDLLIMPEXP_DATA_CORE(wxGraphicsPath) wxNullGraphicsPath;
 
 // convenience functions, for using wxPoint2DDouble etc
@@ -470,7 +462,7 @@ void wxGraphicsPathData::AddArcToPoint( wxDouble x1, wxDouble y1 , wxDouble x2, 
         alpha = 360 + alpha;
     // TODO obtuse angles
 
-    alpha = DegToRad(alpha);
+    alpha = wxDegToRad(alpha);
 
     wxDouble dist = r / sin(alpha/2) * cos(alpha/2);
     // calculate tangential points
@@ -484,7 +476,7 @@ void wxGraphicsPathData::AddArcToPoint( wxDouble x1, wxDouble y1 , wxDouble x2, 
     wxDouble a2 = v2.GetVectorAngle()-90;
 
     AddLineToPoint(t1.m_x,t1.m_y);
-    AddArc(c.m_x,c.m_y,r,DegToRad(a1),DegToRad(a2),true);
+    AddArc(c.m_x,c.m_y,r,wxDegToRad(a1),wxDegToRad(a2),true);
     AddLineToPoint(p2.m_x,p2.m_y);
 }
 
@@ -532,13 +524,14 @@ void * wxGraphicsBitmap::GetNativeBitmap() const
 // wxGraphicsContext Convenience Methods
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxGraphicsContext, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxGraphicsContext, wxObject);
 
 
 wxGraphicsContext::wxGraphicsContext(wxGraphicsRenderer* renderer) :
     wxGraphicsObject(renderer),
       m_antialias(wxANTIALIAS_DEFAULT),
       m_composition(wxCOMPOSITION_OVER),
+      m_interpolation(wxINTERPOLATION_DEFAULT),
       m_enableOffset(false)
 {
 }
@@ -929,6 +922,6 @@ wxGraphicsContext* wxGraphicsContext::Create()
 // wxGraphicsRenderer
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxGraphicsRenderer, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxGraphicsRenderer, wxObject);
 
 #endif // wxUSE_GRAPHICS_CONTEXT

@@ -48,8 +48,8 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-    IMPLEMENT_DYNAMIC_CLASS(wxPostScriptPrinter, wxPrinterBase)
-    IMPLEMENT_CLASS(wxPostScriptPrintPreview, wxPrintPreviewBase)
+    wxIMPLEMENT_DYNAMIC_CLASS(wxPostScriptPrinter, wxPrinterBase);
+    wxIMPLEMENT_CLASS(wxPostScriptPrintPreview, wxPrintPreviewBase);
 
 // ============================================================================
 // implementation

@@ -107,7 +107,7 @@ wxFLAGS_MEMBER(wxTR_EXTENDED)
 wxFLAGS_MEMBER(wxTR_DEFAULT_STYLE)
 wxEND_FLAGS( wxTreeCtrlStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxTreeCtrl, wxControl, "wx/treectrl.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxTreeCtrl, wxControl, "wx/treectrl.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxTreeCtrl)
 wxEVENT_PROPERTY( TextUpdated, wxEVT_TEXT, wxCommandEvent )
@@ -128,7 +128,7 @@ wxCONSTRUCTOR_5( wxTreeCtrl, wxWindow*, Parent, wxWindowID, Id, \
 // Tree event
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTreeEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTreeEvent, wxNotifyEvent);
 
 wxTreeEvent::wxTreeEvent(wxEventType commandType,
                          wxTreeCtrlBase *tree,
@@ -359,7 +359,7 @@ void wxTreeCtrlBase::OnCharHook(wxKeyEvent& event)
         {
             case WXK_ESCAPE:
                 discardChanges = true;
-                // fall through
+                wxFALLTHROUGH;
 
             case WXK_RETURN:
                 EndEditLabel(GetFocusedItem(), discardChanges);

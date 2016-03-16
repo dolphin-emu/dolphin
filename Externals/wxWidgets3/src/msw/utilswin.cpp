@@ -18,6 +18,7 @@
     #include "wx/utils.h"
 #endif //WX_PRECOMP
 
+#include "wx/private/launchbrowser.h"
 #include "wx/msw/private.h"     // includes <windows.h>
 #include "wx/msw/registry.h"
 #include <shellapi.h> // needed for SHELLEXECUTEINFO
@@ -32,11 +33,7 @@ bool wxLaunchDefaultApplication(const wxString& document, int flags)
 
     WinStruct<SHELLEXECUTEINFO> sei;
     sei.lpFile = document.t_str();
-#ifdef __WXWINCE__
-    sei.nShow = SW_SHOWNORMAL; // SW_SHOWDEFAULT not defined under CE (#10216)
-#else
     sei.nShow = SW_SHOWDEFAULT;
-#endif
 
     // avoid Windows message box in case of error for consistency with
     // wxLaunchDefaultBrowser() even if don't show the error ourselves in this
@@ -53,16 +50,30 @@ bool wxLaunchDefaultApplication(const wxString& document, int flags)
 // Launch default browser
 // ----------------------------------------------------------------------------
 
-bool wxDoLaunchDefaultBrowser(const wxString& url, const wxString& scheme, int flags)
-{
-    wxUnusedVar(flags);
+// NOTE: when testing wxMSW's wxLaunchDefaultBrowser all possible forms
+//       of the URL/flags should be tested; e.g.:
+//
+// for (int i=0; i<2; i++)
+// {
+//   // test arguments without a valid URL scheme:
+//   wxLaunchDefaultBrowser("C:\\test.txt", i==0 ? 0 : wxBROWSER_NEW_WINDOW);
+//   wxLaunchDefaultBrowser("wxwidgets.org", i==0 ? 0 : wxBROWSER_NEW_WINDOW);
+//
+//   // test arguments with different valid schemes:
+//   wxLaunchDefaultBrowser("file:/C%3A/test.txt", i==0 ? 0 : wxBROWSER_NEW_WINDOW);
+//   wxLaunchDefaultBrowser("http://wxwidgets.org", i==0 ? 0 : wxBROWSER_NEW_WINDOW);
+//   wxLaunchDefaultBrowser("mailto:user@host.org", i==0 ? 0 : wxBROWSER_NEW_WINDOW);
+// }
+// (assuming you have a C:\test.txt file)
 
+bool wxDoLaunchDefaultBrowser(const wxLaunchBrowserParams& params)
+{
 #if wxUSE_IPC
-    if ( flags & wxBROWSER_NEW_WINDOW )
+    if ( params.flags & wxBROWSER_NEW_WINDOW )
     {
         // ShellExecuteEx() opens the URL in an existing window by default so
         // we can't use it if we need a new window
-        wxRegKey key(wxRegKey::HKCR, scheme + wxT("\\shell\\open"));
+        wxRegKey key(wxRegKey::HKCR, params.scheme + wxT("\\shell\\open"));
         if ( !key.Exists() )
         {
             // try the default browser, it must be registered at least for http URLs
@@ -102,7 +113,7 @@ bool wxDoLaunchDefaultBrowser(const wxString& url, const wxString& scheme, int f
                     // contain a placeholder for the URL and we should fail if
                     // we didn't find it as this would mean that we have no way
                     // of passing the URL to the browser
-                    ok = ddeCmd.Replace(wxT("%1"), url, false) == 1;
+                    ok = ddeCmd.Replace(wxT("%1"), params.url, false) == 1;
                 }
 
                 if ( ok )
@@ -126,7 +137,7 @@ bool wxDoLaunchDefaultBrowser(const wxString& url, const wxString& scheme, int f
 #endif // wxUSE_IPC
 
     WinStruct<SHELLEXECUTEINFO> sei;
-    sei.lpFile = url.c_str();
+    sei.lpFile = params.GetPathOrURL().t_str();
     sei.lpVerb = wxT("open");
     sei.nShow = SW_SHOWNORMAL;
     sei.fMask = SEE_MASK_FLAG_NO_UI; // we give error message ourselves

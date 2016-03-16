@@ -36,7 +36,13 @@ public:
     virtual void SetValue(bool state) = 0;
     virtual bool GetValue() const = 0;
 
-    void UpdateWindowUI(long flags)
+    // The current "normal" state for the toggle button depends upon its value.
+    virtual State GetNormalState() const wxOVERRIDE
+    {
+        return GetValue() ? State_Pressed : State_Normal;
+    }
+
+    void UpdateWindowUI(long flags) wxOVERRIDE
     {
         wxControl::UpdateWindowUI(flags);
 
@@ -57,15 +63,7 @@ public:
         }
     }
 
-    // Buttons on MSW can look bad if they are not native colours, because
-    // then they become owner-drawn and not theme-drawn.  Disable it here
-    // in wxToggleButtonBase to make it consistent.
-    virtual bool ShouldInheritColours() const { return false; }
-
 protected:
-    // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
-
     wxDECLARE_NO_COPY_CLASS(wxToggleButtonBase);
 };
 
@@ -88,8 +86,8 @@ protected:
 #elif defined(__WXMAC__)
     #include "wx/osx/tglbtn.h"
     #define wxHAS_BITMAPTOGGLEBUTTON
-#elif defined(__WXPM__)
-    #include "wx/os2/tglbtn.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/tglbtn.h"
 #endif
 
 // old wxEVT_COMMAND_* constants

@@ -58,7 +58,8 @@ public:
     wxColour& operator=(const RGBColor& col);
 #endif
 #if wxOSX_USE_COCOA
-    wxColour(WX_NSColor color);
+    // This ctor does not take ownership of the color.
+    explicit wxColour(WX_NSColor color);
     WX_NSColor OSXGetNSColor() const;
 #endif
     wxColour& operator=(CGColorRef col);
@@ -71,7 +72,7 @@ protected :
     void InitRGBColor( const RGBColor& col );
 #endif
     void InitCGColorRef( CGColorRef col );
-    void InitFromComponents(const CGFloat* components, size_t numComponents );
+
 private:
     wxCFRef<CGColorRef>     m_cgColour;
 
@@ -80,7 +81,7 @@ private:
     ChannelType             m_green;
     ChannelType             m_alpha;
 
-    DECLARE_DYNAMIC_CLASS(wxColour)
+    wxDECLARE_DYNAMIC_CLASS(wxColour);
 };
 
 #endif

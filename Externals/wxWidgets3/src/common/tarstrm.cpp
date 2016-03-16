@@ -85,8 +85,8 @@ static const char *USTAR_VERSION = "00";
 static const char *GNU_MAGIC     = "ustar ";
 static const char *GNU_VERION    = " ";
 
-IMPLEMENT_DYNAMIC_CLASS(wxTarEntry, wxArchiveEntry)
-IMPLEMENT_DYNAMIC_CLASS(wxTarClassFactory, wxArchiveClassFactory)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTarEntry, wxArchiveEntry);
+wxIMPLEMENT_DYNAMIC_CLASS(wxTarClassFactory, wxArchiveClassFactory);
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -902,7 +902,7 @@ wxTarNumber wxTarInputStream::GetHeaderNumber(int id) const
     if ((value = GetExtendedHeader(m_hdr->Name(id))) != wxEmptyString) {
         wxTarNumber n = 0;
         wxString::const_iterator p = value.begin();
-        while (*p == ' ' && p != value.end())
+        while (p != value.end() && *p == ' ')
             p++;
         while (isdigit(*p))
             n = n * 10 + (*p++ - '0');
@@ -1121,7 +1121,7 @@ bool wxTarOutputStream::PutNextEntry(wxTarEntry *entry)
         if (m_tarstart != wxInvalidOffset)
             m_datapos = m_tarstart + m_tarsize;
 
-        // types that are not allowd any data
+        // types that are not allowed any data
         const char nodata[] = {
             wxTAR_LNKTYPE, wxTAR_SYMTYPE, wxTAR_CHRTYPE, wxTAR_BLKTYPE,
             wxTAR_DIRTYPE, wxTAR_FIFOTYPE, 0

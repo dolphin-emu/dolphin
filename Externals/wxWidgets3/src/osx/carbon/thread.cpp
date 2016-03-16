@@ -1197,10 +1197,10 @@ public:
     virtual void OnExit();
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxThreadModule)
+    wxDECLARE_DYNAMIC_CLASS(wxThreadModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxThreadModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxThreadModule, wxModule);
 
 bool wxThreadModule::OnInit()
 {

@@ -25,7 +25,7 @@
 
 #ifndef WX_PRECOMP
     #include "wx/log.h"
-    #include "wx/msw/wrapwin.h"
+    #include "wx/msw/private.h"
 #endif //WX_PRECOMP
 
 #include "wx/evtloop.h"
@@ -42,6 +42,17 @@ wxMSWEventLoopBase::wxMSWEventLoopBase()
 {
     m_shouldExit = false;
     m_exitcode = 0;
+
+    // Create initially not signalled auto-reset event object.
+    m_heventWake = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+    if ( !m_heventWake )
+        wxLogLastError(wxS("CreateEvent(wake)"));
+}
+
+wxMSWEventLoopBase::~wxMSWEventLoopBase()
+{
+    if ( m_heventWake && !::CloseHandle(m_heventWake) )
+        wxLogLastError(wxS("CloseHandle(wake)"));
 }
 
 // ----------------------------------------------------------------------------
@@ -54,26 +65,36 @@ bool wxMSWEventLoopBase::Pending() const
     return ::PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE) != 0;
 }
 
+void wxMSWEventLoopBase::WakeUp()
+{
+    if ( !::SetEvent(m_heventWake) )
+        wxLogLastError(wxS("SetEvent(wake)"));
+}
+
+#if wxUSE_THREADS
+
+WXDWORD wxMSWEventLoopBase::MSWWaitForThread(WXHANDLE hThread)
+{
+    // The order is important here, the code using this function assumes that
+    // WAIT_OBJECT_0 indicates the thread termination and anything else -- the
+    // availability of an input event. So the thread handle must come first.
+    HANDLE handles[2] = { hThread, m_heventWake };
+    return ::MsgWaitForMultipleObjects
+             (
+               WXSIZEOF(handles),   // number of objects to wait for
+               handles,             // the objects
+               false,               // wait for any objects, not all
+               INFINITE,            // no timeout
+               QS_ALLINPUT |        // return as soon as there are any events
+               QS_ALLPOSTMESSAGE
+             );
+}
+
+#endif // wxUSE_THREADS
+
 bool wxMSWEventLoopBase::GetNextMessage(WXMSG* msg)
 {
-    const BOOL rc = ::GetMessage(msg, NULL, 0, 0);
-
-    if ( rc == 0 )
-    {
-        // got WM_QUIT
-        return false;
-    }
-
-    if ( rc == -1 )
-    {
-        // should never happen, but let's test for it nevertheless
-        wxLogLastError(wxT("GetMessage"));
-
-        // still break from the loop
-        return false;
-    }
-
-    return true;
+    return GetNextMessageTimeout(msg, INFINITE) == TRUE;
 }
 
 int wxMSWEventLoopBase::GetNextMessageTimeout(WXMSG *msg, unsigned long timeout)
@@ -81,19 +102,14 @@ int wxMSWEventLoopBase::GetNextMessageTimeout(WXMSG *msg, unsigned long timeout)
     // MsgWaitForMultipleObjects() won't notice any input which was already
     // examined (e.g. using PeekMessage()) but not yet removed from the queue
     // so we need to remove any immediately messages manually
-    //
-    // NB: using MsgWaitForMultipleObjectsEx() could simplify the code here but
-    //     it is not available in very old Windows versions
-    if ( !::PeekMessage(msg, 0, 0, 0, PM_REMOVE) )
+    while ( !::PeekMessage(msg, 0, 0, 0, PM_REMOVE) )
     {
-        // we use this function just in order to not block longer than the
-        // given timeout, so we don't pass any handles to it at all
         DWORD rc = ::MsgWaitForMultipleObjects
                      (
-                        0, NULL,
+                        1, &m_heventWake,
                         FALSE,
                         timeout,
-                        QS_ALLINPUT
+                        QS_ALLINPUT | QS_ALLPOSTMESSAGE
                      );
 
         switch ( rc )
@@ -107,13 +123,17 @@ int wxMSWEventLoopBase::GetNextMessageTimeout(WXMSG *msg, unsigned long timeout)
                 return -1;
 
             case WAIT_OBJECT_0:
-                if ( !::PeekMessage(msg, 0, 0, 0, PM_REMOVE) )
-                {
-                    // somehow it may happen that MsgWaitForMultipleObjects()
-                    // returns true but there are no messages -- just treat it
-                    // the same as timeout then
-                    return -1;
-                }
+                // We were woken up by a background thread, which means there
+                // is no actual input message available, but we should still
+                // return to the event loop, so pretend there was WM_NULL in
+                // the queue.
+                wxZeroMemory(*msg);
+                return TRUE;
+
+            case WAIT_OBJECT_0 + 1:
+                // Some message is supposed to be available, but spurious
+                // wake ups are also possible, so just return to the loop:
+                // either we'll get the message or start waiting again.
                 break;
         }
     }
@@ -126,13 +146,6 @@ int wxMSWEventLoopBase::GetNextMessageTimeout(WXMSG *msg, unsigned long timeout)
 // ============================================================================
 
 #if wxUSE_CONSOLE_EVENTLOOP
-
-void wxConsoleEventLoop::WakeUp()
-{
-#if wxUSE_THREADS
-    wxWakeUpMainThread();
-#endif
-}
 
 void wxConsoleEventLoop::ProcessMessage(WXMSG *msg)
 {
@@ -160,6 +173,11 @@ int wxConsoleEventLoop::DispatchTimeout(unsigned long timeout)
     ProcessMessage(&msg);
 
     return !m_shouldExit;
+}
+
+void wxConsoleEventLoop::DoYieldFor(long eventsToProcess)
+{
+    wxEventLoopBase::DoYieldFor(eventsToProcess);
 }
 
 #endif // wxUSE_CONSOLE_EVENTLOOP

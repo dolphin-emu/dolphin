@@ -65,7 +65,7 @@ DECLARE_VARIANT_OBJECT_EXPORTED(wxColour,WXDLLIMPEXP_CORE)
     not need the wxGDIObject machinery to handle colors, please add it to the
     list of ports which do not need it.
  */
-#if defined( __WXMAC__ ) || defined( __WXMSW__ ) || defined( __WXPM__ ) || defined( __WXCOCOA__ )
+#if defined( __WXMAC__ ) || defined( __WXMSW__ )
 #define wxCOLOUR_IS_GDIOBJECT 0
 #else
 #define wxCOLOUR_IS_GDIOBJECT 1
@@ -168,14 +168,6 @@ public:
     wxColour ChangeLightness(int ialpha) const;
     wxColour& MakeDisabled(unsigned char brightness = 255);
 
-    // old, deprecated
-    // ---------------
-
-#if WXWIN_COMPATIBILITY_2_6
-    static wxDEPRECATED( wxColour CreateByName(const wxString& name) );
-    wxDEPRECATED( void InitFromName(const wxString& col) );
-#endif
-
 protected:
     // Some ports need Init() and while we don't, provide a stub so that the
     // ports which don't need it are not forced to define it
@@ -190,14 +182,14 @@ protected:
     // wxColour doesn't use reference counted data (at least not in all ports)
     // so provide stubs for the functions which need to be defined if we do use
     // them
-    virtual wxGDIRefData *CreateGDIRefData() const
+    virtual wxGDIRefData *CreateGDIRefData() const wxOVERRIDE
     {
         wxFAIL_MSG( "must be overridden if used" );
 
         return NULL;
     }
 
-    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *WXUNUSED(data)) const
+    virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *WXUNUSED(data)) const wxOVERRIDE
     {
         wxFAIL_MSG( "must be overridden if used" );
 
@@ -227,10 +219,8 @@ WXDLLIMPEXP_CORE bool wxFromString(const wxString& str, wxColourBase* col);
     #include "wx/x11/colour.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/colour.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/colour.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/colour.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/colour.h"
 #endif
 
 #define wxColor wxColour

@@ -58,11 +58,11 @@ static const int wxID_TEXT = 3000;
 // wxTextEntryDialog
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxTextEntryDialog, wxDialog)
+wxBEGIN_EVENT_TABLE(wxTextEntryDialog, wxDialog)
     EVT_BUTTON(wxID_OK, wxTextEntryDialog::OnOK)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
-IMPLEMENT_CLASS(wxTextEntryDialog, wxDialog)
+wxIMPLEMENT_CLASS(wxTextEntryDialog, wxDialog);
 
 bool wxTextEntryDialog::Create(wxWindow *parent,
                                      const wxString& message,
@@ -71,7 +71,13 @@ bool wxTextEntryDialog::Create(wxWindow *parent,
                                      long style,
                                      const wxPoint& pos)
 {
-    if ( !wxDialog::Create(GetParentForModalDialog(parent, style),
+    // Do not pass style to GetParentForModalDialog() as wxDIALOG_NO_PARENT
+    // has the same numeric value as wxTE_MULTILINE and so attempting to create
+    // a dialog for editing multiline text would also prevent it from having a
+    // parent which is undesirable. As it is, we can't create a text entry
+    // dialog without a parent which is not ideal neither but is a much less
+    // important problem.
+    if ( !wxDialog::Create(GetParentForModalDialog(parent, 0),
                            wxID_ANY, caption,
                            pos, wxDefaultSize,
                            wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) )
@@ -130,14 +136,20 @@ bool wxTextEntryDialog::Create(wxWindow *parent,
 
 bool wxTextEntryDialog::TransferDataToWindow()
 {
-    m_textctrl->SetValue(m_value);
+    if ( m_textctrl )
+    {
+        m_textctrl->SetValue(m_value);
+    }
 
     return wxDialog::TransferDataToWindow();
 }
 
 bool wxTextEntryDialog::TransferDataFromWindow()
 {
-    m_value = m_textctrl->GetValue();
+    if ( m_textctrl )
+    {
+        m_value = m_textctrl->GetValue();
+    }
 
     return wxDialog::TransferDataFromWindow();
 }
@@ -152,14 +164,28 @@ void wxTextEntryDialog::OnOK(wxCommandEvent& WXUNUSED(event) )
 
 void wxTextEntryDialog::SetMaxLength(unsigned long len)
 {
-    m_textctrl->SetMaxLength(len);
+    if ( m_textctrl )
+    {
+        m_textctrl->SetMaxLength(len);
+    }
 }
 
 void wxTextEntryDialog::SetValue(const wxString& val)
 {
     m_value = val;
 
-    m_textctrl->SetValue(val);
+    if ( m_textctrl )
+    {
+        m_textctrl->SetValue(val);
+    }
+}
+
+void wxTextEntryDialog::ForceUpper()
+{
+    if ( m_textctrl )
+    {
+        m_textctrl->ForceUpper();
+    }
 }
 
 #if wxUSE_VALIDATORS
@@ -178,7 +204,10 @@ void wxTextEntryDialog::SetTextValidator( wxTextValidatorStyle style )
 
 void wxTextEntryDialog::SetTextValidator( const wxTextValidator& validator )
 {
-    m_textctrl->SetValidator( validator );
+    if ( m_textctrl )
+    {
+        m_textctrl->SetValidator( validator );
+    }
 }
 
 #endif // wxUSE_VALIDATORS
@@ -187,18 +216,18 @@ void wxTextEntryDialog::SetTextValidator( const wxTextValidator& validator )
 // wxPasswordEntryDialog
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxPasswordEntryDialog, wxTextEntryDialog)
+wxIMPLEMENT_CLASS(wxPasswordEntryDialog, wxTextEntryDialog);
 
-wxPasswordEntryDialog::wxPasswordEntryDialog(wxWindow *parent,
-                                     const wxString& message,
-                                     const wxString& caption,
-                                     const wxString& value,
-                                     long style,
-                                     const wxPoint& pos)
-                 : wxTextEntryDialog(parent, message, caption, value,
-                                     style | wxTE_PASSWORD, pos)
+bool wxPasswordEntryDialog::Create(wxWindow *parent,
+                                   const wxString& message,
+                                   const wxString& caption,
+                                   const wxString& value,
+                                   long style,
+                                   const wxPoint& pos)
 {
     // Only change from wxTextEntryDialog is the password style
+    return wxTextEntryDialog::Create(parent, message, caption, value,
+                                     style | wxTE_PASSWORD, pos);
 }
 
 #endif // wxUSE_TEXTDLG

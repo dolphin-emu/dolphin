@@ -51,7 +51,7 @@ void gdk_pixbuf_area_updated(GdkPixbufLoader *loader,
 // wxAnimation
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAnimation, wxAnimationBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAnimation, wxAnimationBase);
 
 wxAnimation::wxAnimation(const wxAnimation& that)
     : base_type(that)
@@ -202,10 +202,10 @@ void wxAnimation::SetPixbuf(GdkPixbufAnimation* p)
 // wxAnimationCtrl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxAnimationCtrl, wxAnimationCtrlBase)
-BEGIN_EVENT_TABLE(wxAnimationCtrl, wxAnimationCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxAnimationCtrl, wxAnimationCtrlBase);
+wxBEGIN_EVENT_TABLE(wxAnimationCtrl, wxAnimationCtrlBase)
     EVT_TIMER(wxID_ANY, wxAnimationCtrl::OnTimer)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxAnimationCtrl::Init()
 {

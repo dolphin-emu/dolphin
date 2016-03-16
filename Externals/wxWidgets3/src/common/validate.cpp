@@ -25,7 +25,7 @@
 
 const wxValidator wxDefaultValidator;
 
-IMPLEMENT_DYNAMIC_CLASS(wxValidator, wxEvtHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxValidator, wxEvtHandler);
 
 // VZ: personally, I think true would be more appropriate - these bells are
 //     _annoying_

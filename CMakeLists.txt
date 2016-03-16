@@ -807,7 +807,7 @@ if(NOT DISABLE_WX)
 			ERROR_QUIET
 			)
 		message("Found wxWidgets version ${wxWidgets_VERSION}")
-		set(wxMIN_VERSION "3.0.1")
+		set(wxMIN_VERSION "3.1.0")
 		if(${wxWidgets_VERSION} VERSION_LESS ${wxMIN_VERSION})
 			message("At least ${wxMIN_VERSION} is required; ignoring found version")
 			unset(wxWidgets_FOUND)
