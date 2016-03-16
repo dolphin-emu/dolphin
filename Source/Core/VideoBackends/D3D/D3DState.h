@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <stack>
 #include <unordered_map>
 
@@ -219,7 +220,7 @@ public:
 
 	// removes currently set texture from all slots, returns mask of previously bound slots
 	u32 UnsetTexture(ID3D11ShaderResourceView* srv);
-	void SetTextureByMask(u32 textureSlotMask, ID3D11ShaderResourceView* srv);
+	void SetTextureByMask(u64 textureSlotMask, ID3D11ShaderResourceView* srv);
 
 	// call this immediately before any drawing operation or to explicitly apply pending resource state changes
 	void Apply();
@@ -234,46 +235,62 @@ private:
 	ID3D11DepthStencilState* m_currentDepthState;
 	ID3D11RasterizerState* m_currentRasterizerState;
 
-	enum DirtyFlags
+	enum DirtyFlags : u64
 	{
-		DirtyFlag_Texture0 = 1 << 0,
-		DirtyFlag_Texture1 = 1 << 1,
-		DirtyFlag_Texture2 = 1 << 2,
-		DirtyFlag_Texture3 = 1 << 3,
-		DirtyFlag_Texture4 = 1 << 4,
-		DirtyFlag_Texture5 = 1 << 5,
-		DirtyFlag_Texture6 = 1 << 6,
-		DirtyFlag_Texture7 = 1 << 7,
+		DirtyFlag_Texture0 = UINT64_C(1) << 0,
+		DirtyFlag_Texture1 = UINT64_C(1) << 1,
+		DirtyFlag_Texture2 = UINT64_C(1) << 2,
+		DirtyFlag_Texture3 = UINT64_C(1) << 3,
+		DirtyFlag_Texture4 = UINT64_C(1) << 4,
+		DirtyFlag_Texture5 = UINT64_C(1) << 5,
+		DirtyFlag_Texture6 = UINT64_C(1) << 6,
+		DirtyFlag_Texture7 = UINT64_C(1) << 7,
+		DirtyFlag_Texture8 = UINT64_C(1) << 8,
+		DirtyFlag_Texture9 = UINT64_C(1) << 9,
+		DirtyFlag_Texture10 = UINT64_C(1) << 10,
+		DirtyFlag_Texture11 = UINT64_C(1) << 11,
+		DirtyFlag_Texture12 = UINT64_C(1) << 12,
+		DirtyFlag_Texture13 = UINT64_C(1) << 13,
+		DirtyFlag_Texture14 = UINT64_C(1) << 14,
+		DirtyFlag_Texture15 = UINT64_C(1) << 15,
 
-		DirtyFlag_Sampler0 = 1 << 8,
-		DirtyFlag_Sampler1 = 1 << 9,
-		DirtyFlag_Sampler2 = 1 << 10,
-		DirtyFlag_Sampler3 = 1 << 11,
-		DirtyFlag_Sampler4 = 1 << 12,
-		DirtyFlag_Sampler5 = 1 << 13,
-		DirtyFlag_Sampler6 = 1 << 14,
-		DirtyFlag_Sampler7 = 1 << 15,
+		DirtyFlag_Sampler0 = UINT64_C(1) << 16,
+		DirtyFlag_Sampler1 = UINT64_C(1) << 17,
+		DirtyFlag_Sampler2 = UINT64_C(1) << 18,
+		DirtyFlag_Sampler3 = UINT64_C(1) << 19,
+		DirtyFlag_Sampler4 = UINT64_C(1) << 20,
+		DirtyFlag_Sampler5 = UINT64_C(1) << 21,
+		DirtyFlag_Sampler6 = UINT64_C(1) << 22,
+		DirtyFlag_Sampler7 = UINT64_C(1) << 23,
+		DirtyFlag_Sampler8 = UINT64_C(1) << 24,
+		DirtyFlag_Sampler9 = UINT64_C(1) << 25,
+		DirtyFlag_Sampler10 = UINT64_C(1) << 26,
+		DirtyFlag_Sampler11 = UINT64_C(1) << 27,
+		DirtyFlag_Sampler12 = UINT64_C(1) << 28,
+		DirtyFlag_Sampler13 = UINT64_C(1) << 29,
+		DirtyFlag_Sampler14 = UINT64_C(1) << 30,
+		DirtyFlag_Sampler15 = UINT64_C(1) << 31,
 
-		DirtyFlag_PixelConstants = 1 << 16,
-		DirtyFlag_VertexConstants = 1 << 17,
-		DirtyFlag_GeometryConstants = 1 << 18,
+		DirtyFlag_PixelConstants = UINT64_C(1) << 32,
+		DirtyFlag_VertexConstants = UINT64_C(1) << 33,
+		DirtyFlag_GeometryConstants = UINT64_C(1) << 34,
 
-		DirtyFlag_VertexBuffer = 1 << 19,
-		DirtyFlag_IndexBuffer = 1 << 20,
+		DirtyFlag_VertexBuffer = UINT64_C(1) << 35,
+		DirtyFlag_IndexBuffer = UINT64_C(1) << 36,
 
-		DirtyFlag_PixelShader = 1 << 21,
-		DirtyFlag_VertexShader = 1 << 22,
-		DirtyFlag_GeometryShader = 1 << 23,
+		DirtyFlag_PixelShader = UINT64_C(1) << 37,
+		DirtyFlag_VertexShader = UINT64_C(1) << 38,
+		DirtyFlag_GeometryShader = UINT64_C(1) << 39,
 
-		DirtyFlag_InputAssembler = 1 << 24,
+		DirtyFlag_InputAssembler = UINT64_C(1) << 40,
 	};
 
-	u32 m_dirtyFlags;
+	u64 m_dirtyFlags;
 
 	struct Resources
 	{
-		ID3D11ShaderResourceView* textures[8];
-		ID3D11SamplerState* samplers[8];
+		ID3D11ShaderResourceView* textures[16];
+		ID3D11SamplerState* samplers[16];
 		ID3D11Buffer* pixelConstants[2];
 		ID3D11Buffer* vertexConstants;
 		ID3D11Buffer* geometryConstants;
