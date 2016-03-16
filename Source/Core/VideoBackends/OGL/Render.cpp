@@ -65,7 +65,7 @@ static std::unique_ptr<RasterFont> s_raster_font;
 // 1 for no MSAA. Use s_MSAASamples > 1 to check for MSAA.
 static int s_MSAASamples = 1;
 static int s_last_multisamples = 1;
-static bool s_last_stereo_mode = false;
+static int s_last_stereo_mode = STEREO_OFF;
 static bool s_last_xfb_mode = false;
 
 static u32 s_blendMode;
@@ -611,7 +611,7 @@ Renderer::Renderer()
 	s_last_multisamples = g_ActiveConfig.iMultisamples;
 	s_MSAASamples = s_last_multisamples;
 
-	s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+	s_last_stereo_mode = g_ActiveConfig.iStereoMode;
 	s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 	// Decide framebuffer size
@@ -706,7 +706,10 @@ void Renderer::Init()
 	g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height,
 			s_MSAASamples);
 
-	m_post_processor = std::make_unique<OpenGLPostProcessing>();
+	m_post_processor = std::make_unique<OGLPostProcessor>();
+	if (!m_post_processor->Initialize())
+		PanicAlert("OGL: Failed to initialize post processor.");
+
 	s_raster_font = std::make_unique<RasterFont>();
 
 	OpenGL_CreateAttributelessVAO();
@@ -1100,24 +1103,26 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	ClearEFBCache();
 }
 
-void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width, int src_height)
+void Renderer::BlitScreen(TargetRectangle dst_rect, TargetRectangle src_rect, TargetSize src_size, GLuint src_texture)
 {
+	TargetSize dst_size(s_backbuffer_width, s_backbuffer_height);
+
 	if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
 	{
 		TargetRectangle leftRc, rightRc;
 
 		// Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
 		if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-			ConvertStereoRectangle(dst, rightRc, leftRc);
+			ConvertStereoRectangle(dst_rect, rightRc, leftRc);
 		else
-			ConvertStereoRectangle(dst, leftRc, rightRc);
+			ConvertStereoRectangle(dst_rect, leftRc, rightRc);
 
-		m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
-		m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+		m_post_processor->BlitScreen(leftRc, dst_size, 0, src_rect, src_size, src_texture, 0);
+		m_post_processor->BlitScreen(rightRc, dst_size, 0, src_rect, src_size, src_texture, 1);
 	}
 	else
 	{
-		m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);
+		m_post_processor->BlitScreen(dst_rect, dst_size, 0, src_rect, src_size, src_texture, 0);
 	}
 }
 
@@ -1259,6 +1264,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			glDisable(GL_DEBUG_OUTPUT);
 	}
 
+	m_post_processor->OnEndFrame();
+
 	static int w = 0, h = 0;
 	if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
 	{
@@ -1332,16 +1339,69 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
 
-			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+			// Post-processing for XFB this way is not ideal, since the EFB depth buffer may have been modified
+			// after the copy was performed. The only way around this would be to take a depth copy at the same
+			// time as the color copy, and even then, if the game has modified the image, it still may not be
+			// representative of what the depth buffer contains.
+			TargetRectangle blit_rect(sourceRc);
+			TargetSize blit_size(xfbSource->texWidth, xfbSource->texHeight);
+			GLuint blit_tex = xfbSource->texture;
+			if (g_ActiveConfig.bPostProcessingEnable &&
+				g_ActiveConfig.iPostProcessingTrigger == POST_PROCESSING_TRIGGER_ON_SWAP &&
+				m_post_processor->IsActive())
+			{
+				TargetSize src_size(xfbSource->srcWidth, xfbSource->srcHeight);
+				TargetRectangle src_depth_rect(sourceRc);
+				TargetSize src_depth_size(s_target_width, s_target_height);
+				GLuint src_depth_tex = 0;
+				if (m_post_processor->RequiresDepthBuffer())
+				{
+					if (g_ActiveConfig.bUseRealXFB)
+					{
+						// This still isn't correct. Tempted to just leave depth out for XFB post-processing.
+						int clipSize = std::max(0, EFB_HEIGHT - static_cast<int>(xfbSource->texHeight));
+						src_depth_rect.top = std::max(0, s_target_height - EFBToScaledY(clipSize));
+						src_depth_rect.bottom = std::max(0, EFBToScaledY(clipSize));
+					}
+
+					src_depth_tex = FramebufferManager::ResolveAndGetDepthTarget(src_depth_rect);
+				}
+
+				uintptr_t new_blit_tex;
+				m_post_processor->PostProcess(&blit_rect, &blit_size, &new_blit_tex, sourceRc, src_size, xfbSource->texture, src_depth_rect, src_depth_size, src_depth_tex);
+				blit_tex = static_cast<GLuint>(new_blit_tex);
+			}
+
+			BlitScreen(drawRc, blit_rect, blit_size, blit_tex);
 		}
 	}
 	else
 	{
-		TargetRectangle targetRc = ConvertEFBRectangle(rc);
+		TargetRectangle target_rc = ConvertEFBRectangle(rc);
 
 		// for msaa mode, we must resolve the efb content to non-msaa
 		GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-		BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
+		TargetSize tex_size(s_target_width, s_target_height);
+
+		// Apply post-processing.
+		// If enabled, blit_tex will be replaced with an internal texture from the post-processor,
+		// leaving the original texture unmodified, should it be required next frame.
+		if (g_ActiveConfig.bPostProcessingEnable &&
+			g_ActiveConfig.iPostProcessingTrigger == POST_PROCESSING_TRIGGER_ON_SWAP &&
+			m_post_processor->IsActive())
+		{
+			TargetRectangle src_rect(target_rc);
+			TargetSize src_size(tex_size);
+			GLuint depth_tex = 0;
+			if (m_post_processor->RequiresDepthBuffer())
+				depth_tex = FramebufferManager::ResolveAndGetDepthTarget(rc);
+
+			uintptr_t new_blit_tex;
+			m_post_processor->PostProcess(&target_rc, &tex_size, &new_blit_tex, src_rect, src_size, tex, src_rect, src_size, depth_tex);
+			tex = static_cast<GLuint>(new_blit_tex);
+		}
+
+		BlitScreen(flipped_trc, target_rc, tex_size, tex);
 	}
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -1451,16 +1511,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		TargetSizeChanged = true;
 	}
 	if (TargetSizeChanged || xfbchanged || WindowResized ||
-	    (s_last_multisamples != g_ActiveConfig.iMultisamples) || (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+	    s_last_multisamples != g_ActiveConfig.iMultisamples ||
+		s_last_stereo_mode != g_ActiveConfig.iStereoMode)
 	{
 		s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
 		UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 		if (TargetSizeChanged ||
-		    s_last_multisamples != g_ActiveConfig.iMultisamples || s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+		    s_last_multisamples != g_ActiveConfig.iMultisamples ||
+			s_last_stereo_mode != g_ActiveConfig.iStereoMode)
 		{
-			s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
 			s_last_multisamples = g_ActiveConfig.iMultisamples;
 			s_MSAASamples = s_last_multisamples;
 
@@ -1474,6 +1535,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);
 
 			PixelShaderManager::SetEfbScaleChanged();
+
+			if (s_last_stereo_mode != g_ActiveConfig.iStereoMode)
+			{
+				s_last_stereo_mode = g_ActiveConfig.iStereoMode;
+				m_post_processor->SetReloadFlag();
+			}
 		}
 	}
 
@@ -1531,6 +1598,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 
 	// Invalidate EFB cache
 	ClearEFBCache();
+
+	// if the configuration has changed, reload post processor (can fail, which will deactivate it)
+	if (m_post_processor->RequiresReload())
+		m_post_processor->ReloadShaders();
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing

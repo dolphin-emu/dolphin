@@ -17,7 +17,6 @@ static ID3DBlob* s_color_copy_program_blob[2] = {};
 static ID3DBlob* s_depth_matrix_program_blob[2] = {};
 static ID3DBlob* s_depth_resolve_to_color_program_blob = {};
 static ID3DBlob* s_clear_program_blob = {};
-static ID3DBlob* s_anaglyph_program_blob = {};
 static ID3DBlob* s_rgba6_to_rgb8_program_blob[2] = {};
 static ID3DBlob* s_rgb8_to_rgba6_program_blob[2] = {};
 
@@ -70,30 +69,6 @@ static constexpr const char s_color_copy_program_hlsl[] = {
 	"in float4 pos : SV_Position,\n"
 	"in float3 uv0 : TEXCOORD0){\n"
 	"ocol0 = Tex0.Sample(samp0,uv0);\n"
-	"}\n"
-};
-
-// Anaglyph Red-Cyan shader based on Dubois algorithm
-// Constants taken from the paper:
-// "Conversion of a Stereo Pair to Anaglyph with
-// the Least-Squares Projection Method"
-// Eric Dubois, March 2009
-static constexpr const char s_anaglyph_program_hlsl[] = {
-	"sampler samp0 : register(s0);\n"
-	"Texture2DArray Tex0 : register(t0);\n"
-	"void main(\n"
-	"out float4 ocol0 : SV_Target,\n"
-	"in float4 pos : SV_Position,\n"
-	"in float3 uv0 : TEXCOORD0){\n"
-	"float4 c0 = Tex0.Sample(samp0, float3(uv0.xy, 0.0));\n"
-	"float4 c1 = Tex0.Sample(samp0, float3(uv0.xy, 1.0));\n"
-	"float3x3 l = float3x3( 0.437, 0.449, 0.164,\n"
-	"                      -0.062,-0.062,-0.024,\n"
-	"                      -0.048,-0.050,-0.017);\n"
-	"float3x3 r = float3x3(-0.011,-0.032,-0.007,\n"
-	"                       0.377, 0.761, 0.009,\n"
-	"                      -0.026,-0.093, 1.234);\n"
-	"ocol0 = float4(mul(l, c0.rgb) + mul(r, c1.rgb), c0.a);\n"
 	"}\n"
 };
 
@@ -564,15 +539,6 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetClearPixelShader()
 	return shader;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetAnaglyphPixelShader()
-{
-	D3D12_SHADER_BYTECODE shader = {};
-	shader.BytecodeLength = s_anaglyph_program_blob->GetBufferSize();
-	shader.pShaderBytecode = s_anaglyph_program_blob->GetBufferPointer();
-
-	return shader;
-}
-
 D3D12_SHADER_BYTECODE StaticShaderCache::GetSimpleVertexShader()
 {
 	D3D12_SHADER_BYTECODE shader = {};
@@ -629,7 +595,6 @@ void StaticShaderCache::Init()
 {
 	// Compile static pixel shaders
 	D3D::CompilePixelShader(s_clear_program_hlsl, &s_clear_program_blob);
-	D3D::CompilePixelShader(s_anaglyph_program_hlsl, &s_anaglyph_program_blob);
 	D3D::CompilePixelShader(s_color_copy_program_hlsl, &s_color_copy_program_blob[0]);
 	D3D::CompilePixelShader(s_color_matrix_program_hlsl, &s_color_matrix_program_blob[0]);
 	D3D::CompilePixelShader(s_depth_matrix_program_hlsl, &s_depth_matrix_program_blob[0]);
@@ -659,7 +624,6 @@ void StaticShaderCache::Shutdown()
 	// Free pixel shader blobs
 
 	SAFE_RELEASE(s_clear_program_blob);
-	SAFE_RELEASE(s_anaglyph_program_blob);
 	SAFE_RELEASE(s_depth_resolve_to_color_program_blob);
 
 	for (unsigned int i = 0; i < 2; ++i)
