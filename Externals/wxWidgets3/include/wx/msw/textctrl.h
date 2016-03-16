@@ -74,9 +74,7 @@ public:
     virtual void MarkDirty();
     virtual void DiscardEdits();
 
-#ifdef __WIN32__
     virtual bool EmulateKeyPress(const wxKeyEvent& event);
-#endif // __WIN32__
 
 #if wxUSE_RICHEDIT
     // apply text attribute to the range of text (only works with richedit
@@ -100,6 +98,9 @@ public:
     {
         return wxTextCtrlBase::HitTest(pt, col, row);
     }
+
+    virtual void SetLayoutDirection(wxLayoutDirection dir) wxOVERRIDE;
+    virtual wxLayoutDirection GetLayoutDirection() const wxOVERRIDE;
 
     // Caret handling (Windows only)
     bool ShowNativeCaret(bool show = true);
@@ -170,12 +171,20 @@ public:
     // EDIT control has one already)
     void OnContextMenu(wxContextMenuEvent& event);
 
+    // Create context menu for RICHEDIT controls. This may be called once during
+    // the control's lifetime or every time the menu is shown, depending on
+    // implementation.
+    virtual wxMenu *MSWCreateContextMenu();
+
     // be sure the caret remains invisible if the user
     // called HideNativeCaret() before
     void OnSetFocus(wxFocusEvent& event);
 
     // intercept WM_GETDLGCODE
-    virtual WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+    virtual bool MSWHandleMessage(WXLRESULT *result,
+                                  WXUINT message,
+                                  WXWPARAM wParam,
+                                  WXLPARAM lParam);
 
     virtual bool MSWShouldPreProcessMessage(WXMSG* pMsg);
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
@@ -183,8 +192,6 @@ public:
 protected:
     // common part of all ctors
     void Init();
-
-    virtual bool DoLoadFile(const wxString& file, int fileType);
 
     // creates the control of appropriate class (plain or rich edit) with the
     // styles corresponding to m_windowStyle
@@ -203,14 +210,7 @@ protected:
     // the limit is due to a previous call to SetMaxLength() and not built in)
     bool HasSpaceLimit(unsigned int *len) const;
 
-    // call this to increase the size limit (will do nothing if the current
-    // limit is big enough)
-    //
-    // returns true if we increased the limit to allow entering more text,
-    // false if we hit the limit set by SetMaxLength() and so didn't change it
-    bool AdjustSpaceLimit();
-
-#if wxUSE_RICHEDIT && (!wxUSE_UNICODE || wxUSE_UNICODE_MSLU)
+#if wxUSE_RICHEDIT && !wxUSE_UNICODE
     // replace the selection or the entire control contents with the given text
     // in the specified encoding
     bool StreamIn(const wxString& value, wxFontEncoding encoding, bool selOnly);
@@ -250,6 +250,9 @@ protected:
     // the paragraph styles globally.
     bool MSWSetParaFormat(const wxTextAttr& attr, long from, long to);
 
+    // Send wxEVT_CONTEXT_MENU event from here if the control doesn't do it on
+    // its own.
+    void OnRightUp(wxMouseEvent& event);
 
     // we're using RICHEDIT (and not simple EDIT) control if this field is not
     // 0, it also gives the version of the RICHEDIT control being used
@@ -274,8 +277,15 @@ private:
 
     void OnKeyDown(wxKeyEvent& event);
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTextCtrl)
+    // Used by EN_MAXTEXT handler to increase the size limit (will do nothing
+    // if the current limit is big enough). Should never be called directly.
+    //
+    // Returns true if we increased the limit to allow entering more text,
+    // false if we hit the limit set by SetMaxLength() and so didn't change it.
+    bool AdjustSpaceLimit();
+
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTextCtrl);
 
     wxMenu* m_privateContextMenu;
 

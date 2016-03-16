@@ -20,11 +20,12 @@
 // wxColourData
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxColourData, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourData, wxObject);
 
 wxColourData::wxColourData()
 {
     m_chooseFull = false;
+    m_chooseAlpha = false;
     m_dataColour.Set(0,0,0);
     // m_custColours are wxNullColours initially
 }
@@ -61,6 +62,7 @@ wxColourData& wxColourData::operator=(const wxColourData& data)
 
     m_dataColour = data.m_dataColour;
     m_chooseFull = data.m_chooseFull;
+    m_chooseAlpha = data.m_chooseAlpha;
 
     return *this;
 }
@@ -85,6 +87,9 @@ wxString wxColourData::ToString() const
             str += clr.GetAsString(wxC2S_HTML_SYNTAX);
     }
 
+    str.Append(wxCOL_DATA_SEP);
+    str.Append(m_chooseAlpha ? '1' : '0');
+
     return str;
 }
 
@@ -102,6 +107,14 @@ bool wxColourData::FromString(const wxString& str)
         else
             success = m_custColours[i].Set(token);
     }
+
+    if ( success )
+    {
+        token = tokenizer.GetNextToken();
+        m_chooseAlpha = token == wxS("1");
+        success = m_chooseAlpha || token == wxS("0");
+    }
+
     return success;
 }
 

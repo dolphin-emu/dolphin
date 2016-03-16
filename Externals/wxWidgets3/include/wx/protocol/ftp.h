@@ -34,12 +34,12 @@ public:
     virtual ~wxFTP();
 
     // Connecting and disconnecting
-    virtual bool Connect(const wxSockAddress& addr, bool wait = true);
-    virtual bool Connect(const wxString& host) { return Connect(host, 0); }
+    virtual bool Connect(const wxSockAddress& addr, bool wait = true) wxOVERRIDE;
+    virtual bool Connect(const wxString& host) wxOVERRIDE { return Connect(host, 0); }
     virtual bool Connect(const wxString& host, unsigned short port);
 
     // disconnect
-    virtual bool Close();
+    virtual bool Close() wxOVERRIDE;
 
     // Parameters set up
 
@@ -52,7 +52,7 @@ public:
     // Generic FTP interface
 
     // FTP doesn't know the MIME type of the last downloaded/uploaded file
-    virtual wxString GetContentType() const { return wxEmptyString; }
+    virtual wxString GetContentType() const wxOVERRIDE { return wxEmptyString; }
 
     // the last FTP server reply
     const wxString& GetLastResult() const { return m_lastResult; }
@@ -87,9 +87,9 @@ public:
     bool FileExists(const wxString& fileName);
 
     // Download methods
-    bool Abort();
+    bool Abort() wxOVERRIDE;
 
-    virtual wxInputStream *GetInputStream(const wxString& path);
+    virtual wxInputStream *GetInputStream(const wxString& path) wxOVERRIDE;
     virtual wxOutputStream *GetOutputStream(const wxString& path);
 
     // Directory listing
@@ -163,7 +163,7 @@ protected:
     friend class wxInputFTPStream;
     friend class wxOutputFTPStream;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxFTP)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxFTP);
     DECLARE_PROTOCOL(wxFTP)
 };
 

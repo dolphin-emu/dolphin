@@ -113,7 +113,9 @@ public:
     virtual void HandleResized( double timestampsec );
     virtual void HandleMoved( double timestampsec );
     virtual void HandleResizing( double timestampsec, wxRect* rect );
-    
+
+    void OSXHandleMiniaturize(double WXUNUSED(timestampsec), bool miniaturized);
+
     void WindowWasPainted();
 
     virtual bool Destroy();

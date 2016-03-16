@@ -36,6 +36,10 @@
 
 #include <AudioToolbox/AudioServices.h>
 
+#if wxUSE_GUI
+    #include "wx/private/launchbrowser.h"
+#endif
+
 #include "wx/osx/private.h"
 #include "wx/osx/private/timer.h"
 
@@ -71,31 +75,21 @@ int wxDisplayDepth()
 {
     int theDepth = 0;
     
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1060
-    if ( UMAGetSystemVersion() >= 0x1060 ) 
-    {
-        CGDisplayModeRef currentMode = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
-        CFStringRef encoding = CGDisplayModeCopyPixelEncoding(currentMode);
-        
-        if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 32;
-        else if(CFStringCompare(encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 16;
-        else if(CFStringCompare(encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
-            theDepth = 8;
-        else
-            theDepth = 32; // some reasonable default
-
-        CFRelease(encoding);
-        CGDisplayModeRelease(currentMode);
-    }
+    CGDisplayModeRef currentMode = CGDisplayCopyDisplayMode(kCGDirectMainDisplay);
+    CFStringRef encoding = CGDisplayModeCopyPixelEncoding(currentMode);
+    
+    if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 32;
+    else if(CFStringCompare(encoding, CFSTR(IO16BitDirectPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 16;
+    else if(CFStringCompare(encoding, CFSTR(IO8BitIndexedPixels), kCFCompareCaseInsensitive) == kCFCompareEqualTo)
+        theDepth = 8;
     else
-#endif
-    {
-#if MAC_OS_X_VERSION_MIN_REQUIRED < 1060
-        theDepth = (int) CGDisplayBitsPerPixel(CGMainDisplayID());
-#endif
-    }
+        theDepth = 32; // some reasonable default
+
+    CFRelease(encoding);
+    CGDisplayModeRelease(currentMode);
+
     return theDepth;
 }
 
@@ -140,11 +134,10 @@ bool wxLaunchDefaultApplication(const wxString& document, int flags)
 // Launch default browser
 // ----------------------------------------------------------------------------
 
-bool wxDoLaunchDefaultBrowser(const wxString& url, int flags)
+bool wxDoLaunchDefaultBrowser(const wxLaunchBrowserParams& params)
 {
-    wxUnusedVar(flags);
     wxCFRef< CFURLRef > curl( CFURLCreateWithString( kCFAllocatorDefault,
-                              wxCFStringRef( url ), NULL ) );
+                              wxCFStringRef( params.url ), NULL ) );
     OSStatus err = LSOpenCFURLRef( curl , NULL );
 
     if (err == noErr)
@@ -176,10 +169,12 @@ void wxDisplaySizeMM(int *width, int *height)
 }
 
 
-wxPortId wxGUIAppTraits::GetToolkitVersion(int *verMaj, int *verMin) const
+wxPortId wxGUIAppTraits::GetToolkitVersion(int *verMaj,
+                                           int *verMin,
+                                           int *verMicro) const
 {
     // We suppose that toolkit version is the same as OS version under Mac
-    wxGetOsVersion(verMaj, verMin);
+    wxGetOsVersion(verMaj, verMin, verMicro);
 
     return wxPORT_OSX;
 }
@@ -193,26 +188,7 @@ wxWindow* wxFindWindowAtPoint(wxWindow* win, const wxPoint& pt);
 
 wxWindow* wxFindWindowAtPoint(const wxPoint& pt)
 {
-#if wxOSX_USE_CARBON
-
-    Point screenPoint = { pt.y , pt.x };
-    WindowRef windowRef;
-
-    if ( FindWindow( screenPoint , &windowRef ) )
-    {
-        wxNonOwnedWindow *nonOwned = wxNonOwnedWindow::GetFromWXWindow( windowRef );
-
-        if ( nonOwned )
-            return wxFindWindowAtPoint( nonOwned , pt );
-    }
-
-    return NULL;
-
-#else
-
     return wxGenericFindWindowAtPoint( pt );
-
-#endif
 }
 
 /*
@@ -274,7 +250,7 @@ CGColorRef wxMacCreateCGColorFromHITheme( ThemeBrush brush )
 void wxMacStringToPascal( const wxString&from , unsigned char * to )
 {
     wxCharBuffer buf = from.mb_str( wxConvLocal );
-    int len = strlen(buf);
+    size_t len = buf.length();
 
     if ( len > 255 )
         len = 255;

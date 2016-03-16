@@ -70,14 +70,11 @@ void wxColour::InitRGBA (ChannelType r, ChannelType g, ChannelType b, ChannelTyp
 
     CGColorRef col = 0 ;
 #if wxOSX_USE_COCOA_OR_CARBON 
-    if ( CGColorCreateGenericRGB != NULL )
-        col = CGColorCreateGenericRGB( (CGFloat)(r / 255.0), (CGFloat) (g / 255.0), (CGFloat) (b / 255.0), (CGFloat) (a / 255.0) );
-    else
+    col = CGColorCreateGenericRGB( (CGFloat)(r / 255.0), (CGFloat) (g / 255.0), (CGFloat) (b / 255.0), (CGFloat) (a / 255.0) );
+#else
+    CGFloat components[4] = { (CGFloat)(r / 255.0), (CGFloat) (g / 255.0), (CGFloat) (b / 255.0), (CGFloat) (a / 255.0) } ;
+    col = CGColorCreate( wxMacGetGenericRGBColorSpace() , components ) ;
 #endif
-    {
-        CGFloat components[4] = { (CGFloat)(r / 255.0), (CGFloat) (g / 255.0), (CGFloat) (b / 255.0), (CGFloat) (a / 255.0) } ;
-        col = CGColorCreate( wxMacGetGenericRGBColorSpace() , components ) ;
-    }
     wxASSERT_MSG(col != NULL, "Invalid CoreGraphics Color");
     m_cgColour.reset( col );
 }
@@ -110,24 +107,20 @@ void wxColour::InitCGColorRef( CGColorRef col )
         m_alpha = wxALPHA_OPAQUE;
         components = CGColorGetComponents( col );
     }
-    InitFromComponents(components, noComp);
-}
 
-void wxColour::InitFromComponents(const CGFloat* components, size_t numComponents )
-{
-    if ( numComponents < 1 || !components )
+    if ( noComp < 1 || !components )
     {
         m_alpha = wxALPHA_OPAQUE;
         m_red = m_green = m_blue = 0;
         return;
     }
 
-    if ( numComponents >= 3 )
+    if ( noComp >= 3 )
     {
         m_red = (int)(components[0]*255+0.5);
         m_green = (int)(components[1]*255+0.5);
         m_blue = (int)(components[2]*255+0.5);
-        if ( numComponents == 4 )
+        if ( noComp == 4 )
             m_alpha =  (int)(components[3]*255+0.5);
     }
     else

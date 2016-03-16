@@ -46,8 +46,8 @@ public :
     {
     }
 
-    virtual void controlAction(WXWidget slf, void* _cmd, void *sender);
-    virtual void mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd);
+    virtual void controlAction(WXWidget slf, void* _cmd, void *sender) wxOVERRIDE;
+    virtual void mouseEvent(WX_NSEvent event, WXWidget slf, void* _cmd) wxOVERRIDE;
 };
 
 // we will have a mouseDown, then in the native

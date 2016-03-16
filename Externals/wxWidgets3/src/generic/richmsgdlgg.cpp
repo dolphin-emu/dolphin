@@ -31,10 +31,10 @@ wxIMPLEMENT_CLASS(wxRichMessageDialog, wxDialog)
 // Events and handlers
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxGenericRichMessageDialog, wxRichMessageDialogBase)
+wxBEGIN_EVENT_TABLE(wxGenericRichMessageDialog, wxRichMessageDialogBase)
     EVT_COLLAPSIBLEPANE_CHANGED(wxID_ANY,
                                 wxGenericRichMessageDialog::OnPaneChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxGenericRichMessageDialog::OnPaneChanged(wxCollapsiblePaneEvent& event)
 {

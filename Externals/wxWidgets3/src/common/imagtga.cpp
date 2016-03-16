@@ -73,7 +73,7 @@ enum
 // implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxTGAHandler, wxImageHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTGAHandler, wxImageHandler);
 
 #if wxUSE_STREAMS
 
@@ -105,12 +105,12 @@ static
 int DecodeRLE(unsigned char* imageData, unsigned long imageSize,
                short pixelSize, wxInputStream& stream)
 {
-    unsigned long index = 0;
+    unsigned long outputLength = 0;
     unsigned char current;
     unsigned int length;
     unsigned char buf[4];
 
-    while (index < imageSize)
+    while (outputLength < imageSize)
     {
         int ch = stream.GetC();
         if ( ch == wxEOF )
@@ -128,9 +128,9 @@ int DecodeRLE(unsigned char* imageData, unsigned long imageSize,
 
             length = current;
 
-            index += current * pixelSize;
+            outputLength += current * pixelSize;
 
-            if (index >= imageSize)
+            if (outputLength > imageSize)
             {
                 return wxTGA_IOERR;
             }
@@ -153,9 +153,9 @@ int DecodeRLE(unsigned char* imageData, unsigned long imageSize,
 
             length = current * pixelSize;
 
-            index += length;
+            outputLength += length;
 
-            if (index >= imageSize)
+            if (outputLength > imageSize)
             {
                 return wxTGA_IOERR;
             }

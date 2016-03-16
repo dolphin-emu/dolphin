@@ -29,29 +29,29 @@ public:
     // more like their Win32 couterparts. They now interpret
     // wxWHITE, wxWHITE_BRUSH and wxWHITE_PEN as drawing 0
     // and everything else as drawing 1.
-    virtual void SetPen( const wxPen &pen );
-    virtual void SetBrush( const wxBrush &brush );
-    virtual void SetBackground( const wxBrush &brush );
-    virtual void SetTextForeground( const wxColour &col );
-    virtual void SetTextBackground( const wxColour &col );
+    virtual void SetPen( const wxPen &pen ) wxOVERRIDE;
+    virtual void SetBrush( const wxBrush &brush ) wxOVERRIDE;
+    virtual void SetBackground( const wxBrush &brush ) wxOVERRIDE;
+    virtual void SetTextForeground( const wxColour &col ) wxOVERRIDE;
+    virtual void SetTextBackground( const wxColour &col ) wxOVERRIDE;
 
     // overridden from wxDCImpl
-    virtual void DoGetSize( int *width, int *height ) const;
-    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const;
-    virtual void* GetHandle() const;
+    virtual void DoGetSize( int *width, int *height ) const wxOVERRIDE;
+    virtual wxBitmap DoGetAsBitmap(const wxRect *subrect) const wxOVERRIDE;
+    virtual void* GetHandle() const wxOVERRIDE;
     
     // overridden for wxMemoryDC Impl
-    virtual void DoSelect(const wxBitmap& bitmap);
+    virtual void DoSelect(const wxBitmap& bitmap) wxOVERRIDE;
 
-    virtual const wxBitmap& GetSelectedBitmap() const;
-    virtual wxBitmap& GetSelectedBitmap();
+    virtual const wxBitmap& GetSelectedBitmap() const wxOVERRIDE;
+    virtual wxBitmap& GetSelectedBitmap() wxOVERRIDE;
 
 private:
     wxBitmap  m_selected;
 
     void Init();
 
-    DECLARE_ABSTRACT_CLASS(wxMemoryDCImpl)
+    wxDECLARE_ABSTRACT_CLASS(wxMemoryDCImpl);
 };
 
 #endif

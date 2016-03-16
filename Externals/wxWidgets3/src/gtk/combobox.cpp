@@ -55,7 +55,19 @@ gtkcombobox_popupshown_callback(GObject *WXUNUSED(gobject),
                                   : wxEVT_COMBOBOX_CLOSEUP,
                           combo->GetId() );
     event.SetEventObject( combo );
-    combo->HandleWindowEvent( event );
+
+#ifndef __WXGTK3__
+    // Process the close up event once the combobox is already closed with GTK+
+    // 2, otherwise changing the combobox from its handler result in errors.
+    if ( !isShown )
+    {
+        combo->GetEventHandler()->AddPendingEvent( event );
+    }
+    else
+#endif // GTK+ < 3
+    {
+        combo->HandleWindowEvent( event );
+    }
 }
 
 }
@@ -64,7 +76,7 @@ gtkcombobox_popupshown_callback(GObject *WXUNUSED(gobject),
 // wxComboBox
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxComboBox, wxChoice)
+wxBEGIN_EVENT_TABLE(wxComboBox, wxChoice)
     EVT_CHAR(wxComboBox::OnChar)
 
     EVT_MENU(wxID_CUT, wxComboBox::OnCut)
@@ -82,7 +94,7 @@ BEGIN_EVENT_TABLE(wxComboBox, wxChoice)
     EVT_UPDATE_UI(wxID_REDO, wxComboBox::OnUpdateRedo)
     EVT_UPDATE_UI(wxID_CLEAR, wxComboBox::OnUpdateDelete)
     EVT_UPDATE_UI(wxID_SELECTALL, wxComboBox::OnUpdateSelectAll)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxComboBox::~wxComboBox()
 {
@@ -278,8 +290,7 @@ GtkWidget* wxComboBox::GetConnectWidget()
 GdkWindow* wxComboBox::GTKGetWindow(wxArrayGdkWindows& /* windows */) const
 {
 #ifdef __WXGTK3__
-    // no access to internal GdkWindows
-    return NULL;
+    return GTKFindWindow(GTK_WIDGET(GetEntry()));
 #else
     return gtk_entry_get_text_window(GetEntry());
 #endif
@@ -294,6 +305,12 @@ wxComboBox::GetClassDefaultAttributes(wxWindowVariant WXUNUSED(variant))
 #else
     return GetDefaultAttributesFromGTKWidget(gtk_combo_box_entry_new(), true);
 #endif
+}
+
+void wxComboBox::Clear()
+{
+    wxTextEntry::Clear();
+    wxItemContainer::Clear();
 }
 
 void wxComboBox::SetValue(const wxString& value)

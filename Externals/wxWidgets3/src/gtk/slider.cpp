@@ -20,6 +20,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/eventsdisabler.h"
 
 //-----------------------------------------------------------------------------
 // data
@@ -231,9 +232,8 @@ gtk_event_after(GtkRange* range, GdkEvent* event, wxSlider* win)
             ProcessScrollEvent(win, wxEVT_SCROLL_THUMBRELEASE);
         }
         // Keep slider at an integral position
-        win->GTKDisableEvents();
+        wxGtkEventsDisabler<wxSlider> noEvents(win);
         gtk_range_set_value(GTK_RANGE (win->m_scale), win->GetValue());
-        win->GTKEnableEvents();
     }
 }
 }
@@ -422,21 +422,20 @@ void wxSlider::SetValue( int value )
 
 void wxSlider::GTKSetValue(int value)
 {
-    GTKDisableEvents();
+    wxGtkEventsDisabler<wxSlider> noEvents(this);
+
     gtk_range_set_value(GTK_RANGE (m_scale), value);
     // GTK only updates value label if handle moves at least 1 pixel
     gtk_widget_queue_draw(m_scale);
-    GTKEnableEvents();
 }
 
 void wxSlider::SetRange( int minValue, int maxValue )
 {
-    GTKDisableEvents();
+    wxGtkEventsDisabler<wxSlider> noEvents(this);
     if (minValue == maxValue)
        maxValue++;
     gtk_range_set_range(GTK_RANGE (m_scale), minValue, maxValue);
     gtk_range_set_increments(GTK_RANGE (m_scale), 1, (maxValue - minValue + 9) / 10);
-    GTKEnableEvents();
 
     if (HasFlag(wxSL_MIN_MAX_LABELS))
     {
@@ -471,9 +470,8 @@ int wxSlider::GetMax() const
 
 void wxSlider::SetPageSize( int pageSize )
 {
-    GTKDisableEvents();
+    wxGtkEventsDisabler<wxSlider> noEvents(this);
     gtk_range_set_increments(GTK_RANGE (m_scale), GetLineSize(), pageSize);
-    GTKEnableEvents();
 }
 
 int wxSlider::GetPageSize() const
@@ -494,9 +492,8 @@ int wxSlider::GetThumbLength() const
 
 void wxSlider::SetLineSize( int lineSize )
 {
-    GTKDisableEvents();
+    wxGtkEventsDisabler<wxSlider> noEvents(this);
     gtk_range_set_increments(GTK_RANGE (m_scale), lineSize, GetPageSize());
-    GTKEnableEvents();
 }
 
 int wxSlider::GetLineSize() const
@@ -508,8 +505,7 @@ int wxSlider::GetLineSize() const
 GdkWindow *wxSlider::GTKGetWindow(wxArrayGdkWindows& WXUNUSED(windows)) const
 {
 #ifdef __WXGTK3__
-    // no access to internal GdkWindows
-    return NULL;
+    return GTKFindWindow(m_scale);
 #else
     return GTK_RANGE(m_scale)->event_window;
 #endif

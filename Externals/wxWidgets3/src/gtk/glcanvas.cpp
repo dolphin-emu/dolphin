@@ -140,7 +140,22 @@ parent_set_hook(GSignalInvocationHint*, guint, const GValue* param_values, void*
 // wxGlCanvas
 //---------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxGLCanvas, wxWindow)
+wxIMPLEMENT_CLASS(wxGLCanvas, wxWindow);
+
+wxGLCanvas::wxGLCanvas(wxWindow *parent,
+                       const wxGLAttributes& dispAttrs,
+                       wxWindowID id,
+                       const wxPoint& pos,
+                       const wxSize& size,
+                       long style,
+                       const wxString& name,
+                       const wxPalette& palette)
+#if WXWIN_COMPATIBILITY_2_8
+    : m_createImplicitContext(false)
+#endif
+{
+    Create(parent, dispAttrs, id, pos, size, style, name, palette);
+}
 
 wxGLCanvas::wxGLCanvas(wxWindow *parent,
                        wxWindowID id,
@@ -217,6 +232,24 @@ bool wxGLCanvas::Create(wxWindow *parent,
                         const int *attribList,
                         const wxPalette& palette)
 {
+    // Separate 'GLXFBConfig/XVisual' attributes.
+    // Also store context attributes for wxGLContext ctor
+    wxGLAttributes dispAttrs;
+    if ( ! ParseAttribList(attribList, dispAttrs, &m_GLCTXAttrs) )
+        return false;
+
+    return Create(parent, dispAttrs, id, pos, size, style, name, palette);
+}
+
+bool wxGLCanvas::Create(wxWindow *parent,
+                        const wxGLAttributes& dispAttrs,
+                        wxWindowID id,
+                        const wxPoint& pos,
+                        const wxSize& size,
+                        long style,
+                        const wxString& name,
+                        const wxPalette& palette)
+{
 #if wxUSE_PALETTE
     wxASSERT_MSG( !palette.IsOk(), wxT("palettes not supported") );
 #endif // wxUSE_PALETTE
@@ -230,7 +263,7 @@ bool wxGLCanvas::Create(wxWindow *parent,
     m_backgroundStyle = wxBG_STYLE_PAINT;
 #endif
 
-    if ( !InitVisual(attribList) )
+    if ( !InitVisual(dispAttrs) )
         return false;
 
     // watch for the "parent-set" signal on m_wxwindow so we can set colormap

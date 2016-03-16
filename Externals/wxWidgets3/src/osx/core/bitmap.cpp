@@ -26,18 +26,10 @@
 
 #include "wx/filename.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxBitmap, wxGDIObject)
-IMPLEMENT_DYNAMIC_CLASS(wxMask, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBitmap, wxGDIObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxMask, wxObject);
 
-#if wxOSX_USE_CARBON
-#include "wx/osx/uma.h"
-#else
 #include "wx/osx/private.h"
-#endif
-
-#ifndef __WXOSX_IPHONE__
-#include <QuickTime/QuickTime.h>
-#endif
 
 CGColorSpaceRef wxMacGetGenericRGBColorSpace();
 CGDataProviderRef wxMacCGDataProviderCreateWithMemoryBuffer( const wxMemoryBuffer& buf );
@@ -66,7 +58,7 @@ public:
 
     virtual ~wxBitmapRefData();
 
-    virtual bool IsOk() const { return m_ok; }
+    virtual bool IsOk() const wxOVERRIDE { return m_ok; }
 
     void Free();
     void SetOk( bool isOk) { m_ok = isOk; }
@@ -85,6 +77,9 @@ public:
 
     bool HasAlpha() const { return m_hasAlpha; }
     void UseAlpha( bool useAlpha );
+
+    bool IsTemplate() const { return m_isTemplate; }
+    void SetTemplate(bool is) { m_isTemplate = is; }
 
 public:
 #if wxUSE_PALETTE
@@ -126,6 +121,7 @@ public:
     int           m_rawAccessCount;
     bool          m_ok;
     mutable CGImageRef    m_cgImageRef;
+    bool          m_isTemplate;
 
 #ifndef __WXOSX_IPHONE__
     IconRef       m_iconRef;
@@ -240,6 +236,7 @@ void wxBitmapRefData::Init()
     m_ok = false ;
     m_bitmapMask = NULL ;
     m_cgImageRef = NULL ;
+    m_isTemplate = false;
 
 #ifndef __WXOSX_IPHONE__
     m_iconRef = NULL ;
@@ -843,93 +840,6 @@ bool wxBitmap::CopyFromIcon(const wxIcon& icon)
     int h = icon.GetHeight() ;
 
     Create( w , h ) ;
-#ifdef __WXOSX_CARBON__
-    if ( w == h && ( w == 16 || w == 32 || w == 48 || w == 128 ) )
-    {
-        IconFamilyHandle iconFamily = NULL ;
-        Handle imagehandle = NewHandle( 0 ) ;
-        Handle maskhandle = NewHandle( 0 ) ;
-
-        OSType maskType = 0;
-        OSType dataType = 0;
-        IconSelectorValue selector = 0 ;
-
-        switch (w)
-        {
-            case 128:
-                dataType = kThumbnail32BitData ;
-                maskType = kThumbnail8BitMask ;
-                selector = kSelectorAllAvailableData ;
-                break;
-
-            case 48:
-                dataType = kHuge32BitData ;
-                maskType = kHuge8BitMask ;
-                selector = kSelectorHuge32Bit | kSelectorHuge8BitMask ;
-                break;
-
-            case 32:
-                dataType = kLarge32BitData ;
-                maskType = kLarge8BitMask ;
-                selector = kSelectorLarge32Bit | kSelectorLarge8BitMask ;
-                break;
-
-            case 16:
-                dataType = kSmall32BitData ;
-                maskType = kSmall8BitMask ;
-                selector = kSelectorSmall32Bit | kSelectorSmall8BitMask ;
-                break;
-
-            default:
-                break;
-        }
-
-        OSStatus err = IconRefToIconFamily( MAC_WXHICON(icon.GetHICON()) , selector , &iconFamily ) ;
-
-        err = GetIconFamilyData( iconFamily , dataType , imagehandle ) ;
-        err = GetIconFamilyData( iconFamily , maskType , maskhandle ) ;
-        size_t imagehandlesize = GetHandleSize( imagehandle ) ;
-        size_t maskhandlesize = GetHandleSize( maskhandle ) ;
-
-        if ( imagehandlesize != 0 && maskhandlesize != 0 )
-        {
-            wxASSERT( GetHandleSize( imagehandle ) == w * 4 * h ) ;
-            wxASSERT( GetHandleSize( maskhandle ) == w * h ) ;
-
-            UseAlpha() ;
-
-            unsigned char *source = (unsigned char *) *imagehandle ;
-            unsigned char *sourcemask = (unsigned char *) *maskhandle ;
-            unsigned char* destination = (unsigned char*) BeginRawAccess() ;
-
-            for ( int y = 0 ; y < h ; ++y )
-            {
-                for ( int x = 0 ; x < w ; ++x )
-                {
-                    unsigned char a = *sourcemask++;
-                    *destination++ = a;
-                    source++ ;
-#if wxOSX_USE_PREMULTIPLIED_ALPHA
-                    *destination++ = ( (*source++) * a + 127 ) / 255;
-                    *destination++ = ( (*source++) * a + 127 ) / 255;
-                    *destination++ = ( (*source++) * a + 127 ) / 255;
-#else
-                    *destination++ = *source++ ;
-                    *destination++ = *source++ ;
-                    *destination++ = *source++ ;
-#endif
-                }
-            }
-
-            EndRawAccess() ;
-            DisposeHandle( imagehandle ) ;
-            DisposeHandle( maskhandle ) ;
-            created = true ;
-        }
-
-        DisposeHandle( (Handle) iconFamily ) ;
-    }
-#endif
     if ( !created )
     {
         wxMemoryDC dc ;
@@ -1078,7 +988,11 @@ wxBitmap::wxBitmap(WX_NSImage image)
 
 bool wxBitmap::Create(WX_NSImage image)
 {
-    return Create(wxOSXCreateBitmapContextFromNSImage(image));
+    bool isTemplate;
+    if (!Create(wxOSXCreateBitmapContextFromNSImage(image, &isTemplate)))
+        return false;
+    M_BITMAPDATA->SetTemplate(isTemplate);
+    return true;
 }
 
 wxBitmap::wxBitmap(CGContextRef bitmapcontext)
@@ -1098,7 +1012,7 @@ bool wxBitmap::Create(CGContextRef bitmapcontext)
 WX_NSImage wxBitmap::GetNSImage() const
 {
     wxCFRef< CGImageRef > cgimage(CreateCGImage());
-    return wxOSXGetNSImageFromCGImage( cgimage, GetScaleFactor() );
+    return wxOSXGetNSImageFromCGImage( cgimage, GetScaleFactor(), M_BITMAPDATA->IsTemplate() );
 }
 
 #endif
@@ -1185,6 +1099,8 @@ wxBitmap wxBitmap::GetSubBitmap(const wxRect &rect) const
 bool wxBitmap::Create(int w, int h, int d)
 {
     UnRef();
+
+    wxCHECK_MSG(w > 0 && h > 0, false, "invalid bitmap size");
 
     if ( d < 0 )
         d = wxDisplayDepth() ;
@@ -1321,7 +1237,7 @@ wxBitmap::wxBitmap(const wxImage& image, int depth, double scale)
             UseAlpha() ;
 
         unsigned char* destinationstart = (unsigned char*) BeginRawAccess() ;
-        register unsigned char* data = image.GetData();
+        unsigned char* data = image.GetData();
         if ( destinationstart != NULL && data != NULL )
         {
             const unsigned char *alpha = hasAlpha ? image.GetAlpha() : NULL ;
@@ -1413,13 +1329,12 @@ wxImage wxBitmap::ConvertToImage() const
     for (int yy = 0; yy < height; yy++ , sourcestart += M_BITMAPDATA->GetBytesPerRow() , mask += maskBytesPerRow )
     {
         unsigned char * maskp = mask ;
-        unsigned char * source = sourcestart;
+        const wxUint32 * source = (wxUint32*)sourcestart;
         unsigned char a, r, g, b;
-        long color;
 
         for (int xx = 0; xx < width; xx++)
         {
-            color = *((long*) source) ;
+            const wxUint32 color = *source++;
 #ifdef WORDS_BIGENDIAN
             a = ((color&0xFF000000) >> 24) ;
             r = ((color&0x00FF0000) >> 16) ;
@@ -1461,7 +1376,6 @@ wxImage wxBitmap::ConvertToImage() const
             data[index + 2] = b ;
 
             index += 3;
-            source += 4 ;
         }
     }
 
@@ -1817,51 +1731,51 @@ WXHBITMAP wxMask::GetHBITMAP() const
 
 class WXDLLEXPORT wxBundleResourceHandler: public wxBitmapHandler
 {
-    DECLARE_ABSTRACT_CLASS(wxBundleResourceHandler)
+    wxDECLARE_ABSTRACT_CLASS(wxBundleResourceHandler);
     
 public:
     inline wxBundleResourceHandler()
     {
-    };
+    }
     
     virtual bool LoadFile(wxBitmap *bitmap,
                           const wxString& name,
                           wxBitmapType type,
                           int desiredWidth,
-                          int desiredHeight);
+                          int desiredHeight) wxOVERRIDE;
 };
 
-IMPLEMENT_ABSTRACT_CLASS(wxBundleResourceHandler, wxBitmapHandler);
+wxIMPLEMENT_ABSTRACT_CLASS(wxBundleResourceHandler, wxBitmapHandler);
 
 class WXDLLEXPORT wxPNGResourceHandler: public wxBundleResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxPNGResourceHandler)
-    
+    wxDECLARE_DYNAMIC_CLASS(wxPNGResourceHandler);
+
 public:
     inline wxPNGResourceHandler()
     {
         SetName(wxT("PNG resource"));
         SetExtension("PNG");
         SetType(wxBITMAP_TYPE_PNG_RESOURCE);
-    };
+    }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxPNGResourceHandler, wxBundleResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPNGResourceHandler, wxBundleResourceHandler);
 
 class WXDLLEXPORT wxJPEGResourceHandler: public wxBundleResourceHandler
 {
-    DECLARE_DYNAMIC_CLASS(wxJPEGResourceHandler)
-    
+    wxDECLARE_DYNAMIC_CLASS(wxJPEGResourceHandler);
+
 public:
     inline wxJPEGResourceHandler()
     {
         SetName(wxT("JPEG resource"));
         SetExtension("JPEG");
         SetType(wxBITMAP_TYPE_JPEG_RESOURCE);
-    };
+    }
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxJPEGResourceHandler, wxBundleResourceHandler)
+wxIMPLEMENT_DYNAMIC_CLASS(wxJPEGResourceHandler, wxBundleResourceHandler);
 
 bool wxBundleResourceHandler::LoadFile(wxBitmap *bitmap,
                                      const wxString& name,

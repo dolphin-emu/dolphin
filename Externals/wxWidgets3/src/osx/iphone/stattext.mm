@@ -81,7 +81,7 @@ wxWidgetImplType* wxWidgetImpl::CreateStaticText( wxWindowMac* wxpeer,
     v.backgroundColor = [UIColor clearColor];
 
     UILineBreakMode linebreak = UILineBreakModeWordWrap;
-    if ( ((wxStaticText*)wxpeer)->IsEllipsized() )
+    if ( style & wxST_ELLIPSIZE_MASK )
     {
         if ( style & wxST_ELLIPSIZE_MIDDLE )
             linebreak = UILineBreakModeMiddleTruncation;

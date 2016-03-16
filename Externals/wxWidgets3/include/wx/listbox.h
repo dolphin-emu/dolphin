@@ -48,7 +48,7 @@ public:
 
     // multiple selection logic
     virtual bool IsSelected(int n) const = 0;
-    virtual void SetSelection(int n);
+    virtual void SetSelection(int n) wxOVERRIDE;
     void SetSelection(int n, bool select) { DoSetSelection(n, select); }
     void Deselect(int n) { DoSetSelection(n, false); }
     void DeselectAll(int itemToLeaveSelected = -1);
@@ -72,6 +72,9 @@ public:
     // necessary
     virtual void EnsureVisible(int n);
 
+    virtual int GetTopItem() const { return wxNOT_FOUND; }
+    virtual int GetCountPerPage() const;
+
     // a combination of Append() and EnsureVisible(): appends the item to the
     // listbox and ensures that it is visible i.e. not scrolled out of view
     void AppendAndEnsureVisible(const wxString& s);
@@ -84,11 +87,11 @@ public:
     }
 
     // override wxItemContainer::IsSorted
-    virtual bool IsSorted() const { return HasFlag( wxLB_SORT ); }
+    virtual bool IsSorted() const wxOVERRIDE { return HasFlag( wxLB_SORT ); }
 
     // emulate selecting or deselecting the item event.GetInt() (depending on
     // event.GetExtraLong())
-    void Command(wxCommandEvent& event);
+    void Command(wxCommandEvent& event) wxOVERRIDE;
 
     // return the index of the item at this position or wxNOT_FOUND
     int HitTest(const wxPoint& point) const { return DoListHitTest(point); }
@@ -133,6 +136,8 @@ protected:
     // single selection mode on platforms other than MSW).
     void UpdateOldSelections();
 
+    wxCoord GetLineHeight() const;
+
 private:
     wxDECLARE_NO_COPY_CLASS(wxListBoxBase);
 };
@@ -153,10 +158,8 @@ private:
   #include "wx/gtk1/listbox.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/listbox.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/listbox.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/listbox.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/listbox.h"
 #endif
 
 #endif // wxUSE_LISTBOX

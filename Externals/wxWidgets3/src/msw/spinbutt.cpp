@@ -79,11 +79,11 @@ bool wxSpinButton::Create(wxWindow *parent,
     // get the right size for the control
     if ( width <= 0 || height <= 0 )
     {
-        wxSize size = DoGetBestSize();
+        wxSize bestSize = DoGetBestSize();
         if ( width <= 0 )
-            width = size.x;
+            width = bestSize.x;
         if ( height <= 0 )
-            height = size.y;
+            height = bestSize.y;
     }
 
     if ( x < 0 )
@@ -147,7 +147,17 @@ wxSpinButton::~wxSpinButton()
 
 wxSize wxSpinButton::DoGetBestSize() const
 {
-    return GetBestSpinnerSize( (GetWindowStyle() & wxSP_VERTICAL) != 0 );
+    const bool vert = HasFlag(wxSP_VERTICAL);
+
+    wxSize bestSize(::GetSystemMetrics(vert ? SM_CXVSCROLL : SM_CXHSCROLL),
+                    ::GetSystemMetrics(vert ? SM_CYVSCROLL : SM_CYHSCROLL));
+
+    if ( vert )
+        bestSize.y *= 2;
+    else
+        bestSize.x *= 2;
+
+    return bestSize;
 }
 
 // ----------------------------------------------------------------------------
@@ -158,17 +168,12 @@ int wxSpinButton::GetValue() const
 {
     int n;
 #ifdef UDM_GETPOS32
-    if ( wxApp::GetComCtl32Version() >= 580 )
-    {
-        // use the full 32 bit range if available
-        n = ::SendMessage(GetHwnd(), UDM_GETPOS32, 0, 0);
-    }
-    else
+    // use the full 32 bit range if available
+    n = ::SendMessage(GetHwnd(), UDM_GETPOS32, 0, 0);
+#else
+    // we're limited to 16 bit
+    n = (short)LOWORD(::SendMessage(GetHwnd(), UDM_GETPOS, 0, 0));
 #endif // UDM_GETPOS32
-    {
-        // we're limited to 16 bit
-        n = (short)LOWORD(::SendMessage(GetHwnd(), UDM_GETPOS, 0, 0));
-    }
 
     if (n < m_min) n = m_min;
     if (n > m_max) n = m_max;
@@ -181,16 +186,11 @@ void wxSpinButton::SetValue(int val)
     // wxSpinButtonBase::SetValue(val); -- no, it is pure virtual
 
 #ifdef UDM_SETPOS32
-    if ( wxApp::GetComCtl32Version() >= 580 )
-    {
-        // use the full 32 bit range if available
-        ::SendMessage(GetHwnd(), UDM_SETPOS32, 0, val);
-    }
-    else // we're limited to 16 bit
+    // use the full 32 bit range if available
+    ::SendMessage(GetHwnd(), UDM_SETPOS32, 0, val);
+#else
+    ::SendMessage(GetHwnd(), UDM_SETPOS, 0, MAKELONG((short) val, 0));
 #endif // UDM_SETPOS32
-    {
-        ::SendMessage(GetHwnd(), UDM_SETPOS, 0, MAKELONG((short) val, 0));
-    }
 }
 
 void wxSpinButton::NormalizeValue()
@@ -205,17 +205,13 @@ void wxSpinButton::SetRange(int minVal, int maxVal)
     wxSpinButtonBase::SetRange(minVal, maxVal);
 
 #ifdef UDM_SETRANGE32
-    if ( wxApp::GetComCtl32Version() >= 471 )
-    {
-        // use the full 32 bit range if available
-        ::SendMessage(GetHwnd(), UDM_SETRANGE32, minVal, maxVal);
-    }
-    else // we're limited to 16 bit
+    // use the full 32 bit range if available
+    ::SendMessage(GetHwnd(), UDM_SETRANGE32, minVal, maxVal);
+#else
+    // we're limited to 16 bit
+    ::SendMessage(GetHwnd(), UDM_SETRANGE, 0,
+                  (LPARAM) MAKELONG((short)maxVal, (short)minVal));
 #endif // UDM_SETRANGE32
-    {
-        ::SendMessage(GetHwnd(), UDM_SETRANGE, 0,
-                      (LPARAM) MAKELONG((short)maxVal, (short)minVal));
-    }
 
     // the current value might be out of the new range, force it to be in it
     NormalizeValue();

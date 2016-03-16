@@ -37,14 +37,14 @@
 // event table
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxBookCtrlBase, wxControl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxBookCtrlBase, wxControl);
 
-BEGIN_EVENT_TABLE(wxBookCtrlBase, wxControl)
+wxBEGIN_EVENT_TABLE(wxBookCtrlBase, wxControl)
     EVT_SIZE(wxBookCtrlBase::OnSize)
 #if wxUSE_HELP
     EVT_HELP(wxID_ANY, wxBookCtrlBase::OnHelp)
 #endif // wxUSE_HELP
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // constructors and destructors
@@ -56,11 +56,7 @@ void wxBookCtrlBase::Init()
     m_bookctrl = NULL;
     m_fitToCurrentPage = false;
 
-#if defined(__WXWINCE__)
-    m_internalBorder = 1;
-#else
     m_internalBorder = 5;
-#endif
 
     m_controlMargin = 0;
     m_controlSizer = NULL;
@@ -166,11 +162,11 @@ wxRect wxBookCtrlBase::GetPageRect() const
     {
         default:
             wxFAIL_MSG( wxT("unexpected alignment") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxBK_TOP:
             rectPage.y = size.y + GetInternalBorder();
-            // fall through
+            wxFALLTHROUGH;
 
         case wxBK_BOTTOM:
             rectPage.height -= size.y + GetInternalBorder();
@@ -180,7 +176,7 @@ wxRect wxBookCtrlBase::GetPageRect() const
 
         case wxBK_LEFT:
             rectPage.x = size.x + GetInternalBorder();
-            // fall through
+            wxFALLTHROUGH;
 
         case wxBK_RIGHT:
             rectPage.width -= size.x + GetInternalBorder();
@@ -225,7 +221,7 @@ void wxBookCtrlBase::DoSize()
         {
             default:
                 wxFAIL_MSG( wxT("unexpected alignment") );
-                // fall through
+                wxFALLTHROUGH;
 
             case wxBK_TOP:
             case wxBK_LEFT:
@@ -522,6 +518,6 @@ int wxBookCtrlBase::DoSetSelection(size_t n, int flags)
     return oldSel;
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxBookCtrlEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxBookCtrlEvent, wxNotifyEvent);
 
 #endif // wxUSE_BOOKCTRL

@@ -25,7 +25,7 @@ class WXDLLIMPEXP_CORE wxCaretTimer : public wxTimer
 {
 public:
     wxCaretTimer(wxCaret *caret);
-    virtual void Notify();
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxCaret *m_caret;
@@ -50,17 +50,17 @@ public:
     // --------------
 
     // called by wxWindow (not using the event tables)
-    virtual void OnSetFocus();
-    virtual void OnKillFocus();
+    virtual void OnSetFocus() wxOVERRIDE;
+    virtual void OnKillFocus() wxOVERRIDE;
 
     // called by wxCaretTimer
     void OnTimer();
 
 protected:
-    virtual void DoShow();
-    virtual void DoHide();
-    virtual void DoMove();
-    virtual void DoSize();
+    virtual void DoShow() wxOVERRIDE;
+    virtual void DoHide() wxOVERRIDE;
+    virtual void DoMove() wxOVERRIDE;
+    virtual void DoSize() wxOVERRIDE;
 
     // blink the caret once
     void Blink();

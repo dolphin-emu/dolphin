@@ -63,18 +63,6 @@
     #include "wx/osx/dcscreen.h"
 #endif
 
-#ifdef __WXPM__
-    #include "wx/os2/dcclient.h"
-    #include "wx/os2/dcmemory.h"
-    #include "wx/os2/dcscreen.h"
-#endif
-
-#ifdef __WXCOCOA__
-    #include "wx/cocoa/dcclient.h"
-    #include "wx/cocoa/dcmemory.h"
-    #include "wx/cocoa/dcscreen.h"
-#endif
-
 #ifdef __WXMOTIF__
     #include "wx/motif/dcclient.h"
     #include "wx/motif/dcmemory.h"
@@ -93,6 +81,11 @@
     #include "wx/dfb/dcscreen.h"
 #endif
 
+#ifdef __WXQT__
+    #include "wx/qt/dcclient.h"
+    #include "wx/qt/dcmemory.h"
+    #include "wx/qt/dcscreen.h"
+#endif
 //----------------------------------------------------------------------------
 // wxDCFactory
 //----------------------------------------------------------------------------
@@ -117,14 +110,14 @@ wxDCFactory *wxDCFactory::Get()
 class wxDCFactoryCleanupModule : public wxModule
 {
 public:
-    virtual bool OnInit() { return true; }
-    virtual void OnExit() { wxDCFactory::Set(NULL); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxDCFactory::Set(NULL); }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDCFactoryCleanupModule)
+    wxDECLARE_DYNAMIC_CLASS(wxDCFactoryCleanupModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxDCFactoryCleanupModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDCFactoryCleanupModule, wxModule);
 
 //-----------------------------------------------------------------------------
 // wxNativeDCFactory
@@ -193,7 +186,7 @@ wxDCImpl *wxNativeDCFactory::CreatePrinterDC( wxPrinterDC *owner, const wxPrintD
 // wxWindowDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxWindowDC, wxDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxWindowDC, wxDC);
 
 wxWindowDC::wxWindowDC(wxWindow *win)
           : wxDC(wxDCFactory::Get()->CreateWindowDC(this, win))
@@ -204,7 +197,7 @@ wxWindowDC::wxWindowDC(wxWindow *win)
 // wxClientDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxClientDC, wxWindowDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxClientDC, wxWindowDC);
 
 wxClientDC::wxClientDC(wxWindow *win)
           : wxWindowDC(wxDCFactory::Get()->CreateClientDC(this, win))
@@ -215,7 +208,7 @@ wxClientDC::wxClientDC(wxWindow *win)
 // wxMemoryDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxMemoryDC, wxDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMemoryDC, wxDC);
 
 wxMemoryDC::wxMemoryDC()
           : wxDC(wxDCFactory::Get()->CreateMemoryDC(this))
@@ -269,7 +262,7 @@ wxBitmap& wxMemoryDC::GetSelectedBitmap()
 // wxPaintDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxPaintDC, wxClientDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxPaintDC, wxClientDC);
 
 wxPaintDC::wxPaintDC(wxWindow *win)
          : wxClientDC(wxDCFactory::Get()->CreatePaintDC(this, win))
@@ -280,7 +273,7 @@ wxPaintDC::wxPaintDC(wxWindow *win)
 // wxScreenDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxScreenDC, wxWindowDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxScreenDC, wxWindowDC);
 
 wxScreenDC::wxScreenDC()
           : wxDC(wxDCFactory::Get()->CreateScreenDC(this))
@@ -293,7 +286,7 @@ wxScreenDC::wxScreenDC()
 
 #if wxUSE_PRINTING_ARCHITECTURE
 
-IMPLEMENT_DYNAMIC_CLASS(wxPrinterDC, wxDC)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPrinterDC, wxDC);
 
 wxPrinterDC::wxPrinterDC()
            : wxDC(wxDCFactory::Get()->CreatePrinterDC(this, wxPrintData()))
@@ -321,7 +314,7 @@ int wxPrinterDC::GetResolution() const
 // wxDCImpl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxDCImpl, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDCImpl, wxObject);
 
 wxDCImpl::wxDCImpl( wxDC *owner )
         : m_window(NULL)
@@ -704,8 +697,8 @@ static wxPointList wx_spline_point_list;
 void wx_quadratic_spline(double a1, double b1, double a2, double b2, double a3, double b3, double a4,
                  double b4)
 {
-    register double  xmid, ymid;
-    double           x1, y1, x2, y2, x3, y3, x4, y4;
+    double xmid, ymid;
+    double x1, y1, x2, y2, x3, y3, x4, y4;
 
     wx_clear_stack();
     wx_spline_push(a1, b1, a2, b2, a3, b3, a4, b4);
@@ -1058,7 +1051,7 @@ void wxDCImpl::DoGetFontMetrics(int *height,
 // wxDC
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDC, wxObject);
 
 void wxDC::CopyAttributes(const wxDC& dc)
 {
@@ -1339,280 +1332,6 @@ and not properly calculated for ellipses.
 Peter Lenhard
 p.lenhard@t-online.de
 */
-
-#ifdef __WXWINCE__
-void wxDCImpl::DoDrawEllipticArcRot( wxCoord x, wxCoord y,
-                                     wxCoord w, wxCoord h,
-                                     double sa, double ea, double angle )
-{
-    wxPointList list;
-
-    CalculateEllipticPoints( &list, x, y, w, h, sa, ea );
-    Rotate( &list, angle, wxPoint( x+w/2, y+h/2 ) );
-
-    // Add center (for polygon/pie)
-    list.Append( new wxPoint( x+w/2, y+h/2 ) );
-
-    // copy list into array and delete list elements
-    int n = list.GetCount();
-    wxPoint *points = new wxPoint[n];
-    int i = 0;
-    wxPointList::compatibility_iterator node;
-    for ( node = list.GetFirst(); node; node = node->GetNext(), i++ )
-    {
-        wxPoint *point = node->GetData();
-        points[i].x = point->x;
-        points[i].y = point->y;
-        delete point;
-    }
-
-    // first draw the pie without pen, if necessary
-    if( GetBrush() != *wxTRANSPARENT_BRUSH )
-    {
-        wxPen tempPen( GetPen() );
-        SetPen( *wxTRANSPARENT_PEN );
-        DoDrawPolygon( n, points, 0, 0 );
-        SetPen( tempPen );
-    }
-
-    // then draw the arc without brush, if necessary
-    if( GetPen() != *wxTRANSPARENT_PEN )
-    {
-        // without center
-        DoDrawLines( n-1, points, 0, 0 );
-    }
-
-    delete [] points;
-
-} // DrawEllipticArcRot
-
-void wxDCImpl::Rotate( wxPointList* points, double angle, wxPoint center )
-{
-    if( angle != 0.0 )
-    {
-        double pi(M_PI);
-        double dSinA = -sin(angle*2.0*pi/360.0);
-        double dCosA = cos(angle*2.0*pi/360.0);
-        wxPointList::compatibility_iterator node;
-        for ( node = points->GetFirst(); node; node = node->GetNext() )
-        {
-            wxPoint* point = node->GetData();
-
-            // transform coordinates, if necessary
-            if( center.x ) point->x -= center.x;
-            if( center.y ) point->y -= center.y;
-
-            // calculate rotation, rounding simply by implicit cast to integer
-            int xTemp = point->x * dCosA - point->y * dSinA;
-            point->y = point->x * dSinA + point->y * dCosA;
-            point->x = xTemp;
-
-            // back transform coordinates, if necessary
-            if( center.x ) point->x += center.x;
-            if( center.y ) point->y += center.y;
-        }
-    }
-}
-
-void wxDCImpl::CalculateEllipticPoints( wxPointList* points,
-                                        wxCoord xStart, wxCoord yStart,
-                                        wxCoord w, wxCoord h,
-                                        double sa, double ea )
-{
-    double pi = M_PI;
-    double sar = 0;
-    double ear = 0;
-    int xsa = 0;
-    int ysa = 0;
-    int xea = 0;
-    int yea = 0;
-    int sq = 0;
-    int eq = 0;
-    bool bUseAngles = false;
-    if( w<0 ) w = -w;
-    if( h<0 ) h = -h;
-    // half-axes
-    wxCoord a = w/2;
-    wxCoord b = h/2;
-    // decrement 1 pixel if ellipse is smaller than 2*a, 2*b
-    int decrX = 0;
-    if( 2*a == w ) decrX = 1;
-    int decrY = 0;
-    if( 2*b == h ) decrY = 1;
-    // center
-    wxCoord xCenter = xStart + a;
-    wxCoord yCenter = yStart + b;
-    // calculate data for start and end, if necessary
-    if( sa != ea )
-    {
-        bUseAngles = true;
-        // normalisation of angles
-        while( sa<0 ) sa += 360;
-        while( ea<0 ) ea += 360;
-        while( sa>=360 ) sa -= 360;
-        while( ea>=360 ) ea -= 360;
-        // calculate quadrant numbers
-        if( sa > 270 ) sq = 3;
-        else if( sa > 180 ) sq = 2;
-        else if( sa > 90 ) sq = 1;
-        if( ea > 270 ) eq = 3;
-        else if( ea > 180 ) eq = 2;
-        else if( ea > 90 ) eq = 1;
-        sar = sa * pi / 180.0;
-        ear = ea * pi / 180.0;
-        // correct angle circle -> ellipse
-        sar = atan( -a/(double)b * tan( sar ) );
-        if ( sq == 1 || sq == 2 ) sar += pi;
-        ear = atan( -a/(double)b * tan( ear ) );
-        if ( eq == 1 || eq == 2 ) ear += pi;
-        // coordinates of points
-        xsa = xCenter + a * cos( sar );
-        if( sq == 0 || sq == 3 ) xsa -= decrX;
-        ysa = yCenter + b * sin( sar );
-        if( sq == 2 || sq == 3 ) ysa -= decrY;
-        xea = xCenter + a * cos( ear );
-        if( eq == 0 || eq == 3 ) xea -= decrX;
-        yea = yCenter + b * sin( ear );
-        if( eq == 2 || eq == 3 ) yea -= decrY;
-    } // if iUseAngles
-    // calculate c1 = b^2, c2 = b^2/a^2 with a = w/2, b = h/2
-    double c1 = b * b;
-    double c2 = 2.0 / w;
-    c2 *= c2;
-    c2 *= c1;
-    wxCoord x = 0;
-    wxCoord y = b;
-    long x2 = 1;
-    long y2 = y*y;
-    long y2_old = 0;
-    long y_old = 0;
-    // Lists for quadrant 1 to 4
-    wxPointList pointsarray[4];
-    // Calculate points for first quadrant and set in all quadrants
-    for( x = 0; x <= a; ++x )
-    {
-        x2 = x2+x+x-1;
-        y2_old = y2;
-        y_old = y;
-        bool bNewPoint = false;
-        while( y2 > c1 - c2 * x2 && y > 0 )
-        {
-            bNewPoint = true;
-            y2 = y2-y-y+1;
-            --y;
-        }
-        // old y now too big: set point with old y, old x
-        if( bNewPoint && x>1)
-        {
-            int x1 = x - 1;
-            // remove points on the same line
-            pointsarray[0].Insert( new wxPoint( xCenter + x1 - decrX, yCenter - y_old ) );
-            pointsarray[1].Append( new wxPoint( xCenter - x1, yCenter - y_old ) );
-            pointsarray[2].Insert( new wxPoint( xCenter - x1, yCenter + y_old - decrY ) );
-            pointsarray[3].Append( new wxPoint( xCenter + x1 - decrX, yCenter + y_old - decrY ) );
-        } // set point
-    } // calculate point
-
-    // Starting and/or ending points for the quadrants, first quadrant gets both.
-    pointsarray[0].Insert( new wxPoint( xCenter + a - decrX, yCenter ) );
-    pointsarray[0].Append( new wxPoint( xCenter, yCenter - b ) );
-    pointsarray[1].Append( new wxPoint( xCenter - a, yCenter ) );
-    pointsarray[2].Append( new wxPoint( xCenter, yCenter + b - decrY ) );
-    pointsarray[3].Append( new wxPoint( xCenter + a - decrX, yCenter ) );
-
-    // copy quadrants in original list
-    if( bUseAngles )
-    {
-        // Copy the right part of the points in the lists
-        // and delete the wxPoints, because they do not leave this method.
-        points->Append( new wxPoint( xsa, ysa ) );
-        int q = sq;
-        bool bStarted = false;
-        bool bReady = false;
-        bool bForceTurn = ( sq == eq && sa > ea );
-        while( !bReady )
-        {
-            wxPointList::compatibility_iterator node;
-            for( node = pointsarray[q].GetFirst(); node; node = node->GetNext() )
-            {
-                // once: go to starting point in start quadrant
-                if( !bStarted &&
-                    (
-                      node->GetData()->x < xsa+1 && q <= 1
-                      ||
-                      node->GetData()->x > xsa-1 && q >= 2
-                    )
-                  )
-                {
-                    bStarted = true;
-                }
-
-                // copy point, if not at ending point
-                if( bStarted )
-                {
-                    if( q != eq || bForceTurn
-                        ||
-                        ( (wxPoint*) node->GetData() )->x > xea+1 && q <= 1
-                        ||
-                        ( (wxPoint*) node->GetData() )->x < xea-1 && q >= 2
-                      )
-                    {
-                        // copy point
-                        wxPoint* pPoint = new wxPoint( *(node->GetData()) );
-                        points->Append( pPoint );
-                    }
-                    else if( q == eq && !bForceTurn || node->GetData()->x == xea)
-                    {
-                        bReady = true;
-                    }
-                }
-            } // for node
-            ++q;
-            if( q > 3 ) q = 0;
-            bForceTurn = false;
-            bStarted = true;
-        } // while not bReady
-        points->Append( new wxPoint( xea, yea ) );
-
-        // delete points
-        for( q = 0; q < 4; ++q )
-        {
-            wxPointList::compatibility_iterator node;
-            for( node = pointsarray[q].GetFirst(); node; node = node->GetNext() )
-            {
-                wxPoint *p = node->GetData();
-                delete p;
-            }
-        }
-    }
-    else
-    {
-        wxPointList::compatibility_iterator node;
-        // copy whole ellipse, wxPoints will be deleted outside
-        for( node = pointsarray[0].GetFirst(); node; node = node->GetNext() )
-        {
-            wxPoint *p = node->GetData();
-            points->Append( p );
-        }
-        for( node = pointsarray[1].GetFirst(); node; node = node->GetNext() )
-        {
-            wxPoint *p = node->GetData();
-            points->Append( p );
-        }
-        for( node = pointsarray[2].GetFirst(); node; node = node->GetNext() )
-        {
-            wxPoint *p = node->GetData();
-            points->Append( p );
-        }
-        for( node = pointsarray[3].GetFirst(); node; node = node->GetNext() )
-        {
-            wxPoint *p = node->GetData();
-            points->Append( p );
-        }
-    } // not iUseAngles
-} // CalculateEllipticPoints
-
-#endif // __WXWINCE__
 
 float wxDCImpl::GetFontPointSizeAdjustment(float dpi)
 {

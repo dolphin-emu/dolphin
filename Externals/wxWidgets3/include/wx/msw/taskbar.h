@@ -49,7 +49,8 @@ public:
     bool ShowBalloon(const wxString& title,
                      const wxString& text,
                      unsigned msec = 0,
-                     int flags = 0);
+                     int flags = 0,
+                     const wxIcon& icon = wxNullIcon);
 #endif // wxUSE_TASKBARICON_BALLOONS
 
 protected:
@@ -64,7 +65,7 @@ protected:
     wxIcon               m_icon;
     wxString             m_strTooltip;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxTaskBarIcon)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxTaskBarIcon);
 };
 
 #endif // _WX_TASKBAR_H_

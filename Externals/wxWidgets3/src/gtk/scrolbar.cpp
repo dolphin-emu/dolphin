@@ -209,9 +209,14 @@ void wxScrollBar::SetScrollbar(int position, int thumbSize, int range, int pageS
     }
     g_signal_handlers_block_by_func(m_widget, (void*)gtk_value_changed, this);
     GtkRange* widget = GTK_RANGE(m_widget);
-    gtk_adjustment_set_page_size(gtk_range_get_adjustment(widget), thumbSize);
+    GtkAdjustment* adj = gtk_range_get_adjustment(widget);
+
+    g_object_freeze_notify(G_OBJECT(adj));
     gtk_range_set_increments(widget, 1, pageSize);
+    gtk_adjustment_set_page_size(adj, thumbSize);
     gtk_range_set_range(widget, 0, range);
+    g_object_thaw_notify(G_OBJECT(adj));
+
     gtk_range_set_value(widget, position);
     m_scrollPos[0] = gtk_range_get_value(widget);
     g_signal_handlers_unblock_by_func(m_widget, (void*)gtk_value_changed, this);

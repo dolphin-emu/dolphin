@@ -64,7 +64,7 @@ private:
     wxFontEncoding       m_encoding;
     wxNativeEncodingInfo m_encodingInfo;
 
-    DECLARE_DYNAMIC_CLASS(wxFontData)
+    wxDECLARE_DYNAMIC_CLASS(wxFontData);
 };
 
 #endif // _WX_FONTDATA_H_

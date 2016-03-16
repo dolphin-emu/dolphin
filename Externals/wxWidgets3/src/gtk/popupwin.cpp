@@ -77,9 +77,9 @@ bool gtk_dialog_delete_callback( GtkWidget *WXUNUSED(widget), GdkEvent *WXUNUSED
 //-----------------------------------------------------------------------------
 
 #ifdef __WXUNIVERSAL__
-BEGIN_EVENT_TABLE(wxPopupWindow,wxPopupWindowBase)
+wxBEGIN_EVENT_TABLE(wxPopupWindow,wxPopupWindowBase)
     EVT_SIZE(wxPopupWindow::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 #endif
 
 wxPopupWindow::~wxPopupWindow()
@@ -113,18 +113,7 @@ bool wxPopupWindow::Create( wxWindow *parent, int style )
     {
         GtkWidget *toplevel = gtk_widget_get_toplevel( parent->m_widget );
         if (GTK_IS_WINDOW (toplevel))
-        {
-#if GTK_CHECK_VERSION(2,10,0)
-#ifndef __WXGTK3__
-            if (!gtk_check_version(2,10,0))
-#endif
-            {
-                gtk_window_group_add_window (gtk_window_get_group (GTK_WINDOW (toplevel)), GTK_WINDOW (m_widget));
-            }
-#endif
             gtk_window_set_transient_for (GTK_WINDOW (m_widget), GTK_WINDOW (toplevel));
-        }
-        gtk_window_set_screen (GTK_WINDOW (m_widget), gtk_widget_get_screen (GTK_WIDGET (parent->m_widget)));
     }
 
     gtk_window_set_resizable (GTK_WINDOW (m_widget), FALSE);
@@ -176,12 +165,12 @@ void wxPopupWindow::DoSetSize( int x, int y, int width, int height, int sizeFlag
 
     ConstrainSize();
 
-    if ((m_x != -1) || (m_y != -1))
+    if (m_x != old_x || m_y != old_y)
     {
-        if ((m_x != old_x) || (m_y != old_y))
-        {
-            gtk_window_move( GTK_WINDOW(m_widget), m_x, m_y );
-        }
+        gtk_window_move(GTK_WINDOW(m_widget), m_x, m_y);
+        wxMoveEvent event(wxPoint(m_x, m_y), GetId());
+        event.SetEventObject(this);
+        HandleWindowEvent(event);
     }
 
     if ((m_width != old_width) || (m_height != old_height))

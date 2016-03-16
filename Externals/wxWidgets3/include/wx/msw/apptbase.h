@@ -44,7 +44,6 @@ public:
 #endif // wxUSE_THREADS
 
 
-#ifndef __WXWINCE__
     // console helpers
     // ---------------
 
@@ -58,7 +57,6 @@ public:
 
     // write text to the console, return true if ok or false on error
     virtual bool WriteToStderr(const wxString& text) = 0;
-#endif // !__WXWINCE__
 
 protected:
 #if wxUSE_THREADS

@@ -22,6 +22,23 @@
     #pragma hdrstop
 #endif
 
+// This is a horrible hack which only works because we don't currently include
+// <time.h> from wx/wxprec.h. It is needed because we need timezone-related
+// stuff from MinGW time.h, but it is not compiled in strict ANSI mode and it
+// is too complicated to be dealt with using wxDECL_FOR_STRICT_MINGW32(). So we
+// just include the header after undefining __STRICT_ANSI__ to get all the
+// declarations we need -- and then define it back to avoid inconsistencies in
+// all our other headers.
+//
+// Note that the same hack is used for "environ" in utilscmn.cpp, so if the
+// code here is modified because this hack becomes unnecessary or a better
+// solution is found, the code there should be updated as well.
+#ifdef wxNEEDS_STRICT_ANSI_WORKAROUNDS
+    #undef __STRICT_ANSI__
+    #include <time.h>
+    #define __STRICT_ANSI__
+#endif
+
 #include "wx/time.h"
 
 #ifndef WX_PRECOMP
@@ -40,22 +57,10 @@
     #endif
 #endif
 
-#if defined(__VISAGECPP__) && !defined(HAVE_FTIME)
-    #define HAVE_FTIME
-#  if __IBMCPP__ >= 400
-    #  define ftime(x) _ftime(x)
-#  endif
-#endif
-
-#ifndef __WXWINCE__
 #include <time.h>
-#else
-#include "wx/msw/private.h"
-#include "wx/msw/wince/time.h"
-#endif
 
 
-#if !defined(__WXMAC__) && !defined(__WXWINCE__)
+#if !defined(__WXMAC__)
     #include <sys/types.h>      // for time_t
 #endif
 
@@ -66,7 +71,7 @@
     #include <sys/timeb.h>
 #endif
 
-#if defined(__DJGPP__) || defined(__WINE__)
+#if defined(__WINE__)
     #include <sys/timeb.h>
     #include <values.h>
 #endif
@@ -83,23 +88,6 @@ const int MICROSECONDS_PER_SECOND = 1000*1000;
 // ============================================================================
 // implementation
 // ============================================================================
-
-// NB: VC8 safe time functions could/should be used for wxMSW as well probably
-#if defined(__WXWINCE__) && defined(__VISUALC8__)
-
-struct tm *wxLocaltime_r(const time_t *t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _localtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-struct tm *wxGmtime_r(const time_t* t, struct tm* tm)
-{
-    __time64_t t64 = *t;
-    return _gmtime64_s(tm, &t64) == 0 ? tm : NULL;
-}
-
-#else // !wxWinCE with VC8
 
 #if (!defined(HAVE_LOCALTIME_R) || !defined(HAVE_GMTIME_R)) && wxUSE_THREADS && !defined(__WINDOWS__)
 static wxMutex timeLock;
@@ -152,8 +140,6 @@ struct tm *wxGmtime_r(const time_t* ticks, struct tm* temp)
 }
 #endif // !HAVE_GMTIME_R
 
-#endif // wxWinCE with VC8/other platforms
-
 // returns the time zone in the C sense, i.e. the difference UTC - local
 // (in seconds)
 int wxGetTimeZone()
@@ -186,7 +172,7 @@ int wxGetTimeZone()
             gmtoffset += 3600;
     }
     return (int)gmtoffset;
-#elif defined(__DJGPP__) || defined(__WINE__)
+#elif defined(__WINE__)
     struct timeb tb;
     ftime(&tb);
     return tb.timezone*60;
@@ -211,7 +197,7 @@ int wxGetTimeZone()
 
     #if defined(WX_TIMEZONE) // If WX_TIMEZONE was defined by configure, use it.
         return WX_TIMEZONE;
-    #elif defined(__BORLANDC__) || defined(__MINGW32__) || defined(__VISAGECPP__)
+    #elif defined(__BORLANDC__) || defined(__MINGW32__)
         return _timezone;
     #else // unknown platform -- assume it has timezone
         return timezone;
@@ -331,7 +317,7 @@ wxLongLong wxGetUTCTimeMillis()
     // do NOT just shut off these warnings, drop me a line instead at
     // <guille@iies.es>
 
-    #if defined(__VISUALC__) || defined (__WATCOMC__)
+    #if defined(__VISUALC__)
         #pragma message("wxStopWatch will be up to second resolution!")
     #elif defined(__BORLANDC__)
         #pragma message "wxStopWatch will be up to second resolution!"
