@@ -198,15 +198,12 @@ static T GenerateVertexShader(API_TYPE api_type)
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			// The following assert was triggered in Super Smash Bros. Project M 3.6.
-			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-			out.Write("coord = rawpos;\n"); // pos.w is 1
+			out.Write("coord.xyz = rawpos.xyz;\n");
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm0.xyz;\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
@@ -215,15 +212,13 @@ static T GenerateVertexShader(API_TYPE api_type)
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm1.xyz;\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm2.xyz;\n");
 			}
 			break;
 		default:
@@ -232,6 +227,10 @@ static T GenerateVertexShader(API_TYPE api_type)
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
+		// Input form of AB11 sets z element to 1.0
+		uid_data->texMtxInfo[i].inputform = xfmem.texMtxInfo[i].inputform;
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
+			out.Write("coord.z = 1.0;\n");
 
 		// first transformation
 		uid_data->texMtxInfo[i].texgentype = xfmem.texMtxInfo[i].texgentype;
@@ -257,11 +256,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_REGULAR:
