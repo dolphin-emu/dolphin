@@ -59,7 +59,7 @@ protected:
     virtual wxGDIRefData *CreateGDIRefData() const;
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
 
-    DECLARE_DYNAMIC_CLASS(wxMetafile)
+    wxDECLARE_DYNAMIC_CLASS(wxMetafile);
 };
 
 
@@ -86,7 +86,7 @@ protected:
     wxMetafile*   m_metaFile;
 
 private:
-    DECLARE_CLASS(wxMetafileDCImpl)
+    wxDECLARE_CLASS(wxMetafileDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxMetafileDCImpl);
 };
 
@@ -108,7 +108,7 @@ class WXDLLIMPEXP_CORE wxMetafileDC: public wxDC
        { return ((wxMetafileDCImpl*)m_pimpl)->Close(); }
 
 private:
-    DECLARE_CLASS(wxMetafileDC)
+    wxDECLARE_CLASS(wxMetafileDC);
     wxDECLARE_NO_COPY_CLASS(wxMetafileDC);
 };
 

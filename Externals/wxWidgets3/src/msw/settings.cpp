@@ -55,7 +55,7 @@ public:
     virtual void OnExit();
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSystemSettingsModule)
+    wxDECLARE_DYNAMIC_CLASS(wxSystemSettingsModule);
 };
 
 // ----------------------------------------------------------------------------
@@ -81,7 +81,7 @@ static wxFont *gs_fontDefault = NULL;
 // wxSystemSettingsModule
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxSystemSettingsModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSystemSettingsModule, wxModule);
 
 bool wxSystemSettingsModule::OnInit()
 {
@@ -103,30 +103,6 @@ void wxSystemSettingsModule::OnExit()
 
 wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
 {
-    // we use 0 as the default value just to avoid compiler warnings, as there
-    // is no invalid colour value we use hasCol as the real indicator of
-    // whether colSys was initialized or not
-    COLORREF colSys = 0;
-    bool hasCol = false;
-
-    // the default colours for the entries after BTNHIGHLIGHT
-    static const COLORREF s_defaultSysColors[] =
-    {
-        0x000000,   // 3DDKSHADOW
-        0xdfdfdf,   // 3DLIGHT
-        0x000000,   // INFOTEXT
-        0xe1ffff,   // INFOBK
-
-        0,          // filler - no std colour with this index
-
-        // TODO: please fill in the standard values of those, I don't have them
-        0,          // HOTLIGHT
-        0,          // GRADIENTACTIVECAPTION
-        0,          // GRADIENTINACTIVECAPTION
-        0,          // MENU
-        0,          // MENUBAR (unused)
-    };
-
     if ( index == wxSYS_COLOUR_LISTBOXTEXT)
     {
         // there is no standard colour with this index, map to another one
@@ -144,74 +120,19 @@ wxColour wxSystemSettingsNative::GetColour(wxSystemColour index)
     }
     else if ( index > wxSYS_COLOUR_BTNHIGHLIGHT )
     {
-        // the indices before BTNHIGHLIGHT are understood by GetSysColor() in
-        // all Windows version, for the other ones we have to check
-        bool useDefault;
-
-        int verMaj, verMin;
-        wxGetOsVersion(&verMaj, &verMin);
-        if ( verMaj < 4 )
+        // Determine if we are using flat menus, only then allow wxSYS_COLOUR_MENUBAR
+        if ( index == wxSYS_COLOUR_MENUBAR )
         {
-            // NT 3.5
-            useDefault = true;
-        }
-        else if ( verMaj == 4 )
-        {
-            // Win95/NT 4.0
-            useDefault = index > wxSYS_COLOUR_INFOBK;
-        }
-        else if ( verMaj == 5 && verMin == 0 )
-        {
-            // Win98/Win2K
-            useDefault = index > wxSYS_COLOUR_GRADIENTINACTIVECAPTION;
-        }
-        else // >= 5.1
-        {
-            // 5.1 is Windows XP
-            useDefault = false;
-            // Determine if we are using flat menus, only then allow wxSYS_COLOUR_MENUBAR
-            if ( index == wxSYS_COLOUR_MENUBAR )
+            BOOL isFlat ;
+            if ( SystemParametersInfo( SPI_GETFLATMENU , 0 ,&isFlat, 0 ) )
             {
-                BOOL isFlat ;
-                if ( SystemParametersInfo( SPI_GETFLATMENU , 0 ,&isFlat, 0 ) )
-                {
-                    if ( !isFlat )
-                        index = wxSYS_COLOUR_MENU ;
-                }
-            }
-        }
-
-        if ( useDefault )
-        {
-            // special handling for MENUBAR colour: we use this in wxToolBar
-            // and wxStatusBar to have correct bg colour under Windows XP
-            // (which uses COLOR_MENUBAR for them) but they should still look
-            // correctly under previous Windows versions as well
-            if ( index == wxSYS_COLOUR_MENUBAR )
-            {
-                index = wxSYS_COLOUR_3DFACE;
-            }
-            else // replace with default colour
-            {
-                unsigned int n = index - wxSYS_COLOUR_BTNHIGHLIGHT;
-
-                wxASSERT_MSG( n < WXSIZEOF(s_defaultSysColors),
-                              wxT("forgot tp update the default colours array") );
-
-                colSys = s_defaultSysColors[n];
-                hasCol = true;
+                if ( !isFlat )
+                    index = wxSYS_COLOUR_MENU ;
             }
         }
     }
 
-    if ( !hasCol )
-    {
-#ifdef __WXWINCE__
-        colSys = ::GetSysColor(index|SYS_COLOR_INDEX_FLAG);
-#else
-        colSys = ::GetSysColor(index);
-#endif
-    }
+    COLORREF colSys = ::GetSysColor(index);
 
     wxColour ret = wxRGBToColour(colSys);
     wxASSERT(ret.IsOk());
@@ -234,14 +155,7 @@ wxFont wxCreateFontFromStockObject(int index)
         {
             wxNativeFontInfo info;
             info.lf = lf;
-            // Under MicroWindows we pass the HFONT as well
-            // because it's hard to convert HFONT -> LOGFONT -> HFONT
-            // It's OK to delete stock objects, the delete will be ignored.
-#ifdef __WXMICROWIN__
-            font.Create(info, (WXHFONT) hFont);
-#else
             font.Create(info);
-#endif
         }
         else
         {
@@ -258,19 +172,6 @@ wxFont wxCreateFontFromStockObject(int index)
 
 wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 {
-#ifdef __WXWINCE__
-    // under CE only a single SYSTEM_FONT exists
-    index;
-
-    if ( !gs_fontDefault )
-    {
-        gs_fontDefault = new wxFont(wxCreateFontFromStockObject(SYSTEM_FONT));
-    }
-
-    wxASSERT(gs_fontDefault->IsOk() &&
-             wxFontEnumerator::IsValidFacename(gs_fontDefault->GetFaceName()));
-    return *gs_fontDefault;
-#else // !__WXWINCE__
     // wxWindow ctor calls GetFont(wxSYS_DEFAULT_GUI_FONT) so we're
     // called fairly often -- this is why we cache this particular font
     if ( index == wxSYS_DEFAULT_GUI_FONT )
@@ -302,7 +203,6 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 #endif // wxUSE_FONTENUM
 
     return font;
-#endif // __WXWINCE__/!__WXWINCE__
 }
 
 // ----------------------------------------------------------------------------
@@ -319,11 +219,7 @@ wxFont wxSystemSettingsNative::GetFont(wxSystemFont index)
 static const int gs_metricsMap[] =
 {
     -1,  // wxSystemMetric enums start at 1, so give a dummy value for pos 0.
-#if defined(__WIN32__) && !defined(__WXWINCE__)
     SM_CMOUSEBUTTONS,
-#else
-    -1,
-#endif
 
     SM_CXBORDER,
     SM_CYBORDER,
@@ -335,7 +231,7 @@ static const int gs_metricsMap[] =
 #endif
     SM_CXDOUBLECLK,
     SM_CYDOUBLECLK,
-#if defined(__WIN32__) && defined(SM_CXDRAG)
+#if defined(SM_CXDRAG)
     SM_CXDRAG,
     SM_CYDRAG,
     SM_CXEDGE,
@@ -363,7 +259,7 @@ static const int gs_metricsMap[] =
     SM_CXSCREEN,
     SM_CYSCREEN,
 
-#if defined(__WIN32__) && defined(SM_CXSIZEFRAME)
+#if defined(SM_CXSIZEFRAME)
     SM_CXSIZEFRAME,
     SM_CYSIZEFRAME,
     SM_CXSMICON,
@@ -382,7 +278,7 @@ static const int gs_metricsMap[] =
 #endif
     SM_CYCAPTION,
     SM_CYMENU,
-#if defined(__WIN32__) && defined(SM_NETWORK)
+#if defined(SM_NETWORK)
     SM_NETWORK,
 #else
     -1,
@@ -392,7 +288,7 @@ static const int gs_metricsMap[] =
 #else
     -1,
 #endif
-#if defined(__WIN32__) && defined(SM_SHOWSOUNDS)
+#if defined(SM_SHOWSOUNDS)
     SM_SHOWSOUNDS,
 #else
     -1,
@@ -410,10 +306,6 @@ static const int gs_metricsMap[] =
 // Get a system metric, e.g. scrollbar size
 int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(win))
 {
-#ifdef __WXMICROWIN__
-    // TODO: probably use wxUniv themes functionality
-    return 0;
-#else // !__WXMICROWIN__
     wxCHECK_MSG( index > 0 && (size_t)index < WXSIZEOF(gs_metricsMap), 0,
                  wxT("invalid metric") );
 
@@ -438,7 +330,6 @@ int wxSystemSettingsNative::GetMetric(wxSystemMetric index, wxWindow* WXUNUSED(w
     }
 
     return rc;
-#endif // __WXMICROWIN__/!__WXMICROWIN__
 }
 
 bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
@@ -467,48 +358,24 @@ bool wxSystemSettingsNative::HasFeature(wxSystemFeature index)
 
 extern wxFont wxGetCCDefaultFont()
 {
-#ifndef __WXWINCE__
-    // under the systems enumerated below (anything released after Win98), the
-    // default font used for the common controls seems to be the desktop font
-    // which is also used for the icon titles and not the stock default GUI
-    // font
-    bool useIconFont;
-    int verMaj, verMin;
-    switch ( wxGetOsVersion(&verMaj, &verMin) )
+    // the default font used for the common controls seems to be the desktop
+    // font which is also used for the icon titles and not the stock default
+    // GUI font
+    LOGFONT lf;
+    if ( ::SystemParametersInfo
+           (
+                SPI_GETICONTITLELOGFONT,
+                sizeof(lf),
+                &lf,
+                0
+           ) )
     {
-        case wxOS_WINDOWS_9X:
-            // 4.10 is Win98
-            useIconFont = verMaj == 4 && verMin >= 10;
-            break;
-
-        case wxOS_WINDOWS_NT:
-            // 5.0 is Win2k
-            useIconFont = verMaj >= 5;
-            break;
-
-        default:
-            useIconFont = false;
+        return wxFont(wxCreateFontFromLogFont(&lf));
     }
-
-    if ( useIconFont )
+    else
     {
-        LOGFONT lf;
-        if ( ::SystemParametersInfo
-               (
-                    SPI_GETICONTITLELOGFONT,
-                    sizeof(lf),
-                    &lf,
-                    0
-               ) )
-        {
-            return wxFont(wxCreateFontFromLogFont(&lf));
-        }
-        else
-        {
-            wxLogLastError(wxT("SystemParametersInfo(SPI_GETICONTITLELOGFONT"));
-        }
+        wxLogLastError(wxT("SystemParametersInfo(SPI_GETICONTITLELOGFONT"));
     }
-#endif // __WXWINCE__
 
     // fall back to the default font for the normal controls
     return wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);

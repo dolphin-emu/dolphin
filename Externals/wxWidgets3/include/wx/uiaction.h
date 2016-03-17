@@ -65,6 +65,9 @@ public:
 
     bool Text(const char *text);
 
+    // Select the item with the given text in the currently focused control.
+    bool Select(const wxString& text);
+
 private:
     // This is the common part of Key{Down,Up}() methods: while we keep them
     // separate at public API level for consistency with Mouse{Down,Up}(), at

@@ -45,7 +45,7 @@
 
 #include <ctype.h>
 
-#if !defined(__GNUWIN32__) && !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
+#if !defined(__GNUWIN32__)
     #include <direct.h>
     #include <dos.h>
 #endif
@@ -54,24 +54,18 @@
     #include <sys/stat.h>
 #endif
 
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-    #ifndef __UNIX__
-        #include <io.h>
-    #endif
+#ifndef __UNIX__
+    #include <io.h>
+#endif
 
-    #ifndef __GNUWIN32__
-        #include <shellapi.h>
-    #endif
+#ifndef __GNUWIN32__
+    #include <shellapi.h>
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifndef __WATCOMC__
-    #if !(defined(_MSC_VER) && (_MSC_VER > 800))
-        #include <errno.h>
-    #endif
-#endif
+#include <errno.h>
 #include <stdarg.h>
 
 #if wxUSE_IPC
@@ -79,15 +73,7 @@
 #endif // wxUSE_IPC
 
 #include "wx/msw/private/hiddenwin.h"
-
-// FIXME-VC6: These are not defined in VC6 SDK headers.
-#ifndef BELOW_NORMAL_PRIORITY_CLASS
-    #define BELOW_NORMAL_PRIORITY_CLASS 0x4000
-#endif
-
-#ifndef ABOVE_NORMAL_PRIORITY_CLASS
-    #define ABOVE_NORMAL_PRIORITY_CLASS 0x8000
-#endif
+#include "wx/msw/private/event.h"
 
 // ----------------------------------------------------------------------------
 // constants
@@ -107,7 +93,7 @@ static const wxChar *wxMSWEXEC_WNDCLASSNAME = wxT("_wxExecute_Internal_Class");
 static const wxChar *gs_classForHiddenWindow = NULL;
 
 // event used to wake up threads waiting in wxExecuteThread
-static HANDLE gs_heventShutdown = NULL;
+static wxWinAPI::Event gs_heventShutdown;
 
 // handles of all threads monitoring the execution of asynchronously running
 // processes
@@ -121,6 +107,14 @@ static wxVector<HANDLE> gs_asyncThreads;
 struct wxExecuteData
 {
 public:
+    wxExecuteData()
+    {
+        // The rest is initialized in the code creating the objects of this
+        // class, but the thread handle can't be set until later, so initialize
+        // it here to ensure we never use an uninitialized value in our dtor.
+        hThread = 0;
+    }
+
     ~wxExecuteData()
     {
         if ( !::CloseHandle(hProcess) )
@@ -131,6 +125,7 @@ public:
 
     HWND       hWnd;          // window to send wxWM_PROC_TERMINATED to
     HANDLE     hProcess;      // handle of the process
+    HANDLE     hThread;       // handle of the thread monitoring its termination
     DWORD      dwProcessId;   // pid of the process
     wxProcess *handler;
     DWORD      dwExitCode;    // the exit code of the process
@@ -143,17 +138,16 @@ public:
     virtual bool OnInit() { return true; }
     virtual void OnExit()
     {
-        if ( gs_heventShutdown )
+        if ( gs_heventShutdown.IsOk() )
         {
             // stop any threads waiting for the termination of asynchronously
             // running processes
-            if ( !::SetEvent(gs_heventShutdown) )
+            if ( !gs_heventShutdown.Set() )
             {
                 wxLogDebug(wxT("Failed to set shutdown event in wxExecuteModule"));
             }
 
-            ::CloseHandle(gs_heventShutdown);
-            gs_heventShutdown = NULL;
+            gs_heventShutdown.Close();
 
             // now wait until they terminate
             if ( !gs_asyncThreads.empty() )
@@ -192,12 +186,12 @@ public:
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxExecuteModule)
+    wxDECLARE_DYNAMIC_CLASS(wxExecuteModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxExecuteModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxExecuteModule, wxModule);
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
 
 #include "wx/private/pipestream.h"
 #include "wx/private/streamtempinput.h"
@@ -291,11 +285,10 @@ static DWORD __stdcall wxExecuteThread(void *arg)
     wxExecuteData * const data = (wxExecuteData *)arg;
 
     // create the shutdown event if we're the first thread starting to wait
-    if ( !gs_heventShutdown )
+    if ( !gs_heventShutdown.IsOk() )
     {
         // create a manual initially non-signalled event object
-        gs_heventShutdown = ::CreateEvent(NULL, TRUE, FALSE, NULL);
-        if ( !gs_heventShutdown )
+        if ( !gs_heventShutdown.Create(wxWinAPI::Event::ManualReset, wxWinAPI::Event::Nonsignaled) )
         {
             wxLogDebug(wxT("CreateEvent() in wxExecuteThread failed"));
         }
@@ -338,8 +331,8 @@ static DWORD __stdcall wxExecuteThread(void *arg)
 
 // window procedure of a hidden window which is created just to receive
 // the notification message when a process exits
-LRESULT APIENTRY _EXPORT wxExecuteWindowCbk(HWND hWnd, UINT message,
-                                            WPARAM wParam, LPARAM lParam)
+LRESULT APIENTRY
+wxExecuteWindowCbk(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     if ( message == wxWM_PROC_TERMINATED )
     {
@@ -361,6 +354,21 @@ LRESULT APIENTRY _EXPORT wxExecuteWindowCbk(HWND hWnd, UINT message,
         else
         {
             // asynchronous execution - we should do the clean up
+            for ( wxVector<HANDLE>::iterator it = gs_asyncThreads.begin();
+                  it != gs_asyncThreads.end();
+                  ++it )
+            {
+                if ( *it == data->hThread )
+                {
+                    gs_asyncThreads.erase(it);
+                    if ( !::CloseHandle(data->hThread) )
+                    {
+                        wxLogLastError(wxT("CloseHandle(hThread)"));
+                    }
+                    break;
+                }
+            }
+
             delete data;
         }
 
@@ -376,7 +384,7 @@ LRESULT APIENTRY _EXPORT wxExecuteWindowCbk(HWND hWnd, UINT message,
 // implementation of IO redirection support classes
 // ============================================================================
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
 
 // ----------------------------------------------------------------------------
 // wxPipeInputStreams
@@ -681,11 +689,8 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
     // the IO redirection is only supported with wxUSE_STREAMS
     BOOL redirect = FALSE;
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
     wxPipe pipeIn, pipeOut, pipeErr;
-
-    // we'll save here the copy of pipeIn[Write]
-    HANDLE hpipeStdinWrite = INVALID_HANDLE_VALUE;
 
     // open the pipes to which child process IO will be redirected if needed
     if ( handler && handler->IsRedirected() )
@@ -709,7 +714,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
     wxZeroMemory(si);
     si.cb = sizeof(si);
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
     if ( redirect )
     {
         si.dwFlags = STARTF_USESTDHANDLES;
@@ -718,27 +723,24 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
         si.hStdOutput = pipeOut[wxPipe::Write];
         si.hStdError = pipeErr[wxPipe::Write];
 
-        // we must duplicate the handle to the write side of stdin pipe to make
-        // it non inheritable: indeed, we must close the writing end of pipeIn
-        // before launching the child process as otherwise this handle will be
-        // inherited by the child which will never close it and so the pipe
-        // will never be closed and the child will be left stuck in ReadFile()
-        HANDLE pipeInWrite = pipeIn.Detach(wxPipe::Write);
-        if ( !::DuplicateHandle
-                (
-                    ::GetCurrentProcess(),
-                    pipeInWrite,
-                    ::GetCurrentProcess(),
-                    &hpipeStdinWrite,
-                    0,                      // desired access: unused here
-                    FALSE,                  // not inherited
-                    DUPLICATE_SAME_ACCESS   // same access as for src handle
-                ) )
-        {
-            wxLogLastError(wxT("DuplicateHandle"));
-        }
+        // We must set the handles to those sides of std* pipes that we won't
+        // in the child to be non-inheritable. We must do this before launching
+        // the child process as otherwise these handles will be inherited by
+        // the child which will never close them and so the pipe will not
+        // return ERROR_BROKEN_PIPE if the parent or child exits unexpectedly
+        // causing the remaining process to potentially become deadlocked in
+        // ReadFile() or WriteFile().
+        if ( !::SetHandleInformation(pipeIn[wxPipe::Write],
+                                     HANDLE_FLAG_INHERIT, 0) )
+            wxLogLastError(wxT("SetHandleInformation(pipeIn)"));
 
-        ::CloseHandle(pipeInWrite);
+        if ( !::SetHandleInformation(pipeOut[wxPipe::Read],
+                                     HANDLE_FLAG_INHERIT, 0) )
+            wxLogLastError(wxT("SetHandleInformation(pipeOut)"));
+
+        if ( !::SetHandleInformation(pipeErr[wxPipe::Read],
+                                     HANDLE_FLAG_INHERIT, 0) )
+            wxLogLastError(wxT("SetHandleInformation(pipeErr)"));
     }
 #endif // wxUSE_STREAMS
 
@@ -756,17 +758,10 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
     PROCESS_INFORMATION pi;
     DWORD dwFlags = CREATE_SUSPENDED;
 
-#ifndef __WXWINCE__
-    if ( (flags & wxEXEC_MAKE_GROUP_LEADER) &&
-            (wxGetOsVersion() == wxOS_WINDOWS_NT) )
+    if ( (flags & wxEXEC_MAKE_GROUP_LEADER) )
         dwFlags |= CREATE_NEW_PROCESS_GROUP;
 
     dwFlags |= CREATE_DEFAULT_ERROR_MODE ;
-#else
-    // we are assuming commands without spaces for now
-    wxString moduleName = command.BeforeFirst(wxT(' '));
-    wxString arguments = command.AfterFirst(wxT(' '));
-#endif
 
     wxWxCharBuffer envBuffer;
     bool useCwd = false;
@@ -842,15 +837,8 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
 
     bool ok = ::CreateProcess
                 (
-                    // WinCE requires appname to be non null
-                    // Win32 allows for null
-#ifdef __WXWINCE__
-                 moduleName.t_str(), // application name
-                 wxMSW_CONV_LPTSTR(arguments), // arguments
-#else
                  NULL,               // application name (use only cmd line)
                  wxMSW_CONV_LPTSTR(command), // full command line
-#endif
                  NULL,               // security attributes: defaults for both
                  NULL,               //   the process and its main thread
                  redirect,           // inherit handles if we use pipes
@@ -863,7 +851,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
                  &pi                 // process info
                 ) != 0;
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
     // we can close the pipe ends used by child anyhow
     if ( redirect )
     {
@@ -875,10 +863,11 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
 
     if ( !ok )
     {
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
         // close the other handles too
         if ( redirect )
         {
+            ::CloseHandle(pipeIn.Detach(wxPipe::Write));
             ::CloseHandle(pipeOut.Detach(wxPipe::Read));
             ::CloseHandle(pipeErr.Detach(wxPipe::Read));
         }
@@ -889,7 +878,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
         return flags & wxEXEC_SYNC ? -1 : 0;
     }
 
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
     // the input buffer bufOut is connected to stdout, this is why it is
     // called bufOut and not bufIn
     wxStreamTempInputBuffer bufOut,
@@ -903,7 +892,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
         wxPipeInputStream *
             errStream = new wxPipeInputStream(pipeErr.Detach(wxPipe::Read));
         wxPipeOutputStream *
-            inStream = new wxPipeOutputStream(hpipeStdinWrite);
+            inStream = new wxPipeOutputStream(pipeIn.Detach(wxPipe::Write));
 
         handler->SetPipeStreams(outStream, inStream, errStream);
 
@@ -978,8 +967,9 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
     }
 
     gs_asyncThreads.push_back(hThread);
+    data->hThread = hThread;
 
-#if wxUSE_IPC && !defined(__WXWINCE__)
+#if wxUSE_IPC
     // second part of DDE hack: now establish the DDE conversation with the
     // just launched process
     if ( !ddeServer.empty() )
@@ -1040,7 +1030,7 @@ long wxExecute(const wxString& cmd, int flags, wxProcess *handler,
     // wait until the child process terminates
     while ( data->state )
     {
-#if wxUSE_STREAMS && !defined(__WXWINCE__)
+#if wxUSE_STREAMS
         if ( !bufOut.Update() && !bufErr.Update() )
 #endif // wxUSE_STREAMS
         {

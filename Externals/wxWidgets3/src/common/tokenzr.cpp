@@ -84,6 +84,22 @@ wxStringTokenizer::wxStringTokenizer(const wxString& str,
     SetString(str, delims, mode);
 }
 
+wxStringTokenizer::wxStringTokenizer(const wxStringTokenizer& src)
+                 : wxObject()
+{
+    DoCopyFrom(src);
+}
+
+wxStringTokenizer& wxStringTokenizer::operator=(const wxStringTokenizer& src)
+{
+    if (this != &src)
+    {
+        DoCopyFrom(src);
+    }
+
+    return *this;
+}
+
 void wxStringTokenizer::SetString(const wxString& str,
                                   const wxString& delims,
                                   wxStringTokenizerMode mode)
@@ -134,6 +150,18 @@ void wxStringTokenizer::Reinit(const wxString& str)
     m_pos = m_string.begin();
     m_lastDelim = wxT('\0');
     m_hasMoreTokens = MoreTokens_Unknown;
+}
+
+void wxStringTokenizer::DoCopyFrom(const wxStringTokenizer& src)
+{
+    m_string = src.m_string;
+    m_stringEnd = m_string.end();
+    m_pos = m_string.begin() + (src.m_pos - src.m_string.begin());
+    m_delims = src.m_delims;
+    m_delimsLen = src.m_delimsLen;
+    m_mode = src.m_mode;
+    m_lastDelim = src.m_lastDelim;
+    m_hasMoreTokens = src.m_hasMoreTokens;
 }
 
 // ----------------------------------------------------------------------------
@@ -190,7 +218,7 @@ bool wxStringTokenizer::DoHasMoreTokens() const
         case wxTOKEN_INVALID:
         case wxTOKEN_DEFAULT:
             wxFAIL_MSG( wxT("unexpected tokenizer mode") );
-            // fall through
+            wxFALLTHROUGH;
 
         case wxTOKEN_STRTOK:
             // never return empty delimiters

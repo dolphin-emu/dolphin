@@ -23,7 +23,7 @@
 #include "wx/osx/private.h"
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxCursor, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCursor, wxGDIObject);
 
 
 class WXDLLEXPORT wxCursorRefData: public wxGDIRefData
@@ -33,15 +33,11 @@ public:
     wxCursorRefData(const wxCursorRefData& cursor);
     virtual ~wxCursorRefData();
 
-    virtual bool IsOk() const
+    virtual bool IsOk() const wxOVERRIDE
     {
 #if wxOSX_USE_COCOA_OR_CARBON
         if ( m_hCursor != NULL )
             return true;
-#if wxOSX_USE_CARBON
-        if ( m_themeCursor != -1 )
-            return true;
-#endif
 
         return false;
 #else
@@ -53,12 +49,6 @@ public:
 protected:
 #if wxOSX_USE_COCOA
     WX_NSCursor m_hCursor;
-#elif wxOSX_USE_CARBON
-    WXHCURSOR     m_hCursor;
-    bool        m_disposeHandle;
-    bool        m_releaseHandle;
-    bool        m_isColorCursor;
-    long        m_themeCursor;
 #elif wxOSX_USE_IPHONE
     void*       m_hCursor;
 #endif
@@ -209,33 +199,9 @@ ClassicCursor gMacCursors[kwxCursorLast+1] =
 
 wxCursor    gMacCurrentCursor ;
 
-#if wxOSX_USE_CARBON
-CursHandle wxGetStockCursor( int number )
-{
-    wxASSERT_MSG( number >= 0 && number <=kwxCursorLast , wxT("invalid stock cursor id") ) ;
-    CursHandle c = (CursHandle) NewHandle( sizeof(Cursor) ) ;
-    memcpy( *c, &gMacCursors[number], sizeof(Cursor) ) ;
-
-#ifndef WORDS_BIGENDIAN
-    short *sptr = (short*) *c ;
-    for ( int i = 0 ; i < 2 * 16 /* image and mask */ ; ++i, ++sptr )
-    {
-        *sptr = CFSwapInt16( *sptr ) ;
-    }
-#endif
-    return c ;
-}
-#endif
-
 wxCursorRefData::wxCursorRefData()
 {
     m_hCursor = NULL;
-#if wxOSX_USE_CARBON
-    m_disposeHandle = false;
-    m_releaseHandle = false;
-    m_isColorCursor = false;
-    m_themeCursor = -1;
-#endif
 }
 
 wxCursorRefData::wxCursorRefData(const wxCursorRefData& cursor) : wxGDIRefData()
@@ -244,12 +210,6 @@ wxCursorRefData::wxCursorRefData(const wxCursorRefData& cursor) : wxGDIRefData()
 
 #if wxOSX_USE_COCOA
     m_hCursor = (WX_NSCursor) wxMacCocoaRetain(cursor.m_hCursor);
-#elif wxOSX_USE_CARBON
-    // FIXME: need to copy the cursor
-    m_disposeHandle = false;
-    m_releaseHandle = false;
-    m_isColorCursor = cursor.m_isColorCursor;
-    m_themeCursor = cursor.m_themeCursor;
 #endif
 }
 
@@ -258,22 +218,6 @@ wxCursorRefData::~wxCursorRefData()
 #if wxOSX_USE_COCOA
     if ( m_hCursor )
         wxMacCocoaRelease(m_hCursor);
-#elif wxOSX_USE_CARBON
-    if ( m_isColorCursor )
-    {
-#ifndef __LP64__
-               ::DisposeCCursor( (CCrsrHandle) m_hCursor ) ;
-#endif
-    }
-    else if ( m_disposeHandle )
-    {
-        ::DisposeHandle( (Handle ) m_hCursor ) ;
-    }
-    else if ( m_releaseHandle )
-    {
-        // we don't release the resource since it may already
-        // be in use again
-    }
 #endif
 }
 
@@ -303,29 +247,6 @@ WXHCURSOR wxCursor::GetHCURSOR() const
     return (M_CURSORDATA ? M_CURSORDATA->m_hCursor : 0);
 }
 
-#if wxOSX_USE_CARBON
-short GetCTabIndex( CTabHandle colors , RGBColor *col )
-{
-    short retval = 0 ;
-    unsigned long bestdiff = 0xFFFF ;
-
-    for ( int i = 0 ; i < (**colors).ctSize ; ++i )
-    {
-        unsigned long diff = abs(col->red -  (**colors).ctTable[i].rgb.red ) +
-            abs(col->green -  (**colors).ctTable[i].rgb.green ) +
-            abs(col->blue -  (**colors).ctTable[i].rgb.blue ) ;
-
-        if ( diff < bestdiff )
-        {
-            bestdiff = diff ;
-            retval = (**colors).ctTable[i].value ;
-        }
-    }
-
-    return retval ;
-}
-#endif
-
 #if wxUSE_IMAGE
 
 void wxCursor::CreateFromImage(const wxImage & image)
@@ -341,137 +262,6 @@ void wxCursor::CreateFromImage(const wxImage & image)
         M_CURSORDATA->m_hCursor = wxMacCocoaCreateCursorFromCGImage( cgimage, hotSpotX, hotSpotY );
         CFRelease( cgimage );
     }
-#elif wxOSX_USE_CARBON
-#ifndef __LP64__
-    int w = 16;
-    int h = 16;
-
-    int image_w = image.GetWidth();
-    int image_h = image.GetHeight();
-
-    wxASSERT_MSG( hotSpotX >= 0 && hotSpotX < image_w &&
-                  hotSpotY >= 0 && hotSpotY < image_h,
-                  wxT("invalid cursor hot spot coordinates") );
-
-    wxImage image16(image); // final image of correct size
-
-    // if image is too small then place it in the center, resize it if too big
-    if ((w > image_w) && (h > image_h))
-    {
-        wxPoint offset((w - image_w) / 2, (h - image_h) / 2);
-        hotSpotX = hotSpotX + offset.x;
-        hotSpotY = hotSpotY + offset.y;
-
-        image16 = image.Size(wxSize(w, h), offset);
-    }
-    else if ((w != image_w) || (h != image_h))
-    {
-        hotSpotX = int(hotSpotX * double(w) / double(image_w));
-        hotSpotY = int(hotSpotY * double(h) / double(image_h));
-
-        image16 = image.Scale(w, h);
-    }
-
-    unsigned char * rgbBits = image16.GetData();
-    bool bHasMask = image16.HasMask() ;
-
-    PixMapHandle pm = (PixMapHandle) NewHandleClear( sizeof(PixMap) )  ;
-    short extent = 16 ;
-    short bytesPerPixel = 1 ;
-    short depth = 8 ;
-    Rect bounds = { 0 , 0 , extent , extent } ;
-    CCrsrHandle ch = (CCrsrHandle) NewHandleClear( sizeof(CCrsr) ) ;
-    CTabHandle newColors = GetCTable( 8 ) ;
-    HandToHand( (Handle *) &newColors );
-
-    // set the values to the indices
-    for ( int i = 0 ; i < (**newColors).ctSize ; ++i )
-    {
-        (**newColors).ctTable[i].value = i ;
-    }
-
-    HLock( (Handle)ch );
-    (**ch).crsrType = 0x8001; // color cursors
-    (**ch).crsrMap = pm;
-    short bytesPerRow = bytesPerPixel * extent;
-
-    (**pm).baseAddr = 0;
-    (**pm).rowBytes = bytesPerRow | 0x8000;
-    (**pm).bounds = bounds;
-    (**pm).pmVersion = 0;
-    (**pm).packType = 0;
-    (**pm).packSize = 0;
-    (**pm).hRes = 0x00480000; // 72 DPI default res
-    (**pm).vRes = 0x00480000; // 72 DPI default res
-    (**pm).pixelSize = depth;
-    (**pm).pixelType = 0;
-    (**pm).cmpCount = 1;
-    (**pm).cmpSize = depth;
-    (**pm).pmTable = newColors;
-
-    (**ch).crsrData = NewHandleClear( extent * bytesPerRow ) ;
-    (**ch).crsrXData = NULL ;
-    (**ch).crsrXValid = 0;
-    (**ch).crsrXHandle = NULL;
-
-    (**ch).crsrHotSpot.h = hotSpotX ;
-    (**ch).crsrHotSpot.v = hotSpotY ;
-    (**ch).crsrXTable = 0 ;
-    (**ch).crsrID = GetCTSeed() ;
-
-    memset( (**ch).crsr1Data  , 0 , sizeof( Bits16 ) ) ;
-    memset( (**ch).crsrMask , 0 , sizeof( Bits16 ) ) ;
-
-    unsigned char mr = image16.GetMaskRed() ;
-    unsigned char mg = image16.GetMaskGreen() ;
-    unsigned char mb = image16.GetMaskBlue() ;
-
-    for ( int y = 0 ; y < h ; ++y )
-    {
-        short rowbits = 0, maskbits = 0 ;
-
-        for ( int x = 0 ; x < w ; ++x )
-        {
-            long pos = (y * w + x) * 3;
-
-            unsigned char r = rgbBits[pos] ;
-            unsigned char g = rgbBits[pos + 1] ;
-            unsigned char b = rgbBits[pos + 2] ;
-            RGBColor col = { 0xFFFF, 0xFFFF, 0xFFFF } ;
-
-            if ( bHasMask && r == mr && g == mg && b == mb )
-            {
-                // masked area, does not appear anywhere
-            }
-            else
-            {
-                if ( (int)r + (int)g + (int)b < 0x0200 )
-                    rowbits |= ( 1 << (15 - x) ) ;
-
-                maskbits |= ( 1 << (15 - x) ) ;
-
-                wxColor( r , g , b ).GetRGBColor( &col );
-            }
-
-            *((*(**ch).crsrData) + y * bytesPerRow + x) =
-                GetCTabIndex( newColors , &col) ;
-        }
-#ifdef WORDS_BIGENDIAN
-        (**ch).crsr1Data[y] = rowbits ;
-        (**ch).crsrMask[y] = maskbits ;
-#else
-        (**ch).crsr1Data[y] = CFSwapInt16(rowbits) ;
-        (**ch).crsrMask[y] = CFSwapInt16(maskbits) ;
-#endif
-    }
-
-    if ( !bHasMask )
-        memcpy( (**ch).crsrMask , (**ch).crsr1Data , sizeof( Bits16) ) ;
-
-    HUnlock( (Handle)ch ) ;
-    M_CURSORDATA->m_hCursor = ch ;
-    M_CURSORDATA->m_isColorCursor = true ;
-#endif
 #endif
 }
 
@@ -484,41 +274,6 @@ wxCursor::wxCursor(const wxString& cursor_file, wxBitmapType flags, int hotSpotX
     {
 #if wxOSX_USE_COCOA
         wxFAIL_MSG( wxT("Not implemented") );
-#elif wxOSX_USE_CARBON
-#ifndef __LP64__
-        Str255 theName ;
-        wxMacStringToPascal( cursor_file , theName ) ;
-
-        Handle resHandle = ::GetNamedResource( 'crsr' , theName ) ;
-        if ( resHandle )
-        {
-            short theId = -1 ;
-            OSType theType ;
-
-            GetResInfo( resHandle , &theId , &theType , theName ) ;
-            ReleaseResource( resHandle ) ;
-
-            M_CURSORDATA->m_hCursor = GetCCursor( theId ) ;
-            if ( M_CURSORDATA->m_hCursor )
-                M_CURSORDATA->m_isColorCursor = true ;
-        }
-        else
-        {
-            Handle resHandle = ::GetNamedResource( 'CURS' , theName ) ;
-            if ( resHandle )
-            {
-                short theId = -1 ;
-                OSType theType ;
-
-                GetResInfo( resHandle , &theId , &theType , theName ) ;
-                ReleaseResource( resHandle ) ;
-
-                M_CURSORDATA->m_hCursor = GetCursor( theId ) ;
-                if ( M_CURSORDATA->m_hCursor )
-                    M_CURSORDATA->m_releaseHandle = true ;
-            }
-        }
-#endif
 #endif
     }
     else
@@ -544,117 +299,6 @@ void wxCursor::InitFromStock(wxStockCursor cursor_type)
     m_refData = new wxCursorRefData;
 #if wxOSX_USE_COCOA
     M_CURSORDATA->m_hCursor = wxMacCocoaCreateStockCursor( cursor_type );
-#elif wxOSX_USE_CARBON
-    switch (cursor_type)
-    {
-    case wxCURSOR_COPY_ARROW:
-        M_CURSORDATA->m_themeCursor = kThemeCopyArrowCursor;
-        break;
-
-    case wxCURSOR_WAIT:
-        M_CURSORDATA->m_themeCursor = kThemeWatchCursor;
-        break;
-
-    case wxCURSOR_IBEAM:
-        M_CURSORDATA->m_themeCursor = kThemeIBeamCursor;
-        break;
-
-    case wxCURSOR_CROSS:
-        M_CURSORDATA->m_themeCursor = kThemeCrossCursor;
-        break;
-
-    case wxCURSOR_SIZENWSE:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorSizeNWSE);
-        break;
-
-    case wxCURSOR_SIZENESW:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorSizeNESW);
-        break;
-
-    case wxCURSOR_SIZEWE:
-        M_CURSORDATA->m_themeCursor = kThemeResizeLeftRightCursor;
-        break;
-
-    case wxCURSOR_SIZENS:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorSizeNS);
-        break;
-
-    case wxCURSOR_SIZING:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorSize);
-        break;
-
-    case wxCURSOR_HAND:
-        M_CURSORDATA->m_themeCursor = kThemePointingHandCursor;
-        break;
-
-    case wxCURSOR_BULLSEYE:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorBullseye);
-        break;
-
-    case wxCURSOR_PENCIL:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorPencil);
-        break;
-
-    case wxCURSOR_MAGNIFIER:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorMagnifier);
-        break;
-
-    case wxCURSOR_NO_ENTRY:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorNoEntry);
-        break;
-
-    case wxCURSOR_WATCH:
-        M_CURSORDATA->m_themeCursor = kThemeWatchCursor;
-        break;
-
-    case wxCURSOR_PAINT_BRUSH:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorPaintBrush);
-        break;
-
-    case wxCURSOR_POINT_LEFT:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorPointLeft);
-        break;
-
-    case wxCURSOR_POINT_RIGHT:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorPointRight);
-        break;
-
-    case wxCURSOR_QUESTION_ARROW:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorQuestionArrow);
-        break;
-
-    case wxCURSOR_BLANK:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorBlank);
-        break;
-
-    case wxCURSOR_RIGHT_ARROW:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorRightArrow);
-        break;
-
-    case wxCURSOR_SPRAYCAN:
-        M_CURSORDATA->m_hCursor = wxGetStockCursor(kwxCursorRoller);
-        break;
-
-    case wxCURSOR_OPEN_HAND:
-        M_CURSORDATA->m_themeCursor = kThemeOpenHandCursor;
-        break;
-
-    case wxCURSOR_CLOSED_HAND:
-        M_CURSORDATA->m_themeCursor = kThemeClosedHandCursor;
-        break;
-
-    case wxCURSOR_CHAR:
-    case wxCURSOR_ARROW:
-    case wxCURSOR_LEFT_BUTTON:
-    case wxCURSOR_RIGHT_BUTTON:
-    case wxCURSOR_MIDDLE_BUTTON:
-    default:
-        M_CURSORDATA->m_themeCursor = kThemeArrowCursor;
-        break;
-    }
-
-    if ( M_CURSORDATA->m_themeCursor == -1 )
-        M_CURSORDATA->m_releaseHandle = true;
 #endif
 }
 
@@ -664,24 +308,6 @@ void wxCursor::MacInstall() const
 #if wxOSX_USE_COCOA
     if ( IsOk() )
         wxMacCocoaSetCursor( M_CURSORDATA->m_hCursor );
-#elif wxOSX_USE_CARBON
-    if ( m_refData && M_CURSORDATA->m_themeCursor != -1 )
-    {
-        SetThemeCursor( M_CURSORDATA->m_themeCursor ) ;
-    }
-    else if ( m_refData && M_CURSORDATA->m_hCursor )
-    {
-#ifndef __LP64__
-       if ( M_CURSORDATA->m_isColorCursor )
-            ::SetCCursor( (CCrsrHandle) M_CURSORDATA->m_hCursor ) ;
-        else
-            ::SetCursor( * (CursHandle) M_CURSORDATA->m_hCursor ) ;
-#endif
-    }
-    else
-    {
-        SetThemeCursor( kThemeArrowCursor ) ;
-    }
 #endif
 }
 

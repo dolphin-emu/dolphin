@@ -166,6 +166,8 @@
         (cairo_t *cr, const cairo_matrix_t *matrix), (cr, matrix) ) \
     m( cairo_translate, \
         (cairo_t *cr, double tx, double ty), (cr, tx, ty) ) \
+    m( cairo_surface_flush, \
+       (cairo_surface_t *surface), (surface) ) \
 
 #ifdef __WXMAC__
 #define wxCAIRO_PLATFORM_METHODS(m) \
@@ -214,6 +216,10 @@
        (cairo_format_t format, int width), (format, width), 0)  \
     m( int, cairo_version, \
        (), (), 0)  \
+    m( int, cairo_image_surface_get_width, \
+       (cairo_surface_t *surface), (surface), 0) \
+    m( int, cairo_image_surface_get_height, \
+       (cairo_surface_t *surface), (surface), 0) \
     m( int, cairo_image_surface_get_stride, \
        (cairo_surface_t *surface), (surface), 0) \
     m( unsigned char *, cairo_image_surface_get_data, \
@@ -222,16 +228,9 @@
        (cairo_surface_t *surface), (surface), CAIRO_FORMAT_INVALID) \
     m( cairo_surface_type_t, cairo_surface_get_type, \
        (cairo_surface_t *surface), (surface), -1) \
+    m( const char *, cairo_version_string, \
+       (), () , NULL ) \
     wxCAIRO_PLATFORM_METHODS(m)
-
-    
-#if wxUSE_PANGO
-#define wxFOR_ALL_PANGO_CAIRO_VOIDMETHODS(m) \
-    m( pango_cairo_update_layout, \
-        (cairo_t *cr, PangoLayout *layout), (cr, layout) ) \
-    m( pango_cairo_show_layout, \
-        (cairo_t *cr, PangoLayout *layout), (cr, layout) )
-#endif
 
 #define wxCAIRO_DECLARE_TYPE(rettype, name, args, argnames, defret) \
    typedef rettype (*wxCAIRO_METHOD_TYPE(name)) args ; \
@@ -258,8 +257,6 @@ private:
 
     wxCairo();
     ~wxCairo();
-
-    bool IsOk();
 
     wxDynamicLibrary m_libCairo;
     wxDynamicLibrary m_libPangoCairo;
@@ -350,7 +347,7 @@ wxCairo::~wxCairo()
     if ( !ms_lib )
     {
         ms_lib = new wxCairo();
-        if ( !ms_lib->IsOk() )
+        if ( !ms_lib->m_ok )
         {
             delete ms_lib;
             ms_lib = NULL;
@@ -369,11 +366,6 @@ wxCairo::~wxCairo()
     }
 }
 
-bool wxCairo::IsOk()
-{
-    return m_ok;
-}
-
 // ============================================================================
 // implementation of the functions themselves
 // ============================================================================
@@ -383,6 +375,7 @@ bool wxCairoInit()
     return wxCairo::Initialize();
 }
 
+#ifndef __WXGTK__
 extern "C"
 {
 
@@ -399,12 +392,12 @@ extern "C"
 // we currently link directly to Cairo on GTK since it is usually available there,
 // so don't use our cairo_xyz wrapper functions until the decision is made to
 // always load Cairo dynamically there.
-#ifndef __WXGTK__
+
 wxFOR_ALL_CAIRO_VOIDMETHODS(wxIMPL_CAIRO_VOIDFUNC)
 wxFOR_ALL_CAIRO_METHODS(wxIMPL_CAIRO_FUNC)
-#endif
 
 } // extern "C"
+#endif // !__WXGTK__
 
 //----------------------------------------------------------------------------
 // wxCairoModule
@@ -414,11 +407,11 @@ class wxCairoModule : public wxModule
 {
 public:
     wxCairoModule() { }
-    virtual bool OnInit();
-    virtual void OnExit();
+    virtual bool OnInit() wxOVERRIDE;
+    virtual void OnExit() wxOVERRIDE;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxCairoModule)
+    wxDECLARE_DYNAMIC_CLASS(wxCairoModule);
 };
 
 bool wxCairoModule::OnInit()
@@ -431,6 +424,6 @@ void wxCairoModule::OnExit()
     wxCairo::CleanUp();
 }
 
-IMPLEMENT_DYNAMIC_CLASS(wxCairoModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxCairoModule, wxModule);
 
 #endif // wxUSE_CAIRO

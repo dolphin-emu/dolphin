@@ -41,6 +41,10 @@
 #include "wx/gtk/private.h"
 #include "wx/gtk/private/gtk2-compat.h"
 
+#if defined(__WXGTK3__) && !GTK_CHECK_VERSION(3,14,0)
+    #define GTK_STATE_FLAG_CHECKED (1 << 11)
+#endif
+
 // ----------------------------------------------------------------------------
 // wxRendererGTK: our wxRendererNative implementation
 // ----------------------------------------------------------------------------
@@ -54,80 +58,80 @@ public:
                                   const wxRect& rect,
                                   int flags = 0,
                                   wxHeaderSortIconType sortArrow = wxHDR_SORT_ICON_NONE,
-                                  wxHeaderButtonParams* params = NULL);
+                                  wxHeaderButtonParams* params = NULL) wxOVERRIDE;
 
-    virtual int GetHeaderButtonHeight(wxWindow *win);
+    virtual int GetHeaderButtonHeight(wxWindow *win) wxOVERRIDE;
 
-    virtual int GetHeaderButtonMargin(wxWindow *win);
+    virtual int GetHeaderButtonMargin(wxWindow *win) wxOVERRIDE;
 
 
     // draw the expanded/collapsed icon for a tree control item
     virtual void DrawTreeItemButton(wxWindow *win,
                                     wxDC& dc,
                                     const wxRect& rect,
-                                    int flags = 0);
+                                    int flags = 0) wxOVERRIDE;
 
     virtual void DrawSplitterBorder(wxWindow *win,
                                     wxDC& dc,
                                     const wxRect& rect,
-                                    int flags = 0);
+                                    int flags = 0) wxOVERRIDE;
     virtual void DrawSplitterSash(wxWindow *win,
                                   wxDC& dc,
                                   const wxSize& size,
                                   wxCoord position,
                                   wxOrientation orient,
-                                  int flags = 0);
+                                  int flags = 0) wxOVERRIDE;
 
     virtual void DrawComboBoxDropButton(wxWindow *win,
                                         wxDC& dc,
                                         const wxRect& rect,
-                                        int flags = 0);
+                                        int flags = 0) wxOVERRIDE;
 
     virtual void DrawDropArrow(wxWindow *win,
                                wxDC& dc,
                                const wxRect& rect,
-                               int flags = 0);
+                               int flags = 0) wxOVERRIDE;
 
     virtual void DrawCheckBox(wxWindow *win,
                               wxDC& dc,
                               const wxRect& rect,
-                              int flags = 0);
+                              int flags = 0) wxOVERRIDE;
 
     virtual void DrawPushButton(wxWindow *win,
                                 wxDC& dc,
                                 const wxRect& rect,
-                                int flags = 0);
+                                int flags = 0) wxOVERRIDE;
 
     virtual void DrawItemSelectionRect(wxWindow *win,
                                        wxDC& dc,
                                        const wxRect& rect,
-                                       int flags = 0);
+                                       int flags = 0) wxOVERRIDE;
 
     virtual void DrawChoice(wxWindow* win,
                             wxDC& dc,
                             const wxRect& rect,
-                            int flags=0);
+                            int flags=0) wxOVERRIDE;
 
     virtual void DrawComboBox(wxWindow* win,
                                 wxDC& dc,
                                 const wxRect& rect,
-                                int flags=0);
+                                int flags=0) wxOVERRIDE;
 
     virtual void DrawTextCtrl(wxWindow* win,
                                 wxDC& dc,
                                 const wxRect& rect,
-                                int flags=0);
+                                int flags=0) wxOVERRIDE;
 
     virtual void DrawRadioBitmap(wxWindow* win,
                                 wxDC& dc,
                                 const wxRect& rect,
-                                int flags=0);
+                                int flags=0) wxOVERRIDE;
 
-    virtual void DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags = 0);
+    virtual void DrawFocusRect(wxWindow* win, wxDC& dc, const wxRect& rect, int flags = 0) wxOVERRIDE;
 
-    virtual wxSize GetCheckBoxSize(wxWindow *win);
+    virtual wxSize GetCheckBoxSize(wxWindow *win) wxOVERRIDE;
 
-    virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win);
+    virtual wxSplitterRenderParams GetSplitterParams(const wxWindow *win) wxOVERRIDE;
 };
 
 // ============================================================================
@@ -551,7 +555,11 @@ wxRendererGTK::DrawCheckBox(wxWindow* win,
     {
         int stateFlags = GTK_STATE_FLAG_NORMAL;
         if (flags & wxCONTROL_CHECKED)
+        {
             stateFlags = GTK_STATE_FLAG_ACTIVE;
+            if (gtk_check_version(3,14,0) == NULL)
+                stateFlags = GTK_STATE_FLAG_CHECKED;
+        }
         if (flags & wxCONTROL_DISABLED)
             stateFlags |= GTK_STATE_FLAG_INSENSITIVE;
         if (flags & wxCONTROL_UNDETERMINED)
@@ -866,7 +874,11 @@ void wxRendererGTK::DrawRadioBitmap(wxWindow* win, wxDC& dc, const wxRect& rect,
 #ifdef __WXGTK3__
     int state = GTK_STATE_FLAG_NORMAL;
     if (flags & wxCONTROL_CHECKED)
+    {
         state = GTK_STATE_FLAG_ACTIVE;
+        if (gtk_check_version(3,14,0) == NULL)
+            state = GTK_STATE_FLAG_CHECKED;
+    }
     else if (flags & wxCONTROL_UNDETERMINED)
         state = GTK_STATE_FLAG_INCONSISTENT;
     if (flags & wxCONTROL_DISABLED)

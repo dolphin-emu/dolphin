@@ -26,23 +26,13 @@ class wxComboWidgetImpl;
 // Combobox item
 class WXDLLIMPEXP_CORE wxComboBox :
     public wxWindowWithItems<
-#if wxOSX_USE_CARBON
-                wxNavigationEnabled<wxControl>,
-#else
                 wxControl,
-#endif
                 wxComboBoxBase>
 {
-    DECLARE_DYNAMIC_CLASS(wxComboBox)
+    wxDECLARE_DYNAMIC_CLASS(wxComboBox);
 
  public:
     virtual ~wxComboBox();
-
-#if wxOSX_USE_CARBON
-    // forward these functions to all subcontrols
-    virtual bool Enable(bool enable = true);
-    virtual bool Show(bool show = true);
-#endif
 
     // callback functions
     virtual void DelegateTextChanged( const wxString& value );
@@ -105,38 +95,6 @@ class WXDLLIMPEXP_CORE wxComboBox :
 
     virtual void SetValue(const wxString& value);
 // these methods are provided by wxTextEntry for the native impl.
-#if wxOSX_USE_CARBON
-    // Text field functions
-    virtual wxString GetValue() const;
-    virtual void WriteText(const wxString& text);
-
-    // Clipboard operations
-    virtual void Copy();
-    virtual void Cut();
-    virtual void Paste();
-    virtual void SetInsertionPoint(long pos);
-    virtual void SetInsertionPointEnd();
-    virtual long GetInsertionPoint() const;
-    virtual wxTextPos GetLastPosition() const;
-    virtual void Replace(long from, long to, const wxString& value);
-    virtual void Remove(long from, long to);
-    virtual void SetEditable(bool editable);
-    virtual bool IsEditable() const;
-
-    virtual void Undo();
-    virtual void Redo();
-    virtual void SelectAll();
-
-    virtual bool CanCopy() const;
-    virtual bool CanCut() const;
-    virtual bool CanPaste() const;
-    virtual bool CanUndo() const;
-    virtual bool CanRedo() const;
-
-    virtual wxClientDataType GetClientDataType() const;
-
-    virtual wxTextWidgetImpl* GetTextPeer() const;
-#endif // wxOSX_USE_CARBON
 
 #if wxOSX_USE_COCOA
     virtual void Popup();
@@ -157,16 +115,10 @@ protected:
     virtual void DoClear();
 
     // wxTextEntry functions
-#if wxOSX_USE_CARBON
-    virtual wxString DoGetValue() const;
-#endif
     virtual wxWindow *GetEditableWindow() { return this; }
 
     // override the base class virtuals involved in geometry calculations
     virtual wxSize DoGetBestSize() const;
-#if wxOSX_USE_CARBON
-    virtual void DoMoveWindow(int x, int y, int width, int height);
-#endif
 
     virtual int DoInsertItems(const wxArrayStringsAdapter& items,
                               unsigned int pos,
@@ -175,9 +127,6 @@ protected:
     virtual void DoSetItemClientData(unsigned int n, void* clientData);
     virtual void * DoGetItemClientData(unsigned int n) const;
 
-#if wxOSX_USE_CARBON
-    virtual void SetClientDataType(wxClientDataType clientDataItemsType);
-#endif
 
     virtual void EnableTextChangedEvents(bool enable);
 

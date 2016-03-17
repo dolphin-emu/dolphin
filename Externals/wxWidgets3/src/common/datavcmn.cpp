@@ -29,6 +29,7 @@
 #include "wx/spinctrl.h"
 #include "wx/choice.h"
 #include "wx/imaglist.h"
+#include "wx/renderer.h"
 
 const char wxDataViewCtrlNameStr[] = "dataviewCtrl";
 
@@ -48,7 +49,6 @@ public:
         m_finished = false;
     }
 
-    void AcceptChangesAndFinish();
     void SetFocusOnIdle( bool focus = true ) { m_focusOnIdle = focus; }
 
 protected:
@@ -64,7 +64,7 @@ private:
     bool                    m_focusOnIdle;
 
 private:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 } // anonymous namespace
@@ -344,6 +344,7 @@ int wxDataViewModel::Compare( const wxDataViewItem &item1, const wxDataViewItem 
         else if (d1 > d2)
             return 1;
     }
+#if wxUSE_DATETIME
     else if (value1.GetType() == wxT("datetime"))
     {
         wxDateTime dt1 = value1.GetDateTime();
@@ -353,6 +354,7 @@ int wxDataViewModel::Compare( const wxDataViewItem &item1, const wxDataViewItem 
         if (dt2.IsEarlierThan(dt1))
             return 1;
     }
+#endif // wxUSE_DATETIME
     else if (value1.GetType() == wxT("bool"))
     {
         bool b1 = value1.GetBool();
@@ -636,7 +638,7 @@ unsigned int wxDataViewVirtualListModel::GetChildren( const wxDataViewItem &WXUN
 // wxDataViewIconText
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDataViewIconText,wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewIconText,wxObject);
 
 IMPLEMENT_VARIANT_OBJECT_EXPORTED(wxDataViewIconText, WXDLLIMPEXP_ADV)
 
@@ -644,7 +646,7 @@ IMPLEMENT_VARIANT_OBJECT_EXPORTED(wxDataViewIconText, WXDLLIMPEXP_ADV)
 // wxDataViewRendererBase
 // ---------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewRendererBase, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewRendererBase, wxObject);
 
 wxDataViewRendererBase::wxDataViewRendererBase( const wxString &varianttype,
                                                 wxDataViewCellMode WXUNUSED(mode),
@@ -679,11 +681,8 @@ bool wxDataViewRendererBase::StartEditing( const wxDataViewItem &item, wxRect la
     if( !start_event.IsAllowed() )
         return false;
 
-    m_item = item; // remember for later
-
     unsigned int col = GetOwner()->GetModelColumn();
-    wxVariant value;
-    dv_ctrl->GetModel()->GetValue( value, item, col );
+    const wxVariant& value = CheckedGetValue(dv_ctrl->GetModel(), item, col);
 
     m_editorCtrl = CreateEditorCtrl( dv_ctrl->GetMainWindow(), labelRect, value );
 
@@ -702,15 +701,23 @@ bool wxDataViewRendererBase::StartEditing( const wxDataViewItem &item, wxRect la
     m_editorCtrl->SetFocus();
 #endif
 
-    // Now we should send Editing Started event
+    return true;
+}
+
+void wxDataViewRendererBase::NotifyEditingStarted(const wxDataViewItem& item)
+{
+    // Remember the item being edited for use in FinishEditing() later.
+    m_item = item;
+
+    wxDataViewColumn* const column = GetOwner();
+    wxDataViewCtrl* const dv_ctrl = column->GetOwner();
+
     wxDataViewEvent event( wxEVT_DATAVIEW_ITEM_EDITING_STARTED, dv_ctrl->GetId() );
-    event.SetDataViewColumn( GetOwner() );
+    event.SetDataViewColumn( column );
     event.SetModel( dv_ctrl->GetModel() );
     event.SetItem( item );
     event.SetEventObject( dv_ctrl );
     dv_ctrl->GetEventHandler()->ProcessEvent( event );
-
-    return true;
 }
 
 void wxDataViewRendererBase::DestroyEditControl()
@@ -744,14 +751,19 @@ bool wxDataViewRendererBase::FinishEditing()
     if (!m_editorCtrl)
         return true;
 
+    // Try to get the value, normally we should succeed but if we fail, don't
+    // return immediately, we still need to destroy the edit control.
     wxVariant value;
-    GetValueFromEditorCtrl( m_editorCtrl, value );
+    const bool gotValue = GetValueFromEditorCtrl(m_editorCtrl, value);
 
     wxDataViewCtrl* dv_ctrl = GetOwner()->GetOwner();
 
     DestroyEditControl();
 
     dv_ctrl->GetMainWindow()->SetFocus();
+
+    if ( !gotValue )
+        return false;
 
     bool isValid = Validate(value);
     unsigned int col = GetOwner()->GetModelColumn();
@@ -767,28 +779,85 @@ bool wxDataViewRendererBase::FinishEditing()
     event.SetEventObject( dv_ctrl );
     dv_ctrl->GetEventHandler()->ProcessEvent( event );
 
+    bool accepted = false;
     if ( isValid && event.IsAllowed() )
     {
         dv_ctrl->GetModel()->ChangeValue(value, m_item, col);
-        return true;
+        accepted = true;
     }
 
-    return false;
+    m_item = wxDataViewItem();
+
+    return accepted;
 }
 
-void wxDataViewRendererBase::PrepareForItem(const wxDataViewModel *model,
-                                            const wxDataViewItem& item,
-                                            unsigned column)
+wxVariant
+wxDataViewRendererBase::CheckedGetValue(const wxDataViewModel* model,
+                                        const wxDataViewItem& item,
+                                        unsigned column) const
 {
     wxVariant value;
     model->GetValue(value, item, column);
+
+    // We always allow the cell to be null, regardless of the renderer type.
+    if ( !value.IsNull() )
+    {
+        if ( value.GetType() != GetVariantType() )
+        {
+            // If you're seeing this message, this indicates that either your
+            // renderer is using the wrong type, or your model returns values
+            // of the wrong type.
+            wxLogDebug("Wrong type returned from the model for column %u: "
+                       "%s required but actual type is %s",
+                       column,
+                       GetVariantType(),
+                       value.GetType());
+
+            // Don't return data of mismatching type, this could be unexpected.
+            value.MakeNull();
+        }
+    }
+
+    return value;
+}
+
+bool
+wxDataViewRendererBase::PrepareForItem(const wxDataViewModel *model,
+                                       const wxDataViewItem& item,
+                                       unsigned column)
+{
+    // Now check if we have a value and remember it for rendering it later.
+    // Notice that we do it even if it's null, as the cell should be empty then
+    // and not show the last used value.
+    const wxVariant& value = CheckedGetValue(model, item, column);
     SetValue(value);
 
-    wxDataViewItemAttr attr;
-    model->GetAttr(item, column, attr);
-    SetAttr(attr);
+    if ( !value.IsNull() )
+    {
+        // Also set up the attributes for this item if it's not empty.
+        wxDataViewItemAttr attr;
+        model->GetAttr(item, column, attr);
+        SetAttr(attr);
+    }
 
-    SetEnabled(model->IsEnabled(item, column));
+    // Finally determine the enabled/disabled state and apply it, even to the
+    // empty cells.
+    bool enabled = true;
+    switch ( GetMode() )
+    {
+        case wxDATAVIEW_CELL_INERT:
+            enabled = false;
+            break;
+
+        case wxDATAVIEW_CELL_ACTIVATABLE:
+        case wxDATAVIEW_CELL_EDITABLE:
+            enabled = model->IsEnabled(item, column);
+            break;
+    }
+
+    SetEnabled(enabled);
+
+    return true;
 }
 
 
@@ -921,41 +990,50 @@ wxDataViewCustomRendererBase::RenderText(const wxString& text,
                                          int xoffset,
                                          wxRect rect,
                                          wxDC *dc,
-                                         int WXUNUSED(state))
+                                         int state)
 {
     wxRect rectText = rect;
     rectText.x += xoffset;
     rectText.width -= xoffset;
 
-    // check if we want to ellipsize the text if it doesn't fit
-    wxString ellipsizedText;
-    if ( GetEllipsizeMode() != wxELLIPSIZE_NONE )
-    {
-        ellipsizedText = wxControl::Ellipsize
-                                    (
-                                        text,
-                                        *dc,
-                                        GetEllipsizeMode(),
-                                        rectText.width,
-                                        wxELLIPSIZE_FLAGS_NONE
-                                    );
-    }
+    int flags = 0;
+    if ( state & wxDATAVIEW_CELL_SELECTED )
+        flags |= wxCONTROL_SELECTED | wxCONTROL_FOCUSED;
+    if ( !GetOwner()->GetOwner()->IsEnabled() )
+        flags |= wxCONTROL_DISABLED;
 
-    // get the alignment to use
-    dc->DrawLabel(ellipsizedText.empty() ? text : ellipsizedText,
-                  rectText, GetEffectiveAlignment());
+    wxRendererNative::Get().DrawItemText(
+        GetOwner()->GetOwner(),
+        *dc,
+        text,
+        rectText,
+        GetEffectiveAlignment(),
+        flags,
+        GetEllipsizeMode());
+}
+
+void wxDataViewCustomRendererBase::SetEnabled(bool enabled)
+{
+    // The native base renderer needs to know about the enabled state as well
+    // but in the generic case the base class method is pure, so we can't just
+    // call it unconditionally.
+#ifndef wxHAS_GENERIC_DATAVIEWCTRL
+    wxDataViewRenderer::SetEnabled(enabled);
+#endif // !wxHAS_GENERIC_DATAVIEWCTRL
+
+    m_enabled = enabled;
 }
 
 //-----------------------------------------------------------------------------
 // wxDataViewEditorCtrlEvtHandler
 //-----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxDataViewEditorCtrlEvtHandler, wxEvtHandler)
+wxBEGIN_EVENT_TABLE(wxDataViewEditorCtrlEvtHandler, wxEvtHandler)
     EVT_CHAR           (wxDataViewEditorCtrlEvtHandler::OnChar)
     EVT_KILL_FOCUS     (wxDataViewEditorCtrlEvtHandler::OnKillFocus)
     EVT_IDLE           (wxDataViewEditorCtrlEvtHandler::OnIdle)
     EVT_TEXT_ENTER     (-1, wxDataViewEditorCtrlEvtHandler::OnTextEnter)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxDataViewEditorCtrlEvtHandler::OnIdle( wxIdleEvent &event )
 {
@@ -979,17 +1057,20 @@ void wxDataViewEditorCtrlEvtHandler::OnChar( wxKeyEvent &event )
 {
     switch ( event.m_keyCode )
     {
-        case WXK_RETURN:
-            m_finished = true;
-            m_owner->FinishEditing();
-            break;
-
         case WXK_ESCAPE:
-        {
             m_finished = true;
             m_owner->CancelEditing();
             break;
-        }
+
+        case WXK_RETURN:
+            if ( !event.HasAnyModifiers() )
+            {
+                m_finished = true;
+                m_owner->FinishEditing();
+                break;
+            }
+            wxFALLTHROUGH; // Ctrl/Alt/Shift-Enter is not handled specially
+
         default:
             event.Skip();
     }
@@ -1028,7 +1109,7 @@ wxDataViewColumnBase::~wxDataViewColumnBase()
 // wxDataViewCtrlBase
 // ---------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxDataViewCtrlBase, wxControl)
+wxIMPLEMENT_ABSTRACT_CLASS(wxDataViewCtrlBase, wxControl);
 
 wxDataViewCtrlBase::wxDataViewCtrlBase()
 {
@@ -1123,269 +1204,329 @@ wxDataViewItem wxDataViewCtrlBase::GetSelection() const
     return selections[0];
 }
 
+namespace
+{
+
+// Helper to account for inconsistent signature of wxDataViewProgressRenderer
+// ctor: it takes an extra "label" argument as first parameter, unlike all the
+// other renderers.
+template <typename Renderer>
+struct RendererFactory
+{
+    static Renderer*
+    New(wxDataViewCellMode mode, int align)
+    {
+        return new Renderer(Renderer::GetDefaultType(), mode, align);
+    }
+};
+
+template <>
+struct RendererFactory<wxDataViewProgressRenderer>
+{
+    static wxDataViewProgressRenderer*
+    New(wxDataViewCellMode mode, int align)
+    {
+        return new wxDataViewProgressRenderer(
+                        wxString(),
+                        wxDataViewProgressRenderer::GetDefaultType(),
+                        mode,
+                        align
+                    );
+    }
+};
+
+template <typename Renderer, typename LabelType>
+wxDataViewColumn*
+CreateColumnWithRenderer(const LabelType& label,
+                         unsigned model_column,
+                         wxDataViewCellMode mode,
+                         int width,
+                         wxAlignment align,
+                         int flags)
+{
+    // For compatibility reason, handle wxALIGN_NOT as wxDVR_DEFAULT_ALIGNMENT
+    // when creating the renderer here because a lot of existing code,
+    // including our own dataview sample, uses wxALIGN_NOT just because it's
+    // the default value of the alignment argument in AppendXXXColumn()
+    // methods, but this doesn't mean that it actually wants to top-align the
+    // column text.
+    //
+    // This does make it impossible to create top-aligned text using these
+    // functions, but it can always be done by creating the renderer with the
+    // desired alignment explicitly and should be so rarely needed in practice
+    // (without speaking that vertical alignment is completely unsupported in
+    // native OS X version), that it's preferable to do the right thing by
+    // default here rather than account for it.
+    return new wxDataViewColumn(
+                    label,
+                    RendererFactory<Renderer>::New(
+                        mode,
+                        align & wxALIGN_BOTTOM
+                            ? align
+                            : align | wxALIGN_CENTRE_VERTICAL
+                    ),
+                    model_column,
+                    width,
+                    align,
+                    flags
+                );
+}
+
+// Common implementation of all {Append,Prepend}XXXColumn() below.
+template <typename Renderer, typename LabelType>
+wxDataViewColumn*
+AppendColumnWithRenderer(wxDataViewCtrlBase* dvc,
+                         const LabelType& label,
+                         unsigned model_column,
+                         wxDataViewCellMode mode,
+                         int width,
+                         wxAlignment align,
+                         int flags)
+{
+    wxDataViewColumn* const
+        col = CreateColumnWithRenderer<Renderer>(
+                label, model_column, mode, width, align, flags
+            );
+
+    dvc->AppendColumn(col);
+    return col;
+}
+
+template <typename Renderer, typename LabelType>
+wxDataViewColumn*
+PrependColumnWithRenderer(wxDataViewCtrlBase* dvc,
+                          const LabelType& label,
+                          unsigned model_column,
+                          wxDataViewCellMode mode,
+                          int width,
+                          wxAlignment align,
+                          int flags)
+{
+    wxDataViewColumn* const
+        col = CreateColumnWithRenderer<Renderer>(
+                label, model_column, mode, width, align, flags
+            );
+
+    dvc->PrependColumn(col);
+    return col;
+}
+
+} // anonymous namespace
+
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendTextColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewTextRenderer( wxT("string"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendIconTextColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewIconTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendToggleColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewToggleRenderer( wxT("bool"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewToggleRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendProgressColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewProgressRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendDateColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewDateRenderer( wxT("datetime"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewDateRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendBitmapColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewBitmapRenderer( wxT("wxBitmap"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewBitmapRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendTextColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewTextRenderer( wxT("string"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendIconTextColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewIconTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendToggleColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewToggleRenderer( wxT("bool"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewToggleRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendProgressColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewProgressRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendDateColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewDateRenderer( wxT("datetime"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewDateRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::AppendBitmapColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewBitmapRenderer( wxT("wxBitmap"), mode ),
-        model_column, width, align, flags );
-    AppendColumn( ret );
-    return ret;
+    return AppendColumnWithRenderer<wxDataViewBitmapRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependTextColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewTextRenderer( wxT("string"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependIconTextColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewIconTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependToggleColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewToggleRenderer( wxT("bool"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewToggleRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependProgressColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewProgressRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependDateColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewDateRenderer( wxT("datetime"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewDateRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependBitmapColumn( const wxString &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewBitmapRenderer( wxT("wxBitmap"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewBitmapRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependTextColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewTextRenderer( wxT("string"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependIconTextColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewIconTextRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependToggleColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewToggleRenderer( wxT("bool"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewToggleRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependProgressColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewProgressRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependDateColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewDateRenderer( wxT("datetime"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewDateRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 wxDataViewColumn *
 wxDataViewCtrlBase::PrependBitmapColumn( const wxBitmap &label, unsigned int model_column,
                             wxDataViewCellMode mode, int width, wxAlignment align, int flags )
 {
-    wxDataViewColumn *ret = new wxDataViewColumn( label,
-        new wxDataViewBitmapRenderer( wxT("wxBitmap"), mode ),
-        model_column, width, align, flags );
-    PrependColumn( ret );
-    return ret;
+    return PrependColumnWithRenderer<wxDataViewBitmapRenderer>(
+                this, label, model_column, mode, width, align, flags
+            );
 }
 
 bool
@@ -1418,7 +1559,7 @@ void wxDataViewCtrlBase::StartEditor(const wxDataViewItem& item, unsigned int co
 // wxDataViewEvent
 // ---------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDataViewEvent,wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewEvent,wxNotifyEvent);
 
 wxDEFINE_EVENT( wxEVT_DATAVIEW_SELECTION_CHANGED, wxDataViewEvent );
 
@@ -1446,6 +1587,7 @@ wxDEFINE_EVENT( wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, wxDataViewEvent );
 wxDEFINE_EVENT( wxEVT_DATAVIEW_ITEM_DROP, wxDataViewEvent );
 
 
+#if wxUSE_SPINCTRL
 
 // -------------------------------------
 // wxDataViewSpinRenderer
@@ -1461,16 +1603,12 @@ wxDataViewSpinRenderer::wxDataViewSpinRenderer( int min, int max, wxDataViewCell
 wxWindow* wxDataViewSpinRenderer::CreateEditorCtrl( wxWindow *parent, wxRect labelRect, const wxVariant &value )
 {
     long l = value;
-    wxSize size = labelRect.GetSize();
-#ifdef __WXMAC__
-    size = wxSize( wxMax(70,labelRect.width ), -1 );
-#endif
     wxString str;
     str.Printf( wxT("%d"), (int) l );
     wxSpinCtrl *sc = new wxSpinCtrl( parent, wxID_ANY, str,
-               labelRect.GetTopLeft(), size, wxSP_ARROW_KEYS|wxTE_PROCESS_ENTER, m_min, m_max, l );
+               labelRect.GetTopLeft(), labelRect.GetSize(), wxSP_ARROW_KEYS|wxTE_PROCESS_ENTER, m_min, m_max, l );
 #ifdef __WXMAC__
-    size = sc->GetSize();
+    const wxSize size = sc->GetSize();
     wxPoint pt = sc->GetPosition();
     sc->SetSize( pt.x - 4, pt.y - 4, size.x, size.y );
 #endif
@@ -1519,11 +1657,13 @@ bool wxDataViewSpinRenderer::GetValue( wxVariant &value ) const
     return true;
 }
 
+#endif // wxUSE_SPINCTRL
+
 // -------------------------------------
 // wxDataViewChoiceRenderer
 // -------------------------------------
 
-#if defined(wxHAS_GENERIC_DATAVIEWCTRL) || defined(__WXOSX_CARBON__)
+#if defined(wxHAS_GENERIC_DATAVIEWCTRL)
 
 wxDataViewChoiceRenderer::wxDataViewChoiceRenderer( const wxArrayString& choices, wxDataViewCellMode mode, int alignment ) :
    wxDataViewCustomRenderer(wxT("string"), mode, alignment )
@@ -1829,11 +1969,11 @@ bool wxDataViewListStore::SetValueByRow( const wxVariant &value, unsigned int ro
 // wxDataViewListCtrl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDataViewListCtrl,wxDataViewCtrl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewListCtrl,wxDataViewCtrl);
 
-BEGIN_EVENT_TABLE(wxDataViewListCtrl,wxDataViewCtrl)
+wxBEGIN_EVENT_TABLE(wxDataViewListCtrl,wxDataViewCtrl)
    EVT_SIZE( wxDataViewListCtrl::OnSize )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 wxDataViewListCtrl::wxDataViewListCtrl()
 {
@@ -1885,17 +2025,17 @@ bool wxDataViewListCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *colum
 
 bool wxDataViewListCtrl::PrependColumn( wxDataViewColumn *col )
 {
-    return PrependColumn( col, "string" );
+    return PrependColumn( col, col->GetRenderer()->GetVariantType() );
 }
 
 bool wxDataViewListCtrl::InsertColumn( unsigned int pos, wxDataViewColumn *col )
 {
-    return InsertColumn( pos, col, "string" );
+    return InsertColumn( pos, col, col->GetRenderer()->GetVariantType() );
 }
 
 bool wxDataViewListCtrl::AppendColumn( wxDataViewColumn *col )
 {
-    return AppendColumn( col, "string" );
+    return AppendColumn( col, col->GetRenderer()->GetVariantType() );
 }
 
 bool wxDataViewListCtrl::ClearColumns()
@@ -1927,9 +2067,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendToggleColumn( const wxString &label,
         new wxDataViewToggleRenderer( wxT("bool"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendProgressColumn( const wxString &label,
@@ -1941,9 +2079,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendProgressColumn( const wxString &labe
         new wxDataViewProgressRenderer( wxEmptyString, wxT("long"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 wxDataViewColumn *wxDataViewListCtrl::AppendIconTextColumn( const wxString &label,
@@ -1955,9 +2091,7 @@ wxDataViewColumn *wxDataViewListCtrl::AppendIconTextColumn( const wxString &labe
         new wxDataViewIconTextRenderer( wxT("wxDataViewIconText"), mode ),
         GetStore()->GetColumnCount()-1, width, align, flags );
 
-    wxDataViewCtrl::AppendColumn( ret );
-
-    return ret;
+    return wxDataViewCtrl::AppendColumn( ret ) ? ret : NULL;
 }
 
 void wxDataViewListCtrl::OnSize( wxSizeEvent &event )
@@ -2361,13 +2495,13 @@ wxDataViewTreeStoreContainerNode *wxDataViewTreeStore::FindContainerNode( const 
 // wxDataViewTreeCtrl
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDataViewTreeCtrl,wxDataViewCtrl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDataViewTreeCtrl,wxDataViewCtrl);
 
-BEGIN_EVENT_TABLE(wxDataViewTreeCtrl,wxDataViewCtrl)
+wxBEGIN_EVENT_TABLE(wxDataViewTreeCtrl,wxDataViewCtrl)
    EVT_DATAVIEW_ITEM_EXPANDED(-1, wxDataViewTreeCtrl::OnExpanded)
    EVT_DATAVIEW_ITEM_COLLAPSED(-1, wxDataViewTreeCtrl::OnCollapsed)
    EVT_SIZE( wxDataViewTreeCtrl::OnSize )
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 bool wxDataViewTreeCtrl::Create( wxWindow *parent, wxWindowID id,
            const wxPoint& pos, const wxSize& size, long style, const wxValidator& validator )

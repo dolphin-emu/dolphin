@@ -50,6 +50,8 @@ public:
     // in a single line text control
     virtual void SetMaxLength(unsigned long len);
 
+    virtual void ForceUpper();
+
     // writing text inserts it at the current position;
     // appending always inserts it at the end
     virtual void WriteText(const wxString& text);

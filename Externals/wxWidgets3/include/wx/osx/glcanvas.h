@@ -29,13 +29,18 @@ WXDLLIMPEXP_GL void WXGLDestroyContext( WXGLContext context );
 WXDLLIMPEXP_GL WXGLContext WXGLGetCurrentContext();
 WXDLLIMPEXP_GL bool WXGLSetCurrentContext(WXGLContext context);
 
-WXDLLIMPEXP_GL WXGLPixelFormat WXGLChoosePixelFormat(const int *attribList);
+WXDLLIMPEXP_GL WXGLPixelFormat WXGLChoosePixelFormat(const int *GLAttrs = NULL,
+                                                     int n1 = 0,
+                                                     const int *ctxAttrs = NULL,
+                                                     int n2 = 0);
 WXDLLIMPEXP_GL void WXGLDestroyPixelFormat( WXGLPixelFormat pixelFormat );
 
 class WXDLLIMPEXP_GL wxGLContext : public wxGLContextBase
 {
 public:
-    wxGLContext(wxGLCanvas *win, const wxGLContext *other = NULL);
+    wxGLContext(wxGLCanvas *win,
+                const wxGLContext *other = NULL,
+                const wxGLContextAttrs *ctxAttrs = NULL);
     virtual ~wxGLContext();
 
     virtual bool SetCurrent(const wxGLCanvas& win) const;
@@ -53,6 +58,15 @@ class WXDLLIMPEXP_GL wxGLCanvas : public wxGLCanvasBase
 {
 public:
     wxGLCanvas(wxWindow *parent,
+               const wxGLAttributes& dispAttrs,
+               wxWindowID id = wxID_ANY,
+               const wxPoint& pos = wxDefaultPosition,
+               const wxSize& size = wxDefaultSize,
+               long style = 0,
+               const wxString& name = wxGLCanvasName,
+               const wxPalette& palette = wxNullPalette);
+
+    wxGLCanvas(wxWindow *parent,
                wxWindowID id = wxID_ANY,
                const int *attribList = NULL,
                const wxPoint& pos = wxDefaultPosition,
@@ -60,6 +74,15 @@ public:
                long style = 0,
                const wxString& name = wxGLCanvasName,
                const wxPalette& palette = wxNullPalette);
+
+    bool Create(wxWindow *parent,
+                const wxGLAttributes& dispAttrs,
+                wxWindowID id = wxID_ANY,
+                const wxPoint& pos = wxDefaultPosition,
+                const wxSize& size = wxDefaultSize,
+                long style = 0,
+                const wxString& name = wxGLCanvasName,
+                const wxPalette& palette = wxNullPalette);
 
     bool Create(wxWindow *parent,
                 wxWindowID id = wxID_ANY,
@@ -73,7 +96,7 @@ public:
     virtual ~wxGLCanvas();
 
     // implement wxGLCanvasBase methods
-    virtual bool SwapBuffers();
+    virtual bool SwapBuffers() wxOVERRIDE;
 
 
     // Mac-specific functions
@@ -84,6 +107,9 @@ public:
 
     // return the pixel format used by this window
     WXGLPixelFormat GetWXGLPixelFormat() const { return m_glFormat; }
+
+    // Return the copy of attributes passed at ctor
+    wxGLAttributes& GetGLDispAttrs() { return m_GLAttrs; }
 
     // update the view port of the current context to match this window
     void SetViewport();
@@ -131,32 +157,12 @@ public:
 
     // implementation-only from now on
 
-#if wxOSX_USE_CARBON
-    // Unlike some other platforms, this must get called if you override it,
-    // i.e. don't forget "event.Skip()" in your EVT_SIZE handler
-    void OnSize(wxSizeEvent& event);
-
-    virtual void MacSuperChangedPosition();
-    virtual void MacTopLevelWindowChangedPosition();
-    virtual void MacVisibilityChanged();
-
-    void MacUpdateView();
-
-    GLint GetAglBufferName() const { return m_bufferName; }
-#endif
-
 protected:
     WXGLPixelFormat m_glFormat;
+    wxGLAttributes m_GLAttrs;
 
-#if wxOSX_USE_CARBON
-    bool m_macCanvasIsShown,
-         m_needsUpdate;
-    WXGLContext m_dummyContext;
-    GLint m_bufferName;
-#endif
-
-    DECLARE_EVENT_TABLE()
-    DECLARE_CLASS(wxGLCanvas)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_CLASS(wxGLCanvas);
 };
 
 #endif // _WX_GLCANVAS_H_

@@ -70,21 +70,19 @@ public:
     // operations
     // ----------
 
-#ifndef __WXWINCE__
     // create a bitmap compatible with the given HDC (or screen by default) and
     // return its handle, the caller is responsible for freeing it (using
     // DeleteObject())
     HBITMAP CreateDDB(HDC hdc = 0) const;
-#endif // !__WXWINCE__
 
     // get the handle from the DIB and reset it, i.e. this object won't destroy
     // the DIB after this (but the caller should do it)
     HBITMAP Detach() { HBITMAP hbmp = m_handle; m_handle = 0; return hbmp; }
 
-#if wxUSE_PALETTE
+#if defined(__WXMSW__) && wxUSE_PALETTE
     // create a palette for this DIB (always a trivial/default one for 24bpp)
     wxPalette *CreatePalette() const;
-#endif // wxUSE_PALETTE
+#endif // defined(__WXMSW__) && wxUSE_PALETTE
 
     // save the DIB as a .BMP file to the file with the given name
     bool Save(const wxString& filename);
@@ -119,7 +117,6 @@ public:
     // these functions are only used by wxWidgets internally right now, please
     // don't use them directly if possible as they're subject to change
 
-#ifndef __WXWINCE__
     // creates a DDB compatible with the given (or screen) DC from either
     // a plain DIB or a DIB section (in which case the last parameter must be
     // non NULL)
@@ -137,7 +134,6 @@ public:
     // function (this overload is needed for wxBitmapDataObject code in
     // src/msw/ole/dataobj.cpp)
     static size_t ConvertFromBitmap(BITMAPINFO *pbi, HBITMAP hbmp);
-#endif // __WXWINCE__
 
 
     // wxImage conversion
@@ -168,7 +164,18 @@ public:
     bool Create(const wxImage& image, PixelFormat pf = PixelFormat_PreMultiplied);
 
     // create wxImage having the same data as this DIB
-    wxImage ConvertToImage() const;
+
+    // Possible options of conversion to wxImage
+    enum ConversionFlags
+    {
+        // Determine whether 32bpp DIB contains real alpha channel
+        // and return wxImage with or without alpha channel values.
+        Convert_AlphaAuto,
+        // Assume that 32bpp DIB contains valid alpha channel and always
+        // return wxImage with alpha channel values in this case.
+        Convert_AlphaAlwaysIf32bpp
+    };
+    wxImage ConvertToImage(ConversionFlags flags = Convert_AlphaAuto) const;
 #endif // wxUSE_IMAGE
 
 

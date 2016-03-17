@@ -259,8 +259,9 @@ wxBoxSizer* TASInputDlg::CreateCCLayout()
 	cc_buttons_dpad->AddSpacer(20);
 
 
-	for (auto button : m_cc_buttons)
-		cc_buttons_grid->Add(button.checkbox);
+	for (auto& button : m_cc_buttons)
+		if (!button.checkbox->GetContainingSizer())
+			cc_buttons_grid->Add(button.checkbox);
 	cc_buttons_grid->AddSpacer(5);
 
 	cc_buttons_box->Add(cc_buttons_grid);
@@ -418,8 +419,8 @@ wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxStrin
 	temp_stick_box->Add(temp_xslider_box);
 	temp_stick_box->Add(tempStick->bitmap, 0, wxALL | wxALIGN_CENTER, 3);
 	temp_box->Add(temp_stick_box);
-	temp_yslider_box->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-	temp_yslider_box->Add(tempStick->y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
+	temp_yslider_box->Add(tempStick->y_cont.slider);
+	temp_yslider_box->Add(tempStick->y_cont.text);
 	temp_box->Add(temp_yslider_box);
 	return temp_box;
 }
@@ -431,12 +432,12 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
 	wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
 	wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
 
-	xBox->Add(x->slider, 0, wxALIGN_CENTER_VERTICAL);
-	xBox->Add(x->text, 0, wxALIGN_CENTER_VERTICAL);
-	yBox->Add(y->slider, 0, wxALIGN_CENTER_VERTICAL);
-	yBox->Add(y->text, 0, wxALIGN_CENTER_VERTICAL);
-	zBox->Add(z->slider, 0, wxALIGN_CENTER_VERTICAL);
-	zBox->Add(z->text, 0, wxALIGN_CENTER_VERTICAL);
+	xBox->Add(x->slider);
+	xBox->Add(x->text);
+	yBox->Add(y->slider);
+	yBox->Add(y->text);
+	zBox->Add(z->slider);
+	zBox->Add(z->text);
 	temp_box->Add(xBox, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
 	temp_box->Add(yBox, 0, wxRIGHT, 5);
 	temp_box->Add(zBox, 0, wxRIGHT, 5);

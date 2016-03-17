@@ -35,6 +35,7 @@
 #endif
 
 #include "wx/msw/private.h"
+#include "wx/msw/dib.h"
 
 #include "wx/sysopt.h"
 
@@ -123,7 +124,6 @@ bool wxStaticBitmap::Create(wxWindow *parent,
     // painting manually is reported not to work under Windows CE (see #10093),
     // so don't do it there even if this probably means that alpha is not
     // supported there -- but at least bitmaps without alpha appear correctly
-#ifndef __WXWINCE__
     // Windows versions before XP (and even XP if the application has no
     // manifest and so the old comctl32.dll is used) don't draw correctly the
     // images with alpha channel so we need to draw them ourselves and it's
@@ -133,7 +133,6 @@ bool wxStaticBitmap::Create(wxWindow *parent,
     {
         Connect(wxEVT_PAINT, wxPaintEventHandler(wxStaticBitmap::DoPaintManually));
     }
-#endif // !__WXWINCE__
 
     return true;
 }
@@ -187,8 +186,29 @@ wxBitmap wxStaticBitmap::GetBitmap() const
     }
 }
 
+void wxStaticBitmap::Init()
+{
+    m_isIcon = true;
+    m_image = NULL;
+    m_currentHandle = 0;
+    m_ownsCurrentHandle = false;
+}
+
+void wxStaticBitmap::DeleteCurrentHandleIfNeeded()
+{
+    if ( m_ownsCurrentHandle )
+    {
+        ::DeleteObject(m_currentHandle);
+        m_ownsCurrentHandle = false;
+    }
+}
+
 void wxStaticBitmap::Free()
 {
+    MSWReplaceImageHandle(0);
+
+    DeleteCurrentHandleIfNeeded();
+
     wxDELETE(m_image);
 }
 
@@ -218,8 +238,6 @@ void wxStaticBitmap::WXHandleSize(wxSizeEvent& event)
     event.Skip();
 }
 
-#ifndef __WXWINCE__
-
 void wxStaticBitmap::DoPaintManually(wxPaintEvent& WXUNUSED(event))
 {
     wxPaintDC dc(this);
@@ -242,12 +260,23 @@ void wxStaticBitmap::DoPaintManually(wxPaintEvent& WXUNUSED(event))
                   true /* use mask */);
 }
 
-#endif // !__WXWINCE__
-
 void wxStaticBitmap::SetImage( const wxGDIImage* image )
 {
     wxGDIImage* convertedImage = ConvertImage( *image );
     SetImageNoCopy( convertedImage );
+}
+
+void wxStaticBitmap::MSWReplaceImageHandle(WXLPARAM handle)
+{
+    HGDIOBJ oldHandle = (HGDIOBJ)::SendMessage(GetHwnd(), STM_SETIMAGE,
+                  m_isIcon ? IMAGE_ICON : IMAGE_BITMAP, (LPARAM)handle);
+    // detect if this is still the handle we passed before or
+    // if the static-control made a copy of the bitmap!
+    if (oldHandle != 0 && oldHandle != (HGDIOBJ) m_currentHandle)
+    {
+        // the static control made a copy and we are responsible for deleting it
+        ::DeleteObject((HGDIOBJ) oldHandle);
+    }
 }
 
 void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
@@ -264,22 +293,39 @@ void wxStaticBitmap::SetImageNoCopy( wxGDIImage* image)
     GetPosition(&x, &y);
     GetSize(&w, &h);
 
-#ifdef __WIN32__
-    HANDLE handle = (HANDLE)m_image->GetHandle();
+    // Normally we just use the handle of provided image but in some cases we
+    // create our own temporary bitmap, so the actual handle may end up being
+    // different from the original one.
+    const HANDLE handleOrig = (HANDLE)m_image->GetHandle();
+    HANDLE handle = handleOrig;
+
+#if wxUSE_WXDIB
+    if ( !m_isIcon )
+    {
+        // wxBitmap normally stores alpha in pre-multiplied format but
+        // apparently STM_SETIMAGE message handler does pre-multiplication
+        // internally so we need to undo the pre-multiplication here for a
+        // while (this is similar to what we do in ImageList::Add()).
+        const wxBitmap& bmp = static_cast<wxBitmap&>(*image);
+        if ( bmp.HasAlpha() )
+        {
+            // For bitmap with alpha channel create temporary DIB with
+            // not-premultiplied alpha values.
+            handle = wxDIB(bmp.ConvertToImage(),
+                           wxDIB::PixelFormat_NotPreMultiplied).Detach();
+        }
+    }
+#endif // wxUSE_WXDIB
     LONG style = ::GetWindowLong( (HWND)GetHWND(), GWL_STYLE ) ;
     ::SetWindowLong( (HWND)GetHWND(), GWL_STYLE, ( style & ~( SS_BITMAP|SS_ICON ) ) |
                      ( m_isIcon ? SS_ICON : SS_BITMAP ) );
-    HGDIOBJ oldHandle = (HGDIOBJ)::SendMessage(GetHwnd(), STM_SETIMAGE,
-                  m_isIcon ? IMAGE_ICON : IMAGE_BITMAP, (LPARAM)handle);
-    // detect if this is still the handle we passed before or
-    // if the static-control made a copy of the bitmap!
-    if (m_currentHandle != 0 && oldHandle != (HGDIOBJ) m_currentHandle)
-    {
-        // the static control made a copy and we are responsible for deleting it
-        DeleteObject((HGDIOBJ) oldHandle);
-    }
+
+    MSWReplaceImageHandle((WXLPARAM)handle);
+
+    DeleteCurrentHandleIfNeeded();
+
     m_currentHandle = (WXHANDLE)handle;
-#endif // Win32
+    m_ownsCurrentHandle = handle != handleOrig;
 
     if ( ImageIsOk() )
     {

@@ -87,7 +87,7 @@ wxEND_FLAGS( wxNotebookStyle )
 
 WX_DEFINE_LIST( wxNotebookPageInfoList )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebookPageInfo, wxObject, "wx/notebook.h" )
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebookPageInfo, wxObject, "wx/notebook.h");
 
 wxCOLLECTION_TYPE_INFO( wxNotebookPageInfo *, wxNotebookPageInfoList );
 
@@ -137,7 +137,7 @@ const wxNotebookPageInfoList& wxNotebookBase::GetPageInfos() const
 
 #endif
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebook, wxBookCtrlBase, "wx/notebook.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxNotebook, wxBookCtrlBase, "wx/notebook.h");
 wxBEGIN_PROPERTIES_TABLE(wxNotebook)
 wxEVENT_PROPERTY( PageChanging, wxEVT_NOTEBOOK_PAGE_CHANGING, wxNotebookEvent )
 wxEVENT_PROPERTY( PageChanged, wxEVT_NOTEBOOK_PAGE_CHANGED, wxNotebookEvent )

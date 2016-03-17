@@ -123,10 +123,6 @@ private:
     // This cryptic expression means "typedef Ops to wxVectorMemOpsMovable if
     // type T is movable type, otherwise to wxVectorMemOpsGeneric".
     //
-    // Note that we use typedef instead of privately deriving from this (which
-    // would allowed us to omit "Ops::" prefixes below) to keep VC6 happy,
-    // it can't compile code that derives from wxIf<...>::value.
-    //
     // Note that bcc needs the extra parentheses for non-type template
     // arguments to compile this expression.
     typedef typename wxIf< (wxIsMovable<T>::value),
@@ -494,9 +490,8 @@ public:
 #endif // WXWIN_COMPATIBILITY_2_8
 
 private:
-    // VC6 can't compile static const int members
-    enum { ALLOC_INITIAL_SIZE = 16 };
-    enum { ALLOC_MAX_SIZE = 4096 };
+    static const size_type ALLOC_INITIAL_SIZE = 16;
+    static const size_type ALLOC_MAX_SIZE = 4096;
 
     void Copy(const wxVector& vb)
     {

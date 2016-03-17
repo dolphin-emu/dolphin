@@ -126,6 +126,8 @@ public:
     virtual bool SetHint(const wxString& hint);
 #endif // wxUSE_UXTHEME
 
+    virtual void SetLayoutDirection(wxLayoutDirection dir) wxOVERRIDE;
+
 protected:
 #if wxUSE_TOOLTIPS
     virtual void DoSetToolTip(wxToolTip *tip);
@@ -165,8 +167,8 @@ private:
     // normally true, false if text events are currently disabled
     bool m_allowTextEvents;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxComboBox)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxComboBox);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // wxUSE_COMBOBOX

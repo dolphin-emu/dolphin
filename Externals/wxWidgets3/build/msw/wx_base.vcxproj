@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -14,6 +14,8 @@
     <ClInclude Include="..\..\include\wx\aboutdlg.h" />
     <ClInclude Include="..\..\include\wx\accel.h" />
     <ClInclude Include="..\..\include\wx\access.h" />
+    <ClInclude Include="..\..\include\wx\activityindicator.h" />
+    <ClInclude Include="..\..\include\wx\addremovectrl.h" />
     <ClInclude Include="..\..\include\wx\affinematrix2d.h" />
     <ClInclude Include="..\..\include\wx\affinematrix2dbase.h" />
     <ClInclude Include="..\..\include\wx\afterstd.h" />
@@ -24,11 +26,23 @@
     <ClInclude Include="..\..\include\wx\anybutton.h" />
     <ClInclude Include="..\..\include\wx\anystr.h" />
     <ClInclude Include="..\..\include\wx\app.h" />
+    <ClInclude Include="..\..\include\wx\appprogress.h" />
     <ClInclude Include="..\..\include\wx\apptrait.h" />
     <ClInclude Include="..\..\include\wx\archive.h" />
     <ClInclude Include="..\..\include\wx\arrstr.h" />
     <ClInclude Include="..\..\include\wx\artprov.h" />
     <ClInclude Include="..\..\include\wx\atomic.h" />
+    <ClInclude Include="..\..\include\wx\aui\aui.h" />
+    <ClInclude Include="..\..\include\wx\aui\auibar.h" />
+    <ClInclude Include="..\..\include\wx\aui\auibook.h" />
+    <ClInclude Include="..\..\include\wx\aui\barartmsw.h" />
+    <ClInclude Include="..\..\include\wx\aui\dockart.h" />
+    <ClInclude Include="..\..\include\wx\aui\floatpane.h" />
+    <ClInclude Include="..\..\include\wx\aui\framemanager.h" />
+    <ClInclude Include="..\..\include\wx\aui\tabart.h" />
+    <ClInclude Include="..\..\include\wx\aui\tabartgtk.h" />
+    <ClInclude Include="..\..\include\wx\aui\tabartmsw.h" />
+    <ClInclude Include="..\..\include\wx\aui\tabmdi.h" />
     <ClInclude Include="..\..\include\wx\bannerwindow.h" />
     <ClInclude Include="..\..\include\wx\base64.h" />
     <ClInclude Include="..\..\include\wx\beforestd.h" />
@@ -41,7 +55,6 @@
     <ClInclude Include="..\..\include\wx\build.h" />
     <ClInclude Include="..\..\include\wx\busyinfo.h" />
     <ClInclude Include="..\..\include\wx\button.h" />
-    <ClInclude Include="..\..\include\wx\cairo.h" />
     <ClInclude Include="..\..\include\wx\calctrl.h" />
     <ClInclude Include="..\..\include\wx\caret.h" />
     <ClInclude Include="..\..\include\wx\chartype.h" />
@@ -59,6 +72,7 @@
     <ClInclude Include="..\..\include\wx\cmdline.h" />
     <ClInclude Include="..\..\include\wx\cmdproc.h" />
     <ClInclude Include="..\..\include\wx\cmndata.h" />
+    <ClInclude Include="..\..\include\wx\collheaderctrl.h" />
     <ClInclude Include="..\..\include\wx\collpane.h" />
     <ClInclude Include="..\..\include\wx\colordlg.h" />
     <ClInclude Include="..\..\include\wx\colour.h" />
@@ -161,6 +175,7 @@
     <ClInclude Include="..\..\include\wx\gdiobj.h" />
     <ClInclude Include="..\..\include\wx\generic\aboutdlgg.h" />
     <ClInclude Include="..\..\include\wx\generic\accel.h" />
+    <ClInclude Include="..\..\include\wx\generic\activityindicator.h" />
     <ClInclude Include="..\..\include\wx\generic\animate.h" />
     <ClInclude Include="..\..\include\wx\generic\bmpcbox.h" />
     <ClInclude Include="..\..\include\wx\generic\busyinfo.h" />
@@ -169,6 +184,7 @@
     <ClInclude Include="..\..\include\wx\generic\caret.h" />
     <ClInclude Include="..\..\include\wx\generic\choicdgg.h" />
     <ClInclude Include="..\..\include\wx\generic\clrpickerg.h" />
+    <ClInclude Include="..\..\include\wx\generic\collheaderctrl.h" />
     <ClInclude Include="..\..\include\wx\generic\collpaneg.h" />
     <ClInclude Include="..\..\include\wx\generic\colour.h" />
     <ClInclude Include="..\..\include\wx\generic\colrdlgg.h" />
@@ -212,6 +228,15 @@
     <ClInclude Include="..\..\include\wx\generic\paletteg.h" />
     <ClInclude Include="..\..\include\wx\generic\panelg.h" />
     <ClInclude Include="..\..\include\wx\generic\printps.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\addremovectrl.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\grid.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\listctrl.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\markuptext.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\notifmsg.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\richtooltip.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\textmeasure.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\timer.h" />
+    <ClInclude Include="..\..\include\wx\generic\private\widthcalc.h" />
     <ClInclude Include="..\..\include\wx\generic\prntdlgg.h" />
     <ClInclude Include="..\..\include\wx\generic\progdlgg.h" />
     <ClInclude Include="..\..\include\wx\generic\propdlg.h" />
@@ -308,6 +333,7 @@
     <ClInclude Include="..\..\include\wx\msw\accel.h" />
     <ClInclude Include="..\..\include\wx\msw\anybutton.h" />
     <ClInclude Include="..\..\include\wx\msw\app.h" />
+    <ClInclude Include="..\..\include\wx\msw\appprogress.h" />
     <ClInclude Include="..\..\include\wx\msw\apptbase.h" />
     <ClInclude Include="..\..\include\wx\msw\apptrait.h" />
     <ClInclude Include="..\..\include\wx\msw\bitmap.h" />
@@ -377,16 +403,13 @@
     <ClInclude Include="..\..\include\wx\msw\menu.h" />
     <ClInclude Include="..\..\include\wx\msw\menuitem.h" />
     <ClInclude Include="..\..\include\wx\msw\metafile.h" />
-    <ClInclude Include="..\..\include\wx\msw\microwin.h" />
     <ClInclude Include="..\..\include\wx\msw\mimetype.h" />
     <ClInclude Include="..\..\include\wx\msw\minifram.h" />
     <ClInclude Include="..\..\include\wx\msw\missing.h" />
     <ClInclude Include="..\..\include\wx\msw\msgdlg.h" />
-    <ClInclude Include="..\..\include\wx\msw\mslu.h" />
     <ClInclude Include="..\..\include\wx\msw\msvcrt.h" />
     <ClInclude Include="..\..\include\wx\msw\nonownedwnd.h" />
     <ClInclude Include="..\..\include\wx\msw\notebook.h" />
-    <ClInclude Include="..\..\include\wx\msw\notifmsg.h" />
     <ClInclude Include="..\..\include\wx\msw\ole\access.h" />
     <ClInclude Include="..\..\include\wx\msw\ole\activex.h" />
     <ClInclude Include="..\..\include\wx\msw\ole\automtn.h" />
@@ -397,6 +420,7 @@
     <ClInclude Include="..\..\include\wx\msw\ole\droptgt.h" />
     <ClInclude Include="..\..\include\wx\msw\ole\oleutils.h" />
     <ClInclude Include="..\..\include\wx\msw\ole\uuid.h" />
+    <ClInclude Include="..\..\include\wx\msw\ownerdrawnbutton.h" />
     <ClInclude Include="..\..\include\wx\msw\ownerdrw.h" />
     <ClInclude Include="..\..\include\wx\msw\palette.h" />
     <ClInclude Include="..\..\include\wx\msw\panel.h" />
@@ -409,6 +433,7 @@
     <ClInclude Include="..\..\include\wx\msw\private\comptr.h" />
     <ClInclude Include="..\..\include\wx\msw\private\datecontrols.h" />
     <ClInclude Include="..\..\include\wx\msw\private\dc.h" />
+    <ClInclude Include="..\..\include\wx\msw\private\event.h" />
     <ClInclude Include="..\..\include\wx\msw\private\fswatcher.h" />
     <ClInclude Include="..\..\include\wx\msw\private\hiddenwin.h" />
     <ClInclude Include="..\..\include\wx\msw\private\keyboard.h" />
@@ -447,6 +472,7 @@
     <ClInclude Include="..\..\include\wx\msw\stdpaths.h" />
     <ClInclude Include="..\..\include\wx\msw\subwin.h" />
     <ClInclude Include="..\..\include\wx\msw\taskbar.h" />
+    <ClInclude Include="..\..\include\wx\msw\taskbarbutton.h" />
     <ClInclude Include="..\..\include\wx\msw\textctrl.h" />
     <ClInclude Include="..\..\include\wx\msw\textentry.h" />
     <ClInclude Include="..\..\include\wx\msw\tglbtn.h" />
@@ -522,7 +548,6 @@
     <ClInclude Include="..\..\include\wx\scrolwin.h" />
     <ClInclude Include="..\..\include\wx\selstore.h" />
     <ClInclude Include="..\..\include\wx\settings.h" />
-    <ClInclude Include="..\..\include\wx\setup_gccxml.h" />
     <ClInclude Include="..\..\include\wx\setup_inc.h" />
     <ClInclude Include="..\..\include\wx\setup_redirect.h" />
     <ClInclude Include="..\..\include\wx\sharedptr.h" />
@@ -628,23 +653,6 @@
     <ClInclude Include="..\..\include\wx\wxcrtvararg.h" />
     <ClInclude Include="..\..\include\wx\wxhtml.h" />
     <ClInclude Include="..\..\include\wx\wxprec.h" />
-    <ClInclude Include="..\..\include\wx\wxshlba_cw.h" />
-    <ClInclude Include="..\..\include\wx\wxshlba_cwc.h" />
-    <ClInclude Include="..\..\include\wx\wxshlba_cwc_d.h" />
-    <ClInclude Include="..\..\include\wx\wxshlba_cw_d.h" />
-    <ClInclude Include="..\..\include\wx\wxshlb_cw.h" />
-    <ClInclude Include="..\..\include\wx\wxshlb_cwc.h" />
-    <ClInclude Include="..\..\include\wx\wxshlb_cwc_d.h" />
-    <ClInclude Include="..\..\include\wx\wxshlb_cw_d.h" />
-    <ClInclude Include="..\..\include\wx\wx_cw.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwc.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa_cm.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwcocoa_d.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwc_d.h" />
-    <ClInclude Include="..\..\include\wx\wx_cwu_d.h" />
-    <ClInclude Include="..\..\include\wx\wx_cw_cm.h" />
-    <ClInclude Include="..\..\include\wx\wx_cw_d.h" />
     <ClInclude Include="..\..\include\wx\xlocale.h" />
     <ClInclude Include="..\..\include\wx\xpmdecod.h" />
     <ClInclude Include="..\..\include\wx\xpmhand.h" />
@@ -670,15 +678,21 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\aui\auibar.cpp" />
     <ClCompile Include="..\..\src\aui\auibook.cpp" />
+    <ClCompile Include="..\..\src\aui\barartmsw.cpp" />
     <ClCompile Include="..\..\src\aui\dockart.cpp" />
     <ClCompile Include="..\..\src\aui\floatpane.cpp" />
     <ClCompile Include="..\..\src\aui\framemanager.cpp" />
     <ClCompile Include="..\..\src\aui\tabart.cpp" />
+    <ClCompile Include="..\..\src\aui\tabartgtk.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\aui\tabartmsw.cpp" />
     <ClCompile Include="..\..\src\aui\tabmdi.cpp" />
     <ClCompile Include="..\..\src\common\accelcmn.cpp" />
     <ClCompile Include="..\..\src\common\accesscmn.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\src\common\addremovectrl.cpp" />
     <ClCompile Include="..\..\src\common\affinematrix2d.cpp" />
     <ClCompile Include="..\..\src\common\anidecod.cpp" />
     <ClCompile Include="..\..\src\common\animatecmn.cpp" />
@@ -710,7 +724,9 @@
     <ClCompile Include="..\..\src\common\clrpickercmn.cpp" />
     <ClCompile Include="..\..\src\common\cmdline.cpp" />
     <ClCompile Include="..\..\src\common\cmdproc.cpp" />
-    <ClCompile Include="..\..\src\common\cmndata.cpp" />
+    <ClCompile Include="..\..\src\common\cmndata.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\colourcmn.cpp" />
     <ClCompile Include="..\..\src\common\colourdata.cpp" />
     <ClCompile Include="..\..\src\common\combocmn.cpp" />
@@ -799,7 +815,9 @@
     <ClCompile Include="..\..\src\common\gdicmn.cpp" />
     <ClCompile Include="..\..\src\common\geometry.cpp" />
     <ClCompile Include="..\..\src\common\gifdecod.cpp" />
-    <ClCompile Include="..\..\src\common\glcmn.cpp" />
+    <ClCompile Include="..\..\src\common\glcmn.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\graphcmn.cpp" />
     <ClCompile Include="..\..\src\common\gridcmn.cpp" />
     <ClCompile Include="..\..\src\common\hash.cpp" />
@@ -869,20 +887,25 @@
     <ClCompile Include="..\..\src\common\msgout.cpp" />
     <ClCompile Include="..\..\src\common\mstream.cpp" />
     <ClCompile Include="..\..\src\common\nbkbase.cpp" />
+    <ClCompile Include="..\..\src\common\notifmsgcmn.cpp" />
     <ClCompile Include="..\..\src\common\numformatter.cpp" />
     <ClCompile Include="..\..\src\common\object.cpp" />
     <ClCompile Include="..\..\src\common\odcombocmn.cpp" />
     <ClCompile Include="..\..\src\common\overlaycmn.cpp" />
     <ClCompile Include="..\..\src\common\ownerdrwcmn.cpp" />
     <ClCompile Include="..\..\src\common\panelcmn.cpp" />
-    <ClCompile Include="..\..\src\common\paper.cpp" />
+    <ClCompile Include="..\..\src\common\paper.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\persist.cpp" />
     <ClCompile Include="..\..\src\common\pickerbase.cpp" />
     <ClCompile Include="..\..\src\common\platinfo.cpp" />
     <ClCompile Include="..\..\src\common\popupcmn.cpp" />
     <ClCompile Include="..\..\src\common\powercmn.cpp" />
     <ClCompile Include="..\..\src\common\preferencescmn.cpp" />
-    <ClCompile Include="..\..\src\common\prntbase.cpp" />
+    <ClCompile Include="..\..\src\common\prntbase.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\common\process.cpp" />
     <ClCompile Include="..\..\src\common\protocol.cpp" />
     <ClCompile Include="..\..\src\common\quantize.cpp" />
@@ -991,6 +1014,7 @@
     <ClCompile Include="..\..\src\common\zipstrm.cpp" />
     <ClCompile Include="..\..\src\common\zstream.cpp" />
     <ClCompile Include="..\..\src\generic\aboutdlgg.cpp" />
+    <ClCompile Include="..\..\src\generic\activityindicator.cpp" />
     <ClCompile Include="..\..\src\generic\animateg.cpp" />
     <ClCompile Include="..\..\src\generic\bannerwindow.cpp" />
     <ClCompile Include="..\..\src\generic\bmpcboxg.cpp">
@@ -1004,6 +1028,7 @@
     <ClCompile Include="..\..\src\generic\choicbkg.cpp" />
     <ClCompile Include="..\..\src\generic\choicdgg.cpp" />
     <ClCompile Include="..\..\src\generic\clrpickerg.cpp" />
+    <ClCompile Include="..\..\src\generic\collheaderctrlg.cpp" />
     <ClCompile Include="..\..\src\generic\collpaneg.cpp" />
     <ClCompile Include="..\..\src\generic\colrdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\combog.cpp">
@@ -1064,7 +1089,9 @@
     <ClCompile Include="..\..\src\generic\printps.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\generic\prntdlgg.cpp" />
+    <ClCompile Include="..\..\src\generic\prntdlgg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\generic\progdlgg.cpp" />
     <ClCompile Include="..\..\src\generic\propdlg.cpp" />
     <ClCompile Include="..\..\src\generic\regiong.cpp">
@@ -1101,6 +1128,7 @@
     <ClCompile Include="..\..\src\msw\accel.cpp" />
     <ClCompile Include="..\..\src\msw\anybutton.cpp" />
     <ClCompile Include="..\..\src\msw\app.cpp" />
+    <ClCompile Include="..\..\src\msw\appprogress.cpp" />
     <ClCompile Include="..\..\src\msw\artmsw.cpp" />
     <ClCompile Include="..\..\src\msw\basemsw.cpp" />
     <ClCompile Include="..\..\src\msw\bitmap.cpp" />
@@ -1133,7 +1161,9 @@
     <ClCompile Include="..\..\src\msw\dc.cpp" />
     <ClCompile Include="..\..\src\msw\dcclient.cpp" />
     <ClCompile Include="..\..\src\msw\dcmemory.cpp" />
-    <ClCompile Include="..\..\src\msw\dcprint.cpp" />
+    <ClCompile Include="..\..\src\msw\dcprint.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\dcscreen.cpp" />
     <ClCompile Include="..\..\src\msw\dde.cpp" />
     <ClCompile Include="..\..\src\msw\debughlp.cpp" />
@@ -1168,13 +1198,20 @@
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="..\..\src\msw\gdiplus.cpp" />
-    <ClCompile Include="..\..\src\msw\glcanvas.cpp" />
+    <ClCompile Include="..\..\src\msw\glcanvas.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\graphics.cpp" />
+    <ClCompile Include="..\..\src\msw\graphicsd2d.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\headerctrl.cpp" />
     <ClCompile Include="..\..\src\msw\helpbest.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\msw\helpchm.cpp" />
+    <ClCompile Include="..\..\src\msw\helpchm.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\helpwin.cpp" />
     <ClCompile Include="..\..\src\msw\hyperlink.cpp" />
     <ClCompile Include="..\..\src\msw\icon.cpp" />
@@ -1203,13 +1240,9 @@
     <ClCompile Include="..\..\src\msw\metafile.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\msw\microwin.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\src\msw\mimetype.cpp" />
     <ClCompile Include="..\..\src\msw\minifram.cpp" />
     <ClCompile Include="..\..\src\msw\msgdlg.cpp" />
-    <ClCompile Include="..\..\src\msw\mslu.cpp" />
     <ClCompile Include="..\..\src\msw\nativdlg.cpp" />
     <ClCompile Include="..\..\src\msw\nativewin.cpp" />
     <ClCompile Include="..\..\src\msw\nonownedwnd.cpp" />
@@ -1218,7 +1251,9 @@
     <ClCompile Include="..\..\src\msw\ole\access.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\msw\ole\activex.cpp" />
+    <ClCompile Include="..\..\src\msw\ole\activex.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\ole\automtn.cpp" />
     <ClCompile Include="..\..\src\msw\ole\dataobj.cpp" />
     <ClCompile Include="..\..\src\msw\ole\dropsrc.cpp" />
@@ -1230,11 +1265,14 @@
     <ClCompile Include="..\..\src\msw\palette.cpp" />
     <ClCompile Include="..\..\src\msw\panel.cpp" />
     <ClCompile Include="..\..\src\msw\pen.cpp" />
-    <ClCompile Include="..\..\src\msw\penwin.cpp" />
     <ClCompile Include="..\..\src\msw\popupwin.cpp" />
     <ClCompile Include="..\..\src\msw\power.cpp" />
-    <ClCompile Include="..\..\src\msw\printdlg.cpp" />
-    <ClCompile Include="..\..\src\msw\printwin.cpp" />
+    <ClCompile Include="..\..\src\msw\printdlg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\src\msw\printwin.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\progdlg.cpp" />
     <ClCompile Include="..\..\src\msw\radiobox.cpp" />
     <ClCompile Include="..\..\src\msw\radiobut.cpp" />
@@ -1259,7 +1297,9 @@
     <ClCompile Include="..\..\src\msw\stattext.cpp" />
     <ClCompile Include="..\..\src\msw\statusbar.cpp" />
     <ClCompile Include="..\..\src\msw\stdpaths.cpp" />
+    <ClCompile Include="..\..\src\msw\systhemectrl.cpp" />
     <ClCompile Include="..\..\src\msw\taskbar.cpp" />
+    <ClCompile Include="..\..\src\msw\taskbarbutton.cpp" />
     <ClCompile Include="..\..\src\msw\textctrl.cpp" />
     <ClCompile Include="..\..\src\msw\textentry.cpp" />
     <ClCompile Include="..\..\src\msw\textmeasure.cpp" />

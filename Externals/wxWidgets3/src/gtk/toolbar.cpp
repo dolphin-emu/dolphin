@@ -24,7 +24,6 @@
 
 // data
 extern bool       g_blockEventsOnDrag;
-extern wxCursor   g_globalCursor;
 
 // ----------------------------------------------------------------------------
 // wxToolBarTool
@@ -65,7 +64,7 @@ public:
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolBar, wxControl);
 
 // ============================================================================
 // implementation
@@ -188,13 +187,13 @@ image_expose_event(GtkWidget* widget, GdkEventExpose*, wxToolBarTool* tool)
     // draw disabled bitmap ourselves, GtkImage has no way to specify it
     GtkAllocation alloc;
     gtk_widget_get_allocation(widget, &alloc);
-    GtkRequisition req;
-    gtk_widget_get_requisition(widget, &req);
-    const int x = alloc.x + (alloc.width - req.width) / 2;
-    const int y = alloc.y + (alloc.height - req.height) / 2;
+    int x = (alloc.width - bitmap.GetWidth()) / 2;
+    int y = (alloc.height - bitmap.GetHeight()) / 2;
 #ifdef __WXGTK3__
     bitmap.Draw(cr, x, y);
 #else
+    x += alloc.x;
+    y += alloc.y;
     gdk_draw_pixbuf(
         gtk_widget_get_window(widget), gtk_widget_get_style(widget)->black_gc, bitmap.GetPixbuf(),
         0, 0, x, y,
@@ -280,7 +279,10 @@ void wxToolBarTool::CreateDropDown()
     GtkWidget* box = gtk_box_new(orient, 0);
     GtkWidget* arrow = gtk_arrow_new(arrowType, GTK_SHADOW_NONE);
     GtkWidget* tool_button = gtk_bin_get_child(GTK_BIN(m_item));
-    gtk_widget_reparent(tool_button, box);
+    g_object_ref(tool_button);
+    gtk_container_remove(GTK_CONTAINER(m_item), tool_button);
+    gtk_container_add(GTK_CONTAINER(box), tool_button);
+    g_object_unref(tool_button);
     GtkWidget* arrow_button = gtk_toggle_button_new();
     gtk_button_set_relief(GTK_BUTTON(arrow_button),
         gtk_tool_item_get_relief_style(GTK_TOOL_ITEM(m_item)));
@@ -531,8 +533,11 @@ bool wxToolBar::DoInsertTool(size_t pos, wxToolBarToolBase *toolBase)
             }
             if (!tool->GetLabel().empty())
             {
+                wxString const
+                    label = wxControl::RemoveMnemonics(tool->GetLabel());
+
                 gtk_tool_button_set_label(
-                    GTK_TOOL_BUTTON(tool->m_item), wxGTK_CONV(tool->GetLabel()));
+                    GTK_TOOL_BUTTON(tool->m_item), wxGTK_CONV(label));
                 // needed for labels in horizontal toolbar with wxTB_HORZ_LAYOUT
                 gtk_tool_item_set_is_important(tool->m_item, true);
             }
@@ -697,7 +702,7 @@ wxSize wxToolBar::DoGetBestSize() const
 wxToolBarToolBase *wxToolBar::FindToolForPosition(wxCoord WXUNUSED(x),
                                                   wxCoord WXUNUSED(y)) const
 {
-    // VZ: GTK+ doesn't seem to have such thing
+    // TODO: implement this using gtk_toolbar_get_drop_index()
     wxFAIL_MSG( wxT("wxToolBar::FindToolForPosition() not implemented") );
 
     return NULL;

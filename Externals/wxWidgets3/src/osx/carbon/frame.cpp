@@ -25,10 +25,10 @@
 
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
+wxBEGIN_EVENT_TABLE(wxFrame, wxFrameBase)
   EVT_ACTIVATE(wxFrame::OnActivate)
   EVT_SYS_COLOUR_CHANGED(wxFrame::OnSysColourChanged)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 #define WX_MAC_STATUSBAR_HEIGHT 18
 
@@ -53,13 +53,6 @@ bool wxFrame::Create(wxWindow *parent,
         return false;
 
     return true;
-}
-
-wxFrame::~wxFrame()
-{
-    SendDestroyEvent();
-
-    DeleteAllBars();
 }
 
 // get the origin of the client area in the client coordinates
@@ -222,9 +215,7 @@ void wxFrame::DetachMenuBar()
 
 void wxFrame::AttachMenuBar( wxMenuBar *menuBar )
 {
-#if wxOSX_USE_CARBON
-    wxFrame* tlf = wxDynamicCast( wxNonOwnedWindow::GetFromWXWindow( (WXWindow) FrontNonFloatingWindow() ) , wxFrame );
-#elif wxOSX_USE_COCOA
+#if wxOSX_USE_COCOA
     wxFrame* tlf = wxDynamicCast( wxNonOwnedWindow::GetFromWXWindow( wxOSXGetMainWindow() ) , wxFrame );
 #else
     wxFrame* tlf = wxDynamicCast( wxTheApp->GetTopWindow(), wxFrame );
@@ -356,12 +347,12 @@ void wxFrame::PositionToolBar()
 
     wxTopLevelWindow::DoGetClientSize( &cw , &ch );
 
-    int statusX = 0 ;
-    int statusY = 0 ;
-
 #if wxUSE_STATUSBAR
     if (GetStatusBar() && GetStatusBar()->IsShown())
     {
+        int statusX = 0 ;
+        int statusY = 0 ;
+
         GetStatusBar()->GetSize(&statusX, &statusY);
         ch -= statusY;
     }
@@ -421,4 +412,17 @@ void wxFrame::PositionBars()
 #endif
 }
 
+bool wxFrame::Show(bool show)
+{
+    if ( !show )
+    {
+#if wxUSE_MENUS
+        if (m_frameMenuBar != NULL)
+        {
+          m_frameMenuBar->MacUninstallMenuBar();
+        }
+#endif
+    }
+    return wxFrameBase::Show(show);
+}
 

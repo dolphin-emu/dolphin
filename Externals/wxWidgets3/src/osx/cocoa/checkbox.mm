@@ -28,6 +28,8 @@ wxWidgetImplType* wxWidgetImpl::CreateCheckBox( wxWindowMac* wxpeer,
     wxNSButton* v = [[wxNSButton alloc] initWithFrame:r];
 
     [v setButtonType:NSSwitchButton];
+    if (style & wxALIGN_RIGHT)
+        [v setImagePosition:NSImageRight];
     if (style & wxCHK_3STATE)
         [v setAllowsMixedState:YES];
 

@@ -52,7 +52,7 @@ enum
                          wxFSW_EVENT_RENAME | wxFSW_EVENT_MODIFY |
                          wxFSW_EVENT_ACCESS | wxFSW_EVENT_ATTRIB |
                          wxFSW_EVENT_WARNING | wxFSW_EVENT_ERROR
-#ifdef wxHAS_INOTIFY
+#if defined(wxHAS_INOTIFY) || defined(wxHAVE_FSEVENTS_FILE_NOTIFICATIONS)
     ,wxFSW_EVENT_UNMOUNT = 0x2000
 #endif
 };
@@ -159,7 +159,7 @@ public:
         return m_changeType;
     }
 
-    virtual wxEvent* Clone() const
+    virtual wxEvent* Clone() const wxOVERRIDE
     {
         wxFileSystemWatcherEvent* evt = new wxFileSystemWatcherEvent(*this);
         evt->m_errorMsg = m_errorMsg.Clone();
@@ -169,7 +169,7 @@ public:
         return evt;
     }
 
-    virtual wxEventCategory GetEventCategory() const
+    virtual wxEventCategory GetEventCategory() const wxOVERRIDE
     {
         // TODO this has to be merged with "similar" categories and changed
         return wxEVT_CATEGORY_UNKNOWN;
@@ -205,7 +205,7 @@ protected:
     wxFileName m_newPath;
     wxString m_errorMsg;
 private:
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileSystemWatcherEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxFileSystemWatcherEvent);
 };
 
 typedef void (wxEvtHandler::*wxFileSystemWatcherEventFunction)
@@ -395,6 +395,10 @@ protected:
 #ifdef wxHAS_INOTIFY
     #include "wx/unix/fswatcher_inotify.h"
     #define wxFileSystemWatcher wxInotifyFileSystemWatcher
+#elif  defined(wxHAS_KQUEUE) && defined(wxHAVE_FSEVENTS_FILE_NOTIFICATIONS)
+    #include "wx/unix/fswatcher_kqueue.h"
+    #include "wx/osx/fswatcher_fsevents.h"
+    #define wxFileSystemWatcher wxFsEventsFileSystemWatcher
 #elif defined(wxHAS_KQUEUE)
     #include "wx/unix/fswatcher_kqueue.h"
     #define wxFileSystemWatcher wxKqueueFileSystemWatcher

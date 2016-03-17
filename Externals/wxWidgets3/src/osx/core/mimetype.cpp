@@ -699,6 +699,12 @@ bool wxFileTypeImpl::Unassociate(wxFileType *WXUNUSED(ft))
     return false;
 }
 
+wxString
+wxFileTypeImpl::GetExpandedCommand(const wxString& WXUNUSED(verb),
+                                   const wxFileType::MessageParameters& WXUNUSED(params)) const
+{
+    return wxString();
+}
 
 #endif // wxUSE_MIMETYPE
 
