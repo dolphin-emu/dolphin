@@ -40,7 +40,7 @@ public:
 	void UpdateSpeed(float val) { m_speed.store(val); }
 
 private:
-	static constexpr u32   MAX_SAMPLES    = 1024 * 4; // 128 ms
+	static constexpr u32   MAX_SAMPLES    = 1024 * 2; // 64 ms
 	static constexpr u32   INDEX_MASK     = MAX_SAMPLES * 2 - 1;
 	static constexpr int   MAX_FREQ_SHIFT = 200; // Per 32000 Hz
 	static constexpr float CONTROL_FACTOR = 0.2f;
