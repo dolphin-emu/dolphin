@@ -236,7 +236,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 		newentry->SetDimensions((*entry)->native_width, (*entry)->native_height, 1);
 		newentry->SetHashes((*entry)->base_hash, (*entry)->hash);
 		newentry->frameCount = frameCount;
-		newentry->is_efb_copy = false;
+		newentry->is_efb_copy = (*entry)->is_efb_copy;
 		MathUtil::Rectangle<int> srcrect, dstrect;
 		srcrect.left = 0;
 		srcrect.top = 0;
@@ -289,7 +289,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 	// Efb copies and paletted textures are excluded from these updates, until there's an example where a game would
 	// benefit from this. Both would require more work to be done.
-	// TODO: Implement upscaling support for normal textures, and then remove the efb to ram and the scaled efb restrictions
 	if (entry_to_update->IsEfbCopy()
 		|| isPaletteTexture)
 		return entry_to_update;
@@ -307,28 +306,35 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		TCacheEntryBase* entry = iter->second;
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
-			&& entry_to_update->addr <= entry->addr
-			&& entry->addr + entry->size_in_bytes <= entry_to_update->addr + entry_to_update->size_in_bytes
+			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
 			&& entry->frameCount == FRAMECOUNT_INVALID
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
 			if (entry->hash == entry->CalculateHash())
 			{
-				u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
-				u32 block_x = block_offset % numBlocksX;
-				u32 block_y = block_offset / numBlocksX;
+				u32 src_x, src_y, dst_x, dst_y;
 
-				u32 dst_x = block_x * block_width;
-				u32 dst_y = block_y * block_height;
-				u32 src_x = 0;
-				u32 src_y = 0;
-
-				// If the EFB copy doesn't fully fit, cancel the copy process
-				if (entry->native_width - src_x > entry_to_update->native_width - dst_x
-					|| entry->native_height - src_y > entry_to_update->native_height - dst_y)
+				// Note for understanding the math:
+				// Normal textures can't be strided, so the 2 missing cases with src_x > 0 don't exist
+				if (entry->addr >= entry_to_update->addr)
 				{
-					iter++;
-					continue;
+					u32 block_offset = (entry->addr - entry_to_update->addr) / block_size;
+					u32 block_x = block_offset % numBlocksX;
+					u32 block_y = block_offset / numBlocksX;
+					src_x = 0;
+					src_y = 0;
+					dst_x = block_x * block_width;
+					dst_y = block_y * block_height;
+				}
+				else
+				{
+					u32 block_offset = (entry_to_update->addr - entry->addr) / block_size;
+					u32 block_x = (~block_offset + 1) % numBlocksX;
+					u32 block_y = (block_offset + block_x) / numBlocksX;
+					src_x = 0;
+					src_y = block_y * block_height;
+					dst_x = block_x * block_width;
+					dst_y = 0;
 				}
 
 				u32 copy_width = std::min(entry->native_width - src_x, entry_to_update->native_width - dst_x);
