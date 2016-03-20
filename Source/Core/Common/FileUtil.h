@@ -196,7 +196,7 @@ public:
 				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
 				// So this cast is safe.
 				rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
-				if (FALSE == rv || copy != read)
+				if (FALSE == rv || read == 0)
 				{
 					m_good = false;
 					break;
