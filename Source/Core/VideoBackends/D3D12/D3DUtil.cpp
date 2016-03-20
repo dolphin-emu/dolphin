@@ -314,16 +314,16 @@ int CD3DFont::Init()
 	DeleteObject(hFont);
 
 	// setup device objects for drawing
-	ID3DBlob* psbytecode = nullptr;
-	D3D::CompilePixelShader(fontpixshader, &psbytecode);
+	ComPtr<ID3DBlob> psbytecode = nullptr;
+	D3D::CompilePixelShader(fontpixshader, psbytecode.GetAddressOf());
 	if (psbytecode == nullptr)
 		PanicAlert("Failed to compile pixel shader, %s %d\n", __FILE__, __LINE__);
 
 	m_pshader12.pShaderBytecode = psbytecode->GetBufferPointer();
 	m_pshader12.BytecodeLength = psbytecode->GetBufferSize();
 
-	ID3DBlob* vsbytecode = nullptr;
-	D3D::CompileVertexShader(fontvertshader, &vsbytecode);
+	ComPtr<ID3DBlob> vsbytecode = nullptr;
+	D3D::CompileVertexShader(fontvertshader, vsbytecode.GetAddressOf());
 	if (vsbytecode == nullptr)
 		PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 
@@ -384,9 +384,6 @@ int CD3DFont::Init()
 	};
 
 	CheckHR(DX12::gx_state_cache.GetPipelineStateObjectFromCache(&text_pso_desc, &m_pso));
-
-	SAFE_RELEASE(psbytecode);
-	SAFE_RELEASE(vsbytecode);
 
 	return S_OK;
 }

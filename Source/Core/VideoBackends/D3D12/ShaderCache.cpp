@@ -28,7 +28,7 @@ PsBytecodeCache s_ps_bytecode_cache;
 VsBytecodeCache s_vs_bytecode_cache;
 
 // Used to keep track of blobs to release at Shutdown time.
-static std::vector<ID3DBlob*> s_shader_blob_list;
+static std::vector<ComPtr<ID3DBlob>> s_shader_blob_list;
 
 // Only used for shader debugging..
 using GsHlslCache = std::map<GeometryShaderUid, std::string>;
@@ -112,9 +112,6 @@ void ShaderCache::Init()
 
 void ShaderCache::Clear()
 {
-	for (auto& iter : s_shader_blob_list)
-		SAFE_RELEASE(iter);
-
 	s_shader_blob_list.clear();
 
 	s_gs_bytecode_cache.clear();

@@ -73,7 +73,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 
 D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D12_SUBRESOURCE_DATA* data)
 {
-	ID3D12Resource* texture12 = nullptr;
+	ComPtr<ID3D12Resource> texture12 = nullptr;
 
 	D3D12_RESOURCE_DESC texdesc12 = CD3DX12_RESOURCE_DESC::Tex2D(
 		fmt,
@@ -109,19 +109,18 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 			&CD3DX12_RESOURCE_DESC(texdesc12),
 			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			&optimized_clear_value,
-			IID_PPV_ARGS(&texture12)
+			IID_PPV_ARGS(texture12.GetAddressOf())
 			)
 		);
 
-	D3D::SetDebugObjectName12(texture12, "Texture created via D3DTexture2D::Create");
-	D3DTexture2D* ret = new D3DTexture2D(texture12, bind, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	D3D::SetDebugObjectName12(texture12.Get(), "Texture created via D3DTexture2D::Create");
+	D3DTexture2D* ret = new D3DTexture2D(texture12.Get(), bind, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
 	if (data)
 	{
-		DX12::D3D::ReplaceRGBATexture2D(texture12, reinterpret_cast<const u8*>(data->pData), width, height, static_cast<unsigned int>(data->RowPitch), 0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+		DX12::D3D::ReplaceRGBATexture2D(texture12.Get(), reinterpret_cast<const u8*>(data->pData), width, height, static_cast<unsigned int>(data->RowPitch), 0, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 	}
 
-	SAFE_RELEASE(texture12);
 	return ret;
 }
 
@@ -153,7 +152,7 @@ bool D3DTexture2D::GetMultisampled() const
 
 ID3D12Resource* D3DTexture2D::GetTex12() const
 {
-	return m_tex12;
+	return m_tex12.Get();
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetSRV12CPU() const
@@ -212,8 +211,8 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 
 		CHECK(D3D::gpu_descriptor_heap_mgr->Allocate(&m_srv12_cpu, &m_srv12_gpu, &m_srv12_gpu_cpu_shadow), "Error: Ran out of permenant slots in GPU descriptor heap, but don't support rolling over heap.");
 
-		D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_cpu);
-		D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_gpu_cpu_shadow);
+		D3D::device12->CreateShaderResourceView(m_tex12.Get(), &srv_desc, m_srv12_cpu);
+		D3D::device12->CreateShaderResourceView(m_tex12.Get(), &srv_desc, m_srv12_gpu_cpu_shadow);
 	}
 
 	if (bind & D3D11_BIND_DEPTH_STENCIL)
@@ -230,7 +229,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 			dsv_desc.Texture2DMSArray.ArraySize = -1;
 
 		D3D::dsv_descriptor_heap_mgr->Allocate(&m_dsv12);
-		D3D::device12->CreateDepthStencilView(m_tex12, &dsv_desc, m_dsv12);
+		D3D::device12->CreateDepthStencilView(m_tex12.Get(), &dsv_desc, m_dsv12);
 	}
 
 	if (bind & D3D11_BIND_RENDER_TARGET)
@@ -246,21 +245,19 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 			rtv_desc.Texture2DMSArray.ArraySize = -1;
 
 		D3D::rtv_descriptor_heap_mgr->Allocate(&m_rtv12);
-		D3D::device12->CreateRenderTargetView(m_tex12, &rtv_desc, m_rtv12);
+		D3D::device12->CreateRenderTargetView(m_tex12.Get(), &rtv_desc, m_rtv12);
 	}
-
-	m_tex12->AddRef();
 }
 
 void D3DTexture2D::TransitionToResourceState(ID3D12GraphicsCommandList* command_list, D3D12_RESOURCE_STATES state_after)
 {
-	DX12::D3D::ResourceBarrier(command_list, m_tex12, m_resource_state, state_after, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+	DX12::D3D::ResourceBarrier(command_list, m_tex12.Get(), m_resource_state, state_after, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 	m_resource_state = state_after;
 }
 
 D3DTexture2D::~D3DTexture2D()
 {
-	DX12::D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_tex12);
+	DX12::D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_tex12.Detach());
 }
 
 }  // namespace DX12

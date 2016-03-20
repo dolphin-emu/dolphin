@@ -99,12 +99,12 @@ private:
 		D3DTexture2D* resolved_depth_tex;
 
 		D3DTexture2D* color_access_resize_tex;
-		ID3D12Resource* color_access_readback_buffer;
+		ComPtr<ID3D12Resource> color_access_readback_buffer;
 		u8* color_access_readback_map;
 		u32 color_access_readback_pitch;
 
 		D3DTexture2D* depth_access_resize_tex;
-		ID3D12Resource* depth_access_readback_buffer;
+		ComPtr<ID3D12Resource> depth_access_readback_buffer;
 		u8* depth_access_readback_map;
 		u32 depth_access_readback_pitch;
 

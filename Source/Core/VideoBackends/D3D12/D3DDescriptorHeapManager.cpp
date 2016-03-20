@@ -18,7 +18,7 @@ bool operator==(const D3DDescriptorHeapManager::SamplerStateSet& lhs, const D3DD
 D3DDescriptorHeapManager::D3DDescriptorHeapManager(D3D12_DESCRIPTOR_HEAP_DESC* desc, ID3D12Device* device, unsigned int temporarySlots) :
 	m_device(device)
 {
-	CheckHR(device->CreateDescriptorHeap(desc, IID_PPV_ARGS(&m_descriptor_heap)));
+	CheckHR(device->CreateDescriptorHeap(desc, IID_PPV_ARGS(m_descriptor_heap.GetAddressOf())));
 
 	m_descriptor_heap_size = desc->NumDescriptors;
 	m_descriptor_increment_size = device->GetDescriptorHandleIncrementSize(desc->Type);
@@ -29,7 +29,7 @@ D3DDescriptorHeapManager::D3DDescriptorHeapManager(D3D12_DESCRIPTOR_HEAP_DESC* d
 		D3D12_DESCRIPTOR_HEAP_DESC cpu_shadow_heap_desc = *desc;
 		cpu_shadow_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
-		CheckHR(device->CreateDescriptorHeap(&cpu_shadow_heap_desc, IID_PPV_ARGS(&m_descriptor_heap_cpu_shadow)));
+		CheckHR(device->CreateDescriptorHeap(&cpu_shadow_heap_desc, IID_PPV_ARGS(m_descriptor_heap_cpu_shadow.GetAddressOf())));
 
 		m_heap_base_gpu = m_descriptor_heap->GetGPUDescriptorHandleForHeapStart();
 		m_heap_base_gpu_cpu_shadow = m_descriptor_heap_cpu_shadow->GetCPUDescriptorHandleForHeapStart();
@@ -157,13 +157,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE D3DDescriptorHeapManager::GetHandleForSamplerGroup(S
 
 ID3D12DescriptorHeap* D3DDescriptorHeapManager::GetDescriptorHeap() const
 {
-	return m_descriptor_heap;
-}
-
-D3DDescriptorHeapManager::~D3DDescriptorHeapManager()
-{
-	SAFE_RELEASE(m_descriptor_heap);
-	SAFE_RELEASE(m_descriptor_heap_cpu_shadow);
+	return m_descriptor_heap.Get();
 }
 
 }  // namespace DX12
