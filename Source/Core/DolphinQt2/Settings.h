@@ -40,6 +40,8 @@ public:
 
 	// Emulation
 	bool GetConfirmStop() const;
+	int GetStateSlot() const;
+	void SetStateSlot(int);
 
 	// Graphics
 	bool GetRenderToMain() const;
