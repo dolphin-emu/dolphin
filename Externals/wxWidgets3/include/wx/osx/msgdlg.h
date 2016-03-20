@@ -48,7 +48,7 @@ protected:
 #if wxOSX_USE_COCOA
     WX_NSObject m_sheetDelegate;
 #endif
-    DECLARE_DYNAMIC_CLASS(wxMessageDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxMessageDialog);
 };
 
 #endif // _WX_MSGBOXDLG_H_

@@ -238,7 +238,7 @@ private:
 // ========================================================================
 // wxRegionGeneric
 // ========================================================================
-//IMPLEMENT_DYNAMIC_CLASS(wxRegionGeneric, wxGDIObject)
+//wxIMPLEMENT_DYNAMIC_CLASS(wxRegionGeneric, wxGDIObject);
 
 #define M_REGIONDATA ((wxRegionRefData *)m_refData)
 #define M_REGIONDATA_OF(rgn) ((wxRegionRefData *)(rgn.m_refData))
@@ -400,7 +400,7 @@ wxRegionContain wxRegionGeneric::DoContainsRect(const wxRect& rect) const
 // ========================================================================
 // wxRegionIteratorGeneric
 // ========================================================================
-//IMPLEMENT_DYNAMIC_CLASS(wxRegionIteratorGeneric,wxObject)
+//wxIMPLEMENT_DYNAMIC_CLASS(wxRegionIteratorGeneric, wxObject);
 
 wxRegionIteratorGeneric::wxRegionIteratorGeneric()
 {
@@ -655,9 +655,7 @@ bool REGION::XClipBox(Region r, wxRect *rect)
 void REGION::
 miSetExtents (Region pReg)
 {
-    register BoxPtr pBox,
-                    pBoxEnd,
-                    pExtents;
+    BoxPtr pBox, pBoxEnd, pExtents;
 
     if (pReg->numRects == 0)
     {
@@ -720,8 +718,8 @@ XOffsetRegion(
     register int x,
     register int y)
 {
-    register int nbox;
-    register BOX *pbox;
+    int nbox;
+    BOX *pbox;
 
     pbox = pRegion->rects;
     nbox = pRegion->numRects;
@@ -768,9 +766,9 @@ miIntersectO (
     wxCoord             y1,
     wxCoord             y2)
 {
-    register wxCoord    x1;
-    register wxCoord    x2;
-    register BoxPtr     pNextRect;
+    wxCoord    x1;
+    wxCoord    x2;
+    BoxPtr     pNextRect;
 
     pNextRect = &pReg->rects[pReg->numRects];
 
@@ -911,9 +909,9 @@ miCoalesce(
     int prevStart,            /* Index of start of previous band */
     int curStart)             /* Index of start of current band */
 {
-    register BoxPtr pPrevBox; /* Current box in previous band */
-    register BoxPtr pCurBox;  /* Current box in current band */
-    register BoxPtr pRegEnd;  /* End of region */
+    BoxPtr pPrevBox;          /* Current box in previous band */
+    BoxPtr pCurBox;           /* Current box in current band */
+    BoxPtr pRegEnd;           /* End of region */
     int         curNumRects;  /* Number of rectangles in current
                                * band */
     int        prevNumRects;  /* Number of rectangles in previous
@@ -1088,19 +1086,19 @@ miRegionOp(
                                                  * overlapping bands in region
                                                  * 2 */
 {
-    register BoxPtr        r1; /* Pointer into first region */
-    register BoxPtr        r2; /* Pointer into 2d region */
+    BoxPtr                 r1; /* Pointer into first region */
+    BoxPtr                 r2; /* Pointer into 2d region */
     BoxPtr              r1End; /* End of 1st region */
     BoxPtr              r2End; /* End of 2d region */
-    register wxCoord     ybot; /* Bottom of intersection */
-    register wxCoord     ytop; /* Top of intersection */
+    wxCoord              ybot; /* Bottom of intersection */
+    wxCoord              ytop; /* Top of intersection */
     BoxPtr           oldRects; /* Old rects for newReg */
     int              prevBand; /* Index of start of
                                 * previous band in newReg */
     int               curBand; /* Index of start of current
                                 * band in newReg */
-    register BoxPtr r1BandEnd; /* End of current band in r1 */
-    register BoxPtr r2BandEnd; /* End of current band in r2 */
+    BoxPtr                r1BandEnd; /* End of current band in r1 */
+    BoxPtr                r2BandEnd; /* End of current band in r2 */
     wxCoord               top; /* Top of non-overlapping
                                 * band */
     wxCoord               bot; /* Bottom of non-overlapping
@@ -1374,7 +1372,7 @@ miUnionNonO (
     register wxCoord       y1,
     register wxCoord       y2)
 {
-    register BoxPtr        pNextRect;
+    BoxPtr pNextRect;
 
     pNextRect = &pReg->rects[pReg->numRects];
 
@@ -1425,7 +1423,7 @@ miUnionO (
     register wxCoord       y1,
     register wxCoord       y2)
 {
-    register BoxPtr        pNextRect;
+    BoxPtr pNextRect;
 
     pNextRect = &pReg->rects[pReg->numRects];
 
@@ -1575,7 +1573,7 @@ miSubtractNonO1 (
     register wxCoord          y1,
     register wxCoord           y2)
 {
-    register BoxPtr        pNextRect;
+    BoxPtr        pNextRect;
 
     pNextRect = &pReg->rects[pReg->numRects];
 
@@ -1624,8 +1622,8 @@ miSubtractO (
     register wxCoord          y1,
     register wxCoord          y2)
 {
-    register BoxPtr        pNextRect;
-    register int          x1;
+    BoxPtr        pNextRect;
+    int          x1;
 
     x1 = r1->x1;
 
@@ -1858,10 +1856,10 @@ wxRegionContain REGION::XRectInRegion(register Region region,
                                       unsigned int rwidth,
                                       unsigned int rheight)
 {
-    register BoxPtr pbox;
-    register BoxPtr pboxEnd;
+    BoxPtr pbox;
+    BoxPtr pboxEnd;
     Box rect;
-    register BoxPtr prect = &rect;
+    BoxPtr prect = &rect;
     int      partIn, partOut;
 
     prect->x1 = rx;

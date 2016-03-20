@@ -89,7 +89,7 @@ protected:
     void CreateIconFromXpm(const char* const* data);
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxIcon)
+    wxDECLARE_DYNAMIC_CLASS(wxIcon);
 };
 
 #endif

@@ -43,7 +43,7 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxEnhMetaFile, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxEnhMetaFile, wxObject);
 
 // ----------------------------------------------------------------------------
 // macros
@@ -120,11 +120,12 @@ void wxEnhMetaFile::Assign(const wxEnhMetaFile& mf)
     }
 }
 
-void wxEnhMetaFile::Free()
+/* static */
+void wxEnhMetaFile::Free(WXHANDLE handle)
 {
-    if ( m_hMF )
+    if ( handle )
     {
-        if ( !::DeleteEnhMetaFile(GetEMF()) )
+        if ( !::DeleteEnhMetaFile((HENHMETAFILE) handle) )
         {
             wxLogLastError(wxT("DeleteEnhMetaFile"));
         }
@@ -332,7 +333,7 @@ wxEnhMetaFileDCImpl::~wxEnhMetaFileDCImpl()
 // wxEnhMetaFileDC
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxEnhMetaFileDC, wxDC)
+wxIMPLEMENT_ABSTRACT_CLASS(wxEnhMetaFileDC, wxDC);
 
 wxEnhMetaFileDC::wxEnhMetaFileDC(const wxString& filename,
                                  int width, int height,

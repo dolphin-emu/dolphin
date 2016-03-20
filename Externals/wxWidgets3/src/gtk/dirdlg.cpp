@@ -46,7 +46,7 @@ static void gtk_dirdialog_response_callback(GtkWidget * WXUNUSED(w),
 // wxDirDialog
 //-----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxDirDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxDirDialog, wxDialog);
 
 wxDirDialog::wxDirDialog(wxWindow* parent,
                          const wxString& title,
@@ -93,14 +93,15 @@ bool wxDirDialog::Create(wxWindow* parent,
     g_object_ref(m_widget);
 
     gtk_dialog_set_default_response(GTK_DIALOG(m_widget), GTK_RESPONSE_ACCEPT);
-
-    // gtk_widget_hide_on_delete is used here to avoid that Gtk automatically destroys
-    // the dialog when the user press ESC on the dialog: in that case a second call to
-    // ShowModal() would result in a bunch of Gtk-CRITICAL errors...
-    g_signal_connect (m_widget,
-                    "delete_event",
-                    G_CALLBACK (gtk_widget_hide_on_delete),
-                    (gpointer)this);
+#if GTK_CHECK_VERSION(2,18,0)
+#ifndef __WXGTK3__
+    if (gtk_check_version(2,18,0) == NULL)
+#endif
+    {
+        gtk_file_chooser_set_create_folders(
+            GTK_FILE_CHOOSER(m_widget), (style & wxDD_DIR_MUST_EXIST) == 0);
+    }
+#endif
 
     // local-only property could be set to false to allow non-local files to be loaded.
     // In that case get/set_uri(s) should be used instead of get/set_filename(s) everywhere

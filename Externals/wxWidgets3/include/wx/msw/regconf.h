@@ -106,7 +106,7 @@ private:
   wxString  m_strPath;
 
   wxDECLARE_NO_COPY_CLASS(wxRegConfig);
-  DECLARE_ABSTRACT_CLASS(wxRegConfig)
+  wxDECLARE_ABSTRACT_CLASS(wxRegConfig);
 };
 
 #endif // wxUSE_CONFIG && wxUSE_REGKEY

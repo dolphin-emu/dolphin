@@ -19,7 +19,7 @@
 #include "wx/dynarray.h"
 
 // note that we have our own dlerror() implementation under Darwin
-#if (defined(HAVE_DLERROR) && !defined(__EMX__)) || defined(__DARWIN__)
+#if defined(HAVE_DLERROR) || defined(__DARWIN__)
     #define wxHAVE_DYNLIB_ERROR
 #endif
 
@@ -29,9 +29,7 @@ class WXDLLIMPEXP_FWD_BASE wxDynamicLibraryDetailsCreator;
 // conditional compilation
 // ----------------------------------------------------------------------------
 
-// Note: __OS2__/EMX has to be tested first, since we want to use
-// native version, even if configure detected presence of DLOPEN.
-#if defined(__OS2__) || defined(__EMX__) || defined(__WINDOWS__)
+#if defined(__WINDOWS__)
     typedef WXHMODULE           wxDllType;
 #elif defined(__DARWIN__)
     // Don't include dlfcn.h on Darwin, we may be using our own replacements.
@@ -296,11 +294,7 @@ public:
     static void *RawGetSymbol(wxDllType handle, const wxString& name);
     void *RawGetSymbol(const wxString& name) const
     {
-#if defined (__WXPM__) || defined(__EMX__)
-        return GetSymbol(name);
-#else
         return RawGetSymbol(m_handle, name);
-#endif
     }
 
 #ifdef __WINDOWS__
@@ -347,6 +341,12 @@ public:
     // string on others:
     static wxString GetPluginsDirectory();
 
+    // Return the load address of the module containing the given address or
+    // NULL if not found.
+    //
+    // If path output parameter is non-NULL, fill it with the full path to this
+    // module disk file on success.
+    static void* GetModuleFromAddress(const void* addr, wxString* path = NULL);
 
 #ifdef __WINDOWS__
     // return the handle (HMODULE/HINSTANCE) of the DLL with the given name

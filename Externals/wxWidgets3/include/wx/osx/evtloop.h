@@ -13,11 +13,7 @@
 #ifndef _WX_OSX_EVTLOOP_H_
 #define _WX_OSX_EVTLOOP_H_
 
-#ifdef __WXOSX_COCOA__
-    #include "wx/osx/cocoa/evtloop.h"
-#else
-    #include "wx/osx/carbon/evtloop.h"
-#endif
+#include "wx/osx/cocoa/evtloop.h"
 
 class WXDLLIMPEXP_FWD_CORE wxWindow;
 class WXDLLIMPEXP_FWD_CORE wxNonOwnedWindow;
@@ -31,8 +27,6 @@ public:
 #ifdef __WXOSX_COCOA__
     // skip wxGUIEventLoop to avoid missing Enter/Exit notifications
     virtual int Run() { return wxCFEventLoop::Run(); }
-
-    virtual bool ProcessIdle();
 #endif
 protected:
     virtual void OSXDoRun();

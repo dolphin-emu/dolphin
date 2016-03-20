@@ -36,14 +36,14 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxScrollBarNameStr);
 
-    virtual int GetThumbPosition() const ;
-    virtual int GetThumbSize() const { return m_viewSize; }
-    virtual int GetPageSize() const { return m_pageSize; }
-    virtual int GetRange() const { return m_objectSize; }
+    virtual int GetThumbPosition() const wxOVERRIDE;
+    virtual int GetThumbSize() const wxOVERRIDE { return m_viewSize; }
+    virtual int GetPageSize() const wxOVERRIDE { return m_pageSize; }
+    virtual int GetRange() const wxOVERRIDE { return m_objectSize; }
 
-    virtual void SetThumbPosition(int viewStart);
+    virtual void SetThumbPosition(int viewStart) wxOVERRIDE;
     virtual void SetScrollbar(int position, int thumbSize, int range,
-            int pageSize, bool refresh = true);
+            int pageSize, bool refresh = true) wxOVERRIDE;
 
     // needed for RTTI
     void SetThumbSize( int s ) { SetScrollbar( GetThumbPosition() , s , GetRange() , GetPageSize() , true ) ; }
@@ -51,18 +51,18 @@ public:
     void SetRange( int s ) { SetScrollbar( GetThumbPosition() , GetThumbSize() , s , GetPageSize() , true ) ; }
 
         // implementation only from now on
-    void Command(wxCommandEvent& event);
-    virtual void TriggerScrollEvent( wxEventType scrollEvent ) ;
-    virtual bool OSXHandleClicked( double timestampsec );
+    void Command(wxCommandEvent& event) wxOVERRIDE;
+    virtual void TriggerScrollEvent( wxEventType scrollEvent ) wxOVERRIDE;
+    virtual bool OSXHandleClicked( double timestampsec ) wxOVERRIDE;
 protected:
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     int m_pageSize;
     int m_viewSize;
     int m_objectSize;
 
-    DECLARE_DYNAMIC_CLASS(wxScrollBar)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxScrollBar);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_SCROLBAR_H_

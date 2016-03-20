@@ -44,9 +44,9 @@
 #include "wx/paper.h"
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxPrintData, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxPrintDialogData, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxPageSetupDialogData, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPrintData, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxPrintDialogData, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxPageSetupDialogData, wxObject);
 
 // ============================================================================
 // implementation

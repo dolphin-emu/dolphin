@@ -43,7 +43,7 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFontDialog, wxDialog);
 
 // ============================================================================
 // implementation
@@ -57,6 +57,8 @@ int wxFontDialog::ShowModal()
 {
     WX_HOOK_MODAL_DIALOG();
 
+    wxWindow* const parent = GetParentForModalDialog(m_parent, GetWindowStyle());
+    WXHWND hWndParent = parent ? GetHwndOf(parent) : NULL;
     // It should be OK to always use GDI simulations
     DWORD flags = CF_SCREENFONTS /* | CF_NOSIMULATIONS */ ;
 
@@ -66,8 +68,7 @@ int wxFontDialog::ShowModal()
     wxZeroMemory(chooseFontStruct);
 
     chooseFontStruct.lStructSize = sizeof(CHOOSEFONT);
-    if ( m_parent )
-        chooseFontStruct.hwndOwner = GetHwndOf(m_parent);
+    chooseFontStruct.hwndOwner = hWndParent;
     chooseFontStruct.lpLogFont = &logFont;
 
     if ( m_fontData.m_initialFont.IsOk() )

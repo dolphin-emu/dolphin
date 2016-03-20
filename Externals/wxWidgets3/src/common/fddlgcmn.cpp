@@ -34,7 +34,7 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFindDialogEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFindDialogEvent, wxCommandEvent);
 
 wxDEFINE_EVENT( wxEVT_FIND, wxFindDialogEvent );
 wxDEFINE_EVENT( wxEVT_FIND_NEXT, wxFindDialogEvent );

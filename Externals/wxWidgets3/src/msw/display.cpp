@@ -43,7 +43,6 @@
 #include "wx/msw/private.h"
 #include "wx/msw/private/hiddenwin.h"
 
-#ifndef __WXWINCE__
     // Older versions of windef.h don't define HMONITOR.  Unfortunately, we
     // can't directly test whether HMONITOR is defined or not in windef.h as
     // it's not a macro but a typedef, so we test for an unrelated symbol which
@@ -68,42 +67,8 @@
         #define MONITORINFOF_PRIMARY        0x00000001
         #define HMONITOR_DECLARED
     #endif
-#endif // !__WXWINCE__
 
-// display functions are found in different DLLs under WinCE and normal Win32
-#ifdef __WXWINCE__
-static const wxChar displayDllName[] = wxT("coredll.dll");
-#else
 static const wxChar displayDllName[] = wxT("user32.dll");
-#endif
-
-// ----------------------------------------------------------------------------
-// typedefs for dynamically loaded Windows functions
-// ----------------------------------------------------------------------------
-
-typedef LONG (WINAPI *ChangeDisplaySettingsEx_t)(LPCTSTR lpszDeviceName,
-                                                 LPDEVMODE lpDevMode,
-                                                 HWND hwnd,
-                                                 DWORD dwFlags,
-                                                 LPVOID lParam);
-
-typedef BOOL (WINAPI *EnumDisplayMonitors_t)(HDC,LPCRECT,MONITORENUMPROC,LPARAM);
-typedef HMONITOR (WINAPI *MonitorFromPoint_t)(POINT,DWORD);
-typedef HMONITOR (WINAPI *MonitorFromWindow_t)(HWND,DWORD);
-typedef BOOL (WINAPI *GetMonitorInfo_t)(HMONITOR,LPMONITORINFO);
-
-#ifndef __WXWINCE__
-// emulation of ChangeDisplaySettingsEx() for Win95
-LONG WINAPI ChangeDisplaySettingsExForWin95(LPCTSTR WXUNUSED(lpszDeviceName),
-                                            LPDEVMODE lpDevMode,
-                                            HWND WXUNUSED(hwnd),
-                                            DWORD dwFlags,
-                                            LPVOID WXUNUSED(lParam))
-{
-    return ::ChangeDisplaySettings(lpDevMode, dwFlags);
-}
-#endif // !__WXWINCE__
-
 
 // ----------------------------------------------------------------------------
 // wxDisplayMSW declaration
@@ -156,12 +121,6 @@ private:
 // ----------------------------------------------------------------------------
 
 WX_DEFINE_ARRAY(HMONITOR, wxMonitorHandleArray);
-
-// functions dynamically bound by wxDisplayFactoryMSW ctor.
-static MonitorFromPoint_t gs_MonitorFromPoint = NULL;
-static MonitorFromWindow_t gs_MonitorFromWindow = NULL;
-static GetMonitorInfo_t gs_GetMonitorInfo = NULL;
-static EnumDisplayMonitors_t gs_EnumDisplayMonitors = NULL;
 
 class wxDisplayFactoryMSW : public wxDisplayFactory
 {
@@ -245,7 +204,7 @@ wxDisplayFactoryMSW* wxDisplayFactoryMSW::ms_factory = NULL;
 
 bool wxDisplayMSW::GetMonInfo(MONITORINFOEX& monInfo) const
 {
-    if ( !gs_GetMonitorInfo(m_hmon, &monInfo) )
+    if ( !::GetMonitorInfo(m_hmon, &monInfo) )
     {
         wxLogLastError(wxT("GetMonitorInfo"));
         return false;
@@ -395,40 +354,12 @@ bool wxDisplayMSW::ChangeMode(const wxVideoMode& mode)
 
         pDevMode = &dm;
 
-#ifdef __WXWINCE__
-        flags = 0;
-#else // !__WXWINCE__
         flags = CDS_FULLSCREEN;
-#endif // __WXWINCE__/!__WXWINCE__
     }
 
-
-    // get pointer to the function dynamically
-    //
-    // we're only called from the main thread, so it's ok to use static
-    // variable
-    static ChangeDisplaySettingsEx_t pfnChangeDisplaySettingsEx = NULL;
-    if ( !pfnChangeDisplaySettingsEx )
-    {
-        wxDynamicLibrary dllDisplay(displayDllName, wxDL_VERBATIM | wxDL_QUIET);
-        if ( dllDisplay.IsLoaded() )
-        {
-            wxDL_INIT_FUNC_AW(pfn, ChangeDisplaySettingsEx, dllDisplay);
-        }
-        //else: huh, no this DLL must always be present, what's going on??
-
-#ifndef __WXWINCE__
-        if ( !pfnChangeDisplaySettingsEx )
-        {
-            // we must be under Win95 and so there is no multiple monitors
-            // support anyhow
-            pfnChangeDisplaySettingsEx = ChangeDisplaySettingsExForWin95;
-        }
-#endif // !__WXWINCE__
-    }
 
     // do change the mode
-    switch ( pfnChangeDisplaySettingsEx
+    switch ( ::ChangeDisplaySettingsEx
              (
                 GetName().t_str(),  // display name
                 pDevMode,           // dev mode or NULL to reset
@@ -493,25 +424,6 @@ wxDisplayFactoryMSW::wxDisplayFactoryMSW()
     m_hiddenHwnd = NULL;
     m_hiddenClass = NULL;
 
-    if ( gs_MonitorFromPoint==NULL || gs_MonitorFromWindow==NULL
-         || gs_GetMonitorInfo==NULL || gs_EnumDisplayMonitors==NULL )
-    {
-        // First initialization, or last initialization failed.
-        wxDynamicLibrary dllDisplay(displayDllName, wxDL_VERBATIM | wxDL_QUIET);
-
-        wxDL_INIT_FUNC(gs_, MonitorFromPoint, dllDisplay);
-        wxDL_INIT_FUNC(gs_, MonitorFromWindow, dllDisplay);
-        wxDL_INIT_FUNC_AW(gs_, GetMonitorInfo, dllDisplay);
-        wxDL_INIT_FUNC(gs_, EnumDisplayMonitors, dllDisplay);
-
-        // we can safely let dllDisplay go out of scope, the DLL itself will
-        // still remain loaded as all programs link to it statically anyhow
-    }
-
-    if ( gs_MonitorFromPoint==NULL || gs_MonitorFromWindow==NULL
-         || gs_GetMonitorInfo==NULL || gs_EnumDisplayMonitors==NULL )
-        return;
-
     DoRefreshMonitors();
 
     // Also create a hidden window to listen for WM_SETTINGCHANGE that we
@@ -550,7 +462,7 @@ void wxDisplayFactoryMSW::DoRefreshMonitors()
 {
     m_displays.Clear();
 
-    if ( !gs_EnumDisplayMonitors(NULL, NULL, MultimonEnumProc, (LPARAM)this) )
+    if ( !::EnumDisplayMonitors(NULL, NULL, MultimonEnumProc, (LPARAM)this) )
     {
         wxLogLastError(wxT("EnumDisplayMonitors"));
     }
@@ -601,14 +513,14 @@ int wxDisplayFactoryMSW::GetFromPoint(const wxPoint& pt)
     pt2.x = pt.x;
     pt2.y = pt.y;
 
-    return FindDisplayFromHMONITOR(gs_MonitorFromPoint(pt2,
+    return FindDisplayFromHMONITOR(::MonitorFromPoint(pt2,
                                                        MONITOR_DEFAULTTONULL));
 }
 
 int wxDisplayFactoryMSW::GetFromWindow(const wxWindow *window)
 {
 #ifdef __WXMSW__
-    return FindDisplayFromHMONITOR(gs_MonitorFromWindow(GetHwndOf(window),
+    return FindDisplayFromHMONITOR(::MonitorFromWindow(GetHwndOf(window),
                                                         MONITOR_DEFAULTTONULL));
 #else
     const wxSize halfsize = window->GetSize() / 2;
@@ -623,10 +535,6 @@ int wxDisplayFactoryMSW::GetFromWindow(const wxWindow *window)
 
 void wxClientDisplayRect(int *x, int *y, int *width, int *height)
 {
-#if defined(__WXMICROWIN__)
-    *x = 0; *y = 0;
-    wxDisplaySize(width, height);
-#else
     // Determine the desktop dimensions minus the taskbar and any other
     // special decorations...
     RECT r;
@@ -636,5 +544,4 @@ void wxClientDisplayRect(int *x, int *y, int *width, int *height)
     if (y)      *y = r.top;
     if (width)  *width = r.right - r.left;
     if (height) *height = r.bottom - r.top;
-#endif
 }

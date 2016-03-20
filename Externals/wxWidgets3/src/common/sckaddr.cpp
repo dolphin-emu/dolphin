@@ -46,7 +46,7 @@
 
 #include <errno.h>
 
-#if defined(__UNIX__) && !defined(__WXMSW__)
+#if defined(__UNIX__) && !defined(__WINDOWS__)
     #include <netdb.h>
     #include <arpa/inet.h>
 #endif // __UNIX__
@@ -59,14 +59,14 @@
 // wxRTTI macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS(wxSockAddress, wxObject)
-IMPLEMENT_ABSTRACT_CLASS(wxIPaddress, wxSockAddress)
-IMPLEMENT_DYNAMIC_CLASS(wxIPV4address, wxIPaddress)
+wxIMPLEMENT_ABSTRACT_CLASS(wxSockAddress, wxObject);
+wxIMPLEMENT_ABSTRACT_CLASS(wxIPaddress, wxSockAddress);
+wxIMPLEMENT_DYNAMIC_CLASS(wxIPV4address, wxIPaddress);
 #if wxUSE_IPV6
-IMPLEMENT_DYNAMIC_CLASS(wxIPV6address, wxIPaddress)
+wxIMPLEMENT_DYNAMIC_CLASS(wxIPV6address, wxIPaddress);
 #endif
 #if defined(__UNIX__) && !defined(__WINDOWS__) && !defined(__WINE__)
-IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
+wxIMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress);
 #endif
 
 // ============================================================================
@@ -113,6 +113,12 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
 // gethostbyname_r() and that it uses the similar conventions to it (see
 // comment in configure)
 #define HAVE_GETHOSTBYADDR HAVE_GETHOSTBYNAME
+
+#ifdef __ANDROID__
+    #ifndef HAVE_GETHOSTBYNAME
+    #define HAVE_GETHOSTBYNAME
+    #endif
+#else // these functions are missing on android (see netdb.h)
 #ifdef HAVE_FUNC_GETHOSTBYNAME_R_3
     #define HAVE_FUNC_GETHOSTBYADDR_R_3
 #endif
@@ -122,7 +128,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
 #ifdef HAVE_FUNC_GETHOSTBYNAME_R_6
     #define HAVE_FUNC_GETHOSTBYADDR_R_6
 #endif
-
+#endif
 // the _r functions need the extra buffer parameter but unfortunately its type
 // differs between different systems and for the systems which use opaque
 // structs for it (at least AIX and OpenBSD) it must be zero-filled before
@@ -136,7 +142,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
         }
     };
 #else
-    typedef char wxGethostBuf[1024];
+    typedef char wxGethostBuf[4096];
 #endif
 
 #ifdef HAVE_FUNC_GETSERVBYNAME_R_4
@@ -148,7 +154,7 @@ IMPLEMENT_DYNAMIC_CLASS(wxUNIXaddress, wxSockAddress)
         }
     };
 #else
-    typedef char wxGetservBuf[1024];
+    typedef char wxGetservBuf[4096];
 #endif
 
 #if defined(wxHAS_MT_SAFE_GETBY_FUNCS) || !wxUSE_THREADS
@@ -418,10 +424,6 @@ servent *wxGetservbyname_r(const char *port,
 // wxSockAddressImpl implementation
 // ============================================================================
 
-// FIXME-VC6: helper macros to call Alloc/Get() hiding the ugly dummy argument
-#define ALLOC(T) Alloc(static_cast<T *>(NULL))
-#define GET(T) Get(static_cast<T *>(NULL))
-
 // ----------------------------------------------------------------------------
 // INET or INET6 address family
 // ----------------------------------------------------------------------------
@@ -434,14 +436,14 @@ wxString wxSockAddressImpl::GetHostName() const
 #if wxUSE_IPV6
     if ( m_family == FAMILY_INET6 )
     {
-        sockaddr_in6 * const addr6 = GET(sockaddr_in6);
+        sockaddr_in6 * const addr6 = Get<sockaddr_in6>();
         addrbuf = &addr6->sin6_addr;
         addrbuflen = sizeof(addr6->sin6_addr);
     }
     else
 #endif // wxUSE_IPV6
     {
-        sockaddr_in * const addr = GET(sockaddr_in);
+        sockaddr_in * const addr = Get<sockaddr_in>();
         if ( !addr )
             return wxString();
 
@@ -504,13 +506,13 @@ void wxSockAddressImpl::CreateINET()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_INET;
-    sockaddr_in * const addr = ALLOC(sockaddr_in);
+    sockaddr_in * const addr = Alloc<sockaddr_in>();
     addr->sin_family = FAMILY_INET;
 }
 
 bool wxSockAddressImpl::SetHostName4(const wxString& name)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -541,7 +543,7 @@ bool wxSockAddressImpl::SetHostName4(const wxString& name)
 
 bool wxSockAddressImpl::GetHostAddress(wxUint32 *address) const
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -552,7 +554,7 @@ bool wxSockAddressImpl::GetHostAddress(wxUint32 *address) const
 
 bool wxSockAddressImpl::SetHostAddress(wxUint32 address)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -563,7 +565,7 @@ bool wxSockAddressImpl::SetHostAddress(wxUint32 address)
 
 wxUint16 wxSockAddressImpl::GetPort4() const
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return 0;
 
@@ -572,7 +574,7 @@ wxUint16 wxSockAddressImpl::GetPort4() const
 
 bool wxSockAddressImpl::SetPort4(wxUint16 port)
 {
-    sockaddr_in * const addr = GET(sockaddr_in);
+    sockaddr_in * const addr = Get<sockaddr_in>();
     if ( !addr )
         return false;
 
@@ -592,13 +594,13 @@ void wxSockAddressImpl::CreateINET6()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_INET6;
-    sockaddr_in6 * const addr = ALLOC(sockaddr_in6);
+    sockaddr_in6 * const addr = Alloc<sockaddr_in6>();
     addr->sin6_family = FAMILY_INET6;
 }
 
 bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -626,7 +628,7 @@ bool wxSockAddressImpl::SetHostName6(const wxString& hostname)
 
 bool wxSockAddressImpl::GetHostAddress(in6_addr *address) const
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -637,7 +639,7 @@ bool wxSockAddressImpl::GetHostAddress(in6_addr *address) const
 
 bool wxSockAddressImpl::SetHostAddress(const in6_addr& address)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -648,7 +650,7 @@ bool wxSockAddressImpl::SetHostAddress(const in6_addr& address)
 
 wxUint16 wxSockAddressImpl::GetPort6() const
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return 0;
 
@@ -657,7 +659,7 @@ wxUint16 wxSockAddressImpl::GetPort6() const
 
 bool wxSockAddressImpl::SetPort6(wxUint16 port)
 {
-    sockaddr_in6 * const addr = GET(sockaddr_in6);
+    sockaddr_in6 * const addr = Get<sockaddr_in6>();
     if ( !addr )
         return false;
 
@@ -690,14 +692,14 @@ void wxSockAddressImpl::CreateUnix()
     wxASSERT_MSG( Is(FAMILY_UNSPEC), "recreating address as different type?" );
 
     m_family = FAMILY_UNIX;
-    sockaddr_un * const addr = ALLOC(sockaddr_un);
+    sockaddr_un * const addr = Alloc<sockaddr_un>();
     addr->sun_family = FAMILY_UNIX;
     addr->sun_path[0] = '\0';
 }
 
 bool wxSockAddressImpl::SetPath(const wxString& path)
 {
-    sockaddr_un * const addr = GET(sockaddr_un);
+    sockaddr_un * const addr = Get<sockaddr_un>();
     if ( !addr )
         return false;
 
@@ -712,7 +714,7 @@ bool wxSockAddressImpl::SetPath(const wxString& path)
 
 wxString wxSockAddressImpl::GetPath() const
 {
-    sockaddr_un * const addr = GET(sockaddr_un);
+    sockaddr_un * const addr = Get<sockaddr_un>();
     if ( !addr )
         return wxString();
 
@@ -720,9 +722,6 @@ wxString wxSockAddressImpl::GetPath() const
 }
 
 #endif // wxHAS_UNIX_DOMAIN_SOCKETS
-
-#undef GET
-#undef ALLOC
 
 // ----------------------------------------------------------------------------
 // wxSockAddress

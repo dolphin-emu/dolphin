@@ -24,8 +24,8 @@ WX_DECLARE_EXPORTED_LIST(wxListItem, wxColumnList);
 
 class WXDLLIMPEXP_CORE wxListCtrl: public wxListCtrlBase
 {
-  DECLARE_DYNAMIC_CLASS(wxListCtrl)
- public:
+    wxDECLARE_DYNAMIC_CLASS(wxListCtrl);
+public:
   /*
    * Public interface
    */
@@ -170,22 +170,10 @@ class WXDLLIMPEXP_CORE wxListCtrl: public wxListCtrlBase
   // Returns the item or -1 if unsuccessful.
   long GetNextItem(long item, int geometry = wxLIST_NEXT_ALL, int state = wxLIST_STATE_DONTCARE) const ;
 
-  // Implementation: converts wxWidgets style to MSW style.
-  // Can be a single style flag or a bit list.
-  // oldStyle is 'normalised' so that it doesn't contain
-  // conflicting styles.
-  long ConvertToMSWStyle(long& oldStyle, long style) const;
-
   // Gets one of the three image lists
   wxImageList *GetImageList(int which) const ;
 
   // Sets the image list
-  // N.B. There's a quirk in the Win95 list view implementation.
-  // If in wxLC_LIST mode, it'll *still* display images by the labels if
-  // there's a small-icon image list set for the control - even though you
-  // haven't specified wxLIST_MASK_IMAGE when inserting.
-  // So you have to set a NULL small-icon image list to be sure that
-  // the wxLC_LIST mode works without icons. Of course, you may want icons...
   void SetImageList(wxImageList *imageList, int which) ;
 
   // Operations

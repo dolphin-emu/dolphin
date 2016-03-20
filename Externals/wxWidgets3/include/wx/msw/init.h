@@ -22,13 +22,8 @@
     #define SW_SHOWNORMAL 1
 #endif
 
-// WinMain() is always ANSI, even in Unicode build, under normal Windows
-// but is always Unicode under CE
-#ifdef __WXWINCE__
-    typedef wchar_t *wxCmdLineArgType;
-#else
-    typedef char *wxCmdLineArgType;
-#endif
+// WinMain() is always ANSI, even in Unicode build.
+typedef char *wxCmdLineArgType;
 
 // Windows-only overloads of wxEntry() and wxEntryStart() which take the
 // parameters passed to WinMain() instead of those passed to main()

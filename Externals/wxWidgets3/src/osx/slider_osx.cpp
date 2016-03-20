@@ -15,8 +15,8 @@
 #include "wx/slider.h"
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxSlider, wxControl)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxSlider, wxControl)
+wxEND_EVENT_TABLE()
 
  // The dimensions of the different styles of sliders (from Aqua document)
 #if wxOSX_USE_COCOA
@@ -475,7 +475,7 @@ void wxSlider::DoSetSize(int x, int y, int w, int h, int sizeFlags)
     }
 
     // yet another hack since this is a composite control
-    // when wxSlider has it's size hardcoded, we're not allowed to
+    // when wxSlider has its size hardcoded, we're not allowed to
     // change the size. But when the control has labels, we DO need
     
     // to resize the internal Mac control to accommodate the text labels.

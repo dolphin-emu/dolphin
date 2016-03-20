@@ -23,7 +23,7 @@
 #include "wx/aboutdlg.h"
 
 #ifndef WX_PRECOMP
-    #include "wx/utils.h"       // for wxLaunchDefaultBrowser()
+    #include "wx/window.h"
 #endif //WX_PRECOMP
 
 #include <gtk/gtk.h>
@@ -131,7 +131,7 @@ static void wxGtkAboutDialogOnLink(GtkAboutDialog*, const char* link, void*)
 }
 #endif
 
-void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* WXUNUSED(parent))
+void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* parent)
 {
     // don't create another dialog if one is already present
     if ( !gs_aboutDialog )
@@ -234,6 +234,11 @@ void wxAboutBox(const wxAboutDialogInfo& info, wxWindow* WXUNUSED(parent))
 
     g_signal_connect(dlg, "response",
                         G_CALLBACK(wxGtkAboutDialogOnClose), NULL);
+
+    GtkWindow* gtkParent = NULL;
+    if (parent && parent->m_widget)
+        gtkParent = (GtkWindow*)gtk_widget_get_ancestor(parent->m_widget, GTK_TYPE_WINDOW);
+    gtk_window_set_transient_for(GTK_WINDOW(dlg), gtkParent);
 
     gtk_window_present(GTK_WINDOW(dlg));
 }

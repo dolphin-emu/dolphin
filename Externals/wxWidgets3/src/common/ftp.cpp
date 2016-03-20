@@ -60,7 +60,7 @@ static const size_t LEN_CODE = 3;
 // macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxFTP, wxProtocol)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFTP, wxProtocol);
 IMPLEMENT_PROTOCOL(wxFTP, wxT("ftp"), wxT("ftp"), true)
 
 // ============================================================================
@@ -79,8 +79,6 @@ wxFTP::wxFTP()
     m_username = wxT("anonymous");
     m_password << wxGetUserId() << wxT('@') << wxGetFullHostName();
 
-    SetNotify(0);
-    SetFlags(wxSOCKET_NOWAIT);
     m_bPassive = true;
     m_bEncounteredError = false;
 }
@@ -239,7 +237,7 @@ char wxFTP::SendCommand(const wxString& command)
 
     wxString tmp_str = command + wxT("\r\n");
     const wxWX2MBbuf tmp_buf = tmp_str.mb_str();
-    if ( Write(wxMBSTRINGCAST tmp_buf, strlen(tmp_buf)).Error())
+    if ( Write(static_cast<const char *>(tmp_buf), strlen(tmp_buf)).Error())
     {
         m_lastError = wxPROTO_NETERR;
         return 0;
@@ -388,7 +386,7 @@ bool wxFTP::SetTransferMode(TransferMode transferMode)
     {
         default:
             wxFAIL_MSG(wxT("unknown FTP transfer mode"));
-            // fall through
+            wxFALLTHROUGH;
 
         case BINARY:
             mode = wxT('I');
@@ -468,7 +466,7 @@ wxString wxFTP::Pwd()
         }
         else
         {
-            for ( ++p; (bool)*p; ++p ) // FIXME-DMARS
+            for ( ++p; *p; ++p )
             {
                 if ( *p == wxT('"') )
                 {
@@ -769,7 +767,11 @@ wxInputStream *wxFTP::GetInputStream(const wxString& path)
 
     wxString tmp_str = wxT("RETR ") + wxURI::Unescape(path);
     if ( !CheckCommand(tmp_str, '1') )
+    {
+        delete sock;
+
         return NULL;
+    }
 
     sock = AcceptIfActive(sock);
     if ( !sock )
@@ -777,8 +779,6 @@ wxInputStream *wxFTP::GetInputStream(const wxString& path)
         m_lastError = wxPROTO_CONNERR;
         return NULL;
     }
-
-    sock->SetFlags(wxSOCKET_WAITALL);
 
     m_streaming = true;
 
@@ -800,7 +800,11 @@ wxOutputStream *wxFTP::GetOutputStream(const wxString& path)
 
     wxString tmp_str = wxT("STOR ") + path;
     if ( !CheckCommand(tmp_str, '1') )
+    {
+        delete sock;
+
         return NULL;
+    }
 
     sock = AcceptIfActive(sock);
 

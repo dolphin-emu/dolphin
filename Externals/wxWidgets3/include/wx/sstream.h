@@ -26,13 +26,13 @@ public:
     // it
     wxStringInputStream(const wxString& s);
 
-    virtual wxFileOffset GetLength() const;
-    virtual bool IsSeekable() const { return true; }
+    virtual wxFileOffset GetLength() const wxOVERRIDE;
+    virtual bool IsSeekable() const wxOVERRIDE { return true; }
 
 protected:
-    virtual wxFileOffset OnSysSeek(wxFileOffset ofs, wxSeekMode mode);
-    virtual wxFileOffset OnSysTell() const;
-    virtual size_t OnSysRead(void *buffer, size_t size);
+    virtual wxFileOffset OnSysSeek(wxFileOffset ofs, wxSeekMode mode) wxOVERRIDE;
+    virtual wxFileOffset OnSysTell() const wxOVERRIDE;
+    virtual size_t OnSysRead(void *buffer, size_t size) wxOVERRIDE;
 
 private:
     // the string that was passed in the ctor
@@ -76,11 +76,11 @@ public:
     // get the string containing current output
     const wxString& GetString() const { return *m_str; }
 
-    virtual bool IsSeekable() const { return true; }
+    virtual bool IsSeekable() const wxOVERRIDE { return true; }
 
 protected:
-    virtual wxFileOffset OnSysTell() const;
-    virtual size_t OnSysWrite(const void *buffer, size_t size);
+    virtual wxFileOffset OnSysTell() const wxOVERRIDE;
+    virtual size_t OnSysWrite(const void *buffer, size_t size) wxOVERRIDE;
 
 private:
     // internal string, not used if caller provided his own string

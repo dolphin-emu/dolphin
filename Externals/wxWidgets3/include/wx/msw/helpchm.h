@@ -81,7 +81,7 @@ protected:
 
     wxString m_helpFile;
 
-    DECLARE_DYNAMIC_CLASS(wxCHMHelpController)
+    wxDECLARE_DYNAMIC_CLASS(wxCHMHelpController);
 };
 
 #endif // wxUSE_MS_HTML_HELP

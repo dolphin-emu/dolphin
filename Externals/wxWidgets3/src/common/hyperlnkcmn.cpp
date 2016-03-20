@@ -76,9 +76,9 @@ wxFLAGS_MEMBER(wxHL_ALIGN_RIGHT)
 wxFLAGS_MEMBER(wxHL_ALIGN_CENTRE)
 wxEND_FLAGS( wxHyperlinkStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI( wxHyperlinkCtrl, wxControl, "wx/hyperlink.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI( wxHyperlinkCtrl, wxControl, "wx/hyperlink.h");
 
-IMPLEMENT_DYNAMIC_CLASS(wxHyperlinkEvent, wxCommandEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHyperlinkEvent, wxCommandEvent);
 wxDEFINE_EVENT( wxEVT_HYPERLINK, wxHyperlinkEvent );
 
 wxBEGIN_PROPERTIES_TABLE(wxHyperlinkCtrl)

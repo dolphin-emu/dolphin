@@ -50,29 +50,16 @@ void wxStackFrame::OnGetName()
     m_hasName = true;
 
     // get the name of the function for this stack frame entry
-    static const size_t MAX_NAME_LEN = 1024;
-    BYTE symbolBuffer[sizeof(SYMBOL_INFO) + MAX_NAME_LEN];
-    wxZeroMemory(symbolBuffer);
-
-    PSYMBOL_INFO pSymbol = (PSYMBOL_INFO)symbolBuffer;
-    pSymbol->SizeOfStruct = sizeof(SYMBOL_INFO);
-    pSymbol->MaxNameLen = MAX_NAME_LEN;
-
-    DWORD64 symDisplacement = 0;
-    if ( !wxDbgHelpDLL::SymFromAddr
+    if ( !wxDbgHelpDLL::CallSymFromAddr
                         (
                             ::GetCurrentProcess(),
                             GetSymAddr(),
-                            &symDisplacement,
-                            pSymbol
+                            &m_offset,
+                            &m_name
                         ) )
     {
         wxDbgHelpDLL::LogError(wxT("SymFromAddr"));
-        return;
     }
-
-    m_name = wxString::FromAscii(pSymbol->Name);
-    m_offset = symDisplacement;
 }
 
 void wxStackFrame::OnGetLocation()
@@ -82,25 +69,11 @@ void wxStackFrame::OnGetLocation()
 
     m_hasLocation = true;
 
-    // get the source line for this stack frame entry
-    IMAGEHLP_LINE lineInfo = { sizeof(IMAGEHLP_LINE) };
-    DWORD dwLineDisplacement;
-    if ( !wxDbgHelpDLL::SymGetLineFromAddr
-                        (
-                            ::GetCurrentProcess(),
-                            GetSymAddr(),
-                            &dwLineDisplacement,
-                            &lineInfo
-                        ) )
-    {
-        // it is normal that we don't have source info for some symbols,
-        // notably all the ones from the system DLLs...
-        //wxDbgHelpDLL::LogError(wxT("SymGetLineFromAddr"));
-        return;
-    }
-
-    m_filename = wxString::FromAscii(lineInfo.FileName);
-    m_line = lineInfo.LineNumber;
+    // get the source line for this stack frame entry ignoring possible errors
+    // (it's normal that we don't have source info for some symbols, e.g. all
+    // those from the system DLLs)
+    wxDbgHelpDLL::CallSymGetLineFromAddr(::GetCurrentProcess(), GetSymAddr(),
+                                         &m_filename, &m_line);
 }
 
 bool
@@ -125,11 +98,10 @@ wxStackFrame::GetParam(size_t n,
     return true;
 }
 
-void wxStackFrame::OnParam(PSYMBOL_INFO pSymInfo)
+void wxStackFrame::OnParam(wxSYMBOL_INFO *pSymInfo)
 {
     m_paramTypes.Add(wxEmptyString);
-
-    m_paramNames.Add(wxString::FromAscii(pSymInfo->Name));
+    m_paramNames.Add(pSymInfo->Name);
 
     // if symbol information is corrupted and we crash, the exception is going
     // to be ignored when we're called from WalkFromException() because of the
@@ -158,7 +130,7 @@ void wxStackFrame::OnParam(PSYMBOL_INFO pSymInfo)
 }
 
 BOOL CALLBACK
-EnumSymbolsProc(PSYMBOL_INFO pSymInfo, ULONG WXUNUSED(SymSize), PVOID data)
+EnumSymbolsProc(wxPSYMBOL_INFO pSymInfo, ULONG WXUNUSED(SymSize), PVOID data)
 {
     wxStackFrame *frame = static_cast<wxStackFrame *>(data);
 
@@ -195,11 +167,10 @@ void wxStackFrame::OnGetParam()
         return;
     }
 
-    if ( !wxDbgHelpDLL::SymEnumSymbols
+    if ( !wxDbgHelpDLL::CallSymEnumSymbols
                         (
                             ::GetCurrentProcess(),
                             NULL,               // DLL base: use current context
-                            NULL,               // no mask, get all symbols
                             EnumSymbolsProc,    // callback
                             this                // data to pass to it
                         ) )
@@ -232,10 +203,9 @@ void wxStackWalker::WalkFrom(const CONTEXT *pCtx, size_t skip, size_t maxDepth)
     // below which should be a real handle... so this is what we use
     const HANDLE hProcess = ::GetCurrentProcess();
 
-    if ( !wxDbgHelpDLL::SymInitialize
+    if ( !wxDbgHelpDLL::CallSymInitialize
                         (
                             hProcess,
-                            NULL,   // use default symbol search path
                             TRUE    // load symbols for all loaded modules
                         ) )
     {
@@ -382,7 +352,7 @@ wxStackFrame::GetParam(size_t WXUNUSED(n),
     return false;
 }
 
-void wxStackFrame::OnParam(_SYMBOL_INFO * WXUNUSED(pSymInfo))
+void wxStackFrame::OnParam(wxSYMBOL_INFO * WXUNUSED(pSymInfo))
 {
 }
 

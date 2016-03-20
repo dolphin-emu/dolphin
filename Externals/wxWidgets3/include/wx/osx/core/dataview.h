@@ -12,11 +12,7 @@
 
 #include "wx/dataview.h"
 
-#if wxOSX_USE_CARBON
-typedef wxMacControl wxWidgetImplType;
-#else
 typedef wxWidgetImpl wxWidgetImplType;
-#endif
 
 // ---------------------------------------------------------
 // Helper functions for dataview implementation on OSX
