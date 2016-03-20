@@ -34,12 +34,12 @@ int d3d_dll_ref = 0;
 namespace D3D
 {
 
-ID3D11Device* device = nullptr;
-ID3D11DeviceContext* context = nullptr;
-static IDXGISwapChain* swapchain = nullptr;
-static ID3D11Debug* debug = nullptr;
+ComPtr<ID3D11Device> device = nullptr;
+ComPtr<ID3D11DeviceContext> context = nullptr;
+static ComPtr<IDXGISwapChain> swapchain = nullptr;
+static ComPtr<ID3D11Debug> debug = nullptr;
 D3D_FEATURE_LEVEL featlevel;
-D3DTexture2D* backbuf = nullptr;
+D3DTexture2D backbuf;
 HWND hWnd;
 
 std::vector<DXGI_SAMPLE_DESC> aa_modes; // supported AA modes of the current adapter
@@ -164,18 +164,16 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 
 	// NOTE: D3D 10.0 doesn't support multisampled resources which are bound as depth buffers AND shader resources.
 	// Thus, we can't have MSAA with 10.0 level hardware.
-	ID3D11Device* _device;
-	ID3D11DeviceContext* _context;
+	ComPtr<ID3D11Device> _device;
+	ComPtr<ID3D11DeviceContext> _context;
 	D3D_FEATURE_LEVEL feat_level;
-	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, &_device, &feat_level, &_context);
+	HRESULT hr = PD3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, D3D11_CREATE_DEVICE_SINGLETHREADED, supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS, D3D11_SDK_VERSION, _device.GetAddressOf(), &feat_level, _context.GetAddressOf());
 	if (FAILED(hr) || feat_level == D3D_FEATURE_LEVEL_10_0)
 	{
 		DXGI_SAMPLE_DESC desc;
 		desc.Count = 1;
 		desc.Quality = 0;
 		_aa_modes.push_back(desc);
-		SAFE_RELEASE(_context);
-		SAFE_RELEASE(_device);
 	}
 	else
 	{
@@ -191,8 +189,6 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 			if (quality_levels > 0)
 				_aa_modes.push_back(desc);
 		}
-		_context->Release();
-		_device->Release();
 	}
 	return _aa_modes;
 }
@@ -225,39 +221,38 @@ HRESULT Create(HWND wnd)
 		return hr;
 	}
 
-	IDXGIFactory* factory;
-	IDXGIAdapter* adapter;
-	IDXGIOutput* output;
+	ComPtr<IDXGIFactory> factory;
+	ComPtr<IDXGIAdapter> adapter;
+	ComPtr<IDXGIOutput> output;
 	hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, adapter.GetAddressOf());
 	if (FAILED(hr))
 	{
 		// try using the first one
-		hr = factory->EnumAdapters(0, &adapter);
+		hr = factory->EnumAdapters(0, adapter.GetAddressOf());
 		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 	}
 
 	// TODO: Make this configurable
-	hr = adapter->EnumOutputs(0, &output);
+	hr = adapter->EnumOutputs(0, output.GetAddressOf());
 	if (FAILED(hr))
 	{
 		// try using the first one
-		IDXGIAdapter* firstadapter;
-		hr = factory->EnumAdapters(0, &firstadapter);
+		ComPtr<IDXGIAdapter> firstadapter;
+		hr = factory->EnumAdapters(0, firstadapter.GetAddressOf());
 		if (!FAILED(hr))
-			hr = firstadapter->EnumOutputs(0, &output);
+			hr = firstadapter->EnumOutputs(0, output.GetAddressOf());
 		if (FAILED(hr)) MessageBox(wnd,
 			_T("Failed to enumerate outputs!\n")
 			_T("This usually happens when you've set your video adapter to the Nvidia GPU in an Optimus-equipped system.\n")
 			_T("Set Dolphin to use the high-performance graphics in Nvidia's drivers instead and leave Dolphin's video adapter set to the Intel GPU."),
 			_T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(firstadapter);
 	}
 
 	// get supported AA modes
-	aa_modes = EnumAAModes(adapter);
+	aa_modes = EnumAAModes(adapter.Get());
 
 	if (std::find_if(
 		aa_modes.begin(),
@@ -300,16 +295,16 @@ HRESULT Create(HWND wnd)
 	// Creating debug devices can sometimes fail if the user doesn't have the correct
 	// version of the DirectX SDK. If it does, simply fallback to a non-debug device.
 	{
-		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+		hr = PD3D11CreateDeviceAndSwapChain(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
 											D3D11_CREATE_DEVICE_SINGLETHREADED | D3D11_CREATE_DEVICE_DEBUG,
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-											&featlevel, &context);
+											D3D11_SDK_VERSION, &swap_chain_desc, swapchain.GetAddressOf(),
+											device.GetAddressOf(), &featlevel, context.GetAddressOf());
 		// Debugbreak on D3D error
-		if (SUCCEEDED(hr) && SUCCEEDED(device->QueryInterface(__uuidof(ID3D11Debug), (void**)&debug)))
+		if (SUCCEEDED(hr) && SUCCEEDED(device.As(&debug)))
 		{
-			ID3D11InfoQueue* infoQueue = nullptr;
-			if (SUCCEEDED(debug->QueryInterface(__uuidof(ID3D11InfoQueue), (void**)&infoQueue)))
+			ComPtr<ID3D11InfoQueue> infoQueue = nullptr;
+			if (SUCCEEDED(debug.As(&infoQueue)))
 			{
 				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_CORRUPTION, true);
 				infoQueue->SetBreakOnSeverity(D3D11_MESSAGE_SEVERITY_ERROR, true);
@@ -323,7 +318,7 @@ HRESULT Create(HWND wnd)
 				filter.DenyList.NumIDs = sizeof(hide) / sizeof(D3D11_MESSAGE_ID);
 				filter.DenyList.pIDList = hide;
 				infoQueue->AddStorageFilterEntries(&filter);
-				infoQueue->Release();
+				infoQueue.Reset();
 			}
 		}
 	}
@@ -331,19 +326,20 @@ HRESULT Create(HWND wnd)
 	if (FAILED(hr))
 #endif
 	{
-		hr = PD3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+		hr = PD3D11CreateDeviceAndSwapChain(adapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
 											D3D11_CREATE_DEVICE_SINGLETHREADED,
 											supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
-											D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
-											&featlevel, &context);
+											D3D11_SDK_VERSION, &swap_chain_desc,
+											swapchain.GetAddressOf(), device.GetAddressOf(),
+											&featlevel, context.GetAddressOf());
 	}
 
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(device);
-		SAFE_RELEASE(context);
-		SAFE_RELEASE(swapchain);
+		device.Reset();
+		context.Reset();
+		swapchain.Reset();
 		return E_FAIL;
 	}
 
@@ -353,28 +349,27 @@ HRESULT Create(HWND wnd)
 	hr = factory->MakeWindowAssociation(wnd, DXGI_MWA_NO_WINDOW_CHANGES);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to associate the window"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
 
-	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
-	SAFE_RELEASE(factory);
-	SAFE_RELEASE(output);
-	SAFE_RELEASE(adapter);
+	SetDebugObjectName(context.Get(), "device context");
+	factory.Reset();
+	output.Reset();
+	adapter.Reset();
 
-	ID3D11Texture2D* buf;
-	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+	ComPtr<ID3D11Texture2D> buf;
+	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(buf.GetAddressOf()));
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(device);
-		SAFE_RELEASE(context);
-		SAFE_RELEASE(swapchain);
+		device.Reset();
+		context.Reset();
+		swapchain.Reset();
 		return E_FAIL;
 	}
-	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-	SAFE_RELEASE(buf);
-	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	backbuf.CreateFromExisting(buf.Get(), D3D11_BIND_RENDER_TARGET);
+	buf.Reset();
+	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
+	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 
-	context->OMSetRenderTargets(1, &backbuf->GetRTV(), nullptr);
+	SetRenderTarget(backbuf.GetRTV());
 
 	// BGRA textures are easier to deal with in TextureCache, but might not be supported by the hardware
 	UINT format_support;
@@ -392,13 +387,13 @@ void Close()
 
 	// release all bound resources
 	context->ClearState();
-	SAFE_RELEASE(backbuf);
-	SAFE_RELEASE(swapchain);
+	backbuf.Reset();
+	swapchain.Reset();
 	SAFE_DELETE(stateman);
 	context->Flush();  // immediately destroy device objects
 
-	SAFE_RELEASE(context);
-	ULONG references = device->Release();
+	context.Reset();
+	ULONG references = device.Reset();
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (debug)
@@ -410,7 +405,7 @@ void Close()
 			// note this will also print out internal live objects to the debug console
 			debug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL);
 		}
-		SAFE_RELEASE(debug)
+		debug.Reset();
 	}
 #endif
 
@@ -450,7 +445,7 @@ const char* PixelShaderVersionString()
 	else /*if(featlevel == D3D_FEATURE_LEVEL_10_0)*/ return "ps_4_0";
 }
 
-D3DTexture2D* &GetBackBuffer() { return backbuf; }
+D3DTexture2D* GetBackBuffer() { return &backbuf; }
 unsigned int GetBackBufferWidth() { return xres; }
 unsigned int GetBackBufferHeight() { return yres; }
 
@@ -483,7 +478,7 @@ unsigned int GetMaxTextureSize()
 void Reset()
 {
 	// release all back buffer references
-	SAFE_RELEASE(backbuf);
+	backbuf.Reset();
 
 	// resize swapchain buffers
 	RECT client;
@@ -493,21 +488,20 @@ void Reset()
 	D3D::swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
 
 	// recreate back buffer texture
-	ID3D11Texture2D* buf;
-	HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+	ComPtr<ID3D11Texture2D> buf;
+	HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(buf.GetAddressOf()));
 	if (FAILED(hr))
 	{
 		MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 backend"), MB_OK | MB_ICONERROR);
-		SAFE_RELEASE(device);
-		SAFE_RELEASE(context);
-		SAFE_RELEASE(swapchain);
+		device.Reset();
+		context.Reset();
+		swapchain.Reset();
 		return;
 	}
-	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-	SAFE_RELEASE(buf);
-	CHECK(backbuf!=nullptr, "Create back buffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
-	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
+	backbuf.CreateFromExisting(buf.Get(), D3D11_BIND_RENDER_TARGET);
+	buf.Reset();
+	SetDebugObjectName(backbuf.GetTex(), "backbuffer texture");
+	SetDebugObjectName(backbuf.GetRTV(), "backbuffer render target view");
 }
 
 bool BeginFrame()
@@ -553,6 +547,34 @@ HRESULT GetFullscreenState(bool* fullscreen_state)
 	HRESULT hr = swapchain->GetFullscreenState(&state, nullptr);
 	*fullscreen_state = !!state;
 	return hr;
+}
+
+void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (resource)
+		resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+#endif
+}
+
+std::string GetDebugObjectName(ID3D11DeviceChild* resource)
+{
+	std::string name;
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (resource)
+	{
+		UINT size = 0;
+		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr); //get required size
+		name.resize(size);
+		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+	}
+#endif
+	return name;
+}
+
+void SetRenderTarget(ID3D11RenderTargetView* rtv, ID3D11DepthStencilView* dsv)
+{
+	D3D::context->OMSetRenderTargets(1, &rtv, dsv);
 }
 
 }  // namespace D3D

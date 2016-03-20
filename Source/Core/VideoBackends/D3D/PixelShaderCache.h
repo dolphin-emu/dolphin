@@ -23,8 +23,8 @@ public:
 	static bool SetShader(DSTALPHA_MODE dstAlphaMode); // TODO: Should be renamed to LoadShader
 	static bool InsertByteCode(const PixelShaderUid &uid, const void* bytecode, unsigned int bytecodelen);
 
-	static ID3D11PixelShader* GetActiveShader() { return last_entry->shader; }
-	static ID3D11Buffer* &GetConstantBuffer();
+	static ID3D11PixelShader* GetActiveShader() { return last_entry->shader.Get(); }
+	static ID3D11Buffer* GetConstantBuffer();
 
 	static ID3D11PixelShader* GetColorMatrixProgram(bool multisampled);
 	static ID3D11PixelShader* GetColorCopyProgram(bool multisampled);
@@ -40,12 +40,12 @@ public:
 private:
 	struct PSCacheEntry
 	{
-		ID3D11PixelShader* shader;
+		ComPtr<ID3D11PixelShader> shader;
 
 		std::string code;
 
 		PSCacheEntry() : shader(nullptr) {}
-		void Destroy() { SAFE_RELEASE(shader); }
+		void Destroy() { shader.Reset(); }
 	};
 
 	typedef std::map<PixelShaderUid, PSCacheEntry> PSCache;

@@ -19,12 +19,10 @@ public:
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
-		D3DTexture2D *const texture;
-
+		D3DTexture2D texture;
 		D3D11_USAGE usage;
 
-		TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D *_tex) : TCacheEntryBase(config), texture(_tex) {}
-		~TCacheEntry();
+		TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D&& _tex) : TCacheEntryBase(config), texture(_tex) {}
 
 		void CopyRectangleFromTexture(
 			const TCacheEntryBase* source,
@@ -54,10 +52,10 @@ private:
 	void CompileShaders() override { }
 	void DeleteShaders() override { }
 
-	ID3D11Buffer* palette_buf;
-	ID3D11ShaderResourceView* palette_buf_srv;
-	ID3D11Buffer* palette_uniform;
-	ID3D11PixelShader* palette_pixel_shader[3];
+	ComPtr<ID3D11Buffer> palette_buf;
+	ComPtr<ID3D11ShaderResourceView> palette_buf_srv;
+	ComPtr<ID3D11Buffer> palette_uniform;
+	ComPtr<ID3D11PixelShader> palette_pixel_shader[3];
 };
 
 }

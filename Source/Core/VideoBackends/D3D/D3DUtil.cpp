@@ -247,21 +247,21 @@ int CD3DFont::Init()
 	// Create a new texture for the font
 	// possible optimization: store the converted data in a buffer and fill the texture on creation.
 	// That way, we can use a static texture
-	ID3D11Texture2D* buftex;
+	ComPtr<ID3D11Texture2D> buftex;
 	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_dwTexWidth, m_dwTexHeight,
 										1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
 										D3D11_CPU_ACCESS_WRITE);
-	hr = device->CreateTexture2D(&texdesc, nullptr, &buftex);
+	hr = device->CreateTexture2D(&texdesc, nullptr, buftex.GetAddressOf());
 	if (FAILED(hr))
 	{
 		PanicAlert("Failed to create font texture");
 		return hr;
 	}
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)buftex, "texture of a CD3DFont object");
+	D3D::SetDebugObjectName(buftex.Get(), "texture of a CD3DFont object");
 
 	// Lock the surface and write the alpha values for the set pixels
 	D3D11_MAPPED_SUBRESOURCE texmap;
-	hr = context->Map(buftex, 0, D3D11_MAP_WRITE_DISCARD, 0, &texmap);
+	hr = context->Map(buftex.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &texmap);
 	if (FAILED(hr)) PanicAlert("Failed to map a texture at %s %d\n", __FILE__, __LINE__);
 
 	for (y = 0; y < m_dwTexHeight; y++)
@@ -275,10 +275,10 @@ int CD3DFont::Init()
 	}
 
 	// Done updating texture, so clean up used objects
-	context->Unmap(buftex, 0);
-	hr = D3D::device->CreateShaderResourceView(buftex, nullptr, &m_pTexture);
+	context->Unmap(buftex.Get(), 0);
+	hr = D3D::device->CreateShaderResourceView(buftex.Get(), nullptr, m_pTexture.GetAddressOf());
 	if (FAILED(hr)) PanicAlert("Failed to create shader resource view at %s %d\n", __FILE__, __LINE__);
-	SAFE_RELEASE(buftex);
+	buftex.Reset();
 
 	SelectObject(hDC, hOldbmBitmap);
 	DeleteObject(hbmBitmap);
@@ -289,14 +289,14 @@ int CD3DFont::Init()
 	// setup device objects for drawing
 	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader);
 	if (m_pshader == nullptr) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pshader, "pixel shader of a CD3DFont object");
+	D3D::SetDebugObjectName(m_pshader.Get(), "pixel shader of a CD3DFont object");
 
-	D3DBlob* vsbytecode;
-	D3D::CompileVertexShader(fontvertshader, &vsbytecode);
+	ComPtr<D3DBlob> vsbytecode;
+	D3D::CompileVertexShader(fontvertshader, vsbytecode.GetAddressOf());
 	if (vsbytecode == nullptr) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
-	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
+	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode.Get());
 	if (m_vshader == nullptr) PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vshader, "vertex shader of a CD3DFont object");
+	D3D::SetDebugObjectName(m_vshader.Get(), "vertex shader of a CD3DFont object");
 
 	const D3D11_INPUT_ELEMENT_DESC desc[] =
 	{
@@ -304,9 +304,9 @@ int CD3DFont::Init()
 		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	hr = D3D::device->CreateInputLayout(desc, 3, vsbytecode->Data(), vsbytecode->Size(), &m_InputLayout);
+	hr = D3D::device->CreateInputLayout(desc, 3, vsbytecode->Data(), vsbytecode->Size(), m_InputLayout.GetAddressOf());
 	if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-	SAFE_RELEASE(vsbytecode);
+	vsbytecode.Reset();
 
 	D3D11_BLEND_DESC blenddesc;
 	blenddesc.AlphaToCoverageEnable = FALSE;
@@ -319,35 +319,34 @@ int CD3DFont::Init()
 	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	hr = D3D::device->CreateBlendState(&blenddesc, &m_blendstate);
+	hr = D3D::device->CreateBlendState(&blenddesc, m_blendstate.GetAddressOf());
 	CHECK(hr==S_OK, "Create font blend state");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_blendstate, "blend state of a CD3DFont object");
+	D3D::SetDebugObjectName(m_blendstate.Get(), "blend state of a CD3DFont object");
 
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
-	hr = D3D::device->CreateRasterizerState(&rastdesc, &m_raststate);
+	hr = D3D::device->CreateRasterizerState(&rastdesc, m_raststate.GetAddressOf());
 	CHECK(hr==S_OK, "Create font rasterizer state");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_raststate, "rasterizer state of a CD3DFont object");
+	D3D::SetDebugObjectName(m_raststate.Get(), "rasterizer state of a CD3DFont object");
 
 	D3D11_BUFFER_DESC vbdesc = CD3D11_BUFFER_DESC(MAX_NUM_VERTICES*sizeof(FONT2DVERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-	if (FAILED(hr = device->CreateBuffer(&vbdesc, nullptr, &m_pVB)))
+	if (FAILED(hr = device->CreateBuffer(&vbdesc, nullptr, m_pVB.GetAddressOf())))
 	{
 		PanicAlert("Failed to create font vertex buffer at %s, line %d\n", __FILE__, __LINE__);
 		return hr;
 	}
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pVB, "vertex buffer of a CD3DFont object");
+	D3D::SetDebugObjectName(m_pVB.Get(), "vertex buffer of a CD3DFont object");
 	return S_OK;
 }
 
 int CD3DFont::Shutdown()
 {
-	SAFE_RELEASE(m_pVB);
-	SAFE_RELEASE(m_pTexture);
-	SAFE_RELEASE(m_InputLayout);
-	SAFE_RELEASE(m_pshader);
-	SAFE_RELEASE(m_vshader);
-
-	SAFE_RELEASE(m_blendstate);
-	SAFE_RELEASE(m_raststate);
+	m_pVB.Reset();
+	m_pTexture.Reset();
+	m_InputLayout.Reset();
+	m_pshader.Reset();
+	m_vshader.Reset();
+	m_blendstate.Reset();
+	m_raststate.Reset();
 
 	return S_OK;
 }
@@ -373,21 +372,21 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	int dwNumTriangles = 0L;
 
 	D3D11_MAPPED_SUBRESOURCE vbmap;
-	HRESULT hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
+	HRESULT hr = context->Map(m_pVB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
 	if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 	pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 
 	// set general pipeline state
-	D3D::stateman->PushBlendState(m_blendstate);
-	D3D::stateman->PushRasterizerState(m_raststate);
+	D3D::stateman->PushBlendState(m_blendstate.Get());
+	D3D::stateman->PushRasterizerState(m_raststate.Get());
 
-	D3D::stateman->SetPixelShader(m_pshader);
-	D3D::stateman->SetVertexShader(m_vshader);
+	D3D::stateman->SetPixelShader(m_pshader.Get());
+	D3D::stateman->SetVertexShader(m_vshader.Get());
 	D3D::stateman->SetGeometryShader(nullptr);
 
-	D3D::stateman->SetInputLayout(m_InputLayout);
+	D3D::stateman->SetInputLayout(m_InputLayout.Get());
 	D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	D3D::stateman->SetTexture(0, m_pTexture);
+	D3D::stateman->SetTexture(0, m_pTexture.Get());
 
 	float fStartX = sx;
 	for (char c : text)
@@ -424,16 +423,16 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 
 		if (dwNumTriangles * 3 > (MAX_NUM_VERTICES - 6))
 		{
-			context->Unmap(m_pVB, 0);
+			context->Unmap(m_pVB.Get(), 0);
 
-			D3D::stateman->SetVertexBuffer(m_pVB, stride, bufoffset);
+			D3D::stateman->SetVertexBuffer(m_pVB.Get(), stride, bufoffset);
 
 			D3D::stateman->Apply();
 			D3D::context->Draw(3 * dwNumTriangles, 0);
 
 			dwNumTriangles = 0;
 			D3D11_MAPPED_SUBRESOURCE _vbmap;
-			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &_vbmap);
+			hr = context->Map(m_pVB.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &_vbmap);
 			if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 			pVertices = (D3D::FONT2DVERTEX*)_vbmap.pData;
 		}
@@ -441,10 +440,10 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	}
 
 	// Unlock and render the vertex buffer
-	context->Unmap(m_pVB, 0);
+	context->Unmap(m_pVB.Get(), 0);
 	if (dwNumTriangles > 0)
 	{
-		D3D::stateman->SetVertexBuffer(m_pVB, stride, bufoffset);
+		D3D::stateman->SetVertexBuffer(m_pVB.Get(), stride, bufoffset);
 
 		D3D::stateman->Apply();
 		D3D::context->Draw(3 * dwNumTriangles, 0);
@@ -454,8 +453,8 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	return S_OK;
 }
 
-ID3D11SamplerState* linear_copy_sampler = nullptr;
-ID3D11SamplerState* point_copy_sampler = nullptr;
+ComPtr<ID3D11SamplerState> linear_copy_sampler = nullptr;
+ComPtr<ID3D11SamplerState> point_copy_sampler = nullptr;
 
 struct STQVertex   { float x, y, z, u, v, w, g; };
 struct STSQVertex  { float x, y, z, u, v, w, g; };
@@ -497,14 +496,14 @@ void InitUtils()
 
 	float border[4] = { 0.f, 0.f, 0.f, 0.f };
 	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, 0.f, 0.f);
-	HRESULT hr = D3D::device->CreateSamplerState(&samDesc, &point_copy_sampler);
+	HRESULT hr = D3D::device->CreateSamplerState(&samDesc, point_copy_sampler.GetAddressOf());
 	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
-	else SetDebugObjectName((ID3D11DeviceChild*)point_copy_sampler, "point copy sampler state");
+	else SetDebugObjectName(point_copy_sampler.Get(), "point copy sampler state");
 
 	samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, 0.f, 0.f);
-	hr = D3D::device->CreateSamplerState(&samDesc, &linear_copy_sampler);
+	hr = D3D::device->CreateSamplerState(&samDesc, linear_copy_sampler.GetAddressOf());
 	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
-	else SetDebugObjectName((ID3D11DeviceChild*)linear_copy_sampler, "linear copy sampler state");
+	else SetDebugObjectName(linear_copy_sampler.Get(), "linear copy sampler state");
 
 	// cached data used to avoid unnecessarily reloading the vertex buffers
 	memset(&tex_quad_data, 0, sizeof(tex_quad_data));
@@ -525,19 +524,19 @@ void InitUtils()
 void ShutdownUtils()
 {
 	font.Shutdown();
-	SAFE_RELEASE(point_copy_sampler);
-	SAFE_RELEASE(linear_copy_sampler);
+	point_copy_sampler.Reset();
+	linear_copy_sampler.Reset();
 	SAFE_DELETE(util_vbuf);
 }
 
 void SetPointCopySampler()
 {
-	D3D::stateman->SetSampler(0, point_copy_sampler);
+	D3D::stateman->SetSampler(0, point_copy_sampler.Get());
 }
 
 void SetLinearCopySampler()
 {
-	D3D::stateman->SetSampler(0, linear_copy_sampler);
+	D3D::stateman->SetSampler(0, linear_copy_sampler.Get());
 }
 
 void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
