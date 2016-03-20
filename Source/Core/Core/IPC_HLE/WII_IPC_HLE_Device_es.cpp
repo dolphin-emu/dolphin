@@ -884,6 +884,11 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u64 titleid    = Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
 			u16 access     = Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
+			// ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
+			// leaving them open through ES_LAUNCH may cause hangs and other funky behavior
+			// (supposedly when trying to re-open those files).
+			DiscIO::CNANDContentManager::Access().ClearCache();
+
 			std::string tContentFile;
 			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
 			{
@@ -1124,6 +1129,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
 	}
 	DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
+	// DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
+	// clear the cache to avoid content access mismatches.
 	DiscIO::CNANDContentManager::Access().ClearCache();
 	return 0;
 }
