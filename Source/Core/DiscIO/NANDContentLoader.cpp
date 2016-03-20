@@ -91,34 +91,49 @@ std::string CSharedContent::AddSharedContent(const u8* hash)
 	return filename;
 }
 
-
+void CNANDContentDataFile::EnsureOpen()
+{
+	if (!m_file)
+		m_file = std::make_unique<File::IOFile>(m_filename, "rb");
+	else if (!m_file->IsOpen())
+		m_file->Open(m_filename, "rb");
+}
+void CNANDContentDataFile::Open()
+{
+	EnsureOpen();
+}
 const std::vector<u8> CNANDContentDataFile::Get()
 {
 	std::vector<u8> result;
-	File::IOFile file(m_filename, "rb");
-	if (!file.IsGood())
+	EnsureOpen();
+	if (!m_file->IsGood())
 		return result;
 
-	u64 size = file.GetSize();
+	u64 size = m_file->GetSize();
 	if (size == 0)
 		return result;
 
 	result.resize(size);
-	file.ReadBytes(result.data(), result.size());
+	m_file->ReadBytes(result.data(), result.size());
 
 	return result;
 }
 
 bool CNANDContentDataFile::GetRange(u32 start, u32 size, u8* buffer)
 {
-	File::IOFile file(m_filename, "rb");
-	if (!file.IsGood())
+	EnsureOpen();
+	if (!m_file->IsGood())
 		return false;
 
-	if (!file.Seek(start, SEEK_SET))
+	if (!m_file->Seek(start, SEEK_SET))
 		return false;
 
-	return file.ReadBytes(buffer, static_cast<size_t>(size));
+	return m_file->ReadBytes(buffer, static_cast<size_t>(size));
+}
+void CNANDContentDataFile::Close()
+{
+	if (m_file && m_file->IsOpen())
+		m_file->Close();
 }
 
 

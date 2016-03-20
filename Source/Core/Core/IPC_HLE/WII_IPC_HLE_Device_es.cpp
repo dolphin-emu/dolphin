@@ -220,7 +220,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 	Access.m_Size = pContent->m_Size;
 	Access.m_TitleID = TitleID;
 
-
+	pContent->m_Data->Open();
 
 	m_ContentAccessMap[CFD] = Access;
 	return CFD;
@@ -423,6 +423,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			{
 				Memory::Write_U32(-1, _CommandAddress + 0x4);
 				return GetDefaultReply();
+			}
+
+			const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_TitleID);
+			// ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
+			if (ContentLoader.IsValid())
+			{
+				const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(itr->second.m_Index);
+				pContent->m_Data->Close();
 			}
 
 			m_ContentAccessMap.erase(itr);

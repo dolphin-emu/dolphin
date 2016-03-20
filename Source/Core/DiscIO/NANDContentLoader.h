@@ -20,8 +20,10 @@ bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
 class CNANDContentData
 {
 public:
+	virtual void Open() { };
 	virtual const std::vector<u8> Get() = 0;
 	virtual bool GetRange(u32 start, u32 size, u8* buffer) = 0;
+	virtual void Close() { };
 };
 
 class CNANDContentDataFile final : public CNANDContentData
@@ -29,10 +31,15 @@ class CNANDContentDataFile final : public CNANDContentData
 public:
 	CNANDContentDataFile(const std::string& filename) : m_filename(filename) { };
 
+	void Open() override;
 	const std::vector<u8> Get() override;
 	bool GetRange(u32 start, u32 size, u8* buffer) override;
+	void Close() override;
 private:
+	void EnsureOpen();
+
 	const std::string m_filename;
+	std::unique_ptr<File::IOFile> m_file;
 };
 class CNANDContentDataBuffer final : public CNANDContentData
 {
