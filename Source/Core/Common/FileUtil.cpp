@@ -935,7 +935,7 @@ bool IOFile::Open(const std::string& filename, const char openmode[],
 
 	m_file = CreateFile(UTF8ToTStr(filename).c_str(),
 	                    access,
-	                    0,
+	                    FILE_SHARE_READ | FILE_SHARE_WRITE,
 	                    nullptr,
 	                    create,
 	                    attributes,
