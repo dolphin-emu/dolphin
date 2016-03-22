@@ -232,7 +232,7 @@ u64 GetIdleTicks()
 
 // This is to be called when outside threads, such as the graphics thread, wants to
 // schedule things to be executed on the main thread.
-void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
+void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata)
 {
 	_assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
 	if (Core::g_want_determinism)
@@ -271,7 +271,7 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 }
 
 // To be used from any thread, including the CPU thread
-void ScheduleEvent_AnyThread(int cyclesIntoFuture, int event_type, u64 userdata)
+void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata)
 {
 	if (Core::IsCPUThread())
 		ScheduleEvent(cyclesIntoFuture, event_type, userdata);
@@ -310,7 +310,7 @@ static void AddEventToQueue(Event* ne)
 // This must be run ONLY from within the CPU thread
 // cyclesIntoFuture may be VERY inaccurate if called from anything else
 // than Advance
-void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
+void ScheduleEvent(s64 cyclesIntoFuture, int event_type, u64 userdata)
 {
 	_assert_msg_(POWERPC, Core::IsCPUThread() || Core::GetState() == Core::CORE_PAUSE,
 				 "ScheduleEvent from wrong thread");
