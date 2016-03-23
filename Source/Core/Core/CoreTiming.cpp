@@ -50,7 +50,8 @@ static Common::FifoQueue<BaseEvent, false> tsQueue;
 // event pools
 static Event *eventPool = nullptr;
 
-float g_lastOCFactor;
+static float s_lastOCFactor;
+float g_lastOCFactor_inverted;
 int g_slicelength;
 static int maxslicelength = MAX_SLICE_LENGTH;
 
@@ -94,12 +95,12 @@ static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
 // but the effect is largely the same.
 static int DowncountToCycles(int downcount)
 {
-	return (int)(downcount / g_lastOCFactor);
+	return (int)(downcount * g_lastOCFactor_inverted);
 }
 
 static int CyclesToDowncount(int cycles)
 {
-	return (int)(cycles * g_lastOCFactor);
+	return (int)(cycles * s_lastOCFactor);
 }
 
 int RegisterEvent(const std::string& name, TimedCallback callback)
@@ -135,7 +136,8 @@ void UnregisterAllEvents()
 
 void Init()
 {
-	g_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+	s_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+	g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
 	PowerPC::ppcState.downcount = CyclesToDowncount(maxslicelength);
 	g_slicelength = maxslicelength;
 	g_globalTimer = 0;
@@ -204,7 +206,10 @@ void DoState(PointerWrap &p)
 	p.Do(fakeDecStartTicks);
 	p.Do(g_fakeTBStartValue);
 	p.Do(g_fakeTBStartTicks);
-	p.Do(g_lastOCFactor);
+	p.Do(s_lastOCFactor);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
+
 	p.DoMarker("CoreTimingData");
 
 	MoveEvents();
@@ -418,7 +423,8 @@ void Advance()
 
 	int cyclesExecuted = g_slicelength - DowncountToCycles(PowerPC::ppcState.downcount);
 	g_globalTimer += cyclesExecuted;
-	g_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+	s_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+	g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
 	PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
 
 	globalTimerIsSane = true;

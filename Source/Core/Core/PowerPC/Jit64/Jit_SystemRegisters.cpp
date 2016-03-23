@@ -285,7 +285,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// cost of calling out to C for this is actually significant.
 		// Scale downcount by the CPU overclocking factor.
 		CVTSI2SS(XMM0, PPCSTATE(downcount));
-		DIVSS(XMM0, M(&CoreTiming::g_lastOCFactor));
+		MULSS(XMM0, M(&CoreTiming::g_lastOCFactor_inverted));
 		CVTSS2SI(RDX, R(XMM0)); // RDX is downcount scaled by the overclocking factor
 		MOV(32, R(RAX), M(&CoreTiming::g_slicelength));
 		SUB(64, R(RAX), R(RDX)); // cycles since the last CoreTiming::Advance() event is (slicelength - Scaled_downcount)
