@@ -138,8 +138,6 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 	}
 	else // texinfo.projection == XF_TEXPROJ_STQ
 	{
-		_assert_(!specialCase);
-
 		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			MultiplyVec2Mat34(*src, mat, *dst);
 		else
@@ -154,7 +152,7 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
 		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
-		if (specialCase)
+		if (specialCase && texinfo.projection == XF_TEXPROJ_ST)
 		{
 			// no normalization
 			// q of input is 1
