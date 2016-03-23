@@ -154,10 +154,10 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 
 	// special case if only pos and tex coord 0 and tex coord input is AB11
+	// http://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
 	m_TexGenSpecialCase =
-		((g_main_cp_state.vtx_desc.Hex & 0x60600L) == g_main_cp_state.vtx_desc.Hex) && // only pos and tex coord 0
-		(g_main_cp_state.vtx_desc.Tex0Coord != NOT_PRESENT) &&
-		(xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST);
+		VertexLoaderManager::g_current_components == VB_HAS_UV0 &&
+		xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST;
 }
 
 template <typename T, typename I>
