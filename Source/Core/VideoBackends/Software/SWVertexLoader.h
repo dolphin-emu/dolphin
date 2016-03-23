@@ -39,8 +39,6 @@ private:
 
 	SetupUnit *m_SetupUnit;
 
-	bool m_TexGenSpecialCase;
-
 public:
 
 	void SetFormat(u8 attributeIndex, u8 primitiveType);
