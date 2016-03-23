@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -40,24 +39,25 @@ struct SSysConfHeader
 
 struct SSysConfEntry
 {
-	u16 offset;
-	SysconfType type;
-	u8 nameLength;
+	u16 offset = 0;
+	SysconfType type = Type_Unknown;
+	u8 nameLength = 0;
 	char name[32];
-	u16 dataLength;
-	std::unique_ptr<u8[]> data;
+	u16 dataLength = 0;
+	std::vector<u8> data;
 
-	SSysConfEntry() : offset(0), type(Type_Unknown), nameLength(0), dataLength(0) {
+	SSysConfEntry()
+	{
 		memset(name, 0, sizeof(name));
 	}
 
 	template<class T>
-	T GetData() { return *(T*)data.get(); }
+	T GetData() { return *(T*)data.data(); }
 	bool GetArrayData(u8* dest, u16 destSize)
 	{
 		if (dest && destSize >= dataLength)
 		{
-			memcpy(dest, data.get(), dataLength);
+			memcpy(dest, data.data(), dataLength);
 			return true;
 		}
 		return false;
@@ -66,7 +66,7 @@ struct SSysConfEntry
 	{
 		if (buffer)
 		{
-			memcpy(data.get(), buffer, std::min<u16>(bufferSize, dataLength));
+			memcpy(data.data(), buffer, std::min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;
@@ -166,7 +166,7 @@ public:
 			return false;
 		}
 
-		*(T*)index->data.get() = newValue;
+		*(T*)index->data.data() = newValue;
 		return true;
 	}
 
