@@ -30,7 +30,7 @@ extern s64 g_globalTimer;
 extern u64 g_fakeTBStartValue;
 extern u64 g_fakeTBStartTicks;
 extern int g_slicelength;
-extern float g_lastOCFactor;
+extern float g_lastOCFactor_inverted;
 
 void Init();
 void Shutdown();
