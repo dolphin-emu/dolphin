@@ -4,6 +4,9 @@
 
 #pragma once
 
+namespace SamplerCommon
+{
+
 // Helper for checking if a BPMemory TexMode0 register is set to Point
 // Filtering modes. This is used to decide whether Anisotropic enhancements
 // are (mostly) safe in the VideoBackends.
@@ -15,4 +18,13 @@ template<class T>
 constexpr bool IsBpTexMode0PointFiltering(const T& tm0)
 {
 	return tm0.min_filter < 4 && !tm0.mag_filter;
+}
+
+// Check if the minification filter has mipmap based filtering modes enabled.
+template<class T>
+constexpr bool AreBpTexMode0MipmapsEnabled(const T& tm0)
+{
+	return (tm0.min_filter & 3) != 0;
+}
+
 }

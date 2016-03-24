@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -260,7 +262,7 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 
 	unsigned int mip = d3dMipFilters[state.min_filter & 3];
 
-	if (state.max_anisotropy > 1 && !IsBpTexMode0PointFiltering(state))
+	if (state.max_anisotropy > 1 && !SamplerCommon::IsBpTexMode0PointFiltering(state))
 	{
 		sampdc.Filter = D3D11_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = (u32)state.max_anisotropy;
@@ -311,8 +313,8 @@ ID3D11SamplerState* StateCache::Get(SamplerState state)
 	sampdc.AddressU = d3dClamps[state.wrap_s];
 	sampdc.AddressV = d3dClamps[state.wrap_t];
 
-	sampdc.MaxLOD = (mip == TexMode0::TEXF_NONE) ? 0.0f : (float)state.max_lod / 16.f;
-	sampdc.MinLOD = (float)state.min_lod / 16.f;
+	sampdc.MaxLOD = SamplerCommon::AreBpTexMode0MipmapsEnabled(state) ? state.max_lod / 16.f : 0.f;
+	sampdc.MinLOD = std::min(state.min_lod / 16.f, sampdc.MaxLOD);
 	sampdc.MipLODBias = (s32)state.lod_bias / 32.0f;
 
 	ID3D11SamplerState* res = nullptr;
