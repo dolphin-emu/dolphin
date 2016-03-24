@@ -13,6 +13,8 @@
 #include "VideoBackends/Software/Vec3.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace TransformUnit
@@ -152,12 +154,32 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, co
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
 		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
-		if (postInfo.normalize)
-			tempCoord = dst->Normalized();
-		else
-			tempCoord = *dst;
+		//u32 test = VertexLoaderManager::g_current_components & ~VB_HAS_UVALL;
+		//WARN_LOG(VIDEO, "test: %u, %u", test, texinfo.sourcerow);
+		//WARN_LOG(VIDEO, "V: %f, %f, %f", dst->x, dst->y, dst->z);
+		if(texinfo.projection == XF_TEXPROJ_ST)
+		{
+			tempCoord.x = dst->x;
+			tempCoord.y = dst->y;
+			tempCoord.z = 1.0f;
 
-		MultiplyVec3Mat34(tempCoord, postMat, *dst);
+			dst->x = postMat[0] * tempCoord.x + postMat[1] * tempCoord.y + postMat[2] * tempCoord.z + postMat[3];
+			dst->y = postMat[4] * tempCoord.x + postMat[5] * tempCoord.y + postMat[6] * tempCoord.z + postMat[7];
+			dst->z = tempCoord.z;
+		}
+		else
+		{
+			if (postInfo.normalize)
+			{
+				tempCoord = dst->Normalized();
+			}
+			else
+			{
+				tempCoord = *dst;
+			}
+
+			MultiplyVec3Mat34(tempCoord, postMat, *dst);
+		}
 	}
 }
 
