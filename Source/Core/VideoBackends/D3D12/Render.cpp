@@ -1245,7 +1245,8 @@ void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 
 	if (g_ActiveConfig.bForceFiltering)
 	{
-		new_state.min_filter = 6; // 4 (linear min) | 2 (linear mip)
+		// Only use mipmaps if the game says they are available.
+		new_state.min_filter = (tm0.min_filter & 3) == TexMode0::TEXF_NONE ? 4 : 6;
 		new_state.mag_filter = 1; // linear mag
 	}
 	else
