@@ -129,50 +129,68 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 	const float* mat = &xfmem.posMatrices[srcVertex->texMtx[coordNum] * 4];
 	Vec3* dst = &dstVertex->texCoords[coordNum];
 
+	//WARN_LOG(VIDEO, "---src Vertex---");
+	//WARN_LOG(VIDEO, "x: %f, y: %f, z: %f", src->x, src->y, src->z);
+	//WARN_LOG(VIDEO, "");
+
+	//WARN_LOG(VIDEO, "---Matrix---");
+	//WARN_LOG(VIDEO, "x: %f, %f, %f, %f", mat[0], mat[1], mat[2], mat[3]);
+	//WARN_LOG(VIDEO, "y: %f, %f, %f, %f", mat[4], mat[5], mat[6], mat[7]);
+	//WARN_LOG(VIDEO, "z: %f, %f, %f, %f", mat[8], mat[9], mat[10], mat[11]);
+	//WARN_LOG(VIDEO, "");
+
 	if (texinfo.projection == XF_TEXPROJ_ST)
 	{
-		if (texinfo.inputform == XF_TEXINPUT_AB11 || specialCase)
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			MultiplyVec2Mat24(*src, mat, *dst);
 		else
 			MultiplyVec3Mat24(*src, mat, *dst);
 	}
-	else // texinfo.projection == XF_TEXPROJ_STQ
+	else if(texinfo.projection == XF_TEXPROJ_STQ)
 	{
 		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			MultiplyVec2Mat34(*src, mat, *dst);
 		else
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
+	else
+	{
+		assert(0);
+	}
+
+	//WARN_LOG(VIDEO, "---dst Vertex---");
+	//WARN_LOG(VIDEO, "x: %f, y: %f, z: %f", dst->x, dst->y, dst->z);
+	//WARN_LOG(VIDEO, "");
 
 	if (xfmem.dualTexTrans.enabled)
 	{
 		Vec3 tempCoord;
 
-		// normalize
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
 		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
-		if (specialCase && texinfo.projection == XF_TEXPROJ_ST)
-		{
-			// no normalization
-			// q of input is 1
-			// q of output is unknown
-			tempCoord.x = dst->x;
-			tempCoord.y = dst->y;
-
-			dst->x = postMat[0] * tempCoord.x + postMat[1] * tempCoord.y + postMat[2] + postMat[3];
-			dst->y = postMat[4] * tempCoord.x + postMat[5] * tempCoord.y + postMat[6] + postMat[7];
-			dst->z = 1.0f;
-		}
+		if (postInfo.normalize)
+			tempCoord = dst->Normalized();
 		else
-		{
-			if (postInfo.normalize)
-				tempCoord = dst->Normalized();
-			else
-				tempCoord = *dst;
+			tempCoord = *dst;
 
-			MultiplyVec3Mat34(tempCoord, postMat, *dst);
-		}
+		//WARN_LOG(VIDEO, "---Temp Vertex---");
+		//WARN_LOG(VIDEO, "isNormalized: %u", postInfo.normalize);
+		//WARN_LOG(VIDEO, "x: %f, y: %f, z: %f", tempCoord.x, tempCoord.y, tempCoord.z);
+		//WARN_LOG(VIDEO, "");
+
+		//WARN_LOG(VIDEO, "---Post Matrix---");
+		//WARN_LOG(VIDEO, "x: %f, %f, %f, %f", postMat[0], postMat[1], postMat[2], postMat[3]);
+		//WARN_LOG(VIDEO, "y: %f, %f, %f, %f", postMat[4], postMat[5], postMat[6], postMat[7]);
+		//WARN_LOG(VIDEO, "z: %f, %f, %f, %f", postMat[8], postMat[9], postMat[10], postMat[11]);
+		//WARN_LOG(VIDEO, "");
+
+		MultiplyVec3Mat34(tempCoord, postMat, *dst);
+
+		//WARN_LOG(VIDEO, "---Result Vertex---");
+		//WARN_LOG(VIDEO, "x: %f, y: %f, z: %f", dst->x, dst->y, dst->z);
+		//WARN_LOG(VIDEO, "");
+		//WARN_LOG(VIDEO, "");
 	}
 }
 
