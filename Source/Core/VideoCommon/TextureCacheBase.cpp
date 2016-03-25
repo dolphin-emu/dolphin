@@ -1112,13 +1112,16 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-	// remove all texture cache entries at dstAddr
+	// remove all EFB copies at dstAddr
 	{
 		std::pair<TexCache::iterator, TexCache::iterator> iter_range = textures_by_address.equal_range((u64)dstAddr);
 		TexCache::iterator iter = iter_range.first;
 		while (iter != iter_range.second)
 		{
-			iter = FreeTexture(iter);
+			if (iter->second->IsEfbCopy())
+				iter = FreeTexture(iter);
+			else
+				++iter;
 		}
 	}
 
@@ -1196,15 +1199,17 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 		copy_to_vram = false;
 	}
 
-	// Invalidate all textures that overlap the range of our efb copy.
-	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
-	// we might be able to do a partial texture update on.
+	// Invalidate all EFB copies that overlap the range of our efb copy. Any overlapping
+	// normal texture will be updated via partial texture updates, if necessary.
+	// If our EFB copy has a weird stride, then we want avoid invalidating EFB copies
+	// where the memory overlaps, but the EFB copies don't actually overlap.
 	if (dstStride == bytes_per_row || !copy_to_vram)
 	{
 		TexCache::iterator iter = textures_by_address.begin();
 		while (iter != textures_by_address.end())
 		{
-			if (iter->second->addr + iter->second->size_in_bytes <= dstAddr || iter->second->addr >= dstAddr + num_blocks_y * dstStride)
+			if (iter->second->addr + iter->second->size_in_bytes <= dstAddr || iter->second->addr >= dstAddr + num_blocks_y * dstStride ||
+				!iter->second->IsEfbCopy())
 				++iter;
 			else
 				iter = FreeTexture(iter);
