@@ -224,6 +224,10 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 	case SPR_TL:
 	case SPR_TU:
 	{
+		// The inline implementation here is inaccurate and out of date as of PR3601
+		FALLBACK_IF(true); // Fallback to interpreted version.
+
+		/*
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg WB = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
@@ -231,9 +235,9 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
 		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
 		// cost of calling out to C for this is actually significant.
-		MOVI2R(XA, (u64)&CoreTiming::globalTimer);
+		MOVI2R(XA, (u64)&CoreTiming::g_globalTimer);
 		LDR(INDEX_UNSIGNED, XA, XA, 0);
-		MOVI2R(XB, (u64)&CoreTiming::fakeTBStartTicks);
+		MOVI2R(XB, (u64)&CoreTiming::g_fakeTBStartTicks);
 		LDR(INDEX_UNSIGNED, XB, XB, 0);
 		SUB(XA, XA, XB);
 
@@ -247,7 +251,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 		ADD(XB, XB, 1);
 		UMULH(XA, XA, XB);
 
-		MOVI2R(XB, (u64)&CoreTiming::fakeTBStartValue);
+		MOVI2R(XB, (u64)&CoreTiming::g_fakeTBStartValue);
 		LDR(INDEX_UNSIGNED, XB, XB, 0);
 		ADD(XA, XB, XA, ArithOption(XA, ST_LSR, 3));
 		STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
@@ -285,7 +289,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 			ORR(EncodeRegTo64(gpr.R(d)), SP, XA, ArithOption(XA, ST_LSR, 32));
 		else
 			MOV(gpr.R(d), WA);
-		gpr.Unlock(WA, WB);
+		gpr.Unlock(WA, WB);*/
 	}
 	break;
 	case SPR_XER:
