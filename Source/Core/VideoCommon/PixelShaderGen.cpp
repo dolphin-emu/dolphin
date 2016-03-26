@@ -282,7 +282,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 	}
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType);
+	GenerateVSOutputMembers<T>(out, ApiType, "");
 	out.Write("};\n");
 
 	const bool forced_early_z = g_ActiveConfig.backend_info.bSupportsEarlyZ && bpmem.UseEarlyDepthTest()
@@ -354,29 +354,30 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
+			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(ApiType, true, true));
+			GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier());
 
 			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat int layer;\n");
+				out.Write("\tflat in int layer;\n");
 
 			out.Write("};\n");
 		}
 		else
 		{
-			out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(ApiType));
-			out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(ApiType));
+			out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier());
+			out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier());
 			// compute window position if needed because binding semantic WPOS is not widely supported
 			// Let's set up attributes
 			for (unsigned int i = 0; i < numTexgen; ++i)
 			{
-				out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(ApiType), i);
+				out.Write("%s in float3 uv%d;\n", GetInterpolationQualifier(), i);
 			}
-			out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(ApiType));
+			out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier());
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(ApiType));
-				out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(ApiType));
+				out.Write("%s in float3 Normal;\n", GetInterpolationQualifier());
+				out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier());
 			}
 		}
 
@@ -397,17 +398,17 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 			dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," : "",
 			per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
-		out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier(ApiType));
-		out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier(ApiType));
+		out.Write("  in %s float4 colors_0 : COLOR0,\n", GetInterpolationQualifier());
+		out.Write("  in %s float4 colors_1 : COLOR1\n", GetInterpolationQualifier());
 
 		// compute window position if needed because binding semantic WPOS is not widely supported
 		for (unsigned int i = 0; i < numTexgen; ++i)
-			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(ApiType), i, i);
-		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen);
+			out.Write(",\n  in %s float3 uv%d : TEXCOORD%d", GetInterpolationQualifier(), i, i);
+		out.Write(",\n  in %s float4 clipPos : TEXCOORD%d", GetInterpolationQualifier(), numTexgen);
 		if (g_ActiveConfig.bEnablePixelLighting)
 		{
-			out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen + 1);
-			out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(ApiType), numTexgen + 2);
+			out.Write(",\n  in %s float3 Normal : TEXCOORD%d", GetInterpolationQualifier(), numTexgen + 1);
+			out.Write(",\n  in %s float3 WorldPos : TEXCOORD%d", GetInterpolationQualifier(), numTexgen + 2);
 		}
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.iStereoMode > 0)

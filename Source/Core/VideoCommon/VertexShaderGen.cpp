@@ -41,7 +41,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 	out.Write("};\n");
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, api_type);
+	GenerateVSOutputMembers<T>(out, api_type, "");
 	out.Write("};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
@@ -74,8 +74,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
+			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(api_type, false, true));
+			GenerateVSOutputMembers<T>(out, api_type, "out", GetInterpolationQualifier());
 			out.Write("} vs;\n");
 		}
 		else
@@ -85,17 +86,17 @@ static T GenerateVertexShader(API_TYPE api_type)
 			{
 				if (i < xfmem.numTexGen.numTexGens)
 				{
-					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(api_type), i);
+					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(), i);
 				}
 			}
-			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier());
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(api_type));
-				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(api_type));
+				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier());
+				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier());
 			}
-			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(api_type));
-			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier());
+			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier());
 		}
 
 		out.Write("void main()\n{\n");
