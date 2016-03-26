@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #include <cstddef>
 #include <cstdio>
 #include <fstream>
@@ -12,10 +16,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
-
-#ifdef _WIN32
 #include "Common/StringUtil.h"
-#endif
 
 // User directory indices for GetUserPath
 enum {
@@ -77,12 +78,6 @@ bool IsDirectory(const std::string& filename);
 
 // Returns the size of filename (64bit)
 u64 GetSize(const std::string& filename);
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd);
-
-// Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& filename);
@@ -153,15 +148,22 @@ std::string& GetExeDirectory();
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
-// simple wrapper for cstdlib file functions to
-// hopefully will make error checking easier
-// and make forgetting an fclose() harder
+// simple wrapper for cstdlib (UNIX) / WinAPI (Windows) file functions to
+// hopefully make error checking easier and make forgetting an fclose() harder
 class IOFile : public NonCopyable
 {
 public:
+	// Flags that can be provided to the Open method or to the IOFile constructor
+	// to get alternative behaviors.
+	enum OpenFlags : u32
+	{
+		OPENFLAGS_DEFAULT = 0x00,
+		DISABLE_BUFFERING = 0x01,
+	};
+
 	IOFile();
-	IOFile(std::FILE* file);
-	IOFile(const std::string& filename, const char openmode[]);
+	IOFile(const std::string& filename, const char openmode[],
+	       OpenFlags flags = OPENFLAGS_DEFAULT);
 
 	~IOFile();
 
@@ -170,16 +172,49 @@ public:
 
 	void Swap(IOFile& other);
 
-	bool Open(const std::string& filename, const char openmode[]);
+	bool Open(const std::string& filename, const char openmode[],
+	          OpenFlags flags = OPENFLAGS_DEFAULT);
 	bool Close();
 
 	template <typename T>
 	bool ReadArray(T* data, size_t length, size_t* pReadBytes = nullptr)
 	{
 		size_t read_bytes = 0;
+#ifdef _WIN32
+		// ReadFile can only really handle 4GB reads at the time.
+		// Loop over the API call to read more if 'length' would be larger.
+		DWORD read = 1;
+		LPBYTE data_buf = reinterpret_cast<LPBYTE>(data);
+		size_t remaining_length = length * sizeof(T);
+		size_t copy;
+		BOOL rv;
+		if (IsOpen())
+		{
+			while (remaining_length > 0 && read > 0)
+			{
+				// Always within the limit of what a DWORD can hold.
+				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+				// So this cast is safe.
+				rv = ReadFile(m_file, data_buf, static_cast<DWORD>(copy), &read, nullptr);
+				if (FALSE == rv || read == 0)
+				{
+					m_good = false;
+					break;
+				}
+				remaining_length -= copy;
+				data_buf += copy;
+				read_bytes += copy;
+			}
+		}
+		else
+		{
+			m_good = false;
+		}
+#else
 		if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
 			m_good = false;
 
+#endif
 		if (pReadBytes)
 			*pReadBytes = read_bytes;
 
@@ -189,15 +224,46 @@ public:
 	template <typename T>
 	bool WriteArray(const T* data, size_t length)
 	{
+#ifdef _WIN32
+		// WriteFile can only really handle 4GB at the time.
+		// Loop over the API call to read more if 'length' would be larger.
+		DWORD written;
+		LPBYTE data_buf = reinterpret_cast<LPBYTE>(const_cast<T*>(data));
+		size_t remaining_length = length * sizeof(T);
+		size_t copy;
+		BOOL rv;
+		if (IsOpen())
+		{
+			while (remaining_length > 0)
+			{
+				// Always within the limit of what a DWORD can hold.
+				copy = std::min(remaining_length, static_cast<size_t>(UINT32_MAX));
+				// So this cast is safe.
+				rv = WriteFile(m_file, data_buf, static_cast<DWORD>(copy), &written, nullptr);
+				if (FALSE == rv)
+				{
+					m_good = false;
+					break;
+				}
+				remaining_length -= written;
+				data_buf += written;
+			}
+		}
+		else
+		{
+			m_good = false;
+		}
+#else
 		if (!IsOpen() || length != std::fwrite(data, sizeof(T), length, m_file))
 			m_good = false;
+#endif
 
 		return m_good;
 	}
 
-	bool ReadBytes(void* data, size_t length)
+	bool ReadBytes(void* data, size_t length, size_t* read_bytes = nullptr)
 	{
-		return ReadArray(reinterpret_cast<char*>(data), length);
+		return ReadArray(reinterpret_cast<char*>(data), length, read_bytes);
 	}
 
 	bool WriteBytes(const void* data, size_t length)
@@ -205,32 +271,50 @@ public:
 		return WriteArray(reinterpret_cast<const char*>(data), length);
 	}
 
-	bool IsOpen() const { return nullptr != m_file; }
+	// Wrapper around StringFromFormat + WriteBytes.
+	template <typename... T>
+	bool WriteFormat(T&&... args)
+	{
+		std::string text = StringFromFormat(std::forward<T>(args)...);
+		return WriteBytes(text.c_str(), text.size());
+	}
+
+	bool IsOpen() const
+	{
+#ifdef _WIN32
+		return INVALID_HANDLE_VALUE != m_file;
+#else
+		return nullptr != m_file;
+#endif
+	}
 
 	// m_good is set to false when a read, write or other function fails
 	bool IsGood() const { return m_good; }
-	operator void*() { return m_good ? m_file : nullptr; }
-
-	std::FILE* ReleaseHandle();
-
-	std::FILE* GetHandle() { return m_file; }
-
-	void SetHandle(std::FILE* file);
+	bool IsEOF() const;
+	operator bool() { return IsOpen(); }
 
 	bool Seek(s64 off, int origin);
 	u64 Tell() const;
-	u64 GetSize();
+	u64 GetSize() const;
 	bool Resize(u64 size);
 	bool Flush();
 
 	// clear error state
-	void Clear() { m_good = true; std::clearerr(m_file); }
+	void Clear()
+	{
+		m_good = true;
+#ifndef _WIN32
+		std::clearerr(m_file);
+#endif
+	}
 
-	std::FILE* m_file;
-	bool m_good;
 private:
-	IOFile(IOFile&);
-	IOFile& operator=(IOFile& other);
+#ifdef _WIN32
+	HANDLE m_file;
+#else
+	std::FILE* m_file;
+#endif
+	bool m_good;
 };
 
 }  // namespace

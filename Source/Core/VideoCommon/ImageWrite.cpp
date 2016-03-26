@@ -20,6 +20,20 @@ bool SaveData(const std::string& filename, const std::string& data)
 	return true;
 }
 
+// Adapter functions to libpng to write/flush to File::IOFile instances.
+static void WriteIOFile(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+	File::IOFile* fp = reinterpret_cast<File::IOFile*>(png_get_io_ptr(png_ptr));
+	if (!fp->WriteBytes(data, length))
+		png_error(png_ptr, "Failed to write to output PNG file.");
+}
+
+static void FlushIOFile(png_structp png_ptr)
+{
+	File::IOFile* fp = reinterpret_cast<File::IOFile*>(png_get_io_ptr(png_ptr));
+	if (!fp->Flush())
+		png_error(png_ptr, "Failed to flush to output PNG file.");
+}
 
 /*
 TextureToPng
@@ -71,7 +85,8 @@ bool TextureToPng(u8* data, int row_stride, const std::string& filename, int wid
 		goto finalise;
 	}
 
-	png_init_io(png_ptr, fp.GetHandle());
+	png_set_write_fn(png_ptr, reinterpret_cast<void*>(&fp),
+	                 WriteIOFile, FlushIOFile);
 
 	// Write header (8 bit color depth)
 	png_set_IHDR(png_ptr, info_ptr, width, height,

@@ -171,12 +171,12 @@ static void fat_init(u8* fat)
 }
 
 
-static unsigned int write_sector(FILE* file, u8* sector)
+static bool WriteSector(File::IOFile* file, u8* sector)
 {
-	return fwrite(sector, 1, 512, file) != 512;
+	return file->WriteBytes(sector, 512);
 }
 
-static unsigned int write_empty(FILE* file, u64 count)
+static bool WriteEmpty(File::IOFile* file, u64 count)
 {
 	static u8 empty[64*1024];
 
@@ -187,12 +187,12 @@ static unsigned int write_empty(FILE* file, u64 count)
 		if (len > count)
 			len = count;
 
-		if ( fwrite(empty, 1, (size_t)len, file) != (size_t)len )
-			return 1;
+		if (!file->WriteBytes(empty, (size_t)len))
+			return false;
 
 		count -= len;
 	}
-	return 0;
+	return true;
 }
 
 bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
@@ -217,8 +217,7 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 	fat_init(s_fat_head);
 
 	File::IOFile file(filename, "wb");
-	FILE* const f = file.GetHandle();
-	if (!f)
+	if (!file.IsOpen())
 	{
 		ERROR_LOG(COMMON, "Could not create file '%s', aborting...\n", filename.c_str());
 		return false;
@@ -237,44 +236,44 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
 	*  zero sectors
 	*/
 
-	if (write_sector(f, s_boot_sector))
+	if (!WriteSector(&file, s_boot_sector))
 		goto FailWrite;
 
-	if (write_sector(f, s_fsinfo_sector))
+	if (!WriteSector(&file, s_fsinfo_sector))
 		goto FailWrite;
 
 	if (BACKUP_BOOT_SECTOR > 0)
 	{
-		if (write_empty(f, BACKUP_BOOT_SECTOR - 2))
+		if (!WriteEmpty(&file, BACKUP_BOOT_SECTOR - 2))
 			goto FailWrite;
 
-		if (write_sector(f, s_boot_sector))
+		if (!WriteSector(&file, s_boot_sector))
 			goto FailWrite;
 
-		if (write_sector(f, s_fsinfo_sector))
+		if (!WriteSector(&file, s_fsinfo_sector))
 			goto FailWrite;
 
-		if (write_empty(f, RESERVED_SECTORS - 2 - BACKUP_BOOT_SECTOR))
+		if (!WriteEmpty(&file, RESERVED_SECTORS - 2 - BACKUP_BOOT_SECTOR))
 			goto FailWrite;
 	}
 	else
 	{
-		if (write_empty(f, RESERVED_SECTORS - 2)) goto FailWrite;
+		if (!WriteEmpty(&file, RESERVED_SECTORS - 2)) goto FailWrite;
 	}
 
-	if (write_sector(f, s_fat_head))
+	if (!WriteSector(&file, s_fat_head))
 		goto FailWrite;
 
-	if (write_empty(f, sectors_per_fat - 1))
+	if (!WriteEmpty(&file, sectors_per_fat - 1))
 		goto FailWrite;
 
-	if (write_sector(f, s_fat_head))
+	if (!WriteSector(&file, s_fat_head))
 		goto FailWrite;
 
-	if (write_empty(f, sectors_per_fat - 1))
+	if (!WriteEmpty(&file, sectors_per_fat - 1))
 		goto FailWrite;
 
-	if (write_empty(f, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat))
+	if (!WriteEmpty(&file, sectors_per_disk - RESERVED_SECTORS - 2*sectors_per_fat))
 		goto FailWrite;
 
 	return true;

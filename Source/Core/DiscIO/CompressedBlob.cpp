@@ -33,7 +33,7 @@ namespace DiscIO
 CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file_name(filename)
 {
 	m_file.Open(filename, "rb");
-	m_file_size = File::GetSize(filename);
+	m_file_size = m_file.GetSize();
 	m_file.ReadArray(&m_header, 1);
 
 	SetSectorSize(m_header.block_size);
@@ -188,7 +188,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
 	header.magic_cookie = kBlobCookie;
 	header.sub_type   = sub_type;
 	header.block_size = block_size;
-	header.data_size  = File::GetSize(infile);
+	header.data_size  = inf.GetSize();
 
 	// round upwards!
 	header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);

@@ -1441,11 +1441,10 @@ InstLoc IRBuilder::isNeg(InstLoc I) const
 struct Writer
 {
 	File::IOFile file;
-	Writer() : file(nullptr)
+	Writer()
 	{
 		std::string filename = StringFromFormat("JitIL_IR_%d.txt", (int)time(nullptr));
 		file.Open(filename, "w");
-		setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
 	}
 
 	virtual ~Writer() {}
@@ -1510,8 +1509,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
 		writer = std::make_unique<Writer>();
 	}
 
-	FILE* const file = writer->file.GetHandle();
-	fprintf(file, "\ncode hash:%016" PRIx64 "\n", codeHash);
+	writer->file.WriteFormat("\ncode hash:%016" PRIx64 "\n", codeHash);
 
 	const InstLoc lastCurReadPtr = curReadPtr;
 	StartForwardPass();
@@ -1524,14 +1522,14 @@ void IRBuilder::WriteToFile(u64 codeHash)
 			alwaysUseds.find(opcode) != alwaysUseds.end();
 
 		// Line number
-		fprintf(file, "%4u", i);
+		writer->file.WriteFormat("%4u", i);
 
 		if (!thisUsed)
-			fprintf(file, "%*c", 32, ' ');
+			writer->file.WriteFormat("%*c", 32, ' ');
 
 		// Opcode
 		const std::string& opcodeName = opcodeNames[opcode];
-		fprintf(file, " %-20s", opcodeName.c_str());
+		writer->file.WriteFormat(" %-20s", opcodeName.c_str());
 		const unsigned numberOfOperands = getNumberOfOperands(I);
 
 		// Op1
@@ -1540,9 +1538,9 @@ void IRBuilder::WriteToFile(u64 codeHash)
 			const IREmitter::InstLoc inst = getOp1(I);
 
 			if (isImm(*inst))
-				fprintf(file, " 0x%08x", GetImmValue(inst));
+				writer->file.WriteFormat(" 0x%08x", GetImmValue(inst));
 			else
-				fprintf(file, " %10u", i - (unsigned int)(I - inst));
+				writer->file.WriteFormat(" %10u", i - (unsigned int)(I - inst));
 		}
 
 		// Op2
@@ -1551,24 +1549,24 @@ void IRBuilder::WriteToFile(u64 codeHash)
 			const IREmitter::InstLoc inst = getOp2(I);
 
 			if (isImm(*inst))
-				fprintf(file, " 0x%08x", GetImmValue(inst));
+				writer->file.WriteFormat(" 0x%08x", GetImmValue(inst));
 			else
-				fprintf(file, " %10u", i - (unsigned int)(I - inst));
+				writer->file.WriteFormat(" %10u", i - (unsigned int)(I - inst));
 		}
 
 		if (extra8Regs.count(opcode))
-			fprintf(file, " R%d", *I >> 8);
+			writer->file.WriteFormat(" R%d", *I >> 8);
 
 		if (extra16Regs.count(opcode))
-			fprintf(file, " R%d", *I >> 16);
+			writer->file.WriteFormat(" R%d", *I >> 16);
 
 		if (extra24Regs.count(opcode))
-			fprintf(file, " R%d", *I >> 24);
+			writer->file.WriteFormat(" R%d", *I >> 24);
 
 		if (opcode == CInt32 || opcode == CInt16)
-			fprintf(file, " 0x%08x", GetImmValue(I));
+			writer->file.WriteFormat(" 0x%08x", GetImmValue(I));
 
-		fprintf(file, "\n");
+		writer->file.WriteFormat("\n");
 	}
 
 	curReadPtr = lastCurReadPtr;

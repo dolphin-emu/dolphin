@@ -154,7 +154,7 @@ bool CNANDContentLoader::Initialize(const std::string& name)
 			return false;
 		}
 
-		tmd.resize(static_cast<size_t>(File::GetSize(tmd_filename)));
+		tmd.resize(static_cast<size_t>(tmd_file.GetSize()));
 		tmd_file.ReadBytes(tmd.data(), tmd.size());
 	}
 

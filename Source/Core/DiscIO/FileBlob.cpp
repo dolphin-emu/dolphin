@@ -4,13 +4,14 @@
 
 #include <memory>
 #include <string>
+#include "Common/FileUtil.h"
 #include "DiscIO/FileBlob.h"
 
 namespace DiscIO
 {
 
-PlainFileReader::PlainFileReader(std::FILE* file)
-	: m_file(file)
+PlainFileReader::PlainFileReader(File::IOFile&& file)
+	: m_file(std::move(file))
 {
 	m_size = m_file.GetSize();
 }
@@ -19,7 +20,7 @@ std::unique_ptr<PlainFileReader> PlainFileReader::Create(const std::string& file
 {
 	File::IOFile f(filename, "rb");
 	if (f)
-		return std::unique_ptr<PlainFileReader>(new PlainFileReader(f.ReleaseHandle()));
+		return std::unique_ptr<PlainFileReader>(new PlainFileReader(std::move(f)));
 
 	return nullptr;
 }

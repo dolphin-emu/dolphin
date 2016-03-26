@@ -24,7 +24,6 @@ public:
 
 extern DSPSymbolDB g_dsp_symbol_db;
 
-bool ReadAnnotatedAssembly(const std::string& filename);
 void AutoDisassembly(u16 start_addr, u16 end_addr);
 
 void Clear();

@@ -15,6 +15,8 @@
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
 
+namespace File { class IOFile; }
+
 #define BE64(x) (Common::swap64(x))
 #define BE32(x) (Common::swap32(x))
 #define BE16(x) (Common::swap16(x))
@@ -335,7 +337,7 @@ private:
 
 	std::vector<GCMBlock> mc_data_blocks;
 
-	u32 ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string &outputFile);
+	u32 ImportGciInternal(File::IOFile* gcih, const std::string& inputFile, const std::string &outputFile);
 	void InitDirBatPointers();
 
 public:

@@ -34,10 +34,10 @@ std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
 	if (!File::Exists(file_name))
 		return std::vector<u32>();
 
-	if (File::GetSize(file_name) < WII_BANNER_OFFSET + WII_BANNER_SIZE)
+	File::IOFile file(file_name, "rb");
+	if (file.GetSize() < WII_BANNER_OFFSET + WII_BANNER_SIZE)
 		return std::vector<u32>();
 
-	File::IOFile file(file_name, "rb");
 	if (!file.Seek(WII_BANNER_OFFSET, SEEK_SET))
 		return std::vector<u32>();
 

@@ -374,69 +374,8 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
 // Returns the size of filename (64bit)
 u64 GetSize(const std::string& filename)
 {
-	if (!Exists(filename))
-	{
-		WARN_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
-		return 0;
-	}
-
-	if (IsDirectory(filename))
-	{
-		WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
-		return 0;
-	}
-
-	struct stat64 buf;
-#ifdef _WIN32
-	if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
-#else
-	if (stat64(filename.c_str(), &buf) == 0)
-#endif
-	{
-		DEBUG_LOG(COMMON, "GetSize: %s: %lld",
-				filename.c_str(), (long long)buf.st_size);
-		return buf.st_size;
-	}
-
-	ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s",
-			filename.c_str(), GetLastErrorMsg().c_str());
-	return 0;
-}
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd)
-{
-	struct stat64 buf;
-	if (fstat64(fd, &buf) != 0)
-	{
-		ERROR_LOG(COMMON, "GetSize: stat failed %i: %s",
-			fd, GetLastErrorMsg().c_str());
-		return 0;
-	}
-	return buf.st_size;
-}
-
-// Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f)
-{
-	// can't use off_t here because it can be 32-bit
-	u64 pos = ftello(f);
-	if (fseeko(f, 0, SEEK_END) != 0)
-	{
-		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg().c_str());
-		return 0;
-	}
-
-	u64 size = ftello(f);
-	if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
-	{
-		ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
-			  f, GetLastErrorMsg().c_str());
-		return 0;
-	}
-
-	return size;
+	IOFile f(filename, "rb");
+	return f.GetSize();
 }
 
 // creates an empty file filename, returns true on success
@@ -891,30 +830,36 @@ bool WriteStringToFile(const std::string& str, const std::string& filename)
 bool ReadFileToString(const std::string& filename, std::string& str)
 {
 	File::IOFile file(filename, "rb");
-	auto const f = file.GetHandle();
 
-	if (!f)
+	if (!file.IsOpen())
 		return false;
 
 	size_t read_size;
-	str.resize(GetSize(f));
+	str.resize(file.GetSize());
 	bool retval = file.ReadArray(&str[0], str.size(), &read_size);
 
 	return retval;
 }
 
 IOFile::IOFile()
-	: m_file(nullptr), m_good(true)
+#ifdef _WIN32
+	: m_file(INVALID_HANDLE_VALUE),
+#else
+	: m_file(nullptr),
+#endif
+	m_good(true)
 {}
 
-IOFile::IOFile(std::FILE* file)
-	: m_file(file), m_good(true)
-{}
-
-IOFile::IOFile(const std::string& filename, const char openmode[])
-	: m_file(nullptr), m_good(true)
+IOFile::IOFile(const std::string& filename, const char openmode[],
+               OpenFlags flags)
+#ifdef _WIN32
+	: m_file(INVALID_HANDLE_VALUE),
+#else
+	: m_file(nullptr),
+#endif
+	  m_good(true)
 {
-	Open(filename, openmode);
+	Open(filename, openmode, flags);
 }
 
 IOFile::~IOFile()
@@ -923,7 +868,12 @@ IOFile::~IOFile()
 }
 
 IOFile::IOFile(IOFile&& other)
-	: m_file(nullptr), m_good(true)
+#ifdef _WIN32
+	: m_file(INVALID_HANDLE_VALUE),
+#else
+	: m_file(nullptr),
+#endif
+	m_good(true)
 {
 	Swap(other);
 }
@@ -940,13 +890,67 @@ void IOFile::Swap(IOFile& other)
 	std::swap(m_good, other.m_good);
 }
 
-bool IOFile::Open(const std::string& filename, const char openmode[])
+bool IOFile::Open(const std::string& filename, const char openmode[],
+                  OpenFlags flags)
 {
 	Close();
+	DEBUG_LOG(COMMON, "IOFile::Open file %s, mode %s, flags 0x%X", filename.c_str(), openmode, flags);
 #ifdef _WIN32
-	_tfopen_s(&m_file, UTF8ToTStr(filename).c_str(), UTF8ToTStr(openmode).c_str());
+	// We'll ignore 'b' here, it's all the same to Windows.
+	u32 access = 0;
+	u32 create = 0;
+	// Attempt to optimize the file access method.
+	// Assumes any file open for a single operation is open for sequential access.
+	u32 attributes = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN;
+
+	// Check write last, so that write can over-write the create flag.
+	if (std::strchr(openmode, 'r'))
+	{
+		access |= GENERIC_READ;
+		create = OPEN_EXISTING;
+	}
+	else if (std::strchr(openmode, 'a'))
+	{
+		access |= GENERIC_WRITE;
+		create = OPEN_ALWAYS;
+	}
+	else if (std::strchr(openmode, 'w'))
+	{
+		access |= GENERIC_WRITE;
+		create = CREATE_ALWAYS;
+	}
+	// Update mode opens for both read and write, no matter what.
+	// It maintains the create configuration of the previous setting.
+	// Change the file access method to random access to improve performance.
+	if (std::strchr(openmode, '+'))
+	{
+		attributes &= ~FILE_FLAG_SEQUENTIAL_SCAN;
+		attributes |= FILE_FLAG_RANDOM_ACCESS;
+		access = GENERIC_WRITE | GENERIC_READ;
+	}
+	if (flags & OpenFlags::DISABLE_BUFFERING)
+	{
+		attributes |= FILE_FLAG_WRITE_THROUGH;
+	}
+
+	m_file = CreateFile(UTF8ToTStr(filename).c_str(),
+	                    access,
+	                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+	                    nullptr,
+	                    create,
+	                    attributes,
+	                    nullptr);
+
+	if (IsOpen() && std::strchr(openmode, 'a'))
+		SetFilePointer(m_file, 0, 0, FILE_END);
 #else
 	m_file = fopen(filename.c_str(), openmode);
+
+	if (IsOpen())
+	{
+		if (flags & DISABLE_BUFFERING)
+			std::setvbuf(m_file, nullptr, _IONBF, 0);
+	}
 #endif
 
 	m_good = IsOpen();
@@ -955,38 +959,99 @@ bool IOFile::Open(const std::string& filename, const char openmode[])
 
 bool IOFile::Close()
 {
+#ifdef _WIN32
+	if (!IsOpen() || FALSE == CloseHandle(m_file))
+#else
 	if (!IsOpen() || 0 != std::fclose(m_file))
+#endif
 		m_good = false;
 
+#ifdef _WIN32
+	m_file = INVALID_HANDLE_VALUE;
+#else
 	m_file = nullptr;
+#endif
 	return m_good;
 }
 
-std::FILE* IOFile::ReleaseHandle()
-{
-	std::FILE* const ret = m_file;
-	m_file = nullptr;
-	return ret;
-}
-
-void IOFile::SetHandle(std::FILE* file)
-{
-	Close();
-	Clear();
-	m_file = file;
-}
-
-u64 IOFile::GetSize()
+u64 IOFile::GetSize() const
 {
 	if (IsOpen())
-		return File::GetSize(m_file);
+	{
+#ifdef _WIN32
+		LARGE_INTEGER size;
+		BOOL rv = GetFileSizeEx(m_file, &size);
+		if (rv == FALSE)
+		{
+			ERROR_LOG(COMMON, "GetSize: failed %p: %s",
+				m_file, GetLastErrorMsg().c_str());
+			return 0;
+		}
+		else
+		{
+			return size.QuadPart;
+		}
+#else
+		// can't use off_t here because it can be 32-bit
+		u64 pos = ftello(m_file);
+		if (fseeko(m_file, 0, SEEK_END) != 0)
+		{
+			ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+					m_file, GetLastErrorMsg().c_str());
+			return 0;
+		}
+
+		u64 size = ftello(m_file);
+		if ((size != pos) && (fseeko(m_file, pos, SEEK_SET) != 0))
+		{
+			ERROR_LOG(COMMON, "GetSize: seek failed %p: %s",
+					m_file, GetLastErrorMsg().c_str());
+			return 0;
+		}
+		return size;
+#endif
+	}
 	else
+	{
+		WARN_LOG(COMMON, "GetSize: failed %p: Invalid file", m_file);
 		return 0;
+	}
+}
+
+bool IOFile::IsEOF() const
+{
+#ifdef _WIN32
+	if (Tell() >= GetSize())
+		return true;
+	return false;
+#else
+	return std::feof(m_file) != 0;
+#endif
 }
 
 bool IOFile::Seek(s64 off, int origin)
 {
+#ifdef _WIN32
+	LARGE_INTEGER offset;
+	offset.QuadPart = off;
+	DWORD method;
+	// origin and method may not always map 1:1, so switch-set them.
+	switch (origin)
+	{
+	case SEEK_SET:
+		method = FILE_BEGIN;
+		break;
+	case SEEK_CUR:
+		method = FILE_CURRENT;
+		break;
+	case SEEK_END:
+		method = FILE_END;
+		break;
+	}
+    if (!IsOpen() || FALSE == SetFilePointerEx(m_file, offset, nullptr, method))
+#else
 	if (!IsOpen() || 0 != fseeko(m_file, off, origin))
+#endif
 		m_good = false;
 
 	return m_good;
@@ -995,14 +1060,29 @@ bool IOFile::Seek(s64 off, int origin)
 u64 IOFile::Tell() const
 {
 	if (IsOpen())
+	{
+#ifdef _WIN32
+		LARGE_INTEGER move;
+		memset(&move, 0, sizeof(move));
+		LARGE_INTEGER pos;
+		if (FALSE == SetFilePointerEx(m_file, move, &pos, FILE_CURRENT))
+			return -1;
+		return pos.QuadPart;
+#else
 		return ftello(m_file);
+#endif
+    }
 	else
 		return -1;
 }
 
 bool IOFile::Flush()
 {
+#ifdef _WIN32
+    if (!IsOpen() || FALSE == FlushFileBuffers(m_file))
+#else
 	if (!IsOpen() || 0 != std::fflush(m_file))
+#endif
 		m_good = false;
 
 	return m_good;
@@ -1010,16 +1090,36 @@ bool IOFile::Flush()
 
 bool IOFile::Resize(u64 size)
 {
-	if (!IsOpen() || 0 !=
 #ifdef _WIN32
-		// ector: _chsize sucks, not 64-bit safe
-		// F|RES: changed to _chsize_s. i think it is 64-bit safe
-		_chsize_s(_fileno(m_file), size)
+	if (!IsOpen() || !IsGood())
+	{
+		m_good = false;
+		return m_good;
+	}
+
+	// Restore position in file as good as possible.
+	LARGE_INTEGER pos;
+	pos.QuadPart = Tell();
+	DWORD method;
+	if (static_cast<u64>(pos.QuadPart) < size)
+	{
+		method = FILE_BEGIN;
+	}
+	else
+	{
+		method = FILE_END;
+		pos.QuadPart = 0;
+	}
+	LARGE_INTEGER new_size;
+	new_size.QuadPart = size;
+
+	if (FALSE == SetFilePointerEx(m_file, new_size, nullptr, FILE_BEGIN) ||
+		FALSE == SetEndOfFile(m_file) ||
+		FALSE == SetFilePointerEx(m_file, pos, nullptr, method))
 #else
-		// TODO: handle 64bit and growing
-		ftruncate(fileno(m_file), size)
+	// TODO: handle 64bit and growing
+	if (!IsOpen() || 0 != ftruncate(fileno(m_file), size))
 #endif
-	)
 		m_good = false;
 
 	return m_good;
