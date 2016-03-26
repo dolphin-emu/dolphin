@@ -109,6 +109,8 @@ public:
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
+		TextureCacheBase::TCacheEntryBase* ApplyPalette(void* palette, u32 tlutfmt);
+
 		bool IsEfbCopy() const { return is_efb_copy; }
 
 		u32 NumBlocksY() const;
@@ -156,7 +158,7 @@ private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
 	static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
-	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
+	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter, void* palette, u32 tlutfmt);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 

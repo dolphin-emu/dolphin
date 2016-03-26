@@ -209,6 +209,34 @@ bool TextureCacheBase::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u
 	return true;
 }
 
+TextureCacheBase::TCacheEntryBase* TextureCacheBase::TCacheEntryBase::ApplyPalette(void* palette, u32 tlutfmt)
+{
+	TCacheEntryConfig newconfig;
+	newconfig.rendertarget = true;
+	newconfig.width = config.width;
+	newconfig.height = config.height;
+	newconfig.layers = config.layers;
+	TCacheEntryBase *decoded_entry = AllocateTexture(newconfig);
+
+	if (decoded_entry)
+	{
+		decoded_entry->SetGeneralParameters(addr, size_in_bytes, format);
+		decoded_entry->SetDimensions(native_width, native_height, 1);
+		decoded_entry->SetHashes(base_hash, hash);
+		decoded_entry->frameCount = FRAMECOUNT_INVALID;
+		decoded_entry->is_efb_copy = false;
+
+		g_texture_cache->ConvertTexture(decoded_entry, this, palette, (TlutFormat)tlutfmt);
+		textures_by_address.emplace(addr, decoded_entry);
+
+		return decoded_entry;
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
 void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBase** entry, u32 new_width, u32 new_height)
 {
 	if ((*entry)->config.width == new_width && (*entry)->config.height == new_height)
@@ -279,7 +307,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 	}
 }
 
-TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t)
+TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, void* palette, u32 tlutfmt)
 {
 	TCacheEntryBase* entry_to_update = iter_t->second;
 	const bool isPaletteTexture = (entry_to_update->format == GX_TF_C4
@@ -287,10 +315,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		|| entry_to_update->format == GX_TF_C14X2
 		|| entry_to_update->format >= 0x10000);
 
-	// Efb copies and paletted textures are excluded from these updates, until there's an example where a game would
-	// benefit from this. Both would require more work to be done.
-	if (entry_to_update->IsEfbCopy()
-		|| isPaletteTexture)
+	// EFB copies are excluded from these updates, until there's an example where a game would
+	// benefit from updating. This would require more work to be done.
+	if (entry_to_update->IsEfbCopy())
 		return entry_to_update;
 
 	u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xf);
@@ -312,6 +339,23 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		{
 			if (entry->hash == entry->CalculateHash())
 			{
+				if (isPaletteTexture)
+				{
+					TCacheEntryBase *decoded_entry = entry->ApplyPalette(palette, tlutfmt);
+					if (decoded_entry)
+					{
+						// Mark the texture update as used, so it isn't converted and applied more than once
+						entry->frameCount = frameCount;
+
+						entry = decoded_entry;
+					}
+					else
+					{
+						++iter;
+						continue;
+					}
+				}
+
 				u32 src_x, src_y, dst_x, dst_y;
 
 				// Note for understanding the math:
@@ -368,6 +412,25 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
 				// Mark the texture update as used, so it isn't applied more than once
 				entry->frameCount = frameCount;
+
+				// Remove the converted texture, it won't be used anywhere else
+				if (isPaletteTexture)
+				{
+					std::pair<TexCache::iterator, TexCache::iterator>iter_range = textures_by_address.equal_range(entry->addr);
+					TexCache::iterator palette_iter = iter_range.first;
+					while (palette_iter != iter_range.second)
+					{
+						if (palette_iter->second == entry)
+						{
+							FreeTexture(palette_iter);
+							palette_iter = iter_range.second;
+						}
+						else
+						{
+							palette_iter++;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -590,7 +653,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			if (entry->hash == full_hash && entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
-				entry = DoPartialTextureUpdates(iter);
+				entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
 				return ReturnEntry(stage, entry);
 			}
@@ -612,26 +675,10 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
 	if (unconverted_copy != textures_by_address.end())
 	{
-		// Perform palette decoding.
-		TCacheEntryBase *entry = unconverted_copy->second;
-
-		TCacheEntryConfig config;
-		config.rendertarget = true;
-		config.width = entry->config.width;
-		config.height = entry->config.height;
-		config.layers = FramebufferManagerBase::GetEFBLayers();
-		TCacheEntryBase *decoded_entry = AllocateTexture(config);
+		TCacheEntryBase* decoded_entry = unconverted_copy->second->ApplyPalette(&texMem[tlutaddr], tlutfmt);
 
 		if (decoded_entry)
 		{
-			decoded_entry->SetGeneralParameters(address, texture_size, full_format);
-			decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
-			decoded_entry->SetHashes(base_hash, full_hash);
-			decoded_entry->frameCount = FRAMECOUNT_INVALID;
-			decoded_entry->is_efb_copy = false;
-
-			g_texture_cache->ConvertTexture(decoded_entry, entry, &texMem[tlutaddr], (TlutFormat)tlutfmt);
-			textures_by_address.emplace((u64)address, decoded_entry);
 			return ReturnEntry(stage, decoded_entry);
 		}
 	}
@@ -652,7 +699,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 			if (entry->format == full_format && entry->native_levels >= tex_levels &&
 				entry->native_width == nativeW && entry->native_height == nativeH)
 			{
-				entry = DoPartialTextureUpdates(iter);
+				entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
 				return ReturnEntry(stage, entry);
 			}
@@ -797,7 +844,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 	INCSTAT(stats.numTexturesUploaded);
 	SETSTAT(stats.numTexturesAlive, textures_by_address.size());
 
-	entry = DoPartialTextureUpdates(iter);
+	entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
 
 	return ReturnEntry(stage, entry);
 }
