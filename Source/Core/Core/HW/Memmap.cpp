@@ -186,6 +186,8 @@ void Init()
 #ifndef _ARCH_32
 	logical_base = physical_base + 0x200000000;
 #endif
+	NOTICE_LOG(MEMMAP, "Memory's physical base address: 0x%x", physical_base);
+	NOTICE_LOG(MEMMAP, "Memory's logical base address: 0x%x", logical_base);
 
 	if (wii)
 		mmio_mapping = InitMMIOWii();
