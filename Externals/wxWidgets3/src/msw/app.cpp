@@ -819,11 +819,15 @@ void wxApp::WakeUpIdle()
         if ( !::PeekMessage(&msg, hwndTop, 0, 1, PM_NOREMOVE) ||
               ::PeekMessage(&msg, hwndTop, 1, 1, PM_NOREMOVE) )
         {
-            if ( !::PostMessage(hwndTop, WM_NULL, 0, 0) )
-            {
-                // should never happen
-                wxLogLastError(wxT("PostMessage(WM_NULL)"));
-            }
+            // If this fails too, there is really not much we can do, but then
+            // neither do we need to, as it normally indicates that the window
+            // queue is full to the brim with the messages and so the main loop
+            // is running and doesn't need to be woken up.
+            //
+            // Notice that we especially should not try use wxLogLastError()
+            // here as this would lead to another call to wxWakeUpIdle() from
+            // inside wxLog and stack overflow due to the resulting recursion.
+            ::PostMessage(hwndTop, WM_NULL, 0, 0);
         }
     }
 #if wxUSE_THREADS
