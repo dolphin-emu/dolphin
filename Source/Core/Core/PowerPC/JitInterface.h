@@ -31,6 +31,7 @@ namespace JitInterface
 
 	// Memory Utilities
 	bool HandleFault(uintptr_t access_address, SContext* ctx);
+	bool HandleStackFault();
 
 	// Clearing CodeCache
 	void ClearCache();
