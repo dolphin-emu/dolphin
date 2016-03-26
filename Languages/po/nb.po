@@ -7,13 +7,14 @@
 # KHRZ <e-k-nut@hotmail.com>, 2013-2016
 # KHRZ <e-k-nut@hotmail.com>, 2011,2013
 # KHRZ <e-k-nut@hotmail.com>, 2011
+# Stein Erik Svendheim <svendheim@outlook.com>, 2016
 # Tokiko <tokikoenai@gmail.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -90,12 +91,12 @@ msgstr "%i av %i blokker. Komprimeringsratio %i%%"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (Normal hastighet)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -550,6 +551,15 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"Advarsel:\n"
+"\n"
+"Alle spillere må bruke samme Dolphin-versjon.\n"
+"Alle minnekort, SD-kort og juksekoder må være identiske mellom spillerne, "
+"eller være avslått.\n"
+"Hvis DSP LLE er brukt, må DSP-ROMs være identiske mellom spillerne.\n"
+"Ved direkte forbindelse må verten ha valgte UDP-porter åpne inn til seg.\n"
+"\n"
+"Wiimote-støtte fungerer ikke i nettverksspill og er derfor avslått. \n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -1143,7 +1153,7 @@ msgstr "Endre disk"
 msgid "Change Game"
 msgstr "Endre spill"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Endre disk tli %s"
@@ -2162,18 +2172,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"Tillater anisotropisk filtrering.\n"
-"Øker bildekvaliteten for teksturer med skjeve visningsvinkler.\n"
-"Kan skape problemer for noen få spill.\n"
-"På Direct3D, høyere innstillinger enn 1x vil ha samme effekt som å aktivere "
-"\"Tving Teksturfiltrering\".\n"
-"\n"
-"Hvis usikker, velg 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2515,7 +2516,7 @@ msgstr ""
 "Kunne ikke åpne output-filen \"%s\".\n"
 "Sjekk at du har skrivetillatelse til målmappen og at mediet kan skrives til."
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "Mislyktes i å lese %s"
@@ -2604,9 +2605,9 @@ msgstr "Rask"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "Rask dybdekalkulering"
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2687,19 +2688,9 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Filtrer alle teksturer, innkludert de som spillet eksplisitt har satt til "
-"ufiltret.\n"
-"Kan øke kvaliteten på visse teksturer i noen spill, men vil skape problemer "
-"i andre.\n"
-"Å sette Anisotropisk Filtreing over 1x vil ha samme effekt som dette "
-"alternativet under Direct3D.\n"
-"\n"
-"Hvis usikker, la stå umerket."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3197,12 +3188,12 @@ msgstr "ID"
 msgid "ID:"
 msgstr "ID:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: Forsøkte å få data fra en ukjent billett: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3217,7 +3208,7 @@ msgstr ""
 "\n"
 "Dolphin vil sannsynligvis krasje nå"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: DOL-filen er ugyldig!"
 
@@ -3455,7 +3446,7 @@ msgstr "Intro"
 msgid "Invalid bat.map or dir entry."
 msgstr "Ugyldig bat.map eller mappesti."
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Ugyldig event-type %i"
@@ -3472,7 +3463,7 @@ msgstr "Ugyldig host"
 msgid "Invalid index"
 msgstr "Ugyldig indeks"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "Ugyldig opptaksfil"
 
@@ -4489,17 +4480,17 @@ msgstr "postprosesseringseffekt:"
 msgid "Prefetch Custom Textures"
 msgstr "Pre-last inn brukerlagde teksturer"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Prematur filmslutt i PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Prematur filmslutt i PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Prematur filmslutt i PlayWiimote. %u > %u"
@@ -4827,7 +4818,7 @@ msgstr "Lagre til valgt slot"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Lagret til /Wii/sd.raw (vanlig størrelse er 128mb)"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Save State-film %s er korrupt, opptak avsluttes..."
@@ -5772,7 +5763,7 @@ msgstr "Navnet kan ikke være blankt"
 msgid "The name cannot contain the character ','"
 msgstr "Navnet kan ikke inneholde tegnet ','"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "Opptaksspillet (%s) er ikke det samme som det valgte spillet (%s)"
@@ -5836,7 +5827,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Det er ingenting å angre!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6120,7 +6111,7 @@ msgstr "Ukjent"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Ukjent DVD-kommando%08x - fatal feil"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Ukjent entry-type %i in SYSCONF (%s@%x)!"
@@ -6190,6 +6181,9 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Bruk en mindre nøyaktig algoritme for å beregne dybdeverdier. Kan forårsake "
+"problemer i enkelte spill, men kan gi en anstendig hastighetsøkning "
+"avhenging av spillet og/eller din GPU. Hvis usikker, la stå merket."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6252,13 +6246,13 @@ msgstr "Mute/Unmute Volum"
 msgid "Volume Up"
 msgstr "Øk Volum"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD-installasjon feilet: Skaper feil %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD-installasjon mislyktes: Feil ved ticket-laging"
 
@@ -6324,7 +6318,7 @@ msgstr ""
 "og har samme navn som en fil på ditt minnekort\n"
 "Fortsette?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6335,7 +6329,7 @@ msgstr ""
 "spilles. (Byte %u > %u) (Frame %u > %u). Du burde laste en annen savestate "
 "før du fortsetter, eller laste denne savestate-en med kun-les modus av."
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6346,7 +6340,7 @@ msgstr ""
 "nåværende bildet i lagringsfilen (byte %u < %u) (frame %u < %u). Du burde "
 "laste en annen lagrinsfil før du fortsetter."
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6358,7 +6352,7 @@ msgstr ""
 "denne savestate-en med les-kun modus av. Ellers får du sannsynligvis en "
 "desynkronisering."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6565,7 +6559,7 @@ msgstr ""
 "Din GCM/ISO-fil synes å være ugyldig (ugyldig land).\n"
 "Fortsette som fra PAL-regionen?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
