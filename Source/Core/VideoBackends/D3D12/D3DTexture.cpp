@@ -261,17 +261,6 @@ void D3DTexture2D::TransitionToResourceState(ID3D12GraphicsCommandList* command_
 D3DTexture2D::~D3DTexture2D()
 {
 	DX12::D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_tex12);
-
-	if (m_srv12_cpu.ptr)
-	{
-		D3D12_SHADER_RESOURCE_VIEW_DESC null_srv_desc = {};
-		null_srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		null_srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-
-		null_srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-
-		DX12::D3D::device12->CreateShaderResourceView(NULL, &null_srv_desc, m_srv12_cpu);
-	}
 }
 
 }  // namespace DX12

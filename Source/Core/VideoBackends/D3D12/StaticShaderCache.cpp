@@ -15,7 +15,7 @@ namespace DX12
 static ID3DBlob* s_color_matrix_program_blob[2] = {};
 static ID3DBlob* s_color_copy_program_blob[2] = {};
 static ID3DBlob* s_depth_matrix_program_blob[2] = {};
-static ID3DBlob* s_depth_copy_program_blob[2] = {};
+static ID3DBlob* s_depth_resolve_to_color_program_blob = {};
 static ID3DBlob* s_clear_program_blob = {};
 static ID3DBlob* s_anaglyph_program_blob = {};
 static ID3DBlob* s_rgba6_to_rgb8_program_blob[2] = {};
@@ -73,17 +73,6 @@ static constexpr const char s_color_copy_program_hlsl[] = {
 	"}\n"
 };
 
-static constexpr const char s_depth_copy_program_hlsl[] = {
-	"sampler samp0 : register(s0);\n"
-	"Texture2DArray Tex0 : register(t0);\n"
-	"void main(\n"
-	"out float odepth : SV_Depth,\n"
-	"in float4 pos : SV_Position,\n"
-	"in float3 uv0 : TEXCOORD0){\n"
-	"odepth = Tex0.Sample(samp0,uv0);\n"
-	"}\n"
-};
-
 // Anaglyph Red-Cyan shader based on Dubois algorithm
 // Constants taken from the paper:
 // "Conversion of a Stereo Pair to Anaglyph with
@@ -126,19 +115,19 @@ static constexpr const char s_color_copy_program_msaa_hlsl[] = {
 	"}\n"
 };
 
-static constexpr const char s_depth_copy_program_msaa_hlsl[] = {
+static constexpr const char s_depth_resolve_to_color_program_hlsl[] = {
 	"#define SAMPLES %d\n"
 	"Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
 	"void main(\n"
-	"    out float depth : SV_Depth,\n"
+	"    out float ocol0 : SV_Target,\n"
 	"    in float4 pos : SV_Position,\n"
 	"    in float3 uv0 : TEXCOORD0)\n"
 	"{\n"
 	"	int width, height, slices, samples;\n"
 	"	Tex0.GetDimensions(width, height, slices, samples);\n"
-	"	depth = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
+	"	ocol0 = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
 	"	for(int i = 1; i < SAMPLES; ++i)\n"
-	"		depth = min(depth, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
+	"		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
 	"}\n"
 };
 
@@ -497,25 +486,21 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetColorCopyPixelShader(bool multisampl
 	return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthCopyPixelShader(bool multisampled)
+D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthResolveToColorPixelShader()
 {
 	D3D12_SHADER_BYTECODE bytecode = {};
 
-	if (!multisampled || g_ActiveConfig.iMultisamples == 1)
+	if (s_depth_resolve_to_color_program_blob)
 	{
-		bytecode = { s_depth_copy_program_blob[0]->GetBufferPointer(), s_depth_copy_program_blob[0]->GetBufferSize() };
-	}
-	else if (s_depth_copy_program_blob[1])
-	{
-		bytecode = { s_depth_copy_program_blob[1]->GetBufferPointer(), s_depth_copy_program_blob[1]->GetBufferSize() };
+		bytecode = { s_depth_resolve_to_color_program_blob->GetBufferPointer(), s_depth_resolve_to_color_program_blob->GetBufferSize() };
 	}
 	else
 	{
 		// create MSAA shader for current AA mode
-		std::string buf = StringFromFormat(s_depth_copy_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+		std::string buf = StringFromFormat(s_depth_resolve_to_color_program_hlsl, g_ActiveConfig.iMultisamples);
 
-		D3D::CompilePixelShader(buf, &s_depth_copy_program_blob[1]);
-		bytecode = { s_depth_copy_program_blob[1]->GetBufferPointer(), s_depth_copy_program_blob[1]->GetBufferSize() };
+		D3D::CompilePixelShader(buf, &s_depth_resolve_to_color_program_blob);
+		bytecode = { s_depth_resolve_to_color_program_blob->GetBufferPointer(), s_depth_resolve_to_color_program_blob->GetBufferSize() };
 	}
 
 	return bytecode;
@@ -646,7 +631,6 @@ void StaticShaderCache::Init()
 	D3D::CompilePixelShader(s_clear_program_hlsl, &s_clear_program_blob);
 	D3D::CompilePixelShader(s_anaglyph_program_hlsl, &s_anaglyph_program_blob);
 	D3D::CompilePixelShader(s_color_copy_program_hlsl, &s_color_copy_program_blob[0]);
-	D3D::CompilePixelShader(s_depth_copy_program_hlsl, &s_depth_copy_program_blob[0]);
 	D3D::CompilePixelShader(s_color_matrix_program_hlsl, &s_color_matrix_program_blob[0]);
 	D3D::CompilePixelShader(s_depth_matrix_program_hlsl, &s_depth_matrix_program_blob[0]);
 
@@ -667,6 +651,7 @@ void StaticShaderCache::InvalidateMSAAShaders()
 	SAFE_RELEASE(s_depth_matrix_program_blob[1]);
 	SAFE_RELEASE(s_rgb8_to_rgba6_program_blob[1]);
 	SAFE_RELEASE(s_rgba6_to_rgb8_program_blob[1]);
+	SAFE_RELEASE(s_depth_resolve_to_color_program_blob);
 }
 
 void StaticShaderCache::Shutdown()
@@ -675,6 +660,7 @@ void StaticShaderCache::Shutdown()
 
 	SAFE_RELEASE(s_clear_program_blob);
 	SAFE_RELEASE(s_anaglyph_program_blob);
+	SAFE_RELEASE(s_depth_resolve_to_color_program_blob);
 
 	for (unsigned int i = 0; i < 2; ++i)
 	{

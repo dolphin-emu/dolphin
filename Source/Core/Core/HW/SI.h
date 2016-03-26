@@ -35,6 +35,7 @@ void AddDevice(std::unique_ptr<ISIDevice> device);
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate);
 void ChangeDevice(SIDevices device, int channel);
+void ChangeDeviceDeterministic(SIDevices device, int channel);
 
 SIDevices GetDeviceType(int channel);
 

@@ -1301,11 +1301,15 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 	u64 disk_read_duration = CalculateRawDiscReadTime(offset, length) +
 		SystemTimers::GetTicksPerSecond() / 1000 * DISC_ACCESS_TIME_MS;
 
-	if (offset + length > s_last_read_offset + 1024 * 1024)
+	// Assume unbuffered read if the read we are performing asks for data >
+	// 1MB past the end of the last read *or* asks for data before the last
+	// read. It assumes the buffer is only used when reading small amounts
+	// forward.
+	if (offset + length > s_last_read_offset + 1024 * 1024 || offset < s_last_read_offset)
 	{
 		// No buffer; just use the simple seek time + read time.
 		DEBUG_LOG(DVDINTERFACE, "Seeking %" PRId64 " bytes",
-		          s64(s_last_read_offset) - s64(offset));
+		          s64(offset) - s64(s_last_read_offset));
 		ticks_until_completion = disk_read_duration;
 		s_last_read_time = current_time + ticks_until_completion;
 	}
@@ -1339,7 +1343,7 @@ u64 SimulateDiscReadTime(u64 offset, u32 length)
 		else
 		{
 			DEBUG_LOG(DVDINTERFACE, "Short seek %" PRId64 " bytes",
-			          s64(s_last_read_offset) - s64(offset));
+			          s64(offset) - s64(s_last_read_offset));
 			ticks_until_completion = disk_read_duration;
 			s_last_read_time = current_time + ticks_until_completion;
 		}

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -20,6 +22,7 @@
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -143,7 +146,7 @@ void StateCache::Init()
 	{
 		// If a PSO fails to create, that means either:
 		// - The file itself is corrupt.
-		// - A driver/HW change has occured, causing the existing cache blobs to be invalid.
+		// - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
 		//
 		// In either case, we want to re-create the disk cache. This should not be a frequent occurence.
 
@@ -185,7 +188,7 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 	unsigned int mip = d3d_mip_filters[state.min_filter & 3];
 
 	sampdc.MaxAnisotropy = 1;
-	if (g_ActiveConfig.iMaxAnisotropy > 1)
+	if (g_ActiveConfig.iMaxAnisotropy > 0 && !SamplerCommon::IsBpTexMode0PointFiltering(state))
 	{
 		sampdc.Filter = D3D12_FILTER_ANISOTROPIC;
 		sampdc.MaxAnisotropy = 1 << g_ActiveConfig.iMaxAnisotropy;
@@ -241,8 +244,8 @@ D3D12_SAMPLER_DESC StateCache::GetDesc12(SamplerState state)
 
 	sampdc.BorderColor[0] = sampdc.BorderColor[1] = sampdc.BorderColor[2] = sampdc.BorderColor[3] = 1.0f;
 
-	sampdc.MaxLOD = (mip == TexMode0::TEXF_NONE) ? 0.0f : static_cast<float>(state.max_lod) / 16.f;
-	sampdc.MinLOD = static_cast<float>(state.min_lod) / 16.f;
+	sampdc.MaxLOD = SamplerCommon::AreBpTexMode0MipmapsEnabled(state) ? state.max_lod / 16.f : 0.f;
+	sampdc.MinLOD = std::min(state.min_lod / 16.f, sampdc.MaxLOD);
 	sampdc.MipLODBias = static_cast<s32>(state.lod_bias) / 32.0f;
 
 	return sampdc;
@@ -459,6 +462,18 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(SmallPsoDesc* pso_desc, ID3D
 	}
 
 	return S_OK;
+}
+
+void StateCache::OnMSAASettingsChanged()
+{
+	for (auto& it : m_small_pso_map)
+	{
+		SAFE_RELEASE(it.second);
+	}
+	m_small_pso_map.clear();
+
+	// Update sample count for new PSOs being created
+	gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
 }
 
 void StateCache::Clear()

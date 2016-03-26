@@ -7,6 +7,7 @@ project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
+option(USE_SHARED_GTEST "Use shared gtest library if found" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use Qt or CLI interface)" OFF)
 option(ENABLE_QT2 "Enable Qt2 (use the other experimental Qt interface)" OFF)
@@ -906,8 +907,15 @@ include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
 ########################################
 # Unit testing.
 #
-include_directories(Externals/gtest/include)
-add_subdirectory(Externals/gtest)
+include(FindGTest)
+if(GTEST_FOUND AND USE_SHARED_GTEST)
+	message("Using shared gtest")
+	include_directories(${GTEST_INCLUDE_DIRS})
+else()
+	message("Using static gtest from Externals")
+	include_directories(Externals/gtest/include)
+	add_subdirectory(Externals/gtest)
+endif()
 
 enable_testing()
 add_custom_target(unittests)
@@ -946,12 +954,17 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin")
 endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	# Install the application icon and menu item
-	install(FILES Installer/dolphin-emu.svg
+	install(FILES Data/dolphin-emu.svg
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
-	install(FILES Installer/dolphin-emu.png
+	install(FILES Data/dolphin-emu.png
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps)
-	install(FILES Installer/dolphin-emu.desktop
+	install(FILES Data/dolphin-emu.desktop
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
+	# Install manpages
+	install(FILES Data/dolphin-emu.6
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man6)
+	install(FILES Data/dolphin-emu-nogui.6
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man6)
 endif()
 
 # packaging information

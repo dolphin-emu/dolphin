@@ -234,12 +234,12 @@ void DoState(PointerWrap &p)
 		{
 			// If no movie is active, we'll assume the user wants to keep their current devices
 			// instead of the ones they had when the savestate was created.
-			if (!Movie::IsMovieActive())
-				return;
-
+			// But we need to restore the current devices first just in case.
+			SIDevices original_device = device->GetDeviceType();
 			std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
 			save_device->DoState(p);
 			AddDevice(std::move(save_device));
+			ChangeDeviceDeterministic(original_device, i);
 		}
 	}
 
@@ -260,9 +260,25 @@ void Init()
 		g_Channel[i].m_InLo.Hex = 0;
 
 		if (Movie::IsMovieActive())
-			AddDevice(Movie::IsUsingPad(i) ?  (Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+		{
+			if (Movie::IsUsingPad(i))
+			{
+				SIDevices current = SConfig::GetInstance().m_SIDevice[i];
+				// GC pad-compatible devices can be used for both playing and recording
+				if (SIDevice_IsGCController(current))
+					AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : current, i);
+				else
+					AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER, i);
+			}
+			else
+			{
+					AddDevice(SIDEVICE_NONE, i);
+			}
+		}
 		else if (!NetPlay::IsNetPlayRunning())
+		{
 			AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
+		}
 	}
 
 	g_Poll.Hex = 0;
@@ -507,6 +523,16 @@ void ChangeDevice(SIDevices device, int channel)
 	{
 		CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
 		CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
+	}
+}
+
+void ChangeDeviceDeterministic(SIDevices device, int channel)
+{
+	// Called from savestates, so no need to make it thread safe.
+	if (GetDeviceType(channel) != device)
+	{
+		CoreTiming::ScheduleEvent(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
+		CoreTiming::ScheduleEvent(500000000, changeDevice, ((u64)channel << 32) | device);
 	}
 }
 

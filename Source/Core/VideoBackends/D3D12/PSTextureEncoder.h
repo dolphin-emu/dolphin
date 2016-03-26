@@ -29,7 +29,6 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE m_out_rtv_cpu = {};
 
 	ID3D12Resource* m_out_readback_buffer = nullptr;
-	void* m_out_readback_buffer_data = nullptr;
 
 	ID3D12Resource* m_encode_params_buffer = nullptr;
 	void* m_encode_params_buffer_data = nullptr;

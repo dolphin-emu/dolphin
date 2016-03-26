@@ -13,6 +13,7 @@
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
@@ -513,6 +514,15 @@ void Tev::Draw()
 
 	INCSTAT(stats.thisFrame.tevPixelsIn);
 
+	// initial color values
+	for (int i = 0; i < 4; i++)
+	{
+		Reg[i][RED_C] = PixelShaderManager::constants.colors[i][0];
+		Reg[i][GRN_C] = PixelShaderManager::constants.colors[i][1];
+		Reg[i][BLU_C] = PixelShaderManager::constants.colors[i][2];
+		Reg[i][ALP_C] = PixelShaderManager::constants.colors[i][3];
+	}
+
 	for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
 	{
 		int stageNum2 = stageNum >> 1;
@@ -800,15 +810,8 @@ void Tev::Draw()
 	EfbInterface::BlendTev(Position[0], Position[1], output);
 }
 
-void Tev::SetRegColor(int reg, int comp, bool konst, s16 color)
+void Tev::SetRegColor(int reg, int comp, s16 color)
 {
-	if (konst)
-	{
-		KonstantColors[reg][comp] = color;
-	}
-	else
-	{
-		Reg[reg][comp] = color;
-	}
+	KonstantColors[reg][comp] = color;
 }
 

@@ -9,9 +9,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/DSP.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -463,19 +465,15 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
-
 		MOVI2R(XA, (u64)&CoreTiming::Idle);
 		BLR(XA);
-
 		gpr.Unlock(WA);
-		WriteExceptionExit();
+
+		WriteExceptionExit(js.compilerPC);
 
 		SwitchToNearCode();
 
 		SetJumpTarget(noIdle);
-
-		//js.compilerPC += 8;
-		return;
 	}
 }
 
@@ -597,7 +595,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 		MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
 	}
 
-	ADD(XA, XA, X28);
+	ADD(XA, XA, MEM_REG);
 
 	for (int i = inst.RD; i < 32; i++)
 	{
@@ -696,6 +694,90 @@ void JitArm64::stmw(UGeckoInstruction inst)
 	}
 
 	gpr.Unlock(WA, WB);
+}
+
+void JitArm64::dcbx(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(bJITLoadStoreOff);
+
+	gpr.Lock(W30);
+
+	ARM64Reg addr = gpr.GetReg();
+	ARM64Reg value = gpr.GetReg();
+	ARM64Reg WA = W30;
+
+	u32 a = inst.RA, b = inst.RB;
+
+	if (a)
+		ADD(addr, gpr.R(a), gpr.R(b));
+	else
+		MOV(addr, gpr.R(b));
+
+	// Check whether a JIT cache line needs to be invalidated.
+	AND(value, addr, 32 - 10, 28 - 10); // upper three bits and last 10 bit are masked for the bitset of cachelines, 0x1ffffc00
+	LSR(value, value, 5 + 5); // >> 5 for cache line size, >> 5 for width of bitset
+	MOVI2R(EncodeRegTo64(WA), (u64)jit->GetBlockCache()->GetBlockBitSet());
+	LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
+
+	LSR(addr, addr, 5); // mask sizeof cacheline, & 0x1f is the position within the bitset
+
+	LSR(value, value, addr); // move current bit to bit 0
+
+	FixupBranch bit_not_set = TBZ(value, 0);
+	FixupBranch far = B();
+	SwitchToFarCode();
+	SetJumpTarget(far);
+
+	BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
+	BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
+
+	ABI_PushRegisters(gprs_to_push);
+	m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
+
+	LSL(W0, addr, 5);
+	MOVI2R(X1, 32);
+	MOVI2R(X2, 0);
+	MOVI2R(X3, (u64)(void*)JitInterface::InvalidateICache);
+	BLR(X3);
+
+	m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
+	ABI_PopRegisters(gprs_to_push);
+
+	FixupBranch near = B();
+	SwitchToNearCode();
+	SetJumpTarget(bit_not_set);
+	SetJumpTarget(near);
+
+	// dcbi
+	if (inst.SUBOP10 == 470)
+	{
+		// Flush DSP DMA if DMAState bit is set
+		MOVI2R(EncodeRegTo64(WA), (u64)&DSP::g_dspState);
+		LDRH(INDEX_UNSIGNED, WA, EncodeRegTo64(WA), 0);
+
+		bit_not_set = TBZ(WA, 9);
+		far = B();
+		SwitchToFarCode();
+		SetJumpTarget(far);
+
+		ABI_PushRegisters(gprs_to_push);
+		m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
+
+		LSL(W0, addr, 5);
+		MOVI2R(X1, (u64)DSP::FlushInstantDMA);
+		BLR(X1);
+
+		m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
+		ABI_PopRegisters(gprs_to_push);
+
+		near = B();
+		SwitchToNearCode();
+		SetJumpTarget(near);
+		SetJumpTarget(bit_not_set);
+	}
+
+	gpr.Unlock(addr, value, W30);
 }
 
 void JitArm64::dcbt(UGeckoInstruction inst)

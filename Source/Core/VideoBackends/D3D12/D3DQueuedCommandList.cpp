@@ -14,9 +14,8 @@ constexpr size_t BufferOffsetForQueueItemType()
 	return sizeof(T) + sizeof(D3DQueueItemType) * 2;
 }
 
-DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
+void ID3D12QueuedCommandList::BackgroundThreadFunction(ID3D12QueuedCommandList* parent_queued_command_list)
 {
-	ID3D12QueuedCommandList* parent_queued_command_list = static_cast<ID3D12QueuedCommandList*>(param);
 	ID3D12GraphicsCommandList* command_list = parent_queued_command_list->m_command_list;
 
 	byte* queue_array = parent_queued_command_list->m_queue_array;
@@ -340,6 +339,7 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 
 					bool eligible_to_move_to_front_of_queue = reinterpret_cast<D3DQueueItem*>(item)->Stop.eligible_to_move_to_front_of_queue;
 					bool signal_stop_event = reinterpret_cast<D3DQueueItem*>(item)->Stop.signal_stop_event;
+					bool terminate_worker_thread = reinterpret_cast<D3DQueueItem*>(item)->Stop.terminate_worker_thread;
 
 					item += BufferOffsetForQueueItemType<StopArguments>();
 
@@ -352,6 +352,9 @@ DWORD WINAPI ID3D12QueuedCommandList::BackgroundThreadFunction(LPVOID param)
 					{
 						SetEvent(parent_queued_command_list->m_stop_execution_event);
 					}
+
+					if (terminate_worker_thread)
+						return;
 
 					goto exitLoop;
 			}
@@ -374,13 +377,14 @@ ID3D12QueuedCommandList::ID3D12QueuedCommandList(ID3D12GraphicsCommandList* back
 	m_begin_execution_event = CreateSemaphore(nullptr, 0, 256, nullptr);
 	m_stop_execution_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-	m_background_thread = CreateThread(nullptr, 0, BackgroundThreadFunction, this, 0, &m_background_thread_id);
+	m_background_thread = std::thread(BackgroundThreadFunction, this);
 }
 
 ID3D12QueuedCommandList::~ID3D12QueuedCommandList()
 {
-	TerminateThread(m_background_thread, 0);
-	CloseHandle(m_background_thread);
+	// Kick worker thread, and tell it to exit.
+	ProcessQueuedItems(true, true, true);
+	m_background_thread.join();
 
 	CloseHandle(m_begin_execution_event);
 	CloseHandle(m_stop_execution_event);
@@ -461,22 +465,14 @@ void ID3D12QueuedCommandList::QueuePresent(IDXGISwapChain* swap_chain, UINT sync
 	CheckForOverflow();
 }
 
-void ID3D12QueuedCommandList::ClearQueue()
-{
-	// Drain semaphore to ensure no new previously queued work executes (though inflight work may continue).
-	while (WaitForSingleObject(m_begin_execution_event, 0) != WAIT_TIMEOUT) { }
-
-	// Assume that any inflight queued work will complete within 100ms. This is a safe assumption.
-	Sleep(100);
-}
-
-void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_of_queue, bool wait_for_stop)
+void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_of_queue, bool wait_for_stop, bool terminate_worker_thread)
 {
 	D3DQueueItem item = {};
 
 	item.Type = D3DQueueItemType::Stop;
 	item.Stop.eligible_to_move_to_front_of_queue = eligible_to_move_to_front_of_queue;
 	item.Stop.signal_stop_event = wait_for_stop;
+	item.Stop.terminate_worker_thread = terminate_worker_thread;
 
 	*reinterpret_cast<D3DQueueItem*>(m_queue_array_back) = item;
 
@@ -500,6 +496,7 @@ void ID3D12QueuedCommandList::ProcessQueuedItems(bool eligible_to_move_to_front_
 	if (wait_for_stop)
 	{
 		WaitForSingleObject(m_stop_execution_event, INFINITE);
+		ResetEvent(m_stop_execution_event);
 	}
 }
 

@@ -4,6 +4,7 @@ add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_
 set(CMAKE_AUTOMOC ON)
 
 set(SRCS
+	AboutDialog.cpp
 	Host.cpp
 	Main.cpp
 	MainWindow.cpp

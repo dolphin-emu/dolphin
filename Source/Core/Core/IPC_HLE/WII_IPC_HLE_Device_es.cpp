@@ -64,7 +64,6 @@ std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_pContentLoader(nullptr)
 	, m_TitleID(-1)
 	, m_AccessIdentID(0x6000000)
 {
@@ -99,12 +98,12 @@ void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
 
 void CWII_IPC_HLE_Device_es::OpenInternal()
 {
-	m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
+	auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
 	// check for cd ...
-	if (m_pContentLoader->IsValid())
+	if (contentLoader.IsValid())
 	{
-		m_TitleID = m_pContentLoader->GetTitleID();
+		m_TitleID = contentLoader.GetTitleID();
 
 		m_TitleIDs.clear();
 		DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
@@ -164,7 +163,7 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
 			SContentAccess& Access = pair.second;
 			Position = Access.m_Position;
 			TitleID = Access.m_TitleID;
-			Index = Access.m_pContent->m_Index;
+			Index = Access.m_Index;
 			p.Do(CFD);
 			p.Do(Position);
 			p.Do(TitleID);
@@ -186,14 +185,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
-	// Leave deletion of the CNANDContentLoader objects to CNANDContentManager, don't do it here!
-	m_NANDContent.clear();
-	for (auto& pair : m_ContentAccessMap)
-	{
-		delete pair.second.m_pFile;
-	}
 	m_ContentAccessMap.clear();
-	m_pContentLoader = nullptr;
 	m_TitleIDs.clear();
 	m_TitleID = -1;
 	m_AccessIdentID = 0x6000000;
@@ -202,6 +194,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
+	// clear the NAND content cache to make sure nothing remains open.
+	DiscIO::CNANDContentManager::Access().ClearCache();
 	return GetDefaultReply();
 }
 
@@ -224,22 +218,11 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 	SContentAccess Access;
 	Access.m_Position = 0;
-	Access.m_pContent = pContent;
+	Access.m_Index = pContent->m_Index;
+	Access.m_Size = pContent->m_Size;
 	Access.m_TitleID = TitleID;
-	Access.m_pFile = nullptr;
 
-	if (pContent->m_data.empty())
-	{
-		std::string Filename = pContent->m_Filename;
-		INFO_LOG(WII_IPC_ES, "ES: load %s", Filename.c_str());
-
-		Access.m_pFile = new File::IOFile(Filename, "rb");
-		if (!Access.m_pFile->IsGood())
-		{
-			WARN_LOG(WII_IPC_ES, "ES: couldn't load %s", Filename.c_str());
-			return 0xffffffff;
-		}
-	}
+	pContent->m_Data->Open();
 
 	m_ContentAccessMap[CFD] = Access;
 	return CFD;
@@ -323,21 +306,21 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-			const DiscIO::CNANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
-			if (rNANDCOntent.IsValid()) // Not sure if dolphin will ever fail this check
+			const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
+			if (rNANDContent.IsValid()) // Not sure if dolphin will ever fail this check
 			{
-				for (u16 i = 0; i < rNANDCOntent.GetNumEntries(); i++)
+				for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
 				{
-					Memory::Write_U32(rNANDCOntent.GetContentByIndex(i)->m_ContentID, Buffer.PayloadBuffer[0].m_Address + i*4);
-					INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i, rNANDCOntent.GetContentByIndex(i)->m_ContentID);
+					Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID, Buffer.PayloadBuffer[0].m_Address + i*4);
+					INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i, rNANDContent.GetContentByIndex(i)->m_ContentID);
 				}
 				Memory::Write_U32(0, _CommandAddress + 0x4);
 			}
 			else
 			{
-				Memory::Write_U32((u32)rNANDCOntent.GetContentSize(), _CommandAddress + 0x4);
+				Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
 				INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
-					rNANDCOntent.GetContentSize());
+					rNANDContent.GetContentSize());
 			}
 
 			return GetDefaultReply();
@@ -395,32 +378,22 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 			u8* pDest = Memory::GetPointer(Addr);
 
-			if (rContent.m_Position + Size > rContent.m_pContent->m_Size)
+			if (rContent.m_Position + Size > rContent.m_Size)
 			{
-				Size = rContent.m_pContent->m_Size-rContent.m_Position;
+				Size = rContent.m_Size - rContent.m_Position;
 			}
 
 			if (Size > 0)
 			{
 				if (pDest)
 				{
-					if (rContent.m_pContent->m_data.empty())
+					const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
+					// ContentLoader should never be invalid; rContent has been created by it.
+					if (ContentLoader.IsValid())
 					{
-						auto& pFile = rContent.m_pFile;
-						if (!pFile->Seek(rContent.m_Position, SEEK_SET))
-						{
-							ERROR_LOG(WII_IPC_ES, "ES: couldn't seek!");
-						}
-						WARN_LOG(WII_IPC_ES, "2 %p", pFile->GetHandle());
-						if (!pFile->ReadBytes(pDest, Size))
-						{
-							ERROR_LOG(WII_IPC_ES, "ES: short read; returning uninitialized data!");
-						}
-					}
-					else
-					{
-						const u8* src = &rContent.m_pContent->m_data[rContent.m_Position];
-						memcpy(pDest, src, Size);
+						const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
+						if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
+							ERROR_LOG(WII_IPC_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
 					}
 
 					rContent.m_Position += Size;
@@ -431,7 +404,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				}
 			}
 
-			INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_pContent->m_Index);
+			INFO_LOG(WII_IPC_ES, "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD, Addr, Size, rContent.m_Position, rContent.m_Index);
 
 			Memory::Write_U32(Size, _CommandAddress + 0x4);
 			return GetDefaultReply();
@@ -454,7 +427,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				return GetDefaultReply();
 			}
 
-			delete itr->second.m_pFile;
+			const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_TitleID);
+			// ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
+			if (ContentLoader.IsValid())
+			{
+				const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(itr->second.m_Index);
+				pContent->m_Data->Close();
+			}
+
 			m_ContentAccessMap.erase(itr);
 
 			Memory::Write_U32(0, _CommandAddress + 0x4);
@@ -490,7 +470,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 				break;
 
 			case 2:  // END
-				rContent.m_Position = rContent.m_pContent->m_Size + Addr;
+				rContent.m_Position = rContent.m_Size + Addr;
 				break;
 			}
 
@@ -906,6 +886,11 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 			u64 titleid    = Memory::Read_U64(Buffer.InBuffer[1].m_Address+16);
 			u16 access     = Memory::Read_U16(Buffer.InBuffer[1].m_Address+24);
 
+			// ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
+			// leaving them open through ES_LAUNCH may cause hangs and other funky behavior
+			// (supposedly when trying to re-open those files).
+			DiscIO::CNANDContentManager::Access().ClearCache();
+
 			std::string tContentFile;
 			if ((u32)(TitleID>>32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
 			{
@@ -917,15 +902,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 					if (pContent)
 					{
 						tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
-						std::unique_ptr<CDolLoader> pDolLoader;
-						if (pContent->m_data.empty())
-						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
-						}
-						else
-						{
-							pDolLoader = std::make_unique<CDolLoader>(pContent->m_data);
-						}
+						std::unique_ptr<CDolLoader> pDolLoader = std::make_unique<CDolLoader>(pContent->m_Data->Get());
 
 						if (pDolLoader->IsValid())
 						{
@@ -1077,30 +1054,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 	return GetDefaultReply();
 }
 
-// TODO: This cache is redundant with the one in CNANDContentManager.h
-const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 _TitleID)
+const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)
 {
-	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
-		return *m_pContentLoader;
+	// for WADs, the passed title id and the stored title id match; along with m_ContentFile being set to the
+	// actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since the WAD
+	// need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on disk.
+	if (m_TitleID == title_id && !m_ContentFile.empty())
+		return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
-	CTitleToContentMap::iterator itr = m_NANDContent.find(_TitleID);
-	if (itr != m_NANDContent.end())
-		return *itr->second;
-
-	m_NANDContent[_TitleID] = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_TitleID, Common::FROM_SESSION_ROOT);
-
-	_dbg_assert_msg_(WII_IPC_ES, ((u32)(_TitleID >> 32) == 0x00010000) || m_NANDContent[_TitleID]->IsValid(), "NandContent not valid for TitleID %08x/%08x", (u32)(_TitleID >> 32), (u32)_TitleID);
-	return *m_NANDContent[_TitleID];
+	return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
-
-bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
-{
-	if (m_pContentLoader->IsValid() && m_pContentLoader->GetTitleID() == _TitleID)
-		return true;
-
-	return false;
-}
-
 
 u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 {
@@ -1168,6 +1131,8 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
 			ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
 	}
 	DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
+	// DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
+	// clear the cache to avoid content access mismatches.
 	DiscIO::CNANDContentManager::Access().ClearCache();
 	return 0;
 }

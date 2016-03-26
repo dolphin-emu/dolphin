@@ -60,23 +60,28 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 			{
 				m_float_emit.FCVT(32, 64, D0, RS);
 				m_float_emit.REV32(8, D0, D0);
-				m_float_emit.STR(32, D0, X28, addr);
+				m_float_emit.STR(32, D0, MEM_REG, addr);
 			}
 			else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
 			{
 				m_float_emit.REV32(8, D0, RS);
-				m_float_emit.STR(32, D0, X28, addr);
+				m_float_emit.STR(32, D0, MEM_REG, addr);
 			}
 			else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
 			{
 				m_float_emit.FCVTN(32, D0, RS);
 				m_float_emit.REV32(8, D0, D0);
-				m_float_emit.STR(64, Q0, X28, addr);
+				m_float_emit.STR(64, Q0, MEM_REG, addr);
+			}
+			else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
+			{
+				m_float_emit.REV32(8, D0, RS);
+				m_float_emit.STR(64, Q0, MEM_REG, addr);
 			}
 			else
 			{
 				m_float_emit.REV64(8, Q0, RS);
-				m_float_emit.STR(64, Q0, X28, addr);
+				m_float_emit.STR(64, Q0, MEM_REG, addr);
 			}
 		}
 		else if (flags & BackPatchInfo::FLAG_LOAD &&
@@ -84,13 +89,12 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 		{
 			if (flags & BackPatchInfo::FLAG_SIZE_F32)
 			{
-				m_float_emit.LDR(32, EncodeRegToDouble(RS), X28, addr);
+				m_float_emit.LDR(32, EncodeRegToDouble(RS), MEM_REG, addr);
 				m_float_emit.REV32(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
-				m_float_emit.FCVT(64, 32, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 			else
 			{
-				m_float_emit.LDR(64, EncodeRegToDouble(RS), X28, addr);
+				m_float_emit.LDR(64, EncodeRegToDouble(RS), MEM_REG, addr);
 				m_float_emit.REV64(8, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 		}
@@ -103,27 +107,27 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				REV16(temp, RS);
 
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				STR(temp, X28, addr);
+				STR(temp, MEM_REG, addr);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				STRH(temp, X28, addr);
+				STRH(temp, MEM_REG, addr);
 			else
-				STRB(RS, X28, addr);
+				STRB(RS, MEM_REG, addr);
 		}
 		else if (flags & BackPatchInfo::FLAG_ZERO_256)
 		{
 			// This literally only stores 32bytes of zeros to the target address
-			ADD(addr, addr, X28);
+			ADD(addr, addr, MEM_REG);
 			STP(INDEX_SIGNED, ZR, ZR, addr, 0);
 			STP(INDEX_SIGNED, ZR, ZR, addr, 16);
 		}
 		else
 		{
 			if (flags & BackPatchInfo::FLAG_SIZE_32)
-				LDR(RS, X28, addr);
+				LDR(RS, MEM_REG, addr);
 			else if (flags & BackPatchInfo::FLAG_SIZE_16)
-				LDRH(RS, X28, addr);
+				LDRH(RS, MEM_REG, addr);
 			else if (flags & BackPatchInfo::FLAG_SIZE_8)
-				LDRB(RS, X28, addr);
+				LDRB(RS, MEM_REG, addr);
 
 			if (!(flags & BackPatchInfo::FLAG_REVERSE))
 			{
@@ -198,6 +202,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				MOVI2R(X30, (u64)PowerPC::Write_U64);
 				BLR(X30);
 			}
+			else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
+			{
+				m_float_emit.UMOV(64, X0, RS, 0);
+				ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
+				MOVI2R(X30, (u64)PowerPC::Write_U64);
+				BLR(X30);
+			}
 			else
 			{
 				MOVI2R(X30, (u64)&PowerPC::Write_U64);
@@ -214,7 +225,6 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
 				MOVI2R(X30, (u64)&PowerPC::Read_U32);
 				BLR(X30);
 				m_float_emit.INS(32, RS, 0, X0);
-				m_float_emit.FCVT(64, 32, EncodeRegToDouble(RS), EncodeRegToDouble(RS));
 			}
 			else
 			{

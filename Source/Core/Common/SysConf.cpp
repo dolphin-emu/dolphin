@@ -15,6 +15,8 @@
 #include "Common/SysConf.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Movie.h"
+
 SysConf::SysConf()
 	: m_IsValid(false)
 {
@@ -74,6 +76,13 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		{
 			m_Filename = filename;
 			m_IsValid = true;
+			// Apply Wii settings from normal SYSCONF on Movie recording/playback
+			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			{
+				SetData("IPL.LNG", Movie::GetLanguage());
+				SetData("IPL.E60", Movie::IsPAL60());
+				SetData("IPL.PGS", Movie::IsProgressive());
+			}
 			return true;
 		}
 	}

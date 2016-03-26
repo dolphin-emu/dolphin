@@ -3,19 +3,21 @@
 // Refer to the license.txt file included.
 
 #include <QDir>
-#include <QFile>
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
 
 #include "Core/BootManager.h"
 #include "Core/Core.h"
+#include "Core/Movie.h"
+#include "Core/State.h"
+#include "Core/HW/ProcessorInterface.h"
+#include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/PathDialog.h"
-#include "DolphinQt2/GameList/GameListModel.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -32,12 +34,17 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 	ConnectMenuBar();
 }
 
+MainWindow::~MainWindow()
+{
+	m_render_widget->deleteLater();
+}
+
 void MainWindow::CreateComponents()
 {
 	m_menu_bar = new MenuBar(this);
 	m_tool_bar = new ToolBar(this);
 	m_game_list = new GameList(this);
-	m_render_widget = new RenderWidget(this);
+	m_render_widget = new RenderWidget;
 	m_stack = new QStackedWidget(this);
 	m_paths_dialog = new PathDialog(this);
 }
@@ -45,10 +52,37 @@ void MainWindow::CreateComponents()
 void MainWindow::ConnectMenuBar()
 {
 	setMenuBar(m_menu_bar);
+	// File
 	connect(m_menu_bar, &MenuBar::Open, this, &MainWindow::Open);
 	connect(m_menu_bar, &MenuBar::Exit, this, &MainWindow::close);
+
+	// Emulation
+	connect(m_menu_bar, &MenuBar::Pause, this, &MainWindow::Pause);
+	connect(m_menu_bar, &MenuBar::Play, this, &MainWindow::Play);
+	connect(m_menu_bar, &MenuBar::Stop, this, &MainWindow::Stop);
+	connect(m_menu_bar, &MenuBar::Reset, this, &MainWindow::Reset);
+	connect(m_menu_bar, &MenuBar::Fullscreen, this, &MainWindow::FullScreen);
+	connect(m_menu_bar, &MenuBar::FrameAdvance, this, &MainWindow::FrameAdvance);
+	connect(m_menu_bar, &MenuBar::Screenshot, this, &MainWindow::ScreenShot);
+	connect(m_menu_bar, &MenuBar::StateLoad, this, &MainWindow::StateLoad);
+	connect(m_menu_bar, &MenuBar::StateSave, this, &MainWindow::StateSave);
+	connect(m_menu_bar, &MenuBar::StateLoadSlot, this, &MainWindow::StateLoadSlot);
+	connect(m_menu_bar, &MenuBar::StateSaveSlot, this, &MainWindow::StateSaveSlot);
+	connect(m_menu_bar, &MenuBar::StateLoadSlotAt, this, &MainWindow::StateLoadSlotAt);
+	connect(m_menu_bar, &MenuBar::StateSaveSlotAt, this, &MainWindow::StateSaveSlotAt);
+	connect(m_menu_bar, &MenuBar::StateLoadUndo, this, &MainWindow::StateLoadUndo);
+	connect(m_menu_bar, &MenuBar::StateSaveUndo, this, &MainWindow::StateSaveUndo);
+	connect(m_menu_bar, &MenuBar::StateSaveOldest, this, &MainWindow::StateSaveOldest);
+	connect(m_menu_bar, &MenuBar::SetStateSlot, this, &MainWindow::SetStateSlot);
+
+	// View
 	connect(m_menu_bar, &MenuBar::ShowTable, m_game_list, &GameList::SetTableView);
 	connect(m_menu_bar, &MenuBar::ShowList, m_game_list, &GameList::SetListView);
+	connect(m_menu_bar, &MenuBar::ShowAboutDialog, this, &MainWindow::ShowAboutDialog);
+
+	connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
+	connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
+	connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
 }
 
 void MainWindow::ConnectToolBar()
@@ -172,6 +206,19 @@ void MainWindow::ForceStop()
 	emit EmulationStopped();
 }
 
+void MainWindow::Reset()
+{
+	if (Movie::IsRecordingInput())
+		Movie::g_bReset = true;
+	ProcessorInterface::ResetButton_Tap();
+}
+
+void MainWindow::FrameAdvance()
+{
+	Movie::DoFrameStep();
+	EmulationPaused();
+}
+
 void MainWindow::FullScreen()
 {
 	// If the render widget is fullscreen we want to reset it to whatever is in
@@ -255,4 +302,67 @@ void MainWindow::ShowPathsDialog()
 	m_paths_dialog->show();
 	m_paths_dialog->raise();
 	m_paths_dialog->activateWindow();
+}
+
+void MainWindow::ShowAboutDialog()
+{
+	AboutDialog* about = new AboutDialog(this);
+	about->show();
+}
+
+void MainWindow::StateLoad()
+{
+	QString path = QFileDialog::getOpenFileName(this, tr("Select a File"), QDir::currentPath(),
+	    tr("All Save States (*.sav *.s##);; All Files (*)"));
+	State::LoadAs(path.toStdString());
+}
+
+void MainWindow::StateSave()
+{
+	QString path = QFileDialog::getSaveFileName(this, tr("Select a File"), QDir::currentPath(),
+	    tr("All Save States (*.sav *.s##);; All Files (*)"));
+	State::SaveAs(path.toStdString());
+}
+
+void MainWindow::StateLoadSlot()
+{
+	State::Load(m_state_slot);
+}
+
+void MainWindow::StateSaveSlot()
+{
+	State::Save(m_state_slot, true);
+	m_menu_bar->UpdateStateSlotMenu();
+}
+
+void MainWindow::StateLoadSlotAt(int slot)
+{
+	State::Load(slot);
+}
+
+void MainWindow::StateSaveSlotAt(int slot)
+{
+	State::Save(slot, true);
+	m_menu_bar->UpdateStateSlotMenu();
+}
+
+void MainWindow::StateLoadUndo()
+{
+	State::UndoLoadState();
+}
+
+void MainWindow::StateSaveUndo()
+{
+	State::UndoSaveState();
+}
+
+void MainWindow::StateSaveOldest()
+{
+	State::SaveFirstSaved();
+}
+
+void MainWindow::SetStateSlot(int slot)
+{
+	Settings().SetStateSlot(slot);
+	m_state_slot = slot;
 }

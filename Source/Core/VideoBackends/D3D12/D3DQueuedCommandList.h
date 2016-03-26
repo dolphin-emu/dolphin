@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <d3d12.h>
+#include <thread>
 
 namespace DX12
 {
@@ -210,6 +211,7 @@ struct StopArguments
 {
 	bool eligible_to_move_to_front_of_queue;
 	bool signal_stop_event;
+	bool terminate_worker_thread;
 };
 
 struct D3DQueueItem
@@ -254,13 +256,12 @@ public:
 
 	ID3D12QueuedCommandList(ID3D12GraphicsCommandList* backing_command_list, ID3D12CommandQueue* backing_command_queue);
 
-	void ProcessQueuedItems(bool eligible_to_move_to_front_of_queue = false, bool wait_for_stop = false);
+	void ProcessQueuedItems(bool eligible_to_move_to_front_of_queue = false, bool wait_for_stop = false, bool terminate_worker_thread = false);
 
 	void QueueExecute();
 	void QueueFenceGpuSignal(ID3D12Fence* fence_to_signal, UINT64 fence_value);
 	void QueueFenceCpuSignal(ID3D12Fence* fence_to_signal, UINT64 fence_value);
 	void QueuePresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
-	void ClearQueue();
 
 	// IUnknown methods
 
@@ -612,15 +613,14 @@ private:
 	void ResetQueueOverflowTracking();
 	void CheckForOverflow();
 
-	static DWORD WINAPI BackgroundThreadFunction(LPVOID param);
+	static void BackgroundThreadFunction(ID3D12QueuedCommandList* parent_queued_command_list);
 
 	byte m_queue_array[QUEUE_ARRAY_SIZE];
 	byte* m_queue_array_back = m_queue_array;
 
 	byte* m_queue_array_back_at_start_of_frame = m_queue_array_back;
 
-	DWORD m_background_thread_id;
-	HANDLE m_background_thread;
+	std::thread m_background_thread;
 
 	HANDLE m_begin_execution_event;
 	HANDLE m_stop_execution_event;

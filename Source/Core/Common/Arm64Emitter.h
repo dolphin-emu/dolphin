@@ -517,6 +517,7 @@ public:
 	void SMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void SMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void UMADDL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
+	void UMULL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void UMSUBL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm, ARM64Reg Ra);
 	void UMULH(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);
 	void MUL(ARM64Reg Rd, ARM64Reg Rn, ARM64Reg Rm);

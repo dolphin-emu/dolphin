@@ -10,8 +10,6 @@ namespace Clipper
 {
 	void Init();
 
-	void SetViewOffset();
-
 	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
 	void ProcessLine(OutputVertexData *v0, OutputVertexData *v1);

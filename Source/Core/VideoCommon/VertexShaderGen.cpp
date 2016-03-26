@@ -41,7 +41,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 	out.Write("};\n");
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, api_type);
+	GenerateVSOutputMembers<T>(out, api_type, "");
 	out.Write("};\n");
 
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
@@ -74,8 +74,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
+			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(api_type, false, true));
+			GenerateVSOutputMembers<T>(out, api_type, "out", GetInterpolationQualifier());
 			out.Write("} vs;\n");
 		}
 		else
@@ -85,17 +86,17 @@ static T GenerateVertexShader(API_TYPE api_type)
 			{
 				if (i < xfmem.numTexGen.numTexGens)
 				{
-					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(api_type), i);
+					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(), i);
 				}
 			}
-			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier());
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(api_type));
-				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(api_type));
+				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier());
+				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier());
 			}
-			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(api_type));
-			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier());
+			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier());
 		}
 
 		out.Write("void main()\n{\n");
@@ -198,15 +199,12 @@ static T GenerateVertexShader(API_TYPE api_type)
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			// The following assert was triggered in Super Smash Bros. Project M 3.6.
-			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-			out.Write("coord = rawpos;\n"); // pos.w is 1
+			out.Write("coord.xyz = rawpos.xyz;\n");
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm0.xyz;\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
@@ -215,15 +213,13 @@ static T GenerateVertexShader(API_TYPE api_type)
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm1.xyz;\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm2.xyz;\n");
 			}
 			break;
 		default:
@@ -232,6 +228,10 @@ static T GenerateVertexShader(API_TYPE api_type)
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
+		// Input form of AB11 sets z element to 1.0
+		uid_data->texMtxInfo[i].inputform = xfmem.texMtxInfo[i].inputform;
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
+			out.Write("coord.z = 1.0;\n");
 
 		// first transformation
 		uid_data->texMtxInfo[i].texgentype = xfmem.texMtxInfo[i].texgentype;
@@ -257,11 +257,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_REGULAR:
@@ -333,7 +331,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 	else // OGL
 	{
 		// this results in a scale from -1..0 to -1..1 after perspective
-		// divide, but introduces a floating point round-trip error.
+		// divide
 		out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
 
 		// the next steps of the OGL pipeline are:

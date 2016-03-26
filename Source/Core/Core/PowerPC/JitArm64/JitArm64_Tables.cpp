@@ -49,8 +49,8 @@ static GekkoOPTemplate primarytable[] =
 	{11, &JitArm64::cmpi},                      // cmpi
 	{12, &JitArm64::addic},                     // addic
 	{13, &JitArm64::addic},                     // addic_rc
-	{14, &JitArm64::arith_imm},                 // addi
-	{15, &JitArm64::arith_imm},                 // addis
+	{14, &JitArm64::addix},                     // addi
+	{15, &JitArm64::addix},                     // addis
 
 	{20, &JitArm64::rlwimix},                   // rlwimix
 	{21, &JitArm64::rlwinmx},                   // rlwinmx
@@ -184,8 +184,8 @@ static GekkoOPTemplate table31[] =
 	{1003, &JitArm64::FallBackToInterpreter},   // divwox
 	{459,  &JitArm64::divwux},                  // divwux
 	{971,  &JitArm64::divwux},                  // divwuox
-	{75,   &JitArm64::FallBackToInterpreter},   // mulhwx
-	{11,   &JitArm64::FallBackToInterpreter},   // mulhwux
+	{75,   &JitArm64::mulhwx},                  // mulhwx
+	{11,   &JitArm64::mulhwux},                 // mulhwux
 	{235,  &JitArm64::mullwx},                  // mullwx
 	{747,  &JitArm64::mullwx},                  // mullwox
 	{104,  &JitArm64::negx},                    // negx
@@ -219,11 +219,11 @@ static GekkoOPTemplate table31[] =
 	{824, &JitArm64::srawix},                   // srawix
 	{24,  &JitArm64::slwx},                     // slwx
 
-	{54,   &JitArm64::FallBackToInterpreter},   // dcbst
-	{86,   &JitArm64::FallBackToInterpreter},   // dcbf
+	{54,   &JitArm64::dcbx},                    // dcbst
+	{86,   &JitArm64::dcbx},                    // dcbf
 	{246,  &JitArm64::dcbt},                    // dcbtst
 	{278,  &JitArm64::dcbt},                    // dcbt
-	{470,  &JitArm64::FallBackToInterpreter},   // dcbi
+	{470,  &JitArm64::dcbx},                    // dcbi
 	{758,  &JitArm64::DoNothing},               // dcba
 	{1014, &JitArm64::dcbz},                    // dcbz
 

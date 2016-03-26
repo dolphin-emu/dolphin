@@ -45,9 +45,9 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 	if (inst.RA || update) // Always uses the register on update
 	{
 		if (offset >= 0)
-			ADD(addr_reg, gpr.R(inst.RA), offset);
+			ADD(addr_reg, arm_addr, offset);
 		else
-			SUB(addr_reg, gpr.R(inst.RA), std::abs(offset));
+			SUB(addr_reg, arm_addr, std::abs(offset));
 	}
 	else
 	{
@@ -62,24 +62,21 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 
 	if (js.assumeNoPairedQuantize)
 	{
-		VS = fpr.RW(inst.RS, REG_REG);
+		VS = fpr.RW(inst.RS, REG_REG_SINGLE);
 		if (!inst.W)
 		{
-			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), X28);
+			ADD(EncodeRegTo64(addr_reg), EncodeRegTo64(addr_reg), MEM_REG);
 			m_float_emit.LD1(32, 1, EncodeRegToDouble(VS), EncodeRegTo64(addr_reg));
-			m_float_emit.REV32(8, VS, VS);
-			m_float_emit.FCVTL(64, VS, VS);
 		}
 		else
 		{
-			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), X28);
-			m_float_emit.REV32(8, VS, VS);
-			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
+			m_float_emit.LDR(32, VS, EncodeRegTo64(addr_reg), MEM_REG);
 		}
+		m_float_emit.REV32(8, EncodeRegToDouble(VS), EncodeRegToDouble(VS));
 	}
 	else
 	{
-		LDR(INDEX_UNSIGNED, scale_reg, X29, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+		LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 		UBFM(type_reg, scale_reg, 16, 18); // Type
 		UBFM(scale_reg, scale_reg, 24, 29); // Scale
 
@@ -87,17 +84,14 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 		LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 		BLR(X30);
 
-		VS = fpr.RW(inst.RS, REG_REG);
-		if (!inst.W)
-			m_float_emit.FCVTL(64, VS, D0);
-		else
-			m_float_emit.FCVT(64, 32, EncodeRegToDouble(VS), D0);
+		VS = fpr.RW(inst.RS, REG_REG_SINGLE);
+		m_float_emit.ORR(EncodeRegToDouble(VS), D0, D0);
 	}
 
 	if (inst.W)
 	{
-		m_float_emit.FMOV(D0, 0x70); // 1.0 as a Double
-		m_float_emit.INS(64, VS, 1, Q0, 0);
+		m_float_emit.FMOV(S0, 0x70); // 1.0 as a Single
+		m_float_emit.INS(32, VS, 1, Q0, 0);
 	}
 
 	gpr.Unlock(W0, W1, W2, W30);
@@ -121,8 +115,10 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	gpr.Lock(W0, W1, W2, W30);
 	fpr.Lock(Q0, Q1);
 
+	bool single = fpr.IsSingle(inst.RS);
+
 	ARM64Reg arm_addr = gpr.R(inst.RA);
-	ARM64Reg VS = fpr.R(inst.RS, REG_REG);
+	ARM64Reg VS = fpr.R(inst.RS, single ? REG_REG_SINGLE : REG_REG);
 
 	ARM64Reg scale_reg = W0;
 	ARM64Reg addr_reg = W1;
@@ -156,7 +152,12 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	if (js.assumeNoPairedQuantize)
 	{
 		u32 flags = BackPatchInfo::FLAG_STORE;
-		flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
+
+		if (single)
+			flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32I : BackPatchInfo::FLAG_SIZE_F32X2I);
+		else
+			flags |= (inst.W ? BackPatchInfo::FLAG_SIZE_F32 : BackPatchInfo::FLAG_SIZE_F32X2);
+
 		EmitBackpatchRoutine(flags,
 			jo.fastmem,
 			jo.fastmem,
@@ -166,12 +167,19 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 	}
 	else
 	{
-		if (inst.W)
-			m_float_emit.FCVT(32, 64, D0, VS);
+		if (single)
+		{
+			m_float_emit.ORR(D0, VS, VS);
+		}
 		else
-			m_float_emit.FCVTN(32, D0, VS);
+		{
+			if (inst.W)
+				m_float_emit.FCVT(32, 64, D0, VS);
+			else
+				m_float_emit.FCVTN(32, D0, VS);
+		}
 
-		LDR(INDEX_UNSIGNED, scale_reg, X29, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
+		LDR(INDEX_UNSIGNED, scale_reg, PPC_REG, PPCSTATE_OFF(spr[SPR_GQR0 + inst.I]));
 		UBFM(type_reg, scale_reg, 0, 2); // Type
 		UBFM(scale_reg, scale_reg, 8, 13); // Scale
 

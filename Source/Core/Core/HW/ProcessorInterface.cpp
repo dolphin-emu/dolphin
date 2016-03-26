@@ -187,7 +187,7 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 	else
 		m_InterruptCause &= ~_causemask;// is there any reason to have this possibility?
 		                                // F|RES: i think the hw devices reset the interrupt in the PI to 0
-		                                // if the interrupt cause is eliminated. that isnt done by software (afaik)
+		                                // if the interrupt cause is eliminated. that isn't done by software (afaik)
 	UpdateException();
 }
 

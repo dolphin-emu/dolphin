@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
 
+#include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 
@@ -71,7 +72,7 @@ public:
 	// returns vertex offset to the new data
 	size_t AppendData(const void* data, size_t size, size_t vertex_size)
 	{
-		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size);
+		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size, false);
 
 		memcpy(static_cast<u8*>(m_stream_buffer->GetCPUAddressOfCurrentAllocation()), data, size);
 
@@ -80,7 +81,7 @@ public:
 
 	size_t BeginAppendData(void** write_ptr, size_t size, size_t vertex_size)
 	{
-		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size);
+		m_stream_buffer->AllocateSpaceInBuffer(size, vertex_size, false);
 
 		*write_ptr = m_stream_buffer->GetCPUAddressOfCurrentAllocation();
 
@@ -359,24 +360,7 @@ int CD3DFont::Init()
 
 	const unsigned int text_vb_size = s_max_num_vertices * sizeof(FONT2DVERTEX);
 
-	CheckHR(
-		device12->CreateCommittedResource(
-			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
-			D3D12_HEAP_FLAG_NONE,
-			&CD3DX12_RESOURCE_DESC::Buffer(text_vb_size),
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_vb12)
-			)
-		);
-
-	SetDebugObjectName12(m_vb12, "vertex buffer of a CD3DFont object");
-
-	m_vb12_view.BufferLocation = m_vb12->GetGPUVirtualAddress();
-	m_vb12_view.SizeInBytes = text_vb_size;
-	m_vb12_view.StrideInBytes = sizeof(FONT2DVERTEX);
-
-	CheckHR(m_vb12->Map(0, nullptr, &m_vb12_data));
+	m_vertex_buffer = std::make_unique<D3DStreamBuffer>(text_vb_size * 2, text_vb_size * 16, nullptr);
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC text_pso_desc = {
 		default_root_signature,                           // ID3D12RootSignature *pRootSignature;
@@ -409,7 +393,7 @@ int CD3DFont::Init()
 
 int CD3DFont::Shutdown()
 {
-	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_vb12);
+	m_vertex_buffer.reset();
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_texture12);
 
 	return S_OK;
@@ -417,7 +401,7 @@ int CD3DFont::Shutdown()
 
 int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const std::string& text)
 {
-	if (!m_vb12)
+	if (!m_vertex_buffer)
 		return 0;
 
 	float scale_x = 1 / static_cast<float>(D3D::GetBackBufferWidth()) * 2.f;
@@ -428,10 +412,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	float sx = x * scale_x - 1.f;
 	float sy = 1.f - y * scale_y;
 
-	// Fill vertex buffer
-	FONT2DVERTEX* vertices12 = static_cast<FONT2DVERTEX*>(m_vb12_data) + m_vb12_offset / sizeof(FONT2DVERTEX);
-	int num_triangles = 0L;
-
 	// set general pipeline state
 	D3D::current_command_list->SetPipelineState(m_pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
@@ -441,13 +421,11 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 
 	D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV, m_texture12_gpu);
 
-	// If we are close to running off edge of vertex buffer, jump back to beginning.
-	if (m_vb12_offset + text.length() * 6 * sizeof(FONT2DVERTEX) >= s_max_num_vertices * sizeof(FONT2DVERTEX))
-	{
-		m_vb12_offset = 0;
-		vertices12 = static_cast<FONT2DVERTEX*>(m_vb12_data);
-	}
+	// upper bound is nchars * 6, assuming no spaces
+	m_vertex_buffer->AllocateSpaceInBuffer(static_cast<u32>(text.length()) * 6 * sizeof(FONT2DVERTEX), sizeof(FONT2DVERTEX), false);
 
+	FONT2DVERTEX* vertices12 = reinterpret_cast<FONT2DVERTEX*>(m_vertex_buffer->GetCPUAddressOfCurrentAllocation());
+	int num_triangles = 0;
 	float start_x = sx;
 	for (char c : text)
 	{
@@ -487,12 +465,13 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	// Render the vertex buffer
 	if (num_triangles > 0)
 	{
-		D3D::current_command_list->IASetVertexBuffers(0, 1, &m_vb12_view);
+		u32 written_size = num_triangles * 3 * sizeof(FONT2DVERTEX);
+		m_vertex_buffer->OverrideSizeOfPreviousAllocation(written_size);
 
-		D3D::current_command_list->DrawInstanced(3 * num_triangles, 1, m_vb12_offset / sizeof(FONT2DVERTEX), 0);
+		D3D12_VERTEX_BUFFER_VIEW vb_view = { m_vertex_buffer->GetGPUAddressOfCurrentAllocation(), written_size, sizeof(FONT2DVERTEX) };
+		D3D::current_command_list->IASetVertexBuffers(0, 1, &vb_view);
+		D3D::current_command_list->DrawInstanced(3 * num_triangles, 1, 0, 0);
 	}
-
-	m_vb12_offset += 3 * num_triangles * sizeof(FONT2DVERTEX);
 
 	return S_OK;
 }
@@ -609,6 +588,28 @@ void SetLinearCopySampler()
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_SAMPLERS, true);
 }
 
+void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth, float max_depth)
+{
+	D3D12_VIEWPORT viewport = {
+		static_cast<float>(top_left_x),
+		static_cast<float>(top_left_y),
+		static_cast<float>(width),
+		static_cast<float>(height),
+		min_depth,
+		max_depth
+	};
+
+	D3D12_RECT scissor = {
+		static_cast<LONG>(top_left_x),
+		static_cast<LONG>(top_left_y),
+		static_cast<LONG>(top_left_x + width),
+		static_cast<LONG>(top_left_y + height)
+	};
+
+	D3D::current_command_list->RSSetViewports(1, &viewport);
+	D3D::current_command_list->RSSetScissorRects(1, &scissor);
+};
+
 void DrawShadedTexQuad(D3DTexture2D* texture,
 	const D3D12_RECT* rSource,
 	int source_width,
@@ -621,8 +622,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	u32 slice,
 	DXGI_FORMAT rt_format,
 	bool inherit_srv_binding,
-	bool rt_multisampled,
-	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc_override
+	bool rt_multisampled
 	)
 {
 	float sw = 1.0f / static_cast<float>(source_width);
@@ -685,9 +685,7 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 		Renderer::GetResetBlendDesc(),                    // D3D12_BLEND_DESC BlendState;
 		UINT_MAX,                                         // UINT SampleMask;
 		Renderer::GetResetRasterizerDesc(),               // D3D12_RASTERIZER_DESC RasterizerState
-		depth_stencil_desc_override ?
-			*depth_stencil_desc_override :
-			Renderer::GetResetDepthStencilDesc(),         // D3D12_DEPTH_STENCIL_DESC DepthStencilState
+		Renderer::GetResetDepthStencilDesc(),             // D3D12_DEPTH_STENCIL_DESC DepthStencilState
 		layout12,                                         // D3D12_INPUT_LAYOUT_DESC InputLayout
 		D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF,        // D3D12_INDEX_BUFFER_PROPERTIES IndexBufferProperties
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,           // D3D12_PRIMITIVE_TOPOLOGY_TYPE PrimitiveTopologyType
@@ -707,13 +705,6 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 
 	D3D::current_command_list->SetPipelineState(pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
-
-	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
-	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
-	// dirtying state.
-
-	// 2 ^ D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP = 131072
-	D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
 
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(stq_offset), 0);
 
@@ -864,13 +855,6 @@ void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH
 	D3D::current_command_list->SetPipelineState(pso);
 	D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 
-	// In D3D11, the 'resetraststate' has ScissorEnable disabled. In D3D12, scissor testing is always enabled.
-	// Thus, set the scissor rect to the max texture size, then reset it to the current scissor rect to avoid
-	// dirtying state.
-
-	// 2 ^ D3D12_MAX_TEXTURE_DIMENSION_2_TO_EXP = 131072
-	D3D::current_command_list->RSSetScissorRects(1, &CD3DX12_RECT(0, 0, 131072, 131072));
-
 	D3D::current_command_list->DrawInstanced(4, 1, static_cast<UINT>(clearq_offset), 0);
 
 	g_renderer->RestoreAPIState();
@@ -889,7 +873,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 	size_t num_points,
 	D3D12_BLEND_DESC* blend_desc,
 	D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc,
-	D3D12_VIEWPORT* viewport,
 	D3D12_CPU_DESCRIPTOR_HANDLE* render_target,
 	D3D12_CPU_DESCRIPTOR_HANDLE* depth_buffer,
 	bool rt_multisampled
@@ -949,7 +932,6 @@ void DrawEFBPokeQuads(EFBAccessType type,
 
 		// Corresponding dirty flags set outside loop.
 		D3D::current_command_list->OMSetRenderTargets(1, render_target, FALSE, depth_buffer);
-		D3D::current_command_list->RSSetViewports(1, viewport);
 		D3D::current_command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		D3D12_VERTEX_BUFFER_VIEW vb_view = {
@@ -989,6 +971,11 @@ void DrawEFBPokeQuads(EFBAccessType type,
 			InitColVertex(&vertex[3], x1, y2, z, col);
 			InitColVertex(&vertex[4], x2, y1, z, col);
 			InitColVertex(&vertex[5], x2, y2, z, col);
+
+			if (type == POKE_COLOR)
+				FramebufferManager::UpdateEFBColorAccessCopy(point->x, point->y, col);
+			else if (type == POKE_Z)
+				FramebufferManager::UpdateEFBDepthAccessCopy(point->x, point->y, z);
 		}
 
 		// Issue the draw
