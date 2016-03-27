@@ -269,44 +269,16 @@ static T GenerateVertexShader(API_TYPE api_type)
 				{
 					out.Write("int tmp = int(tex%d.z);\n", i);
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), dot(coord, " I_TRANSFORMMATRICES"[tmp+2]));\n", i);
-
-						// TODO: Write something here
-						out.Write("if(o.tex%d.z == 0.0f)\n", i);
-						out.Write("{\n");
-						out.Write("\tfloat4 test = " I_TRANSFORMMATRICES"[tmp+2];\n");
-						out.Write("\tif(test.x != 0.0f || test.y != 0.0f)\n");
-						out.Write("\t\to.tex%d.xy = float2(0.0f, 0.0f);\n", i);
-						out.Write("\telse\n");
-						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);
-						out.Write("}\n");
-					}
 					else
-					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TRANSFORMMATRICES"[tmp]), dot(coord, " I_TRANSFORMMATRICES"[tmp+1]), 1);\n", i);
-					}
 				}
 				else
 				{
 					if (texinfo.projection == XF_TEXPROJ_STQ)
-					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]));\n", i, 3*i, 3*i+1, 3*i+2);
-
-						// TODO: Write something here
-						out.Write("if(o.tex%d.z == 0.0f)\n", i);
-						out.Write("{\n");
-						out.Write("\tfloat4 test = " I_TEXMATRICES"[%d];\n", 3*i+2);
-						out.Write("\tif(test.x != 0.0f || test.y != 0.0f)\n");
-						out.Write("\t\to.tex%d.xy = float2(0.0f, 0.0f);\n", i);
-						out.Write("\telse\n");
-						out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);
-						out.Write("}\n");
-					}
 					else
-					{
 						out.Write("o.tex%d.xyz = float3(dot(coord, " I_TEXMATRICES"[%d]), dot(coord, " I_TEXMATRICES"[%d]), 1);\n", i, 3*i, 3*i+1);
-					}
 				}
 				break;
 		}
@@ -331,6 +303,9 @@ static T GenerateVertexShader(API_TYPE api_type)
 			// multiply by postmatrix
 			out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
 		}
+
+		out.Write("if(o.tex%d.z == 0.0f)\n", i);
+		out.Write("\t\to.tex%d.xy = float2(clamp(o.tex%d.x / 2.0f, -1.0f, 1.0f), clamp(o.tex%d.y / 2.0f, -1.0f, 1.0f));\n", i, i, i);
 
 		out.Write("}\n");
 	}
