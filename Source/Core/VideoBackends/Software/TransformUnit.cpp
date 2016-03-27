@@ -146,29 +146,13 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 			MultiplyVec3Mat34(*src, mat, *dst);
 	}
 
-	// TODO: Write something here
-	if(dst->z == 0.0f)
-	{
-		if(mat[8] != 0.0f || mat[9] != 0.0f)
-		{
-			// TODO: Run more tests on this to make sure
-			dst->x = 0.0f;
-			dst->y = 0.0f;
-		}
-		else
-		{
-			dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
-			dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
-		}
-	}
+	// normalize
+	const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
+	const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
 	if (xfmem.dualTexTrans.enabled)
 	{
 		Vec3 tempCoord;
-
-		// normalize
-		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
-		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
 		if (specialCase)
 		{
@@ -190,6 +174,23 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 				tempCoord = *dst;
 
 			MultiplyVec3Mat34(tempCoord, postMat, *dst);
+		}
+	}
+
+	// TODO write comment
+	if(dst->z == 0.0f)
+	{
+		if(mat[8] != 0.0f || (xfmem.dualTexTrans.enabled && postMat[8] != 0.0f) ||
+		   mat[9] != 0.0f || (xfmem.dualTexTrans.enabled && postMat[9] != 0.0f))
+		{
+			// TODO test this case more
+			dst->x = 0.0f;
+			dst->y = 0.0f;
+		}
+		else
+		{
+			dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
+			dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
 		}
 	}
 }
