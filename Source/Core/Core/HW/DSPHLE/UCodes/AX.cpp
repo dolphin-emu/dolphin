@@ -27,8 +27,7 @@ AXUCode::~AXUCode()
 
 void AXUCode::Initialize()
 {
-  m_mail_handler.PushMail(DSP_INIT);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+  m_mail_handler.PushMail(DSP_INIT, true);
 
   LoadResamplingCoefficients();
 }
@@ -71,8 +70,7 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
   // Signal end of processing
-  m_mail_handler.PushMail(DSP_YIELD);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+  m_mail_handler.PushMail(DSP_YIELD, true);
 }
 
 void AXUCode::HandleCommandList()
@@ -616,8 +614,7 @@ void AXUCode::HandleMail(u32 mail)
   else if (mail == MAIL_RESUME)
   {
     // Acknowledge the resume request
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
   else if (mail == MAIL_NEW_UCODE)
   {
@@ -664,8 +661,7 @@ void AXUCode::Update()
   // Used for UCode switching.
   if (NeedsResumeMail())
   {
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
 }
 
