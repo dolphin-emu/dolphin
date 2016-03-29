@@ -195,6 +195,13 @@ namespace DriverDetails
 		// Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test it with us.
 		// Causes misrenderings on a large amount of things that draw lines.
 		BUG_BROKENGEOMETRYSHADERS,
+
+		// Bug: Compile error when specifying storage qualifier inside interface block
+		// Affected devices: AMD
+		// Started Version: ???
+		// Ended Version: ???
+		// AMD shader compiler throws an error when specifying centroid in/out on member declarations inside an interface block.
+		BUG_BROKENINTERFACESTORAGEQUALIFIERS,
 	};
 
 	// Initializes our internal vendor, device family, and driver version

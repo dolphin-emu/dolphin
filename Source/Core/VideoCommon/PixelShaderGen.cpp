@@ -354,12 +354,11 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier());
+			GenerateVSOutputMembers<T>(out, ApiType, DriverDetails::HasBug(DriverDetails::BUG_BROKENINTERFACESTORAGEQUALIFIERS) ? "" : "in", GetInterpolationQualifier());
 
 			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat in int layer;\n");
+				out.Write("\tflat %s int layer;\n", DriverDetails::HasBug(DriverDetails::BUG_BROKENINTERFACESTORAGEQUALIFIERS) ? "" : "in");
 
 			out.Write("};\n");
 		}

@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
@@ -90,16 +91,15 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 		if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
 			out.Write("#define InstanceID gl_InvocationID\n");
 
-		out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier());
+		GenerateVSOutputMembers<T>(out, ApiType, DriverDetails::HasBug(DriverDetails::BUG_BROKENINTERFACESTORAGEQUALIFIERS) ? "" : "in", GetInterpolationQualifier());
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, "out", GetInterpolationQualifier());
+		GenerateVSOutputMembers<T>(out, ApiType, DriverDetails::HasBug(DriverDetails::BUG_BROKENINTERFACESTORAGEQUALIFIERS) ? "" : "out", GetInterpolationQualifier());
 
 		if (g_ActiveConfig.iStereoMode > 0)
-			out.Write("\tflat out int layer;\n");
+			out.Write("\tflat %s int layer;\n", DriverDetails::HasBug(DriverDetails::BUG_BROKENINTERFACESTORAGEQUALIFIERS) ? "" : "out");
 
 		out.Write("} ps;\n");
 
