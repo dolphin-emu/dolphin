@@ -23,7 +23,7 @@ struct InputVertexData
 	Vec3 position;
 	Vec3 normal[3];
 	u8 color[2][4];
-	float texCoords[8][2];
+	float texCoords[8][3];
 };
 
 struct OutputVertexData

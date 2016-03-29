@@ -234,6 +234,9 @@ void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int inde
 	{
 		ReadVertexAttribute<float>(m_Vertex.texCoords[i], src, vdec.texcoords[i], 0, 2, false);
 
+		// tex coord 'q' should be set to 1 initially, even if input form is XF_TEXINPUT_ABC1
+		m_Vertex.texCoords[i][2] = 1.0f;
+
 		// the texmtr is stored as third component of the texCoord
 		if (vdec.texcoords[i].components >= 3)
 		{
