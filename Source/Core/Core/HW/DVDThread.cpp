@@ -30,7 +30,7 @@ namespace DVDThread
 
 static void DVDThread();
 
-static void FinishRead(u64 userdata, int cyclesLate);
+static void FinishRead(u64 userdata, int cycles_late);
 static int s_finish_read;
 
 static std::thread s_dvd_thread;
@@ -47,9 +47,9 @@ static u32 s_output_address;
 static u32 s_length;
 static bool s_decrypt;
 
-// Used to notify emulated software after executing command.
-// Pointers don't work with savestates, so CoreTiming events are used instead
-static int s_callback_event_type;
+// This determines which function will be used as a callback.
+// We can't have a function pointer here, because they can't be in savestates.
+static bool s_reply_to_ios;
 
 // The following time variables are only used for logging
 static u64 s_realtime_started_us;
@@ -89,7 +89,7 @@ void DoState(PointerWrap &p)
 	p.Do(s_output_address);
 	p.Do(s_length);
 	p.Do(s_decrypt);
-	p.Do(s_callback_event_type);
+	p.Do(s_reply_to_ios);
 
 	// s_realtime_started_us and s_realtime_done_us aren't savestated
 	// because they rely on the current system's time.
@@ -109,7 +109,7 @@ void WaitUntilIdle()
 }
 
 void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
-               int callback_event_type, int ticks_until_completion)
+               bool reply_to_ios, int ticks_until_completion)
 {
 	_assert_(Core::IsCPUThread());
 
@@ -119,7 +119,7 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
 	s_output_address = output_address;
 	s_length = length;
 	s_decrypt = decrypt;
-	s_callback_event_type = callback_event_type;
+	s_reply_to_ios = reply_to_ios;
 
 	s_time_read_started = CoreTiming::GetTicks();
 	s_realtime_started_us = Common::Timer::GetTimeUs();
@@ -129,7 +129,7 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
 	CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_read);
 }
 
-static void FinishRead(u64 userdata, int cyclesLate)
+static void FinishRead(u64 userdata, int cycles_late)
 {
 	WaitUntilIdle();
 
@@ -151,7 +151,7 @@ static void FinishRead(u64 userdata, int cyclesLate)
 	s_dvd_buffer.resize(0);
 
 	// Notify the emulated software that the command has been executed
-	CoreTiming::ScheduleEvent_Immediate(s_callback_event_type, DVDInterface::INT_TCINT);
+	DVDInterface::FinishExecutingCommand(s_reply_to_ios, DVDInterface::INT_TCINT);
 }
 
 static void DVDThread()

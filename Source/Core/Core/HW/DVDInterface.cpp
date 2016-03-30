@@ -25,6 +25,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -244,7 +246,7 @@ static u32  s_error_code = 0;
 static bool s_disc_inside = false;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
-static int  s_finish_execute_command = 0;
+static int  s_finish_executing_command = 0;
 static int  s_dtk = 0;
 
 static u64 s_last_read_offset;
@@ -258,15 +260,16 @@ static int s_insert_disc;
 
 void EjectDiscCallback(u64 userdata, int cyclesLate);
 void InsertDiscCallback(u64 userdata, int cyclesLate);
+void FinishExecutingCommandCallback(u64 userdata, int cycles_late);
 
 void SetLidOpen(bool _bOpen);
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
-void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF);
+void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios);
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length, bool decrypt,
-                        int callback_event_type, DIInterruptType* interrupt_type, u64* ticks_until_completion);
+                        bool reply_to_ios, DIInterruptType* interrupt_type, u64* ticks_until_completion);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -299,16 +302,6 @@ void DoState(PointerWrap &p)
 	p.Do(s_stop_at_track_end);
 
 	DVDThread::DoState(p);
-}
-
-static void FinishExecuteCommand(u64 userdata, int cyclesLate)
-{
-	if (s_DICR.TSTART)
-	{
-		s_DICR.TSTART = 0;
-		s_DILENGTH.Length = 0;
-		GenerateDIInterrupt((DIInterruptType)userdata);
-	}
 }
 
 static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
@@ -408,7 +401,7 @@ void Init()
 	s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
 	s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
-	s_finish_execute_command = CoreTiming::RegisterEvent("FinishExecuteCommand", FinishExecuteCommand);
+	s_finish_executing_command = CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
 	s_dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
 	CoreTiming::ScheduleEvent(0, s_dtk);
@@ -589,7 +582,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 			if (s_DICR.TSTART)
 			{
 				ExecuteCommand(s_DICMDBUF[0].Hex, s_DICMDBUF[1].Hex, s_DICMDBUF[2].Hex,
-				               s_DIMAR.Hex, s_DILENGTH.Hex, true, s_finish_execute_command);
+				               s_DIMAR.Hex, s_DILENGTH.Hex, false);
 			}
 		})
 	);
@@ -637,17 +630,17 @@ void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
 	UpdateInterrupts();
 }
 
-void WriteImmediate(u32 value, u32 output_address, bool write_to_DIIMMBUF)
+void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
 {
-	if (write_to_DIIMMBUF)
-		s_DIIMMBUF.Hex = value;
-	else
+	if (reply_to_ios)
 		Memory::Write_U32(value, output_address);
+	else
+		s_DIIMMBUF.Hex = value;
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length, bool decrypt,
-                        int callback_event_type, DIInterruptType* interrupt_type, u64* ticks_until_completion)
+                        bool reply_to_ios, DIInterruptType* interrupt_type, u64* ticks_until_completion)
 {
 	if (!s_disc_inside)
 	{
@@ -675,15 +668,15 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 		*ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
 	DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt,
-	                     callback_event_type, (int)*ticks_until_completion);
+	                     reply_to_ios, (int)*ticks_until_completion);
 	return true;
 }
 
 // When the command has finished executing, callback_event_type
 // will be called using CoreTiming::ScheduleEvent,
 // with the userdata set to the interrupt type.
-void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address, u32 output_length,
-                    bool write_to_DIIMMBUF, int callback_event_type)
+void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
+                    u32 output_length, bool reply_to_ios)
 {
 	DIInterruptType interrupt_type = INT_TCINT;
 	u64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
@@ -713,7 +706,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 		{
 			// 0x29484100...
 			// was 21 i'm not entirely sure about this, but it works well.
-			WriteImmediate(0x21000000, output_address, write_to_DIIMMBUF);
+			WriteImmediate(0x21000000, output_address, reply_to_ios);
 		}
 		else
 		{
@@ -733,14 +726,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	case DVDLowReadDiskID:
 		INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
 		command_handled_by_thread = ExecuteReadCommand(0, output_address, 0x20, output_length, false,
-		                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+		                                               reply_to_ios, &interrupt_type, &ticks_until_completion);
 		break;
 
 	// Only used from WII_IPC. This is the only read command that decrypts data
 	case DVDLowRead:
 		INFO_LOG(DVDINTERFACE, "DVDLowRead: DVDAddr: 0x%09" PRIx64 ", Size: 0x%x", (u64)command_2 << 2, command_1);
 		command_handled_by_thread = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true,
-		                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+		                                               reply_to_ios, &interrupt_type, &ticks_until_completion);
 		break;
 
 	// Probably only used by Wii
@@ -756,7 +749,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 	// Probably only used though WII_IPC
 	case DVDLowGetCoverReg:
-		WriteImmediate(s_DICVR.Hex, output_address, write_to_DIIMMBUF);
+		WriteImmediate(s_DICVR.Hex, output_address, reply_to_ios);
 		INFO_LOG(DVDINTERFACE, "DVDLowGetCoverReg 0x%08x", s_DICVR.Hex);
 		break;
 
@@ -789,7 +782,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
 	// Probably only used by Wii
 	case DVDLowGetCoverStatus:
-		WriteImmediate(s_disc_inside ? 2 : 1, output_address, write_to_DIIMMBUF);
+		WriteImmediate(s_disc_inside ? 2 : 1, output_address, reply_to_ios);
 		INFO_LOG(DVDINTERFACE, "DVDLowGetCoverStatus: Disc %sInserted", s_disc_inside ? "" : "Not ");
 		break;
 
@@ -820,7 +813,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 			(((command_2 + command_1) > 0x7ed40000) && (command_2 + command_1) < 0x7ed40008)))
 		{
 			command_handled_by_thread = ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false,
-			                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+			                                               reply_to_ios, &interrupt_type, &ticks_until_completion);
 		}
 		else
 		{
@@ -917,14 +910,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 				}
 
 				command_handled_by_thread = ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false,
-				                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+				                                               reply_to_ios, &interrupt_type, &ticks_until_completion);
 			}
 			break;
 
 		case 0x40: // Read DiscID
 			INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
 			command_handled_by_thread = ExecuteReadCommand(0, output_address, 0x20, output_length, false,
-			                                               callback_event_type, &interrupt_type, &ticks_until_completion);
+			                                               reply_to_ios, &interrupt_type, &ticks_until_completion);
 			break;
 
 		default:
@@ -1060,7 +1053,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 				break;
 			}
 			memset(s_media_buffer + 0x20, 0, 0x20);
-			WriteImmediate(0x66556677, output_address, write_to_DIIMMBUF); // just a random value that works.
+			WriteImmediate(0x66556677, output_address, reply_to_ios); // just a random value that works.
 		}
 		break;
 
@@ -1105,7 +1098,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	// Used by both GC and Wii
 	case DVDLowRequestError:
 		INFO_LOG(DVDINTERFACE, "Requesting error... (0x%08x)", s_error_code);
-		WriteImmediate(s_error_code, output_address, write_to_DIIMMBUF);
+		WriteImmediate(s_error_code, output_address, reply_to_ios);
 		s_error_code = 0;
 		break;
 
@@ -1162,19 +1155,19 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 			case 0x00: // Returns streaming status
 				INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x/%08x CurrentStart:%08x CurrentLength:%08x",
 				         s_audio_position, s_current_start + s_current_length, s_current_start, s_current_length);
-				WriteImmediate(s_stream ? 1 : 0, output_address, write_to_DIIMMBUF);
+				WriteImmediate(s_stream ? 1 : 0, output_address, reply_to_ios);
 				break;
 			case 0x01: // Returns the current offset
 				INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x", s_audio_position);
-				WriteImmediate(s_audio_position >> 2, output_address, write_to_DIIMMBUF);
+				WriteImmediate(s_audio_position >> 2, output_address, reply_to_ios);
 				break;
 			case 0x02: // Returns the start offset
 				INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08x", s_current_start);
-				WriteImmediate(s_current_start >> 2, output_address, write_to_DIIMMBUF);
+				WriteImmediate(s_current_start >> 2, output_address, reply_to_ios);
 				break;
 			case 0x03: // Returns the total length
 				INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x", s_current_length);
-				WriteImmediate(s_current_length >> 2, output_address, write_to_DIIMMBUF);
+				WriteImmediate(s_current_length >> 2, output_address, reply_to_ios);
 				break;
 			default:
 				WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s", command_0 >> 16 & 0xFF, s_stream ? "on" : "off");
@@ -1263,7 +1256,35 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 	// The command will finish executing after a delay
 	// to simulate the speed of a real disc drive
 	if (!command_handled_by_thread)
-		CoreTiming::ScheduleEvent((int)ticks_until_completion, callback_event_type, interrupt_type);
+	{
+		u64 userdata = (static_cast<u64>(reply_to_ios) << 32) + static_cast<u32>(interrupt_type);
+		CoreTiming::ScheduleEvent((int)ticks_until_completion, s_finish_executing_command, userdata);
+	}
+}
+
+void FinishExecutingCommandCallback(u64 userdata, int cycles_late)
+{
+	bool reply_to_ios = userdata >> 32 != 0;
+	DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
+	FinishExecutingCommand(reply_to_ios, interrupt_type);
+}
+
+void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type)
+{
+	if (reply_to_ios)
+	{
+		std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
+		if (di)
+			std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl(interrupt_type);
+
+		// If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
+	}
+	else if (s_DICR.TSTART)
+	{
+		s_DICR.TSTART = 0;
+		s_DILENGTH.Length = 0;
+		GenerateDIInterrupt(interrupt_type);
+	}
 }
 
 // Simulates the timing aspects of reading data from a disc.
