@@ -37,6 +37,7 @@ static const u64 TEXHASH_INVALID = 0;
 static const int TEXTURE_KILL_THRESHOLD = 64; // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
+static const u64 MAX_TEXTURE_BINARY_SIZE = 1024 * 1024 * 4; // 1024 x 1024 texel times 8 nibbles per texel
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
@@ -300,7 +301,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 	u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
-	TexCache::iterator iter = textures_by_address.lower_bound(entry_to_update->addr);
+	TexCache::iterator iter = textures_by_address.lower_bound(entry_to_update->addr > MAX_TEXTURE_BINARY_SIZE ? entry_to_update->addr - MAX_TEXTURE_BINARY_SIZE : 0);
 	TexCache::iterator iterend = textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
 	while (iter != iterend)
 	{
