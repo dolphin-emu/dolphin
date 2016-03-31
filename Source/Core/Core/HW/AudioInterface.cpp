@@ -251,8 +251,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 		MMIO::ComplexWrite<u32>([](u32, u32 val) {
 			DEBUG_LOG(AUDIO_INTERFACE, "AI_INTERRUPT_TIMING=%08x@%08x", val, PowerPC::ppcState.pc);
 			m_InterruptTiming = val;
-			CoreTiming::RemoveEvent(et_AI);
-			CoreTiming::ScheduleEvent(GetAIPeriod(), et_AI);
+			if (g_CPUCyclesPerSample != 0xFFFFFFFFFFFULL)
+			{
+				CoreTiming::RemoveEvent(et_AI);
+				CoreTiming::ScheduleEvent(GetAIPeriod(), et_AI);
+			}
 		})
 	);
 }
