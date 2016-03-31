@@ -39,6 +39,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -1245,7 +1246,8 @@ void Renderer::SetSamplerState(int stage, int tex_index, bool custom_tex)
 
 	if (g_ActiveConfig.bForceFiltering)
 	{
-		new_state.min_filter = 6; // 4 (linear min) | 2 (linear mip)
+		// Only use mipmaps if the game says they are available.
+		new_state.min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
 		new_state.mag_filter = 1; // linear mag
 	}
 	else

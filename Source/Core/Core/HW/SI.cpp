@@ -282,7 +282,7 @@ void Init()
 	}
 
 	g_Poll.Hex = 0;
-	g_Poll.X = 7;
+	g_Poll.X = 492;
 
 	g_ComCSR.Hex = 0;
 

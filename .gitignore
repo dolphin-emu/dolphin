@@ -24,6 +24,9 @@ CMakeLists.txt.user
 *~
 # Ignore vim swapfiles
 *.swp
+# Ignore emacs temp files
+\#*\#
+.\#*
 # Ignore transifex configuration directory
 .tx
 # Ignore kdevelop files/dirs

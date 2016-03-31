@@ -218,6 +218,16 @@ namespace JitInterface
 		return jit->HandleFault(access_address, ctx);
 	}
 
+	bool HandleStackFault()
+	{
+		if (!jit)
+		{
+			return false;
+		}
+
+		return jit->HandleStackFault();
+	}
+
 	void ClearCache()
 	{
 		if (jit)
