@@ -41,7 +41,7 @@ private:
 	Jit64AsmRoutineManager asm_routines;
 
 	bool m_enable_blr_optimization;
-	bool m_clear_cache_asap;
+	bool m_cleanup_after_stackfault;
 	u8* m_stack;
 
 public:
@@ -57,6 +57,8 @@ public:
 	void Shutdown() override;
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+	bool HandleStackFault() override;
 
 	// Jit!
 

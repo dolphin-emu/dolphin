@@ -106,18 +106,13 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 	if (src_rect.GetWidth() == dst_rect.GetWidth()
 		&& src_rect.GetHeight() == dst_rect.GetHeight())
 	{
-		const D3D12_BOX* src_box_pointer = nullptr;
-		D3D12_BOX src_box;
-		if (src_rect.left != 0 || src_rect.top != 0)
-		{
-			src_box.front = 0;
-			src_box.back = 1;
-			src_box.left = src_rect.left;
-			src_box.top = src_rect.top;
-			src_box.right = src_rect.right;
-			src_box.bottom = src_rect.bottom;
-			src_box_pointer = &src_box;
-		}
+		D3D12_BOX srcbox;
+		srcbox.left = src_rect.left;
+		srcbox.top = src_rect.top;
+		srcbox.right = src_rect.right;
+		srcbox.bottom = src_rect.bottom;
+		srcbox.front = 0;
+		srcbox.back = srcentry->config.layers;
 
 		if (static_cast<u32>(src_rect.GetHeight()) > config.height ||
 			static_cast<u32>(src_rect.GetWidth()) > config.width)
@@ -137,7 +132,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(
 		m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_DEST);
 		srcentry->m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
 
-		D3D::current_command_list->CopyTextureRegion(&dst_location, dst_rect.left, dst_rect.top, 0, &src_location, src_box_pointer);
+		D3D::current_command_list->CopyTextureRegion(&dst_location, dst_rect.left, dst_rect.top, 0, &src_location, &srcbox);
 
 		m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 		srcentry->m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);

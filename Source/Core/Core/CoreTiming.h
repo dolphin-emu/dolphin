@@ -25,15 +25,19 @@ class PointerWrap;
 namespace CoreTiming
 {
 
-extern s64 globalTimer;
-extern u64 fakeTBStartValue;
-extern u64 fakeTBStartTicks;
+// These really shouldn't be global, but jit64 accesses them directly
+extern s64 g_globalTimer;
+extern u64 g_fakeTBStartValue;
+extern u64 g_fakeTBStartTicks;
+extern int g_slicelength;
+extern float g_lastOCFactor_inverted;
 
 void Init();
 void Shutdown();
 
 typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 
+// This should only be called from the CPU thread, if you are calling it any other thread, you are doing something evil
 u64 GetTicks();
 u64 GetIdleTicks();
 
@@ -44,11 +48,11 @@ int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from savestates.
-void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
 void ScheduleEvent_Immediate(int event_type, u64 userdata = 0);
-void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
 void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata = 0);
-void ScheduleEvent_AnyThread(int cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
 
 // We only permit one event of each type in the queue at a time.
 void RemoveEvent(int event_type);
@@ -76,8 +80,8 @@ void SetFakeTBStartValue(u64 val);
 u64 GetFakeTBStartTicks();
 void SetFakeTBStartTicks(u64 val);
 
-void ForceExceptionCheck(int cycles);
+void ForceExceptionCheck(s64 cycles);
 
-extern int slicelength;
+
 
 } // end of namespace

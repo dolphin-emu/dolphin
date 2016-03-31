@@ -178,7 +178,7 @@ void Interpreter::SingleStep()
 {
 	SingleStepInner();
 
-	CoreTiming::slicelength = 1;
+	CoreTiming::g_slicelength = 1;
 	PowerPC::ppcState.downcount = 0;
 	CoreTiming::Advance();
 

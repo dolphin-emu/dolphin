@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Greek (http://www.transifex.com/delroth/dolphin-emu/language/"
 "el/)\n"
@@ -1149,7 +1149,7 @@ msgstr "Αλλαγή Δίσκου"
 msgid "Change Game"
 msgstr "Αλλαγή Παιχνιδιού"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Αλλαγή Δίσκου Σε %s"
@@ -2158,19 +2158,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"Ενεργοποιεί το ανισοτροπικό φιλτράρισμα.\n"
-"Βελτιώνει την ποιότητα απεικόνισης των υφών που βρίσκονται σε οξείες οπτικές "
-"γωνίες.\n"
-"Μπορεί να προκαλέσει προβλήματα σε έναν μικρό αριθμό παιχνιδιών.\n"
-"Στο Direct3D, θέτοντάς το πάνω από 1x θα έχει επίσης παρόμοιο αποτέλεσμα με "
-"την ενεργοποίηση \"Επιβολή Φιλτραρίσματος Υφών\".\n"
-"\n"
-"Αν δεν είστε σίγουροι, επιλέξτε 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2509,7 +2499,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "Αποτυχία ανάγνωσης %s"
@@ -2595,7 +2585,7 @@ msgstr "Γρήγορη"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2674,8 +2664,6 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
@@ -3148,14 +3136,14 @@ msgstr "ID"
 msgid "ID:"
 msgstr "ID:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Απόπειρα ανάγνωσης δεδομένων από ένα άγνωστο εισιτήριο: "
 "%08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3168,7 +3156,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "Το Dolphin πιθανότατα θα κολλήσει τώρα."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: Το αρχείο DOL δεν είναι έγκυρο!"
 
@@ -3399,7 +3387,7 @@ msgstr "Εισαγωγή"
 msgid "Invalid bat.map or dir entry."
 msgstr "Μη έγκυρο bat.map ή εγγραφή φακέλου"
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Μη έγκυρος τύπος συμβάντος %i"
@@ -3416,7 +3404,7 @@ msgstr "Μη έγκυρος host"
 msgid "Invalid index"
 msgstr "Μη έγκυρο ευρετήριο"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "Μη έγκυρο αρχείο εγγραφής"
 
@@ -4432,17 +4420,17 @@ msgstr "Post-Processing Εφέ:"
 msgid "Prefetch Custom Textures"
 msgstr "Προφόρτωση Τροποποιημένων Υφών"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayWiimote. %u > %u"
@@ -4765,7 +4753,7 @@ msgstr "Αποθήκευση στην επιλεγμένη θέση"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Αποθηκεύτηκε σε /Wii/sd.raw (το προεπιλεγμένο μέγεθος είναι 128mb)"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
@@ -5644,7 +5632,7 @@ msgstr "Το όνομα δεν μπορεί να είναι κενό"
 msgid "The name cannot contain the character ','"
 msgstr "Το όνομα δεν μπορεί να περιέχει τον χαρακτήρα ','"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5707,7 +5695,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Δεν υπάρχει τίποτα προς αναίρεση!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -5975,7 +5963,7 @@ msgstr "Άγνωστο"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Άγνωστη εντολή DVD %08x - κρίσιμο σφάλμα"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Άγνωστος τύπος καταχώρησης %i στο SYSCONF (%s@%x)!"
@@ -6107,13 +6095,13 @@ msgstr ""
 msgid "Volume Up"
 msgstr "Αύξηση Έντασης"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "Αποτυχία εγκατάστασης WAD: σφάλμα κατά τη δημιουργία του %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "Αποτυχία εγκατάστασης WAD: σφάλμα κατά τη δημιουργία του εισιτηρίου"
 
@@ -6180,7 +6168,7 @@ msgstr ""
 "και έχουν το ίδιο όνομα με αρχεία στη memcard\n"
 "Συνέχεια;"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6192,7 +6180,7 @@ msgstr ""
 "φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων "
 "με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής)."
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6200,7 +6188,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6213,7 +6201,7 @@ msgstr ""
 "την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί "
 "ασυγχρονισμός."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6422,7 +6410,7 @@ msgstr ""
 "Το αρχείο GCM/ISO φαίνεται να είναι μη έγκυρο (μη έγκυρη χώρα).\n"
 "Συνέχεια με περιοχή PAL;"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -88,12 +88,12 @@ msgstr "%i 블록 %i 블록들 중에. 압축 비율 %i%%"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (보통 속도)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -547,6 +547,15 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"주의:\n"
+"\n"
+"모든 플레이어들은 같은 돌핀 버전을 사용해야 합니다.\n"
+"모든 메모리 카드, SD 카드 그리고 치트는 플레이어들 간에 동일하거나 꺼야합니"
+"다.\n"
+"DSP LLE 가 사용된다면, DSP ROM 들이 플레이어들 간에 동일해야 합니다.\n"
+"직접 연결하기를 하려면, 호스트는 UDP 포트 열기/포워드를 선택해야 합니다!\n"
+"\n"
+"위모트 지원은 넷플레이에서 고장이니까 끄세요.\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -1133,7 +1142,7 @@ msgstr "디스크 변경"
 msgid "Change Game"
 msgstr "게임 변경"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "%s 로 디스크를 변경합니다."
@@ -2145,18 +2154,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"비등방성 필터링을 켭니다.\n"
-"사선 보기 각에 있는 텍스처의 비주얼 품질을 향상시킵니다.\n"
-"소수 게임에서 문제를 일으킬지도 모릅니다.\n"
-"Direct3D에서, 이것을 1x 이상으로 설정하면 \"강제 텍스처 필터링\"을 켠 것처럼 "
-"같은 효과를 또한 가져옵니다.\n"
-"\n"
-"잘 모르겠으면, 1x를 선택하세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2498,7 +2498,7 @@ msgstr ""
 "타겟 폴더에 쓰기 권한을 가지고 있는지와 미디어가 쓰여질 수 있는지를 확인하세"
 "요."
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s 을 읽을 수 없습니다."
@@ -2587,9 +2587,9 @@ msgstr "빠름"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2670,18 +2670,9 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"모든 텍스처를 필터합니다, 필터되지 않도록 설정된 게임도 포함합니다.\n"
-"일부 게임에서 특정 텍스처 품질을 향상시킬지도 모릅니다, 하지만 다른 게임에서 "
-"이슈를 일으킬 것입니다.\n"
-"Direct3D 에서, 비등방성 필터링을 1x 위로 설정하는 것은 이 옵션을 켜는 것처럼 "
-"같은 효과를 가질 것입니다.\n"
-"\n"
-"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3176,14 +3167,14 @@ msgstr "아이디"
 msgid "ID:"
 msgstr "아이디:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: 알려지지 않은 티켓: %08x/%08x 에서 데이터를 얻으려 시도했"
 "습니다."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3196,7 +3187,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "돌핀은 이제 멈추게 될 것입니다."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: DOL 파일이 올바르지 않습니다!"
 
@@ -3433,7 +3424,7 @@ msgstr "소개화면"
 msgid "Invalid bat.map or dir entry."
 msgstr "비적합 bat.map 혹은 디렉토리 엔트리."
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "부적합한 이벤트 타입 %i"
@@ -3450,7 +3441,7 @@ msgstr "부적합 호스트"
 msgid "Invalid index"
 msgstr "부적합 목록"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -4464,17 +4455,17 @@ msgstr "후-처리 효과:"
 msgid "Prefetch Custom Textures"
 msgstr "프리패치 커스텀 텍스처"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "PlayController에 영상마무리가 미완성되었습니다. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "PlayWiimote에 영상 마무리가 미완성되었습니다. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "PlayWiimote에 영상 마무리가 미완성되었습니다. %u > %u"
@@ -4804,7 +4795,7 @@ msgstr "선택된 슬롯에 저장합니다"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "/Wii/sd.raw 에 저장되었습니다 (기본 크기 128mb)"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "%s 영상 상태저장이 손상되었습니다, 영상 기록 중지..."
@@ -5745,7 +5736,7 @@ msgstr "이름은 비워둘 수 없습니다"
 msgid "The name cannot contain the character ','"
 msgstr "이름은 ',' 문자를 포함할 수 없습니다"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "기록된 게임 (%s) 은 선택된 게임 (%s) 과 같지 않습니다"
@@ -5810,7 +5801,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6091,7 +6082,7 @@ msgstr "알려지지 않은"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "알려지지 않은 엔트리 타입 %i SYSCONF (%s@%x)안에!"
@@ -6162,6 +6153,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"깊이 값들을 계산하기 위해 덜 정확한 알고리즘을 사용합니다.\n"
+"소수 게임들에서 이슈들을 일으킵니다, 하지만 게임과/이나 GPU에 따라 괜찮은 속"
+"도증가를 줄 수 있습니다.\n"
+"\n"
+"모르겠으면, 체크해 두세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6225,13 +6221,13 @@ msgstr "볼륨 음소거 토글"
 msgid "Volume Up"
 msgstr "볼륨 증가"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD 설치 실패했습니다: 오류 생성 %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD 설치 실패했습니다: 오류 생성 티켓"
 
@@ -6297,7 +6293,7 @@ msgstr ""
 "그리고 당신의 메모리카드에 파일로 같은 이름을 가집니다\n"
 "계속합니까?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6308,7 +6304,7 @@ msgstr ""
 "%u > %u). You should load another save before continuing, or load this state "
 "with read-only mode off."
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6318,7 +6314,7 @@ msgstr ""
 "경고: 당신은 저장 (byte %u < %u) (frame %u < %u)에서 저장의 무비가 현재 프레"
 "임 전에 끝나는 저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6329,7 +6325,7 @@ msgstr ""
 "전에 다른 세이브를 로드해야합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그"
 "렇지 않으면 아마도 싱크 어긋남이 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6535,7 +6531,7 @@ msgstr ""
 "당신의 GCM/ISO 파일이 부적합(부적합 국가)인 것 같습니다.\n"
 "PAL 지역으로 계속합니까?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

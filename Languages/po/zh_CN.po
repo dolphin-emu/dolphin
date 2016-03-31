@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -93,12 +93,12 @@ msgstr "%i 于 %i 区块数，压缩率 %i%%"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (正常速度)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -550,6 +550,14 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"警告：\n"
+"\n"
+"所有玩家都必须使用相同的 Dolphin 版本。\n"
+"所有玩家之间的存储卡、SD卡和金手指都必须一致或禁用。\n"
+"如果 DSP LLE 已选用，玩家之间的DSP ROM 都必须相同。\n"
+"如果使用直连，主机选用的 UDP 端口必须能够打开/转发！\n"
+"\n"
+"Wii 控制器支持在网络对战时会崩溃，因此已禁用。\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -1129,7 +1137,7 @@ msgstr "切换光盘"
 msgid "Change Game"
 msgstr "切换游戏"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "切换光盘至 %s"
@@ -2130,17 +2138,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"启用各向异性过滤。\n"
-"增强倾斜视角下纹理的视觉质量。\n"
-"在少部分游戏中可能造成问题。\n"
-"在 Direct3D 中调到 1x 以上的效果与启用“强制材质过滤”是一样的。\n"
-"\n"
-"如果不确定，请选择“1x”。"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2470,7 +2470,7 @@ msgstr ""
 "无法打开输出文件  \"%s\"。\n"
 "请检查是否有权限写入目标文件夹并且该媒体能够被写入。"
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "读取 %s 失败"
@@ -2559,9 +2559,9 @@ msgstr "快速"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "快速深度计算"
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2641,18 +2641,9 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"过滤所有纹理，包括游戏已明确设定为不过滤的。\n"
-"可能提升一些游戏的某些纹理质量，但会导致另一些游戏\n"
-"出现问题。\n"
-"在 Direct3D 模式下，设置 1x 以上的各向异性过滤\n"
-"与启用该选项的效果是一样的。\n"
-"\n"
-"如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3139,12 +3130,12 @@ msgstr "ID"
 msgid "ID:"
 msgstr "ID:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: 试图从一个未知的ticket（标签）获取数据: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3156,7 +3147,7 @@ msgstr ""
 "标题ID %016<PRIx64>。\n"
 "Dolphin 现在可能会中止。"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: DOL 文件无效。"
 
@@ -3392,7 +3383,7 @@ msgstr "片头"
 msgid "Invalid bat.map or dir entry."
 msgstr "bat.map 文件或目录项目是无效的。"
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "无效事件类型 %i"
@@ -3409,7 +3400,7 @@ msgstr "无效主机"
 msgid "Invalid index"
 msgstr "无效索引"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "无效录制文件"
 
@@ -4417,17 +4408,17 @@ msgstr "后处理效果:"
 msgid "Prefetch Custom Textures"
 msgstr "预读取自定义材质"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "在PlayController中提前结束影片。%u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "在 PlayWiimote 中提前结束影片。%u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "在PlayWiimote 中提前结束影片。%u > %u"
@@ -4756,7 +4747,7 @@ msgstr "保存至所选插槽"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "保存至 /Wii/sd.raw（默认大小是 128MB）"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "即时存档影片 %s 被破坏, 影片录制停止..."
@@ -5690,7 +5681,7 @@ msgstr "名称不能为空"
 msgid "The name cannot contain the character ','"
 msgstr "名称不能包含字符 ','"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "被录制的游戏 (%s) 与所选游戏 (%s) 不一致"
@@ -5752,7 +5743,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "没有需要撤销的操作。"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6027,7 +6018,7 @@ msgstr "未知"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "未知 DVD 命令 %08x - 致命错误"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "未知的项目类型 %i 在 SYSCONF (%s@%x)!"
@@ -6097,6 +6088,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"使用精确度较低的算法计算深度值。 \n"
+"在一些游戏中将导致问题但可能带来可观的提速，\n"
+"取决于游戏和/或你的GPU。\n"
+"\n"
+"如果不能确定，请勾选此项。"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6159,13 +6155,13 @@ msgstr "静音切换"
 msgid "Volume Up"
 msgstr "增大音量"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD 安装失败: 创建 %s 错误"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD 安装失败：创建标签错误"
 
@@ -6228,7 +6224,7 @@ msgstr ""
 "%s\n"
 "要继续吗?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6238,7 +6234,7 @@ msgstr ""
 "警告: 您读取的存档在当前影片结束之后。 (字节%u > %u) (帧%u > %u) 。您需要读取"
 "另一个存档方可继续，或关闭只读模式再读取此状态存档。"
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6248,7 +6244,7 @@ msgstr ""
 "警告: 您读取的存档影片已结束在存档的当前帧之前(字节%u < %u) (帧%u < %u)。您需"
 "要读取另一个存档方可继续。"
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6258,7 +6254,7 @@ msgstr ""
 "警告: 您读取的存档在 %d (0x%X) 字节处与影片不匹配。您需要读取另一个存档方可继"
 "续，或关闭只读模式再读取此状态存档。否则将可能发生不同步。"
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6462,7 +6458,7 @@ msgstr ""
 "您的 GCM/ISO 文件似乎是无效的 (无效的国家)。\n"
 "是否要使用 PAL 地区继续?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

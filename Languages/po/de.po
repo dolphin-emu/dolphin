@@ -25,8 +25,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
 "de/)\n"
@@ -1141,7 +1141,7 @@ msgstr "Disc wechseln"
 msgid "Change Game"
 msgstr "Spiel wechseln"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Wechsle die Disc zu %s"
@@ -2158,18 +2158,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"Aktiviert Anisotropische Filterung.\n"
-"Verbessert die Texturenqualität bei schrägen Blickwinkeln.\n"
-"Kann bei einigen wenigen Spielen Fehler verursachen.\n"
-"Das setzen dieser Einstellung auf mehr als 1x hat bei Direct3D den gleichen "
-"Effekt wie \"Texturfilterung erzwingen\".\n"
-"\n"
-"Im Zweifel, wähle 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2513,7 +2504,7 @@ msgstr ""
 "Prüfen Sie, ob Sie über Schreibrechte im Zielordner verfügen und ob das "
 "Medium beschreibbar ist."
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "Konnte %s nicht lesen"
@@ -2604,7 +2595,7 @@ msgstr "Schnell"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2685,19 +2676,9 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Filtert alle Texturen, einschließlich jenen, die das Spiel explizit als "
-"ungefiltert festgelegt hat.\n"
-"Kann die Qualität bestimmter Texturen verbessern, aber wird Probleme bei "
-"anderen verursachen.\n"
-"Bei Direct3D wird das Setzen der anisotropischen Filterung auf mehr als 1x "
-"denselben Effekt wie das Aktivieren dieser Option haben.\n"
-"\n"
-"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3167,14 +3148,14 @@ msgstr "Kennung"
 msgid "ID:"
 msgstr "Kennung:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Versucht Daten von einem unbekannten Ticket zu bekommen: "
 "%08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3187,7 +3168,7 @@ msgstr ""
 "Titelkennung %016<PRIx64>.\n"
 "Dolphin wird sich jetzt wahrscheinlich aufhängen."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: Die DOL-Datei ist ungültig!"
 
@@ -3417,7 +3398,7 @@ msgstr "Intro"
 msgid "Invalid bat.map or dir entry."
 msgstr "Ungültige bat.map oder Verzeichnis-Eintrag"
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Ungültiger Ereignis-Typ %i"
@@ -3434,7 +3415,7 @@ msgstr "Ungültiger Host"
 msgid "Invalid index"
 msgstr "Ungültiger Index"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "Ungültige Aufnahmedatei"
 
@@ -4442,17 +4423,17 @@ msgstr "Nachbearbeitungseffekt:"
 msgid "Prefetch Custom Textures"
 msgstr "Benutzerdefinierte Texturen vorladen"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Vorzeitiges Filmende in PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Vorzeitiges Filmende in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Vorzeitiges Filmende in PlayWiimote. %u > %u"
@@ -4775,7 +4756,7 @@ msgstr "Spielstand im ausgewählten Slot speichern"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Wird in /Wii/sd.raw gespeichert (standardmäßig 128MB)"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Spielstandfilm %s ist fehlerhaft, breche die Filmaufnahme ab..."
@@ -5689,7 +5670,7 @@ msgstr "Der Name darf nicht leer sein"
 msgid "The name cannot contain the character ','"
 msgstr "Der Name darf nicht das Zeichen ',' enthalten"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5754,7 +5735,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Es gibt nichts zum rückgängig machen!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6023,7 +6004,7 @@ msgstr "Unbekannt"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unbekannter DVD-Befehl %08x - fataler Fehler"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Unbekannter Eintragstyp %i in SYSCONF (%s@%x)!"
@@ -6159,13 +6140,13 @@ msgstr "Lautloser Modus ein/ausschalten"
 msgid "Volume Up"
 msgstr "Lautstärke erhöhen"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD-Installation fehlgeschlagen: Konnte %s nicht erstellen"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD-Installation fehlgeschlagen: Fehler bei der Ticket-Erstellung"
 
@@ -6229,7 +6210,7 @@ msgstr ""
 "besitzen.\n"
 "Möchtest du fortfahren?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6241,7 +6222,7 @@ msgstr ""
 "anderen Spielstand bevor du fortfährst oder lade diesen Spielstand nicht im "
 "schreibgeschützen Modus."
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6249,7 +6230,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6261,7 +6242,7 @@ msgstr ""
 "oder lade diesen Spielstand nicht im schreibgeschützen Modus, andernfalls "
 "könnten Desyncs auftreten."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6470,7 +6451,7 @@ msgstr ""
 "Ihre GCM/ISO-Datei scheint ungültig zu sein (Land ungültig).\n"
 "Mit PAL-Region fortfahren?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
