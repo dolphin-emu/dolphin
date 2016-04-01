@@ -180,8 +180,10 @@ void Init()
 #endif
 
 	u32 flags = 0;
-	if (wii) flags |= MV_WII_ONLY;
-	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
+	if (wii)
+		flags |= MV_WII_ONLY;
+	if (bFakeVMEM)
+		flags |= MV_FAKE_VMEM;
 	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 #ifndef _ARCH_32
 	logical_base = physical_base + 0x200000000;
@@ -191,6 +193,8 @@ void Init()
 		mmio_mapping = InitMMIOWii();
 	else
 		mmio_mapping = InitMMIO();
+
+	Clear();
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
 	m_IsInitialized = true;
