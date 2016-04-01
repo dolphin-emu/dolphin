@@ -28,42 +28,33 @@ bool OpenALStream::Start()
 	m_run_thread.store(true);
 	bool bReturn = false;
 
-	ALDeviceList pDeviceList;
-	if (pDeviceList.GetNumDevices())
+	AudioDevice audioDevice = AudioDevice::GetSelectedDevice();
+	WARN_LOG(AUDIO, "Found OpenAL device %s", audioDevice.id.c_str());
+
+	ALCdevice *pDevice = alcOpenDevice(audioDevice.id.c_str());
+	if (pDevice)
 	{
-		char *defDevName = pDeviceList.GetDeviceName(pDeviceList.GetDefaultDevice());
-
-		WARN_LOG(AUDIO, "Found OpenAL device %s", defDevName);
-
-		ALCdevice *pDevice = alcOpenDevice(defDevName);
-		if (pDevice)
+		ALCcontext *pContext = alcCreateContext(pDevice, nullptr);
+		if (pContext)
 		{
-			ALCcontext *pContext = alcCreateContext(pDevice, nullptr);
-			if (pContext)
-			{
-				// Used to determine an appropriate period size (2x period = total buffer size)
-				//ALCint refresh;
-				//alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
-				//period_size_in_millisec = 1000 / refresh;
+			// Used to determine an appropriate period size (2x period = total buffer size)
+			//ALCint refresh;
+			//alcGetIntegerv(pDevice, ALC_REFRESH, 1, &refresh);
+			//period_size_in_millisec = 1000 / refresh;
 
-				alcMakeContextCurrent(pContext);
-				thread = std::thread(&OpenALStream::SoundLoop, this);
-				bReturn = true;
-			}
-			else
-			{
-				alcCloseDevice(pDevice);
-				PanicAlertT("OpenAL: can't create context for device %s", defDevName);
-			}
+			alcMakeContextCurrent(pContext);
+			thread = std::thread(&OpenALStream::SoundLoop, this);
+			bReturn = true;
 		}
 		else
 		{
-			PanicAlertT("OpenAL: can't open device %s", defDevName);
+			alcCloseDevice(pDevice);
+			PanicAlertT("OpenAL: can't create context for device %s", audioDevice.id.c_str());
 		}
 	}
 	else
 	{
-		PanicAlertT("OpenAL: can't find sound devices");
+		PanicAlertT("OpenAL: can't open device %s", audioDevice.id.c_str());
 	}
 
 	// Initialize DPL2 parameters

@@ -156,7 +156,10 @@ void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 	SConfig::GetInstance().sBackend = m_audio_backend_choice->GetSelection() ?
 		WxStrToStr(m_audio_backend_choice->GetStringSelection()) : BACKEND_NULLSOUND;
 
+	AudioDevice::ReloadDevices();
 	AudioCommon::UpdateSoundStream();
+	PopulateDeviceChoiceBox();
+	m_audio_device_choice->SetSelection(0);
 }
 
 void AudioConfigPane::OnAudioDeviceChanged(wxCommandEvent& event)
@@ -193,6 +196,7 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 void AudioConfigPane::PopulateDeviceChoiceBox()
 {
 	int selected = 0;
+	m_audio_device_choice->Clear();
 	m_audio_device_choice->Append(wxGetTranslation(StrToWxStr(AudioDevice::DEFAULT.name)));
 	m_audio_device_choice->SetSelection(0);
 	for (const AudioDevice& device : AudioDevice::GetDevices())
