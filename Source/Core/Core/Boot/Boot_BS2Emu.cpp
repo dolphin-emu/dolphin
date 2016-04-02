@@ -50,9 +50,6 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
 
-	// Clear ALL memory
-	Memory::Clear();
-
 	// Write necessary values
 	// Here we write values to memory that the apploader does not take care of. Game info goes
 	// to 0x80000000 according to YAGCD 4.2.
