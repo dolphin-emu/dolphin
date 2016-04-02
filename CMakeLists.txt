@@ -76,6 +76,7 @@ if(APPLE)
 else()
 	set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
 	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
+	set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
 	add_definitions(-DDATA_DIR="${datadir}/")
 endif()
 
@@ -962,9 +963,9 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
 	# Install manpages
 	install(FILES Data/dolphin-emu.6
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man6)
+		DESTINATION ${mandir}/man6)
 	install(FILES Data/dolphin-emu-nogui.6
-		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man6)
+		DESTINATION ${mandir}/man6)
 endif()
 
 # packaging information
