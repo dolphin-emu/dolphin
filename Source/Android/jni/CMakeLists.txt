@@ -26,7 +26,10 @@ add_custom_command(TARGET ${SHARED_LIB} POST_BUILD
 	COMMAND ${CMAKE_STRIP} ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/jniLibs/${ANDROID_NDK_ABI_NAME}/lib${SHARED_LIB}.so
 )
 add_custom_command(TARGET ${SHARED_LIB} POST_BUILD
-	COMMAND cp ARGS ${CMAKE_SOURCE_DIR}/Data/Sys/GC/* ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
+	COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/GC ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
+)
+add_custom_command(TARGET ${SHARED_LIB} POST_BUILD
+	COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Wii ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/
 )
 add_custom_command(TARGET ${SHARED_LIB} POST_BUILD
 	COMMAND cp ARGS -r ${CMAKE_SOURCE_DIR}/Data/Sys/Shaders ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/

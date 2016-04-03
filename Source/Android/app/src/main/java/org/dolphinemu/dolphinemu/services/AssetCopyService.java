@@ -37,18 +37,15 @@ public final class AssetCopyService extends IntentService
 	{
 		String BaseDir = NativeLibrary.GetUserDirectory();
 		String ConfigDir = BaseDir + File.separator + "Config";
-		String GCDir = BaseDir + File.separator + "GC";
 
 		// Copy assets if needed
-		File file = new File(GCDir + File.separator + "font_sjis.bin");
+		File file = new File(BaseDir + File.separator + "GC" + File.separator + "font_sjis.bin");
 		if(!file.exists())
 		{
 			NativeLibrary.CreateUserFolders();
-			copyAsset("dsp_coef.bin", GCDir + File.separator + "dsp_coef.bin");
-			copyAsset("dsp_rom.bin", GCDir + File.separator + "dsp_rom.bin");
-			copyAsset("font_ansi.bin", GCDir + File.separator + "font_ansi.bin");
-			copyAsset("font_sjis.bin", GCDir + File.separator + "font_sjis.bin");
+			copyAssetFolder("GC", BaseDir + File.separator + "GC");
 			copyAssetFolder("Shaders", BaseDir + File.separator + "Shaders");
+			copyAssetFolder("Wii", BaseDir + File.separator + "Wii");
 		}
 		else
 		{
