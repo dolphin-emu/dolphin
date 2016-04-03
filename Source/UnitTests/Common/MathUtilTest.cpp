@@ -23,13 +23,13 @@ TEST(MathUtil, Clamp)
 TEST(MathUtil, IsQNAN)
 {
 	EXPECT_TRUE(MathUtil::IsQNAN(std::numeric_limits<double>::quiet_NaN()));
-	EXPECT_FALSE(MathUtil::IsQNAN(std::numeric_limits<double>::signaling_NaN()));
+	EXPECT_FALSE(MathUtil::IsQNAN(MathUtil::SNANConstant<double>()));
 }
 
 TEST(MathUtil, IsSNAN)
 {
 	EXPECT_FALSE(MathUtil::IsSNAN(std::numeric_limits<double>::quiet_NaN()));
-	EXPECT_TRUE(MathUtil::IsSNAN(std::numeric_limits<double>::signaling_NaN()));
+	EXPECT_TRUE(MathUtil::IsSNAN(MathUtil::SNANConstant<double>()));
 }
 
 TEST(MathUtil, IntLog2)
