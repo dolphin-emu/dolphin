@@ -47,6 +47,7 @@ public:
     s_backbuffer_width = W;
     s_backbuffer_height = H;
   }
+  virtual u32 DisplayFramebuffer() { return 0; }
   virtual void Update() {}
   virtual bool PeekMessages() { return false; }
   virtual void UpdateHandle(void* window_handle) {}

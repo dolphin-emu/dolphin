@@ -127,8 +127,10 @@
 /* Define to 1 if using BoringSSL. */
 /* #undef HAVE_BORINGSSL */
 
+#if !defined(__APPLE__)
 /* Define to 1 if you have the clock_gettime function and monotonic timer. */
 #define HAVE_CLOCK_GETTIME_MONOTONIC 1
+#endif
 
 /* Define to 1 if you have the closesocket function. */
 /* #undef HAVE_CLOSESOCKET */
@@ -444,8 +446,10 @@
 /* Define to 1 if you have the memrchr function or macro. */
 /* #undef HAVE_MEMRCHR */
 
+#if !defined(__APPLE__)
 /* Define to 1 if you have the MSG_NOSIGNAL flag. */
 #define HAVE_MSG_NOSIGNAL 1
+#endif
 
 /* Define to 1 if you have the <netdb.h> header file. */
 #define HAVE_NETDB_H 1

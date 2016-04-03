@@ -12,7 +12,7 @@ if(WIN32)
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
-elseif(APPLE)
+elseif(APPLE AND NOT IPHONEOS)
 	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 	find_library(CARBON_LIBRARY Carbon)
 	find_library(COCOA_LIBRARY Cocoa)

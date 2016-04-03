@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+        <!-- The app identifier. TEAM_IDENTIFIER is replaced in CMake. -->
+		<key>application-identifier</key>
+		<string>TEAM_IDENTIFIER.org.dolphin-emu.dolphin</string>
+
+        <!-- Required for debugging. Note this requires a "development" provisioning profile. -->
+        <key>get-task-allow</key>
+        <true/>
+	</dict>
+</plist>

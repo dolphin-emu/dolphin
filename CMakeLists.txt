@@ -180,7 +180,17 @@ else()
 endif()
 
 if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "aarch64|arm64")
+		# This option only applies to 64bit ARM
+		set(_M_ARM 1)
+		set(_M_ARM_64 1)
+		add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
+        if (NOT APPLE)
+		    add_definitions(-march=armv8-a+crc)
+        endif ()
+	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
+		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
+	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
 	   APPLE)
@@ -192,14 +202,6 @@ if(NOT ENABLE_GENERIC)
 		else()
 			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-		# This option only applies to 64bit ARM
-		set(_M_ARM 1)
-		set(_M_ARM_64 1)
-		add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
-		add_definitions(-march=armv8-a+crc)
 	else()
 		set(ENABLE_GENERIC 1)
 	endif()
@@ -259,45 +261,129 @@ if(ENABLE_LTO)
 endif()
 
 if(APPLE)
-	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
-		# Hack up the path to prioritize the path to built-in OS libraries to
-		# increase the chance of not depending on a bunch of copies of them
-		# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
-		# them into the bundle.  Since we optionally depend on libraries which
-		# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
-		# the default path entirely as was done in a previous version of this
-		# file.  This is still kinda evil, since it defeats the user's path
-		# settings...
-		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
-		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+	exec_program(/usr/bin/xcode-select ARGS -print-path OUTPUT_VARIABLE _XCODE_DEVELOPER_DIR)
+
+	if(IPHONEOS)
+        if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86|i386|x86_64|amd64")
+            set (_IPHONEOS_PLATFORM_DIR "iPhoneSimulator")
+            set (_IPHONEOS_PLATFORM_FLAG "ios-simulator")
+        elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^arm|aarch64")
+            set (_IPHONEOS_PLATFORM_DIR "iPhoneOS")
+            set (_IPHONEOS_PLATFORM_FLAG "ios")
+        else ()
+            message (FATAL_ERROR "Unknown architecture ${CMAKE_SYSTEM_PROCESSOR}")
+        endif ()
+
+        set (_IPHONEOS_PLATFORM_SDK_DIR "${_XCODE_DEVELOPER_DIR}/Platforms/${_IPHONEOS_PLATFORM_DIR}.platform/Developer/SDKs")
+		file (GLOB _IPHONEOS_PLATFORM_SDKS "${_IPHONEOS_PLATFORM_SDK_DIR}/*")
+		if (_IPHONEOS_PLATFORM_SDKS)
+			list (SORT _IPHONEOS_PLATFORM_SDKS)
+			list (REVERSE _IPHONEOS_PLATFORM_SDKS)
+			list (GET _IPHONEOS_PLATFORM_SDKS 0 CMAKE_OSX_SYSROOT)
+		else ()
+			message (FATAL_ERROR "An iOS SDK could not be found in ${_IPHONEOS_PLATFORM_SDK_DIR}.")
+		endif ()
+
+		# Minimum iOS version.
+		# This is inserted into the Info.plist as well.
+		# Note that the SDK determines the maximum version of which optional
+		# features can be used, not the minimum required version to run.
+		set(_IPHONEOS_MIN_VERSION "8.0")
+		set(TARGET_FLAGS "${TARGET_FLAGS} -m${_IPHONEOS_PLATFORM_FLAG}-version-min=${_IPHONEOS_MIN_VERSION}")
+
+		find_library(UIKIT_LIBRARY
+                     NAMES UIKit
+                     PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                     NO_DEFAULT_PATH)
+		find_library(COREANIMATION_LIBRARY
+                     NAMES QuartzCore
+                     PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                     NO_DEFAULT_PATH)
+		find_library(AUDIOTOOLBOX_LIBRARY
+                     NAMES AudioToolbox
+                     PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                     NO_DEFAULT_PATH)
+		find_library(OPENGLES_LIBRARY
+                     NAMES OpenGLES
+                     PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                     NO_DEFAULT_PATH)
+		find_library(OBJC_LIB
+                     NAMES objc
+                     PATHS "${CMAKE_OSX_SYSROOT}/usr/lib"
+                     NO_DEFAULT_PATH)
+	else()
+		if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
+			# Hack up the path to prioritize the path to built-in OS libraries to
+			# increase the chance of not depending on a bunch of copies of them
+			# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
+			# them into the bundle.  Since we optionally depend on libraries which
+			# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
+			# the default path entirely as was done in a previous version of this
+			# file.  This is still kinda evil, since it defeats the user's path
+			# settings...
+			# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
+			set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+		endif()
+
+		set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk")
+
+		# Identify the target system:
+		# Minimum OS X version.
+		# This is inserted into the Info.plist as well.
+		# Note that the SDK determines the maximum version of which optional
+		# features can be used, not the minimum required version to run.
+		set(OSX_MIN_VERSION "10.9")
+		set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
+
+		# Do not warn about frameworks that are not available on all architectures.
+		# This avoids a warning when linking with QuickTime.
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
+
+		# Specify target CPUs.
+		set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
+		set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
+
+		# Reserve the minimum size for the zero page.
+		# Our JIT requires virtual memory space below 2GB, while the default zero
+		# page on x86_64 is 4GB in size.
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
+
+		find_library(APPKIT_LIBRARY AppKit)
+		find_library(APPSERV_LIBRARY ApplicationServices)
+		find_library(ATB_LIBRARY AudioToolbox)
+		find_library(AU_LIBRARY AudioUnit)
+		find_library(CARBON_LIBRARY Carbon)
+		find_library(COCOA_LIBRARY Cocoa)
+		find_library(CORESERV_LIBRARY CoreServices)
+		find_library(IOB_LIBRARY IOBluetooth)
+		find_library(IOK_LIBRARY IOKit)
+		find_library(QUICKTIME_LIBRARY QuickTime)
+		find_library(WEBKIT_LIBRARY WebKit)
+		find_library(FORCEFEEDBACK ForceFeedback)
+		find_library(OPENGL_LIBRARY OpenGL)
 	endif()
 
-	# Identify the target system:
-	# Ask for 64-bit binary.
-	set(TARGET_FLAGS "-arch x86_64")
-	# Minimum OS X version.
-	# This is inserted into the Info.plist as well.
-	# Note that the SDK determines the maximum version of which optional
-	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.9")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.9.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
-	if(EXISTS "${SYSROOT_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_PATH})
-	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
+    # Ask for 64-bit binary.
+    set(TARGET_FLAGS "-arch ${CMAKE_SYSTEM_PROCESSOR}")
+
+	find_library(COREAUDIO_LIBRARY
+                 NAMES CoreAudio
+                 PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                 NO_DEFAULT_PATH)
+	find_library(COREFOUNDATION_LIBRARY
+                 NAMES CoreFoundation
+                 PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                 NO_DEFAULT_PATH)
+	find_library(FOUNDATION_LIBRARY
+                 NAMES Foundation
+                 PATHS "${CMAKE_OSX_SYSROOT}/System/Library/Frameworks"
+                 NO_DEFAULT_PATH)
+
+	if(${CMAKE_OSX_SYSROOT})
+		set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${CMAKE_OSX_SYSROOT}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${CMAKE_OSX_SYSROOT}")
 	endif()
-	if(${TARGET_SYSROOT})
-		set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
-	endif()
-	# Do not warn about frameworks that are not available on all architectures.
-	# This avoids a warning when linking with QuickTime.
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
-	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
+
 	# Target flags apply to both C and C++ compilation.
 	# CMake passes these to the compiler on the link command line as well.
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
@@ -306,27 +392,6 @@ if(APPLE)
 	# Linker flags.
 	# Drop unreachable code and data.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
-	# Reserve the minimum size for the zero page.
-	# Our JIT requires virtual memory space below 2GB, while the default zero
-	# page on x86_64 is 4GB in size.
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
-
-	find_library(APPKIT_LIBRARY AppKit)
-	find_library(APPSERV_LIBRARY ApplicationServices)
-	find_library(ATB_LIBRARY AudioToolbox)
-	find_library(AU_LIBRARY AudioUnit)
-	find_library(CARBON_LIBRARY Carbon)
-	find_library(COCOA_LIBRARY Cocoa)
-	find_library(COREAUDIO_LIBRARY CoreAudio)
-	find_library(COREFUND_LIBRARY CoreFoundation)
-	find_library(CORESERV_LIBRARY CoreServices)
-	find_library(FOUNDATION_LIBRARY foundation)
-	find_library(IOB_LIBRARY IOBluetooth)
-	find_library(IOK_LIBRARY IOKit)
-	find_library(QUICKTIME_LIBRARY QuickTime)
-	find_library(WEBKIT_LIBRARY WebKit)
-	find_library(FORCEFEEDBACK ForceFeedback)
-	find_library(OPENGL_LIBRARY OpenGL)
 endif()
 
 if(WIN32)
@@ -397,7 +462,19 @@ if(VTUNE)
 	)
 endif(VTUNE)
 
-if(ANDROID)
+if(IPHONEOS)
+	message("Building for iOS")
+	add_definitions(-DIPHONEOS)
+	set(USE_X11 0)
+	set(USE_UPNP 0)
+	set(USE_EGL 0)
+	set(DISABLE_WX 1)
+	set(ENABLE_QT2 0)
+
+	# We are cross compiling, search only the toolchain for libraries and includes
+	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+elseif(ANDROID)
 	message("Building for Android")
 	if(NOT ENABLE_HEADLESS)
 		add_definitions(-DANDROID)
@@ -733,7 +810,9 @@ if(ENABLE_SDL)
 	endif(SDL2_FOUND)
 endif()
 
-include(FindLibUSB OPTIONAL)
+if(NOT IPHONEOS)
+	include(FindLibUSB OPTIONAL)
+endif()
 if(LIBUSB_FOUND)
 	message("Using shared LibUSB")
 	add_definitions(-D__LIBUSB__)
@@ -783,7 +862,9 @@ else()
 	include_directories(Externals/mbedtls/include)
 endif()
 
-include(FindCURL OPTIONAL)
+if(NOT IPHONEOS)
+    include(FindCURL OPTIONAL)
+endif()
 if(CURL_FOUND)
 	message("Using shared libcurl")
 	include_directories(${CURL_INCLUDE_DIRS})
@@ -914,16 +995,27 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 endif()
 
 if(APPLE)
-	# Link against OS X system frameworks.
+	# Link against iOS and OS X system frameworks.
 	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
 		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOK_LIBRARY}
-		${FORCEFEEDBACK}
+		${COREFOUNDATION_LIBRARY}
 		)
+	if(IPHONEOS)
+		list(APPEND LIBS
+			${FOUNDATION_LIBRARY}
+			${AUDIOTOOLBOX_LIBRARY}
+			${UIKIT_LIBRARY}
+			${OBJC_LIB}
+			)
+	else()
+		list(APPEND LIBS
+			${APPKIT_LIBRARY}
+			${AU_LIBRARY}
+			${CORESERV_LIBRARY}
+			${IOK_LIBRARY}
+			${FORCEFEEDBACK}
+			)
+	endif()
 endif()
 
 ########################################
