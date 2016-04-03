@@ -6,7 +6,9 @@
 
 #include "Common/GL/GLInterfaceBase.h"
 
-#if defined(__APPLE__)
+#if defined(IPHONEOS)
+#include "Common/GL/GLInterface/EAGL.h"
+#elif defined(__APPLE__)
 #include "Common/GL/GLInterface/AGL.h"
 #elif defined(_WIN32)
 #include "Common/GL/GLInterface/WGL.h"
@@ -26,7 +28,9 @@
 
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 {
-#if defined(__APPLE__)
+#if defined(IPHONEOS)
+    return std::make_unique<cInterfaceEAGL>();
+#elif defined(__APPLE__)
   return std::make_unique<cInterfaceAGL>();
 #elif defined(_WIN32)
   return std::make_unique<cInterfaceWGL>();

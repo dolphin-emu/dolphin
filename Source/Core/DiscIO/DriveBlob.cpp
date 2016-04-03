@@ -25,7 +25,7 @@
 #include <linux/fs.h>  // BLKGETSIZE64
 #elif defined __FreeBSD__
 #include <sys/disk.h>  // DIOCGMEDIASIZE
-#elif defined __APPLE__
+#elif defined __APPLE__ && !defined(IPHONEOS)
 #include <sys/disk.h>  // DKIOCGETBLOCKCOUNT / DKIOCGETBLOCKSIZE
 #endif
 #endif
@@ -87,7 +87,7 @@ DriveReader::DriveReader(const std::string& drive)
     off_t size = 0;
     ioctl(fd, DIOCGMEDIASIZE, &size);  // off_t*
     m_size = size;
-#elif defined __APPLE__
+#elif defined __APPLE__ && !defined(IPHONEOS)
     u64 count = 0;
     u32 block_size = 0;
     ioctl(fd, DKIOCGETBLOCKCOUNT, &count);      // u64*

@@ -122,7 +122,13 @@ static void ExceptionThread(mach_port_t port)
     int64_t code[2];
     int flavor;
     mach_msg_type_number_t old_stateCnt;
+#if __arm64__
+    natural_t old_state[ARM_THREAD_STATE64_COUNT];
+#elif __x86_64__
     natural_t old_state[x86_THREAD_STATE64_COUNT];
+#else
+#error unsupported architecture
+#endif
     mach_msg_trailer_t trailer;
   } msg_in;
 
@@ -133,7 +139,13 @@ static void ExceptionThread(mach_port_t port)
     kern_return_t RetCode;
     int flavor;
     mach_msg_type_number_t new_stateCnt;
+#if __arm64__
+    natural_t new_state[ARM_THREAD_STATE64_COUNT];
+#elif __x86_64__
     natural_t new_state[x86_THREAD_STATE64_COUNT];
+#else
+#error unsupported architecture
+#endif
   } msg_out;
 #pragma pack()
   memset(&msg_in, 0xee, sizeof(msg_in));
@@ -164,6 +176,15 @@ static void ExceptionThread(mach_port_t port)
       return;
     }
 
+#if __arm64__
+    if (msg_in.flavor != ARM_THREAD_STATE64)
+    {
+      PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, ARM_THREAD_STATE64);
+      return;
+    }
+
+    arm_thread_state64_t* state = (arm_thread_state64_t*)msg_in.old_state;
+#elif __x86_64__
     if (msg_in.flavor != x86_THREAD_STATE64)
     {
       PanicAlert("unknown flavor %d (expected %d)", msg_in.flavor, x86_THREAD_STATE64);
@@ -171,6 +192,9 @@ static void ExceptionThread(mach_port_t port)
     }
 
     x86_thread_state64_t* state = (x86_thread_state64_t*)msg_in.old_state;
+#else
+#error unsupported architecture
+#endif
 
     bool ok = JitInterface::HandleFault((uintptr_t)msg_in.code[1], state);
 
@@ -183,9 +207,17 @@ static void ExceptionThread(mach_port_t port)
     if (ok)
     {
       msg_out.RetCode = KERN_SUCCESS;
+#if __arm64__
+      msg_out.flavor = ARM_THREAD_STATE64;
+      msg_out.new_stateCnt = ARM_THREAD_STATE64_COUNT;
+      memcpy(msg_out.new_state, msg_in.old_state, ARM_THREAD_STATE64_COUNT * sizeof(natural_t));
+#elif __x86_64__
       msg_out.flavor = x86_THREAD_STATE64;
       msg_out.new_stateCnt = x86_THREAD_STATE64_COUNT;
       memcpy(msg_out.new_state, msg_in.old_state, x86_THREAD_STATE64_COUNT * sizeof(natural_t));
+#else
+#error unsupported architecture
+#endif
     }
     else
     {
@@ -215,9 +247,17 @@ void InstallExceptionHandler()
           mach_port_insert_right(mach_task_self(), port, port, MACH_MSG_TYPE_MAKE_SEND));
   // Mach tries the following exception ports in order: thread, task, host.
   // Debuggers set the task port, so we grab the thread port.
+#if __arm64__
+  CheckKR("thread_set_exception_ports",
+          thread_set_exception_ports(mach_thread_self(), EXC_MASK_BAD_ACCESS, port,
+                                     EXCEPTION_STATE | MACH_EXCEPTION_CODES, ARM_THREAD_STATE64));
+#elif __x86_64__
   CheckKR("thread_set_exception_ports",
           thread_set_exception_ports(mach_thread_self(), EXC_MASK_BAD_ACCESS, port,
                                      EXCEPTION_STATE | MACH_EXCEPTION_CODES, x86_THREAD_STATE64));
+#else
+#error unsupported architecture
+#endif
   // ...and get rid of our copy so that MACH_NOTIFY_NO_SENDERS works.
   CheckKR("mach_port_mod_refs",
           mach_port_mod_refs(mach_task_self(), port, MACH_PORT_RIGHT_SEND, -1));

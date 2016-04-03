@@ -7,7 +7,7 @@
 
 #if defined(_WIN32)
 #include <windows.h>
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && !defined(IPHONEOS)
 #include <CoreServices/CoreServices.h>
 #endif
 
@@ -150,6 +150,8 @@ void DolphinAnalytics::MakeBaseBuilder()
   }
 #elif defined(ANDROID)
   builder.AddData("os-type", "android");
+#elif defined(IPHONEOS)
+  builder.AddData("os-type", "ios");
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 

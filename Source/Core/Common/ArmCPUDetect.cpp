@@ -2,12 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <asm/hwcap.h>
 #include <fstream>
 #include <sstream>
 #include <string>
-#include <sys/auxv.h>
 #include <unistd.h>
+#if defined(__APPLE__)
+#include <sys/sysctl.h>
+#else
+#include <asm/hwcap.h>
+#include <sys/auxv.h>
+#endif
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
@@ -60,6 +64,15 @@ void CPUInfo::Detect()
   num_cores = sysconf(_SC_NPROCESSORS_CONF);
   strncpy(cpu_string, GetCPUString().c_str(), sizeof(cpu_string));
 
+#if defined(__APPLE__)
+  // TODO: TEST
+  // TODO: Add more capability testing
+  char fp;
+  size_t len = sizeof(fp);
+  sysctlbyname("hw.optional.floatingpoint", &fp, &len, NULL, 0);
+
+  bFP = fp;
+#else
   unsigned long hwcaps = getauxval(AT_HWCAP);
   bFP = hwcaps & HWCAP_FP;
   bASIMD = hwcaps & HWCAP_ASIMD;
@@ -67,6 +80,7 @@ void CPUInfo::Detect()
   bCRC32 = hwcaps & HWCAP_CRC32;
   bSHA1 = hwcaps & HWCAP_SHA1;
   bSHA2 = hwcaps & HWCAP_SHA2;
+#endif
 }
 
 // Turn the CPU info into a string we can show

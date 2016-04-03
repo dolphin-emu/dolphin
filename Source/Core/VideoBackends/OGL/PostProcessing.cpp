@@ -8,6 +8,7 @@
 #include "Common/StringUtil.h"
 
 #include "Common/GL/GLUtil.h"
+#include "Common/GL/GLInterfaceBase.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/PostProcessing.h"
@@ -44,7 +45,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 {
   ApplyShader();
 
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GLInterface->DisplayFramebuffer());
 
   glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 

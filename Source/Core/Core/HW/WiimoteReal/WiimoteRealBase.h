@@ -14,9 +14,11 @@
 #undef NS_ENUM_AVAILABLE
 #define NS_ENUM_AVAILABLE(...)
 // end hack
+#if !TARGET_OS_IPHONE
 #import <IOBluetooth/IOBluetooth.h>
 #include <IOKit/hid/IOHIDManager.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
+#endif
 #elif defined(__linux__) && HAVE_BLUEZ
 #include <bluetooth/bluetooth.h>
 #endif
