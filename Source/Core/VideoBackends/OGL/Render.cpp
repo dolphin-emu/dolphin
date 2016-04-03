@@ -1435,7 +1435,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
   }
 
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, GLInterface->DisplayFramebuffer());
 
   // Save screenshot
   if (s_bScreenshot)

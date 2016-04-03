@@ -6,6 +6,10 @@
 #include <cstring>
 #include <vector>
 
+#ifdef __APPLE__
+#include <libkern/OSCacheControl.h>
+#endif
+
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -325,7 +329,7 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
   if (start == end)
     return;
 
-#if defined(IOS)
+#if __APPLE__
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #else

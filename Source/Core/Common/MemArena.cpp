@@ -99,8 +99,13 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 #ifdef _WIN32
   return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
+#if defined(IPHONEOS)
+  void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
+                      MAP_ANON | MAP_PRIVATE | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
+#else
   void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
                       MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
+#endif
 
   if (retval == MAP_FAILED)
   {
@@ -125,7 +130,7 @@ void MemArena::ReleaseView(void* view, size_t size)
 
 u8* MemArena::FindMemoryBase()
 {
-#if _ARCH_64
+#if _ARCH_64 && !defined(IPHONEOS)
 #ifdef _WIN32
   // 64 bit
   u8* base = (u8*)VirtualAlloc(0, 0x400000000, MEM_RESERVE, PAGE_READWRITE);
@@ -179,7 +184,7 @@ static bool Memory_TryBase(u8* base, MemoryView* views, int num_views, u32 flags
 
     SKIP(flags, view->flags);
 
-#if _ARCH_64
+#if _ARCH_64 && !defined(IPHONEOS)
     // On 64-bit, we map the same file position multiple times, so we
     // don't need the software fallback for the mirrors.
     view_base = base + view->virtual_address;

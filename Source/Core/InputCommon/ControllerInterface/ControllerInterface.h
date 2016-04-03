@@ -10,6 +10,10 @@
 #include <string>
 #include <vector>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -26,7 +30,7 @@
 #define CIFACE_USE_X11_XINPUT2
 #endif
 #endif
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !TARGET_OS_IPHONE
 #define CIFACE_USE_OSX
 #endif
 #if defined(HAVE_SDL) && HAVE_SDL
