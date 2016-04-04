@@ -12,6 +12,32 @@
 
 namespace MathUtil
 {
+
+template <typename T>
+constexpr T SNANConstant()
+{
+	return std::numeric_limits<T>::signaling_NaN();
+}
+
+#ifdef _MSC_VER
+
+// MSVC needs a workaround, because its std::numeric_limits<double>::signaling_NaN()
+// will use __builtin_nans, which is improperly handled by the compiler and generates
+// a bad constant. Here we go back to the version MSVC used before the builtin.
+// TODO: Remove this and use numeric_limits directly whenever this bug is fixed.
+template <>
+constexpr double SNANConstant()
+{
+	return (_CSTD _Snan._Double);
+}
+template <>
+constexpr float SNANConstant()
+{
+	return (_CSTD _Snan._Float);
+}
+
+#endif
+
 template<class T>
 constexpr T Clamp(const T val, const T& min, const T& max)
 {
