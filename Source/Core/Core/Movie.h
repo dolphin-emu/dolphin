@@ -151,7 +151,6 @@ void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
 void DoFrameStep();
-void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
