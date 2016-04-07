@@ -67,7 +67,7 @@ static void Reset()
 	code_flags.fill(0);
 }
 
-static void AnalyzeRange(int start_addr, int end_addr)
+static void AnalyzeRange(u16 start_addr, u16 end_addr)
 {
 	// First we run an extremely simplified version of a disassembler to find
 	// where all instructions start.
@@ -75,7 +75,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 	// This may not be 100% accurate in case of jump tables!
 	// It could get desynced, which would be bad. We'll see if that's an issue.
 	u16 last_arithmetic = 0;
-	for (int addr = start_addr; addr < end_addr;)
+	for (unsigned addr = start_addr; addr < end_addr;)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
@@ -97,7 +97,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 		{
 			// LOOP, LOOPI
 			code_flags[addr] |= CODE_LOOP_START;
-			code_flags[addr + 1] |= CODE_LOOP_END;
+			code_flags[static_cast<u16>(addr + 1)] |= CODE_LOOP_END;
 		}
 
 		// Mark the last arithmetic/multiplier instruction before a branch.
@@ -122,7 +122,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 			opcode->opcode == 0x2000 ||
 			opcode->extended
 			)
-		code_flags[addr + opcode->size] |= CODE_CHECK_INT;
+		code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_INT;
 
 		addr += opcode->size;
 	}
@@ -130,7 +130,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 	// Next, we'll scan for potential idle skips.
 	for (int s = 0; s < NUM_IDLE_SIGS; s++)
 	{
-		for (int addr = start_addr; addr < end_addr; addr++)
+		for (unsigned addr = start_addr; addr < end_addr; addr++)
 		{
 			bool found = false;
 			for (int i = 0; i < MAX_IDLE_SIG_SIZE + 1; i++)
