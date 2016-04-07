@@ -243,7 +243,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
 		// Handle loop condition, only if current instruction was flagged as a loop destination
 		// by the analyzer.
-		if (DSPAnalyzer::code_flags[compilePC-1] & DSPAnalyzer::CODE_LOOP_END)
+		if (DSPAnalyzer::code_flags[static_cast<u16>(compilePC - 1)] & DSPAnalyzer::CODE_LOOP_END)
 		{
 			MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
 			TEST(32, R(EAX), R(EAX));

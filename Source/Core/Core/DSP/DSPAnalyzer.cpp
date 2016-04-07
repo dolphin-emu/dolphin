@@ -97,7 +97,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 		{
 			// LOOP, LOOPI
 			code_flags[addr] |= CODE_LOOP_START;
-			code_flags[addr + 1] |= CODE_LOOP_END;
+			code_flags[static_cast<u16>(addr + 1)] |= CODE_LOOP_END;
 		}
 
 		// Mark the last arithmetic/multiplier instruction before a branch.
@@ -122,7 +122,7 @@ static void AnalyzeRange(int start_addr, int end_addr)
 			opcode->opcode == 0x2000 ||
 			opcode->extended
 			)
-		code_flags[addr + opcode->size] |= CODE_CHECK_INT;
+		code_flags[static_cast<u16>(addr + opcode->size)] |= CODE_CHECK_INT;
 
 		addr += opcode->size;
 	}
