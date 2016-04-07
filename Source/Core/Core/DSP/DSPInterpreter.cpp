@@ -76,7 +76,7 @@ void Step()
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
 
-	if (DSPAnalyzer::code_flags[g_dsp.pc - 1] & DSPAnalyzer::CODE_LOOP_END)
+	if (DSPAnalyzer::code_flags[static_cast<u16>(g_dsp.pc - 1u)] & DSPAnalyzer::CODE_LOOP_END)
 		HandleLoop();
 }
 
