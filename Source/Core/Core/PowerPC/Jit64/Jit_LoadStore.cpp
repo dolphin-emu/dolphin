@@ -315,23 +315,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   SwitchToNearCode();
   SetJumpTarget(c);
 
-  // dcbi
-  if (inst.SUBOP10 == 470)
-  {
-    // Flush DSP DMA if DMAState bit is set
-    TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
-    c = J_CC(CC_NZ, true);
-    SwitchToFarCode();
-    SetJumpTarget(c);
-    ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-    SHL(32, R(addr), Imm8(5));
-    ABI_CallFunctionR(DSP::FlushInstantDMA, addr);
-    ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-    c = J(true);
-    SwitchToNearCode();
-    SetJumpTarget(c);
-  }
-
   gpr.UnlockAllX();
 }
 

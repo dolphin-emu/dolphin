@@ -137,9 +137,6 @@ struct ARAMInfo
 static ARAMInfo g_ARAM;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
-static u32 last_mmaddr;
-static u32 last_aram_dma_count;
-static bool instant_dma;
 UDSPControl g_dspState;
 
 union ARAM_Info {
@@ -177,9 +174,6 @@ void DoState(PointerWrap& p)
   p.Do(g_AR_MODE);
   p.Do(g_AR_REFRESH);
   p.Do(dsp_slice);
-  p.Do(last_mmaddr);
-  p.Do(last_aram_dma_count);
-  p.Do(instant_dma);
 
   dsp_emulator->DoState(p);
 }
@@ -195,30 +189,6 @@ static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
   g_dspState.DMAState = 0;
   GenerateDSPInterrupt(INT_ARAM);
-}
-
-void EnableInstantDMA()
-{
-  CoreTiming::RemoveEvent(et_CompleteARAM);
-  CompleteARAM(0, 0);
-  instant_dma = true;
-  ERROR_LOG(DSPINTERFACE, "Enabling Instant ARAM DMA hack");
-}
-
-void FlushInstantDMA(u32 address)
-{
-  u64 dma_in_progress = DSP::DMAInProgress();
-  if (dma_in_progress != 0)
-  {
-    u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
-    u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
-    u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
-
-    if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
-    {
-      DSP::EnableInstantDMA();
-    }
-  }
 }
 
 DSPEmulator* GetDSPEmulator()
@@ -256,11 +226,6 @@ void Init(bool hle)
   g_ARAM_Info.Hex = 0;
   g_AR_MODE = 1;       // ARAM Controller has init'd
   g_AR_REFRESH = 156;  // 156MHz
-
-  instant_dma = false;
-
-  last_aram_dma_count = 0;
-  last_mmaddr = 0;
 
   et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
   et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
@@ -527,15 +492,7 @@ static void Do_ARAM_DMA()
 
   // ARAM DMA transfer rate has been measured on real hw
   int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
-
-  // This is a huge hack that appears to be here only to fix Resident Evil 2/3
-  if (instant_dma)
-    ticksToTransfer = std::min(ticksToTransfer, 100);
-
   CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
-
-  last_mmaddr = g_arDMA.MMAddr;
-  last_aram_dma_count = g_arDMA.Cnt.count;
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
   if (g_arDMA.Cnt.dir)
@@ -665,15 +622,6 @@ void WriteARAM(u8 value, u32 _uAddress)
 u8* GetARAMPtr()
 {
   return g_ARAM.ptr;
-}
-
-u64 DMAInProgress()
-{
-  if (g_dspState.DMAState == 1)
-  {
-    return ((u64)last_mmaddr << 32 | (last_mmaddr + last_aram_dma_count));
-  }
-  return 0;
 }
 
 }  // end of namespace DSP
