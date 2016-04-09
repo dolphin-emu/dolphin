@@ -118,7 +118,7 @@ static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 static void VICallback(u64 userdata, int cyclesLate)
 {
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(s64(VideoInterface::GetTicksPerHalfLine()) - cyclesLate, et_VI);
 }
 
 static void DecrementerCallback(u64 userdata, int cyclesLate)
