@@ -256,8 +256,8 @@ static unsigned char s_media_buffer[0x40];
 static int s_eject_disc;
 static int s_insert_disc;
 
-void EjectDiscCallback(u64 userdata, int cyclesLate);
-void InsertDiscCallback(u64 userdata, int cyclesLate);
+static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
+static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 
 void SetLidOpen(bool _bOpen);
 
@@ -301,7 +301,7 @@ void DoState(PointerWrap &p)
 	DVDThread::DoState(p);
 }
 
-static void FinishExecuteCommand(u64 userdata, int cyclesLate)
+static void FinishExecuteCommand(u64 userdata, s64 cyclesLate)
 {
 	if (s_DICR.TSTART)
 	{
@@ -354,7 +354,7 @@ static u32 ProcessDTKSamples(short *tempPCM, u32 num_samples)
 	return samples_processed;
 }
 
-static void DTKStreamingCallback(u64 userdata, int cyclesLate)
+static void DTKStreamingCallback(u64 userdata, s64 cyclesLate)
 {
 	// Send audio to the mixer.
 	static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
@@ -461,14 +461,14 @@ bool IsDiscInside()
 // We want this in the "backend", NOT the gui
 // any !empty string will be deleted to ensure
 // that the userdata string exists when called
-void EjectDiscCallback(u64 userdata, int cyclesLate)
+static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
 	DVDThread::WaitUntilIdle();
 	s_inserted_volume.reset();
 	SetDiscInside(false);
 }
 
-void InsertDiscCallback(u64 userdata, int cyclesLate)
+static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
 	std::string& SavedFileName = SConfig::GetInstance().m_strFilename;
 	std::string *_FileName = (std::string *)userdata;

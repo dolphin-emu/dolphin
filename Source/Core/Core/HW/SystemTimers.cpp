@@ -91,22 +91,22 @@ u32 GetTicksPerSecond()
 }
 
 // DSP/CPU timeslicing.
-static void DSPCallback(u64 userdata, int cyclesLate)
+static void DSPCallback(u64 userdata, s64 cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
-	DSP::UpdateDSPSlice(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate);
+	DSP::UpdateDSPSlice(static_cast<int>(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
 	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
-static void AudioDMACallback(u64 userdata, int cyclesLate)
+static void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
 	int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
 
-static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
+static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
 	if (SConfig::GetInstance().bWii)
 	{
@@ -115,13 +115,13 @@ static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 	}
 }
 
-static void VICallback(u64 userdata, int cyclesLate)
+static void VICallback(u64 userdata, s64 cyclesLate)
 {
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(s64(VideoInterface::GetTicksPerHalfLine()) - cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
-static void DecrementerCallback(u64 userdata, int cyclesLate)
+static void DecrementerCallback(u64 userdata, s64 cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
@@ -157,14 +157,14 @@ u64 GetFakeTimeBase()
 	return CoreTiming::GetFakeTBStartValue() + ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-static void PatchEngineCallback(u64 userdata, int cyclesLate)
+static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
 }
 
-static void ThrottleCallback(u64 last_time, int cyclesLate)
+static void ThrottleCallback(u64 last_time, s64 cyclesLate)
 {
 	// Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
 	Fifo::GpuMaySleep();
