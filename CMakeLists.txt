@@ -199,7 +199,7 @@ endmacro()
 
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
-	add_definitions(-Wall)
+	add_definitions(-Wall -Wsign-conversion)
 
 	# TODO: would like these but they produce overwhelming amounts of warnings
 	#check_and_add_flag(EXTRA -Wextra)
