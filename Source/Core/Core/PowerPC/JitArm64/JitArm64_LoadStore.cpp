@@ -733,34 +733,6 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   SetJumpTarget(bit_not_set);
   SetJumpTarget(near);
 
-  // dcbi
-  if (inst.SUBOP10 == 470)
-  {
-    // Flush DSP DMA if DMAState bit is set
-    MOVI2R(EncodeRegTo64(WA), (u64)&DSP::g_dspState);
-    LDRH(INDEX_UNSIGNED, WA, EncodeRegTo64(WA), 0);
-
-    bit_not_set = TBZ(WA, 9);
-    far = B();
-    SwitchToFarCode();
-    SetJumpTarget(far);
-
-    ABI_PushRegisters(gprs_to_push);
-    m_float_emit.ABI_PushRegisters(fprs_to_push, X30);
-
-    LSL(W0, addr, 5);
-    MOVI2R(X1, (u64)DSP::FlushInstantDMA);
-    BLR(X1);
-
-    m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
-    ABI_PopRegisters(gprs_to_push);
-
-    near = B();
-    SwitchToNearCode();
-    SetJumpTarget(near);
-    SetJumpTarget(bit_not_set);
-  }
-
   gpr.Unlock(addr, value, W30);
 }
 
