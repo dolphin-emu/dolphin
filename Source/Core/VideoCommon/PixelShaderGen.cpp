@@ -467,7 +467,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 			{
 				out.Write("uv%d.xy", i);
 			}
-			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n", i);
+			out.Write(" * " I_TEXDIMS"[%d].zw);\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -501,7 +501,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 				out.Write("\ttempcoord = int2(0, 0);\n");
 
 			out.Write("\tint3 iindtex%d = ", i);
-			SampleTexture<T>(out, "(float2(tempcoord)/128.0)", "abg", texmap, ApiType);
+			SampleTexture<T>(out, "float2(tempcoord)", "abg", texmap, ApiType);
 		}
 	}
 
@@ -836,7 +836,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		uid_data->SetTevindrefTexmap(i, texmap);
 
 		out.Write("\ttextemp = ");
-		SampleTexture<T>(out, "(float2(tevcoord.xy)/128.0)", texswap, texmap, ApiType);
+		SampleTexture<T>(out, "(tevcoord.xy)", texswap, texmap, ApiType);
 	}
 	else
 	{
