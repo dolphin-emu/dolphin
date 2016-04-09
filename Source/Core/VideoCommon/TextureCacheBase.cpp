@@ -309,7 +309,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
 			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
-			&& entry->frameCount == FRAMECOUNT_INVALID
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
 			if (entry->hash == entry->CalculateHash())
@@ -368,8 +367,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				dstrect.right = (dst_x + copy_width);
 				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
-				// Mark the texture update as used, so it isn't applied more than once
-				entry->frameCount = frameCount;
+				// Mark the texture update as used, as if it was loaded directly
+				entry->frameCount = FRAMECOUNT_INVALID;
 			}
 			else
 			{
