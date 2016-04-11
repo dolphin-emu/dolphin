@@ -31,8 +31,8 @@ struct ARCode
 
 void RunAllActive();
 bool RunCode(const ARCode &arcode);
-void LoadCodes(const IniFile &globalini, const IniFile &localIni, bool forceLoad);
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalini, IniFile &localIni);
+void LoadAndApplyCodes(const IniFile& globalini, const IniFile& localIni);
+std::vector<ARCode> LoadCodes(const IniFile& globalini, const IniFile& localIni);
 size_t GetCodeListSize();
 ARCode GetARCode(size_t index);
 void SetARCode_IsActive(bool active, size_t index);

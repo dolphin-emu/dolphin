@@ -1399,9 +1399,8 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::ActionReplayList_Load()
 {
-	arCodes.clear();
 	Cheats->Clear();
-	ActionReplay::LoadCodes(arCodes, GameIniDefault, GameIniLocal);
+	arCodes = ActionReplay::LoadCodes(GameIniDefault, GameIniLocal);
 
 	u32 index = 0;
 	for (const ActionReplay::ARCode& arCode : arCodes)

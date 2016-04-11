@@ -102,14 +102,19 @@ struct ARAddr
 
 // ----------------------
 // AR Remote Functions
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
+void LoadAndApplyCodes(const IniFile& globalIni, const IniFile& localIni)
 {
 	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().bEnableCheats &&
-		!forceLoad)
+	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
-	arCodes.clear();
+	arCodes = LoadCodes(globalIni, localIni);
+	UpdateActiveList();
+}
+
+std::vector<ARCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
+{
+	std::vector<ARCode> codes;
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
@@ -146,13 +151,13 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 			{
 				if (currentCode.ops.size())
 				{
-					arCodes.push_back(currentCode);
+					codes.push_back(currentCode);
 					currentCode.ops.clear();
 				}
 				if (encryptedLines.size())
 				{
 					DecryptARCode(encryptedLines, currentCode.ops);
-					arCodes.push_back(currentCode);
+					codes.push_back(currentCode);
 					currentCode.ops.clear();
 					encryptedLines.clear();
 				}
@@ -204,22 +209,16 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		// Handle the last code correctly.
 		if (currentCode.ops.size())
 		{
-			arCodes.push_back(currentCode);
+			codes.push_back(currentCode);
 		}
 		if (encryptedLines.size())
 		{
 			DecryptARCode(encryptedLines, currentCode.ops);
-			arCodes.push_back(currentCode);
+			codes.push_back(currentCode);
 		}
 	}
 
-	UpdateActiveList();
-}
-
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
-{
-	LoadCodes(globalIni, localIni, true);
-	_arCodes = arCodes;
+	return codes;
 }
 
 
