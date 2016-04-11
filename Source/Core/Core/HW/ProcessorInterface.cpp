@@ -31,7 +31,7 @@ static u32 m_Unknown;
 
 // ID and callback for scheduling reset button presses/releases
 static int toggleResetButton;
-void ToggleResetButtonCallback(u64 userdata, int cyclesLate);
+static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
 
 // Let the PPC know that an external exception is set/cleared
 void UpdateException();
@@ -196,7 +196,7 @@ static void SetResetButton(bool _bSet)
 	SetInterrupt(INT_CAUSE_RST_BUTTON, !_bSet);
 }
 
-void ToggleResetButtonCallback(u64 userdata, int cyclesLate)
+static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)
 {
 	SetResetButton(!!userdata);
 }

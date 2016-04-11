@@ -84,7 +84,7 @@ static void FreeEvent(Event* ev)
 	eventPool = ev;
 }
 
-static void EmptyTimedCallback(u64 userdata, int cyclesLate) {}
+static void EmptyTimedCallback(u64 userdata, s64 cyclesLate) {}
 
 // Changing the CPU speed in Dolphin isn't actually done by changing the physical clock rate,
 // but by changing the amount of work done in a particular amount of time. This tends to be more

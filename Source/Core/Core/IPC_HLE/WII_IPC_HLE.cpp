@@ -83,7 +83,7 @@ static u64 last_reply_time;
 
 static const u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
-static void EnqueueEvent(u64 userdata, int cycles_late = 0)
+static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
 {
 	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
 	{

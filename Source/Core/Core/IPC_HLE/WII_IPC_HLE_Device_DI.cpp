@@ -18,7 +18,7 @@
 
 static int ioctl_callback;
 
-static void IOCtlCallback(u64 userdata, int cycles_late)
+static void IOCtlCallback(u64 userdata, s64 cycles_late)
 {
 	std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
 	if (di)

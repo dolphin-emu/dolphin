@@ -196,12 +196,12 @@ void DoState(PointerWrap &p)
 
 static void UpdateInterrupts();
 static void Do_ARAM_DMA();
-static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate = 0);
+static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
 static int et_GenerateDSPInterrupt;
 static int et_CompleteARAM;
 
-static void CompleteARAM(u64 userdata, int cyclesLate)
+static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
 	g_dspState.DMAState = 0;
 	GenerateDSPInterrupt(INT_ARAM);
@@ -467,7 +467,7 @@ static void UpdateInterrupts()
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
-static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
+static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 {
 	// The INT_* enumeration members have values that reflect their bit positions in
 	// DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people

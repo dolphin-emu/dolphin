@@ -32,10 +32,10 @@ private:
 	static void EventCompleteFindInstance(u64 userdata, std::function<void(CEXIMemoryCard*)> callback);
 
 	// Scheduled when a command that required delayed end signaling is done.
-	static void CmdDoneCallback(u64 userdata, int cyclesLate);
+	static void CmdDoneCallback(u64 userdata, s64 cyclesLate);
 
 	// Scheduled when memory card is done transferring data
-	static void TransferCompleteCallback(u64 userdata, int cyclesLate);
+	static void TransferCompleteCallback(u64 userdata, s64 cyclesLate);
 
 	// Signals that the command that was previously executed is now done.
 	void CmdDone();

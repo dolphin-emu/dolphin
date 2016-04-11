@@ -28,8 +28,8 @@ static int updateInterrupts;
 
 static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
 
-static void ChangeDeviceCallback(u64 userdata, int cyclesLate);
-static void UpdateInterruptsCallback(u64 userdata, int cycles_late);
+static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate);
+static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
 
 void Init()
 {
@@ -91,7 +91,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-static void ChangeDeviceCallback(u64 userdata, int cyclesLate)
+static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
 	u8 type = (u8)(userdata >> 16);
@@ -139,7 +139,7 @@ void UpdateInterrupts()
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, causeInt);
 }
 
-static void UpdateInterruptsCallback(u64 userdata, int cycles_late)
+static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late)
 {
 	UpdateInterrupts();
 }

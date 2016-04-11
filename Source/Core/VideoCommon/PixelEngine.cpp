@@ -124,11 +124,11 @@ void DoState(PointerWrap &p)
 	p.Do(s_signal_finish_interrupt);
 }
 
-void UpdateInterrupts();
-void UpdateTokenInterrupt(bool active);
-void UpdateFinishInterrupt(bool active);
-void SetToken_OnMainThread(u64 userdata, int cyclesLate);
-void SetFinish_OnMainThread(u64 userdata, int cyclesLate);
+static void UpdateInterrupts();
+static void UpdateTokenInterrupt(bool active);
+static void UpdateFinishInterrupt(bool active);
+static void SetToken_OnMainThread(u64 userdata, s64 cyclesLate);
+static void SetFinish_OnMainThread(u64 userdata, s64 cyclesLate);
 
 void Init()
 {
@@ -237,7 +237,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	}
 }
 
-void UpdateInterrupts()
+static void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
 	UpdateTokenInterrupt((s_signal_token_interrupt.load() & m_Control.PETokenEnable) != 0);
@@ -246,12 +246,12 @@ void UpdateInterrupts()
 	UpdateFinishInterrupt((s_signal_finish_interrupt.load() & m_Control.PEFinishEnable) != 0);
 }
 
-void UpdateTokenInterrupt(bool active)
+static void UpdateTokenInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
 }
 
-void UpdateFinishInterrupt(bool active)
+static void UpdateFinishInterrupt(bool active)
 {
 	ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
 }
@@ -261,7 +261,7 @@ void UpdateFinishInterrupt(bool active)
 //            Cleanup++
 
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
-void SetToken_OnMainThread(u64 userdata, int cyclesLate)
+static void SetToken_OnMainThread(u64 userdata, s64 cyclesLate)
 {
 	// XXX: No 16-bit atomic store available, so cheat and use 32-bit.
 	// That's what we've always done. We're counting on fifo.PEToken to be
@@ -276,7 +276,7 @@ void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 	CommandProcessor::SetInterruptTokenWaiting(false);
 }
 
-void SetFinish_OnMainThread(u64 userdata, int cyclesLate)
+static void SetFinish_OnMainThread(u64 userdata, s64 cyclesLate)
 {
 	s_signal_finish_interrupt.store(1);
 	UpdateInterrupts();

@@ -30,7 +30,7 @@ namespace DVDThread
 
 static void DVDThread();
 
-static void FinishRead(u64 userdata, int cyclesLate);
+static void FinishRead(u64 userdata, s64 cyclesLate);
 static int s_finish_read;
 
 static std::thread s_dvd_thread;
@@ -129,7 +129,7 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt,
 	CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_read);
 }
 
-static void FinishRead(u64 userdata, int cyclesLate)
+static void FinishRead(u64 userdata, s64 cyclesLate)
 {
 	WaitUntilIdle();
 
