@@ -212,6 +212,7 @@ void EnableInstantDMA()
 	CoreTiming::RemoveEvent(et_CompleteARAM);
 	CompleteARAM(0, 0);
 	instant_dma = true;
+	ERROR_LOG(DSPINTERFACE, "Enabling Instant ARAM DMA hack");
 }
 
 void FlushInstantDMA(u32 address)
@@ -544,13 +545,11 @@ static void Do_ARAM_DMA()
 	// ARAM DMA transfer rate has been measured on real hw
 	int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
 
+	// This is a huge hack that appears to be here only to fix Resident Evil 2/3
 	if (instant_dma)
-		ticksToTransfer = 0;
+		ticksToTransfer = std::min(ticksToTransfer, 100);
 
 	CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
-
-	if (instant_dma)
-		CoreTiming::ForceExceptionCheck(100);
 
 	last_mmaddr = g_arDMA.MMAddr;
 	last_aram_dma_count = g_arDMA.Cnt.count;
