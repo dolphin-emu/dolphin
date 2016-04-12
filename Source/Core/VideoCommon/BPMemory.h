@@ -343,24 +343,18 @@ struct TevStageCombiner
 //  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
 
 union TevStageIndirect {
-  struct
-  {
-    u32 bt : 2;          // Indirect tex stage ID
-    u32 fmt : 2;         // Format: ITF_X
-    u32 bias : 3;        // ITB_X
-    u32 bs : 2;          // ITBA_X, indicates which coordinate will become the 'bump
-                         // alpha'
-    u32 mid : 4;         // Matrix ID to multiply offsets with
-    u32 sw : 3;          // ITW_X, wrapping factor for S of regular coord
-    u32 tw : 3;          // ITW_X, wrapping factor for T of regular coord
-    u32 lb_utclod : 1;   // Use modified or unmodified texture coordinates for LOD
-                         // computation
-    u32 fb_addprev : 1;  // 1 if the texture coordinate results from the previous
-                         // TEV stage should
-                         // be added
-    u32 pad0 : 3;
-    u32 rid : 8;
-  };
+  BitField<0, 2, u32> bt;    // Indirect tex stage ID
+  BitField<2, 2, u32> fmt;   // Format: ITF_X
+  BitField<4, 3, u32> bias;  // ITB_X
+  BitField<7, 2, u32> bs;    // ITBA_X, indicates which coordinate will become the 'bump alpha'
+  BitField<9, 4, u32> mid;   // Matrix ID to multiply offsets with
+  BitField<13, 3, u32> sw;   // ITW_X, wrapping factor for S of regular coord
+  BitField<16, 3, u32> tw;   // ITW_X, wrapping factor for T of regular coord
+  BitField<19, 1, u32> lb_utclod;   // Use modified or unmodified texture
+                                    // coordinates for LOD computation
+  BitField<20, 1, u32> fb_addprev;  // 1 if the texture coordinate results from the previous TEV
+                                    // stage should be added
+
   struct
   {
     u32 hex : 21;
