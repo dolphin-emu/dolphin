@@ -144,6 +144,8 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
     case XFMEM_SETTEXMTXINFO + 6:
     case XFMEM_SETTEXMTXINFO + 7:
       VertexManagerBase::Flush();
+      if ((xfmem.texMtxInfo[address & 0xf].hex & 2) != (newValue & 2))
+        PixelShaderManager::SetTexProjectionChanged();
 
       nextAddress = XFMEM_SETTEXMTXINFO + 8;
       break;

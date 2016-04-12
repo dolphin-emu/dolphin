@@ -40,6 +40,7 @@ public:
   static void SetFogParamChanged();
   static void SetFogRangeAdjustChanged();
   static void UpdateBP(u32 addr, u32 newValue);
+  static void SetTexProjectionChanged();
 
   static PixelShaderConstants constants;
   static UberShaderConstants more_constants;
@@ -47,4 +48,6 @@ public:
 
   static bool s_bFogRangeAdjustChanged;
   static bool s_bViewPortChanged;
+  static bool s_bIndirectDirty;
+  static bool s_bTexProjDirty;
 };
