@@ -63,10 +63,12 @@ struct UberShaderConstants
 	u32 dstalpha; // x
 	u32 ztex2; // y
 	u32 zcontrol; // z
-	u32 pad;
+	u32 projection; // w
 	uint4 tevorder[8]; // .x
 	uint4 combiners[16]; // .xy
 	uint4 tevksel[8]; // .x
+	uint4 iref; // .xyzw
+	uint4 tevind[16]; // .x
 	int4 konst[32]; // .rgba
 	float4 debug;
 };

@@ -52,9 +52,12 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	uint	bpmem_dstalpha;\n"
 		"	uint	bpmem_ztex2;\n" // TODO: We only use two bits out of this
 		"	uint	bpmem_zcontrol;\n" // TODO: We only use one bit out of this
+		"	uint	xfmem_projection;\n"
 		"	uint	bpmem_tevorder[8];\n"
 		"	uint2	bpmem_combiners[16];\n"
 		"	uint	bpmem_tevksel[8];\n"
+		"	uint4	bpmem_iref;\n"
+		"	uint	bpmem_tevind[16];\n"
 		"	int4	konstLookup[32];\n"
 		"	float4  debug;\n"
 		"};\n");
@@ -132,7 +135,20 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"	ret.a = color[%s];\n", BitfieldExtract("bpmem_tevksel[s * 2u + 1u]", TevKSel().swap2).c_str());
 	out.Write(
 		"	return ret;\n"
-		"}\n");
+		"}\n\n");
+
+	// ======================
+	//   Indirect Wrappping
+	// ======================
+	out.Write(
+		"int Wrap(int coord, uint mode) {\n"
+		"	if (mode == 0) // ITW_OFF\n"
+		"		return coord;\n"
+		"	else if (mode < 6) // ITW_256 to ITW_16\n"
+		"		return coord & (0xfffe >> mode);\n"
+		"	else // ITW_0\n"
+		"		return 0;\n"
+		"}\n\n");
 
 	// ======================
 	//   TEV's Special Lerp
@@ -385,6 +401,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
 	out.Write(
 		"	int AlphaBump = 0;\n"
+		"	int3 tevcoord = int3(0, 0, 0);\n"
 		"	int4 icolors_0 = iround(colors_0 * 255.0);\n"
 		"	int4 icolors_1 = iround(colors_1 * 255.0);\n"
 		"	int4 TevResult;\n"
@@ -396,9 +413,41 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 	for (int i = 0; i < 4; i++) out.Write(
 		"	s.Reg[%d] = " I_COLORS"[%d];\n", i, i);
 
+	if (numTexgen != 0)
+	{
+	out.Write( // TODO: Skip preload on Nvidia and other GPUs which can't handle dynamic indexed arrays?
+		"\n"
+		"	int3 indtex[4];\n"
+		"	// Pre-sample indirect textures\n"
+		"	for(uint i = 0u; i < 4u; i++)\n"
+		"	{\n"
+		"		uint iref = bpmem_iref[i];\n"
+		"		if ( iref != 0)\n"
+		"		{\n"
+		"			uint texcoord = bitfieldExtract(iref, 0, 3);\n"
+		"			uint texmap = bitfieldExtract(iref, 8, 3);\n"
+		"			int2 fixedPoint_uv; \n"
+		"			if ((xfmem_projection & (1 << texcoord)) != 0) // Optional Perspective divide\n"
+		"				fixedPoint_uv = itrunc((tex[texcoord].xy / tex[texcoord].z) * " I_TEXDIMS"[texcoord].zw);\n"
+		"			else\n"
+		"				fixedPoint_uv = itrunc(tex[texcoord].xy * " I_TEXDIMS"[texcoord].zw);\n"
+		"\n"
+		"			if ((i & 1) == 0)\n"
+		"				fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE"[i >> 1].xy;\n"
+		"			else\n"
+		"				fixedPoint_uv = fixedPoint_uv >> " I_INDTEXSCALE"[i >> 1].zw;\n"
+		"\n"
+		"			indtex[i] = sampleTexture(texmap, fixedPoint_uv).abg;\n"
+		"		}\n"
+		"		else\n"
+		"		{\n"
+		"			indtex[i] = int3(0, 0, 0);\n"
+		"		}\n"
+		"	}\n"
+		"\n");
+	}
 
 	out.Write(
-		"\n"
 		"	uint num_stages = %s;\n\n", BitfieldExtract("bpmem_genmode", bpmem.genMode.numtevstages).c_str());
 
 	out.Write(
@@ -414,25 +463,128 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		if ((stage & 1u) == 1u)\n"
 		"			order = order >> %d;\n\n", TwoTevStageOrders().enable1.offset - TwoTevStageOrders().enable0.offset);
 
-	// TODO: Indirect Texturing
-	out.Write("\t\t// TODO: Indirect textures\n\n");
-
 	// Disable texturing when there are no texgens (for now)
 	if (numTexgen != 0)
 	{
 	out.Write(
-		"		// Sample texture for stage\n"
-		"		if((order & %du) != 0u) {\n", 1 << TwoTevStageOrders().enable0.offset);
+		"		uint tex_coord = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texcoord0).c_str());
 	out.Write(
-		"			// Texture is enabled\n"
-		"			uint sampler_num = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texmap0).c_str());
-	out.Write(
-		"			uint tex_coord = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texcoord0).c_str());
+		"		int2 fixedPoint_uv;\n"
+		"		if ((xfmem_projection & (1 << tex_coord)) != 0) // Optional Perspective divide\n"
+		"			fixedPoint_uv = itrunc((tex[tex_coord].xy / tex[tex_coord].z) * " I_TEXDIMS"[tex_coord].zw);\n"
+		"		else\n"
+		"			fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[tex_coord].zw);\n"
+		"\n"
+		"		bool texture_enabled = (order & %du) != 0u;\n", 1 << TwoTevStageOrders().enable0.offset);
 	out.Write(
 		"\n"
-		"			// TODO: there is an optional perspective divide here (not to mention all of indirect)\n"
-		"			int2 fixedPoint_uv = itrunc(tex[tex_coord].xy * " I_TEXDIMS"[tex_coord].zw * 128.0);\n"
-		"			float2 uv = (float2(fixedPoint_uv) / 128.0) * " I_TEXDIMS"[sampler_num].xy;\n"
+		"		// Indirect textures\n"
+		"		uint tevind = bpmem_tevind[stage];\n"
+		"		if (tevind != 0u)\n"
+		"		{\n"
+		"			// TODO: That Alphabump stuff\n" // TODO: Alpha Bump
+		"			uint fmt = %s;\n", BitfieldExtract("tevind", TevStageIndirect().fmt).c_str());
+	out.Write(
+		"			uint bias = %s;\n", BitfieldExtract("tevind", TevStageIndirect().bias).c_str());
+	out.Write(
+		"			uint bt = %s;\n", BitfieldExtract("tevind", TevStageIndirect().bt).c_str());
+	out.Write(
+		"			uint mid = %s;\n", BitfieldExtract("tevind", TevStageIndirect().mid).c_str());
+	out.Write(
+		"\n"
+		"			int3 indcoord = indtex[bt];\n"
+		"			switch(fmt)\n"
+		"			{\n"
+		"			case %i:\n", ITF_8);
+	out.Write(
+		"				indcoord.x = indcoord.x + ((bias & 1) != 0 ? -128 : 0);\n"
+		"				indcoord.y = indcoord.y + ((bias & 2) != 0 ? -128 : 0);\n"
+		"				indcoord.z = indcoord.z + ((bias & 4) != 0 ? -128 : 0);\n"
+		"				AlphaBump = AlphaBump & 0xf8;\n"
+		"				break;\n"
+		"			case %i:\n", ITF_5);
+	out.Write(
+		"				indcoord.x = (indcoord.x & 0x1f) + ((bias & 1) != 0 ? 1 : 0);\n"
+		"				indcoord.y = (indcoord.y & 0x1f) + ((bias & 2) != 0 ? 1 : 0);\n"
+		"				indcoord.z = (indcoord.z & 0x1f) + ((bias & 4) != 0 ? 1 : 0);\n"
+		"				AlphaBump = AlphaBump & 0xe0;\n"
+		"				break;\n"
+		"			case %i:\n", ITF_4);
+	out.Write(
+		"				indcoord.x = (indcoord.x & 0x0f) + ((bias & 1) != 0 ? 1 : 0);\n"
+		"				indcoord.y = (indcoord.y & 0x0f) + ((bias & 2) != 0 ? 1 : 0);\n"
+		"				indcoord.z = (indcoord.z & 0x0f) + ((bias & 4) != 0 ? 1 : 0);\n"
+		"				AlphaBump = AlphaBump & 0xf0;\n"
+		"				break;\n"
+		"			case %i:\n", ITF_3);
+	out.Write(
+		"				indcoord.x = (indcoord.x & 0x07) + ((bias & 1) != 0 ? 1 : 0);\n"
+		"				indcoord.y = (indcoord.y & 0x07) + ((bias & 2) != 0 ? 1 : 0);\n"
+		"				indcoord.z = (indcoord.z & 0x07) + ((bias & 4) != 0 ? 1 : 0);\n"
+		"				AlphaBump = AlphaBump & 0xf8;\n"
+		"				break;\n"
+		"			default:\n"
+		"				indcoord = int3(0, 0, 0);\n"
+		"				AlphaBump = 0;\n"
+		"				break;\n"
+		"			}\n"
+		"\n"
+		"			// Matrix multiply\n"
+		"			int2 indtevtrans = int2(0, 0);\n"
+		"			if ((mid & 0x3) != 0u)\n"
+		"			{\n"
+		"				uint mtxidx = 2 * ((mid & 0x3) -1);\n"
+		"				int shift =" I_INDTEXMTX"[mtxidx].w;\n"
+		"\n"
+		"				switch (mid >> 2)\n"
+		"				{\n"
+		"				case 0: // 3x2 S0.10 matrix\n"
+		"					indtevtrans = int2(idot(" I_INDTEXMTX"[mtxidx].xyz, indcoord), idot(" I_INDTEXMTX"[mtxidx + 1].xyz, indcoord));\n"
+		"					shift = shift + 3;\n"
+		"					break;\n"
+		"				case 1: // S matrix, S17.7 format\n"
+		"					indtevtrans = fixedPoint_uv * indcoord.xx;\n"
+		"					shift = shift + 8;\n"
+		"					break;\n"
+		"				case 2: // T matrix, S17.7 format\n"
+		"					indtevtrans = fixedPoint_uv * indcoord.yy;\n"
+		"					shift = shift + 8;\n"
+		"					break;\n"
+		"				}\n"
+		"\n"
+		"				if (shift > 0)\n"
+		"					indtevtrans = indtevtrans >> shift;\n"
+		"				else\n"
+		"					indtevtrans = indtevtrans << -shift;\n"
+		"			}\n"
+		"\n"
+		"			// Wrapping\n"
+		"			uint sw = %s;\n", BitfieldExtract("tevind", TevStageIndirect().sw).c_str());
+	out.Write(
+		"			uint tw = %s; \n", BitfieldExtract("tevind", TevStageIndirect().tw).c_str());
+	out.Write(
+		"			int2 wrapped_coord = int2(Wrap(fixedPoint_uv.x, sw), Wrap(fixedPoint_uv.y, tw));\n"
+		"\n"
+		"			if ((tevind & %du) != 0u) // add previous tevcoord\n", 1 << TevStageIndirect().fb_addprev.offset);
+	out.Write(
+		"				tevcoord.xy += wrapped_coord + indtevtrans;\n"
+		"			else\n"
+		"				tevcoord.xy = wrapped_coord + indtevtrans;\n"
+		"\n"
+		"			// Emulate s24 overflows\n"
+		"			tevcoord.xy = (tevcoord.xy << 8) >> 8;\n"
+		"		}\n"
+		"		else if (texture_enabled)\n"
+		"		{\n"
+		"			tevcoord.xy = fixedPoint_uv;\n"
+		"		}\n"
+		"\n"
+		"		// Sample texture for stage\n"
+		"		if(texture_enabled) {\n"
+		"			uint sampler_num = %s;\n", BitfieldExtract("order", TwoTevStageOrders().texmap0).c_str());
+	out.Write(
+		"\n"
+		"			float2 uv = (float2(tevcoord.xy)) * " I_TEXDIMS"[sampler_num].xy;\n"
 		"\n"
 		"			int4 color = sampleTexture(sampler_num, uv);\n"
 		"\n"
