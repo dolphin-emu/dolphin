@@ -15,6 +15,8 @@
 
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
+bool PixelShaderManager::s_bIndirectDirty;
+bool PixelShaderManager::s_bTexProjDirty;
 
 PixelShaderConstants PixelShaderManager::constants;
 UberShaderConstants PixelShaderManager::more_constants;
@@ -127,6 +129,38 @@ void PixelShaderManager::SetConstants() {
     constants.zbias[1][1] = (u32)xfmem.viewport.zRange;
     dirty = true;
     s_bViewPortChanged = false;
+  }
+
+  if (s_bIndirectDirty) {
+    for (int i = 0; i < 4; i++)
+      more_constants.iref[i] = 0;
+
+    for (u32 i = 0; i < (bpmem.genMode.numtevstages + 1); ++i) {
+      u32 stage = bpmem.tevind[i].bt;
+      if (stage < bpmem.genMode.numindstages) {
+        // We set some extra bits so the ubershader can quickly check if these
+        // features are in use.
+        if (bpmem.tevind[i].IsActive())
+          more_constants.iref[stage] = bpmem.tevindref.getTexCoord(stage) |
+                                       bpmem.tevindref.getTexMap(stage) << 8 |
+                                       1 << 16;
+        more_constants.tevind[i][0] =
+            bpmem.tevind[i].hex | 1 << 31; // TODO: This match shadergen, but
+                                           // videosw will always wrap.
+      } else {
+        more_constants.tevind[i][0] = 0;
+      }
+    }
+
+    dirty = true;
+    s_bIndirectDirty = false;
+  }
+
+  if (s_bTexProjDirty) {
+    u32 projection = 0;
+    for (int i = 0; i < 8; i++)
+      projection |= xfmem.texMtxInfo[i].projection << i;
+    more_constants.projection = projection;
   }
 }
 
@@ -304,6 +338,8 @@ void PixelShaderManager::SetFogRangeAdjustChanged() {
   s_bFogRangeAdjustChanged = true;
 }
 
+void PixelShaderManager::SetTexProjectionChanged() { s_bTexProjDirty = true; }
+
 void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
   // TODO: think of a less totally hacky way of doing this.
   if (bp == 0) {
@@ -339,6 +375,10 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
     u32 ksel = bp - 0xf6;
     more_constants.tevksel[ksel][0] = newValue;
     dirty = true;
+  } else if (bp == BPMEM_IREF || (bp & 0xf0) == BPMEM_IND_CMD) {
+    more_constants.tevind[bp & 0xf][0] = newValue;
+    dirty = true;
+    s_bIndirectDirty = true;
   }
 }
 
