@@ -804,7 +804,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 		{
 			// format
 			const char *tevIndFmtMask[] = { "255", "31", "15", "7" };
-			out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt, tevIndFmtMask[tevind.fmt]);
+			out.Write("\tint3 iindtevcrd%d = iindtex%d & %s;\n", n, tevind.bt.Value(), tevIndFmtMask[tevind.fmt]);
 
 			// bias - TODO: Check if this needs to be this complicated..
 			const char *tevIndBiasField[] = { "", "x", "y", "xy", "z", "xz", "yz", "xyz" }; // indexed by bias
