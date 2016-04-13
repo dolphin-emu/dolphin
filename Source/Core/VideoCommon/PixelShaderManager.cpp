@@ -344,6 +344,7 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
   // TODO: think of a less totally hacky way of doing this.
   if (bp == 0) {
     more_constants.genmode = newValue;
+    s_bIndirectDirty = true;
     dirty = true;
   } else if (bp >= 0x28 && bp < 0x30) {
     u32 order = bp - 0x28;
@@ -376,8 +377,6 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
     more_constants.tevksel[ksel][0] = newValue;
     dirty = true;
   } else if (bp == BPMEM_IREF || (bp & 0xf0) == BPMEM_IND_CMD) {
-    more_constants.tevind[bp & 0xf][0] = newValue;
-    dirty = true;
     s_bIndirectDirty = true;
   }
 }
