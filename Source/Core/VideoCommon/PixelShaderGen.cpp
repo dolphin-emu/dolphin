@@ -684,10 +684,10 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		{
 			const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
 			const char *tevIndAlphaMask[] = {"248", "224", "240", "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-			out.Write("alphabump = iindtex%d.%s & %s;\n",
-					bpmem.tevind[n].bt,
-					tevIndAlphaSel[bpmem.tevind[n].bs],
-					tevIndAlphaMask[bpmem.tevind[n].fmt]);
+			//out.Write("alphabump = iindtex%d.%s & %s;\n",
+			//		bpmem.tevind[n].bt,
+			//		tevIndAlphaSel[bpmem.tevind[n].bs],
+			//		tevIndAlphaMask[bpmem.tevind[n].fmt]);
 		}
 		else
 		{
