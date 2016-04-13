@@ -481,14 +481,17 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
               "		uint tevind = bpmem_tevind[stage];\n"
               "		if (tevind != 0u)\n"
               "		{\n"
-              "			// TODO: That Alphabump stuff\n"  // TODO: Alpha Bump
-              "			uint fmt = %s;\n",
-              BitfieldExtract("tevind", TevStageIndirect().fmt).c_str());
+              "			uint bs = %s;\n",
+              BitfieldExtract("tevind", TevStageIndirect().bs).c_str());
+    out.Write("			uint fmt = %s;\n", BitfieldExtract("tevind", TevStageIndirect().fmt).c_str());
     out.Write("			uint bias = %s;\n", BitfieldExtract("tevind", TevStageIndirect().bias).c_str());
     out.Write("			uint bt = %s;\n", BitfieldExtract("tevind", TevStageIndirect().bt).c_str());
     out.Write("			uint mid = %s;\n", BitfieldExtract("tevind", TevStageIndirect().mid).c_str());
     out.Write("\n"
+
               "			int3 indcoord = indtex[bt];\n"
+              "			if (bs != 0u)\n"
+              "				AlphaBump = indcoord[bs - 1u];\n"
               "			switch(fmt)\n"
               "			{\n"
               "			case %iu:\n",
@@ -518,10 +521,6 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
               "				indcoord.y = (indcoord.y & 0x07) + ((bias & 2u) != 0u ? 1 : 0);\n"
               "				indcoord.z = (indcoord.z & 0x07) + ((bias & 4u) != 0u ? 1 : 0);\n"
               "				AlphaBump = AlphaBump & 0xf8;\n"
-              "				break;\n"
-              "			default:\n"
-              "				indcoord = int3(0, 0, 0);\n"
-              "				AlphaBump = 0;\n"
               "				break;\n"
               "			}\n"
               "\n"
