@@ -861,7 +861,7 @@ static void WriteStage(ShaderCode &out, const pixel_shader_uid_data *uid_data,
       const char *tevIndAlphaMask[] = {
           "248", "224", "240",
           "248"}; // 0b11111000, 0b11100000, 0b11110000, 0b11111000
-      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt,
+      out.Write("alphabump = iindtex%d.%s & %s;\n", tevind.bt.Value(),
                 tevIndAlphaSel[tevind.bs], tevIndAlphaMask[tevind.fmt]);
     } else {
       // TODO: Should we reset alphabump to 0 here?
