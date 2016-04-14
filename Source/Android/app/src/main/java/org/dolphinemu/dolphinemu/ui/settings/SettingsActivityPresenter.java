@@ -175,7 +175,7 @@ public final class SettingsActivityPresenter
 		}
 	}
 
-	public void onWiimoteSettingChanged(String section, int value)
+	public void onWiimoteSettingChanged(int value)
 	{
 		switch (value)
 		{

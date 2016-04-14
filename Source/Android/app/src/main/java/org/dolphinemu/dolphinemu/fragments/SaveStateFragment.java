@@ -20,11 +20,9 @@ public final class SaveStateFragment extends Fragment implements View.OnClickLis
 
 	public static SaveStateFragment newInstance()
 	{
-		SaveStateFragment fragment = new SaveStateFragment();
-
 		// TODO Add any appropriate arguments to this fragment.
 
-		return fragment;
+		return new SaveStateFragment();
 	}
 
 	@Nullable

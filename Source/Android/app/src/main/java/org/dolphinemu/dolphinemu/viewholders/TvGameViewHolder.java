@@ -25,8 +25,6 @@ public final class TvGameViewHolder extends Presenter.ViewHolder
 	public String company;
 	public String screenshotPath;
 
-	public int backgroundColor;
-
 	public TvGameViewHolder(View itemView)
 	{
 		super(itemView);

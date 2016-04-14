@@ -159,7 +159,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	@Override
 	public void onWiimoteSettingChanged(String section, int value)
 	{
-		mPresenter.onWiimoteSettingChanged(section, value);
+		mPresenter.onWiimoteSettingChanged(value);
 	}
 
 	private SettingsFragment getFragment()
