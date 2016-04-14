@@ -112,7 +112,7 @@ task setupCMake(type: Exec) {
         executable getExecutablePath("cmake")
 
         args "-DANDROID=true",
-                "-DANDROID_NATIVE_API_LEVEL=android-18",
+                "-DANDROID_NATIVE_API_LEVEL=android-21",
                 "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
                 "../../../../..",
                 "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
