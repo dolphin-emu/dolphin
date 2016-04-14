@@ -1161,7 +1161,9 @@ endforeach()
 remove_definitions( -DANDROID )
 add_definitions( -DANDROID )
 
-if( ANDROID_SYSROOT MATCHES "[ ;\"]" )
+if( CMAKE_VERSION VERSION_GREATER "3.0.0" )
+ set( CMAKE_SYSROOT ${ANDROID_SYSROOT} )
+elseif( ANDROID_SYSROOT MATCHES "[ ;\"]" )
  if( CMAKE_HOST_WIN32 )
   # try to convert path to 8.3 form
   file( WRITE "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/cvt83.cmd" "@echo %~s1" )
@@ -1184,6 +1186,7 @@ if( ANDROID_SYSROOT MATCHES "[ ;\"]" )
 else()
  set( ANDROID_CXX_FLAGS "--sysroot=${ANDROID_SYSROOT}" )
 endif()
+set( CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} ${ANDROID_CXX_FLAGS}" )
 
 # NDK flags
 if (ARM64_V8A )
@@ -1379,15 +1382,15 @@ if( ANDROID_COMPILER_IS_CLANG )
 endif()
 
 # cache flags
-set( CMAKE_CXX_FLAGS           ""                        CACHE STRING "c++ flags" )
-set( CMAKE_C_FLAGS             ""                        CACHE STRING "c flags" )
-set( CMAKE_CXX_FLAGS_RELEASE   "-O3 -DNDEBUG"            CACHE STRING "c++ Release flags" )
-set( CMAKE_C_FLAGS_RELEASE     "-O3 -DNDEBUG"            CACHE STRING "c Release flags" )
-set( CMAKE_CXX_FLAGS_DEBUG     "-O0 -g -DDEBUG -D_DEBUG" CACHE STRING "c++ Debug flags" )
-set( CMAKE_C_FLAGS_DEBUG       "-O0 -g -DDEBUG -D_DEBUG" CACHE STRING "c Debug flags" )
-set( CMAKE_SHARED_LINKER_FLAGS ""                        CACHE STRING "shared linker flags" )
-set( CMAKE_MODULE_LINKER_FLAGS ""                        CACHE STRING "module linker flags" )
-set( CMAKE_EXE_LINKER_FLAGS    "-Wl,-z,nocopyreloc"      CACHE STRING "executable linker flags" )
+set( CMAKE_CXX_FLAGS           ""                                  CACHE STRING "c++ flags" )
+set( CMAKE_C_FLAGS             ""                                  CACHE STRING "c flags" )
+set( CMAKE_CXX_FLAGS_RELEASE   "-O3 -DNDEBUG"                      CACHE STRING "c++ Release flags" )
+set( CMAKE_C_FLAGS_RELEASE     "-O3 -DNDEBUG"                      CACHE STRING "c Release flags" )
+set( CMAKE_CXX_FLAGS_DEBUG     "-O0 -g -DDEBUG -D_DEBUG"           CACHE STRING "c++ Debug flags" )
+set( CMAKE_C_FLAGS_DEBUG       "-O0 -g -DDEBUG -D_DEBUG"           CACHE STRING "c Debug flags" )
+set( CMAKE_SHARED_LINKER_FLAGS "-Wl,--build-id"                    CACHE STRING "shared linker flags" )
+set( CMAKE_MODULE_LINKER_FLAGS "-Wl,--build-id"                    CACHE STRING "module linker flags" )
+set( CMAKE_EXE_LINKER_FLAGS    "-Wl,--build-id -Wl,-z,nocopyreloc" CACHE STRING "executable linker flags" )
 
 # put flags to cache (for debug purpose only)
 set( ANDROID_CXX_FLAGS         "${ANDROID_CXX_FLAGS}"         CACHE INTERNAL "Android specific c/c++ flags" )
@@ -1487,7 +1490,7 @@ endif()
 # setup output directories
 set( CMAKE_INSTALL_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/user" CACHE STRING "path for installing" )
 
-if( NOT DEFINED LIBRARY_OUTPUT_PATH_ROOT
+if( DEFINED LIBRARY_OUTPUT_PATH_ROOT
       OR EXISTS "${CMAKE_SOURCE_DIR}/AndroidManifest.xml"
       OR (EXISTS "${CMAKE_SOURCE_DIR}/../AndroidManifest.xml" AND EXISTS "${CMAKE_SOURCE_DIR}/../jni/") )
   set( LIBRARY_OUTPUT_PATH_ROOT ${CMAKE_SOURCE_DIR} CACHE PATH "Root for binaries output, set this to change where Android libs are installed to" )
@@ -1500,6 +1503,9 @@ if( NOT DEFINED LIBRARY_OUTPUT_PATH_ROOT
     set( LIBRARY_OUTPUT_PATH "${LIBRARY_OUTPUT_PATH_ROOT}/libs/${ANDROID_NDK_ABI_NAME}" CACHE PATH "Output directory for Android libs" )
   endif()
 endif()
+
+# make sure that there is no empty soname used
+string(REPLACE "<CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG><TARGET_SONAME>" "" CMAKE_CXX_CREATE_SHARED_MODULE "${CMAKE_CXX_CREATE_SHARED_MODULE}")
 
 # copy shaed stl library to build directory
 if( NOT _CMAKE_IN_TRY_COMPILE AND __libstl MATCHES "[.]so$" AND DEFINED LIBRARY_OUTPUT_PATH )
