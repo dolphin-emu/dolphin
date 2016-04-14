@@ -840,7 +840,7 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 		"		ztex += idot(s.TexColor.xyzw, " I_ZBIAS"[0].xyzw);\n"
 		"		if (ztex_op == 1u)\n"
 		"			ztex += zCoord;\n"
-		"		zCoord = clamp(ztex, 0, 0xFFFFFF);\n"
+		"		zCoord = ztex & 0xFFFFFF;\n"
 		"	}\n"
 		"\n");
 
