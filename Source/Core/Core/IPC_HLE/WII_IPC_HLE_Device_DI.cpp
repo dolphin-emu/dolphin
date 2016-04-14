@@ -16,21 +16,9 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 
-static int ioctl_callback;
-
-static void IOCtlCallback(u64 userdata, s64 cycles_late)
-{
-	std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
-	if (di)
-		std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
-
-	// If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
-}
-
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	ioctl_callback = CoreTiming::RegisterEvent("IOCtlCallbackDI", IOCtlCallback);
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
@@ -101,8 +89,7 @@ void CWII_IPC_HLE_Device_di::StartIOCtl(u32 command_address)
 
 	// DVDInterface's ExecuteCommand handles most of the work.
 	// The IOCtl callback is used to generate a reply afterwards.
-	DVDInterface::ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize,
-	                             false, ioctl_callback);
+	DVDInterface::ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize, true);
 }
 
 void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
