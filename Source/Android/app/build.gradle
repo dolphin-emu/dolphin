@@ -230,9 +230,7 @@ String getAbi() {
 
     if (taskName.contains("Arm_64")) {
         abi = "arm64-v8a"
-    } else if (taskName.contains("Arm")) {
-        abi = "armeabi-v7a"
-    } else if (taskName.contains("X86_64")) {
+    } else {
         abi = "x86_64"
     }
 
@@ -250,9 +248,7 @@ String getToolchainName() {
 
     if (taskName.contains("Arm_64")) {
         toolchain = "aarch64-linux-android-4.9"
-    } else if (taskName.contains("Arm")) {
-        toolchain = "arm-linux-androideabi-4.9"
-    } else if (taskName.contains("X86_64")) {
+    } else {
         toolchain = "x86_64-4.9"
     }
 
