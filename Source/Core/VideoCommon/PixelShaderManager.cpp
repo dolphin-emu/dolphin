@@ -144,18 +144,35 @@ void PixelShaderManager::SetConstants() {
           more_constants.iref[stage] = bpmem.tevindref.getTexCoord(stage) |
                                        bpmem.tevindref.getTexMap(stage) << 8 |
                                        1 << 16;
+        // Note: a tevind of zero just happens to be a passthrough, so no need
+        // to set an extra bit.
         more_constants.tevind[i][0] =
-            bpmem.tevind[i].hex | 1 << 31; // TODO: This match shadergen, but
-                                           // videosw will always wrap.
+            bpmem.tevind[i].hex; // TODO: This match shadergen, but videosw will
+                                 // always wrap.
       } else {
         more_constants.tevind[i][0] = 0;
       }
     }
 
     // Not really the right place.
-    // Destination alpha is only enabled if alpha writes are enabled.
+
+    // Destination alpha is only enabled if alpha writes are enabled. Force
+    // entire uniform to zero
+    // when disabled.
     more_constants.dstalpha =
-        bpmem.blendmode.alphaupdate ? bpmem.dstalpha.hex : 0;
+        bpmem.blendmode.alphaupdate && bpmem.dstalpha.enable
+            ? bpmem.dstalpha.hex
+            : 0;
+
+    // Force alphaTest Uniform to zero if it will always pass. (set an extra bit
+    // to distinguish from
+    // "never && never")
+    // TODO: we could optimise this further and check the actual constants, ie
+    // "a <= 0" and "a >=
+    // 255" will always pass.
+    more_constants.alphaTest = bpmem.alpha_test.TestResult() != AlphaTest::PASS
+                                   ? bpmem.alpha_test.hex | 1 << 31
+                                   : 0;
 
     dirty = true;
     s_bIndirectDirty = false;
@@ -371,8 +388,7 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue) {
     more_constants.fogParam3 = newValue;
     dirty = true;
   } else if (bp == 0xf3) {
-    more_constants.alphaTest = newValue;
-    dirty = true;
+    s_bIndirectDirty = true;
   } else if (bp == 0xf5) {
     more_constants.ztex2 = newValue;
     dirty = true;
