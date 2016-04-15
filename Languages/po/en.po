@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emu\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
 "PO-Revision-Date: 2011-01-06 14:53+0100\n"
 "Last-Translator: BhaaL <bhaal@0x1337.org>\n"
 "Language-Team: \n"
@@ -1053,7 +1053,7 @@ msgstr ""
 msgid "Change Game"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -2000,8 +2000,6 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
@@ -2309,7 +2307,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr ""
@@ -2385,7 +2383,7 @@ msgstr ""
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2460,8 +2458,6 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
@@ -2915,12 +2911,12 @@ msgstr ""
 msgid "ID:"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -2929,7 +2925,7 @@ msgid ""
 " Dolphin will likely hang now."
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr ""
 
@@ -3141,7 +3137,7 @@ msgstr ""
 msgid "Invalid bat.map or dir entry."
 msgstr ""
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr ""
@@ -3158,7 +3154,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr ""
 
@@ -4121,17 +4117,17 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr ""
@@ -4451,7 +4447,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
@@ -5300,7 +5296,7 @@ msgstr ""
 msgid "The name cannot contain the character ','"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5360,7 +5356,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -5612,7 +5608,7 @@ msgstr ""
 msgid "Unknown DVD command %08x - fatal error"
 msgstr ""
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr ""
@@ -5744,13 +5740,13 @@ msgstr ""
 msgid "Volume Up"
 msgstr ""
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr ""
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr ""
 
@@ -5803,7 +5799,7 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -5811,7 +5807,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -5819,7 +5815,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -5827,7 +5823,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6014,7 +6010,7 @@ msgid ""
 "Continue with PAL region?"
 msgstr ""
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

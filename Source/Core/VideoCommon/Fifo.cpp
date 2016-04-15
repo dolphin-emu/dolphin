@@ -548,7 +548,7 @@ static int Update(int ticks)
 	return param.iSyncGpuMaxDistance - s_sync_ticks.load();
 }
 
-static void SyncGPUCallback(u64 userdata, int cyclesLate)
+static void SyncGPUCallback(u64 userdata, s64 cyclesLate)
 {
 	u64 now = CoreTiming::GetTicks();
 	int next = Fifo::Update((int)(now - s_last_sync_gpu_tick));

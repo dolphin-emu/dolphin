@@ -74,9 +74,8 @@ static T GenerateVertexShader(API_TYPE api_type)
 
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, "out", GetInterpolationQualifier());
+			GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(true, false));
 			out.Write("} vs;\n");
 		}
 		else

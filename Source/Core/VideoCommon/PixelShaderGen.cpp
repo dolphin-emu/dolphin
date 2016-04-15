@@ -354,12 +354,11 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
-			out.Write("// The interface block qualifier is duplicated to its member due to Apple OS X bug 24983074\n");
 			out.Write("in VertexData {\n");
-			GenerateVSOutputMembers<T>(out, ApiType, "in", GetInterpolationQualifier());
+			GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, true));
 
 			if (g_ActiveConfig.iStereoMode > 0)
-				out.Write("\tflat in int layer;\n");
+				out.Write("\tflat int layer;\n");
 
 			out.Write("};\n");
 		}
@@ -468,7 +467,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 			{
 				out.Write("uv%d.xy", i);
 			}
-			out.Write(" * " I_TEXDIMS"[%d].zw * 128.0);\n", i);
+			out.Write(" * " I_TEXDIMS"[%d].zw);\n", i);
 			// TODO: S24 overflows here?
 		}
 	}
@@ -502,7 +501,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 				out.Write("\ttempcoord = int2(0, 0);\n");
 
 			out.Write("\tint3 iindtex%d = ", i);
-			SampleTexture<T>(out, "(float2(tempcoord)/128.0)", "abg", texmap, ApiType);
+			SampleTexture<T>(out, "float2(tempcoord)", "abg", texmap, ApiType);
 		}
 	}
 
@@ -837,7 +836,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		uid_data->SetTevindrefTexmap(i, texmap);
 
 		out.Write("\ttextemp = ");
-		SampleTexture<T>(out, "(float2(tevcoord.xy)/128.0)", texswap, texmap, ApiType);
+		SampleTexture<T>(out, "float2(tevcoord.xy)", texswap, texmap, ApiType);
 	}
 	else
 	{

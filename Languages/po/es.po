@@ -19,8 +19,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
@@ -98,12 +98,12 @@ msgstr "%i de %i bloques. Comprimido al %i%%"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (velocidad normal)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -563,6 +563,17 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"CUIDADO:\n"
+"\n"
+"Todos los jugadores deben utilizar la misma versión de Dolphin.\n"
+"Todas las tarjetas de memoria, tarjetas SD y trucos deben de ser idénticos "
+"en todos los jugadores o estar desactivados.\n"
+"Si se utiliza DSP LLE, los ROMs de DSP deben coincidir en todos los "
+"jugadores.\n"
+"¡Si se utiliza una conexión directa el anfitrión debe elegir un puerto UDP "
+"que esté abierto/redireccionado!\n"
+"\n"
+"Los mandos de Wii no funcionan bien y se han desactivado.\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -1160,7 +1171,7 @@ msgstr "Cambiar disco"
 msgid "Change Game"
 msgstr "Cambiar juego"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Cambiar el disco a %s"
@@ -2189,20 +2200,9 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
-"Habilitar el filtrado anisotrópico.\n"
-"\n"
-"Mejora la calidad de las texturas en ángulos de visión oblicuos.\n"
-"Puede causar problemas en algunos juegos.\n"
-"\n"
-"Utilizar un valor por encima de x1 en Direct3D puede equivaler a marcar la "
-"opción «Forzar filtrado de texturas», ya que activan el mismo efecto.\n"
-"\n"
-"Si no estás seguro, utiliza x1."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2549,7 +2549,7 @@ msgstr ""
 "Comprueba que tienes permisos de escritura en la carpeta de destino y que el "
 "archivo se puede escribir."
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "Error al leer %s"
@@ -2638,9 +2638,9 @@ msgstr "Rápido"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "Cálculo de profundidad rápido"
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2721,21 +2721,9 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Habilita el filtrado de todas las texturas, incluidas aquellas que el juego "
-"marque para que no sea así.\n"
-"\n"
-"Puede que mejore la calidad de algunas texturas en algunos juegos, pero "
-"causará problemas en otros.\n"
-"\n"
-"Utilizar un valor por encima de x1 en Direct3D puede equivaler a marcar la "
-"opción de «filtrado anisotrópico», ya que activan el mismo efecto.\n"
-"\n"
-"Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3241,14 +3229,14 @@ msgstr "ID"
 msgid "ID:"
 msgstr "ID:"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Se trató de obtener los datos de un ticket desconocido: "
 "%08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3261,7 +3249,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "Es probable que Dolphin se bloquee en breve."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: ¡El archivo DOL no es válido!"
 
@@ -3503,7 +3491,7 @@ msgstr "Intro"
 msgid "Invalid bat.map or dir entry."
 msgstr "bat.map o entrada de directorio no válida."
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Evento de tipo %i no válido"
@@ -3520,7 +3508,7 @@ msgstr "Host no válido"
 msgid "Invalid index"
 msgstr "Índice no válido"
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "Archivo de grabación erróneo"
 
@@ -4547,17 +4535,17 @@ msgstr "Efecto de posprocesado:"
 msgid "Prefetch Custom Textures"
 msgstr "Precargar texturas personalizadas"
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Final prematuro de la grabación en PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u > %u"
@@ -4892,7 +4880,7 @@ msgstr "Guardar en la ranura seleccionada"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Guardado en /Wii/sd.raw (tamaño por defecto 128mb)"
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "El estado de la grabación %s está corrupto, deteniendo la grabación..."
@@ -5857,7 +5845,7 @@ msgstr "El nombre no puede estar vacío"
 msgid "The name cannot contain the character ','"
 msgstr "El nombre no puede contener el carácter ','"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "El juego grabado (%s) no es el mismo que el juego seleccionado (%s)"
@@ -5925,7 +5913,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "¡No hay nada que deshacer!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6216,7 +6204,7 @@ msgstr "Desconocido"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Comando desconocido de DVD %08x - error fatal"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "¡Entrada desconocida de tipo %i en SYSCONF (%s@%x)!"
@@ -6287,6 +6275,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Usa un algoritmo menos preciso para calcular los valores de profundidad. "
+"Causa problemas visuales en unos pocos juegos pero aumenta la velocidad de "
+"forma notable dependiendo del juego y tu GPU.\n"
+"\n"
+"Si no estás seguro déjala sin marcar."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6351,13 +6344,13 @@ msgstr "Silenciar volumen"
 msgid "Volume Up"
 msgstr "Subir volumen"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "La instalación del WAD falló: error al crear %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "La instalación del WAD falló: error al crear el ticket"
 
@@ -6430,7 +6423,7 @@ msgstr ""
 "y tengan el mismo nombre que el archivo en tu tarjeta de memoria. ¿Seguro "
 "que quieres continuar?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6441,7 +6434,7 @@ msgstr ""
 "grabación actual. (Byte %u > %u) (Fotograma %u > %u). Deberías cargar otra "
 "partida antes de continuar, o cargar ésta sin el modo de sólo lectura activo."
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6452,7 +6445,7 @@ msgstr ""
 "cuadro actual de la partida. (byte %u < %u) (frame %u > %u). Deberías cargar "
 "otra partida guardada antes de continuar."
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6464,7 +6457,7 @@ msgstr ""
 "con el modo de solo lectura desactivado. De lo contrario probablemente "
 "obtengas una desincronización."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6672,7 +6665,7 @@ msgstr ""
 "Su archivo GCM/ISO no parece ser válido (país no válido).\n"
 "¿Continuar con la región PAL?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

@@ -380,8 +380,6 @@ void FifoPlayer::LoadMemory()
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
 
-	Memory::Clear();
-
 	SetupFifo();
 
 	u32 *regs = m_File->GetBPMem();

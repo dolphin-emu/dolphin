@@ -58,7 +58,7 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata, std::function<void(
 	}
 }
 
-void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, s64 cyclesLate)
 {
 	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
 	{
@@ -66,7 +66,7 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 	});
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
+void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64 cyclesLate)
 {
 	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
 	{

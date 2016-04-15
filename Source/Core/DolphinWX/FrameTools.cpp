@@ -1793,13 +1793,15 @@ void CFrame::UpdateGUI()
 			{
 				m_ToolBar->DeleteTool(IDM_PLAY);
 				m_ToolBar->InsertTool(position, IDM_PLAY, _("Pause"), m_Bitmaps[Toolbar_Pause],
-				                      wxNullBitmap, wxITEM_NORMAL, _("Pause"));
+				                      WxUtils::CreateDisabledButtonBitmap(m_Bitmaps[Toolbar_Pause]),
+				                      wxITEM_NORMAL, _("Pause"));
 			}
 			else
 			{
 				m_ToolBar->DeleteTool(IDM_PLAY);
 				m_ToolBar->InsertTool(position, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play],
-				                      wxNullBitmap, wxITEM_NORMAL, _("Play"));
+				                      WxUtils::CreateDisabledButtonBitmap(m_Bitmaps[Toolbar_Play]),
+				                      wxITEM_NORMAL, _("Play"));
 			}
 			m_ToolBar->Realize();
 		}

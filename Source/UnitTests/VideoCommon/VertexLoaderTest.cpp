@@ -221,7 +221,7 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
 	m_vtx_attr.g0.PosFormat = format;
 	m_vtx_attr.g0.PosElements = elements;
 	elements += 2;
-	size_t elem_size = 1 << (format / 2);
+	size_t elem_size = static_cast<size_t>(1) << (format / 2);
 	CreateAndCheckSizes(elements * elem_size, elements * sizeof(float));
 	for (int i = 0; i < 1000; ++i)
 		RunVertices(100000);
@@ -239,7 +239,7 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
 	m_vtx_attr.g0.Tex0CoordFormat = format;
 	m_vtx_attr.g0.Tex0CoordElements = elements;
 	elements += 1;
-	size_t elem_size = 1 << (format / 2);
+	size_t elem_size = static_cast<size_t>(1) << (format / 2);
 	CreateAndCheckSizes(2 * sizeof(s8)    + elements * elem_size,
 	                    2 * sizeof(float) + elements * sizeof(float));
 	for (int i = 0; i < 1000; ++i)

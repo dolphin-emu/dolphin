@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-06 01:10+0000\n"
-"PO-Revision-Date: 2016-03-06 01:10+0000\n"
+"POT-Creation-Date: 2016-03-26 22:32+0000\n"
+"PO-Revision-Date: 2016-03-26 22:32+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Turkish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
@@ -1104,7 +1104,7 @@ msgstr "Diski Değiştir"
 msgid "Change Game"
 msgstr "Oyunu Değiştir"
 
-#: Source/Core/Core/Movie.cpp:1132
+#: Source/Core/Core/Movie.cpp:1139
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -2086,8 +2086,6 @@ msgid ""
 "Enable anisotropic filtering.\n"
 "Enhances visual quality of textures that are at oblique viewing angles.\n"
 "Might cause issues in a small number of games.\n"
-"On Direct3D, setting this above 1x will also have the same effect as "
-"enabling \"Force Texture Filtering\".\n"
 "\n"
 "If unsure, select 1x."
 msgstr ""
@@ -2418,7 +2416,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:903
+#: Source/Core/Core/Movie.cpp:910
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s okunamadı"
@@ -2504,7 +2502,7 @@ msgstr "Hızlı"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1161
+#: Source/Core/Core/Movie.cpp:1168
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2583,8 +2581,6 @@ msgid ""
 "unfiltered.\n"
 "May improve quality of certain textures in some games, but will cause issues "
 "in others.\n"
-"On Direct3D, setting Anisotropic Filtering above 1x will also have the same "
-"effect as enabling this option.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
@@ -3038,12 +3034,12 @@ msgstr ""
 msgid "ID:"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:669
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:649
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: Bilinmeyen biletten veri alma denemesi: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:957
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:934
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3056,7 +3052,7 @@ msgstr ""
 "Başlık ID %016<PRIx64>.\n"
 "Dolphin çakılacak gibi gözüküyor."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:938
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:915
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr ""
 
@@ -3270,7 +3266,7 @@ msgstr "İntro"
 msgid "Invalid bat.map or dir entry."
 msgstr ""
 
-#: Source/Core/Core/CoreTiming.cpp:465
+#: Source/Core/Core/CoreTiming.cpp:494
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Hatalı olay türü: %i"
@@ -3287,7 +3283,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:845
+#: Source/Core/Core/Movie.cpp:852
 msgid "Invalid recording file"
 msgstr "Hatalı çekim dosyası"
 
@@ -4286,17 +4282,17 @@ msgstr "Post-Processing Efekti:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1052
+#: Source/Core/Core/Movie.cpp:1059
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "PlayController'da erken kayıt bitişi. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1171
+#: Source/Core/Core/Movie.cpp:1178
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "PlayWiimote'da erken kayıt bitişi. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1150
+#: Source/Core/Core/Movie.cpp:1157
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "PlayWiimote'da erken kayıt bitişi. %u > %u"
@@ -4619,7 +4615,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:912
+#: Source/Core/Core/Movie.cpp:919
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Kayıtlı durum filmi %s bozuk, film çekimi duruyor..."
@@ -5482,7 +5478,7 @@ msgstr "İsim boş olamaz"
 msgid "The name cannot contain the character ','"
 msgstr "İsim ',' karakterini içeremez"
 
-#: Source/Core/Core/Movie.cpp:189
+#: Source/Core/Core/Movie.cpp:190
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5547,7 +5543,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Geri alacak hiçbirşey yok!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:610
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:590
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -5811,7 +5807,7 @@ msgstr "Bilinmeyen"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Bilinmeyen DVD komutu %08x - önemli hata"
 
-#: Source/Core/Common/SysConf.cpp:148
+#: Source/Core/Common/SysConf.cpp:157
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "SYSCONF içinde bilinmeyen giriş türü %i (%s@%x)!"
@@ -5943,13 +5939,13 @@ msgstr "Sesi Kapat/Aç"
 msgid "Volume Up"
 msgstr "Sesi Yükselt"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:404
-#: Source/Core/DiscIO/NANDContentLoader.cpp:428
+#: Source/Core/DiscIO/NANDContentLoader.cpp:462
+#: Source/Core/DiscIO/NANDContentLoader.cpp:486
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD kurulumu başarısız: %s oluşturmada hata"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:443
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD kurulumu başarısız: Ticket oluşturma hatası."
 
@@ -6014,7 +6010,7 @@ msgstr ""
 "ve hafıza kartınızdaki dosyayla aynı adda olacak.\n"
 "Devam?"
 
-#: Source/Core/Core/Movie.cpp:958
+#: Source/Core/Core/Movie.cpp:965
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6025,7 +6021,7 @@ msgstr ""
 "%u > %u) (çerçeve %u > %u). Devam etmeden önce başka bir kayıt yüklemeniz, "
 "veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi olacaktır. "
 
-#: Source/Core/Core/Movie.cpp:935
+#: Source/Core/Core/Movie.cpp:942
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6033,7 +6029,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:975
+#: Source/Core/Core/Movie.cpp:982
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6045,7 +6041,7 @@ msgstr ""
 "yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
 "senkronizasyon sorunu yaşayacaksınız."
 
-#: Source/Core/Core/Movie.cpp:985
+#: Source/Core/Core/Movie.cpp:992
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6252,7 +6248,7 @@ msgstr ""
 "GCM/ISO dosyanız hatalı gibi görünüyor (hatalı bölge). \n"
 "PAL gibi davranılsın mı?"
 
-#: Source/Core/Common/SysConf.cpp:58
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

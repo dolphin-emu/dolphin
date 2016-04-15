@@ -196,12 +196,12 @@ void DoState(PointerWrap &p)
 
 static void UpdateInterrupts();
 static void Do_ARAM_DMA();
-static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate = 0);
+static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
 static int et_GenerateDSPInterrupt;
 static int et_CompleteARAM;
 
-static void CompleteARAM(u64 userdata, int cyclesLate)
+static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
 	g_dspState.DMAState = 0;
 	GenerateDSPInterrupt(INT_ARAM);
@@ -212,6 +212,7 @@ void EnableInstantDMA()
 	CoreTiming::RemoveEvent(et_CompleteARAM);
 	CompleteARAM(0, 0);
 	instant_dma = true;
+	ERROR_LOG(DSPINTERFACE, "Enabling Instant ARAM DMA hack");
 }
 
 void FlushInstantDMA(u32 address)
@@ -467,7 +468,7 @@ static void UpdateInterrupts()
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, ints_set);
 }
 
-static void GenerateDSPInterrupt(u64 DSPIntType, int cyclesLate)
+static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 {
 	// The INT_* enumeration members have values that reflect their bit positions in
 	// DSP_CONTROL - we mask by (INT_DSP | INT_ARAM | INT_AID) just to ensure people
@@ -544,13 +545,11 @@ static void Do_ARAM_DMA()
 	// ARAM DMA transfer rate has been measured on real hw
 	int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
 
+	// This is a huge hack that appears to be here only to fix Resident Evil 2/3
 	if (instant_dma)
-		ticksToTransfer = 0;
+		ticksToTransfer = std::min(ticksToTransfer, 100);
 
 	CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
-
-	if (instant_dma)
-		CoreTiming::ForceExceptionCheck(100);
 
 	last_mmaddr = g_arDMA.MMAddr;
 	last_aram_dma_count = g_arDMA.Cnt.count;

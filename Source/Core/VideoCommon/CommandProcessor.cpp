@@ -47,7 +47,7 @@ static bool IsOnThread()
 	return SConfig::GetInstance().bCPUThread;
 }
 
-static void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
 {
 	UpdateInterrupts(userdata);
 }
