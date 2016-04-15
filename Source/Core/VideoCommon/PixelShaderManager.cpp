@@ -157,6 +157,10 @@ void PixelShaderManager::SetConstants()
 			}
 		}
 
+		// Not really the right place.
+		// Destination alpha is only enabled if alpha writes are enabled.
+		more_constants.dstalpha = bpmem.blendmode.alphaupdate ? bpmem.dstalpha.hex : 0;
+
 		dirty = true;
 		s_bIndirectDirty = false;
 	}
@@ -382,8 +386,7 @@ void PixelShaderManager::UpdateBP(u32 bp, u32 newValue)
 	}
 	else if (bp == 0x42)
 	{
-		more_constants.dstalpha = newValue;
-		dirty = true;
+		s_bIndirectDirty = true;
 	}
 	else if (bp == 0x43)
 	{
