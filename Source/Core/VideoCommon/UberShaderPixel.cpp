@@ -724,8 +724,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
 
   out.Write("			uint alpha_compare_op = alpha_shift << 1 | uint(alpha_op);\n"
             "\n"
-            "			int alpha_A;"
-            "			int alpha_B;"
+            "			int alpha_A;\n"
+            "			int alpha_B;\n"
             "			if (alpha_bias != 3u || alpha_compare_op > 5u) {\n"
             "				// Small optimisation here: alpha_A and alpha_B are unused by compare ops 0-5\n"
             "				alpha_A = selectAlphaInput(s, alpha_a) & 255;\n"
@@ -773,26 +773,28 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
   out.Write("	} // Main tev loop\n"
             "\n");
 
-  // TODO: Optimise the value of bpmem_alphatest so it's zero when there is no test to do?
   out.Write("	// Alpha Test\n"
-            "	bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, %s);\n",
+            "	if (bpmem_alphaTest != 0u) {\n"
+            "		bool comp0 = alphaCompare(TevResult.a, " I_ALPHA ".r, %s);\n",
             BitfieldExtract("bpmem_alphaTest", AlphaTest().comp0).c_str());
-  out.Write("	bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, %s);\n",
+  out.Write("		bool comp1 = alphaCompare(TevResult.a, " I_ALPHA ".g, %s);\n",
             BitfieldExtract("bpmem_alphaTest", AlphaTest().comp1).c_str());
   out.Write("\n"
-            "	// These if statements are written weirdly to work around intel and qualcom bugs "
+            "		// These if statements are written weirdly to work around intel and qualcom bugs "
             "with handling booleans.\n"
-            "	switch (%s) {\n",
+            "		switch (%s) {\n",
             BitfieldExtract("bpmem_alphaTest", AlphaTest().logic).c_str());
-  out.Write("	case 0u: // AND\n"
-            "		if (comp0 && comp1) break; else discard; break;\n"
-            "	case 1u: // OR\n"
-            "		if (comp0 || comp1) break; else discard; break;\n"
-            "	case 2u: // XOR\n"
-            "		if (comp0 != comp1) break; else discard; break;\n"
-            "	case 3u: // XNOR\n"
-            "		if (comp0 == comp1) break; else discard; break;\n"
-            "	}\n");
+  out.Write("		case 0u: // AND\n"
+            "			if (comp0 && comp1) break; else discard; break;\n"
+            "		case 1u: // OR\n"
+            "			if (comp0 || comp1) break; else discard; break;\n"
+            "		case 2u: // XOR\n"
+            "			if (comp0 != comp1) break; else discard; break;\n"
+            "		case 3u: // XNOR\n"
+            "			if (comp0 == comp1) break; else discard; break;\n"
+            "		}\n"
+            "	}\n"
+            "\n");
 
   out.Write("	// TODO: zCoord is hardcoded to fast depth with no zfreeze\n");
   if (ApiType == API_D3D)
@@ -927,9 +929,8 @@ ShaderCode GenPixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType, bool per
             "	// Colors will be blended against the alpha from ocol1 and\n"
             "	// the alpha from ocol0 will be written to the framebuffer.\n"
             "	ocol1 = float4(TevResult) / 255.0; \n"
-            "	if ((bpmem_dstalpha & %du) != 0u) {\n",
-            1 << ConstantAlpha().enable.offset);
-  out.Write("		ocol0.a = float(%s) / 255.0;\n",
+            "	if (bpmem_dstalpha != 0u) {\n"
+            "		ocol0.a = float(%s) / 255.0;\n",
             BitfieldExtract("bpmem_dstalpha", ConstantAlpha().alpha).c_str());
   out.Write("	}\n"
             "\n");
