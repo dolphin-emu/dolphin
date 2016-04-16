@@ -3,7 +3,10 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
+//http://connect.microsoft.com/VisualStudio/feedbackdetail/view/956372/shlobj-h-invalid-typedef-c4091-warning
+#pragma warning(disable : 4091)
 #include <shlobj.h>    // for SHGetFolderPath
+#pragma warning(default : 4091)
 #endif
 
 #include "Common/CommonPaths.h"
