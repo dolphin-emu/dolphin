@@ -1421,28 +1421,7 @@ void CISOProperties::ActionReplayList_Load()
 
 void CISOProperties::ActionReplayList_Save()
 {
-	std::vector<std::string> lines;
-	std::vector<std::string> enabledLines;
-	u32 index = 0;
-	u32 cheats_chkbox_count = Cheats->GetCount();
-	for (const ActionReplay::ARCode& code : arCodes)
-	{
-		if (code.active)
-			enabledLines.push_back("$" + code.name);
-
-		// Do not save default cheats.
-		if (DefaultCheats.find(code.name) == DefaultCheats.end())
-		{
-			lines.push_back("$" + code.name);
-			for (const ActionReplay::AREntry& op : code.ops)
-			{
-				lines.push_back(WxStrToStr(wxString::Format("%08X %08X", op.cmd_addr, op.value)));
-			}
-		}
-		++index;
-	}
-	GameIniLocal.SetLines("ActionReplay_Enabled", enabledLines);
-	GameIniLocal.SetLines("ActionReplay", lines);
+	ActionReplay::SaveCodes(&GameIniLocal, arCodes);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
@@ -1482,11 +1461,6 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 	EditCheat->Disable();
 	RemoveCheat->Disable();
-}
-
-void CISOProperties::AddARCode(const ActionReplay::ARCode& code)
-{
-	arCodes.emplace_back(code);
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)

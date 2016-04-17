@@ -175,6 +175,14 @@ void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
 	ApplyCodes(LoadCodes(global_ini, local_ini));
 }
 
+void SaveAppliedCodes(IniFile* local_ini)
+{
+	if (!SConfig::GetInstance().bEnableCheats)
+		return;
+
+	SaveCodes(local_ini, s_all_codes);
+}
+
 // Parses the Action Replay section of a game ini file.
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
 {
@@ -285,6 +293,28 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
 	}
 
 	return codes;
+}
+
+void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
+{
+	std::vector<std::string> lines;
+	std::vector<std::string> enabled_lines;
+	for (const ActionReplay::ARCode& code : codes)
+	{
+		if (code.active)
+			enabled_lines.emplace_back("$" + code.name);
+
+		if (code.user_defined)
+		{
+			lines.emplace_back("$" + code.name);
+			for (const ActionReplay::AREntry& op : code.ops)
+			{
+				lines.emplace_back(StringFromFormat("%08X %08X", op.cmd_addr, op.value));
+			}
+		}
+	}
+	local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
+	local_ini->SetLines("ActionReplay", lines);
 }
 
 

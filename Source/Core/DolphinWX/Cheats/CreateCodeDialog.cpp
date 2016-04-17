@@ -4,10 +4,12 @@
 
 #include <wx/checkbox.h>
 #include <wx/dialog.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
+#include "Common/FileUtil.h"
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/ISOProperties.h"
@@ -70,26 +72,29 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 		return;
 	}
 
-	//wxString full_code = textctrl_code->GetValue();
-	//full_code += ' ';
-	//full_code += wxString::Format("0x%08x", code_value);
-
 	// create the new code
 	ActionReplay::ARCode new_cheat;
 	new_cheat.active = false;
 	new_cheat.user_defined = true;
 	new_cheat.name = WxStrToStr(code_name);
 	new_cheat.ops.emplace_back(ActionReplay::AREntry(m_code_address, code_value));
+
+	// Add the code to the active game
 	ActionReplay::AddCode(new_cheat);
 
-	// pretty hacky - add the code to the gameini
-	// FIXME: The save logic should be ActionReplay since it mirrors the parser
+	// Save the code to the INI
+	GameListItem gli(SConfig::GetInstance().m_LastFilename, {});
+	std::string path = File::GetUserPath(D_GAMESETTINGS_IDX) + gli.GetUniqueID() + ".ini";
+	IniFile global_ini = SConfig::LoadDefaultGameIni(gli.GetUniqueID(), gli.GetRevision());
+	IniFile ini = SConfig::LoadLocalGameIni(gli.GetUniqueID(), gli.GetRevision());
+
+	std::vector<ActionReplay::ARCode> codes = ActionReplay::LoadCodes(global_ini, ini);
+	codes.push_back(new_cheat);
+	ActionReplay::SaveCodes(&ini, codes);
+	if (!ini.Save(path))
 	{
-	CISOProperties isoprops(GameListItem(SConfig::GetInstance().m_LastFilename, {}), this);
-	// add the code to the isoproperties arcode list
-	isoprops.AddARCode(new_cheat);
-	// save the gameini
-	isoprops.SaveGameConfig();
+		wxMessageBox(wxString::Format("%s\n\n%s", _("Unable to save new code to game INI."), StrToWxStr(path)),
+		             _("Save Failed"), wxOK | wxICON_WARNING, this);
 	}
 
 	Close();
