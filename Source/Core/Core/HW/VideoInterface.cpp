@@ -108,10 +108,19 @@ void DoState(PointerWrap &p)
 // Executed after Init, before game boot
 void Preset(bool _bNTSC)
 {
+	// NOTE: Make sure all registers are set to the correct initial state. The
+	//	variables are not going to start zeroed if another game has been run
+	//	previously (and mutated everything).
+
 	m_VerticalTimingRegister.EQU = 6;
 	m_VerticalTimingRegister.ACV = 0;
 
 	m_DisplayControlRegister.ENB = 1;
+	m_DisplayControlRegister.RST = 0;
+	m_DisplayControlRegister.NIN = 0;
+	m_DisplayControlRegister.DLR = 0;
+	m_DisplayControlRegister.LE0 = 0;
+	m_DisplayControlRegister.LE1 = 0;
 	m_DisplayControlRegister.FMT = _bNTSC ? 0 : 1;
 
 	m_HTiming0.HLW = 429;
@@ -135,6 +144,11 @@ void Preset(bool _bNTSC)
 	m_BurstBlankingEven.BS2 = 13;
 	m_BurstBlankingEven.BE2 = 519;
 
+	m_XFBInfoTop.Hex = 0;
+	m_XFBInfoBottom.Hex = 0;
+	m_3DFBInfoTop.Hex = 0;
+	m_3DFBInfoBottom.Hex = 0;
+
 	m_InterruptRegister[0].HCT = 430;
 	m_InterruptRegister[0].VCT = 263;
 	m_InterruptRegister[0].IR_MASK = 1;
@@ -143,9 +157,18 @@ void Preset(bool _bNTSC)
 	m_InterruptRegister[1].VCT = 1;
 	m_InterruptRegister[1].IR_MASK = 1;
 	m_InterruptRegister[1].IR_INT = 0;
+	m_InterruptRegister[2].Hex = 0;
+	m_InterruptRegister[3].Hex = 0;
+
+	m_LatchRegister[0].Hex = 0;
+	m_LatchRegister[1].Hex = 0;
 
 	m_PictureConfiguration.STD = 40;
 	m_PictureConfiguration.WPL = 40;
+
+	m_HorizontalScaling.Hex = 0;
+	m_FilterCoefTables = {};
+	m_UnkAARegister = 0;
 
 	// 54MHz, capable of progressive scan
 	m_Clock = SConfig::GetInstance().bNTSC;
@@ -153,6 +176,9 @@ void Preset(bool _bNTSC)
 	// Say component cable is plugged
 	m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
 	m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
+
+	m_FBWidth.Hex = 0;
+	m_BorderHBlank.Hex = 0;
 
 	s_ticks_last_line_start = 0;
 	s_half_line_count = 1;
