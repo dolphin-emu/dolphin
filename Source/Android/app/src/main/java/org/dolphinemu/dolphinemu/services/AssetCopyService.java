@@ -65,7 +65,7 @@ public final class AssetCopyService extends IntentService
 		SharedPreferences.Editor editor = preferences.edit();
 
 		editor.putBoolean("assetsCopied", true);
-		editor.commit();
+		editor.apply();
 	}
 
 	private void copyAsset(String asset, String output)
