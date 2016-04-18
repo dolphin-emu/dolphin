@@ -97,6 +97,7 @@ private:
 
 	// Update Log Button
 	void OnEvent_ButtonUpdateLog_Press(wxCommandEvent& event);
+	void OnClearActionReplayLog(wxCommandEvent& event);
 
 	// Enable Logging Checkbox
 	void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& event);

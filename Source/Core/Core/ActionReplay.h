@@ -32,8 +32,8 @@ struct ARCode
 
 void RunAllActive();
 bool RunCode(const ARCode& arcode);
-void ApplyCodes(const std::vector<ARCode>& codes);
-void AddCode(const ARCode& new_code);
+void ApplyCodes(std::vector<ARCode> codes);
+void AddCode(ARCode new_code);
 void* RegisterCodeChangeCallback(std::function<void()> callback);
 void  UnregisterCodeChangeCallback(void* token);
 void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
@@ -45,6 +45,7 @@ ARCode GetARCode(size_t index);
 void SetARCode_IsActive(bool active, size_t index);
 void UpdateActiveList();
 void EnableSelfLogging(bool enable);
-const std::vector<std::string>& GetSelfLog();
+std::vector<std::string> GetSelfLog();
+void ClearSelfLog();
 bool IsSelfLogging();
 }  // namespace

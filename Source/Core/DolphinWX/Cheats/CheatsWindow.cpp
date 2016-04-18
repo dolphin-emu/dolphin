@@ -104,6 +104,8 @@ void wxCheatsWindow::Init_ChildControls()
 
 	wxButton* const button_updatelog = new wxButton(m_tab_log, wxID_ANY, _("Update"));
 	button_updatelog->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, this);
+	wxButton* const button_clearlog = new wxButton(m_tab_log, wxID_ANY, _("Clear"));
+	button_clearlog->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnClearActionReplayLog, this);
 
 	m_checkbox_log_ar = new wxCheckBox(m_tab_log, wxID_ANY, _("Enable AR Logging"));
 	m_checkbox_log_ar->Bind(wxEVT_CHECKBOX, &wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, this);
@@ -114,6 +116,7 @@ void wxCheatsWindow::Init_ChildControls()
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 	HStrip1->Add(m_checkbox_log_ar, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 	HStrip1->Add(button_updatelog, 0, wxALL, 5);
+	HStrip1->Add(button_clearlog, 0, wxALL, 5);
 
 	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 	sTabLog->Add(HStrip1, 0, wxALL, 5);
@@ -289,6 +292,12 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED(even
 	}
 	m_textctrl_log->Thaw();
 	wxEndBusyCursor();
+}
+
+void wxCheatsWindow::OnClearActionReplayLog(wxCommandEvent& event)
+{
+	ActionReplay::ClearSelfLog();
+	OnEvent_ButtonUpdateLog_Press(event);
 }
 
 void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED(event))

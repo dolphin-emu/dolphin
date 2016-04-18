@@ -19,6 +19,7 @@
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include <atomic>
 #include <list>
 #include <mutex>
 #include <string>
@@ -76,14 +77,15 @@ enum
 	SUB_MASTER_CODE   = 0x03,
 };
 
+static std::recursive_mutex s_codes_lock;
+static std::vector<ARCode> s_all_codes;
+static std::vector<ARCode> s_active_codes;
+static bool s_disable_logging = false;
 // pointer to the code currently being run, (used by log messages that include the code name)
 static ARCode const* s_current_code = nullptr;
 
-static bool s_disable_logging = false;
-static std::vector<ARCode> s_all_codes;
-static std::vector<ARCode> s_active_codes;
-
-static bool s_use_internal_log = false;
+static std::mutex s_internal_log_lock;
+static std::atomic<bool> s_use_internal_log{ false };
 static std::vector<std::string> s_internal_log;
 
 static std::recursive_mutex s_callbacks_lock;
@@ -124,23 +126,30 @@ static void RunCodeChangeCallbacks()
 
 // ----------------------
 // AR Remote Functions
-void ApplyCodes(const std::vector<ARCode>& codes)
+void ApplyCodes(std::vector<ARCode> codes)
 {
 	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
-	s_all_codes = codes;
+	{
+		std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
+		s_all_codes = std::move(codes);
+	}
 	UpdateActiveList();
 	RunCodeChangeCallbacks();
 }
 
-void AddCode(const ARCode& code)
+void AddCode(ARCode code)
 {
 	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
-	s_all_codes.push_back(code);
-	if (code.active)
+	bool is_active = code.active;
+	{
+		std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
+		s_all_codes.emplace_back(std::move(code));
+	}
+	if (is_active)
 		UpdateActiveList();
 	RunCodeChangeCallbacks();
 }
@@ -180,6 +189,7 @@ void SaveAppliedCodes(IniFile* local_ini)
 	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	SaveCodes(local_ini, s_all_codes);
 }
 
@@ -322,7 +332,8 @@ static void LogInfo(const char* format, ...)
 {
 	if (s_disable_logging)
 		return;
-	if (LogManager::GetMaxLevel() < LogTypes::LINFO && !s_use_internal_log)
+	bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
+	if (LogManager::GetMaxLevel() < LogTypes::LINFO && !use_internal_log)
 		return;
 
 	va_list args;
@@ -331,20 +342,23 @@ static void LogInfo(const char* format, ...)
 	va_end(args);
 	INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
 
-	if (s_use_internal_log)
+	if (use_internal_log)
 	{
 		text += '\n';
+		std::lock_guard<std::mutex> guard(s_internal_log_lock);
 		s_internal_log.emplace_back(std::move(text));
 	}
 }
 
 size_t GetCodeListSize()
 {
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	return s_all_codes.size();
 }
 
 ARCode GetARCode(size_t index)
 {
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	if (index > s_all_codes.size())
 	{
 		PanicAlertT("GetARCode: Index is greater than "
@@ -356,21 +370,23 @@ ARCode GetARCode(size_t index)
 
 void SetARCode_IsActive(bool active, size_t index)
 {
-	if (index > s_all_codes.size())
 	{
-		PanicAlertT("SetARCode_IsActive: Index is greater than "
-		            "ar code list size %zu", index);
-		return;
+		std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
+		if (index > s_all_codes.size())
+		{
+			PanicAlertT("SetARCode_IsActive: Index is greater than "
+			            "ar code list size %zu", index);
+			return;
+		}
+		s_all_codes[index].active = active;
 	}
-	s_all_codes[index].active = active;
 	UpdateActiveList();
 	RunCodeChangeCallbacks();
 }
 
 void UpdateActiveList()
 {
-	bool old_value = SConfig::GetInstance().bEnableCheats;
-	SConfig::GetInstance().bEnableCheats = false;
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	s_disable_logging = false;
 	s_active_codes.clear();
 	for (const auto& arCode : s_all_codes)
@@ -378,22 +394,28 @@ void UpdateActiveList()
 		if (arCode.active)
 			s_active_codes.push_back(arCode);
 	}
-	SConfig::GetInstance().bEnableCheats = old_value;
 }
 
 void EnableSelfLogging(bool enable)
 {
-	s_use_internal_log = enable;
+	s_use_internal_log.store(enable, std::memory_order_relaxed);
 }
 
-const std::vector<std::string>& GetSelfLog()
+std::vector<std::string> GetSelfLog()
 {
+	std::lock_guard<std::mutex> guard(s_internal_log_lock);
 	return s_internal_log;
+}
+
+void ClearSelfLog()
+{
+	std::lock_guard<std::mutex> guard(s_internal_log_lock);
+	s_internal_log.clear();
 }
 
 bool IsSelfLogging()
 {
-	return s_use_internal_log;
+	return s_use_internal_log.load(std::memory_order_relaxed);
 }
 
 // ----------------------
@@ -852,27 +874,37 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 void RunAllActive()
 {
-	if (SConfig::GetInstance().bEnableCheats)
-	{
-		bool log_disabled = s_disable_logging;
-		for (auto& active_code : s_active_codes)
-		{
-			if (active_code.active)
-			{
-				active_code.active = RunCode(active_code);
-				s_disable_logging = log_disabled;
-				LogInfo("\n");
-			}
-		}
+	if (!SConfig::GetInstance().bEnableCheats)
+		return;
 
-		s_disable_logging = true;
+	// If the mutex is idle then acquiring it should be cheap (Fast Mutexes
+	// only require atomic ops, context switching only when contested).
+	// If it's contested then the Host is probably mutating the list so skip
+	// running codes this frame.
+	std::unique_lock<std::recursive_mutex> guard(s_codes_lock, std::try_to_lock);
+	if (!guard.owns_lock())
+		return;
+
+	bool log_disabled = s_disable_logging;
+	for (auto& active_code : s_active_codes)
+	{
+		if (active_code.active)
+		{
+			active_code.active = RunCode(active_code);
+			s_disable_logging = log_disabled;
+			LogInfo("\n");
+		}
 	}
+
+	s_disable_logging = true;
 }
 
 bool RunCode(const ARCode& arcode)
 {
 	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
 
+	// NOTE: Lock needed for s_current_code and s_disable_logging
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	bool do_fill_and_slide = false;
 	bool do_memory_copy = false;
 
