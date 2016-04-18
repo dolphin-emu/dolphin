@@ -350,38 +350,10 @@ static void LogInfo(const char* format, ...)
 	}
 }
 
-size_t GetCodeListSize()
+std::vector<ARCode> GetCodeList()
 {
 	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
-	return s_all_codes.size();
-}
-
-ARCode GetARCode(size_t index)
-{
-	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
-	if (index > s_all_codes.size())
-	{
-		PanicAlertT("GetARCode: Index is greater than "
-		            "ar code list size %zu", index);
-		return ARCode();
-	}
-	return s_all_codes[index];
-}
-
-void SetARCode_IsActive(bool active, size_t index)
-{
-	{
-		std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
-		if (index > s_all_codes.size())
-		{
-			PanicAlertT("SetARCode_IsActive: Index is greater than "
-			            "ar code list size %zu", index);
-			return;
-		}
-		s_all_codes[index].active = active;
-	}
-	UpdateActiveList();
-	RunCodeChangeCallbacks();
+	return s_all_codes;
 }
 
 void UpdateActiveList()

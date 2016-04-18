@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
+class CheatSearchTab;
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
@@ -29,6 +30,8 @@ namespace Gecko
 	class CodeConfigPanel;
 }
 
+wxDECLARE_EVENT(dolEVT_ADD_NEW_ACTION_REPLAY_CODE, wxCommandEvent);
+
 class wxCheatsWindow final : public wxDialog
 {
 public:
@@ -37,17 +40,14 @@ public:
 	void UpdateGUI();
 
 private:
-	struct ARCodeIndex
-	{
-		u32 uiIndex;
-		size_t index;
-	};
+	struct CodeData;
 
 	// --- GUI Controls ---
 	wxButton* m_button_apply;
 	wxNotebook* m_notebook_main;
 
 	wxPanel* m_tab_cheats;
+	CheatSearchTab* m_tab_cheat_search;
 	wxPanel* m_tab_log;
 
 	wxCheckBox* m_checkbox_log_ar;
@@ -63,10 +63,6 @@ private:
 
 	wxStaticBox* m_groupbox_info;
 
-	wxArrayString m_cheat_string_list;
-
-	std::vector<ARCodeIndex> m_index_list;
-
 	Gecko::CodeConfigPanel* m_geckocode_panel;
 	IniFile m_gameini_default;
 	IniFile m_gameini_local;
@@ -81,6 +77,8 @@ private:
 	void Load_GeckoCodes();
 
 	// --- Wx Events Handlers ---
+	// Cheat Search
+	void OnNewARCodeCreated(wxCommandEvent& ev);
 
 	// Close Button
 	void OnEvent_ButtonClose_Press(wxCommandEvent& event);
@@ -88,7 +86,6 @@ private:
 
 	// Cheats List
 	void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
-	void OnEvent_CheatsList_ItemToggled(wxCommandEvent& event);
 	void OnEvent_CheatsList_Update(wxThreadEvent& event);
 	void OnActionReplayModified();
 
