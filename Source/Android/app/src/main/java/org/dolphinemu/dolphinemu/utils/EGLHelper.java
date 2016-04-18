@@ -120,14 +120,12 @@ public final class EGLHelper
 	 */
 	public String[] getEGLInfo()
 	{
-		String[] info = {
+		return new String[] info = {
 			mGL.glGetString(GL10.GL_VENDOR),
 			mGL.glGetString(GL10.GL_VERSION),
 			mGL.glGetString(GL10.GL_RENDERER),
 			mGL.glGetString(GL10.GL_EXTENSIONS),
 		};
-
-		return info;
 	}
 
 	/**
@@ -243,10 +241,10 @@ public final class EGLHelper
 			return false;
 		}
 
-		for (int i = 0; i < mEGLConfigs.length; i++)
+		for (EGLConfig mEGLConfig : mEGLConfigs)
 		{
 			int[] attribVal = new int[1];
-			boolean ret = mEGL.eglGetConfigAttrib(mDisplay, mEGLConfigs[i], EGL10.EGL_RENDERABLE_TYPE, attribVal);
+			boolean ret = mEGL.eglGetConfigAttrib(mDisplay, mEGLConfig, EGL10.EGL_RENDERABLE_TYPE, attribVal);
 			if (ret)
 			{
 				if ((attribVal[0] & EGL_OPENGL_BIT) != 0)
