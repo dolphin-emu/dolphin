@@ -235,12 +235,16 @@ private:
 
 	bool bRefreshList;
 
+	void* m_ar_callback_token = nullptr;
+
 	void LoadGameConfig();
 	bool SaveGameConfig();
 	void PatchList_Load();
 	void PatchList_Save();
 	void ActionReplayList_Load();
 	void ActionReplayList_Save();
+	void OnActionReplayEngineModified();
+	void OnActionReplayEngineModifiedHostThread(wxThreadEvent&);
 	void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
 	long GetElementStyle(const char* section, const char* key);

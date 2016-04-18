@@ -70,6 +70,8 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
+static constexpr int THREAD_EVENT_ACTION_REPLAY = 0;
+
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_CLOSE(CISOProperties::OnClose)
 	EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
@@ -96,6 +98,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 	EVT_CHECKLISTBOX(ID_CHEATS_LIST, CISOProperties::OnActionReplayCodeChecked)
+	EVT_THREAD(THREAD_EVENT_ACTION_REPLAY, CISOProperties::OnActionReplayEngineModifiedHostThread)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -230,10 +233,13 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
 		m_Treectrl->Expand(RootId);
 	}
+
+	m_ar_callback_token = ActionReplay::RegisterCodeChangeCallback(std::bind(&CISOProperties::OnActionReplayEngineModified, this));
 }
 
 CISOProperties::~CISOProperties()
 {
+	ActionReplay::UnregisterCodeChangeCallback(m_ar_callback_token);
 }
 
 size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos)
@@ -1301,7 +1307,7 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		break;
 	case ID_CHEATS_LIST:
 		if (Cheats->GetSelection() == wxNOT_FOUND ||
-		    DefaultCheats.find(Cheats->GetString(Cheats->GetSelection()).ToStdString()) != DefaultCheats.end())
+		    DefaultCheats.find(Cheats->RemoveMnemonics(Cheats->GetString(Cheats->GetSelection())).ToStdString()) != DefaultCheats.end())
 		{
 			EditCheat->Disable();
 			RemoveCheat->Disable();
@@ -1405,23 +1411,40 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::ActionReplayList_Load()
 {
-	Cheats->Clear();
 	arCodes = ActionReplay::LoadCodes(GameIniDefault, GameIniLocal);
+	DefaultCheats.clear();
 
-	u32 index = 0;
+	Cheats->Freeze();
+	Cheats->Clear();
 	for (const ActionReplay::ARCode& arCode : arCodes)
 	{
-		Cheats->Append(StrToWxStr(arCode.name));
-		Cheats->Check(index, arCode.active);
+		int idx = Cheats->Append(Cheats->EscapeMnemonics(StrToWxStr(arCode.name)));
+		Cheats->Check(idx, arCode.active);
 		if (!arCode.user_defined)
 			DefaultCheats.insert(arCode.name);
-		++index;
 	}
+	Cheats->Thaw();
 }
 
 void CISOProperties::ActionReplayList_Save()
 {
 	ActionReplay::SaveCodes(&GameIniLocal, arCodes);
+}
+
+void CISOProperties::OnActionReplayEngineModified()
+{
+	// NOTE: Arbitrary thread context.
+	// This should be threadsafe because game_id never mutates
+	if (SConfig::GetInstance().GetUniqueID() != game_id)
+		return;
+
+	GetEventHandler()->QueueEvent(new wxThreadEvent(wxEVT_THREAD, THREAD_EVENT_ACTION_REPLAY));
+}
+
+void CISOProperties::OnActionReplayEngineModifiedHostThread(wxThreadEvent&)
+{
+	ActionReplay::SaveAppliedCodes(&GameIniLocal);
+	ActionReplayList_Load();
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
