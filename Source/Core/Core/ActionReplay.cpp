@@ -111,6 +111,18 @@ struct ARAddr
 	operator u32() const { return address; }
 };
 
+static void UpdateActiveList()
+{
+	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
+	s_disable_logging = false;
+	s_active_codes.clear();
+	for (const auto& arCode : s_all_codes)
+	{
+		if (arCode.active)
+			s_active_codes.push_back(arCode);
+	}
+}
+
 static void RunCodeChangeCallbacks()
 {
 	std::lock_guard<std::recursive_mutex> guard(s_callbacks_lock);
@@ -354,18 +366,6 @@ std::vector<ARCode> GetCodeList()
 {
 	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
 	return s_all_codes;
-}
-
-void UpdateActiveList()
-{
-	std::lock_guard<std::recursive_mutex> guard(s_codes_lock);
-	s_disable_logging = false;
-	s_active_codes.clear();
-	for (const auto& arCode : s_all_codes)
-	{
-		if (arCode.active)
-			s_active_codes.push_back(arCode);
-	}
 }
 
 void EnableSelfLogging(bool enable)

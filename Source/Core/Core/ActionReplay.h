@@ -41,7 +41,6 @@ void SaveAppliedCodes(IniFile* local_ini);
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
 void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
 std::vector<ARCode> GetCodeList();
-void UpdateActiveList();
 void EnableSelfLogging(bool enable);
 std::vector<std::string> GetSelfLog();
 void ClearSelfLog();
