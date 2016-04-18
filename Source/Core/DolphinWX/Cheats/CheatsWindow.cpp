@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <vector>
 #include <wx/button.h>
@@ -38,11 +39,18 @@
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
+namespace
+{
+wxDEFINE_EVENT(dolEVT_UPDATE_CHEAT_LIST, wxThreadEvent);
+}
+
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxDIALOG_NO_PARENT)
 {
 	// Create the GUI controls
 	Init_ChildControls();
+
+	m_ar_callback_token = ActionReplay::RegisterCodeChangeCallback(std::bind(&wxCheatsWindow::OnActionReplayModified, this));
 
 	// load codes
 	UpdateGUI();
@@ -54,6 +62,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 wxCheatsWindow::~wxCheatsWindow()
 {
+	ActionReplay::UnregisterCodeChangeCallback(m_ar_callback_token);
 	main_frame->g_CheatsWindow = nullptr;
 }
 
@@ -126,7 +135,7 @@ void wxCheatsWindow::Init_ChildControls()
 	button_cancel->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
 
 	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
-	Bind(UPDATE_CHEAT_LIST_EVENT, &wxCheatsWindow::OnEvent_CheatsList_Update, this);
+	Bind(dolEVT_UPDATE_CHEAT_LIST, &wxCheatsWindow::OnEvent_CheatsList_Update, this);
 
 	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
 	sButtons->AddButton(m_button_apply);
@@ -232,24 +241,30 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED(eve
 	{
 		if ((int)code_index.uiIndex == index)
 		{
+			m_ar_ignore_callback = true;
 			ActionReplay::SetARCode_IsActive(m_checklistbox_cheats_list->IsChecked(index), code_index.index);
 		}
 	}
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_Update(wxCommandEvent& event)
+void wxCheatsWindow::OnEvent_CheatsList_Update(wxThreadEvent&)
 {
+	if (m_ar_ignore_callback)
+	{
+		m_ar_ignore_callback = false;
+		return;
+	}
 	Load_ARCodes();
+}
+
+void wxCheatsWindow::OnActionReplayModified()
+{
+	// NOTE: This is an arbitrary thread context
+	GetEventHandler()->QueueEvent(new wxThreadEvent(dolEVT_UPDATE_CHEAT_LIST));
 }
 
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
-	// Apply AR Code changes
-	for (const ARCodeIndex& code_index : m_index_list)
-	{
-		ActionReplay::SetARCode_IsActive(m_checklistbox_cheats_list->IsChecked(code_index.uiIndex), code_index.index);
-	}
-
 	// Apply Gecko Code changes
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
@@ -265,11 +280,15 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED(event))
 {
+	wxBeginBusyCursor();
+	m_textctrl_log->Freeze();
 	m_textctrl_log->Clear();
 	for (const std::string& text : ActionReplay::GetSelfLog())
 	{
 		m_textctrl_log->AppendText(StrToWxStr(text));
 	}
+	m_textctrl_log->Thaw();
+	wxEndBusyCursor();
 }
 
 void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED(event))

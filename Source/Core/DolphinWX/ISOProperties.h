@@ -208,6 +208,7 @@ private:
 	void OnComputeMD5Sum(wxCommandEvent& event);
 	void OnShowDefaultConfig(wxCommandEvent& event);
 	void ListSelectionChanged(wxCommandEvent& event);
+	void OnActionReplayCodeChecked(wxCommandEvent& event);
 	void PatchButtonClicked(wxCommandEvent& event);
 	void ActionReplayButtonClicked(wxCommandEvent& event);
 	void RightClickOnBanner(wxMouseEvent& event);

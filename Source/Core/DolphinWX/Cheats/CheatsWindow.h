@@ -72,6 +72,9 @@ private:
 	IniFile m_gameini_local;
 	std::string m_gameini_local_path;
 
+	void* m_ar_callback_token = nullptr;
+	bool  m_ar_ignore_callback = false;
+
 	void Init_ChildControls();
 
 	void Load_ARCodes();
@@ -86,7 +89,8 @@ private:
 	// Cheats List
 	void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
 	void OnEvent_CheatsList_ItemToggled(wxCommandEvent& event);
-	void OnEvent_CheatsList_Update(wxCommandEvent& event);
+	void OnEvent_CheatsList_Update(wxThreadEvent& event);
+	void OnActionReplayModified();
 
 	// Apply Changes Button
 	void OnEvent_ApplyChanges_Press(wxCommandEvent& event);

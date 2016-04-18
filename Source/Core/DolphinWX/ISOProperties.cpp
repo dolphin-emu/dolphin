@@ -95,6 +95,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 	EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
+	EVT_CHECKLISTBOX(ID_CHEATS_LIST, CISOProperties::OnActionReplayCodeChecked)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -1314,6 +1315,11 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 	}
 }
 
+void CISOProperties::OnActionReplayCodeChecked(wxCommandEvent& event)
+{
+	arCodes[event.GetSelection()].active = Cheats->IsChecked(event.GetSelection());
+}
+
 void CISOProperties::PatchList_Load()
 {
 	onFrame.clear();
@@ -1421,8 +1427,7 @@ void CISOProperties::ActionReplayList_Save()
 	u32 cheats_chkbox_count = Cheats->GetCount();
 	for (const ActionReplay::ARCode& code : arCodes)
 	{
-		// Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
-		if ((index < cheats_chkbox_count) && Cheats->IsChecked(index))
+		if (code.active)
 			enabledLines.push_back("$" + code.name);
 
 		// Do not save default cheats.

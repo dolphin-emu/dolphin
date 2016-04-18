@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
@@ -31,6 +32,10 @@ struct ARCode
 
 void RunAllActive();
 bool RunCode(const ARCode &arcode);
+void ApplyCodes(const std::vector<ARCode>& codes);
+void AddCode(const ARCode& new_code);
+void* RegisterCodeChangeCallback(std::function<void()> callback);
+void  UnregisterCodeChangeCallback(void* token);
 void LoadAndApplyCodes(const IniFile& globalini, const IniFile& localIni);
 std::vector<ARCode> LoadCodes(const IniFile& globalini, const IniFile& localIni);
 size_t GetCodeListSize();
