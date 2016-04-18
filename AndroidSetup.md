@@ -5,10 +5,10 @@ If you'd like to contribute to the Android project, but do not currently have a 
 ## Prerequisites
 
 * A Linux VM or host, or a Mac.
-* JDK 7 for your platform.
+* JDK 8 for your platform.
 * CMake
 * [Android NDK](https://developer.android.com/tools/sdk/ndk/index.html) 
-* [Android Studio](http://developer.android.com/tools/studio/index.html) **OR**
+* [Android Studio](http://developer.android.com/tools/studio/index.html) 2.0 or greater **OR**
 * [Android SDK Tools](http://developer.android.com/sdk/index.html#Other) (for command-line usage)
 
 If you downloaded Android Studio, extract it and then see [Setting up Android Studio](#setting-up-android-studio).
@@ -55,7 +55,7 @@ Most dependencies for the Android project are supplied by Gradle automatically. 
 2. At the bottom of the window, click "Deselect All", and then "Updates".
 3. Install or update the following packages:
 
-* SDK Platform, under "Android 5.0.1 (API 21)". This will allow compiling apps that target Lollipop.
+* SDK Platform, under "Android 5.1.1 (API 22)". This will allow compiling apps that target Lollipop.
 * Android Support Repository
 * Android Support Library
 * Google Repository
