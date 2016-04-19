@@ -233,7 +233,7 @@ HRESULT Create(HWND wnd)
 	IDXGIAdapter* adapter = nullptr;
 	IDXGIOutput* output = nullptr;
 	DXGI_OUTPUT_DESC out_desc;
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (PCreateDXGIFactory1)
 		hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
 	else

@@ -19,7 +19,7 @@ namespace DX11
 // Oculus Rift
 #ifdef OVR_MAJOR_VERSION
 
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 ovrD3D11Texture g_eye_texture[2];
 #else
 //------------------------------------------------------------
@@ -27,8 +27,20 @@ ovrD3D11Texture g_eye_texture[2];
 // needed for D3D11 rendering.
 struct OculusTexture
 {
+#if OVR_PRODUCT_VERSION >= 1
+	ovrTextureSwapChain TextureChain;
+	std::vector<ID3D11RenderTargetView*> TexRtv;
+	// clean up member COM pointers
+	template<typename T> void Release(T *&obj)
+	{
+		if (!obj) return;
+		obj->Release();
+		obj = nullptr;
+	}
+#else
 	ovrSwapTextureSet      * TextureSet;
 	ID3D11RenderTargetView * TexRtv[3];
+#endif
 
 	OculusTexture(ovrHmd hmd, ovrSizei size)
 	{
@@ -45,14 +57,52 @@ struct OculusTexture
 		dsDesc.MiscFlags = 0;
 		dsDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-#if OVR_MAJOR_VERSION >= 7
-		unsigned int miscFlags = ovrSwapTextureSetD3D11_Typeless; // ovrSwapTextureSetD3D11_Typeless just causes a black screen on both the mirror and the HMD
-		ovr_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, miscFlags, &TextureSet);
-#else
-		ovrHmd_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, &TextureSet);
-#endif
-		for (int i = 0; i < TextureSet->TextureCount; ++i)
+		int length = 0;
+		ovrResult res;
+#if OVR_PRODUCT_VERSION >= 1
+		TextureChain = nullptr;
+		ovrTextureSwapChainDesc desc = {};
+		desc.Type = ovrTexture_2D;
+		desc.ArraySize = 1;
+		desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+		desc.Width = size.w;
+		desc.Height = size.h;
+		desc.MipLevels = 1;
+		desc.SampleCount = 1;
+		desc.MiscFlags = ovrTextureMisc_DX_Typeless;
+		desc.BindFlags = ovrTextureBind_DX_RenderTarget;
+		desc.StaticImage = ovrFalse;
+
+		res = ovr_CreateTextureSwapChainDX(hmd, DX11::D3D::device, &desc, &TextureChain);
+		ovr_GetTextureSwapChainLength(hmd, TextureChain, &length);
+		if (!OVR_SUCCESS(res))
 		{
+			ovrErrorInfo e;
+			ovr_GetLastErrorInfo(&e);
+			PanicAlert("ovr_CreateTextureSwapChainDX(hmd, OVR_FORMAT_R8G8B8A8_UNORM_SRGB, %d, %d)=%d failed\n%s", size.w, size.h, res, e.ErrorString);
+			return;
+		}
+#elif OVR_MAJOR_VERSION >= 7
+		unsigned int miscFlags = ovrSwapTextureSetD3D11_Typeless; // ovrSwapTextureSetD3D11_Typeless just causes a black screen on both the mirror and the HMD
+		res = ovr_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, miscFlags, &TextureSet);
+		length = TextureSet->TextureCount;
+#else
+		res = ovrHmd_CreateSwapTextureSetD3D11(hmd, DX11::D3D::device, &dsDesc, &TextureSet);
+		length = TextureSet->TextureCount;
+#endif
+		for (int i = 0; i < length; ++i)
+		{
+#if OVR_PRODUCT_VERSION >= 1
+			ID3D11Texture2D* tex = nullptr;
+			ovr_GetTextureSwapChainBufferDX(hmd, TextureChain, i, IID_PPV_ARGS(&tex));
+			D3D11_RENDER_TARGET_VIEW_DESC rtvd = {};
+			rtvd.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			rtvd.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+			ID3D11RenderTargetView* rtv;
+			DX11::D3D::device->CreateRenderTargetView(tex, &rtvd, &rtv);
+			TexRtv.push_back(rtv);
+			tex->Release();
+#else
 			ovrD3D11Texture* tex = (ovrD3D11Texture*)&TextureSet->Textures[i];
 #if OVR_MAJOR_VERSION >= 7
 			D3D11_RENDER_TARGET_VIEW_DESC rtvd = {};
@@ -61,23 +111,54 @@ struct OculusTexture
 			DX11::D3D::device->CreateRenderTargetView(tex->D3D11.pTexture, &rtvd, &TexRtv[i]);
 #else
 			DX11::D3D::device->CreateRenderTargetView(tex->D3D11.pTexture, nullptr, &TexRtv[i]);
-#endif;
+#endif
+#endif
 		}
 	}
 
+#if OVR_PRODUCT_VERSION >= 1
+	ID3D11RenderTargetView* GetRTV()
+	{
+		int index = 0;
+		ovr_GetTextureSwapChainCurrentIndex(hmd, TextureChain, &index);
+		return TexRtv[index];
+	}
+#endif
+
+	// Commit changes
 	void AdvanceToNextTexture()
 	{
+#if OVR_PRODUCT_VERSION >= 1
+		ovr_CommitTextureSwapChain(hmd, TextureChain);
+#else
 		TextureSet->CurrentIndex = (TextureSet->CurrentIndex + 1) % TextureSet->TextureCount;
+#endif
 	}
+
 	void Release(ovrHmd hmd)
 	{
+#if OVR_PRODUCT_VERSION >= 1
+		for (int i = 0; i < (int)TexRtv.size(); ++i)
+		{
+			Release(TexRtv[i]);
+		}
+		if (TextureChain)
+		{
+			ovr_DestroyTextureSwapChain(hmd, TextureChain);
+		}
+#else
 		ovrHmd_DestroySwapTextureSet(hmd, TextureSet);
+#endif
 	}
 };
 
 OculusTexture *pEyeRenderTexture[2];
 ovrRecti       eyeRenderViewport[2];
+#if OVR_PRODUCT_VERSION >= 1
+ovrMirrorTexture mirrorTexture = nullptr;
+#else
 ovrTexture    *mirrorTexture = nullptr;
+#endif
 int mirror_width = 0, mirror_height = 0;
 D3D11_TEXTURE2D_DESC texdesc = {};
 #endif
@@ -99,7 +180,7 @@ void VR_ConfigureHMD()
 		}
 #endif
 #ifdef OVR_MAJOR_VERSION
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 	ovrD3D11Config cfg;
 	cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
 #ifdef OCULUSSDK044ORABOVE
@@ -154,7 +235,7 @@ void VR_ConfigureHMD()
 #endif
 }
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 void RecreateMirrorTextureIfNeeded()
 {
 	int w = Renderer::GetBackbufferWidth();
@@ -168,6 +249,16 @@ void RecreateMirrorTextureIfNeeded()
 		}
 		if (!g_ActiveConfig.bNoMirrorToWindow)
 		{
+
+#if OVR_PRODUCT_VERSION >= 1
+			// Create a mirror, to see Rift output on a monitor
+			mirrorTexture = nullptr;
+			ovrMirrorTextureDesc desc = {};
+			desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+			desc.Width = w;
+			desc.Height = h;
+			ovrResult result = ovr_CreateMirrorTextureDX(hmd, D3D::device, &desc, &mirrorTexture);
+#else
 			// Create a mirror to see on the monitor.
 			texdesc.ArraySize = 1;
 			texdesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
@@ -185,6 +276,7 @@ void RecreateMirrorTextureIfNeeded()
 #else
 			ovrResult result = ovrHmd_CreateMirrorTextureD3D11(hmd, D3D::device, &texdesc, &mirrorTexture);
 #endif
+#endif
 			if (!OVR_SUCCESS(result))
 			{
 				ERROR_LOG(VR, "Failed to create D3D mirror texture. Error: %d", result);
@@ -197,7 +289,7 @@ void RecreateMirrorTextureIfNeeded()
 
 void VR_StartFramebuffer()
 {
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (g_has_rift)
 	{
 		// On Oculus SDK 0.6.0 and above, get Oculus to create our textures for us. And remember the viewport.
@@ -221,7 +313,7 @@ void VR_StartFramebuffer()
 		VR920_StartStereo3D();
 #endif
 	}
-#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
+#if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
 	else if (g_has_rift || g_has_steamvr)
 	{
 		for (int eye = 0; eye < 2; ++eye)
@@ -283,7 +375,7 @@ void VR_StartFramebuffer()
 
 void VR_StopFramebuffer()
 {
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (mirrorTexture)
 	{
 		ovrHmd_DestroyMirrorTexture(hmd, mirrorTexture);
@@ -300,7 +392,7 @@ void VR_StopFramebuffer()
 		}
 	}
 #endif
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
 		SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[0]);
@@ -322,11 +414,11 @@ void VR_BeginFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION >= 6
+#if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6
 		RecreateMirrorTextureIfNeeded();
 		++g_ovr_frameindex;
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
-#if OVR_MAJOR_VERSION <= 7
+#if  OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
 		g_rift_frame_timing = ovrHmd_GetFrameTiming(hmd, 0);
 #endif
 		for (int eye = 0; eye < 2; eye++)
@@ -344,15 +436,19 @@ void VR_BeginFrame()
 
 void VR_RenderToEyebuffer(int eye)
 {
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
+#if OVR_PRODUCT_VERSION >= 1
+		ID3D11RenderTargetView* rtv = pEyeRenderTexture[eye]->GetRTV();
+		D3D::context->OMSetRenderTargets(1, &rtv, nullptr);
+		rtv = nullptr;
+#elif OVR_MAJOR_VERSION >= 6
 		D3D::context->OMSetRenderTargets(1, &pEyeRenderTexture[eye]->TexRtv[pEyeRenderTexture[eye]->TextureSet->CurrentIndex], nullptr);
-	}
-#endif
-#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5)
-	if (g_has_rift)
+#else
 		D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(), nullptr);
+#endif
+	}
 #endif
 #if defined(HAVE_OPENVR)
 	if (g_has_steamvr)
@@ -421,7 +517,7 @@ void VR_PresentHMDFrame()
 
 		D3D::context->OMSetBlendState(g_pOculusRiftBlendState, NULL, 0xFFFFFFFF);
 
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
@@ -430,7 +526,11 @@ void VR_PresentHMDFrame()
 		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?ovrLayerFlag_TextureOriginAtBottomLeft:0) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
+#if OVR_PRODUCT_VERSION >= 1
+			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureChain;
+#else
 			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
+#endif
 			ld.Viewport[eye] = eyeRenderViewport[eye];
 			ld.Fov[eye] = g_eye_fov[eye];
 			ld.RenderPose[eye] = g_eye_poses[eye];
@@ -441,6 +541,12 @@ void VR_PresentHMDFrame()
 		// Render mirror
 		if (mirrorTexture && !g_ActiveConfig.bNoMirrorToWindow)
 		{
+#if OVR_PRODUCT_VERSION >= 1
+			ID3D11Texture2D* tex = nullptr;
+			ovr_GetMirrorTextureBufferDX(hmd, mirrorTexture, IID_PPV_ARGS(&tex));
+			D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex);
+			tex->Release();
+#else
 			ovrD3D11Texture* tex = (ovrD3D11Texture*)mirrorTexture;
 			TargetRectangle sourceRc;
 			sourceRc.left = 0;
@@ -452,6 +558,7 @@ void VR_PresentHMDFrame()
 			D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)mirror_width, (float)mirror_height);
 			D3D::context->RSSetViewports(1, &vp);
 			D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), mirror_width, mirror_height, PixelShaderCache::GetColorCopyProgram(false), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(), nullptr);
+#endif
 
 			//D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
 			D3D::swapchain->Present(0, 0);
@@ -466,7 +573,7 @@ void VR_DrawTimewarpFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		ovrFrameTiming frameTime;
 		frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 		//const ovrTexture* new_eye_texture = new ovrTexture(FramebufferManager::m_eye_texture[0].Texture);
@@ -481,7 +588,7 @@ void VR_DrawTimewarpFrame()
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
 		++g_ovr_frameindex;
-#if OVR_MAJOR_VERSION <= 7
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
 		ovrFrameTiming frameTime;
 		frameTime = ovrHmd_GetFrameTiming(hmd, 0);
@@ -495,7 +602,11 @@ void VR_DrawTimewarpFrame()
 		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?ovrLayerFlag_TextureOriginAtBottomLeft:0) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
+#if OVR_PRODUCT_VERSION >= 1
+			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureChain;
+#else
 			ld.ColorTexture[eye] = pEyeRenderTexture[eye]->TextureSet;
+#endif
 			ld.Viewport[eye] = eyeRenderViewport[eye];
 			ld.Fov[eye] = g_eye_fov[eye];
 			ld.RenderPose[eye] = g_eye_poses[eye];

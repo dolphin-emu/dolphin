@@ -19,7 +19,7 @@
 #include "VideoCommon/VR.h"
 
 // Oculus Rift
-#ifdef OVR_MAJOR_VERSION
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0
 ovrGLTexture g_eye_texture[2];
 #endif
 
@@ -31,11 +31,15 @@ namespace OGL
 GLuint FramebufferManager::m_eyeFramebuffer[2];
 GLuint FramebufferManager::m_frontBuffer[2];
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 //--------------------------------------------------------------------------
 struct TextureBuffer
 {
+#if OVR_PRODUCT_VERSION >= 1
+	ovrTextureSwapChain TextureChain;
+#else
 	ovrSwapTextureSet* TextureSet;
+#endif
 	GLuint        texId;
 	GLuint        fboId;
 	ovrSizei          texSize;
@@ -44,6 +48,11 @@ struct TextureBuffer
 	{
 		//OVR_ASSERT(sampleCount <= 1); // The code doesn't currently handle MSAA textures.
 
+#if OVR_PRODUCT_VERSION >= 1
+		TextureChain = nullptr;
+		texId = 0;
+		fboId = 0;
+#endif
 		texSize = size;
 
 		if (displayableOnHmd) {
@@ -51,15 +60,45 @@ struct TextureBuffer
 			//OVR_ASSERT(hmd); // No HMD? A little odd.
 			//OVR_ASSERT(sampleCount == 1); // ovrHmd_CreateSwapTextureSetD3D11 doesn't support MSAA.
 
-#if OVR_MAJOR_VERSION >= 7
+			int length = 0;
+			ovrResult res;
+#if OVR_PRODUCT_VERSION >= 1
+			ovrTextureSwapChainDesc desc = {};
+			desc.Type = ovrTexture_2D;
+			desc.ArraySize = 1;
+			desc.Width = size.w;
+			desc.Height = size.h;
+			desc.MipLevels = 1;
+			desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+			desc.SampleCount = 1;
+			desc.StaticImage = ovrFalse;
+
+			res = ovr_CreateTextureSwapChainGL(hmd, &desc, &TextureChain);
+			ovr_GetTextureSwapChainLength(hmd, TextureChain, &length);
+			if (!OVR_SUCCESS(res))
+			{
+				ovrErrorInfo e;
+				ovr_GetLastErrorInfo(&e);
+				PanicAlert("ovr_CreateTextureSwapChainGL(hmd, OVR_FORMAT_R8G8B8A8_UNORM_SRGB, %d, %d)=%d failed\n%s", size.w, size.h, res, e.ErrorString);
+				return;
+			}
+#elif OVR_MAJOR_VERSION >= 7
 			ovr_CreateSwapTextureSetGL(hmd, GL_SRGB8_ALPHA8, size.w, size.h, &TextureSet);
+			length = TextureSet->TextureCount;
 #else
 			ovrHmd_CreateSwapTextureSetGL(hmd, GL_RGBA, size.w, size.h, &TextureSet);
+			length = TextureSet->TextureCount;
 #endif
-			for (int i = 0; i < TextureSet->TextureCount; ++i)
+			for (int i = 0; i < length; ++i)
 			{
+#if OVR_PRODUCT_VERSION >= 1
+				GLuint chainTexId;
+				ovr_GetTextureSwapChainBufferGL(hmd, TextureChain, i, &chainTexId);
+				glBindTexture(GL_TEXTURE_2D, chainTexId);
+#else
 				ovrGLTexture* tex = (ovrGLTexture*)&TextureSet->Textures[i];
 				glBindTexture(GL_TEXTURE_2D, tex->OGL.TexId);
+#endif
 
 				if (rendertarget)
 				{
@@ -76,7 +115,7 @@ struct TextureBuffer
 					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 				}
 			}
-}
+		}
 		else {
 			glGenTextures(1, &texId);
 			glBindTexture(GL_TEXTURE_2D, texId);
@@ -96,7 +135,11 @@ struct TextureBuffer
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			}
 
+#if OVR_PRODUCT_VERSION >= 1
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, texSize.w, texSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#else
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texSize.w, texSize.h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#endif
 		}
 
 		if (mipLevels > 1)
@@ -114,6 +157,26 @@ struct TextureBuffer
 
 	void SetAndClearRenderSurface()
 	{
+#if OVR_PRODUCT_VERSION >= 1
+		GLuint curTexId;
+		if (TextureChain)
+		{
+			int curIndex;
+			ovr_GetTextureSwapChainCurrentIndex(hmd, TextureChain, &curIndex);
+			ovr_GetTextureSwapChainBufferGL(hmd, TextureChain, curIndex, &curTexId);
+		}
+		else
+		{
+			curTexId = texId;
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, fboId);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, curTexId, 0);
+
+		glViewport(0, 0, texSize.w, texSize.h);
+		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glEnable(GL_FRAMEBUFFER_SRGB);
+#else
 		ovrGLTexture* tex = (ovrGLTexture*)&TextureSet->Textures[TextureSet->CurrentIndex];
 
 		glBindFramebuffer(GL_FRAMEBUFFER, fboId);
@@ -121,6 +184,7 @@ struct TextureBuffer
 
 		glViewport(0, 0, texSize.w, texSize.h);
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
 	}
 
 	void UnsetRenderSurface()
@@ -129,14 +193,28 @@ struct TextureBuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, 0, 0);
 	}
+
+	void Commit()
+	{
+#if OVR_PRODUCT_VERSION >= 1
+		if (TextureChain)
+		{
+			ovr_CommitTextureSwapChain(hmd, TextureChain);
+		}
+#endif
+	}
 };
 
 TextureBuffer * eyeRenderTexture[2];
-ovrSwapTextureSet * pTextureSet = 0;
 ovrRecti eyeRenderViewport[2];
+#if OVR_PRODUCT_VERSION >= 1
+ovrMirrorTexture mirrorTexture;
+#else
+ovrSwapTextureSet * pTextureSet = 0;
 ovrGLTexture * mirrorTexture;
+#endif
 int mirror_width = 0, mirror_height = 0;
-GLuint mirrorFBO = 0;
+GLuint mirrorFBO = 0, mirrorTexId = 0;
 #endif
 
 #ifdef HAVE_OPENVR
@@ -546,7 +624,7 @@ void VR_ConfigureHMD()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		ovrGLConfig cfg;
 		cfg.OGL.Header.API = ovrRenderAPI_OpenGL;
 #ifdef OCULUSSDK044ORABOVE
@@ -562,7 +640,7 @@ void VR_ConfigureHMD()
 		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
 		cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #ifndef OCULUSSDK042
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		if (g_is_direct_mode) //If in Direct Mode
 		{
 			ovrHmd_AttachToWindow(hmd, cfg.OGL.Window, nullptr, nullptr); //Attach to Direct Mode.
@@ -576,7 +654,7 @@ void VR_ConfigureHMD()
 #endif
 #endif
 		int caps = 0;
-#if OVR_MAJOR_VERSION <= 4
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 4
 		if (g_Config.bChromatic)
 			caps |= ovrDistortionCap_Chromatic;
 #endif
@@ -611,7 +689,7 @@ void VR_ConfigureHMD()
 #endif
 }
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 void RecreateMirrorTextureIfNeeded()
 {
 	int w = Renderer::GetBackbufferWidth();
@@ -621,7 +699,11 @@ void RecreateMirrorTextureIfNeeded()
 		if (mirrorTexture)
 		{
 			glDeleteFramebuffers(1, &mirrorFBO);
+#if OVR_PRODUCT_VERSION >= 1
+			ovrHmd_DestroyMirrorTexture(hmd, mirrorTexture);
+#else
 			ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+#endif
 			mirrorTexture = nullptr;
 		}
 		if (!g_ActiveConfig.bNoMirrorToWindow)
@@ -629,17 +711,32 @@ void RecreateMirrorTextureIfNeeded()
 			// Create mirror texture and an FBO used to copy mirror texture to back buffer
 			mirror_width = w;
 			mirror_height = h;
-#if OVR_MAJOR_VERSION >= 7
+#if OVR_PRODUCT_VERSION >= 1
+			ovrMirrorTextureDesc desc{};
+			desc.Width = mirror_width;
+			desc.Height = mirror_height;
+			desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+			ovr_CreateMirrorTextureGL(hmd, &desc, &mirrorTexture);
+#elif OVR_MAJOR_VERSION >= 7
 			ovr_CreateMirrorTextureGL(hmd, GL_SRGB8_ALPHA8, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
 #else
 			ovrHmd_CreateMirrorTextureGL(hmd, GL_RGBA, mirror_width, mirror_height, (ovrTexture**)&mirrorTexture);
 #endif
+#if OVR_PRODUCT_VERSION >= 1
+			ovr_GetMirrorTextureBufferGL(hmd, mirrorTexture, &mirrorTexId);
 			// Configure the mirror read buffer
+			glGenFramebuffers(1, &mirrorFBO);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
+			glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexId, 0);
+			glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+#else
 			glGenFramebuffers(1, &mirrorFBO);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
 			glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mirrorTexture->OGL.TexId, 0);
 			glFramebufferRenderbuffer(GL_READ_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+#endif
 		}
 	}
 }
@@ -652,7 +749,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
 	FramebufferManager::m_frontBuffer[0] = 0;
 	FramebufferManager::m_frontBuffer[1] = 0;
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (g_has_rift)
 	{
 		GLInterface->SwapInterval(false);
@@ -678,7 +775,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
 		VR920_StartStereo3D();
 #endif
 	}
-#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
+#if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) || defined(HAVE_OPENVR)
 	else if (g_has_rift || g_has_steamvr)
 	{
 		// create the eye textures
@@ -700,7 +797,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
 			glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, FramebufferManager::m_frontBuffer[eye], 0);
 		}
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		if (g_has_rift)
 		{
 			g_eye_texture[0].OGL.Header.API = ovrRenderAPI_OpenGL;
@@ -733,28 +830,33 @@ void VR_StartFramebuffer(int target_width, int target_height)
 
 void VR_StopFramebuffer()
 {
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (g_has_rift)
 	{
 		glDeleteFramebuffers(1, &mirrorFBO);
+#if OVR_PRODUCT_VERSION >= 1
+		ovr_DestroyMirrorTexture(hmd, mirrorTexture);
+#else
 		ovrHmd_DestroyMirrorTexture(hmd, (ovrTexture*)mirrorTexture);
+#endif
 		mirrorTexture = nullptr;
-		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[0]->TextureSet);
-		ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[1]->TextureSet);
-
 		// On Oculus SDK 0.6.0 and above, we need to destroy the eye textures Oculus created for us.
 		for (int eye = 0; eye < 2; eye++)
 		{
 			if (eyeRenderTexture[eye])
 			{
+#if OVR_PRODUCT_VERSION >= 1
+				ovr_DestroyTextureSwapChain(hmd, eyeRenderTexture[eye]->TextureChain);
+#else
 				ovrHmd_DestroySwapTextureSet(hmd, eyeRenderTexture[eye]->TextureSet);
+#endif
 				delete eyeRenderTexture[eye];
 				eyeRenderTexture[eye] = nullptr;
 			}
 		}
 	}
 #endif
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
 		glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
@@ -786,16 +888,20 @@ void VR_BeginFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION >= 6
+#if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6
 		++g_ovr_frameindex;
-#if OVR_MAJOR_VERSION <= 7
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
 		g_rift_frame_timing = ovrHmd_GetFrameTiming(hmd, 0);
 #endif
 		for (int eye = 0; eye < 2; eye++)
 		{
+#if OVR_PRODUCT_VERSION >= 1 
+			eyeRenderTexture[eye]->Commit();
+#else
 			// Increment to use next texture, just before writing
 			eyeRenderTexture[eye]->TextureSet->CurrentIndex = (eyeRenderTexture[eye]->TextureSet->CurrentIndex + 1) % eyeRenderTexture[eye]->TextureSet->TextureCount;
+#endif
 		}
 #else
 		ovrHmd_DismissHSWDisplay(hmd);
@@ -807,7 +913,7 @@ void VR_BeginFrame()
 
 void VR_RenderToEyebuffer(int eye)
 {
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION >= 6
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
 	if (g_has_rift)
 	{
 		eyeRenderTexture[eye]->UnsetRenderSurface();
@@ -815,7 +921,7 @@ void VR_RenderToEyebuffer(int eye)
 		eyeRenderTexture[eye]->SetAndClearRenderSurface();
 	}
 #endif
-#if (defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5)
+#if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5)
 	if (g_has_rift)
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
@@ -862,7 +968,7 @@ void VR_PresentHMDFrame()
 	{
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		// Let OVR do distortion rendering, Present and flush/sync.
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
@@ -872,7 +978,11 @@ void VR_PresentHMDFrame()
 		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?0:ovrLayerFlag_TextureOriginAtBottomLeft) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
+#if OVR_PRODUCT_VERSION >= 1
+			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureChain;
+#else
 			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureSet;
+#endif
 			ld.Viewport[eye] = eyeRenderViewport[eye];
 			ld.Fov[eye] = g_eye_fov[eye];
 			ld.RenderPose[eye] = g_eye_poses[eye];
@@ -885,8 +995,13 @@ void VR_PresentHMDFrame()
 			// Blit mirror texture to back buffer
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#if OVR_PRODUCT_VERSION >= 1
+			GLint w = mirror_width;
+			GLint h = mirror_height;
+#else
 			GLint w = mirrorTexture->OGL.Header.TextureSize.w;
 			GLint h = mirrorTexture->OGL.Header.TextureSize.h;
+#endif
 			glBlitFramebuffer(0, h, w, 0,
 				0, 0, w, h,
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -920,7 +1035,7 @@ void VR_DrawTimewarpFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		ovrFrameTiming frameTime;
 		frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);
 
@@ -929,7 +1044,7 @@ void VR_DrawTimewarpFrame()
 		ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
 #else
 		++g_ovr_frameindex;
-#if OVR_MAJOR_VERSION <= 7
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
 		ovrFrameTiming frameTime;
 		// On Oculus SDK 0.6.0 and above, we get the frame timing manually, then swap each eye texture 
 		frameTime = ovrHmd_GetFrameTiming(hmd, 0);
@@ -943,7 +1058,11 @@ void VR_DrawTimewarpFrame()
 		ld.Header.Flags = (g_ActiveConfig.bFlipVertical?0:ovrLayerFlag_TextureOriginAtBottomLeft) | (g_ActiveConfig.bHqDistortion?ovrLayerFlag_HighQuality:0);
 		for (int eye = 0; eye < 2; eye++)
 		{
+#if OVR_PRODUCT_VERSION >= 1
+			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureChain;
+#else
 			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureSet;
+#endif
 			ld.Viewport[eye] = eyeRenderViewport[eye];
 			ld.Fov[eye] = g_eye_fov[eye];
 			ld.RenderPose[eye] = g_eye_poses[eye];
@@ -958,7 +1077,7 @@ void VR_DrawTimewarpFrame()
 void VR_DrawAsyncTimewarpFrame()
 {
 #ifdef OVR_MAJOR_VERSION
-#if OVR_MAJOR_VERSION <= 5
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 	if (g_has_rift)
 	{
 		auto frameTime = ovrHmd_BeginFrame(hmd, ++g_ovr_frameindex);

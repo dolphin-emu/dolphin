@@ -1007,7 +1007,7 @@ void CFrame::StartGame(const std::string& filename)
 
 		VR_RecenterHMD();
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		if (g_has_rift)
 		{
 			wxMessageDialog HealthDlg(
