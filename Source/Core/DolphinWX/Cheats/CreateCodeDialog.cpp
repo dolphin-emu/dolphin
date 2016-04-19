@@ -14,9 +14,6 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 
-// Fired when an ActionReplay code is created.
-wxDEFINE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
-
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
 	: wxDialog(parent, wxID_ANY, _("Create AR Code"))
 	, m_code_address(address)
@@ -80,23 +77,20 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 	// create the new code
 	ActionReplay::ARCode new_cheat;
 	new_cheat.active = false;
+	new_cheat.user_defined = true;
 	new_cheat.name = WxStrToStr(code_name);
-	const ActionReplay::AREntry new_entry(m_code_address, code_value);
-	new_cheat.ops.push_back(new_entry);
+	new_cheat.ops.emplace_back(ActionReplay::AREntry(m_code_address, code_value));
+	ActionReplay::AddCode(new_cheat);
 
 	// pretty hacky - add the code to the gameini
+	// FIXME: The save logic should be ActionReplay since it mirrors the parser
 	{
-	CISOProperties isoprops(GameListItem(SConfig::GetInstance().m_LastFilename, std::unordered_map<std::string, std::string>()), this);
+	CISOProperties isoprops(GameListItem(SConfig::GetInstance().m_LastFilename, {}), this);
 	// add the code to the isoproperties arcode list
 	isoprops.AddARCode(new_cheat);
 	// save the gameini
 	isoprops.SaveGameConfig();
-	isoprops.ActionReplayList_Load(); // loads the new arcodes
-	//ActionReplay::UpdateActiveList();
 	}
-
-	// Propagate back to the parent frame to update the cheat list.
-	GetEventHandler()->AddPendingEvent(wxCommandEvent(UPDATE_CHEAT_LIST_EVENT));
 
 	Close();
 }
