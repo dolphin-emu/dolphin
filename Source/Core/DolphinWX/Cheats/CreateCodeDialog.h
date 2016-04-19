@@ -12,8 +12,6 @@
 class wxCheckBox;
 class wxTextCtrl;
 
-wxDECLARE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
-
 class CreateCodeDialog final : public wxDialog
 {
 public:
