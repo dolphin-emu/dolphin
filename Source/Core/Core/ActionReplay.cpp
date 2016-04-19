@@ -19,7 +19,10 @@
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include <list>
+#include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -81,6 +84,9 @@ static std::vector<ARCode> activeCodes;
 static bool logSelf = false;
 static std::vector<std::string> arLog;
 
+static std::mutex s_callbacks_lock;
+static std::list<std::function<void()>> s_callbacks;
+
 struct ARAddr
 {
 	union
@@ -100,16 +106,68 @@ struct ARAddr
 	operator u32() const { return address; }
 };
 
+static void RunCodeChangeCallbacks()
+{
+	std::lock_guard<std::mutex> guard(s_callbacks_lock);
+	for (const auto& cb : s_callbacks)
+		cb();
+}
+
 // ----------------------
 // AR Remote Functions
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
+void ApplyCodes(const std::vector<ARCode>& codes)
 {
-	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().bEnableCheats &&
-		!forceLoad)
+	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
-	arCodes.clear();
+	arCodes = codes;
+	UpdateActiveList();
+	RunCodeChangeCallbacks();
+}
+
+void AddCode(const ARCode& code)
+{
+	if (!SConfig::GetInstance().bEnableCheats)
+		return;
+
+	arCodes.push_back(code);
+	if (code.active)
+		UpdateActiveList();
+	RunCodeChangeCallbacks();
+}
+
+void* RegisterCodeChangeCallback(std::function<void()> callback)
+{
+	if (!callback)
+		return nullptr;
+
+	std::lock_guard<std::mutex> guard(s_callbacks_lock);
+	s_callbacks.emplace_back(std::move(callback));
+	return &s_callbacks.back();
+}
+
+void UnregisterCodeChangeCallback(void* token)
+{
+	std::lock_guard<std::mutex> guard(s_callbacks_lock);
+	for (auto i = s_callbacks.begin(); i != s_callbacks.end(); ++i)
+	{
+		if (&*i == token)
+		{
+			s_callbacks.erase(i);
+			break;
+		}
+	}
+}
+
+void LoadAndApplyCodes(const IniFile& globalIni, const IniFile& localIni)
+{
+	ApplyCodes(LoadCodes(globalIni, localIni));
+}
+
+// Parses the Action Replay section of a game ini file.
+std::vector<ARCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
+{
+	std::vector<ARCode> codes;
 
 	std::vector<std::string> enabledLines;
 	std::set<std::string> enabledNames;
@@ -146,13 +204,13 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 			{
 				if (currentCode.ops.size())
 				{
-					arCodes.push_back(currentCode);
+					codes.push_back(currentCode);
 					currentCode.ops.clear();
 				}
 				if (encryptedLines.size())
 				{
 					DecryptARCode(encryptedLines, currentCode.ops);
-					arCodes.push_back(currentCode);
+					codes.push_back(currentCode);
 					currentCode.ops.clear();
 					encryptedLines.clear();
 				}
@@ -204,22 +262,16 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 		// Handle the last code correctly.
 		if (currentCode.ops.size())
 		{
-			arCodes.push_back(currentCode);
+			codes.push_back(currentCode);
 		}
 		if (encryptedLines.size())
 		{
 			DecryptARCode(encryptedLines, currentCode.ops);
-			arCodes.push_back(currentCode);
+			codes.push_back(currentCode);
 		}
 	}
 
-	UpdateActiveList();
-}
-
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
-{
-	LoadCodes(globalIni, localIni, true);
-	_arCodes = arCodes;
+	return codes;
 }
 
 
@@ -270,6 +322,7 @@ void SetARCode_IsActive(bool active, size_t index)
 	}
 	arCodes[index].active = active;
 	UpdateActiveList();
+	RunCodeChangeCallbacks();
 }
 
 void UpdateActiveList()

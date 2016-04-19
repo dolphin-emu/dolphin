@@ -166,7 +166,7 @@ void LoadPatches()
 	IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
 	LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-	ActionReplay::LoadCodes(globalIni, localIni, false);
+	ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
 	// lil silly
 	std::vector<Gecko::GeckoCode> gcodes;
