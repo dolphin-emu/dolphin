@@ -18,7 +18,7 @@ localedir = ${datarootdir}/locale
 
 # Programs used by "make":
 CC = gcc
-CFLAGS = -g -O2
+CFLAGS = -g -O3
 CPPFLAGS = 
 LDFLAGS = 
 INCLUDES = -I. -I$(srcdir) -I.. -I../include -I$(srcdir)/../include -I../srclib -I$(srcdir)/../srclib
@@ -40,7 +40,7 @@ mkinstalldirs = $(SHELL) ../build-aux/mkinstalldirs
 # Programs used by "make install-strip":
 STRIP = /usr/bin/strip
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
-install_sh = ${SHELL} /home/sonicadvance1/dolphin-emu/Externals/libiconv-1.14/build-aux/install-sh
+install_sh = ${SHELL} ../build-aux/install-sh
 
 #### End of system configuration section. ####
 
