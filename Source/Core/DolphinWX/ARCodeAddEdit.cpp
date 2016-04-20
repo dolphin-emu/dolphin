@@ -160,6 +160,7 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
 		newCheat.name = WxStrToStr(EditCheatName->GetValue());
 		newCheat.ops = decryptedLines;
 		newCheat.active = true;
+		newCheat.user_defined = true;
 
 		arCodes->push_back(newCheat);
 	}

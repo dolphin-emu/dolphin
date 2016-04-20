@@ -68,15 +68,6 @@ public:
 			long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 	virtual ~CISOProperties();
 
-	bool bRefreshList;
-
-	// These are only public because of the ugly hack in CreateCodeDialog.cpp
-	void ActionReplayList_Load();
-	bool SaveGameConfig();
-
-	// This only exists because of the ugly hack in CreateCodeDialog.cpp
-	void AddARCode(const ActionReplay::ARCode& code);
-
 private:
 	DECLARE_EVENT_TABLE();
 
@@ -242,9 +233,15 @@ private:
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
 
+	bool bRefreshList;
+
 	void LoadGameConfig();
+	bool SaveGameConfig();
+	void OnLocalIniModified(wxCommandEvent& ev);
+	void GenerateLocalIniModified();
 	void PatchList_Load();
 	void PatchList_Save();
+	void ActionReplayList_Load();
 	void ActionReplayList_Save();
 	void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
