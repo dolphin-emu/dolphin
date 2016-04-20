@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -26,14 +27,14 @@ public:
 	void OnKeyDown(wxKeyEvent& event) { event.StopPropagation(); Close(); }
 };
 
-class CGameListCtrl : public wxListCtrl
+class CGameListCtrl final : public wxListCtrl
 {
 public:
 
 	CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 	~CGameListCtrl();
 
-	void Update() override;
+	void ReloadList();
 
 	void BrowseForDirectory();
 	const GameListItem* GetISO(size_t index) const;
@@ -42,7 +43,7 @@ public:
 
 	static bool IsHidingItems();
 
-	enum
+	enum Columns
 	{
 		COLUMN_DUMMY = 0,
 		COLUMN_PLATFORM,
@@ -57,21 +58,18 @@ public:
 		NUMBER_OF_COLUMN
 	};
 
+	void EnableColumn(Columns col, bool enable = true);
+	void DisableColumn(Columns col)
+	{
+		EnableColumn(col, false);
+	}
+
 private:
 
 	std::vector<int> m_FlagImageIndex;
 	std::vector<int> m_PlatformImageIndex;
 	std::vector<int> m_EmuStateImageIndex;
-	std::vector<GameListItem*> m_ISOFiles;
-
-	void ClearIsoFiles()
-	{
-		while (!m_ISOFiles.empty()) // so lazy
-		{
-			delete m_ISOFiles.back();
-			m_ISOFiles.pop_back();
-		}
-	}
+	std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
 	int last_column;
 	int last_sort;
@@ -110,6 +108,7 @@ private:
 	void HideColumn(int column);
 	void UnselectAll();
 
+	static int wxCALLBACK wxListCompare(wxIntPtr a, wxIntPtr b, wxIntPtr data);
 	static bool CompressCB(const std::string& text, float percent, void* arg);
 	static bool MultiCompressCB(const std::string& text, float percent, void* arg);
 	static bool WiiCompressWarning();

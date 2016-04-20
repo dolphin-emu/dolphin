@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <wx/app.h>
 #include <wx/bitmap.h>
@@ -53,6 +54,14 @@
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
+
+#ifdef __WXMSW__
+static constexpr int PLATFORM_PADDING = 0;
+#else
+static constexpr int PLATFORM_PADDING = 8;
+#endif
+
+static constexpr int PLATFORM_ICON_PADDING = 1;
 
 struct CompressionProgress final
 {
@@ -173,7 +182,6 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 
 CGameListCtrl::~CGameListCtrl()
 {
-	ClearIsoFiles();
 }
 
 void CGameListCtrl::InitBitmaps()
@@ -235,11 +243,11 @@ void CGameListCtrl::BrowseForDirectory()
 			SConfig::GetInstance().SaveSettings();
 		}
 
-		Update();
+		ReloadList();
 	}
 }
 
-void CGameListCtrl::Update()
+void CGameListCtrl::ReloadList()
 {
 	int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
 	// Don't let the user refresh it while a game is running
@@ -257,36 +265,28 @@ void CGameListCtrl::Update()
 		InitBitmaps();
 
 		// add columns
-		InsertColumn(COLUMN_DUMMY, "");
-		InsertColumn(COLUMN_PLATFORM, "");
-		InsertColumn(COLUMN_BANNER, _("Banner"));
-		InsertColumn(COLUMN_TITLE, _("Title"));
+		InsertColumn(COLUMN_DUMMY,    "",          wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_PLATFORM, "",          wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_BANNER,   _("Banner"), wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_TITLE,    _("Title"),  wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_MAKER,    _("Maker"),  wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_FILENAME, _("File"),   wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_ID,       _("ID"),     wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_COUNTRY,  "",          wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_SIZE,     _("Size"),   wxLIST_FORMAT_LEFT, 0);
+		InsertColumn(COLUMN_EMULATION_STATE, _("State"), wxLIST_FORMAT_LEFT, 0);
 
-		InsertColumn(COLUMN_MAKER, _("Maker"));
-		InsertColumn(COLUMN_FILENAME, _("File"));
-		InsertColumn(COLUMN_ID, _("ID"));
-		InsertColumn(COLUMN_COUNTRY, "");
-		InsertColumn(COLUMN_SIZE, _("Size"));
-		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
-
-#ifdef __WXMSW__
-		const int platform_padding = 0;
-#else
-		const int platform_padding = 8;
-#endif
-
-		const int platform_icon_padding = 1;
-
-		// set initial sizes for columns
-		SetColumnWidth(COLUMN_DUMMY, 0);
-		SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ? 32 + platform_icon_padding + platform_padding : 0);
-		SetColumnWidth(COLUMN_BANNER, SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
-		SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
-		SetColumnWidth(COLUMN_MAKER, SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
-		SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ? 100 + platform_padding : 0);
-		SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
-		SetColumnWidth(COLUMN_COUNTRY, SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
-		SetColumnWidth(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn ? 48 + platform_padding : 0);
+		// Enable relevant columns
+		// COLUMN_DUMMY
+		EnableColumn(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn);
+		EnableColumn(COLUMN_BANNER,   SConfig::GetInstance().m_showBannerColumn);
+		EnableColumn(COLUMN_TITLE);
+		EnableColumn(COLUMN_MAKER,    SConfig::GetInstance().m_showMakerColumn);
+		EnableColumn(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn);
+		EnableColumn(COLUMN_ID,       SConfig::GetInstance().m_showIDColumn);
+		EnableColumn(COLUMN_COUNTRY,  SConfig::GetInstance().m_showRegionColumn);
+		EnableColumn(COLUMN_SIZE,     SConfig::GetInstance().m_showSizeColumn);
+		EnableColumn(COLUMN_EMULATION_STATE, SConfig::GetInstance().m_showStateColumn);
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -308,7 +308,9 @@ void CGameListCtrl::Update()
 		OnColumnClick(event);
 		sorted = true;
 
-		SetColumnWidth(COLUMN_SIZE, SConfig::GetInstance().m_showSizeColumn ? wxLIST_AUTOSIZE : 0);
+		// Reset autosizing to adjust for added content
+		if (GetColumnWidth(COLUMN_SIZE))
+			SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
 	}
 	else
 	{
@@ -346,6 +348,60 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
+void CGameListCtrl::EnableColumn(Columns col, bool enable)
+{
+	// Showing error message instead of list
+	if (GetColumnCount() == 1 && GetItemCount() == 1)
+		return;
+
+	int size = wxLIST_AUTOSIZE;
+	switch (col)
+	{
+	case COLUMN_PLATFORM:
+		size = 32 + PLATFORM_ICON_PADDING + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_BANNER:
+		size = 96 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_TITLE:
+		size = 175 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_MAKER:
+		size = 150 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_FILENAME:
+		size = 100 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_ID:
+		size = 75 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_COUNTRY:
+		size = 32 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_EMULATION_STATE:
+		size = 48 + PLATFORM_PADDING;
+		break;
+
+	case COLUMN_SIZE:
+		size = wxLIST_AUTOSIZE;
+		break;
+
+	case COLUMN_DUMMY:
+	case NUMBER_OF_COLUMN:
+	default:
+		return;
+	}
+	ShowColumn(col, enable ? size : 0);
+	AutomaticColumnWidth();
+}
+
 static wxString NiceSizeFormat(u64 _size)
 {
 	// Return a pretty filesize string from byte count.
@@ -369,7 +425,7 @@ static wxString NiceSizeFormat(u64 _size)
 // Update the column content of the item at _Index
 void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 {
-	GameListItem& rISOFile = *m_ISOFiles[GetItemData(_Index)];
+	const GameListItem& rISOFile = *GetISO(_Index);
 
 	switch(column)
 	{
@@ -480,7 +536,7 @@ void CGameListCtrl::SetBackgroundColor()
 
 void CGameListCtrl::ScanForISOs()
 {
-	ClearIsoFiles();
+	m_ISOFiles.clear();
 
 	// Load custom game titles from titles.txt
 	// http://www.gametdb.com/Wii/Downloads
@@ -638,7 +694,7 @@ void CGameListCtrl::ScanForISOs()
 				}
 
 				if (list)
-					m_ISOFiles.push_back(iso_file.release());
+					m_ISOFiles.emplace_back(std::move(iso_file));
 			}
 		}
 	}
@@ -652,7 +708,7 @@ void CGameListCtrl::ScanForISOs()
 			auto gli = std::make_unique<GameListItem>(drive, custom_title_map);
 
 			if (gli->IsValid())
-				m_ISOFiles.push_back(gli.release());
+				m_ISOFiles.emplace_back(std::move(gli));
 		}
 	}
 
@@ -704,20 +760,21 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 
 const GameListItem* CGameListCtrl::GetISO(size_t index) const
 {
-	if (index < m_ISOFiles.size())
-		return m_ISOFiles[index];
-	else
-		return nullptr;
+	if (index < GetItemCount() && !m_ISOFiles.empty())
+	{
+		return m_ISOFiles[GetItemData(index)].get();
+	}
+	return nullptr;
 }
 
 static CGameListCtrl* caller;
-static int wxCALLBACK wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
+int wxCALLBACK CGameListCtrl::wxListCompare(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 	// return 1 if item1 > item2
 	// return -1 if item1 < item2
 	// return 0 for identity
-	const GameListItem* iso1 = caller->GetISO(item1);
-	const GameListItem* iso2 = caller->GetISO(item2);
+	const GameListItem* iso1 = caller->m_ISOFiles[item1].get();
+	const GameListItem* iso2 = caller->m_ISOFiles[item2].get();
 
 	return CompareGameListItems(iso1, iso2, sortData);
 }
@@ -839,7 +896,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			// Emulation status
 			static const char* const emuState[] = { "Broken", "Intro", "In-Game", "Playable", "Perfect" };
 
-			const GameListItem& rISO = *m_ISOFiles[GetItemData(item)];
+			const GameListItem& rISO = *GetISO(item);
 
 			const int emu_state = rISO.GetEmuState();
 			const std::string& issues = rISO.GetIssues();
@@ -986,7 +1043,7 @@ const GameListItem* CGameListCtrl::GetSelectedISO() const
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
 			return nullptr;
-		return m_ISOFiles[GetItemData(item)];
+		return GetISO(item);
 	}
 }
 
@@ -999,7 +1056,7 @@ std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
 		item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
 		if (item == wxNOT_FOUND)
 			return result;
-		result.push_back(m_ISOFiles[GetItemData(item)]);
+		result.push_back(GetISO(item));
 	}
 }
 
@@ -1089,9 +1146,25 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED (event))
 
 	if (wxMessageBox(message, _("Warning"), wxYES_NO | wxICON_EXCLAMATION) == wxYES)
 	{
+		std::string failed;
+		unsigned int fail_count = 0;
 		for (const GameListItem* iso : GetAllSelectedISOs())
-			File::Delete(iso->GetFileName());
-		Update();
+		{
+			if (!File::Delete(iso->GetFileName()))
+			{
+				if (fail_count++)
+					failed += '\n';
+				failed += iso->GetFileName();
+			}
+		}
+		ReloadList();
+
+		if (fail_count)
+		{
+			wxString label = fail_count == 1 ? _("Could not delete file: ") : _("Could not delete files:\n\n");
+			wxMessageBox(label + StrToWxStr(failed), _("Deletion Failed"),
+			             wxOK | wxICON_WARNING, this);
+		}
 	}
 }
 
@@ -1247,7 +1320,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 	if (!all_good)
 		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-	Update();
+	ReloadList();
 }
 
 bool CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
@@ -1338,7 +1411,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED (event))
 	if (!all_good)
 		WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-	Update();
+	ReloadList();
 }
 
 void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
@@ -1363,6 +1436,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 {
 	wxRect rc(GetClientRect());
 
+	Freeze();
 	if (GetColumnCount() == 1)
 	{
 		SetColumnWidth(0, rc.GetWidth());
@@ -1419,6 +1493,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 			HideColumn(COLUMN_MAKER);
 		}
 	}
+	Thaw();
 }
 
 // Fills a previously hidden column with items. Acts

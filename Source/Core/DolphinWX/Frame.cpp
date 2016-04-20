@@ -914,7 +914,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 		GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
 		GetMenuBar()->FindItem(IDM_LIST_UNKNOWN)->Check(true);
 
-		m_GameListCtrl->Update();
+		UpdateGameList();
 	}
 	else if (!m_GameListCtrl->GetISO(0))
 	{

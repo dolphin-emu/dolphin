@@ -1065,10 +1065,7 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
 // Refresh the file list and browse for a favorites directory
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED (event))
 {
-	if (m_GameListCtrl)
-	{
-		m_GameListCtrl->Update();
-	}
+	UpdateGameList();
 }
 
 
@@ -1298,7 +1295,7 @@ void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 	CConfigMain ConfigMain(this);
 	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
-		m_GameListCtrl->Update();
+		UpdateGameList();
 	HotkeyManagerEmu::Enable(true);
 	UpdateGUI();
 }
@@ -1317,7 +1314,7 @@ void CFrame::OnConfigAudio(wxCommandEvent& WXUNUSED (event))
 	ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
 	HotkeyManagerEmu::Enable(false);
 	if (ConfigMain.ShowModal() == wxID_OK)
-		m_GameListCtrl->Update();
+		UpdateGameList();
 	HotkeyManagerEmu::Enable(true);
 }
 
@@ -1890,7 +1887,10 @@ void CFrame::UpdateGUI()
 
 void CFrame::UpdateGameList()
 {
-	m_GameListCtrl->Update();
+	if (m_GameListCtrl)
+	{
+		m_GameListCtrl->ReloadList();
+	}
 }
 
 void CFrame::GameListChanged(wxCommandEvent& event)
@@ -1964,11 +1964,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	}
 
-	// Update gamelist
-	if (m_GameListCtrl)
-	{
-		m_GameListCtrl->Update();
-	}
+	UpdateGameList();
 }
 
 // Enable and disable the toolbar
@@ -1995,34 +1991,46 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
 {
+	bool* column_flag = nullptr;
+	CGameListCtrl::Columns column = CGameListCtrl::COLUMN_DUMMY;
 	switch (event.GetId())
 	{
 	case IDM_SHOW_SYSTEM:
-		SConfig::GetInstance().m_showSystemColumn = !SConfig::GetInstance().m_showSystemColumn;
+		column_flag = &SConfig::GetInstance().m_showSystemColumn;
+		column = CGameListCtrl::COLUMN_PLATFORM;
 		break;
 	case IDM_SHOW_BANNER:
-		SConfig::GetInstance().m_showBannerColumn = !SConfig::GetInstance().m_showBannerColumn;
+		column_flag = &SConfig::GetInstance().m_showBannerColumn;
+		column = CGameListCtrl::COLUMN_BANNER;
 		break;
 	case IDM_SHOW_MAKER:
-		SConfig::GetInstance().m_showMakerColumn = !SConfig::GetInstance().m_showMakerColumn;
+		column_flag = &SConfig::GetInstance().m_showMakerColumn;
+		column = CGameListCtrl::COLUMN_MAKER;
 		break;
 	case IDM_SHOW_FILENAME:
-		SConfig::GetInstance().m_showFileNameColumn = !SConfig::GetInstance().m_showFileNameColumn;
+		column_flag = &SConfig::GetInstance().m_showFileNameColumn;
+		column = CGameListCtrl::COLUMN_FILENAME;
 		break;
 	case IDM_SHOW_ID:
-		SConfig::GetInstance().m_showIDColumn = !SConfig::GetInstance().m_showIDColumn;
+		column_flag = &SConfig::GetInstance().m_showIDColumn;
+		column = CGameListCtrl::COLUMN_ID;
 		break;
 	case IDM_SHOW_REGION:
-		SConfig::GetInstance().m_showRegionColumn = !SConfig::GetInstance().m_showRegionColumn;
+		column_flag = &SConfig::GetInstance().m_showRegionColumn;
+		column = CGameListCtrl::COLUMN_COUNTRY;
 		break;
 	case IDM_SHOW_SIZE:
-		SConfig::GetInstance().m_showSizeColumn = !SConfig::GetInstance().m_showSizeColumn;
+		column_flag = &SConfig::GetInstance().m_showSizeColumn;
+		column = CGameListCtrl::COLUMN_SIZE;
 		break;
 	case IDM_SHOW_STATE:
-		SConfig::GetInstance().m_showStateColumn = !SConfig::GetInstance().m_showStateColumn;
+		column_flag = &SConfig::GetInstance().m_showStateColumn;
+		column = CGameListCtrl::COLUMN_EMULATION_STATE;
 		break;
-	default: return;
+	default:
+		return;
 	}
-	m_GameListCtrl->Update();
+	*column_flag = !*column_flag;
+	m_GameListCtrl->EnableColumn(column, *column_flag);
 	SConfig::GetInstance().SaveSettings();
 }
