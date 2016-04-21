@@ -25,7 +25,7 @@ public final class MotionAlertDialog extends AlertDialog
 	private final Preference inputPref;
 
 	private boolean firstEvent = true;
-	private final ArrayList<Float> m_values = new ArrayList<Float>();
+	private final ArrayList<Float> m_values = new ArrayList<>();
 
 	/**
 	 * Constructor
@@ -105,19 +105,13 @@ public final class MotionAlertDialog extends AlertDialog
 	@Override
 	public boolean dispatchKeyEvent(KeyEvent event)
 	{
-		if (onKeyDown(event.getKeyCode(), event))
-			return true;
-
-		return super.dispatchKeyEvent(event);
+		return onKeyDown(event.getKeyCode(), event) || super.dispatchKeyEvent(event);
 	}
 
 	@Override
 	public boolean dispatchGenericMotionEvent(MotionEvent event)
 	{
-		if (onMotionEvent(event))
-			return true;
-
-		return super.dispatchGenericMotionEvent(event);
+		return onMotionEvent(event) || super.dispatchGenericMotionEvent(event);
 	}
 
 	/**
