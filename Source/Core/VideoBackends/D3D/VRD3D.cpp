@@ -126,11 +126,16 @@ struct OculusTexture
 #endif
 
 	// Commit changes
-	void AdvanceToNextTexture()
+	void Commit()
 	{
 #if OVR_PRODUCT_VERSION >= 1
 		ovr_CommitTextureSwapChain(hmd, TextureChain);
-#else
+#endif
+	}
+
+	void AdvanceToNextTexture()
+	{
+#if OVR_PRODUCT_VERSION == 0
 		TextureSet->CurrentIndex = (TextureSet->CurrentIndex + 1) % TextureSet->TextureCount;
 #endif
 	}
@@ -257,6 +262,8 @@ void RecreateMirrorTextureIfNeeded()
 			desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
 			desc.Width = w;
 			desc.Height = h;
+			mirror_width = w;
+			mirror_height = h;
 			ovrResult result = ovr_CreateMirrorTextureDX(hmd, D3D::device, &desc, &mirrorTexture);
 #else
 			// Create a mirror to see on the monitor.
@@ -493,6 +500,10 @@ void VR_PresentHMDFrame()
 #ifdef OVR_MAJOR_VERSION
 	if (g_has_rift)
 	{
+#if OVR_PRODUCT_VERSION >= 1
+		pEyeRenderTexture[0]->Commit();
+		pEyeRenderTexture[1]->Commit();
+#endif
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
 		//ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose, &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 
