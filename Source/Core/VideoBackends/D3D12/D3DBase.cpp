@@ -81,7 +81,7 @@ static bool s_frame_in_progress = false;
 
 static std::vector<DXGI_SAMPLE_DESC> s_aa_modes; // supported AA modes of the current adapter
 static const D3D_FEATURE_LEVEL s_supported_feature_levels[] = {
-	D3D_FEATURE_LEVEL_11_0
+	D3D_FEATURE_LEVEL_12_0
 };
 
 HRESULT LoadDXGI()
@@ -264,7 +264,7 @@ bool AlertUserIfSelectedAdapterDoesNotSupportD3D12()
 
 	if (SUCCEEDED(hr))
 	{
-		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device));
+		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device));
 
 		SAFE_RELEASE(device);
 		SAFE_RELEASE(adapter);
@@ -302,7 +302,7 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 		return aa_modes;
 
 	ID3D12Device* device12 = nullptr;
-	d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
+	d3d12_create_device(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device12));
 
 	if (device12)
 	{
@@ -332,7 +332,7 @@ std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter)
 
 D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter)
 {
-	return D3D_FEATURE_LEVEL_11_0;
+	return D3D_FEATURE_LEVEL_12_0;
 }
 
 HRESULT Create(HWND wnd)
@@ -424,8 +424,8 @@ HRESULT Create(HWND wnd)
 
 	if (SUCCEEDED(hr))
 	{
-		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&device12));
-		s_feat_level = D3D_FEATURE_LEVEL_11_0;
+		hr = d3d12_create_device(adapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device12));
+		s_feat_level = D3D_FEATURE_LEVEL_12_0;
 	}
 
 	if (SUCCEEDED(hr))
