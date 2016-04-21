@@ -125,6 +125,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index)
 	: m_subtype(caps.SubType), m_index(index)
 {
 	ZeroMemory(&m_state_out, sizeof(m_state_out));
+	ZeroMemory(&m_current_state_out, sizeof(m_current_state_out));
 
 	// XInputGetCaps seems to always claim all capabilities are supported
 	// but I will leave all this stuff in, incase m$ fixes xinput up a bit
@@ -213,7 +214,13 @@ void Device::UpdateInput()
 
 void Device::UpdateMotors()
 {
-	PXInputSetState(m_index, &m_state_out);
+	// this if statement is to make rumble work better when multiple ControllerInterfaces are using the device
+	// only calls XInputSetState if the state changed
+	if (memcmp(&m_state_out, &m_current_state_out, sizeof(m_state_out)))
+	{
+		m_current_state_out = m_state_out;
+		PXInputSetState(m_index, &m_state_out);
+	}
 }
 
 // GET name/source/id
