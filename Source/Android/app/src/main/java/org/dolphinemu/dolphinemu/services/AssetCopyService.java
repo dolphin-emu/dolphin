@@ -60,8 +60,8 @@ public final class AssetCopyService extends IntentService
 	private void copyAsset(String asset, String output, Boolean overwrite)
 	{
 		Log.verbose("[AssetCopyService] Copying File " + asset + " to " + output);
-		InputStream in = null;
-		OutputStream out = null;
+		InputStream in;
+		OutputStream out;
 
 		try
 		{
