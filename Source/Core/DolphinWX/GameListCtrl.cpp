@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/buffer.h>
 #include <wx/colour.h>
@@ -166,51 +167,50 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const
 	Bind(wxEVT_MENU, &CGameListCtrl::OnMultiDecompressISO, this, IDM_MULTI_DECOMPRESS_ISO);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnDeleteISO, this, IDM_DELETE_ISO);
 	Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
+
+	wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
 }
 
 CGameListCtrl::~CGameListCtrl()
 {
-	if (m_imageListSmall)
-		delete m_imageListSmall;
-
 	ClearIsoFiles();
 }
 
 void CGameListCtrl::InitBitmaps()
 {
 	wxSize size(96, 32);
-	m_imageListSmall = new wxImageList(96, 32);
-	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
+	wxImageList* img_list = new wxImageList(96, 32);
+	AssignImageList(img_list, wxIMAGE_LIST_SMALL);
 
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Japan", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Europe", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_USA", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Australia", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_France", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]     = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Germany", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Italy", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Korea", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Netherlands", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Russia", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Spain", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]      = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Taiwan", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_International", size));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]     = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Unknown", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN]       = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Japan", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE]      = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Europe", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA]         = img_list->Add(WxUtils::LoadResourceBitmap("Flag_USA", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_AUSTRALIA]   = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Australia", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE]      = img_list->Add(WxUtils::LoadResourceBitmap("Flag_France", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_GERMANY]     = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Germany", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY]       = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Italy", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA]       = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Korea", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_NETHERLANDS] = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Netherlands", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_RUSSIA]      = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Russia", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SPAIN]       = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Spain", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN]      = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Taiwan", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]       = img_list->Add(WxUtils::LoadResourceBitmap("Flag_International", size));
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]     = img_list->Add(WxUtils::LoadResourceBitmap("Flag_Unknown", size));
 
 	m_PlatformImageIndex.resize(4);
-	m_PlatformImageIndex[DiscIO::IVolume::GAMECUBE_DISC]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Gamecube", size));
-	m_PlatformImageIndex[DiscIO::IVolume::WII_DISC]        = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Wii", size));
-	m_PlatformImageIndex[DiscIO::IVolume::WII_WAD]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Wad", size));
-	m_PlatformImageIndex[DiscIO::IVolume::ELF_DOL]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_File", size));
+	m_PlatformImageIndex[DiscIO::IVolume::GAMECUBE_DISC]   = img_list->Add(WxUtils::LoadResourceBitmap("Platform_Gamecube", size));
+	m_PlatformImageIndex[DiscIO::IVolume::WII_DISC]        = img_list->Add(WxUtils::LoadResourceBitmap("Platform_Wii", size));
+	m_PlatformImageIndex[DiscIO::IVolume::WII_WAD]         = img_list->Add(WxUtils::LoadResourceBitmap("Platform_Wad", size));
+	m_PlatformImageIndex[DiscIO::IVolume::ELF_DOL]         = img_list->Add(WxUtils::LoadResourceBitmap("Platform_File", size));
 
 	m_EmuStateImageIndex.resize(6);
-	m_EmuStateImageIndex[0] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating0", size));
-	m_EmuStateImageIndex[1] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating1", size));
-	m_EmuStateImageIndex[2] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating2", size));
-	m_EmuStateImageIndex[3] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating3", size));
-	m_EmuStateImageIndex[4] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating4", size));
-	m_EmuStateImageIndex[5] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating5", size));
+	m_EmuStateImageIndex[0] = img_list->Add(WxUtils::LoadResourceBitmap("rating0", size));
+	m_EmuStateImageIndex[1] = img_list->Add(WxUtils::LoadResourceBitmap("rating1", size));
+	m_EmuStateImageIndex[2] = img_list->Add(WxUtils::LoadResourceBitmap("rating2", size));
+	m_EmuStateImageIndex[3] = img_list->Add(WxUtils::LoadResourceBitmap("rating3", size));
+	m_EmuStateImageIndex[4] = img_list->Add(WxUtils::LoadResourceBitmap("rating4", size));
+	m_EmuStateImageIndex[5] = img_list->Add(WxUtils::LoadResourceBitmap("rating5", size));
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -246,16 +246,9 @@ void CGameListCtrl::Update()
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
-	if (m_imageListSmall)
-	{
-		delete m_imageListSmall;
-		m_imageListSmall = nullptr;
-	}
-
-	Hide();
-
 	ScanForISOs();
 
+	Freeze();
 	ClearAll();
 
 	if (m_ISOFiles.size() != 0)
@@ -319,6 +312,12 @@ void CGameListCtrl::Update()
 	}
 	else
 	{
+		// Remove existing image list and replace it with the smallest possible one.
+		// The list needs an image list because it reserves screen pixels for the
+		// image even if we aren't going to use one. It uses the dimensions of the
+		// last non-null list so assigning nullptr doesn't work.
+		AssignImageList(new wxImageList(1, 1), wxIMAGE_LIST_SMALL);
+
 		wxString errorString;
 		// We just check for one hide setting to be enabled, as we may only
 		// have GC games for example, and hide them, so we should show the
@@ -338,7 +337,9 @@ void CGameListCtrl::Update()
 	}
 	if (GetSelectedISO() == nullptr)
 		main_frame->UpdateGUI();
-	Show();
+	// Thaw before calling AutomaticColumnWidth so that GetClientSize will
+	// correctly account for the width of scrollbars if they appear.
+	Thaw();
 
 	AutomaticColumnWidth();
 	ScrollLines(scrollPos);
@@ -368,7 +369,7 @@ static wxString NiceSizeFormat(u64 _size)
 // Update the column content of the item at _Index
 void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 {
-	GameListItem& rISOFile = *m_ISOFiles[_Index];
+	GameListItem& rISOFile = *m_ISOFiles[GetItemData(_Index)];
 
 	switch(column)
 	{
@@ -383,7 +384,7 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 			int ImageIndex = -1;
 
 			if (rISOFile.GetBitmap().IsOk())
-				ImageIndex = m_imageListSmall->Add(rISOFile.GetBitmap());
+				ImageIndex = GetImageList(wxIMAGE_LIST_SMALL)->Add(rISOFile.GetBitmap());
 
 			SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 			break;
@@ -427,28 +428,32 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 	}
 }
 
-void CGameListCtrl::InsertItemInReportView(long _Index)
+void CGameListCtrl::InsertItemInReportView(long index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
 	// But for reference, here are the old colors that were used: (BGR)
 	// title: 0xFF0000
 	// company: 0x007030
 
-	// Insert a first row with nothing in it, that will be used as the Index
-	long ItemIndex = InsertItem(_Index, wxEmptyString);
+	// Insert a first column with nothing in it, that will be used as the Index
+	long item_index;
+	{
+		wxListItem li;
+		li.SetId(index);
+		li.SetData(index);
+		li.SetMask(wxLIST_MASK_DATA);
+		item_index = InsertItem(li);
+	}
 
 	// Iterate over all columns and fill them with content if they are visible
 	for (int i = 1; i < NUMBER_OF_COLUMN; i++)
 	{
 		if (GetColumnWidth(i) != 0)
-			UpdateItemAtColumn(_Index, i);
+			UpdateItemAtColumn(item_index, i);
 	}
 
 	// Background color
 	SetBackgroundColor();
-
-	// Item data
-	SetItemData(_Index, ItemIndex);
 }
 
 static wxColour blend50(const wxColour& c1, const wxColour& c2)
@@ -652,6 +657,41 @@ void CGameListCtrl::ScanForISOs()
 	}
 
 	std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
+}
+
+void CGameListCtrl::OnLocalIniModified(wxCommandEvent& ev)
+{
+	ev.Skip();
+	std::string game_id = WxStrToStr(ev.GetString());
+	// NOTE: The same game may occur multiple times if there are multiple
+	//   physical copies in the search paths.
+	for (std::size_t i = 0; i < m_ISOFiles.size(); ++i)
+	{
+		if (m_ISOFiles[i]->GetUniqueID() != game_id)
+			continue;
+		m_ISOFiles[i]->ReloadINI();
+
+		// The indexes in m_ISOFiles and the list do not line up.
+		// We need to find the corresponding item in the list (if it exists)
+		long item_id = 0;
+		for (; item_id < GetItemCount(); ++item_id)
+		{
+			if (i == static_cast<std::size_t>(GetItemData(item_id)))
+				break;
+		}
+		// If the item is not currently being displayed then we're done.
+		if (item_id == GetItemCount())
+			continue;
+
+		// Update all the columns
+		for (int j = 1; j < NUMBER_OF_COLUMN; ++j)
+		{
+			// NOTE: Banner is not modified by the INI and updating it will
+			//  duplicate it in memory which is not wanted.
+			if (j != COLUMN_BANNER && GetColumnWidth(j) != 0)
+				UpdateItemAtColumn(item_id, j);
+		}
+	}
 }
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
@@ -1311,19 +1351,19 @@ void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))
 
 void CGameListCtrl::OnSize(wxSizeEvent& event)
 {
+	event.Skip();
 	if (lastpos == event.GetSize())
 		return;
 
 	lastpos = event.GetSize();
 	AutomaticColumnWidth();
-
-	event.Skip();
 }
 
 void CGameListCtrl::AutomaticColumnWidth()
 {
 	wxRect rc(GetClientRect());
 
+	Freeze();
 	if (GetColumnCount() == 1)
 	{
 		SetColumnWidth(0, rc.GetWidth());
@@ -1360,6 +1400,7 @@ void CGameListCtrl::AutomaticColumnWidth()
 			SetColumnWidth(COLUMN_TITLE, resizable);
 		}
 	}
+	Thaw();
 }
 
 void CGameListCtrl::UnselectAll()
