@@ -1338,82 +1338,28 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE));
 
-		// We hide the Maker column if the window is too small
-		// Use ShowColumn() instead of SetColumnWidth because
-		// the maker column may have been autohidden and the
-		// therefore the content needs to be restored.
-		if (resizable > 425)
+		if (SConfig::GetInstance().m_showMakerColumn &&
+		    SConfig::GetInstance().m_showFileNameColumn)
 		{
-			if (SConfig::GetInstance().m_showMakerColumn &&
-			    SConfig::GetInstance().m_showFileNameColumn)
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable / 3);
-				ShowColumn(COLUMN_MAKER, resizable / 3);
-				SetColumnWidth(COLUMN_FILENAME, resizable / 3);
-			}
-			else if (SConfig::GetInstance().m_showMakerColumn)
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-				ShowColumn(COLUMN_MAKER, resizable / 2);
-			}
-			else if (SConfig::GetInstance().m_showFileNameColumn)
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-				SetColumnWidth(COLUMN_FILENAME, resizable / 2);
-			}
-			else
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable);
-			}
+			SetColumnWidth(COLUMN_TITLE, resizable / 3);
+			SetColumnWidth(COLUMN_MAKER, resizable / 3);
+			SetColumnWidth(COLUMN_FILENAME, resizable / 3);
+		}
+		else if (SConfig::GetInstance().m_showMakerColumn)
+		{
+			SetColumnWidth(COLUMN_TITLE, resizable / 2);
+			SetColumnWidth(COLUMN_MAKER, resizable / 2);
+		}
+		else if (SConfig::GetInstance().m_showFileNameColumn)
+		{
+			SetColumnWidth(COLUMN_TITLE, resizable / 2);
+			SetColumnWidth(COLUMN_FILENAME, resizable / 2);
 		}
 		else
 		{
-			if (SConfig::GetInstance().m_showFileNameColumn)
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable / 2);
-				SetColumnWidth(COLUMN_FILENAME, resizable / 2);
-			}
-			else
-			{
-				SetColumnWidth(COLUMN_TITLE, resizable);
-			}
-			HideColumn(COLUMN_MAKER);
+			SetColumnWidth(COLUMN_TITLE, resizable);
 		}
 	}
-}
-
-// Fills a previously hidden column with items. Acts
-// as a SetColumnWidth if width is nonzero.
-void CGameListCtrl::ShowColumn(int column, int width)
-{
-	// Fill the column with items if it was hidden
-	if (GetColumnWidth(column) == 0)
-	{
-		for (int i = 0; i < GetItemCount(); i++)
-		{
-			UpdateItemAtColumn(i, column);
-		}
-	}
-	SetColumnWidth(column, width);
-}
-
-// Hide the passed column from the gamelist.
-// It is not enough to set the width to zero because this leads to
-// graphical glitches where the content of the hidden column is
-// squeezed into the next column. Therefore we need to clear the
-// items, too.
-void CGameListCtrl::HideColumn(int column)
-{
-	// Do nothing if the column is already hidden
-	if (GetColumnWidth(column) == 0)
-		return;
-
-	// Remove the items from the column
-	for (int i = 0; i < GetItemCount(); i++)
-	{
-		SetItem(i, column, "", -1);
-	}
-	SetColumnWidth(column, 0);
 }
 
 void CGameListCtrl::UnselectAll()

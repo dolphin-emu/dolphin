@@ -105,8 +105,6 @@ private:
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();
-	void ShowColumn(int column, int width);
-	void HideColumn(int column);
 	void UnselectAll();
 
 	static bool CompressCB(const std::string& text, float percent, void* arg);
