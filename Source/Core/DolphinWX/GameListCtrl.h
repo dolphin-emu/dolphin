@@ -102,6 +102,7 @@ private:
 	void OnMultiCompressISO(wxCommandEvent& event);
 	void OnMultiDecompressISO(wxCommandEvent& event);
 	void OnChangeDisc(wxCommandEvent& event);
+	void OnLocalIniModified(wxCommandEvent& event);
 
 	void CompressSelection(bool _compress);
 	void AutomaticColumnWidth();

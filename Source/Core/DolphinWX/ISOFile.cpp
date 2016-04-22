@@ -124,27 +124,19 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 
 	if (IsValid())
 	{
-		IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
-		ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state);
-		ini.GetIfExists("EmuState", "EmulationIssues", &m_issues);
-		m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+		std::string game_id = m_UniqueID;
 
-		if (!m_has_custom_name)
+		// Ignore publisher ID for WAD files
+		if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
+			game_id.erase(4);
+
+		auto it = custom_titles.find(game_id);
+		if (it != custom_titles.end())
 		{
-			std::string game_id = m_UniqueID;
-
-			// Ignore publisher ID for WAD files
-			if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
-				game_id.erase(4);
-
-			auto end = custom_titles.end();
-			auto it = custom_titles.find(game_id);
-			if (it != end)
-			{
-				m_custom_name = it->second;
-				m_has_custom_name = true;
-			}
+			m_custom_name_db = it->second;
 		}
+
+		ReloadINI();
 	}
 
 	if (!IsValid() && IsElfOrDol())
@@ -181,6 +173,24 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 
 GameListItem::~GameListItem()
 {
+}
+
+void GameListItem::ReloadINI()
+{
+	if (!IsValid())
+		return;
+
+	IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
+	ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state, 0);
+	ini.GetIfExists("EmuState", "EmulationIssues",  &m_issues,    std::string());
+
+	m_custom_name.clear();
+	m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
+	if (!m_has_custom_name && !m_custom_name_db.empty())
+	{
+		m_custom_name = m_custom_name_db;
+		m_has_custom_name = true;
+	}
 }
 
 bool GameListItem::LoadFromCache()
