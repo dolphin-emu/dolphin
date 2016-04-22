@@ -6,9 +6,10 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <functional>
 #include <string>
+#include <utility>
 #include <vector>
+#include <wx/app.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/checklst.h>
@@ -32,6 +33,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Cheats/CheatSearchTab.h"
@@ -39,10 +41,12 @@
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 
-namespace
+wxDEFINE_EVENT(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, wxCommandEvent);
+
+struct wxCheatsWindow::CodeData : public wxClientData
 {
-wxDEFINE_EVENT(DOLPHIN_EVT_UPDATE_CHEAT_LIST, wxThreadEvent);
-}
+	ActionReplay::ARCode code;
+};
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	: wxDialog(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxDIALOG_NO_PARENT)
@@ -50,10 +54,9 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	// Create the GUI controls
 	Init_ChildControls();
 
-	m_ar_callback_token = ActionReplay::RegisterCodeChangeCallback(std::bind(&wxCheatsWindow::OnActionReplayModified, this));
-
 	// load codes
 	UpdateGUI();
+	wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &wxCheatsWindow::OnEvent_CheatsList_Update, this);
 
 	SetSize(wxSize(-1, 600));
 	Center();
@@ -62,7 +65,6 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 
 wxCheatsWindow::~wxCheatsWindow()
 {
-	ActionReplay::UnregisterCodeChangeCallback(m_ar_callback_token);
 	main_frame->g_CheatsWindow = nullptr;
 }
 
@@ -75,18 +77,17 @@ void wxCheatsWindow::Init_ChildControls()
 	// Cheats List Tab
 	m_tab_cheats = new wxPanel(m_notebook_main, wxID_ANY);
 
-	m_checklistbox_cheats_list = new wxCheckListBox(m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), m_cheat_string_list, wxLB_HSCROLL, wxDefaultValidator);
+	m_checklistbox_cheats_list = new wxCheckListBox(m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), 0, nullptr, wxLB_HSCROLL);
 	m_checklistbox_cheats_list->Bind(wxEVT_LISTBOX, &wxCheatsWindow::OnEvent_CheatsList_ItemSelected, this);
-	m_checklistbox_cheats_list->Bind(wxEVT_CHECKLISTBOX, &wxCheatsWindow::OnEvent_CheatsList_ItemToggled, this);
 
-	m_label_code_name = new wxStaticText(m_tab_cheats, wxID_ANY, _("Name: "));
+	m_label_code_name = new wxStaticText(m_tab_cheats, wxID_ANY, _("Name: "), wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE);
 	m_groupbox_info = new wxStaticBox(m_tab_cheats, wxID_ANY, _("Code Info"));
 
 	m_label_num_codes = new wxStaticText(m_tab_cheats, wxID_ANY, _("Number Of Codes: "));
 	m_listbox_codes_list = new wxListBox(m_tab_cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, nullptr, wxLB_HSCROLL);
 
 	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_groupbox_info, wxVERTICAL);
-	sGroupBoxInfo->Add(m_label_code_name, 0, wxALL, 5);
+	sGroupBoxInfo->Add(m_label_code_name, 0, wxEXPAND | wxALL, 5);
 	sGroupBoxInfo->Add(m_label_num_codes, 0, wxALL, 5);
 	sGroupBoxInfo->Add(m_listbox_codes_list, 1, wxALL, 5);
 
@@ -104,6 +105,8 @@ void wxCheatsWindow::Init_ChildControls()
 
 	wxButton* const button_updatelog = new wxButton(m_tab_log, wxID_ANY, _("Update"));
 	button_updatelog->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, this);
+	wxButton* const button_clearlog = new wxButton(m_tab_log, wxID_ANY, _("Clear"));
+	button_clearlog->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnClearActionReplayLog, this);
 
 	m_checkbox_log_ar = new wxCheckBox(m_tab_log, wxID_ANY, _("Enable AR Logging"));
 	m_checkbox_log_ar->Bind(wxEVT_CHECKBOX, &wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, this);
@@ -114,6 +117,7 @@ void wxCheatsWindow::Init_ChildControls()
 	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
 	HStrip1->Add(m_checkbox_log_ar, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
 	HStrip1->Add(button_updatelog, 0, wxALL, 5);
+	HStrip1->Add(button_clearlog, 0, wxALL, 5);
 
 	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
 	sTabLog->Add(HStrip1, 0, wxALL, 5);
@@ -128,19 +132,15 @@ void wxCheatsWindow::Init_ChildControls()
 	m_notebook_main->AddPage(tab_cheat_search, _("Cheat Search"));
 	m_notebook_main->AddPage(m_tab_log, _("Logging"));
 
-	// Button Strip
-	m_button_apply = new wxButton(this, wxID_APPLY, _("Apply"));
-	m_button_apply->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this);
-	wxButton* const button_cancel = new wxButton(this, wxID_CANCEL, _("Cancel"));
-	button_cancel->Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this);
-
+	Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this, wxID_APPLY);
+	Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ButtonClose_Press, this, wxID_CANCEL);
 	Bind(wxEVT_CLOSE_WINDOW, &wxCheatsWindow::OnEvent_Close, this);
-	Bind(DOLPHIN_EVT_UPDATE_CHEAT_LIST, &wxCheatsWindow::OnEvent_CheatsList_Update, this);
+	Bind(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, &wxCheatsWindow::OnNewARCodeCreated, this);
 
-	wxStdDialogButtonSizer* const sButtons = new wxStdDialogButtonSizer();
-	sButtons->AddButton(m_button_apply);
-	sButtons->AddButton(button_cancel);
-	sButtons->Realize();
+	wxStdDialogButtonSizer* const sButtons = CreateStdDialogButtonSizer(wxAPPLY | wxCANCEL);
+	m_button_apply = sButtons->GetApplyButton();
+	SetEscapeId(wxID_CANCEL);
+	SetAffirmativeId(wxID_CANCEL);
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_notebook_main, 1, wxEXPAND | wxALL, 5);
@@ -165,7 +165,9 @@ void wxCheatsWindow::UpdateGUI()
 	const SConfig& parameters = SConfig::GetInstance();
 	m_gameini_default = parameters.LoadDefaultGameIni();
 	m_gameini_local = parameters.LoadLocalGameIni();
-	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + parameters.GetUniqueID() + ".ini";
+	m_game_id = parameters.GetUniqueID();
+	m_game_revision = parameters.m_revision;
+	m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
 	Load_ARCodes();
 	Load_GeckoCodes();
 
@@ -176,32 +178,28 @@ void wxCheatsWindow::UpdateGUI()
 
 	// write the ISO name in the title
 	if (Core::IsRunning())
-		SetTitle(title + ": " + parameters.GetUniqueID() + " - " + parameters.m_strName);
+		SetTitle(title + StrToWxStr(": " + m_game_id + " - " + parameters.m_strName));
 	else
 		SetTitle(title);
 }
 
 void wxCheatsWindow::Load_ARCodes()
 {
-	using namespace ActionReplay;
-
 	m_checklistbox_cheats_list->Clear();
 
 	if (!Core::IsRunning())
 		return;
 
-	m_index_list.clear();
-	size_t size = GetCodeListSize();
-	for (size_t i = 0; i < size; i++)
+	m_checklistbox_cheats_list->Freeze();
+	for (auto& code : ActionReplay::LoadCodes(m_gameini_default, m_gameini_local))
 	{
-		ARCode code = GetARCode(i);
-		ARCodeIndex ind;
-		u32 index = m_checklistbox_cheats_list->Append(StrToWxStr(code.name));
-		m_checklistbox_cheats_list->Check(index, code.active);
-		ind.index = i;
-		ind.uiIndex = index;
-		m_index_list.push_back(ind);
+		CodeData* cd = new CodeData();
+		cd->code = std::move(code);
+		int index = m_checklistbox_cheats_list->Append(wxCheckListBox::EscapeMnemonics(StrToWxStr(cd->code.name)),
+		                                               cd);
+		m_checklistbox_cheats_list->Check(index, cd->code.active);
 	}
+	m_checklistbox_cheats_list->Thaw();
 }
 
 void wxCheatsWindow::Load_GeckoCodes()
@@ -209,70 +207,81 @@ void wxCheatsWindow::Load_GeckoCodes()
 	m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, SConfig::GetInstance().GetUniqueID(), true);
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED(event))
+void wxCheatsWindow::OnNewARCodeCreated(wxCommandEvent& ev)
 {
-	using namespace ActionReplay;
+	auto code = static_cast<ActionReplay::ARCode*>(ev.GetClientData());
+	ActionReplay::AddCode(*code);
 
-	int index = m_checklistbox_cheats_list->GetSelection();
-	for (size_t i = 0; i < m_index_list.size(); i++)
-	{
-		if ((int)m_index_list[i].uiIndex == index)
-		{
-			ARCode code = GetARCode(i);
-			m_label_code_name->SetLabel(_("Name: ") + StrToWxStr(code.name));
-
-			std::string numcodes = StringFromFormat("Number of Codes: %zu", code.ops.size());
-			m_label_num_codes->SetLabel(StrToWxStr(numcodes));
-			m_listbox_codes_list->Clear();
-
-			for (const AREntry& entry : code.ops)
-			{
-				std::string ops = StringFromFormat("%08x %08x", entry.cmd_addr, entry.value);
-				m_listbox_codes_list->Append(StrToWxStr(ops));
-			}
-		}
-	}
+	CodeData* cd = new CodeData();
+	cd->code = *code;
+	int idx = m_checklistbox_cheats_list->Append(wxCheckListBox::EscapeMnemonics(StrToWxStr(code->name)),
+	                                             cd);
+	m_checklistbox_cheats_list->Check(idx, code->active);
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED(event))
+void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& event)
 {
-	int index = m_checklistbox_cheats_list->GetSelection();
-	for (const ARCodeIndex& code_index : m_index_list)
+	CodeData* cd = static_cast<CodeData*>(event.GetClientObject());
+
+	m_label_code_name->SetLabelText(_("Name: ") + StrToWxStr(cd->code.name));
+	m_label_code_name->Wrap(m_label_code_name->GetSize().GetWidth());
+	m_label_code_name->InvalidateBestSize();
+	m_label_num_codes->SetLabelText(wxString::Format("%s%zu", _("Number Of Codes: "), cd->code.ops.size()));
+
+	m_listbox_codes_list->Freeze();
+	m_listbox_codes_list->Clear();
+	for (const ActionReplay::AREntry& entry : cd->code.ops)
 	{
-		if ((int)code_index.uiIndex == index)
-		{
-			m_ar_ignore_callback = true;
-			ActionReplay::SetARCode_IsActive(m_checklistbox_cheats_list->IsChecked(index), code_index.index);
-		}
+		m_listbox_codes_list->Append(wxString::Format("%08x %08x", entry.cmd_addr, entry.value));
 	}
+	m_listbox_codes_list->Thaw();
+
+	m_tab_cheats->Layout();
 }
 
-void wxCheatsWindow::OnEvent_CheatsList_Update(wxThreadEvent&)
+void wxCheatsWindow::OnEvent_CheatsList_Update(wxCommandEvent& ev)
 {
-	if (m_ar_ignore_callback)
+	ev.Skip();
+	if (WxStrToStr(ev.GetString()) != m_game_id)
+		return;
+	if (m_ignore_ini_callback)
 	{
-		m_ar_ignore_callback = false;
+		m_ignore_ini_callback = false;
 		return;
 	}
-	Load_ARCodes();
-}
-
-void wxCheatsWindow::OnActionReplayModified()
-{
-	// NOTE: This is an arbitrary thread context
-	GetEventHandler()->QueueEvent(new wxThreadEvent(DOLPHIN_EVT_UPDATE_CHEAT_LIST));
+	UpdateGUI();
 }
 
 void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
 {
+	// Convert embedded metadata back into ARCode vector and update active states
+	std::vector<ActionReplay::ARCode> code_vec;
+	code_vec.reserve(m_checklistbox_cheats_list->GetCount());
+	for (unsigned int i = 0; i < m_checklistbox_cheats_list->GetCount(); ++i)
+	{
+		CodeData* cd = static_cast<CodeData*>(m_checklistbox_cheats_list->GetClientObject(i));
+		cd->code.active = m_checklistbox_cheats_list->IsChecked(i);
+		code_vec.push_back(cd->code);
+	}
+
+	// Apply Action Replay code changes
+	ActionReplay::ApplyCodes(code_vec);
+
 	// Apply Gecko Code changes
 	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
 
-	// Save gameini, with changed gecko codes
+	// Save gameini, with changed codes
 	if (m_gameini_local_path.size())
 	{
+		ActionReplay::SaveCodes(&m_gameini_local, code_vec);
 		Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
 		m_gameini_local.Save(m_gameini_local_path);
+
+		wxCommandEvent ini_changed(DOLPHIN_EVT_LOCAL_INI_CHANGED);
+		ini_changed.SetString(StrToWxStr(m_game_id));
+		ini_changed.SetInt(m_game_revision);
+		m_ignore_ini_callback = true;
+		wxTheApp->ProcessEvent(ini_changed);
 	}
 
 	ev.Skip();
@@ -289,6 +298,12 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED(even
 	}
 	m_textctrl_log->Thaw();
 	wxEndBusyCursor();
+}
+
+void wxCheatsWindow::OnClearActionReplayLog(wxCommandEvent& event)
+{
+	ActionReplay::ClearSelfLog();
+	OnEvent_ButtonUpdateLog_Press(event);
 }
 
 void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED(event))
