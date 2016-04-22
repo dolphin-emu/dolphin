@@ -25,6 +25,9 @@ public:
 	GameListItem(const std::string& _rFileName, const std::unordered_map<std::string, std::string>& custom_titles);
 	~GameListItem();
 
+	// Reload settings after INI changes
+	void ReloadINI();
+
 	bool IsValid() const {return m_Valid;}
 	const std::string& GetFileName() const {return m_FileName;}
 	std::string GetName(DiscIO::IVolume::ELanguage language) const;
@@ -86,7 +89,8 @@ private:
 	int m_ImageWidth, m_ImageHeight;
 	u8 m_disc_number;
 
-	std::string m_custom_name;
+	std::string m_custom_name_db; // Custom title from title database
+	std::string m_custom_name;    // Custom title from INI or database
 	bool m_has_custom_name;
 
 	bool LoadFromCache();
