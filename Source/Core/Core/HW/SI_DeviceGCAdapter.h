@@ -15,5 +15,4 @@ public:
 
 	GCPadStatus GetPadStatus() override;
 	int RunBuffer(u8* _pBuffer, int _iLength) override;
-	void SendCommand(u32 _Cmd, u8 _Poll) override;
 };
