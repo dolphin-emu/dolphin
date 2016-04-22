@@ -223,6 +223,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 // help button.
 
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 

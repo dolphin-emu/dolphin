@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <functional>
 #include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
@@ -31,18 +30,16 @@ struct ARCode
 };
 
 void RunAllActive();
-bool RunCode(const ARCode &arcode);
+
 void ApplyCodes(const std::vector<ARCode>& codes);
-void AddCode(const ARCode& new_code);
-void* RegisterCodeChangeCallback(std::function<void()> callback);
-void  UnregisterCodeChangeCallback(void* token);
-void LoadAndApplyCodes(const IniFile& globalini, const IniFile& localIni);
-std::vector<ARCode> LoadCodes(const IniFile& globalini, const IniFile& localIni);
-size_t GetCodeListSize();
-ARCode GetARCode(size_t index);
-void SetARCode_IsActive(bool active, size_t index);
-void UpdateActiveList();
+void AddCode(ARCode new_code);
+void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
+
+std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
+void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+
 void EnableSelfLogging(bool enable);
-const std::vector<std::string> &GetSelfLog();
+std::vector<std::string> GetSelfLog();
+void ClearSelfLog();
 bool IsSelfLogging();
 }  // namespace

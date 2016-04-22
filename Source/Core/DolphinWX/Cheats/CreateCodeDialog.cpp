@@ -12,6 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
@@ -70,27 +71,16 @@ void CreateCodeDialog::PressOK(wxCommandEvent& ev)
 		return;
 	}
 
-	//wxString full_code = textctrl_code->GetValue();
-	//full_code += ' ';
-	//full_code += wxString::Format("0x%08x", code_value);
-
 	// create the new code
 	ActionReplay::ARCode new_cheat;
 	new_cheat.active = false;
 	new_cheat.user_defined = true;
 	new_cheat.name = WxStrToStr(code_name);
 	new_cheat.ops.emplace_back(ActionReplay::AREntry(m_code_address, code_value));
-	ActionReplay::AddCode(new_cheat);
 
-	// pretty hacky - add the code to the gameini
-	// FIXME: The save logic should be ActionReplay since it mirrors the parser
-	{
-	CISOProperties isoprops(GameListItem(SConfig::GetInstance().m_LastFilename, {}), this);
-	// add the code to the isoproperties arcode list
-	isoprops.AddARCode(new_cheat);
-	// save the gameini
-	isoprops.SaveGameConfig();
-	}
+	wxCommandEvent add_event(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, GetId());
+	add_event.SetClientData(&new_cheat);
+	GetParent()->GetEventHandler()->ProcessEvent(add_event);
 
 	Close();
 }

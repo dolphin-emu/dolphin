@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <vector>
 #include <mbedtls/md5.h>
+#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -63,7 +64,7 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/GameListCtrl.h"
-//#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
@@ -230,6 +231,8 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
 		m_Treectrl->Expand(RootId);
 	}
+
+	wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CISOProperties::OnLocalIniModified, this);
 }
 
 CISOProperties::~CISOProperties()
@@ -1164,6 +1167,9 @@ bool CISOProperties::SaveGameConfig()
 	if (success && File::GetSize(GameIniFileLocal) == 0)
 		File::Delete(GameIniFileLocal);
 
+	if (success)
+		GenerateLocalIniModified();
+
 	return success;
 }
 
@@ -1211,6 +1217,24 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 #endif
 }
 
+void CISOProperties::GenerateLocalIniModified()
+{
+	wxCommandEvent event_update(DOLPHIN_EVT_LOCAL_INI_CHANGED);
+	event_update.SetString(StrToWxStr(game_id));
+	event_update.SetInt(OpenGameListItem.GetRevision());
+	wxTheApp->ProcessEvent(event_update);
+}
+
+void CISOProperties::OnLocalIniModified(wxCommandEvent& ev)
+{
+	ev.Skip();
+	if (WxStrToStr(ev.GetString()) != game_id)
+		return;
+
+	GameIniLocal.Load(GameIniFileLocal);
+	LoadGameConfig();
+}
+
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
 	SaveGameConfig();
@@ -1221,8 +1245,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		blankFile.close();
 	}
 	LaunchExternalEditor(GameIniFileLocal, true);
-	GameIniLocal.Load(GameIniFileLocal);
-	LoadGameConfig();
+	GenerateLocalIniModified();
 }
 
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
@@ -1301,7 +1324,7 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		break;
 	case ID_CHEATS_LIST:
 		if (Cheats->GetSelection() == wxNOT_FOUND ||
-		    DefaultCheats.find(Cheats->GetString(Cheats->GetSelection()).ToStdString()) != DefaultCheats.end())
+		    DefaultCheats.find(Cheats->RemoveMnemonics(Cheats->GetString(Cheats->GetSelection())).ToStdString()) != DefaultCheats.end())
 		{
 			EditCheat->Disable();
 			RemoveCheat->Disable();
@@ -1405,44 +1428,24 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::ActionReplayList_Load()
 {
-	Cheats->Clear();
 	arCodes = ActionReplay::LoadCodes(GameIniDefault, GameIniLocal);
+	DefaultCheats.clear();
 
-	u32 index = 0;
+	Cheats->Freeze();
+	Cheats->Clear();
 	for (const ActionReplay::ARCode& arCode : arCodes)
 	{
-		Cheats->Append(StrToWxStr(arCode.name));
-		Cheats->Check(index, arCode.active);
+		int idx = Cheats->Append(Cheats->EscapeMnemonics(StrToWxStr(arCode.name)));
+		Cheats->Check(idx, arCode.active);
 		if (!arCode.user_defined)
 			DefaultCheats.insert(arCode.name);
-		++index;
 	}
+	Cheats->Thaw();
 }
 
 void CISOProperties::ActionReplayList_Save()
 {
-	std::vector<std::string> lines;
-	std::vector<std::string> enabledLines;
-	u32 index = 0;
-	u32 cheats_chkbox_count = Cheats->GetCount();
-	for (const ActionReplay::ARCode& code : arCodes)
-	{
-		if (code.active)
-			enabledLines.push_back("$" + code.name);
-
-		// Do not save default cheats.
-		if (DefaultCheats.find(code.name) == DefaultCheats.end())
-		{
-			lines.push_back("$" + code.name);
-			for (const ActionReplay::AREntry& op : code.ops)
-			{
-				lines.push_back(WxStrToStr(wxString::Format("%08X %08X", op.cmd_addr, op.value)));
-			}
-		}
-		++index;
-	}
-	GameIniLocal.SetLines("ActionReplay_Enabled", enabledLines);
-	GameIniLocal.SetLines("ActionReplay", lines);
+	ActionReplay::SaveCodes(&GameIniLocal, arCodes);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
@@ -1482,11 +1485,6 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 	EditCheat->Disable();
 	RemoveCheat->Disable();
-}
-
-void CISOProperties::AddARCode(const ActionReplay::ARCode& code)
-{
-	arCodes.emplace_back(code);
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
