@@ -290,9 +290,9 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			if (numPAD < 4)
 			{
 				if (uType == 1 && uStrength > 2)
-					Pad::Rumble(numPAD, 1.0);
+					CSIDevice_GCController::Rumble(numPAD, 1.0);
 				else
-					Pad::Rumble(numPAD, 0.0);
+					CSIDevice_GCController::Rumble(numPAD, 0.0);
 			}
 
 			if (!_Poll)

@@ -14,5 +14,4 @@ public:
 	CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber);
 
 	GCPadStatus GetPadStatus() override;
-	void SendCommand(u32 _Cmd, u8 _Poll) override;
 };
