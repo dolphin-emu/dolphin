@@ -347,7 +347,7 @@ void VR_StartFramebuffer()
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV(), "Right eye color texture shader resource view");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)FramebufferManager::m_efb.m_frontBuffer[1]->GetRTV(), "Right eye color texture render target view");
 
-#if defined(OVR_MAJOR_VERSION) && OVR_MAJOR_VERSION <= 5
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 		if (g_has_rift)
 		{
 			// In Oculus SDK 0.5.0.1 and below, we need to keep descriptions of our eye textures to pass to ovrHmd_EndFrame()
