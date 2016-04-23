@@ -71,6 +71,8 @@ struct TextureBuffer
 			desc.MipLevels = 1;
 			desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
 			desc.SampleCount = 1;
+			desc.MiscFlags = 0;
+			desc.BindFlags = 0;
 			desc.StaticImage = ovrFalse;
 
 			res = ovr_CreateTextureSwapChainGL(hmd, &desc, &TextureChain);
@@ -175,7 +177,7 @@ struct TextureBuffer
 
 		glViewport(0, 0, texSize.w, texSize.h);
 		//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glEnable(GL_FRAMEBUFFER_SRGB);
+		//glEnable(GL_FRAMEBUFFER_SRGB);
 #else
 		ovrGLTexture* tex = (ovrGLTexture*)&TextureSet->Textures[TextureSet->CurrentIndex];
 
@@ -897,7 +899,7 @@ void VR_BeginFrame()
 		for (int eye = 0; eye < 2; eye++)
 		{
 #if OVR_PRODUCT_VERSION >= 1 
-			eyeRenderTexture[eye]->Commit();
+			//eyeRenderTexture[eye]->Commit();
 #else
 			// Increment to use next texture, just before writing
 			eyeRenderTexture[eye]->TextureSet->CurrentIndex = (eyeRenderTexture[eye]->TextureSet->CurrentIndex + 1) % eyeRenderTexture[eye]->TextureSet->TextureCount;
@@ -979,6 +981,7 @@ void VR_PresentHMDFrame()
 		for (int eye = 0; eye < 2; eye++)
 		{
 #if OVR_PRODUCT_VERSION >= 1
+			eyeRenderTexture[eye]->Commit();
 			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureChain;
 #else
 			ld.ColorTexture[eye] = eyeRenderTexture[eye]->TextureSet;
