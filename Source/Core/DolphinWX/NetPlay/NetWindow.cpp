@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -72,6 +73,18 @@ static std::string BuildGameName(const GameListItem& game)
 
 	std::string name(game.GetName(lang));
 
+	int disc_number = game.GetDiscNumber() + 1;
+
+	std::string lower_name = name;
+	std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+	if (disc_number > 1 &&
+			lower_name.find(std::string(wxString::Format("disc %i", disc_number))) == std::string::npos &&
+			lower_name.find(std::string(wxString::Format("disc%i", disc_number))) == std::string::npos)
+	{
+		std::ostringstream ss;
+		ss << name << " (Disc " << disc_number << ")";
+		name = ss.str();
+	}
 	if (game.GetRevision() != 0)
 		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
 	else
