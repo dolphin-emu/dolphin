@@ -1501,8 +1501,11 @@ void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
 	m_Comment->SetValue(comment);
 	m_Maker->SetValue(maker);//dev too
 
-	std::string filename, extension;
-	SplitPath(OpenGameListItem.GetFileName(), nullptr, &filename, &extension);
+	std::string path, filename, extension;
+	SplitPath(OpenGameListItem.GetFileName(), &path, &filename, &extension);
+	// Real disk drives don't have filenames on Windows
+	if (filename.empty() && extension.empty())
+		filename = path + ' ';
 	// Also sets the window's title
 	SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(),
 		extension.c_str(), OpenGameListItem.GetUniqueID().c_str())) + name);
