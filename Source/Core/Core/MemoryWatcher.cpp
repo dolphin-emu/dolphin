@@ -4,12 +4,39 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
+#include "Core/CoreTiming.h"
 #include "Core/MemoryWatcher.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
+
+static std::unique_ptr<MemoryWatcher> s_memory_watcher;
+static int s_event;
+static const int MW_RATE = 600; // Steps per second
+
+static void MWCallback(u64 userdata, s64 cyclesLate)
+{
+	s_memory_watcher->Step();
+	CoreTiming::ScheduleEvent(
+	    (SystemTimers::GetTicksPerSecond() - cyclesLate) / MW_RATE, s_event);
+}
+
+void MemoryWatcher::Init()
+{
+	s_memory_watcher = std::make_unique<MemoryWatcher>();
+	s_event = CoreTiming::RegisterEvent("MemoryWatcher", MWCallback);
+	CoreTiming::ScheduleEvent(0, s_event);
+}
+
+void MemoryWatcher::Shutdown()
+{
+	CoreTiming::RemoveEvent(s_event);
+	s_memory_watcher.reset();
+}
 
 MemoryWatcher::MemoryWatcher()
 {

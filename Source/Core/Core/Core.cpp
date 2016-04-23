@@ -112,18 +112,6 @@ static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_throttler_temp_disabled = false;
 
-#ifdef USE_MEMORYWATCHER
-static std::unique_ptr<MemoryWatcher> s_memory_watcher;
-static int et_MW;
-static const int s_mw_fps = 600;
-
-static void MWCallback(u64 userdata, s64 cyclesLate)
-{
-	s_memory_watcher->Step();
-	CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / s_mw_fps, et_MW);
-}
-#endif
-
 #ifdef ThreadLocalStorage
 static ThreadLocalStorage bool tls_is_cpu_thread = false;
 #else
@@ -297,8 +285,7 @@ void Stop()  // - Hammertime!
 #endif
 
 #ifdef USE_MEMORYWATCHER
-	CoreTiming::RemoveEvent(et_MW);
-	s_memory_watcher.reset();
+	MemoryWatcher::Shutdown();
 #endif
 }
 
@@ -370,9 +357,7 @@ static void CpuThread()
 	#endif
 
 #ifdef USE_MEMORYWATCHER
-	s_memory_watcher = std::make_unique<MemoryWatcher>();
-	et_MW = CoreTiming::RegisterEvent("MemoryWatcher", MWCallback);
-	CoreTiming::ScheduleEvent(0, et_MW);
+	MemoryWatcher::Init();
 #endif
 
 	// Enter CPU run loop. When we leave it - we are done.

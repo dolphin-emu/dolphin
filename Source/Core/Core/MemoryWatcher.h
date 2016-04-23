@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <atomic>
 #include <map>
-#include <thread>
 #include <vector>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -25,6 +23,9 @@ public:
 	MemoryWatcher();
 	~MemoryWatcher();
 	void Step();
+
+	static void Init();
+	static void Shutdown();
 
 private:
 	bool LoadAddresses(const std::string& path);
