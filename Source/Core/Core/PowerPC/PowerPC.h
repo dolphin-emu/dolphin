@@ -156,11 +156,14 @@ void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 void Start();
-void Pause();
-void Stop();
-void FinishStateMove();
+void Pause(bool synchronize);
+void Stop(bool synchronize);
 CPUState GetState();
 volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
+
+// These are hacks to help FifoPlayer emulate a CPU run loop
+void LieAboutEnteringRunLoop();
+void LieAboutLeavingRunLoop();
 
 u32 CompactCR();
 void ExpandCR(u32 cr);

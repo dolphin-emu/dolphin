@@ -270,7 +270,7 @@ void Stop()  // - Hammertime!
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop();
+	PowerPC::Stop(true);
 
 	// Kick it if it's waiting (code stepping wait loop)
 	CPU::StepOpcode();
@@ -522,9 +522,17 @@ void EmuThread()
 	// Determine the CPU thread function
 	void (*cpuThreadFunc)(void);
 	if (core_parameter.m_BootType == SConfig::BOOT_DFF)
+	{
 		cpuThreadFunc = FifoPlayerThread;
+
+		// CPU::EnableStepping will try to SingleStep when unpausing if it's
+		// in MODE_JIT and memory check is active. That is not going to work.
+		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+	}
 	else
+	{
 		cpuThreadFunc = CpuThread;
+	}
 
 	// ENTER THE VIDEO THREAD LOOP
 	if (core_parameter.bCPUThread)
@@ -625,11 +633,14 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState _State)
+void SetState(EState state)
 {
-	switch (_State)
+	CPU::HostEnterEnableSteppingLock();
+	switch (state)
 	{
 	case CORE_PAUSE:
+		// NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+		//	stopped (including the CPU).
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 #if defined(__LIBUSB__) || defined(_WIN32)
@@ -644,6 +655,7 @@ void SetState(EState _State)
 		PanicAlert("Invalid state");
 		break;
 	}
+	CPU::HostLeaveEnableSteppingLock(state == CORE_PAUSE);
 }
 
 EState GetState()
@@ -725,6 +737,7 @@ void RequestRefreshInfo()
 
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
+	// _assert_(IsHostThread());
 	if (!IsRunning())
 		return true;
 
@@ -732,6 +745,11 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	// and let's do it at this outer level in case the individual systems don't support it.
 	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
 		return true;
+
+	if (doLock)
+		CPU::HostEnterEnableSteppingLock();
+	else
+		unpauseOnUnlock = unpauseOnUnlock && CPU::HostAllowUnpauseWhenLeavingPauseAndLock();
 
 	// first pause or unpause the CPU
 	bool wasUnpaused = CPU::PauseAndLock(doLock, unpauseOnUnlock);
@@ -746,6 +764,10 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 #if defined(__LIBUSB__) || defined(_WIN32)
 	GCAdapter::ResetRumble();
 #endif
+
+	if (!doLock)
+		CPU::HostLeaveEnableSteppingLock(!unpauseOnUnlock);
+
 	return wasUnpaused;
 }
 

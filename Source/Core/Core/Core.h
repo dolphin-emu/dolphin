@@ -52,7 +52,7 @@ bool IsRunningInCurrentThread(); // this tells us whether we are running in the 
 bool IsCPUThread(); // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 
-void SetState(EState _State);
+void SetState(EState state);	// [NOT THREADSAFE]
 EState GetState();
 
 void SaveScreenShot();
