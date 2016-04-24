@@ -6,8 +6,12 @@
 #include <cstdio>
 #include <cstring>
 #include <getopt.h>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <thread>
 #include <unistd.h>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -32,12 +36,32 @@ static bool rendererHasFocus = true;
 static bool rendererIsFullscreen = false;
 static bool running = true;
 
+static std::mutex s_run_payloads_lock;
+static std::queue<std::function<void()>> s_run_payloads;
+
+static void RunPayloads()
+{
+	std::lock_guard<std::mutex> guard(s_run_payloads_lock);
+	while (!s_run_payloads.empty())
+	{
+		s_run_payloads.front()();
+		s_run_payloads.pop();
+	}
+}
+
 class Platform
 {
 public:
 	virtual void Init() {}
 	virtual void SetTitle(const std::string &title) {}
-	virtual void MainLoop() { while(running) {} }
+	virtual void MainLoop()
+	{
+		while (running)
+		{
+			RunPayloads();
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	}
 	virtual void Shutdown() {}
 	virtual ~Platform() {}
 };
@@ -100,18 +124,28 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-	if (Core::IsRunning() && SConfig::GetInstance().bWii)
+	std::lock_guard<std::mutex> guard(s_run_payloads_lock);
+	s_run_payloads.emplace([=]
 	{
-		bool was_unpaused = Core::PauseAndLock(true);
-		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-		Host_UpdateMainFrame();
-		Core::PauseAndLock(false, was_unpaused);
-	}
+		if (Core::IsRunning() && SConfig::GetInstance().bWii)
+		{
+			bool was_unpaused = Core::PauseAndLock(true);
+			GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+			Host_UpdateMainFrame();
+			Core::PauseAndLock(false, was_unpaused);
+		}
+	});
 }
 
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
+
+void Host_RunOnHostThread(std::function<void()> payload)
+{
+	std::lock_guard<std::mutex> guard(s_run_payloads_lock);
+	s_run_payloads.emplace(std::move(payload));
+}
 
 #if HAVE_X11
 #include <X11/keysym.h>
@@ -271,6 +305,7 @@ class PlatformX11 : public Platform
 					     &borderDummy, &depthDummy);
 				rendererIsFullscreen = false;
 			}
+			RunPayloads();
 			usleep(100000);
 		}
 	}

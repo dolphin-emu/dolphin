@@ -102,6 +102,7 @@ bool VolumeIsValid();
 // Disc detection and swapping
 void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
+// WARNING: Uses Core::PauseAndLock so is NOT THREADSAFE. Host/GUI Thread only.
 void ChangeDisc(const std::string& fileName);
 
 // DVD Access Functions

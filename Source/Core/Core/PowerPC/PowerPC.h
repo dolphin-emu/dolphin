@@ -148,8 +148,10 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 CoreMode GetMode();
+// [NOT THREADSAFE] CPU Thread or CORE_UNINITIALIZED or CPU::PauseAndLock
 void SetMode(CoreMode _coreType);
 
+// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock
 void SingleStep();
 void CheckExceptions();
 void CheckExternalExceptions();

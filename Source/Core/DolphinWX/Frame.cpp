@@ -8,6 +8,8 @@
 
 #include <cstddef>
 #include <fstream>
+#include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -790,6 +792,13 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_FORCE_DISCONNECT_BALANCEBOARD:
 		ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
 		break;
+
+	case IDM_RUN_PAYLOAD:
+	{
+		std::unique_ptr<std::function<void()>> payload(static_cast<std::function<void()>*>(event.GetClientData()));
+		(*payload)();
+		break;
+	}
 	}
 }
 

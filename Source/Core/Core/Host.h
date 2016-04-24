@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
 // Host - defines an interface for the emulator core to communicate back to the
@@ -39,6 +40,7 @@ void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
                           const std::string& config_name);
+void Host_RunOnHostThread(std::function<void()>);
 
 // TODO (neobrain): Remove this from host!
 void* Host_GetRenderHandle();
