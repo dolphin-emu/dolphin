@@ -55,7 +55,7 @@ public:
 	u64 GetDataSize() const override { return m_header.data_size; }
 	u64 GetRawSize() const override { return m_file_size; }
 	u64 GetBlockCompressedSize(u64 block_num) const;
-	void GetBlock(u64 block_num, u8* out_ptr) override;
+	bool GetBlock(u64 block_num, u8* out_ptr) override;
 private:
 	CompressedBlobReader(const std::string& filename);
 

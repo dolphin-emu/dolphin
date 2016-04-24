@@ -79,7 +79,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 	return 0;
 }
 
-void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
+bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 {
 	bool uncompressed = false;
 	u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
@@ -135,6 +135,7 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		if (uncomp_size != m_header.block_size)
 			PanicAlert("Wrong block size");
 	}
+	return true;
 }
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type,
