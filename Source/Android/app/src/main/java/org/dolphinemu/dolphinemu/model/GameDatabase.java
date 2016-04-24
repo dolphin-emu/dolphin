@@ -251,7 +251,7 @@ public final class GameDatabase extends SQLiteOpenHelper
 			}
 		}
 
-
+		fileCursor.close();
 		folderCursor.close();
 		database.close();
 	}
