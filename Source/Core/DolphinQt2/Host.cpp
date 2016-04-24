@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QApplication>
 #include <QMutexLocker>
+#include <utility>
 
 #include "Common/Common.h"
 #include "Core/Host.h"
@@ -77,6 +79,15 @@ bool Host_RendererHasFocus()
 
 bool Host_RendererIsFullscreen() {
 	return Host::GetInstance()->GetRenderFullscreen();
+}
+
+void Host_RunOnHostThread(std::function<void()> payload)
+{
+	QObject source;
+	// When the local stack object is destroyed, it generates its destroyed signal
+	// which is then asynchronously posted to qApp on the main thread. The payload
+	// will be executed in the message loop handler on that thread.
+	QObject::connect(&source, &QObject::destroyed, qApp, std::move(payload));
 }
 
 // We ignore these, and their purpose should be questioned individually.

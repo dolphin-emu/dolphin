@@ -543,3 +543,10 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
 		diag.ShowModal();
 	}
 }
+
+void Host_RunOnHostThread(std::function<void()> payload)
+{
+	wxCommandEvent* ev = new wxCommandEvent(wxEVT_HOST_COMMAND, IDM_RUN_PAYLOAD);
+	ev->SetClientData(new std::function<void()>(std::move(payload)));
+	main_frame->GetEventHandler()->QueueEvent(ev);
+}

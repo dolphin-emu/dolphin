@@ -944,6 +944,9 @@ void CFrame::StartGame(const std::string& filename)
 		return;
 	m_bGameLoading = true;
 
+	// Drain any outstanding host messages from previous game (if any)
+	wxTheApp->ProcessPendingEvents();
+
 	if (m_ToolBar)
 		m_ToolBar->EnableTool(IDM_PLAY, false);
 	GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);

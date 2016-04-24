@@ -16,6 +16,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -1118,7 +1119,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 	{
 		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
 		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
-		Core::SetState(Core::CORE_PAUSE);
+		CPU::Break();
 		bool found = false;
 		std::string path;
 		for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
@@ -1132,8 +1133,18 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		}
 		if (found)
 		{
-			DVDInterface::ChangeDisc(path + '/' + g_discChange);
-			Core::SetState(Core::CORE_RUN);
+			path += '/' + g_discChange;
+			// This runs asynchronously on the Host thread at some unknown point
+			// in the future.
+			Host_RunOnHostThread([=]
+			{
+				if (!Movie::IsPlayingInput() || !Core::IsRunningAndStarted())
+					return;
+
+				// We're on the Host thread now so we can call these safely
+				DVDInterface::ChangeDisc(path);
+				CPU::EnableStepping(false);
+			});
 		}
 		else
 		{
@@ -1199,10 +1210,12 @@ void EndPlayInput(bool cont)
 	}
 	else if (s_playMode != MODE_NONE)
 	{
+		// NOTE: UpdateWantDeterminism can only run on the Host thread.
+		bool is_running = !CPU::IsStepping();
+		CPU::Break();
 		s_rerecords = 0;
 		s_currentByte = 0;
 		s_playMode = MODE_NONE;
-		Core::UpdateWantDeterminism();
 		Core::DisplayMessage("Movie End.", 2000);
 		s_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
@@ -1210,8 +1223,15 @@ void EndPlayInput(bool cont)
 		//delete tmpInput;
 		//tmpInput = nullptr;
 
-		if (SConfig::GetInstance().m_PauseMovie)
-			Core::SetState(Core::CORE_PAUSE);
+		Host_RunOnHostThread([=]
+		{
+			if (!Core::IsRunningAndStarted())
+				return;
+
+			Core::UpdateWantDeterminism();
+			if (is_running && !SConfig::GetInstance().m_PauseMovie)
+				CPU::EnableStepping(false);
+		});
 	}
 }
 

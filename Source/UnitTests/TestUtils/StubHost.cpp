@@ -28,3 +28,4 @@ void Host_ConnectWiimote(int, bool) {}
 void Host_SetWiiMoteConnectionState(int) {}
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface() { return nullptr; }
+void Host_RunOnHostThread(std::function<void()>) {}

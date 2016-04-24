@@ -115,6 +115,12 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 
 void Host_ShowVideoConfig(void*, const std::string&, const std::string&) {}
 
+void Host_RunOnHostThread(std::function<void()>)
+{
+	// FIXME: This needs to run on the primary UI thread
+	// Only used by Movie currently.
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
 	__android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "%s:%s", caption, text);
