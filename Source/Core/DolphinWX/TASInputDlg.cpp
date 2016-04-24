@@ -29,6 +29,7 @@
 
 wxDEFINE_EVENT(INVALIDATE_BUTTON_EVENT, wxCommandEvent);
 wxDEFINE_EVENT(INVALIDATE_CONTROL_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(INVALIDATE_EXTENSION_EVENT, wxThreadEvent);
 
 struct TASWiimoteReport
 {
@@ -63,11 +64,17 @@ void TASInputDlg::CreateBaseLayout()
 	m_controls[1] = &m_main_stick.y_cont;
 
 	m_a = CreateButton("A");
+	m_a.checkbox->SetClientData(&m_a);
 	m_b = CreateButton("B");
+	m_b.checkbox->SetClientData(&m_b);
 	m_dpad_up = CreateButton("Up");
+	m_dpad_up.checkbox->SetClientData(&m_dpad_up);
 	m_dpad_right = CreateButton("Right");
+	m_dpad_right.checkbox->SetClientData(&m_dpad_right);
 	m_dpad_down = CreateButton("Down");
+	m_dpad_down.checkbox->SetClientData(&m_dpad_down);
 	m_dpad_left = CreateButton("Left");
+	m_dpad_left.checkbox->SetClientData(&m_dpad_left);
 
 	m_buttons_dpad = new wxGridSizer(3);
 	m_buttons_dpad->AddSpacer(20);
@@ -134,10 +141,15 @@ void TASInputDlg::CreateWiiLayout(int num)
 	wxGridSizer* const m_buttons_grid = new wxGridSizer(4);
 
 	m_plus = CreateButton("+");
+	m_plus.checkbox->SetClientData(&m_plus);
 	m_minus = CreateButton("-");
+	m_minus.checkbox->SetClientData(&m_minus);
 	m_one = CreateButton("1");
+	m_one.checkbox->SetClientData(&m_one);
 	m_two = CreateButton("2");
+	m_two.checkbox->SetClientData(&m_two);
 	m_home = CreateButton("Home");
+	m_home.checkbox->SetClientData(&m_home);
 
 	m_main_szr = new wxBoxSizer(wxVERTICAL);
 	m_wiimote_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -178,7 +190,9 @@ void TASInputDlg::CreateWiiLayout(int num)
 	wxStaticBoxSizer* const nunchukaxisBox = CreateAccelLayout(&m_nx_cont, &m_ny_cont, &m_nz_cont, _("Nunchuk orientation"));
 
 	m_c = CreateButton("C");
+	m_c.checkbox->SetClientData(&m_c);
 	m_z = CreateButton("Z");
+	m_z.checkbox->SetClientData(&m_z);
 	m_ext_szr->Add(m_c_stick_szr, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
 	m_ext_szr->Add(nunchukaxisBox);
 
@@ -212,6 +226,7 @@ void TASInputDlg::FinishLayout()
 	Bind(wxEVT_CLOSE_WINDOW, &TASInputDlg::OnCloseWindow, this);
 	Bind(INVALIDATE_BUTTON_EVENT, &TASInputDlg::UpdateFromInvalidatedButton, this);
 	Bind(INVALIDATE_CONTROL_EVENT, &TASInputDlg::UpdateFromInvalidatedControl, this);
+	Bind(INVALIDATE_EXTENSION_EVENT, &TASInputDlg::UpdateFromInvalidatedExtension, this);
 	m_has_layout = true;
 }
 
@@ -220,7 +235,10 @@ wxBoxSizer* TASInputDlg::CreateCCLayout()
 	wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
 
 	for (size_t i = 0; i < ArraySize(m_cc_buttons); ++i)
+	{
 		m_cc_buttons[i] = CreateButton(m_cc_button_names[i]);
+		m_cc_buttons[i].checkbox->SetClientData(&m_cc_buttons[i]);
+	}
 
 	m_cc_l_stick = CreateStick(ID_CC_L_STICK, 63, 63, WiimoteEmu::Classic::LEFT_STICK_CENTER_X, WiimoteEmu::Classic::LEFT_STICK_CENTER_Y, false, true);
 	m_cc_r_stick = CreateStick(ID_CC_R_STICK, 31, 31, WiimoteEmu::Classic::RIGHT_STICK_CENTER_X, WiimoteEmu::Classic::RIGHT_STICK_CENTER_Y, false, true);
@@ -348,11 +366,17 @@ void TASInputDlg::CreateGCLayout()
 	wxGridSizer* const m_buttons_grid = new wxGridSizer(4);
 
 	m_x = CreateButton("X");
+	m_x.checkbox->SetClientData(&m_x);
 	m_y = CreateButton("Y");
+	m_y.checkbox->SetClientData(&m_y);
 	m_l = CreateButton("L");
+	m_l.checkbox->SetClientData(&m_l);
 	m_r = CreateButton("R");
+	m_r.checkbox->SetClientData(&m_r);
 	m_z = CreateButton("Z");
+	m_z.checkbox->SetClientData(&m_z);
 	m_start = CreateButton("Start");
+	m_start.checkbox->SetClientData(&m_start);
 
 	for (unsigned int i = 4; i < ArraySize(m_buttons); ++i)
 		if (m_buttons[i] != nullptr)
@@ -449,9 +473,16 @@ TASInputDlg::Button TASInputDlg::CreateButton(const std::string& name)
 	wxCheckBox* checkbox = new wxCheckBox(this, m_eleID++, name);
 	checkbox->Bind(wxEVT_RIGHT_DOWN, &TASInputDlg::SetTurbo, this);
 	checkbox->Bind(wxEVT_LEFT_DOWN, &TASInputDlg::SetTurbo, this);
+	checkbox->Bind(wxEVT_CHECKBOX, &TASInputDlg::OnCheckboxToggle, this);
 	temp.checkbox = checkbox;
 	temp.id = m_eleID - 1;
 	return temp;
+}
+
+void TASInputDlg::OnCheckboxToggle(wxCommandEvent& event)
+{
+	auto cbox = static_cast<wxCheckBox*>(event.GetEventObject());
+	static_cast<Button*>(cbox->GetClientData())->is_checked = event.IsChecked();
 }
 
 void TASInputDlg::ResetValues()
@@ -491,6 +522,7 @@ void TASInputDlg::ResetValues()
 	}
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::SetStickValue(Control* control, int CurrentValue, int center)
 {
 	if (CurrentValue != center)
@@ -511,6 +543,7 @@ void TASInputDlg::SetStickValue(Control* control, int CurrentValue, int center)
 	InvalidateControl(control);
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 {
 	if (CurrentValue != (int)control->default_value)
@@ -531,6 +564,7 @@ void TASInputDlg::SetSliderValue(Control* control, int CurrentValue)
 	InvalidateControl(control);
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 {
 	if (CurrentState)
@@ -550,16 +584,18 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 	InvalidateButton(button);
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::SetWiiButtons(u16* butt)
 {
 	for (unsigned int i = 0; i < 11; ++i)
 	{
 		if (m_buttons[i] != nullptr)
-			*butt |= (m_buttons[i]->checkbox->IsChecked()) ? m_wii_buttons_bitmask[i] : 0;
+			*butt |= (m_buttons[i]->is_checked) ? m_wii_buttons_bitmask[i] : 0;
 	}
 	ButtonTurbo();
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 {
 	SetStickValue(&m_main_stick.x_cont, PadStatus->stickX);
@@ -579,6 +615,7 @@ void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
 	SetButtonValue(&m_r, ((PadStatus->triggerRight) == 255) || ((PadStatus->button & PAD_TRIGGER_R) != 0));
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
 {
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
@@ -651,6 +688,9 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 	}
 }
 
+// NOTE: Host / CPU Thread
+// Do not touch the GUI. Requires wxMutexGuiEnter which will deadlock against
+// the GUI when pausing/stopping.
 void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key)
 {
 	if (!IsShown() || !m_has_layout)
@@ -743,7 +783,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	if (ext != m_ext)
 	{
 		m_ext = ext;
-		HandleExtensionChange();
+		InvalidateExtension();
 	}
 	else if (extData && ext == 1)
 	{
@@ -759,8 +799,9 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 		nunchuk.az    = m_nz_cont.value >> 2;
 		nunchuk.bt.acc_z_lsb = m_nz_cont.value & 0x3;
 
-		nunchuk.bt.hex |= (m_buttons[11]->checkbox->IsChecked()) ? WiimoteEmu::Nunchuk::BUTTON_C : 0;
-		nunchuk.bt.hex |= (m_buttons[12]->checkbox->IsChecked()) ? WiimoteEmu::Nunchuk::BUTTON_Z : 0;
+
+		nunchuk.bt.hex |= (m_buttons[11]->is_checked) ? WiimoteEmu::Nunchuk::BUTTON_C : 0;
+		nunchuk.bt.hex |= (m_buttons[12]->is_checked) ? WiimoteEmu::Nunchuk::BUTTON_Z : 0;
 		nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 		WiimoteEncrypt(&key, (u8*)&nunchuk, 0, sizeof(wm_nc));
 	}
@@ -772,7 +813,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 
 		for (unsigned int i = 0; i < ArraySize(m_cc_buttons); ++i)
 		{
-			cc.bt.hex |= (m_cc_buttons[i].checkbox->IsChecked()) ? m_cc_buttons_bitmask[i] : 0;
+			cc.bt.hex |= (m_cc_buttons[i].is_checked) ? m_cc_buttons_bitmask[i] : 0;
 		}
 		cc.bt.hex ^= 0xFFFF;
 
@@ -793,6 +834,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, 
 	}
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 {
 	if (!IsShown() || !m_has_layout)
@@ -805,26 +847,26 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus)
 	PadStatus->stickY = m_main_stick.y_cont.value;
 	PadStatus->substickX = m_c_stick.x_cont.value;
 	PadStatus->substickY = m_c_stick.y_cont.value;
-	PadStatus->triggerLeft = m_l.checkbox->GetValue() ? 255 : m_l_cont.value;
-	PadStatus->triggerRight = m_r.checkbox->GetValue() ? 255 : m_r_cont.value;
+	PadStatus->triggerLeft = m_l.is_checked ? 255 : m_l_cont.value;
+	PadStatus->triggerRight = m_r.is_checked ? 255 : m_r_cont.value;
 
 	for (unsigned int i = 0; i < ArraySize(m_buttons); ++i)
 	{
 		if (m_buttons[i] != nullptr)
 		{
-			if (m_buttons[i]->checkbox->IsChecked())
+			if (m_buttons[i]->is_checked)
 				PadStatus->button |= m_gc_pad_buttons_bitmask[i];
 			else
 				PadStatus->button &= ~m_gc_pad_buttons_bitmask[i];
 		}
 	}
 
-	if (m_a.checkbox->IsChecked())
+	if (m_a.is_checked)
 		PadStatus->analogA = 0xFF;
 	else
 		PadStatus->analogA = 0x00;
 
-	if (m_b.checkbox->IsChecked())
+	if (m_b.is_checked)
 		PadStatus->analogB = 0xFF;
 	else
 		PadStatus->analogB = 0x00;
@@ -1035,6 +1077,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 	event.Skip();
 }
 
+// NOTE: Host / CPU Thread
 void TASInputDlg::ButtonTurbo()
 {
 	static u64 frame = Movie::g_currentFrame;
@@ -1046,7 +1089,7 @@ void TASInputDlg::ButtonTurbo()
 		{
 			if (button != nullptr && button->turbo_on)
 			{
-				button->value = !button->checkbox->GetValue();
+				button->value = !button->is_checked;
 				InvalidateButton(button);
 			}
 		}
@@ -1056,7 +1099,7 @@ void TASInputDlg::ButtonTurbo()
 			{
 				if (button.turbo_on)
 				{
-					button.value = !button.checkbox->GetValue();
+					button.value = !button.is_checked;
 					InvalidateButton(&button);
 				}
 			}
@@ -1075,6 +1118,7 @@ void TASInputDlg::InvalidateButton(Button* button)
 	}
 
 	button->checkbox->SetValue(button->value);
+	button->is_checked = button->value;
 }
 
 void TASInputDlg::InvalidateControl(Control* control)
@@ -1090,11 +1134,23 @@ void TASInputDlg::InvalidateControl(Control* control)
 	control->text->SetValue(std::to_string(control->value));
 }
 
+void TASInputDlg::InvalidateExtension()
+{
+	if (!wxIsMainThread())
+	{
+		GetEventHandler()->QueueEvent(new wxThreadEvent(INVALIDATE_EXTENSION_EVENT));
+		return;
+	}
+
+	HandleExtensionChange();
+}
+
 void TASInputDlg::UpdateFromInvalidatedButton(wxCommandEvent& event)
 {
 	Button* button = static_cast<Button*>(event.GetClientData());
 	_assert_msg_(PAD, button->id == button->checkbox->GetId(), "Button ids do not match: %i != %i", button->id, button->checkbox->GetId());
 	button->checkbox->SetValue(button->value);
+	button->is_checked = button->value;
 }
 
 void TASInputDlg::UpdateFromInvalidatedControl(wxCommandEvent& event)
@@ -1102,6 +1158,11 @@ void TASInputDlg::UpdateFromInvalidatedControl(wxCommandEvent& event)
 	Control* control = static_cast<Control*>(event.GetClientData());
 	_assert_msg_(PAD, control->text_id == control->text->GetId(), "Control ids do not match: %i != %i", control->text_id, control->text->GetId());
 	control->text->SetValue(std::to_string(control->value));
+}
+
+void TASInputDlg::UpdateFromInvalidatedExtension(wxThreadEvent&)
+{
+	HandleExtensionChange();
 }
 
 wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
