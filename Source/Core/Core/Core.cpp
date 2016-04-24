@@ -270,10 +270,7 @@ void Stop()  // - Hammertime!
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop(true);
-
-	// Kick it if it's waiting (code stepping wait loop)
-	CPU::StepOpcode();
+	CPU::Stop();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -491,6 +488,9 @@ void EmuThread()
 	s_hardware_initialized = true;
 
 	// Boot to pause or not
+	// NOTE: This violates the Host Thread requirement for SetState but we should
+	//   not race the Host because the UI should have the buttons disabled until
+	//   Host_UpdateMainFrame enables them.
 	Core::SetState(core_parameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
@@ -737,7 +737,7 @@ void RequestRefreshInfo()
 
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
-	// _assert_(IsHostThread());
+	// WARNING: PauseAndLock is only valid on Host Thread
 	if (!IsRunning())
 		return true;
 

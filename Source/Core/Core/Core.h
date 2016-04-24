@@ -52,7 +52,8 @@ bool IsRunningInCurrentThread(); // this tells us whether we are running in the 
 bool IsCPUThread(); // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 
-void SetState(EState state);	// [NOT THREADSAFE]
+// [NOT THREADSAFE] For use by Host only
+void SetState(EState state);
 EState GetState();
 
 void SaveScreenShot();
@@ -80,13 +81,14 @@ void UpdateTitle();
 // or, if doLock is false, releases a lock on that state and optionally unpauses.
 // calls must be balanced (once with doLock true, then once with doLock false) but may be recursive.
 // the return value of the first call should be passed in as the second argument of the second call.
+// [NOT THREADSAFE] Host only
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock=true);
 
 // for calling back into UI code without introducing a dependency on it in core
 typedef void(*StoppedCallbackFunc)(void);
 void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
-// Run on the GUI thread when the factors change.
+// Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
 
 }  // namespace

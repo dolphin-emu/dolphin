@@ -256,7 +256,7 @@ void Start()
 		// If the state is switched back to CPU_RUNNING before the CPU_STEPPING
 		// or CPU_POWERDOWN has actually been processed then kick waiters.
 		// NOTE: Calling PowerPC::Start before RunLoop ends is probably a race
-		//	in the code that called us.
+		//   in the code that called us.
 		if (old_state != CPU_RUNNING && s_state_run_loop_enter_counter != s_state_run_loop_leave_counter)
 		{
 			ERROR_LOG(POWERPC, "Possible race occurred. CPU is starting again before it stopped.");
@@ -271,8 +271,8 @@ void Start()
 static void ChangeStateFromRunning(CPUState new_state, bool synchronize)
 {
 	// WARNING: There's a difference between "old state" and "effective state".
-	//	Just because the old state was already CPU_STEPPING doesn't mean that
-	//	RunLoop has exited yet.
+	//   Just because the old state was already CPU_STEPPING doesn't mean that
+	//   RunLoop has exited yet.
 	std::unique_lock<std::mutex> guard(s_state_change_lock);
 	state = new_state;
 
@@ -284,7 +284,7 @@ static void ChangeStateFromRunning(CPUState new_state, bool synchronize)
 		// actually happen.
 		unsigned int cookie = s_state_run_loop_leave_counter;
 		// NOTE: Timeout is a hack to contend with deadlocks in the IO
-		//	system to prevent the GUI from freezing. It should be removed.
+		//   system to prevent the GUI from freezing. It should be removed.
 		s_state_change_cvar.wait(guard, /*std::chrono::seconds(1),*/ [&]
 		{
 			return s_state_run_loop_leave_counter != cookie;
