@@ -317,6 +317,7 @@ void CCodeWindow::StepOut()
 {
 	if (CPU::IsStepping())
 	{
+		CPU::PauseAndLock(true, false);
 		PowerPC::breakpoints.ClearAllTemporary();
 
 		// Keep stepping until the next blr or timeout after one second
@@ -347,6 +348,7 @@ void CCodeWindow::StepOut()
 
 		PowerPC::SingleStep();
 		PowerPC::SetMode(oldMode);
+		CPU::PauseAndLock(false, false);
 
 		JumpToAddress(PC);
 		Update();

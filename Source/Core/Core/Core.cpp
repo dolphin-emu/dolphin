@@ -270,10 +270,7 @@ void Stop()  // - Hammertime!
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop(true);
-
-	// Kick it if it's waiting (code stepping wait loop)
-	CPU::StepOpcode();
+	CPU::Stop();
 
 	if (_CoreParameter.bCPUThread)
 	{

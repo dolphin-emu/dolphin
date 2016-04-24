@@ -17,10 +17,12 @@
 
 namespace
 {
-	static Common::Event m_StepEvent;
 	static Common::Event *m_SyncEvent = nullptr;
 	static std::mutex m_csCpuOccupied;
 }
+
+static std::condition_variable s_cpu_step_cvar;
+static bool s_cpu_step_insn = false;
 
 static std::mutex s_stepping_lock;
 static std::condition_variable s_stepping_cvar;
@@ -34,13 +36,23 @@ namespace CPU
 void Init(int cpu_core)
 {
 	PowerPC::Init(cpu_core);
-	m_SyncEvent = nullptr;
 }
 
 void Shutdown()
 {
+	Stop();
 	PowerPC::Shutdown();
-	m_SyncEvent = nullptr;
+}
+
+// Requires holding m_csCpuOccupied
+static inline void FlushStepSyncEventLocked()
+{
+	if (m_SyncEvent)
+	{
+		m_SyncEvent->Set();
+		m_SyncEvent = nullptr;
+	}
+	s_cpu_step_insn = false;
 }
 
 void Run()
@@ -58,26 +70,23 @@ void Run()
 			break;
 
 		case PowerPC::CPU_STEPPING:
-			lk.unlock();
-
 			//1: wait for step command..
-			m_StepEvent.Wait();
+			s_cpu_step_cvar.wait(lk, [] { return s_cpu_step_insn || PowerPC::GetState() != PowerPC::CPU_STEPPING; });
 
-			lk.lock();
-			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
-				return;
-			if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
+			// NOTE: Because GetState is unsynchronized there may be transient failures
+			//   i.e. GetState is still CPU_STEPPING and s_cpu_step_insn is still false
+			if (!s_cpu_step_insn || PowerPC::GetState() != PowerPC::CPU_STEPPING)
+			{
+				// If the mode is changed, signal event immediately
+				FlushStepSyncEventLocked();
 				continue;
+			}
 
-			//3: do a step
+			//2: do a step
 			PowerPC::SingleStep();
 
-			//4: update disasm dialog
-			if (m_SyncEvent)
-			{
-				m_SyncEvent->Set();
-				m_SyncEvent = nullptr;
-			}
+			//3: update disasm dialog
+			FlushStepSyncEventLocked();
 			Host_UpdateDisasmDialog();
 			break;
 
@@ -91,7 +100,9 @@ void Run()
 void Stop()
 {
 	PowerPC::Stop(true);
-	m_StepEvent.Set();
+	std::lock_guard<std::mutex> guard(m_csCpuOccupied);
+	FlushStepSyncEventLocked();
+	s_cpu_step_cvar.notify_one();
 }
 
 bool IsStepping()
@@ -105,27 +116,28 @@ void Reset()
 
 void StepOpcode(Common::Event* event)
 {
-	m_StepEvent.Set();
-	if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
+	if (PowerPC::GetState() != PowerPC::CPU_STEPPING)
 	{
-		m_SyncEvent = event;
+		if (event)
+			event->Set();
+		return;
 	}
+	std::lock_guard<std::mutex> guard(m_csCpuOccupied);
+	s_cpu_step_insn = true;
+	m_SyncEvent = event;
+	s_cpu_step_cvar.notify_one();
 }
 
 void StealStepEventAndWaitOnIt()
 {
-	m_StepEvent.Wait();
-	if (m_SyncEvent)
-	{
-		m_SyncEvent->Set();
-		m_SyncEvent = nullptr;
-	}
+	std::unique_lock<std::mutex> guard(m_csCpuOccupied);
+	s_cpu_step_cvar.wait(guard, [] { return PowerPC::GetState() != PowerPC::CPU_STEPPING || s_cpu_step_insn; });
+	FlushStepSyncEventLocked();
 }
 
 static void SetSteppingEnabled(bool synchronize)
 {
 	PowerPC::Pause(synchronize);
-	m_StepEvent.Reset();
 	Fifo::EmulatorState(false);
 	AudioCommon::ClearAudioBuffer(true);
 }
@@ -165,17 +177,17 @@ bool HostAllowUnpauseWhenLeavingPauseAndLock()
 
 void EnableStepping(bool stepping)
 {
-	HostEnterEnableSteppingLock();
 	if (stepping)
 	{
+		HostEnterEnableSteppingLock();
 		SetSteppingEnabled(true);
+		HostLeaveEnableSteppingLock(true);
 	}
 	else
 	{
 		// Wait for PowerPC::RunLoop to actually exit before we try to access the
 		// register state or step the CPU.
-		PowerPC::Pause(true);
-		std::unique_lock<std::mutex> guard(m_csCpuOccupied);
+		PauseAndLock(true, false);
 
 		// SingleStep so that the "continue", "step over" and "step out" debugger functions
 		// work when the PC is at a breakpoint at the beginning of the block
@@ -188,27 +200,17 @@ void EnableStepping(bool stepping)
 #endif
 		if (could_be_bp && PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
 		{
-			// FIXME: Why isn't this inside CPU::Run()? We can do this in
-			//	"case PowerPC::CPU_RUNNING" before the call to PowerPC::RunLoop()
 			PowerPC::CoreMode oldMode = PowerPC::GetMode();
 			PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-			// CoreTiming will Advance() and trigger a SetInterrupt
-			// from the wrong thread.
-			bool not_cpu = !Core::IsCPUThread();
-			if (not_cpu)
-				Core::DeclareAsCPUThread();
 			PowerPC::SingleStep();
-			if (not_cpu)
-				Core::UndeclareAsCPUThread();
 			PowerPC::SetMode(oldMode);
 		}
-		guard.unlock();
-		PowerPC::Start();
-		m_StepEvent.Set();
 		Fifo::EmulatorState(true);
 		AudioCommon::ClearAudioBuffer(false);
+
+		// NOTE: We are going to unpause on unlock
+		PauseAndLock(false, true);
 	}
-	HostLeaveEnableSteppingLock(stepping);
 }
 
 void Break()
@@ -239,21 +241,18 @@ void Break()
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
-	static bool s_have_fake_cpu_thread;
+	static bool s_have_fake_cpu_thread = false;
 	bool was_unpaused = !IsStepping();
 	if (do_lock)
 	{
+		HostEnterEnableSteppingLock();
 		// we can't use EnableStepping, that would cause deadlocks with both audio and video
 		PowerPC::Pause(true);
+		m_csCpuOccupied.lock();
 		if (!Core::IsCPUThread())
 		{
-			m_csCpuOccupied.lock();
 			s_have_fake_cpu_thread = true;
 			Core::DeclareAsCPUThread();
-		}
-		else
-		{
-			s_have_fake_cpu_thread = false;
 		}
 	}
 	else
@@ -261,13 +260,14 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 		if (unpause_on_unlock)
 		{
 			PowerPC::Start();
-			m_StepEvent.Set();
+			s_cpu_step_cvar.notify_one();
 		}
+		m_csCpuOccupied.unlock();
+		HostLeaveEnableSteppingLock(!unpause_on_unlock);
 
 		if (s_have_fake_cpu_thread)
 		{
 			Core::UndeclareAsCPUThread();
-			m_csCpuOccupied.unlock();
 			s_have_fake_cpu_thread = false;
 		}
 	}
