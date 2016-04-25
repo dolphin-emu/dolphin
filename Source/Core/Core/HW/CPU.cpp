@@ -15,14 +15,14 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/Fifo.h"
 
-namespace
-{
-	static Common::Event *m_SyncEvent = nullptr;
-	static std::mutex m_csCpuOccupied;
-}
-
-static std::condition_variable s_cpu_step_cvar;
-static bool s_cpu_step_instruction = false;
+// Execution lock protects the execution resources (i.e. Registers).
+// External code needs to either acquire this lock (PauseAndLock) or
+// be running on the CPU Thread in order to access the PowerPC registers
+// without racing a running CPU Core.
+static std::mutex              s_cpu_execution_lock;
+static std::condition_variable s_cpu_execution_cvar;
+static Common::Event*          s_cpu_step_instruction_sync = nullptr;
+static bool                    s_cpu_step_instruction      = false;
 
 static std::mutex s_stepping_lock;
 static std::condition_variable s_stepping_cvar;
@@ -44,20 +44,20 @@ void Shutdown()
 	PowerPC::Shutdown();
 }
 
-// Requires holding m_csCpuOccupied
+// Requires holding s_cpu_execution_lock
 static inline void FlushStepSyncEventLocked()
 {
-	if (m_SyncEvent)
+	if (s_cpu_step_instruction_sync)
 	{
-		m_SyncEvent->Set();
-		m_SyncEvent = nullptr;
+		s_cpu_step_instruction_sync->Set();
+		s_cpu_step_instruction_sync = nullptr;
 	}
 	s_cpu_step_instruction = false;
 }
 
 void Run()
 {
-	std::unique_lock<std::mutex> lk(m_csCpuOccupied);
+	std::unique_lock<std::mutex> lk(s_cpu_execution_lock);
 	while (true)
 	{
 		switch (PowerPC::GetState())
@@ -86,7 +86,7 @@ void Run()
 
 		case PowerPC::CPU_STEPPING:
 			// 1: wait for step command..
-			s_cpu_step_cvar.wait(lk, [] { return s_cpu_step_instruction || PowerPC::GetState() != PowerPC::CPU_STEPPING; });
+			s_cpu_execution_cvar.wait(lk, [] { return s_cpu_step_instruction || PowerPC::GetState() != PowerPC::CPU_STEPPING; });
 
 			// NOTE: Because GetState is unsynchronized there may be transient failures
 			//   i.e. GetState is still CPU_STEPPING and s_cpu_step_instruction is still false
@@ -116,9 +116,9 @@ void Run()
 void Stop()
 {
 	PowerPC::Stop(true);
-	std::lock_guard<std::mutex> guard(m_csCpuOccupied);
+	std::lock_guard<std::mutex> guard(s_cpu_execution_lock);
 	FlushStepSyncEventLocked();
-	s_cpu_step_cvar.notify_one();
+	s_cpu_execution_cvar.notify_one();
 }
 
 bool IsStepping()
@@ -138,13 +138,13 @@ void StepOpcode(Common::Event* event)
 			event->Set();
 		return;
 	}
-	std::lock_guard<std::mutex> guard(m_csCpuOccupied);
+	std::lock_guard<std::mutex> guard(s_cpu_execution_lock);
 	s_cpu_step_instruction = true;
 	// Potential race where the previous step has not been serviced yet.
-	if (m_SyncEvent && m_SyncEvent != event)
-		m_SyncEvent->Set();
-	m_SyncEvent = event;
-	s_cpu_step_cvar.notify_one();
+	if (s_cpu_step_instruction_sync && s_cpu_step_instruction_sync != event)
+		s_cpu_step_instruction_sync->Set();
+	s_cpu_step_instruction_sync = event;
+	s_cpu_execution_cvar.notify_one();
 }
 
 static void SetSteppingEnabled(bool synchronize)
@@ -195,7 +195,7 @@ void EnableStepping(bool stepping)
 	else
 	{
 		// Wait for the CPU state to settle into its stop state.
-		// We need m_csCpuOccupied to use s_cpu_step_cvar.
+		// We need s_cpu_execution_lock to use s_cpu_execution_cvar.
 		PauseAndLock(true, false);
 
 		Fifo::EmulatorState(true);
@@ -242,7 +242,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 		was_unpaused = PowerPC::GetState() == PowerPC::CPU_RUNNING;
 		// we can't use EnableStepping, that would cause deadlocks with both audio and video
 		PowerPC::Pause(true);
-		m_csCpuOccupied.lock();
+		s_cpu_execution_lock.lock();
 		if (!Core::IsCPUThread())
 		{
 			s_have_fake_cpu_thread = true;
@@ -254,14 +254,14 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 		if (unpause_on_unlock)
 		{
 			PowerPC::Start();
-			s_cpu_step_cvar.notify_one();
+			s_cpu_execution_cvar.notify_one();
 		}
 		if (s_have_fake_cpu_thread)
 		{
 			Core::UndeclareAsCPUThread();
 			s_have_fake_cpu_thread = false;
 		}
-		m_csCpuOccupied.unlock();
+		s_cpu_execution_lock.unlock();
 		HostLeaveEnableSteppingLock(!unpause_on_unlock);
 	}
 	return was_unpaused;
