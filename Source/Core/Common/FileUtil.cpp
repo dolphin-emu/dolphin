@@ -535,6 +535,8 @@ bool DeleteDirRecursively(const std::string& directory)
 	WIN32_FIND_DATA ffd;
 	HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
 
+	bool success = true;
+
 	if (hFind == INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
@@ -568,22 +570,16 @@ bool DeleteDirRecursively(const std::string& directory)
 		{
 			if (!DeleteDirRecursively(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 		else
 		{
 			if (!File::Delete(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 
@@ -594,9 +590,10 @@ bool DeleteDirRecursively(const std::string& directory)
 	}
 	closedir(dirp);
 #endif
-	File::DeleteDir(directory);
+	if (success)
+		File::DeleteDir(directory);
 
-	return true;
+	return success;
 }
 
 // Create directory and copy contents (does not overwrite existing files)
