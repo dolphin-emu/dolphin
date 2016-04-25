@@ -28,12 +28,13 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState ppcState;
-static volatile CPUState state = CPU_POWERDOWN;
 
-static CPUCoreBase* s_cpu_core_base;
-static bool s_cpu_core_base_is_injected = false;
-Interpreter * const interpreter = Interpreter::getInstance();
-static CoreMode mode;
+static volatile CPUState s_state = CPU_POWERDOWN;
+
+static CPUCoreBase* s_cpu_core_base             = nullptr;
+static bool         s_cpu_core_base_is_injected = false;
+Interpreter* const  s_interpreter               = Interpreter::getInstance();
+static CoreMode     s_mode                      = MODE_INTERPRETER;
 
 static std::mutex s_state_change_lock;
 static std::condition_variable s_state_change_cvar;
@@ -147,12 +148,12 @@ void Init(int cpu_core)
 
 	// We initialize the interpreter because
 	// it is used on boot and code window independently.
-	interpreter->Init();
+	s_interpreter->Init();
 
 	switch (cpu_core)
 	{
 	case PowerPC::CORE_INTERPRETER:
-		s_cpu_core_base = interpreter;
+		s_cpu_core_base = s_interpreter;
 		break;
 
 	default:
@@ -160,20 +161,20 @@ void Init(int cpu_core)
 		if (!s_cpu_core_base) // Handle Situations where JIT core isn't available
 		{
 			WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-			s_cpu_core_base = interpreter;
+			s_cpu_core_base = s_interpreter;
 		}
 		break;
 	}
 
-	if (s_cpu_core_base != interpreter)
+	if (s_cpu_core_base != s_interpreter)
 	{
-		mode = MODE_JIT;
+		s_mode = MODE_JIT;
 	}
 	else
 	{
-		mode = MODE_INTERPRETER;
+		s_mode = MODE_INTERPRETER;
 	}
-	state = CPU_STEPPING;
+	s_state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
 
@@ -185,39 +186,39 @@ void Shutdown()
 {
 	InjectExternalCPUCore(nullptr);
 	JitInterface::Shutdown();
-	interpreter->Shutdown();
+	s_interpreter->Shutdown();
 	s_cpu_core_base = nullptr;
-	state = CPU_POWERDOWN;
+	s_state = CPU_POWERDOWN;
 }
 
 CoreMode GetMode()
 {
-	return !s_cpu_core_base_is_injected ? mode : MODE_INTERPRETER;
+	return !s_cpu_core_base_is_injected ? s_mode : MODE_INTERPRETER;
 }
 
 static void ApplyMode()
 {
-	switch (mode)
+	switch (s_mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		s_cpu_core_base = interpreter;
+		s_cpu_core_base = s_interpreter;
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
 		s_cpu_core_base = JitInterface::GetCore();
 		if (!s_cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
-			s_cpu_core_base = interpreter;
+			s_cpu_core_base = s_interpreter;
 		break;
 	}
 }
 
 void SetMode(CoreMode new_mode)
 {
-	if (new_mode == mode)
+	if (new_mode == s_mode)
 		return;  // We don't need to do anything.
 
-	mode = new_mode;
+	s_mode = new_mode;
 
 	// If we're using an external CPU core implementation then don't do anything.
 	if (s_cpu_core_base_is_injected)
@@ -267,7 +268,7 @@ void RunLoop()
 	Host_UpdateDisasmDialog();
 	{
 		std::lock_guard<std::mutex> guard(s_state_change_lock);
-		if (state != CPU_RUNNING)
+		if (s_state != CPU_RUNNING)
 			return;
 		_assert_msg_(POWERPC, s_state_run_loop_enter_counter == s_state_run_loop_leave_counter, "Multiple RunLoop instances?");
 		s_state_run_loop_enter_counter += 1;
@@ -283,19 +284,19 @@ void RunLoop()
 
 CPUState GetState()
 {
-	return state;
+	return s_state;
 }
 
 volatile CPUState *GetStatePtr()
 {
-	return &state;
+	return &s_state;
 }
 
 void Start()
 {
 	std::lock_guard<std::mutex> guard(s_state_change_lock);
-	CPUState old_state = state;
-	state = CPU_RUNNING;
+	CPUState old_state = s_state;
+	s_state = CPU_RUNNING;
 
 	// If the state is switched back to CPU_RUNNING before the CPU_STEPPING
 	// or CPU_POWERDOWN has actually been processed then kick waiters.
@@ -316,7 +317,7 @@ static void ChangeStateFromRunning(CPUState new_state, bool synchronize)
 	//   Just because the old state was already CPU_STEPPING doesn't mean that
 	//   RunLoop has exited yet.
 	std::unique_lock<std::mutex> guard(s_state_change_lock);
-	state = new_state;
+	s_state = new_state;
 
 	// Wait for the CPU core to leave
 	if (synchronize && s_state_run_loop_enter_counter != s_state_run_loop_leave_counter)
