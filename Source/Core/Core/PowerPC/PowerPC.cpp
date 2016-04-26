@@ -23,8 +23,6 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 
-CPUCoreBase *cpu_core_base;
-
 namespace PowerPC
 {
 
@@ -32,8 +30,11 @@ namespace PowerPC
 PowerPCState ppcState;
 static volatile CPUState state = CPU_POWERDOWN;
 
+static CPUCoreBase* s_cpu_core_base;
+static bool s_cpu_core_base_is_injected = false;
 Interpreter * const interpreter = Interpreter::getInstance();
 static CoreMode mode;
+
 static std::mutex s_state_change_lock;
 static std::condition_variable s_state_change_cvar;
 static unsigned int s_state_run_loop_enter_counter = 0;
@@ -151,20 +152,20 @@ void Init(int cpu_core)
 	switch (cpu_core)
 	{
 	case PowerPC::CORE_INTERPRETER:
-		cpu_core_base = interpreter;
+		s_cpu_core_base = interpreter;
 		break;
 
 	default:
-		cpu_core_base = JitInterface::InitJitCore(cpu_core);
-		if (!cpu_core_base) // Handle Situations where JIT core isn't available
+		s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
+		if (!s_cpu_core_base) // Handle Situations where JIT core isn't available
 		{
 			WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-			cpu_core_base = interpreter;
+			s_cpu_core_base = interpreter;
 		}
 		break;
 	}
 
-	if (cpu_core_base != interpreter)
+	if (s_cpu_core_base != interpreter)
 	{
 		mode = MODE_JIT;
 	}
@@ -182,15 +183,33 @@ void Init(int cpu_core)
 
 void Shutdown()
 {
+	InjectExternalCPUCore(nullptr);
 	JitInterface::Shutdown();
 	interpreter->Shutdown();
-	cpu_core_base = nullptr;
+	s_cpu_core_base = nullptr;
 	state = CPU_POWERDOWN;
 }
 
 CoreMode GetMode()
 {
-	return mode;
+	return !s_cpu_core_base_is_injected ? mode : MODE_INTERPRETER;
+}
+
+static void ApplyMode()
+{
+	switch (mode)
+	{
+	case MODE_INTERPRETER:  // Switching from JIT to interpreter
+		s_cpu_core_base = interpreter;
+		break;
+
+	case MODE_JIT:  // Switching from interpreter to JIT.
+		// Don't really need to do much. It'll work, the cache will refill itself.
+		s_cpu_core_base = JitInterface::GetCore();
+		if (!s_cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
+			s_cpu_core_base = interpreter;
+		break;
+	}
 }
 
 void SetMode(CoreMode new_mode)
@@ -200,24 +219,50 @@ void SetMode(CoreMode new_mode)
 
 	mode = new_mode;
 
-	switch (mode)
-	{
-	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		cpu_core_base = interpreter;
-		break;
+	// If we're using an external CPU core implementation then don't do anything.
+	if (s_cpu_core_base_is_injected)
+		return;
 
-	case MODE_JIT:  // Switching from interpreter to JIT.
-		// Don't really need to do much. It'll work, the cache will refill itself.
-		cpu_core_base = JitInterface::GetCore();
-		if (!cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
-			cpu_core_base = interpreter;
-		break;
+	ApplyMode();
+}
+
+const char* GetCPUName()
+{
+	return s_cpu_core_base->GetName();
+}
+
+void InjectExternalCPUCore(CPUCoreBase* new_cpu)
+{
+	// Previously injected.
+	if (s_cpu_core_base_is_injected)
+	{
+		// NOTE: This will deadlock if called from inside RunLoop.
+		if (GetState() != CPU_POWERDOWN)
+			Pause(true);
+		else
+			Stop(true);
+		s_cpu_core_base->Shutdown();
 	}
+
+	// nullptr means just remove
+	if (!new_cpu)
+	{
+		if (s_cpu_core_base_is_injected)
+		{
+			s_cpu_core_base_is_injected = false;
+			ApplyMode();
+		}
+		return;
+	}
+
+	new_cpu->Init();
+	s_cpu_core_base = new_cpu;
+	s_cpu_core_base_is_injected = true;
 }
 
 void SingleStep()
 {
-	cpu_core_base->SingleStep();
+	s_cpu_core_base->SingleStep();
 }
 
 void RunLoop()
@@ -230,7 +275,7 @@ void RunLoop()
 		_assert_msg_(POWERPC, s_state_run_loop_enter_counter == s_state_run_loop_leave_counter, "Multiple RunLoop instances?");
 		s_state_run_loop_enter_counter += 1;
 	}
-	cpu_core_base->Run();
+	s_cpu_core_base->Run();
 	{
 		std::lock_guard<std::mutex> guard(s_state_change_lock);
 		s_state_run_loop_leave_counter += 1;
@@ -300,19 +345,6 @@ void Pause(bool synchronize)
 void Stop(bool synchronize)
 {
 	ChangeStateFromRunning(CPU_POWERDOWN, synchronize);
-}
-
-void LieAboutEnteringRunLoop()
-{
-	std::lock_guard<std::mutex> guard(s_state_change_lock);
-	s_state_run_loop_enter_counter += 1;
-}
-
-void LieAboutLeavingRunLoop()
-{
-	std::lock_guard<std::mutex> guard(s_state_change_lock);
-	s_state_run_loop_leave_counter += 1;
-	s_state_change_cvar.notify_all();
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
