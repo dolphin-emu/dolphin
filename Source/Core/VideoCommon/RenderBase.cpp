@@ -189,13 +189,18 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 
 			if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
 			{
-				newEFBWidth = ((newEFBWidth-1) / EFB_WIDTH + 1) * EFB_WIDTH;
-				newEFBHeight = ((newEFBHeight-1) / EFB_HEIGHT + 1) * EFB_HEIGHT;
+				efb_scale_numeratorX = efb_scale_numeratorY = std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
+				efb_scale_denominatorX = efb_scale_denominatorY = 1;
+				newEFBWidth = EFBToScaledX(EFB_WIDTH);
+				newEFBHeight = EFBToScaledY(EFB_HEIGHT);
 			}
-			efb_scale_numeratorX = newEFBWidth;
-			efb_scale_denominatorX = EFB_WIDTH;
-			efb_scale_numeratorY = newEFBHeight;
-			efb_scale_denominatorY = EFB_HEIGHT;
+			else
+			{
+				efb_scale_numeratorX = newEFBWidth;
+				efb_scale_denominatorX = EFB_WIDTH;
+				efb_scale_numeratorY = newEFBHeight;
+				efb_scale_denominatorY = EFB_HEIGHT;
+			}
 			break;
 
 		case SCALE_1X:
