@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QAbstractEventDispatcher>
+#include <QApplication>
 #include <QMutexLocker>
 
 #include "Common/Common.h"
@@ -57,7 +59,15 @@ void Host::SetRenderFullscreen(bool fullscreen)
 void Host_Message(int id)
 {
 	if (id == WM_USER_STOP)
+	{
 		emit Host::GetInstance()->RequestStop();
+	}
+	else if (id == WM_USER_JOB_DISPATCH)
+	{
+		// Just poke the main thread to get it to wake up, job dispatch
+		// will happen automatically before it goes back to sleep again.
+		QAbstractEventDispatcher::instance(qApp->thread())->wakeUp();
+	}
 }
 
 void Host_UpdateTitle(const std::string& title)
