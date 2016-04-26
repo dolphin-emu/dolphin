@@ -76,7 +76,6 @@ void CachedInterpreter::SingleStep()
 static void EndBlock(UGeckoInstruction data)
 {
 	PC = NPC;
-	PowerPC::CheckExceptions();
 	PowerPC::ppcState.downcount -= data.hex;
 	if (PowerPC::ppcState.downcount <= 0)
 	{
