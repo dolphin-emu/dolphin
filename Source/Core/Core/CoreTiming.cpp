@@ -453,6 +453,11 @@ void Advance()
 			g_slicelength = maxslicelength;
 		PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
 	}
+
+	// Check for any external exceptions.
+	// It's important to do this after processing events otherwise any exceptions will be delayed until the next slice:
+	//        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
+	PowerPC::CheckExternalExceptions();
 }
 
 void LogPendingEvents()
