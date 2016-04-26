@@ -42,8 +42,7 @@ public:
 			return;
 
 		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk, [&]{ return m_flag.IsSet(); });
-		m_flag.Clear();
+		m_condvar.wait(lk, [&]{ return m_flag.TestAndClear(); });
 	}
 
 	template<class Rep, class Period>
@@ -54,8 +53,7 @@ public:
 
 		std::unique_lock<std::mutex> lk(m_mutex);
 		bool signaled = m_condvar.wait_for(lk, rel_time,
-			[&]{ return m_flag.IsSet(); });
-		m_flag.Clear();
+			[&]{ return m_flag.TestAndClear(); });
 
 		return signaled;
 	}

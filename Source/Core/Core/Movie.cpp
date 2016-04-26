@@ -21,6 +21,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -156,8 +157,8 @@ void FrameUpdate()
 	}
 	if (s_bFrameStep)
 	{
-		Core::SetState(Core::CORE_PAUSE);
 		s_bFrameStep = false;
+		CPU::Break();
 	}
 
 	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
@@ -253,9 +254,9 @@ void DoFrameStep()
 	if (Core::GetState() == Core::CORE_PAUSE)
 	{
 		// if already paused, frame advance for 1 frame
-		Core::SetState(Core::CORE_RUN);
-		Core::RequestRefreshInfo();
 		s_bFrameStep = true;
+		Core::RequestRefreshInfo();
+		Core::SetState(Core::CORE_RUN);
 	}
 	else if (!s_bFrameStep)
 	{
