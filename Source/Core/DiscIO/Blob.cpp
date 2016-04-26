@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
-#include <cstring>
 #include <limits>
 #include <memory>
 #include <string>
@@ -22,87 +22,156 @@
 namespace DiscIO
 {
 
-// Provides caching and split-operation-to-block-operations facilities.
-// Used for compressed blob reading and direct drive reading.
-
 void SectorReader::SetSectorSize(int blocksize)
 {
+	m_block_size = std::max(blocksize, 0);
 	for (auto& cache_entry : m_cache)
-		cache_entry.resize(blocksize);
+	{
+		cache_entry.Reset();
+		cache_entry.data.resize(m_chunk_blocks * m_block_size);
+	}
+}
 
-	m_cache_tags.fill(std::numeric_limits<u64>::max());
-	m_blocksize = blocksize;
+void SectorReader::SetChunkSize(int block_cnt)
+{
+	m_chunk_blocks = std::max(block_cnt, 1);
+	// Clear cache and resize the data arrays
+	SetSectorSize(m_block_size);
 }
 
 SectorReader::~SectorReader()
 {
 }
 
-const std::vector<u8>& SectorReader::GetBlockData(u64 block_num)
+const SectorReader::Cache* SectorReader::FindCacheLine(u64 block_num)
 {
-	// TODO : Expand usage of the cache to more than one block :P
-	if (m_cache_tags[0] == block_num)
-		return m_cache[0];
+	auto itr = std::find_if(m_cache.begin(), m_cache.end(), [&](const Cache& entry)
+	{
+		return entry.Contains(block_num);
+	});
+	if (itr == m_cache.end())
+		return nullptr;
 
-	GetBlock(block_num, m_cache[0].data());
-	m_cache_tags[0] = block_num;
-	return m_cache[0];
+	itr->MarkUsed();
+	return &*itr;
+}
+
+SectorReader::Cache* SectorReader::GetEmptyCacheLine()
+{
+	Cache* oldest = &m_cache[0];
+	// Find the Least Recently Used cache line to replace.
+	for (auto& cache_entry : m_cache)
+	{
+		if (cache_entry.IsLessRecentlyUsedThan(*oldest))
+			oldest = &cache_entry;
+		cache_entry.ShiftLRU();
+	}
+	oldest->Reset();
+	return oldest;
+}
+
+const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
+{
+	if (auto entry = FindCacheLine(block_num))
+		return entry;
+
+	// Cache miss. Fault in the missing entry.
+	Cache* cache = GetEmptyCacheLine();
+	// We only read aligned chunks, this avoids duplicate overlapping entries.
+	u64 chunk_idx = block_num / m_chunk_blocks;
+	u32 blocks_read = ReadChunk(cache->data.data(), chunk_idx);
+	if (!blocks_read)
+		return nullptr;
+	cache->Fill(chunk_idx * m_chunk_blocks, blocks_read);
+
+	// Secondary check for out-of-bounds read.
+	// If we got less than m_chunk_blocks, we may still have missed.
+	// We do this after the cache fill since the cache line itself is
+	// fine, the problem is being asked to read past the end of the disk.
+	return cache->Contains(block_num) ? cache : nullptr;
 }
 
 bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 {
-	u64 startingBlock = offset / m_blocksize;
 	u64 remain = size;
-
-	int positionInBlock = (int)(offset % m_blocksize);
-	u64 block = startingBlock;
+	u64 block  = 0;
+	u32 position_in_block = static_cast<u32>(offset % m_block_size);
 
 	while (remain > 0)
 	{
-		// Check if we are ready to do a large block read. > instead of >= so we don't bother if remain is only one block.
-		if (positionInBlock == 0 && remain > (u64)m_blocksize)
-		{
-			u64 num_blocks = remain / m_blocksize;
-			ReadMultipleAlignedBlocks(block, num_blocks, out_ptr);
-			block += num_blocks;
-			out_ptr += num_blocks * m_blocksize;
-			remain -= num_blocks * m_blocksize;
-			continue;
-		}
+		block = offset / m_block_size;
 
-		const std::vector<u8>& data = GetBlockData(block);
+		const Cache* cache = GetCacheLine(block);
+		if (!cache)
+			return false;
 
-		u32 to_copy = m_blocksize - positionInBlock;
-		if (to_copy >= remain)
-		{
-			// Yay, we are done!
-			std::copy(data.begin() + positionInBlock, data.begin() + positionInBlock + remain, out_ptr);
-			return true;
-		}
-		else
-		{
-			std::copy(data.begin() + positionInBlock, data.begin() + positionInBlock + to_copy, out_ptr);
-			out_ptr += to_copy;
-			remain -= to_copy;
-			positionInBlock = 0;
-			block++;
-		}
+		// Cache entries are aligned chunks, we may not want to read from the start
+		u32 read_offset = static_cast<u32>(block - cache->block_idx) * m_block_size + position_in_block;
+		u32 can_read = m_block_size * cache->num_blocks - read_offset;
+		u32 was_read = static_cast<u32>(std::min<u64>(can_read, remain));
+
+		std::copy(cache->data.begin() + read_offset,
+		          cache->data.begin() + read_offset + was_read,
+		          out_ptr);
+
+		offset  += was_read;
+		out_ptr += was_read;
+		remain  -= was_read;
+		position_in_block = 0;
 	}
-
 	return true;
 }
 
-bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr)
+// Crap default implementation if not overridden.
+bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* out_ptr)
 {
-	for (u64 i = 0; i < num_blocks; i++)
+	for (u64 i = 0; i < cnt_blocks; ++i)
 	{
-		const std::vector<u8>& data = GetBlockData(block_num + i);
-		const u64 offset = i * m_blocksize;
+		if (!GetBlock(block_num + i, out_ptr))
+			return false;
+		out_ptr += m_block_size;
+	}
+	return true;
+}
 
-		std::copy(data.begin(), data.end(), out_ptr + offset);
+u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
+{
+	u64 block_num  = chunk_num * m_chunk_blocks;
+	u32 cnt_blocks = m_chunk_blocks;
+
+	// If we are reading the end of a disk, there may not be enough blocks to
+	// read a whole chunk. We need to clamp down in that case.
+	u64 end_block = GetDataSize() / m_block_size;
+	if (end_block)
+		cnt_blocks = static_cast<u32>(std::min<u64>(m_chunk_blocks, end_block - block_num));
+
+	if (ReadMultipleAlignedBlocks(block_num, cnt_blocks, buffer))
+	{
+		if (cnt_blocks < m_chunk_blocks)
+		{
+			std::fill(buffer + cnt_blocks * m_block_size,
+			          buffer + m_chunk_blocks * m_block_size,
+			          0u);
+		}
+		return cnt_blocks;
 	}
 
-	return true;
+	// end_block may be zero on real disks if we fail to get the media size.
+	// We have to fallback to probing the disk instead.
+	if (!end_block)
+	{
+		for (u32 i = 0; i < cnt_blocks; ++i)
+		{
+			if (!GetBlock(block_num + i, buffer))
+			{
+				std::fill(buffer, buffer + (cnt_blocks - i) * m_block_size, 0u);
+				return i;
+			}
+			buffer += m_block_size;
+		}
+		return cnt_blocks;
+	}
+	return 0;
 }
 
 std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)

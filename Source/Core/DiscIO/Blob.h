@@ -50,32 +50,112 @@ protected:
 };
 
 
-// Provides caching and split-operation-to-block-operations facilities.
-// Used for compressed blob reading and direct drive reading.
-// Currently only uses a single entry cache.
-// Multi-block reads are not cached.
+// Provides caching and byte-operation-to-block-operations facilities.
+// Used for compressed blob and direct drive reading.
+// NOTE: GetDataSize() is expected to be evenly divisible by the sector size.
 class SectorReader : public IBlobReader
 {
 public:
-	virtual ~SectorReader();
+	virtual ~SectorReader() = 0;
 
-	bool Read(u64 offset, u64 size, u8 *out_ptr) override;
-	friend class DriveReader;
+	bool Read(u64 offset, u64 size, u8* out_ptr) override;
 
 protected:
 	void SetSectorSize(int blocksize);
-	virtual void GetBlock(u64 block_num, u8 *out) = 0;
-	// This one is uncached. The default implementation is to simply call GetBlockData multiple times and memcpy.
-	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr);
+	int GetSectorSize() const
+	{
+		return m_block_size;
+	}
+
+	// Set the chunk size -> the number of blocks to read at a time.
+	// Default value is 1 but that is too low for physical devices
+	// like CDROMs. Setting this to a higher value helps reduce seeking
+	// and IO overhead by batching reads. Do not set it too high either
+	// as large reads are slow and will take too long to resolve.
+	void SetChunkSize(int blocks);
+	int GetChunkSize() const
+	{
+		return m_chunk_blocks;
+	}
+
+	// Read a single block/sector.
+	virtual bool GetBlock(u64 block_num, u8* out) = 0;
+
+	// Read multiple contiguous blocks.
+	// Default implementation just calls GetBlock in a loop, it should be
+	// overridden in derived classes where possible.
+	virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr);
 
 private:
-	// A reference returned by GetBlockData is invalidated as soon as GetBlockData, Read, or ReadMultipleAlignedBlocks is called again.
-	const std::vector<u8>& GetBlockData(u64 block_num);
+	struct Cache
+	{
+		std::vector<u8> data;
+		u64 block_idx  = 0;
+		u32 num_blocks = 0;
 
-	enum { CACHE_SIZE = 32 };
-	int m_blocksize;
-	std::array<std::vector<u8>, CACHE_SIZE> m_cache;
-	std::array<u64, CACHE_SIZE> m_cache_tags;
+		// [Pseudo-] Least Recently Used Shift Register
+		// When an empty cache line is needed, the line with the lowest value
+		// is taken and reset; the LRU register is then shifted down 1 place
+		// on all lines (low bit discarded). When a line is used, the high bit
+		// is set marking it as most recently used.
+		u32 lru_sreg = 0;
+
+		void Reset()
+		{
+			block_idx  = 0;
+			num_blocks = 0;
+			lru_sreg   = 0;
+		}
+		void Fill(u64 block, u32 count)
+		{
+			block_idx  = block;
+			num_blocks = count;
+			// NOTE: Setting only the high bit means the newest line will
+			//   be selected for eviction if every line in the cache was
+			//   touched. This gives MRU behavior which is probably
+			//   desirable in that case.
+			MarkUsed();
+		}
+		bool Contains(u64 block) const
+		{
+			return block >= block_idx && block - block_idx < num_blocks;
+		}
+		void MarkUsed()
+		{
+			lru_sreg |= 0x80000000;
+		}
+		void ShiftLRU()
+		{
+			lru_sreg >>= 1;
+		}
+		bool IsLessRecentlyUsedThan(const Cache& other) const
+		{
+			return lru_sreg < other.lru_sreg;
+		}
+	};
+
+	// Gets the cache line that contains the given block, or nullptr.
+	// NOTE: The cache record only lasts until it expires (next GetEmptyCacheLine)
+	const Cache* FindCacheLine(u64 block_num);
+
+	// Finds the least recently used cache line, resets and returns it.
+	Cache* GetEmptyCacheLine();
+
+	// Combines FindCacheLine with GetEmptyCacheLine and ReadChunk.
+	// Always returns a valid cache line (loading the data if needed).
+	// May return nullptr only if the cache missed and the read failed.
+	const Cache* GetCacheLine(u64 block_num);
+
+	// Read all bytes from a chunk of blocks into a buffer.
+	// Returns the number of blocks read (may be less than m_chunk_blocks
+	// if chunk_num is the last chunk on the disk and the disk size is not
+	// evenly divisible into chunks). Returns zero if it fails.
+	u32 ReadChunk(u8* buffer, u64 chunk_num);
+
+	static constexpr int CACHE_LINES = 32;
+	u32 m_block_size   = 0;  // Bytes in a sector/block
+	u32 m_chunk_blocks = 1;  // Number of sectors/blocks in a chunk
+	std::array<Cache, CACHE_LINES> m_cache;
 };
 
 class CBlobBigEndianReader
