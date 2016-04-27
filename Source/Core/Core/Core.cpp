@@ -5,6 +5,9 @@
 #include <atomic>
 #include <cctype>
 #include <cstring>
+#include <mutex>
+#include <queue>
+#include <utility>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -102,6 +105,7 @@ void EmuThread();
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
+static std::atomic<bool> s_is_booting{ false };
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
@@ -111,6 +115,14 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_throttler_temp_disabled = false;
+
+struct HostJob
+{
+	std::function<void()> job;
+	bool run_after_stop;
+};
+static std::mutex          s_host_jobs_lock;
+static std::queue<HostJob> s_host_jobs_queue;
 
 #ifdef USE_MEMORYWATCHER
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
@@ -229,6 +241,9 @@ bool Init()
 		s_emu_thread.join();
 	}
 
+	// Drain any left over jobs
+	HostDispatchJobs();
+
 	Core::UpdateWantDeterminism(/*initial*/ true);
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode",
@@ -263,6 +278,9 @@ void Stop()  // - Hammertime!
 	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	s_is_stopping = true;
+
+	// Dump left over jobs
+	HostDispatchJobs();
 
 	Fifo::EmulatorState(false);
 
@@ -433,6 +451,7 @@ static void FifoPlayerThread()
 void EmuThread()
 {
 	const SConfig& core_parameter = SConfig::GetInstance();
+	s_is_booting.store(true);
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -451,6 +470,7 @@ void EmuThread()
 
 	if (!g_video_backend->Initialize(s_window_handle))
 	{
+		s_is_booting.store(false);
 		PanicAlert("Failed to initialize video backend!");
 		Host_Message(WM_USER_STOP);
 		return;
@@ -465,6 +485,7 @@ void EmuThread()
 
 	if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
 	{
+		s_is_booting.store(false);
 		HW::Shutdown();
 		g_video_backend->Shutdown();
 		PanicAlert("Failed to initialize DSP emulation!");
@@ -505,6 +526,7 @@ void EmuThread()
 
 	// The hardware is initialized.
 	s_hardware_initialized = true;
+	s_is_booting.store(false);
 
 	// Boot to pause or not
 	// NOTE: This violates the Host Thread requirement for SetState but we should
@@ -932,6 +954,47 @@ void UpdateWantDeterminism(bool initial)
 		Common::InitializeWiiRoot(g_want_determinism);
 
 		Core::PauseAndLock(false, was_unpaused);
+	}
+}
+
+void QueueHostJob(std::function<void()> job, bool run_during_stop)
+{
+	if (!job)
+		return;
+
+	bool send_message = false;
+	{
+		std::lock_guard<std::mutex> guard(s_host_jobs_lock);
+		send_message = s_host_jobs_queue.empty();
+		s_host_jobs_queue.emplace(HostJob{ std::move(job), run_during_stop });
+	}
+	// If the the queue was empty then kick the Host to come and get this job.
+	if (send_message)
+		Host_Message(WM_USER_JOB_DISPATCH);
+}
+
+void HostDispatchJobs()
+{
+	// WARNING: This should only run on the Host Thread.
+	// NOTE: This function is potentially re-entrant. If a job calls
+	//   Core::Stop for instance then we'll enter this a second time.
+	std::unique_lock<std::mutex> guard(s_host_jobs_lock);
+	while (!s_host_jobs_queue.empty())
+	{
+		HostJob job = std::move(s_host_jobs_queue.front());
+		s_host_jobs_queue.pop();
+
+		// NOTE: Memory ordering is important. The booting flag needs to be
+		//   checked first because the state transition is:
+		//   CORE_UNINITIALIZED: s_is_booting -> s_hardware_initialized
+		//   We need to check variables in the same order as the state
+		//   transition, otherwise we race and get transient failures.
+		if (!job.run_after_stop && !s_is_booting.load() && !IsRunning())
+			continue;
+
+		guard.unlock();
+		job.job();
+		guard.lock();
 	}
 }
 

@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -90,5 +91,16 @@ void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
+
+// Queue an arbitrary function to asynchronously run once on the Host thread later.
+// Threadsafe. Can be called by any thread, including the Host itself.
+// NOTE: Make sure the jobs check the global state instead of assuming
+//   everything is still the same as when the job was queued.
+// NOTE: Jobs that are not set to run during stop will be discarded instead.
+void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
+
+// Should be called periodically by the Host to run pending jobs.
+// WM_USER_JOB_DISPATCH will be sent when something is added to the queue.
+void HostDispatchJobs();
 
 }  // namespace
