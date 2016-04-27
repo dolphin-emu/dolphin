@@ -73,10 +73,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(bail);
 	doTiming = GetCodePtr();
-		MOVI2R(X30, (u64)&CoreTiming::Advance);
-		BLR(X30);
-
-		// make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
+		// Write the current PC out to PPCSTATE
 		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
@@ -87,6 +84,12 @@ void JitArm64AsmRoutineManager::Generate()
 
 		CMP(W0, 0);
 		FixupBranch Exit = B(CC_NEQ);
+
+		MOVI2R(X30, (u64)&CoreTiming::Advance);
+		BLR(X30);
+
+		// Load the current PC back into DISPATCHER_PC
+		LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 	B(dispatcher);
 
