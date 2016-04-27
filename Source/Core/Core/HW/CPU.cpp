@@ -147,13 +147,6 @@ void StepOpcode(Common::Event* event)
 	s_cpu_step_cvar.notify_one();
 }
 
-void StealStepEventAndWaitOnIt()
-{
-	std::unique_lock<std::mutex> guard(m_csCpuOccupied);
-	s_cpu_step_cvar.wait(guard, [] { return PowerPC::GetState() != PowerPC::CPU_STEPPING || s_cpu_step_instruction; });
-	FlushStepSyncEventLocked();
-}
-
 static void SetSteppingEnabled(bool synchronize)
 {
 	PowerPC::Pause(synchronize);

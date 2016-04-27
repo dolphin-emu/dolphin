@@ -377,6 +377,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
+	DeclareAsCPUThread();
 	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
@@ -389,18 +390,36 @@ static void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	s_is_started = true;
-	DeclareAsCPUThread();
-
 	// Enter CPU run loop. When we leave it - we are done.
+	bool did_run = false;
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
 	{
-		FifoPlayer::GetInstance().Play();
+		if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
+		{
+			did_run = true;
+			PowerPC::InjectExternalCPUCore(cpu_core.get());
+			s_is_started = true;
+			CPU::Run();
+			s_is_started = false;
+			PowerPC::InjectExternalCPUCore(nullptr);
+		}
 		FifoPlayer::GetInstance().Close();
 	}
 
-	UndeclareAsCPUThread();
-	s_is_started = false;
+	// If we did not enter the CPU Run Loop then run a fake one instead.
+	// We need to be IsRunningAndStarted() for DolphinWX to stop us.
+	if (!did_run)
+	{
+		s_is_started = true;
+		Host_Message(WM_USER_STOP);
+		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		{
+			if (!_CoreParameter.bCPUThread)
+				g_video_backend->PeekMessages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+		s_is_started = false;
+	}
 
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
@@ -821,7 +840,7 @@ void UpdateTitle()
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
 		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	std::string SFPS;
