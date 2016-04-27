@@ -7,13 +7,13 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -59,66 +59,103 @@ void FifoPlayer::Close()
 	m_FrameRangeEnd = 0;
 }
 
-bool FifoPlayer::Play()
+class FifoPlayer::CPUCore final : public CPUCoreBase
 {
-	if (!m_File)
-		return false;
-
-	if (m_File->GetFrameCount() == 0)
-		return false;
-
-	IsPlayingBackFifologWithBrokenEFBCopies = m_File->HasBrokenEFBCopies();
-
-	m_CurrentFrame = m_FrameRangeStart;
-
-	LoadMemory();
-
-	// This loop replaces the CPU loop that occurs when a game is run
-	PowerPC::LieAboutEnteringRunLoop();
-	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+public:
+	CPUCore(FifoPlayer* parent)
+		: m_parent(parent)
 	{
-		if (PowerPC::GetState() == PowerPC::CPU_RUNNING)
+	}
+	~CPUCore()
+	{
+	}
+
+	void Init() override
+	{
+		IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
+
+		m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
+		m_parent->LoadMemory();
+	}
+
+	void Shutdown() override
+	{
+		IsPlayingBackFifologWithBrokenEFBCopies = false;
+	}
+
+	void ClearCache() override
+	{
+		// Nothing to clear.
+	}
+
+	void SingleStep() override
+	{
+		// NOTE: AdvanceFrame() will get stuck forever because the FIFO is disabled
+		//   by CPU::EnableStepping(true) so the frame never gets displayed.
+		PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
+	}
+
+	const char* GetName() override
+	{
+		return "FifoPlayer";
+	}
+
+	void Run() override
+	{
+		while (PowerPC::GetState() == PowerPC::CPU_RUNNING)
 		{
-			if (m_CurrentFrame >= m_FrameRangeEnd)
+			switch (m_parent->AdvanceFrame())
 			{
-				if (m_Loop)
-				{
-					m_CurrentFrame = m_FrameRangeStart;
-				}
-				else
-				{
-					PowerPC::Stop(false);
-					Host_Message(WM_USER_STOP);
-				}
+			case PowerPC::CPU_POWERDOWN:
+				// NOTE: Do NOT use PowerPC::Stop() as it will jam the GUI
+				//   because Core::IsRunningAndStarted() will return false.
+				PowerPC::Pause(false);
+				Host_Message(WM_USER_STOP);
+				break;
+
+			case PowerPC::CPU_STEPPING:
+				PowerPC::Pause(false);
+				Host_UpdateMainFrame();
+				break;
 			}
-			else
-			{
-				if (m_FrameWrittenCb)
-					m_FrameWrittenCb();
-
-				if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
-					WriteAllMemoryUpdates();
-
-				WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
-
-				++m_CurrentFrame;
-			}
-		}
-		else if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
-		{
-			// NOTE: Instead of this loop, the FifoPlayer could just derive a
-			//  class from CPUCoreBase and inject it into PowerPC as a replacement for
-			//  the interpreter. Then we can just use CPU::Run() instead of this loop.
-			PowerPC::LieAboutLeavingRunLoop();
-			CPU::StealStepEventAndWaitOnIt();
-			PowerPC::LieAboutEnteringRunLoop();
 		}
 	}
-	PowerPC::LieAboutLeavingRunLoop();
 
-	IsPlayingBackFifologWithBrokenEFBCopies = false;
+private:
+	FifoPlayer* m_parent;
+};
 
-	return true;
+int FifoPlayer::AdvanceFrame()
+{
+	if (m_CurrentFrame >= m_FrameRangeEnd)
+	{
+		if (!m_Loop)
+			return PowerPC::CPU_POWERDOWN;
+		// If there are zero frames in the range then sleep instead of busy spinning
+		if (m_FrameRangeStart >= m_FrameRangeEnd)
+			return PowerPC::CPU_STEPPING;
+
+		m_CurrentFrame = m_FrameRangeStart;
+	}
+
+	if (m_FrameWrittenCb)
+		m_FrameWrittenCb();
+
+	if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
+		WriteAllMemoryUpdates();
+
+	WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
+
+	++m_CurrentFrame;
+	return PowerPC::CPU_RUNNING;
+}
+
+std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
+{
+	if (!m_File || m_File->GetFrameCount() == 0)
+		return nullptr;
+
+	return std::make_unique<CPUCore>(this);
 }
 
 u32 FifoPlayer::GetFrameObjectCount()
