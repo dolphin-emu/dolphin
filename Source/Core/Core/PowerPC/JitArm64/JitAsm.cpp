@@ -28,9 +28,6 @@ void JitArm64AsmRoutineManager::Generate()
 	MOVI2R(PPC_REG, (u64)&PowerPC::ppcState);
 	MOVI2R(MEM_REG, (u64)Memory::logical_base);
 
-	// Load the current PC into DISPATCHER_PC
-	LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
 	FixupBranch to_dispatcher = B();
 
 	// If we align the dispatcher to a page then we can load its location with one ADRP instruction
@@ -39,6 +36,12 @@ void JitArm64AsmRoutineManager::Generate()
 	WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
 
 	SetJumpTarget(to_dispatcher);
+
+	MOVI2R(X30, (u64)&CoreTiming::Advance);
+	BLR(X30);
+
+	// Load the current PC into DISPATCHER_PC
+	LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 	// Downcount Check
 	// The result of slice decrementation should be in flags if somebody jumped here
@@ -73,9 +76,6 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(bail);
 	doTiming = GetCodePtr();
-		MOVI2R(X30, (u64)&CoreTiming::Advance);
-		BLR(X30);
-
 		// make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
 		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
