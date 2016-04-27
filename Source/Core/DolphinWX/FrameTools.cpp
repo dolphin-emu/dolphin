@@ -134,8 +134,6 @@ wxMenuBar* CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_REFRESH, GetMenuLabel(HK_REFRESH_LIST));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(IDM_BROWSE, _("&Browse for ISOs..."));
-	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _("E&xit") + wxString("\tAlt+F4"));
 	menubar->Append(fileMenu, _("&File"));
 
@@ -544,7 +542,6 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 
 	WxUtils::AddToolbarButton(ToolBar, wxID_OPEN,               _("Open"),        m_Bitmaps[Toolbar_FileOpen],    _("Open file..."));
 	WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH,            _("Refresh"),     m_Bitmaps[Toolbar_Refresh],     _("Refresh game list"));
-	WxUtils::AddToolbarButton(ToolBar, IDM_BROWSE,              _("Browse"),      m_Bitmaps[Toolbar_Browse],      _("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
 	WxUtils::AddToolbarButton(ToolBar, IDM_PLAY,                _("Play"),        m_Bitmaps[Toolbar_Play],        _("Play"));
 	WxUtils::AddToolbarButton(ToolBar, IDM_STOP,                _("Stop"),        m_Bitmaps[Toolbar_Stop],        _("Stop"));
@@ -590,7 +587,6 @@ void CFrame::InitBitmaps()
 
 	m_Bitmaps[Toolbar_FileOpen   ].LoadFile(dir + "open.png",       wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Refresh    ].LoadFile(dir + "refresh.png",    wxBITMAP_TYPE_PNG);
-	m_Bitmaps[Toolbar_Browse     ].LoadFile(dir + "browse.png",     wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Play       ].LoadFile(dir + "play.png",       wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Stop       ].LoadFile(dir + "stop.png",       wxBITMAP_TYPE_PNG);
 	m_Bitmaps[Toolbar_Pause      ].LoadFile(dir + "pause.png",      wxBITMAP_TYPE_PNG);
@@ -1727,7 +1723,6 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_DRIVES)->Enable(!Initialized);
 	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!Initialized);
-	GetMenuBar()->FindItem(IDM_BROWSE)->Enable(!Initialized);
 
 	// Emulation
 	GetMenuBar()->FindItem(IDM_STOP)->Enable(Running || Paused);
