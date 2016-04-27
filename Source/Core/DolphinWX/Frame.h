@@ -174,7 +174,6 @@ private:
 	{
 		Toolbar_FileOpen,
 		Toolbar_Refresh,
-		Toolbar_Browse,
 		Toolbar_Play,
 		Toolbar_Stop,
 		Toolbar_Pause,
