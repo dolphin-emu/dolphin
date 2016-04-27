@@ -329,7 +329,7 @@ void CGameListCtrl::Update()
 		}
 		else
 		{
-			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to browse for files...");
+			errorString = _("Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to set a games directory...");
 		}
 		InsertColumn(0, "");
 		long index = InsertItem(0, errorString);
