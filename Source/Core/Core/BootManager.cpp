@@ -299,16 +299,32 @@ bool BootCore(const std::string& _rFilename)
 				if (source != -1 && g_wiimote_sources[i] != (unsigned) source && source >= WIIMOTE_SRC_NONE && source <= WIIMOTE_SRC_HYBRID)
 				{
 					config_cache.bSetWiimoteSource[i] = true;
-					g_wiimote_sources[i] = source;
-					WiimoteReal::ChangeWiimoteSource(i, source);
+					if (!NetPlay::IsNetPlayRunning())
+					{
+						g_wiimote_sources[i] = source;
+						WiimoteReal::ChangeWiimoteSource(i, source);
+					}
+					else
+					{
+						g_wiimote_sources[i] = 0;
+						WiimoteReal::ChangeWiimoteSource(i, WIIMOTE_SRC_NONE);
+					}
 				}
 			}
 			controls_section->Get("WiimoteSourceBB", &source, -1);
 			if (source != -1 && g_wiimote_sources[WIIMOTE_BALANCE_BOARD] != (unsigned) source && (source == WIIMOTE_SRC_NONE || source == WIIMOTE_SRC_REAL))
 			{
 				config_cache.bSetWiimoteSource[WIIMOTE_BALANCE_BOARD] = true;
-				g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
-				WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
+				if (!NetPlay::IsNetPlayRunning())
+				{
+					g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
+					WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
+				}
+				else
+				{
+					g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = 0;
+					WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, WIIMOTE_SRC_NONE);
+				}
 			}
 		}
 	}

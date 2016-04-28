@@ -17,6 +17,7 @@
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 static const char* NETPLAY_VERSION = scm_rev_git_str;
@@ -724,6 +725,12 @@ bool NetPlayClient::StartGame(const std::string &path)
 	// boot game
 
 	m_dialog->BootGame(path);
+
+	if (SConfig::GetInstance().bWii)
+	{
+		for (unsigned int i = 0; i < 4; ++i)
+			WiimoteReal::ChangeWiimoteSource(i, WIIMOTE_SRC_NONE);
+	}
 
 	UpdateDevices();
 
