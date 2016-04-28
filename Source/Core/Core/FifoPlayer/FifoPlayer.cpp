@@ -13,6 +13,7 @@
 #include "Core/Host.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -73,6 +74,7 @@ bool FifoPlayer::Play()
 	LoadMemory();
 
 	// This loop replaces the CPU loop that occurs when a game is run
+	PowerPC::LieAboutEnteringRunLoop();
 	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 	{
 		if (PowerPC::GetState() == PowerPC::CPU_RUNNING)
@@ -85,7 +87,7 @@ bool FifoPlayer::Play()
 				}
 				else
 				{
-					PowerPC::Stop();
+					PowerPC::Stop(false);
 					Host_Message(WM_USER_STOP);
 				}
 			}
@@ -102,7 +104,17 @@ bool FifoPlayer::Play()
 				++m_CurrentFrame;
 			}
 		}
+		else if (PowerPC::GetState() == PowerPC::CPU_STEPPING)
+		{
+			// NOTE: Instead of this loop, the FifoPlayer could just derive a
+			//  class from CPUCoreBase and inject it into PowerPC as a replacement for
+			//  the interpreter. Then we can just use CPU::Run() instead of this loop.
+			PowerPC::LieAboutLeavingRunLoop();
+			CPU::StealStepEventAndWaitOnIt();
+			PowerPC::LieAboutEnteringRunLoop();
+		}
 	}
+	PowerPC::LieAboutLeavingRunLoop();
 
 	IsPlayingBackFifologWithBrokenEFBCopies = false;
 

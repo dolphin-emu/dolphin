@@ -35,7 +35,7 @@ void HLEPanicAlert()
 void HBReload()
 {
 	// There isn't much we can do. Just stop cleanly.
-	PowerPC::Pause();
+	PowerPC::Pause(false);
 	Host_Message(WM_USER_STOP);
 }
 
