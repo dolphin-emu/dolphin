@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <atomic>
 #include <map>
-#include <thread>
 #include <vector>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -24,6 +22,10 @@ class MemoryWatcher final
 public:
 	MemoryWatcher();
 	~MemoryWatcher();
+	void Step();
+
+	static void Init();
+	static void Shutdown();
 
 private:
 	bool LoadAddresses(const std::string& path);
@@ -33,10 +35,7 @@ private:
 	u32 ChasePointer(const std::string& line);
 	std::string ComposeMessage(const std::string& line, u32 value);
 
-	void WatcherThread();
-
-	std::thread m_watcher_thread;
-	std::atomic_bool m_running{false};
+	bool m_running;
 
 	int m_fd;
 	sockaddr_un m_addr;
