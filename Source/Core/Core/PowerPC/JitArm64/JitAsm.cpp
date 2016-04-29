@@ -73,21 +73,18 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(bail);
 	doTiming = GetCodePtr();
+		// Write the current PC out to PPCSTATE
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+
 		MOVI2R(X30, (u64)&CoreTiming::Advance);
 		BLR(X30);
 
-		// Does exception checking
-		LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(Exceptions));
-		FixupBranch no_exceptions = CBZ(W0);
-			STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-			STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
-			MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
-			BLR(X30);
-			LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
-		SetJumpTarget(no_exceptions);
+		// Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+		LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 		// Check the state pointer to see if we are exiting
-		// Gets checked on every exception check
+		// Gets checked on at the end of every slice
 		MOVI2R(X0, (u64)PowerPC::GetStatePtr());
 		LDR(INDEX_UNSIGNED, W0, X0, 0);
 

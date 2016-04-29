@@ -278,12 +278,6 @@ void Interpreter::Run()
 		}
 
 		CoreTiming::Advance();
-
-		if (PowerPC::ppcState.Exceptions)
-		{
-			PowerPC::CheckExceptions();
-			PC = NPC;
-		}
 	}
 
 	// Let the waiting thread know we are done leaving

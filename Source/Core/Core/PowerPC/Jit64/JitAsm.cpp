@@ -202,16 +202,12 @@ void Jit64AsmRoutineManager::Generate()
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		// Test external exceptions.
-		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
-		FixupBranch noExtException = J_CC(CC_Z);
+		// make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 		MOV(32, PPCSTATE(npc), R(RSCRATCH));
-		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-		ABI_PopRegistersAndAdjustStack({}, 0);
-		SetJumpTarget(noExtException);
 
+		// Check the state pointer to see if we are exiting
+		// Gets checked on at the end of every slice
 		TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 
