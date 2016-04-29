@@ -225,7 +225,7 @@ CPUState GetState()
 	return state;
 }
 
-volatile CPUState *GetStatePtr()
+const volatile CPUState *GetStatePtr()
 {
 	return &state;
 }

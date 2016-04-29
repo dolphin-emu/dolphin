@@ -160,7 +160,7 @@ void Pause();
 void Stop();
 void FinishStateMove();
 CPUState GetState();
-volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
+const volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
 
 u32 CompactCR();
 void ExpandCR(u32 cr);

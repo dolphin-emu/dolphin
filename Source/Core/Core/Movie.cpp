@@ -44,7 +44,6 @@ static std::mutex cs_frameSkip;
 namespace Movie {
 
 static bool s_bFrameStep = false;
-static bool s_bFrameStop = false;
 static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
@@ -160,11 +159,6 @@ void FrameUpdate()
 		s_bFrameStep = false;
 	}
 
-	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
-	// after that we set it back to CPU_RUNNING and continue as normal.
-	if (s_bFrameStop)
-		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
-
 	if (s_framesToSkip)
 		FrameSkipping();
 
@@ -177,7 +171,6 @@ void Init()
 {
 	s_bPolled = false;
 	s_bFrameStep = false;
-	s_bFrameStop = false;
 	s_bSaveConfig = false;
 	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	if (IsPlayingInput())
@@ -262,11 +255,6 @@ void DoFrameStep()
 		// if not paused yet, pause immediately instead
 		Core::SetState(Core::CORE_PAUSE);
 	}
-}
-
-void SetFrameStopping(bool bEnabled)
-{
-	s_bFrameStop = bEnabled;
 }
 
 void SetReadOnly(bool bEnabled)
