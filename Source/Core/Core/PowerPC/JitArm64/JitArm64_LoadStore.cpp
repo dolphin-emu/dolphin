@@ -430,7 +430,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
   SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
 
   // LWZ idle skipping
-  if (SConfig::GetInstance().bSkipIdle && inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
+  if (inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&  // lwz r0, XXXX(r13)
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0

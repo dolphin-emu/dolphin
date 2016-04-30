@@ -67,7 +67,7 @@ static u64 s_totalLagCount = 0;                               // just stats
 static u64 s_currentInputCount = 0, s_totalInputCount = 0;    // just stats
 static u64 s_totalTickCount = 0, s_tickCountAtLastInput = 0;  // just stats
 static u64 s_recordingStartTime;  // seconds since 1970 that recording started
-static bool s_bSaveConfig = false, s_bSkipIdle = false, s_bDualCore = false;
+static bool s_bSaveConfig = false, s_bDualCore = false;
 static bool s_bProgressive = false, s_bPAL60 = false;
 static bool s_bDSPHLE = false, s_bFastDiscSpeed = false;
 static bool s_bSyncGPU = false, s_bNetPlay = false;
@@ -475,11 +475,6 @@ bool IsProgressive()
 bool IsPAL60()
 {
   return s_bPAL60;
-}
-
-bool IsSkipIdle()
-{
-  return s_bSkipIdle;
 }
 
 bool IsDSPHLE()
@@ -952,7 +947,6 @@ void ReadHeader()
   if (tmpHeader.bSaveConfig)
   {
     s_bSaveConfig = true;
-    s_bSkipIdle = tmpHeader.bSkipIdle;
     s_bDualCore = tmpHeader.bDualCore;
     s_bProgressive = tmpHeader.bProgressive;
     s_bPAL60 = tmpHeader.bPAL60;
@@ -1432,7 +1426,7 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
-  header.bSkipIdle = s_bSkipIdle;
+  header.bSkipIdle = true;
   header.bDualCore = s_bDualCore;
   header.bProgressive = s_bProgressive;
   header.bPAL60 = s_bPAL60;
@@ -1518,7 +1512,6 @@ void SetGraphicsConfig()
 void GetSettings()
 {
   s_bSaveConfig = true;
-  s_bSkipIdle = SConfig::GetInstance().bSkipIdle;
   s_bDualCore = SConfig::GetInstance().bCPUThread;
   s_bProgressive = SConfig::GetInstance().bProgressive;
   s_bPAL60 = SConfig::GetInstance().bPAL60;

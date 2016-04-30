@@ -22,7 +22,7 @@ void Interpreter::bx(UGeckoInstruction _inst)
 
   m_EndBlock = true;
 
-  if (NPC == PC && SConfig::GetInstance().bSkipIdle)
+  if (NPC == PC)
   {
     CoreTiming::Idle();
   }
@@ -58,7 +58,7 @@ void Interpreter::bcx(UGeckoInstruction _inst)
   // lwz r0, XXXX(r13)
   // cmpXwi r0,0
   // beq -8
-  if (NPC == PC - 8 && _inst.hex == 0x4182fff8 /* beq */ && SConfig::GetInstance().bSkipIdle)
+  if (NPC == PC - 8 && _inst.hex == 0x4182fff8 /* beq */)
   {
     if (PowerPC::HostRead_U32(PC - 8) >> 16 == 0x800D /* lwz */)
     {

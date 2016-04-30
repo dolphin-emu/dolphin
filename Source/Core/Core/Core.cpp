@@ -924,11 +924,9 @@ void UpdateTitle()
       float TicksPercentage =
           (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
-      SFPS +=
-          StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
-                           _CoreParameter.bSkipIdle ? "~" : "", (int)(diff), (int)(diff - idleDiff),
-                           (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000,
-                           _CoreParameter.bSkipIdle ? "~" : "", TicksPercentage);
+      SFPS += StringFromFormat(" | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
+                               (int)(diff), (int)(diff - idleDiff), (int)(idleDiff),
+                               SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
     }
   }
   // This is our final "frame counter" string

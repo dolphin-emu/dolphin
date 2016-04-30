@@ -302,7 +302,7 @@ bool CBoot::BootUp()
     }
 
     // Scan for common HLE functions
-    if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
+    if (_StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
     {
       PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
       SignatureDB db;

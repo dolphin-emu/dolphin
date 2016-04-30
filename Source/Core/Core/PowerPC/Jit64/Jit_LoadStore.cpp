@@ -125,8 +125,8 @@ void Jit64::lXXx(UGeckoInstruction inst)
   // ... maybe the throttle one already do that :p
   // TODO: We shouldn't use a debug read here.  It should be possible to get
   // the following instructions out of the JIT state.
-  if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 &&
-      MergeAllowedNextInstructions(2) && (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+  if (CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
+      (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
       js.op[2].inst.hex == 0x4182fff8)

@@ -92,7 +92,6 @@ struct SConfig : NonCopyable
   bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;
-  bool bSkipIdle = true;
   bool bSyncGPUOnSkipIdleHack = true;
   bool bNTSC = false;
   bool bForceNTSCJ = false;

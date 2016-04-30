@@ -54,7 +54,6 @@ void GeneralConfigPane::InitializeGUI()
     m_cpu_engine_array_string.Add(cpu_core.name);
 
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
-  m_idle_skip_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Idle Skipping (speedup)"));
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
   m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
   m_analytics_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
@@ -73,8 +72,6 @@ void GeneralConfigPane::InitializeGUI()
   m_dual_core_checkbox->SetToolTip(
       _("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major "
         "speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
-  m_idle_skip_checkbox->SetToolTip(
-      _("Attempt to detect and skip wait-loops.\nIf unsure, leave this checked."));
   m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
   m_force_ntscj_checkbox->SetToolTip(
       _("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults "
@@ -92,7 +89,6 @@ void GeneralConfigPane::InitializeGUI()
                                    "or lower the audio pitch to prevent audio from stuttering."));
 
   m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
-  m_idle_skip_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnIdleSkipCheckBoxChanged, this);
   m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
   m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged,
                                this);
@@ -115,8 +111,6 @@ void GeneralConfigPane::InitializeGUI()
       new wxStaticBoxSizer(wxVERTICAL, this, _("Basic Settings"));
   basic_settings_sizer->AddSpacer(space5);
   basic_settings_sizer->Add(m_dual_core_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  basic_settings_sizer->AddSpacer(space5);
-  basic_settings_sizer->Add(m_idle_skip_checkbox, 0, wxLEFT | wxRIGHT, space5);
   basic_settings_sizer->AddSpacer(space5);
   basic_settings_sizer->Add(m_cheats_checkbox, 0, wxLEFT | wxRIGHT, space5);
   basic_settings_sizer->AddSpacer(space5);
@@ -155,7 +149,6 @@ void GeneralConfigPane::LoadGUIValues()
   const SConfig& startup_params = SConfig::GetInstance();
 
   m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
-  m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);
   m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
   m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
   m_analytics_checkbox->SetValue(startup_params.m_analytics_enabled);
@@ -175,7 +168,6 @@ void GeneralConfigPane::RefreshGUI()
   if (Core::IsRunning())
   {
     m_dual_core_checkbox->Disable();
-    m_idle_skip_checkbox->Disable();
     m_cheats_checkbox->Disable();
     m_force_ntscj_checkbox->Disable();
     m_cpu_engine_radiobox->Disable();
@@ -188,11 +180,6 @@ void GeneralConfigPane::OnDualCoreCheckBoxChanged(wxCommandEvent& event)
     return;
 
   SConfig::GetInstance().bCPUThread = m_dual_core_checkbox->IsChecked();
-}
-
-void GeneralConfigPane::OnIdleSkipCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bSkipIdle = m_idle_skip_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)

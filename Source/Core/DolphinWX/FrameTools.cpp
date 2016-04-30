@@ -1571,12 +1571,6 @@ void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED(event))
   SConfig::GetInstance().SaveSettings();
 }
 
-void CFrame::OnToggleSkipIdle(wxCommandEvent& WXUNUSED(event))
-{
-  SConfig::GetInstance().bSkipIdle = !SConfig::GetInstance().bSkipIdle;
-  SConfig::GetInstance().SaveSettings();
-}
-
 void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED(event))
 {
   wxString path =
