@@ -79,7 +79,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 	return 0;
 }
 
-void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
+bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 {
 	bool uncompressed = false;
 	u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
@@ -97,7 +97,13 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
 
 	m_file.Seek(offset, SEEK_SET);
-	m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size);
+	if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
+	{
+		PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
+		            m_file_name.c_str());
+		m_file.Clear();
+		return false;
+	}
 
 	// First, check hash.
 	u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
@@ -133,8 +139,12 @@ void CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		}
 		inflateEnd(&z);
 		if (uncomp_size != m_header.block_size)
+		{
 			PanicAlert("Wrong block size");
+			return false;
+		}
 	}
+	return true;
 }
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type,

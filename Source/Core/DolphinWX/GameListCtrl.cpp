@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cinttypes>
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -345,24 +346,22 @@ void CGameListCtrl::Update()
 	SetFocus();
 }
 
-static wxString NiceSizeFormat(u64 _size)
+static wxString NiceSizeFormat(u64 size)
 {
 	// Return a pretty filesize string from byte count.
 	// e.g. 1134278 -> "1.08 MiB"
 
-	const char* const unit_symbols[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"};
+	const char* const unit_symbols[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
 
-	// Find largest power of 2 less than _size.
-	// div 10 to get largest named unit less than _size
+	// Find largest power of 2 less than size.
+	// div 10 to get largest named unit less than size
 	// 10 == log2(1024) (number of B in a KiB, KiB in a MiB, etc)
-	const u64 unit = IntLog2(std::max<u64>(_size, 1)) / 10;
-	const u64 unit_size = (1ull << (unit * 10));
+	// Max value is 63 / 10 = 6
+	const int unit = IntLog2(std::max<u64>(size, 1)) / 10;
 
-	// mul 1000 for 3 decimal places, add 5 to round up, div 10 for 2 decimal places
-	std::string value = std::to_string((_size * 1000 / unit_size + 5) / 10);
-	// Insert decimal point.
-	value.insert(value.size() - 2, ".");
-	return StrToWxStr(StringFromFormat("%s %s", value.c_str(), unit_symbols[unit]));
+	// Don't need exact values, only 5 most significant digits
+	double unit_size = std::pow(2, unit * 10);
+	return wxString::Format("%.2f %s", size / unit_size, unit_symbols[unit]);
 }
 
 // Update the column content of the item at _Index
