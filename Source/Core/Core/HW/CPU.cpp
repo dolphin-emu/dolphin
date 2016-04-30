@@ -151,13 +151,6 @@ void StepOpcode(Common::Event* event)
 	s_cpu_execution_cvar.notify_one();
 }
 
-void StealStepEventAndWaitOnIt()
-{
-	std::unique_lock<std::mutex> guard(s_cpu_execution_lock);
-	s_cpu_execution_cvar.wait(guard, [] { return PowerPC::GetState() != PowerPC::CPU_STEPPING || s_cpu_step_instruction; });
-	FlushStepSyncEventLocked();
-}
-
 // Requires holding the EnableStepping lock.
 // Either s_stepping_system_control or s_stepping_host_control.
 static void SetSteppingEnabledLocked(bool synchronize)

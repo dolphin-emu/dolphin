@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
+#include "Core/PowerPC/CPUCoreBase.h"
 
 class FifoDataFile;
 struct MemoryUpdate;
@@ -50,8 +52,12 @@ public:
 	bool Open(const std::string& filename);
 	void Close();
 
-	// Play is controlled by the state of PowerPC
-	bool Play();
+	// Returns a CPUCoreBase instance that can be injected into PowerPC as a
+	// pseudo-CPU. The instance is only valid while the FifoPlayer is Open().
+	// Returns nullptr if the FifoPlayer is not initialized correctly.
+	// Play/Pause/Stop of the FifoLog can be controlled normally via the
+	// PowerPC state.
+	std::unique_ptr<CPUCoreBase> GetCPUCore();
 
 	FifoDataFile *GetFile() { return m_File; }
 
@@ -85,7 +91,11 @@ public:
 	static FifoPlayer &GetInstance();
 
 private:
+	class CPUCore;
+
 	FifoPlayer();
+
+	int AdvanceFrame();
 
 	void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo &info);
 	void WriteFramePart(u32 dataStart, u32 dataEnd, u32 &nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
