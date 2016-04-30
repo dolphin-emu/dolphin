@@ -22,6 +22,7 @@ namespace GCAdapter
 {
 static bool CheckDeviceAccess(libusb_device* device);
 static void AddGCAdapter(libusb_device* device);
+static void ResetRumbleNoLock();
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
@@ -311,7 +312,7 @@ static void AddGCAdapter(libusb_device* device)
 	s_detected = true;
 	if (s_detect_callback != nullptr)
 		s_detect_callback();
-	ResetRumble();
+	ResetRumbleNoLock();
 }
 
 void Shutdown()
@@ -450,10 +451,18 @@ bool UseAdapter()
 
 void ResetRumble()
 {
-	if (!UseAdapter())
+	if (!s_init_mutex.try_lock())
 		return;
-	if (s_handle == nullptr || !s_detected)
+	ResetRumbleNoLock();
+	s_init_mutex.unlock();
+}
+
+static void ResetRumbleNoLock()
+{
+	if (!UseAdapter() || (s_handle == nullptr || !s_detected))
+	{
 		return;
+	}
 
 	std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
 
@@ -464,6 +473,7 @@ void ResetRumble()
 
 	DEBUG_LOG(SERIALINTERFACE, "Rumble state reset");
 }
+
 
 void Output(int chan, u8 rumble_command)
 {
