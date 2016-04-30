@@ -37,7 +37,7 @@ static std::atomic<int> s_controller_payload_size = {0};
 static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
 
-static std::mutex s_init_mutex;
+static std::recursive_mutex s_init_mutex;
 static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
@@ -79,7 +79,7 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 	{
 		if (s_handle == nullptr && CheckDeviceAccess(dev))
 		{
-			std::lock_guard<std::mutex> lk(s_init_mutex);
+			std::lock_guard<std::recursive_mutex> lk(s_init_mutex);
 			AddGCAdapter(dev);
 		}
 	}
@@ -119,7 +119,7 @@ static void ScanThreadFunc()
 		{
 			if (s_handle == nullptr)
 			{
-				std::lock_guard<std::mutex> lk(s_init_mutex);
+				std::lock_guard<std::recursive_mutex> lk(s_init_mutex);
 				Setup();
 				if (s_detected && s_detect_callback != nullptr)
 					s_detect_callback();
@@ -450,10 +450,13 @@ bool UseAdapter()
 
 void ResetRumble()
 {
-	if (!UseAdapter())
+	if (!s_init_mutex.try_lock())
 		return;
-	if (s_handle == nullptr || !s_detected)
+	if (!UseAdapter() || (s_handle == nullptr || !s_detected))
+	{
+		s_init_mutex.unlock();
 		return;
+	}
 
 	std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
 
@@ -463,6 +466,7 @@ void ResetRumble()
 	libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
 
 	DEBUG_LOG(SERIALINTERFACE, "Rumble state reset");
+	s_init_mutex.unlock();
 }
 
 void Output(int chan, u8 rumble_command)
