@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Core/HW/GCPad.h"
 #include "Core/HW/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -106,6 +107,9 @@ public:
 	// Send and Receive pad input from network
 	static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
 	static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
+
+	// Direct rumble to the right GC Controller
+	static void Rumble(u8 numPad, ControlState strength);
 
 protected:
 	void Calibrate();
