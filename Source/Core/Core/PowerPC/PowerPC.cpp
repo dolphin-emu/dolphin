@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <condition_variable>
+#include <mutex>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
@@ -28,11 +30,16 @@ namespace PowerPC
 
 // STATE_TO_SAVE
 PowerPCState ppcState;
-static volatile CPUState state = CPU_POWERDOWN;
 
-Interpreter * const interpreter = Interpreter::getInstance();
-static CoreMode mode;
-static Common::Event s_state_change;
+static volatile CPUState s_state = CPU_POWERDOWN;
+
+Interpreter* const  s_interpreter = Interpreter::getInstance();
+static CoreMode     s_mode        = MODE_INTERPRETER;
+
+static std::mutex s_state_change_lock;
+static std::condition_variable s_state_change_cvar;
+static unsigned int s_state_run_loop_enter_counter = 0;
+static unsigned int s_state_run_loop_leave_counter = 0;
 
 Watches watches;
 BreakPoints breakpoints;
@@ -114,6 +121,8 @@ static void ResetRegisters()
 
 void Init(int cpu_core)
 {
+	// NOTE: This function runs on EmuThread, not the CPU Thread.
+	//   Changing the rounding mode has a limited effect.
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
@@ -139,12 +148,12 @@ void Init(int cpu_core)
 
 	// We initialize the interpreter because
 	// it is used on boot and code window independently.
-	interpreter->Init();
+	s_interpreter->Init();
 
 	switch (cpu_core)
 	{
 	case PowerPC::CORE_INTERPRETER:
-		cpu_core_base = interpreter;
+		cpu_core_base = s_interpreter;
 		break;
 
 	default:
@@ -152,20 +161,20 @@ void Init(int cpu_core)
 		if (!cpu_core_base) // Handle Situations where JIT core isn't available
 		{
 			WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-			cpu_core_base = interpreter;
+			cpu_core_base = s_interpreter;
 		}
 		break;
 	}
 
-	if (cpu_core_base != interpreter)
+	if (cpu_core_base != s_interpreter)
 	{
-		mode = MODE_JIT;
+		s_mode = MODE_JIT;
 	}
 	else
 	{
-		mode = MODE_INTERPRETER;
+		s_mode = MODE_INTERPRETER;
 	}
-	state = CPU_STEPPING;
+	s_state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
 
@@ -176,34 +185,34 @@ void Init(int cpu_core)
 void Shutdown()
 {
 	JitInterface::Shutdown();
-	interpreter->Shutdown();
+	s_interpreter->Shutdown();
 	cpu_core_base = nullptr;
-	state = CPU_POWERDOWN;
+	s_state = CPU_POWERDOWN;
 }
 
 CoreMode GetMode()
 {
-	return mode;
+	return s_mode;
 }
 
 void SetMode(CoreMode new_mode)
 {
-	if (new_mode == mode)
+	if (new_mode == s_mode)
 		return;  // We don't need to do anything.
 
-	mode = new_mode;
+	s_mode = new_mode;
 
-	switch (mode)
+	switch (s_mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		cpu_core_base = interpreter;
+		cpu_core_base = s_interpreter;
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
 		cpu_core_base = JitInterface::GetCore();
 		if (!cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
-			cpu_core_base = interpreter;
+			cpu_core_base = s_interpreter;
 		break;
 	}
 }
@@ -215,52 +224,100 @@ void SingleStep()
 
 void RunLoop()
 {
-	state = CPU_RUNNING;
+	Host_UpdateDisasmDialog();
+	{
+		std::lock_guard<std::mutex> guard(s_state_change_lock);
+		if (s_state != CPU_RUNNING)
+			return;
+		_assert_msg_(POWERPC, s_state_run_loop_enter_counter == s_state_run_loop_leave_counter, "Multiple RunLoop instances?");
+		s_state_run_loop_enter_counter += 1;
+	}
 	cpu_core_base->Run();
+	{
+		std::lock_guard<std::mutex> guard(s_state_change_lock);
+		s_state_run_loop_leave_counter += 1;
+		s_state_change_cvar.notify_all();
+	}
 	Host_UpdateDisasmDialog();
 }
 
 CPUState GetState()
 {
-	return state;
+	return s_state;
 }
 
 const volatile CPUState *GetStatePtr()
 {
-	return &state;
+	return &s_state;
 }
 
 void Start()
 {
-	state = CPU_RUNNING;
-	Host_UpdateDisasmDialog();
+	std::lock_guard<std::mutex> guard(s_state_change_lock);
+	CPUState old_state = s_state;
+	s_state = CPU_RUNNING;
+
+	// If the state is switched back to CPU_RUNNING before the CPU_STEPPING
+	// or CPU_POWERDOWN has actually been processed then kick waiters.
+	// NOTE: Calling PowerPC::Start before RunLoop ends is probably a race
+	//   in the code that called us.
+	if (old_state != CPU_RUNNING && s_state_run_loop_enter_counter != s_state_run_loop_leave_counter)
+	{
+		ERROR_LOG(POWERPC, "Possible race occurred. CPU is starting again before it stopped.");
+		s_state_run_loop_leave_counter += 1;
+		s_state_run_loop_enter_counter += 1;
+		s_state_change_cvar.notify_all();
+	}
 }
 
-void Pause()
+static void ChangeStateFromRunning(CPUState new_state, bool synchronize)
 {
-	volatile CPUState old_state = state;
-	state = CPU_STEPPING;
+	// WARNING: There's a difference between "old state" and "effective state".
+	//   Just because the old state was already CPU_STEPPING doesn't mean that
+	//   RunLoop has exited yet.
+	std::unique_lock<std::mutex> guard(s_state_change_lock);
+	// CPU_POWERDOWN is a latching state. Once set it can only be cleared by
+	// PowerPC::Start or a Shutdown/Init cycle.
+	if (s_state != CPU_POWERDOWN)
+		s_state = new_state;
 
 	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
-	Host_UpdateDisasmDialog();
+	if (synchronize && s_state_run_loop_enter_counter != s_state_run_loop_leave_counter)
+	{
+		// If we are bringing the CPU out of CPU_RUNNING or someone else has
+		// already started trying to do that then we need to wait for it to
+		// actually happen.
+		unsigned int cookie = s_state_run_loop_leave_counter;
+		// NOTE: Timeout is a hack to contend with deadlocks in the IO
+		//   system to prevent the GUI from freezing. It should be removed.
+		s_state_change_cvar.wait(guard, /*std::chrono::seconds(1),*/ [&]
+		{
+			return s_state_run_loop_leave_counter != cookie;
+		});
+	}
 }
 
-void Stop()
+void Pause(bool synchronize)
 {
-	volatile CPUState old_state = state;
-	state = CPU_POWERDOWN;
-
-	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
-	Host_UpdateDisasmDialog();
+	ChangeStateFromRunning(CPU_STEPPING, synchronize);
 }
 
-void FinishStateMove()
+void Stop(bool synchronize)
 {
-	s_state_change.Set();
+	ChangeStateFromRunning(CPU_POWERDOWN, synchronize);
+}
+
+void LieAboutEnteringRunLoop()
+{
+	std::lock_guard<std::mutex> guard(s_state_change_lock);
+	s_state_run_loop_enter_counter += 1;
+}
+
+void LieAboutLeavingRunLoop()
+{
+	std::lock_guard<std::mutex> guard(s_state_change_lock);
+	s_state_run_loop_leave_counter += 1;
+	s_state_change_cvar.notify_all();
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
@@ -521,7 +578,7 @@ void CheckBreakPoints()
 {
 	if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 	{
-		PowerPC::Pause();
+		PowerPC::Pause(false);
 		if (PowerPC::breakpoints.IsTempBreakPoint(PC))
 			PowerPC::breakpoints.Remove(PC);
 	}

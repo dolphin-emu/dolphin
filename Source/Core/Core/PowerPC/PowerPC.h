@@ -148,19 +148,25 @@ void Shutdown();
 void DoState(PointerWrap &p);
 
 CoreMode GetMode();
+// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED
 void SetMode(CoreMode _coreType);
 
+// Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
+// It's not threadsafe otherwise.
 void SingleStep();
 void CheckExceptions();
 void CheckExternalExceptions();
 void CheckBreakPoints();
 void RunLoop();
 void Start();
-void Pause();
-void Stop();
-void FinishStateMove();
+void Pause(bool synchronize);
+void Stop(bool synchronize);
 CPUState GetState();
 const volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
+
+// These are hacks to help FifoPlayer emulate a CPU run loop
+void LieAboutEnteringRunLoop();
+void LieAboutLeavingRunLoop();
 
 u32 CompactCR();
 void ExpandCR(u32 cr);
