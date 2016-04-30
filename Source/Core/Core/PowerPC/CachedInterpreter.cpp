@@ -36,9 +36,6 @@ void CachedInterpreter::Run()
 	{
 		SingleStep();
 	}
-
-	// Let the waiting thread know we are done leaving
-	PowerPC::FinishStateMove();
 }
 
 void CachedInterpreter::SingleStep()
