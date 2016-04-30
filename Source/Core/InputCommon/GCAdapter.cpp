@@ -22,6 +22,7 @@ namespace GCAdapter
 {
 static bool CheckDeviceAccess(libusb_device* device);
 static void AddGCAdapter(libusb_device* device);
+static void ResetRumbleLockNeeded();
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
@@ -311,7 +312,7 @@ static void AddGCAdapter(libusb_device* device)
 	s_detected = true;
 	if (s_detect_callback != nullptr)
 		s_detect_callback();
-	ResetRumble();
+	ResetRumbleLockNeeded();
 }
 
 void Shutdown()
@@ -450,10 +451,20 @@ bool UseAdapter()
 
 void ResetRumble()
 {
-	if (!UseAdapter())
+	if (!s_init_mutex.try_lock())
 		return;
-	if (s_handle == nullptr || !s_detected)
+	ResetRumbleLockNeeded();
+	s_init_mutex.unlock();
+}
+
+// Needs to be called when s_init_mutex is locked in order to avoid
+// being called while the libusb state is being reset
+static void ResetRumbleLockNeeded()
+{
+	if (!UseAdapter() || (s_handle == nullptr || !s_detected))
+	{
 		return;
+	}
 
 	std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
 
