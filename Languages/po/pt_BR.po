@@ -9,9 +9,9 @@
 # Felipefpl, 2015
 # Felipefpl, 2015
 # Felipefpl, 2015-2016
-# Gonçalo Matos, 2015
+# Gonçalo Matos , 2015
 # Runo <i.am.runo@gmail.com>, 2013
-# igorruckert <igorruckert@yahoo.com.br>, 2015
+# igorruckert <igorruckert@yahoo.com.br>, 2015-2016
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2015
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013
@@ -21,8 +21,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-03-26 22:32+0000\n"
-"PO-Revision-Date: 2016-03-26 22:32+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-03-27 12:22+0000\n"
+"Last-Translator: Felipefpl\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -2098,7 +2098,7 @@ msgid ""
 "If unsure, check virtual XFB emulation instead."
 msgstr ""
 "Emula os XFBs precisamente.\n"
-"A emulação fica muito lenta e proíbe a renderização de alta resolução mas é "
+"Desacelera muito a emulação e proíbe a renderização de alta resolução mas é "
 "necessário pra emular um número de jogos apropriadamente.\n"
 "\n"
 "Se não tiver certeza, selecione a emulação virtual do XFB ao invés disto."
@@ -2191,6 +2191,12 @@ msgid ""
 "\n"
 "If unsure, select 1x."
 msgstr ""
+"Ativa a filtragem anisotrópica.\n"
+"Melhora a qualidade visual das texturas que estão nos ângulos de "
+"visualização oblíquos.\n"
+"Poderia causar problemas em um pequeno número de jogos. \n"
+"\n"
+"Se não tiver certeza, selecione 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2225,7 +2231,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Ative isto se você quer usar a janela principal do Dolphin pra renderização "
-"ao invés de uma janela separada.\n"
+"ao invés de uma janela de renderização separada.\n"
 "\n"
 "Se não tiver certeza, deixe isto desmarcado."
 
@@ -2708,6 +2714,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Filtra todas as texturas, incluindo qualquer textura que o jogo definiu "
+"explicitamente como não filtrada.\n"
+"Pode melhorar a qualidade de certas texturas em alguns jogos mas causará "
+"problemas em outros.\n"
+"\n"
+"Se não tiver certeza, deixe isto desmarcado."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3026,7 +3038,7 @@ msgstr "Adaptador do GameCube pra Wii U"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:509
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:519
 msgid "GameCube Controller Configuration"
-msgstr "Configuração de Controle do GameCube"
+msgstr "Configuração do Controle do GameCube"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:75
 msgid "GameCube Controllers"
@@ -3992,7 +4004,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 "Modifica as texturas pra mostrar o formato no qual elas estão codificadas. "
-"Precisa resetar a emulação na maioria dos casos.\n"
+"Precisa de um reset da emulação na maioria dos casos.\n"
 "\n"
 "Se não tiver certeza, deixe isto desmarcado."
 
@@ -4255,7 +4267,7 @@ msgstr "Eixo do nunchuk"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Nvidia 3D Vision"
-msgstr "3D Vision da Nvidia"
+msgstr "Visão em 3D da Nvidia"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:598
 #, c-format
@@ -6232,7 +6244,7 @@ msgstr ""
 "Causa problemas em alguns jogos, mas pode dar uma aceleração decente "
 "dependendo do jogo e/ou da sua GPU.\n"
 "\n"
-"Se não tiver certeza, deixe isto desmarcado."
+"Se não tiver certeza, deixe isto selecionado."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."

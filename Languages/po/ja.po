@@ -5,6 +5,7 @@
 # Translators:
 # Danbsky, 2011
 # DanbSky <danbsky@live.jp>, 2015-2016
+# Denton Poss <dentonposs@gmail.com>, 2016
 # Katabi Oka, 2015
 # Lioncash <mathew1800@gmail.com>, 2014
 # Lioncash <mathew1800@gmail.com>, 2014
@@ -14,8 +15,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-03-26 22:32+0000\n"
-"PO-Revision-Date: 2016-03-26 22:32+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-04-22 15:16+0000\n"
+"Last-Translator: Denton Poss <dentonposs@gmail.com>\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -91,12 +92,12 @@ msgstr "処理中... %i (全%iブロック中) 圧縮比：%i%%"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (標準)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -337,7 +338,7 @@ msgstr "GCメモリーカードマネージャ(&M)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:276
 msgid "&Memory"
-msgstr "&Memory"
+msgstr "メモリー"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:215
 msgid "&Movie"
@@ -417,7 +418,7 @@ msgstr "(Error: Bad host)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:58
 msgid "(Error: Disconnected)"
-msgstr "(Error: Disconnected)"
+msgstr "(エラー：接続が切れました)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:56
 msgid "(Error: Dolphin too old)"
@@ -425,15 +426,15 @@ msgstr "(Error: Dolphin too old)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:60
 msgid "(Error: Socket)"
-msgstr "(Error: Socket)"
+msgstr "(エラー：ソケット)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:62
 msgid "(Error: Timeout)"
-msgstr "(Error: Timeout)"
+msgstr "(エラー：タイムアウト)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:64
 msgid "(Error: Unknown)"
-msgstr "(Error: Unknown)"
+msgstr "(エラー：不詳)"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:33
 msgid ""
@@ -546,6 +547,17 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"～ネットプレイに関しての注意事項～\n"
+"\n"
+"全てのプレーヤーはDolphinのバージョンを同一に揃え、設定も統一すること。\n"
+"メモリーカード/SDカード/チートコードのデータについても全員で同一のものを使う"
+"か、無効にしておく。\n"
+"DSP-LLEを使う場合には、各々でROMのバージョンが異なっていないか確認するこ"
+"と。\n"
+"直接接続の場合、ホスト側はUDPポートの開放を忘れずに！ \n"
+"\n"
+"現状ネットプレイ上でのWiiリモコンの入力サポートは壊れているため、無効になりま"
+"す。\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -749,7 +761,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Anaglyph"
-msgstr "Anaglyph"
+msgstr " アナグリフ"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:266
 msgid "Analyze"
@@ -806,10 +818,11 @@ msgstr "\"%s\" このプロファイルを削除しますか？"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1048
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
+"これら複数のタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1047
 msgid "Are you sure you want to delete this file? It will be gone forever!"
-msgstr ""
+msgstr "このタイトルの実体ファイルを削除しますか？元に戻すことはできません！"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:383
 msgid "Are you trying to use the same file in both slots?"
@@ -902,7 +915,7 @@ msgstr "出力設定"
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:61
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:234
 msgid "Backend:"
-msgstr "描画API："
+msgstr "ビデオAPI:"
 
 #: Source/Core/Core/HotkeyManager.cpp:227
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:247
@@ -1268,7 +1281,7 @@ msgstr "コード："
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:40
 msgid "Command"
-msgstr "Command"
+msgstr "コマンド"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "Comment"
@@ -1765,7 +1778,7 @@ msgstr "Disable Bounding Box"
 
 #: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Disable Emulation Speed Limit"
-msgstr ""
+msgstr "エミュレーション速度 無効化"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:417
 msgid "Disable Fog"
@@ -2154,6 +2167,11 @@ msgid ""
 "\n"
 "If unsure, select 1x."
 msgstr ""
+"異方性フィルタリングを適用します。\n"
+"奥行きのあるテクスチャをより精細に描画することが出来ます。\n"
+"特定のゲームでは描画バグの原因になることがあります。\n"
+"\n"
+"よく分からなければ、【1x】を選択してください。"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2300,7 +2318,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:389
 msgid "Error saving file."
-msgstr ""
+msgstr "エラー: ファイルをセーブしません"
 
 #: Source/Core/Common/ChunkFile.h:295
 #, c-format
@@ -2575,7 +2593,7 @@ msgstr "Fast"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:520
 msgid "Fast Depth Calculation"
-msgstr ""
+msgstr "Fast Depth Calculation"
 
 #: Source/Core/Core/Movie.cpp:1168
 #, c-format
@@ -2661,6 +2679,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"全てのテクスチャに対してフィルタリングを行います。\n"
+"いくつかのテクスチャの画質が向上しますが、テクスチャによっては 問題が発生する"
+"可能性もあります。\n"
+"\n"
+"よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -2771,15 +2794,15 @@ msgstr "Frame Advance"
 
 #: Source/Core/Core/HotkeyManager.cpp:23
 msgid "Frame Advance Decrease Speed"
-msgstr "Frame Advance 速度減少"
+msgstr "Frame Advance速度 減少"
 
 #: Source/Core/Core/HotkeyManager.cpp:24
 msgid "Frame Advance Increase Speed"
-msgstr "Frame Advance 速度増加"
+msgstr "Frame Advance速度 増加"
 
 #: Source/Core/Core/HotkeyManager.cpp:25
 msgid "Frame Advance Reset Speed"
-msgstr "Frame Advance 速度リセット"
+msgstr "Frame Advance速度 リセット"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Frame Dumps use FFV1"
@@ -2811,11 +2834,11 @@ msgstr "フリールック"
 
 #: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Freelook Decrease Speed"
-msgstr "フリールック 速度増加"
+msgstr "フリールック速度 増加"
 
 #: Source/Core/Core/HotkeyManager.cpp:58
 msgid "Freelook Increase Speed"
-msgstr "フリールック 速度減少"
+msgstr "フリールック速度 減少"
 
 #: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Freelook Move Down"
@@ -2839,7 +2862,7 @@ msgstr "フリールック リセット"
 
 #: Source/Core/Core/HotkeyManager.cpp:59
 msgid "Freelook Reset Speed"
-msgstr "フリールック 速度リセット"
+msgstr "フリールック速度 リセット"
 
 #: Source/Core/Core/HotkeyManager.cpp:64
 msgid "Freelook Zoom In"
@@ -3334,7 +3357,7 @@ msgstr "入力"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:55
 msgid "Insert"
-msgstr "Insert"
+msgstr "入れます"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:46
 msgid "Insert SD Card"
@@ -3618,10 +3641,12 @@ msgid ""
 "Note that raising or lowering the emulation speed will also raise or lower "
 "the audio pitch to prevent audio from stuttering."
 msgstr ""
+"エミュレーション速度を指定された割合に制限します\n"
+"標準以外の速度では音声バグを防ぐためにピッチも上下することに注意してください"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1026
 msgid "Load"
-msgstr "読込"
+msgstr "ロード"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:557
 msgid "Load Custom Textures"
@@ -3797,7 +3822,7 @@ msgstr "サーバーとの接続が切断されました！"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:34
 msgid "M Button"
-msgstr "M Button"
+msgstr "M ボタン"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:475
 msgid "MD5 Checksum:"
@@ -6156,6 +6181,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"不正確なアルゴリズムで深度の値を求めるようにします。\n"
+"動作速度の向上効果はタイトルと使用GPUに左右されますが 単に問題を引き起こすだ"
+"けの場合もあります。\n"
+"\n"
+"よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."

@@ -4,15 +4,16 @@
 #
 # Translators:
 # Siegfried <iori3000@hanafos.com>, 2013-2016
-# itstake <bexco2010@gmail.com>, 2015
+# its take <bexco2010@gmail.com>, 2016
+# its take <bexco2010@gmail.com>, 2015
 # Siegfried <iori3000@hanafos.com>, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-03-26 22:32+0000\n"
-"PO-Revision-Date: 2016-03-26 22:32+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-04-30 02:33+0000\n"
+"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -29,7 +30,7 @@ msgid ""
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
 "\n"
-"돌핀은 무료 및 오픈 소스인 게임큐브와 Wii 에뮬레이터입니다.\n"
+"돌핀은 오픈 소스이자 무료인 게임큐브 및 Wii 에뮬레이터입니다.\n"
 "\n"
 "이 소프트웨어는 합법적 소유가 아닌 게임을 플레이할 때 쓰여져서는 안됩니다.\n"
 
@@ -2157,6 +2158,11 @@ msgid ""
 "\n"
 "If unsure, select 1x."
 msgstr ""
+"비등방성 필터링을 켭니다.\n"
+"비스듬한 보기 각도에 있는 텍스처들의 보이는 품질을 향상시킵니다.\n"
+"소수 게임에서 이슈들을 일으킬지도 모릅니다.\n"
+"\n"
+"모르겠으면, 1x를 선택하세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2673,6 +2679,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"모든 텍스처를 필터합니다, 필터되지 않도록 명시적 설정된 게임도 포함합니다.\n"
+"일부 게임에서 특정 텍스처 품질을 향상시킬지도 모릅니다, 하지만 다른 게임에서 "
+"이슈를 일으킬 것입니다.\n"
+"\n"
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:248
 msgid "Find next"
@@ -3821,7 +3832,7 @@ msgstr "메인 스틱"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:272
 #: Source/Core/DolphinWX/FrameTools.cpp:349
 msgid "Maker"
-msgstr "만든이"
+msgstr "제작사"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:467
 msgid "Maker ID:"

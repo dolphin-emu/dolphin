@@ -8,7 +8,7 @@
 # DefenderX <darkmodx@gmail.com>, 2013,2015
 # DefenderX <darkmodx@gmail.com>, 2013
 # Ettore Atalan <atalanttore@googlemail.com>, 2015-2016
-# Gabriel <gabelk@web.de>, 2013
+# Gabriel <gabriel-transifex@mastergk.de>, 2013
 # Georg Strof <pikachu025@gmail.com>, 2015
 # JackyCola <jackycola@gmail.com>, LucasX <lucasx790@gmail.com>, 2011
 # Michael Grauvogl <michael.grauvogl@googlemail.com>, 2015
@@ -20,7 +20,7 @@
 # Shinrai, 2013
 # Shinrai, 2013
 # Tillmann Karras <tilkax@gmail.com>, 2014
-# Valsu <valsu@hylia.de>, 2015
+# valsu <valsu@hylia.de>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
