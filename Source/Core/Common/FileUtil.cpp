@@ -530,6 +530,8 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 bool DeleteDirRecursively(const std::string& directory)
 {
 	INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
+	bool success = true;
+
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
@@ -568,22 +570,16 @@ bool DeleteDirRecursively(const std::string& directory)
 		{
 			if (!DeleteDirRecursively(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 		else
 		{
 			if (!File::Delete(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 
@@ -594,9 +590,10 @@ bool DeleteDirRecursively(const std::string& directory)
 	}
 	closedir(dirp);
 #endif
-	File::DeleteDir(directory);
+	if (success)
+		File::DeleteDir(directory);
 
-	return true;
+	return success;
 }
 
 // Create directory and copy contents (does not overwrite existing files)
