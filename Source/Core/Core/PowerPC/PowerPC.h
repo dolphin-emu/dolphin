@@ -11,13 +11,11 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 
+class CPUCoreBase;
 class PointerWrap;
-
-extern CPUCoreBase *cpu_core_base;
 
 namespace PowerPC
 {
@@ -150,6 +148,16 @@ void DoState(PointerWrap &p);
 CoreMode GetMode();
 // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED
 void SetMode(CoreMode _coreType);
+const char* GetCPUName();
+
+// Set the current CPU Core to the given implementation until removed.
+// Remove the current injected CPU Core by passing nullptr.
+// While an external CPUCoreBase is injected, GetMode() will return MODE_INTERPRETER.
+// Init() will be called when added and Shutdown() when removed.
+// [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
+//  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
+//  while it is CPU_RUNNING]
+void InjectExternalCPUCore(CPUCoreBase* core);
 
 // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
 // It's not threadsafe otherwise.
@@ -163,10 +171,6 @@ void Pause(bool synchronize);
 void Stop(bool synchronize);
 CPUState GetState();
 const volatile CPUState *GetStatePtr();  // this oddity is here instead of an extern declaration to easily be able to find all direct accesses throughout the code.
-
-// These are hacks to help FifoPlayer emulate a CPU run loop
-void LieAboutEnteringRunLoop();
-void LieAboutLeavingRunLoop();
 
 u32 CompactCR();
 void ExpandCR(u32 cr);

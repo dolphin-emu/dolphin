@@ -45,10 +45,6 @@ bool IsStepping();
 // the return value is whether the CPU was unpaused before the call.
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true);
 
-// This is an accessor function for FifoPlayer to more effectively lie about being the
-// CPU. It needs access to the step event in order to handle CPU::EnableStepping(...).
-void StealStepEventAndWaitOnIt();
-
 // These are access functions for Core to access the CPU locking scheme.
 // The Core has it's own Pause/Unpause logic which is separate but also entirely dependent
 // on the CPU locking so we need to share the same locks.
