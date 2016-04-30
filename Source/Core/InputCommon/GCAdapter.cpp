@@ -37,6 +37,7 @@ static std::atomic<int> s_controller_payload_size = {0};
 static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
 
+static std::mutex s_init_mutex;
 static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
@@ -77,7 +78,10 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 	if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
 	{
 		if (s_handle == nullptr && CheckDeviceAccess(dev))
+		{
+			std::lock_guard<std::mutex> lk(s_init_mutex);
 			AddGCAdapter(dev);
+		}
 	}
 	else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
 	{
@@ -115,6 +119,7 @@ static void ScanThreadFunc()
 		{
 			if (s_handle == nullptr)
 			{
+				std::lock_guard<std::mutex> lk(s_init_mutex);
 				Setup();
 				if (s_detected && s_detect_callback != nullptr)
 					s_detect_callback();
@@ -329,8 +334,13 @@ void Shutdown()
 
 void Reset()
 {
-	if (!s_detected)
+	if (!s_init_mutex.try_lock())
 		return;
+	if (!s_detected)
+	{
+		s_init_mutex.unlock();
+		return;
+	}
 
 	if (s_adapter_thread_running.TestAndClear())
 	{
@@ -351,6 +361,7 @@ void Reset()
 	if (s_detect_callback != nullptr)
 		s_detect_callback();
 	NOTICE_LOG(SERIALINTERFACE, "GC Adapter detached");
+	s_init_mutex.unlock();
 }
 
 void Input(int chan, GCPadStatus* pad)
