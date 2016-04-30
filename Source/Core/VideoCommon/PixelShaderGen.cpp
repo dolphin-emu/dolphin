@@ -836,7 +836,7 @@ static void WriteStage(T& out, pixel_shader_uid_data* uid_data, int n, API_TYPE 
 		uid_data->SetTevindrefTexmap(i, texmap);
 
 		out.Write("\ttextemp = ");
-		SampleTexture<T>(out, "float2(tevcoord.xy)", texswap, texmap, ApiType);
+		SampleTexture<T>(out, "(float2(tevcoord.xy) + 0.05)", texswap, texmap, ApiType);
 	}
 	else
 	{
