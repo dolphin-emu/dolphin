@@ -63,6 +63,7 @@ public:
 	~FramebufferManager();
 
 	static D3DTexture2D* &GetEFBColorTexture();
+	static D3DTexture2D* &GetEFBColorReadTexture();
 	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
 
 	static D3DTexture2D* &GetEFBDepthTexture();
@@ -90,6 +91,7 @@ private:
 	{
 		D3DTexture2D* color_tex;
 		ID3D11Texture2D* color_staging_buf;
+		D3DTexture2D* color_read_texture;
 
 		D3DTexture2D* depth_tex;
 		ID3D11Texture2D* depth_staging_buf;
