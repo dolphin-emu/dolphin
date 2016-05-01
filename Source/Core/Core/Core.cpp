@@ -270,10 +270,7 @@ void Stop()  // - Hammertime!
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop();
-
-	// Kick it if it's waiting (code stepping wait loop)
-	CPU::StepOpcode();
+	CPU::Stop();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -380,6 +377,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
+	DeclareAsCPUThread();
 	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
@@ -392,18 +390,36 @@ static void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	s_is_started = true;
-	DeclareAsCPUThread();
-
 	// Enter CPU run loop. When we leave it - we are done.
+	bool did_run = false;
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
 	{
-		FifoPlayer::GetInstance().Play();
+		if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
+		{
+			did_run = true;
+			PowerPC::InjectExternalCPUCore(cpu_core.get());
+			s_is_started = true;
+			CPU::Run();
+			s_is_started = false;
+			PowerPC::InjectExternalCPUCore(nullptr);
+		}
 		FifoPlayer::GetInstance().Close();
 	}
 
-	UndeclareAsCPUThread();
-	s_is_started = false;
+	// If we did not enter the CPU Run Loop then run a fake one instead.
+	// We need to be IsRunningAndStarted() for DolphinWX to stop us.
+	if (!did_run)
+	{
+		s_is_started = true;
+		Host_Message(WM_USER_STOP);
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
+		{
+			if (!_CoreParameter.bCPUThread)
+				g_video_backend->PeekMessages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+		s_is_started = false;
+	}
 
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
@@ -491,6 +507,9 @@ void EmuThread()
 	s_hardware_initialized = true;
 
 	// Boot to pause or not
+	// NOTE: This violates the Host Thread requirement for SetState but we should
+	//   not race the Host because the UI should have the buttons disabled until
+	//   Host_UpdateMainFrame enables them.
 	Core::SetState(core_parameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
@@ -556,7 +575,7 @@ void EmuThread()
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
 
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);
@@ -625,11 +644,13 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState _State)
+void SetState(EState state)
 {
-	switch (_State)
+	switch (state)
 	{
 	case CORE_PAUSE:
+		// NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+		//   stopped (including the CPU).
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 #if defined(__LIBUSB__) || defined(_WIN32)
@@ -725,6 +746,7 @@ void RequestRefreshInfo()
 
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
+	// WARNING: PauseAndLock is only valid on Host Thread
 	if (!IsRunning())
 		return true;
 
@@ -734,18 +756,21 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 		return true;
 
 	// first pause or unpause the CPU
+	// When unlocking, the CPU system may decline to unpause due to a breakpoint
+	// activation. Chain the CPU state to the other systems.
 	bool wasUnpaused = CPU::PauseAndLock(doLock, unpauseOnUnlock);
-	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
+	ExpansionInterface::PauseAndLock(doLock, wasUnpaused);
 
 	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
+	DSP::GetDSPEmulator()->PauseAndLock(doLock, wasUnpaused);
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
-	Fifo::PauseAndLock(doLock, unpauseOnUnlock);
+	Fifo::PauseAndLock(doLock, wasUnpaused);
 
 #if defined(__LIBUSB__) || defined(_WIN32)
 	GCAdapter::ResetRumble();
 #endif
+
 	return wasUnpaused;
 }
 
@@ -807,7 +832,7 @@ void UpdateTitle()
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
 		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	std::string SFPS;
