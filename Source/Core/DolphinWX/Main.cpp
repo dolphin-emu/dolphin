@@ -101,6 +101,7 @@ bool DolphinApp::OnInit()
 
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
+	Bind(wxEVT_IDLE, &DolphinApp::OnIdle, this);
 
 	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
@@ -359,6 +360,12 @@ void DolphinApp::OnFatalException()
 	WiimoteReal::Shutdown();
 }
 
+void DolphinApp::OnIdle(wxIdleEvent& ev)
+{
+	ev.Skip();
+	Core::HostDispatchJobs();
+}
+
 // ------------
 // Talk to GUI
 
@@ -395,6 +402,12 @@ CFrame* DolphinApp::GetCFrame()
 
 void Host_Message(int Id)
 {
+	if (Id == WM_USER_JOB_DISPATCH)
+	{
+		// Trigger a wxEVT_IDLE
+		wxWakeUpIdle();
+		return;
+	}
 	wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
