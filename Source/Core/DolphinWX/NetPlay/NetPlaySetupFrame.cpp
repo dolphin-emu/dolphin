@@ -51,45 +51,56 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 	// top row
 	wxBoxSizer* const trav_szr = new wxBoxSizer(wxHORIZONTAL);
-
-	m_direct_traversal = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(75, -1));
-	m_direct_traversal->Bind(wxEVT_CHOICE, &NetPlaySetupFrame::OnChoice, this);
-	m_direct_traversal->Append(_("Direct"));
-	m_direct_traversal->Append(_("Traversal"));
-
-	std::string travChoice;
-	netplay_section.Get("TraversalChoice", &travChoice, "direct");
-
-	if (travChoice == "traversal")
-	{
-		m_direct_traversal->Select(1);
-	}
-	else
-	{
-		m_direct_traversal->Select(0);
-	}
-
-	trav_szr->Add(m_direct_traversal, 0, wxRIGHT);
-
-	m_trav_reset_btn = new wxButton(panel, wxID_ANY, _("Reset Traversal Settings"));
-	m_trav_reset_btn->Bind(wxEVT_BUTTON, &NetPlaySetupFrame::OnResetTraversal, this);
-	trav_szr->Add(m_trav_reset_btn, 0, wxCENTER | wxRIGHT);
-
 	wxBoxSizer* const nick_szr = new wxBoxSizer(wxHORIZONTAL);
-	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname :"));
-	std::string nickname;
-	netplay_section.Get("Nickname", &nickname, "Player");
-	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(nickname));
-	nick_szr->Add(nick_lbl, 0, wxCENTER);
-	nick_szr->Add(m_nickname_text, 0, wxALL, 5);
+	{
+		// Connection Config
+		wxStaticText* const connectiontype_lbl = new wxStaticText(panel, wxID_ANY, _("Connection Type:"), wxDefaultPosition, wxSize(100, -1));
 
-	std::string centralPort;
-	GetTraversalPort(netplay_section, &centralPort);
-	std::string centralServer;
-	GetTraversalServer(netplay_section, &centralServer);
+		m_direct_traversal = new wxChoice(panel, wxID_ANY,  wxDefaultPosition, wxSize(150, -1));
+		m_direct_traversal->Bind(wxEVT_CHOICE, &NetPlaySetupFrame::OnChoice, this);
+		m_direct_traversal->Append(_("Direct Connection"));
+		m_direct_traversal->Append(_("Traversal Server"));
 
-	m_traversal_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal: ") + centralServer + ":" + centralPort);
+		trav_szr->Add(connectiontype_lbl, 0, wxCENTER, 5);
+		trav_szr->AddSpacer(5);
+		trav_szr->Add(m_direct_traversal, 0, wxCENTER, 5);
 
+		m_trav_reset_btn = new wxButton(panel, wxID_ANY, _("Reset Traversal Settings"), wxDefaultPosition, wxSize(-1, 25));
+		m_trav_reset_btn->Bind(wxEVT_BUTTON, &NetPlaySetupFrame::OnResetTraversal, this);
+
+		trav_szr->AddSpacer(5);
+
+		trav_szr->Add(m_trav_reset_btn, 0, wxRIGHT);
+
+		// Nickname
+		wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, _("Nickname:") ,wxDefaultPosition, wxSize(100, -1));
+
+		std::string nickname;
+		netplay_section.Get("Nickname", &nickname, "Player");
+
+		m_nickname_text = new wxTextCtrl(panel, wxID_ANY, StrToWxStr(nickname), wxDefaultPosition, wxSize(150, -1));
+
+		nick_szr->Add(nick_lbl, 0, wxCENTER);
+		nick_szr->Add(m_nickname_text, 0, wxALL, 5);
+
+		std::string travChoice;
+		netplay_section.Get("TraversalChoice", &travChoice, "direct");
+		if (travChoice == "traversal")
+		{
+			m_direct_traversal->Select(1);
+		}
+		else
+		{
+			m_direct_traversal->Select(0);
+		}
+
+		std::string centralPort;
+		GetTraversalPort(netplay_section, &centralPort);
+		std::string centralServer;
+		GetTraversalServer(netplay_section, &centralServer);
+
+		m_traversal_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal Server:") + " " + centralServer + ":" + centralPort);
+	}
 	// tabs
 	wxNotebook* const notebook = new wxNotebook(panel, wxID_ANY);
 	wxPanel* const connect_tab = new wxPanel(notebook, wxID_ANY);
@@ -198,7 +209,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 	// main sizer
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-	main_szr->Add(trav_szr, 0, wxALL | wxALIGN_LEFT);
+	main_szr->Add(trav_szr, 0, wxALL | wxALIGN_LEFT, 5);
 	main_szr->Add(nick_szr, 0, wxALL | wxALIGN_LEFT, 5);
 	main_szr->Add(m_traversal_lbl, 0, wxALL | wxALIGN_LEFT, 5);
 	main_szr->Add(notebook, 1, wxLEFT | wxRIGHT | wxEXPAND, 5);
