@@ -406,17 +406,25 @@ void ChangePads(bool instantly)
 	int controllers = 0;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
 			controllers |= (1 << i);
 
 	if (instantly && (s_numPads & 0x0F) == controllers)
 		return;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-		if (instantly) // Changes from savestates need to be instantaneous
-			SerialInterface::AddDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+		if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+		{
+			SIDevices device = IsUsingPad(i) ? SConfig::GetInstance().m_SIDevice[i] : SIDEVICE_NONE;
+			if (instantly) // Changes from savestates need to be instantaneous
+				SerialInterface::AddDevice(device, i);
+			else
+				SerialInterface::ChangeDevice(device, i);
+		}
 		else
+		{
 			SerialInterface::ChangeDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+		}
 }
 
 void ChangeWiiPads(bool instantly)
