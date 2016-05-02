@@ -123,11 +123,11 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		, wxDefaultPosition, wxDefaultSize, wxTE_READONLY | wxTE_MULTILINE);
 
 	m_chat_msg_text = new wxTextCtrl(panel, wxID_ANY, wxEmptyString
-		, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER);
+		, wxDefaultPosition, wxSize(-1, 25), wxTE_PROCESS_ENTER);
 	m_chat_msg_text->Bind(wxEVT_TEXT_ENTER, &NetPlayDialog::OnChat, this);
 	m_chat_msg_text->SetMaxLength(2000);
 
-	wxButton* const chat_msg_btn = new wxButton(panel, wxID_ANY, _("Send"));
+	wxButton* const chat_msg_btn = new wxButton(panel, wxID_ANY, _("Send"),wxDefaultPosition, wxSize(-1, 26));
 	chat_msg_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnChat, this);
 
 	wxBoxSizer* const chat_msg_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -146,9 +146,9 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	if (m_is_hosting && g_TraversalClient)
 	{
 		wxBoxSizer* const host_szr = new wxBoxSizer(wxHORIZONTAL);
-		m_host_type_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(60, -1));
+		m_host_type_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(72, -1));
 		m_host_type_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnChoice, this);
-		m_host_type_choice->Append(_("ID:"));
+		m_host_type_choice->Append(_("Room ID:"));
 		host_szr->Add(m_host_type_choice);
 
 		m_host_label = new wxStaticText(panel, wxID_ANY, "555.555.555.555:55555", wxDefaultPosition, wxDefaultSize, wxST_NO_AUTORESIZE | wxALIGN_LEFT);
@@ -186,7 +186,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	mid_szr->Add(player_szr, 0, wxEXPAND);
 
 	// bottom crap
-	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, _("Quit"));
+	wxButton* const quit_btn = new wxButton(panel, wxID_ANY, _("Quit Netplay"));
 	quit_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnQuit, this);
 
 	wxBoxSizer* const bottom_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -200,13 +200,15 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, std::to_string(INITIAL_PAD_BUFFER_SIZE)
 			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
 		padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
+		bottom_szr->AddSpacer(3);
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
-
-		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write memcards/SD"));
+		bottom_szr->AddSpacer(5);
+		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write to memcards/SD"));
 		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
 	}
 
-	m_record_chkbox = new wxCheckBox(panel, wxID_ANY, _("Record input"));
+	bottom_szr->AddSpacer(5);
+	m_record_chkbox = new wxCheckBox(panel, wxID_ANY, _("Record inputs"));
 	bottom_szr->Add(m_record_chkbox, 0, wxCENTER);
 
 	bottom_szr->AddStretchSpacer(1);
@@ -221,7 +223,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	panel->SetSizerAndFit(main_szr);
 
 	main_szr->SetSizeHints(this);
-	SetSize(512, 512 - 128);
+	SetSize(768, 768 - 128);
 
 	Center();
 }
