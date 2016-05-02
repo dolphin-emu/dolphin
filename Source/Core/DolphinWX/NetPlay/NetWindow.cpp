@@ -221,7 +221,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 	panel->SetSizerAndFit(main_szr);
 
 	main_szr->SetSizeHints(this);
-	SetSize(512, 512 - 128);
+	SetSize(800, 800 - 128);
 
 	Center();
 }
