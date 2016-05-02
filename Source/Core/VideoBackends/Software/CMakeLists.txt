@@ -19,7 +19,10 @@ set(LIBS
   videocommon
   SOIL
   common
-  ${X11_LIBRARIES}
 )
+
+if(USE_X11)
+ set(LIBS  ${LIBS} ${X11_LIBRARIES})
+endif()
 
 add_dolphin_library(videosoftware "${SRCS}" "${LIBS}")
