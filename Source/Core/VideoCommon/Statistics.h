@@ -55,7 +55,7 @@ struct Statistics
 		int bytesIndexStreamed;
 		int bytesUniformStreamed;
 	};
-	ThisFrame thisFrame;
+	ThisFrame thisFrame, prevFrame;
 	void ResetFrame();
 	static void SwapDL();
 

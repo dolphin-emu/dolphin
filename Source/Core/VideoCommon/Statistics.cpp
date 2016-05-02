@@ -13,6 +13,7 @@ Statistics stats;
 
 void Statistics::ResetFrame()
 {
+	prevFrame = thisFrame;
 	memset(&thisFrame, 0, sizeof(ThisFrame));
 }
 

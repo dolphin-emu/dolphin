@@ -70,6 +70,7 @@ static wxString hqdistortion_desc = wxTRANSLATE("\"High-quality sampling of dist
 static wxString hudontop_desc = wxTRANSLATE("Always draw the HUD on top of everything else.\nUse this when you can't see the HUD because the world is covering it up.\n\nIf unsure, leave this unchecked.");
 static wxString dontclearscreen_desc = wxTRANSLATE("Don't clear the screen every frame. This prevents some games from flashing.\n\nIf unsure, leave this unchecked.");
 static wxString canreadcamera_desc = wxTRANSLATE("Read the camera angle from the angle of the first drawn 3D object.\nThis will only work in some games, but helps keep the ground horizontal.\n\nIf unsure, leave this unchecked.");
+static wxString camminpoly_desc = wxTRANSLATE("Only read camera angle if at least this many polygons were drawn last frame.\nIncrease this number if stabilisation makes the world rotate in menus when it shouldn't.\n\nIf unsure, leave this at 0.");
 static wxString detectskybox_desc = wxTRANSLATE("Assume any object drawn at 0,0,0 in camera space is a skybox.\nUse this if the sky looks too close, or to enable hiding or locking the skybox for motion sickness prevention (see the Motion Sickness tab).\n\nIf unsure, either setting is usually fine.");
 static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
 static wxString showcontroller_desc = wxTRANSLATE("Show the razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now. \n\nIf unsure, leave this unchecked.");
@@ -515,11 +516,23 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(spin);
 		}
+		// Camera read min polys
+		{
+			U32Setting *spin = new U32Setting(page_vr, wxTRANSLATE("Camera Read Min Polys:"), vconfig.iCameraMinPoly, 0, 200000);
+			RegisterControl(spin_replay_buffer, wxGetTranslation(camminpoly_desc));
+			spin->SetToolTip(wxGetTranslation(camminpoly_desc));
+			spin->SetValue(vconfig.iCameraMinPoly);
+			wxStaticText *label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Camera Read Min Polys:"));
 
-		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
-		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
+			label->SetToolTip(wxGetTranslation(camminpoly_desc));
+			szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin);
+		}
+
 		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Read Camera Angles"), wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));
 		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Detect Skybox"), wxGetTranslation(detectskybox_desc), vconfig.bDetectSkybox));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HUD on Top"), wxGetTranslation(hudontop_desc), vconfig.bHudOnTop));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Clear Screen"), wxGetTranslation(dontclearscreen_desc), vconfig.bDontClearScreen));
 
 		wxStaticBoxSizer* const group_vr = new wxStaticBoxSizer(wxVERTICAL, page_vr, wxTRANSLATE("For This Game Only"));
 		group_vr->Add(szr_vr, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);

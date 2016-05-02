@@ -54,6 +54,8 @@ public:
 
 	static void DoState(PointerWrap& p);
 
+	int GetNumberOfVertices();
+
 protected:
 	virtual void vDoState(PointerWrap& p) {  }
 

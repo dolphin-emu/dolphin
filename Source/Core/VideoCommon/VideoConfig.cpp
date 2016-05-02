@@ -476,6 +476,7 @@ void VideoConfig::GameIniLoad()
 	fScreenUp = DEFAULT_VR_SCREEN_UP;
 	fScreenPitch = DEFAULT_VR_SCREEN_PITCH;
 	fReadPitch = 0;
+	iCameraMinPoly = 0;
 	bDisable3D = false;
 	bHudFullscreen = false;
 	bHudOnTop = false;
@@ -510,6 +511,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("VR", "TelescopeEye", iTelescopeEye);
 	CHECK_SETTING("VR", "TelescopeFOV", fTelescopeMaxFOV);
 	CHECK_SETTING("VR", "ReadPitch", fReadPitch);
+	CHECK_SETTING("VR", "CameraMinPoly", iCameraMinPoly);
 
 	NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick", fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
 
@@ -560,6 +562,7 @@ void VideoConfig::GameIniSave()
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenRight", (float)fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	SAVE_IF_NOT_DEFAULT("VR", "ScreenPitch", (float)fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
+	SAVE_IF_NOT_DEFAULT("VR", "CameraMinPoly", (int)iCameraMinPoly, 0);
 
 	GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 	g_SavedConfig = *this;
@@ -599,6 +602,7 @@ void VideoConfig::GameIniReset()
 	LOAD_DEFAULT("VR", "ScreenRight", fScreenRight, DEFAULT_VR_SCREEN_RIGHT);
 	LOAD_DEFAULT("VR", "ScreenPitch", fScreenPitch, DEFAULT_VR_SCREEN_PITCH);
 	LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
+	LOAD_DEFAULT("VR", "CameraMinPoly", iCameraMinPoly, 0);
 }
 
 void VideoConfig::VerifyValidity()
@@ -793,6 +797,7 @@ bool VideoConfig::VRSettingsModified()
 		|| fScreenPitch != g_SavedConfig.fScreenPitch
 		|| fTelescopeMaxFOV != g_SavedConfig.fTelescopeMaxFOV
 		|| fReadPitch != g_SavedConfig.fReadPitch
+		|| iCameraMinPoly != g_SavedConfig.iCameraMinPoly
 		|| bDisable3D != g_SavedConfig.bDisable3D
 		|| bHudFullscreen != g_SavedConfig.bHudFullscreen
 		|| bHudOnTop != g_SavedConfig.bHudOnTop

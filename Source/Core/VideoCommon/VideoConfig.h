@@ -249,6 +249,7 @@ struct VideoConfig final
 	float fScreenPitch;
 	float fTelescopeMaxFOV;
 	float fReadPitch;
+	u32 iCameraMinPoly;
 	bool bDisable3D;
 	bool bHudFullscreen;
 	bool bHudOnTop;

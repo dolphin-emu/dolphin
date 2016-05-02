@@ -1879,7 +1879,26 @@ void VertexShaderManager::SetProjectionConstants()
 void VertexShaderManager::CheckOrientationConstants()
 {
 #define sqr(a) ((a)*(a))
-	if (g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw || g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ))
+	bool can_read = g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw || g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ);
+
+	if (can_read)
+	{
+		static int old_vertex_count = 0, old_prim_count = 0;
+		//int vertex_count = g_vertex_manager->GetNumberOfVertices();
+		//if (vertex_count != old_vertex_count) {
+		//	NOTICE_LOG(VR, "*************** vertex_count = %d", vertex_count);
+		//	old_vertex_count = vertex_count;
+		//}
+		int prim_count = stats.prevFrame.numPrims + stats.prevFrame.numDLPrims;
+		if (prim_count != old_prim_count)
+		{
+			WARN_LOG(VR, "*************** stats.prevFrame.numPrims = %d       %d", prim_count, stats.thisFrame.numPrims + stats.thisFrame.numDLPrims);
+			old_prim_count = prim_count;
+		}
+		if (prim_count < (int)g_ActiveConfig.iCameraMinPoly)
+			can_read = false;
+	}
+	if (can_read)
 	{
 		float *p = constants.posnormalmatrix[0];
 		float pos[3], worldspacepos[3], movement[3];

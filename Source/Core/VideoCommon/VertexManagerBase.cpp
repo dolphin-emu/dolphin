@@ -279,6 +279,12 @@ void VertexManager::Flush()
 	s_cull_all = false;
 }
 
+int VertexManager::GetNumberOfVertices()
+{
+	const PortableVertexDeclaration vert_decl = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration();
+	return (int)((s_pCurBufferPointer - s_pBaseBufferPointer) / vert_decl.stride);
+}
+
 void VertexManager::DoState(PointerWrap& p)
 {
 	p.Do(s_zslope);
