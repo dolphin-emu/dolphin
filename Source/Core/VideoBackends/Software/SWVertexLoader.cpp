@@ -115,7 +115,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
 			TransformUnit::TransformNormal(&m_Vertex, (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0, outVertex);
 		}
 		TransformUnit::TransformColor(&m_Vertex, outVertex);
-		TransformUnit::TransformTexCoord(&m_Vertex, outVertex, m_TexGenSpecialCase);
+		TransformUnit::TransformTexCoord(&m_Vertex, outVertex);
 
 		// assemble and rasterize the primitive
 		m_SetupUnit->SetupVertex();
@@ -151,13 +151,6 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	m_Vertex.texMtx[5] = xfmem.MatrixIndexB.Tex5MtxIdx;
 	m_Vertex.texMtx[6] = xfmem.MatrixIndexB.Tex6MtxIdx;
 	m_Vertex.texMtx[7] = xfmem.MatrixIndexB.Tex7MtxIdx;
-
-
-	// special case if only pos and tex coord 0 and tex coord input is AB11
-	m_TexGenSpecialCase =
-		((g_main_cp_state.vtx_desc.Hex & 0x60600L) == g_main_cp_state.vtx_desc.Hex) && // only pos and tex coord 0
-		(g_main_cp_state.vtx_desc.Tex0Coord != NOT_PRESENT) &&
-		(xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST);
 }
 
 template <typename T, typename I>

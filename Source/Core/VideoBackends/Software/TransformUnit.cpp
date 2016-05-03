@@ -13,6 +13,8 @@
 #include "VideoBackends/Software/Vec3.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace TransformUnit
@@ -103,7 +105,7 @@ void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst
 	}
 }
 
-static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
+static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
 {
 	const Vec3 *src;
 	switch (texinfo.sourcerow)
@@ -131,15 +133,13 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 
 	if (texinfo.projection == XF_TEXPROJ_ST)
 	{
-		if (texinfo.inputform == XF_TEXINPUT_AB11 || specialCase)
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			MultiplyVec2Mat24(*src, mat, *dst);
 		else
 			MultiplyVec3Mat24(*src, mat, *dst);
 	}
 	else // texinfo.projection == XF_TEXPROJ_STQ
 	{
-		_assert_(!specialCase);
-
 		if (texinfo.inputform == XF_TEXINPUT_AB11)
 			MultiplyVec2Mat34(*src, mat, *dst);
 		else
@@ -154,24 +154,29 @@ static void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 		const PostMtxInfo &postInfo = xfmem.postMtxInfo[coordNum];
 		const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
-		if (specialCase)
+		//u32 test = VertexLoaderManager::g_current_components & ~VB_HAS_UVALL;
+		//WARN_LOG(VIDEO, "test: %u, %u", test, texinfo.sourcerow);
+		//WARN_LOG(VIDEO, "V: %f, %f, %f", dst->x, dst->y, dst->z);
+		if(texinfo.projection == XF_TEXPROJ_ST)
 		{
-			// no normalization
-			// q of input is 1
-			// q of output is unknown
 			tempCoord.x = dst->x;
 			tempCoord.y = dst->y;
+			tempCoord.z = 1.0f;
 
-			dst->x = postMat[0] * tempCoord.x + postMat[1] * tempCoord.y + postMat[2] + postMat[3];
-			dst->y = postMat[4] * tempCoord.x + postMat[5] * tempCoord.y + postMat[6] + postMat[7];
-			dst->z = 1.0f;
+			dst->x = postMat[0] * tempCoord.x + postMat[1] * tempCoord.y + postMat[2] * tempCoord.z + postMat[3];
+			dst->y = postMat[4] * tempCoord.x + postMat[5] * tempCoord.y + postMat[6] * tempCoord.z + postMat[7];
+			dst->z = tempCoord.z;
 		}
 		else
 		{
 			if (postInfo.normalize)
+			{
 				tempCoord = dst->Normalized();
+			}
 			else
+			{
 				tempCoord = *dst;
+			}
 
 			MultiplyVec3Mat34(tempCoord, postMat, *dst);
 		}
@@ -382,7 +387,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
 	}
 }
 
-void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase)
+void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst)
 {
 	for (u32 coordNum = 0; coordNum < xfmem.numTexGen.numTexGens; coordNum++)
 	{
@@ -391,7 +396,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
 		switch (texinfo.texgentype)
 		{
 		case XF_TEXGEN_REGULAR:
-			TransformTexCoordRegular(texinfo, coordNum, specialCase, src, dst);
+			TransformTexCoordRegular(texinfo, coordNum, src, dst);
 			break;
 		case XF_TEXGEN_EMBOSS_MAP:
 			{
