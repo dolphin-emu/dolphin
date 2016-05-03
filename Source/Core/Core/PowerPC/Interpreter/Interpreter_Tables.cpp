@@ -19,11 +19,11 @@ static GekkoOPInfo unknownopinfo = { "unknown_instruction", OPTYPE_UNKNOWN, FL_E
 
 static GekkoOPTemplate primarytable[] =
 {
-	{4,  Interpreter::RunTable4,    {"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0, 0, 0, 0, 0}},
-	{19, Interpreter::RunTable19,   {"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0, 0, 0, 0, 0}},
-	{31, Interpreter::RunTable31,   {"RunTable31", OPTYPE_SUBTABLE | (31<<24), 0, 0, 0, 0, 0}},
-	{59, Interpreter::RunTable59,   {"RunTable59", OPTYPE_SUBTABLE | (59<<24), 0, 0, 0, 0, 0}},
-	{63, Interpreter::RunTable63,   {"RunTable63", OPTYPE_SUBTABLE | (63<<24), 0, 0, 0, 0, 0}},
+	{4,  Interpreter::RunTable4,    {"RunTable4",  OPTYPE_SUBTABLE, 0, 0, 0, 0, 0}},
+	{19, Interpreter::RunTable19,   {"RunTable19", OPTYPE_SUBTABLE, 0, 0, 0, 0, 0}},
+	{31, Interpreter::RunTable31,   {"RunTable31", OPTYPE_SUBTABLE, 0, 0, 0, 0, 0}},
+	{59, Interpreter::RunTable59,   {"RunTable59", OPTYPE_SUBTABLE, 0, 0, 0, 0, 0}},
+	{63, Interpreter::RunTable63,   {"RunTable63", OPTYPE_SUBTABLE, 0, 0, 0, 0, 0}},
 
 	{16, Interpreter::bcx,          {"bcx", OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
 	{18, Interpreter::bx,           {"bx",  OPTYPE_SYSTEM, FL_ENDBLOCK, 1, 0, 0, 0}},
