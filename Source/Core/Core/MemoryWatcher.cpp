@@ -4,25 +4,48 @@
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <unistd.h>
 
 #include "Common/FileUtil.h"
-#include "Common/Thread.h"
+#include "Core/CoreTiming.h"
 #include "Core/MemoryWatcher.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/SystemTimers.h"
 
-// We don't want to kill the cpu, so sleep for this long after polling.
-static const int SLEEP_DURATION = 2; // ms
+static std::unique_ptr<MemoryWatcher> s_memory_watcher;
+static int s_event;
+static const int MW_RATE = 600; // Steps per second
+
+static void MWCallback(u64 userdata, s64 cyclesLate)
+{
+	s_memory_watcher->Step();
+	CoreTiming::ScheduleEvent(
+	    (SystemTimers::GetTicksPerSecond() / MW_RATE) - cyclesLate, s_event);
+}
+
+void MemoryWatcher::Init()
+{
+	s_memory_watcher = std::make_unique<MemoryWatcher>();
+	s_event = CoreTiming::RegisterEvent("MemoryWatcher", MWCallback);
+	CoreTiming::ScheduleEvent(0, s_event);
+}
+
+void MemoryWatcher::Shutdown()
+{
+	CoreTiming::RemoveEvent(s_event);
+	s_memory_watcher.reset();
+}
 
 MemoryWatcher::MemoryWatcher()
 {
+	m_running = false;
 	if (!LoadAddresses(File::GetUserPath(F_MEMORYWATCHERLOCATIONS_IDX)))
 		return;
 	if (!OpenSocket(File::GetUserPath(F_MEMORYWATCHERSOCKET_IDX)))
 		return;
 	m_running = true;
-	m_watcher_thread = std::thread(&MemoryWatcher::WatcherThread, this);
 }
 
 MemoryWatcher::~MemoryWatcher()
@@ -31,7 +54,6 @@ MemoryWatcher::~MemoryWatcher()
 		return;
 
 	m_running = false;
-	m_watcher_thread.join();
 	close(m_fd);
 }
 
@@ -85,30 +107,29 @@ std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
 	return message_stream.str();
 }
 
-void MemoryWatcher::WatcherThread()
+void MemoryWatcher::Step()
 {
-	while (m_running)
-	{
-		for (auto& entry : m_values)
-		{
-			std::string address = entry.first;
-			u32& current_value = entry.second;
+	if (!m_running)
+		return;
 
-			u32 new_value = ChasePointer(address);
-			if (new_value != current_value)
-			{
-				// Update the value
-				current_value = new_value;
-				std::string message = ComposeMessage(address, new_value);
-				sendto(
-					m_fd,
-					message.c_str(),
-					message.size() + 1,
-					0,
-					reinterpret_cast<sockaddr*>(&m_addr),
-					sizeof(m_addr));
-			}
+	for (auto& entry : m_values)
+	{
+		std::string address = entry.first;
+		u32& current_value = entry.second;
+
+		u32 new_value = ChasePointer(address);
+		if (new_value != current_value)
+		{
+			// Update the value
+			current_value = new_value;
+			std::string message = ComposeMessage(address, new_value);
+			sendto(
+				m_fd,
+				message.c_str(),
+				message.size() + 1,
+				0,
+				reinterpret_cast<sockaddr*>(&m_addr),
+				sizeof(m_addr));
 		}
-		Common::SleepCurrentThread(SLEEP_DURATION);
 	}
 }
