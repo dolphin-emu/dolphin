@@ -157,6 +157,7 @@ void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
 void FrameSkipping();
+int  GetLastSkippedFrames();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);

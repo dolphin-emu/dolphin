@@ -149,7 +149,7 @@ wxMenuBar* CFrame::CreateMenu()
 	emulationMenu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE), wxEmptyString);
 
 	wxMenu *skippingMenu = new wxMenu;
-	emulationMenu->AppendSubMenu(skippingMenu, _("Frame S&kipping"));
+	emulationMenu->AppendSubMenu(skippingMenu, _("Maximum Frames to S&kip"));
 	for (int i = 0; i < 10; i++)
 		skippingMenu->AppendRadioItem(IDM_FRAME_SKIP_0 + i, wxString::Format("%i", i));
 	skippingMenu->Check(IDM_FRAME_SKIP_0 + SConfig::GetInstance().m_FrameSkip, true);
@@ -231,7 +231,7 @@ wxMenuBar* CFrame::CreateMenu()
 
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
-	toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
+	toolsMenu->Append(IDM_MEMCARD, _("&Memory Card Manager (GC)"));
 	toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
 	toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
 	toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
