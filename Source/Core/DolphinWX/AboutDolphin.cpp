@@ -31,8 +31,8 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 	const wxString DolphinText = _("Dolphin");
 	const wxString RevisionText = scm_desc_str;
 	const wxString CopyrightText = _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.");
-	const wxString BranchText = wxString::Format(_("Branch: %s"), scm_branch_str);
-	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str);
+	const wxString BranchText = wxString::Format(_("Branch: %s"), scm_branch_str.c_str());
+	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str.c_str());
 	const wxString CheckUpdateText = _("Check for updates: ");
 	const wxString Text = _("\n"
 		"Dolphin is a free and open-source GameCube and Wii emulator.\n"

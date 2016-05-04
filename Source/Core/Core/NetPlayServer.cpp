@@ -25,7 +25,6 @@
 #include <arpa/inet.h>
 #endif
 
-static const char* NETPLAY_VERSION = scm_rev_git_str;
 u64 g_netplay_initial_gctime = 1272737767;
 
 NetPlayServer::~NetPlayServer()
@@ -241,7 +240,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	std::string npver;
 	rpac >> npver;
 	// Dolphin netplay version
-	if (npver != NETPLAY_VERSION)
+	if (npver != scm_rev_git_str)
 		return CON_ERR_VERSION_MISMATCH;
 
 	// game is currently running

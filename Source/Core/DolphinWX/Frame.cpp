@@ -705,7 +705,7 @@ void CFrame::UpdateTitle(const std::string &str)
 	}
 	else
 	{
-		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str, str.c_str());
+		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str.c_str(), str.c_str());
 		m_RenderFrame->SetTitle(titleStr);
 	}
 }

@@ -183,10 +183,11 @@ private:
 		Header()
 			: key_t_size(sizeof(K))
 			, value_t_size(sizeof(V))
+			, ver{0}
 		{
 			// Null-terminator is intentionally not copied.
 			std::memcpy(&id, "DCAC", sizeof(u32));
-			std::memcpy(ver, scm_rev_git_str, 40);
+			std::memcpy(ver, scm_rev_git_str.c_str(), std::min(scm_rev_git_str.size(), sizeof(ver)));
 		}
 
 		u32 id;

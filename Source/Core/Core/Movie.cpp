@@ -1319,7 +1319,7 @@ void GetSettings()
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 	unsigned int tmp;
-	for (int i = 0; i < 20; ++i)
+	for (size_t i = 0; i < scm_rev_git_str.size() / 2 ; ++i)
 	{
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		s_revision[i] = tmp;
