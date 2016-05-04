@@ -48,7 +48,7 @@ static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
 
-static u32 s_framesToSkip = 0, s_frameSkipCounter = 0;
+static u32 s_framesToSkip = 0, s_frameSkipCounter = 0, s_lastFrameSkipCounter = 0;
 
 static u8 s_numPads = 0;
 static ControllerState s_padState;
@@ -274,10 +274,18 @@ void FrameSkipping()
 
 		s_frameSkipCounter++;
 		if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
+		{
+			s_lastFrameSkipCounter = s_frameSkipCounter;
 			s_frameSkipCounter = 0;
+		}
 
 		Fifo::SetRendering(!s_frameSkipCounter);
 	}
+}
+
+int GetLastSkippedFrames()
+{
+	return s_lastFrameSkipCounter;
 }
 
 bool IsRecordingInput()
