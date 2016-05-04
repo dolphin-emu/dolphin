@@ -23,6 +23,7 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
 {
 	setWindowTitle(tr("Dolphin"));
 	setWindowIcon(QIcon(Resources::GetMisc(Resources::LOGO_SMALL)));
+	setUnifiedTitleAndToolBarOnMac(true);
 
 	CreateComponents();
 
