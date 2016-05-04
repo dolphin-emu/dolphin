@@ -29,7 +29,7 @@ signals:
 	void ScreenShotPressed();
 
 	void PathsPressed();
-
+	void SettingsPressed();
 private:
 	void MakeActions();
 	void UpdateIcons();
