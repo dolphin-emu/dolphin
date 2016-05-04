@@ -18,7 +18,7 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/PathDialog.h"
-
+#include "DolphinQt2/Config/SettingsWindow.h"
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
 	setWindowTitle(tr("Dolphin"));
@@ -48,6 +48,7 @@ void MainWindow::CreateComponents()
 	m_render_widget = new RenderWidget;
 	m_stack = new QStackedWidget(this);
 	m_paths_dialog = new PathDialog(this);
+	m_settings_window = new SettingsWindow(this);
 }
 
 void MainWindow::ConnectMenuBar()
@@ -96,6 +97,7 @@ void MainWindow::ConnectToolBar()
 	connect(m_tool_bar, &ToolBar::FullScreenPressed, this, &MainWindow::FullScreen);
 	connect(m_tool_bar, &ToolBar::ScreenShotPressed, this, &MainWindow::ScreenShot);
 	connect(m_tool_bar, &ToolBar::PathsPressed, this, &MainWindow::ShowPathsDialog);
+	connect(m_tool_bar, &ToolBar::SettingsPressed, this, &MainWindow::ShowSettingsWindow);
 
 	connect(this, &MainWindow::EmulationStarted, m_tool_bar, &ToolBar::EmulationStarted);
 	connect(this, &MainWindow::EmulationPaused, m_tool_bar, &ToolBar::EmulationPaused);
@@ -303,6 +305,13 @@ void MainWindow::ShowPathsDialog()
 	m_paths_dialog->show();
 	m_paths_dialog->raise();
 	m_paths_dialog->activateWindow();
+}
+
+void MainWindow::ShowSettingsWindow()
+{
+	m_settings_window->show();
+	m_settings_window->raise();
+	m_settings_window->activateWindow();
 }
 
 void MainWindow::ShowAboutDialog()

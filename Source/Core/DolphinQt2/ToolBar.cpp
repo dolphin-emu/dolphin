@@ -65,8 +65,7 @@ void ToolBar::MakeActions()
 
 	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
 
-	m_config_action = addAction(tr("Settings"));
-	m_config_action->setEnabled(false);
+	m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
 
 	m_graphics_action = addAction(tr("Graphics"));
 	m_graphics_action->setEnabled(false);
