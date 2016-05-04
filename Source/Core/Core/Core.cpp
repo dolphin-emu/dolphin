@@ -801,6 +801,7 @@ void UpdateTitle()
 	float FPS   = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
 	float VPS   = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
+	int SkippedFrames = Movie::GetLastSkippedFrames() - 1; // Subtract 1, as it has 1 frame regardless of if it's skipped
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
@@ -814,7 +815,7 @@ void UpdateTitle()
 		SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - %.0f%%", (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS, Speed);
 	else
 	{
-		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
+		SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%% - Skip: %d", FPS, VPS, Speed, SkippedFrames);
 		if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
 		{
 			// Use extended or summary information. The summary information does not print the ticks data,
