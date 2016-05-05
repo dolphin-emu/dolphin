@@ -94,7 +94,17 @@ static std::string BuildGameName(const GameListItem& game)
 	}
 
 	if (info.empty())
-		return name;
+	{
+		if (name.empty())
+		{
+			return game.GetName();
+		}
+		else
+		{
+			return name;
+		}
+	}
+		
 	else
 	{
 		std::ostringstream ss;
