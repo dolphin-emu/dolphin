@@ -41,7 +41,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
 #endif
 
 ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
