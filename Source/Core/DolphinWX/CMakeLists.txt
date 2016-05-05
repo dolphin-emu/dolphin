@@ -81,11 +81,6 @@ set(GUI_SRCS
 
 set(NOGUI_SRCS MainNoGUI.cpp)
 
-if(USE_X11)
-  set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
-  set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
-endif()
-
 set(WXLIBS ${wxWidgets_LIBRARIES})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
