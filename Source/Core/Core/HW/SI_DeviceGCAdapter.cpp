@@ -8,6 +8,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/NetPlayClient.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
 #include "InputCommon/GCAdapter.h"
@@ -26,7 +27,16 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
-	GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
+	if (NetPlay::IsNetPlayRunning())
+	{
+		const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
+		if (numPAD < 4)
+			GCAdapter::Input(numPAD, &PadStatus);
+	}
+	else
+	{
+		GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
+	}
 
 	HandleMoviePadStatus(&PadStatus);
 
