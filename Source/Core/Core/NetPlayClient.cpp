@@ -739,35 +739,34 @@ bool NetPlayClient::ChangeGame(const std::string&)
 void NetPlayClient::UpdateDevices()
 {
 	u8 local_pad = 0;
-	// Add local pads first:
-	// As stated in the comment in NetPlayClient::GetNetPads, the pads pertaining
-	// to the local user are always locally mapped to the first gamecube ports,
-	// so they should be added first.
+	u8 pad = 0;
+
 	for (auto player_id : m_pad_map)
 	{
 		// Use local controller types for local controllers if they are compatible
+		// Only GCController-like controllers are supported, GBA and similar
+		// exotic devices are not supported on netplay.
 		if (player_id == m_local_player->pid)
 		{
 			if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
 			{
-				SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], local_pad);
+				SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
 			}
 			else
 			{
-				SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, local_pad);
+				SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
 			}
 			local_pad++;
 		}
-	}
-	for (auto player_id : m_pad_map)
-	{
-		if (player_id != m_local_player->pid)
+		else if (player_id > 0)
 		{
-			// Only GCController-like controllers are supported, GBA and similar
-			// exotic devices are not supported on netplay.
-			SerialInterface::AddDevice(player_id > 0 ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE, local_pad);
-			local_pad++;
+			SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
 		}
+		else
+		{
+			SerialInterface::AddDevice(SIDEVICE_NONE, pad);
+		}
+		pad++;
 	}
 }
 
@@ -850,39 +849,34 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 	// If you have a 4P game, then one of the GameCubes will have
 	// a controller plugged into slot 1, and another in slot 2.
 	//
-	// The slot number is the "local" pad number, and what  player
+	// The slot number is the "local" pad number, and what player
 	// it actually means is the "in-game" pad number.
 	//
-	// The interface here gives us the status of local pads, and
-	// expects to get back "in-game" pad numbers back in response.
-	// e.g. it asks "here's the input that slot 1 has, and by the
-	// way, what's the state of P1?"
-	//
-	// We should add this split between "in-game" pads and "local"
-	// pads higher up.
+	// GetNetPads() gets called for all "in-game" pads with the their
+	// status. For the pads, which are mapped locally, the status is
+	// polled in GetPadStatus() earlier, and here it is send to the
+	// other clients. For all "in-game" pads, which are mapped to
+	// the others, the passed over status is ignored. Instead we
+	// wait for the other clients to send the status to this client.
 
-	int in_game_num = LocalPadToInGamePad(pad_nb);
-
-	// If this in-game pad is one of ours, then update from the
-	// information given.
-	if (in_game_num < 4)
+	// If this in-game pad is mapped to this client, then update
+	// with the status polled earlier in GetPadStatus()
+	if (m_pad_map[pad_nb] == m_local_player->pid)
 	{
 		// adjust the buffer either up or down
 		// inserting multiple padstates or dropping states
-		while (m_pad_buffer[in_game_num].Size() <= m_target_buffer_size)
+		while (m_pad_buffer[pad_nb].Size() <= m_target_buffer_size)
 		{
 			// add to buffer
-			m_pad_buffer[in_game_num].Push(*pad_status);
+			m_pad_buffer[pad_nb].Push(*pad_status);
 
 			// send
-			SendPadState(in_game_num, *pad_status);
+			SendPadState(pad_nb, *pad_status);
 		}
 	}
 
-	// Now, we need to swap out the local value with the values
-	// retrieved from NetPlay. This could be the value we pushed
-	// above if we're configured as P1 and the code is trying
-	// to retrieve data for slot 1.
+	// Now, we either use the data we just pushed, or wait for the
+	// other clients to send it to us
 	while (!m_pad_buffer[pad_nb].Pop(*pad_status))
 	{
 		if (!m_is_running.load())
