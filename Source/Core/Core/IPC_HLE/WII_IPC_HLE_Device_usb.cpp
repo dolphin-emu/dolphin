@@ -197,6 +197,16 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress
 	Memory::Write_U8(1, 0x80148E09);    // HID LOG
 */
 
+	// NeoGamma hack: explicitly handle invalid commands before trying to
+	// parse the command buffer, so we don't crash reading from an invalid address.
+	// FIXME: Figure out what console actually does and reflect it here.
+	u32 parameter = Memory::Read_U32(_CommandAddress + 0x0C);
+	if (parameter > 0x02) {
+		ERROR_LOG(WII_IPC_WIIMOTE, "Unknown CWII_IPC_HLE_Device_usb_oh1_57e_305: %x", parameter);
+		Memory::Write_U32(0, _CommandAddress + 4);
+		return GetDefaultReply();
+	}
+
 	bool _SendReply = false;
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
