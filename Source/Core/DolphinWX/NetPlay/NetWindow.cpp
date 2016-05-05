@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -69,18 +70,37 @@ static std::string BuildGameName(const GameListItem& game)
 {
 	// Lang needs to be consistent
 	DiscIO::IVolume::ELanguage const lang = DiscIO::IVolume::LANGUAGE_ENGLISH;
+	std::vector<std::string> info;
+	if (!game.GetUniqueID().empty())
+		info.push_back(game.GetUniqueID());
+	if (game.GetRevision() != 0)
+	{
+		std::string rev_str = "Revision ";
+		info.push_back(rev_str + std::to_string((long long)game.GetRevision()));
+	}
 
 	std::string name(game.GetName(lang));
 
-	if (game.GetRevision() != 0)
-		return name + " (" + game.GetUniqueID() + ", Revision " + std::to_string((long long)game.GetRevision()) + ")";
+	int disc_number = game.GetDiscNumber() + 1;
+
+	std::string lower_name = name;
+	std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+	if (disc_number > 1 &&
+			lower_name.find(std::string(wxString::Format("disc %i", disc_number))) == std::string::npos &&
+			lower_name.find(std::string(wxString::Format("disc%i", disc_number))) == std::string::npos)
+	{
+		std::string disc_text = "Disc ";
+		info.push_back(disc_text + std::to_string(disc_number));
+	}
+
+	if (info.empty())
+		return name;
 	else
 	{
-		if (game.GetUniqueID().empty())
-		{
-			return game.GetName();
-		}
-		return name + " (" + game.GetUniqueID() + ")";
+		std::ostringstream ss;
+		std::copy(info.begin(), info.end() -1, std::ostream_iterator<std::string>(ss, ", "));
+		ss << info.back();
+		return name + " (" + ss.str() + ")";
 	}
 }
 
