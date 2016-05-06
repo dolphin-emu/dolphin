@@ -417,10 +417,8 @@ void Input(int chan, GCPadStatus* pad)
 			pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
 			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
-		else
-		{
-			pad->button = PAD_ERR_STATUS;
-		}
+		// TODO: bring back the correct behavior introduced in 49410576e
+		// which caused issues due to how broken netplay is
 	}
 }
 
