@@ -39,7 +39,10 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 void VideoBackendBase::PopulateList()
 {
   // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+#ifndef SKIP_GL
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
+#endif
+
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
 
@@ -54,7 +57,10 @@ void VideoBackendBase::PopulateList()
 #ifndef __APPLE__
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
+
+#ifndef SKIP_GL
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
+#endif
   g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
 
   const auto iter =
