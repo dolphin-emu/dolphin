@@ -408,7 +408,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
 		// Z-Freeze
 		CMP(count_reg, 3);
 		FixupBranch dont_store = B(CC_GT);
-		MOVI2R(EncodeRegTo64(scratch2_reg), (u64)VertexLoaderManager::position_matrix_index - sizeof(u32));
+		MOVI2R(EncodeRegTo64(scratch2_reg), (u64)VertexLoaderManager::position_matrix_index);
 		STR(INDEX_UNSIGNED, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
 		SetJumpTarget(dont_store);
 

@@ -304,7 +304,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 	{
 		// If this vertex format has per-vertex position matrix IDs, look it up.
 		if (vert_decl.posmtx.enable)
-			mtxIdx = VertexLoaderManager::position_matrix_index[2 - i];
+			mtxIdx = VertexLoaderManager::position_matrix_index[3 - i];
 
 		if (vert_decl.position.components == 2)
 			VertexLoaderManager::position_cache[2 - i][2] = 0;

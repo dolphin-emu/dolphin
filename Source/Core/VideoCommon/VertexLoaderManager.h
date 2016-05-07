@@ -40,7 +40,7 @@ namespace VertexLoaderManager
 	// Position cache for zfreeze (3 vertices, 4 floats each to allow SIMD overwrite).
 	// These arrays are in reverse order.
 	extern float position_cache[3][4];
-	extern u32 position_matrix_index[3];
+	extern u32 position_matrix_index[4];
 
 	// VB_HAS_X. Bitmask telling what vertex components are present.
 	extern u32 g_current_components;

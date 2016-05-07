@@ -403,7 +403,7 @@ void VertexLoaderX64::GenerateVertexLoader()
 		// zfreeze
 		CMP(32, R(count_reg), Imm8(3));
 		FixupBranch dont_store = J_CC(CC_A);
-		MOV(32, MPIC(VertexLoaderManager::position_matrix_index - 1, count_reg, SCALE_4), R(scratch1));
+		MOV(32, MPIC(VertexLoaderManager::position_matrix_index, count_reg, SCALE_4), R(scratch1));
 		SetJumpTarget(dont_store);
 
 		m_native_components |= VB_HAS_POSMTXIDX;
