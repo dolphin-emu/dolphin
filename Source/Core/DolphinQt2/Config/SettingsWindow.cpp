@@ -153,8 +153,7 @@ void SettingsWindow::changePage(QListWidgetItem *current, QListWidgetItem *previ
 {
     if (!current)
         current = previous;
-    // Save the page we're switching out of.
-    
+    // TODO: Save the page we're switching out of.
     // And swap.
     m_settings_outer->setCurrentIndex(m_categories->row(current));
 }
