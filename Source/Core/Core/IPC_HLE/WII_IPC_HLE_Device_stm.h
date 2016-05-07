@@ -25,6 +25,12 @@ enum
   IOCTL_STM_READDDRREG2 = 0x4002,
 };
 
+enum
+{
+  STM_EVENT_RESET = 0x00020000,
+  STM_EVENT_POWER = 0x00000800
+};
+
 // The /dev/stm/immediate
 class CWII_IPC_HLE_Device_stm_immediate : public IWII_IPC_HLE_Device
 {
@@ -141,42 +147,38 @@ public:
   IPCCommandResult IOCtl(u32 _CommandAddress) override
   {
     u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
-    u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-    u32 BufferInSize = Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-
-    // Prepare the out buffer(s) with zeros as a safety precaution
-    // to avoid returning bad values
-    Memory::Memset(BufferOut, 0, BufferOutSize);
-    u32 ReturnValue = 0;
-
-    // write return value
-    switch (Parameter)
+    if (Parameter != IOCTL_STM_EVENTHOOK)
     {
-    case IOCTL_STM_EVENTHOOK:
-    {
-      m_EventHookAddress = _CommandAddress;
-
-      INFO_LOG(WII_IPC_STM, "%s registers event hook:", GetDeviceName().c_str());
-      DEBUG_LOG(WII_IPC_STM, "%x - IOCTL_STM_EVENTHOOK", Parameter);
-      DEBUG_LOG(WII_IPC_STM, "BufferIn: 0x%08x", BufferIn);
-      DEBUG_LOG(WII_IPC_STM, "BufferInSize: 0x%08x", BufferInSize);
-      DEBUG_LOG(WII_IPC_STM, "BufferOut: 0x%08x", BufferOut);
-      DEBUG_LOG(WII_IPC_STM, "BufferOutSize: 0x%08x", BufferOutSize);
-
-      DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_STM);
-    }
-    break;
-
-    default:
-      _dbg_assert_msg_(WII_IPC_STM, 0, "unknown %s ioctl %x", GetDeviceName().c_str(), Parameter);
-      break;
+      ERROR_LOG(WII_IPC_STM, "Bad IOCtl in CWII_IPC_HLE_Device_stm_eventhook");
+      Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
+      return GetDefaultReply();
     }
 
-    // Write return value to the IPC call, 0 means success
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-    return GetDefaultReply();
+    // IOCTL_STM_EVENTHOOK waits until the reset button or power button
+    // is pressed.
+    m_EventHookAddress = _CommandAddress;
+    return GetNoReply();
+  }
+
+  void ResetButton()
+  {
+    if (!m_Active || m_EventHookAddress == 0)
+    {
+      // If the device isn't open, ignore the button press.
+      return;
+    }
+
+    // The reset button returns STM_EVENT_RESET.
+    u32 BufferOut = Memory::Read_U32(m_EventHookAddress + 0x18);
+    Memory::Write_U32(STM_EVENT_RESET, BufferOut);
+
+    // Fill in command buffer.
+    Memory::Write_U32(FS_SUCCESS, m_EventHookAddress + 4);
+    Memory::Write_U32(IPC_REP_ASYNC, m_EventHookAddress);
+    Memory::Write_U32(IPC_CMD_IOCTL, m_EventHookAddress + 8);
+
+    // Generate a reply to the IPC command.
+    WII_IPC_HLE_Interface::EnqueueReply_Immediate(m_EventHookAddress);
   }
 
   // STATE_TO_SAVE
