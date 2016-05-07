@@ -17,9 +17,8 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
-#include "Core/ConfigManager.h"
 #include "SettingsPages.h"
-
+#include "Core/ConfigManager.h"
 
 SettingPage::SettingPage(QWidget *parent)
     : QWidget(parent)
