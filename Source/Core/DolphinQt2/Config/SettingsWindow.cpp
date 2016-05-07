@@ -68,18 +68,18 @@ void SettingsWindow::MakeCategoryList()
 {
     QString dir = Settings().GetThemeDir();
     m_categories = new QListWidget;
-    m_categories->setMaximumWidth(184);
-    m_categories->setViewMode(QListView::IconMode);
-    m_categories->setIconSize(QSize(64, 64));
+    m_categories->setMaximumWidth(150);
+    //m_categories->setViewMode(QListView::IconMode);
+    m_categories->setIconSize(QSize(32, 32));
     m_categories->setMovement(QListView::Static);
-    m_categories->setSpacing(12);
+    m_categories->setSpacing(2);
 
     // General
     QListWidgetItem* generalButton = new QListWidgetItem();
     generalButton->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
     generalButton->setText(tr("General"));
-    generalButton->setTextAlignment(Qt::AlignHCenter);
-    generalButton->setSizeHint(QSize(64, 64));
+    generalButton->setTextAlignment(Qt::AlignVCenter);
+    generalButton->setSizeHint(QSize(28, 28));
     generalButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(generalButton);
 
@@ -87,8 +87,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* graphicsButton = new QListWidgetItem();
     graphicsButton->setIcon(QIcon(QStringLiteral("graphics.png").prepend(dir)));
     graphicsButton->setText(tr("Graphics"));
-    graphicsButton->setTextAlignment(Qt::AlignHCenter);
-    graphicsButton->setSizeHint(QSize(64, 64));
+    graphicsButton->setTextAlignment(Qt::AlignVCenter);
+    graphicsButton->setSizeHint(QSize(28, 28));
     graphicsButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(graphicsButton);
 
@@ -96,8 +96,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* interfaceButton = new QListWidgetItem();
     interfaceButton->setIcon(QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
     interfaceButton->setText(tr("Interface"));
-    interfaceButton->setTextAlignment(Qt::AlignHCenter);
-    interfaceButton->setSizeHint(QSize(64, 64));
+    interfaceButton->setTextAlignment(Qt::AlignVCenter);
+    interfaceButton->setSizeHint(QSize(28, 28));
     interfaceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(interfaceButton);
 
@@ -105,8 +105,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* audioButton = new QListWidgetItem();
     audioButton->setIcon(QIcon(QStringLiteral("play.png").prepend(dir)));
     audioButton->setText(tr("Audio"));
-    audioButton->setTextAlignment(Qt::AlignHCenter);
-    audioButton->setSizeHint(QSize(64, 64));
+    audioButton->setTextAlignment(Qt::AlignVCenter);
+    audioButton->setSizeHint(QSize(28, 28));
     audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(audioButton);
 
@@ -114,8 +114,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* gamecubeButton = new QListWidgetItem();
     gamecubeButton->setIcon(QIcon(QStringLiteral("gcpad.png").prepend(dir)));
     gamecubeButton->setText(tr("Gamecube"));
-    gamecubeButton->setTextAlignment(Qt::AlignHCenter);
-    gamecubeButton->setSizeHint(QSize(64, 64));
+    gamecubeButton->setTextAlignment(Qt::AlignVCenter);
+    gamecubeButton->setSizeHint(QSize(28, 28));
     gamecubeButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(gamecubeButton);
 
@@ -123,8 +123,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* wiiButton = new QListWidgetItem();
     wiiButton->setIcon(QIcon(QStringLiteral("wiimote.png").prepend(dir)));
     wiiButton->setText(tr("Wii"));
-    wiiButton->setTextAlignment(Qt::AlignHCenter);
-    wiiButton->setSizeHint(QSize(64, 64));
+    wiiButton->setTextAlignment(Qt::AlignVCenter);
+    wiiButton->setSizeHint(QSize(28, 28));
     wiiButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(wiiButton);
 
@@ -132,8 +132,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* pathsButton = new QListWidgetItem();
     pathsButton->setIcon(QIcon(QStringLiteral("browse.png").prepend(dir)));
     pathsButton->setText(tr("Paths"));
-    pathsButton->setTextAlignment(Qt::AlignHCenter);
-    pathsButton->setSizeHint(QSize(64, 64));
+    pathsButton->setTextAlignment(Qt::AlignVCenter);
+    pathsButton->setSizeHint(QSize(28, 28));
     pathsButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(pathsButton);
 
@@ -141,8 +141,8 @@ void SettingsWindow::MakeCategoryList()
     QListWidgetItem* advancedButton = new QListWidgetItem();
     advancedButton->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
     advancedButton->setText(tr("Advanced"));
-    advancedButton->setTextAlignment(Qt::AlignHCenter);
-    advancedButton->setSizeHint(QSize(64, 64));
+    advancedButton->setTextAlignment(Qt::AlignVCenter);
+    advancedButton->setSizeHint(QSize(28, 28));
     advancedButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     m_categories->addItem(advancedButton);
 
