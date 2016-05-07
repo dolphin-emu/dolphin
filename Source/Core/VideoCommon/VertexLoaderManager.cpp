@@ -28,7 +28,10 @@
 namespace VertexLoaderManager
 {
 float position_cache[3][4];
-u32 position_matrix_index[3];
+
+// The counter added to the address of the array is 1, 2, or 3, but never zero.
+// So only index 1 - 3 are used.
+u32 position_matrix_index[4];
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;

@@ -194,7 +194,7 @@ int VertexLoaderARM64::ReadVertex(u64 attribute, int format, int count_in, int c
   {
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
-    MOVI2R(EncodeRegTo64(scratch2_reg), (u64)VertexLoaderManager::position_cache);
+    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_cache);
     ADD(EncodeRegTo64(scratch1_reg), EncodeRegTo64(scratch2_reg), EncodeRegTo64(count_reg),
         ArithOption(EncodeRegTo64(count_reg), ST_LSL, 4));
     m_float_emit.STUR(write_size, coords, EncodeRegTo64(scratch1_reg), -16);
@@ -392,11 +392,11 @@ void VertexLoaderARM64::GenerateVertexLoader()
     MOV(skipped_reg, WZR);
   MOV(saved_count, count_reg);
 
-  MOVI2R(stride_reg, (u64)&g_main_cp_state.array_strides);
-  MOVI2R(arraybase_reg, (u64)&VertexLoaderManager::cached_arraybases);
+  MOVP2R(stride_reg, g_main_cp_state.array_strides);
+  MOVP2R(arraybase_reg, VertexLoaderManager::cached_arraybases);
 
   if (need_scale)
-    MOVI2R(scale_reg, (u64)&scale_factors);
+    MOVP2R(scale_reg, scale_factors);
 
   const u8* loop_start = GetCodePtr();
 
@@ -409,8 +409,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
     // Z-Freeze
     CMP(count_reg, 3);
     FixupBranch dont_store = B(CC_GT);
-    MOVI2R(EncodeRegTo64(scratch2_reg),
-           (u64)VertexLoaderManager::position_matrix_index - sizeof(u32));
+    MOVP2R(EncodeRegTo64(scratch2_reg), VertexLoaderManager::position_matrix_index);
     STR(INDEX_UNSIGNED, scratch1_reg, EncodeRegTo64(scratch2_reg), 0);
     SetJumpTarget(dont_store);
 
