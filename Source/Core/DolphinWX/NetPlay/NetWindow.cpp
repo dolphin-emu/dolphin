@@ -80,6 +80,8 @@ static std::string BuildGameName(const GameListItem& game)
 	}
 
 	std::string name(game.GetName(lang));
+	if (name.empty())
+		name = game.GetName();
 
 	int disc_number = game.GetDiscNumber() + 1;
 
@@ -92,16 +94,12 @@ static std::string BuildGameName(const GameListItem& game)
 		std::string disc_text = "Disc ";
 		info.push_back(disc_text + std::to_string(disc_number));
 	}
-
 	if (info.empty())
 		return name;
-	else
-	{
-		std::ostringstream ss;
-		std::copy(info.begin(), info.end() -1, std::ostream_iterator<std::string>(ss, ", "));
-		ss << info.back();
-		return name + " (" + ss.str() + ")";
-	}
+	std::ostringstream ss;
+	std::copy(info.begin(), info.end() -1, std::ostream_iterator<std::string>(ss, ", "));
+	ss << info.back();
+	return name + " (" + ss.str() + ")";
 }
 
 void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
