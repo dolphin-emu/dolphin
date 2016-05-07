@@ -19,7 +19,6 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
-static const char* NETPLAY_VERSION = scm_rev_git_str;
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
 NetSettings g_NetPlaySettings;
@@ -162,7 +161,7 @@ bool NetPlayClient::Connect()
 {
 	// send connect message
 	sf::Packet spac;
-	spac << NETPLAY_VERSION;
+	spac << scm_rev_git_str;
 	spac << netplay_dolphin_ver;
 	spac << m_player_name;
 	Send(spac);

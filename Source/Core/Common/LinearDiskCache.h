@@ -77,6 +77,7 @@ public:
 		std::fstream::pos_type start_pos = m_file.tellg();
 		std::streamoff file_size = end_pos - start_pos;
 
+		m_header.Init();
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
@@ -180,18 +181,17 @@ private:
 
 	struct Header
 	{
-		Header()
-			: key_t_size(sizeof(K))
-			, value_t_size(sizeof(V))
+		void Init()
 		{
 			// Null-terminator is intentionally not copied.
 			std::memcpy(&id, "DCAC", sizeof(u32));
-			std::memcpy(ver, scm_rev_git_str, 40);
+			std::memcpy(ver, scm_rev_git_str.c_str(), std::min(scm_rev_git_str.size(), sizeof(ver)));
 		}
 
 		u32 id;
-		const u16 key_t_size, value_t_size;
-		char ver[40];
+		const u16 key_t_size = sizeof(K);
+		const u16 value_t_size = sizeof(V);
+		char ver[40] = {};
 
 	} m_header;
 
