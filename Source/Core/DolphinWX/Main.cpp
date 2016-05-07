@@ -37,6 +37,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/SoftwareVideoConfigDialog.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -366,10 +367,21 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 {
 #ifdef __WXGTK__
 	if (wxIsMainThread())
+	{
 #endif
-		return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
-				(yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
+		NetPlayDialog*& npd = NetPlayDialog::GetInstance();
+		if (npd == nullptr)
+		{
+			return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
+					(yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
+		}
+		else
+		{
+			npd->AppendChat("/!\\ " + std::string{text});
+			return true;
+		}
 #ifdef __WXGTK__
+	}
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
