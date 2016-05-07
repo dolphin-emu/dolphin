@@ -861,21 +861,19 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 	// We should add this split between "in-game" pads and "local"
 	// pads higher up.
 
-	int in_game_num = LocalPadToInGamePad(pad_nb);
-
 	// If this in-game pad is one of ours, then update from the
 	// information given.
-	if (in_game_num < 4)
+	if (m_pad_map[pad_nb] == m_local_player->pid)
 	{
 		// adjust the buffer either up or down
 		// inserting multiple padstates or dropping states
-		while (m_pad_buffer[in_game_num].Size() <= m_target_buffer_size)
+		while (m_pad_buffer[pad_nb].Size() <= m_target_buffer_size)
 		{
 			// add to buffer
-			m_pad_buffer[in_game_num].Push(*pad_status);
+			m_pad_buffer[pad_nb].Push(*pad_status);
 
 			// send
-			SendPadState(in_game_num, *pad_status);
+			SendPadState(pad_nb, *pad_status);
 		}
 	}
 
@@ -1059,25 +1057,6 @@ u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
 	}
 
 	return local_pad;
-}
-
-u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
-{
-	// Figure out which in-game pad maps to which local pad.
-	// The logic we have here is that the local slots always
-	// go in order.
-	int local_pad_count = -1;
-	int ingame_pad = 0;
-	for (; ingame_pad < 4; ingame_pad++)
-	{
-		if (m_pad_map[ingame_pad] == m_local_player->pid)
-			local_pad_count++;
-
-		if (local_pad_count == local_pad)
-			break;
-	}
-
-	return ingame_pad;
 }
 
 u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)

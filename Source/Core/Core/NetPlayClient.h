@@ -75,7 +75,6 @@ public:
 	void OnConnectReady(ENetAddress addr) override;
 	void OnConnectFailed(u8 reason) override;
 
-	u8 LocalPadToInGamePad(u8 localPad);
 	u8 InGamePadToLocalPad(u8 localPad);
 
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
