@@ -20,9 +20,6 @@
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
 {
-  if (line[0] == '#')
-    return;
-
   size_t firstEquals = line.find("=", 0);
 
   if (firstEquals != std::string::npos)
@@ -354,6 +351,13 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
       line.erase(line.size() - 1);
     }
 #endif
+
+    // Remove comments from lines. After the first # is encountered, the rest of the line
+    // is considered to be a comment. This handles cases where the line starts with #, as
+    // well as comments after the section or setting.
+    size_t comment_pos = line.find('#');
+    if (comment_pos != std::string::npos)
+      line = line.substr(0, comment_pos);
 
     if (line.size() > 0)
     {
