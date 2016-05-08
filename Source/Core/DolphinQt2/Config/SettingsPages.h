@@ -17,33 +17,45 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWidget>
+
 class SettingPage : public QWidget
 {
 public:
-    SettingPage(QWidget *parent = 0);
+    SettingPage(QWidget* parent = nullptr);
     void LoadConfig();
+
+private slots:
     void SaveConfig();
 };
 
-class GeneralPage :public SettingPage
+class GeneralPage : public SettingPage
 {
 public:
     GeneralPage();
     void LoadConfig();
+
+private slots:
     void SaveConfig();
+
 private:
-    // Top layout
+    void buildBasicSettings();
+    void buildAdvancedSettings();
+
+    QVBoxLayout* configLayout;
+
+    // Basic Group
     QCheckBox* enableDualCore;
     QCheckBox* enableIdleSkip;
     QCheckBox* enableCheats;
-    QCheckBox* forceNTSC;
+    QComboBox* speedLimit;
 
-    QComboBox *speedLimit;
-
+    // Advanced Group
     QRadioButton* cpu_Interpreter;
     QRadioButton* cpu_CachedInterpreter;
     QRadioButton* cpu_JITRecompiler;
     QRadioButton* cpu_JITILRecompiler;
+
+    QCheckBox* forceNTSC;
 };
 
 class GraphicsPage : public SettingPage

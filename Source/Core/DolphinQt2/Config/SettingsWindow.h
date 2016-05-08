@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include <QDialog>
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QHBoxLayout>
-#include <QListWidget>
-#include <QStackedWidget>
+class QDialog;
+class QListWidget;
+class QListWidgetItem;
+class QStackedWidget;
+class QWidget;
 
 class SettingsWindow final : public QDialog
 {
@@ -18,8 +17,7 @@ public:
     explicit SettingsWindow(QWidget* parent = nullptr);
 
 public slots:
-    void changePage(QListWidgetItem *current, QListWidgetItem *previous);
-signals:
+    void changePage(QListWidgetItem* current, QListWidgetItem* previous);
 
 private:
     void MakeCategoryList();
