@@ -134,11 +134,12 @@ void VideoConfig::GameIniLoad()
   do                                                                                               \
   {                                                                                                \
     decltype(var) temp = var;                                                                      \
-    if (iniFile.GetIfExists(section, key, &var) && var != temp)                                    \
+    if (iniFile.GetIfExists(section, key, &temp) && var != temp)                                   \
     {                                                                                              \
       std::string msg = StringFromFormat("Note: Option \"%s\" is overridden by game ini.", key);   \
       OSD::AddMessage(msg, 7500);                                                                  \
       gfx_override_exists = true;                                                                  \
+      var = temp;                                                                                  \
     }                                                                                              \
   } while (0)
 
