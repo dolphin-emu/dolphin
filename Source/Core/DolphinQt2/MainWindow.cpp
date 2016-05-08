@@ -12,6 +12,7 @@
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/HW/ProcessorInterface.h"
+
 #include "DolphinQt2/AboutDialog.h"
 #include "DolphinQt2/Host.h"
 #include "DolphinQt2/MainWindow.h"
@@ -19,6 +20,7 @@
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/PathDialog.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
 	setWindowTitle(tr("Dolphin"));

@@ -2,29 +2,30 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <QAction>
-#include <QDialogButtonBox>
-#include <QDir>
-#include <QFileDialog>
-#include <QFont>
-#include <QLabel>
-#include <QLineEdit>
-#include <QListWidget>
-#include <QPushButton>
-#include <QSize>
-#include <QSizePolicy>
-#include <QStackedWidget>
-#include <QVBoxLayout>
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/SettingsPages.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+
+class QAction;
+class QDialogButtonBox;
+class QDir;
+class QDialog;
+class QFileDialog;
+class QFont;
+class QLabel;
+class QListWidget;
+class QPushButton;
+class QSize;
+class QSizePolicy;
+class QStackedWidget;
+class QVBoxLayout;
 
 SettingsWindow::SettingsWindow(QWidget* parent)
     : QDialog(parent)
 {
     // Set Window Properties
     setWindowTitle(tr("Settings"));
-    resize(640,480);
+    resize(640,600);
 
     // Main Layout
     QVBoxLayout* layout = new QVBoxLayout;
