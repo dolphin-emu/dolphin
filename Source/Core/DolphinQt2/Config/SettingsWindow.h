@@ -8,6 +8,7 @@ class QDialog;
 class QListWidget;
 class QListWidgetItem;
 class QStackedWidget;
+class QString;
 class QWidget;
 
 class SettingsWindow final : public QDialog
@@ -21,6 +22,7 @@ public slots:
 
 private:
     void MakeCategoryList();
+    void AddCategoryToList(QString title, QString icon);
     void SetupSettingsWidget();
     QStackedWidget* m_settings_outer;
     QListWidget* m_categories;

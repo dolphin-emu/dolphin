@@ -25,7 +25,7 @@ SettingsWindow::SettingsWindow(QWidget* parent)
 {
     // Set Window Properties
     setWindowTitle(tr("Settings"));
-    resize(640,600);
+    resize(720,600);
 
     // Main Layout
     QVBoxLayout* layout = new QVBoxLayout;
@@ -60,92 +60,46 @@ void SettingsWindow::SetupSettingsWidget()
     m_settings_outer = new QStackedWidget;
 
     m_settings_outer->addWidget(new GeneralPage);
-    m_settings_outer->addWidget(new GraphicsPage);
+    //m_settings_outer->addWidget(new GraphicsPage);
     m_settings_outer->setCurrentIndex(0);
 
 }
 
-void SettingsWindow::MakeCategoryList()
+void SettingsWindow::AddCategoryToList(QString title, QString icon)
 {
     QString dir = Settings().GetThemeDir();
+
+    QListWidgetItem* button = new QListWidgetItem();
+    button->setIcon(QIcon(icon.prepend(dir)));
+    button->setText(title);
+    button->setTextAlignment(Qt::AlignVCenter);
+    button->setSizeHint(QSize(28, 28));
+    button->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+    m_categories->addItem(button);
+}
+
+void SettingsWindow::MakeCategoryList()
+{   
+    QString dir = Settings().GetThemeDir();
     m_categories = new QListWidget;
-    m_categories->setMaximumWidth(150);
+    m_categories->setMaximumWidth(175);
     //m_categories->setViewMode(QListView::IconMode);
     m_categories->setIconSize(QSize(32, 32));
     m_categories->setMovement(QListView::Static);
-    m_categories->setSpacing(2);
+    m_categories->setSpacing(0);
 
-    // General
-    QListWidgetItem* generalButton = new QListWidgetItem();
-    generalButton->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
-    generalButton->setText(tr("General"));
-    generalButton->setTextAlignment(Qt::AlignVCenter);
-    generalButton->setSizeHint(QSize(28, 28));
-    generalButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(generalButton);
-
-    // General
-    QListWidgetItem* graphicsButton = new QListWidgetItem();
-    graphicsButton->setIcon(QIcon(QStringLiteral("graphics.png").prepend(dir)));
-    graphicsButton->setText(tr("Graphics"));
-    graphicsButton->setTextAlignment(Qt::AlignVCenter);
-    graphicsButton->setSizeHint(QSize(28, 28));
-    graphicsButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(graphicsButton);
-
-    // Interface
-    QListWidgetItem* interfaceButton = new QListWidgetItem();
-    interfaceButton->setIcon(QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
-    interfaceButton->setText(tr("Interface"));
-    interfaceButton->setTextAlignment(Qt::AlignVCenter);
-    interfaceButton->setSizeHint(QSize(28, 28));
-    interfaceButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(interfaceButton);
-
-    // Audio
-    QListWidgetItem* audioButton = new QListWidgetItem();
-    audioButton->setIcon(QIcon(QStringLiteral("play.png").prepend(dir)));
-    audioButton->setText(tr("Audio"));
-    audioButton->setTextAlignment(Qt::AlignVCenter);
-    audioButton->setSizeHint(QSize(28, 28));
-    audioButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(audioButton);
-
-    // Gamecube
-    QListWidgetItem* gamecubeButton = new QListWidgetItem();
-    gamecubeButton->setIcon(QIcon(QStringLiteral("gcpad.png").prepend(dir)));
-    gamecubeButton->setText(tr("Gamecube"));
-    gamecubeButton->setTextAlignment(Qt::AlignVCenter);
-    gamecubeButton->setSizeHint(QSize(28, 28));
-    gamecubeButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(gamecubeButton);
-
-    // Wii
-    QListWidgetItem* wiiButton = new QListWidgetItem();
-    wiiButton->setIcon(QIcon(QStringLiteral("wiimote.png").prepend(dir)));
-    wiiButton->setText(tr("Wii"));
-    wiiButton->setTextAlignment(Qt::AlignVCenter);
-    wiiButton->setSizeHint(QSize(28, 28));
-    wiiButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(wiiButton);
-
-    // Paths
-    QListWidgetItem* pathsButton = new QListWidgetItem();
-    pathsButton->setIcon(QIcon(QStringLiteral("browse.png").prepend(dir)));
-    pathsButton->setText(tr("Paths"));
-    pathsButton->setTextAlignment(Qt::AlignVCenter);
-    pathsButton->setSizeHint(QSize(28, 28));
-    pathsButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(pathsButton);
-
-    // Advanced
-    QListWidgetItem* advancedButton = new QListWidgetItem();
-    advancedButton->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
-    advancedButton->setText(tr("Advanced"));
-    advancedButton->setTextAlignment(Qt::AlignVCenter);
-    advancedButton->setSizeHint(QSize(28, 28));
-    advancedButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
-    m_categories->addItem(advancedButton);
+    AddCategoryToList(tr("General"),QStringLiteral("config.png"));
+    AddCategoryToList(tr("Interface"),QStringLiteral("browse.png"));
+    AddCategoryToList(tr("Graphics"),QStringLiteral("graphics.png"));
+    AddCategoryToList(tr("Enhancements"),QStringLiteral("screenshot.png"));
+    AddCategoryToList(tr("CPU"),QStringLiteral("refresh.png"));
+    AddCategoryToList(tr("Audio"),QStringLiteral("play.png"));
+    AddCategoryToList(tr("GameCube"),QStringLiteral("gcpad.png"));
+    AddCategoryToList(tr("Wii"),QStringLiteral("wiimote.png"));
+    AddCategoryToList(tr("Data"),QStringLiteral("open.png"));
+    AddCategoryToList(tr("Textures"),QStringLiteral("stop.png"));
+    AddCategoryToList(tr("Hacks"),QStringLiteral("config.png"));
+    AddCategoryToList(tr("Debug"),QStringLiteral("refresh.png"));
 
     connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
