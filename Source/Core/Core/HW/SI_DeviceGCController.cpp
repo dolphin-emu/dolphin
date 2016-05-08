@@ -145,13 +145,9 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
 	GCPadStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
 
-	if (NetPlay::IsNetPlayRunning())
-	{
-		const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
-		if (numPAD < 4)
-			Pad::GetStatus(numPAD, &PadStatus);
-	}
-	else
+	// For netplay, the local controllers are polled in GetNetPads(), and
+	// the remote controllers receive their status there as well
+	if (!NetPlay::IsNetPlayRunning())
 	{
 		Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 	}
