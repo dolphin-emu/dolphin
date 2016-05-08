@@ -20,12 +20,18 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class SettingPage : public QWidget
+#include "SettingsPages.h"
+
+class InterfacePage : public SettingPage
 {
 public:
-    SettingPage(QWidget* parent = nullptr);
+    InterfacePage();
     void LoadConfig();
-
-private slots:
     void SaveConfig();
+private:
+    void BuildOptions();
+    void BuildUIOptions();
+    void BuildInGameOptions();
+
+    QVBoxLayout* mainLayout;
 };

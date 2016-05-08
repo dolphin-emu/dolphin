@@ -1,48 +1,42 @@
-#include <QAction>
-#include <QCheckBox>
-#include <QComboBox>
-#include <QDialogButtonBox>
-#include <QDir>
-#include <QFileDialog>
-#include <QFont>
-#include <QGroupBox>
-#include <QLabel>
-#include <QLineEdit>
-#include <QListWidget>
-#include <QPushButton>
-#include <QRadioButton>
-#include <QSize>
-#include <QSizePolicy>
-#include <QSlider>
-#include <QStackedWidget>
-#include <QVBoxLayout>
+class QAction;
+class QCheckBox;
+class QComboBox;
+class QDialogButtonBox;
+class QDir;
+class QFileDialog;
+class QFont;
+class QGroupBox;
+class QLabel;
+class QLineEdit;
+class QListWidget;
+class QPushButton;
+class QRadioButton;
+class QSize;
+class QSizePolicy;
+class QSlider;
+class QStackedWidget;
+class QVBoxLayout;
 
-#include "SettingsPages.h"
+#include "DolphinQt2/Config/GraphicsPage.h"
+
+void GraphicsPage::BuildOptions()
+{
+    QGroupBox* basicGroup = new QGroupBox(tr("Basic Settings"));
+    QVBoxLayout* basicGroupLayout = new QVBoxLayout;
+    basicGroup->setLayout(basicGroupLayout);
+    mainLayout->addWidget(basicGroup);
+
+    QComboBox* backendSelect = new QComboBox;
+    //TODO: Hardcoded
+    backendSelect->addItem(tr("OpenGL"));
+    backendSelect->addItem(tr("Software"));
+
+    basicGroupLayout->addWidget(backendSelect);
+}
 
 GraphicsPage::GraphicsPage()
 {
-    QGroupBox *configGroup = new QGroupBox(tr("Graphics"));
-    QVBoxLayout *configLayout = new QVBoxLayout;
-
-    {
-        QGroupBox *basicGroup = new QGroupBox(tr("Basic"));
-        configLayout->addWidget(basicGroup);
-
-        QComboBox *backendSelect = new QComboBox;
-        //TODO: Hardcoded
-        backendSelect->addItem(tr("OpenGL"));
-        backendSelect->addItem(tr("Software"));
-
-        QVBoxLayout *basicGroupLayout = new QVBoxLayout;
-
-        basicGroupLayout->addWidget(backendSelect);
-
-        basicGroup->setLayout(basicGroupLayout);
-    }
-
-    configGroup->setLayout(configLayout);
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(configGroup);
-    mainLayout->addStretch(1);
+    mainLayout = new QVBoxLayout;
+    BuildOptions();
     setLayout(mainLayout);
 }

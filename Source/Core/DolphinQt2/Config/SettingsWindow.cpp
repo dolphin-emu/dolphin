@@ -3,8 +3,14 @@
 // Refer to the license.txt file included.
 
 #include "DolphinQt2/Settings.h"
+#include "DolphinQt2/Config/GeneralPage.h"
+#include "DolphinQt2/Config/GraphicsPage.h"
+#include "DolphinQt2/Config/InterfacePage.h"
 #include "DolphinQt2/Config/SettingsPages.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+
+
+
 
 class QAction;
 class QDialogButtonBox;
@@ -60,7 +66,8 @@ void SettingsWindow::SetupSettingsWidget()
     m_settings_outer = new QStackedWidget;
 
     m_settings_outer->addWidget(new GeneralPage);
-    //m_settings_outer->addWidget(new GraphicsPage);
+    m_settings_outer->addWidget(new InterfacePage);
+    m_settings_outer->addWidget(new GraphicsPage);
     m_settings_outer->setCurrentIndex(0);
 
 }
@@ -79,7 +86,7 @@ void SettingsWindow::AddCategoryToList(QString title, QString icon)
 }
 
 void SettingsWindow::MakeCategoryList()
-{   
+{
     QString dir = Settings().GetThemeDir();
     m_categories = new QListWidget;
     m_categories->setMaximumWidth(175);

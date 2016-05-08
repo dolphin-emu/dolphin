@@ -17,6 +17,7 @@ set(SRCS
 	Config/SettingsWindow.cpp
 	Config/GeneralPage.cpp
 	Config/GraphicsPage.cpp
+	Config/InterfacePage.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
 	GameList/GameListModel.cpp
