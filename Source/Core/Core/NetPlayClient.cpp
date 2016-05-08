@@ -19,6 +19,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "InputCommon/GCAdapter.h"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
@@ -864,31 +865,43 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 	//
 	// The slot number is the "local" pad number, and what player
 	// it actually means is the "in-game" pad number.
-	//
-	// GetNetPads() gets called for all "in-game" pads with the their
-	// status. For the pads, which are mapped locally, the status is
-	// polled in GetPadStatus() earlier, and here it is send to the
-	// other clients. For all "in-game" pads, which are mapped to
-	// the others, the passed over status is ignored. Instead we
-	// wait for the other clients to send the status to this client.
 
-	// If this in-game pad is mapped to this client, then update
-	// with the status polled earlier in GetPadStatus()
-	if (m_pad_map[pad_nb] == m_local_player->pid)
+	// When the 1st in-game pad is polled, we assume the others will
+	// will be polled as well. To reduce latency, we poll all local
+	// controllers at once and then send the status to the other
+	// clients.
+	if (IsFirstInGamePad(pad_nb))
 	{
-		// adjust the buffer either up or down
-		// inserting multiple padstates or dropping states
-		while (m_pad_buffer[pad_nb].Size() <= m_target_buffer_size)
+		const u8 num_local_pads = NumLocalPads();
+		for (u8 local_pad = 0; local_pad < num_local_pads; local_pad++)
 		{
-			// add to buffer
-			m_pad_buffer[pad_nb].Push(*pad_status);
+			switch (SConfig::GetInstance().m_SIDevice[local_pad])
+			{
+			case SIDEVICE_WIIU_ADAPTER:
+				GCAdapter::Input(local_pad, pad_status);
+				break;
+			case SIDEVICE_GC_CONTROLLER:
+			default:
+				Pad::GetStatus(local_pad, pad_status);
+				break;
+			}
 
-			// send
-			SendPadState(pad_nb, *pad_status);
+			u8 ingame_pad = LocalPadToInGamePad(local_pad);
+
+			// adjust the buffer either up or down
+			// inserting multiple padstates or dropping states
+			while (m_pad_buffer[ingame_pad].Size() <= m_target_buffer_size)
+			{
+				// add to buffer
+				m_pad_buffer[ingame_pad].Push(*pad_status);
+
+				// send
+				SendPadState(ingame_pad, *pad_status);
+			}
 		}
 	}
 
-	// Now, we either use the data we just pushed, or wait for the
+	// Now, we either use the data pushed earlier, or wait for the
 	// other clients to send it to us
 	while (!m_pad_buffer[pad_nb].Pop(*pad_status))
 	{
@@ -1059,6 +1072,20 @@ bool NetPlayClient::LocalPlayerHasControllerMapped() const
 
 	return std::any_of(m_pad_map.begin(),     m_pad_map.end(),     mapping_matches_player_id) ||
 	       std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
+}
+
+bool NetPlayClient::IsFirstInGamePad(u8 ingame_pad) const
+{
+	return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad, [](auto mapping) {
+		return mapping > 0;
+	});
+}
+
+u8 NetPlayClient::NumLocalPads() const
+{
+	return static_cast<u8>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
+		return mapping == m_local_player->pid;
+	}));
 }
 
 u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
