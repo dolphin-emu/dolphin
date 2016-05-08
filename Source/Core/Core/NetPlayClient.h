@@ -75,8 +75,11 @@ public:
 	void OnConnectReady(ENetAddress addr) override;
 	void OnConnectFailed(u8 reason) override;
 
+	bool IsFirstInGamePad(u8 ingame_pad);
+	u8 NumLocalPads();
+
+	u8 InGamePadToLocalPad(u8 ingame_pad);
 	u8 LocalPadToInGamePad(u8 localPad);
-	u8 InGamePadToLocalPad(u8 localPad);
 
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
 
