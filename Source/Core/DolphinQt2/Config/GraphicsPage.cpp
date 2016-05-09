@@ -1,3 +1,6 @@
+#include "Core/ConfigManager.h"
+#include "DolphinQt2/Config/GraphicsPage.h"
+
 class QAction;
 class QCheckBox;
 class QComboBox;
@@ -17,7 +20,15 @@ class QSlider;
 class QStackedWidget;
 class QVBoxLayout;
 
-#include "DolphinQt2/Config/GraphicsPage.h"
+void GraphicsPage::LoadConfig()
+{
+    const SConfig& startup_params = SConfig::GetInstance();
+}
+
+void GraphicsPage::SaveConfig()
+{
+
+}
 
 void GraphicsPage::BuildOptions()
 {
@@ -38,5 +49,7 @@ GraphicsPage::GraphicsPage()
 {
     mainLayout = new QVBoxLayout;
     BuildOptions();
+    LoadConfig();
+    mainLayout->addStretch(1);
     setLayout(mainLayout);
 }

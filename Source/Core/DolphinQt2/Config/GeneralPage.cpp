@@ -32,11 +32,17 @@ void GeneralPage::LoadConfig()
 
     enableCheats->setChecked(startup_params.bEnableCheats);
     forceNTSC->setChecked(startup_params.bForceNTSCJ);
+
+    u32 selection = qRound(startup_params.m_EmulationSpeed * 10.0f);
+    if (selection < (u32)speedLimit->count())
+        speedLimit->setCurrentIndex(selection);
 }
 
 void GeneralPage::SaveConfig()
 {
-    //const SConfig& save_params = SConfig::GetInstance();
+    SConfig::GetInstance().bEnableCheats = enableCheats->isChecked();
+    SConfig::GetInstance().bForceNTSCJ = forceNTSC->isChecked();
+    SConfig::GetInstance().m_EmulationSpeed = speedLimit->currentIndex() * 0.1f;
 }
 
 void GeneralPage::BuildBasicSettings()
@@ -46,9 +52,14 @@ void GeneralPage::BuildBasicSettings()
     basicGroup->setLayout(basicGroupLayout);
     mainLayout->addWidget(basicGroup);
 
+    //TODO: Figure out how to populate this box
     language = new QComboBox;
     language->addItem(tr("English"));
-    enableCheats   = new QCheckBox(tr("Enable Cheats"));
+    enableCheats = new QCheckBox(tr("Enable Cheats"));
+
+    connect(enableCheats, &QCheckBox::clicked, this, &GeneralPage::SaveConfig);
+    connect(language, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+        [=](int index){GeneralPage::SaveConfig();});
 
     basicGroupLayout->addWidget(language);
     basicGroupLayout->addWidget(enableCheats);
@@ -76,6 +87,10 @@ void GeneralPage::BuildAdvancedSettings()
         speedLimit->addItem(str);
     }
 
+    connect(forceNTSC, &QCheckBox::clicked, this, &GeneralPage::SaveConfig);
+    connect(speedLimit, static_cast<void(QComboBox::*)(int)>(&QComboBox::activated),
+        [=](int index){GeneralPage::SaveConfig();});
+
     advancedGroupLayout->addWidget(speedLimit);
     advancedGroupLayout->addWidget(forceNTSC);
 }
@@ -91,5 +106,6 @@ GeneralPage::GeneralPage()
     mainLayout = new QVBoxLayout;
     BuildOptions();
     LoadConfig();
+    mainLayout->addStretch(1);
     setLayout(mainLayout);
 }

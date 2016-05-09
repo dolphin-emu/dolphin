@@ -1,3 +1,7 @@
+#include "Core/ConfigManager.h"
+
+#include "DolphinQt2/Config/InterfacePage.h"
+
 class QAction;
 class QCheckBox;
 class QComboBox;
@@ -17,7 +21,15 @@ class QSlider;
 class QStackedWidget;
 class QVBoxLayout;
 
-#include "DolphinQt2/Config/InterfacePage.h"
+void InterfacePage::LoadConfig()
+{
+    const SConfig& startup_params = SConfig::GetInstance();
+}
+
+void InterfacePage::SaveConfig()
+{
+
+}
 
 void InterfacePage::BuildUIOptions()
 {
@@ -80,5 +92,7 @@ InterfacePage::InterfacePage()
 {
     mainLayout = new QVBoxLayout;
     BuildOptions();
+    LoadConfig();
+    mainLayout->addStretch(1);
     setLayout(mainLayout);
 }

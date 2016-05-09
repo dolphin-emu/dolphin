@@ -27,6 +27,8 @@ class InterfacePage : public SettingPage
 public:
     InterfacePage();
     void LoadConfig();
+
+private slots:
     void SaveConfig();
 private:
     void BuildOptions();

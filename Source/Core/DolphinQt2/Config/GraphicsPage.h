@@ -27,6 +27,8 @@ class GraphicsPage : public SettingPage
 public:
     GraphicsPage();
     void LoadConfig();
+
+private slots:
     void SaveConfig();
 private:
     void BuildOptions();

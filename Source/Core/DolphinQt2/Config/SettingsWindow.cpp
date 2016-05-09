@@ -9,9 +9,6 @@
 #include "DolphinQt2/Config/SettingsPages.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
 
-
-
-
 class QAction;
 class QDialogButtonBox;
 class QDir;
