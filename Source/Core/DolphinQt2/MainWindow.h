@@ -15,6 +15,7 @@
 #include "DolphinQt2/GameList/GameList.h"
 
 class PathDialog;
+class SettingsWindow;
 
 class MainWindow final : public QMainWindow
 {
@@ -68,6 +69,7 @@ private:
 	void HideRenderWidget();
 
 	void ShowPathsDialog();
+	void ShowSettingsWindow();
 	void ShowAboutDialog();
 
 	QStackedWidget* m_stack;
@@ -79,4 +81,5 @@ private:
 	int m_state_slot = 1;
 
 	PathDialog* m_paths_dialog;
+	SettingsWindow* m_settings_window;
 };
