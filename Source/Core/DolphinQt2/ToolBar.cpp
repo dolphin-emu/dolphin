@@ -64,15 +64,11 @@ void ToolBar::MakeActions()
 	addSeparator();
 
 	m_paths_action = addAction(tr("Paths"), this, SIGNAL(PathsPressed()));
-
-	m_config_action = addAction(tr("Settings"));
-	m_config_action->setEnabled(false);
-
-	m_graphics_action = addAction(tr("Graphics"));
-	m_graphics_action->setEnabled(false);
-
+	m_config_action = addAction(tr("Settings"), this, SIGNAL(SettingsPressed()));
 	m_controllers_action = addAction(tr("Controllers"));
 	m_controllers_action->setEnabled(false);
+	m_graphics_action = addAction(tr("Graphics"));
+    m_graphics_action->setEnabled(false);
 }
 
 void ToolBar::UpdateIcons()
@@ -87,7 +83,7 @@ void ToolBar::UpdateIcons()
 	m_fullscreen_action->setIcon(QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
 	m_screenshot_action->setIcon(QIcon(QStringLiteral("screenshot.png").prepend(dir)));
 	m_config_action->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
-	m_graphics_action->setIcon(QIcon(QStringLiteral("graphics.png").prepend(dir)));
 	m_controllers_action->setIcon(QIcon(QStringLiteral("classic.png").prepend(dir)));
+	m_graphics_action->setIcon(QIcon(QStringLiteral("graphics.png").prepend(dir)));
 }
 

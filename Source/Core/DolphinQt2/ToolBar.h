@@ -29,7 +29,7 @@ signals:
 	void ScreenShotPressed();
 
 	void PathsPressed();
-
+	void SettingsPressed();
 private:
 	void MakeActions();
 	void UpdateIcons();
@@ -42,6 +42,6 @@ private:
 	QAction* m_screenshot_action;
 	QAction* m_paths_action;
 	QAction* m_config_action;
-	QAction* m_graphics_action;
 	QAction* m_controllers_action;
+	QAction* m_graphics_action;
 };
