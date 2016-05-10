@@ -80,22 +80,22 @@ private:
 	QString m_extension;
 	QString m_folder;
 	QDateTime m_last_modified;
-	qint64 m_size;
+	qint64 m_size = 0;
 
 	QString m_unique_id;
 	QString m_maker_id;
-	u16 m_revision;
+	u16 m_revision = 0;
 	QString m_internal_name;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_short_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_long_names;
 	QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
 	QString m_company;
-	u8 m_disc_number;
+	u8 m_disc_number = 0;
 	DiscIO::IVolume::EPlatform m_platform;
 	DiscIO::IVolume::ECountry m_country;
 	DiscIO::BlobType m_blob_type;
-	u64 m_raw_size;
+	u64 m_raw_size = 0;
 	QPixmap m_banner;
 	QString m_issues;
-	int m_rating;
+	int m_rating = 0;
 };
