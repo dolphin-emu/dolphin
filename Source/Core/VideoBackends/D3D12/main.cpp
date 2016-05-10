@@ -23,6 +23,7 @@
 #include "VideoBackends/D3D12/TextureCache.h"
 #include "VideoBackends/D3D12/VertexManager.h"
 #include "VideoBackends/D3D12/VideoBackend.h"
+#include "VideoBackends/D3D12/XFBEncoder.h"
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -64,11 +65,14 @@ std::string VideoBackend::GetDisplayName() const
 
 void InitBackendInfo()
 {
-	HRESULT hr = DX12::D3D::LoadDXGI();
-	if (SUCCEEDED(hr)) hr = DX12::D3D::LoadD3D();
+	HRESULT hr = D3D::LoadDXGI();
+	if (FAILED(hr))
+		return;
+
+	hr = D3D::LoadD3D();
 	if (FAILED(hr))
 	{
-		DX12::D3D::UnloadDXGI();
+		D3D::UnloadDXGI();
 		return;
 	}
 
@@ -85,9 +89,14 @@ void InitBackendInfo()
 
 	IDXGIFactory* factory;
 	IDXGIAdapter* ad;
-	hr = DX12::create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
+	hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
 	if (FAILED(hr))
+	{
 		PanicAlert("Failed to create IDXGIFactory object");
+		D3D::UnloadD3D();
+		D3D::UnloadDXGI();
+		return;
+	}
 
 	// adapters
 	g_Config.backend_info.Adapters.clear();
@@ -102,28 +111,34 @@ void InitBackendInfo()
 		// TODO: These don't get updated on adapter change, yet
 		if (adapter_index == g_Config.iAdapter)
 		{
-			std::string samples;
-			std::vector<DXGI_SAMPLE_DESC> modes = DX12::D3D::EnumAAModes(ad);
-			// First iteration will be 1. This equals no AA.
-			for (unsigned int i = 0; i < modes.size(); ++i)
+			ID3D12Device* temp_device;
+			hr = d3d12_create_device(ad, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
+			if (SUCCEEDED(hr))
 			{
-				g_Config.backend_info.AAModes.push_back(modes[i].Count);
+				std::string samples;
+				std::vector<DXGI_SAMPLE_DESC> modes = D3D::EnumAAModes(temp_device);
+				// First iteration will be 1. This equals no AA.
+				for (unsigned int i = 0; i < modes.size(); ++i)
+				{
+					g_Config.backend_info.AAModes.push_back(modes[i].Count);
+				}
+
+				// Requires the earlydepthstencil attribute (only available in shader model 5)
+				g_Config.backend_info.bSupportsEarlyZ = true;
+
+				// Requires full UAV functionality (only available in shader model 5)
+				g_Config.backend_info.bSupportsBBox = true;
+
+				// Requires the instance attribute (only available in shader model 5)
+				g_Config.backend_info.bSupportsGSInstancing = true;
+
+				// Sample shading requires shader model 5
+				g_Config.backend_info.bSupportsSSAA = true;
+
+				temp_device->Release();
 			}
-
-			bool shader_model_5_supported = (DX12::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
-
-			// Requires the earlydepthstencil attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
-
-			// Requires full UAV functionality (only available in shader model 5)
-			g_Config.backend_info.bSupportsBBox = false;
-
-			// Requires the instance attribute (only available in shader model 5)
-			g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;
-
-			// Sample shading requires shader model 5
-			g_Config.backend_info.bSupportsSSAA = shader_model_5_supported;
 		}
+
 		g_Config.backend_info.Adapters.push_back(UTF16ToUTF8(desc.Description));
 		ad->Release();
 	}
@@ -133,8 +148,8 @@ void InitBackendInfo()
 	g_Config.backend_info.PPShaders.clear();
 	g_Config.backend_info.AnaglyphShaders.clear();
 
-	DX12::D3D::UnloadDXGI();
-	DX12::D3D::UnloadD3D();
+	D3D::UnloadD3D();
+	D3D::UnloadDXGI();
 }
 
 void VideoBackend::ShowConfig(void *hParent)
@@ -145,11 +160,6 @@ void VideoBackend::ShowConfig(void *hParent)
 
 bool VideoBackend::Initialize(void *window_handle)
 {
-	bool d3d12_supported = D3D::AlertUserIfSelectedAdapterDoesNotSupportD3D12();
-
-	if (!d3d12_supported)
-		return false;
-
 	if (window_handle == nullptr)
 		return false;
 
@@ -168,6 +178,9 @@ bool VideoBackend::Initialize(void *window_handle)
 	g_Config.VerifyValidity();
 	UpdateActiveConfig();
 
+	if (FAILED(D3D::Create((HWND)window_handle)))
+		return false;
+
 	m_window_handle = window_handle;
 	m_initialized = true;
 
@@ -181,6 +194,7 @@ void VideoBackend::Video_Prepare()
 	g_texture_cache = std::make_unique<TextureCache>();
 	g_vertex_manager = std::make_unique<VertexManager>();
 	g_perf_query = std::make_unique<PerfQuery>();
+	g_xfb_encoder = std::make_unique<XFBEncoder>();
 	ShaderCache::Init();
 	ShaderConstantsManager::Init();
 	StaticShaderCache::Init();
@@ -230,10 +244,13 @@ void VideoBackend::Shutdown()
 		StaticShaderCache::Shutdown();
 		BBox::Shutdown();
 
+		g_xfb_encoder.reset();
 		g_perf_query.reset();
 		g_vertex_manager.reset();
 		g_texture_cache.reset();
 		g_renderer.reset();
+
+		D3D::Close();
 	}
 }
 

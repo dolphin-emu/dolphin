@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <d3d11.h>
 #include <memory>
 #include <string>
 
@@ -22,7 +21,11 @@ extern StateCache gx_state_cache;
 namespace D3D
 {
 
-unsigned int AlignValue(unsigned int value, unsigned int alignment);
+constexpr unsigned int AlignValue(unsigned int value, unsigned int alignment)
+{
+	return (value + (alignment - 1)) & ~(alignment - 1);
+}
+
 void ResourceBarrier(ID3D12GraphicsCommandList* command_list, ID3D12Resource* resource, D3D12_RESOURCE_STATES state_before, D3D12_RESOURCE_STATES state_after, UINT subresource);
 
 // Font creation flags
@@ -74,7 +77,7 @@ void ShutdownUtils();
 void SetPointCopySampler();
 void SetLinearCopySampler();
 
-void SetViewportAndScissor(u32 top_left_x, u32 top_left_y, u32 width, u32 height, float min_depth = D3D12_MIN_DEPTH, float max_depth = D3D12_MAX_DEPTH);
+void SetViewportAndScissor(int top_left_x, int top_left_y, int width, int height, float min_depth = D3D12_MIN_DEPTH, float max_depth = D3D12_MAX_DEPTH);
 
 void DrawShadedTexQuad(D3DTexture2D* texture,
 	const D3D12_RECT* source,
@@ -92,7 +95,6 @@ void DrawShadedTexQuad(D3DTexture2D* texture,
 	);
 
 void DrawClearQuad(u32 Color, float z, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);
-void DrawColorQuad(u32 Color, float z, float x1, float y1, float x2, float y2, D3D12_BLEND_DESC* blend_desc, D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc, bool rt_multisampled);
 
 void DrawEFBPokeQuads(EFBAccessType type,
 	const EfbPokeData* points,

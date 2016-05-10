@@ -137,10 +137,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	ShaderCache::LoadAndSetActiveShaders(use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, current_primitive_type);
 
 	if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
-	{
-		// D3D12TODO: Support GPU-side bounding box.
-		// D3D::context->OMSetRenderTargetsAndUnorderedAccessViews(D3D11_KEEP_RENDER_TARGETS_AND_DEPTH_STENCIL, nullptr, nullptr, 2, 1, &BBox::GetUAV(), nullptr);
-	}
+		BBox::Invalidate();
 
 	u32 stride = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride();
 
@@ -161,15 +158,15 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	// D3D12TODO: Decide right threshold for drawCountSinceAsyncFlush at runtime depending on
 	// amount of stall measured in AccessEFB.
 
-	if (D3D::command_list_mgr->m_draws_since_last_execution > 100 && D3D::command_list_mgr->m_cpu_access_last_frame)
+	// We can't do this with perf queries enabled since it can leave queries open.
+
+	if (D3D::command_list_mgr->m_cpu_access_last_frame &&
+		D3D::command_list_mgr->m_draws_since_last_execution > 100 &&
+		!PerfQueryBase::ShouldEmulate())
 	{
 		D3D::command_list_mgr->m_draws_since_last_execution = 0;
 
 		D3D::command_list_mgr->ExecuteQueuedWork();
-
-		g_renderer->SetViewport();
-
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
 	}
 }
 
@@ -185,7 +182,7 @@ void VertexManager::ResetBuffer(u32 stride)
 		return;
 	}
 
-	bool command_list_executed = m_vertex_stream_buffer->AllocateSpaceInBuffer(MAXVBUFFERSIZE, stride);
+	m_vertex_stream_buffer->AllocateSpaceInBuffer(MAXVBUFFERSIZE, stride);
 
 	if (m_vertex_stream_buffer_reallocated)
 	{
@@ -198,12 +195,7 @@ void VertexManager::ResetBuffer(u32 stride)
 	s_pCurBufferPointer  = static_cast<u8*>(m_vertex_stream_buffer->GetCPUAddressOfCurrentAllocation());
 	m_vertex_draw_offset = static_cast<u32>(m_vertex_stream_buffer->GetOffsetOfCurrentAllocation());
 
-	command_list_executed |= m_index_stream_buffer->AllocateSpaceInBuffer(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
-	if (command_list_executed)
-	{
-		g_renderer->SetViewport();
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
-	}
+	m_index_stream_buffer->AllocateSpaceInBuffer(MAXIBUFFERSIZE * sizeof(u16), sizeof(u16));
 
 	if (m_index_stream_buffer_reallocated)
 	{

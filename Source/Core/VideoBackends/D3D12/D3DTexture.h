@@ -5,10 +5,16 @@
 #pragma once
 
 #include <atomic>
-#include <d3d11.h>
 
 namespace DX12
 {
+
+enum TEXTURE_BIND_FLAG : u32
+{
+	TEXTURE_BIND_FLAG_SHADER_RESOURCE           = (1 << 0),
+	TEXTURE_BIND_FLAG_RENDER_TARGET             = (1 << 1),
+	TEXTURE_BIND_FLAG_DEPTH_STENCIL             = (1 << 2)
+};
 
 namespace D3D
 {
@@ -24,8 +30,8 @@ public:
 	//     either create an ID3D12Resource object, pass it to the constructor and specify what views to create
 	//     or let the texture automatically be created by D3DTexture2D::Create
 
-	D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind, DXGI_FORMAT srv_format = DXGI_FORMAT_UNKNOWN, DXGI_FORMAT dsv_format = DXGI_FORMAT_UNKNOWN, DXGI_FORMAT rtv_format = DXGI_FORMAT_UNKNOWN, bool multisampled = false, D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON);
-	static D3DTexture2D* Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT, unsigned int levels = 1, unsigned int slices = 1, D3D12_SUBRESOURCE_DATA* data = nullptr);
+	D3DTexture2D(ID3D12Resource* texptr, u32 bind, DXGI_FORMAT srv_format = DXGI_FORMAT_UNKNOWN, DXGI_FORMAT dsv_format = DXGI_FORMAT_UNKNOWN, DXGI_FORMAT rtv_format = DXGI_FORMAT_UNKNOWN, bool multisampled = false, D3D12_RESOURCE_STATES resource_state = D3D12_RESOURCE_STATE_COMMON);
+	static D3DTexture2D* Create(unsigned int width, unsigned int height, u32 bind, DXGI_FORMAT fmt, unsigned int levels = 1, unsigned int slices = 1, D3D12_SUBRESOURCE_DATA* data = nullptr);
 	void TransitionToResourceState(ID3D12GraphicsCommandList* command_list, D3D12_RESOURCE_STATES state_after);
 
 	// reference counting, use AddRef() when creating a new reference and Release() it when you don't need it anymore

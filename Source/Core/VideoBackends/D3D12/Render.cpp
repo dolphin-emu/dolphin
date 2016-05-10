@@ -29,7 +29,6 @@
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/ShaderConstantsManager.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
-#include "VideoBackends/D3D12/Television.h"
 #include "VideoBackends/D3D12/TextureCache.h"
 
 #include "VideoCommon/AVIDump.h"
@@ -49,8 +48,6 @@ namespace DX12
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
-
-static Television s_television;
 
 enum CLEAR_BLEND_DESC
 {
@@ -104,8 +101,6 @@ StateCache gx_state_cache;
 
 static void SetupDeviceObjects()
 {
-	s_television.Init();
-
 	g_framebuffer_manager = std::make_unique<FramebufferManager>();
 
 	D3D12_DEPTH_STENCIL_DESC depth_desc;
@@ -175,8 +170,6 @@ static void TeardownDeviceObjects()
 		s_screenshot_texture = nullptr;
 	}
 
-	s_television.Shutdown();
-
 	gx_state_cache.Clear();
 }
 
@@ -231,8 +224,6 @@ Renderer::Renderer(void*& window_handle)
 		return;
 	}
 
-	D3D::Create((HWND)window_handle);
-
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
@@ -252,7 +243,7 @@ Renderer::Renderer(void*& window_handle)
 
 	// Setup GX pipeline state
 	gx_state.blend.blend_enable = false;
-	gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	gx_state.blend.write_mask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	gx_state.blend.src_blend = D3D12_BLEND_ONE;
 	gx_state.blend.dst_blend = D3D12_BLEND_ZERO;
 	gx_state.blend.blend_op = D3D12_BLEND_OP_ADD;
@@ -280,7 +271,7 @@ Renderer::Renderer(void*& window_handle)
 	D3D::current_command_list->RSSetViewports(1, &vp);
 
 	// Already transitioned to appropriate states a few lines up for the clears.
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::RestoreEFBRenderTargets();
 
 	D3D::BeginFrame();
 }
@@ -290,7 +281,6 @@ Renderer::~Renderer()
 	D3D::EndFrame();
 	D3D::WaitForOutstandingRenderingToComplete();
 	TeardownDeviceObjects();
-	D3D::Close();
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
@@ -534,7 +524,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 	D3D::DrawClearQuad(rgba_color, 1.0f - (z & 0xFFFFFF) / 16777216.0f, blend_desc, depth_stencil_desc, FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
 	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
+	g_renderer->SetViewport();
+	BPFunctions::SetScissor();
 
 	FramebufferManager::InvalidateEFBAccessCopies();
 }
@@ -582,14 +573,13 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 		FramebufferManager::GetEFBColorTempTexture()->GetMultisampled()
 		);
 
-	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
-
 	FramebufferManager::SwapReinterpretTexture();
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	// Restores proper viewport/scissor settings.
+	RestoreAPIState();
 }
 
 void Renderer::SetBlendMode(bool force_update)
@@ -675,11 +665,13 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	void* screenshot_texture_map;
-	CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+	D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * (source_box.bottom - source_box.top) };
+	CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 
 	saved_png = TextureToPng(static_cast<u8*>(screenshot_texture_map), dst_location.PlacedFootprint.Footprint.RowPitch, filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
 
-	s_screenshot_texture->Unmap(0, nullptr);
+	D3D12_RANGE write_range = {};
+	s_screenshot_texture->Unmap(0, &write_range);
 
 	if (saved_png)
 	{
@@ -735,6 +727,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	// Invalidate EFB access copies. Not strictly necessary, but this avoids having the buffers mapped when calling Present().
 	FramebufferManager::InvalidateEFBAccessCopies();
+	BBox::Invalidate();
 
 	// Prepare to copy the XFBs to our backbuffer
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
@@ -749,15 +742,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	// activate linear filtering for the buffer copies
 	D3D::SetLinearCopySampler();
 
-	if (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB)
-	{
-		// EXISTINGD3D11TODO: Television should be used to render Virtual XFB mode as well.
-		D3D::SetViewportAndScissor(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
-
-		s_television.Submit(xfb_addr, fb_stride, fb_width, fb_height);
-		s_television.Render();
-	}
-	else if (g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
 		const XFBSource* xfb_source;
 
@@ -767,33 +752,40 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 			xfb_source = static_cast<const XFBSource*>(xfb_source_list[i]);
 
 			TargetRectangle drawRc;
-
-			// use virtual xfb with offset
-			int xfb_height = xfb_source->srcHeight;
-			int xfb_width = xfb_source->srcWidth;
-			int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) / (static_cast<s32>(fb_stride) * 2);
-
-			drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
-			drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
-			drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
-			drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
-
-			// The following code disables auto stretch.  Kept for reference.
-			// scale draw area for a 1 to 1 pixel mapping with the draw target
-			//float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
-			//float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
-			//drawRc.top *= vScale;
-			//drawRc.bottom *= vScale;
-			//drawRc.left *= hScale;
-			//drawRc.right *= hScale;
-
 			TargetRectangle source_rc;
 			source_rc.left = xfb_source->sourceRc.left;
 			source_rc.top = xfb_source->sourceRc.top;
 			source_rc.right = xfb_source->sourceRc.right;
 			source_rc.bottom = xfb_source->sourceRc.bottom;
 
-			source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+			// use virtual xfb with offset
+			int xfb_height = xfb_source->srcHeight;
+			int xfb_width = xfb_source->srcWidth;
+			int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) / (static_cast<s32>(fb_stride) * 2);
+
+			if (g_ActiveConfig.bUseRealXFB)
+			{
+				drawRc = target_rc;
+				source_rc.right -= fb_stride - fb_width;
+			}
+			else
+			{
+				drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
+				drawRc.bottom = target_rc.top + (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
+				drawRc.left = target_rc.left + (target_rc.GetWidth() - xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+				drawRc.right = target_rc.left + (target_rc.GetWidth() + xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+
+				// The following code disables auto stretch.  Kept for reference.
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				//float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
+				//float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
+				//drawRc.top *= vScale;
+				//drawRc.bottom *= vScale;
+				//drawRc.left *= hScale;
+				//drawRc.right *= hScale;
+
+				source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+			}
 
 			BlitScreen(source_rc, drawRc, xfb_source->m_tex, xfb_source->texWidth, xfb_source->texHeight, gamma);
 		}
@@ -881,9 +873,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 			}
 
 			void* screenshot_texture_map;
-			CheckHR(s_screenshot_texture->Map(0, nullptr, &screenshot_texture_map));
+			D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height };
+			CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 			formatBufferDump(static_cast<u8*>(screenshot_texture_map), &frame_data[0], source_width, source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
-			s_screenshot_texture->Unmap(0, nullptr);
+
+			D3D12_RANGE write_range = {};
+			s_screenshot_texture->Unmap(0, &write_range);
 
 			FlipImageData(&frame_data[0], w, h);
 			AVIDump::AddFrame(&frame_data[0], source_width, source_height);
@@ -995,14 +990,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	}
 
 	// begin next frame
-	RestoreAPIState();
 	D3D::BeginFrame();
 
 	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
 	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
 
-	SetViewport();
+	RestoreAPIState();
 }
 
 void Renderer::ResetAPIState()
@@ -1016,6 +1009,9 @@ void Renderer::RestoreAPIState()
 	// overwritten elsewhere (particularly the viewport).
 	SetViewport();
 	BPFunctions::SetScissor();
+
+	FramebufferManager::RestoreEFBRenderTargets();
+	BBox::Bind();
 }
 
 static bool s_previous_use_dst_alpha = false;

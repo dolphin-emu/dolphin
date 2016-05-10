@@ -105,7 +105,9 @@ void PSTextureEncoder::Init()
 
 	D3D::SetDebugObjectName12(m_encode_params_buffer, "efb encoder params buffer");
 
-	CheckHR(m_encode_params_buffer->Map(0, nullptr, &m_encode_params_buffer_data));
+	// NOTE: This upload buffer is okay to overwrite each time, since we block until completion when it's used anyway.
+	D3D12_RANGE read_range = {};
+	CheckHR(m_encode_params_buffer->Map(0, &read_range, &m_encode_params_buffer_data));
 
 	m_ready = true;
 }
@@ -215,11 +217,16 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 	D3D::ResourceBarrier(D3D::current_command_list, m_out, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_SOURCE, 0);
 	D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &src_box);
 
+	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
+	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
+
+	// State is automatically restored after executing command list.
 	D3D::command_list_mgr->ExecuteQueuedWork(true);
 
 	// Transfer staging buffer to GameCube/Wii RAM
 	void* readback_data_map;
-	CheckHR(m_out_readback_buffer->Map(0, nullptr, &readback_data_map));
+	D3D12_RANGE read_range = { 0, dst_location.PlacedFootprint.Footprint.RowPitch * num_blocks_y };
+	CheckHR(m_out_readback_buffer->Map(0, &read_range, &readback_data_map));
 
 	u8* src = static_cast<u8*>(readback_data_map);
 	u32 read_stride = std::min(bytes_per_row, dst_location.PlacedFootprint.Footprint.RowPitch);
@@ -231,14 +238,8 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 		src += dst_location.PlacedFootprint.Footprint.RowPitch;
 	}
 
-	m_out_readback_buffer->Unmap(0, nullptr);
-
-	// Restores proper viewport/scissor settings.
-	g_renderer->RestoreAPIState();
-
-	FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-	FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE );
-	D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+	D3D12_RANGE write_range = {};
+	m_out_readback_buffer->Unmap(0, &write_range);
 }
 
 D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format, PEControl::PixelFormat src_format,

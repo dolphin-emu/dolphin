@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <d3d11.h>
 #include <d3d12.h>
 #include <d3dcompiler.h>
 #include <dxgi1_4.h>
@@ -44,16 +43,20 @@ class D3DCommandListManager;
 class D3DDescriptorHeapManager;
 class D3DTexture2D;
 
+enum GRAPHICS_ROOT_PARAMETER : u32
+{
+	DESCRIPTOR_TABLE_PS_SRV,
+	DESCRIPTOR_TABLE_PS_SAMPLER,
+	DESCRIPTOR_TABLE_GS_CBV,
+	DESCRIPTOR_TABLE_VS_CBV,
+	DESCRIPTOR_TABLE_PS_CBVONE,
+	DESCRIPTOR_TABLE_PS_CBVTWO,
+	DESCRIPTOR_TABLE_PS_UAV,
+	NUM_GRAPHICS_ROOT_PARAMETERS
+};
+
 namespace D3D
 {
-
-#define DESCRIPTOR_TABLE_PS_SRV     0
-#define DESCRIPTOR_TABLE_PS_SAMPLER 1
-#define DESCRIPTOR_TABLE_GS_CBV     2
-#define DESCRIPTOR_TABLE_VS_CBV     3
-// #define DESCRIPTOR_TABLE_PS_UAV     4
-#define DESCRIPTOR_TABLE_PS_CBVONE  4
-#define DESCRIPTOR_TABLE_PS_CBVTWO  5
 
 HRESULT LoadDXGI();
 HRESULT LoadD3D();
@@ -62,10 +65,7 @@ void UnloadDXGI();
 void UnloadD3D();
 void UnloadD3DCompiler();
 
-D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter);
-std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter);
-
-bool AlertUserIfSelectedAdapterDoesNotSupportD3D12();
+std::vector<DXGI_SAMPLE_DESC> EnumAAModes(ID3D12Device* device);
 
 HRESULT Create(HWND wnd);
 
@@ -146,6 +146,8 @@ using CREATEDXGIFACTORY = HRESULT(WINAPI*)(REFIID, void**);
 extern CREATEDXGIFACTORY create_dxgi_factory;
 
 using D3D12CREATEDEVICE = HRESULT(WINAPI*)(IUnknown*, D3D_FEATURE_LEVEL, REFIID, void**);
+extern D3D12CREATEDEVICE d3d12_create_device;
+
 using D3D12SERIALIZEROOTSIGNATURE = HRESULT(WINAPI*)(const D3D12_ROOT_SIGNATURE_DESC* pRootSignature, D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob** ppBlob, ID3DBlob** ppErrorBlob);
 using D3D12GETDEBUGINTERFACE = HRESULT(WINAPI*)(REFIID riid, void** ppvDebug);
 

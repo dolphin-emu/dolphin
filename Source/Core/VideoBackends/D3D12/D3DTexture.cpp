@@ -21,6 +21,9 @@ namespace DX12
 namespace D3D
 {
 
+constexpr size_t INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE = 4 * 1024 * 1024;
+constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
+
 static std::unique_ptr<D3DStreamBuffer> s_texture_upload_stream_buffer;
 
 void CleanupPersistentD3DTextureResources()
@@ -32,16 +35,35 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 {
 	const unsigned int upload_size = AlignValue(src_pitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * height;
 
-	if (!s_texture_upload_stream_buffer)
-	{
-		s_texture_upload_stream_buffer = std::make_unique<D3DStreamBuffer>(4 * 1024 * 1024, 64 * 1024 * 1024, nullptr);
-	}
+	ID3D12Resource* upload_buffer = nullptr;
+	size_t upload_buffer_offset = 0;
+	u8* dest_data = nullptr;
 
-	bool current_command_list_executed = s_texture_upload_stream_buffer->AllocateSpaceInBuffer(upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
-	if (current_command_list_executed)
+	if (upload_size > MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
 	{
-		g_renderer->SetViewport();
-		D3D::current_command_list->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV12(), FALSE, &FramebufferManager::GetEFBDepthTexture()->GetDSV12());
+		// If the texture is too large to fit in the upload buffer, create a temporary buffer instead.
+		// This will only be the case for large (e.g. 8192x8192) textures from custom texture packs.
+		CheckHR(D3D::device12->CreateCommittedResource(
+			&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD),
+			D3D12_HEAP_FLAG_NONE,
+			&CD3DX12_RESOURCE_DESC::Buffer(upload_size),
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&upload_buffer)));
+
+		D3D12_RANGE read_range = {};
+		CheckHR(upload_buffer->Map(0, &read_range, reinterpret_cast<void**>(&dest_data)));
+	}
+	else
+	{
+		if (!s_texture_upload_stream_buffer)
+			s_texture_upload_stream_buffer = std::make_unique<D3DStreamBuffer>(INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE, MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE, nullptr);
+
+		s_texture_upload_stream_buffer->AllocateSpaceInBuffer(upload_size, D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT);
+
+		upload_buffer = s_texture_upload_stream_buffer->GetBuffer();
+		upload_buffer_offset = s_texture_upload_stream_buffer->GetOffsetOfCurrentAllocation();
+		dest_data = reinterpret_cast<u8*>(s_texture_upload_stream_buffer->GetCPUAddressOfCurrentAllocation());
 	}
 
 	ResourceBarrier(current_command_list, texture12, current_resource_state, D3D12_RESOURCE_STATE_COPY_DEST, level);
@@ -51,9 +73,8 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 	u64 upload_row_size_in_bytes = 0;
 	u64 upload_total_bytes = 0;
 
-	D3D::device12->GetCopyableFootprints(&texture12->GetDesc(), level, 1, s_texture_upload_stream_buffer->GetOffsetOfCurrentAllocation(), &upload_footprint, &upload_rows, &upload_row_size_in_bytes, &upload_total_bytes);
+	D3D::device12->GetCopyableFootprints(&texture12->GetDesc(), level, 1, upload_buffer_offset, &upload_footprint, &upload_rows, &upload_row_size_in_bytes, &upload_total_bytes);
 
-	u8* dest_data = reinterpret_cast<u8*>(s_texture_upload_stream_buffer->GetCPUAddressOfCurrentAllocation());
 	const u8* src_data = reinterpret_cast<const u8*>(buffer);
 	for (u32 y = 0; y < upload_rows; ++y)
 	{
@@ -64,14 +85,26 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
 			);
 	}
 
-	D3D::current_command_list->CopyTextureRegion(&CD3DX12_TEXTURE_COPY_LOCATION(texture12, level), 0, 0, 0, &CD3DX12_TEXTURE_COPY_LOCATION(s_texture_upload_stream_buffer->GetBuffer(), upload_footprint), nullptr);
+	D3D::current_command_list->CopyTextureRegion(&CD3DX12_TEXTURE_COPY_LOCATION(texture12, level), 0, 0, 0, &CD3DX12_TEXTURE_COPY_LOCATION(upload_buffer, upload_footprint), nullptr);
 
 	ResourceBarrier(D3D::current_command_list, texture12, D3D12_RESOURCE_STATE_COPY_DEST, current_resource_state, level);
+
+	// Release temporary buffer after commands complete.
+	// We block here because otherwise if there was a large number of texture uploads, we may run out of memory.
+	if (!s_texture_upload_stream_buffer || upload_buffer != s_texture_upload_stream_buffer->GetBuffer())
+	{
+		D3D12_RANGE write_range = { 0, upload_size };
+		upload_buffer->Unmap(0, &write_range);
+
+		D3D::command_list_mgr->ExecuteQueuedWork(true);
+
+		upload_buffer->Release();
+	}
 }
 
 }  // namespace
 
-D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D11_BIND_FLAG bind, D3D11_USAGE usage, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D12_SUBRESOURCE_DATA* data)
+D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, u32 bind, DXGI_FORMAT fmt, unsigned int levels, unsigned int slices, D3D12_SUBRESOURCE_DATA* data)
 {
 	ID3D12Resource* texture12 = nullptr;
 
@@ -86,7 +119,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	D3D12_CLEAR_VALUE optimized_clear_value = {};
 	optimized_clear_value.Format = fmt;
 
-	if (bind & D3D11_BIND_RENDER_TARGET)
+	if (bind & TEXTURE_BIND_FLAG_RENDER_TARGET)
 	{
 		texdesc12.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 		optimized_clear_value.Color[0] = 0.0f;
@@ -95,7 +128,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 		optimized_clear_value.Color[3] = 1.0f;
 	}
 
-	if (bind & D3D11_BIND_DEPTH_STENCIL)
+	if (bind & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
 	{
 		texdesc12.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 		optimized_clear_value.DepthStencil.Depth = 0.0f;
@@ -181,7 +214,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetRTV12() const
 	return m_rtv12;
 }
 
-D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
+D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind,
 							DXGI_FORMAT srv_format, DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled, D3D12_RESOURCE_STATES resource_state)
 							: m_tex12(texptr), m_resource_state(resource_state), m_multisampled(multisampled)
 {
@@ -189,7 +222,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 	D3D12_DSV_DIMENSION dsv_dim12 = multisampled ? D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
 	D3D12_RTV_DIMENSION rtv_dim12 = multisampled ? D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY : D3D12_RTV_DIMENSION_TEXTURE2DARRAY;
 
-	if (bind & D3D11_BIND_SHADER_RESOURCE)
+	if (bind & TEXTURE_BIND_FLAG_SHADER_RESOURCE)
 	{
 		D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {
 			srv_format, // DXGI_FORMAT Format
@@ -216,7 +249,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 		D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_gpu_cpu_shadow);
 	}
 
-	if (bind & D3D11_BIND_DEPTH_STENCIL)
+	if (bind & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
 	{
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsv_desc = {
 			dsv_format,          // DXGI_FORMAT Format
@@ -233,7 +266,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, D3D11_BIND_FLAG bind,
 		D3D::device12->CreateDepthStencilView(m_tex12, &dsv_desc, m_dsv12);
 	}
 
-	if (bind & D3D11_BIND_RENDER_TARGET)
+	if (bind & TEXTURE_BIND_FLAG_RENDER_TARGET)
 	{
 		D3D12_RENDER_TARGET_VIEW_DESC rtv_desc = {
 			rtv_format, // DXGI_FORMAT Format

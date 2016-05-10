@@ -29,7 +29,8 @@ D3DStreamBuffer::~D3DStreamBuffer()
 {
 	D3D::command_list_mgr->RemoveQueueFenceCallback(this);
 
-	m_buffer->Unmap(0, nullptr);
+	D3D12_RANGE write_range = { 0, m_buffer_size };
+	m_buffer->Unmap(0, &write_range);
 	D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_buffer);
 }
 
@@ -43,7 +44,7 @@ bool D3DStreamBuffer::AllocateSpaceInBuffer(size_t allocation_size, size_t align
 {
 	CHECK(allocation_size <= m_buffer_max_size, "Error: Requested allocation size in D3DStreamBuffer is greater than max allowed size of backing buffer.");
 
-	if (alignment)
+	if (alignment && m_buffer_offset > 0)
 	{
 		size_t padding = m_buffer_offset % alignment;
 
@@ -94,7 +95,8 @@ void D3DStreamBuffer::AllocateBuffer(size_t size)
 	// First, put existing buffer (if it exists) in deferred destruction list.
 	if (m_buffer)
 	{
-		m_buffer->Unmap(0, nullptr);
+		D3D12_RANGE write_range = { 0, m_buffer_size };
+		m_buffer->Unmap(0, &write_range);
 		D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_buffer);
 		m_buffer = nullptr;
 	}
@@ -110,7 +112,8 @@ void D3DStreamBuffer::AllocateBuffer(size_t size)
 			)
 		);
 
-	CheckHR(m_buffer->Map(0, nullptr, &m_buffer_cpu_address));
+	D3D12_RANGE read_range = {};
+	CheckHR(m_buffer->Map(0, &read_range, &m_buffer_cpu_address));
 
 	m_buffer_gpu_address = m_buffer->GetGPUVirtualAddress();
 	m_buffer_size = size;
