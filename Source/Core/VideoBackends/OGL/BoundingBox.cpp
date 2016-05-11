@@ -6,6 +6,7 @@
 
 #include "VideoBackends/OGL/BoundingBox.h"
 
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"
 
 static GLuint s_bbox_buffer_id;
@@ -42,12 +43,25 @@ int BoundingBox::Get(int index)
 {
 	int data = 0;
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
-	void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), GL_MAP_READ_BIT);
-	if (ptr)
+
+	if (!DriverDetails::HasBug(DriverDetails::BUG_SLOWSSBOMAP))
 	{
-		data = *(int*)ptr;
-		glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		// Using glMapBufferRange is faster on AMD cards.
+		void* ptr = glMapBufferRange(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), GL_MAP_READ_BIT);
+		if (ptr)
+		{
+			memcpy(&data, ptr, sizeof(int));
+			glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+		}
 	}
+	else
+	{
+		// Using glMapBufferRange to read back the contents of the SSBO is extremely slow
+		// on nVidia drivers. This is more noticeable at higher internal resolutions.
+		// Using glGetBufferSubData instead does not seem to exhibit this slowdown.
+		glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), &data);
+	}
+
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 	return data;
 }
