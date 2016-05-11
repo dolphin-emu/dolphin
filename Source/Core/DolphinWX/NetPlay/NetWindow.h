@@ -72,6 +72,7 @@ private:
 	void OnAssignPads(wxCommandEvent& event);
 	void OnKick(wxCommandEvent& event);
 	void OnPlayerSelect(wxCommandEvent& event);
+	void OnMemcardWriteChange(wxCommandEvent& event);
 	void GetNetSettings(NetSettings& settings);
 	std::string FindGame();
 

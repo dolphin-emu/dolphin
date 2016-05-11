@@ -108,6 +108,11 @@ void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl&
 		game_lbox->Append(StrToWxStr(BuildGameName(*game)));
 }
 
+void NetPlayDialog::OnMemcardWriteChange(wxCommandEvent& event)
+{
+	SConfig::GetInstance().bEnableMemcardSdWriting = event.IsChecked();
+}
+
 NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const game_list,
 	const std::string& game, const bool is_hosting)
 	: wxFrame(parent, wxID_ANY, _("Dolphin NetPlay"))
@@ -222,6 +227,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
 		bottom_szr->AddSpacer(5);
 		m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write to memcards/SD"));
+		m_memcard_write->Bind(wxEVT_CHECKBOX, &NetPlayDialog::OnMemcardWriteChange, this);
 		bottom_szr->Add(m_memcard_write, 0, wxCENTER);
 	}
 
