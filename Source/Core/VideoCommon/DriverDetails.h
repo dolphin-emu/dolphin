@@ -158,14 +158,6 @@ namespace DriverDetails
 		// Mesa meta misses to disable the scissor test.
 		BUG_BROKENCOPYIMAGE,
 
-		// Bug: Qualcomm has broken OpenGL ES 3.1 support
-		// Affected devices: Adreno
-		// Started Version: -1
-		// Ended Version: -1
-		// This isn't fully researched, but at the very least Qualcomm doesn't implement Geometry shader features fully.
-		// Until each bug is fully investigated, just disable GLES 3.1 entirely on these devices.
-		BUG_BROKENGLES31,
-
 		// Bug: ARM Mali managed to break disabling vsync
 		// Affected Devices: Mali
 		// Started Version: r5p0-rev2
