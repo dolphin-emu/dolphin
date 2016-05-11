@@ -45,6 +45,7 @@ public:
 
 	// Graphics
 	bool GetRenderToMain() const;
+	void SetRenderToMain(bool render);
 	bool GetFullScreen() const;
 	QSize GetRenderWindowSize() const;
 };
