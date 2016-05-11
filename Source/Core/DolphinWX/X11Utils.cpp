@@ -45,27 +45,6 @@ bool ToggleFullscreen(Display *dpy, Window win)
 	return true;
 }
 
-void InhibitScreensaver(Display *dpy, Window win, bool suspend)
-{
-	char id[11];
-	snprintf(id, sizeof(id), "0x%lx", win);
-
-	// Call xdg-screensaver
-	char *argv[4] = {
-		(char *)"xdg-screensaver",
-		(char *)(suspend ? "suspend" : "resume"),
-		id,
-		nullptr};
-	pid_t pid;
-	if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv, environ))
-	{
-		int status;
-		while (waitpid (pid, &status, 0) == -1);
-
-		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", (int)pid);
-	}
-}
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 XRRConfiguration::XRRConfiguration(Display *_dpy, Window _win)
 	: dpy(_dpy)

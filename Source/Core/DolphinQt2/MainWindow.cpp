@@ -8,12 +8,6 @@
 #include <QIcon>
 #include <QMessageBox>
 
-#ifdef Q_OS_LINUX
-#include <spawn.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#endif
-
 #include "Common/Logging/Log.h"
 #include "Core/BootManager.h"
 #include "Core/Core.h"
@@ -26,6 +20,7 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/PathDialog.h"
+#include "UICommon/UICommon.h"
 
 MainWindow::MainWindow() : QMainWindow(nullptr)
 {
@@ -381,31 +376,7 @@ void MainWindow::SetStateSlot(int slot)
 
 void MainWindow::EnableScreensaver(bool enable)
 {
-#ifdef Q_OS_LINUX
-	// runs xdg-screensaver which will safely re-enable the screensaver should dolphin crash
 	char window_id[20];
 	sprintf(window_id, "%llu", winId());
-	std::array<char* const, 4> argv = {
-			const_cast<char* const>("xdg-screensaver"),
-			const_cast<char* const>(enable ? "resume" : "suspend"),
-			const_cast<char* const>(window_id),
-			nullptr
-	};
-	pid_t pid;
-	if (!posix_spawnp(&pid, "xdg-screensaver", nullptr, nullptr, argv.data(), environ))
-	{
-		int status;
-		while (waitpid(pid, &status, 0) == -1)
-			continue;
-
-		DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", static_cast<int>(pid));
-	}
-#elif defined(Q_OS_WIN)
-	if (enable)
-		SetThreadExecutionState(ES_CONTINUOUS);
-	else
-		SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
-#elif defined(Q_OS_MAC)
-	//TODO: need a dev with mac os
-#endif
+	UICommon::EnableScreensaver(enable, window_id);
 }
