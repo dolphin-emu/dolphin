@@ -56,7 +56,7 @@
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NODEFAULTLIB:libcmt</AdditionalOptions>
     </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\VideoInterface;$(ProjectDir)\GameList;$(ProjectDir)\Config;$(ProjectDir)\Config\Pages;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -80,6 +80,7 @@
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="Config\PathDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <QtMoc Include="Config\Pages\InterfacePage.h" />
     <QtMoc Include="GameList\GameFile.h" />
     <QtMoc Include="GameList\GameList.h" />
     <QtMoc Include="GameList\GameListModel.h" />
@@ -101,6 +102,7 @@
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InterfacePage.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
@@ -111,6 +113,7 @@
     <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\Pages\InterfacePage.cpp" />
     <ClCompile Include="Config\PathDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
@@ -205,6 +208,7 @@
     <AllInputFiles Include="@(DataDirFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Config\Pages\InterfacePage.h" />
     <ClInclude Include="Resources.h" />
   </ItemGroup>
   <!--Disable copying to binary dir for now on the buildbot to prevent packaging of the outputs-->
