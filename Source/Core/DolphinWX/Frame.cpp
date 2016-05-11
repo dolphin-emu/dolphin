@@ -149,17 +149,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 	switch (nMsg)
 	{
 		case WM_SYSCOMMAND:
-			switch (wParam)
-			{
-				case SC_SCREENSAVE:
-				case SC_MONITORPOWER:
-					if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
-						break;
-				default:
 					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-			}
-			break;
-
 		case WM_USER:
 			switch (wParam)
 			{
@@ -672,11 +662,7 @@ void CFrame::OnResize(wxSizeEvent& event)
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-	if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
-	{
-		return 0;
-	}
-	else if (nMsg == WM_QUERYENDSESSION)
+	if (nMsg == WM_QUERYENDSESSION)
 	{
 		// Indicate that the application will be able to close
 		return 1;
@@ -1613,4 +1599,3 @@ void CFrame::HandleFrameSkipHotkeys()
 		holdFrameStepDelayCount = 0;
 	}
 }
-
