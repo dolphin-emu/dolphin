@@ -195,6 +195,18 @@ namespace DriverDetails
 		// Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test it with us.
 		// Causes misrenderings on a large amount of things that draw lines.
 		BUG_BROKENGEOMETRYSHADERS,
+
+		// Bug: glMapBuffer on the SSBO used for bounding box causes significant slowdown
+		// Affected Devices: AMD drivers
+		// Started Version: -1
+		// Ended Version: -1
+		// Using glMapBufferRange to read back the contents of the SSBO used for bounding box causes significant slowdowns on NVIDIA
+		// drivers. This is suspected to be due to the first call to glMapBuffer moving the buffer from GPU memory to system memory.
+		// Using glGetBufferSubData does not seem to exhibit this problem.
+		//
+		// The glGetBufferSubData path seems cleaner, however, it is slower on AMD drivers, compared to calling glMapBufferRange.
+		// Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData everywhere else.
+		BUG_SLOWGETBUFFERSUBDATA,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
