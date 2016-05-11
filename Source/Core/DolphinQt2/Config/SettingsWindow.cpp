@@ -4,6 +4,7 @@
 
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Config/Pages/InterfacePage.h"
 
 SettingsWindow::SettingsWindow(QWidget* parent)
     : QDialog(parent)
@@ -47,6 +48,7 @@ SettingsWindow::SettingsWindow(QWidget* parent)
 void SettingsWindow::SetupSettingsWidget()
 {
     m_settings_outer = new QStackedWidget;
+    m_settings_outer->addWidget(new InterfacePage);
     m_settings_outer->setCurrentIndex(0);
 }
 
@@ -81,6 +83,8 @@ void SettingsWindow::MakeCategoryList()
     m_categories->setIconSize(QSize(32, 32));
     m_categories->setMovement(QListView::Static);
     m_categories->setSpacing(0);
+
+    AddCategoryToList(tr("Interface"),dir.append(QStringLiteral("browse.png")));
 
     connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
 }
