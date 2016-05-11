@@ -210,7 +210,7 @@ public:
 class BufferStorage : public StreamBuffer
 {
 public:
-	BufferStorage(u32 type, u32 size) : StreamBuffer(type, size)
+	BufferStorage(u32 type, u32 size, bool _coherent = false) : StreamBuffer(type, size), coherent(_coherent)
 	{
 		CreateFences();
 		glBindBuffer(m_buffertype, m_buffer);
@@ -219,9 +219,9 @@ public:
 		// COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
 		// CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then server side
 		glBufferStorage(m_buffertype, m_size, nullptr,
-			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0));
 		m_pointer = (u8*)glMapBufferRange(m_buffertype, 0, m_size,
-			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_FLUSH_EXPLICIT_BIT);
+			GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
 	}
 
 	~BufferStorage()
@@ -239,11 +239,13 @@ public:
 
 	void Unmap(u32 used_size) override
 	{
-		glFlushMappedBufferRange(m_buffertype, m_iterator, used_size);
+		if (!coherent)
+			glFlushMappedBufferRange(m_buffertype, m_iterator, used_size);
 		m_iterator += used_size;
 	}
 
 	u8* m_pointer;
+	const bool coherent;
 };
 
 /* --- AMD only ---
@@ -380,7 +382,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
 		if (g_ogl_config.bSupportsGLBufferStorage &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) && type == GL_ARRAY_BUFFER) &&
 			!(DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENBUFFERSTORAGE) && type == GL_ELEMENT_ARRAY_BUFFER))
-			return std::make_unique<BufferStorage>(type, size);
+			return std::make_unique<BufferStorage>(type, size, DriverDetails::HasBug(DriverDetails::BUG_BROKENEXPLICITFLUSH));
 
 		// don't fall back to MapAnd* for Nvidia drivers
 		if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
