@@ -75,6 +75,7 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Config\Pages\GeneralPage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -127,5 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Config\Pages\GeneralPage.h" />
   </ItemGroup>
 </Project>
