@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
+#include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
 
 CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
@@ -41,10 +42,12 @@ int CSIDevice_GCAdapter::RunBuffer(u8* _pBuffer, int _iLength)
 	// Read the command
 	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
 
-	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
-	if (numPAD < 4)
+	if (!NetPlay::IsNetPlayRunning())
 	{
-		if (!GCAdapter::DeviceConnected(numPAD))
+		// This is a hack to prevent a netplay desync due to SI devices
+		// being different and returning different values.
+		// The corresponding code in GCAdapter.cpp has the same check
+		if (!GCAdapter::DeviceConnected(ISIDevice::m_iDeviceNumber))
 		{
 			reinterpret_cast<u32*>(_pBuffer)[0] = SI_NONE;
 			return 4;
