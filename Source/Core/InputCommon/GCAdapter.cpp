@@ -12,6 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -417,8 +418,11 @@ void Input(int chan, GCPadStatus* pad)
 			pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
 			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
-		else
+		else if (!NetPlay::IsNetPlayRunning())
 		{
+			// This is a hack to prevent a netplay desync due to SI devices
+			// being different and returning different values.
+			// The corresponding code in DeviceGCAdapter has the same check
 			pad->button = PAD_ERR_STATUS;
 		}
 	}
