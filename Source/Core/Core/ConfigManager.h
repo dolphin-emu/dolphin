@@ -197,6 +197,7 @@ struct SConfig : NonCopyable
 	// interface language
 	int m_InterfaceLanguage;
 	float m_EmulationSpeed;
+	bool bEmulationSpeedFixAudio;
 	bool m_OCEnable;
 	float m_OCFactor;
 	// other interface settings

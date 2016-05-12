@@ -40,7 +40,7 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 void GeneralConfigPane::InitializeGUI()
 {
 	m_throttler_array_string.Add(_("Unlimited"));
-	for (int i = 10; i <= 200; i += 10) // from 10% to 200%
+	for (int i = 10; i <= 400; i += 10) // from 10% to 400%
 	{
 		if (i == 100)
 			m_throttler_array_string.Add(wxString::Format(_("%i%% (Normal Speed)"), i));
@@ -56,6 +56,7 @@ void GeneralConfigPane::InitializeGUI()
 	m_cheats_checkbox      = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
 	m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
 	m_throttler_choice     = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_throttler_array_string);
+	m_throttler_fix_audio_checkbox = new wxCheckBox(this, wxID_ANY, _("Don't Fix Audio"));
 	m_cpu_engine_radiobox  = new wxRadioBox(this, wxID_ANY, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
 
 	m_dual_core_checkbox->SetToolTip(_("Splits the CPU and GPU threads so they can be run on separate cores.\nProvides major speed improvements on most modern PCs, but can cause occasional crashes/glitches."));
@@ -63,17 +64,20 @@ void GeneralConfigPane::InitializeGUI()
 	m_cheats_checkbox->SetToolTip(_("Enables the use of Action Replay and Gecko cheats."));
 	m_force_ntscj_checkbox->SetToolTip(_("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults to NTSC-U and automatically enables this setting when playing Japanese games."));
 	m_throttler_choice->SetToolTip(_("Limits the emulation speed to the specified percentage.\nNote that raising or lowering the emulation speed will also raise or lower the audio pitch to prevent audio from stuttering."));
+	m_throttler_fix_audio_checkbox->SetToolTip(_("Audio plays at correct pitch, but stutters."));
 
 	m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
 	m_idle_skip_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnIdleSkipCheckBoxChanged, this);
 	m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
 	m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged, this);
 	m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
+	m_throttler_fix_audio_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnThrottlerFixAudioCheckBoxChanged, this);
 	m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
 
 	wxBoxSizer* const throttler_sizer = new wxBoxSizer(wxHORIZONTAL);
 	throttler_sizer->Add(new wxStaticText(this, wxID_ANY, _("Speed Limit:")), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 	throttler_sizer->Add(m_throttler_choice, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+	throttler_sizer->Add(m_throttler_fix_audio_checkbox, 0, wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
 	wxStaticBoxSizer* const basic_settings_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Basic Settings"));
 	basic_settings_sizer->Add(m_dual_core_checkbox, 0, wxALL, 5);
@@ -103,6 +107,7 @@ void GeneralConfigPane::LoadGUIValues()
 	u32 selection = std::lround(startup_params.m_EmulationSpeed * 10.0f);
 	if (selection < m_throttler_array_string.size())
 		m_throttler_choice->SetSelection(selection);
+	m_throttler_fix_audio_checkbox->SetValue(startup_params.bEmulationSpeedFixAudio);
 
 	for (size_t i = 0; i < cpu_cores.size(); ++i)
 	{
@@ -150,6 +155,15 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 {
 	if (m_throttler_choice->GetSelection() != wxNOT_FOUND)
 		SConfig::GetInstance().m_EmulationSpeed = m_throttler_choice->GetSelection() * 0.1f;
+	if (SConfig::GetInstance().m_EmulationSpeed == 1.0f)
+		m_throttler_fix_audio_checkbox->Disable();
+	else
+		m_throttler_fix_audio_checkbox->Enable();
+}
+
+void GeneralConfigPane::OnThrottlerFixAudioCheckBoxChanged(wxCommandEvent& event)
+{
+	SConfig::GetInstance().bEmulationSpeedFixAudio = m_throttler_fix_audio_checkbox->IsChecked();
 }
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)

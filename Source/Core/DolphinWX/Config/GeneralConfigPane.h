@@ -33,6 +33,7 @@ private:
 	void OnCheatCheckBoxChanged(wxCommandEvent&);
 	void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
 	void OnThrottlerChoiceChanged(wxCommandEvent&);
+	void OnThrottlerFixAudioCheckBoxChanged(wxCommandEvent&);
 	void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
 
 	wxArrayString m_throttler_array_string;
@@ -44,6 +45,7 @@ private:
 	wxCheckBox* m_force_ntscj_checkbox;
 
 	wxChoice* m_throttler_choice;
+	wxCheckBox* m_throttler_fix_audio_checkbox;
 
 	wxRadioBox* m_cpu_engine_radiobox;
 };

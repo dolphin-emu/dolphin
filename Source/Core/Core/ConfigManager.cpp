@@ -55,7 +55,8 @@ SConfig::SConfig()
   bProgressive(false), bPAL60(false),
   bDisableScreenSaver(false),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600),
-  bLoopFifoReplay(true)
+  bLoopFifoReplay(true),
+  bEmulationSpeedFixAudio(false)
 {
 	LoadDefaults();
 	// Make sure we have log manager
@@ -264,6 +265,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("RunCompareServer", bRunCompareServer);
 	core->Set("RunCompareClient", bRunCompareClient);
 	core->Set("EmulationSpeed", m_EmulationSpeed);
+	core->Set("EmulationSpeedFixAudio", bEmulationSpeedFixAudio);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
@@ -529,6 +531,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("FPRF",                      &bFPRF,             false);
 	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
 	core->Get("EmulationSpeed",            &m_EmulationSpeed,                              1.0f);
+	core->Get("EmulationSpeedFixAudio",    &bEmulationSpeedFixAudio,                       false);
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
@@ -619,6 +622,7 @@ void SConfig::LoadDefaults()
 	bOverrideGCLanguage = false;
 	bWii = false;
 	bDPL2Decoder = false;
+	bEmulationSpeedFixAudio = false;
 	iLatency = 14;
 
 	iPosX = 100;
