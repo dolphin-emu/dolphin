@@ -8,6 +8,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
 #include "InputCommon/GCAdapter.h"
@@ -33,84 +34,25 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 	return PadStatus;
 }
 
-int CSIDevice_GCAdapter::RunBuffer(u8* _pBuffer, int _iLength)
+int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
 {
-	// For debug logging only
-	ISIDevice::RunBuffer(_pBuffer, _iLength);
-
-	// Read the command
-	EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[3]);
-
-	const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
-	if (numPAD < 4)
+	if (!NetPlay::IsNetPlayRunning())
 	{
-		if (!GCAdapter::DeviceConnected(numPAD))
+		// The previous check is a hack to prevent a netplay desync due to
+		// SI devices being different and returning different values on
+		// RunBuffer(); the corresponding code in GCAdapter.cpp has the same
+		// check.
+
+		// This returns an error value if there is no controller plugged
+		// into this port on the hardware gc adapter, exposing it to the game.
+		if (!GCAdapter::DeviceConnected(ISIDevice::m_iDeviceNumber))
 		{
-			reinterpret_cast<u32*>(_pBuffer)[0] = SI_NONE;
+			TSIDevices device = SI_NONE;
+			memcpy(buffer, &device, sizeof(device));
 			return 4;
 		}
 	}
-
-	// Handle it
-	switch (command)
-	{
-	case CMD_RESET:
-	case CMD_ID:
-		*(u32*)&_pBuffer[0] = SI_GC_CONTROLLER;
-		break;
-
-	case CMD_DIRECT:
-		{
-			INFO_LOG(SERIALINTERFACE, "PAD - Direct (Length: %d)", _iLength);
-			u32 high, low;
-			GetData(high, low);
-			for (int i = 0; i < (_iLength - 1) / 2; i++)
-			{
-				_pBuffer[i + 0] = (high >> (i * 8)) & 0xff;
-				_pBuffer[i + 4] = (low >> (i * 8)) & 0xff;
-			}
-		}
-		break;
-
-	case CMD_ORIGIN:
-		{
-			INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
-
-			Calibrate();
-
-			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
-			for (int i = 0; i < (int)sizeof(SOrigin); i++)
-			{
-				_pBuffer[i ^ 3] = *pCalibration++;
-			}
-		}
-		break;
-
-	// Recalibrate (FiRES: i am not 100 percent sure about this)
-	case CMD_RECALIBRATE:
-		{
-			INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
-
-			Calibrate();
-
-			u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
-			for (int i = 0; i < (int)sizeof(SOrigin); i++)
-			{
-				_pBuffer[i ^ 3] = *pCalibration++;
-			}
-		}
-		break;
-
-	// DEFAULT
-	default:
-		{
-			ERROR_LOG(SERIALINTERFACE, "Unknown SI command     (0x%x)", command);
-			PanicAlert("SI: Unknown command (0x%x)", command);
-		}
-		break;
-	}
-
-	return _iLength;
+	return CSIDevice_GCController::RunBuffer(buffer, length);
 }
 
 void CSIDevice_GCController::Rumble(u8 numPad, ControlState strength)
