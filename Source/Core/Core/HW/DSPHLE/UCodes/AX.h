@@ -59,6 +59,9 @@ public:
 	void Update() override;
 	void DoState(PointerWrap& p) override;
 
+	static void DoWork(u64 userdata, s64 cyclesLate);
+	static AXUCode* s_instance;
+
 protected:
 	enum MailType
 	{

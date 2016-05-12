@@ -9,12 +9,24 @@
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
+
+static int et_AxDoWork;
+AXUCode* AXUCode::s_instance;
+
+void AXUCode::DoWork(u64 userdata, s64 cyclesLate)
+{
+	s_instance->HandleCommandList();
+	s_instance->m_cmdlist_size = 0;
+	s_instance->SignalWorkEnd();
+
+}
 
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
 	: UCodeInterface(dsphle, crc)
@@ -25,6 +37,10 @@ AXUCode::AXUCode(DSPHLE* dsphle, u32 crc)
 	DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 
 	LoadResamplingCoefficients();
+
+	s_instance = this;
+
+	et_AxDoWork = CoreTiming::RegisterEvent("AxDoWork", DoWork);
 }
 
 AXUCode::~AXUCode()
@@ -608,9 +624,7 @@ void AXUCode::HandleMail(u32 mail)
 	if (next_is_cmdlist)
 	{
 		CopyCmdList(mail, cmdlist_size);
-		HandleCommandList();
-		m_cmdlist_size = 0;
-		SignalWorkEnd();
+		CoreTiming::ScheduleEvent(100000, et_AxDoWork);
 	}
 	else if (m_upload_setup_in_progress)
 	{
