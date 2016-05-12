@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QAbstractEventDispatcher>
 #include <QApplication>
 
 #include "Core/BootManager.h"
@@ -19,6 +20,12 @@ int main(int argc, char* argv[])
 	UICommon::CreateDirectories();
 	UICommon::Init();
 	Resources::Init();
+
+	// Whenever the event loop is about to go to sleep, dispatch the jobs
+	// queued in the Core first.
+	QObject::connect(QAbstractEventDispatcher::instance(),
+	                 &QAbstractEventDispatcher::aboutToBlock,
+	                 &app, &Core::HostDispatchJobs);
 
 	MainWindow win;
 	win.show();

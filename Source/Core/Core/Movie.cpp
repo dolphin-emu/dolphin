@@ -415,7 +415,7 @@ bool IsNetPlayRecording()
 	return s_bNetPlay;
 }
 
-// NOTE: Host / CPU Thread
+// NOTE: Host Thread
 void ChangePads(bool instantly)
 {
 	if (!Core::IsRunning())
@@ -824,7 +824,7 @@ void RecordWiimote(int wiimote, u8 *data, u8 size)
 	s_totalBytes = s_currentByte;
 }
 
-// NOTE: CPU / EmuThread / Host Thread
+// NOTE: EmuThread / Host Thread
 void ReadHeader()
 {
 	s_numPads = tmpHeader.numControllers;
@@ -934,7 +934,7 @@ void DoState(PointerWrap &p)
 	// other variables (such as s_totalBytes and g_totalFrames) are set in LoadInput
 }
 
-// NOTE: Host / CPU Thread
+// NOTE: Host Thread
 void LoadInput(const std::string& filename)
 {
 	File::IOFile t_record;
@@ -1152,7 +1152,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 	{
 		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
 		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
-		Core::SetState(Core::CORE_PAUSE);
+		CPU::Break();
 		bool found = false;
 		std::string path;
 		for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
@@ -1166,8 +1166,16 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		}
 		if (found)
 		{
-			DVDInterface::ChangeDisc(path + '/' + g_discChange);
-			Core::SetState(Core::CORE_RUN);
+			path += '/' + g_discChange;
+
+			Core::QueueHostJob([=]
+			{
+				if (!Movie::IsPlayingInput())
+					return;
+
+				DVDInterface::ChangeDisc(path);
+				CPU::EnableStepping(false);
+			});
 		}
 		else
 		{
@@ -1235,10 +1243,13 @@ void EndPlayInput(bool cont)
 	}
 	else if (s_playMode != MODE_NONE)
 	{
+		// We can be called by EmuThread during boot (CPU_POWERDOWN)
+		bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
+		if (was_running)
+			CPU::Break();
 		s_rerecords = 0;
 		s_currentByte = 0;
 		s_playMode = MODE_NONE;
-		Core::UpdateWantDeterminism();
 		Core::DisplayMessage("Movie End.", 2000);
 		s_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
@@ -1246,8 +1257,12 @@ void EndPlayInput(bool cont)
 		//delete tmpInput;
 		//tmpInput = nullptr;
 
-		if (SConfig::GetInstance().m_PauseMovie)
-			Core::SetState(Core::CORE_PAUSE);
+		Core::QueueHostJob([=]
+		{
+			Core::UpdateWantDeterminism();
+			if (was_running && !SConfig::GetInstance().m_PauseMovie)
+				CPU::EnableStepping(false);
+		});
 	}
 }
 
@@ -1353,7 +1368,7 @@ void SetGraphicsConfig()
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
 }
 
-// NOTE: CPU / EmuThread / Host Thread
+// NOTE: EmuThread / Host Thread
 void GetSettings()
 {
 	s_bSaveConfig = true;

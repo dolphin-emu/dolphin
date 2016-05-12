@@ -7,6 +7,7 @@
 #include <cstring>
 #include <getopt.h>
 #include <string>
+#include <thread>
 #include <unistd.h>
 
 #include "Common/CommonTypes.h"
@@ -36,7 +37,14 @@ class Platform
 public:
 	virtual void Init() {}
 	virtual void SetTitle(const std::string &title) {}
-	virtual void MainLoop() { while(running) {} }
+	virtual void MainLoop()
+	{
+		while (running)
+		{
+			Core::HostDispatchJobs();
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	}
 	virtual void Shutdown() {}
 	virtual ~Platform() {}
 };
@@ -50,7 +58,10 @@ static Common::Event updateMainFrameEvent;
 void Host_Message(int Id)
 {
 	if (Id == WM_USER_STOP)
+	{
 		running = false;
+		updateMainFrameEvent.Set();
+	}
 }
 
 static void* s_window_handle = nullptr;
@@ -101,10 +112,13 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 {
 	if (Core::IsRunning() && SConfig::GetInstance().bWii)
 	{
-		bool was_unpaused = Core::PauseAndLock(true);
-		GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-		Host_UpdateMainFrame();
-		Core::PauseAndLock(false, was_unpaused);
+		Core::QueueHostJob([=]
+		{
+			bool was_unpaused = Core::PauseAndLock(true);
+			GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+			Host_UpdateMainFrame();
+			Core::PauseAndLock(false, was_unpaused);
+		});
 	}
 }
 
@@ -270,6 +284,7 @@ class PlatformX11 : public Platform
 					     &borderDummy, &depthDummy);
 				rendererIsFullscreen = false;
 			}
+			Core::HostDispatchJobs();
 			usleep(100000);
 		}
 	}
@@ -353,10 +368,14 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 
-	while (!Core::IsRunning())
+	while (!Core::IsRunning() && running)
+	{
+		Core::HostDispatchJobs();
 		updateMainFrameEvent.Wait();
+	}
 
-	platform->MainLoop();
+	if (running)
+		platform->MainLoop();
 	Core::Stop();
 
 	Core::Shutdown();
