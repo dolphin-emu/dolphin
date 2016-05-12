@@ -7,7 +7,7 @@
 #include "DolphinQt2/Settings.h"
 #include "DolphinQt2/ToolBar.h"
 
-static constexpr QSize ICON_SIZE(32, 32);
+static QSize ICON_SIZE(32, 32);
 
 ToolBar::ToolBar(QWidget* parent)
 	: QToolBar(parent)

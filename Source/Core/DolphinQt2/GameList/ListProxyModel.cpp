@@ -7,7 +7,7 @@
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
 
-static constexpr QSize LARGE_BANNER_SIZE(144, 48);
+static QSize LARGE_BANNER_SIZE(144, 48);
 
 ListProxyModel::ListProxyModel(QObject* parent)
 	: QSortFilterProxyModel(parent)
