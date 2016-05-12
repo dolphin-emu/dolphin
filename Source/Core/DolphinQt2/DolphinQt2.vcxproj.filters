@@ -75,6 +75,9 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Config\Pages\GeneralPage.cpp">
+      <Filter>Config\Pages</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -124,8 +127,14 @@
     <Filter Include="Config">
       <UniqueIdentifier>{42f8a963-563e-420d-8aca-5761657dcff5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Config\Pages">
+      <UniqueIdentifier>{459ca8c8-89d1-4955-bf9e-10418605726a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resources.h" />
+    <ClInclude Include="Config\Pages\GeneralPage.h">
+      <Filter>Config\Pages</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
