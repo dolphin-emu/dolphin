@@ -22,7 +22,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #include "UICommon/UICommon.h"
 
@@ -359,8 +358,6 @@ int main(int argc, char* argv[])
 
 	platform->MainLoop();
 	Core::Stop();
-	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-		updateMainFrameEvent.Wait();
 
 	Core::Shutdown();
 	platform->Shutdown();

@@ -10,7 +10,6 @@
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -20,7 +19,7 @@
 std::string PPCDebugInterface::Disassemble(unsigned int address)
 {
 	// PowerPC::HostRead_U32 seemed to crash on shutdown
-	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
+	if (!IsAlive())
 		return "";
 
 	if (Core::GetState() == Core::CORE_PAUSE)
@@ -51,7 +50,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
 
 void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	if (IsAlive())
 	{
 		if (memory || PowerPC::HostIsRAMAddress(address))
 		{
@@ -96,7 +95,7 @@ unsigned int PPCDebugInterface::ReadInstruction(unsigned int address)
 
 bool PPCDebugInterface::IsAlive()
 {
-	return Core::GetState() != Core::CORE_UNINITIALIZED;
+	return Core::IsRunning();
 }
 
 bool PPCDebugInterface::IsBreakpoint(unsigned int address)

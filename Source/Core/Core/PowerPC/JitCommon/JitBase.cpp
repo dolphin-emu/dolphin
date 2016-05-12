@@ -12,6 +12,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -67,7 +68,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *no
 
 bool JitBase::MergeAllowedNextInstructions(int count)
 {
-	if (PowerPC::GetState() == PowerPC::CPU_STEPPING || js.instructionsLeft < count)
+	if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
 		return false;
 	// Be careful: a breakpoint kills flags in between instructions
 	for (int i = 1; i <= count; i++)

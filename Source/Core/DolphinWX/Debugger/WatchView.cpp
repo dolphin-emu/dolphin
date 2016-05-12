@@ -7,6 +7,7 @@
 #include <wx/menu.h>
 
 #include "Common/GekkoDisassembler.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Frame.h"
@@ -87,7 +88,7 @@ static wxString GetValueByRowCol(int row, int col)
 	}
 	else if (row <= (int)PowerPC::watches.GetWatches().size())
 	{
-		if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		if (Core::IsRunning())
 		{
 			switch (col)
 			{
@@ -198,7 +199,7 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
 
 		attr->SetTextColour(red ? *wxRED : *wxBLACK);
 
-		if (row > (int)(PowerPC::watches.GetWatches().size() + 1) || (PowerPC::GetState() == PowerPC::CPU_POWERDOWN))
+		if (row > (int)(PowerPC::watches.GetWatches().size() + 1) || !Core::IsRunning())
 		{
 			attr->SetReadOnly(true);
 			attr->SetBackgroundColour(*wxLIGHT_GREY);
@@ -224,7 +225,7 @@ CWatchView::CWatchView(wxWindow* parent, wxWindowID id)
 
 void CWatchView::Update()
 {
-	if (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+	if (Core::IsRunning())
 	{
 		m_watch_table->UpdateWatch();
 		ForceRefresh();

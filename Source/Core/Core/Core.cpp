@@ -266,10 +266,7 @@ void Stop()  // - Hammertime!
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop();
-
-	// Kick it if it's waiting (code stepping wait loop)
-	CPU::StepOpcode();
+	CPU::Stop();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -376,6 +373,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
+	DeclareAsCPUThread();
 	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
@@ -388,18 +386,34 @@ static void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	s_is_started = true;
-	DeclareAsCPUThread();
-
 	// Enter CPU run loop. When we leave it - we are done.
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
 	{
-		FifoPlayer::GetInstance().Play();
+		if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
+		{
+			PowerPC::InjectExternalCPUCore(cpu_core.get());
+			s_is_started = true;
+			CPU::Run();
+			s_is_started = false;
+			PowerPC::InjectExternalCPUCore(nullptr);
+		}
 		FifoPlayer::GetInstance().Close();
 	}
 
-	UndeclareAsCPUThread();
-	s_is_started = false;
+	// If we did not enter the CPU Run Loop above then run a fake one instead.
+	// We need to be IsRunningAndStarted() for DolphinWX to stop us.
+	if (CPU::GetState() != CPU::CPU_POWERDOWN)
+	{
+		s_is_started = true;
+		Host_Message(WM_USER_STOP);
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
+		{
+			if (!_CoreParameter.bCPUThread)
+				g_video_backend->PeekMessages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+		s_is_started = false;
+	}
 
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
@@ -487,6 +501,9 @@ void EmuThread()
 	s_hardware_initialized = true;
 
 	// Boot to pause or not
+	// NOTE: This violates the Host Thread requirement for SetState but we should
+	//   not race the Host because the UI should have the buttons disabled until
+	//   Host_UpdateMainFrame enables them.
 	Core::SetState(core_parameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
@@ -552,7 +569,7 @@ void EmuThread()
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
 
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);
@@ -621,11 +638,13 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState _State)
+void SetState(EState state)
 {
-	switch (_State)
+	switch (state)
 	{
 	case CORE_PAUSE:
+		// NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+		//   stopped (including the CPU).
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 #if defined(__LIBUSB__) || defined(_WIN32)
@@ -719,30 +738,50 @@ void RequestRefreshInfo()
 	s_request_refresh_info = true;
 }
 
-bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
+bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
+	// WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 	if (!IsRunning())
 		return true;
 
 	// let's support recursive locking to simplify things on the caller's side,
 	// and let's do it at this outer level in case the individual systems don't support it.
-	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
+	if (do_lock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
 		return true;
 
-	// first pause or unpause the CPU
-	bool wasUnpaused = CPU::PauseAndLock(doLock, unpauseOnUnlock);
-	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
+	bool was_unpaused = true;
+	if (do_lock)
+	{
+		// first pause the CPU
+		// This acquires a wrapper mutex and converts the current thread into
+		// a temporary replacement CPU Thread.
+		was_unpaused = CPU::PauseAndLock(true);
+	}
+
+	ExpansionInterface::PauseAndLock(do_lock, false);
 
 	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
+	DSP::GetDSPEmulator()->PauseAndLock(do_lock, false);
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
-	Fifo::PauseAndLock(doLock, unpauseOnUnlock);
+	Fifo::PauseAndLock(do_lock, false);
 
 #if defined(__LIBUSB__) || defined(_WIN32)
 	GCAdapter::ResetRumble();
 #endif
-	return wasUnpaused;
+
+	// CPU is unlocked last because CPU::PauseAndLock contains the synchronization
+	// mechanism that prevents CPU::Break from racing.
+	if (!do_lock)
+	{
+		// The CPU is responsible for managing the Audio and FIFO state so we use its
+		// mechanism to unpause them. If we unpaused the systems above when releasing
+		// the locks then they could call CPU::Break which would require detecting it
+		// and re-pausing with CPU::EnableStepping.
+		was_unpaused = CPU::PauseAndLock(false, unpause_on_unlock, true);
+	}
+
+	return was_unpaused;
 }
 
 // Display FPS info
@@ -803,7 +842,7 @@ void UpdateTitle()
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
 		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	std::string SFPS;

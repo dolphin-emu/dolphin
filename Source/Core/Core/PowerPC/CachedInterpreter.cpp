@@ -7,6 +7,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -32,13 +33,10 @@ void CachedInterpreter::Shutdown()
 
 void CachedInterpreter::Run()
 {
-	while (!PowerPC::GetState())
+	while (!CPU::GetState())
 	{
 		SingleStep();
 	}
-
-	// Let the waiting thread know we are done leaving
-	PowerPC::FinishStateMove();
 }
 
 void CachedInterpreter::SingleStep()

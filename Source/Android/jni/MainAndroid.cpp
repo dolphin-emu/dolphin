@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <jni.h>
 #include <memory>
+#include <thread>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
@@ -29,7 +30,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
 #include "DiscIO/Volume.h"
@@ -66,8 +66,13 @@ void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
 
 Common::Event updateMainFrameEvent;
+static bool s_have_wm_user_stop = false;
 void Host_Message(int Id)
 {
+	if (Id == WM_USER_STOP)
+	{
+		s_have_wm_user_stop = true;
+	}
 }
 
 void* Host_GetRenderHandle()
@@ -657,11 +662,22 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 	WiimoteReal::InitAdapterClass();
 
 	// No use running the loop when booting fails
+	s_have_wm_user_stop = false;
 	if ( BootManager::BootCore( g_filename.c_str() ) )
 	{
-		PowerPC::Start();
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		static constexpr int TIMEOUT   = 10000;
+		static constexpr int WAIT_STEP = 25;
+		int time_waited = 0;
+		// A Core::CORE_ERROR state would be helpful here.
+		while (!Core::IsRunning() && time_waited < TIMEOUT && !s_have_wm_user_stop)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_STEP));
+			time_waited += WAIT_STEP;
+		}
+		while (Core::IsRunning())
+		{
 			updateMainFrameEvent.Wait();
+		}
 	}
 
 	Core::Shutdown();
