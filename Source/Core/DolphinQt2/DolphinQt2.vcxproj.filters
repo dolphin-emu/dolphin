@@ -38,9 +38,6 @@
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="$(QtMocOutPrefix)TableProxyModel.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
     <ClCompile Include="GameList\GameFile.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
@@ -56,9 +53,6 @@
     <ClCompile Include="GameList\ListProxyModel.cpp">
       <Filter>GameList</Filter>
     </ClCompile>
-    <ClCompile Include="GameList\TableProxyModel.cpp">
-      <Filter>GameList</Filter>
-    </ClCompile>
     <ClCompile Include="MenuBar.cpp" />
     <ClCompile Include="Settings.cpp" />
     <ClCompile Include="ToolBar.cpp" />
@@ -68,6 +62,18 @@
     </ClCompile>
     <ClCompile Include="Config\PathDialog.cpp">
       <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="GameList\TableDelegate.cpp" />
+    <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\SettingsWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp">
+      <Filter>Generated Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -92,12 +98,12 @@
     <QtMoc Include="GameList\GameTracker.h">
       <Filter>GameList</Filter>
     </QtMoc>
-    <QtMoc Include="GameList\TableProxyModel.h">
-      <Filter>GameList</Filter>
-    </QtMoc>
     <QtMoc Include="Config\PathDialog.h">
       <Filter>Config</Filter>
     </QtMoc>
+    <QtMoc Include="GameList\TableDelegate.h" />
+    <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Config\SettingsWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />
