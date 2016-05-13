@@ -57,7 +57,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 	gpr.Flush(FlushMode::FLUSH_ALL);
 	fpr.Flush(FlushMode::FLUSH_ALL);
 
-	WriteExit(js.compilerPC + 4);
+	WriteExceptionExit(js.compilerPC + 4, true);
 }
 
 void JitArm64::mfmsr(UGeckoInstruction inst)
