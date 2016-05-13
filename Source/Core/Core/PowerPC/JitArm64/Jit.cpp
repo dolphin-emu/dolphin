@@ -197,9 +197,8 @@ void JitArm64::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 
 	// the code generated in JitArm64BlockCache::WriteDestroyBlock must fit in this block
-	MOVI2R(X30, (u64)dispatcher);
 	MOVI2R(DISPATCHER_PC, destination);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExit(ARM64Reg Reg)
@@ -214,8 +213,7 @@ void JitArm64::WriteExit(ARM64Reg Reg)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
@@ -241,8 +239,7 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
@@ -273,8 +270,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
@@ -413,12 +409,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	// Downcount flag check, Only valid for linked blocks
 	{
 		FixupBranch bail = B(CC_PL);
-		ARM64Reg WA = gpr.GetReg();
-		ARM64Reg XA = EncodeRegTo64(WA);
 		MOVI2R(DISPATCHER_PC, js.blockStart);
-		MOVI2R(XA, (u64)doTiming);
-		BR(XA);
-		gpr.Unlock(WA);
+		B(doTiming);
 		SetJumpTarget(bail);
 	}
 
@@ -453,8 +445,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
 				MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
 				BLR(X1);
-				MOVI2R(X1, (u64)dispatcher);
-				BR(X1);
+				B(dispatcher);
 			SwitchToNearCode();
 			SetJumpTarget(no_fail);
 			js.assumeNoPairedQuantize = true;

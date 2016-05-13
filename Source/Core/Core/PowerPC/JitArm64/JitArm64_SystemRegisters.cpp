@@ -589,8 +589,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 
 	gpr.Lock(W0, W1, W2, W30);
-	MOVI2R(X0, (u64)GetAsmRoutines()->mfcr);
-	BLR(X0);
+	BL(GetAsmRoutines()->mfcr);
 	gpr.Unlock(W1, W2, W30);
 
 	gpr.BindToRegister(inst.RD, false);
