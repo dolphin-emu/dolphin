@@ -198,6 +198,6 @@ void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
 {
 }
 
-void CachedInterpreter::WriteLinkBlock(u8* location, const u8* address)
+void CachedInterpreter::WriteLinkBlock(u8* location, const JitBlock& block)
 {
 }

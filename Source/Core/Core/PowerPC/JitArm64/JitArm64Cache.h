@@ -12,6 +12,6 @@ typedef void (*CompiledCode)();
 class JitArm64BlockCache : public JitBaseBlockCache
 {
 private:
-	void WriteLinkBlock(u8* location, const u8* address);
+	void WriteLinkBlock(u8* location, const JitBlock& block);
 	void WriteDestroyBlock(const u8* location, u32 address);
 };

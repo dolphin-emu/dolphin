@@ -7,8 +7,9 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 
-void JitArm64BlockCache::WriteLinkBlock(u8* location, const u8* address)
+void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 {
+	const u8* address = block.checkedEntry;
 	ARM64XEmitter emit(location);
 	s64 offset = address - location;
 
