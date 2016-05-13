@@ -414,6 +414,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		SetJumpTarget(bail);
 	}
 
+	// Normal entry doesn't need to check for downcount.
+	b->normalEntry = GetCodePtr();
+
 	// Conditionally add profiling code.
 	if (Profiler::g_ProfileBlocks)
 	{
@@ -451,9 +454,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 			js.assumeNoPairedQuantize = true;
 		}
 	}
-
-	const u8 *normalEntry = GetCodePtr();
-	b->normalEntry = normalEntry;
 
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
