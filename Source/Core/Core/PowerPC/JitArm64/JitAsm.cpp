@@ -9,13 +9,12 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
 using namespace Arm64Gen;
 
-void JitArm64AsmRoutineManager::Generate()
+void JitArm64::GenerateAsm()
 {
 	// This value is all of the callee saved registers that we are required to save.
 	// According to the AACPS64 we need to save R19 ~ R30.
@@ -66,7 +65,7 @@ void JitArm64AsmRoutineManager::Generate()
 
 		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
-		MOVI2R(X30, (u64)&Jit);
+		MOVI2R(X30, (u64)&::Jit);
 		BLR(X30);
 
 		B(dispatcherNoCheck);
@@ -105,12 +104,12 @@ void JitArm64AsmRoutineManager::Generate()
 
 	JitRegister::Register(enterCode, GetCodePtr(), "JIT_Dispatcher");
 
-	GenerateCommon();
+	GenerateCommonAsm();
 
 	FlushIcache();
 }
 
-void JitArm64AsmRoutineManager::GenerateCommon()
+void JitArm64::GenerateCommonAsm()
 {
 	// X0 is the scale
 	// X1 is address
@@ -577,11 +576,11 @@ void JitArm64AsmRoutineManager::GenerateCommon()
 	pairedStoreQuantized[30] = storeSingleS8Slow;
 	pairedStoreQuantized[31] = storeSingleS16Slow;
 
-	mfcr = AlignCode16();
+	GetAsmRoutines()->mfcr = AlignCode16();
 	GenMfcr();
 }
 
-void JitArm64AsmRoutineManager::GenMfcr()
+void JitArm64::GenMfcr()
 {
 	// Input: Nothing
 	// Returns: W0

@@ -13,11 +13,11 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 #include "Core/PowerPC/JitArmCommon/BackPatch.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
-class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock
+class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
 	JitArm64() : code_buffer(32000), m_float_emit(this) {}
@@ -34,9 +34,9 @@ public:
 
 	void ClearCache();
 
-	CommonAsmRoutinesBase *GetAsmRoutines()
+	CommonAsmRoutinesBase *GetAsmRoutines() override
 	{
-		return &asm_routines;
+		return this;
 	}
 
 	void Run();
@@ -181,7 +181,6 @@ private:
 	Arm64FPRCache fpr;
 
 	JitArm64BlockCache blocks;
-	JitArm64AsmRoutineManager asm_routines;
 
 	PPCAnalyst::CodeBuffer code_buffer;
 
@@ -226,6 +225,11 @@ private:
 
 	void DoDownCount();
 	void Cleanup();
+
+	// AsmRoutines
+	void GenerateAsm();
+	void GenerateCommonAsm();
+	void GenMfcr();
 
 	// Profiling
 	void BeginTimeProfile(JitBlock* b);

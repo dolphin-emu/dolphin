@@ -48,7 +48,7 @@ void JitArm64::Init()
 	fpr.Init(this);
 
 	blocks.Init();
-	asm_routines.Init();
+	GenerateAsm();
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -67,13 +67,14 @@ void JitArm64::ClearCache()
 	ClearCodeSpace();
 	farcode.ClearCodeSpace();
 	UpdateMemoryOptions();
+
+	GenerateAsm();
 }
 
 void JitArm64::Shutdown()
 {
 	FreeCodeSpace();
 	blocks.Shutdown();
-	asm_routines.Shutdown();
 }
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -196,7 +197,7 @@ void JitArm64::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 
 	// the code generated in JitArm64BlockCache::WriteDestroyBlock must fit in this block
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
+	MOVI2R(X30, (u64)dispatcher);
 	MOVI2R(DISPATCHER_PC, destination);
 	BR(X30);
 }
@@ -213,7 +214,7 @@ void JitArm64::WriteExit(ARM64Reg Reg)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
+	MOVI2R(X30, (u64)dispatcher);
 	BR(X30);
 }
 
@@ -240,7 +241,7 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
+	MOVI2R(X30, (u64)dispatcher);
 	BR(X30);
 }
 
@@ -272,7 +273,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
+	MOVI2R(X30, (u64)dispatcher);
 	BR(X30);
 }
 
@@ -351,13 +352,13 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
-	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+	CompiledCode pExecAddr = (CompiledCode)enterCode;
 	pExecAddr();
 }
 
 void JitArm64::SingleStep()
 {
-	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+	CompiledCode pExecAddr = (CompiledCode)enterCode;
 	pExecAddr();
 }
 
@@ -415,7 +416,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		ARM64Reg WA = gpr.GetReg();
 		ARM64Reg XA = EncodeRegTo64(WA);
 		MOVI2R(DISPATCHER_PC, js.blockStart);
-		MOVI2R(XA, (u64)asm_routines.doTiming);
+		MOVI2R(XA, (u64)doTiming);
 		BR(XA);
 		gpr.Unlock(WA);
 		SetJumpTarget(bail);
@@ -452,7 +453,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
 				MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
 				BLR(X1);
-				MOVI2R(X1, (u64)asm_routines.dispatcher);
+				MOVI2R(X1, (u64)dispatcher);
 				BR(X1);
 			SwitchToNearCode();
 			SetJumpTarget(no_fail);
