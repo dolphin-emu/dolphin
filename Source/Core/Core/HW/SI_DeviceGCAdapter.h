@@ -14,4 +14,5 @@ public:
 	CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber);
 
 	GCPadStatus GetPadStatus() override;
+	int RunBuffer(u8* buffer, int length) override;
 };
