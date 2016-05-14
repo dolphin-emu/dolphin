@@ -23,6 +23,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB;
 
@@ -210,6 +211,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreFloatingOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB;
 

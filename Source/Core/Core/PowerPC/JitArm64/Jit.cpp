@@ -6,6 +6,7 @@
 
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
@@ -590,12 +591,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				js.firstFPInstructionFound = true;
 			}
 
-			if (jo.memcheck && (opinfo->flags & FL_USE_FPU))
-			{
-				// Don't do this yet
-				BRK(0x7777);
-			}
-
 			JitArm64Tables::CompileInstruction(ops[i]);
 
 			// If we have a register that will never be used again, flush it.
@@ -604,8 +599,22 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 			if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
 			{
-				// Don't do this yet
-				BRK(0x666);
+				ARM64Reg WA = gpr.GetReg();
+				LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(Exceptions));
+				FixupBranch noException = TBZ(WA, IntLog2(EXCEPTION_DSI));
+
+				FixupBranch handleException = B();
+				SwitchToFarCode();
+				SetJumpTarget(handleException);
+
+				gpr.Flush(FLUSH_MAINTAIN_STATE);
+				fpr.Flush(FLUSH_MAINTAIN_STATE);
+
+				WriteExceptionExit(js.compilerPC);
+
+				SwitchToNearCode();
+				SetJumpTarget(noException);
+				gpr.Unlock(WA);
 			}
 		}
 
