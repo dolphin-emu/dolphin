@@ -47,7 +47,6 @@ private:
 		typedef void (*CommonCallback)(UGeckoInstruction);
 		typedef bool (*ConditionalCallback)(u32 data);
 
-		Instruction() : type(INSTRUCTION_ABORT) {};
 		Instruction(const CommonCallback c, UGeckoInstruction i) : common_callback(c), data(i.hex), type(INSTRUCTION_TYPE_COMMON) {};
 		Instruction(const ConditionalCallback c, u32 d) : conditional_callback(c), data(d), type(INSTRUCTION_TYPE_CONDITIONAL) {};
 
@@ -55,12 +54,11 @@ private:
 		{
 			const CommonCallback common_callback;
 			const ConditionalCallback conditional_callback;
-
 		};
+
 		u32 data;
 		enum
 		{
-			INSTRUCTION_ABORT,
 			INSTRUCTION_TYPE_COMMON,
 			INSTRUCTION_TYPE_CONDITIONAL,
 		} type;
