@@ -446,11 +446,11 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 	// LWZ idle skipping
 	if (SConfig::GetInstance().bSkipIdle &&
-	    inst.OPCD == 32 &&
-	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-	    (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
-	    (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
-	    PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
+	    inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
+	    (inst.hex & 0xFFFF0000) == 0x800D0000 && // lwz r0, XXXX(r13)
+	    (js.op[1].inst.hex == 0x28000000 ||
+	    (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) && // cmpXwi r0,0
+	    js.op[2].inst.hex == 0x4182fff8) // beq -8
 	{
 		// if it's still 0, we can wait until the next event
 		FixupBranch noIdle = CBNZ(gpr.R(d));
