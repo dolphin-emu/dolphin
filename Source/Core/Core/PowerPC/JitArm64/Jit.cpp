@@ -615,7 +615,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 
 	if (code_block.m_broken)
 	{
-		printf("Broken Block going to 0x%08x\n", nextPC);
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
 		WriteExit(nextPC);
 	}
 
