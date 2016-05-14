@@ -19,6 +19,7 @@ void CachedInterpreter::Init()
 	jo.enableBlocklink = false;
 
 	JitBaseBlockCache::Init();
+	UpdateMemoryOptions();
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -52,9 +53,6 @@ void CachedInterpreter::SingleStep()
 		{
 			switch (code->type)
 			{
-			case Instruction::INSTRUCTION_ABORT:
-				return;
-
 			case Instruction::INSTRUCTION_TYPE_COMMON:
 				code->common_callback(UGeckoInstruction(code->data));
 				code++;
@@ -73,20 +71,26 @@ void CachedInterpreter::SingleStep()
 	Jit(PC);
 }
 
-static void EndBlock(UGeckoInstruction data)
+static bool EndBlock(u32 data)
 {
 	PC = NPC;
-	PowerPC::ppcState.downcount -= data.hex;
+	PowerPC::ppcState.downcount -= data;
 	if (PowerPC::ppcState.downcount <= 0)
 	{
 		CoreTiming::Advance();
 	}
+	return true;
 }
 
 static void WritePC(UGeckoInstruction data)
 {
 	PC = data.hex;
 	NPC = data.hex + 4;
+}
+
+static void WriteBrokenBlockNPC(UGeckoInstruction data)
+{
+	NPC = data.hex;
 }
 
 static bool CheckFPU(u32 data)
@@ -96,6 +100,17 @@ static bool CheckFPU(u32 data)
 	{
 		PC = NPC = data;
 		PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+		PowerPC::CheckExceptions();
+		return true;
+	}
+	return false;
+}
+
+static bool CheckDSI(u32 data)
+{
+	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+	{
+		PC = NPC = data;
 		PowerPC::CheckExceptions();
 		return true;
 	}
@@ -153,7 +168,6 @@ void CachedInterpreter::Jit(u32 address)
 					if (type == HLE::HLE_HOOK_REPLACE)
 					{
 						m_code.emplace_back(EndBlock, js.downcountAmount);
-						m_code.emplace_back();
 						break;
 					}
 				}
@@ -170,17 +184,21 @@ void CachedInterpreter::Jit(u32 address)
 
 			if (ops[i].opinfo->flags & FL_ENDBLOCK)
 				m_code.emplace_back(WritePC, ops[i].address);
+
 			m_code.emplace_back(GetInterpreterOp(ops[i].inst), ops[i].inst);
+
+			if(jo.memcheck && (ops[i].opinfo->flags & FL_LOADSTORE))
+				m_code.emplace_back(CheckDSI, ops[i].address);
+
 			if (ops[i].opinfo->flags & FL_ENDBLOCK)
 				m_code.emplace_back(EndBlock, js.downcountAmount);
 		}
 	}
 	if (code_block.m_broken)
 	{
-		m_code.emplace_back(WritePC, nextPC);
+		m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
 		m_code.emplace_back(EndBlock, js.downcountAmount);
 	}
-	m_code.emplace_back();
 
 	b->codeSize = (u32)(GetCodePtr() - b->checkedEntry);
 	b->originalSize = code_block.m_num_instructions;
@@ -192,6 +210,7 @@ void CachedInterpreter::ClearCache()
 {
 	m_code.clear();
 	JitBaseBlockCache::Clear();
+	UpdateMemoryOptions();
 }
 
 void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
