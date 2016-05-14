@@ -46,6 +46,8 @@ void JitArm64::GenerateAsm()
 
 		dispatcherNoCheck = GetCodePtr();
 
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
 		// This block of code gets the address of the compiled block of code
 		// It runs though to the compiling portion if it isn't found
 		BFM(DISPATCHER_PC, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
@@ -63,10 +65,10 @@ void JitArm64::GenerateAsm()
 
 		SetJumpTarget(JitBlock);
 
-		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
 		MOVI2R(X30, (u64)&::Jit);
 		BLR(X30);
+
+		LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 		B(dispatcherNoCheck);
 

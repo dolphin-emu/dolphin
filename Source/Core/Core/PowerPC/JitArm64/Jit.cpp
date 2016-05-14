@@ -364,15 +364,9 @@ void JitArm64::Jit(u32)
 	{
 		ClearCache();
 	}
-	int block_num = blocks.AllocateBlock(PowerPC::ppcState.pc);
-	JitBlock *b = blocks.GetBlock(block_num);
-	const u8* BlockPtr = DoJit(PowerPC::ppcState.pc, &code_buffer, b);
-	blocks.FinalizeBlock(block_num, jo.enableBlocklink, BlockPtr);
-}
 
-const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
-{
-	int blockSize = code_buf->GetSize();
+	int blockSize = code_buffer.GetSize();
+	u32 em_address = PowerPC::ppcState.pc;
 
 	if (SConfig::GetInstance().bEnableDebugging)
 	{
@@ -380,6 +374,28 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		blockSize = 1;
 	}
 
+	// Analyze the block, collect all instructions it is made of (including inlining,
+	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
+	u32 nextPC = analyzer.Analyze(em_address, &code_block, &code_buffer, blockSize);
+
+	if (code_block.m_memory_exception)
+	{
+		// Address of instruction could not be translated
+		NPC = nextPC;
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+		PowerPC::CheckExceptions();
+		WARN_LOG(POWERPC, "ISI exception at 0x%08x", nextPC);
+		return;
+	}
+
+	int block_num = blocks.AllocateBlock(em_address);
+	JitBlock *b = blocks.GetBlock(block_num);
+	const u8* BlockPtr = DoJit(em_address, &code_buffer, b, nextPC);
+	blocks.FinalizeBlock(block_num, jo.enableBlocklink, BlockPtr);
+}
+
+const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC)
+{
 	if (em_address == 0)
 	{
 		Core::SetState(Core::CORE_PAUSE);
@@ -394,11 +410,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	js.downcountAmount = 0;
 	js.skipInstructions = 0;
 	js.curBlock = b;
-
-	u32 nextPC = em_address;
-	// Analyze the block, collect all instructions it is made of (including inlining,
-	// if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	nextPC = analyzer.Analyze(em_address, &code_block, code_buf, blockSize);
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -601,9 +612,6 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 		i += js.skipInstructions;
 		js.skipInstructions = 0;
 	}
-
-	if (code_block.m_memory_exception)
-		BRK(0x500);
 
 	if (code_block.m_broken)
 	{
