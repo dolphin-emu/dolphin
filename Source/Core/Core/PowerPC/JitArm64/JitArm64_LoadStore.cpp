@@ -375,6 +375,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
@@ -480,6 +481,7 @@ void JitArm64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 	s32 offset = inst.SIMM_16;
@@ -557,7 +559,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!jo.fastmem);
+	FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
 	u32 a = inst.RA;
 
@@ -643,7 +645,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!jo.fastmem);
+	FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
 	u32 a = inst.RA;
 
@@ -699,6 +701,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	gpr.Lock(W30);
 
@@ -803,6 +806,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	int a = inst.RA, b = inst.RB;
 
