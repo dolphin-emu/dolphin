@@ -3,21 +3,22 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Nisen <gaoboyuan8@qq.com>, 2014
-# Nisen <gaoboyuan8@qq.com>, 2015-2016
-# Ryan Zhou <sentret_c@sina.cn>, 2013-2015
-# Nisen <gaoboyuan8@qq.com>, 2015
+# Yueyu <gaoboyuan8@qq.com>, 2014
+# Yueyu <gaoboyuan8@qq.com>, 2015-2016
+# Ryan Zhou <sentret_c@sina.cn>, 2013-2016
+# Yueyu <gaoboyuan8@qq.com>, 2015
 # thegfw <thegfw@gmail.com>, 2011
-# Nisen <gaoboyuan8@qq.com>, 2013-2014
+# Yueyu <gaoboyuan8@qq.com>, 2016
+# Yueyu <gaoboyuan8@qq.com>, 2013-2014
 # Ryan Zhou <sentret_c@sina.cn>, 2013
 # 天绝星 <c.cejhb@gmail.com>, 2015-2016
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-15 16:59+0000\n"
+"Last-Translator: Ryan Zhou <sentret_c@sina.cn>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
 "Language: zh_CN\n"
@@ -44,7 +45,7 @@ msgstr "(内部 IP)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:211
 msgid " (too many to display)"
-msgstr " (项目太多，无法完全显示)"
+msgstr " (项目太多，无法显示)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:129
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:442
@@ -68,7 +69,7 @@ msgstr ""
 #: Source/Core/DiscIO/CompressedBlob.cpp:181
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
-msgstr "缩减 %s 失败。镜像可能有错误。"
+msgstr "清理 %s 失败。镜像可能已损坏。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:157
 #, c-format
@@ -88,7 +89,7 @@ msgstr "%1$s复制%1$s"
 #: Source/Core/DiscIO/CompressedBlob.cpp:232
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
-msgstr "%i 于 %i 区块数，压缩率 %i%%"
+msgstr "区块 %i，共 %i，压缩率 %i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
@@ -134,7 +135,7 @@ msgid ""
 msgstr ""
 "%s \n"
 "无法加载，因为不是一个有效的 GCI 文件。 \n"
-"区块数量必须是 %u"
+"区块数量不可能是 %u"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:124
 #, c-format
@@ -165,7 +166,7 @@ msgstr "%s (光盘 %i)"
 #: Source/Core/Core/Boot/Boot.cpp:211
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
-msgstr "%s IPL 在 %s 目录中找到，磁盘可能无法识别。"
+msgstr "%s IPL 位于 %s 目录中，光盘可能无法识别。"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:195
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:374
@@ -301,7 +302,7 @@ msgstr "文件(&F)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:412
 msgid "&Frame Advance"
-msgstr "帧数步进(&F)"
+msgstr "逐帧播放(&F)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:429
 msgid "&Fullscreen"
@@ -513,12 +514,12 @@ msgstr "<无>"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
 msgid "<System Language>"
-msgstr "【系统语言】"
+msgstr "<系统语言>"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:320
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:384
 msgid "A NetPlay window is already open!"
-msgstr "网络联机 (NetPlay) 窗口已经打开。"
+msgstr "已经打开了一个联机窗口！"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:121
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:151
@@ -549,11 +550,11 @@ msgstr ""
 "警告：\n"
 "\n"
 "所有玩家都必须使用相同的 Dolphin 版本。\n"
-"所有玩家之间的存储卡、SD卡和金手指都必须一致或禁用。\n"
-"如果 DSP LLE 已选用，玩家之间的DSP ROM 都必须相同。\n"
-"如果使用直连，主机选用的 UDP 端口必须能够打开/转发！\n"
+"所有玩家的存储卡、SD卡和金手指都必须一致或禁用。\n"
+"如果使用 DSP LLE，玩家的 DSP ROM 都必须相同。\n"
+"如果使用直连，主机必须将所选的 UDP 端口打开/转发！\n"
 "\n"
-"Wii 控制器支持在网络对战时会崩溃，因此已禁用。\n"
+"Wii 控制器在联机中暂不支持，因此已禁用。\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -805,11 +806,11 @@ msgstr "您确定要删除 \"%s\" ?"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1047
 msgid "Are you sure you want to delete these files? They will be gone forever!"
-msgstr "你确定想要删除这些文件? 它们将无法恢复!"
+msgstr "你确定要删除这些文件吗？它们将无法恢复！"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1046
 msgid "Are you sure you want to delete this file? It will be gone forever!"
-msgstr "你确定想要删除此文件? 它将无法恢复!"
+msgstr "你确定要删除此文件吗？它将无法恢复！"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:383
 msgid "Are you trying to use the same file in both slots?"
@@ -893,7 +894,7 @@ msgstr "BP 寄存器"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:19
 msgid "Back"
-msgstr "后"
+msgstr "Back"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:72
 msgid "Backend Settings"
@@ -1125,7 +1126,7 @@ msgstr "切换光盘"
 msgid "Change Game"
 msgstr "切换游戏"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr "切换光盘至 %s"
@@ -1224,7 +1225,7 @@ msgstr "清除"
 msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
-msgstr "游戏运行期间客户端断开连接！网络对战已禁用。您必须手动停止游戏。"
+msgstr "游戏运行期间客户端断开连接！联机已禁用。您必须手动停止游戏。"
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:118
 #: Source/Core/DolphinWX/ISOProperties.cpp:616
@@ -1253,7 +1254,7 @@ msgstr "代码:"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:40
 msgid "Command"
-msgstr "命令"
+msgstr "Command"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "Comment"
@@ -1366,7 +1367,7 @@ msgstr "正在连接..."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "连接类型："
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
@@ -1374,7 +1375,7 @@ msgstr "持续扫描"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:38
 msgid "Control"
-msgstr "控制"
+msgstr "Control"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:65
 msgid "Control Stick"
@@ -1734,7 +1735,7 @@ msgstr "五分钟非活动状态后变暗屏幕。"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:61
 msgid "Direct Connection"
-msgstr ""
+msgstr "直接连接"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
@@ -1872,6 +1873,7 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
+"Dolphin 无法找到任何 GameCube/Wii 镜像或 WAD 文件。双击这里设置一个游戏目录……"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:329
 msgid ""
@@ -2467,7 +2469,7 @@ msgstr ""
 "无法打开输出文件  \"%s\"。\n"
 "请检查是否有权限写入目标文件夹并且该媒体能够被写入。"
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "读取 %s 失败"
@@ -2480,7 +2482,7 @@ msgid ""
 "File position: 0x%<PRIx64>"
 msgstr ""
 "读取存档中的区块 %u 失败 \n"
-"存储卡可能被截断 \n"
+"存储卡可能不完整 \n"
 "文件位置：0x%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:114
@@ -2558,7 +2560,7 @@ msgstr "快速"
 msgid "Fast Depth Calculation"
 msgstr "快速深度计算"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2882,7 +2884,7 @@ msgstr "未加载 GCI 存档文件，其地区对于存储卡 %s 不正确。"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:368
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
-msgstr "GCMemcardDirectory: ClearBlock 被无效块地址调用"
+msgstr "GCMemcardDirectory: ClearBlock 被用于无效的区块地址"
 
 #: Source/Core/VideoCommon/OpcodeDecoding.cpp:81
 #, c-format
@@ -2935,7 +2937,7 @@ msgstr "游戏没有找到!"
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
-msgstr "游戏覆盖了其他的游戏存档，数据损坏前部 0x%x, 0x%x"
+msgstr "游戏覆盖了其他的游戏存档，将会破坏数据 0x%x, 0x%x"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:406
 msgid "Game-Specific Settings"
@@ -3398,7 +3400,7 @@ msgstr "无效主机"
 msgid "Invalid index"
 msgstr "无效索引"
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "无效录制文件"
 
@@ -4077,7 +4079,7 @@ msgstr "下一扫描"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:76
 msgid "Nickname:"
-msgstr ""
+msgstr "昵称："
 
 #: Source/Core/Core/ConfigManager.h:18
 msgid "No audio output"
@@ -4263,7 +4265,7 @@ msgstr "其他"
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
-msgstr "游戏运行期间其他客户端断开连接！网络对战已禁用。您需要手动停止游戏。"
+msgstr "游戏运行期间其他客户端断开连接！联机已禁用。您需要手动停止游戏。"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:570
 msgid "Output"
@@ -4406,17 +4408,17 @@ msgstr "后处理效果:"
 msgid "Prefetch Custom Textures"
 msgstr "预读取自定义材质"
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "在PlayController中提前结束影片。%u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "在 PlayWiimote 中提前结束影片。%u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "在PlayWiimote 中提前结束影片。%u > %u"
@@ -4459,7 +4461,7 @@ msgstr "退出"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:207
 msgid "Quit Netplay"
-msgstr ""
+msgstr "退出联机"
 
 #. i18n:  Right
 #: Source/Core/Core/HW/GCPadEmu.cpp:48
@@ -4512,7 +4514,7 @@ msgstr "录制"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:229
 msgid "Record inputs"
-msgstr ""
+msgstr "录制输入"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:156
 msgid "Recording Info"
@@ -4645,7 +4647,7 @@ msgstr "右摇杆"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:169
 msgid "Room ID:"
-msgstr ""
+msgstr "房间 ID:"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
@@ -4752,7 +4754,7 @@ msgstr "保存至所选插槽"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "保存至 /Wii/sd.raw（默认大小是 128MB）"
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "即时存档影片 %s 被破坏, 影片录制停止..."
@@ -5421,7 +5423,7 @@ msgstr "开始"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:237
 msgid "Start &NetPlay"
-msgstr "开始网络对战(&N)"
+msgstr "开始联机(&N)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:416
 msgid "Start Re&cording Input"
@@ -5653,12 +5655,12 @@ msgid ""
 "Hash of block %<PRIu64> is %08x instead of %08x."
 msgstr ""
 "磁盘镜像“%s”已损坏。\n"
-"块 %<PRIu64> 的 Hash 是 %08x 而不是 %08x."
+"块 %<PRIu64> 的哈希值是 %08x 而非 %08x。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:102
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
-msgstr ""
+msgstr "光盘镜像 \"%s\" 不完整，缺失某些数据。"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1164
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1192
@@ -5712,7 +5714,7 @@ msgstr "您的系统不支持选定的语言。正在退回系统默认。"
 
 #: Source/Core/Core/NetPlayClient.cpp:194
 msgid "The server and client's NetPlay versions are incompatible!"
-msgstr "服务器与客户端的网络对战版本不兼容！"
+msgstr "服务器与客户端的联机版本不兼容！"
 
 #: Source/Core/Core/NetPlayClient.cpp:191
 msgid "The server is full!"
@@ -5857,19 +5859,19 @@ msgstr "至"
 
 #: Source/Core/Core/HotkeyManager.cpp:70
 msgid "Toggle 3D Anaglyph"
-msgstr "切换 3D 互补图像"
+msgstr "切换色差 3D"
 
 #: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Toggle 3D Side-by-side"
-msgstr "切换 3D 左右并排"
+msgstr "切换左右 3D"
 
 #: Source/Core/Core/HotkeyManager.cpp:69
 msgid "Toggle 3D Top-bottom"
-msgstr "切换 3D 上下并排"
+msgstr "切换上下 3D"
 
 #: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Toggle 3D Vision"
-msgstr "切换 3D 视觉"
+msgstr "切换 3D Vision"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:61
 msgid "Toggle All Log Types"
@@ -5918,11 +5920,11 @@ msgstr "繁体中文"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "穿透服务器"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "穿透服务器:"
 
 #: Source/Core/Core/NetPlayClient.cpp:822
 msgid "Traversal server timed out connecting to the host"
@@ -6223,7 +6225,7 @@ msgstr ""
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
 "the loaded file header (%u)"
-msgstr "警告：BAT (%u) 标示的区块数与已载入的文件头 (%u) 不匹配"
+msgstr "警告：BAT 所标示的区块数 (%u) 与已载入文件头中的 (%u) 不匹配"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:597
 #, c-format
@@ -6237,7 +6239,7 @@ msgstr ""
 "%s\n"
 "要继续吗?"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6247,7 +6249,7 @@ msgstr ""
 "警告: 您读取的存档在当前影片结束之后。 (字节%u > %u) (帧%u > %u) 。您需要读取"
 "另一个存档方可继续，或关闭只读模式再读取此状态存档。"
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6257,7 +6259,7 @@ msgstr ""
 "警告: 您读取的存档影片已结束在存档的当前帧之前(字节%u < %u) (帧%u < %u)。您需"
 "要读取另一个存档方可继续。"
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6267,7 +6269,7 @@ msgstr ""
 "警告: 您读取的存档在 %d (0x%X) 字节处与影片不匹配。您需要读取另一个存档方可继"
 "续，或关闭只读模式再读取此状态存档。否则将可能发生不同步。"
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6411,7 +6413,7 @@ msgstr "写入到窗口"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "写入存储卡/SD卡"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:430
 msgid "X"

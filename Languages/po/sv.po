@@ -12,9 +12,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-10 21:46+0000\n"
+"Last-Translator: A. Regnander <anton_r_3@hotmail.com>\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -555,7 +555,7 @@ msgstr ""
 "Om DSP LLE används måste DSP-ROM-filerna vara identiska mellan spelare.\n"
 "Om du ansluter direkt måste värden ha den valda UDP-porten öppen/forwardad.\n"
 "\n"
-"Wiimote-stöd fungerar inte som det ska med netplay och är därför avstängt.\n"
+"Wiimote-stöd fungerar inte som det ska med nätspel och är därför avstängt.\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
@@ -988,7 +988,7 @@ msgstr "Blå höger"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Borderless Fullscreen"
-msgstr "Kantlös fullskärm"
+msgstr "Kantlös helskärm"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Bottom"
@@ -1140,7 +1140,7 @@ msgstr "Byt skiva"
 msgid "Change Game"
 msgstr "Byt spel"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Bytte skiva till %s"
@@ -1386,7 +1386,7 @@ msgstr "Ansluter..."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "Anslutningstyp:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
@@ -1760,7 +1760,7 @@ msgstr "Gör skärmen mörkare efter fem minuters inaktivitet."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:61
 msgid "Direct Connection"
-msgstr ""
+msgstr "Direkt anslutning"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
@@ -1900,6 +1900,8 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
+"Dolphin kunde inte hitta några ISO/WAD-filer för GameCube/Wii. Dubbelklicka "
+"här för att ställa in en spelmapp..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:329
 msgid ""
@@ -1920,7 +1922,7 @@ msgstr "Dolphin kunde inte slutföra den begärda handlingen."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:326
 msgid "Done compressing disc image."
-msgstr "Skivavbildningen har komprimerats."
+msgstr "Skivavbilden har komprimerats."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:50
 #: Source/Core/InputCommon/ControllerEmu.cpp:195
@@ -2513,7 +2515,7 @@ msgstr ""
 "Kontrollera att du har tillåtelse att skriva till mappen i fråga och att "
 "enheten inte är skrivskyddad."
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "Misslyckades att läsa %s"
@@ -2605,7 +2607,7 @@ msgstr "Snabb"
 msgid "Fast Depth Calculation"
 msgstr "Snabb djupberäkning"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3286,12 +3288,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Implementerar fullskärmsläget med ett kantlöst fönster som täcker hela "
-"skärmen istället för att använda exklusivt fullskärmsläge.\n"
-"Detta gör det snabbare att växla mellan fullskärm och fönster, men det ökar "
+"Implementerar helskärmsläget med ett kantlöst fönster som täcker hela "
+"skärmen istället för att använda exklusivt helskärmsläge.\n"
+"Detta gör det snabbare att växla mellan helskärm och fönster, men det ökar "
 "latensen för knapptryckningar lite, gör rörelser mindre mjuka och sänker "
 "prestandan lite.\n"
-"Exklusivt fullskärmsläge krävs för att Nvidia 3D Vision ska fungera med "
+"Exklusivt helskärmsläge krävs för att Nvidia 3D Vision ska fungera med "
 "Direct3D.\n"
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
@@ -3464,7 +3466,7 @@ msgstr "Ogiltig värd"
 msgid "Invalid index"
 msgstr "Ogiltigt index"
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "Ogiltig inspelningsfil"
 
@@ -4147,7 +4149,7 @@ msgstr "Nästa sökning"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:76
 msgid "Nickname:"
-msgstr ""
+msgstr "Smeknamn:"
 
 #: Source/Core/Core/ConfigManager.h:18
 msgid "No audio output"
@@ -4482,17 +4484,17 @@ msgstr "Efterbehandlingseffekt:"
 msgid "Prefetch Custom Textures"
 msgstr "Ladda anpassade texturer i förhand"
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Tidigt inspelningsslut i PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Tidigt inspelningsslut i PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Tidigt inspelningsslut i PlayWiimote. %u > %u"
@@ -4535,7 +4537,7 @@ msgstr "Avsluta"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:207
 msgid "Quit Netplay"
-msgstr ""
+msgstr "Avsluta nätspel"
 
 #. i18n:  Right
 #: Source/Core/Core/HW/GCPadEmu.cpp:48
@@ -4588,7 +4590,7 @@ msgstr "Spela in"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:229
 msgid "Record inputs"
-msgstr ""
+msgstr "Spela in inmatningar"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:156
 msgid "Recording Info"
@@ -4722,7 +4724,7 @@ msgstr "Höger spak"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:169
 msgid "Room ID:"
-msgstr ""
+msgstr "Rum-ID:"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
@@ -4829,7 +4831,7 @@ msgstr "Spara på vald plats"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Sparas till /Wii/sd.raw (standardstorleken är 128 MiB)"
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Snabbsparningsinspelningen %s är korrupt. Inspelningen stoppas..."
@@ -5746,13 +5748,13 @@ msgid ""
 "The disc image \"%s\" is corrupt.\n"
 "Hash of block %<PRIu64> is %08x instead of %08x."
 msgstr ""
-"Skivavbildningen \"%s\" är korrupt.\n"
+"Skivavbilden \"%s\" är korrupt.\n"
 "Kontrollsumman av blocket %<%PRIu64> är %08x istället för %08x."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:102
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
-msgstr ""
+msgstr "Skivavbilden \"%s\" är avklippt. Viss data saknas."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1164
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1192
@@ -6011,7 +6013,7 @@ msgstr "Slå på/av paus"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:548
 msgid "Toggle fullscreen"
-msgstr "Växla fullskärmsläge"
+msgstr "Växla helskärmsläge"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Top"
@@ -6028,11 +6030,11 @@ msgstr "Traditionell kinesiska"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "Traverseringsserver"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "Traverseringsserver:"
 
 #: Source/Core/Core/NetPlayClient.cpp:822
 msgid "Traversal server timed out connecting to the host"
@@ -6353,7 +6355,7 @@ msgstr ""
 "och har samma namn som en fil på ditt minneskort\n"
 "Vill du fortsätta?"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6365,7 +6367,7 @@ msgstr ""
 "du fortsätter, eller läsa in denna snabbsparning med skrivskyddat läge "
 "inaktiverat."
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6376,7 +6378,7 @@ msgstr ""
 "bildrutan i sparningensom är efter den aktuella inspelningen (byte %u < %u) "
 "(bildruta %u < %u). Du bör läsa in en annan sparning innan du fortsätter."
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6388,7 +6390,7 @@ msgstr ""
 "denna snabbsparning med skrivskyddat läge inaktiverat. Annars kan du få en "
 "desynkronisering."
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6535,7 +6537,7 @@ msgstr "Skriv till fönster"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "Skriv till SD-/minneskort"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:430
 msgid "X"

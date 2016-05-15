@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
 "PO-Revision-Date: 2016-05-09 20:51+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hebrew (http://www.transifex.com/delroth/dolphin-emu/language/"
@@ -1045,7 +1045,7 @@ msgstr ""
 msgid "Change Game"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -2303,7 +2303,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr ""
@@ -2379,7 +2379,7 @@ msgstr ""
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3146,7 +3146,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr ""
 
@@ -4109,17 +4109,17 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr ""
@@ -4446,7 +4446,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
@@ -5806,7 +5806,7 @@ msgid ""
 "Continue?"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -5814,7 +5814,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -5822,7 +5822,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -5830,7 +5830,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "

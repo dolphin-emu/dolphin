@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-11 13:07+0000\n"
+"Last-Translator: Mustafa Can <m.can.elmaci@gmail.com>\n"
 "Language-Team: Turkish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
 "Language: tr\n"
@@ -542,11 +542,22 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"UYARI:\n"
+"\n"
+"Bütün oyuncular aynı Dolphin versiyonunu kullanmalıdır.\n"
+"Bütün oyuncular aynı hafıza kartlarına, SD kartlarına ve hilelere sahip "
+"olmalı veya bu özellikler devre dışı bırakılmalıdır.\n"
+"Eğer DSP LLE kullanılacaksa, bütün oyuncular aynı DSP ROM'larını "
+"kullanmalıdır.\n"
+"Eğer direkt olarak bağlanıyorsanız, sunucu seçilen UDP portunu açmış "
+"olmalıdır!\n"
+"\n"
+"Netplay'da Wiimote desteği çalışmamaktadır ve devre dışı bırakılmıştır.\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
 msgid "AM Baseboard"
-msgstr ""
+msgstr "AM Baseboard"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:116
 #: Source/Core/DolphinWX/ISOProperties.cpp:312
@@ -652,12 +663,12 @@ msgstr "Action Replay: Normal Kod 0: Hatalı alt tür %08x (%s)"
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:43
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:68
 msgid "Adapter Detected"
-msgstr ""
+msgstr "Adaptör Algılandı"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:31
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:70
 msgid "Adapter Not Detected"
-msgstr ""
+msgstr "Adaptör Algılanamadı"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:262
 msgid "Adapter:"
@@ -694,7 +705,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:35
 msgid "Advance Game Port"
-msgstr ""
+msgstr "Advance Game Port"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:76
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
@@ -737,6 +748,12 @@ msgid ""
 "\n"
 "Ignore and continue?"
 msgstr ""
+"Bir hata oluştu.\n"
+"\n"
+"Satır: %d\n"
+"Dosya: %s\n"
+"\n"
+"Hatayı yoksay ve devam et?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Anaglyph"
@@ -816,7 +833,7 @@ msgstr "En-Boy Oranı:"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:197
 msgid "Assign Controller Ports"
-msgstr ""
+msgstr "Denetleyici Noktalarını Ata"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:75
 msgid "At least one pane must remain open."
@@ -987,7 +1004,7 @@ msgstr "Dal: %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Broadband Adapter"
-msgstr ""
+msgstr "Broadband Adaptörü"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:371
 msgid "Broken"
@@ -1049,6 +1066,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Başlangıçta, özel dokuları sistem RAM'ına önbellekle.\n"
+"Bu epey RAM gerektirir ama takılmaları düzeltir.\n"
+"\n"
+"Emin değilseniz, işaretsiz bırakın."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:26
 msgid "Cached Interpreter (slower)"
@@ -1113,7 +1134,7 @@ msgstr "Diski Değiştir"
 msgid "Change Game"
 msgstr "Oyunu Değiştir"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Diski %s olarak değiştir"
@@ -2432,7 +2453,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s okunamadı"
@@ -2518,7 +2539,7 @@ msgstr "Hızlı"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3295,7 +3316,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "Hatalı çekim dosyası"
 
@@ -4294,17 +4315,17 @@ msgstr "Post-Processing Efekti:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "PlayController'da erken kayıt bitişi. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "PlayWiimote'da erken kayıt bitişi. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "PlayWiimote'da erken kayıt bitişi. %u > %u"
@@ -4634,7 +4655,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Kayıtlı durum filmi %s bozuk, film çekimi duruyor..."
@@ -6055,7 +6076,7 @@ msgstr ""
 "ve hafıza kartınızdaki dosyayla aynı adda olacak.\n"
 "Devam?"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6066,7 +6087,7 @@ msgstr ""
 "%u > %u) (çerçeve %u > %u). Devam etmeden önce başka bir kayıt yüklemeniz, "
 "veya bu kaydı Salt Okunur mod kapalıyken yüklemeniz daha iyi olacaktır. "
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6074,7 +6095,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6086,7 +6107,7 @@ msgstr ""
 "yüklemeniz daha iyi olacaktır. Aksi taktirde, büyük bir ihtimalle, "
 "senkronizasyon sorunu yaşayacaksınız."
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "

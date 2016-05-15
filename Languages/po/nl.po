@@ -9,14 +9,15 @@
 # Marinus Schot <marinus@live.com>, 2013
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
-# Tijmen <tijmen.wildervanck@gmail.com>, 2015-2016
+# Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2015-2016
+# Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-10 12:20+0000\n"
+"Last-Translator: Tijmen Wildervanck <tijmen.wildervanck@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
 "Language: nl\n"
@@ -89,17 +90,17 @@ msgstr "%1$sKopieer%1$s"
 #: Source/Core/DiscIO/CompressedBlob.cpp:232
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
-msgstr ""
+msgstr "%i van %i blokken. Compressieverhouding %i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (Normale Snelheid)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -109,6 +110,10 @@ msgid ""
 "loaded save\n"
 "%s"
 msgstr ""
+"%s\n"
+"was niet gelanden omdat het de zelfde interne bestandsnaam heeft als de "
+"vorig gelanden save \n"
+"%s"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:94
 #, c-format
@@ -134,6 +139,9 @@ msgid ""
 "was not loaded because there are not enough free blocks on the virtual "
 "memory card"
 msgstr ""
+"%s\n"
+"is niet geladen omdat er niet genoeg vrije blokken zijn op de virtuele "
+"geheugenkaart"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:115
 #, c-format
@@ -147,12 +155,13 @@ msgstr ""
 #: Source/Core/DolphinWX/GameListCtrl.cpp:399
 #, c-format
 msgid "%s (Disc %i)"
-msgstr ""
+msgstr "%s (Schijf %i)"
 
 #: Source/Core/Core/Boot/Boot.cpp:211
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
+"%s IPL gevonden in %s map. Het is mogelijk dat de schijf niet herkend wordt. "
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:195
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:374
@@ -166,6 +175,8 @@ msgid ""
 "%s failed to load as a memory card.\n"
 "Card file size is invalid (0x%x bytes)"
 msgstr ""
+"%s kon niet worden geladen als een geheugenkaart\\n\n"
+"Bestandsgrootte op kaart is onjuist (0x%x bytes)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:76
 #, c-format
@@ -173,6 +184,8 @@ msgid ""
 "%s failed to load as a memory card.\n"
 "Card size is invalid (0x%x bytes)"
 msgstr ""
+"%s kon niet worden geladen als een geheugenkaart\\n\n"
+"Bestandsgrootte op kaart is onjuist (0x%x bytes)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:56
 #, c-format
@@ -180,6 +193,9 @@ msgid ""
 "%s failed to load as a memory card.\n"
 "File is not large enough to be a valid memory card file (0x%x bytes)"
 msgstr ""
+"%s kon niet worden geladen als een geheugenkaart \\n\n"
+"Bestand is niet groot genoeg om een geldige geheugenkaart bestand te zijn (0x"
+"%x bytes)"
 
 #: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:224
 #, c-format
@@ -187,11 +203,14 @@ msgid ""
 "%s is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
 msgstr ""
+"%s is geen map, het is niet gelukt om het te verplaasten naar *.original.\n"
+" Controleer of je toegang hebt om te schrijven of verplaats het bestand "
+"buiten Dolphin"
 
 #: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:218
 #, c-format
 msgid "%s was not a directory, moved to *.original"
-msgstr ""
+msgstr "%s was geen map, verplaatst naar *.original"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:207
 #, c-format
@@ -217,22 +236,22 @@ msgstr "%u Vrije Blokken; %u Vrije Bestands Invoer"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
 #, c-format
 msgid "%u frames"
-msgstr ""
+msgstr "%u beelden"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
 #, c-format
 msgid "%u objects"
-msgstr ""
+msgstr "%u objecten"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
 #, c-format
 msgid "%zu FIFO bytes"
-msgstr ""
+msgstr "%zu FIFO Byte"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:930
 #, c-format
 msgid "%zu memory bytes"
-msgstr ""
+msgstr "%zu geheugen bytes"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:597
 msgid "&& AND"
@@ -256,15 +275,15 @@ msgstr "&Breekpunten"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:235
 msgid "&Cheat Manager"
-msgstr ""
+msgstr "&Cheats Manager"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "&Controller Settings"
-msgstr ""
+msgstr "&Controller Instellingen"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:903
 msgid "&Delete File..."
-msgstr ""
+msgstr "&Verwijder Bestand..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:925
 msgid "&Delete selected ISOs..."
@@ -288,7 +307,7 @@ msgstr "&Volledig Scherm"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:375
 msgid "&GitHub Repository"
-msgstr ""
+msgstr "&GitHub Repository"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:219
 msgid "&Graphics Settings"
@@ -320,7 +339,7 @@ msgstr "&Geheugen "
 
 #: Source/Core/DolphinWX/FrameTools.cpp:213
 msgid "&Movie"
-msgstr ""
+msgstr "&Film"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:390
 msgid "&Open..."
@@ -384,7 +403,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:373
 msgid "&Website"
-msgstr ""
+msgstr "&Website"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:885
 msgid "&Wiki"
@@ -392,15 +411,15 @@ msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:55
 msgid "(Error: Bad host)"
-msgstr ""
+msgstr "(Fout: Foute Host)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:59
 msgid "(Error: Disconnected)"
-msgstr ""
+msgstr "(Fout: Verbinding Verbroken)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:57
 msgid "(Error: Dolphin too old)"
-msgstr ""
+msgstr "(Fout: Dolfijn te oud)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:61
 msgid "(Error: Socket)"
@@ -408,17 +427,20 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:63
 msgid "(Error: Timeout)"
-msgstr ""
+msgstr "(Fout: Time-out)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:65
 msgid "(Error: Unknown)"
-msgstr ""
+msgstr "(Fout: Onbekend)"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:33
 msgid ""
 "(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of "
 "Nintendo. Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
+"(©) 2003-2015+ Dolphin Team. \"GameCube\" en \"Wii\" zijn geregistreerde "
+"handelsmerken van Nintendo. Dolphin op geen enkele manier geassocieerd met "
+"Nintendo."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:722
 msgid "(off)"
@@ -442,7 +464,7 @@ msgstr "2.5x Native (1600x1320)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "2x Native (1280x1056) for 720p"
-msgstr ""
+msgstr "2x Natief (1280x1056) voor 720p"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "32-bit"
@@ -450,23 +472,23 @@ msgstr "32-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "3x Native (1920x1584) for 1080p"
-msgstr ""
+msgstr "3x Natief (1920x1584) voor 1080p"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "4x Native (2560x2112) for 1440p"
-msgstr ""
+msgstr "4x Natief (2560x2112) voor 1440p"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "5x Native (3200x2640)"
-msgstr ""
+msgstr "5x Natief (3200x2640)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "6x Native (3840x3168) for 4K"
-msgstr ""
+msgstr "6x Natief (3840x3168) voor 4K"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "7x Native (4480x3696)"
-msgstr ""
+msgstr "7x Natief (4480x3696)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "8-bit"
@@ -474,7 +496,7 @@ msgstr "8-bit"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "8x Native (5120x4224) for 5K"
-msgstr ""
+msgstr "8x Natief (5120x4224) voor 5K"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:40
 msgid "<Insert name here>"
@@ -490,7 +512,7 @@ msgstr "<Niks>"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
 msgid "<System Language>"
-msgstr ""
+msgstr "<System Language>"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:320
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:384
@@ -507,6 +529,8 @@ msgid ""
 "A supported Bluetooth device could not be found.\n"
 "You must manually connect your Wiimotes."
 msgstr ""
+"Er is geen ondersteunde Bluetooth apparaat gevonden.\n"
+"Koppel je Wiimotes handmadig aan het systeem."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:130
 msgid ""
@@ -521,11 +545,22 @@ msgid ""
 "\n"
 "Wiimote support is broken in netplay and therefore disabled.\n"
 msgstr ""
+"WAARSCHUWING:\n"
+"\n"
+"Alle spelers moeten dezelfde Dolphin versie gebruiken.\n"
+"Alle geheugenkaarten, SD kaarten en Cheats moeten hetzelfde zijn voor alle "
+"spelers of gedeactiveerd.\n"
+"Als DSP LLE wordt gebruikt, moeten DSP ROMs hetzelde zijn voor alle "
+"spelers.\n"
+"Als je direct verbinding maakt, moet de host de gekozen UDP poort open "
+"hebben gezet!\n"
+"\n"
+"Wiimotes doen het niet in netplay zijn daarom gedeactiveerd.\n"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
 msgid "AM Baseboard"
-msgstr ""
+msgstr "AM-Baseboard"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:116
 #: Source/Core/DolphinWX/ISOProperties.cpp:312
@@ -665,7 +700,7 @@ msgstr "Voeg toe..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:317
 msgid "Address"
-msgstr ""
+msgstr "Adres"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:850
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -692,7 +727,7 @@ msgstr "Alle GC/Wii bestanden (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1238
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "Alle GameCube GCM bestanden (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1584
 #: Source/Core/DolphinWX/FrameTools.cpp:1598
@@ -717,6 +752,12 @@ msgid ""
 "\n"
 "Ignore and continue?"
 msgstr ""
+"Er is een fout opgetreden.\n"
+"\n"
+"  Lijn: %d\n"
+"  Bestand: %s\n"
+"\n"
+"Negeer en ga door?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Anaglyph"
@@ -776,14 +817,18 @@ msgstr "Weet je zeker dat je  \"%s\"? wilt verwijderen?"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1047
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
+"Weet je zeker dat je dit bestand wilt verwijderen?\n"
+"Deze gegevens zijn niet terug te halen!"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1046
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
+"Weet je zeker dat je dit bestand wilt verwijderen?  Deze gegevens zijn niet "
+"terug te halen!"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:383
 msgid "Are you trying to use the same file in both slots?"
-msgstr ""
+msgstr "Probeer je hetzelfde bestand in beide slots te gebruiken?"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:65
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:295
@@ -818,11 +863,11 @@ msgstr "AudioCommon: Fout bij het openen van een AO toestel. \n"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:128
 msgid "Australia"
-msgstr ""
+msgstr "Australië"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:42
 msgid "Authors"
-msgstr ""
+msgstr "Auteurs"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:150
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
@@ -853,7 +898,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:537
 msgid "BAT incorrect. Dolphin will now exit"
-msgstr ""
+msgstr "BAT is fout. Dolphin sluit zich nu af"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:764
 msgid "BP register "
@@ -919,7 +964,7 @@ msgstr "Bass"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
 msgid "Battery"
-msgstr ""
+msgstr "Batterij"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:152
 msgid "Block Allocation Table checksum failed"
@@ -943,7 +988,7 @@ msgstr "Blauw Rechts"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "Randloos Volledig Scherm"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Bottom"
@@ -957,7 +1002,7 @@ msgstr "Gekoppelde controls: %lu"
 #: Source/Core/DolphinWX/AboutDolphin.cpp:34
 #, c-format
 msgid "Branch: %s"
-msgstr ""
+msgstr "Tak: %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Broadband Adapter"
@@ -1013,7 +1058,7 @@ msgstr "CPU Emulatie Motor"
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:52
 msgid "CPU Options"
-msgstr ""
+msgstr "CPU Opties"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
 msgid ""
@@ -1022,6 +1067,10 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Cache aangepasste textures in het system RAM tijdens het opstarten.\n"
+"Dit kan expentioneel meer ram vereisen, maar lost mogelijk stotteren op.\n"
+"\n"
+"Als je het niet zeker weet, vink dit niet aan."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:26
 msgid "Cached Interpreter (slower)"
@@ -1083,7 +1132,7 @@ msgstr "Verander Schijf"
 msgid "Change Game"
 msgstr "Spel veranderen"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -2401,7 +2450,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "Kon geen data lezen van %s"
@@ -2487,7 +2536,7 @@ msgstr "Snel"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3266,7 +3315,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "Onjuist opname bestand"
 
@@ -4270,17 +4319,17 @@ msgstr "Post-Processing Effect:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Vroegtijdige beeïndiging van filmpje in PlayWiimote. %u > %u"
@@ -4611,7 +4660,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Save staat film %s is corrupt, het opnemen van de film is gestopt..."
@@ -6020,7 +6069,7 @@ msgstr ""
 "en heeft dezelfde naam als een bestand op je geheugenkaart\n"
 "Doorgaan?"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6031,7 +6080,7 @@ msgstr ""
 "> %u) (frame %u > %u). Je dient een andere save te laden voordat je verder "
 "gaat, of deze staat laden met alleen-lezen uitgeschakeld. "
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6039,7 +6088,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6051,7 +6100,7 @@ msgstr ""
 "of deze staat laden met alleen-lezen uitgeschakeld. Anders zullen er "
 "waarschijnlijk synchronisatie problemen optreden. "
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
