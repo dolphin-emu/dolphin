@@ -158,6 +158,7 @@ private:
   bool m_bNoDocking = false;
   bool m_bGameLoading = false;
   bool m_bClosing = false;
+  bool m_bHasFocus = false;
   bool m_confirmStop = false;
   bool m_tried_graceful_shutdown = false;
   int m_saveSlot = 1;
