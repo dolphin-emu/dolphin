@@ -554,18 +554,17 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-	if (Core::GetState() == Core::CORE_RUN
-	||  Core::GetState() == Core::CORE_PAUSE)
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
-			//gained focus
+			// Gained focus
 			m_bHasFocus = true;
 			if (SConfig::GetInstance().bRenderToMain)
 				m_RenderParent->SetFocus();
 
-			if (SConfig::GetInstance().m_PauseOnFocusLost
-			&&  Core::GetState() == Core::CORE_PAUSE)
+			if (SConfig::GetInstance().m_PauseOnFocusLost &&
+					Core::GetState() == Core::CORE_PAUSE)
 				Core::SetState(Core::CORE_RUN);
 
 			if (SConfig::GetInstance().bHideCursor &&
@@ -574,10 +573,10 @@ void CFrame::OnActive(wxActivateEvent& event)
 		}
 		else
 		{
-			//lost focus
+			// Lost focus
 			m_bHasFocus = false;
-			if (SConfig::GetInstance().m_PauseOnFocusLost
-			&&  Core::GetState() == Core::CORE_RUN)
+			if (SConfig::GetInstance().m_PauseOnFocusLost &&
+					Core::GetState() == Core::CORE_RUN)
 				Core::SetState(Core::CORE_PAUSE);
 
 			if (SConfig::GetInstance().bHideCursor)
