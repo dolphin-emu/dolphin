@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/VideoCommon.h"
@@ -52,12 +54,13 @@ namespace EfbInterface
 	void SetDepth(u16 x, u16 y, u32 depth);
 
 	void GetColor(u16 x, u16 y, u8 *color);
-	void GetColorYUV(u16 x, u16 y, yuv444 *color);
+	void GetColorYUV(u16 x, u16 y, yuv444 *color, const u8 filterCoefficients[7]);
 	u32 GetDepth(u16 x, u16 y);
 
 	u8* GetPixelPointer(u16 x, u16 y, bool depth);
 
-	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma);
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
+	               bool clamp_top, bool clamp_bottom, float Gamma, const std::array<u8, 7> filterCoefficients);
 	void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma);
 
 	extern u32 perf_values[PQ_NUM_MEMBERS];

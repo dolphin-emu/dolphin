@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
@@ -22,14 +24,19 @@ static const float s_gammaLUT[] =
 
 namespace EfbCopy
 {
-	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
+                          bool clamp_top, bool clamp_bottom, float Gamma, const std::array<u8, 7> filterCoefficients)
 	{
-		INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
-				 xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right, Gamma);
+		INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), clamp_top: %s,"
+		         "clamp bottom: %s, Gamma %f, filterCoefficents: (%i, %i, %i, %i, %i, %i, %i)",
+		         xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right,
+		         clamp_top ? "yes" : "no", clamp_bottom ? "yes" : "no", Gamma, filterCoefficients[0],
+		         filterCoefficients[1], filterCoefficients[2], filterCoefficients[3], filterCoefficients[4],
+		         filterCoefficients[5], filterCoefficients[6]);
 
 		EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed*) Memory::GetPointer(xfbAddr);
 
-		EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
+		EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, clamp_top, clamp_bottom, Gamma, filterCoefficients);
 	}
 
 	static void CopyToRam()
@@ -91,10 +98,13 @@ namespace EfbCopy
 				}
 
 				CopyToXfb(bpmem.copyTexDest << 5,
-						  bpmem.copyMipMapStrideChannels << 4,
-						  (u32)xfbLines,
-						  rc,
-						  s_gammaLUT[bpmem.triggerEFBCopy.gamma]);
+				          bpmem.copyMipMapStrideChannels << 4,
+				          (u32)xfbLines,
+				          rc,
+				          !!bpmem.triggerEFBCopy.clamp_top,
+				          !!bpmem.triggerEFBCopy.clamp_bottom,
+				          s_gammaLUT[bpmem.triggerEFBCopy.gamma],
+				          bpmem.copyfilter.getCoefficients()); // TODO: Is this filter also used for the non-xfb copies.
 			}
 			else
 			{
