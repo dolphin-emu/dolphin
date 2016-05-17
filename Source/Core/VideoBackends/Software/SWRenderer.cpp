@@ -152,6 +152,10 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, 
 	SWOGLWindow::s_instance->ShowImage(GetCurrentColorTexture(), fbWidth * 4, fbWidth, fbHeight, 1.0);
 
 	UpdateActiveConfig();
+
+	// virtual XFB is not supported
+	if (g_ActiveConfig.bUseXFB)
+		g_ActiveConfig.bUseRealXFB = true;
 }
 
 u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
