@@ -1473,7 +1473,11 @@ void Encode(u8* dst, const EFBCopyParams& params, u32 native_width, u32 bytes_pe
 {
   if (params.copy_format == EFBCopyFormat::XFB)
   {
-    EfbInterface::EncodeXFB(dst, native_width, src_rect, params.y_scale);
+    static constexpr std::array<float, 4> gamma_LUT = {1.0f, 1.7f, 2.2f, 1.0f};
+    EfbInterface::EncodeXFB(dst, native_width, src_rect, params.y_scale,
+                            !!bpmem.triggerEFBCopy.clamp_top, !!bpmem.triggerEFBCopy.clamp_bottom,
+                            gamma_LUT[bpmem.triggerEFBCopy.gamma],
+                            bpmem.copyfilter.GetCoefficients());
   }
   else
   {

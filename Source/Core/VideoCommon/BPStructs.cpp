@@ -1015,9 +1015,9 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
         "Copy to XFB: %s\n"
         "Intensity format: %s\n"
         "Automatic color conversion: %s",
-        (copy.clamp0 && copy.clamp1) ?
+        (copy.clamp_top && copy.clamp_bottom) ?
             "Top and Bottom" :
-            (copy.clamp0) ? "Top only" : (copy.clamp1) ? "Bottom only" : "None",
+            (copy.clamp_top) ? "Top only" : (copy.clamp_bottom) ? "Bottom only" : "None",
         no_yes[copy.yuv], static_cast<int>(copy.tp_realFormat()),
         (copy.gamma == 0) ?
             "1.0" :

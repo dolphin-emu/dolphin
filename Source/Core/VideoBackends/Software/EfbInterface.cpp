@@ -469,10 +469,42 @@ u32 GetColor(u16 x, u16 y)
   return GetPixelColor(offset);
 }
 
-// For internal used only, return a non-normalized value, which saves work later.
-yuv444 GetColorYUV(u16 x, u16 y)
+static u32 VerticalFilter(const std::array<u32, 3>& colors,
+                          const std::array<u8, 7>& filterCoefficients)
 {
-  const u32 color = GetColor(x, y);
+  u8 in_colors[3][4];
+  std::memcpy(&in_colors, colors.data(), sizeof(in_colors));
+
+  // Alpha channel is not used
+  u8 out_color[4];
+  out_color[ALP_C] = 0;
+
+  // All Coefficients should sum to 64, otherwise the total brightness will change, which many games
+  // do on purpose to implement a brightness filter across the whole copy.
+  for (int i = BLU_C; i <= RED_C; i++)
+  {
+    // TODO: implement support for multisampling.
+    // In non-multisampling mode:
+    //   * Coefficients 2, 3 and 4 sample from the current pixel.
+    //   * Coefficients 0 and 1 sample from the pixel above this one
+    //   * Coefficients 5 and 6 sample from the pixel below this one
+    int sum =
+        in_colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
+        in_colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+        in_colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+
+    // TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
+    out_color[i] = std::min(255, sum >> 6);  // clamp larger values to 255
+  }
+
+  u32 out_color32;
+  std::memcpy(&out_color32, out_color, sizeof(out_color32));
+  return out_color32;
+}
+
+// For internal used only, return a non-normalized value, which saves work later.
+static yuv444 ConvertColorToYUV(u32 color)
+{
   const u8 red = static_cast<u8>(color >> 24);
   const u8 green = static_cast<u8>(color >> 16);
   const u8 blue = static_cast<u8>(color >> 8);
@@ -497,7 +529,9 @@ u8* GetPixelPointer(u16 x, u16 y, bool depth)
   return &efb[GetColorOffset(x, y)];
 }
 
-void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale)
+void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rect, float y_scale,
+               bool clamp_top, bool clamp_bottom, float Gamma,
+               const std::array<u8, 7>& filterCoefficients)
 {
   if (!xfb_in_ram)
   {
@@ -523,13 +557,29 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
   source.resize(EFB_WIDTH * EFB_HEIGHT);
   yuv422_packed* src_ptr = &source[0];
 
-  for (float y = source_rect.top; y < source_rect.bottom; y++)
+  for (int y = source_rect.top; y < source_rect.bottom; y++)
   {
-    // Get a scanline of YUV pixels in 4:4:4 format
+    // Clamping behavior
+    //   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,
+    //         which returns random garbage from the empty bus (confirmed by hardware tests).
+    //
+    //         In our implementation, the garbage just so happens to be the top or bottom row.
+    //         Statistically, that could happen.
+    u16 y_prev = static_cast<u16>(std::max(clamp_top ? source_rect.top : 0, y - 1));
+    u16 y_next = static_cast<u16>(std::min(clamp_bottom ? source_rect.bottom : EFB_HEIGHT, y + 1));
 
+    // Get a scanline of YUV pixels in 4:4:4 format
     for (int i = 1, x = left; x < right; i++, x++)
     {
-      scanline[i] = GetColorYUV(x, y);
+      // Get RGB colors
+      std::array<u32, 3> colors = {{GetColor(x, y_prev), GetColor(x, y), GetColor(x, y_next)}};
+
+      // Vertical Filter (Multisampling resolve, deflicker, brightness)
+      u32 filtered = VerticalFilter(colors, filterCoefficients);
+
+      // TODO: Gamma correction happens here.
+
+      scanline[i] = ConvertColorToYUV(filtered);
     }
 
     // Flipper clamps the border colors
