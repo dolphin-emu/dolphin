@@ -476,10 +476,34 @@ namespace EfbInterface
 	}
 
 	// For internal used only, return a non-normalized value, which saves work later.
-	void GetColorYUV(u16 x, u16 y, yuv444 *out)
+	void GetColorYUV(u16 x, u16 y, yuv444 *out, const u8 filterCoefficients[7])
 	{
+		u8 upperColor[4];
+		u8 lowerColor[4];
 		u8 color[4];
+
+		// TODO: I'm not sure about this wrapping behavior, it might actually be done based on the copy region
+		GetColor(x, std::max<u16>(0, y - 1), upperColor);
+		GetColor(x, std::min<u16>(EFB_HEIGHT, y + 1), lowerColor);
 		GetColor(x, y, color);
+
+		// All Coefficients should sum to 64, otherwise the total brightness will change, which many games do
+		// on purpose to implement a brightness filter across the whole frame.
+		for (int i = BLU_C; i <= RED_C; i++)
+		{
+			// TODO: implement support for multisampling.
+			// In non-multisampling mode:
+			//   * Coefficients 2, 3 and 4 sample from the current pixel.
+			//   * Coefficients 0 and 1 sample from the pixel above this one
+			//   * Coefficients 5 and 6 sample from the pixel below this one
+
+			int sum = upperColor[i] * (filterCoefficients[0] + filterCoefficients[1]) +
+			          color[i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+			          lowerColor[i] * (filterCoefficients[5] + filterCoefficients[6]);
+
+			// TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
+			color[i] = std::min(255, sum >> 6); // clamp larger values to 255
+		}
 
 		// GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
 		// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
@@ -501,7 +525,7 @@ namespace EfbInterface
 		return &efb[GetColorOffset(x, y)];
 	}
 
-	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma, const u8 filterCoefficents[7])
 	{
 		// FIXME: We should do Gamma correction
 
@@ -540,7 +564,7 @@ namespace EfbInterface
 
 			for (int i = 1, x = left; x < right; i++, x++)
 			{
-				GetColorYUV(x, y, &scanline[i]);
+				GetColorYUV(x, y, &scanline[i], filterCoefficents);
 			}
 
 			// And Downsample them to 4:2:2

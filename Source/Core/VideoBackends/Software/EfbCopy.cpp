@@ -23,7 +23,7 @@ static const float s_gammaLUT[] =
 
 namespace EfbCopy
 {
-	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma, const u8 filterCoefficients[7])
 	{
 		GLInterface->Update(); // update the render window position and the backbuffer size
 
@@ -32,7 +32,7 @@ namespace EfbCopy
 
 		EfbInterface::yuv422_packed* xfb_in_ram = (EfbInterface::yuv422_packed*) Memory::GetPointer(xfbAddr);
 
-		EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma);
+		EfbInterface::CopyToXFB(xfb_in_ram, fbWidth, fbHeight, sourceRc, Gamma, filterCoefficients);
 	}
 
 	static void CopyToRam()
@@ -93,11 +93,16 @@ namespace EfbCopy
 					xfbLines = MAX_XFB_HEIGHT;
 				}
 
+				// TODO: Is this filter also used for the non-xfb copies.
+				u8 filterCoefficients[7];
+				bpmem.copyfilter.getCoefficients(filterCoefficients);
+
 				CopyToXfb(bpmem.copyTexDest << 5,
-						  bpmem.copyMipMapStrideChannels << 4,
-						  (u32)xfbLines,
-						  rc,
-						  s_gammaLUT[bpmem.triggerEFBCopy.gamma]);
+				          bpmem.copyMipMapStrideChannels << 4,
+				          (u32)xfbLines,
+				          rc,
+				          s_gammaLUT[bpmem.triggerEFBCopy.gamma],
+				          filterCoefficients);
 			}
 			else
 			{

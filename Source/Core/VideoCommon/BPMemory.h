@@ -1012,6 +1012,30 @@ union UPE_Copy
 	}
 };
 
+union CopyFilterCoefficients
+{
+	u64 Hex;
+
+	BitField< 0, 6, u64> a;
+	BitField< 6, 6, u64> b;
+	BitField<12, 6, u64> c;
+	BitField<18, 6, u64> d;
+	BitField<32, 6, u64> e;
+	BitField<38, 6, u64> f;
+	BitField<44, 6, u64> g;
+
+	void getCoefficients(u8 *filterCoefficients)
+	{
+		filterCoefficients[0] = static_cast<u8>(a);
+		filterCoefficients[1] = static_cast<u8>(b);
+		filterCoefficients[2] = static_cast<u8>(c);
+		filterCoefficients[3] = static_cast<u8>(d);
+		filterCoefficients[4] = static_cast<u8>(e);
+		filterCoefficients[5] = static_cast<u8>(f);
+		filterCoefficients[6] = static_cast<u8>(g);
+	}
+};
+
 union BPU_PreloadTileInfo
 {
 	u32 hex;
@@ -1085,7 +1109,7 @@ struct BPMemory
 	u32 clearcolorGB; //50
 	u32 clearZValue; //51
 	UPE_Copy triggerEFBCopy; //52
-	u32 copyfilter[2]; //53,54
+	CopyFilterCoefficients copyfilter; //53,54
 	u32 boundbox0;//55
 	u32 boundbox1;//56
 	u32 unknown7[2];//57,58
