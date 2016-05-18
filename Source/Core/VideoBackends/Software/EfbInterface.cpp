@@ -544,15 +544,6 @@ namespace EfbInterface
 		// Scanline buffer, leave room for borders
 		yuv444 scanline[EFB_WIDTH+2];
 
-		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-		yuv444 black;
-		black.Y = 0;
-		black.U = 0;
-		black.V = 0;
-
-		scanline[0] = black; // black border at start
-		scanline[right+1] = black; // black border at end
-
 		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
 		{
 			// Clamping behavior
@@ -582,6 +573,10 @@ namespace EfbInterface
 				ConvertColorToYUV(filtered, &scanline[i]);
 			}
 
+			// Clamp the colors at the ends of the scanline
+			scanline[0] = scanline[1];
+			scanline[right + 1] = scanline[right];
+
 			// And downsample them to 4:2:2
 			for (int i = 1, x = left; x < right; i+=2, x+=2)
 			{
@@ -594,7 +589,7 @@ namespace EfbInterface
 				// YV pixel
 				xfb_in_ram[x+1].Y = scanline[i+1].Y + 16;
 				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
-				xfb_in_ram[x+1].UV = 128 + ((scanline[i].V + (scanline[i+1].V << 1) + scanline[i+2].V) >> 2);
+				xfb_in_ram[x+1].UV = 128 + ((scanline[i-1].V + (scanline[i].V << 1) + scanline[i+1].V) >> 2);
 			}
 
 			// TODO: Vertical scaling happens here (after downsampling, before writing to ram)
