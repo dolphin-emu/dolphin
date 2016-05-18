@@ -1977,10 +1977,11 @@ const GLFunc gl_function_array[] =
 	GLFUNC_SUFFIX(glMultiDrawElementsBaseVertex,     EXT, "GL_EXT_draw_elements_base_vertex GL_EXT_multi_draw_arrays !GL_OES_draw_elements_base_vertex !VERSION_GLES_3_2"),
 
 	// ARB_sample_shading
-	GLFUNC_SUFFIX(glMinSampleShading, ARB, "GL_ARB_sample_shading |VERSION_GLES_3_2"),
+	GLFUNC_SUFFIX(glMinSampleShading, ARB, "GL_ARB_sample_shading"),
 
 	// OES_sample_shading
 	GLFUNC_SUFFIX(glMinSampleShading, OES, "GL_OES_sample_shading !VERSION_GLES_3_2"),
+	GLFUNC_REQUIRES(glMinSampleShading,    "VERSION_GLES_3_2"),
 
 	// ARB_debug_output
 	GLFUNC_REQUIRES(glDebugMessageCallbackARB, "GL_ARB_debug_output"),
