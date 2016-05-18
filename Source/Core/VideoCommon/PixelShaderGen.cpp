@@ -325,7 +325,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
 		if(ApiType == API_OPENGL)
 		{
 			 // This is a #define which signals whatever early-z method the driver supports.
-			out.Write("FORCE_EARLY_Z; \n");
+			//out.Write("FORCE_EARLY_Z; \n");
 		}
 		else
 		{
