@@ -599,7 +599,7 @@ void EncodeXFB(u8* xfb_in_ram, u32 memory_stride, const EFBRectangle& source_rec
       src_ptr[x + 1].Y = scanline[i + 1].Y + 16;
       // V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
       src_ptr[x + 1].UV =
-          128 + ((scanline[i].V + (scanline[i + 1].V << 1) + scanline[i + 2].V) >> 2);
+          128 + ((scanline[i - 1].V + (scanline[i].V << 1) + scanline[i + 1].V) >> 2);
     }
     src_ptr += memory_stride;
   }
