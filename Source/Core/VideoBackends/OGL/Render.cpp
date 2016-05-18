@@ -455,7 +455,7 @@ Renderer::Renderer()
 		g_ogl_config.bSupportsGLSLCache = true;
 		g_ogl_config.bSupportsGLSync = true;
 
-		if (strstr(g_ogl_config.glsl_version, "3.0") || DriverDetails::HasBug(DriverDetails::BUG_BROKENGLES31))
+		if (strstr(g_ogl_config.glsl_version, "3.0"))
 		{
 			g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
 			g_ogl_config.bSupportsAEP = false;

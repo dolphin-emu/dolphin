@@ -158,14 +158,6 @@ namespace DriverDetails
 		// Mesa meta misses to disable the scissor test.
 		BUG_BROKENCOPYIMAGE,
 
-		// Bug: Qualcomm has broken OpenGL ES 3.1 support
-		// Affected devices: Adreno
-		// Started Version: -1
-		// Ended Version: -1
-		// This isn't fully researched, but at the very least Qualcomm doesn't implement Geometry shader features fully.
-		// Until each bug is fully investigated, just disable GLES 3.1 entirely on these devices.
-		BUG_BROKENGLES31,
-
 		// Bug: ARM Mali managed to break disabling vsync
 		// Affected Devices: Mali
 		// Started Version: r5p0-rev2
@@ -177,17 +169,6 @@ namespace DriverDetails
 		// the GL_VERSION string, we will have to force vsync to be enabled at all times.
 		BUG_BROKENVSYNC,
 
-		// Bug: Adreno has a broken alpha test
-		// Affected Devices: Adreno
-		// Started Version: v103 confirmed (v95 potentially as well?)
-		// Ended Version: -1
-		// The Qualcomm video drivers have somehow managed to hit a situation where in a certain situation the alpha test
-		// always evaluates to false for some reason.
-		// This has yet to be tracked as to why they fail at such a simple check
-		// Example alpha test path
-		// if(( (prev.a >  alphaRef.r) && (prev.a >  alphaRef.g)) == false) {
-		BUG_BROKENALPHATEST,
-
 		// Bug: Broken lines in geometry shaders
 		// Affected Devices: Mesa r600/radeonsi, Mesa Sandy Bridge
 		// Started Version: -1
@@ -195,6 +176,14 @@ namespace DriverDetails
 		// Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test it with us.
 		// Causes misrenderings on a large amount of things that draw lines.
 		BUG_BROKENGEOMETRYSHADERS,
+
+		// Bug: Explicit flush is very slow on Qualcomm
+		// Started Version: -1
+		// Ended Version: -1
+		// Our ARB_buffer_storage code uses explicit flush to avoid coherent mapping.
+		// Qualcomm seems to have lots of overhead on exlicit flushing, but the coherent mapping path is fine.
+		// So let's use coherent mapping there.
+		BUG_BROKENEXPLICITFLUSH,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
