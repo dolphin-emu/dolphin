@@ -112,7 +112,7 @@ task setupCMake(type: Exec) {
         executable getExecutablePath("cmake")
 
         args "-DANDROID=true",
-                "-DANDROID_NATIVE_API_LEVEL=android-18",
+                "-DANDROID_NATIVE_API_LEVEL=android-21",
                 "-DCMAKE_TOOLCHAIN_FILE=../../../android.toolchain.cmake",
                 "../../../../..",
                 "-DGIT_EXECUTABLE=" + getExecutablePath("git"),
@@ -200,7 +200,7 @@ String getNdkPath() {
             def stdout = new ByteArrayOutputStream()
 
             exec {
-                // ndk-build.cmd is a file unique to the root directory of android-ndk-r10e.
+                // ndk-build.cmd is a file unique to the root directory of android-ndk-r11c.
                 commandLine 'locate', 'ndk-build.cmd'
                 standardOutput = stdout
             }
@@ -230,9 +230,7 @@ String getAbi() {
 
     if (taskName.contains("Arm_64")) {
         abi = "arm64-v8a"
-    } else if (taskName.contains("Arm")) {
-        abi = "armeabi-v7a"
-    } else if (taskName.contains("X86_64")) {
+    } else {
         abi = "x86_64"
     }
 
@@ -250,9 +248,7 @@ String getToolchainName() {
 
     if (taskName.contains("Arm_64")) {
         toolchain = "aarch64-linux-android-4.9"
-    } else if (taskName.contains("Arm")) {
-        toolchain = "arm-linux-androideabi-4.9"
-    } else if (taskName.contains("X86_64")) {
+    } else {
         toolchain = "x86_64-4.9"
     }
 
