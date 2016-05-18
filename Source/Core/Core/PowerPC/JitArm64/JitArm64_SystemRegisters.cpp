@@ -12,7 +12,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 
 FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 {
@@ -590,8 +589,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 	JITDISABLE(bJITSystemRegistersOff);
 
 	gpr.Lock(W0, W1, W2, W30);
-	MOVI2R(X0, (u64)asm_routines.mfcr);
-	BLR(X0);
+	BL(GetAsmRoutines()->mfcr);
 	gpr.Unlock(W1, W2, W30);
 
 	gpr.BindToRegister(inst.RD, false);

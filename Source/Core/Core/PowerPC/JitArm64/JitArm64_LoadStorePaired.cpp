@@ -14,7 +14,6 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 
 using namespace Arm64Gen;
 
@@ -80,7 +79,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 		UBFM(type_reg, scale_reg, 16, 18); // Type
 		UBFM(scale_reg, scale_reg, 24, 29); // Scale
 
-		MOVI2R(X30, (u64)&asm_routines.pairedLoadQuantized[inst.W * 8]);
+		MOVI2R(X30, (u64)&pairedLoadQuantized[inst.W * 8]);
 		LDR(X30, X30, ArithOption(EncodeRegTo64(type_reg), true));
 		BLR(X30);
 
@@ -191,7 +190,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 		SwitchToFarCode();
 			SetJumpTarget(fail);
 			// Slow
-			MOVI2R(X30, (u64)&asm_routines.pairedStoreQuantized[16 + inst.W * 8]);
+			MOVI2R(X30, (u64)&pairedStoreQuantized[16 + inst.W * 8]);
 			LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
 
 			ABI_PushRegisters(gprs_in_use);
@@ -204,7 +203,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
 		SetJumpTarget(pass);
 
 		// Fast
-		MOVI2R(X30, (u64)&asm_routines.pairedStoreQuantized[inst.W * 8]);
+		MOVI2R(X30, (u64)&pairedStoreQuantized[inst.W * 8]);
 		LDR(EncodeRegTo64(type_reg), X30, ArithOption(EncodeRegTo64(type_reg), true));
 		BLR(EncodeRegTo64(type_reg));
 

@@ -48,7 +48,7 @@ void JitArm64::Init()
 	fpr.Init(this);
 
 	blocks.Init();
-	asm_routines.Init();
+	GenerateAsm();
 
 	code_block.m_stats = &js.st;
 	code_block.m_gpa = &js.gpa;
@@ -67,13 +67,14 @@ void JitArm64::ClearCache()
 	ClearCodeSpace();
 	farcode.ClearCodeSpace();
 	UpdateMemoryOptions();
+
+	GenerateAsm();
 }
 
 void JitArm64::Shutdown()
 {
 	FreeCodeSpace();
 	blocks.Shutdown();
-	asm_routines.Shutdown();
 }
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -196,9 +197,8 @@ void JitArm64::WriteExit(u32 destination)
 	b->linkData.push_back(linkData);
 
 	// the code generated in JitArm64BlockCache::WriteDestroyBlock must fit in this block
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
 	MOVI2R(DISPATCHER_PC, destination);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExit(ARM64Reg Reg)
@@ -213,8 +213,7 @@ void JitArm64::WriteExit(ARM64Reg Reg)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
@@ -240,8 +239,7 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
@@ -272,8 +270,7 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
 	if (Profiler::g_ProfileBlocks)
 		EndTimeProfile(js.curBlock);
 
-	MOVI2R(X30, (u64)asm_routines.dispatcher);
-	BR(X30);
+	B(dispatcher);
 }
 
 void JitArm64::DumpCode(const u8* start, const u8* end)
@@ -351,13 +348,13 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
-	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+	CompiledCode pExecAddr = (CompiledCode)enterCode;
 	pExecAddr();
 }
 
 void JitArm64::SingleStep()
 {
-	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+	CompiledCode pExecAddr = (CompiledCode)enterCode;
 	pExecAddr();
 }
 
@@ -412,14 +409,13 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 	// Downcount flag check, Only valid for linked blocks
 	{
 		FixupBranch bail = B(CC_PL);
-		ARM64Reg WA = gpr.GetReg();
-		ARM64Reg XA = EncodeRegTo64(WA);
 		MOVI2R(DISPATCHER_PC, js.blockStart);
-		MOVI2R(XA, (u64)asm_routines.doTiming);
-		BR(XA);
-		gpr.Unlock(WA);
+		B(doTiming);
 		SetJumpTarget(bail);
 	}
+
+	// Normal entry doesn't need to check for downcount.
+	b->normalEntry = GetCodePtr();
 
 	// Conditionally add profiling code.
 	if (Profiler::g_ProfileBlocks)
@@ -452,16 +448,12 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitB
 				MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
 				MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
 				BLR(X1);
-				MOVI2R(X1, (u64)asm_routines.dispatcher);
-				BR(X1);
+				B(dispatcher);
 			SwitchToNearCode();
 			SetJumpTarget(no_fail);
 			js.assumeNoPairedQuantize = true;
 		}
 	}
-
-	const u8 *normalEntry = GetCodePtr();
-	b->normalEntry = normalEntry;
 
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
