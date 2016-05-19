@@ -24,6 +24,9 @@ extern JavaVM* g_java_vm;
 
 namespace GCAdapter
 {
+static void Setup();
+static void Reset();
+
 // Java classes
 static jclass s_adapter_class;
 
@@ -207,7 +210,7 @@ void Init()
 		StartScanThread();
 }
 
-void Setup()
+static void Setup()
 {
 	s_fd = 0;
 	s_detected = true;
@@ -220,7 +223,7 @@ void Setup()
 	s_read_adapter_thread = std::thread(Read);
 }
 
-void Reset()
+static void Reset()
 {
 	if (!s_detected)
 		return;
