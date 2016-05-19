@@ -38,7 +38,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (!manager.hasPermission(dev))
@@ -59,7 +59,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (manager.hasPermission(dev))
@@ -114,7 +114,7 @@ public class Java_WiimoteAdapter
 		HashMap<String, UsbDevice> devices = manager.getDeviceList();
 		for (Map.Entry<String, UsbDevice> pair : devices.entrySet())
 		{
-			UsbDevice dev = (UsbDevice) pair.getValue();
+			UsbDevice dev = pair.getValue();
 			if (dev.getProductId() == NINTENDO_WIIMOTE_PRODUCT_ID && dev.getVendorId() == NINTENDO_VENDOR_ID)
 			{
 				if (manager.hasPermission(dev))

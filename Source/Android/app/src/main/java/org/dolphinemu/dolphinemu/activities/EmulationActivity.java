@@ -479,7 +479,7 @@ public final class EmulationActivity extends AppCompatActivity
 			return super.dispatchKeyEvent(event);
 		}
 
-		int action = 0;
+		int action;
 
 		switch (event.getAction())
 		{
@@ -501,8 +501,7 @@ public final class EmulationActivity extends AppCompatActivity
 				return false;
 		}
 		InputDevice input = event.getDevice();
-		boolean handled = NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
-		return handled;
+		return NativeLibrary.onGamePadEvent(input.getDescriptor(), event.getKeyCode(), action);
 	}
 
 	@Override
