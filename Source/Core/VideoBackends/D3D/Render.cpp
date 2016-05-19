@@ -48,7 +48,6 @@ static bool s_last_xfb_mode = false;
 
 static Television s_television;
 
-ID3D11Buffer* access_efb_cbuf = nullptr;
 ID3D11BlendState* clearblendstates[4] = {nullptr};
 ID3D11DepthStencilState* cleardepthstates[3] = {nullptr};
 ID3D11BlendState* resetblendstate = nullptr;
@@ -89,14 +88,6 @@ static void SetupDeviceObjects()
 	g_framebuffer_manager = std::make_unique<FramebufferManager>();
 
 	HRESULT hr;
-	float colmat[20]= {0.0f};
-	colmat[0] = colmat[5] = colmat[10] = 1.0f;
-	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20*sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
-	D3D11_SUBRESOURCE_DATA data;
-	data.pSysMem = colmat;
-	hr = D3D::device->CreateBuffer(&cbdesc, &data, &access_efb_cbuf);
-	CHECK(hr==S_OK, "Create constant buffer for Renderer::AccessEFB");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
 	ddesc.DepthEnable      = FALSE;
@@ -171,7 +162,6 @@ static void TeardownDeviceObjects()
 {
 	g_framebuffer_manager.reset();
 
-	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(clearblendstates[0]);
 	SAFE_RELEASE(clearblendstates[1]);
 	SAFE_RELEASE(clearblendstates[2]);
@@ -365,10 +355,6 @@ void Renderer::SetColorMask()
 //  - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
-	// TODO: This function currently is broken if anti-aliasing is enabled
-	D3D11_MAPPED_SUBRESOURCE map;
-	ID3D11Texture2D* read_tex;
-
 	// Convert EFB dimensions to the ones of our render target
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
@@ -394,88 +380,107 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 		RectToLock.bottom = targetPixelRc.bottom;
 	}
 
-	if (type == PEEK_Z)
+	// Reset any game specific settings.
+	ResetAPIState();
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
+	D3D::context->RSSetViewports(1, &vp);
+	D3D::SetPointCopySampler();
+
+	// Select copy and read textures depending on if we are doing a color or depth read (since they are different formats).
+	D3DTexture2D* source_tex;
+	D3DTexture2D* read_tex;
+	ID3D11Texture2D* staging_tex;
+	if (type == PEEK_COLOR)
 	{
-		ResetAPIState(); // Reset any game specific settings
-
-		// depth buffers can only be completely CopySubresourceRegion'ed, so we're using drawShadedTexQuad instead
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, 1.f, 1.f);
-		D3D::context->RSSetViewports(1, &vp);
-		D3D::stateman->SetPixelConstants(0, access_efb_cbuf);
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBDepthReadTexture()->GetRTV(), nullptr);
-		D3D::SetPointCopySampler();
-		D3D::drawShadedTexQuad(FramebufferManager::GetEFBDepthTexture()->GetSRV(),
-								&RectToLock,
-								Renderer::GetTargetWidth(),
-								Renderer::GetTargetHeight(),
-								PixelShaderCache::GetColorCopyProgram(true),
-								VertexShaderCache::GetSimpleVertexShader(),
-								VertexShaderCache::GetSimpleInputLayout());
-
-		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
-
-		// copy to system memory
-		D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
-		read_tex = FramebufferManager::GetEFBDepthStagingBuffer();
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBDepthReadTexture()->GetTex(), 0, &box);
-
-		RestoreAPIState(); // restore game state
-
-		// read the data from system memory
-		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-
-		// depth buffer is inverted in the d3d backend
-		float val = 1.0f - *(float*)map.pData;
-		u32 ret = 0;
-		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
-		{
-			// if Z is in 16 bit format you must return a 16 bit integer
-			ret = MathUtil::Clamp<u32>((u32)(val * 65536.0f), 0, 0xFFFF);
-		}
-		else
-		{
-			ret = MathUtil::Clamp<u32>((u32)(val * 16777216.0f), 0, 0xFFFFFF);
-		}
-		D3D::context->Unmap(read_tex, 0);
-
-		return ret;
+		source_tex = FramebufferManager::GetEFBColorTexture();
+		read_tex = FramebufferManager::GetEFBColorReadTexture();
+		staging_tex = FramebufferManager::GetEFBColorStagingBuffer();
 	}
-	else if (type == PEEK_COLOR)
+	else
 	{
-		// we can directly copy to system memory here
-		read_tex = FramebufferManager::GetEFBColorStagingBuffer();
-		D3D11_BOX box = CD3D11_BOX(RectToLock.left, RectToLock.top, 0, RectToLock.right, RectToLock.bottom, 1);
-		D3D::context->CopySubresourceRegion(read_tex, 0, 0, 0, 0, FramebufferManager::GetEFBColorTexture()->GetTex(), 0, &box);
+		source_tex = FramebufferManager::GetEFBDepthTexture();
+		read_tex = FramebufferManager::GetEFBDepthReadTexture();
+		staging_tex = FramebufferManager::GetEFBDepthStagingBuffer();
+	}
 
-		// read the data from system memory
-		D3D::context->Map(read_tex, 0, D3D11_MAP_READ, 0, &map);
-		u32 ret = 0;
-		if (map.pData)
-			ret = *(u32*)map.pData;
-		D3D::context->Unmap(read_tex, 0);
+	// Select pixel shader (we don't want to average depth samples, instead select the minimum).
+	ID3D11PixelShader* copy_pixel_shader;
+	if (type == PEEK_Z && g_ActiveConfig.iMultisamples > 1)
+		copy_pixel_shader = PixelShaderCache::GetDepthResolveProgram();
+	else
+		copy_pixel_shader = PixelShaderCache::GetColorCopyProgram(true);
+
+	// Draw a quad to grab the texel we want to read.
+	D3D::context->OMSetRenderTargets(1, &read_tex->GetRTV(), nullptr);
+	D3D::drawShadedTexQuad(source_tex->GetSRV(),
+	                       &RectToLock,
+	                       Renderer::GetTargetWidth(),
+	                       Renderer::GetTargetHeight(),
+	                       copy_pixel_shader,
+	                       VertexShaderCache::GetSimpleVertexShader(),
+	                       VertexShaderCache::GetSimpleInputLayout());
+
+	// Restore expected game state.
+	D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+	RestoreAPIState();
+
+	// Copy the pixel from the renderable to cpu-readable buffer.
+	D3D11_BOX box = CD3D11_BOX(0, 0, 0, 1, 1, 1);
+	D3D::context->CopySubresourceRegion(staging_tex, 0, 0, 0, 0, read_tex->GetTex(), 0, &box);
+	D3D11_MAPPED_SUBRESOURCE map;
+	CHECK(D3D::context->Map(staging_tex, 0, D3D11_MAP_READ, 0, &map) == S_OK, "Map staging buffer failed");
+
+	// Convert the framebuffer data to the format the game is expecting to receive.
+	u32 ret;
+	if (type == PEEK_COLOR)
+	{
+		u32 val;
+		memcpy(&val, map.pData, sizeof(val));
+
+		// our buffers are RGBA, yet a BGRA value is expected
+		val = ((val & 0xFF00FF00) | ((val >> 16) & 0xFF) | ((val << 16) & 0xFF0000));
 
 		// check what to do with the alpha channel (GX_PokeAlphaRead)
 		PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
 
 		if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
 		{
-			ret = RGBA8ToRGBA6ToRGBA8(ret);
+			val = RGBA8ToRGBA6ToRGBA8(val);
 		}
 		else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
 		{
-			ret = RGBA8ToRGB565ToRGBA8(ret);
+			val = RGBA8ToRGB565ToRGBA8(val);
 		}
 		if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
 		{
-			ret |= 0xFF000000;
+			val |= 0xFF000000;
 		}
 
-		if (alpha_read_mode.ReadMode == 2) return ret; // GX_READ_NONE
-		else if (alpha_read_mode.ReadMode == 1) return (ret | 0xFF000000); // GX_READ_FF
-		else /*if(alpha_read_mode.ReadMode == 0)*/ return (ret & 0x00FFFFFF); // GX_READ_00
+		if (alpha_read_mode.ReadMode == 2) ret = val; // GX_READ_NONE
+		else if (alpha_read_mode.ReadMode == 1) ret = (val | 0xFF000000); // GX_READ_FF
+		else /*if(alpha_read_mode.ReadMode == 0)*/ ret = (val & 0x00FFFFFF); // GX_READ_00
+	}
+	else    // type == PEEK_Z
+	{
+		float val;
+		memcpy(&val, map.pData, sizeof(val));
+
+		// depth buffer is inverted in the d3d backend
+		val = 1.0f - val;
+
+		if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+		{
+			// if Z is in 16 bit format you must return a 16 bit integer
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 65536.0f), 0, 0xFFFF);
+		}
+		else
+		{
+			ret = MathUtil::Clamp<u32>(static_cast<u32>(val * 16777216.0f), 0, 0xFFFFFF);
+		}
 	}
 
-	return 0;
+	D3D::context->Unmap(staging_tex, 0);
+	return ret;
 }
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
