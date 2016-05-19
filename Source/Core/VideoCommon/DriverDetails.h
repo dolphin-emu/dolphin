@@ -184,6 +184,14 @@ namespace DriverDetails
 		// Qualcomm seems to have lots of overhead on exlicit flushing, but the coherent mapping path is fine.
 		// So let's use coherent mapping there.
 		BUG_BROKENEXPLICITFLUSH,
+
+		// Bug: glGetBufferSubData for bounding box reads is slow on AMD drivers
+		// Started Version: -1
+		// Ended Version: -1
+		// Bounding box reads use glGetBufferSubData to read back the contents of the SSBO, but this is slow on AMD drivers, compared to
+		// using glMapBufferRange. glMapBufferRange is slower on Nvidia drivers, we suspect due to the first call moving the buffer from
+		// GPU memory to system memory. Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData everywhere else.
+		BUG_SLOWGETBUFFERSUBDATA,
 	};
 
 	// Initializes our internal vendor, device family, and driver version
