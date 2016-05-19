@@ -23,6 +23,8 @@ namespace GCAdapter
 static bool CheckDeviceAccess(libusb_device* device);
 static void AddGCAdapter(libusb_device* device);
 static void ResetRumbleLockNeeded();
+static void Reset();
+static void Setup();
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
@@ -183,7 +185,7 @@ void StopScanThread()
 	}
 }
 
-void Setup()
+static void Setup()
 {
 	libusb_device** list;
 	ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
@@ -333,7 +335,7 @@ void Shutdown()
 	s_libusb_driver_not_supported = false;
 }
 
-void Reset()
+static void Reset()
 {
 	std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
 	if (!lock.try_lock())
