@@ -27,7 +27,7 @@ public final class Game
 	public static final int COUNTRY_WORLD = 12;
 	public static final int COUNTRY_UNKNOWN = 13;
 
-	private static final String PATH_SCREENSHOT_FOLDER = Environment.getExternalStorageDirectory().getPath() + "/dolphin-emu/ScreenShots/";
+	private static final String PATH_SCREENSHOT_FOLDER = Environment.getExternalStorageDirectory().getPath() + "dolphin-emu/ScreenShots/";
 
 	private String mTitle;
 	private String mDescription;
