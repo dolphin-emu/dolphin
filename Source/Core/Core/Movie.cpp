@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <mutex>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
@@ -1329,12 +1330,16 @@ void GetSettings()
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
+
 	unsigned int tmp;
-	for (size_t i = 0; i < scm_rev_git_str.size() / 2 ; ++i)
+	memset(s_revision, 0, sizeof(s_revision));
+	size_t revision_bytes_to_copy = std::min(scm_rev_git_str.size() / 2, ArraySize(s_revision));
+	for (size_t i = 0; i < revision_bytes_to_copy; ++i)
 	{
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		s_revision[i] = tmp;
 	}
+
 	if (!s_bDSPHLE)
 	{
 		std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
