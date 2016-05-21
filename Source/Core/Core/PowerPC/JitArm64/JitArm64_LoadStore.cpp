@@ -375,6 +375,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB, d = inst.RD;
 	s32 offset = inst.SIMM_16;
@@ -446,11 +447,11 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
 	// LWZ idle skipping
 	if (SConfig::GetInstance().bSkipIdle &&
-	    inst.OPCD == 32 &&
-	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-	    (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
-	    (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
-	    PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
+	    inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
+	    (inst.hex & 0xFFFF0000) == 0x800D0000 && // lwz r0, XXXX(r13)
+	    (js.op[1].inst.hex == 0x28000000 ||
+	    (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) && // cmpXwi r0,0
+	    js.op[2].inst.hex == 0x4182fff8) // beq -8
 	{
 		// if it's still 0, we can wait until the next event
 		FixupBranch noIdle = CBNZ(gpr.R(d));
@@ -480,6 +481,7 @@ void JitArm64::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	u32 a = inst.RA, b = inst.RB, s = inst.RS;
 	s32 offset = inst.SIMM_16;
@@ -557,7 +559,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!jo.fastmem);
+	FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
 	u32 a = inst.RA;
 
@@ -643,7 +645,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
-	FALLBACK_IF(!jo.fastmem);
+	FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
 	u32 a = inst.RA;
 
@@ -803,6 +805,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(bJITLoadStoreOff);
+	FALLBACK_IF(jo.memcheck);
 
 	int a = inst.RA, b = inst.RB;
 
