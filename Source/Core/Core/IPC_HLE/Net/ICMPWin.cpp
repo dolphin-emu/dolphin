@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IPC_HLE/ICMP.h"
+#include "Core/IPC_HLE/Net/ICMP.h"
 
 enum
 {

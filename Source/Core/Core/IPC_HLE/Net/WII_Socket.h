@@ -50,8 +50,8 @@ typedef struct pollfd pollfd_t;
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_ssl.h"
 
 enum
 {

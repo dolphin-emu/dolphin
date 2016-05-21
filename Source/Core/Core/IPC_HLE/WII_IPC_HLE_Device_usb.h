@@ -19,26 +19,11 @@ class CWII_IPC_HLE_WiiMote;
 struct SQueuedEvent
 {
 	u8 m_buffer[1024];
-	u32 m_size;
-	u16 m_connectionHandle;
+	u32 m_size = 0;
+	u16 m_connectionHandle = 0;
 
-	SQueuedEvent(u32 size, u16 connectionHandle)
-		: m_size(size)
-		, m_connectionHandle(connectionHandle)
-	{
-		if (m_size > 1024)
-		{
-			// i know this code sux...
-			PanicAlert("SQueuedEvent: allocate too big buffer!!");
-		}
-		memset(m_buffer, 0, 1024);
-	}
-
-	SQueuedEvent()
-		: m_size(0)
-		, m_connectionHandle(0)
-	{
-	}
+	SQueuedEvent() = default;
+	SQueuedEvent(u32 size, u16 connection_handle);
 };
 
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
@@ -107,38 +92,20 @@ private:
 	// This is a lightweight/specialized version of SIOCtlVBuffer
 	struct CtrlBuffer
 	{
-		u32 m_address;
-		u32 m_buffer;
+		u32 m_address = 0;
+		u32 m_buffer = 0;
 
-		CtrlBuffer(u32 _Address) : m_address(_Address), m_buffer()
-		{
-			if (m_address)
-			{
-				u32 InBufferNum  = Memory::Read_U32(m_address + 0x10);
-				u32 BufferVector = Memory::Read_U32(m_address + 0x18);
-				m_buffer = Memory::Read_U32(
-					BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
-			}
-		}
+		explicit CtrlBuffer(u32 address);
 
-		inline void FillBuffer(const void* src, const size_t size) const
-		{
-			Memory::CopyToEmu(m_buffer, (u8*)src, size);
-		}
+		void FillBuffer(const void* src, const size_t size) const;
+		void SetRetVal(const u32 retval) const;
 
-		inline void SetRetVal(const u32 retval) const
-		{
-			Memory::Write_U32(retval, m_address + 4);
-		}
+		bool IsValid() const { return m_address != 0; }
 
-		inline bool IsValid() const
+		void Invalidate()
 		{
-			return m_address != 0;
-		}
-
-		inline void Invalidate()
-		{
-			m_address = m_buffer = 0;
+			m_address = 0;
+			m_buffer = 0;
 		}
 	};
 
@@ -166,29 +133,21 @@ private:
 			u16 conn_handle;
 		};
 
-		std::deque<Packet> m_queue;
+		std::deque<Packet> m_queue{};
 
 	public:
-		ACLPool()
-			: m_queue()
-		{}
+		ACLPool() = default;
 
 		void Store(const u8* data, const u16 size, const u16 conn_handle);
-
 		void WriteToEndpoint(CtrlBuffer& endpoint);
 
-		bool IsEmpty() const
-		{
-			return m_queue.empty();
-		}
+		bool IsEmpty() const { return m_queue.empty(); }
 
 		// For SaveStates
-		void DoState(PointerWrap &p)
-		{
-			p.Do(m_queue);
-		}
-	} m_acl_pool;
+		void DoState(PointerWrap& p);
+	};
 
+	ACLPool m_acl_pool;
 	u32 m_PacketCount[MAX_BBMOTES];
 	u64 m_last_ticks;
 

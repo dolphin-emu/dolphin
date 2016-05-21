@@ -38,18 +38,7 @@ private:
 		u8 Unk2;
 		u8 PressedKeys[6];
 
-		SMessageData(u32 _MsgType, u8 _Modifiers, u8 *_PressedKeys)
-		{
-			MsgType = Common::swap32(_MsgType);
-			Unk1 = 0; // swapped
-			Modifiers = _Modifiers;
-			Unk2 = 0;
-
-			if (_PressedKeys) // Doesn't need to be in a specific order
-				memcpy(PressedKeys, _PressedKeys, sizeof(PressedKeys));
-			else
-				memset(PressedKeys, 0, sizeof(PressedKeys));
-		}
+		SMessageData(u32 message_type, u8 modifiers, u8* pressed_keys);
 	};
 	#pragma pack(pop)
 	std::queue<SMessageData> m_MessageQueue;

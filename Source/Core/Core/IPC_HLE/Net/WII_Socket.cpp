@@ -3,15 +3,18 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Core/Core.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "Core/IPC_HLE/WII_Socket.h" // No Wii socket support while using NetPlay or TAS
+#include "Core/IPC_HLE/Net/WII_Socket.h" // No Wii socket support while using NetPlay or TAS
 
 #ifdef _WIN32
 #define ERRORCODE(name) WSA ## name

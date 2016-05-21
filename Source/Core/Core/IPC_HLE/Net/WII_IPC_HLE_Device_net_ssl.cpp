@@ -7,8 +7,8 @@
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Core/Core.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
-#include "Core/IPC_HLE/WII_Socket.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_ssl.h"
+#include "Core/IPC_HLE/Net/WII_Socket.h"
 
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 

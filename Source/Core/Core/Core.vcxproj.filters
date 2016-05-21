@@ -139,6 +139,12 @@
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\Stub">
+      <UniqueIdentifier>{031319db-d619-40d7-8e19-4a1fe8237693}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\STM - State Transition Manager">
+      <UniqueIdentifier>{11554dcb-b75b-4913-8c77-77ba5e958fef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BootManager.cpp" />
@@ -576,20 +582,14 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
     </ClCompile>
-    <ClCompile Include="IPC_HLE\ICMPWin.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_Socket.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\STM - State Transition Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Stub</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
@@ -602,6 +602,15 @@
     </ClCompile>
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\ICMPWin.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ssl.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
     <ClCompile Include="HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
@@ -728,6 +737,31 @@
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_Socket.cpp" />
+    <ClCompile Include="IPC_HLE\Net\NWC24Config.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_request.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_time.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ncd_manage.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_wd_command.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\WiiNetConfig.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\Net\MacHelpers.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1117,9 +1151,6 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_DI.h">
       <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
     </ClInclude>
@@ -1135,20 +1166,14 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\ICMP.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_Socket.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
       <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\STM - State Transition Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Stub</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_hid.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
@@ -1167,6 +1192,39 @@
     </ClInclude>
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\ICMP.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\MacHelpers.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\NWC24Config.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_request.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_kd_time.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ncd_manage.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_ssl.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_IPC_HLE_Device_net_wd_command.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WII_Socket.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\Net\WiiNetConfig.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
     <ClInclude Include="HW\Wiimote.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>

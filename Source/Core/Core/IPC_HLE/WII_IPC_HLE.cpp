@@ -45,16 +45,20 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
-
 #if defined(__LIBUSB__) || defined (_WIN32)
 	#include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 #endif
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_kd_request.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_kd_time.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_ncd_manage.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_ssl.h"
+#include "Core/IPC_HLE/Net/WII_IPC_HLE_Device_net_wd_command.h"
 
 #include "Core/PowerPC/PowerPC.h"
 
@@ -612,12 +616,3 @@ void UpdateDevices()
 
 
 } // end of namespace WII_IPC_HLE_Interface
-
-// TODO: create WII_IPC_HLE_Device.cpp ?
-void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
-{
-	p.Do(m_Name);
-	p.Do(m_DeviceID);
-	p.Do(m_Hardware);
-	p.Do(m_Active);
-}
