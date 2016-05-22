@@ -320,6 +320,11 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 		spac << (MessageId)NP_MSG_PLAYER_JOIN;
 		spac << p.second.pid << p.second.name << p.second.revision;
 		Send(player.socket, spac);
+
+		spac.clear();
+		spac << (MessageId)NP_MSG_GAME_STATUS;
+		spac << p.second.pid << p.second.game_status;
+		Send(player.socket, spac);
 	}
 
 	// add client to the player list
@@ -603,6 +608,23 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 		SendToClients(spac);
 
 		m_is_running = false;
+	}
+	break;
+
+	case NP_MSG_GAME_STATUS:
+	{
+		int status;
+		packet >> status;
+
+		m_players[player.pid].game_status = status;
+
+		// send msg to other clients
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_GAME_STATUS;
+		spac << player.pid;
+		spac << status;
+
+		SendToClients(spac);
 	}
 	break;
 

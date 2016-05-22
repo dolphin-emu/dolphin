@@ -291,23 +291,31 @@ void NetPlayDialog::GetNetSettings(NetSettings &settings)
 	settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
 }
 
-std::string NetPlayDialog::FindGame()
+std::string NetPlayDialog::FindGame(const std::string& target_game)
 {
 	// find path for selected game, sloppy..
 	for (u32 i = 0; auto game = m_game_list->GetISO(i); ++i)
-		if (m_selected_game == BuildGameName(*game))
+		if (target_game == BuildGameName(*game))
 			return game->GetFileName();
 
-	WxUtils::ShowErrorDialog(_("Game not found!"));
 	return "";
+}
+
+std::string NetPlayDialog::FindCurrentGame()
+{
+	return FindGame(m_selected_game);
 }
 
 void NetPlayDialog::OnStart(wxCommandEvent&)
 {
-	NetSettings settings;
-	GetNetSettings(settings);
-	netplay_server->SetNetSettings(settings);
-	netplay_server->StartGame();
+	if (!netplay_client->DoAllPlayersHaveGame()) {
+		m_chat_text->AppendText("Not all players have the game !\n");
+	} else {
+		NetSettings settings;
+		GetNetSettings(settings);
+		netplay_server->SetNetSettings(settings);
+		netplay_server->StartGame();
+	}
 }
 
 void NetPlayDialog::BootGame(const std::string& filename)
@@ -445,7 +453,11 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 	case NP_GUI_EVT_START_GAME:
 		// client start game :/
 	{
-		netplay_client->StartGame(FindGame());
+		std::string game = FindCurrentGame();
+		if (game.empty())
+			WxUtils::ShowErrorDialog(_("Game not found!"));
+		else
+			netplay_client->StartGame(game);
 	}
 	break;
 	case NP_GUI_EVT_STOP_GAME:
