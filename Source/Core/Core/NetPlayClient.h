@@ -35,15 +35,24 @@ public:
 	virtual void OnMsgStartGame() = 0;
 	virtual void OnMsgStopGame() = 0;
 	virtual bool IsRecording() = 0;
+	virtual std::string FindGame(const std::string& game) = 0;
+};
+
+enum class PlayerGameStatus
+{
+	Unknown,
+	Ok,
+	NotFound
 };
 
 class Player
 {
 public:
-	PlayerId    pid;
-	std::string name;
-	std::string revision;
-	u32         ping;
+	PlayerId         pid;
+	std::string      name;
+	std::string      revision;
+	u32              ping;
+	PlayerGameStatus game_status;
 };
 
 class NetPlayClient : public TraversalClientClient
@@ -81,6 +90,8 @@ public:
 	u8 LocalWiimoteToInGameWiimote(u8 local_pad);
 
 	static void SendTimeBase();
+
+	bool DoAllPlayersHaveGame();
 
 protected:
 	void ClearBuffers();
