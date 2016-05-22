@@ -17,6 +17,8 @@
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
 
+enum class PlayerGameStatus;
+
 class NetPlayUI;
 
 class NetPlayServer : public TraversalClientClient
@@ -64,6 +66,7 @@ private:
     PlayerId pid;
     std::string name;
     std::string revision;
+    PlayerGameStatus game_status;
 
     ENetPeer* socket;
     u32 ping;

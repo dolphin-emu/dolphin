@@ -318,8 +318,13 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   for (const auto& p : m_players)
   {
     spac.clear();
-    spac << (MessageId)NP_MSG_PLAYER_JOIN;
+    spac << static_cast<MessageId>(NP_MSG_PLAYER_JOIN);
     spac << p.second.pid << p.second.name << p.second.revision;
+    Send(player.socket, spac);
+
+    spac.clear();
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    spac << p.second.pid << static_cast<int>(p.second.game_status);
     Send(player.socket, spac);
   }
 
@@ -345,7 +350,8 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
     {
       if (mapping == pid && pid != 1)
       {
-        PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must "
+        PanicAlertT("Client disconnect while game is running!! NetPlay is "
+                    "disabled. You must "
                     "manually stop the game.");
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         m_is_running = false;
@@ -523,7 +529,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_WIIMOTE_DATA:
   {
-    // if this is Wiimote data from the last game still being received, ignore it
+    // if this is Wiimote data from the last game still being received, ignore
+    // it
     if (player.current_game != m_current_game)
       break;
 
@@ -589,6 +596,23 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     SendToClients(spac);
 
     m_is_running = false;
+  }
+  break;
+
+  case NP_MSG_GAME_STATUS:
+  {
+    int status;
+    packet >> status;
+
+    m_players[player.pid].game_status = static_cast<PlayerGameStatus>(status);
+
+    // send msg to other clients
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    spac << player.pid;
+    spac << static_cast<int>(status);
+
+    SendToClients(spac);
   }
   break;
 

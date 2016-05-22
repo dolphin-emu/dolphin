@@ -108,7 +108,8 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
   {
     if (address.size() > NETPLAY_CODE_SIZE)
     {
-      PanicAlertT("Host code size is to large.\nPlease recheck that you have the correct code");
+      PanicAlertT("Host code size is to large.\nPlease recheck that you have "
+                  "the correct code");
       return;
     }
 
@@ -357,6 +358,33 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+
+    PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
+                                  PlayerGameStatus::NotFound :
+                                  PlayerGameStatus::Ok;
+
+    spac << static_cast<int>(status);
+    Send(spac);
+  }
+  break;
+
+  case NP_MSG_GAME_STATUS:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    {
+      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      Player& player = m_players[pid];
+      int status;
+      packet >> status;
+      player.game_status = static_cast<PlayerGameStatus>(status);
+    }
+
+    m_dialog->Update();
   }
   break;
 
@@ -402,7 +430,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_DISABLE_GAME:
   {
-    PanicAlertT("Other client disconnected while game is running!! NetPlay is disabled. You must "
+    PanicAlertT("Other client disconnected while game is running!! NetPlay is "
+                "disabled. You must "
                 "manually stop the game.");
     m_is_running.store(false);
     NetPlay_Disable();
@@ -598,7 +627,26 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
     enumerate_player_controller_mappings(m_pad_map, player);
     enumerate_player_controller_mappings(m_wiimote_map, player);
 
-    ss << " |\nPing: " << player.ping << "ms\n\n";
+    ss << " |\nPing: " << player.ping << "ms\n";
+    ss << "Status: ";
+
+    switch (player.game_status)
+    {
+    case PlayerGameStatus::Ok:
+      ss << "ready";
+      break;
+
+    case PlayerGameStatus::NotFound:
+      ss << "game missing";
+      break;
+
+    default:
+      ss << "unknown";
+      break;
+    }
+
+    ss << "\n\n";
+
     pid_list.push_back(player.pid);
   }
 
@@ -978,12 +1026,14 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     m_wiimote_buffer[_number].Push(nw);
   }
 
-  // We should have used a blank input last time, so now we just need to pop through the old buffer,
+  // We should have used a blank input last time, so now we just need to pop
+  // through the old buffer,
   // until we reach a good input
   if (nw.size() != size)
   {
     u8 tries = 0;
-    // Clear the buffer and wait for new input, since we probably just changed reporting mode.
+    // Clear the buffer and wait for new input, since we probably just changed
+    // reporting mode.
     while (nw.size() != size)
     {
       while (!m_wiimote_buffer[_number].Pop(nw))
@@ -1145,6 +1195,14 @@ void NetPlayClient::SendTimeBase()
   *spac << netplay_client->m_timebase_frame++;
 
   netplay_client->SendAsync(std::move(spac));
+}
+
+bool NetPlayClient::DoAllPlayersHaveGame()
+{
+  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+
+  return std::all_of(std::begin(m_players), std::end(m_players),
+                     [](auto entry) { return entry.second.game_status == PlayerGameStatus::Ok; });
 }
 
 // stuff hacked into dolphin
