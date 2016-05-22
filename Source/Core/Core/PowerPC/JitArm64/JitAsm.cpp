@@ -7,6 +7,7 @@
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -110,7 +111,7 @@ void JitArm64::GenerateAsm()
 
 		// Check the state pointer to see if we are exiting
 		// Gets checked on at the end of every slice
-		MOVI2R(X0, (u64)PowerPC::GetStatePtr());
+		MOVI2R(X0, (u64)CPU::GetStatePtr());
 		LDR(INDEX_UNSIGNED, W0, X0, 0);
 
 		CMP(W0, 0);
@@ -120,10 +121,6 @@ void JitArm64::GenerateAsm()
 
 	SetJumpTarget(Exit);
 	STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-	// Let the waiting thread know we are done leaving
-	MOVI2R(X0, (u64)&PowerPC::FinishStateMove);
-	BLR(X0);
 
 	ABI_PopRegisters(regs_to_save);
 	RET(X30);

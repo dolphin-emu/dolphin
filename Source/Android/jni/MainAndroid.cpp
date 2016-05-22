@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <jni.h>
 #include <memory>
+#include <mutex>
+#include <thread>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <EGL/egl.h>
@@ -29,7 +31,6 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
 #include "DiscIO/Volume.h"
@@ -65,9 +66,24 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 void Host_NotifyMapLoaded() {}
 void Host_RefreshDSPDebuggerWindow() {}
 
+// The Core only supports using a single Host thread.
+// If multiple threads want to call host functions then they need to queue
+// sequentially for access.
+static std::mutex s_host_identity_lock;
 Common::Event updateMainFrameEvent;
+static bool s_have_wm_user_stop = false;
 void Host_Message(int Id)
 {
+	if (Id == WM_USER_JOB_DISPATCH)
+	{
+		updateMainFrameEvent.Set();
+	}
+	else if (Id == WM_USER_STOP)
+	{
+		s_have_wm_user_stop = true;
+		if (Core::IsRunning())
+			Core::QueueHostJob(&Core::Stop);
+	}
 }
 
 void* Host_GetRenderHandle()
@@ -388,15 +404,18 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmulation(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	Core::SetState(Core::CORE_RUN);
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	Core::SetState(Core::CORE_PAUSE);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	Core::SaveScreenShot("thumb");
 	Renderer::s_screenshotCompleted.WaitFor(std::chrono::seconds(2));
 	Core::Stop();
@@ -485,6 +504,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Supports
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	Core::SaveScreenShot();
 }
 
@@ -529,11 +549,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetFilename(
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveState(JNIEnv *env, jobject obj, jint slot)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	State::Save(slot);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv *env, jobject obj, jint slot)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	State::Load(slot);
 }
 
@@ -560,6 +582,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFo
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirectory(JNIEnv *env, jobject obj, jstring jDirectory)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	std::string directory = GetJString(env, jDirectory);
 	g_set_userpath = directory;
 	UICommon::SetUserDirectory(directory);
@@ -572,6 +595,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv *env, jobject obj, jboolean enable)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	Core::SetState(Core::CORE_PAUSE);
 	JitInterface::ClearCache();
 	Profiler::g_ProfileBlocks = enable;
@@ -580,6 +604,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
 	File::CreateFullPath(filename);
 	JitInterface::WriteProfileResults(filename);
@@ -638,6 +663,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv *env, jobject obj)
 {
+	std::lock_guard<std::mutex> guard(s_host_identity_lock);
 	WiimoteReal::Refresh();
 }
 
@@ -651,21 +677,37 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run(JNIEnv *
 
 	RegisterMsgAlertHandler(&MsgAlert);
 
+	std::unique_lock<std::mutex> guard(s_host_identity_lock);
 	UICommon::SetUserDirectory(g_set_userpath);
 	UICommon::Init();
 
 	WiimoteReal::InitAdapterClass();
 
 	// No use running the loop when booting fails
+	s_have_wm_user_stop = false;
 	if ( BootManager::BootCore( g_filename.c_str() ) )
 	{
-		PowerPC::Start();
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		static constexpr int TIMEOUT   = 10000;
+		static constexpr int WAIT_STEP = 25;
+		int time_waited = 0;
+		// A Core::CORE_ERROR state would be helpful here.
+		while (!Core::IsRunning() && time_waited < TIMEOUT && !s_have_wm_user_stop)
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_STEP));
+			time_waited += WAIT_STEP;
+		}
+		while (Core::IsRunning())
+		{
+			guard.unlock();
 			updateMainFrameEvent.Wait();
+			guard.lock();
+			Core::HostDispatchJobs();
+		}
 	}
 
 	Core::Shutdown();
 	UICommon::Shutdown();
+	guard.unlock();
 
 	if (surf)
 	{

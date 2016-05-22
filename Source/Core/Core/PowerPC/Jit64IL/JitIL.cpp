@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
@@ -478,7 +479,7 @@ void JitIL::Jit(u32 em_address)
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
-			if (GetState() == CPU_STEPPING)
+			if (CPU::GetState() == CPU::CPU_STEPPING)
 			{
 				blockSize = 1;
 
@@ -624,7 +625,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
 			}
 
-			if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().bEnableDebugging &&
+			    breakpoints.IsAddressBreakPoint(ops[i].address) &&
+			    CPU::GetState() != CPU::CPU_STEPPING)
 			{
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;

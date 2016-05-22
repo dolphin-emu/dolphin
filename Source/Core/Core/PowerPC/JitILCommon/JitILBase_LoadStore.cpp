@@ -5,6 +5,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 
@@ -57,7 +58,7 @@ void JitILBase::lXz(UGeckoInstruction inst)
 	// or higher in PPCAnalyst
 	// TODO: We shouldn't use debug reads here.
 	if (SConfig::GetInstance().bSkipIdle &&
-		PowerPC::GetState() != PowerPC::CPU_STEPPING &&
+		CPU::GetState() != CPU::CPU_STEPPING &&
 		inst.OPCD == 32 && // Lwx
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||

@@ -12,6 +12,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -120,7 +121,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 	// TODO: We shouldn't use a debug read here.  It should be possible to get
 	// the following instructions out of the JIT state.
 	if (SConfig::GetInstance().bSkipIdle &&
-	    PowerPC::GetState() != PowerPC::CPU_STEPPING &&
+	    CPU::GetState() != CPU::CPU_STEPPING &&
 	    inst.OPCD == 32 &&
 	    MergeAllowedNextInstructions(2) &&
 	    (inst.hex & 0xFFFF0000) == 0x800D0000 &&

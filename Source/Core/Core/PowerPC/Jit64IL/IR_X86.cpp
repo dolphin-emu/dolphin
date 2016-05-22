@@ -35,6 +35,7 @@ The register allocation is linear scan allocation.
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -2299,7 +2300,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
 			Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
 			Jit->ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
-			Jit->TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			Jit->TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
 			FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
 			Jit->WriteExit(InstLoc);
 			Jit->SetJumpTarget(noBreakpoint);

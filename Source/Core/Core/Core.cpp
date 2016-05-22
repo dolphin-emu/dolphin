@@ -5,6 +5,9 @@
 #include <atomic>
 #include <cctype>
 #include <cstring>
+#include <mutex>
+#include <queue>
+#include <utility>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -102,6 +105,7 @@ void EmuThread();
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
+static std::atomic<bool> s_is_booting{ false };
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
@@ -111,6 +115,14 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
 static bool s_is_throttler_temp_disabled = false;
+
+struct HostJob
+{
+	std::function<void()> job;
+	bool run_after_stop;
+};
+static std::mutex          s_host_jobs_lock;
+static std::queue<HostJob> s_host_jobs_queue;
 
 #ifdef ThreadLocalStorage
 static ThreadLocalStorage bool tls_is_cpu_thread = false;
@@ -225,6 +237,9 @@ bool Init()
 		s_emu_thread.join();
 	}
 
+	// Drain any left over jobs
+	HostDispatchJobs();
+
 	Core::UpdateWantDeterminism(/*initial*/ true);
 
 	INFO_LOG(OSREPORT, "Starting core = %s mode",
@@ -260,16 +275,16 @@ void Stop()  // - Hammertime!
 
 	s_is_stopping = true;
 
+	// Dump left over jobs
+	HostDispatchJobs();
+
 	Fifo::EmulatorState(false);
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
 	// Stop the CPU
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-	PowerPC::Stop();
-
-	// Kick it if it's waiting (code stepping wait loop)
-	CPU::StepOpcode();
+	CPU::Stop();
 
 	if (_CoreParameter.bCPUThread)
 	{
@@ -313,6 +328,16 @@ void UndeclareAsCPUThread()
 #endif
 }
 
+// For the CPU Thread only.
+static void CPUSetInitialExecutionState()
+{
+	QueueHostJob([]
+	{
+		SetState(SConfig::GetInstance().bBootToPause ? CORE_PAUSE : CORE_RUN);
+		Host_UpdateMainFrame();
+	});
+}
+
 // Create the CPU thread, which is a CPU + Video thread in Single Core mode.
 static void CpuThread()
 {
@@ -334,10 +359,20 @@ static void CpuThread()
 		EMM::InstallExceptionHandler(); // Let's run under memory watch
 
 	if (!s_state_filename.empty())
-		State::LoadAs(s_state_filename);
+	{
+		// Needs to PauseAndLock the Core
+		// NOTE: EmuThread should have left us in CPU_STEPPING so nothing will happen
+		//   until after the job is serviced.
+		QueueHostJob([]
+		{
+			// Recheck in case Movie cleared it since.
+			if (!s_state_filename.empty())
+				State::LoadAs(s_state_filename);
+		});
+	}
 
 	s_is_started = true;
-
+	CPUSetInitialExecutionState();
 
 	#ifdef USE_GDBSTUB
 	#ifndef _WIN32
@@ -376,6 +411,7 @@ static void CpuThread()
 
 static void FifoPlayerThread()
 {
+	DeclareAsCPUThread();
 	const SConfig& _CoreParameter = SConfig::GetInstance();
 
 	if (_CoreParameter.bCPUThread)
@@ -388,18 +424,37 @@ static void FifoPlayerThread()
 		Common::SetCurrentThreadName("FIFO-GPU thread");
 	}
 
-	s_is_started = true;
-	DeclareAsCPUThread();
-
 	// Enter CPU run loop. When we leave it - we are done.
 	if (FifoPlayer::GetInstance().Open(_CoreParameter.m_strFilename))
 	{
-		FifoPlayer::GetInstance().Play();
+		if (auto cpu_core = FifoPlayer::GetInstance().GetCPUCore())
+		{
+			PowerPC::InjectExternalCPUCore(cpu_core.get());
+			s_is_started = true;
+
+			CPUSetInitialExecutionState();
+			CPU::Run();
+
+			s_is_started = false;
+			PowerPC::InjectExternalCPUCore(nullptr);
+		}
 		FifoPlayer::GetInstance().Close();
 	}
 
-	UndeclareAsCPUThread();
-	s_is_started = false;
+	// If we did not enter the CPU Run Loop above then run a fake one instead.
+	// We need to be IsRunningAndStarted() for DolphinWX to stop us.
+	if (CPU::GetState() != CPU::CPU_POWERDOWN)
+	{
+		s_is_started = true;
+		Host_Message(WM_USER_STOP);
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
+		{
+			if (!_CoreParameter.bCPUThread)
+				g_video_backend->PeekMessages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+		s_is_started = false;
+	}
 
 	if (!_CoreParameter.bCPUThread)
 		g_video_backend->Video_Cleanup();
@@ -413,6 +468,7 @@ static void FifoPlayerThread()
 void EmuThread()
 {
 	const SConfig& core_parameter = SConfig::GetInstance();
+	s_is_booting.store(true);
 
 	Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -431,6 +487,7 @@ void EmuThread()
 
 	if (!g_video_backend->Initialize(s_window_handle))
 	{
+		s_is_booting.store(false);
 		PanicAlert("Failed to initialize video backend!");
 		Host_Message(WM_USER_STOP);
 		return;
@@ -445,6 +502,7 @@ void EmuThread()
 
 	if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
 	{
+		s_is_booting.store(false);
 		HW::Shutdown();
 		g_video_backend->Shutdown();
 		PanicAlert("Failed to initialize DSP emulation!");
@@ -485,9 +543,10 @@ void EmuThread()
 
 	// The hardware is initialized.
 	s_hardware_initialized = true;
+	s_is_booting.store(false);
 
-	// Boot to pause or not
-	Core::SetState(core_parameter.bBootToPause ? Core::CORE_PAUSE : Core::CORE_RUN);
+	// Set execution state to known values (CPU/FIFO/Audio Paused)
+	CPU::Break();
 
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -552,7 +611,7 @@ void EmuThread()
 		// Spawn the CPU+GPU thread
 		s_cpu_thread = std::thread(cpuThreadFunc);
 
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+		while (CPU::GetState() != CPU::CPU_POWERDOWN)
 		{
 			g_video_backend->PeekMessages();
 			Common::SleepCurrentThread(20);
@@ -621,11 +680,17 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState _State)
+void SetState(EState state)
 {
-	switch (_State)
+	// State cannot be controlled until the CPU Thread is operational
+	if (!IsRunningAndStarted())
+		return;
+
+	switch (state)
 	{
 	case CORE_PAUSE:
+		// NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+		//   stopped (including the CPU).
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
 #if defined(__LIBUSB__) || defined(_WIN32)
@@ -719,30 +784,50 @@ void RequestRefreshInfo()
 	s_request_refresh_info = true;
 }
 
-bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
+bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
+	// WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
 	if (!IsRunning())
 		return true;
 
 	// let's support recursive locking to simplify things on the caller's side,
 	// and let's do it at this outer level in case the individual systems don't support it.
-	if (doLock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
+	if (do_lock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
 		return true;
 
-	// first pause or unpause the CPU
-	bool wasUnpaused = CPU::PauseAndLock(doLock, unpauseOnUnlock);
-	ExpansionInterface::PauseAndLock(doLock, unpauseOnUnlock);
+	bool was_unpaused = true;
+	if (do_lock)
+	{
+		// first pause the CPU
+		// This acquires a wrapper mutex and converts the current thread into
+		// a temporary replacement CPU Thread.
+		was_unpaused = CPU::PauseAndLock(true);
+	}
+
+	ExpansionInterface::PauseAndLock(do_lock, false);
 
 	// audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
-	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
+	DSP::GetDSPEmulator()->PauseAndLock(do_lock, false);
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
-	Fifo::PauseAndLock(doLock, unpauseOnUnlock);
+	Fifo::PauseAndLock(do_lock, false);
 
 #if defined(__LIBUSB__) || defined(_WIN32)
 	GCAdapter::ResetRumble();
 #endif
-	return wasUnpaused;
+
+	// CPU is unlocked last because CPU::PauseAndLock contains the synchronization
+	// mechanism that prevents CPU::Break from racing.
+	if (!do_lock)
+	{
+		// The CPU is responsible for managing the Audio and FIFO state so we use its
+		// mechanism to unpause them. If we unpaused the systems above when releasing
+		// the locks then they could call CPU::Break which would require detecting it
+		// and re-pausing with CPU::EnableStepping.
+		was_unpaused = CPU::PauseAndLock(false, unpause_on_unlock, true);
+	}
+
+	return was_unpaused;
 }
 
 // Display FPS info
@@ -803,7 +888,7 @@ void UpdateTitle()
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
-	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
+	std::string SSettings = StringFromFormat("%s %s | %s | %s", PowerPC::GetCPUName(), _CoreParameter.bCPUThread ? "DC" : "SC",
 		g_video_backend->GetDisplayName().c_str(), _CoreParameter.bDSPHLE ? "HLE" : "LLE");
 
 	std::string SFPS;
@@ -865,6 +950,9 @@ void Shutdown()
 	// on MSDN.
 	if (s_emu_thread.joinable())
 		s_emu_thread.join();
+
+	// Make sure there's nothing left over in case we're about to exit.
+	HostDispatchJobs();
 }
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
@@ -895,6 +983,47 @@ void UpdateWantDeterminism(bool initial)
 		Common::InitializeWiiRoot(g_want_determinism);
 
 		Core::PauseAndLock(false, was_unpaused);
+	}
+}
+
+void QueueHostJob(std::function<void()> job, bool run_during_stop)
+{
+	if (!job)
+		return;
+
+	bool send_message = false;
+	{
+		std::lock_guard<std::mutex> guard(s_host_jobs_lock);
+		send_message = s_host_jobs_queue.empty();
+		s_host_jobs_queue.emplace(HostJob{ std::move(job), run_during_stop });
+	}
+	// If the the queue was empty then kick the Host to come and get this job.
+	if (send_message)
+		Host_Message(WM_USER_JOB_DISPATCH);
+}
+
+void HostDispatchJobs()
+{
+	// WARNING: This should only run on the Host Thread.
+	// NOTE: This function is potentially re-entrant. If a job calls
+	//   Core::Stop for instance then we'll enter this a second time.
+	std::unique_lock<std::mutex> guard(s_host_jobs_lock);
+	while (!s_host_jobs_queue.empty())
+	{
+		HostJob job = std::move(s_host_jobs_queue.front());
+		s_host_jobs_queue.pop();
+
+		// NOTE: Memory ordering is important. The booting flag needs to be
+		//   checked first because the state transition is:
+		//   CORE_UNINITIALIZED: s_is_booting -> s_hardware_initialized
+		//   We need to check variables in the same order as the state
+		//   transition, otherwise we race and get transient failures.
+		if (!job.run_after_stop && !s_is_booting.load() && !IsRunning())
+			continue;
+
+		guard.unlock();
+		job.job();
+		guard.lock();
 	}
 }
 
