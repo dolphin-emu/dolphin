@@ -365,6 +365,33 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 		// update gui
 		m_dialog->OnMsgChangeGame(m_selected_game);
+
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_GAME_STATUS;
+
+		PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty()
+			? PlayerGameStatus::NotFound
+			: PlayerGameStatus::Ok;
+
+		spac << (int)status;
+		Send(spac);
+	}
+	break;
+
+	case NP_MSG_GAME_STATUS:
+	{
+		PlayerId pid;
+		packet >> pid;
+
+		{
+			std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+			Player& player = m_players[pid];
+			int status;
+			packet >> status;
+			player.game_status = (PlayerGameStatus)status;
+		}
+
+		m_dialog->Update();
 	}
 	break;
 
@@ -602,7 +629,24 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 		enumerate_player_controller_mappings(m_pad_map, player);
 		enumerate_player_controller_mappings(m_wiimote_map, player);
 
-		ss << " |\nPing: " << player.ping << "ms\n\n";
+		ss << " |\nPing: " << player.ping << "ms\n";
+		ss << "Has game: ";
+
+		switch (player.game_status) {
+			case PlayerGameStatus::Ok:
+				ss << "yes";
+				break;
+
+			case PlayerGameStatus::NotFound:
+				ss << "no";
+				break;
+
+			default:
+				ss << "unknown";
+		}
+
+		ss << "\n\n";
+
 		pid_list.push_back(player.pid);
 	}
 
@@ -1136,6 +1180,17 @@ void NetPlayClient::SendTimeBase()
 	*spac << netplay_client->m_timebase_frame++;
 
 	netplay_client->SendAsync(std::move(spac));
+}
+
+bool NetPlayClient::DoAllPlayersHaveGame()
+{
+	std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+
+	return std::all_of(
+		std::begin(m_players),
+		std::end(m_players),
+		[](auto p) { return p.second.game_status == PlayerGameStatus::Ok; }
+	);
 }
 
 // stuff hacked into dolphin

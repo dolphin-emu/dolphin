@@ -60,9 +60,10 @@ private:
 	class Client
 	{
 	public:
-		PlayerId    pid;
-		std::string name;
-		std::string revision;
+		PlayerId         pid;
+		std::string      name;
+		std::string      revision;
+		PlayerGameStatus game_status;
 
 		ENetPeer* socket;
 		u32 ping;
