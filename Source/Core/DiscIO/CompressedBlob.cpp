@@ -88,7 +88,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	if (offset & (1ULL << 63))
 	{
 		if (comp_block_size != m_header.block_size)
-			PanicAlert("Uncompressed block with wrong size");
+			NOTICE_LOG(DISCIO, "Uncompressed block with wrong size");
 		uncompressed = true;
 		offset &= ~(1ULL << 63);
 	}
@@ -99,7 +99,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	m_file.Seek(offset, SEEK_SET);
 	if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
 	{
-		PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
+		NOTICE_LOG(DISCIO, "The disc image \"%s\" is truncated, some of the data is missing.",
 		            m_file_name.c_str());
 		m_file.Clear();
 		return false;
@@ -108,7 +108,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 	// First, check hash.
 	u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
 	if (block_hash != m_hashes[block_num])
-		PanicAlertT("The disc image \"%s\" is corrupt.\n"
+		NOTICE_LOG(DISCIO, "The disc image \"%s\" is corrupt.\n"
 		            "Hash of block %" PRIu64 " is %08x instead of %08x.",
 		            m_file_name.c_str(),
 		            block_num, block_hash, m_hashes[block_num]);
@@ -124,7 +124,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		z.avail_in = comp_block_size;
 		if (z.avail_in > m_header.block_size)
 		{
-			PanicAlert("We have a problem");
+			NOTICE_LOG(DISCIO, "We have a problem");
 		}
 		z.next_out  = out_ptr;
 		z.avail_out = m_header.block_size;
@@ -135,12 +135,12 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
 		{
 			// this seem to fire wrongly from time to time
 			// to be sure, don't use compressed isos :P
-			PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
+			NOTICE_LOG(DISCIO, "Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
 		}
 		inflateEnd(&z);
 		if (uncomp_size != m_header.block_size)
 		{
-			PanicAlert("Wrong block size");
+			NOTICE_LOG(DISCIO, "Wrong block size");
 			return false;
 		}
 	}
