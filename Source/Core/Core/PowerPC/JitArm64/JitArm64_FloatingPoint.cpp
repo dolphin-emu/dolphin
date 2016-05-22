@@ -13,7 +13,6 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 
 using namespace Arm64Gen;
 

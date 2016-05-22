@@ -198,7 +198,7 @@ using namespace Gen;
 				int destinationBlock = GetBlockNumberFromStartAddress(e.exitAddress);
 				if (destinationBlock != -1)
 				{
-					WriteLinkBlock(e.exitPtrs, blocks[destinationBlock].checkedEntry);
+					WriteLinkBlock(e.exitPtrs, blocks[destinationBlock]);
 					e.linkStatus = true;
 				}
 			}
@@ -316,8 +316,9 @@ using namespace Gen;
 		}
 	}
 
-	void JitBlockCache::WriteLinkBlock(u8* location, const u8* address)
+	void JitBlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 	{
+		const u8* address = block.checkedEntry;
 		XEmitter emit(location);
 		if (*location == 0xE8)
 		{

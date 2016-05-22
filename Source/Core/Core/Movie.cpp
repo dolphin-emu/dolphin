@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <mutex>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
@@ -21,6 +22,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/State.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -84,11 +86,14 @@ static u8 s_language = 10; //Set to unknown until language is known
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
 
+// s_InputDisplay is used by both CPU and GPU (is mutable).
+static std::mutex  s_input_display_lock;
 static std::string s_InputDisplay[8];
 
 static GCManipFunction gcmfunc = nullptr;
 static WiiManipFunction wiimfunc = nullptr;
 
+// NOTE: Host / CPU Thread
 static void EnsureTmpInputSize(size_t bound)
 {
 	if (tmpInputAllocated >= bound)
@@ -118,6 +123,7 @@ static bool IsMovieHeader(u8 magic[4])
 	       magic[3] == 0x1A;
 }
 
+// NOTE: GPU Thread
 std::string GetInputDisplay()
 {
 	if (!IsMovieActive())
@@ -132,14 +138,19 @@ std::string GetInputDisplay()
 		}
 	}
 
-	std::string inputDisplay = "";
-	for (int i = 0; i < 8; ++i)
-		if ((s_numPads & (1 << i)) != 0)
-			inputDisplay.append(s_InputDisplay[i]);
-
-	return inputDisplay;
+	std::string input_display;
+	{
+		std::lock_guard<std::mutex> guard(s_input_display_lock);
+		for (int i = 0; i < 8; ++i)
+		{
+			if ((s_numPads & (1 << i)) != 0)
+				input_display += s_InputDisplay[i];
+		}
+	}
+	return input_display;
 }
 
+// NOTE: GPU Thread
 void FrameUpdate()
 {
 	// TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
@@ -155,8 +166,8 @@ void FrameUpdate()
 	}
 	if (s_bFrameStep)
 	{
-		Core::SetState(Core::CORE_PAUSE);
 		s_bFrameStep = false;
+		CPU::Break();
 	}
 
 	if (s_framesToSkip)
@@ -167,6 +178,7 @@ void FrameUpdate()
 
 // called when game is booting up, even if no movie is active,
 // but potentially after BeginRecordingInput or PlayInput has been called.
+// NOTE: EmuThread
 void Init()
 {
 	s_bPolled = false;
@@ -212,6 +224,7 @@ void Init()
 	}
 }
 
+// NOTE: CPU Thread
 void InputUpdate()
 {
 	g_currentInputCount++;
@@ -223,6 +236,7 @@ void InputUpdate()
 	}
 }
 
+// NOTE: Host Thread
 void SetFrameSkipping(unsigned int framesToSkip)
 {
 	std::lock_guard<std::mutex> lk(cs_frameSkip);
@@ -236,19 +250,21 @@ void SetFrameSkipping(unsigned int framesToSkip)
 		Fifo::SetRendering(true);
 }
 
+// NOTE: CPU Thread
 void SetPolledDevice()
 {
 	s_bPolled = true;
 }
 
+// NOTE: Host Thread
 void DoFrameStep()
 {
 	if (Core::GetState() == Core::CORE_PAUSE)
 	{
 		// if already paused, frame advance for 1 frame
-		Core::SetState(Core::CORE_RUN);
-		Core::RequestRefreshInfo();
 		s_bFrameStep = true;
+		Core::RequestRefreshInfo();
+		Core::SetState(Core::CORE_RUN);
 	}
 	else if (!s_bFrameStep)
 	{
@@ -257,6 +273,7 @@ void DoFrameStep()
 	}
 }
 
+// NOTE: Host Thread
 void SetReadOnly(bool bEnabled)
 {
 	if (s_bReadOnly != bEnabled)
@@ -265,6 +282,7 @@ void SetReadOnly(bool bEnabled)
 	s_bReadOnly = bEnabled;
 }
 
+// NOTE: GPU Thread
 void FrameSkipping()
 {
 	// Frameskipping will desync movie playback
@@ -398,6 +416,7 @@ bool IsNetPlayRecording()
 	return s_bNetPlay;
 }
 
+// NOTE: Host Thread
 void ChangePads(bool instantly)
 {
 	if (!Core::IsRunning())
@@ -430,6 +449,7 @@ void ChangePads(bool instantly)
 	}
 }
 
+// NOTE: Host / Emu Threads
 void ChangeWiiPads(bool instantly)
 {
 	int controllers = 0;
@@ -449,6 +469,7 @@ void ChangeWiiPads(bool instantly)
 	}
 }
 
+// NOTE: Host Thread
 bool BeginRecordingInput(int controllers)
 {
 	if (s_playMode != MODE_NONE || controllers == 0)
@@ -574,46 +595,51 @@ static std::string Analog1DToString(u8 v, const std::string& prefix, u8 range = 
 	}
 }
 
+// NOTE: CPU Thread
 static void SetInputDisplayString(ControllerState padState, int controllerID)
 {
-	s_InputDisplay[controllerID] = StringFromFormat("P%d:", controllerID + 1);
+	std::string display_str = StringFromFormat("P%d:", controllerID + 1);
 
 	if (padState.A)
-		s_InputDisplay[controllerID].append(" A");
+		display_str += " A";
 	if (padState.B)
-		s_InputDisplay[controllerID].append(" B");
+		display_str += " B";
 	if (padState.X)
-		s_InputDisplay[controllerID].append(" X");
+		display_str += " X";
 	if (padState.Y)
-		s_InputDisplay[controllerID].append(" Y");
+		display_str += " Y";
 	if (padState.Z)
-		s_InputDisplay[controllerID].append(" Z");
+		display_str += " Z";
 	if (padState.Start)
-		s_InputDisplay[controllerID].append(" START");
+		display_str += " START";
 
 	if (padState.DPadUp)
-		s_InputDisplay[controllerID].append(" UP");
+		display_str += " UP";
 	if (padState.DPadDown)
-		s_InputDisplay[controllerID].append(" DOWN");
+		display_str += " DOWN";
 	if (padState.DPadLeft)
-		s_InputDisplay[controllerID].append(" LEFT");
+		display_str += " LEFT";
 	if (padState.DPadRight)
-		s_InputDisplay[controllerID].append(" RIGHT");
+		display_str += " RIGHT";
 	if (padState.reset)
-		s_InputDisplay[controllerID].append(" RESET");
+		display_str += " RESET";
 
-	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerL, " L"));
-	s_InputDisplay[controllerID].append(Analog1DToString(padState.TriggerR, " R"));
-	s_InputDisplay[controllerID].append(Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA"));
-	s_InputDisplay[controllerID].append(Analog2DToString(padState.CStickX, padState.CStickY, " C"));
-	s_InputDisplay[controllerID].append("\n");
+	display_str += Analog1DToString(padState.TriggerL, " L");
+	display_str += Analog1DToString(padState.TriggerR, " R");
+	display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
+	display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
+	display_str += '\n';
+
+	std::lock_guard<std::mutex> guard(s_input_display_lock);
+	s_InputDisplay[controllerID] = std::move(display_str);
 }
 
+// NOTE: CPU Thread
 static void SetWiiInputDisplayString(int remoteID, u8* const data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
 	int controllerID = remoteID + 4;
 
-	s_InputDisplay[controllerID] = StringFromFormat("R%d:", remoteID + 1);
+	std::string display_str = StringFromFormat("R%d:", remoteID + 1);
 
 	u8* const coreData = rptf.core ? (data + rptf.core) : nullptr;
 	u8* const accelData = rptf.accel ? (data + rptf.accel) : nullptr;
@@ -624,43 +650,43 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 	{
 		wm_buttons buttons = *(wm_buttons*)coreData;
 		if(buttons.left)
-			s_InputDisplay[controllerID].append(" LEFT");
+			display_str += " LEFT";
 		if(buttons.right)
-			s_InputDisplay[controllerID].append(" RIGHT");
+			display_str += " RIGHT";
 		if(buttons.down)
-			s_InputDisplay[controllerID].append(" DOWN");
+			display_str += " DOWN";
 		if(buttons.up)
-			s_InputDisplay[controllerID].append(" UP");
+			display_str += " UP";
 		if(buttons.a)
-			s_InputDisplay[controllerID].append(" A");
+			display_str += " A";
 		if(buttons.b)
-			s_InputDisplay[controllerID].append(" B");
+			display_str += " B";
 		if(buttons.plus)
-			s_InputDisplay[controllerID].append(" +");
+			display_str += " +";
 		if(buttons.minus)
-			s_InputDisplay[controllerID].append(" -");
+			display_str += " -";
 		if(buttons.one)
-			s_InputDisplay[controllerID].append(" 1");
+			display_str += " 1";
 		if(buttons.two)
-			s_InputDisplay[controllerID].append(" 2");
+			display_str += " 2";
 		if(buttons.home)
-			s_InputDisplay[controllerID].append(" HOME");
+			display_str += " HOME";
 	}
 
 	if (accelData)
 	{
 		wm_accel* dt = (wm_accel*)accelData;
-		std::string accel = StringFromFormat(" ACC:%d,%d,%d",
-			dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
-		s_InputDisplay[controllerID].append(accel);
+		display_str += StringFromFormat(" ACC:%d,%d,%d",
+		                                dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb,
+		                                dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1,
+		                                dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
 	}
 
 	if (irData)
 	{
 		u16 x = irData[0] | ((irData[2] >> 4 & 0x3) << 8);
 		u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
-		std::string ir = StringFromFormat(" IR:%d,%d", x,y);
-		s_InputDisplay[controllerID].append(ir);
+		display_str += StringFromFormat(" IR:%d,%d", x, y);
 	}
 
 	// Nunchuk
@@ -675,11 +701,11 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 			(nunchuk.ax << 2) | nunchuk.bt.acc_x_lsb, (nunchuk.ay << 2) | nunchuk.bt.acc_y_lsb, (nunchuk.az << 2) | nunchuk.bt.acc_z_lsb);
 
 		if (nunchuk.bt.c)
-			s_InputDisplay[controllerID].append(" C");
+			display_str += " C";
 		if (nunchuk.bt.z)
-			s_InputDisplay[controllerID].append(" Z");
-		s_InputDisplay[controllerID].append(accel);
-		s_InputDisplay[controllerID].append(Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA"));
+			display_str += " Z";
+		display_str += accel;
+		display_str += Analog2DToString(nunchuk.jx, nunchuk.jy, " ANA");
 	}
 
 	// Classic controller
@@ -691,41 +717,45 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data, const Wiimote
 		cc.bt.hex = cc.bt.hex ^ 0xFFFF;
 
 		if (cc.bt.regular_data.dpad_left)
-			s_InputDisplay[controllerID].append(" LEFT");
+			display_str += " LEFT";
 		if (cc.bt.dpad_right)
-			s_InputDisplay[controllerID].append(" RIGHT");
+			display_str += " RIGHT";
 		if (cc.bt.dpad_down)
-			s_InputDisplay[controllerID].append(" DOWN");
+			display_str += " DOWN";
 		if (cc.bt.regular_data.dpad_up)
-			s_InputDisplay[controllerID].append(" UP");
+			display_str += " UP";
 		if (cc.bt.a)
-			s_InputDisplay[controllerID].append(" A");
+			display_str += " A";
 		if (cc.bt.b)
-			s_InputDisplay[controllerID].append(" B");
+			display_str += " B";
 		if (cc.bt.x)
-			s_InputDisplay[controllerID].append(" X");
+			display_str += " X";
 		if (cc.bt.y)
-			s_InputDisplay[controllerID].append(" Y");
+			display_str += " Y";
 		if (cc.bt.zl)
-			s_InputDisplay[controllerID].append(" ZL");
+			display_str += " ZL";
 		if (cc.bt.zr)
-			s_InputDisplay[controllerID].append(" ZR");
+			display_str += " ZR";
 		if (cc.bt.plus)
-			s_InputDisplay[controllerID].append(" +");
+			display_str += " +";
 		if (cc.bt.minus)
-			s_InputDisplay[controllerID].append(" -");
+			display_str += " -";
 		if (cc.bt.home)
-			s_InputDisplay[controllerID].append(" HOME");
+			display_str += " HOME";
 
-		s_InputDisplay[controllerID].append(Analog1DToString(cc.lt1 | (cc.lt2 << 3), " L", 31));
-		s_InputDisplay[controllerID].append(Analog1DToString(cc.rt, " R", 31));
-		s_InputDisplay[controllerID].append(Analog2DToString(cc.regular_data.lx, cc.regular_data.ly, " ANA", 63));
-		s_InputDisplay[controllerID].append(Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31));
+		display_str += Analog1DToString(cc.lt1 | (cc.lt2 << 3), " L", 31);
+		display_str += Analog1DToString(cc.rt, " R", 31);
+		display_str += Analog2DToString(cc.regular_data.lx, cc.regular_data.ly, " ANA", 63);
+		display_str += Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31);
 	}
 
-	s_InputDisplay[controllerID].append("\n");
+	display_str += '\n';
+
+	std::lock_guard<std::mutex> guard(s_input_display_lock);
+	s_InputDisplay[controllerID] = std::move(display_str);
 }
 
+// NOTE: CPU Thread
 void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 {
 	s_padState.A         = ((PadStatus->button & PAD_BUTTON_A) != 0);
@@ -759,6 +789,7 @@ void CheckPadStatus(GCPadStatus* PadStatus, int controllerID)
 	SetInputDisplayString(s_padState, controllerID);
 }
 
+// NOTE: CPU Thread
 void RecordInput(GCPadStatus* PadStatus, int controllerID)
 {
 	if (!IsRecordingInput() || !IsUsingPad(controllerID))
@@ -772,6 +803,7 @@ void RecordInput(GCPadStatus* PadStatus, int controllerID)
 	s_totalBytes = s_currentByte;
 }
 
+// NOTE: CPU Thread
 void CheckWiimoteStatus(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
 	SetWiiInputDisplayString(wiimote, data, rptf, ext, key);
@@ -793,6 +825,7 @@ void RecordWiimote(int wiimote, u8 *data, u8 size)
 	s_totalBytes = s_currentByte;
 }
 
+// NOTE: EmuThread / Host Thread
 void ReadHeader()
 {
 	s_numPads = tmpHeader.numControllers;
@@ -831,6 +864,7 @@ void ReadHeader()
 	s_DSPcoefHash = tmpHeader.DSPcoefHash;
 }
 
+// NOTE: Host Thread
 bool PlayInput(const std::string& filename)
 {
 	if (s_playMode != MODE_NONE)
@@ -901,6 +935,7 @@ void DoState(PointerWrap &p)
 	// other variables (such as s_totalBytes and g_totalFrames) are set in LoadInput
 }
 
+// NOTE: Host Thread
 void LoadInput(const std::string& filename)
 {
 	File::IOFile t_record;
@@ -1038,6 +1073,7 @@ void LoadInput(const std::string& filename)
 	}
 }
 
+// NOTE: CPU Thread
 static void CheckInputEnd()
 {
 	if (g_currentFrame > g_totalFrames || s_currentByte >= s_totalBytes || (CoreTiming::GetTicks() > s_totalTickCount && !IsRecordingInputFromSaveState()))
@@ -1046,6 +1082,7 @@ static void CheckInputEnd()
 	}
 }
 
+// NOTE: CPU Thread
 void PlayController(GCPadStatus* PadStatus, int controllerID)
 {
 	// Correct playback is entirely dependent on the emulator polling the controllers
@@ -1116,7 +1153,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 	{
 		// This implementation assumes the disc change will only happen once. Trying to change more than that will cause
 		// it to load the last disc every time. As far as i know though, there are no 3+ disc games, so this should be fine.
-		Core::SetState(Core::CORE_PAUSE);
+		CPU::Break();
 		bool found = false;
 		std::string path;
 		for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
@@ -1130,8 +1167,16 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 		}
 		if (found)
 		{
-			DVDInterface::ChangeDisc(path + '/' + g_discChange);
-			Core::SetState(Core::CORE_RUN);
+			path += '/' + g_discChange;
+
+			Core::QueueHostJob([=]
+			{
+				if (!Movie::IsPlayingInput())
+					return;
+
+				DVDInterface::ChangeDisc(path);
+				CPU::EnableStepping(false);
+			});
 		}
 		else
 		{
@@ -1146,6 +1191,7 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
 	CheckInputEnd();
 }
 
+// NOTE: CPU Thread
 bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, int ext, const wiimote_key key)
 {
 	if (!IsPlayingInput() || !IsUsingWiimote(wiimote) || tmpInput == nullptr)
@@ -1188,6 +1234,7 @@ bool PlayWiimote(int wiimote, u8 *data, const WiimoteEmu::ReportFeatures& rptf, 
 	return true;
 }
 
+// NOTE: Host / EmuThread / CPU Thread
 void EndPlayInput(bool cont)
 {
 	if (cont)
@@ -1197,10 +1244,13 @@ void EndPlayInput(bool cont)
 	}
 	else if (s_playMode != MODE_NONE)
 	{
+		// We can be called by EmuThread during boot (CPU_POWERDOWN)
+		bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
+		if (was_running)
+			CPU::Break();
 		s_rerecords = 0;
 		s_currentByte = 0;
 		s_playMode = MODE_NONE;
-		Core::UpdateWantDeterminism();
 		Core::DisplayMessage("Movie End.", 2000);
 		s_bRecordingFromSaveState = false;
 		// we don't clear these things because otherwise we can't resume playback if we load a movie state later
@@ -1208,11 +1258,16 @@ void EndPlayInput(bool cont)
 		//delete tmpInput;
 		//tmpInput = nullptr;
 
-		if (SConfig::GetInstance().m_PauseMovie)
-			Core::SetState(Core::CORE_PAUSE);
+		Core::QueueHostJob([=]
+		{
+			Core::UpdateWantDeterminism();
+			if (was_running && !SConfig::GetInstance().m_PauseMovie)
+				CPU::EnableStepping(false);
+		});
 	}
 }
 
+// NOTE: Save State + Host Thread
 void SaveRecording(const std::string& filename)
 {
 	File::IOFile save_record(filename, "wb");
@@ -1291,17 +1346,20 @@ void SetWiiInputManip(WiiManipFunction func)
 	wiimfunc = func;
 }
 
+// NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
 	if (gcmfunc)
 		(*gcmfunc)(PadStatus, controllerID);
 }
+// NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext, const wiimote_key key)
 {
 	if (wiimfunc)
 		(*wiimfunc)(data, rptf, controllerID, ext, key);
 }
 
+// NOTE: GPU Thread
 void SetGraphicsConfig()
 {
 	g_Config.bEFBAccessEnable = tmpHeader.bEFBAccessEnable;
@@ -1312,6 +1370,7 @@ void SetGraphicsConfig()
 	g_Config.bUseRealXFB = tmpHeader.bUseRealXFB;
 }
 
+// NOTE: EmuThread / Host Thread
 void GetSettings()
 {
 	s_bSaveConfig = true;
@@ -1330,12 +1389,16 @@ void GetSettings()
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
+
 	unsigned int tmp;
-	for (size_t i = 0; i < scm_rev_git_str.size() / 2 ; ++i)
+	memset(s_revision, 0, sizeof(s_revision));
+	size_t revision_bytes_to_copy = std::min(scm_rev_git_str.size() / 2, ArraySize(s_revision));
+	for (size_t i = 0; i < revision_bytes_to_copy; ++i)
 	{
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		s_revision[i] = tmp;
 	}
+
 	if (!s_bDSPHLE)
 	{
 		std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
@@ -1372,6 +1435,7 @@ void GetSettings()
 
 static const mbedtls_md_info_t* s_md5_info = mbedtls_md_info_from_type(MBEDTLS_MD_MD5);
 
+// NOTE: Entrypoint for own thread
 void CheckMD5()
 {
 	for (int i = 0, n = 0; i < 16; ++i)
@@ -1393,6 +1457,7 @@ void CheckMD5()
 		Core::DisplayMessage("Checksum of current game does not match the recorded game!", 3000);
 }
 
+// NOTE: Entrypoint for own thread
 void GetMD5()
 {
 	Core::DisplayMessage("Calculating checksum of game file...", 2000);
@@ -1401,6 +1466,7 @@ void GetMD5()
 	Core::DisplayMessage("Finished calculating checksum.", 2000);
 }
 
+// NOTE: EmuThread
 void Shutdown()
 {
 	g_currentInputCount = g_totalInputCount = g_totalFrames = s_totalBytes = s_tickCountAtLastInput = 0;

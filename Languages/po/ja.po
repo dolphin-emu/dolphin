@@ -14,9 +14,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-10 05:03+0000\n"
+"Last-Translator: DanbSky <danbsky@live.jp>\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -918,7 +918,7 @@ msgstr "ビデオAPI:"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
 #: Source/Core/Core/HW/GCPadEmu.cpp:84
 msgid "Background Input"
-msgstr "バックグラウンド入力を許可"
+msgstr "バックグラウンド操作を許可"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:199
 msgid "Backward"
@@ -1137,7 +1137,7 @@ msgstr "ディスクの入れ替え"
 msgid "Change Game"
 msgstr "ゲームを変更"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -1336,7 +1336,7 @@ msgstr "動作停止時に確認"
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:107
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:126
 msgid "Connect"
-msgstr "接続"
+msgstr "ホストに接続"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:446
 #: Source/Core/Core/HotkeyManager.cpp:40
@@ -1382,11 +1382,11 @@ msgstr "接続中..."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "接続方式："
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
-msgstr "接続状態を継続して監視する"
+msgstr "接続状況を常に監視"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:38
 msgid "Control"
@@ -1748,11 +1748,11 @@ msgstr "ダイアル"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:56
 msgid "Dims the screen after five minutes of inactivity."
-msgstr "5分間入力がない状態が続くと、画面を暗くするようにします"
+msgstr "5分間操作がない状態が続くと、画面を暗くするようにします"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:61
 msgid "Direct Connection"
-msgstr ""
+msgstr "直接接続 (Direct)"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
@@ -1816,7 +1816,7 @@ msgstr "切断されました"
 
 #: Source/Core/Common/TraversalClient.cpp:227
 msgid "Disconnected from traversal server"
-msgstr "中継サーバから切断されました"
+msgstr "中継サーバーから切断されました"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:325
 msgid "Display"
@@ -1893,6 +1893,8 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
+"ゲームリストは空です。この文章をダブルクリックして GC/Wii の ディスクイメー"
+"ジ もしくは WAD ファイルのあるフォルダを選択してください。"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:329
 msgid ""
@@ -2494,7 +2496,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "Failed to read %s"
@@ -2585,7 +2587,7 @@ msgstr "Fast"
 msgid "Fast Depth Calculation"
 msgstr "Fast Depth Calculation"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2705,7 +2707,7 @@ msgstr "コンソールを日本向け (NTSC-J) に設定"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:164
 msgid "Force Listen Port: "
-msgstr "接続待ちポートを次の番号に固定："
+msgstr "接続待ちポートを次の番号で固定："
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
 msgid "Force Texture Filtering"
@@ -3145,7 +3147,7 @@ msgstr "Home"
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:109
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:176
 msgid "Host"
-msgstr "ホスト"
+msgstr "ホストになる"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:113
 msgid "Host Code :"
@@ -3269,7 +3271,7 @@ msgid ""
 msgstr ""
 "通常の排他的フルスクリーン表示ではなく、枠のないウィンドウを 全画面に広げる形"
 "でフルスクリーン表示します。\n"
-"他のウィンドウとの表示切替が高速になりますが、代わりに 若干の入力遅延、動作速"
+"他のウィンドウとの表示切替が高速になりますが、代わりに 若干の操作遅延、動作速"
 "度の低下などのデメリットも発生します。\n"
 "Nvidia 3D Vision を使用する際は、Direct3Dを選択し この設定は切って（チェック"
 "を外して）ください。\n"
@@ -3438,13 +3440,13 @@ msgstr "不正なファイル"
 
 #: Source/Core/Core/NetPlayClient.cpp:828
 msgid "Invalid host"
-msgstr "不正なホスト"
+msgstr "このホストコードは無効です"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 msgid "Invalid index"
 msgstr "Invalid index"
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "不正な録画ファイル"
 
@@ -3534,7 +3536,7 @@ msgstr "キー"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:192
 msgid "Kick Player"
-msgstr "選択プレイヤーをキック"
+msgstr "選択したプレイヤーをキック"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:158
 msgid "Korea"
@@ -4130,7 +4132,7 @@ msgstr "続けて検索"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:76
 msgid "Nickname:"
-msgstr ""
+msgstr "ニックネーム："
 
 #: Source/Core/Core/ConfigManager.h:18
 msgid "No audio output"
@@ -4464,17 +4466,17 @@ msgstr "ポストプロセス："
 msgid "Prefetch Custom Textures"
 msgstr "カスタムテクスチャの事前読込"
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Premature movie end in PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Premature movie end in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Premature movie end in PlayWiimote. %u > %u"
@@ -4517,7 +4519,7 @@ msgstr "終了"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:207
 msgid "Quit Netplay"
-msgstr ""
+msgstr "終了"
 
 #. i18n:  Right
 #: Source/Core/Core/HW/GCPadEmu.cpp:48
@@ -4570,7 +4572,7 @@ msgstr "録画"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:229
 msgid "Record inputs"
-msgstr ""
+msgstr "コントローラ操作を記録"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:156
 msgid "Recording Info"
@@ -4667,7 +4669,7 @@ msgstr "初期化"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:68
 msgid "Reset Traversal Settings"
-msgstr "中継サーバ設定をリセット"
+msgstr "中継サーバー設定をリセット"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
 msgid "Results"
@@ -4705,7 +4707,7 @@ msgstr "Rスティック"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:169
 msgid "Room ID:"
-msgstr ""
+msgstr "ルームID："
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
@@ -4814,7 +4816,7 @@ msgstr ""
 "以下の場所に128MBの仮想SDファイルを作成します\n"
 "/Wii/sd.raw"
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Savestate movie %s の破損を確認しました。録画を中止しています..."
@@ -5195,7 +5197,7 @@ msgstr "ドイツ"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:206
 msgid "Show Input Display"
-msgstr "キー入力を表示"
+msgstr "入力された操作を表示"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:320
 msgid "Show Italy"
@@ -5496,11 +5498,11 @@ msgstr "ネットプレイを開始(&N)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:416
 msgid "Start Re&cording Input"
-msgstr "入力の記録を開始(&C)"
+msgstr "操作の記録を開始(&C)"
 
 #: Source/Core/Core/HotkeyManager.cpp:27
 msgid "Start Recording"
-msgstr "入力の記録を開始"
+msgstr "操作の記録を開始"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:278
 #: Source/Core/DolphinWX/FrameTools.cpp:357
@@ -5924,7 +5926,7 @@ msgstr "傾き"
 
 #: Source/Core/Common/TraversalClient.cpp:233
 msgid "Timeout connecting to traversal server"
-msgstr "中継サーバへの接続がタイムアウト"
+msgstr "中継サーバーへの接続がタイムアウト"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:271
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
@@ -5999,11 +6001,11 @@ msgstr "繁体字中国語"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "中継サーバー (Traversal)"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "使用中継サーバー:"
 
 #: Source/Core/Core/NetPlayClient.cpp:822
 msgid "Traversal server timed out connecting to the host"
@@ -6011,7 +6013,7 @@ msgstr "中継サーバーからホストへの接続がタイムアウト"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:403
 msgid "Traversal: "
-msgstr "中継サーバ:"
+msgstr "使用中継サーバー:"
 
 #: Source/Core/DiscIO/VolumeGC.cpp:36 Source/Core/DiscIO/VolumeDirectory.cpp:79
 #: Source/Core/DiscIO/VolumeWad.cpp:49
@@ -6323,7 +6325,7 @@ msgstr ""
 "\n"
 "続けますか？"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6334,7 +6336,7 @@ msgstr ""
 "(frame %u > %u) 続ける前に別のステートをロードするか、読み取り専用をオフにし"
 "てからこのステートを読み込んでください。"
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6342,7 +6344,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6354,7 +6356,7 @@ msgstr ""
 "このステートをロードする必要があります。無視して続けると、おそらくDesyncしま"
 "す。"
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6486,7 +6488,7 @@ msgstr "ウィンドウに出力"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "メモリーカード/SDへの書込を許可"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:430
 msgid "X"

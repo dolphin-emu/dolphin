@@ -200,7 +200,7 @@ int ShowSteps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-	while (!PowerPC::GetState())
+	while (!CPU::GetState())
 	{
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
 		if (SConfig::GetInstance().bEnableDebugging)
@@ -279,9 +279,6 @@ void Interpreter::Run()
 
 		CoreTiming::Advance();
 	}
-
-	// Let the waiting thread know we are done leaving
-	PowerPC::FinishStateMove();
 }
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)

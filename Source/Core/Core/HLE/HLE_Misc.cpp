@@ -9,6 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "Core/HLE/HLE_Misc.h"
+#include "Core/HW/CPU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCCache.h"
 
@@ -35,7 +36,7 @@ void HLEPanicAlert()
 void HBReload()
 {
 	// There isn't much we can do. Just stop cleanly.
-	PowerPC::Pause();
+	CPU::Break();
 	Host_Message(WM_USER_STOP);
 }
 

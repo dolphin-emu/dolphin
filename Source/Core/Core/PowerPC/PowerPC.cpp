@@ -5,13 +5,13 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
 #include "Common/FPURoundMode.h"
 #include "Common/MathUtil.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Host.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -21,18 +21,16 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 
-CPUCoreBase *cpu_core_base;
-
 namespace PowerPC
 {
 
 // STATE_TO_SAVE
 PowerPCState GC_ALIGNED16(ppcState);
-static volatile CPUState state = CPU_POWERDOWN;
 
-Interpreter * const interpreter = Interpreter::getInstance();
-static CoreMode mode;
-static Common::Event s_state_change;
+static CPUCoreBase* s_cpu_core_base             = nullptr;
+static bool         s_cpu_core_base_is_injected = false;
+Interpreter* const  s_interpreter               = Interpreter::getInstance();
+static CoreMode     s_mode                      = MODE_INTERPRETER;
 
 Watches watches;
 BreakPoints breakpoints;
@@ -114,6 +112,8 @@ static void ResetRegisters()
 
 void Init(int cpu_core)
 {
+	// NOTE: This function runs on EmuThread, not the CPU Thread.
+	//   Changing the rounding mode has a limited effect.
 	FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
 	memset(ppcState.sr, 0, sizeof(ppcState.sr));
@@ -139,33 +139,32 @@ void Init(int cpu_core)
 
 	// We initialize the interpreter because
 	// it is used on boot and code window independently.
-	interpreter->Init();
+	s_interpreter->Init();
 
 	switch (cpu_core)
 	{
 	case PowerPC::CORE_INTERPRETER:
-		cpu_core_base = interpreter;
+		s_cpu_core_base = s_interpreter;
 		break;
 
 	default:
-		cpu_core_base = JitInterface::InitJitCore(cpu_core);
-		if (!cpu_core_base) // Handle Situations where JIT core isn't available
+		s_cpu_core_base = JitInterface::InitJitCore(cpu_core);
+		if (!s_cpu_core_base) // Handle Situations where JIT core isn't available
 		{
 			WARN_LOG(POWERPC, "Jit core %d not available. Defaulting to interpreter.", cpu_core);
-			cpu_core_base = interpreter;
+			s_cpu_core_base = s_interpreter;
 		}
 		break;
 	}
 
-	if (cpu_core_base != interpreter)
+	if (s_cpu_core_base != s_interpreter)
 	{
-		mode = MODE_JIT;
+		s_mode = MODE_JIT;
 	}
 	else
 	{
-		mode = MODE_INTERPRETER;
+		s_mode = MODE_INTERPRETER;
 	}
-	state = CPU_STEPPING;
 
 	ppcState.iCache.Init();
 
@@ -175,92 +174,85 @@ void Init(int cpu_core)
 
 void Shutdown()
 {
+	InjectExternalCPUCore(nullptr);
 	JitInterface::Shutdown();
-	interpreter->Shutdown();
-	cpu_core_base = nullptr;
-	state = CPU_POWERDOWN;
+	s_interpreter->Shutdown();
+	s_cpu_core_base = nullptr;
 }
 
 CoreMode GetMode()
 {
-	return mode;
+	return !s_cpu_core_base_is_injected ? s_mode : MODE_INTERPRETER;
 }
 
-void SetMode(CoreMode new_mode)
+static void ApplyMode()
 {
-	if (new_mode == mode)
-		return;  // We don't need to do anything.
-
-	mode = new_mode;
-
-	switch (mode)
+	switch (s_mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		cpu_core_base = interpreter;
+		s_cpu_core_base = s_interpreter;
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
 		// Don't really need to do much. It'll work, the cache will refill itself.
-		cpu_core_base = JitInterface::GetCore();
-		if (!cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
-			cpu_core_base = interpreter;
+		s_cpu_core_base = JitInterface::GetCore();
+		if (!s_cpu_core_base) // Has a chance to not get a working JIT core if one isn't active on host
+			s_cpu_core_base = s_interpreter;
 		break;
 	}
 }
 
+void SetMode(CoreMode new_mode)
+{
+	if (new_mode == s_mode)
+		return;  // We don't need to do anything.
+
+	s_mode = new_mode;
+
+	// If we're using an external CPU core implementation then don't do anything.
+	if (s_cpu_core_base_is_injected)
+		return;
+
+	ApplyMode();
+}
+
+const char* GetCPUName()
+{
+	return s_cpu_core_base->GetName();
+}
+
+void InjectExternalCPUCore(CPUCoreBase* new_cpu)
+{
+	// Previously injected.
+	if (s_cpu_core_base_is_injected)
+		s_cpu_core_base->Shutdown();
+
+	// nullptr means just remove
+	if (!new_cpu)
+	{
+		if (s_cpu_core_base_is_injected)
+		{
+			s_cpu_core_base_is_injected = false;
+			ApplyMode();
+		}
+		return;
+	}
+
+	new_cpu->Init();
+	s_cpu_core_base = new_cpu;
+	s_cpu_core_base_is_injected = true;
+}
+
 void SingleStep()
 {
-	cpu_core_base->SingleStep();
+	s_cpu_core_base->SingleStep();
 }
 
 void RunLoop()
 {
-	state = CPU_RUNNING;
-	cpu_core_base->Run();
 	Host_UpdateDisasmDialog();
-}
-
-CPUState GetState()
-{
-	return state;
-}
-
-const volatile CPUState *GetStatePtr()
-{
-	return &state;
-}
-
-void Start()
-{
-	state = CPU_RUNNING;
+	s_cpu_core_base->Run();
 	Host_UpdateDisasmDialog();
-}
-
-void Pause()
-{
-	volatile CPUState old_state = state;
-	state = CPU_STEPPING;
-
-	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
-	Host_UpdateDisasmDialog();
-}
-
-void Stop()
-{
-	volatile CPUState old_state = state;
-	state = CPU_POWERDOWN;
-
-	// Wait for the CPU core to leave
-	if (old_state == CPU_RUNNING)
-		s_state_change.WaitFor(std::chrono::seconds(1));
-	Host_UpdateDisasmDialog();
-}
-
-void FinishStateMove()
-{
-	s_state_change.Set();
 }
 
 void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst)
@@ -521,7 +513,7 @@ void CheckBreakPoints()
 {
 	if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 	{
-		PowerPC::Pause();
+		CPU::Break();
 		if (PowerPC::breakpoints.IsTempBreakPoint(PC))
 			PowerPC::breakpoints.Remove(PC);
 	}

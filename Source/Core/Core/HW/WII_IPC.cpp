@@ -223,7 +223,7 @@ void GenerateAck(u32 _Address)
 	ctrl.Y2 = 1;
 	INFO_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]",
 		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
-	CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+	CoreTiming::ScheduleEvent(1000, updateInterrupts, 0);
 }
 
 void GenerateReply(u32 _Address)

@@ -47,6 +47,7 @@
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 
 #include "UICommon/UICommon.h"
 
@@ -107,6 +108,7 @@ bool DolphinApp::OnInit()
 
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
 	Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
+	Bind(wxEVT_IDLE, &DolphinApp::OnIdle, this);
 
 	// Register message box and translation handlers
 	RegisterMsgAlertHandler(&wxMsgAlert);
@@ -457,6 +459,12 @@ void DolphinApp::OnFatalException()
 	WiimoteReal::Shutdown();
 }
 
+void DolphinApp::OnIdle(wxIdleEvent& ev)
+{
+	ev.Skip();
+	Core::HostDispatchJobs();
+}
+
 // ------------
 // Talk to GUI
 
@@ -464,10 +472,21 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 {
 #ifdef __WXGTK__
 	if (wxIsMainThread())
+	{
 #endif
-		return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
-				(yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
+		NetPlayDialog*& npd = NetPlayDialog::GetInstance();
+		if (npd == nullptr)
+		{
+			return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
+					(yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
+		}
+		else
+		{
+			npd->AppendChat("/!\\ " + std::string{text});
+			return true;
+		}
 #ifdef __WXGTK__
+	}
 	else
 	{
 		wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
@@ -493,6 +512,12 @@ CFrame* DolphinApp::GetCFrame()
 
 void Host_Message(int Id)
 {
+	if (Id == WM_USER_JOB_DISPATCH)
+	{
+		// Trigger a wxEVT_IDLE
+		wxWakeUpIdle();
+		return;
+	}
 	wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }

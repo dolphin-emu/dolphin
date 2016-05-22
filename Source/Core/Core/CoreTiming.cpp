@@ -425,7 +425,7 @@ void Advance()
 	g_globalTimer += cyclesExecuted;
 	s_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
 	g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
-	PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
+	g_slicelength = maxslicelength;
 
 	globalTimerIsSane = true;
 
@@ -441,23 +441,20 @@ void Advance()
 
 	globalTimerIsSane = false;
 
-	if (!first)
-	{
-		WARN_LOG(POWERPC, "WARNING - no events in queue. Setting downcount to 10000");
-		PowerPC::ppcState.downcount += CyclesToDowncount(10000);
-	}
-	else
+	if (first)
 	{
 		g_slicelength = (int)(first->time - g_globalTimer);
 		if (g_slicelength > maxslicelength)
 			g_slicelength = maxslicelength;
-		PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
 	}
+
+	PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
 
 	// Check for any external exceptions.
 	// It's important to do this after processing events otherwise any exceptions will be delayed until the next slice:
 	//        Pokemon Box refuses to boot if the first exception from the audio DMA is received late
 	PowerPC::CheckExternalExceptions();
+
 }
 
 void LogPendingEvents()

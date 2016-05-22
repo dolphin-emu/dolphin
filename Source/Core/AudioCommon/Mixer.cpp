@@ -14,9 +14,6 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
 
-// UGLINESS
-#include "Core/PowerPC/PowerPC.h"
-
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
 #include <tmmintrin.h>
 #endif
@@ -132,12 +129,6 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 		return 0;
 
 	memset(samples, 0, num_samples * 2 * sizeof(short));
-
-	if (PowerPC::GetState() != PowerPC::CPU_RUNNING)
-	{
-		// Silence
-		return num_samples;
-	}
 
 	m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
 	m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);

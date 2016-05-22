@@ -17,10 +17,12 @@
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient * netplay_client = nullptr;
+static std::array<int, 4> s_wiimote_sources_cache;
 NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
@@ -724,6 +726,17 @@ bool NetPlayClient::StartGame(const std::string &path)
 
 	m_dialog->BootGame(path);
 
+	// Disable wiimotes on game start
+	// TODO: remove this when re-implementing wiimote netplay
+	if (SConfig::GetInstance().bWii)
+	{
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			s_wiimote_sources_cache[i] = g_wiimote_sources[i];
+			WiimoteReal::ChangeWiimoteSource(i, WIIMOTE_SRC_NONE);
+		}
+	}
+
 	UpdateDevices();
 
 	return true;
@@ -1017,6 +1030,17 @@ bool NetPlayClient::StopGame()
 
 	// stop game
 	m_dialog->StopGame();
+
+	// Restore wiimote settings on game stop
+	// TODO: remove this when re-implementing wiimote netplay
+	if (SConfig::GetInstance().bWii)
+	{
+		for (unsigned int i = 0; i < 4; ++i)
+		{
+			g_wiimote_sources[i] = s_wiimote_sources_cache[i];
+			WiimoteReal::ChangeWiimoteSource(i, s_wiimote_sources_cache[i]);
+		}
+	}
 
 	return true;
 }

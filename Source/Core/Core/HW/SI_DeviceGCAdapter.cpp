@@ -8,6 +8,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
 #include "InputCommon/GCAdapter.h"
@@ -31,6 +32,27 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 	HandleMoviePadStatus(&PadStatus);
 
 	return PadStatus;
+}
+
+int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
+{
+	if (!NetPlay::IsNetPlayRunning())
+	{
+		// The previous check is a hack to prevent a netplay desync due to
+		// SI devices being different and returning different values on
+		// RunBuffer(); the corresponding code in GCAdapter.cpp has the same
+		// check.
+
+		// This returns an error value if there is no controller plugged
+		// into this port on the hardware gc adapter, exposing it to the game.
+		if (!GCAdapter::DeviceConnected(ISIDevice::m_iDeviceNumber))
+		{
+			TSIDevices device = SI_NONE;
+			memcpy(buffer, &device, sizeof(device));
+			return 4;
+		}
+	}
+	return CSIDevice_GCController::RunBuffer(buffer, length);
 }
 
 void CSIDevice_GCController::Rumble(u8 numPad, ControlState strength)

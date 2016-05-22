@@ -6,13 +6,15 @@
 # khiav kn <khiav1118@yahoo.com.tw>, 2011
 # khiav kn <khiav1118@yahoo.com.tw>, 2011
 # Ryan Zhou <sentret_c@sina.cn>, 2013
+# Victor Lo <victor1justin@gmail.com>, 2016
+# zhenchao zhang <z734789215@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-14 07:01+0000\n"
+"Last-Translator: Victor Lo <victor1justin@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/zh_TW/)\n"
 "Language: zh_TW\n"
@@ -84,12 +86,12 @@ msgstr ""
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (普通速度)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -137,7 +139,7 @@ msgstr ""
 #: Source/Core/DolphinWX/GameListCtrl.cpp:399
 #, c-format
 msgid "%s (Disc %i)"
-msgstr ""
+msgstr "%s (光碟 %i)"
 
 #: Source/Core/Core/Boot/Boot.cpp:211
 #, c-format
@@ -402,7 +404,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:65
 msgid "(Error: Unknown)"
-msgstr ""
+msgstr "(未知錯誤)"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:33
 msgid ""
@@ -424,7 +426,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "16-bit"
-msgstr ""
+msgstr "16位元"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "2.5x Native (1600x1320)"
@@ -436,7 +438,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "32-bit"
-msgstr ""
+msgstr "32位元"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "3x Native (1920x1584) for 1080p"
@@ -460,7 +462,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "8-bit"
-msgstr ""
+msgstr "8位元"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "8x Native (5120x4224) for 5K"
@@ -1055,7 +1057,7 @@ msgstr "更換光碟"
 msgid "Change Game"
 msgstr "更換遊戲"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
@@ -2318,7 +2320,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr ""
@@ -2404,7 +2406,7 @@ msgstr "快速"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3019,7 +3021,7 @@ msgstr "匯入存檔"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:233
 msgid "Import Wii Save"
-msgstr ""
+msgstr "匯入Wii存檔"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:127
 msgid "Import failed"
@@ -3175,7 +3177,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "無效的錄像檔"
 
@@ -4156,17 +4158,17 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr ""
@@ -4493,7 +4495,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "儲存的影片 %s 是損毀的，影片錄製停止..."
@@ -5543,7 +5545,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:548
 msgid "Toggle fullscreen"
-msgstr ""
+msgstr "切換全螢幕"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Top"
@@ -5695,7 +5697,7 @@ msgstr "知訊息帶有 id:%d 接收於玩家:%d 正在提出玩家！"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:42
 msgid "Unlimited"
-msgstr ""
+msgstr "無限制"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:369
 msgid "Unpacking"
@@ -5716,7 +5718,7 @@ msgstr "直握 Wiimote"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
-msgstr ""
+msgstr "使用全螢幕"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:34
 msgid "Use Hex"
@@ -5866,7 +5868,7 @@ msgstr ""
 "以及在您記憶卡中 相同檔案名的檔案\n"
 "要繼續嗎？"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -5874,7 +5876,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -5882,7 +5884,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -5890,7 +5892,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "

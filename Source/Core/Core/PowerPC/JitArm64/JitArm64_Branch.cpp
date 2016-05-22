@@ -12,7 +12,6 @@
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArm64/JitAsm.h"
 
 using namespace Arm64Gen;
 
@@ -217,6 +216,8 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(bJITBranchOff);
 
+	bool conditional = (inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0;
+
 	ARM64Reg WA = gpr.GetReg();
 	FixupBranch pCTRDontBranch;
 	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
@@ -238,9 +239,12 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		                                        !(inst.BO_2 & BO_BRANCH_IF_TRUE));
 	}
 
-	FixupBranch far = B();
-	SwitchToFarCode();
-	SetJumpTarget(far);
+	if (conditional)
+	{
+		FixupBranch far = B();
+		SwitchToFarCode();
+		SetJumpTarget(far);
+	}
 
 	LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
 	AND(WA, WA, 30, 29); // Wipe the bottom 2 bits.
@@ -253,12 +257,13 @@ void JitArm64::bclrx(UGeckoInstruction inst)
 		gpr.Unlock(WB);
 	}
 
-	gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
+	gpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
+	fpr.Flush(conditional ? FlushMode::FLUSH_MAINTAIN_STATE : FlushMode::FLUSH_ALL);
 
 	WriteExit(WA);
 
-	SwitchToNearCode();
+	if (conditional)
+		SwitchToNearCode();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
 		SetJumpTarget( pConditionDontBranch );

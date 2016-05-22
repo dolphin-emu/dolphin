@@ -19,9 +19,7 @@ enum ControllerTypes
 	CONTROLLER_WIRELESS = 2
 };
 void Init();
-void Reset();
 void ResetRumble();
-void Setup();
 void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
 void StartScanThread();

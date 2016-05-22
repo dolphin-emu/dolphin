@@ -8,7 +8,7 @@
 # Petiso_Carambanal <diegoae@gmail.com>, 2013-2016
 # Diego Fernando <dfersd@yahoo.com>, 2013
 # Erik Fargas <efargaspro@gmail.com>, 2015
-# Jambi <jlarrondobunop@yahoo.es>, 2015
+# Jambi <jlarrondobunop@yahoo.es>, 2015-2016
 # Katabi Oka, 2015
 # Puniasterus <puniasterus@gmail.com>, 2013-2015
 # Puniasterus <puniasterus@gmail.com>, 2013
@@ -19,9 +19,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-09 20:51+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"POT-Creation-Date: 2016-05-15 20:30+0000\n"
+"PO-Revision-Date: 2016-05-10 11:46+0000\n"
+"Last-Translator: Petiso_Carambanal <diegoae@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -854,7 +854,7 @@ msgstr "Asignar números de puerto para mandos"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:75
 msgid "At least one pane must remain open."
-msgstr "Al menos una ventana debe permanecer abierta."
+msgstr "Tiene que haber al menos un panel abierto."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid ""
@@ -1159,7 +1159,7 @@ msgstr "Cambiar disco"
 msgid "Change Game"
 msgstr "Cambiar juego"
 
-#: Source/Core/Core/Movie.cpp:1127
+#: Source/Core/Core/Movie.cpp:1138
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Cambiar el disco a %s"
@@ -1407,7 +1407,7 @@ msgstr "Conectando..."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "Tipo de conexión:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
@@ -1781,7 +1781,7 @@ msgstr "Oscurecer la pantalla después de cinco minutos de inactividad."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:61
 msgid "Direct Connection"
-msgstr ""
+msgstr "Conexión directa"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
@@ -1926,6 +1926,8 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
+"Dolphin no ha podido encontrar ninguna ISO o WAD de GameCube/Wii. Haz doble "
+"clic aquí para seleccionar una carpeta con juegos…"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:329
 msgid ""
@@ -2544,7 +2546,7 @@ msgstr ""
 "Comprueba que tienes permisos de escritura en la carpeta de destino y que el "
 "archivo se puede escribir."
 
-#: Source/Core/Core/Movie.cpp:898
+#: Source/Core/Core/Movie.cpp:909
 #, c-format
 msgid "Failed to read %s"
 msgstr "Error al leer %s"
@@ -2635,7 +2637,7 @@ msgstr "Rápido"
 msgid "Fast Depth Calculation"
 msgstr "Cálculo de profundidad rápido"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1167
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2686,7 +2688,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:430
 msgid "File is not recognized as a memcard"
-msgstr "El archivo no es reconocido como una tarjeta de memoria"
+msgstr "Este archivo no parece ser una tarjeta de memoria válida."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:335
 msgid "File not compressed"
@@ -3327,7 +3329,7 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Implementar el modo de pantalla completa con una ventana sin bordes que "
+"Implementa el modo de pantalla completa con una ventana sin bordes que "
 "abarca toda la pantalla en lugar de utilizar el modo exclusivo.\n"
 "\n"
 "Permite una transición más rápida entre pantalla completa y modo de ventana, "
@@ -3506,7 +3508,7 @@ msgstr "Host no válido"
 msgid "Invalid index"
 msgstr "Índice no válido"
 
-#: Source/Core/Core/Movie.cpp:840
+#: Source/Core/Core/Movie.cpp:851
 msgid "Invalid recording file"
 msgstr "Archivo de grabación erróneo"
 
@@ -4195,7 +4197,7 @@ msgstr "Próximo escaneado"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:76
 msgid "Nickname:"
-msgstr ""
+msgstr "Apodo:"
 
 #: Source/Core/Core/ConfigManager.h:18
 msgid "No audio output"
@@ -4533,17 +4535,17 @@ msgstr "Efecto de posprocesado:"
 msgid "Prefetch Custom Textures"
 msgstr "Precargar texturas personalizadas"
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1058
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Final prematuro de la grabación en PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1166
+#: Source/Core/Core/Movie.cpp:1177
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1145
+#: Source/Core/Core/Movie.cpp:1156
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u > %u"
@@ -4586,7 +4588,7 @@ msgstr "Salir"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:207
 msgid "Quit Netplay"
-msgstr ""
+msgstr "Salir del juego en red"
 
 #. i18n:  Right
 #: Source/Core/Core/HW/GCPadEmu.cpp:48
@@ -4639,7 +4641,7 @@ msgstr "Grabar"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:229
 msgid "Record inputs"
-msgstr ""
+msgstr "Grabar entradas"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:156
 msgid "Recording Info"
@@ -4778,7 +4780,7 @@ msgstr "Palanca derecha"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:169
 msgid "Room ID:"
-msgstr ""
+msgstr "Id. de sala:"
 
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
@@ -4885,7 +4887,7 @@ msgstr "Guardar en la ranura seleccionada"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Guardado en /Wii/sd.raw (tamaño por defecto 128mb)"
 
-#: Source/Core/Core/Movie.cpp:907
+#: Source/Core/Core/Movie.cpp:918
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "El estado de la grabación %s está corrupto, deteniendo la grabación..."
@@ -5174,7 +5176,7 @@ msgstr "Definir como ISO por &defecto"
 #: Source/Core/DolphinWX/MemcardManager.cpp:823
 #, c-format
 msgid "Set as default Memcard %c"
-msgstr "Definir como Memory Card por defecto %c"
+msgstr "Utilizar como tarjeta %c predeterminada"
 
 #: Source/Core/Core/ActionReplay.cpp:267
 #, c-format
@@ -5240,7 +5242,7 @@ msgstr "Australianos"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:302
 msgid "Show Defaults"
-msgstr "Mostrar valores por defecto"
+msgstr "Mostrar valores predeterminados"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "Show Drives"
@@ -5820,6 +5822,7 @@ msgstr ""
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr ""
+"La imagen de disco «%s» está truncada, faltan parte de los datos originales."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1164
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1192
@@ -6102,11 +6105,11 @@ msgstr "Chino tradicional"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "Servidor de paso"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "Servidor de paso:"
 
 #: Source/Core/Core/NetPlayClient.cpp:822
 msgid "Traversal server timed out connecting to the host"
@@ -6436,7 +6439,7 @@ msgstr ""
 "y tengan el mismo nombre que el archivo en tu tarjeta de memoria. ¿Seguro "
 "que quieres continuar?"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:964
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6447,7 +6450,7 @@ msgstr ""
 "grabación actual. (Byte %u > %u) (Fotograma %u > %u). Deberías cargar otra "
 "partida antes de continuar, o cargar ésta sin el modo de sólo lectura activo."
 
-#: Source/Core/Core/Movie.cpp:930
+#: Source/Core/Core/Movie.cpp:941
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6458,7 +6461,7 @@ msgstr ""
 "cuadro actual de la partida. (byte %u < %u) (frame %u > %u). Deberías cargar "
 "otra partida guardada antes de continuar."
 
-#: Source/Core/Core/Movie.cpp:970
+#: Source/Core/Core/Movie.cpp:981
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6470,7 +6473,7 @@ msgstr ""
 "con el modo de solo lectura desactivado. De lo contrario probablemente "
 "obtengas una desincronización."
 
-#: Source/Core/Core/Movie.cpp:980
+#: Source/Core/Core/Movie.cpp:991
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6617,7 +6620,7 @@ msgstr "Escribir en la ventana"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "Escribir a tarjeta de memoria/SD"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:430
 msgid "X"

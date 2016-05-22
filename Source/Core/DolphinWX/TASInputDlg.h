@@ -70,6 +70,7 @@ class TASInputDlg : public wxDialog
 		struct Button
 		{
 			wxCheckBox* checkbox;
+			bool is_checked = false;
 			bool value = false;
 			bool set_by_keyboard = false;
 			bool turbo_on = false;
@@ -92,8 +93,11 @@ class TASInputDlg : public wxDialog
 		void UpdateStickBitmap(Stick stick);
 		void InvalidateButton(Button* button);
 		void InvalidateControl(Control* button);
+		void InvalidateExtension();
 		void UpdateFromInvalidatedButton(wxCommandEvent& event);
 		void UpdateFromInvalidatedControl(wxCommandEvent& event);
+		void UpdateFromInvalidatedExtension(wxThreadEvent& event);
+		void OnCheckboxToggle(wxCommandEvent& event);
 		Stick* FindStickByID(int id);
 		Stick CreateStick(int id_stick, int xRange, int yRange, u32 defaultX, u32 defaultY, bool reverseX, bool reverseY);
 		wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);

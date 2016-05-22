@@ -8,6 +8,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64/Jit.h"
@@ -75,12 +76,12 @@ void Jit64AsmRoutineManager::Generate()
 
 			if (SConfig::GetInstance().bEnableDebugging)
 			{
-				TEST(32, M(PowerPC::GetStatePtr()), Imm32(PowerPC::CPU_STEPPING));
+				TEST(32, M(CPU::GetStatePtr()), Imm32(CPU::CPU_STEPPING));
 				FixupBranch notStepping = J_CC(CC_Z);
 				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack({}, 0);
-				TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
 				dbg_exit = J_CC(CC_NZ, true);
 				SetJumpTarget(notStepping);
 			}
@@ -208,7 +209,7 @@ void Jit64AsmRoutineManager::Generate()
 
 		// Check the state pointer to see if we are exiting
 		// Gets checked on at the end of every slice
-		TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+		TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 
 	//Landing pad for drec space
@@ -220,11 +221,6 @@ void Jit64AsmRoutineManager::Generate()
 		ADD(64, R(RSP), Imm8(0x18));
 		POP(RSP);
 	}
-
-	// Let the waiting thread know we are done leaving
-	ABI_PushRegistersAndAdjustStack({}, 0);
-	ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::FinishStateMove));
-	ABI_PopRegistersAndAdjustStack({}, 0);
 
 	ABI_PopRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, 16);
 	RET();

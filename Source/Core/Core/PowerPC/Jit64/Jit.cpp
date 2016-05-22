@@ -19,6 +19,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/PatchEngine.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -561,7 +562,7 @@ void Jit64::Jit(u32 em_address)
 		// Comment out the following to disable breakpoints (speed-up)
 		if (!Profiler::g_ProfileBlocks)
 		{
-			if (GetState() == CPU_STEPPING)
+			if (CPU::GetState() == CPU::CPU_STEPPING)
 			{
 				blockSize = 1;
 
@@ -800,7 +801,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				js.firstFPInstructionFound = true;
 			}
 
-			if (SConfig::GetInstance().bEnableDebugging && breakpoints.IsAddressBreakPoint(ops[i].address) && GetState() != CPU_STEPPING)
+			if (SConfig::GetInstance().bEnableDebugging &&
+			    breakpoints.IsAddressBreakPoint(ops[i].address) &&
+			    CPU::GetState() != CPU::CPU_STEPPING)
 			{
 				// Turn off block linking if there are breakpoints so that the Step Over command does not link this block.
 				jo.enableBlocklink = false;
@@ -812,7 +815,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				ABI_PushRegistersAndAdjustStack({}, 0);
 				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
 				ABI_PopRegistersAndAdjustStack({}, 0);
-				TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
 				FixupBranch noBreakpoint = J_CC(CC_Z);
 
 				WriteExit(ops[i].address);

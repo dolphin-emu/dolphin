@@ -178,8 +178,10 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress,
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtl(u32 _CommandAddress)
 {
-	//ERROR_LOG(WII_IPC_WIIMOTE, "Passing ioctl to ioctlv");
-	return IOCtlV(_CommandAddress); // FIXME: Hack
+	// NeoGamma (homebrew) is known to use this path.
+	ERROR_LOG(WII_IPC_WIIMOTE, "Bad IOCtl in CWII_IPC_HLE_Device_usb_oh1_57e_305");
+	Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
+	return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)

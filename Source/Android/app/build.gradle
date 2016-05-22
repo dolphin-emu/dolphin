@@ -60,14 +60,14 @@ android {
     // of product flavors are paid vs. free, ARM vs. x86, etc.
     productFlavors {
         arm_64 {
-            flavorDimension "abi"
+            dimension "abi"
             ndk {
                 abiFilter "arm64-v8a"
             }
         }
 
         x86_64 {
-            flavorDimension "abi"
+            dimension "abi"
             ndk {
                 abiFilter "x86_64"
             }

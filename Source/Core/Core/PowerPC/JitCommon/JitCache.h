@@ -116,7 +116,7 @@ class JitBaseBlockCache
 	void DestroyBlock(int block_num, bool invalidate);
 
 	// Virtual for overloaded
-	virtual void WriteLinkBlock(u8* location, const u8* address) = 0;
+	virtual void WriteLinkBlock(u8* location, const JitBlock& block) = 0;
 	virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
 
 public:
@@ -164,6 +164,6 @@ public:
 class JitBlockCache : public JitBaseBlockCache
 {
 private:
-	void WriteLinkBlock(u8* location, const u8* address) override;
+	void WriteLinkBlock(u8* location, const JitBlock& block) override;
 	void WriteDestroyBlock(const u8* location, u32 address) override;
 };

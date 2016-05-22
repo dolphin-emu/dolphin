@@ -26,14 +26,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
 	private SharedPreferences mPreferences;
 
-	private SurfaceView mSurfaceView;
 	private Surface mSurface;
 
 	private InputOverlay mInputOverlay;
 
 	private Thread mEmulationThread;
-
-	private String mPath;
 
 	private boolean mEmulationStarted;
 	private boolean mEmulationRunning;
@@ -70,15 +67,15 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 	{
-		mPath = getArguments().getString(ARGUMENT_GAME_PATH);
-		NativeLibrary.SetFilename(mPath);
+		String path = getArguments().getString(ARGUMENT_GAME_PATH);
+		NativeLibrary.SetFilename(path);
 
 		View contents = inflater.inflate(R.layout.fragment_emulation, container, false);
 
-		mSurfaceView = (SurfaceView) contents.findViewById(R.id.surface_emulation);
+		SurfaceView surfaceView = (SurfaceView) contents.findViewById(R.id.surface_emulation);
 		mInputOverlay = (InputOverlay) contents.findViewById(R.id.surface_input_overlay);
 
-		mSurfaceView.getHolder().addCallback(this);
+		surfaceView.getHolder().addCallback(this);
 
 		// If the input overlay was previously disabled, then don't show it.
 		if (mInputOverlay != null)

@@ -428,10 +428,17 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 				g_audioDMA.current_source_address = g_audioDMA.SourceAddress;
 				g_audioDMA.remaining_blocks_count = g_audioDMA.AudioDMAControl.NumBlocks;
 
+				INFO_LOG(AUDIO_INTERFACE, "Audio DMA configured: %i blocks from 0x%08x",
+				         g_audioDMA.AudioDMAControl.NumBlocks, g_audioDMA.SourceAddress);
+
 				// We make the samples ready as soon as possible
 				void *address = Memory::GetPointer(g_audioDMA.SourceAddress);
 				AudioCommon::SendAIBuffer((short*)address, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-				CoreTiming::ScheduleEvent(80, et_GenerateDSPInterrupt, INT_AID);
+
+				// TODO: need hardware tests for the timing of this interrupt.
+				// Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
+				// Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
+				CoreTiming::ScheduleEvent(200, et_GenerateDSPInterrupt, INT_AID);
 			}
 		})
 	);
@@ -481,7 +488,7 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
-	// TODO: Maybe rethink this? ScheduleEvent_Threadsafe has unpredictable timing.
+	// TODO: Maybe rethink this? ScheduleEvent_Threadsafe_Immediate has unpredictable timing.
 	CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
 }
 

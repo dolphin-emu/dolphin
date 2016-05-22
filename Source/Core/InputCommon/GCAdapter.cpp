@@ -12,6 +12,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/NetPlayProto.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 
@@ -22,6 +23,9 @@ namespace GCAdapter
 {
 static bool CheckDeviceAccess(libusb_device* device);
 static void AddGCAdapter(libusb_device* device);
+static void ResetRumbleLockNeeded();
+static void Reset();
+static void Setup();
 
 static bool s_detected = false;
 static libusb_device_handle* s_handle = nullptr;
@@ -37,6 +41,7 @@ static std::atomic<int> s_controller_payload_size = {0};
 static std::thread s_adapter_thread;
 static Common::Flag s_adapter_thread_running;
 
+static std::mutex s_init_mutex;
 static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
 
@@ -77,7 +82,10 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 	if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
 	{
 		if (s_handle == nullptr && CheckDeviceAccess(dev))
+		{
+			std::lock_guard<std::mutex> lk(s_init_mutex);
 			AddGCAdapter(dev);
+		}
 	}
 	else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
 	{
@@ -115,6 +123,7 @@ static void ScanThreadFunc()
 		{
 			if (s_handle == nullptr)
 			{
+				std::lock_guard<std::mutex> lk(s_init_mutex);
 				Setup();
 				if (s_detected && s_detect_callback != nullptr)
 					s_detect_callback();
@@ -177,7 +186,7 @@ void StopScanThread()
 	}
 }
 
-void Setup()
+static void Setup()
 {
 	libusb_device** list;
 	ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
@@ -306,7 +315,7 @@ static void AddGCAdapter(libusb_device* device)
 	s_detected = true;
 	if (s_detect_callback != nullptr)
 		s_detect_callback();
-	ResetRumble();
+	ResetRumbleLockNeeded();
 }
 
 void Shutdown()
@@ -327,8 +336,11 @@ void Shutdown()
 	s_libusb_driver_not_supported = false;
 }
 
-void Reset()
+static void Reset()
 {
+	std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
+	if (!lock.try_lock())
+		return;
 	if (!s_detected)
 		return;
 
@@ -417,8 +429,11 @@ void Input(int chan, GCPadStatus* pad)
 			pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
 			pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
 		}
-		else
+		else if (!NetPlay::IsNetPlayRunning())
 		{
+			// This is a hack to prevent a netplay desync due to SI devices
+			// being different and returning different values.
+			// The corresponding code in DeviceGCAdapter has the same check
 			pad->button = PAD_ERR_STATUS;
 		}
 	}
@@ -439,10 +454,20 @@ bool UseAdapter()
 
 void ResetRumble()
 {
-	if (!UseAdapter())
+	std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
+	if (!lock.try_lock())
 		return;
-	if (s_handle == nullptr || !s_detected)
+	ResetRumbleLockNeeded();
+}
+
+// Needs to be called when s_init_mutex is locked in order to avoid
+// being called while the libusb state is being reset
+static void ResetRumbleLockNeeded()
+{
+	if (!UseAdapter() || (s_handle == nullptr || !s_detected))
+	{
 		return;
+	}
 
 	std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
 
