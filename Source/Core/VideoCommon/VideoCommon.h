@@ -10,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 // Global flag to signal if FifoRecorder is active.
 extern bool g_bRecordFifoData;
@@ -96,26 +95,4 @@ inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
 inline u32 Z24ToZ16ToZ24(u32 src)
 {
 	return (src & 0xFFFF00) | (src >> 16);
-}
-
-/* Returns the smallest power of 2 which is greater than or equal to num */
-inline u32 MakePow2(u32 num)
-{
-	--num;
-	num |= num >> 1;
-	num |= num >> 2;
-	num |= num >> 4;
-	num |= num >> 8;
-	num |= num >> 16;
-	++num;
-	return num;
-}
-
-// returns the exponent of the smallest power of two which is greater than val
-inline unsigned int GetPow2(unsigned int val)
-{
-	unsigned int ret = 0;
-	for (; val; val >>= 1)
-		++ret;
-	return ret;
 }

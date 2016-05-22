@@ -38,6 +38,11 @@ void SetEnableAlert(bool enable)
 	AlertEnabled = enable;
 }
 
+std::string GetTranslation(const char* string)
+{
+	return str_translator(string);
+}
+
 // This is the first stop for gui alerts where the log is updated and the
 // correct window is shown
 bool MsgAlert(bool yes_no, int Style, const char* format, ...)
@@ -99,8 +104,10 @@ bool DefaultMsgHandler(const char* caption, const char* text, bool yes_no, int S
 
 	return IDYES == MessageBox(0, UTF8ToTStr(text).c_str(), UTF8ToTStr(caption).c_str(), STYLE | (yes_no ? MB_YESNO : MB_OK));
 #else
-	printf("%s\n", text);
-	return true;
+	fprintf(stderr, "%s\n", text);
+
+	// Return no to any question (which will in general crash the emulator)
+	return false;
 #endif
 }
 

@@ -5,13 +5,10 @@
 #pragma once
 
 struct OutputVertexData;
-class PointerWrap;
 
 namespace Clipper
 {
 	void Init();
-
-	void SetViewOffset();
 
 	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
@@ -20,6 +17,4 @@ namespace Clipper
 	bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface);
 
 	void PerspectiveDivide(OutputVertexData *vertex);
-
-	void DoState(PointerWrap &p);
 }

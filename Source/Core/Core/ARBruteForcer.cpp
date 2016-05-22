@@ -24,6 +24,7 @@
 #include <unordered_map>
 
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/Core.h"

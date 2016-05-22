@@ -2,13 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <utility>
+#include <vector>
 #include <lzo/lzo1x.h>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -18,18 +24,18 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/State.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/HW.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/PowerPC.h"
 
+#if defined(HAVE_LIBAV)
 #include "VideoCommon/AVIDump.h"
+#endif
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace State
@@ -68,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 48; // Last changed in PR 3108
+static const u32 STATE_VERSION = 54; // Last changed in PR 3782
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -119,7 +125,8 @@ void EnableCompression(bool compression)
 	g_use_compression = compression;
 }
 
-static std::string DoState(PointerWrap& p)
+// Returns true if state version matches current Dolphin state version, false otherwise.
+static bool DoStateVersion(PointerWrap& p, std::string* version_created_by)
 {
 	u32 version = STATE_VERSION;
 	{
@@ -129,15 +136,15 @@ static std::string DoState(PointerWrap& p)
 		version = cookie - COOKIE_BASE;
 	}
 
-	std::string version_created_by = scm_rev_str;
+	*version_created_by = scm_rev_str;
 	if (version > 42)
-		p.Do(version_created_by);
+		p.Do(*version_created_by);
 	else
-		version_created_by.clear();
+		version_created_by->clear();
 
 	if (version != STATE_VERSION)
 	{
-		if (version_created_by.empty() && s_old_versions.count(version))
+		if (version_created_by->empty() && s_old_versions.count(version))
 		{
 			// The savestate is from an old version that doesn't
 			// save the Dolphin version number to savestates, but
@@ -148,17 +155,27 @@ static std::string DoState(PointerWrap& p)
 			std::string oldest_version = version_range.first;
 			std::string newest_version = version_range.second;
 
-			version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
+			*version_created_by = "Dolphin " + oldest_version + " - " + newest_version;
 		}
 
+		return false;
+	}
+
+	p.DoMarker("Version");
+	return true;
+}
+
+static std::string DoState(PointerWrap& p)
+{
+	std::string version_created_by;
+	if (!DoStateVersion(p, &version_created_by))
+	{
 		// because the version doesn't match, fail.
 		// this will trigger an OSD message like "Can't load state from other revisions"
 		// we could use the version numbers to maintain some level of backward compatibility, but currently don't.
 		p.SetMode(PointerWrap::MODE_MEASURE);
 		return version_created_by;
 	}
-
-	p.DoMarker("Version");
 
 	// Begin with video backend, so that it gets a chance to clear its caches and writeback modified things to RAM
 	g_video_backend->DoState(p);
@@ -170,14 +187,16 @@ static std::string DoState(PointerWrap& p)
 
 	PowerPC::DoState(p);
 	p.DoMarker("PowerPC");
-	HW::DoState(p);
-	p.DoMarker("HW");
+	// CoreTiming needs to be restored before restoring Hardware because
+	// the controller code might need to schedule an event if the controller has changed.
 	CoreTiming::DoState(p);
 	p.DoMarker("CoreTiming");
+	HW::DoState(p);
+	p.DoMarker("HW");
 	Movie::DoState(p);
 	p.DoMarker("Movie");
 
-#if defined(HAVE_LIBAV) || defined (WIN32)
+#if defined(HAVE_LIBAV)
 	AVIDump::DoState();
 #endif
 
@@ -186,6 +205,12 @@ static std::string DoState(PointerWrap& p)
 
 void LoadFromBuffer(std::vector<u8>& buffer)
 {
+	if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return;
+	}
+
 	bool wasUnpaused = Core::PauseAndLock(true);
 
 	u8* ptr = &buffer[0];
@@ -332,7 +357,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
 	// Setting up the header
 	StateHeader header;
-	memcpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+	strncpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.size = g_use_compression ? (u32)buffer_size : 0;
 	header.time = Common::Timer::GetDoubleTime();
 
@@ -374,6 +399,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 	}
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
+	Host_UpdateMainFrame();
 }
 
 void SaveAs(const std::string& filename, bool wait)
@@ -436,6 +462,19 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
 	return true;
 }
 
+std::string GetInfoStringOfSlot(int slot)
+{
+	std::string filename = MakeStateFilename(slot);
+	if (!File::Exists(filename))
+		return GetStringT("Empty");
+
+	State::StateHeader header;
+	if (!ReadHeader(filename, header))
+		return GetStringT("Unknown");
+
+	return Common::Timer::GetDateTimeFormatted(header.time);
+}
+
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
 	Flush();
@@ -449,7 +488,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 	StateHeader header;
 	f.ReadArray(&header, 1);
 
-	if (memcmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
+	if (strncmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
 	{
 		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %.*s)",
 			6, header.gameID), 2000);
@@ -505,7 +544,14 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 void LoadAs(const std::string& filename)
 {
 	if (!Core::IsRunning())
+	{
 		return;
+	}
+	else if (NetPlay::IsNetPlayRunning())
+	{
+		OSD::AddMessage("Loading savestates is disabled in Netplay to prevent desyncs");
+		return;
+	}
 
 	// Stop the core while we load the state
 	bool wasUnpaused = Core::PauseAndLock(true);

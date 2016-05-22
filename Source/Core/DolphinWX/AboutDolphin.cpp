@@ -18,7 +18,7 @@
 
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
-#include "DolphinWX/resources/dolphin_logo.cpp"
+#include "DolphinWX/WxUtils.h"
 #include "VideoCommon/VR.h"
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
@@ -26,37 +26,19 @@ AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
 		const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	const unsigned char* dolphin_logo_bin = dolphin_logo_png;
-	size_t dolphin_logo_size = sizeof dolphin_logo_png;
-#ifdef __APPLE__
-	double scaleFactor = 1.0;
-	if (GetContentScaleFactor() >= 2)
-	{
-		dolphin_logo_bin = dolphin_logo_2x_png;
-		dolphin_logo_size = sizeof dolphin_logo_2x_png;
-		scaleFactor = 2.0;
-	}
-#endif
-	wxMemoryInputStream istream(dolphin_logo_bin, dolphin_logo_size);
-	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
-#ifdef __APPLE__
 	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			wxBitmap(iDolphinLogo, -1, scaleFactor));
-#else
-	wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(this, wxID_ANY,
-			wxBitmap(iDolphinLogo));
-#endif
+			WxUtils::LoadResourceBitmap("dolphin_logo"));
 
 	const wxString DolphinText = _("Dolphin VR");
 	const wxString RevisionText = scm_desc_str + wxString::Format("%s", SCM_OCULUS_STR);
 	const wxString CopyrightText = _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.");
-	const wxString BranchText = wxString::Format(_("Branch: %s "), scm_branch_str);
-	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str);
+	const wxString BranchText = wxString::Format(_("Branch: %s"), scm_branch_str.c_str());
+	const wxString BranchRevText = wxString::Format(_("Revision: %s"), scm_rev_git_str.c_str());
 	const wxString CompiledText = wxString::Format(_("Compiled: %s @ %s"), __DATE__, __TIME__);
 	const wxString CheckUpdateText = _("Check for updates: ");
 	const wxString Text = _("\n"
 		"Dolphin is a free and open-source GameCube and Wii emulator.\n"
-				"\n"
+		"\n"
 		"This software should not be used to play games you do not legally own.\n");
 	const wxString LicenseText = _("License");
 	const wxString AuthorsText = _("Authors");

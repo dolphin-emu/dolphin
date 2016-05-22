@@ -3,30 +3,24 @@
 // Refer to the license.txt file included.
 
 #include <fstream>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/main.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -36,8 +30,8 @@ namespace OGL
 const u32 MAX_IBUFFER_SIZE =  2*1024*1024;
 const u32 MAX_VBUFFER_SIZE = 32*1024*1024;
 
-static StreamBuffer *s_vertexBuffer;
-static StreamBuffer *s_indexBuffer;
+static std::unique_ptr<StreamBuffer> s_vertexBuffer;
+static std::unique_ptr<StreamBuffer> s_indexBuffer;
 static size_t s_baseVertex;
 static size_t s_index_offset;
 
@@ -65,8 +59,8 @@ void VertexManager::CreateDeviceObjects()
 
 void VertexManager::DestroyDeviceObjects()
 {
-	delete s_vertexBuffer;
-	delete s_indexBuffer;
+	s_vertexBuffer.reset();
+	s_indexBuffer.reset();
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
@@ -137,7 +131,7 @@ void VertexManager::Draw(u32 stride)
 	INCSTAT(stats.thisFrame.numDrawCalls);
 
 	if (current_primitive_type != PRIMITIVE_TRIANGLES)
-		((OGL::Renderer*)g_renderer)->SetGenerationMode();
+		static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
 void VertexManager::vFlush(bool useDstAlpha)
@@ -162,11 +156,11 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// the same pass as regular rendering.
 	if (useDstAlpha && dualSourcePossible)
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, nativeVertexFmt->m_components, current_primitive_type);
+		ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, current_primitive_type);
 	}
 	else
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_NONE, nativeVertexFmt->m_components, current_primitive_type);
+		ProgramShaderCache::SetShader(DSTALPHA_NONE, current_primitive_type);
 	}
 
 	// upload global constants
@@ -180,7 +174,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 	// run through vertex groups again to set alpha
 	if (useDstAlpha && !dualSourcePossible)
 	{
-		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, nativeVertexFmt->m_components, current_primitive_type);
+		ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, current_primitive_type);
 
 		// only update alpha
 		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);

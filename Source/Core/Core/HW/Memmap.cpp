@@ -9,23 +9,20 @@
 // may be redirected here (for example to Read_U32()).
 
 #include <cstring>
+#include <memory>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemArena.h"
-#include "Common/MemoryUtil.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HW/AudioInterface.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/MMIO.h"
@@ -35,9 +32,8 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-
+#include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/VideoBackendBase.h"
 
 namespace Memory
 {
@@ -65,31 +61,37 @@ u8* m_pEXRAM;
 u8* m_pFakeVMEM;
 
 // MMIO mapping object.
-MMIO::Mapping* mmio_mapping;
+std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
-static void InitMMIO(MMIO::Mapping* mmio)
+static std::unique_ptr<MMIO::Mapping> InitMMIO()
 {
-	g_video_backend->RegisterCPMMIO(mmio, 0x0C000000);
-	PixelEngine::RegisterMMIO(mmio, 0x0C001000);
-	VideoInterface::RegisterMMIO(mmio, 0x0C002000);
-	ProcessorInterface::RegisterMMIO(mmio, 0x0C003000);
-	MemoryInterface::RegisterMMIO(mmio, 0x0C004000);
-	DSP::RegisterMMIO(mmio, 0x0C005000);
-	DVDInterface::RegisterMMIO(mmio, 0x0C006000);
-	SerialInterface::RegisterMMIO(mmio, 0x0C006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0x0C006800);
-	AudioInterface::RegisterMMIO(mmio, 0x0C006C00);
+	auto mmio = std::make_unique<MMIO::Mapping>();
+
+	CommandProcessor  ::RegisterMMIO(mmio.get(), 0x0C000000);
+	PixelEngine       ::RegisterMMIO(mmio.get(), 0x0C001000);
+	VideoInterface    ::RegisterMMIO(mmio.get(), 0x0C002000);
+	ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
+	MemoryInterface   ::RegisterMMIO(mmio.get(), 0x0C004000);
+	DSP               ::RegisterMMIO(mmio.get(), 0x0C005000);
+	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0C006000);
+	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0C006400);
+	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
+	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0C006C00);
+
+	return mmio;
 }
 
-static void InitMMIOWii(MMIO::Mapping* mmio)
+static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
 {
-	InitMMIO(mmio);
+	auto mmio = InitMMIO();
 
-	WII_IPCInterface::RegisterMMIO(mmio, 0x0D000000);
-	DVDInterface::RegisterMMIO(mmio, 0x0D006000);
-	SerialInterface::RegisterMMIO(mmio, 0x0D006400);
-	ExpansionInterface::RegisterMMIO(mmio, 0x0D006800);
-	AudioInterface::RegisterMMIO(mmio, 0x0D006C00);
+	WII_IPCInterface  ::RegisterMMIO(mmio.get(), 0x0D000000);
+	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0D006000);
+	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0D006400);
+	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
+	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0D006C00);
+
+	return mmio;
 }
 
 bool IsInitialized()
@@ -180,19 +182,21 @@ void Init()
 #endif
 
 	u32 flags = 0;
-	if (wii) flags |= MV_WII_ONLY;
-	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
+	if (wii)
+		flags |= MV_WII_ONLY;
+	if (bFakeVMEM)
+		flags |= MV_FAKE_VMEM;
 	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 #ifndef _ARCH_32
 	logical_base = physical_base + 0x200000000;
 #endif
 
-	mmio_mapping = new MMIO::Mapping();
-
 	if (wii)
-		InitMMIOWii(mmio_mapping);
+		mmio_mapping = InitMMIOWii();
 	else
-		InitMMIO(mmio_mapping);
+		mmio_mapping = InitMMIO();
+
+	Clear();
 
 	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
 	m_IsInitialized = true;
@@ -222,7 +226,7 @@ void Shutdown()
 	g_arena.ReleaseSHMSegment();
 	physical_base = nullptr;
 	logical_base = nullptr;
-	delete mmio_mapping;
+	mmio_mapping.reset();
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 
@@ -245,40 +249,60 @@ bool AreMemoryBreakpointsActivated()
 #endif
 }
 
-static inline bool ValidCopyRange(u32 address, size_t size)
+static inline u8* GetPointerForRange(u32 address, size_t size)
 {
-	return (GetPointer(address) != nullptr &&
-	        GetPointer(address + u32(size)) != nullptr &&
-	        size < EXRAM_SIZE); // Make sure we don't have a range spanning seperate 2 banks
+	// Make sure we don't have a range spanning 2 separate banks
+	if (size >= EXRAM_SIZE)
+		return nullptr;
+
+	// Check that the beginning and end of the range are valid
+	u8* pointer = GetPointer(address);
+	if (!pointer || !GetPointer(address + u32(size) - 1))
+		return nullptr;
+
+	return pointer;
 }
 
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
-	if (!ValidCopyRange(address, size))
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
 		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
 		return;
 	}
-	memcpy(data, GetPointer(address), size);
+	memcpy(data, pointer, size);
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
 {
-	if (!ValidCopyRange(address, size))
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
 		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
 		return;
 	}
-	memcpy(GetPointer(address), data, size);
+	memcpy(pointer, data, size);
 }
 
-void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
+void Memset(u32 address, u8 value, size_t size)
 {
-	u8* ptr = GetPointer(_Address);
-	if (ptr != nullptr)
+	if (size == 0)
+		return;
+
+	void* pointer = GetPointerForRange(address, size);
+	if (!pointer)
 	{
-		memset(ptr,_iValue,_iLength);
+		PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", size, address);
+		return;
 	}
+	memset(pointer, value, size);
 }
 
 std::string GetString(u32 em_address, size_t size)

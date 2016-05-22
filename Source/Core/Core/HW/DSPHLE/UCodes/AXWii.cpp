@@ -4,12 +4,12 @@
 //
 #define AX_WII // Used in AXVoice.
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
-
-#include "Core/HW/DSPHLE/MailHandler.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
@@ -455,8 +455,7 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 			m_samples_aux3
 		}};
 
-		if (!ReadPB(pb_addr, pb))
-			break;
+		ReadPB(pb_addr, pb);
 
 		u16 num_updates[3];
 		u16 updates[1024];

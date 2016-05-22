@@ -196,6 +196,12 @@ const int fres_expected_dec[] =
 // Used by fres and ps_res.
 double ApproximateReciprocal(double val)
 {
+	// We are using namespace std scoped here because the Android NDK is complete trash as usual
+	// For 32bit targets(mips, ARMv7, x86) it doesn't provide an implementation of std::copysign
+	// but instead provides just global namespace copysign implementations.
+	// The workaround for this is to just use namespace std within this function's scope
+	// That way on real toolchains it will use the std:: variant like normal.
+	using namespace std;
 	union
 	{
 		double valf;
@@ -209,23 +215,23 @@ double ApproximateReciprocal(double val)
 
 	// Special case 0
 	if (mantissa == 0 && exponent == 0)
-		return std::copysign(std::numeric_limits<double>::infinity(), valf);
+		return copysign(std::numeric_limits<double>::infinity(), valf);
 
 	// Special case NaN-ish numbers
 	if (exponent == (0x7FFLL << 52))
 	{
 		if (mantissa == 0)
-			return std::copysign(0.0, valf);
+			return copysign(0.0, valf);
 		return 0.0 + valf;
 	}
 
 	// Special case small inputs
 	if (exponent < (895LL << 52))
-		return std::copysign(std::numeric_limits<float>::max(), valf);
+		return copysign(std::numeric_limits<float>::max(), valf);
 
 	// Special case large inputs
 	if (exponent >= (1149LL << 52))
-		return std::copysign(0.0, valf);
+		return copysign(0.0, valf);
 
 	exponent = (0x7FDLL << 52) - exponent;
 
@@ -237,7 +243,7 @@ double ApproximateReciprocal(double val)
 
 }  // namespace
 
-inline void MatrixMul(int n, const float *a, const float *b, float *result)
+inline void MatrixMul(int n, const float* a, const float* b, float* result)
 {
 	for (int i = 0; i < n; ++i)
 	{
@@ -259,7 +265,7 @@ float MathFloatVectorSum(const std::vector<float>& Vec)
 	return std::accumulate(Vec.begin(), Vec.end(), 0.0f);
 }
 
-void Matrix33::LoadIdentity(Matrix33 &mtx)
+void Matrix33::LoadIdentity(Matrix33& mtx)
 {
 	memset(mtx.data, 0, sizeof(mtx.data));
 	mtx.data[0] = 1.0f;
@@ -285,7 +291,7 @@ void Matrix33::LoadQuaternion(Matrix33 &mtx, const Quaternion &quat)
 	mtx.data[8] = ww - xx - yy + zz;
 }
 
-void Matrix33::RotateX(Matrix33 &mtx, float rad)
+void Matrix33::RotateX(Matrix33& mtx, float rad)
 {
 	float s = sin(rad);
 	float c = cos(rad);
@@ -296,7 +302,7 @@ void Matrix33::RotateX(Matrix33 &mtx, float rad)
 	mtx.data[7] = s;
 	mtx.data[8] = c;
 }
-void Matrix33::RotateY(Matrix33 &mtx, float rad)
+void Matrix33::RotateY(Matrix33& mtx, float rad)
 {
 	float s = sin(rad);
 	float c = cos(rad);
@@ -320,12 +326,12 @@ void Matrix33::RotateZ(Matrix33 &mtx, float rad)
 	mtx.data[8] = 1;
 }
 
-void Matrix33::Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result)
+void Matrix33::Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result)
 {
 	MatrixMul(3, a.data, b.data, result.data);
 }
 
-void Matrix33::Multiply(const Matrix33 &a, const float vec[3], float result[3])
+void Matrix33::Multiply(const Matrix33& a, const float vec[3], float result[3])
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -355,7 +361,7 @@ void Matrix33::GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, 
 	roll = atan2(s, c);
 }
 
-void Matrix44::LoadIdentity(Matrix44 &mtx)
+void Matrix44::LoadIdentity(Matrix44& mtx)
 {
 	memset(mtx.data, 0, sizeof(mtx.data));
 	mtx.data[0] = 1.0f;
@@ -364,7 +370,7 @@ void Matrix44::LoadIdentity(Matrix44 &mtx)
 	mtx.data[15] = 1.0f;
 }
 
-void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
+void Matrix44::LoadMatrix33(Matrix44& mtx, const Matrix33& m33)
 {
 	for (int i = 0; i < 3; ++i)
 	{
@@ -382,7 +388,7 @@ void Matrix44::LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33)
 	mtx.data[15] = 1.0f;
 }
 
-void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
+void Matrix44::Set(Matrix44& mtx, const float mtxArray[16])
 {
 	for (int i = 0; i < 16; ++i)
 	{
@@ -390,7 +396,7 @@ void Matrix44::Set(Matrix44 &mtx, const float mtxArray[16])
 	}
 }
 
-void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
+void Matrix44::Translate(Matrix44& mtx, const float vec[3])
 {
 	LoadIdentity(mtx);
 	mtx.data[3] = vec[0];
@@ -398,7 +404,7 @@ void Matrix44::Translate(Matrix44 &mtx, const float vec[3])
 	mtx.data[11] = vec[2];
 }
 
-void Matrix44::Shear(Matrix44 &mtx, const float a, const float b)
+void Matrix44::Shear(Matrix44& mtx, const float a, const float b)
 {
 	LoadIdentity(mtx);
 	mtx.data[2] = a;
@@ -412,7 +418,7 @@ void Matrix44::Scale(Matrix44 &mtx, const float vec[3])
 	mtx.data[10] = vec[2];
 }
 
-void Matrix44::Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result)
+void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result)
 {
 	MatrixMul(4, a.data, b.data, result.data);
 }

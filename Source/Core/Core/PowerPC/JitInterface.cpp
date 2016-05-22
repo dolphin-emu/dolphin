@@ -13,7 +13,7 @@
 #endif
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/Memmap.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -34,19 +34,17 @@
 #endif
 
 static bool bFakeVMEM = false;
-bool bMMU = false;
 
 namespace JitInterface
 {
 	void DoState(PointerWrap &p)
 	{
 		if (jit && p.GetMode() == PointerWrap::MODE_READ)
-			jit->GetBlockCache()->Clear();
+			jit->ClearCache();
 	}
 	CPUCoreBase *InitJitCore(int core)
 	{
-		bMMU = SConfig::GetInstance().bMMU;
-		bFakeVMEM = !bMMU;
+		bFakeVMEM = !SConfig::GetInstance().bMMU;
 
 		CPUCoreBase *ptr = nullptr;
 		switch (core)
@@ -218,6 +216,16 @@ namespace JitInterface
 		}
 
 		return jit->HandleFault(access_address, ctx);
+	}
+
+	bool HandleStackFault()
+	{
+		if (!jit)
+		{
+			return false;
+		}
+
+		return jit->HandleStackFault();
 	}
 
 	void ClearCache()

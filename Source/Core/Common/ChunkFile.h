@@ -213,6 +213,20 @@ public:
 		DoVoid((void*)&x, sizeof(x));
 	}
 
+
+	void Do(bool& x)
+	{
+		// bool's size can vary depending on platform, which can
+		// cause breakages. This treats all bools as if they were
+		// 8 bits in size.
+		u8 stable = static_cast<u8>(x);
+
+		Do(stable);
+
+		if (mode == MODE_READ)
+			x = stable != 0;
+	}
+
 	template <typename T>
 	void DoPointer(T*& x, T* const base)
 	{
@@ -311,7 +325,7 @@ private:
 	}
 
 	__forceinline
-	void DoVoid(void *data, u32 size)
+	void DoVoid(void* data, u32 size)
 	{
 		switch (mode)
 		{
@@ -421,7 +435,7 @@ public:
 		}
 
 		// Get data
-		u8 *ptr = nullptr;
+		u8* ptr = nullptr;
 		PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 		_class.DoState(p);
 		size_t const sz = (size_t)ptr;

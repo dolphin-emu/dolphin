@@ -30,7 +30,7 @@
 #ifdef ANDROID
 #define ASHMEM_DEVICE "/dev/ashmem"
 
-static int AshmemCreateFileMapping(const char *name, size_t size)
+static int AshmemCreateFileMapping(const char* name, size_t size)
 {
 	int fd, ret;
 	fd = open(ASHMEM_DEVICE, O_RDWR);
@@ -95,12 +95,12 @@ void MemArena::ReleaseSHMSegment()
 }
 
 
-void *MemArena::CreateView(s64 offset, size_t size, void *base)
+void* MemArena::CreateView(s64 offset, size_t size, void* base)
 {
 #ifdef _WIN32
 	return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
-	void *retval = mmap(
+	void* retval = mmap(
 		base, size,
 		PROT_READ | PROT_WRITE,
 		MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED),
@@ -172,7 +172,7 @@ u8* MemArena::FindMemoryBase()
 	if (!(a_flags & MV_FAKE_VMEM) && (b_flags & MV_FAKE_VMEM)) \
 		continue; \
 
-static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags, MemArena *arena)
+static bool Memory_TryBase(u8* base, MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	// OK, we know where to find free space. Now grab it!
 	// We just mimic the popular BAT setup.
@@ -223,7 +223,7 @@ static bool Memory_TryBase(u8 *base, MemoryView *views, int num_views, u32 flags
 	return true;
 }
 
-static u32 MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags)
+static u32 MemoryMap_InitializeViews(MemoryView* views, int num_views, u32 flags)
 {
 	u32 shm_position = 0;
 	u32 last_position = 0;
@@ -245,14 +245,14 @@ static u32 MemoryMap_InitializeViews(MemoryView *views, int num_views, u32 flags
 	return shm_position;
 }
 
-u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena)
+u8* MemoryMap_Setup(MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	u32 total_mem = MemoryMap_InitializeViews(views, num_views, flags);
 
 	arena->GrabSHMSegment(total_mem);
 
 	// Now, create views in high memory where there's plenty of space.
-	u8 *base = MemArena::FindMemoryBase();
+	u8* base = MemArena::FindMemoryBase();
 	// This really shouldn't fail - in 64-bit, there will always be enough
 	// address space.
 	if (!Memory_TryBase(base, views, num_views, flags, arena))
@@ -265,7 +265,7 @@ u8 *MemoryMap_Setup(MemoryView *views, int num_views, u32 flags, MemArena *arena
 	return base;
 }
 
-void MemoryMap_Shutdown(MemoryView *views, int num_views, u32 flags, MemArena *arena)
+void MemoryMap_Shutdown(MemoryView* views, int num_views, u32 flags, MemArena* arena)
 {
 	std::set<void*> freeset;
 	for (int i = 0; i < num_views; i++)

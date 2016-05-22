@@ -9,16 +9,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-
 #include "Core/DSP/DSPCodeUtil.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPDisassembler.h"
-#include "Core/DSP/DSPInterpreter.h"
-#include "Core/HW/DSPLLE/DSPLLEGlobals.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
 
 bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)

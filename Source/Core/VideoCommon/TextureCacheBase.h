@@ -4,44 +4,50 @@
 
 #pragma once
 
-#include <functional>
 #include <map>
+#include <memory>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
-
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
 struct VideoConfig;
 
-class TextureCache
+class TextureCacheBase
 {
 public:
 	struct TCacheEntryConfig
 	{
-		TCacheEntryConfig() : width(0), height(0), levels(1), layers(1), rendertarget(false) {}
-
-		u32 width, height;
-		u32 levels, layers;
-		bool rendertarget;
-
-		bool operator == (const TCacheEntryConfig& b) const
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+		inline TCacheEntryConfig() = default;
+#else
+		constexpr TCacheEntryConfig() = default;
+#endif
+		bool operator==(const TCacheEntryConfig& o) const
 		{
-			return width == b.width && height == b.height && levels == b.levels && layers == b.layers && rendertarget == b.rendertarget;
+			return std::tie(width, height, levels, layers, rendertarget) ==
+			       std::tie(o.width, o.height, o.levels, o.layers, o.rendertarget);
 		}
 
 		struct Hasher : std::hash<u64>
 		{
-			size_t operator()(const TextureCache::TCacheEntryConfig& c) const
+			size_t operator()(const TCacheEntryConfig& c) const
 			{
 				u64 id = (u64)c.rendertarget << 63 | (u64)c.layers << 48 | (u64)c.levels << 32 | (u64)c.height << 16 | (u64)c.width;
 				return std::hash<u64>::operator()(id);
 			}
 		};
+
+		u32 width  = 0;
+		u32 height = 0;
+		u32 levels = 1;
+		u32 layers = 1;
+		bool rendertarget = false;
 	};
+
 	struct TCacheEntryBase
 	{
 		const TCacheEntryConfig config;
@@ -51,7 +57,7 @@ public:
 		u32 size_in_bytes;
 		u64 base_hash;
 		u64 hash; // for paletted textures, hash = base_hash ^ palette_hash
-		u32 format;
+		u32 format; // bits 0-3 will contain the in-memory format.
 		bool is_efb_copy;
 		bool is_custom_tex;
 		u32 memory_stride;
@@ -101,24 +107,22 @@ public:
 
 		virtual void Load(unsigned int width, unsigned int height,
 			unsigned int expanded_width, unsigned int level) = 0;
-		virtual void FromRenderTarget(u8* dst, unsigned int dstFormat, u32 dstStride,
-			PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-			bool isIntensity, bool scaleByHalf, unsigned int cbufid,
-			const float *colmat) = 0;
+		virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+			bool scaleByHalf, unsigned int cbufid, const float *colmat) = 0;
 
 		bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
+
+		TextureCacheBase::TCacheEntryBase* ApplyPalette(u8* palette, u32 tlutfmt);
 
 		bool IsEfbCopy() const { return is_efb_copy; }
 
 		u32 NumBlocksY() const;
 		u32 BytesPerRow() const;
 
-		void Zero(u8* ptr);
-
 		u64 CalculateHash() const;
 	};
 
-	virtual ~TextureCache(); // needs virtual for DX11 dtor
+	virtual ~TextureCacheBase(); // needs virtual for DX11 dtor
 
 	static void OnConfigChanged(VideoConfig& config);
 
@@ -130,36 +134,42 @@ public:
 
 	virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
+	virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+		PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
+		bool isIntensity, bool scaleByHalf) = 0;
+
 	virtual void CompileShaders() = 0; // currently only implemented by OGL
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 
 	static TCacheEntryBase* Load(const u32 stage);
 	static void UnbindTextures();
-	static void BindTextures();
+	virtual void BindTextures();
 
 	// gameSrcRect is the EFB rectangle the game is trying to read from, which matches the amount of RAM the game has allocated to hold it
 	// ourSrcRect is the EFB rectangle it must actually read from, which will be larger in Virtual Reality because we force the game to use the whole EFB 
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
 		PEControl::PixelFormat srcFormat, const EFBRectangle& gameSrcRect, const EFBRectangle& ourSrcRect, bool isIntensity, bool scaleByHalf);
 
-	static void RequestInvalidateTextureCache();
-
 	virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) = 0;
 
 protected:
-	TextureCache();
+	TextureCacheBase();
 
 	static GC_ALIGNED16(u8* temp);
 	static size_t temp_size;
 
+	static TCacheEntryBase* bound_textures[8];
+
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
 	typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher> TexPool;
-	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter);
+	static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
+	static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter, u8* palette, u32 tlutfmt);
 	static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
 	static void CheckTempSize(size_t required_size);
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
+	static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
 	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
@@ -167,7 +177,6 @@ private:
 	static TexCache textures_by_address;
 	static TexCache textures_by_hash;
 	static TexPool texture_pool;
-	static TCacheEntryBase* bound_textures[8];
 
 	// Backup configuration values
 	static struct BackupConfig
@@ -183,4 +192,4 @@ private:
 	} backup_config;
 };
 
-extern TextureCache *g_texture_cache;
+extern std::unique_ptr<TextureCacheBase> g_texture_cache;

@@ -4,7 +4,6 @@ package org.dolphinemu.dolphinemu.dialogs;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.view.View;
@@ -70,18 +69,19 @@ public final class GameDetailsDialog extends DialogFragment
 		textDescription.setText(getArguments().getString(ARGUMENT_GAME_DESCRIPTION));
 		textCountry.setText(country);
 		textDate.setText(getArguments().getString(ARGUMENT_GAME_DATE));
+
 		buttonLaunch.setOnClickListener(new View.OnClickListener()
 		{
 			@Override
 			public void onClick(View view)
 			{
 				// Start the emulation activity and send the path of the clicked ROM to it.
-				Intent intent = new Intent(view.getContext(), EmulationActivity.class);
-
-				intent.putExtra("SelectedGame", getArguments().getString(ARGUMENT_GAME_PATH));
-				intent.putExtra("SelectedTitle", getArguments().getString(ARGUMENT_GAME_TITLE));
-
-				startActivity(intent);
+				EmulationActivity.launch(getActivity(),
+						getArguments().getString(ARGUMENT_GAME_PATH),
+						getArguments().getString(ARGUMENT_GAME_TITLE),
+						getArguments().getString(ARGUMENT_GAME_SCREENSHOT_PATH),
+						-1,
+						imageGameScreen);
 			}
 		});
 

@@ -24,8 +24,6 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace HW
@@ -56,27 +54,27 @@ namespace HW
 			DiscIO::cUIDsys::AccessInstance().UpdateLocation();
 			DiscIO::CSharedContent::AccessInstance().UpdateLocation();
 			WII_IPCInterface::Init();
-			WII_IPC_HLE_Interface::Init();
+			WII_IPC_HLE_Interface::Init(); // Depends on Memory
 		}
 	}
 
 	void Shutdown()
 	{
+		if (SConfig::GetInstance().bWii)
+		{
+			WII_IPC_HLE_Interface::Shutdown(); // Depends on Memory
+			WII_IPCInterface::Shutdown();
+			Common::ShutdownWiiRoot();
+		}
+
 		SystemTimers::Shutdown();
 		CPU::Shutdown();
-		ExpansionInterface::Shutdown();
 		DVDInterface::Shutdown();
 		DSP::Shutdown();
 		Memory::Shutdown();
+		ExpansionInterface::Shutdown();
 		SerialInterface::Shutdown();
 		AudioInterface::Shutdown();
-
-		if (SConfig::GetInstance().bWii)
-		{
-			WII_IPCInterface::Shutdown();
-			WII_IPC_HLE_Interface::Shutdown();
-			Common::ShutdownWiiRoot();
-		}
 
 		State::Shutdown();
 		CoreTiming::Shutdown();

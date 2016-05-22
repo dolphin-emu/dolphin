@@ -4,6 +4,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
@@ -223,7 +224,7 @@ namespace DX11
 
 		// Create geometry shader
 		ShaderCode code;
-		GenerateAvatarGeometryShaderCode(code, PRIMITIVE_TRIANGLES, API_D3D);
+		code = GenerateAvatarGeometryShaderCode(PRIMITIVE_TRIANGLES, API_D3D);
 		if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode))
 		{
 			ERROR_LOG(VR, "AvatarDrawer geometry shader failed to compile");

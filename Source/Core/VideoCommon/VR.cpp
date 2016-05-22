@@ -1129,11 +1129,11 @@ void OpcodeReplayBuffer()
 
 					if (entry.is_preprocess_log)
 					{
-						OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
+						OpcodeDecoder::Run<true>(entry.timewarp_log, nullptr, false);
 					}
 					else
 					{
-						OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
+						OpcodeDecoder::Run<false>(entry.timewarp_log, nullptr, false);
 					}
 				}
 			}
@@ -1240,11 +1240,11 @@ void OpcodeReplayBufferInline()
 			{
 				if (entry.is_preprocess_log)
 				{
-					OpcodeDecoder_Run<true>(entry.timewarp_log, nullptr, false);
+					OpcodeDecoder::Run<true>(entry.timewarp_log, nullptr, false);
 				}
 				else
 				{
-					OpcodeDecoder_Run<false>(entry.timewarp_log, nullptr, false);
+					OpcodeDecoder::Run<false>(entry.timewarp_log, nullptr, false);
 				}
 			}
 		}

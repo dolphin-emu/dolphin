@@ -5,7 +5,10 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ARBruteForcer.h"
-#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/HLE/HLE.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
 void Interpreter::bx(UGeckoInstruction _inst)
@@ -17,13 +20,6 @@ void Interpreter::bx(UGeckoInstruction _inst)
 		NPC = SignExt26(_inst.LI << 2);
 	else
 		NPC = PC+SignExt26(_inst.LI << 2);
-/*
-#ifdef _DEBUG
-	if (_inst.LK)
-	{
-		PPCAnalyst::LogFunctionCall(NPC);
-	}
-#endif*/
 
 	m_EndBlock = true;
 

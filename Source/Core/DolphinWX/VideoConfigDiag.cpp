@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <map>
 #include <string>
 #include <utility>
@@ -18,15 +19,14 @@
 #include <wx/slider.h>
 #include <wx/stattext.h>
 
+#include "Common/Assert.h"
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
-#include "VideoBackends/OGL/main.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
@@ -100,7 +100,7 @@ void VideoConfigDiag::Event_ClickSave(wxCommandEvent&)
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
-	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
+	g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
 
 	EndModal(wxID_OK);
 }
@@ -121,14 +121,13 @@ static wxString prog_scan_desc = wxTRANSLATE("Enables progressive scan if suppor
 static wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect ratio\nForce 16:9: Mimic an analog TV with a widescreen aspect ratio.\nForce 4:3: Mimic a standard 4:3 analog TV.\nStretch to Window: Stretch the picture to the window size.\n\nIf unsure, select Auto.");
 static wxString ws_hack_desc = wxTRANSLATE("Forces the game to output graphics for any aspect ratio.\nUse with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces good results and often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
 static wxString vsync_desc = wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
-static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\nOn Direct3D, setting this above 1x will also have the same effect as enabling \"Force Texture Filtering\".\n\nIf unsure, select 1x.");
-static wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics.\nThis smooths out jagged edges on objects.\nHeavily increases GPU load and sometimes causes graphical issues.\n\nIf unsure, select None.");
-static wxString ssaa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by enabling supersampling anti-aliasing. This is significantly heavier on GPU load than MSAA, but will provide a much better image quality as well as applying AA to lighting and shader effects.\n\nIf unsure, leave unchecked.");
+static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
+static wxString aa_desc = wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths out jagged edges on objects.\nIncreases GPU load and sometimes causes graphical issues. SSAA is significantly more demanding than MSAA, but provides top quality geometry anti-aliasing and also applies anti-aliasing to lighting, shader effects, and textures.\n\nIf unsure, select None.");
 static wxString scaled_efb_copy_desc = wxTRANSLATE("Greatly increases quality of textures generated using render-to-texture effects.\nRaising the internal resolution will improve the effect of this setting.\nSlightly increases GPU load and causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
 static wxString pixel_lighting_desc = wxTRANSLATE("Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the appearance of lit polygons and making individual triangles less noticeable.\nRarely causes slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
 static wxString fast_depth_calc_desc = wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf unsure, leave this checked.");
 static wxString disable_bbox_desc = wxTRANSLATE("Disable the bounding box emulation.\nThis may improve the GPU performance a lot, but some games will break.\n\nIf unsure, leave this checked.");
-static wxString force_filtering_desc = wxTRANSLATE("Filter all textures, including any that the game explicitly set as unfiltered.\nMay improve quality of certain textures in some games, but will cause issues in others.\nOn Direct3D, setting Anisotropic Filtering above 1x will also have the same effect as enabling this option.\n\nIf unsure, leave this unchecked.");
+static wxString force_filtering_desc = wxTRANSLATE("Filter all textures, including any that the game explicitly set as unfiltered.\nMay improve quality of certain textures in some games, but will cause issues in others.\n\nIf unsure, leave this unchecked.");
 static wxString borderless_fullscreen_desc = wxTRANSLATE("Implement fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D backend.\n\nIf unsure, leave this unchecked.");
 static wxString internal_res_desc = wxTRANSLATE("Specifies the resolution used to render at. A high resolution greatly improves visual quality, but also greatly increases GPU load and can cause issues in certain games.\n\"Multiple of 640x528\" will result in a size slightly larger than \"Window Size\" but yield fewer issues. Generally speaking, the lower the internal resolution is, the better your performance will be. Auto (Window Size), 1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
 static wxString efb_access_desc = wxTRANSLATE("Ignore any requests from the CPU to read from or write to the EFB.\nImproves performance in some games, but might disable some gameplay-related features or graphical effects.\n\nIf unsure, leave this unchecked.");
@@ -145,7 +144,6 @@ static wxString show_fps_desc = wxTRANSLATE("Show the number of frames rendered 
 static wxString log_render_time_to_file_desc = wxTRANSLATE("Log the render time of every frame to User/Logs/render_time.txt. Use this feature when you want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked.");
 static wxString show_stats_desc = wxTRANSLATE("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
 static wxString texfmt_desc = wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset in most cases.\n\nIf unsure, leave this unchecked.");
-static wxString efb_copy_regions_desc = wxTRANSLATE("[BROKEN]\nHighlight regions the EFB was copied from.\n\nIf unsure, leave this unchecked.");
 static wxString xfb_desc = wxTRANSLATE("Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many games which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
 static wxString xfb_virtual_desc = wxTRANSLATE("Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB emulation while not being as slow as real XFB emulation. However, it may still fail for a lot of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
 static wxString xfb_real_desc = wxTRANSLATE("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits high-resolution rendering but is necessary to emulate a number of games properly.\n\nIf unsure, check virtual XFB emulation instead.");
@@ -153,7 +151,7 @@ static wxString dump_textures_desc = wxTRANSLATE("Dump decoded game textures to 
 static wxString load_hires_textures_desc = wxTRANSLATE("Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
 static wxString cache_hires_textures_desc = wxTRANSLATE("Cache custom textures to system RAM on startup.\nThis can require exponentially more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
-#if !defined WIN32 && defined HAVE_LIBAV
+#if defined(HAVE_LIBAV)
 static wxString use_ffv1_desc = wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
 #endif
 static wxString free_look_desc = wxTRANSLATE("This feature allows you to change the game's camera with the mouse.\nMove the mouse while holding the right mouse button to pan and while holding the middle button to move.\n\nIf unsure, leave this unchecked.");
@@ -229,13 +227,15 @@ static wxArrayString GetListOfResolutions()
 }
 #endif
 
-VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& _ininame)
+VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, const std::string& ininame)
 	: wxDialog(parent, wxID_ANY,
 		wxString::Format(_("Dolphin %s Graphics Configuration"), wxGetTranslation(StrToWxStr(title))))
 	, vconfig(g_Config)
-	, ininame(_ininame)
 {
-	vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
+	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+	else
+		vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
 
 	Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
@@ -257,7 +257,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	choice_backend = new wxChoice(page_general, wxID_ANY);
 	RegisterControl(choice_backend, wxGetTranslation(backend_desc));
 
-	for (const VideoBackend* backend : g_available_video_backends)
+	for (const auto& backend : g_available_video_backends)
 	{
 		choice_backend->AppendString(wxGetTranslation(StrToWxStr(backend->GetDisplayName())));
 	}
@@ -389,22 +389,14 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	// AA
 	{
 
-	wxFlexGridSizer* const aa_sizer = new wxFlexGridSizer(3, 1, 1);
-
 	text_aamode = new wxStaticText(page_enh, wxID_ANY, _("Anti-Aliasing:"));
-	choice_aamode = CreateChoice(page_enh, vconfig.iMultisampleMode, wxGetTranslation(aa_desc));
-
-	RefreshAAList();
+	choice_aamode = new wxChoice(page_enh, wxID_ANY);
+	RegisterControl(choice_aamode, wxGetTranslation(aa_desc));
+	PopulateAAList();
+	choice_aamode->Bind(wxEVT_CHOICE, &VideoConfigDiag::OnAAChanged, this);
 
 	szr_enh->Add(text_aamode, 1, wxALIGN_CENTER_VERTICAL, 0);
-	aa_sizer->Add(choice_aamode);
-
-	ssaa_checkbox = CreateCheckBox(page_enh, _("SSAA"), wxGetTranslation(ssaa_desc), vconfig.bSSAA);
-	ssaa_checkbox->Bind(wxEVT_CHECKBOX, &VideoConfigDiag::OnSSAAClick, this);
-
-	aa_sizer->AddSpacer(10);
-	aa_sizer->Add(ssaa_checkbox, 0, wxTOP, 3);
-	szr_enh->Add(aa_sizer);
+	szr_enh->Add(choice_aamode);
 
 	}
 
@@ -480,7 +472,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 		szr_stereo->Add(new wxStaticText(page_enh, wxID_ANY, _("Separation:")), 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_stereo->Add(sep_slider, 0, wxEXPAND | wxRIGHT);
 
-		wxSlider* const conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergence, 0, 500, wxDefaultPosition, wxDefaultSize);
+		conv_slider = new wxSlider(page_enh, wxID_ANY, vconfig.iStereoConvergencePercentage, 0, 200, wxDefaultPosition, wxDefaultSize, wxSL_AUTOTICKS);
+		conv_slider->ClearTicks();
+		conv_slider->SetTick(100);
 		conv_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_StereoConvergence, this);
 		RegisterControl(conv_slider, wxGetTranslation(stereo_convergence_desc));
 
@@ -594,7 +588,6 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	wxGridSizer* const szr_debug = new wxGridSizer(2, 5, 5);
 
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Enable Wireframe"), wxGetTranslation(wireframe_desc), vconfig.bWireFrame));
-	szr_debug->Add(CreateCheckBox(page_advanced, _("Show EFB Copy Regions"), wxGetTranslation(efb_copy_regions_desc), vconfig.bShowEFBCopyRegions));
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Show Statistics"), wxGetTranslation(show_stats_desc), vconfig.bOverlayStats));
 	szr_debug->Add(CreateCheckBox(page_advanced, _("Texture Format Overlay"), wxGetTranslation(texfmt_desc), vconfig.bTexFmtOverlayEnable));
 
@@ -613,7 +606,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string &title, con
 	szr_utility->Add(cache_hires_textures);
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Dump EFB Target"), wxGetTranslation(dump_efb_desc), vconfig.bDumpEFBTarget));
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Mouse Free Look"), wxGetTranslation(free_look_desc), vconfig.bFreeLook));
-#if !defined WIN32 && defined HAVE_LIBAV
+#if defined(HAVE_LIBAV)
 	szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps use FFV1"), wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
 #endif
 
@@ -807,27 +800,61 @@ void VideoConfigDiag::PopulatePostProcessingShaders()
 	button_config_pp->Enable(postprocessing_shader.HasOptions());
 }
 
-void VideoConfigDiag::OnSSAAClick(wxCommandEvent& event)
+void VideoConfigDiag::PopulateAAList()
 {
-	// Check the checkbox status and not the config option because config hasn't changed yet.
-	vconfig.bSSAA = ssaa_checkbox->IsChecked();
-	RefreshAAList();
-}
+	const std::vector<int>& aa_modes = vconfig.backend_info.AAModes;
+	const bool supports_ssaa = vconfig.backend_info.bSupportsSSAA;
+	m_msaa_modes = 0;
 
-void VideoConfigDiag::RefreshAAList()
-{
-	choice_aamode->Clear();
-	const std::string& suffix = vconfig.bSSAA ? "x SSAA" : "x MSAA";
-
-	for (int mode : vconfig.backend_info.AAModes)
+	for (int mode : aa_modes)
 	{
 		if (mode == 1)
+		{
 			choice_aamode->AppendString(_("None"));
+			_assert_msg_(VIDEO, !supports_ssaa || m_msaa_modes == 0, "SSAA setting won't work correctly");
+		}
 		else
-			choice_aamode->AppendString(std::to_string(mode) + suffix);
+		{
+			choice_aamode->AppendString(std::to_string(mode) + "x MSAA");
+			++m_msaa_modes;
+		}
 	}
-	choice_aamode->SetSelection(vconfig.iMultisampleMode);
+
+	if (supports_ssaa)
+	{
+		for (int mode : aa_modes)
+		{
+			if (mode != 1)
+				choice_aamode->AppendString(std::to_string(mode) + "x SSAA");
+		}
+	}
+
+	int selected_mode_index = 0;
+
+	auto index = std::find(aa_modes.begin(), aa_modes.end(), vconfig.iMultisamples);
+	if (index != aa_modes.end())
+		selected_mode_index = index - aa_modes.begin();
+
+	// Select one of the SSAA modes at the end of the list if SSAA is enabled
+	if (supports_ssaa && vconfig.bSSAA && aa_modes[selected_mode_index] != 1)
+		selected_mode_index += m_msaa_modes;
+
+	choice_aamode->SetSelection(selected_mode_index);
 }
 
 template class FloatSetting<float>;
 template class FloatSetting<double>;
+
+void VideoConfigDiag::OnAAChanged(wxCommandEvent& ev)
+{
+	size_t mode = ev.GetInt();
+	ev.Skip();
+
+	vconfig.bSSAA = mode > m_msaa_modes;
+	mode -= vconfig.bSSAA * m_msaa_modes;
+
+	if (mode >= vconfig.backend_info.AAModes.size())
+		return;
+
+	vconfig.iMultisamples = vconfig.backend_info.AAModes[mode];
+}

@@ -6,17 +6,16 @@
 
 package org.dolphinemu.dolphinemu.utils;
 
+import android.opengl.GLES30;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
 import javax.microedition.khronos.egl.EGL10;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.egl.EGLContext;
 import javax.microedition.khronos.egl.EGLDisplay;
 import javax.microedition.khronos.egl.EGLSurface;
 import javax.microedition.khronos.opengles.GL10;
-
-import android.opengl.GLES30;
-import android.util.Log;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
 
 /**
  * Utility class that abstracts all the stuff about
@@ -90,12 +89,12 @@ public final class EGLHelper
 			}
 			else
 			{
-				Log.e("EGLHelper", "Error initializing EGL.");
+				Log.error("[EGLHelper] Error initializing EGL.");
 			}
 		}
 		else
 		{
-			Log.e("EGLHelper", "Error initializing EGL display.");
+			Log.error("[EGLHelper] Error initializing EGL display.");
 		}
 	}
 
@@ -232,7 +231,7 @@ public final class EGLHelper
 		int[] numConfigs = new int[1];
 		if (!mEGL.eglGetConfigs(mDisplay, null, 0, numConfigs))
 		{
-			Log.e("EGLHelper", "Error retrieving number of EGL configs available.");
+			Log.error("[EGLHelper] Error retrieving number of EGL configs available.");
 			return false;
 		}
 
@@ -240,7 +239,7 @@ public final class EGLHelper
 		mEGLConfigs = new EGLConfig[numConfigs[0]];
 		if (!mEGL.eglGetConfigs(mDisplay, mEGLConfigs, mEGLConfigs.length, numConfigs))
 		{
-			Log.e("EGLHelper", "Error retrieving all EGL configs.");
+			Log.error("[EGLHelper] Error retrieving all EGL configs.");
 			return false;
 		}
 

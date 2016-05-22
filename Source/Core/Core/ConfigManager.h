@@ -81,6 +81,7 @@ struct SConfig : NonCopyable
 	bool bFPRF;
 	bool bAccurateNaNs;
 
+	int iTimingVariance; // in milli secounds
 	bool bCPUThread;
 	bool bDSPThread;
 	bool bDSPHLE;
@@ -214,8 +215,7 @@ struct SConfig : NonCopyable
 
 	// interface language
 	int m_InterfaceLanguage;
-	// framelimit choose
-	unsigned int m_Framelimit;
+	float m_EmulationSpeed;
 	bool m_OCEnable;
 	float m_OCFactor;
 	float m_AudioSlowDown = 1;
@@ -252,6 +252,7 @@ struct SConfig : NonCopyable
 	bool m_showSystemColumn;
 	bool m_showBannerColumn;
 	bool m_showMakerColumn;
+	bool m_showFileNameColumn;
 	bool m_showIDColumn;
 	bool m_showRegionColumn;
 	bool m_showSizeColumn;
@@ -284,8 +285,8 @@ struct SConfig : NonCopyable
 
 	// Input settings
 	bool m_BackgroundInput;
-	bool m_GameCubeAdapter;
-	bool m_AdapterRumble;
+	bool m_AdapterRumble[4];
+	bool m_AdapterKonga[4];
 
 	SysConf* m_SYSCONF;
 

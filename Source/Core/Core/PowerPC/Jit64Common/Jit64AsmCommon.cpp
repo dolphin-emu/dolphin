@@ -2,12 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
-
+#include "Core/HW/GPFifo.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #define QUANTIZED_REGS_TO_SAVE \

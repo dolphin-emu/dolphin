@@ -8,10 +8,13 @@
 #include <sys/stat.h>
 #endif
 
+#include <vector>
+
+#include <zlib.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Hash.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
@@ -39,6 +42,15 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/VolumeCreator.h"
 
+bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
+{
+	std::vector<u8> buffer(length);
+	if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), decrypt))
+		return false;
+	Memory::CopyToEmu(output_address, buffer.data(), length);
+	return true;
+}
+
 void CBoot::Load_FST(bool _bIsWii)
 {
 	if (!DVDInterface::VolumeIsValid())
@@ -47,7 +59,7 @@ void CBoot::Load_FST(bool _bIsWii)
 	const DiscIO::IVolume& volume = DVDInterface::GetVolume();
 
 	// copy first 20 bytes of disc to start of Mem 1
-	DVDInterface::DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
+	DVDRead(/*offset*/0, /*address*/0, /*length*/0x20, false);
 
 	// copy of game id
 	Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
@@ -56,17 +68,21 @@ void CBoot::Load_FST(bool _bIsWii)
 	if (_bIsWii)
 		shift = 2;
 
-	u32 fstOffset  = volume.Read32(0x0424, _bIsWii) << shift;
-	u32 fstSize    = volume.Read32(0x0428, _bIsWii) << shift;
-	u32 maxFstSize = volume.Read32(0x042c, _bIsWii) << shift;
+	u32 fst_offset = 0;
+	u32 fst_size = 0;
+	u32 max_fst_size = 0;
 
-	u32 arenaHigh = ROUND_DOWN(0x817FFFFF - maxFstSize, 0x20);
-	Memory::Write_U32(arenaHigh, 0x00000034);
+	volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
+	volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
+	volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
+
+	u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
+	Memory::Write_U32(arena_high, 0x00000034);
 
 	// load FST
-	DVDInterface::DVDRead(fstOffset, arenaHigh, fstSize, _bIsWii);
-	Memory::Write_U32(arenaHigh, 0x00000038);
-	Memory::Write_U32(maxFstSize, 0x0000003c);
+	DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+	Memory::Write_U32(arena_high, 0x00000038);
+	Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
 
 void CBoot::UpdateDebugger_MapLoaded()
@@ -158,30 +174,39 @@ bool CBoot::LoadMapFromFilename()
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 {
-	const u32 USA = 0x1FCE3FD6;
-	const u32 USA_v1_1 = 0x4D5935D1;
-	const u32 JAP = 0x87424396;
-	const u32 PAL = 0xA0EA7341;
-	//const u32 PanasonicQJ = 0xAEA8265C;
-	//const u32 PanasonicQU = 0x94015753;
+	// CRC32
+	const u32 USA_v1_0 = 0x6D740AE7; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
+	const u32 USA_v1_1 = 0xD5E6FEEA; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
+	const u32 USA_v1_2 = 0x86573808; // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
+	const u32 BRA_v1_0 = 0x667D0B64; // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
+	const u32 JAP_v1_0 = 0x6DAC1F2A; // Redump
+	const u32 JAP_v1_1 = 0xD235E3F9; // https://bugs.dolphin-emu.org/issues/8936
+	const u32 PAL_v1_0 = 0x4F319F43; // Redump
+	const u32 PAL_v1_2 = 0xAD1B7F16; // Redump
 
 	// Load the whole ROM dump
 	std::string data;
 	if (!File::ReadFileToString(_rBootROMFilename, data))
 		return false;
 
-	u32 ipl_hash = HashAdler32((const u8*)data.data(), data.size());
+	// Use zlibs crc32 implementation to compute the hash
+	u32 ipl_hash = crc32(0L, Z_NULL, 0);
+	ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
 	std::string ipl_region;
 	switch (ipl_hash)
 	{
-	case USA:
+	case USA_v1_0:
 	case USA_v1_1:
+	case USA_v1_2:
+	case BRA_v1_0:
 		ipl_region = USA_DIR;
 		break;
-	case JAP:
+	case JAP_v1_0:
+	case JAP_v1_1:
 		ipl_region = JAP_DIR;
 		break;
-	case PAL:
+	case PAL_v1_0:
+	case PAL_v1_2:
 		ipl_region = EUR_DIR;
 		break;
 	default:
@@ -260,11 +285,10 @@ bool CBoot::BootUp()
 		if (unique_id.size() >= 4)
 			VideoInterface::SetRegionReg(unique_id.at(3));
 
-		u32 tmd_size;
-		std::unique_ptr<u8[]> tmd_buf = pVolume.GetTMD(&tmd_size);
-		if (tmd_size)
+		std::vector<u8> tmd_buffer = pVolume.GetTMD();
+		if (!tmd_buffer.empty())
 		{
-			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
 		}
 
 		_StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC;

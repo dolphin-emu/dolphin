@@ -26,10 +26,10 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2012-08-31 05:45:25 +1000 (Fri, 31 Aug 2012) $
+// Last changed  : $Date: 2015-02-21 23:24:29 +0200 (Sat, 21 Feb 2015) $
 // File revision : $Revision: 4 $
 //
-// $Id: BPMDetect.cpp 149 2012-08-30 19:45:25Z oparviai $
+// $Id: BPMDetect.cpp 202 2015-02-21 21:24:29Z oparviai $
 //
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -226,6 +226,7 @@ void BPMDetect::updateXCorr(int process_samples)
     assert(buffer->numSamples() >= (uint)(process_samples + windowLen));
 
     pBuffer = buffer->ptrBegin();
+    #pragma omp parallel for
     for (offs = windowStart; offs < windowLen; offs ++) 
     {
         LONG_SAMPLETYPE sum;

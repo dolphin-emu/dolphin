@@ -36,12 +36,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Common/ChunkFile.h"
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
-#include "VideoBackends/Software/SWStatistics.h"
-#include "VideoBackends/Software/XFMemLoader.h"
+
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace Clipper
 {
@@ -51,28 +52,13 @@ namespace Clipper
 		NUM_INDICES = NUM_CLIPPED_VERTICES + 3
 	};
 
-	static float m_ViewOffset[2];
-
 	static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
 	static OutputVertexData *Vertices[NUM_INDICES];
-
-	void DoState(PointerWrap &p)
-	{
-		p.DoArray(m_ViewOffset);
-		for (auto& ClippedVertice : ClippedVertices)
-			ClippedVertice.DoState(p);
-	}
 
 	void Init()
 	{
 		for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
 			Vertices[i+3] = &ClippedVertices[i];
-	}
-
-	void SetViewOffset()
-	{
-		m_ViewOffset[0] = xfmem.viewport.xOrig - 342;
-		m_ViewOffset[1] = xfmem.viewport.yOrig - 342;
 	}
 
 
@@ -220,7 +206,7 @@ namespace Clipper
 				POLY_CLIP(CLIP_POS_Z_BIT,  0,  0,  0, 1);
 				POLY_CLIP(CLIP_NEG_Z_BIT,  0,  0,  1, 1);
 
-				INCSTAT(swstats.thisFrame.numTrianglesClipped);
+				INCSTAT(stats.thisFrame.numTrianglesClipped);
 
 				// transform the poly in inlist into triangles
 				indices[0] = inlist[0];
@@ -287,7 +273,7 @@ namespace Clipper
 
 	void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)
 	{
-		INCSTAT(swstats.thisFrame.numTrianglesIn)
+		INCSTAT(stats.thisFrame.numTrianglesIn)
 
 		bool backface;
 
@@ -411,7 +397,7 @@ namespace Clipper
 
 		if (mask)
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesRejected)
+			INCSTAT(stats.thisFrame.numTrianglesRejected)
 			return false;
 		}
 
@@ -431,13 +417,13 @@ namespace Clipper
 
 		if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			INCSTAT(stats.thisFrame.numTrianglesCulled)
 			return false;
 		}
 
 		if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
 		{
-			INCSTAT(swstats.thisFrame.numTrianglesCulled)
+			INCSTAT(stats.thisFrame.numTrianglesCulled)
 			return false;
 		}
 
@@ -450,8 +436,8 @@ namespace Clipper
 		Vec3 &screen = vertex->screenPosition;
 
 		float wInverse = 1.0f/projected.w;
-		screen.x = projected.x * wInverse * xfmem.viewport.wd + m_ViewOffset[0];
-		screen.y = projected.y * wInverse * xfmem.viewport.ht + m_ViewOffset[1];
+		screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
+		screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
 		screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 	}
 

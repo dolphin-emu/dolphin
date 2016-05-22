@@ -2,15 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <memory>
+#include <string>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Movie.h"
 #include "Core/HW/EXI.h"
@@ -54,7 +58,7 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata, std::function<void(
 	}
 }
 
-void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, s64 cyclesLate)
 {
 	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
 	{
@@ -62,7 +66,7 @@ void CEXIMemoryCard::CmdDoneCallback(u64 userdata, int cyclesLate)
 	});
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, int cyclesLate)
+void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64 cyclesLate)
 {
 	EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance)
 	{

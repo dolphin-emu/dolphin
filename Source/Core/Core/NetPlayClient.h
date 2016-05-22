@@ -4,12 +4,14 @@
 
 #pragma once
 
+#include <array>
 #include <atomic>
 #include <map>
+#include <memory>
 #include <mutex>
-#include <queue>
-#include <sstream>
+#include <string>
 #include <thread>
+#include <vector>
 #include <SFML/Network/Packet.hpp>
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
@@ -48,7 +50,7 @@ class NetPlayClient : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
-	void SendAsync(sf::Packet* packet);
+	void SendAsync(std::unique_ptr<sf::Packet> packet);
 
 	NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, const std::string& name, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayClient();
@@ -56,7 +58,8 @@ public:
 	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
 	std::vector<const Player*> GetPlayers();
 
-	bool is_connected;
+	// Called from the GUI thread.
+	bool IsConnected() const { return m_is_connected; }
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
@@ -79,16 +82,6 @@ public:
 
 	static void SendTimeBase();
 
-	enum State
-	{
-		WaitingForTraversalClientConnection,
-		WaitingForTraversalClientConnectReady,
-		Connecting,
-		WaitingForHelloResponse,
-		Connected,
-		Failure
-	} m_state;
-
 protected:
 	void ClearBuffers();
 
@@ -102,31 +95,46 @@ protected:
 
 	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
-	Common::FifoQueue<GCPadStatus> m_pad_buffer[4];
-	Common::FifoQueue<NetWiimote>  m_wiimote_buffer[4];
+	std::array<Common::FifoQueue<GCPadStatus>, 4> m_pad_buffer;
+	std::array<Common::FifoQueue<NetWiimote >, 4> m_wiimote_buffer;
 
-	NetPlayUI*   m_dialog;
+	NetPlayUI*   m_dialog = nullptr;
 
-	ENetHost*    m_client;
-	ENetPeer*    m_server;
+	ENetHost*    m_client = nullptr;
+	ENetPeer*    m_server = nullptr;
 	std::thread  m_thread;
 
 	std::string       m_selected_game;
-	std::atomic<bool> m_is_running;
-	std::atomic<bool> m_do_loop;
+	std::atomic<bool> m_is_running{false};
+	std::atomic<bool> m_do_loop{true};
 
-	unsigned int  m_target_buffer_size;
+	unsigned int m_target_buffer_size = 20;
 
-	Player* m_local_player;
+	Player* m_local_player = nullptr;
 
-	u32 m_current_game;
+	u32 m_current_game = 0;
 
 	PadMappingArray m_pad_map;
 	PadMappingArray m_wiimote_map;
 
-	bool m_is_recording;
+	bool m_is_recording = false;
 
 private:
+	enum class ConnectionState
+	{
+		WaitingForTraversalClientConnection,
+		WaitingForTraversalClientConnectReady,
+		Connecting,
+		WaitingForHelloResponse,
+		Connected,
+		Failure
+	};
+
+	bool LocalPlayerHasControllerMapped() const;
+
+	void SendStartGamePacket();
+	void SendStopGamePacket();
+
 	void UpdateDevices();
 	void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
 	void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
@@ -135,14 +143,17 @@ private:
 	void Disconnect();
 	bool Connect();
 
-	PlayerId m_pid;
+	bool m_is_connected = false;
+	ConnectionState m_connection_state = ConnectionState::Failure;
+
+	PlayerId m_pid = 0;
 	std::map<PlayerId, Player> m_players;
 	std::string m_host_spec;
 	std::string m_player_name;
-	bool m_connecting;
-	TraversalClient* m_traversal_client;
+	bool m_connecting = false;
+	TraversalClient* m_traversal_client = nullptr;
 
-	u32 m_timebase_frame;
+	u32 m_timebase_frame = 0;
 };
 
 void NetPlay_Enable(NetPlayClient* const np);

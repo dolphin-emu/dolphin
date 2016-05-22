@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 #include "DiscIO/FileBlob.h"
 
@@ -14,13 +15,13 @@ PlainFileReader::PlainFileReader(std::FILE* file)
 	m_size = m_file.GetSize();
 }
 
-PlainFileReader* PlainFileReader::Create(const std::string& filename)
+std::unique_ptr<PlainFileReader> PlainFileReader::Create(const std::string& filename)
 {
 	File::IOFile f(filename, "rb");
 	if (f)
-		return new PlainFileReader(f.ReleaseHandle());
-	else
-		return nullptr;
+		return std::unique_ptr<PlainFileReader>(new PlainFileReader(f.ReleaseHandle()));
+
+	return nullptr;
 }
 
 bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)

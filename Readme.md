@@ -35,22 +35,20 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 
 ## Building for Windows
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Dolphin now prefers and recommends Visual Studio 2015 (get the free Community version).
+Dolphin now prefers and recommends Visual Studio 2015 Update 2 (get the free Community version).
 But Dolphin VR also still supports Visual Studio 2013 Update 3 or above.
-Previous versions don't support many C++ features that we use.
+Previous versions don't support many C++ features that we use. Git and Windows 10 SDK 10.0.10586.0 must be installed.
 
-An installer can be created by using the `Installer_win32.nsi` and
-`Installer_x64.nsi` scripts in the Installer directory. This will require the
-Nullsoft Scriptable Install System (NSIS) to be installed. Creating an
-installer is not necessary to run Dolphin since the Build directory contains
-a working Dolphin distribution.
+An installer can be created by using the `Installer_x64.nsi` script in the
+Installer directory. This will require the Nullsoft Scriptable Install System
+(NSIS) to be installed. Creating an installer is not necessary to run Dolphin
+since the Binary directory contains a working Dolphin distribution.
 
 ## Oculus Rift
 To build with Oculus Rift support, you need the Oculus Rift SDK 0.4.2 or above.
 Copy the LibOVR folder from the Oculus Rift SDK into the Externals folder,
 and clean and rebuild. The presense or absense of the LibOVR folder changes the
 HAVE_OCULUSSDK preprocessor definition.
-Currently only the OpenGL renderer works with the Oculus Rift.
 Oculus Rift features are not officially supported by the Dolphin team.
 
 ## Building for Linux and OS X
@@ -162,6 +160,12 @@ These folders are installed read-only and should not be changed:
 * `Themes`: icon themes for GUI
 * `Resources`: icons that are theme-agnostic
 * `Wii`: default Wii NAND contents
+
+## Packaging and udev
+The Data folder contains a udev rule file for the official GameCube controller
+adapter and the Mayflash DolphinBar. Package maintainers can use that file in their packages for Dolphin.
+Users compiling Dolphin on Linux can also just copy the file to their udev 
+rules folder.
 
 ## User Folder Structure
 A number of user writeable directories are created for caching purposes or for

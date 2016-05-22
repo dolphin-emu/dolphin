@@ -37,7 +37,7 @@ public:
 
 	IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-	static u32 ES_DIVerify(u8 *_pTMD, u32 _sz);
+	static u32 ES_DIVerify(const std::vector<u8>& tmd);
 
 	// This should only be cleared on power reset
 	static std::string m_ContentFile;
@@ -125,18 +125,12 @@ private:
 	{
 		u32 m_Position;
 		u64 m_TitleID;
-		const DiscIO::SNANDContent* m_pContent;
-		// This is a (raw) pointer to work around a MSVC bug.
-		File::IOFile* m_pFile;
+		u16 m_Index;
+		u32 m_Size;
 	};
 
 	typedef std::map<u32, SContentAccess> CContentAccessMap;
 	CContentAccessMap m_ContentAccessMap;
-
-	typedef std::map<u64, const DiscIO::CNANDContentLoader*> CTitleToContentMap;
-	CTitleToContentMap m_NANDContent;
-
-	const DiscIO::CNANDContentLoader* m_pContentLoader;
 
 	std::vector<u64> m_TitleIDs;
 	u64 m_TitleID;
@@ -144,10 +138,8 @@ private:
 
 	static u8 *keyTable[11];
 
-	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 _TitleID);
+	const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
 	u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
-
-	bool IsValid(u64 _TitleID) const;
 
 	struct ecc_cert_t
 	{

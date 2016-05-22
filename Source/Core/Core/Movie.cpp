@@ -12,7 +12,6 @@
 #include "Common/Hash.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-#include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -29,12 +28,12 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/GCPadStatus.h"
+#include "VideoCommon/Fifo.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 // The chunk to allocate movie data in multiples of.
@@ -45,7 +44,6 @@ static std::mutex cs_frameSkip;
 namespace Movie {
 
 static bool s_bFrameStep = false;
-static bool s_bFrameStop = false;
 static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
@@ -81,6 +79,7 @@ static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
+static u8 s_language = 10; //Set to unknown until language is known
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;
@@ -160,11 +159,6 @@ void FrameUpdate()
 		s_bFrameStep = false;
 	}
 
-	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
-	// after that we set it back to CPU_RUNNING and continue as normal.
-	if (s_bFrameStop)
-		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
-
 	if (s_framesToSkip)
 		FrameSkipping();
 
@@ -177,7 +171,6 @@ void Init()
 {
 	s_bPolled = false;
 	s_bFrameStep = false;
-	s_bFrameStop = false;
 	s_bSaveConfig = false;
 	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	if (IsPlayingInput())
@@ -185,7 +178,7 @@ void Init()
 		ReadHeader();
 		std::thread md5thread(CheckMD5);
 		md5thread.detach();
-		if (strncmp((char *)tmpHeader.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6))
+		if (strncmp(tmpHeader.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6))
 		{
 			PanicAlertT("The recorded game (%s) is not the same as the selected game (%s)", tmpHeader.gameID, SConfig::GetInstance().GetUniqueID().c_str());
 			EndPlayInput(false);
@@ -228,9 +221,6 @@ void InputUpdate()
 		s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
 		s_tickCountAtLastInput = CoreTiming::GetTicks();
 	}
-
-	if (IsPlayingInput() && g_currentInputCount == (g_totalInputCount - 1) && SConfig::GetInstance().m_PauseMovie)
-		Core::SetState(Core::CORE_PAUSE);
 }
 
 void SetFrameSkipping(unsigned int framesToSkip)
@@ -243,7 +233,7 @@ void SetFrameSkipping(unsigned int framesToSkip)
 	// Don't forget to re-enable rendering in case it wasn't...
 	// as this won't be changed anymore when frameskip is turned off
 	if (framesToSkip == 0)
-		g_video_backend->Video_SetRendering(true);
+		Fifo::SetRendering(true);
 }
 
 void SetPolledDevice()
@@ -267,11 +257,6 @@ void DoFrameStep()
 	}
 }
 
-void SetFrameStopping(bool bEnabled)
-{
-	s_bFrameStop = bEnabled;
-}
-
 void SetReadOnly(bool bEnabled)
 {
 	if (s_bReadOnly != bEnabled)
@@ -291,7 +276,7 @@ void FrameSkipping()
 		if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
 			s_frameSkipCounter = 0;
 
-		g_video_backend->Video_SetRendering(!s_frameSkipCounter);
+		Fifo::SetRendering(!s_frameSkipCounter);
 	}
 }
 
@@ -389,6 +374,11 @@ int GetCPUMode()
 	return s_iCPUCore;
 }
 
+u8 GetLanguage()
+{
+	return s_language;
+}
+
 bool IsStartingFromClearSave()
 {
 	return g_bClearSave;
@@ -416,17 +406,28 @@ void ChangePads(bool instantly)
 	int controllers = 0;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
-		if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_CONTROLLER || SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
+		if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
 			controllers |= (1 << i);
 
 	if (instantly && (s_numPads & 0x0F) == controllers)
 		return;
 
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+	{
+		SIDevices device = SIDEVICE_NONE;
+		if (IsUsingPad(i))
+		{
+			if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+				device = SConfig::GetInstance().m_SIDevice[i];
+			else
+				device = IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER;
+		}
+
 		if (instantly) // Changes from savestates need to be instantaneous
-			SerialInterface::AddDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+			SerialInterface::AddDevice(device, i);
 		else
-			SerialInterface::ChangeDevice(IsUsingPad(i) ? (IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER) : SIDEVICE_NONE, i);
+			SerialInterface::ChangeDevice(device, i);
+	}
 }
 
 void ChangeWiiPads(bool instantly)
@@ -500,6 +501,14 @@ bool BeginRecordingInput(int controllers)
 		md5thread.detach();
 		GetSettings();
 	}
+
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	if (!Core::IsRunningAndStarted())
+	{
+	        // This will also reset the wiimotes for gamecube games, but that shouldn't do anything
+	        Wiimote::ResetAllWiimotes();
+	}
+
 	s_playMode = MODE_RECORDING;
 	s_author = SConfig::GetInstance().m_strMovieAuthor;
 	EnsureTmpInputSize(1);
@@ -806,6 +815,7 @@ void ReadHeader()
 		s_bongos = tmpHeader.bongos;
 		s_bSyncGPU = tmpHeader.bSyncGPU;
 		s_bNetPlay = tmpHeader.bNetPlay;
+		s_language = tmpHeader.language;
 		memcpy(s_revision, tmpHeader.revision, ArraySize(s_revision));
 	}
 	else
@@ -853,6 +863,9 @@ bool PlayInput(const std::string& filename)
 	g_currentInputCount = 0;
 
 	s_playMode = MODE_PLAYING;
+
+	// Wiimotes cause desync issues if they're not reset before launching the game
+	Wiimote::ResetAllWiimotes();
 
 	Core::UpdateWantDeterminism();
 
@@ -1194,6 +1207,9 @@ void EndPlayInput(bool cont)
 		//g_totalFrames = s_totalBytes = 0;
 		//delete tmpInput;
 		//tmpInput = nullptr;
+
+		if (SConfig::GetInstance().m_PauseMovie)
+			Core::SetState(Core::CORE_PAUSE);
 	}
 }
 
@@ -1205,7 +1221,7 @@ void SaveRecording(const std::string& filename)
 	memset(&header, 0, sizeof(DTMHeader));
 
 	header.filetype[0] = 'D'; header.filetype[1] = 'T'; header.filetype[2] = 'M'; header.filetype[3] = 0x1A;
-	strncpy((char *)header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+	strncpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
 	header.bWii = SConfig::GetInstance().bWii;
 	header.numControllers = s_numPads & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
@@ -1244,6 +1260,7 @@ void SaveRecording(const std::string& filename)
 	header.DSPiromHash = s_DSPiromHash;
 	header.DSPcoefHash = s_DSPcoefHash;
 	header.tickCount = s_totalTickCount;
+	header.language = s_language;
 
 	// TODO
 	header.uniqueID = 0;
@@ -1308,12 +1325,13 @@ void GetSettings()
 	s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
 	s_iCPUCore = SConfig::GetInstance().iCPUCore;
 	s_bNetPlay = NetPlay::IsNetPlayRunning();
+	s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
 	if (!SConfig::GetInstance().bWii)
 		g_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 	unsigned int tmp;
-	for (int i = 0; i < 20; ++i)
+	for (size_t i = 0; i < scm_rev_git_str.size() / 2 ; ++i)
 	{
 		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
 		s_revision[i] = tmp;

@@ -2,9 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Common/MemoryUtil.h"
-
+#include "Common/x64ABI.h"
+#include "Common/x64Emitter.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 
@@ -181,29 +186,28 @@ void Jit64AsmRoutineManager::Generate()
 			}
 			SetJumpTarget(notfound);
 
+			// We reset the stack because Jit might clear the code cache.
+			// Also if we are in the middle of disabling BLR optimization on windows
+			// we need to reset the stack before _resetstkoflw() is called in Jit
+			// otherwise we will generate a second stack overflow exception during DoJit()
+			ResetStack();
+
 			//Ok, no block, let's jit
 			ABI_PushRegistersAndAdjustStack({}, 0);
 			ABI_CallFunctionA(32, (void *)&Jit, PPCSTATE(pc));
 			ABI_PopRegistersAndAdjustStack({}, 0);
-
-			// Jit might have cleared the code cache
-			ResetStack();
 
 			JMP(dispatcherNoCheck, true); // no point in special casing this
 
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
-		// Test external exceptions.
-		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_EXTERNAL_INT | EXCEPTION_PERFORMANCE_MONITOR | EXCEPTION_DECREMENTER));
-		FixupBranch noExtException = J_CC(CC_Z);
+		// make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
 		MOV(32, R(RSCRATCH), PPCSTATE(pc));
 		MOV(32, PPCSTATE(npc), R(RSCRATCH));
-		ABI_PushRegistersAndAdjustStack({}, 0);
-		ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckExternalExceptions));
-		ABI_PopRegistersAndAdjustStack({}, 0);
-		SetJumpTarget(noExtException);
 
+		// Check the state pointer to see if we are exiting
+		// Gets checked on at the end of every slice
 		TEST(32, M(PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
 		J_CC(CC_Z, outerLoop);
 

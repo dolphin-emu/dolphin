@@ -4,15 +4,14 @@
 
 #include <list>
 #include <string>
-#include <vector>
 
 #include "png.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/Logging/Log.h"
 #include "VideoCommon/ImageWrite.h"
 
-bool SaveData(const std::string& filename, const char* data)
+bool SaveData(const std::string& filename, const std::string& data)
 {
 	std::ofstream f;
 	OpenFStream(f, filename, std::ios::binary);

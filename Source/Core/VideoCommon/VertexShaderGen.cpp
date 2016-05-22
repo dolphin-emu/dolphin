@@ -3,31 +3,29 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-static char text[16768];
-
 template<class T>
-static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_type)
+static T GenerateVertexShader(API_TYPE api_type)
 {
+	T out;
+	const u32 components = VertexLoaderManager::g_current_components;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	vertex_shader_uid_data dummy_data;
 	vertex_shader_uid_data* uid_data = out.template GetUidData<vertex_shader_uid_data>();
-	if (uid_data == nullptr)
+	if (uid_data != nullptr)
+		memset(uid_data, 0, sizeof(*uid_data));
+	else
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	_assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
 	_assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
@@ -45,7 +43,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	uid_data->numTexGens = xfmem.numTexGen.numTexGens;
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens);
+	GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, "");
 	out.Write("};\n");
 
 	uid_data->components = components;
@@ -78,7 +76,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
 		{
 			out.Write("out VertexData {\n");
-			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, GetInterpolationQualifier(api_type, false, true));
+			GenerateVSOutputMembers<T>(out, api_type, uid_data->numTexGens, GetInterpolationQualifier(true, false));
 			out.Write("} vs;\n");
 		}
 		else
@@ -88,17 +86,17 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 			{
 				if (i < uid_data->numTexGens)
 				{
-					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(api_type), i);
+					out.Write("%s out float3 uv%u;\n", GetInterpolationQualifier(), i);
 				}
 			}
-			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 clipPos;\n", GetInterpolationQualifier());
 			if (g_ActiveConfig.bEnablePixelLighting)
 			{
-				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier(api_type));
-				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier(api_type));
+				out.Write("%s out float3 Normal;\n", GetInterpolationQualifier());
+				out.Write("%s out float3 WorldPos;\n", GetInterpolationQualifier());
 			}
-			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier(api_type));
-			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier(api_type));
+			out.Write("%s out float4 colors_0;\n", GetInterpolationQualifier());
+			out.Write("%s out float4 colors_1;\n", GetInterpolationQualifier());
 		}
 
 		out.Write("void main()\n{\n");
@@ -138,7 +136,7 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 		if (components & VB_HAS_NRMALL)
 		{
-			out.Write("int normidx = posmtx >= 32 ? (posmtx-32) : posmtx;\n");
+			out.Write("int normidx = posmtx & 31;\n");
 			out.Write("float3 N0 = " I_NORMALMATRICES"[normidx].xyz, N1 = " I_NORMALMATRICES"[normidx+1].xyz, N2 = " I_NORMALMATRICES"[normidx+2].xyz;\n");
 		}
 
@@ -201,15 +199,12 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		switch (texinfo.sourcerow)
 		{
 		case XF_SRCGEOM_INROW:
-			// The following assert was triggered in Super Smash Bros. Project M 3.6.
-			//_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-			out.Write("coord = rawpos;\n"); // pos.w is 1
+			out.Write("coord.xyz = rawpos.xyz;\n");
 			break;
 		case XF_SRCNORMAL_INROW:
 			if (components & VB_HAS_NRM0)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm0.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm0.xyz;\n");
 			}
 			break;
 		case XF_SRCCOLORS_INROW:
@@ -218,15 +213,13 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 		case XF_SRCBINORMAL_T_INROW:
 			if (components & VB_HAS_NRM1)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm1.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm1.xyz;\n");
 			}
 			break;
 		case XF_SRCBINORMAL_B_INROW:
 			if (components & VB_HAS_NRM2)
 			{
-				_assert_(texinfo.inputform == XF_TEXINPUT_ABC1);
-				out.Write("coord = float4(rawnorm2.xyz, 1.0);\n");
+				out.Write("coord.xyz = rawnorm2.xyz;\n");
 			}
 			break;
 		default:
@@ -235,6 +228,10 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 				out.Write("coord = float4(tex%d.x, tex%d.y, 1.0, 1.0);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
 			break;
 		}
+		// Input form of AB11 sets z element to 1.0
+		uid_data->texMtxInfo[i].inputform = xfmem.texMtxInfo[i].inputform;
+		if (texinfo.inputform == XF_TEXINPUT_AB11)
+			out.Write("coord.z = 1.0;\n");
 
 		// first transformation
 		uid_data->texMtxInfo[i].texgentype = xfmem.texMtxInfo[i].texgentype;
@@ -260,11 +257,9 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 
 				break;
 			case XF_TEXGEN_COLOR_STRGBC0:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_0.x, o.colors_0.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_COLOR_STRGBC1:
-				_assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
 				out.Write("o.tex%d.xyz = float3(o.colors_1.x, o.colors_1.y, 1);\n", i);
 				break;
 			case XF_TEXGEN_REGULAR:
@@ -388,19 +383,15 @@ static inline void GenerateVertexShader(T& out, u32 components, API_TYPE api_typ
 	}
 	out.Write("}\n");
 
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");
-	}
+	return out;
 }
 
-void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type)
+VertexShaderUid GetVertexShaderUid(API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderUid>(object, components, api_type);
+	return GenerateVertexShader<VertexShaderUid>(api_type);
 }
 
-void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type)
+ShaderCode GenerateVertexShaderCode(API_TYPE api_type)
 {
-	GenerateVertexShader<VertexShaderCode>(object, components, api_type);
+	return GenerateVertexShader<ShaderCode>(api_type);
 }

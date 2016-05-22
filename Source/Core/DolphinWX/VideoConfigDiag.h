@@ -54,7 +54,14 @@ template <typename T>
 class IntegerSetting : public wxSpinCtrl
 {
 public:
-	IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style = 0);
+	IntegerSetting(wxWindow* parent, const wxString& label, T& setting, int minVal, int maxVal, long style = 0) :
+		wxSpinCtrl(parent, wxID_ANY, label, wxDefaultPosition, wxDefaultSize, style),
+		m_setting(setting)
+	{
+		SetRange(minVal, maxVal);
+		SetValue(m_setting);
+		Bind(wxEVT_SPINCTRL, &IntegerSetting::UpdateValue, this);
+	}
 
 	void UpdateValue(wxCommandEvent& ev)
 	{
@@ -102,8 +109,9 @@ public:
 protected:
 	void Event_Backend(wxCommandEvent &ev)
 	{
-		VideoBackend* new_backend = g_available_video_backends[ev.GetInt()];
-		if (g_video_backend != new_backend)
+		auto& new_backend = g_available_video_backends[ev.GetInt()];
+
+		if (g_video_backend != new_backend.get())
 		{
 			bool do_switch = !Core::IsRunning();
 			if (new_backend->GetName() == "Software Renderer")
@@ -119,7 +127,7 @@ protected:
 				// reopen the dialog
 				Close();
 
-				g_video_backend = new_backend;
+				g_video_backend = new_backend.get();
 				SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
 
 				g_video_backend->ShowConfig(GetParent());
@@ -186,7 +194,12 @@ protected:
 
 	void Event_StereoConvergence(wxCommandEvent &ev)
 	{
-		vconfig.iStereoConvergence = ev.GetInt();
+		// Snap the slider
+		int value = ev.GetInt();
+		if (90 < value && value < 110)
+			conv_slider->SetValue(100);
+
+		vconfig.iStereoConvergencePercentage = conv_slider->GetValue();
 
 		ev.Skip();
 	}
@@ -212,7 +225,6 @@ protected:
 		// Anti-aliasing
 		choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
 		text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
-		ssaa_checkbox->Enable(vconfig.backend_info.bSupportsSSAA && vconfig.iMultisampleMode > 0);
 
 
 		// EFB copy
@@ -270,8 +282,8 @@ protected:
 	void Evt_LeaveControl(wxMouseEvent& ev);
 	void CreateDescriptionArea(wxPanel* const page, wxBoxSizer* const sizer);
 	void PopulatePostProcessingShaders();
-	void OnSSAAClick(wxCommandEvent& event);
-	void RefreshAAList();
+	void PopulateAAList();
+	void OnAAChanged(wxCommandEvent& ev);
 
 	wxChoice* choice_backend;
 	wxChoice* choice_adapter;
@@ -281,8 +293,8 @@ protected:
 	wxStaticText* label_adapter;
 
 	wxStaticText* text_aamode;
-	SettingChoice* choice_aamode;
-	wxCheckBox* ssaa_checkbox;
+	wxChoice* choice_aamode;
+	wxSlider* conv_slider;
 
 	wxStaticText* label_display_resolution;
 
@@ -309,5 +321,6 @@ protected:
 	std::map<wxWindow*, wxStaticText*> desc_texts; // maps dialog tabs (which are the parents of the setting controls) to their description text objects
 
 	VideoConfig &vconfig;
-	std::string ininame;
+
+	size_t m_msaa_modes;
 };

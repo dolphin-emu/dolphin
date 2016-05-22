@@ -36,8 +36,11 @@ public:
 	void Update() override;
 
 	void BrowseForDirectory();
-	const GameListItem *GetSelectedISO();
-	const GameListItem *GetISO(size_t index) const;
+	const GameListItem* GetISO(size_t index) const;
+	const GameListItem* GetSelectedISO() const;
+	std::vector<const GameListItem*> GetAllSelectedISOs() const;
+
+	static bool IsHidingItems();
 
 	enum
 	{
@@ -46,6 +49,7 @@ public:
 		COLUMN_BANNER,
 		COLUMN_TITLE,
 		COLUMN_MAKER,
+		COLUMN_FILENAME,
 		COLUMN_ID,
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
@@ -75,6 +79,7 @@ private:
 	wxSize lastpos;
 	wxEmuStateTip *toolTip;
 	void InitBitmaps();
+	void UpdateItemAtColumn(long _Index, int column);
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
 	void ScanForISOs();
@@ -103,9 +108,7 @@ private:
 	void AutomaticColumnWidth();
 	void UnselectAll();
 
-	static size_t m_currentItem;
-	static std::string m_currentFilename;
-	static size_t m_numberItem;
 	static bool CompressCB(const std::string& text, float percent, void* arg);
 	static bool MultiCompressCB(const std::string& text, float percent, void* arg);
+	static bool WiiCompressWarning();
 };

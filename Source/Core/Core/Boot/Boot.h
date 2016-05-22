@@ -41,6 +41,7 @@ public:
 	                        std::string* title_id = nullptr);
 
 private:
+	static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt);
 	static void RunFunction(u32 _iAddr);
 
 	static void UpdateDebugger_MapLoaded();

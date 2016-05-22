@@ -102,7 +102,7 @@ bool DolphinApp::Initialize(int& c, wxChar **v)
 
 bool DolphinApp::OnInit()
 {
-	if (!wxApp::OnInit() || DolphinEmulatorDotComTextFileExists())
+	if (!wxApp::OnInit())
 		return false;
 
 	Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
@@ -127,7 +127,7 @@ bool DolphinApp::OnInit()
 	if (m_select_audio_emulation)
 		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
-	VideoBackend::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
@@ -152,7 +152,7 @@ bool DolphinApp::OnInit()
 		y = wxDefaultCoord;
 #endif
 
-	std::string titleStr = StringFromFormat("%s%s", scm_rev_str, SCM_OCULUS_STR);
+	std::string titleStr = StringFromFormat("%s%s", scm_rev_str.c_str(), SCM_OCULUS_STR);
 	main_frame = new CFrame(nullptr, wxID_ANY,
 	                        StrToWxStr(titleStr),
 	                        wxPoint(x, y), wxSize(w, h),
@@ -325,23 +325,6 @@ void DolphinApp::MacOpenFile(const wxString& fileName)
 	main_frame->BootGame(WxStrToStr(m_file_to_load));
 }
 #endif
-
-bool DolphinApp::DolphinEmulatorDotComTextFileExists()
-{
-	if (!File::Exists("www.dolphin-emulator.com.txt"))
-		return false;
-
-	File::Delete("www.dolphin-emulator.com.txt");
-	wxMessageDialog dlg(nullptr, _(
-	    "This version of Dolphin was downloaded from a website stealing money from developers of the emulator. Please "
-	    "download Dolphin from the official website instead: https://dolphin-emu.org/"),
-	    _("Unofficial version detected"), wxOK | wxICON_WARNING);
-	dlg.ShowModal();
-
-	wxLaunchDefaultBrowser("https://dolphin-emu.org/?ref=badver");
-
-	return true;
-}
 
 void DolphinApp::AfterInit()
 {
@@ -647,7 +630,7 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
                           const std::string& config_name)
 {
-	if (backend_name == "Direct3D" || backend_name == "OpenGL")
+	if (backend_name == "Direct3D 11" || backend_name == "Direct3D 12 (experimental)" || backend_name == "OpenGL")
 	{
 		VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
 		diag.ShowModal();

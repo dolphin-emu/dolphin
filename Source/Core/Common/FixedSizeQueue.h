@@ -16,13 +16,13 @@
 template <class T, int N>
 class FixedSizeQueue
 {
-	T *storage;
+	T* storage;
 	int head;
 	int tail;
 	int count;  // sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
 
 	// Make copy constructor private for now.
-	FixedSizeQueue(FixedSizeQueue &other) {}
+	FixedSizeQueue(FixedSizeQueue& other) {}
 
 public:
 	FixedSizeQueue()
@@ -62,13 +62,13 @@ public:
 
 	T pop_front()
 	{
-		const T &temp = storage[head];
+		const T& temp = storage[head];
 		pop();
 		return temp;
 	}
 
-	T &front() { return storage[head]; }
-	const T &front() const { return storage[head]; }
+	T& front() { return storage[head]; }
+	const T& front() const { return storage[head]; }
 
 	size_t size() const
 	{

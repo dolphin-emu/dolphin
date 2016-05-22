@@ -33,6 +33,9 @@
 #ifdef CIFACE_USE_EVDEV
 	#include "InputCommon/ControllerInterface/evdev/evdev.h"
 #endif
+#ifdef CIFACE_USE_PIPES
+	#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
+#endif
 
 #ifdef _WIN32
 	#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
@@ -82,6 +85,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 #endif
 #ifdef CIFACE_USE_EVDEV
 	ciface::evdev::Init(m_devices);
+#endif
+#ifdef CIFACE_USE_PIPES
+	ciface::Pipes::Init(m_devices);
 #endif
 #ifdef _WIN32
 	// VR Sixense Razer Hydra or STEM
@@ -163,7 +169,7 @@ void ControllerInterface::Shutdown()
 //
 // UpdateInput
 //
-// Update input for all devices, return true if all devices returned successful
+// Update input for all devices
 //
 void ControllerInterface::UpdateInput()
 {

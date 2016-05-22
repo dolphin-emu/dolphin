@@ -63,7 +63,7 @@ struct DTMHeader
 {
 	u8 filetype[4];         // Unique Identifier (always "DTM"0x1A)
 
-	u8 gameID[6];           // The Game ID
+	char gameID[6];         // The Game ID
 	bool bWii;              // Wii game
 
 	u8  numControllers;     // The number of connected controllers (1-4)
@@ -102,7 +102,8 @@ struct DTMHeader
 	bool bSyncGPU;
 	bool bNetPlay;
 	bool bPAL60;
-	u8   reserved[12];      // Padding for any new config options
+	u8   language;
+	u8   reserved[11];      // Padding for any new config options
 	u8   discChange[40];    // Name of iso file to switch to, for two disc games.
 	u8   revision[20];      // Git hash
 	u32  DSPiromHash;
@@ -137,6 +138,7 @@ bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int  GetCPUMode();
+u8   GetLanguage();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
 bool IsSyncGPU();
@@ -151,7 +153,6 @@ void ChangePads(bool instantly = false);
 void ChangeWiiPads(bool instantly = false);
 
 void DoFrameStep();
-void SetFrameStopping(bool bEnabled);
 void SetReadOnly(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);

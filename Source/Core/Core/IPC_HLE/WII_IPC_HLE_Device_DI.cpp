@@ -16,21 +16,9 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 
-static int ioctl_callback;
-
-static void IOCtlCallback(u64 userdata, int cycles_late)
-{
-	std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
-	if (di)
-		std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl((DVDInterface::DIInterruptType)userdata);
-
-	// If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
-}
-
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-	ioctl_callback = CoreTiming::RegisterEvent("IOCtlCallbackDI", IOCtlCallback);
 }
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
@@ -101,8 +89,7 @@ void CWII_IPC_HLE_Device_di::StartIOCtl(u32 command_address)
 
 	// DVDInterface's ExecuteCommand handles most of the work.
 	// The IOCtl callback is used to generate a reply afterwards.
-	DVDInterface::ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize,
-	                             false, ioctl_callback);
+	DVDInterface::ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize, true);
 }
 
 void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
@@ -159,10 +146,9 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 			INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
 			// Read TMD to the buffer
-			u32 tmd_size;
-			std::unique_ptr<u8[]> tmd_buf = DVDInterface::GetVolume().GetTMD(&tmd_size);
-			Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buf.get(), tmd_size);
-			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buf.get(), tmd_size);
+			std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
+			Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buffer.data(), tmd_buffer.size());
+			WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
 
 			ReturnValue = 1;
 		}

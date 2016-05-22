@@ -9,4 +9,11 @@
     <dimen name="add_button_margin">16dp</dimen>
 
     <dimen name="main_appbar_height">128dp</dimen>
+
+    <dimen name="spacing_xsmall">2dp</dimen>
+    <dimen name="spacing_small">4dp</dimen>
+    <dimen name="spacing_medium">8dp</dimen>
+    <dimen name="spacing_medlarge">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_xlarge">32dp</dimen>
 </resources>

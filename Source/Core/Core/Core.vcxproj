@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -116,6 +116,7 @@
     <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="HW\DVDInterface.cpp" />
+    <ClCompile Include="HW\DVDThread.cpp" />
     <ClCompile Include="HW\EXI.cpp" />
     <ClCompile Include="HW\EXI_Channel.cpp" />
     <ClCompile Include="HW\EXI_Device.cpp" />
@@ -145,16 +146,10 @@
     <ClCompile Include="HW\SI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="HW\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
+    <ClCompile Include="HW\SI_DeviceGCAdapter.cpp" />
     <ClCompile Include="HW\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI_DeviceGCSteeringWheel.cpp" />
     <ClCompile Include="HW\SI_DeviceKeyboard.cpp" />
-    <ClCompile Include="HW\SI_GCAdapter.cpp">
-      <!--
-      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h.
-      -->
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
     <ClCompile Include="HW\Sram.cpp" />
     <ClCompile Include="HW\StreamADPCM.cpp" />
     <ClCompile Include="HW\SystemTimers.cpp" />
@@ -330,6 +325,7 @@
     <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="HW\DVDInterface.h" />
+    <ClInclude Include="HW\DVDThread.h" />
     <ClInclude Include="HW\EXI.h" />
     <ClInclude Include="HW\EXI_Channel.h" />
     <ClInclude Include="HW\EXI_Device.h" />
@@ -360,10 +356,10 @@
     <ClInclude Include="HW\SI_DeviceAMBaseboard.h" />
     <ClInclude Include="HW\SI_DeviceDanceMat.h" />
     <ClInclude Include="HW\SI_DeviceGBA.h" />
+    <ClInclude Include="HW\SI_DeviceGCAdapter.h" />
     <ClInclude Include="HW\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI_DeviceGCSteeringWheel.h" />
     <ClInclude Include="HW\SI_DeviceKeyboard.h" />
-    <ClInclude Include="HW\SI_GCAdapter.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />
     <ClInclude Include="HW\SystemTimers.h" />

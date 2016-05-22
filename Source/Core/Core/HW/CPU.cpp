@@ -8,14 +8,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Core/Core.h"
-#include "Core/DSPEmulator.h"
 #include "Core/Host.h"
-#include "Core/Movie.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/Fifo.h"
 
 namespace
 {
@@ -114,7 +111,7 @@ void EnableStepping(const bool stepping)
 	{
 		PowerPC::Pause();
 		m_StepEvent.Reset();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PAUSE);
+		Fifo::EmulatorState(false);
 		AudioCommon::ClearAudioBuffer(true);
 	}
 	else
@@ -137,7 +134,7 @@ void EnableStepping(const bool stepping)
 		}
 		PowerPC::Start();
 		m_StepEvent.Set();
-		g_video_backend->EmuStateChange(EMUSTATE_CHANGE_PLAY);
+		Fifo::EmulatorState(true);
 		AudioCommon::ClearAudioBuffer(false);
 	}
 }
@@ -149,13 +146,22 @@ void Break()
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
+	static bool s_have_fake_cpu_thread;
 	bool wasUnpaused = !IsStepping();
 	if (do_lock)
 	{
 		// we can't use EnableStepping, that would causes deadlocks with both audio and video
 		PowerPC::Pause();
 		if (!Core::IsCPUThread())
+		{
 			m_csCpuOccupied.lock();
+			s_have_fake_cpu_thread = true;
+			Core::DeclareAsCPUThread();
+		}
+		else
+		{
+			s_have_fake_cpu_thread = false;
+		}
 	}
 	else
 	{
@@ -165,8 +171,12 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 			m_StepEvent.Set();
 		}
 
-		if (!Core::IsCPUThread())
+		if (s_have_fake_cpu_thread)
+		{
+			Core::UndeclareAsCPUThread();
 			m_csCpuOccupied.unlock();
+			s_have_fake_cpu_thread = false;
+		}
 	}
 	return wasUnpaused;
 }

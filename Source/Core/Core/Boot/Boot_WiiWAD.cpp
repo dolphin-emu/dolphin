@@ -16,6 +16,7 @@
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -89,7 +90,11 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 	// setup Wii memory
 	if (!SetupWiiMemory(ContentLoader.GetCountry()))
 		return false;
-
+	// this sets a bit that is used to detect NTSC-J
+	if (ContentLoader.GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN)
+	{
+		VideoInterface::SetRegionReg('J');
+	}
 	// DOL
 	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
 	if (pContent == nullptr)
@@ -97,15 +102,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 
 	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
 
-	std::unique_ptr<CDolLoader> pDolLoader;
-	if (pContent->m_pData)
-	{
-		pDolLoader = std::make_unique<CDolLoader>(pContent->m_pData, pContent->m_Size);
-	}
-	else
-	{
-		pDolLoader = std::make_unique<CDolLoader>(pContent->m_Filename);
-	}
+	std::unique_ptr<CDolLoader> pDolLoader = std::make_unique<CDolLoader>(pContent->m_Data->Get());
 	if (!pDolLoader->IsValid())
 		return false;
 

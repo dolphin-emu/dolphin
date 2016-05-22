@@ -6,12 +6,11 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/Mixer.h"
-#include "Common/CPUDetect.h"
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/AudioInterface.h"
-#include "Core/HW/VideoInterface.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -23,15 +22,13 @@
 #endif
 
 CMixer::CMixer(unsigned int BackendSampleRate)
-	: m_dma_mixer(this, 32000)
-	, m_streaming_mixer(this, 48000)
-	, m_wiimote_speaker_mixer(this, 3000)
-	, m_sampleRate(BackendSampleRate)
-	, m_log_dtk_audio(false)
-	, m_log_dsp_audio(false)
-	, m_speed(0)
+	: m_sampleRate(BackendSampleRate)
 {
 	INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
+
+CMixer::~CMixer()
+{
 }
 
 // Executed from sound stream thread
@@ -49,9 +46,12 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	u32 indexR = m_indexR.load();
 	u32 indexW = m_indexW.load();
 
+	u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+	low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
+
 	float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
 	m_numLeftI = (numLeft + m_numLeftI*(CONTROL_AVG-1)) / CONTROL_AVG;
-	float offset = (m_numLeftI - LOW_WATERMARK) * CONTROL_FACTOR;
+	float offset = (m_numLeftI - low_waterwark) * CONTROL_FACTOR;
 	if (offset > MAX_FREQ_SHIFT) offset = MAX_FREQ_SHIFT;
 	if (offset < -MAX_FREQ_SHIFT) offset = -MAX_FREQ_SHIFT;
 
@@ -59,9 +59,9 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 	//advance indexR with sample position
 	//remember fractional offset
 
-	u32 framelimit = SConfig::GetInstance().m_Framelimit;
+	float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
 	float aid_sample_rate = m_input_sample_rate + offset;
-	if (consider_framelimit && framelimit > 1)
+	if (consider_framelimit && emulationspeed > 0.0f)
 	{
 		// VR requires a head-tracking rate greater than 60fps per second. This is solved by
 		// running the game at 100%, but the head-tracking frame rate at 125%. To bring the audio
@@ -69,11 +69,11 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples, boo
 		SConfig& startup_parameter = SConfig::GetInstance();
 		if ((g_ActiveConfig.bOpcodeReplay || g_ActiveConfig.bSynchronousTimewarp) &&
 			((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
-			(startup_parameter.bSyncGPU || ((startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION) && (framelimit == 16))) ||
+			(startup_parameter.bSyncGPU || ((startup_parameter.m_GPUDeterminismMode == GPU_DETERMINISM_FAKE_COMPLETION) && (emulationspeed == 1.25f))) ||
 			!startup_parameter.bCPUThread))
-			aid_sample_rate = aid_sample_rate * 60 / VideoInterface::TargetRefreshRate;
+			aid_sample_rate = aid_sample_rate / emulationspeed;
 		else
-			aid_sample_rate = aid_sample_rate * (framelimit - 1) * (5 / SConfig::GetInstance().m_AudioSlowDown) / VideoInterface::TargetRefreshRate;
+			aid_sample_rate = aid_sample_rate * emulationspeed;
 	}
 
 	const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);

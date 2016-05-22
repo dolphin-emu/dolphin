@@ -46,7 +46,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -60,13 +60,11 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PowerPC/PowerPC.h"
-
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/HotkeysXInput.h"
 
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
@@ -75,9 +73,7 @@ namespace SystemTimers
 
 static int et_Dec;
 static int et_VI;
-static int et_SI;
 static int et_HotkeysXInput;
-static int et_CP;
 static int et_AudioDMA;
 static int et_DSP;
 static int et_IPC_HLE;
@@ -85,7 +81,6 @@ static int et_PatchEngine; // PatchEngine updates every 1/60th of a second by de
 static int et_Throttle;
 
 static u32 s_cpu_core_clock = 486000000u;             // 486 mhz (its not 485, stop bugging me!)
-static u64 s_last_sync_gpu_tick;
 
 // These two are badly educated guesses.
 // Feel free to experiment. Set them in Init below.
@@ -104,22 +99,22 @@ u32 GetTicksPerSecond()
 }
 
 // DSP/CPU timeslicing.
-static void DSPCallback(u64 userdata, int cyclesLate)
+static void DSPCallback(u64 userdata, s64 cyclesLate)
 {
 	//splits up the cycle budget in case lle is used
 	//for hle, just gives all of the slice to hle
-	DSP::UpdateDSPSlice(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate);
+	DSP::UpdateDSPSlice(static_cast<int>(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
 	CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
-static void AudioDMACallback(u64 userdata, int cyclesLate)
+static void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
 	int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / (32 * SConfig::GetInstance().m_AudioSlowDown));
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
 
-static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
+static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
 	if (SConfig::GetInstance().bWii)
 	{
@@ -128,36 +123,20 @@ static void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 	}
 }
 
-static void VICallback(u64 userdata, int cyclesLate)
+static void VICallback(u64 userdata, s64 cyclesLate)
 {
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
-static void SICallback(u64 userdata, int cyclesLate)
-{
-	SerialInterface::UpdateDevices();
-	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
-}
-
-static void HotkeysXInputCallback(u64 userdata, int cyclesLate)
+static void HotkeysXInputCallback(u64 userdata, s64 cyclesLate)
 {
 	if (SConfig::GetInstance().bHotkeysXInput)
 		HotkeysXInput::Update();
-	CoreTiming::ScheduleEvent((SerialInterface::GetTicksToNextSIPoll()*12) - cyclesLate, et_HotkeysXInput);
+	CoreTiming::ScheduleEvent(((SystemTimers::GetTicksPerSecond() / 60) * 12) - cyclesLate, et_HotkeysXInput);
 }
 
-static void CPCallback(u64 userdata, int cyclesLate)
-{
-	u64 now = CoreTiming::GetTicks();
-	int next = g_video_backend->Video_Sync((int)(now - s_last_sync_gpu_tick));
-	s_last_sync_gpu_tick = now;
-
-	if (next > 0)
-		CoreTiming::ScheduleEvent(next, et_CP);
-}
-
-static void DecrementerCallback(u64 userdata, int cyclesLate)
+static void DecrementerCallback(u64 userdata, s64 cyclesLate)
 {
 	PowerPC::ppcState.spr[SPR_DEC] = 0xFFFFFFFF;
 	PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
@@ -193,38 +172,36 @@ u64 GetFakeTimeBase()
 	return CoreTiming::GetFakeTBStartValue() + ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-static void PatchEngineCallback(u64 userdata, int cyclesLate)
+static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
 {
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
 }
 
-static void ThrottleCallback(u64 last_time, int cyclesLate)
+static void ThrottleCallback(u64 last_time, s64 cyclesLate)
 {
 	// Allow the GPU thread to sleep. Setting this flag here limits the wakeups to 1 kHz.
-	GpuMaySleep();
+	Fifo::GpuMaySleep();
 
 	u32 time = Common::Timer::GetTimeMs();
 
 	int diff = (u32)last_time - time;
 	const SConfig& config = SConfig::GetInstance();
-	bool frame_limiter = config.m_Framelimit && !Core::GetIsFramelimiterTempDisabled();
+	bool frame_limiter = config.m_EmulationSpeed > 0.0f && !Core::GetIsThrottlerTempDisabled();
 	u32 next_event = GetTicksPerSecond()/1000;
-	if (SConfig::GetInstance().m_Framelimit > 1)
+	if (frame_limiter)
 	{
-		next_event = next_event * (SConfig::GetInstance().m_Framelimit - 1) * 5 / VideoInterface::TargetRefreshRate;
-	}
-
-	const int max_fallback = 40; // 40 ms for one frame on 25 fps games
-	if (frame_limiter && abs(diff) > max_fallback)
-	{
-		DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
-		last_time = time - max_fallback;
-	}
-	else if (frame_limiter && diff > 0)
-	{
-		Common::SleepCurrentThread(diff);
+		if (config.m_EmulationSpeed != 1.0f)
+			next_event = u32(next_event * config.m_EmulationSpeed);
+		const int max_fallback = config.iTimingVariance;
+		if (abs(diff) > max_fallback)
+		{
+			DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff<0 ? "slow" : "fast", abs(diff) - max_fallback);
+			last_time = time - max_fallback;
+		}
+		else if (diff > 0)
+			Common::SleepCurrentThread(diff);
 	}
 	CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
 }
@@ -264,11 +241,7 @@ void Init()
 
 	et_Dec = CoreTiming::RegisterEvent("DecCallback", DecrementerCallback);
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
-	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	et_HotkeysXInput = CoreTiming::RegisterEvent("HotkeysXInputCallback", HotkeysXInputCallback);
-	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
-	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
-		et_CP = CoreTiming::RegisterEvent("CPCallback", CPCallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
@@ -277,12 +250,8 @@ void Init()
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
 	CoreTiming::ScheduleEvent(0, et_DSP);
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_SI);
 	CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
 	CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
-	if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
-		CoreTiming::ScheduleEvent(0, et_CP);
-	s_last_sync_gpu_tick = CoreTiming::GetTicks();
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
 

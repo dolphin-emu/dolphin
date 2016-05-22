@@ -7,9 +7,12 @@
 #include "VideoCommon/VR920.h"
 #endif
 
+#include <memory>
+
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
@@ -21,7 +24,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
-namespace DX11 {
+namespace DX11
+{
 
 static XFBEncoder s_xfbEncoder;
 AvatarDrawer s_avatarDrawer;
@@ -42,26 +46,44 @@ ID3D11Texture2D* &FramebufferManager::GetEFBDepthStagingBuffer() { return m_efb.
 
 D3DTexture2D* &FramebufferManager::GetResolvedEFBColorTexture()
 {
-	if (g_ActiveConfig.iMultisampleMode)
+	if (g_ActiveConfig.iMultisamples > 1)
 	{
 		for (int i = 0; i < m_efb.slices; i++)
 			D3D::context->ResolveSubresource(m_efb.resolved_color_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.color_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R8G8B8A8_UNORM);
 		return m_efb.resolved_color_tex;
 	}
 	else
+	{
 		return m_efb.color_tex;
+	}
 }
 
 D3DTexture2D* &FramebufferManager::GetResolvedEFBDepthTexture()
 {
-	if (g_ActiveConfig.iMultisampleMode)
+	if (g_ActiveConfig.iMultisamples > 1)
 	{
-		for (int i = 0; i < m_efb.slices; i++)
-			D3D::context->ResolveSubresource(m_efb.resolved_depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), m_efb.depth_tex->GetTex(), D3D11CalcSubresource(0, i, 1), DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+		// ResolveSubresource does not work with depth textures.
+		// Instead, we use a shader that selects the minimum depth from all samples.
+		g_renderer->ResetAPIState();
+
+		CD3D11_VIEWPORT viewport(0.f, 0.f, (float)m_target_width, (float)m_target_height);
+		D3D::context->RSSetViewports(1, &viewport);
+		D3D::context->OMSetRenderTargets(1, &m_efb.resolved_depth_tex->GetRTV(), nullptr);
+
+		const D3D11_RECT source_rect = CD3D11_RECT(0, 0, m_target_width, m_target_height);
+		D3D::drawShadedTexQuad(m_efb.depth_tex->GetSRV(), &source_rect, m_target_width, m_target_height,
+			PixelShaderCache::GetDepthResolveProgram(), VertexShaderCache::GetSimpleVertexShader(),
+			VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
+
+		D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(), FramebufferManager::GetEFBDepthTexture()->GetDSV());
+		g_renderer->RestoreAPIState();
+
 		return m_efb.resolved_depth_tex;
 	}
 	else
+	{
 		return m_efb.depth_tex;
+	}
 }
 
 FramebufferManager::FramebufferManager()
@@ -87,7 +109,9 @@ FramebufferManager::FramebufferManager()
 	{
 		m_target_width = 1;
 	}
-	DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
+	DXGI_SAMPLE_DESC sample_desc;
+	sample_desc.Count = g_ActiveConfig.iMultisamples;
+	sample_desc.Quality = 0;
 
 	if (g_has_hmd)
 		VR_ConfigureHMD();
@@ -103,7 +127,6 @@ FramebufferManager::FramebufferManager()
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 	CHECK(hr==S_OK, "create EFB color texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
 	m_efb.color_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1));
-	CHECK(m_efb.color_tex!=nullptr, "create EFB color texture (size: %dx%d)", m_target_width, m_target_height);
 	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetTex(), "EFB color texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
@@ -114,7 +137,6 @@ FramebufferManager::FramebufferManager()
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 	CHECK(hr==S_OK, "create EFB color temp texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
 	m_efb.color_temp_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE|D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R8G8B8A8_UNORM, (sample_desc.Count > 1));
-	CHECK(m_efb.color_temp_tex!=nullptr, "create EFB color temp texture (size: %dx%d)", m_target_width, m_target_height);
 	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetTex(), "EFB color temp texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_temp_tex->GetSRV(), "EFB color temp texture shader resource view");
@@ -127,10 +149,10 @@ FramebufferManager::FramebufferManager()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
 
 	// EFB depth buffer - primary depth buffer
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, sample_desc.Count, sample_desc.Quality);
 	hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 	CHECK(hr==S_OK, "create EFB depth texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
-	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, DXGI_FORMAT_D24_UNORM_S8_UINT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
+	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_D32_FLOAT, DXGI_FORMAT_UNKNOWN, (sample_desc.Count > 1));
 	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetTex(), "EFB depth texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
@@ -151,21 +173,21 @@ FramebufferManager::FramebufferManager()
 	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_staging_buf, "EFB depth staging texture (used for Renderer::AccessEFB)");
 
-	if (g_ActiveConfig.iMultisampleMode)
+	if (g_ActiveConfig.iMultisamples > 1)
 	{
 		// Framebuffer resolve textures (color+depth)
 		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DEFAULT, 0, 1);
 		hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
+		CHECK(hr==S_OK, "create EFB color resolve texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
 		m_efb.resolved_color_tex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R8G8B8A8_UNORM);
-		CHECK(m_efb.resolved_color_tex!=nullptr, "create EFB color resolve texture (size: %dx%d)", m_target_width, m_target_height);
 		SAFE_RELEASE(buf);
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_color_tex->GetTex(), "EFB color resolve texture");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_color_tex->GetSRV(), "EFB color resolve texture shader resource view");
 
-		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE);
+		texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R32_FLOAT, m_target_width, m_target_height, m_efb.slices, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET);
 		hr = D3D::device->CreateTexture2D(&texdesc, nullptr, &buf);
 		CHECK(hr==S_OK, "create EFB depth resolve texture (size: %dx%d; hr=%#x)", m_target_width, m_target_height, hr);
-		m_efb.resolved_depth_tex = new D3DTexture2D(buf, D3D11_BIND_SHADER_RESOURCE, DXGI_FORMAT_R24_UNORM_X8_TYPELESS);
+		m_efb.resolved_depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET), DXGI_FORMAT_R32_FLOAT, DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_R32_FLOAT);
 		SAFE_RELEASE(buf);
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetTex(), "EFB depth resolve texture");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.resolved_depth_tex->GetSRV(), "EFB depth resolve texture shader resource view");
@@ -207,9 +229,9 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, 
 	s_xfbEncoder.Encode(dst, fbStride/2, fbHeight, sourceRc, Gamma);
 }
 
-XFBSourceBase* FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
+std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers)
 {
-	return new XFBSource(D3DTexture2D::Create(target_width, target_height,
+	return std::make_unique<XFBSource>(D3DTexture2D::Create(target_width, target_height,
 		(D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE),
 		D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM, 1, layers), layers);
 }
@@ -232,12 +254,13 @@ void XFBSource::CopyEFB(float Gamma)
 
 	// Copy EFB data to XFB and restore render target again
 	const D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)texWidth, (float)texHeight);
+	const D3D11_RECT rect = CD3D11_RECT(0, 0, texWidth, texHeight);
 
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &tex->GetRTV(), nullptr);
-	D3D::SetLinearCopySampler();
+	D3D::SetPointCopySampler();
 
-	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), sourceRc.AsRECT(),
+	D3D::drawShadedTexQuad(FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect,
 		Renderer::GetTargetWidth(), Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
 		VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
 		GeometryShaderCache::GetCopyGeometryShader(), Gamma);

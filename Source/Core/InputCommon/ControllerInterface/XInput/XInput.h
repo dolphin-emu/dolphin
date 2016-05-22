@@ -91,7 +91,8 @@ public:
 
 private:
 	XINPUT_STATE m_state_in;
-	XINPUT_VIBRATION m_state_out;
+	XINPUT_VIBRATION m_state_out{};
+	XINPUT_VIBRATION m_current_state_out{};
 	const BYTE m_subtype;
 	const u8 m_index;
 };

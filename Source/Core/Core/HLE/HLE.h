@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <map>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -35,6 +34,4 @@ namespace HLE
 	int GetFunctionFlagsByIndex(u32 index);
 
 	bool IsEnabled(int flags);
-
-	static std::map<u32, u32> orig_instruction;
 }

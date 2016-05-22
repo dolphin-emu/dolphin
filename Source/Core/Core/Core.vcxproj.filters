@@ -315,6 +315,9 @@
     <ClCompile Include="HW\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
+    <ClCompile Include="HW\DVDThread.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
@@ -442,6 +445,9 @@
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\SI_DeviceGBA.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\SI_DeviceGCAdapter.cpp">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\SI_DeviceGCController.cpp">
@@ -720,10 +726,6 @@
     <ClCompile Include="HW\WiimoteEmu\HydraTLayer.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
-    <ClCompile Include="HW\SI_GCAdapter.cpp">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
-    </ClCompile>
-    <ClCompile Include="HideObjectEngine.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -855,6 +857,9 @@
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DVDInterface.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DVDThread.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
@@ -990,6 +995,9 @@
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\SI_DeviceGBA.h">
+      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\SI_DeviceGCAdapter.h">
       <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\SI_DeviceGCController.h">
@@ -1241,9 +1249,6 @@
     </ClInclude>
     <ClInclude Include="HW\GCKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="HW\SI_GCAdapter.h">
-      <Filter>HW %28Flipper/Hollywood%29\SI - Serial Interface</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>

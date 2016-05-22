@@ -16,10 +16,6 @@
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 
-extern "C" {
-#include "DolphinWX/resources/toolbar_debugger_delete.c"
-}
-
 class CWatchToolbar : public wxAuiToolBar
 {
 public:
@@ -29,7 +25,7 @@ CWatchToolbar(CWatchWindow* parent, const wxWindowID id)
 {
 	SetToolBitmapSize(wxSize(16, 16));
 
-	m_Bitmaps[Toolbar_File] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(16, 16));
+	m_Bitmaps[Toolbar_File] = WxUtils::LoadResourceBitmap("toolbar_debugger_delete");
 
 	AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_File]);
 	Bind(wxEVT_TOOL, &CWatchWindow::Event_LoadAll, parent, ID_LOAD);

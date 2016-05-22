@@ -988,9 +988,4 @@ bool RunCode(const ARCode &arcode)
 	return true;
 }
 
-std::vector<ARCode>* GetARCodes()
-{
-	return &arCodes;
-}
-
 } // namespace ActionReplay

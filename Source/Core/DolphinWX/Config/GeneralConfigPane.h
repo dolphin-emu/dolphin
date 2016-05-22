@@ -33,10 +33,10 @@ private:
 	void OnIdleSkipCheckBoxChanged(wxCommandEvent&);
 	void OnCheatCheckBoxChanged(wxCommandEvent&);
 	void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
-	void OnFrameLimitChoiceChanged(wxCommandEvent&);
+	void OnThrottlerChoiceChanged(wxCommandEvent&);
 	void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
 
-	wxArrayString m_frame_limit_array_string;
+	wxArrayString m_throttler_array_string;
 	wxArrayString m_gpu_determinism_string;
 	wxArrayString m_cpu_engine_array_string;
 
@@ -45,7 +45,7 @@ private:
 	wxCheckBox* m_cheats_checkbox;
 	wxCheckBox* m_force_ntscj_checkbox;
 
-	wxChoice* m_frame_limit_choice;
+	wxChoice* m_throttler_choice;
 	wxChoice* m_gpu_determinism;
 
 	wxRadioBox* m_cpu_engine_radiobox;

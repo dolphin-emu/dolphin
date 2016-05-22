@@ -5,7 +5,9 @@
 #include <cmath>
 #include <limits>
 
+#include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 
@@ -24,7 +26,6 @@ void Interpreter::Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa,
 
 	if (std::isnan(fa) || std::isnan(fb))
 	{
-		FPSCR.FX = 1;
 		compareResult = FPCC::FU;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
@@ -68,7 +69,6 @@ void Interpreter::Helper_FloatCompareUnordered(UGeckoInstruction _inst, double f
 
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.FX = 1;
 			SetFPException(FPSCR_VXSNAN);
 		}
 	}
@@ -172,7 +172,7 @@ void Interpreter::fctiwx(UGeckoInstruction _inst)
 	// based on HW tests
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
-	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+	if (value == 0 && std::signbit(b))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -218,7 +218,7 @@ void Interpreter::fctiwzx(UGeckoInstruction _inst)
 	// based on HW tests
 	// FPRF is not affected
 	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
-	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+	if (value == 0 && std::signbit(b))
 		riPS0(_inst.FD) |= 0x100000000ull;
 	if (_inst.Rc)
 		Helper_UpdateCR1();
@@ -272,15 +272,17 @@ void Interpreter::fselx(UGeckoInstruction _inst)
 // !!! warning !!!
 // PS1 must be set to the value of PS0 or DragonballZ will be f**ked up
 // PS1 is said to be undefined
-void Interpreter::frspx(UGeckoInstruction _inst)  // round to single
+void Interpreter::frspx(UGeckoInstruction inst)  // round to single
 {
-	double b = rPS0(_inst.FB);
+	double b = rPS0(inst.FB);
 	double rounded = ForceSingle(b);
 	SetFI(b != rounded);
 	FPSCR.FR = fabs(rounded) > fabs(b);
 	UpdateFPRF(rounded);
-	rPS0(_inst.FD) = rPS1(_inst.FD) = rounded;
-	return;
+	rPS0(inst.FD) = rPS1(inst.FD) = rounded;
+
+	if (inst.Rc)
+		Helper_UpdateCR1();
 }
 
 

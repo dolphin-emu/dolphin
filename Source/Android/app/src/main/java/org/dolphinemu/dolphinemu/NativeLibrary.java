@@ -6,11 +6,12 @@
 
 package org.dolphinemu.dolphinemu;
 
-import android.util.Log;
+
 import android.view.Surface;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 /**
  * Class which contains methods that interact
@@ -18,46 +19,171 @@ import org.dolphinemu.dolphinemu.activities.EmulationActivity;
  */
 public final class NativeLibrary
 {
-	private static EmulationActivity mEmulationActivity;
+	public static EmulationActivity sEmulationActivity;
 
 	/**
 	 * Button type for use in onTouchEvent
 	 */
 	public static final class ButtonType
 	{
-		public static final int BUTTON_A             = 0;
-		public static final int BUTTON_B             = 1;
-		public static final int BUTTON_START         = 2;
-		public static final int BUTTON_X             = 3;
-		public static final int BUTTON_Y             = 4;
-		public static final int BUTTON_Z             = 5;
-		public static final int BUTTON_UP            = 6;
-		public static final int BUTTON_DOWN          = 7;
-		public static final int BUTTON_LEFT          = 8;
-		public static final int BUTTON_RIGHT         = 9;
-		public static final int STICK_MAIN           = 10;
-		public static final int STICK_MAIN_UP        = 11;
-		public static final int STICK_MAIN_DOWN      = 12;
-		public static final int STICK_MAIN_LEFT      = 13;
-		public static final int STICK_MAIN_RIGHT     = 14;
-		public static final int STICK_C              = 15;
-		public static final int STICK_C_UP           = 16;
-		public static final int STICK_C_DOWN         = 17;
-		public static final int STICK_C_LEFT         = 18;
-		public static final int STICK_C_RIGHT        = 19;
-		public static final int TRIGGER_L            = 20;
-		public static final int TRIGGER_R            = 21;
-		public static final int WIIMOTE_BUTTON_A     = 22;
-		public static final int WIIMOTE_BUTTON_B     = 23;
-		public static final int WIIMOTE_BUTTON_MINUS = 24;
-		public static final int WIIMOTE_BUTTON_PLUS  = 25;
-		public static final int WIIMOTE_BUTTON_HOME  = 26;
-		public static final int WIIMOTE_BUTTON_1     = 27;
-		public static final int WIIMOTE_BUTTON_2     = 28;
-		public static final int WIIMOTE_UP           = 29;
-		public static final int WIIMOTE_DOWN         = 30;
-		public static final int WIIMOTE_LEFT         = 31;
-		public static final int WIIMOTE_RIGHT        = 32;
+		public static final int BUTTON_A                     =   0;
+		public static final int BUTTON_B                     =   1;
+		public static final int BUTTON_START                 =   2;
+		public static final int BUTTON_X                     =   3;
+		public static final int BUTTON_Y                     =   4;
+		public static final int BUTTON_Z                     =   5;
+		public static final int BUTTON_UP                    =   6;
+		public static final int BUTTON_DOWN                  =   7;
+		public static final int BUTTON_LEFT                  =   8;
+		public static final int BUTTON_RIGHT                 =   9;
+		public static final int STICK_MAIN                   =  10;
+		public static final int STICK_MAIN_UP                =  11;
+		public static final int STICK_MAIN_DOWN              =  12;
+		public static final int STICK_MAIN_LEFT              =  13;
+		public static final int STICK_MAIN_RIGHT             =  14;
+		public static final int STICK_C                      =  15;
+		public static final int STICK_C_UP                   =  16;
+		public static final int STICK_C_DOWN                 =  17;
+		public static final int STICK_C_LEFT                 =  18;
+		public static final int STICK_C_RIGHT                =  19;
+		public static final int TRIGGER_L                    =  20;
+		public static final int TRIGGER_R                    =  21;
+		public static final int WIIMOTE_BUTTON_A             = 100;
+		public static final int WIIMOTE_BUTTON_B             = 101;
+		public static final int WIIMOTE_BUTTON_MINUS         = 102;
+		public static final int WIIMOTE_BUTTON_PLUS          = 103;
+		public static final int WIIMOTE_BUTTON_HOME          = 104;
+		public static final int WIIMOTE_BUTTON_1             = 105;
+		public static final int WIIMOTE_BUTTON_2             = 106;
+		public static final int WIIMOTE_UP                   = 107;
+		public static final int WIIMOTE_DOWN                 = 108;
+		public static final int WIIMOTE_LEFT                 = 119;
+		public static final int WIIMOTE_RIGHT                = 110;
+		public static final int WIIMOTE_IR                   = 111;
+		public static final int WIIMOTE_IR_UP                = 112;
+		public static final int WIIMOTE_IR_DOWN              = 113;
+		public static final int WIIMOTE_IR_LEFT              = 114;
+		public static final int WIIMOTE_IR_RIGHT             = 115;
+		public static final int WIIMOTE_IR_FORWARD           = 116;
+		public static final int WIIMOTE_IR_BACKWARD          = 117;
+		public static final int WIIMOTE_IR_HIDE              = 118;
+		public static final int WIIMOTE_SWING                = 119;
+		public static final int WIIMOTE_SWING_UP             = 120;
+		public static final int WIIMOTE_SWING_DOWN           = 121;
+		public static final int WIIMOTE_SWING_LEFT           = 122;
+		public static final int WIIMOTE_SWING_RIGHT          = 123;
+		public static final int WIIMOTE_SWING_FORWARD        = 124;
+		public static final int WIIMOTE_SWING_BACKWARD       = 125;
+		public static final int WIIMOTE_TILT                 = 126;
+		public static final int WIIMOTE_TILT_FORWARD         = 127;
+		public static final int WIIMOTE_TILT_BACKWARD        = 128;
+		public static final int WIIMOTE_TILT_LEFT            = 129;
+		public static final int WIIMOTE_TILT_RIGHT           = 130;
+		public static final int WIIMOTE_TILT_MODIFIER        = 131;
+		public static final int WIIMOTE_SHAKE_X              = 132;
+		public static final int WIIMOTE_SHAKE_Y              = 133;
+		public static final int WIIMOTE_SHAKE_Z              = 134;
+		public static final int NUNCHUK_BUTTON_C             = 200;
+		public static final int NUNCHUK_BUTTON_Z             = 201;
+		public static final int NUNCHUK_STICK                = 202;
+		public static final int NUNCHUK_STICK_UP             = 203;
+		public static final int NUNCHUK_STICK_DOWN           = 204;
+		public static final int NUNCHUK_STICK_LEFT           = 205;
+		public static final int NUNCHUK_STICK_RIGHT          = 206;
+		public static final int NUNCHUK_SWING                = 207;
+		public static final int NUNCHUK_SWING_UP             = 208;
+		public static final int NUNCHUK_SWING_DOWN           = 209;
+		public static final int NUNCHUK_SWING_LEFT           = 210;
+		public static final int NUNCHUK_SWING_RIGHT          = 221;
+		public static final int NUNCHUK_SWING_FORWARD        = 212;
+		public static final int NUNCHUK_SWING_BACKWARD       = 213;
+		public static final int NUNCHUK_TILT                 = 214;
+		public static final int NUNCHUK_TILT_FORWARD         = 215;
+		public static final int NUNCHUK_TILT_BACKWARD        = 216;
+		public static final int NUNCHUK_TILT_LEFT            = 217;
+		public static final int NUNCHUK_TILT_RIGHT           = 218;
+		public static final int NUNCHUK_TILT_MODIFIER        = 219;
+		public static final int NUNCHUK_SHAKE_X              = 220;
+		public static final int NUNCHUK_SHAKE_Y              = 221;
+		public static final int NUNCHUK_SHAKE_Z              = 222;
+		public static final int CLASSIC_BUTTON_A             = 300;
+		public static final int CLASSIC_BUTTON_B             = 301;
+		public static final int CLASSIC_BUTTON_X             = 302;
+		public static final int CLASSIC_BUTTON_Y             = 303;
+		public static final int CLASSIC_BUTTON_MINUS         = 304;
+		public static final int CLASSIC_BUTTON_PLUS          = 305;
+		public static final int CLASSIC_BUTTON_HOME          = 306;
+		public static final int CLASSIC_BUTTON_ZL            = 307;
+		public static final int CLASSIC_BUTTON_ZR            = 308;
+		public static final int CLASSIC_DPAD_UP              = 309;
+		public static final int CLASSIC_DPAD_DOWN            = 310;
+		public static final int CLASSIC_DPAD_LEFT            = 311;
+		public static final int CLASSIC_DPADON_RIGHT         = 312;
+		public static final int CLASSIC_STICK_LEFT           = 313;
+		public static final int CLASSIC_STICK_LEFT_UP        = 314;
+		public static final int CLASSIC_STICK_LEFT_DOWN      = 315;
+		public static final int CLASSIC_STICK_LEFT_LEFT      = 316;
+		public static final int CLASSIC_STICK_LEFT_RIGHT     = 317;
+		public static final int CLASSIC_STICK_RIGHT          = 318;
+		public static final int CLASSIC_STICK_RIGHT_UP       = 319;
+		public static final int CLASSIC_STICK_RIGHT_DOWN     = 100;
+		public static final int CLASSIC_STICK_RIGHT_LEFT     = 321;
+		public static final int CLASSIC_STICK_RIGHT_RIGHT    = 322;
+		public static final int CLASSIC_TRIGGER_L            = 323;
+		public static final int CLASSIC_TRIGGER_R            = 324;
+		public static final int GUITAR_BUTTON_MINUS          = 400;
+		public static final int GUITAR_BUTTON_PLUS           = 401;
+		public static final int GUITAR_FRET_GREEN            = 402;
+		public static final int GUITAR_FRET_RED              = 403;
+		public static final int GUITAR_FRET_YELLOW           = 404;
+		public static final int GUITAR_FRET_BLUE             = 405;
+		public static final int GUITAR_FRET_ORANGE           = 406;
+		public static final int GUITAR_STRUM_UP              = 407;
+		public static final int GUITAR_STRUM_DOWN            = 408;
+		public static final int GUITAR_STICK                 = 409;
+		public static final int GUITAR_STICK_UP              = 410;
+		public static final int GUITAR_STICK_DOWN            = 411;
+		public static final int GUITAR_STICK_LEFT            = 412;
+		public static final int GUITAR_STICK_RIGHT           = 413;
+		public static final int GUITAR_WHAMMY_BAR            = 414;
+		public static final int DRUMS_BUTTON_MINUS           = 500;
+		public static final int DRUMS_BUTTON_PLUS            = 501;
+		public static final int DRUMS_PAD_RED                = 502;
+		public static final int DRUMS_PAD_YELLOW             = 503;
+		public static final int DRUMS_PAD_BLUE               = 504;
+		public static final int DRUMS_PAD_GREEN              = 505;
+		public static final int DRUMS_PAD_ORANGE             = 506;
+		public static final int DRUMS_PAD_BASS               = 507;
+		public static final int DRUMS_STICK                  = 508;
+		public static final int DRUMS_STICK_UP               = 509;
+		public static final int DRUMS_STICK_DOWN             = 510;
+		public static final int DRUMS_STICK_LEFT             = 511;
+		public static final int DRUMS_STICK_RIGHT            = 512;
+		public static final int TURNTABLE_BUTTON_GREEN_LEFT  = 600;
+		public static final int TURNTABLE_BUTTON_RED_LEFT    = 601;
+		public static final int TURNTABLE_BUTTON_BLUE_LEFT   = 602;
+		public static final int TURNTABLE_BUTTON_GREEN_RIGHT = 603;
+		public static final int TURNTABLE_BUTTON_RED_RIGHT   = 604;
+		public static final int TURNTABLE_BUTTON_BLUE_RIGHT  = 605;
+		public static final int TURNTABLE_BUTTON_MINUS       = 606;
+		public static final int TURNTABLE_BUTTON_PLUS        = 607;
+		public static final int TURNTABLE_BUTTON_HOME        = 608;
+		public static final int TURNTABLE_BUTTON_EUPHORIA    = 609;
+		public static final int TURNTABLE_TABLE_LEFT         = 610;
+		public static final int TURNTABLE_TABLE_LEFT_LEFT    = 611;
+		public static final int TURNTABLE_TABLE_LEFT_RIGHT   = 612;
+		public static final int TURNTABLE_TABLE_RIGHT        = 613;
+		public static final int TURNTABLE_TABLE_RIGHT_LEFT   = 614;
+		public static final int TURNTABLE_TABLE_RIGHT_RIGHT  = 615;
+		public static final int TURNTABLE_STICK              = 616;
+		public static final int TURNTABLE_STICK_UP           = 617;
+		public static final int TURNTABLE_STICK_DOWN         = 618;
+		public static final int TURNTABLE_STICK_LEFT         = 619;
+		public static final int TURNTABLE_STICK_RIGHT        = 620;
+		public static final int TURNTABLE_EFFECT_DIAL        = 621;
+		public static final int TURNTABLE_CROSSFADE          = 622;
+		public static final int TURNTABLE_CROSSFADE_LEFT     = 623;
+		public static final int TURNTABLE_CROSSFADE_RIGHT    = 624;
 	}
 
 	/**
@@ -84,7 +210,7 @@ public final class NativeLibrary
 	 * 
 	 * @param Device The input descriptor of the gamepad.
 	 * @param Button Key code identifying which button was pressed.
-	 * @param Action Mask identifying which action is happing (button pressed down, or button released).
+	 * @param Action Mask identifying which action is happening (button pressed down, or button released).
 	 *
 	 * @return If we handled the button press.
 	 */
@@ -208,10 +334,12 @@ public final class NativeLibrary
 
 	/**
 	 * Begins emulation.
-	 * 
-	 * @param surf The surface to render to.
 	 */
-	public static native void Run(Surface surf);
+	public static native void Run();
+
+	// Surface Handling
+	public static native void SurfaceChanged(Surface surf);
+	public static native void SurfaceDestroyed();
 
 	/** Unpauses emulation from a paused state. */
 	public static native void UnPauseEmulation();
@@ -252,6 +380,11 @@ public final class NativeLibrary
 	public static native void eglBindAPI(int api);
 
 	/**
+	 * Provides a way to refresh the connections on Wiimotes
+	 */
+	public static native void RefreshWiimotes();
+
+	/**
 	 * The methods C++ uses to find references to Java classes and methods
 	 * are really expensive. Rather than calling them every time we want to
 	 * run them, do it once when we load the native library.
@@ -266,7 +399,7 @@ public final class NativeLibrary
 		}
 		catch (UnsatisfiedLinkError ex)
 		{
-			Log.e("NativeLibrary", ex.toString());
+			Log.error("[NativeLibrary] " + ex.toString());
 		}
 
 		CacheClassesAndMethods();
@@ -274,26 +407,26 @@ public final class NativeLibrary
 
 	public static void displayAlertMsg(final String alert)
 	{
-		Log.e("DolphinEmu", "Alert: " + alert);
-		mEmulationActivity.runOnUiThread(new Runnable()
+		Log.error("[NativeLibrary] Alert: " + alert);
+		sEmulationActivity.runOnUiThread(new Runnable()
 		{
 			@Override
 			public void run()
 			{
-				Toast.makeText(mEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
+				Toast.makeText(sEmulationActivity, "Panic Alert: " + alert, Toast.LENGTH_LONG).show();
 			}
 		});
 	}
 
 	public static void endEmulationActivity()
 	{
-		Log.v("DolphinEmu", "Ending EmulationActivity.");
-		mEmulationActivity.exitWithAnimation();
+		Log.verbose("[NativeLibrary]Ending EmulationActivity.");
+		sEmulationActivity.exitWithAnimation();
 	}
 
 	public static void setEmulationActivity(EmulationActivity emulationActivity)
 	{
-		Log.v("DolphinEmu", "Registering EmulationActivity.");
-		mEmulationActivity = emulationActivity;
+		Log.verbose("[NativeLibrary]Registering EmulationActivity.");
+		sEmulationActivity = emulationActivity;
 	}
 }

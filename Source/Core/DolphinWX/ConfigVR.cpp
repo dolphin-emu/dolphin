@@ -11,6 +11,8 @@
 
 #include "DolphinWX/WXInputBase.h"
 
+#include "Common/FileUtil.h"
+
 #include "Core/Core.h"
 
 #include "DolphinWX/ConfigVR.h"
@@ -263,7 +265,7 @@ void CConfigVR::CreateGUIControls()
 		// Opcode Replay Buffer GUI Options
 		wxFlexGridSizer* const szr_opcode = new wxFlexGridSizer(4, 10, 10);
 		{
-			spin_replay_buffer = new U32Setting(page_vr, wxTRANSLATE("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 100000);
+			spin_replay_buffer = new U32Setting(page_vr, wxTRANSLATE("Extra Opcode Replay Frames:"), vconfig.iExtraVideoLoops, 0, 120);
 			RegisterControl(spin_replay_buffer, wxGetTranslation(replaybuffer_desc));
 			spin_replay_buffer->SetToolTip(wxGetTranslation(replaybuffer_desc));
 			spin_replay_buffer->SetValue(vconfig.iExtraVideoLoops);

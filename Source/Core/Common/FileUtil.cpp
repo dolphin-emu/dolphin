@@ -58,7 +58,7 @@ namespace File
 
 // Remove any ending forward slashes from directory paths
 // Modifies argument.
-static void StripTailDirSlashes(std::string &fname)
+static void StripTailDirSlashes(std::string& fname)
 {
 	if (fname.length() > 1)
 	{
@@ -68,7 +68,7 @@ static void StripTailDirSlashes(std::string &fname)
 }
 
 // Returns true if file filename exists
-bool Exists(const std::string &filename)
+bool Exists(const std::string& filename)
 {
 	struct stat64 file_info;
 
@@ -85,7 +85,7 @@ bool Exists(const std::string &filename)
 }
 
 // Returns true if filename is a directory
-bool IsDirectory(const std::string &filename)
+bool IsDirectory(const std::string& filename)
 {
 	struct stat64 file_info;
 
@@ -110,7 +110,7 @@ bool IsDirectory(const std::string &filename)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string &filename)
+bool Delete(const std::string& filename)
 {
 	INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
@@ -149,7 +149,7 @@ bool Delete(const std::string &filename)
 }
 
 // Returns true if successful, or path already exists.
-bool CreateDir(const std::string &path)
+bool CreateDir(const std::string& path)
 {
 	INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
 #ifdef _WIN32
@@ -181,7 +181,7 @@ bool CreateDir(const std::string &path)
 }
 
 // Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string &fullPath)
+bool CreateFullPath(const std::string& fullPath)
 {
 	int panicCounter = 100;
 	INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
@@ -220,7 +220,7 @@ bool CreateFullPath(const std::string &fullPath)
 
 
 // Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string &filename)
+bool DeleteDir(const std::string& filename)
 {
 	INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
 
@@ -244,7 +244,7 @@ bool DeleteDir(const std::string &filename)
 }
 
 // renames file srcFilename to destFilename, returns true on success
-bool Rename(const std::string &srcFilename, const std::string &destFilename)
+bool Rename(const std::string& srcFilename, const std::string& destFilename)
 {
 	INFO_LOG(COMMON, "Rename: %s --> %s",
 			srcFilename.c_str(), destFilename.c_str());
@@ -271,7 +271,7 @@ bool Rename(const std::string &srcFilename, const std::string &destFilename)
 }
 
 #ifndef _WIN32
-static void FSyncPath(const char *path)
+static void FSyncPath(const char* path)
 {
 	int fd = open(path, O_RDONLY);
 	if (fd != -1)
@@ -282,7 +282,7 @@ static void FSyncPath(const char *path)
 }
 #endif
 
-bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
+bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 {
 	if (!Rename(srcFilename, destFilename))
 		return false;
@@ -294,7 +294,7 @@ bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
 		close(fd);
 	}
 #else
-	char *path = strdup(srcFilename.c_str());
+	char* path = strdup(srcFilename.c_str());
 	FSyncPath(path);
 	FSyncPath(dirname(path));
 	free(path);
@@ -306,7 +306,7 @@ bool RenameSync(const std::string &srcFilename, const std::string &destFilename)
 }
 
 // copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string &srcFilename, const std::string &destFilename)
+bool Copy(const std::string& srcFilename, const std::string& destFilename)
 {
 	INFO_LOG(COMMON, "Copy: %s --> %s",
 			srcFilename.c_str(), destFilename.c_str());
@@ -372,7 +372,7 @@ bool Copy(const std::string &srcFilename, const std::string &destFilename)
 }
 
 // Returns the size of filename (64bit)
-u64 GetSize(const std::string &filename)
+u64 GetSize(const std::string& filename)
 {
 	if (!Exists(filename))
 	{
@@ -417,7 +417,7 @@ u64 GetSize(const int fd)
 }
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE *f)
+u64 GetSize(FILE* f)
 {
 	// can't use off_t here because it can be 32-bit
 	u64 pos = ftello(f);
@@ -440,7 +440,7 @@ u64 GetSize(FILE *f)
 }
 
 // creates an empty file filename, returns true on success
-bool CreateEmptyFile(const std::string &filename)
+bool CreateEmptyFile(const std::string& filename)
 {
 	INFO_LOG(COMMON, "CreateEmptyFile: %s", filename.c_str());
 
@@ -457,7 +457,7 @@ bool CreateEmptyFile(const std::string &filename)
 
 // Scans the directory tree gets, starting from _Directory and adds the
 // results into parentEntry. Returns the number of files+directories found
-FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
+FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
 	INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
 	// How many files + directories we found
@@ -482,7 +482,7 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 #else
 	struct dirent dirent, *result = nullptr;
 
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 			return parent_entry;
 
@@ -527,9 +527,11 @@ FSTEntry ScanDirectoryTree(const std::string &directory, bool recursive)
 
 
 // Deletes the given directory and anything under it. Returns true on success.
-bool DeleteDirRecursively(const std::string &directory)
+bool DeleteDirRecursively(const std::string& directory)
 {
 	INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
+	bool success = true;
+
 #ifdef _WIN32
 	// Find the first file in the directory.
 	WIN32_FIND_DATA ffd;
@@ -547,7 +549,7 @@ bool DeleteDirRecursively(const std::string &directory)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(directory.c_str());
+	DIR* dirp = opendir(directory.c_str());
 	if (!dirp)
 		return false;
 
@@ -568,22 +570,16 @@ bool DeleteDirRecursively(const std::string &directory)
 		{
 			if (!DeleteDirRecursively(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 		else
 		{
 			if (!File::Delete(newPath))
 			{
-				#ifndef _WIN32
-				closedir(dirp);
-				#endif
-
-				return false;
+				success = false;
+				break;
 			}
 		}
 
@@ -594,13 +590,14 @@ bool DeleteDirRecursively(const std::string &directory)
 	}
 	closedir(dirp);
 #endif
-	File::DeleteDir(directory);
+	if (success)
+		File::DeleteDir(directory);
 
-	return true;
+	return success;
 }
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string &source_path, const std::string &dest_path)
+void CopyDir(const std::string& source_path, const std::string& dest_path)
 {
 	if (source_path == dest_path) return;
 	if (!File::Exists(source_path)) return;
@@ -621,7 +618,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 		const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
 	struct dirent dirent, *result = nullptr;
-	DIR *dirp = opendir(source_path.c_str());
+	DIR* dirp = opendir(source_path.c_str());
 	if (!dirp) return;
 
 	while (!readdir_r(dirp, &dirent, &result) && result)
@@ -652,7 +649,7 @@ void CopyDir(const std::string &source_path, const std::string &dest_path)
 // Returns the current directory
 std::string GetCurrentDir()
 {
-	char *dir;
+	char* dir;
 	// Get the current working directory (getcwd uses malloc)
 	if (!(dir = __getcwd(nullptr, 0)))
 	{
@@ -666,7 +663,7 @@ std::string GetCurrentDir()
 }
 
 // Sets the current directory to the given directory
-bool SetCurrentDir(const std::string &directory)
+bool SetCurrentDir(const std::string& directory)
 {
 	return __chdir(directory.c_str()) == 0;
 }
@@ -697,7 +694,7 @@ std::string CreateTempDir()
 #endif
 }
 
-std::string GetTempFilenameForAtomicWrite(const std::string &path)
+std::string GetTempFilenameForAtomicWrite(const std::string& path)
 {
 	std::string abs = path;
 #ifdef _WIN32
@@ -728,12 +725,12 @@ std::string GetBundleDirectory()
 }
 #endif
 
-#ifdef _WIN32
 std::string& GetExeDirectory()
 {
 	static std::string DolphinPath;
 	if (DolphinPath.empty())
 	{
+#ifdef _WIN32
 		TCHAR Dolphin_exe_Path[2048];
 		TCHAR Dolphin_exe_Clean_Path[MAX_PATH];
 		GetModuleFileName(nullptr, Dolphin_exe_Path, 2048);
@@ -742,10 +739,20 @@ std::string& GetExeDirectory()
 		else
 			DolphinPath = TStrToUTF8(Dolphin_exe_Path);
 		DolphinPath = DolphinPath.substr(0, DolphinPath.find_last_of('\\'));
+#else
+		char Dolphin_exe_Path[PATH_MAX];
+		ssize_t len = ::readlink("/proc/self/exe", Dolphin_exe_Path, sizeof(Dolphin_exe_Path));
+		if (len == -1 || len == sizeof(Dolphin_exe_Path))
+		{
+			len = 0;
+		}
+		Dolphin_exe_Path[len] = '\0';
+		DolphinPath = Dolphin_exe_Path;
+		DolphinPath = DolphinPath.substr(0, DolphinPath.rfind('/'));
+#endif
 	}
 	return DolphinPath;
 }
-#endif
 
 std::string GetSysDirectory()
 {
@@ -753,7 +760,7 @@ std::string GetSysDirectory()
 
 #if defined (__APPLE__)
 	sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
-#elif defined (_WIN32)
+#elif defined (_WIN32) || defined (LINUX_LOCAL_DEV)
 	sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
 #else
 	sysDir = SYSDATA_DIR;
@@ -776,7 +783,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[D_GAMESETTINGS_IDX]   = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
 		s_user_paths[D_MAPS_IDX]           = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
 		s_user_paths[D_CACHE_IDX]          = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
-		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_USER_IDX] + SHADERCACHE_DIR DIR_SEP;
+		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
 		s_user_paths[D_SHADERS_IDX]        = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
 		s_user_paths[D_STATESAVES_IDX]     = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
 		s_user_paths[D_SCREENSHOTS_IDX]    = s_user_paths[D_USER_IDX] + SCREENSHOTS_DIR DIR_SEP;
@@ -790,6 +797,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[D_LOGS_IDX]           = s_user_paths[D_USER_IDX] + LOGS_DIR DIR_SEP;
 		s_user_paths[D_MAILLOGS_IDX]       = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
 		s_user_paths[D_THEMES_IDX]         = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
+		s_user_paths[D_PIPES_IDX]          = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
@@ -798,12 +806,24 @@ static void RebuildUserDirectories(unsigned int dir_index)
 		s_user_paths[F_ARAMDUMP_IDX]       = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
 		s_user_paths[F_FAKEVMEMDUMP_IDX]   = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
 		s_user_paths[F_GCSRAM_IDX]         = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+
+		s_user_paths[D_MEMORYWATCHER_IDX]          = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
+		s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] = s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_LOCATIONS;
+		s_user_paths[F_MEMORYWATCHERSOCKET_IDX]    = s_user_paths[D_MEMORYWATCHER_IDX] + MEMORYWATCHER_SOCKET;
+
+		// The shader cache has moved to the cache directory, so remove the old one.
+		// TODO: remove that someday.
+		File::DeleteDirRecursively(s_user_paths[D_USER_IDX] + SHADERCACHE_LEGACY_DIR DIR_SEP);
 		break;
 
 	case D_CONFIG_IDX:
 		s_user_paths[F_DOLPHINCONFIG_IDX]  = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
 		s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
 		s_user_paths[F_LOGGERCONFIG_IDX]   = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+		break;
+
+	case D_CACHE_IDX:
+		s_user_paths[D_SHADERCACHE_IDX]    = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
 		break;
 
 	case D_GCUSER_IDX:
@@ -860,12 +880,12 @@ std::string GetThemeDir(const std::string& theme_name)
 	return dir;
 }
 
-bool WriteStringToFile(const std::string &str, const std::string& filename)
+bool WriteStringToFile(const std::string& str, const std::string& filename)
 {
 	return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
 
-bool ReadFileToString(const std::string& filename, std::string &str)
+bool ReadFileToString(const std::string& filename, std::string& str)
 {
 	File::IOFile file(filename, "rb");
 	auto const f = file.GetHandle();

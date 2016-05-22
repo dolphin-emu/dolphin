@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/x64Emitter.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 using namespace Gen;
 
@@ -280,8 +283,14 @@ void Jit64::mfspr(UGeckoInstruction inst)
 
 		// An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
 		// cost of calling out to C for this is actually significant.
-		MOV(64, R(RAX), M(&CoreTiming::globalTimer));
-		SUB(64, R(RAX), M(&CoreTiming::fakeTBStartTicks));
+		// Scale downcount by the CPU overclocking factor.
+		CVTSI2SS(XMM0, PPCSTATE(downcount));
+		MULSS(XMM0, M(&CoreTiming::g_lastOCFactor_inverted));
+		CVTSS2SI(RDX, R(XMM0)); // RDX is downcount scaled by the overclocking factor
+		MOV(32, R(RAX), M(&CoreTiming::g_slicelength));
+		SUB(64, R(RAX), R(RDX)); // cycles since the last CoreTiming::Advance() event is (slicelength - Scaled_downcount)
+		ADD(64, R(RAX), M(&CoreTiming::g_globalTimer));
+		SUB(64, R(RAX), M(&CoreTiming::g_fakeTBStartTicks));
 		// It might seem convenient to correct the timer for the block position here for even more accurate
 		// timing, but as of currently, this can break games. If we end up reading a time *after* the time
 		// at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with only
@@ -289,10 +298,11 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		// which won't get past the loading screen.
 		//if (js.downcountAmount)
 		//	ADD(64, R(RAX), Imm32(js.downcountAmount));
+
 		// a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
 		MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
 		MUL(64, R(RDX));
-		MOV(64, R(RAX), M(&CoreTiming::fakeTBStartValue));
+		MOV(64, R(RAX), M(&CoreTiming::g_fakeTBStartValue));
 		SHR(64, R(RDX), Imm8(3));
 		ADD(64, R(RAX), R(RDX));
 		MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));

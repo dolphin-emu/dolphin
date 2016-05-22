@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,7 +28,7 @@ static inline u64 align(u64 value, u64 bounds)
 }
 
 WbfsFileReader::WbfsFileReader(const std::string& filename)
-	: m_total_files(0), m_size(0), m_wlba_table(nullptr), m_good(true)
+	: m_total_files(0), m_size(0), m_good(true)
 {
 	if (filename.length() < 4 || !OpenFiles(filename) || !ReadHeader())
 	{
@@ -36,19 +37,15 @@ WbfsFileReader::WbfsFileReader(const std::string& filename)
 	}
 
 	// Grab disc info (assume slot 0, checked in ReadHeader())
-	m_wlba_table = new u16[m_blocks_per_disc];
+	m_wlba_table.resize(m_blocks_per_disc);
 	m_files[0]->file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/, SEEK_SET);
-	m_files[0]->file.ReadBytes(m_wlba_table, m_blocks_per_disc * sizeof(u16));
+	m_files[0]->file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
 	for (size_t i = 0; i < m_blocks_per_disc; i++)
 		m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
 WbfsFileReader::~WbfsFileReader()
 {
-	for (file_entry* entry : m_files)
-		delete entry;
-
-	delete[] m_wlba_table;
 }
 
 u64 WbfsFileReader::GetDataSize() const
@@ -62,7 +59,7 @@ bool WbfsFileReader::OpenFiles(const std::string& filename)
 
 	while (true)
 	{
-		file_entry* new_entry = new file_entry;
+		auto new_entry = std::make_unique<file_entry>();
 
 		// Replace last character with index (e.g. wbfs = wbf1)
 		std::string path = filename;
@@ -73,8 +70,7 @@ bool WbfsFileReader::OpenFiles(const std::string& filename)
 
 		if (!new_entry->file.Open(path, "rb"))
 		{
-			delete new_entry;
-			return 0 != m_total_files;
+			return m_total_files != 0;
 		}
 
 		new_entry->base_address = m_size;
@@ -82,7 +78,7 @@ bool WbfsFileReader::OpenFiles(const std::string& filename)
 		m_size += new_entry->size;
 
 		m_total_files++;
-		m_files.push_back(new_entry);
+		m_files.emplace_back(std::move(new_entry));
 	}
 }
 
@@ -167,19 +163,14 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
 	return m_files[0]->file;
 }
 
-WbfsFileReader* WbfsFileReader::Create(const std::string& filename)
+std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(const std::string& filename)
 {
-	WbfsFileReader* reader = new WbfsFileReader(filename);
+	auto reader = std::unique_ptr<WbfsFileReader>(new WbfsFileReader(filename));
 
-	if (reader->IsGood())
-	{
-		return reader;
-	}
-	else
-	{
-		delete reader;
-		return nullptr;
-	}
+	if (!reader->IsGood())
+		reader.reset();
+
+	return reader;
 }
 
 bool IsWbfsBlob(const std::string& filename)

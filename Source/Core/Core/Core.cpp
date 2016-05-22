@@ -30,6 +30,9 @@
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
 #include "Core/MemTools.h"
+#ifdef USE_MEMORYWATCHER
+#include "Core/MemoryWatcher.h"
+#endif
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -61,7 +64,9 @@
 #endif
 
 #include "DiscIO/FileMonitor.h"
+#include "InputCommon/GCAdapter.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -131,7 +136,7 @@ static bool s_vr_thread_failure = false;
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static int s_pause_and_lock_depth = 0;
-static bool s_is_framelimiter_temp_disabled = false;
+static bool s_is_throttler_temp_disabled = false;
 
 #ifdef ThreadLocalStorage
 static ThreadLocalStorage bool tls_is_cpu_thread = false;
@@ -144,14 +149,14 @@ static void InitIsCPUKey()
 }
 #endif
 
-bool GetIsFramelimiterTempDisabled()
+bool GetIsThrottlerTempDisabled()
 {
-	return s_is_framelimiter_temp_disabled;
+	return s_is_throttler_temp_disabled;
 }
 
-void SetIsFramelimiterTempDisabled(bool disable)
+void SetIsThrottlerTempDisabled(bool disable)
 {
-	s_is_framelimiter_temp_disabled = disable;
+	s_is_throttler_temp_disabled = disable;
 }
 
 std::string GetStateFileName() { return s_state_filename; }
@@ -184,7 +189,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 			return;
 	}
 
-	g_video_backend->Video_AddMessage(message, time_in_ms);
+	OSD::AddMessage(message, time_in_ms);
 	Host_UpdateTitle(message);
 }
 
@@ -296,7 +301,7 @@ void Stop()  // - Hammertime!
 
 	s_is_stopping = true;
 
-	g_video_backend->EmuStateChange(EMUSTATE_CHANGE_STOP);
+	Fifo::EmulatorState(false);
 
 	INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
@@ -316,9 +321,16 @@ void Stop()  // - Hammertime!
 
 		g_video_backend->Video_ExitLoop();
 	}
+#if defined(__LIBUSB__) || defined(_WIN32)
+	GCAdapter::ResetRumble();
+#endif
+
+#ifdef USE_MEMORYWATCHER
+	MemoryWatcher::Shutdown();
+#endif
 }
 
-static void DeclareAsCPUThread()
+void DeclareAsCPUThread()
 {
 #ifdef ThreadLocalStorage
 	tls_is_cpu_thread = true;
@@ -330,7 +342,7 @@ static void DeclareAsCPUThread()
 #endif
 }
 
-static void UndeclareAsCPUThread()
+void UndeclareAsCPUThread()
 {
 #ifdef ThreadLocalStorage
 	tls_is_cpu_thread = false;
@@ -384,6 +396,10 @@ static void CpuThread()
 		gdb_break();
 	}
 	#endif
+
+#ifdef USE_MEMORYWATCHER
+	MemoryWatcher::Init();
+#endif
 
 	// VR thread starts main loop in background
 	s_nonvr_thread_ready.Set();
@@ -605,6 +621,9 @@ void EmuThread()
 
 	CBoot::BootUp();
 
+	// This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
+	Fifo::Prepare();
+
 	// Thread is no longer acting as CPU Thread
 	UndeclareAsCPUThread();
 
@@ -655,7 +674,7 @@ void EmuThread()
 		s_nonvr_thread_ready.Set();
 
 		// become the GPU thread
-		g_video_backend->Video_EnterLoop();
+		Fifo::RunGpuLoop();
 
 		// We have now exited the Video Loop
 		INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
@@ -746,7 +765,7 @@ void EmuThread()
 	INFO_LOG(CONSOLE, "%s", StopMessage(true, "Main Emu thread stopped").c_str());
 
 	// Clear on screen messages that haven't expired
-	g_video_backend->Video_ClearMessages();
+	OSD::ClearMessages();
 
 	// Reload sysconf file in order to see changes committed during emulation
 	if (core_parameter.bWii)
@@ -771,6 +790,9 @@ void SetState(EState _State)
 	case CORE_PAUSE:
 		CPU::EnableStepping(true);  // Break
 		Wiimote::Pause();
+#if defined(__LIBUSB__) || defined(_WIN32)
+		GCAdapter::ResetRumble();
+#endif
 		break;
 	case CORE_RUN:
 		CPU::EnableStepping(false);
@@ -834,7 +856,7 @@ void SaveScreenShot()
 
 	SetState(CORE_PAUSE);
 
-	g_video_backend->Video_Screenshot(GenerateScreenshotName());
+	Renderer::SetScreenshot(GenerateScreenshotName());
 
 	if (!bPaused)
 		SetState(CORE_RUN);
@@ -848,7 +870,7 @@ void SaveScreenShot(const std::string& name)
 
 	std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
-	g_video_backend->Video_Screenshot(filePath);
+	Renderer::SetScreenshot(filePath);
 
 	if (!bPaused)
 	 	SetState(CORE_RUN);
@@ -877,11 +899,15 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock)
 	DSP::GetDSPEmulator()->PauseAndLock(doLock, unpauseOnUnlock);
 
 	// video has to come after CPU, because CPU thread can wait for video thread (s_efbAccessRequested).
-	g_video_backend->PauseAndLock(doLock, unpauseOnUnlock);
+	Fifo::PauseAndLock(doLock, unpauseOnUnlock);
+
+#if defined(__LIBUSB__) || defined(_WIN32)
+	GCAdapter::ResetRumble();
+#endif
 	return wasUnpaused;
 }
 
-// Apply Frame Limit and Display FPS info
+// Display FPS info
 // This should only be called from VI
 void VideoThrottle()
 {
@@ -903,12 +929,12 @@ void VideoThrottle()
 
 // Executed from GPU thread
 // reports if a frame should be skipped or not
-// depending on the framelimit set
+// depending on the emulation speed set
 bool ShouldSkipFrame(int skipped)
 {
-	const u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1)
-		? (SConfig::GetInstance().m_Framelimit - 1) * 5
-		: VideoInterface::TargetRefreshRate;
+	u32 TargetFPS = VideoInterface::GetTargetRefreshRate();
+	if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
+		TargetFPS = u32(TargetFPS * SConfig::GetInstance().m_EmulationSpeed);
 	const u32 frames = s_drawn_frame.load();
 	const bool fps_slow = !(s_timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS);
 
@@ -975,7 +1001,7 @@ void UpdateTitle()
 	float FPS   = (float)(s_drawn_frame.load() * 1000.0 / ElapseTime);
 	float VPS   = (float)(s_drawn_video.load() * 1000.0 / ElapseTime);
 	float VRPS  = (float)(g_drawn_vr.load()    * 1000.0 / ElapseTime);
-	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::TargetRefreshRate * ElapseTime));
+	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
 	// Settings are shown the same for both extended and summary info
 	std::string SSettings = StringFromFormat("%s %s | %s | %s", cpu_core_base->GetName(), _CoreParameter.bCPUThread ? "DC" : "SC",
@@ -1115,7 +1141,7 @@ void UpdateWantDeterminism(bool initial)
 
 		g_want_determinism = new_want_determinism;
 		WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
-		g_video_backend->UpdateWantDeterminism(new_want_determinism);
+		Fifo::UpdateWantDeterminism(new_want_determinism);
 		// We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use of FMA.
 		JitInterface::ClearCache();
 		Common::InitializeWiiRoot(g_want_determinism);

@@ -23,12 +23,6 @@
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/MemoryCheckDlg.h"
 
-extern "C" {
-#include "DolphinWX/resources/toolbar_add_breakpoint.c"
-#include "DolphinWX/resources/toolbar_add_memorycheck.c"
-#include "DolphinWX/resources/toolbar_debugger_delete.c"
-}
-
 class CBreakPointBar : public wxAuiToolBar
 {
 public:
@@ -38,9 +32,9 @@ public:
 	{
 		SetToolBitmapSize(wxSize(24, 24));
 
-		m_Bitmaps[Toolbar_Delete] = wxBitmap(wxGetBitmapFromMemory(toolbar_delete_png).ConvertToImage().Rescale(16, 16));
-		m_Bitmaps[Toolbar_Add_BP] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_breakpoint_png).ConvertToImage().Rescale(16, 16));
-		m_Bitmaps[Toolbar_Add_MC] = wxBitmap(wxGetBitmapFromMemory(toolbar_add_memcheck_png).ConvertToImage().Rescale(16, 16));
+		m_Bitmaps[Toolbar_Delete] = WxUtils::LoadResourceBitmap("toolbar_debugger_delete");
+		m_Bitmaps[Toolbar_Add_BP] = WxUtils::LoadResourceBitmap("toolbar_add_breakpoint");
+		m_Bitmaps[Toolbar_Add_MC] = WxUtils::LoadResourceBitmap("toolbar_add_memorycheck");
 
 		AddTool(ID_DELETE, _("Delete"), m_Bitmaps[Toolbar_Delete]);
 		Bind(wxEVT_TOOL, &CBreakPointWindow::OnDelete, parent, ID_DELETE);

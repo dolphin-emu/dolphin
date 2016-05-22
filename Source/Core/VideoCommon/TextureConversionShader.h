@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace TextureConversionShader

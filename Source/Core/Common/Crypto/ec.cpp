@@ -32,17 +32,17 @@ static const u8 ec_G[60] =
 	,0x01,0x00,0x6a,0x08,0xa4,0x19,0x03,0x35,0x06,0x78,0xe5,0x85,0x28,0xbe,0xbf
 	,0x8a,0x0b,0xef,0xf8,0x67,0xa7,0xca,0x36,0x71,0x6f,0x7e,0x01,0xf8,0x10,0x52};
 
-static void elt_copy(u8 *d, const u8 *a)
+static void elt_copy(u8* d, const u8* a)
 {
 	memcpy(d, a, 30);
 }
 
-static void elt_zero(u8 *d)
+static void elt_zero(u8* d)
 {
 	memset(d, 0, 30);
 }
 
-static int elt_is_zero(const u8 *d)
+static int elt_is_zero(const u8* d)
 {
 	u32 i;
 
@@ -53,7 +53,7 @@ static int elt_is_zero(const u8 *d)
 	return 1;
 }
 
-static void elt_add(u8 *d, const u8 *a, const u8 *b)
+static void elt_add(u8* d, const u8* a, const u8* b)
 {
 	u32 i;
 
@@ -61,7 +61,7 @@ static void elt_add(u8 *d, const u8 *a, const u8 *b)
 		d[i] = a[i] ^ b[i];
 }
 
-static void elt_mul_x(u8 *d, const u8 *a)
+static void elt_mul_x(u8* d, const u8* a)
 {
 	u8 carry, x, y;
 	u32 i;
@@ -79,7 +79,7 @@ static void elt_mul_x(u8 *d, const u8 *a)
 	d[20] ^= carry << 2;
 }
 
-static void elt_mul(u8 *d, const u8 *a, const u8 *b)
+static void elt_mul(u8* d, const u8* a, const u8* b)
 {
 	u32 i, n;
 	u8 mask;
@@ -105,7 +105,7 @@ static void elt_mul(u8 *d, const u8 *a, const u8 *b)
 static const u8 square[16] =
 	{0x00,0x01,0x04,0x05,0x10,0x11,0x14,0x15,0x40,0x41,0x44,0x45,0x50,0x51,0x54,0x55};
 
-static void elt_square_to_wide(u8 *d, const u8 *a)
+static void elt_square_to_wide(u8* d, const u8* a)
 {
 	u32 i;
 
@@ -115,7 +115,7 @@ static void elt_square_to_wide(u8 *d, const u8 *a)
 	}
 }
 
-static void wide_reduce(u8 *d)
+static void wide_reduce(u8* d)
 {
 	u32 i;
 	u8 x;
@@ -140,7 +140,7 @@ static void wide_reduce(u8 *d)
 	d[30] &= 1;
 }
 
-static void elt_square(u8 *d, const u8 *a)
+static void elt_square(u8* d, const u8* a)
 {
 	u8 wide[60];
 
@@ -150,7 +150,7 @@ static void elt_square(u8 *d, const u8 *a)
 	elt_copy(d, wide + 30);
 }
 
-static void itoh_tsujii(u8 *d, const u8 *a, const u8 *b, u32 j)
+static void itoh_tsujii(u8* d, const u8* a, const u8* b, u32 j)
 {
 	u8 t[30];
 
@@ -163,7 +163,7 @@ static void itoh_tsujii(u8 *d, const u8 *a, const u8 *b, u32 j)
 	elt_mul(d, t, b);
 }
 
-static void elt_inv(u8 *d, const u8 *a)
+static void elt_inv(u8* d, const u8* a)
 {
 	u8 t[30];
 	u8 s[30];
@@ -181,10 +181,10 @@ static void elt_inv(u8 *d, const u8 *a)
 	elt_square(d, s);
 }
 
-UNUSED static int point_is_on_curve(u8 *p)
+UNUSED static int point_is_on_curve(u8* p)
 {
 	u8 s[30], t[30];
-	u8 *x, *y;
+	u8* x, *y;
 
 	x = p;
 	y = p + 30;
@@ -205,16 +205,16 @@ UNUSED static int point_is_on_curve(u8 *p)
 	return elt_is_zero(s);
 }
 
-static int point_is_zero(const u8 *p)
+static int point_is_zero(const u8* p)
 {
 	return elt_is_zero(p) && elt_is_zero(p + 30);
 }
 
-static void point_double(u8 *r, const u8 *p)
+static void point_double(u8* r, const u8* p)
 {
 	u8 s[30], t[30];
-	const u8 *px, *py;
-	u8 *rx, *ry;
+	const u8* px, *py;
+	u8* rx, *ry;
 
 	px = p;
 	py = p + 30;
@@ -243,11 +243,11 @@ static void point_double(u8 *r, const u8 *p)
 	elt_add(ry, ry, t);
 }
 
-static void point_add(u8 *r, const u8 *p, const u8 *q)
+static void point_add(u8* r, const u8* p, const u8* q)
 {
 	u8 s[30], t[30], u[30];
-	const u8 *px, *py, *qx, *qy;
-	u8 *rx, *ry;
+	const u8* px, *py, *qx, *qy;
+	u8* rx, *ry;
 
 	px = p;
 	py = p + 30;
@@ -297,7 +297,7 @@ static void point_add(u8 *r, const u8 *p, const u8 *q)
 	elt_add(ry, s, rx);
 }
 
-static void point_mul(u8 *d, const u8 *a, const u8 *b) // a is bignum
+static void point_mul(u8* d, const u8* a, const u8* b) // a is bignum
 {
 	u32 i;
 	u8 mask;
@@ -324,7 +324,7 @@ static void silly_random(u8 * rndArea, u8 count)
 	}
 }
 
-void generate_ecdsa(u8 *R, u8 *S, const u8 *k, const u8 *hash)
+void generate_ecdsa(u8* R, u8* S, const u8* k, const u8* hash)
 {
 	u8 e[30];
 	u8 kk[30];
@@ -362,7 +362,7 @@ void generate_ecdsa(u8 *R, u8 *S, const u8 *k, const u8 *hash)
 	bn_mul(S, minv, kk, ec_N, 30);
 }
 
-UNUSED static int check_ecdsa(u8 *Q, u8 *R, u8 *S, const u8 *hash)
+UNUSED static int check_ecdsa(u8* Q, u8* R, u8* S, const u8* hash)
 {
 	u8 Sinv[30];
 	u8 e[30];
@@ -388,7 +388,7 @@ UNUSED static int check_ecdsa(u8 *Q, u8 *R, u8 *S, const u8 *hash)
 	return (bn_compare(r1, R, 30) == 0);
 }
 
-void ec_priv_to_pub(const u8 *k, u8 *Q)
+void ec_priv_to_pub(const u8* k, u8* Q)
 {
 	point_mul(Q, k, ec_G);
 }

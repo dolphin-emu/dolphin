@@ -13,11 +13,11 @@
 // when they are called. The reason is that the vertex format affects the sizes of the vertices.
 
 #include "Common/CommonTypes.h"
-#include "Common/CPUDetect.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
 #include "VideoCommon/BPMemory.h"
@@ -26,7 +26,6 @@
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
@@ -34,16 +33,19 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/XFMemory.h"
 
-
 bool g_bRecordFifoData = false;
+
+namespace OpcodeDecoder
+{
+
 static bool s_bFifoErrorSeen = false;
 
 static u32 InterpretDisplayList(u32 address, u32 size)
 {
 	u8* startAddress;
 
-	if (g_use_deterministic_gpu_thread)
-		startAddress = (u8*)PopFifoAuxBuffer(size);
+	if (Fifo::UseDeterministicGPUThread())
+		startAddress = (u8*)Fifo::PopFifoAuxBuffer(size);
 	else
 		startAddress = Memory::GetPointer(address);
 
@@ -55,7 +57,7 @@ static u32 InterpretDisplayList(u32 address, u32 size)
 		// temporarily swap dl and non-dl (small "hack" for the stats)
 		Statistics::SwapDL();
 
-		OpcodeDecoder_Run(DataReader(startAddress, startAddress + size), &cycles, true, true);
+		Run(DataReader(startAddress, startAddress + size), &cycles, true, true);
 		INCSTAT(stats.thisFrame.numDListsCalled);
 
 		// un-swap
@@ -69,11 +71,11 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
 {
 	u8* startAddress = Memory::GetPointer(address);
 
-	PushFifoAuxBuffer(startAddress, size);
+	Fifo::PushFifoAuxBuffer(startAddress, size);
 
 	if (startAddress != nullptr)
 	{
-		OpcodeDecoder_Run<true>(DataReader(startAddress, startAddress + size), nullptr, true, true);
+		Run<true>(DataReader(startAddress, startAddress + size), nullptr, true, true);
 	}
 }
 
@@ -87,22 +89,22 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 	{
 		// TODO(Omega): Maybe dump FIFO to file on this error
 		PanicAlert(
-			"GFX FIFO: Unknown Opcode (0x%02x @ %p, preprocessing=%s).\n"
-			"This means one of the following:\n"
-			"* The opcode replay buffer is enabled, which is currently buggy\n"
-			"* The emulated GPU got desynced, disabling dual core can help\n"
-			"* Command stream corrupted by some spurious memory bug\n"
-			"* This really is an unknown opcode (unlikely)\n"
-			"* Some other sort of bug\n\n"
-			"Further errors will be sent to the Video Backend log and\n"
-			"Dolphin will now likely crash or hang. \n"
-			"(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
-			cmd_byte,
-			buffer,
-			preprocess ? "yes" : "no",
-			g_opcode_replay_frame ? "yes" : "no",
-			in_display_list ? "yes" : "no",
-			recursive_call ? "yes" : "no");
+		    "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
+		    "This means one of the following:\n"
+		    "* The opcode replay buffer is enabled, which is currently buggy\n"
+		    "* The emulated GPU got desynced, disabling dual core can help\n"
+		    "* Command stream corrupted by some spurious memory bug\n"
+		    "* This really is an unknown opcode (unlikely)\n"
+		    "* Some other sort of bug\n\n"
+		    "Further errors will be sent to the Video Backend log and\n"
+		    "Dolphin will now likely crash or hang. \n"
+		    "(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
+		    cmd_byte,
+		    buffer,
+		    preprocess ? "preprocess=true" : "preprocess=false",
+		    g_opcode_replay_frame ? "yes" : "no",
+		    in_display_list ? "yes" : "no",
+		    recursive_call ? "yes" : "no");
 
 		{
 			SCPFifoStruct &fifo = CommandProcessor::fifo;
@@ -138,7 +140,7 @@ static void UnknownOpcode(u8 cmd_byte, void *buffer, bool preprocess, bool g_opc
 	}
 }
 
-void OpcodeDecoder_Init()
+void Init()
 {
 	g_opcode_replay_enabled = g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && g_has_hmd;
 	g_opcode_replay_frame = false;
@@ -146,8 +148,7 @@ void OpcodeDecoder_Init()
 	s_bFifoErrorSeen = false;
 }
 
-
-void OpcodeDecoder_Shutdown()
+void Shutdown()
 {
 	if (g_has_hmd)
 	{
@@ -159,7 +160,7 @@ void OpcodeDecoder_Shutdown()
 }
 
 template <bool is_preprocess>
-u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool recursive_call)
+u8* Run(DataReader src, u32* cycles, bool in_display_list, bool recursive_call)
 {
 	u32 totalCycles = 0;
 	u8* opcodeStart;
@@ -348,7 +349,7 @@ u8* OpcodeDecoder_Run(DataReader src, u32* cycles, bool in_display_list, bool re
 					(cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT,
 					num_vertices,
 					src,
-					g_bSkipCurrentFrame,
+					Fifo::WillSkipCurrentFrame(),
 					is_preprocess);
 
 				if (bytes < 0)
@@ -389,5 +390,6 @@ end:
 	return opcodeStart;
 }
 
-template u8* OpcodeDecoder_Run<true>(DataReader src, u32* cycles, bool in_display_list, bool recursive_call = false);
-template u8* OpcodeDecoder_Run<false>(DataReader src, u32* cycles, bool in_display_list, bool recursive_call = false);
+template u8* Run<true>(DataReader src, u32* cycles, bool in_display_list, bool recursive_call = false);
+template u8* Run<false>(DataReader src, u32* cycles, bool in_display_list, bool recursive_call = false);
+} // namespace OpcodeDecoder

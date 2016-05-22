@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 
 #include "Common/CommonTypes.h"
@@ -47,11 +48,6 @@ VideoConfig::VideoConfig()
 	// disable all features by default
 	backend_info.APIType = API_NONE;
 	backend_info.bSupportsExclusiveFullscreen = false;
-
-	// Game-specific stereoscopy settings
-	bStereoEFBMonoDepth = false;
-	iStereoDepthPercentage = 100;
-	iStereoConvergenceMinimum = 0;
 
 	// VR
 	fScale = 1.0f;
@@ -151,7 +147,6 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
 	settings->Get("OverlayStats", &bOverlayStats, false);
 	settings->Get("OverlayProjStats", &bOverlayProjStats, false);
-	settings->Get("ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
 	settings->Get("DumpTextures", &bDumpTextures, 0);
 	settings->Get("HiresTextures", &bHiresTextures, 0);
 	settings->Get("ConvertHiresTextures", &bConvertHiresTextures, 0);
@@ -163,13 +158,13 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("FastDepthCalc", &bFastDepthCalc, true);
 	if (ARBruteForcer::ch_bruteforce)
 	{
-		iMultisampleMode = 0;
+		iMultisamples = 0;
 		bSSAA = false;
 		iEFBScale = SCALE_1X;
 	}
 	else
 	{
-		settings->Get("MSAA", &iMultisampleMode, 0);
+		settings->Get("MSAA", &iMultisamples, 0);
 		settings->Get("SSAA", &bSSAA, false);
 		settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X); // native
 	}
@@ -180,26 +175,27 @@ void VideoConfig::Load(const std::string& ini_file)
 	settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
 	settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
+	settings->Get("SWZComploc", &bZComploc, true);
+	settings->Get("SWZFreeze", &bZFreeze, true);
+	settings->Get("SWDumpObjects", &bDumpObjects, false);
+	settings->Get("SWDumpTevStages", &bDumpTevStages, false);
+	settings->Get("SWDumpTevTexFetches", &bDumpTevTextureFetches, false);
+	settings->Get("SWDrawStart", &drawStart, 0);
+	settings->Get("SWDrawEnd", &drawEnd, 100000);
+
+
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Get("ForceFiltering", &bForceFiltering, 0);
 	enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
 	enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-	enhancements->Get("StereoMode", &iStereoMode, 0);
-	enhancements->Get("StereoDepth", &iStereoDepth, 20);
-	enhancements->Get("StereoConvergence", &iStereoConvergence, 20);
-	enhancements->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 	if ((g_has_rift || g_has_steamvr) && backend_info.bSupportsGeometryShaders)
 		iStereoMode = STEREO_OCULUS;
 
-	//currently these settings are not saved in global config, so we could've initialized them directly
-	for (size_t i = 0; i < oStereoPresets.size(); ++i)
-	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
-	}
-	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
-	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
+	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+	stereoscopy->Get("StereoMode", &iStereoMode, 0);
+	stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
+	stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
+	stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
@@ -342,7 +338,7 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Settings", "CacheHiresTextures", bCacheHiresTextures);
 	CHECK_SETTING("Video_Settings", "EnablePixelLighting", bEnablePixelLighting);
 	CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
-	CHECK_SETTING("Video_Settings", "MSAA", iMultisampleMode);
+	CHECK_SETTING("Video_Settings", "MSAA", iMultisamples);
 	CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
 
 	int tmp = -9000;
@@ -382,7 +378,7 @@ void VideoConfig::GameIniLoad()
 		CHECK_SETTING("Video_Settings_VR", "HiresTextures", bHiresTextures);
 		CHECK_SETTING("Video_Settings_VR", "EnablePixelLighting", bEnablePixelLighting);
 		CHECK_SETTING("Video_Settings_VR", "FastDepthCalc", bFastDepthCalc);
-		CHECK_SETTING("Video_Settings_VR", "MSAA", iMultisampleMode);
+		CHECK_SETTING("Video_Settings_VR", "MSAA", iMultisamples);
 		int tmp = -9000;
 		CHECK_SETTING("Video_Settings_VR", "EFBScale", tmp); // integral
 		if (tmp != -9000)
@@ -416,25 +412,15 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
-	CHECK_SETTING("Video_Enhancements", "StereoMode", iStereoMode);
-	CHECK_SETTING("Video_Enhancements", "StereoDepth", iStereoDepth);
-	CHECK_SETTING("Video_Enhancements", "StereoConvergence", iStereoConvergence);
-	CHECK_SETTING("Video_Enhancements", "StereoSwapEyes", bStereoSwapEyes);
 
-	//these are not overrides, they are per-game settings, hence no warning
-	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
-	for (size_t i = 0; i < oStereoPresets.size(); ++i)
-	{
-		enhancements->Get(StringFromFormat("StereoConvergence_%zu", i), &oStereoPresets[i].depth, iStereoConvergence);
-		enhancements->Get(StringFromFormat("StereoDepth_%zu", i), &oStereoPresets[i].convergence, iStereoDepth);
-	}
-	enhancements->Get("StereoActivePreset", &iStereoActivePreset, 0);
-	iStereoConvergence = oStereoPresets[iStereoActivePreset].convergence;
-	iStereoDepth = oStereoPresets[iStereoActivePreset].depth;
+	// These are not overrides, they are per-game stereoscopy parameters, hence no warning
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
+	iniFile.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iStereoDepthPercentage, 100);
 
-	CHECK_SETTING("Video_Stereoscopy", "StereoEFBMonoDepth", bStereoEFBMonoDepth);
-	CHECK_SETTING("Video_Stereoscopy", "StereoDepthPercentage", iStereoDepthPercentage);
-	CHECK_SETTING("Video_Stereoscopy", "StereoConvergenceMinimum", iStereoConvergenceMinimum);
+	CHECK_SETTING("Video_Stereoscopy", "StereoMode", iStereoMode);
+	CHECK_SETTING("Video_Stereoscopy", "StereoDepth", iStereoDepth);
+	CHECK_SETTING("Video_Stereoscopy", "StereoSwapEyes", bStereoSwapEyes);
 
 	CHECK_SETTING("Video_Hacks", "EFBAccessEnable", bEFBAccessEnable);
 	CHECK_SETTING("Video_Hacks", "BBoxEnable", bBBoxEnable);
@@ -608,8 +594,11 @@ void VideoConfig::GameIniReset()
 void VideoConfig::VerifyValidity()
 {
 	// TODO: Check iMaxAnisotropy value
-	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1)) iAdapter = 0;
-	if (iMultisampleMode < 0 || iMultisampleMode >= (int)backend_info.AAModes.size()) iMultisampleMode = 0;
+	if (iAdapter < 0 || iAdapter > ((int)backend_info.Adapters.size() - 1))
+		iAdapter = 0;
+
+	if (std::find(backend_info.AAModes.begin(), backend_info.AAModes.end(), iMultisamples) == backend_info.AAModes.end())
+		iMultisamples = 1;
 
 	if (g_has_rift || g_has_steamvr)
 		iStereoMode = STEREO_OCULUS;
@@ -663,10 +652,9 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("UseFFV1", bUseFFV1);
 	settings->Set("EnablePixelLighting", bEnablePixelLighting);
 	settings->Set("FastDepthCalc", bFastDepthCalc);
-	settings->Set("ShowEFBCopyRegions", bShowEFBCopyRegions);
 	if (!ARBruteForcer::ch_dont_save_settings)
 	{
-		settings->Set("MSAA", iMultisampleMode);
+		settings->Set("MSAA", iMultisamples);
 		settings->Set("SSAA", bSSAA);
 		settings->Set("EFBScale", iEFBScale);
 	}
@@ -677,14 +665,24 @@ void VideoConfig::Save(const std::string& ini_file)
 	settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
 	settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
 
+	settings->Set("SWZComploc", bZComploc);
+	settings->Set("SWZFreeze", bZFreeze);
+	settings->Set("SWDumpObjects", bDumpObjects);
+	settings->Set("SWDumpTevStages", bDumpTevStages);
+	settings->Set("SWDumpTevTexFetches", bDumpTevTextureFetches);
+	settings->Set("SWDrawStart", drawStart);
+	settings->Set("SWDrawEnd", drawEnd);
+
 	IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
 	enhancements->Set("ForceFiltering", bForceFiltering);
 	enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
 	enhancements->Set("PostProcessingShader", sPostProcessingShader);
-	enhancements->Set("StereoMode", iStereoMode);
-	enhancements->Set("StereoDepth", iStereoDepth);
-	enhancements->Set("StereoConvergence", iStereoConvergence);
-	enhancements->Set("StereoSwapEyes", bStereoSwapEyes);
+
+	IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
+	stereoscopy->Set("StereoMode", iStereoMode);
+	stereoscopy->Set("StereoDepth", iStereoDepth);
+	stereoscopy->Set("StereoConvergencePercentage", iStereoConvergencePercentage);
+	stereoscopy->Set("StereoSwapEyes", bStereoSwapEyes);
 
 	IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
 	hacks->Set("EFBAccessEnable", bEFBAccessEnable);
@@ -776,7 +774,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 
 bool VideoConfig::IsVSync()
 {
-	return bVSync && !Core::GetIsFramelimiterTempDisabled();
+	return bVSync && !Core::GetIsThrottlerTempDisabled();
 }
 
 bool VideoConfig::VRSettingsModified()

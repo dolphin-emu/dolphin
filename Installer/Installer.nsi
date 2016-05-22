@@ -121,6 +121,9 @@ Section "Base" SEC01
   ; TODO: Make a nice subsection-ized display
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
+  ; Delete old install directory if it exists
+  ; IfFileExists "$INSTDIR\*.*" 0 +2
+  ; RMDir /r "$INSTDIR"
   File "${BASE_DIR}\Dolphin.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\readme.txt"

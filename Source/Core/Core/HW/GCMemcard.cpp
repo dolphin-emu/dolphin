@@ -5,11 +5,14 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
+#include <vector>
 
 #include "Common/ColorUtil.h"
+#include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/GCMemcard.h"
 
 static void ByteSwap(u8 *valueA, u8 *valueB)

@@ -45,7 +45,7 @@ public class FileListItem implements Comparable<FileListItem>
 				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
 
 				// Check that the file has an extension we care about before trying to read out of it.
-				if (allowedExtensions.contains(fileExtension))
+				if (allowedExtensions.contains(fileExtension.toLowerCase()))
 				{
 					// Add 1 because 0 = TYPE_FOLDER
 					mType = NativeLibrary.GetPlatform(mPath) + 1;

@@ -5,12 +5,14 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
+#include <vector>
 
 #ifdef _WIN32
 #include <Windows.h>
 #endif
 
-#include "Common/Thread.h"
+#include "Common/Flag.h"
 #include "Core/HW/EXI_Device.h"
 
 class PointerWrap;
@@ -157,7 +159,8 @@ enum
 {
 	BBA_NUM_PAGES = 0x10,
 	BBA_PAGE_SIZE = 0x100,
-	BBA_MEM_SIZE  = BBA_NUM_PAGES * BBA_PAGE_SIZE
+	BBA_MEM_SIZE  = BBA_NUM_PAGES * BBA_PAGE_SIZE,
+	BBA_TXFIFO_SIZE = 1518
 };
 
 enum
@@ -307,8 +310,8 @@ public:
 	void inc_rwp();
 	bool RecvHandlePacket();
 
-	u8 *tx_fifo;
-	u8 *mBbaMem;
+	std::unique_ptr<u8[]> mBbaMem;
+	std::unique_ptr<u8[]> tx_fifo;
 
 	// TAP interface
 	bool Activate();
@@ -316,21 +319,26 @@ public:
 	bool IsActivated();
 	bool SendFrame(u8 *frame, u32 size);
 	bool RecvInit();
-	bool RecvStart();
+	void RecvStart();
 	void RecvStop();
 
-	u8 *mRecvBuffer;
+	std::unique_ptr<u8[]> mRecvBuffer;
 	u32 mRecvBufferLength;
 
 #if defined(_WIN32)
-	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
-	DWORD mMtu;
+	HANDLE mHAdapter;
 	OVERLAPPED mReadOverlapped;
-	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+	OVERLAPPED mWriteOverlapped;
+	std::vector<u8> mWriteBuffer;
+	bool mWritePending;
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	int fd;
+#endif
+
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
 	std::thread readThread;
-	std::atomic<bool> readEnabled;
+	Common::Flag readEnabled;
+	Common::Flag readThreadShutdown;
 #endif
 
 };

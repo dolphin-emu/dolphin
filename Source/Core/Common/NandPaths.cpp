@@ -4,6 +4,7 @@
 
 #include <cstdio>
 #include <fstream>
+#include <stdlib.h>
 #include <string>
 #include <utility>
 
@@ -117,7 +118,7 @@ bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
 	return false;
 }
 
-static void CreateReplacementFile(std::string &filename)
+static void CreateReplacementFile(std::string& filename)
 {
 	std::ofstream replace;
 	OpenFStream(replace, filename, std::ios_base::out);

@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "Common/Common.h"
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -56,17 +57,6 @@ NetPlayServer::~NetPlayServer()
 
 // called from ---GUI--- thread
 NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort)
-	: is_connected(false)
-	, m_is_running(false)
-	, m_do_loop(false)
-	, m_ping_key(0)
-	, m_update_pings(false)
-	, m_current_game(0)
-	, m_target_buffer_size(0)
-	, m_selected_game("")
-	, m_server(nullptr)
-	, m_traversal_client(nullptr)
-	, m_dialog(nullptr)
 {
 	//--use server time
 	if (enet_initialize() != 0)
@@ -79,7 +69,7 @@ NetPlayServer::NetPlayServer(const u16 port, bool traversal, const std::string& 
 
 	if (traversal)
 	{
-		if (!EnsureTraversalClient(centralServer, centralPort))
+		if (!EnsureTraversalClient(centralServer, centralPort, port))
 			return;
 
 		g_TraversalClient->m_Client = this;
@@ -250,7 +240,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 	std::string npver;
 	rpac >> npver;
 	// Dolphin netplay version
-	if (npver != NETPLAY_VERSION)
+	if (npver != scm_rev_git_str)
 		return CON_ERR_VERSION_MISMATCH;
 
 	// game is currently running
@@ -459,18 +449,18 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	m_target_buffer_size = size;
 
 	// tell clients to change buffer size
-	sf::Packet* spac = new sf::Packet;
-	*spac << (MessageId)NP_MSG_PAD_BUFFER;
-	*spac << (u32)m_target_buffer_size;
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+	*spac << static_cast<u32>(m_target_buffer_size);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
-void NetPlayServer::SendAsyncToClients(sf::Packet* packet)
+void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
 {
 	{
 		std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-		m_async_queue.Push(std::unique_ptr<sf::Packet>(packet));
+		m_async_queue.Push(std::move(packet));
 	}
 	ENetUtil::WakeupThread(m_server);
 }
@@ -509,17 +499,37 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		PadMapping map = 0;
 		GCPadStatus pad;
-		packet >> map >> pad.button >> pad.analogA >> pad.analogB >> pad.stickX >> pad.stickY >> pad.substickX >> pad.substickY >> pad.triggerLeft >> pad.triggerRight;
+		packet >> map
+		       >> pad.button
+		       >> pad.analogA
+		       >> pad.analogB
+		       >> pad.stickX
+		       >> pad.stickY
+		       >> pad.substickX
+		       >> pad.substickY
+		       >> pad.triggerLeft
+		       >> pad.triggerRight;
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_pad_map[map] != player.pid)
+		if (m_pad_map.at(map) != player.pid)
+		{
 			return 1;
+		}
 
 		// Relay to clients
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_PAD_DATA;
-		spac << map << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX << pad.substickY << pad.triggerLeft << pad.triggerRight;
+		spac << map
+		     << pad.button
+		     << pad.analogA
+		     << pad.analogB
+		     << pad.stickX
+		     << pad.stickY
+		     << pad.substickX
+		     << pad.substickY
+		     << pad.triggerLeft
+		     << pad.triggerRight;
 
 		SendToClients(spac, player.pid);
 	}
@@ -540,7 +550,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 		// If the data is not from the correct player,
 		// then disconnect them.
-		if (m_wiimote_map[map] != player.pid)
+		if (m_wiimote_map.at(map) != player.pid)
 		{
 			return 1;
 		}
@@ -663,12 +673,12 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHAT_MESSAGE;
 	*spac << (PlayerId)0; // server id always 0
 	*spac << msg;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 }
 
 // called from ---GUI--- thread
@@ -679,11 +689,11 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	m_selected_game = game;
 
 	// send changed game to clients
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHANGE_GAME;
 	*spac << game;
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	return true;
 }
@@ -708,7 +718,7 @@ bool NetPlayServer::StartGame()
 	g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
 	// tell clients to start game
-	sf::Packet* spac = new sf::Packet;
+	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_START_GAME;
 	*spac << m_current_game;
 	*spac << m_settings.m_CPUthread;
@@ -727,7 +737,7 @@ bool NetPlayServer::StartGame()
 	*spac << (u32)g_netplay_initial_gctime;
 	*spac << (u32)(g_netplay_initial_gctime >> 32);
 
-	SendAsyncToClients(spac);
+	SendAsyncToClients(std::move(spac));
 
 	m_is_running = true;
 
@@ -817,6 +827,9 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 		for (ifaddrs* curifp = ifp; curifp; curifp = curifp->ifa_next)
 		{
 			sockaddr* sa = curifp->ifa_addr;
+
+			if (sa == nullptr)
+				continue;
 			if (sa->sa_family != AF_INET)
 				continue;
 			sockaddr_in* sai = (struct sockaddr_in*) sa;
@@ -904,14 +917,15 @@ bool NetPlayServer::initUPnP()
 	memset(&m_upnp_data, 0, sizeof(IGDdatas));
 
 	// Find all UPnP devices
+	std::unique_ptr<UPNPDev, decltype(&freeUPNPDevlist)> devlist(nullptr, freeUPNPDevlist);
 #if MINIUPNPC_API_VERSION >= 14
-	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror);
+	devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, 2, &upnperror));
 #else
-	UPNPDev *devlist = upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror);
+	devlist.reset(upnpDiscover(2000, nullptr, nullptr, 0, 0, &upnperror));
 #endif
 	if (!devlist)
 	{
-		WARN_LOG(NETPLAY, "An error occured trying to discover UPnP devices.");
+		WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
 
 		m_upnp_error = true;
 		m_upnp_inited = false;
@@ -920,7 +934,7 @@ bool NetPlayServer::initUPnP()
 	}
 
 	// Look for the IGD
-	for (UPNPDev* dev = devlist; dev; dev = dev->pNext)
+	for (UPNPDev* dev = devlist.get(); dev; dev = dev->pNext)
 	{
 		if (strstr(dev->st, "InternetGatewayDevice"))
 			igds.push_back(dev);
@@ -928,12 +942,16 @@ bool NetPlayServer::initUPnP()
 
 	for (const UPNPDev* dev : igds)
 	{
-		char* descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0);
-		if (descXML)
+		std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
+		int statusCode = 200;
+#if MINIUPNPC_API_VERSION >= 16
+		descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0, &statusCode)));
+#else
+		descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0)));
+#endif
+		if (descXML && statusCode == 200)
 		{
-			parserootdesc(descXML, descXMLsize, &m_upnp_data);
-			free(descXML);
-			descXML = nullptr;
+			parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
 			GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
 
 			NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
@@ -944,8 +962,6 @@ bool NetPlayServer::initUPnP()
 			WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
 		}
 	}
-
-	freeUPNPDevlist(devlist);
 
 	return true;
 }

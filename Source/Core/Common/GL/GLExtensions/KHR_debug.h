@@ -1,10 +1,27 @@
-// Copyright 2013 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+/*
+** Copyright (c) 2013-2015 The Khronos Group Inc.
+**
+** Permission is hereby granted, free of charge, to any person obtaining a
+** copy of this software and/or associated documentation files (the
+** "Materials"), to deal in the Materials without restriction, including
+** without limitation the rights to use, copy, modify, merge, publish,
+** distribute, sublicense, and/or sell copies of the Materials, and to
+** permit persons to whom the Materials are furnished to do so, subject to
+** the following conditions:
+**
+** The above copyright notice and this permission notice shall be included
+** in all copies or substantial portions of the Materials.
+**
+** THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+** EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+** MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+** IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+** CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+** TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+** MATERIALS OR THE USE OR OTHER DEALINGS IN THE MATERIALS.
+*/
 
 #include "Common/GL/GLExtensions/gl_common.h"
-
-#ifndef GL_VERSION_4_3
 
 #define GL_CONTEXT_FLAG_DEBUG_BIT 0x00000002
 #define GL_STACK_OVERFLOW 0x0503
@@ -47,29 +64,37 @@
 #define GL_DEBUG_SEVERITY_LOW 0x9148
 #define GL_DEBUG_OUTPUT 0x92E0
 
-typedef void (APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam);
+typedef void (APIENTRYP GLDEBUGPROC)(GLenum source,GLenum type,GLuint id,GLenum severity,GLsizei length,const GLchar *message,const void *userParam);
 
-typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGECALLBACKPROC) (GLDEBUGPROC callback, const GLvoid *userParam);
-typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGECONTROLPROC) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
-typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGEINSERTPROC) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* buf);
-typedef GLuint (GLAPIENTRY * PFNGLGETDEBUGMESSAGELOGPROC) (GLuint count, GLsizei bufsize, GLenum* sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* messageLog);
-typedef void (GLAPIENTRY * PFNGLGETOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length, GLchar *label);
-typedef void (GLAPIENTRY * PFNGLGETOBJECTPTRLABELPROC) (void* ptr, GLsizei bufSize, GLsizei* length, GLchar *label);
-typedef void (GLAPIENTRY * PFNGLOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
-typedef void (GLAPIENTRY * PFNGLOBJECTPTRLABELPROC) (void* ptr, GLsizei length, const GLchar* label);
-typedef void (GLAPIENTRY * PFNGLPOPDEBUGGROUPPROC) (void);
-typedef void (GLAPIENTRY * PFNGLPUSHDEBUGGROUPPROC) (GLenum source, GLuint id, GLsizei length, const GLchar * message);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGECALLBACKPROC) (GLDEBUGPROC callback, const GLvoid *userParam);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGECONTROLPROC) (GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
+typedef void (APIENTRYP PFNDOLDEBUGMESSAGEINSERTPROC) (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* buf);
+typedef GLuint (APIENTRYP PFNDOLGETDEBUGMESSAGELOGPROC) (GLuint count, GLsizei bufsize, GLenum* sources, GLenum* types, GLuint* ids, GLenum* severities, GLsizei* lengths, GLchar* messageLog);
+typedef void (APIENTRYP PFNDOLGETOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length, GLchar *label);
+typedef void (APIENTRYP PFNDOLGETOBJECTPTRLABELPROC) (void* ptr, GLsizei bufSize, GLsizei* length, GLchar *label);
+typedef void (APIENTRYP PFNDOLOBJECTLABELPROC) (GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
+typedef void (APIENTRYP PFNDOLOBJECTPTRLABELPROC) (void* ptr, GLsizei length, const GLchar* label);
+typedef void (APIENTRYP PFNDOLPOPDEBUGGROUPPROC) (void);
+typedef void (APIENTRYP PFNDOLPUSHDEBUGGROUPPROC) (GLenum source, GLuint id, GLsizei length, const GLchar * message);
 
-#endif
+extern PFNDOLDEBUGMESSAGECALLBACKPROC dolDebugMessageCallback;
+extern PFNDOLDEBUGMESSAGECONTROLPROC dolDebugMessageControl;
+extern PFNDOLDEBUGMESSAGEINSERTPROC dolDebugMessageInsert;
+extern PFNDOLGETDEBUGMESSAGELOGPROC dolGetDebugMessageLog;
+extern PFNDOLGETOBJECTLABELPROC dolGetObjectLabel;
+extern PFNDOLGETOBJECTPTRLABELPROC dolGetObjectPtrLabel;
+extern PFNDOLOBJECTLABELPROC dolObjectLabel;
+extern PFNDOLOBJECTPTRLABELPROC dolObjectPtrLabel;
+extern PFNDOLPOPDEBUGGROUPPROC dolPopDebugGroup;
+extern PFNDOLPUSHDEBUGGROUPPROC dolPushDebugGroup;
 
-extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
-extern PFNGLDEBUGMESSAGECONTROLPROC glDebugMessageControl;
-extern PFNGLDEBUGMESSAGEINSERTPROC glDebugMessageInsert;
-extern PFNGLGETDEBUGMESSAGELOGPROC glGetDebugMessageLog;
-extern PFNGLGETOBJECTLABELPROC glGetObjectLabel;
-extern PFNGLGETOBJECTPTRLABELPROC glGetObjectPtrLabel;
-extern PFNGLOBJECTLABELPROC glObjectLabel;
-extern PFNGLOBJECTPTRLABELPROC glObjectPtrLabel;
-extern PFNGLPOPDEBUGGROUPPROC glPopDebugGroup;
-extern PFNGLPUSHDEBUGGROUPPROC glPushDebugGroup;
-
+#define glDebugMessageCallback dolDebugMessageCallback
+#define glDebugMessageControl dolDebugMessageControl
+#define glDebugMessageInsert dolDebugMessageInsert
+#define glGetDebugMessageLog dolGetDebugMessageLog
+#define glGetObjectLabel dolGetObjectLabel
+#define glGetObjectPtrLabel dolGetObjectPtrLabel
+#define glObjectLabel dolObjectLabel
+#define glObjectPtrLabel dolObjectPtrLabel
+#define glPopDebugGroup dolPopDebugGroup
+#define glPushDebugGroup dolPushDebugGroup

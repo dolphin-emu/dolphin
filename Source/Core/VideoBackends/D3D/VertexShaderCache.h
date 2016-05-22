@@ -19,7 +19,7 @@ public:
 	static void Init();
 	static void Clear();
 	static void Shutdown();
-	static bool SetShader(u32 components); // TODO: Should be renamed to LoadShader
+	static bool SetShader(); // TODO: Should be renamed to LoadShader
 
 	static ID3D11VertexShader* GetActiveShader() { return last_entry->shader; }
 	static D3DBlob* GetActiveShaderBytecode() { return last_entry->bytecode; }
@@ -59,7 +59,7 @@ private:
 	static const VSCacheEntry* last_entry;
 	static VertexShaderUid last_uid;
 
-	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
+	static UidChecker<VertexShaderUid, ShaderCode> vertex_uid_checker;
 };
 
 }  // namespace DX11

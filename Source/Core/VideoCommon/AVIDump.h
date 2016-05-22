@@ -4,12 +4,6 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <stdint.h>
-#endif
-
 #include "Common/CommonTypes.h"
 
 class AVIDump
@@ -17,19 +11,15 @@ class AVIDump
 private:
 	static bool CreateFile();
 	static void CloseFile();
-	static void SetBitmapFormat();
-	static bool SetCompressionOptions();
-	static bool SetVideoFormat();
-
-	static void StoreFrame(const void* data);
-	static void* GetFrame();
 
 public:
-#ifdef _WIN32
-	static bool Start(HWND hWnd, int w, int h);
-#else
-	static bool Start(int w, int h);
-#endif
+	enum class DumpFormat
+	{
+		FORMAT_BGR,
+		FORMAT_RGBA
+	};
+
+	static bool Start(int w, int h, DumpFormat format);
 	static void AddFrame(const u8* data, int width, int height);
 	static void Stop();
 	static void DoState();

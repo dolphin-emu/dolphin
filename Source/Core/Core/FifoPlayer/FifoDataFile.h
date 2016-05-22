@@ -94,7 +94,7 @@ private:
 	u32 m_XFRegs[XF_REGS_SIZE];
 
 	u32 m_Flags;
-	u32 version;
+	u32 m_Version;
 
 	std::vector<FifoFrameInfo> m_Frames;
 };

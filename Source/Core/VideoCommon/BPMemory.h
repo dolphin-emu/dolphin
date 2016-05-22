@@ -400,10 +400,10 @@ struct TevStageCombiner
 			u32 rid        : 8;
 		};
 		u32 hex;
-		int getTexMap(int i){return i?texmap1:texmap0;}
-		int getTexCoord(int i){return i?texcoord1:texcoord0;}
-		int getEnable(int i){return i?enable1:enable0;}
-		int getColorChan(int i){return i?colorchan1:colorchan0;}
+		int getTexMap(int i) const { return i ? texmap1 : texmap0;}
+		int getTexCoord(int i) const { return i ? texcoord1 : texcoord0;}
+		int getEnable(int i) const { return i ? enable1 : enable0; }
+		int getColorChan(int i) const { return i ? colorchan1 : colorchan0; }
 	};
 
 union TEXSCALE

@@ -4,14 +4,16 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
-#include "VideoCommon/NativeVertexFormat.h"
 
+class DataReader;
 class NativeVertexFormat;
 class PointerWrap;
+struct PortableVertexDeclaration;
 
 enum PrimitiveType {
 	PRIMITIVE_POINTS,
@@ -27,7 +29,7 @@ struct Slope
 	bool dirty;
 };
 
-class VertexManager
+class VertexManagerBase
 {
 private:
 	static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float)*3;                 // 3 pos
@@ -41,16 +43,16 @@ public:
 	// We may convert triangle-fans to triangle-lists, almost 3x as many indices.
 	static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
-	VertexManager();
+	VertexManagerBase();
 	// needs to be virtual for DX11's dtor
-	virtual ~VertexManager();
+	virtual ~VertexManagerBase();
 
 	static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
 	static void FlushData(u32 count, u32 stride);
 
 	static void Flush();
 
-	virtual ::NativeVertexFormat* CreateNativeVertexFormat() = 0;
+	virtual NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
 	static void DoState(PointerWrap& p);
 
@@ -90,4 +92,4 @@ private:
 	virtual void DestroyDeviceObjects() {}
 };
 
-extern VertexManager *g_vertex_manager;
+extern std::unique_ptr<VertexManagerBase> g_vertex_manager;

@@ -45,6 +45,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	Bind(wxEVT_TIMER, &CLogWindow::OnLogTimer, this);
 
 	m_LogManager = LogManager::GetInstance();
+	m_LogManager->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
 
 	CreateGUIControls();
 
@@ -84,14 +85,14 @@ void CLogWindow::CreateGUIControls()
 		logs->Get(m_LogManager->GetShortName((LogTypes::LOG_TYPE)i), &enable, false);
 
 		if (m_writeWindow && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, this);
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, this);
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 
 		if (m_writeFile && enable)
-			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
+			m_LogManager->AddListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
 		else
-			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, m_LogManager->GetFileListener());
+			m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::FILE_LISTENER);
 
 		m_LogManager->SetLogLevel((LogTypes::LOG_TYPE)i, (LogTypes::LOG_LEVELS)(verbosity));
 	}
@@ -153,7 +154,7 @@ CLogWindow::~CLogWindow()
 {
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
-		m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, this);
+		m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
 	}
 }
 

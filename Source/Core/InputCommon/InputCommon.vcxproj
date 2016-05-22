@@ -57,6 +57,13 @@
     <ClCompile Include="ControllerInterface\Sixense\RazerHydra.cpp" />
     <ClCompile Include="ControllerInterface\Sixense\SixenseHack.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
+    <ClCompile Include="GCAdapter.cpp">
+      <!--
+      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
+      which is hit in libusb.h.
+      -->
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="InputConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +82,7 @@
     <ClInclude Include="ControllerInterface\Sixense\RazerHydra.h" />
     <ClInclude Include="ControllerInterface\Sixense\SixenseHack.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
+    <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
   </ItemGroup>

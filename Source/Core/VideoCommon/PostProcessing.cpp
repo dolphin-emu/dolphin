@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <sstream>
 #include <string>
 
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoConfig.h"

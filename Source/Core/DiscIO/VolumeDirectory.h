@@ -43,6 +43,7 @@ public:
 	u16 GetRevision() const override { return 0; }
 	std::string GetInternalName() const override;
 	std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
+	std::vector<u32> GetBanner(int* width, int* height) const override;
 	void SetName(const std::string&);
 
 	u64 GetFSTSize() const override;
@@ -139,13 +140,25 @@ private:
 	u64 m_fst_address;
 	u64 m_dol_address;
 
-	static const u8 ENTRY_SIZE = 0x0c;
-	static const u8 FILE_ENTRY = 0;
-	static const u8 DIRECTORY_ENTRY = 1;
-	static const u64 DISKHEADER_ADDRESS = 0;
-	static const u64 DISKHEADERINFO_ADDRESS = 0x440;
-	static const u64 APPLOADER_ADDRESS = 0x2440;
-	static const u32 MAX_NAME_LENGTH = 0x3df;
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define ENTRY_SIZE ((u8)0x0c)
+#define FILE_ENTRY ((u8)0)
+#define DIRECTORY_ENTRY ((u8)1)
+#define DISKHEADER_ADDRESS ((u64)0)
+#define DISKHEADERINFO_ADDRESS ((u64)0x440)
+#define APPLOADER_ADDRESS ((u64)0x2440)
+#define MAX_NAME_LENGTH ((size_t)0x3df)
+#define MAX_ID_LENGTH ((size_t)6)
+#else
+	static constexpr u8 ENTRY_SIZE = 0x0c;
+	static constexpr u8 FILE_ENTRY = 0;
+	static constexpr u8 DIRECTORY_ENTRY = 1;
+	static constexpr u64 DISKHEADER_ADDRESS = 0;
+	static constexpr u64 DISKHEADERINFO_ADDRESS = 0x440;
+	static constexpr u64 APPLOADER_ADDRESS = 0x2440;
+	static const size_t MAX_NAME_LENGTH = 0x3df;
+	static const size_t MAX_ID_LENGTH = 6;
+#endif
 };
 
 } // namespace

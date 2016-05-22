@@ -71,14 +71,18 @@ public:
 
 	bool bRefreshList;
 
+	// These are only public because of the ugly hack in CreateCodeDialog.cpp
 	void ActionReplayList_Load();
 	bool SaveGameConfig();
+
+	// This only exists because of the ugly hack in CreateCodeDialog.cpp
+	void AddARCode(const ActionReplay::ARCode& code);
 
 private:
 	DECLARE_EVENT_TABLE();
 
-	DiscIO::IVolume *OpenISO;
-	DiscIO::IFileSystem *pFileSystem;
+	std::unique_ptr<DiscIO::IVolume> m_open_iso;
+	std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 
 	std::vector<PatchEngine::Patch> onFrame;
 	std::vector<ActionReplay::ARCode> arCodes;
@@ -97,7 +101,7 @@ private:
 
 	// Stereoscopy
 	wxSlider* DepthPercentage;
-	wxSpinCtrl* ConvergenceMinimum;
+	wxSpinCtrl* Convergence;
 	wxCheckBox* MonoDepth;
 
 	wxArrayString arrayStringFor_EmuState;
@@ -223,7 +227,7 @@ private:
 		ID_GPUDETERMINISM,
 		ID_AUDIOSLOWDOWN,
 		ID_DEPTHPERCENTAGE,
-		ID_CONVERGENCEMINIMUM,
+		ID_CONVERGENCE,
 		ID_MONODEPTH,
 
 		ID_NAME,

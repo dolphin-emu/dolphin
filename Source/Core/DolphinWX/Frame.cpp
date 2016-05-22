@@ -59,12 +59,6 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VRTracker.h"
 
-// Resources
-
-extern "C" {
-#include "DolphinWX/resources/Dolphin.c" // NOLINT: Dolphin icon
-};
-
 int g_saveSlot = 1;
 
 #if defined(HAVE_X11) && HAVE_X11
@@ -90,7 +84,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 {
 	// Give it an icon
 	wxIcon IconTemp;
-	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(Dolphin_png));
+	IconTemp.CopyFromBitmap(WxUtils::LoadResourceBitmap("Dolphin"));
 	SetIcon(IconTemp);
 
 	DragAcceptFiles(true);
@@ -282,7 +276,6 @@ EVT_MENU(IDM_NO_DOCKING, CFrame::OnPerspectiveMenu)
 EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindow)
 
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
-EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_IMPORT_SAVE, CFrame::OnImportSave)
 EVT_MENU(IDM_EXPORT_ALL_SAVE, CFrame::OnExportAllSaves)
@@ -302,7 +295,7 @@ EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU_RANGE(IDM_LOG_WINDOW, IDM_VIDEO_WINDOW, CFrame::OnToggleWindow)
 EVT_MENU_RANGE(IDM_SHOW_SYSTEM, IDM_SHOW_VR_STATE, CFrame::OnChangeColumnsVisible)
 
-EVT_MENU(IDM_PURGE_CACHE, CFrame::GameListChanged)
+EVT_MENU(IDM_PURGE_GAME_LIST_CACHE, CFrame::GameListChanged)
 
 EVT_MENU(IDM_SAVE_FIRST_STATE, CFrame::OnSaveFirstState)
 EVT_MENU(IDM_UNDO_LOAD_STATE, CFrame::OnUndoLoadState)
@@ -476,6 +469,9 @@ CFrame::CFrame(wxFrame* parent,
 			ToggleLogConfigWindow(true);
 	}
 
+	// Set the size of the window after the UI has been built, but before we show it
+	SetSize(size);
+
 	// Show window
 	Show();
 
@@ -586,8 +582,6 @@ void CFrame::OnActive(wxActivateEvent& event)
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
-	m_bClosing = true;
-
 	// Before closing the window we need to shut down the emulation core.
 	// We'll try to close this window again once that is done.
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -597,6 +591,9 @@ void CFrame::OnClose(wxCloseEvent& event)
 		{
 			event.Veto();
 		}
+		// Tell OnStopped to resubmit the Close event
+		if (m_confirmStop)
+			m_bClosing = true;
 		return;
 	}
 
@@ -714,7 +711,7 @@ void CFrame::UpdateTitle(const std::string &str)
 	}
 	else
 	{
-		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str, str.c_str());
+		std::string titleStr = StringFromFormat("%s | %s", scm_rev_str.c_str(), str.c_str());
 		m_RenderFrame->SetTitle(titleStr);
 	}
 }
@@ -883,28 +880,12 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
 	// 1. Boot the selected iso
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
-	if (!m_GameListCtrl->GetISO(0) &&
-		!((SConfig::GetInstance().m_ListGC &&
-		SConfig::GetInstance().m_ListWii &&
-		SConfig::GetInstance().m_ListWad) &&
-		(SConfig::GetInstance().m_ListJap &&
-		SConfig::GetInstance().m_ListUsa  &&
-		SConfig::GetInstance().m_ListPal  &&
-		SConfig::GetInstance().m_ListAustralia &&
-		SConfig::GetInstance().m_ListFrance &&
-		SConfig::GetInstance().m_ListGermany &&
-		SConfig::GetInstance().m_ListItaly &&
-		SConfig::GetInstance().m_ListKorea &&
-		SConfig::GetInstance().m_ListNetherlands &&
-		SConfig::GetInstance().m_ListRussia &&
-		SConfig::GetInstance().m_ListSpain &&
-		SConfig::GetInstance().m_ListTaiwan &&
-		SConfig::GetInstance().m_ListWorld &&
-		SConfig::GetInstance().m_ListUnknown)))
+	if (!m_GameListCtrl->GetISO(0) && CGameListCtrl::IsHidingItems())
 	{
 		SConfig::GetInstance().m_ListGC =
 		SConfig::GetInstance().m_ListWii =
 		SConfig::GetInstance().m_ListWad =
+		SConfig::GetInstance().m_ListElfDol =
 		SConfig::GetInstance().m_ListJap =
 		SConfig::GetInstance().m_ListUsa =
 		SConfig::GetInstance().m_ListPal =
@@ -1298,7 +1279,6 @@ void CFrame::ParseHotkeys()
 			case HK_CHANGE_DISC:
 			case HK_REFRESH_LIST:
 			case HK_RESET:
-			case HK_FRAME_ADVANCE:
 			case HK_START_RECORDING:
 			case HK_PLAY_RECORDING:
 			case HK_EXPORT_RECORDING:
@@ -1340,6 +1320,8 @@ void CFrame::ParseHotkeys()
 	// Pause and Unpause
 	if (IsHotkey(HK_PLAY_PAUSE))
 		DoPause();
+	// Frame advance
+	HandleFrameSkipHotkeys();
 	// Stop
 	if (IsHotkey(HK_STOP))
 		DoStop();
@@ -1347,7 +1329,7 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_SCREENSHOT))
 		Core::SaveScreenShot();
 	if (IsHotkey(HK_EXIT))
-		wxPostEvent(this, wxCommandEvent(wxID_EXIT));
+		wxPostEvent(this, wxCommandEvent(wxEVT_MENU, wxID_EXIT));
 	if (IsHotkey(HK_VOLUME_DOWN))
 		AudioCommon::DecreaseVolume(3);
 	if (IsHotkey(HK_VOLUME_UP))
@@ -1387,6 +1369,10 @@ void CFrame::ParseHotkeys()
 		if (--g_Config.iEFBScale < SCALE_AUTO)
 			g_Config.iEFBScale = SCALE_AUTO;
 	}
+	if (IsHotkey(HK_TOGGLE_CROP))
+	{
+		g_Config.bCrop = !g_Config.bCrop;
+	}
 	if (IsHotkey(HK_TOGGLE_AR))
 	{
 		OSDChoice = 2;
@@ -1404,16 +1390,30 @@ void CFrame::ParseHotkeys()
 		OSDChoice = 4;
 		g_Config.bDisableFog = !g_Config.bDisableFog;
 	}
-	Core::SetIsFramelimiterTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
-	if (IsHotkey(HK_DECREASE_FRAME_LIMIT))
+	Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
+	if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
 	{
-		if (--SConfig::GetInstance().m_Framelimit > 0x19)
-			SConfig::GetInstance().m_Framelimit = 0x19;
+		OSDChoice = 5;
+
+		if (SConfig::GetInstance().m_EmulationSpeed <= 0.0f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
+		else if (SConfig::GetInstance().m_EmulationSpeed >= 0.2f)
+			SConfig::GetInstance().m_EmulationSpeed -= 0.1f;
+		else
+			SConfig::GetInstance().m_EmulationSpeed = 0.1f;
+
+		if (SConfig::GetInstance().m_EmulationSpeed >= 0.95f && SConfig::GetInstance().m_EmulationSpeed <= 1.05f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
 	}
-	if (IsHotkey(HK_INCREASE_FRAME_LIMIT))
+	if (IsHotkey(HK_INCREASE_EMULATION_SPEED))
 	{
-		if (++SConfig::GetInstance().m_Framelimit > 0x19)
-			SConfig::GetInstance().m_Framelimit = 0;
+		OSDChoice = 5;
+
+		if (SConfig::GetInstance().m_EmulationSpeed > 0.0f)
+			SConfig::GetInstance().m_EmulationSpeed += 0.1f;
+
+		if (SConfig::GetInstance().m_EmulationSpeed >= 0.95f && SConfig::GetInstance().m_EmulationSpeed <= 1.05f)
+			SConfig::GetInstance().m_EmulationSpeed = 1.0f;
 	}
 	if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
 	{
@@ -1424,72 +1424,93 @@ void CFrame::ParseHotkeys()
 		State::Load(g_saveSlot);
 	}
 
-	auto savePreset = [](const std::string& param, int value)
+	if (IsHotkey(HK_TOGGLE_STEREO_SBS))
 	{
-		IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
-		localIni.GetOrCreateSection("Enhancements")->Set(
-			StringFromFormat("Stereo%s_%d", param.c_str(), g_Config.iStereoActivePreset),
-			value);
-		std::string iniFileName = File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini";
-		OSD::AddMessage(StringFromFormat("%s: %d", param.c_str(), value) , 1000);
-		localIni.Save(iniFileName);
-	};
+		if (g_Config.iStereoMode != STEREO_SBS)
+		{
+			// Current implementation of anaglyph stereoscopy uses a
+			// post-processing shader. Thus the shader needs to be to be
+			// turned off when selecting other stereoscopy modes.
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_SBS;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_TAB))
+	{
+		if (g_Config.iStereoMode != STEREO_TAB)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_TAB;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_ANAGLYPH))
+	{
+		if (g_Config.iStereoMode != STEREO_ANAGLYPH)
+		{
+			// Setting the anaglyph mode also requires a specific
+			// post-processing shader to be activated.
+			g_Config.iStereoMode = STEREO_ANAGLYPH;
+			g_Config.sPostProcessingShader = "dubois";
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+			g_Config.sPostProcessingShader = "";
+		}
+	}
+	if (IsHotkey(HK_TOGGLE_STEREO_3DVISION))
+	{
+		if (g_Config.iStereoMode != STEREO_3DVISION)
+		{
+			if (g_Config.sPostProcessingShader == "dubois")
+			{
+				g_Config.sPostProcessingShader = "";
+			}
+			g_Config.iStereoMode = STEREO_3DVISION;
+		}
+		else
+		{
+			g_Config.iStereoMode = STEREO_OFF;
+		}
+	}
 
-	if (IsHotkey(HK_DECREASE_DEPTH))
+	if (IsHotkey(HK_DECREASE_DEPTH, true))
 	{
 		if (--g_Config.iStereoDepth < 0)
 			g_Config.iStereoDepth = 0;
-		g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth = g_Config.iStereoDepth;
-		savePreset("Depth", g_Config.iStereoDepth);
 	}
-	if (IsHotkey(HK_INCREASE_DEPTH))
+	if (IsHotkey(HK_INCREASE_DEPTH, true))
 	{
 		if (++g_Config.iStereoDepth > 100)
 			g_Config.iStereoDepth = 100;
-		g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth = g_Config.iStereoDepth;
-		savePreset("Depth", g_Config.iStereoDepth);
 	}
-	if (IsHotkey(HK_DECREASE_CONVERGENCE))
+	if (IsHotkey(HK_DECREASE_CONVERGENCE, true))
 	{
 		g_Config.iStereoConvergence -= 5;
 		if (g_Config.iStereoConvergence < 0)
 			g_Config.iStereoConvergence = 0;
-		g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence = g_Config.iStereoConvergence;
-		savePreset("Convergence", g_Config.iStereoConvergence);
 	}
-	if (IsHotkey(HK_INCREASE_CONVERGENCE))
+	if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
 	{
 		g_Config.iStereoConvergence += 5;
 		if (g_Config.iStereoConvergence > 500)
 			g_Config.iStereoConvergence = 500;
-		g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence = g_Config.iStereoConvergence;
-		savePreset("Convergence", g_Config.iStereoConvergence);
 	}
 
-	if (IsHotkey(HK_SWITCH_STEREOSCOPY_PRESET))
-	{
-		g_Config.iStereoActivePreset = !g_Config.iStereoActivePreset;
-		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
-		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
-	}
-	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_0))
-	{
-		g_Config.iStereoActivePreset = 0;
-		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
-		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
-	}
-	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_1))
-	{
-		g_Config.iStereoActivePreset = 1;
-		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
-		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
-	}
-	if (IsHotkey(HK_USE_STEREOSCOPY_PRESET_2))
-	{
-		g_Config.iStereoActivePreset = 2;
-		g_Config.iStereoConvergence = g_Config.oStereoPresets[g_Config.iStereoActivePreset].convergence;
-		g_Config.iStereoDepth = g_Config.oStereoPresets[g_Config.iStereoActivePreset].depth;
-	}
 	// Maths is probably cheaper than if statements, so always recalculate
 	float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
 
@@ -1720,3 +1741,65 @@ void CFrame::ParseHotkeys()
 	if (IsHotkey(HK_UNDO_SAVE_STATE))
 		State::UndoSaveState();
 }
+
+void CFrame::HandleFrameSkipHotkeys()
+{
+	static const int MAX_FRAME_SKIP_DELAY = 60;
+	static int frameStepCount = 0;
+	static const int FRAME_STEP_DELAY = 30;
+	static int holdFrameStepDelay = 1;
+	static int holdFrameStepDelayCount = 0;
+	static bool holdFrameStep = false;
+
+	if (IsHotkey(HK_FRAME_ADVANCE_DECREASE_SPEED))
+	{
+		++holdFrameStepDelay;
+		if (holdFrameStepDelay > MAX_FRAME_SKIP_DELAY)
+			holdFrameStepDelay = MAX_FRAME_SKIP_DELAY;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE_INCREASE_SPEED))
+	{
+		--holdFrameStepDelay;
+		if (holdFrameStepDelay < 0)
+			holdFrameStepDelay = 0;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE_RESET_SPEED))
+	{
+		holdFrameStepDelay = 1;
+	}
+	else if (IsHotkey(HK_FRAME_ADVANCE, true))
+	{
+		if (holdFrameStepDelayCount < holdFrameStepDelay && holdFrameStep)
+			++holdFrameStepDelayCount;
+
+		if ((frameStepCount == 0 || frameStepCount == FRAME_STEP_DELAY) && !holdFrameStep)
+		{
+			wxCommandEvent evt;
+			evt.SetId(IDM_FRAMESTEP);
+			CFrame::OnFrameStep(evt);
+			if (holdFrameStepDelay > 0)
+				holdFrameStep = true;
+		}
+
+		if (frameStepCount < FRAME_STEP_DELAY)
+		{
+			++frameStepCount;
+			if (holdFrameStep)
+				holdFrameStep = false;
+		}
+
+		if (frameStepCount == FRAME_STEP_DELAY && holdFrameStep && holdFrameStepDelayCount >= holdFrameStepDelay)
+		{
+			holdFrameStep = false;
+			holdFrameStepDelayCount = 0;
+		}
+	}
+	else if (frameStepCount > 0)
+	{
+		// Reset values of frame advance to default
+		frameStepCount = 0;
+		holdFrameStep = false;
+		holdFrameStepDelayCount = 0;
+	}
+}
+

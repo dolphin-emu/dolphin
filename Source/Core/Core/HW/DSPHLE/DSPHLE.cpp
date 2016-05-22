@@ -5,15 +5,10 @@
 #include <iostream>
 
 #include "Common/ChunkFile.h"
-#include "Common/IniFile.h"
-#include "Common/StringUtil.h"
-#include "Common/Logging/LogManager.h"
-
-#include "Core/ConfigManager.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/Core.h"
-#include "Core/HW/AudioInterface.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 

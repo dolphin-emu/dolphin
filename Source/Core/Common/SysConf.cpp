@@ -15,6 +15,8 @@
 #include "Common/SysConf.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Movie.h"
+
 SysConf::SysConf()
 	: m_IsValid(false)
 {
@@ -74,6 +76,13 @@ bool SysConf::LoadFromFile(const std::string& filename)
 		{
 			m_Filename = filename;
 			m_IsValid = true;
+			// Apply Wii settings from normal SYSCONF on Movie recording/playback
+			if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
+			{
+				SetData("IPL.LNG", Movie::GetLanguage());
+				SetData("IPL.E60", Movie::IsPAL60());
+				SetData("IPL.PGS", Movie::IsProgressive());
+			}
 			return true;
 		}
 	}
@@ -81,7 +90,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
 	return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE *fh)
+bool SysConf::LoadFromFileInternal(FILE* fh)
 {
 	File::IOFile f(fh);
 	// Fill in infos
@@ -162,7 +171,7 @@ bool SysConf::LoadFromFileInternal(FILE *fh)
 }
 
 // Returns the size of the item in file
-static unsigned int create_item(SSysConfEntry &item, SysconfType type, const std::string &name,
+static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std::string& name,
 		const int data_length, unsigned int offset)
 {
 	item.offset = offset;

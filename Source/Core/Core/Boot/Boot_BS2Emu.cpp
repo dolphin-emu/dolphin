@@ -51,16 +51,13 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
 	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
 
-	// Clear ALL memory
-	Memory::Clear();
-
 	// Write necessary values
 	// Here we write values to memory that the apploader does not take care of. Game info goes
 	// to 0x80000000 according to YAGCD 4.2.
 
 	// It's possible to boot DOL and ELF files without a disc inserted
 	if (DVDInterface::VolumeIsValid())
-		DVDInterface::DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
+		DVDRead(/*offset*/0x00000000, /*address*/0x00000000, 0x20, false); // write disc info
 
 	PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020); // Booted from bootrom. 0xE5207C22 = booted from jtag
 	PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028); // Physical Memory Size (24MB on retail)
@@ -91,15 +88,18 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
 	// but the size can differ between discs. Compare with YAGCD chap 13.
 	const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-	u32 iAppLoaderOffset = 0x2440;
-	u32 iAppLoaderEntry = volume.Read32(iAppLoaderOffset + 0x10, false);
-	u32 iAppLoaderSize = volume.Read32(iAppLoaderOffset + 0x14, false) + volume.Read32(iAppLoaderOffset + 0x18, false);
-	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1) || skipAppLoader)
+	const u32 apploader_offset = 0x2440;
+	u32 apploader_entry, apploader_size, apploader_trailer;
+	if (skipAppLoader ||
+	    !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
+	    !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
+	    !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
+	    apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
 	{
 		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
 		return false;
 	}
-	DVDInterface::DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, false);
+	DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
 
 	// Setup pointers like real BS2 does
 	if (SConfig::GetInstance().bNTSC)
@@ -123,7 +123,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 	PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 	PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
 	PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-	RunFunction(iAppLoaderEntry);
+	RunFunction(apploader_entry);
 	u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
 	u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
 	u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
@@ -150,7 +150,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 		u32 iDVDOffset  = PowerPC::Read_U32(0x8130000c);
 
 		INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
-		DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength, false);
+		DVDRead(iDVDOffset, iRamAddress, iLength, false);
 
 	} while (PowerPC::ppcState.gpr[3] != 0x00);
 
@@ -259,7 +259,7 @@ bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
 
 	// When booting a WAD or the system menu, there will probably not be a disc inserted
 	if (DVDInterface::VolumeIsValid())
-		DVDInterface::DVDRead(0x00000000, 0x00000000, 0x20, false); // Game Code
+		DVDRead(0x00000000, 0x00000000, 0x20, false);           // Game Code
 
 	Memory::Write_U32(0x0D15EA5E, 0x00000020);                  // Another magic word
 	Memory::Write_U32(0x00000001, 0x00000024);                  // Unknown
@@ -336,10 +336,10 @@ bool CBoot::EmulatedBS2_Wii()
 	if (DVDInterface::VolumeIsValid() && DVDInterface::GetVolume().GetVolumeType() == DiscIO::IVolume::WII_DISC)
 	{
 		// This is some kind of consistency check that is compared to the 0x00
-		// values as the game boots. This location keep the 4 byte ID for as long
+		// values as the game boots. This location keeps the 4 byte ID for as long
 		// as the game is running. The 6 byte ID at 0x00 is overwritten sometime
 		// after this check during booting.
-		DVDInterface::DVDRead(0, 0x3180, 4, true);
+		DVDRead(0, 0x3180, 4, true);
 
 		// Set up MSR and the BAT SPR registers.
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -368,18 +368,19 @@ bool CBoot::EmulatedBS2_Wii()
 
 		PowerPC::ppcState.gpr[1] = 0x816ffff0; // StackPointer
 
-		u32 iAppLoaderOffset = 0x2440; // 0x1c40;
+		const u32 apploader_offset = 0x2440; // 0x1c40;
 
 		// Load Apploader to Memory
 		const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-		u32 iAppLoaderEntry = volume.Read32(iAppLoaderOffset + 0x10, true);
-		u32 iAppLoaderSize = volume.Read32(iAppLoaderOffset + 0x14, true);
-		if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+		u32 apploader_entry, apploader_size;
+		if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, true) ||
+		    !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, true) ||
+		    apploader_entry == (u32)-1 || apploader_size == (u32)-1)
 		{
 			ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
 			return false;
 		}
-		DVDInterface::DVDRead(iAppLoaderOffset + 0x20, 0x01200000, iAppLoaderSize, true);
+		DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size, true);
 
 		//call iAppLoaderEntry
 		DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
@@ -388,7 +389,7 @@ bool CBoot::EmulatedBS2_Wii()
 		PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 		PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
 		PowerPC::ppcState.gpr[5] = iAppLoaderFuncAddr + 8;
-		RunFunction(iAppLoaderEntry);
+		RunFunction(apploader_entry);
 		u32 iAppLoaderInit = PowerPC::Read_U32(iAppLoaderFuncAddr + 0);
 		u32 iAppLoaderMain = PowerPC::Read_U32(iAppLoaderFuncAddr + 4);
 		u32 iAppLoaderClose = PowerPC::Read_U32(iAppLoaderFuncAddr + 8);
@@ -417,7 +418,7 @@ bool CBoot::EmulatedBS2_Wii()
 			u32 iDVDOffset  = PowerPC::Read_U32(0x8130000c) << 2;
 
 			INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset, iRamAddress, iLength);
-			DVDInterface::DVDRead(iDVDOffset, iRamAddress, iLength, true);
+			DVDRead(iDVDOffset, iRamAddress, iLength, true);
 		} while (PowerPC::ppcState.gpr[3] != 0x00);
 
 		// iAppLoaderClose

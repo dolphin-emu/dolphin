@@ -24,15 +24,11 @@
 	#define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
 #else
 	#define USERDATA_DIR "user"
-	#ifdef USER_DIR
-		#define DOLPHIN_DATA_DIR USER_DIR
-	#else
-		#define DOLPHIN_DATA_DIR ".dolphin"
-	#endif
+	#define DOLPHIN_DATA_DIR "dolphin-emu"
 #endif
 
 // Shared data dirs (Sys and shared User for Linux)
-#ifdef _WIN32
+#if defined(_WIN32) || defined(LINUX_LOCAL_DEV)
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
 	#define SYSDATA_DIR "Contents/Resources/Sys"
@@ -58,7 +54,7 @@
 #define GAMESETTINGS_DIR    "GameSettings"
 #define MAPS_DIR            "Maps"
 #define CACHE_DIR           "Cache"
-#define SHADERCACHE_DIR     "ShaderCache"
+#define SHADERCACHE_DIR     "Shaders"
 #define STATESAVES_DIR      "StateSaves"
 #define SCREENSHOTS_DIR     "ScreenShots"
 #define LOAD_DIR            "Load"
@@ -73,8 +69,14 @@
 #define SHADERS_DIR         "Shaders"
 #define WII_SYSCONF_DIR     "shared2" DIR_SEP "sys"
 #define WII_WC24CONF_DIR    "shared2" DIR_SEP "wc24"
+#define RESOURCES_DIR       "Resources"
 #define THEMES_DIR          "Themes"
 #define ANAGLYPH_DIR        "Anaglyph"
+#define PIPES_DIR           "Pipes"
+#define MEMORYWATCHER_DIR   "MemoryWatcher"
+
+// This one is only used to remove it if it was present
+#define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
@@ -92,6 +94,10 @@
 #define RAM_DUMP      "ram.raw"
 #define ARAM_DUMP     "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
+
+// Files in the directory returned by GetUserPath(D_MEMORYWATCHER_IDX)
+#define MEMORYWATCHER_LOCATIONS "Locations.txt"
+#define MEMORYWATCHER_SOCKET    "MemoryWatcher"
 
 // Sys files
 #define TOTALDB     "totaldb.dsy"

@@ -8,6 +8,7 @@
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
+#include "InputCommon/GCPadStatus.h"
 
 const std::string hotkey_labels[] =
 {
@@ -19,6 +20,9 @@ const std::string hotkey_labels[] =
 	_trans("Stop"),
 	_trans("Reset"),
 	_trans("Frame Advance"),
+	_trans("Frame Advance Decrease Speed"),
+	_trans("Frame Advance Increase Speed"),
+	_trans("Frame Advance Reset Speed"),
 
 	_trans("Start Recording"),
 	_trans("Play Recording"),
@@ -42,12 +46,13 @@ const std::string hotkey_labels[] =
 	_trans("Increase IR"),
 	_trans("Decrease IR"),
 
+	_trans("Toggle Crop"),
 	_trans("Toggle Aspect Ratio"),
 	_trans("Toggle EFB Copies"),
 	_trans("Toggle Fog"),
-	_trans("Toggle Frame limit"),
-	_trans("Decrease Frame limit"),
-	_trans("Increase Frame limit"),
+	_trans("Disable Emulation Speed Limit"),
+	_trans("Decrease Emulation Speed"),
+	_trans("Increase Emulation Speed"),
 
 	_trans("Freelook Decrease Speed"),
 	_trans("Freelook Increase Speed"),
@@ -59,6 +64,11 @@ const std::string hotkey_labels[] =
 	_trans("Freelook Zoom In"),
 	_trans("Freelook Zoom Out"),
 	_trans("Freelook Reset"),
+
+	_trans("Toggle 3D Side-by-side"),
+	_trans("Toggle 3D Top-bottom"),
+	_trans("Toggle 3D Anaglyph"),
+	_trans("Toggle 3D Vision"),
 
 	_trans("Decrease Depth"),
 	_trans("Increase Depth"),
@@ -117,12 +127,6 @@ const std::string hotkey_labels[] =
 	_trans("Undo Save State"),
 	_trans("Save State"),
 	_trans("Load State"),
-
-	_trans("Toggle 3D Preset"),
-	_trans("Use 3D Preset 1"),
-	_trans("Use 3D Preset 2"),
-	_trans("Use 3D Preset 3"),
-
 	_trans("Permanent Camera Forward"),
 	_trans("Permanent Camera Backward"),
 	_trans("Less Units Per Metre"),
@@ -176,8 +180,8 @@ void GetStatus()
 {
 	s_hotkey.err = PAD_ERR_NONE;
 
-	// get input
-	((HotkeyManager*)s_config.controllers[0])->GetInput(&s_hotkey);
+	// Get input
+	static_cast<HotkeyManager*>(s_config.GetController(0))->GetInput(&s_hotkey);
 }
 
 bool IsEnabled()
@@ -211,8 +215,8 @@ bool IsPressed(int Id, bool held)
 
 void Initialize(void* const hwnd)
 {
-	if (s_config.controllers.empty())
-		s_config.controllers.push_back(new HotkeyManager());
+	if (s_config.ControllersNeedToBeCreated())
+		s_config.CreateController<HotkeyManager>();
 
 	g_controller_interface.Initialize(hwnd);
 
@@ -232,12 +236,7 @@ void LoadConfig()
 
 void Shutdown()
 {
-	std::vector<ControllerEmu*>::const_iterator
-		i = s_config.controllers.begin(),
-		e = s_config.controllers.end();
-	for (; i != e; ++i)
-		delete *i;
-	s_config.controllers.clear();
+	s_config.ClearControllers();
 
 	g_controller_interface.Shutdown();
 }

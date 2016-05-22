@@ -23,6 +23,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <list>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
@@ -82,7 +83,7 @@ static u64 last_reply_time;
 
 static const u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static const u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
-static void EnqueueEvent(u64 userdata, int cycles_late = 0)
+static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
 {
 	if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
 	{
@@ -206,9 +207,9 @@ void SetDefaultContentFile(const std::string& _rFilename)
 	}
 }
 
-void ES_DIVerify(u8 *_pTMD, u32 _sz)
+void ES_DIVerify(const std::vector<u8>& tmd)
 {
-	CWII_IPC_HLE_Device_es::ES_DIVerify(_pTMD, _sz);
+	CWII_IPC_HLE_Device_es::ES_DIVerify(tmd);
 }
 
 void SDIO_EventNotify()
@@ -269,6 +270,13 @@ void DoState(PointerWrap &p)
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
 
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		// We need to make sure all file handles are closed so WII_IPC_Devices_fs::DoState can successfully re-create /tmp
+		for (u32 i = 0; i < IPC_MAX_FDS; i++)
+			g_FdMap[i].reset();
+	}
+
 	for (const auto& entry : g_DeviceMap)
 	{
 		if (entry.second->IsHardware())
@@ -279,7 +287,7 @@ void DoState(PointerWrap &p)
 
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
-		for (u32 i=0; i<IPC_MAX_FDS; i++)
+		for (u32 i=0; i < IPC_MAX_FDS; i++)
 		{
 			u32 exists = 0;
 			p.Do(exists);
@@ -299,13 +307,9 @@ void DoState(PointerWrap &p)
 					g_FdMap[i]->DoState(p);
 				}
 			}
-			else
-			{
-				g_FdMap[i].reset();
-			}
 		}
 
-		for (u32 i=0; i<ES_MAX_COUNT; i++)
+		for (u32 i=0; i < ES_MAX_COUNT; i++)
 		{
 			p.Do(es_inuse[i]);
 			u32 handleID = es_handles[i]->GetDeviceID();
@@ -336,7 +340,7 @@ void DoState(PointerWrap &p)
 			}
 		}
 
-		for (u32 i=0; i<ES_MAX_COUNT; i++)
+		for (u32 i=0; i < ES_MAX_COUNT; i++)
 		{
 			p.Do(es_inuse[i]);
 			u32 handleID = es_handles[i]->GetDeviceID();

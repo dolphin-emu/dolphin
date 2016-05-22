@@ -2,14 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/SI_Device.h"
 #include "Core/HW/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SI_DeviceGCAdapter.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SI_DeviceKeyboard.h"
@@ -64,42 +67,57 @@ public:
 };
 
 
+// Check if a device class is inheriting from CSIDevice_GCController
+// The goal of this function is to avoid special casing a long list of
+// device types when there is no "real" input device, e.g. when playing
+// a TAS movie, or netplay input.
+bool SIDevice_IsGCController(SIDevices type)
+{
+	switch (type)
+	{
+	case SIDEVICE_GC_CONTROLLER:
+	case SIDEVICE_WIIU_ADAPTER:
+	case SIDEVICE_GC_TARUKONGA:
+	case SIDEVICE_DANCEMAT:
+	case SIDEVICE_GC_STEERING:
+		return true;
+	default:
+		return false;
+	}
+}
+
+
 // F A C T O R Y
-ISIDevice* SIDevice_Create(const SIDevices device, const int port_number)
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number)
 {
 	switch (device)
 	{
 	case SIDEVICE_GC_CONTROLLER:
-		return new CSIDevice_GCController(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GCController>(device, port_number);
+
+	case SIDEVICE_WIIU_ADAPTER:
+		return std::make_unique<CSIDevice_GCAdapter>(device, port_number);
 
 	case SIDEVICE_DANCEMAT:
-		return new CSIDevice_DanceMat(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_DanceMat>(device, port_number);
 
 	case SIDEVICE_GC_STEERING:
-		return new CSIDevice_GCSteeringWheel(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GCSteeringWheel>(device, port_number);
 
 	case SIDEVICE_GC_TARUKONGA:
-		return new CSIDevice_TaruKonga(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_TaruKonga>(device, port_number);
 
 	case SIDEVICE_GC_GBA:
-		return new CSIDevice_GBA(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_GBA>(device, port_number);
 
 	case SIDEVICE_GC_KEYBOARD:
-		return new CSIDevice_Keyboard(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_Keyboard>(device, port_number);
 
 	case SIDEVICE_AM_BASEBOARD:
-		return new CSIDevice_AMBaseboard(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_AMBaseboard>(device, port_number);
 
 	case SIDEVICE_NONE:
 	default:
-		return new CSIDevice_Null(device, port_number);
-		break;
+		return std::make_unique<CSIDevice_Null>(device, port_number);
 	}
 }

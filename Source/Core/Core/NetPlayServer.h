@@ -22,7 +22,7 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
 	void ThreadFunc();
-	void SendAsyncToClients(sf::Packet* packet);
+	void SendAsyncToClients(std::unique_ptr<sf::Packet> packet);
 
 	NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
 	~NetPlayServer();
@@ -50,7 +50,7 @@ public:
 	std::unordered_set<std::string> GetInterfaceSet();
 	std::string GetInterfaceHost(const std::string& inter);
 
-	bool is_connected;
+	bool is_connected = false;
 
 #ifdef USE_UPNP
 	void TryPortmapping(u16 port);
@@ -90,13 +90,13 @@ private:
 
 	NetSettings     m_settings;
 
-	bool            m_is_running;
-	bool            m_do_loop;
+	bool            m_is_running = false;
+	bool            m_do_loop = false;
 	Common::Timer   m_ping_timer;
-	u32             m_ping_key;
-	bool            m_update_pings;
-	u32             m_current_game;
-	unsigned int    m_target_buffer_size;
+	u32             m_ping_key = 0;
+	bool            m_update_pings = false;
+	u32             m_current_game = 0;
+	unsigned int    m_target_buffer_size = 0;
 	PadMappingArray m_pad_map;
 	PadMappingArray m_wiimote_map;
 
@@ -117,9 +117,9 @@ private:
 	std::thread m_thread;
 	Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
 
-	ENetHost*        m_server;
-	TraversalClient* m_traversal_client;
-	NetPlayUI*       m_dialog;
+	ENetHost*        m_server = nullptr;
+	TraversalClient* m_traversal_client = nullptr;
+	NetPlayUI*       m_dialog = nullptr;
 
 #ifdef USE_UPNP
 	static void mapPortThread(const u16 port);

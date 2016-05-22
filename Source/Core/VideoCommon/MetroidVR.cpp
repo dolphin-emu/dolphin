@@ -10,6 +10,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/MetroidVR.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
 // helmet, combat visor, radar dot, map, scan visor, scan text, and scan hologram should be attached to face

@@ -12,7 +12,11 @@
 #include <wx/statbmp.h>
 #include <wx/textctrl.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/Movie.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -142,7 +146,7 @@ void TASInputDlg::CreateWiiLayout(int num)
 
 	if (Core::IsRunning())
 	{
-		m_ext = ((WiimoteEmu::Wiimote*)Wiimote::GetConfig()->controllers[num])->CurrentExtension();
+		m_ext = static_cast<WiimoteEmu::Wiimote*>(Wiimote::GetConfig()->GetController(num))->CurrentExtension();
 	}
 	else
 	{

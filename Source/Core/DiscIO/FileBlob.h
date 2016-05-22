@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdio>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -17,7 +18,7 @@ namespace DiscIO
 class PlainFileReader : public IBlobReader
 {
 public:
-	static PlainFileReader* Create(const std::string& filename);
+	static std::unique_ptr<PlainFileReader> Create(const std::string& filename);
 
 	BlobType GetBlobType() const override { return BlobType::PLAIN; }
 	u64 GetDataSize() const override { return m_size; }

@@ -24,13 +24,10 @@ static const unsigned int WII_BANNER_HEIGHT = 64;
 static const unsigned int WII_BANNER_SIZE = WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
 static const unsigned int WII_BANNER_OFFSET = 0xA0;
 
-std::vector<u32> IVolume::GetBanner(int* width, int* height) const
+std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
 {
 	*width = 0;
 	*height = 0;
-
-	u64 title_id = 0;
-	GetTitleID(&title_id);
 
 	std::string file_name = StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
 		File::GetUserPath(D_WIIROOT_IDX).c_str(), (u32)(title_id >> 32), (u32)title_id);
@@ -82,7 +79,7 @@ IVolume::ECountry CountrySwitch(u8 country_code)
 {
 	switch (country_code)
 	{
-		// Region free - Uses European flag as placeholder
+		// Worldwide
 		case 'A':
 			return IVolume::COUNTRY_WORLD;
 
@@ -531,7 +528,9 @@ std::string GetCompanyFromID(const std::string& company_id)
 		{ "NP", "Nobilis" },
 		{ "NQ", "Namco Bandai" },
 		{ "NR", "Data Design / Destineer Studios" },
+		{ "NS", "NIS America"},
 		{ "PL", "Playlogic" },
+		{ "QC", "Kadokawa Shoten"},
 		{ "RM", "Rondomedia" },
 		{ "RS", "Warner Bros. Interactive Entertainment Inc." },
 		{ "RT", "RTL Games" },

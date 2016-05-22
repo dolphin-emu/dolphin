@@ -12,6 +12,7 @@ class CGameListCtrl;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
+class wxSpinCtrl;
 class wxStaticText;
 class wxTextCtrl;
 
@@ -27,6 +28,7 @@ private:
 	void OnQuit(wxCommandEvent& event);
 	void OnChoice(wxCommandEvent& event);
 	void OnResetTraversal(wxCommandEvent& event);
+	void OnTraversalListenPortChanged(wxCommandEvent& event);
 
 	void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
 
@@ -40,6 +42,8 @@ private:
 	wxChoice*     m_direct_traversal;
 	wxStaticText* m_traversal_lbl;
 	wxButton* m_trav_reset_btn;
+	wxCheckBox* m_traversal_listen_port_enabled;
+	wxSpinCtrl* m_traversal_listen_port;
 
 	wxListBox*  m_game_lbox;
 #ifdef USE_UPNP

@@ -85,6 +85,7 @@ set(SRCS	ActionReplay.cpp
 			HW/DSPLLE/DSPLLE.cpp
 			HW/DSPLLE/DSPLLETools.cpp
 			HW/DVDInterface.cpp
+			HW/DVDThread.cpp
 			HW/EXI_Channel.cpp
 			HW/EXI.cpp
 			HW/EXI_Device.cpp
@@ -114,6 +115,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI_Device.cpp
 			HW/SI_DeviceDanceMat.cpp
 			HW/SI_DeviceGBA.cpp
+			HW/SI_DeviceGCAdapter.cpp
 			HW/SI_DeviceGCController.cpp
 			HW/SI_DeviceGCSteeringWheel.cpp
 			HW/SI_DeviceKeyboard.cpp
@@ -241,8 +243,7 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
-	        	       	HW/SI_GCAdapter.cpp)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
 endif(LIBUSB_FOUND)
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
@@ -258,6 +259,8 @@ elseif(UNIX)
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
 		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
 		set(LIBS ${LIBS} bluetooth)
+	elseif(ANDROID)
+		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
 	else()
 		set(SRCS ${SRCS} HW/WiimoteReal/IODummy.cpp)
 	endif()
@@ -274,5 +277,9 @@ endif(OPROFILE_FOUND)
 if(GDBSTUB)
 	set(SRCS ${SRCS} PowerPC/GDBStub.cpp)
 endif(GDBSTUB)
+
+if(UNIX)
+	set(SRCS ${SRCS} MemoryWatcher.cpp)
+endif(UNIX)
 
 add_dolphin_library(core "${SRCS}" "${LIBS}")

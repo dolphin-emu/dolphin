@@ -4,8 +4,11 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
-#include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
 
 enum ViewportType {
 	VIEW_FULLSCREEN = 0,

@@ -3,14 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
-static char text[16384];
 
 static const char* primitives_ogl[] =
 {
@@ -26,23 +26,20 @@ static const char* primitives_d3d[] =
 	"triangle"
 };
 
-template<class T> static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
-template<class T> static inline void EndPrimitive(T& out, API_TYPE ApiType);
+template<class T> static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+template<class T> static void EndPrimitive(T& out, API_TYPE ApiType);
 
 template<class T>
-static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType, bool is_custom)
+static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType, bool is_custom)
 {
+	T out;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	geometry_shader_uid_data dummy_data;
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
-	if (uid_data == nullptr)
+	if (uid_data != nullptr)
+		memset(uid_data, 0, sizeof(*uid_data));
+	else
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	uid_data->primitive_type = primitive_type;
 	const unsigned int vertex_in = primitive_type + 1;
@@ -87,7 +84,7 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 	uid_data->pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
 
 	out.Write("struct VS_OUTPUT {\n");
-	GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens);
+	GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, "");
 	out.Write("};\n");
 
 	if (ApiType == API_OPENGL)
@@ -96,11 +93,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 			out.Write("#define InstanceID gl_InvocationID\n");
 
 		out.Write("in VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(ApiType, true, true));
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(true, true));
 		out.Write("} vs[%d];\n", vertex_in);
 
 		out.Write("out VertexData {\n");
-		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(ApiType, false, true));
+		GenerateVSOutputMembers<T>(out, ApiType, uid_data->numTexGens, GetInterpolationQualifier(true, false));
 
 		if (uid_data->stereo)
 			out.Write("\tflat int layer;\n");
@@ -300,15 +297,11 @@ static inline void GenerateGeometryShader(T& out, u32 primitive_type, API_TYPE A
 
 	out.Write("}\n");
 
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
-	}
+	return out;
 }
 
 template<class T>
-static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
+static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex)
 {
 	if (g_ActiveConfig.bWireFrame && first_vertex)
 		out.Write("\tif (i == 0) first = %s;\n", vertex);
@@ -329,7 +322,7 @@ static inline void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool
 		out.Write("\toutput.Append(ps);\n");
 }
 template<class T>
-static inline void EndPrimitive(T& out, API_TYPE ApiType)
+static void EndPrimitive(T& out, API_TYPE ApiType)
 {
 	if (g_ActiveConfig.bWireFrame)
 		EmitVertex<T>(out, "first", ApiType);
@@ -340,30 +333,25 @@ static inline void EndPrimitive(T& out, API_TYPE ApiType)
 		out.Write("\toutput.RestartStrip();\n");
 }
 
-void GetGeometryShaderUid(GeometryShaderUid& object, u32 primitive_type, API_TYPE ApiType)
+GeometryShaderUid GetGeometryShaderUid(u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<GeometryShaderUid>(object, primitive_type, ApiType, false);
+	return GenerateGeometryShader<GeometryShaderUid>(primitive_type, ApiType, false);
 }
 
-void GenerateGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
+ShaderCode GenerateGeometryShaderCode(u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateGeometryShader<ShaderCode>(object, primitive_type, ApiType, false);
+	return GenerateGeometryShader<ShaderCode>(primitive_type, ApiType, false);
 }
 
 template<class T>
-static inline void GenerateAvatarGeometryShader(T& out, u32 primitive_type, API_TYPE ApiType)
+static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
 {
+	T out;
 	// Non-uid template parameters will write to the dummy data (=> gets optimized out)
 	geometry_shader_uid_data dummy_data;
 	geometry_shader_uid_data* uid_data = out.template GetUidData<geometry_shader_uid_data>();
 	if (uid_data == nullptr)
 		uid_data = &dummy_data;
-
-	out.SetBuffer(text);
-	const bool is_writing_shadercode = (out.GetBuffer() != nullptr);
-
-	if (is_writing_shadercode)
-		text[sizeof(text) - 1] = 0x7C;  // canary
 
 	uid_data->primitive_type = primitive_type;
 	const unsigned int vertex_in = primitive_type + 1;
@@ -404,7 +392,7 @@ static inline void GenerateAvatarGeometryShader(T& out, u32 primitive_type, API_
 
 	uid_data->numTexGens = 1;
 	uid_data->pixel_lighting = false;
-	const char *qualifier = nullptr;
+	const char *qualifier = "";
 
 	out.Write("struct VS_OUTPUT {\n");
 	DefineOutputMember(out, ApiType, qualifier, "float4", "pos", -1, "POSITION");
@@ -644,15 +632,10 @@ static inline void GenerateAvatarGeometryShader(T& out, u32 primitive_type, API_
 		out.Write("\t}\n");
 
 	out.Write("}\n");
-
-	if (is_writing_shadercode)
-	{
-		if (text[sizeof(text) - 1] != 0x7C)
-			PanicAlert("GeometryShader generator - buffer too small, canary has been eaten!");
-	}
+	return out;
 }
 
-void GenerateAvatarGeometryShaderCode(ShaderCode& object, u32 primitive_type, API_TYPE ApiType)
+ShaderCode GenerateAvatarGeometryShaderCode(u32 primitive_type, API_TYPE ApiType)
 {
-	GenerateAvatarGeometryShader<ShaderCode>(object, primitive_type, ApiType);
+	return GenerateAvatarGeometryShader<ShaderCode>(primitive_type, ApiType);
 }

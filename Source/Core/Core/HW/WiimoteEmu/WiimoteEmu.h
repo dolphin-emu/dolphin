@@ -6,9 +6,7 @@
 
 #include <queue>
 #include <string>
-#include <vector>
 
-#include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu.h"
@@ -156,6 +154,7 @@ public:
 	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ConnectOnInput();
+	void Reset();
 
 	void DoState(PointerWrap& p);
 	void RealState();
@@ -190,8 +189,6 @@ private:
 		u32 address, size, position;
 		u8* data;
 	};
-
-	void Reset();
 
 	void ReportMode(const wm_report_mode* const dr);
 	void SendAck(const u8 _reportID, u8 err = 0);

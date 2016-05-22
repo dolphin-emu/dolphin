@@ -6,12 +6,10 @@
 #include <queue>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-
 #include "Core/ConfigManager.h"
-#include "Core/GeckoCode.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -243,7 +241,7 @@ static bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 	// interrupt is *not* a possible swap candidate: see [1] for an example of
 	// a crash caused by this error.
 	//
-	// [1] https://code.google.com/p/dolphin-emu/issues/detail?id=5864#c7
+	// [1] https://bugs.dolphin-emu.org/issues/5864#note-7
 	if (b_info->type != OPTYPE_INTEGER)
 		return false;
 

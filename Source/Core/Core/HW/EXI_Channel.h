@@ -97,7 +97,7 @@ public:
 	void SendTransferComplete();
 
 	void AddDevice(const TEXIDevices device_type, const int device_num);
-	void AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged = true);
+	void AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num, bool notify_presence_changed = true);
 
 	// Remove all devices
 	void RemoveDevices();

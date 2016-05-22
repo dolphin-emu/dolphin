@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Core/Host.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
@@ -42,7 +43,7 @@ static const char* const named_buttons[] =
 	"Y",
 	"Z",
 	_trans("Start"),
-	"Mic"
+	_trans("Mic")
 };
 
 static const char* const named_triggers[] =

@@ -12,7 +12,6 @@
 // include order is important
 #include <gtest/gtest.h> // NOLINT
 
-#if _M_X86_64
 enum
 {
 #ifdef _WIN32
@@ -78,4 +77,3 @@ TEST(PageFault, PageFault)
 	printf("HandleFault->end       %llu ns\n", AS_NS(end - pfjit.m_post_unprotect_time));
 	printf("total                  %llu ns\n", AS_NS(end - start));
 }
-#endif

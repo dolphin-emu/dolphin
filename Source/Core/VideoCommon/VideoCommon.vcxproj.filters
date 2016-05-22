@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Base">
@@ -174,9 +174,6 @@
     <ClInclude Include="FramebufferManagerBase.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="MainBase.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQueryBase.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -305,6 +302,9 @@
     </ClInclude>
     <ClInclude Include="GeometryShaderManager.h">
       <Filter>Shader Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="SamplerCommon.h">
+      <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="VRTracker.h" />
   </ItemGroup>

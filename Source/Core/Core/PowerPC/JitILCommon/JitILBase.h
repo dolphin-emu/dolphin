@@ -4,14 +4,9 @@
 
 #pragma once
 
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
+#include "Common/CommonTypes.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitILCommon/IR.h"
 
@@ -102,7 +97,7 @@ public:
 
 	void fp_arith_s(UGeckoInstruction inst);
 
-	void fcmpx(UGeckoInstruction inst);
+	void fcmpX(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 
 	void cmpXX(UGeckoInstruction inst);

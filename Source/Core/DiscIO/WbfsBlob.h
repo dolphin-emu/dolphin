@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -17,7 +18,9 @@ namespace DiscIO
 class WbfsFileReader : public IBlobReader
 {
 public:
-	static WbfsFileReader* Create(const std::string& filename);
+	~WbfsFileReader();
+
+	static std::unique_ptr<WbfsFileReader> Create(const std::string& filename);
 
 	BlobType GetBlobType() const override { return BlobType::WBFS; }
 
@@ -31,7 +34,6 @@ public:
 
 private:
 	WbfsFileReader(const std::string& filename);
-	~WbfsFileReader();
 
 	bool OpenFiles(const std::string& filename);
 	bool ReadHeader();
@@ -47,7 +49,7 @@ private:
 		u64 size;
 	};
 
-	std::vector<file_entry*> m_files;
+	std::vector<std::unique_ptr<file_entry>> m_files;
 
 	u32 m_total_files;
 	u64 m_size;
@@ -69,7 +71,7 @@ private:
 	} m_header;
 #pragma pack()
 
-	u16* m_wlba_table;
+	std::vector<u16> m_wlba_table;
 	u64 m_blocks_per_disc;
 
 	bool m_good;

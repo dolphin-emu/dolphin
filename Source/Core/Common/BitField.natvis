@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Copyright 2015 Scott Mansell
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the owner nor the names of its contributors may
+        be used to endorse or promote products derived from this software
+        without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+  <!--
+    This is a re-implementation of the abstract bitfield class' algrothm (in BitField.h)
+    for Visual Studio to use for pretty-printing during debugging.
+  -->
+  <Type Name="BitField&lt;*,*,*&gt;">
+    <DisplayString Condition="$T2 == 1"><![CDATA[{(storage & (1 << $T1)) != 0}]]></DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << $T2) - 1)}]]></DisplayString>
+    <Expand>
+      <Item Name="Offset">$T1</Item>
+      <Item Name="Size">$T2</Item>
+    </Expand>
+  </Type>
+
+
+  <!--Specialised versions for signed types-->
+  <Type Name="BitField&lt;*,*,__int64&gt;">
+    <!-- This is what I have do to get a sign extension in this crappy natvis "language"
+         Basically, we check the top bit, if it's one, we add the remaining
+         bits to the smallest (most negative) number. -->
+    <DisplayString Condition="(storage &amp; (1 &lt;&lt; ($T1 + $T2))) != 0">
+      <![CDATA[{(-1 * (1 << ($T2-1))) + ((storage >> $T1) & ((1 << ($T2-1)) - 1))}]]>
+    </DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << ($T2-1)) - 1)}]]></DisplayString>
+    <Expand>
+      <Item Name="Offset">$T1</Item>
+      <Item Name="Size">$T2</Item>
+    </Expand>
+  </Type>
+
+  <!-- Oh, and I can't do a generic match for all signed types, so these are identical to the __int64 case above 
+       Would be nice if std::numeric_limits<$T3>::is_signed or std::is_signed<$T3>::value worked -->
+  <Type Name="BitField&lt;*,*,__int32&gt;">
+    <DisplayString Condition="(storage &amp; (1 &lt;&lt; ($T1 + $T2))) != 0">
+      <![CDATA[{(-1 * (1 << ($T2-1))) + ((storage >> $T1) & ((1 << ($T2-1)) - 1))}]]>
+    </DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << ($T2-1)) - 1)}]]></DisplayString>
+    <Expand>
+      <Item Name="Offset">$T1</Item>
+      <Item Name="Size">$T2</Item>
+    </Expand>
+  </Type>
+  <Type Name="BitField&lt;*,*,__int16&gt;">
+    <DisplayString Condition="(storage &amp; (1 &lt;&lt; ($T1 + $T2))) != 0">
+      <![CDATA[{(-1 * (1 << ($T2-1))) + ((storage >> $T1) & ((1 << ($T2-1)) - 1))}]]>
+    </DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << ($T2-1)) - 1)}]]></DisplayString>
+    <Expand>
+      <Item Name="Offset">$T1</Item>
+      <Item Name="Size">$T2</Item>
+    </Expand>
+  </Type>
+  <Type Name="BitField&lt;*,*,__int8&gt;">
+    <DisplayString Condition="(storage &amp; (1 &lt;&lt; ($T1 + $T2))) != 0">
+      <![CDATA[{(-1 * (1 << ($T2-1))) + ((storage >> $T1) & ((1 << ($T2-1)) - 1))}]]>
+    </DisplayString>
+    <DisplayString><![CDATA[{(storage >> $T1) & ((1 << ($T2-1)) - 1)}]]></DisplayString>
+    <Expand>
+      <Item Name="Offset">$T1</Item>
+      <Item Name="Size">$T2</Item>
+    </Expand>
+  </Type>
+</AutoVisualizer>

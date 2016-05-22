@@ -62,18 +62,6 @@ enum TGameCamera
 	CAMERA_NONE
 };
 
-#if defined(_MSC_VER) && _MSC_VER <= 1800
-#define STEREOSCOPY_PRESETS_NUM 3
-#else
-constexpr int STEREOSCOPY_PRESETS_NUM = 3;
-#endif
-
-struct StereoscopyPreset final
-{
-	int depth;
-	int convergence;
-};
-
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -102,18 +90,12 @@ struct VideoConfig final
 	bool bUseRealXFB;
 
 	// Enhancements
-	int iMultisampleMode;
+	int iMultisamples;
 	bool bSSAA;
 	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
-	int iStereoMode;
-	int iStereoDepth;
-	int iStereoConvergence;
-	bool bStereoSwapEyes;
-	std::array<StereoscopyPreset, STEREOSCOPY_PRESETS_NUM> oStereoPresets;
-	int iStereoActivePreset;
 
 	// Information
 	bool bShowFPS;
@@ -121,7 +103,6 @@ struct VideoConfig final
 	bool bOverlayProjStats;
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
-	bool bShowEFBCopyRegions;
 	bool bLogRenderTimeToFile;
 
 	// Render
@@ -159,9 +140,13 @@ struct VideoConfig final
 	int iSaveTargetId; // TODO: Should be dropped
 
 	// Stereoscopy
+	int iStereoMode;
+	int iStereoDepth;
+	int iStereoConvergence;
+	int iStereoConvergencePercentage;
+	bool bStereoSwapEyes;
 	bool bStereoEFBMonoDepth;
 	int iStereoDepthPercentage;
-	int iStereoConvergenceMinimum;
 
 	// VR global
 	float fScale;
@@ -267,6 +252,15 @@ struct VideoConfig final
 
 	// Debugging
 	bool bEnableShaderDebugging;
+
+	// VideoSW Debugging
+	int drawStart;
+	int drawEnd;
+	bool bZComploc;
+	bool bZFreeze;
+	bool bDumpObjects;
+	bool bDumpTevStages;
+	bool bDumpTevTextureFetches;
 
 	// Static config per API
 	// TODO: Move this out of VideoConfig

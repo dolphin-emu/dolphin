@@ -5,8 +5,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_FPUtils.h"
 

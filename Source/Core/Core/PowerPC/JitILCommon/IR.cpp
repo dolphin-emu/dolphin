@@ -126,14 +126,12 @@ TODO (in no particular order):
 #include <set>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PPCTables.h"
+#include "Common/x64Emitter.h"
 #include "Core/PowerPC/JitILCommon/IR.h"
+
 using namespace Gen;
 
 namespace IREmitter

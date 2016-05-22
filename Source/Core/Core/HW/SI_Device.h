@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -60,7 +61,8 @@ enum SIDevices : int
 	SIDEVICE_GC_STEERING,
 	SIDEVICE_DANCEMAT,
 	SIDEVICE_GC_TARUKONGA,
-	SIDEVICE_AM_BASEBOARD
+	SIDEVICE_AM_BASEBOARD,
+	SIDEVICE_WIIU_ADAPTER,
 };
 
 
@@ -105,4 +107,6 @@ public:
 	}
 };
 
-ISIDevice* SIDevice_Create(const SIDevices device, const int port_number);
+bool SIDevice_IsGCController(SIDevices type);
+
+std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number);

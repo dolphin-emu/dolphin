@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/DSPEmulator.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"

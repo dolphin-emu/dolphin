@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Common/LinearDiskCache.h"
 #include "Common/GL/GLUtil.h"
 
@@ -23,33 +25,16 @@ public:
 	PixelShaderUid puid;
 	GeometryShaderUid guid;
 
-	SHADERUID() {}
-
-	SHADERUID(const SHADERUID& r) : vuid(r.vuid), puid(r.puid), guid(r.guid) {}
-
 	bool operator <(const SHADERUID& r) const
 	{
-		if (puid < r.puid)
-			return true;
-
-		if (r.puid < puid)
-			return false;
-
-		if (vuid < r.vuid)
-			return true;
-
-		if (r.vuid < vuid)
-			return false;
-
-		if (guid < r.guid)
-			return true;
-
-		return false;
+		return std::tie(puid, vuid, guid) <
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 
 	bool operator ==(const SHADERUID& r) const
 	{
-		return puid == r.puid && vuid == r.vuid && guid == r.guid;
+		return std::tie(puid, vuid, guid) ==
+		       std::tie(r.puid, r.vuid, r.guid);
 	}
 };
 
@@ -86,15 +71,13 @@ public:
 		}
 	};
 
-	typedef std::map<SHADERUID, PCacheEntry> PCache;
 
 	static PCacheEntry GetShaderProgram();
-	static GLuint GetCurrentProgram();
-	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
-	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 components, u32 primitive_type);
+	static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
+	static void GetShaderId(SHADERUID *uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
 
-	static bool CompileShader(SHADER &shader, const char* vcode, const char* pcode, const char* gcode = nullptr);
-	static GLuint CompileSingleShader(GLuint type, const char *code);
+	static bool CompileShader(SHADER &shader, const std::string& vcode, const std::string& pcode, const std::string& gcode = "");
+	static GLuint CompileSingleShader(GLuint type, const std::string& code);
 	static void UploadConstants(bool force_upload);
 
 	static void Init();
@@ -108,13 +91,14 @@ private:
 		void Read(const SHADERUID &key, const u8 *value, u32 value_size) override;
 	};
 
+	typedef std::map<SHADERUID, PCacheEntry> PCache;
 	static PCache pshaders;
 	static PCacheEntry* last_entry;
 	static SHADERUID last_uid;
 
-	static UidChecker<PixelShaderUid,PixelShaderCode> pixel_uid_checker;
-	static UidChecker<VertexShaderUid,VertexShaderCode> vertex_uid_checker;
-	static UidChecker<GeometryShaderUid,ShaderCode> geometry_uid_checker;
+	static UidChecker<PixelShaderUid, ShaderCode> pixel_uid_checker;
+	static UidChecker<VertexShaderUid, ShaderCode> vertex_uid_checker;
+	static UidChecker<GeometryShaderUid, ShaderCode> geometry_uid_checker;
 
 	static u32 s_ubo_buffer_size;
 	static s32 s_ubo_align;

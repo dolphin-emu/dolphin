@@ -6,13 +6,11 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/Memmap.h"
-
-#include "VideoBackends/Software/BPMemLoader.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/Software/EfbInterface.h"
-
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
-#include "VideoCommon/PixelEngine.h"
+#include "VideoCommon/PerfQueryBase.h"
 
 
 static u8 efb[EFB_WIDTH*EFB_HEIGHT*6];
@@ -29,11 +27,6 @@ namespace EfbInterface
 	static inline u32 GetDepthOffset(u16 x, u16 y)
 	{
 		return (x + y * EFB_WIDTH) * 3 + DEPTH_BUFFER_START;
-	}
-
-	void DoState(PointerWrap &p)
-	{
-		p.DoArray(efb);
 	}
 
 	static void SetPixelAlphaOnly(u32 offset, u8 a)
@@ -398,6 +391,20 @@ namespace EfbInterface
 		}
 	}
 
+	static void Dither(u16 x, u16 y, u8 *color)
+	{
+		// No blending for RGB8 mode
+		if (!bpmem.blendmode.dither || bpmem.zcontrol.pixel_format != PEControl::PixelFormat::RGBA6_Z24)
+			return;
+
+		// Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
+		static const u8 dither[2][2] = {{0, 2}, {3, 1}};
+
+		// Only the color channels are dithered?
+		for (int i = BLU_C; i <= RED_C; i++)
+			color[i] = ((color[i] - (color[i] >> 6)) + dither[y & 1][x & 1]) & 0xfc;
+	}
+
 	void BlendTev(u16 x, u16 y, u8 *color)
 	{
 		u32 dstClr;
@@ -428,6 +435,7 @@ namespace EfbInterface
 
 		if (bpmem.blendmode.colorupdate)
 		{
+			Dither(x, y, dstClrPtr);
 			if (bpmem.blendmode.alphaupdate)
 				SetPixelAlphaColor(offset, dstClrPtr);
 			else

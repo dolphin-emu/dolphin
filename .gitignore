@@ -18,12 +18,18 @@ Source/Core/Common/scmrev.h
 *.vcxproj.user
 *.obj
 *.tlog
+*.VC.opendb
+*.VC.db
+.vs/
 # Ignore build info file created by QtCreator
 CMakeLists.txt.user
 # Ignore files created by posix people
 *~
 # Ignore vim swapfiles
 *.swp
+# Ignore emacs temp files
+\#*\#
+.\#*
 # Ignore transifex configuration directory
 .tx
 # Ignore kdevelop files/dirs

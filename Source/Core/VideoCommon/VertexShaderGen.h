@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
@@ -59,7 +60,6 @@ struct vertex_shader_uid_data
 #pragma pack()
 
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
-typedef ShaderCode VertexShaderCode; // TODO: Obsolete..
 
-void GetVertexShaderUid(VertexShaderUid& object, u32 components, API_TYPE api_type);
-void GenerateVertexShaderCode(VertexShaderCode& object, u32 components, API_TYPE api_type);
+VertexShaderUid GetVertexShaderUid(API_TYPE api_type);
+ShaderCode GenerateVertexShaderCode(API_TYPE api_type);

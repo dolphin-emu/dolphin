@@ -17,6 +17,8 @@ enum PadError
 enum
 {
 	PAD_USE_ORIGIN = 0x0080,
+	PAD_GET_ORIGIN = 0x2000,
+	PAD_ERR_STATUS = 0x8000,
 };
 
 enum PadButton

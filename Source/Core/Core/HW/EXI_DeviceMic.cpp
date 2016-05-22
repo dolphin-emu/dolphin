@@ -2,6 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+#include <mutex>
+
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -9,7 +13,6 @@
 
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceMic.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
@@ -121,7 +124,7 @@ void CEXIMic::StreamReadOne()
 	if (samples_avail >= buff_size_samples)
 	{
 		s16 *last_buffer = &stream_buffer[stream_rpos];
-		memcpy(ring_buffer, last_buffer, buff_size);
+		std::memcpy(ring_buffer, last_buffer, buff_size);
 
 		samples_avail -= buff_size_samples;
 
@@ -151,7 +154,7 @@ CEXIMic::CEXIMic(int index)
 	buff_size_samples = buff_size / sample_size;
 
 	ring_pos = 0;
-	memset(ring_buffer, 0, sizeof(ring_buffer));
+	std::memset(ring_buffer, 0, sizeof(ring_buffer));
 
 	next_int_ticks = 0;
 

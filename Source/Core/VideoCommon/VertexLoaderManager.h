@@ -4,18 +4,26 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/DataReader.h"
-#include "VideoCommon/NativeVertexFormat.h"
+
+class DataReader;
+class NativeVertexFormat;
+struct PortableVertexDeclaration;
 
 namespace VertexLoaderManager
 {
+	using NativeVertexFormatMap = std::unordered_map<PortableVertexDeclaration, std::unique_ptr<NativeVertexFormat>>;
+
 	void Init();
 	void Shutdown();
 
 	void MarkAllDirty();
+
+	NativeVertexFormatMap* GetNativeVertexFormatMap();
 
 	// Returns -1 if buf_size is insufficient, else the amount of bytes consumed
 	int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing, bool is_preprocess);
@@ -33,5 +41,8 @@ namespace VertexLoaderManager
 	// These arrays are in reverse order.
 	extern float position_cache[3][4];
 	extern u32 position_matrix_index[3];
+
+	// VB_HAS_X. Bitmask telling what vertex components are present.
+	extern u32 g_current_components;
 }
 

@@ -34,7 +34,7 @@ private:
 
 	void UpdateCheatSearchResultsList();
 	void UpdateCheatSearchResultItem(long index);
-	void FilterCheatSearchResults(u32 value);
+	void FilterCheatSearchResults(u32 value, bool prev);
 	void ResetListViewColumns();
 	bool ParseUserEnteredValue(u32* out) const;
 	u32 SwapValue(u32 value) const;

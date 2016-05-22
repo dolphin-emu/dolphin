@@ -24,8 +24,8 @@ extern bool g_aspect_wide;
 
 extern bool g_want_determinism;
 
-bool GetIsFramelimiterTempDisabled();
-void SetIsFramelimiterTempDisabled(bool disable);
+bool GetIsThrottlerTempDisabled();
+void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
@@ -41,6 +41,9 @@ bool Init();
 void Stop();
 void Shutdown();
 void KillDolphinAndRestart();
+
+void DeclareAsCPUThread();
+void UndeclareAsCPUThread();
 
 std::string StopMessage(bool, const std::string&);
 

@@ -5,14 +5,11 @@
 #include <string>
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoConfig.h"
 
 GFXDebuggerBase *g_pdebugger = nullptr;

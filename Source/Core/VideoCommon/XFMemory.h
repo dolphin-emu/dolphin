@@ -6,7 +6,8 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
-#include "VideoCommon/DataReader.h"
+
+class DataReader;
 
 // Lighting
 
@@ -177,7 +178,8 @@ union TexMtxInfo
 	{
 		u32 unknown    : 1;
 		u32 projection : 1; // XF_TEXPROJ_X
-		u32 inputform  : 2; // XF_TEXINPUT_X
+		u32 inputform  : 1; // XF_TEXINPUT_X
+		u32 unknown2   : 1;
 		u32 texgentype : 3; // XF_TEXGEN_X
 		u32 sourcerow  : 5; // XF_SRCGEOM_X
 		u32 embosssourceshift : 3; // what generated texcoord to use

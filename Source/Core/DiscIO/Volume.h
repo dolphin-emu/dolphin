@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include <cstring>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -70,19 +70,18 @@ public:
 
 	// decrypt parameter must be false if not reading a Wii disc
 	virtual bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const = 0;
-	virtual u32 Read32(u64 _Offset, bool decrypt) const
+	template <typename T>
+	bool ReadSwapped(u64 offset, T* buffer, bool decrypt) const
 	{
-		u32 temp;
-		Read(_Offset, sizeof(u32), (u8*)&temp, decrypt);
-		return Common::swap32(temp);
+		T temp;
+		if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), decrypt))
+			return false;
+		*buffer = Common::FromBigEndian(temp);
+		return true;
 	}
 
 	virtual bool GetTitleID(u64*) const { return false; }
-	virtual std::unique_ptr<u8[]> GetTMD(u32 *_sz) const
-	{
-		*_sz = 0;
-		return std::unique_ptr<u8[]>();
-	}
+	virtual std::vector<u8> GetTMD() const { return {}; }
 	virtual std::string GetUniqueID() const = 0;
 	virtual std::string GetMakerID() const = 0;
 	virtual u16 GetRevision() const = 0;
@@ -90,7 +89,7 @@ public:
 	virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
 	virtual std::map<ELanguage, std::string> GetDescriptions() const { return std::map<ELanguage, std::string>(); }
 	virtual std::string GetCompany() const { return std::string(); }
-	virtual std::vector<u32> GetBanner(int* width, int* height) const;
+	virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
 	virtual u64 GetFSTSize() const = 0;
 	virtual std::string GetApploaderDate() const = 0;
 	// 0 is the first disc, 1 is the second disc
@@ -107,6 +106,8 @@ public:
 	virtual u64 GetSize() const = 0;
 	// Size on disc (compressed size)
 	virtual u64 GetRawSize() const = 0;
+
+	static std::vector<u32> GetWiiBanner(int* width, int* height, u64 title_id);
 
 protected:
 	template <u32 N>

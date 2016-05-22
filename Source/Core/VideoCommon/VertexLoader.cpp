@@ -2,22 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/MemoryUtil.h"
-
-#include "Core/Host.h"
 
 #include "VideoCommon/DataReader.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoader_Color.h"
 #include "VideoCommon/VertexLoader_Normal.h"
 #include "VideoCommon/VertexLoader_Position.h"
 #include "VideoCommon/VertexLoader_TextCoord.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 // This pointer is used as the source/dst for all fixed function loader calls
 u8* g_video_buffer_read_ptr;

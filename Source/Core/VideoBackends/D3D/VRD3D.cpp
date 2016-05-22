@@ -330,7 +330,9 @@ void VR_StartFramebuffer()
 		}
 		// In Oculus SDK 0.5.0.1 or below we need to create our own textures for eye render targets
 		ID3D11Texture2D* buf;
-		DXGI_SAMPLE_DESC sample_desc = D3D::GetAAMode(g_ActiveConfig.iMultisampleMode);
+		DXGI_SAMPLE_DESC sample_desc;
+		sample_desc.Count = g_ActiveConfig.iMultisamples;
+		sample_desc.Quality = 0;
 		D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, FramebufferManager::m_target_width, FramebufferManager::m_target_height, 1, 1, D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT, 0, 1, sample_desc.Quality);
 		for (int eye = 0; eye < 2; ++eye)
 		{

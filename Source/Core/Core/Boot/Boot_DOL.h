@@ -13,7 +13,7 @@ class CDolLoader
 {
 public:
 	CDolLoader(const std::string& filename);
-	CDolLoader(u8* buffer, size_t size);
+	CDolLoader(const std::vector<u8>& buffer);
 	~CDolLoader();
 
 	bool IsValid()      const { return m_is_valid; }
@@ -54,5 +54,5 @@ private:
 	bool m_is_wii;
 
 	// Copy sections to internal buffers
-	bool Initialize(u8* buffer, size_t size);
+	bool Initialize(const std::vector<u8>& buffer);
 };

@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "Common/Common.h"
-#include "Common/Hash.h"
+#include "Common/CommonTypes.h"
 
 enum
 {
@@ -72,6 +71,7 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);
 int TexDecoder_GetBlockHeightInTexels(u32 format);
 int TexDecoder_GetPaletteSize(int fmt);
+int TexDecoder_GetEfbCopyBaseFormat(int format);
 
 void TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, const u8* tlut, TlutFormat tlutfmt);
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8 *src_ar, const u8 *src_gb, int width, int height);

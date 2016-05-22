@@ -159,11 +159,4 @@ public:
 		y = 0.0f;
 		z = 0.0f;
 	}
-
-	void DoState(PointerWrap &p)
-	{
-		p.Do(x);
-		p.Do(y);
-		p.Do(z);
-	}
 };

@@ -87,7 +87,7 @@ void PSTextureEncoder::Shutdown()
 	SAFE_RELEASE(m_out);
 }
 
-void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *texture_entry,
+void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
 	PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
 	bool isIntensity, bool scaleByHalf)
 {
@@ -96,36 +96,37 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 
 	HRESULT hr;
 
-	// Reset API
-	g_renderer->ResetAPIState();
-
-	// Set up all the state for EFB encoding
-	{
-		const u32 words_per_row = texture_entry->BytesPerRow() / sizeof(u32);
-
-		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(words_per_row), FLOAT(texture_entry->NumBlocksY()));
-		D3D::context->RSSetViewports(1, &vp);
-
-		EFBRectangle fullSrcRect;
-		fullSrcRect.left = 0;
-		fullSrcRect.top = 0;
-		fullSrcRect.right = EFB_WIDTH;
-		fullSrcRect.bottom = EFB_HEIGHT;
-		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
-
-		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
-
-		ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
+	// Resolve MSAA targets before copying.
+	ID3D11ShaderResourceView* pEFB = (srcFormat == PEControl::Z24) ?
 			FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
 			// FIXME: Instead of resolving EFB, it would be better to pick out a
 			// single sample from each pixel. The game may break if it isn't
 			// expecting the blurred edges around multisampled shapes.
 			FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
+	// Reset API
+	g_renderer->ResetAPIState();
+
+	// Set up all the state for EFB encoding
+	{
+		const u32 words_per_row = bytes_per_row / sizeof(u32);
+
+		D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(words_per_row), FLOAT(num_blocks_y));
+		D3D::context->RSSetViewports(1, &vp);
+
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+		const EFBRectangle fullSrcRect(0, 0, EFB_WIDTH, EFB_HEIGHT);
+#else
+		constexpr EFBRectangle fullSrcRect(0, 0, EFB_WIDTH, EFB_HEIGHT);
+#endif
+		TargetRectangle targetRect = g_renderer->ConvertEFBRectangle(fullSrcRect);
+
+		D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
+
 		EFBEncodeParams params;
 		params.SrcLeft = srcRect.left;
 		params.SrcTop = srcRect.top;
-		params.DestWidth = texture_entry->native_width;
+		params.DestWidth = native_width;
 		params.ScaleFactor = scaleByHalf ? 2 : 1;
 		D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
 		D3D::stateman->SetPixelConstants(m_encodeParams);
@@ -140,12 +141,12 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 			targetRect.AsRECT(),
 			Renderer::GetTargetWidth(),
 			Renderer::GetTargetHeight(),
-			SetStaticShader(texture_entry->format, srcFormat, isIntensity, scaleByHalf),
+			SetStaticShader(format, srcFormat, isIntensity, scaleByHalf),
 			VertexShaderCache::GetSimpleVertexShader(),
 			VertexShaderCache::GetSimpleInputLayout());
 
 		// Copy to staging buffer
-		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, words_per_row, texture_entry->NumBlocksY(), 1);
+		D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, words_per_row, num_blocks_y, 1);
 		D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
 
 		// Transfer staging buffer to GameCube/Wii RAM
@@ -154,11 +155,11 @@ void PSTextureEncoder::Encode(u8* dst, const TextureCache::TCacheEntryBase *text
 		CHECK(SUCCEEDED(hr), "map staging buffer (0x%x)", hr);
 
 		u8* src = (u8*)map.pData;
-		u32 readStride = std::min(texture_entry->BytesPerRow(), map.RowPitch);
-		for (unsigned int y = 0; y < texture_entry->NumBlocksY(); ++y)
+		u32 readStride = std::min(bytes_per_row, map.RowPitch);
+		for (unsigned int y = 0; y < num_blocks_y; ++y)
 		{
 			memcpy(dst, src, readStride);
-			dst += texture_entry->memory_stride;
+			dst += memory_stride;
 			src += map.RowPitch;
 		}
 

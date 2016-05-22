@@ -66,7 +66,6 @@ private:
 	wxString CreateRecordingFifoSizeLabel() const;
 	wxString CreateRecordingMemSizeLabel() const;
 	wxString CreateRecordingFrameCountLabel() const;
-	wxString CreateIntegerLabel(size_t size, const wxString& label) const;
 
 	bool GetSaveButtonEnabled() const;
 

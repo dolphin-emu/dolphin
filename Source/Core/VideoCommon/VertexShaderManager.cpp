@@ -6,11 +6,14 @@
 #include <cmath>
 #include <cstring>
 #include <sstream>
+#include <string>
 
 #include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
@@ -20,7 +23,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -1232,7 +1234,7 @@ void VertexShaderManager::SetProjectionConstants()
 			{
 				GeometryShaderManager::constants.stereoparams[0] = GeometryShaderManager::constants.stereoparams[1] = 0;
 			}
-			GeometryShaderManager::constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergenceMinimum + g_ActiveConfig.iStereoConvergence);
+			GeometryShaderManager::constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence * (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
 		}
 		return;
 	}
@@ -1361,7 +1363,9 @@ void VertexShaderManager::SetProjectionConstants()
 
 			g_fProjectionMatrix[12] = 0.0f;
 			g_fProjectionMatrix[13] = 0.0f;
-			g_fProjectionMatrix[14] = -1.0f;
+
+			// Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
+			g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
 			g_fProjectionMatrix[15] = 0.0f;
 
 			// Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
@@ -2238,7 +2242,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
 	if (g_main_cp_state.matrix_index_a.Hex != Value)
 	{
-		VertexManager::Flush();
+		VertexManagerBase::Flush();
 		if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
 			bPosNormalMatrixChanged = true;
 		bTexMatricesChanged[0] = true;
@@ -2250,7 +2254,7 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
 	if (g_main_cp_state.matrix_index_b.Hex != Value)
 	{
-		VertexManager::Flush();
+		VertexManagerBase::Flush();
 		bTexMatricesChanged[1] = true;
 		g_main_cp_state.matrix_index_b.Hex = Value;
 	}
@@ -2355,7 +2359,7 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
 
 	// We use the projection matrix calculated by VertexShaderManager, because it
 	// includes any free look transformations.
-	// Make sure VertexManager::SetConstants() has been called first.
+	// Make sure VertexShaderManager::SetConstants() has been called first.
 	const float* proj_matrix = &g_fProjectionMatrix[0];
 
 	const float t[3] = {

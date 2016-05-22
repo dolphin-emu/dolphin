@@ -14,7 +14,7 @@ bool active = false;
 u16 coords[4] = { 0x80, 0xA0, 0x80, 0xA0 };
 
 // Save state
-void DoState(PointerWrap &p)
+void DoState(PointerWrap& p)
 {
 	p.Do(active);
 	p.Do(coords);

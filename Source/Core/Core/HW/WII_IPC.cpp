@@ -2,16 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <map>
-#include <queue>
-#include <vector>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/WII_IPC.h"
@@ -104,6 +98,7 @@ static u32 arm_irq_masks;
 static u32 sensorbar_power; // do we need to care about this?
 
 static int updateInterrupts;
+static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
 
 void DoState(PointerWrap &p)
 {
@@ -206,7 +201,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 	mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
 }
 
-void UpdateInterrupts(u64 userdata, int cyclesLate)
+static void UpdateInterrupts(u64 userdata, s64 cyclesLate)
 {
 	if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
 	{

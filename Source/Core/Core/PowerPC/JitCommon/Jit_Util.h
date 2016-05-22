@@ -9,6 +9,7 @@
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/PowerPC.h"
 
 namespace MMIO { class Mapping; }
 
@@ -128,6 +129,7 @@ public:
 	void ConvertSingleToDouble(Gen::X64Reg dst, Gen::X64Reg src, bool src_is_gpr = false);
 	void ConvertDoubleToSingle(Gen::X64Reg dst, Gen::X64Reg src);
 	void SetFPRF(Gen::X64Reg xmm);
+	void Clear();
 protected:
 	std::unordered_map<u8 *, BitSet32> registersInUseAtLoc;
 	std::unordered_map<u8 *, u32> pcAtLoc;

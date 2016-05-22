@@ -126,18 +126,28 @@ void GetMousePos(ControlState* const x, ControlState* const y)
 	GetCursorPos(&point);
 	// Get the cursor position relative to the upper left corner of the current window (separate or render to main)
 	HWND hwnd = WindowFromPoint(point);
-	ScreenToClient(hwnd, &point);
+	DWORD processId;
+	GetWindowThreadProcessId(hwnd, &processId);
+	if (processId == GetCurrentProcessId())
+	{
+		ScreenToClient(hwnd, &point);
 
-	// Get the size of the current window. (In my case Rect.top and Rect.left was zero.)
-	RECT rect;
-	GetClientRect(hwnd, &rect);
-	// Width and height is the size of the rendering window
-	unsigned int win_width = rect.right - rect.left;
-	unsigned int win_height = rect.bottom - rect.top;
+		// Get the size of the current window. (In my case Rect.top and Rect.left was zero.)
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		// Width and height is the size of the rendering window
+		unsigned int win_width = rect.right - rect.left;
+		unsigned int win_height = rect.bottom - rect.top;
 
-	// Return the mouse position as a range from -1 to 1
-	*x = (ControlState)point.x / (ControlState)win_width * 2 - 1;
-	*y = (ControlState)point.y / (ControlState)win_height * 2 - 1;
+		// Return the mouse position as a range from -1 to 1
+		*x = (ControlState)point.x / (ControlState)win_width * 2 - 1;
+		*y = (ControlState)point.y / (ControlState)win_height * 2 - 1;
+	}
+	else
+	{
+		*x = (ControlState)1;
+		*y = (ControlState)1;
+	}
 }
 
 void KeyboardMouse::UpdateInput()

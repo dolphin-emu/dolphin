@@ -4,16 +4,11 @@
 
 #pragma once
 
-#include <cstdlib>
+#include <array>
 #include "AudioCommon/SoundStream.h"
-
-#define BUF_SIZE (48000 * 4 / 32)
 
 class NullSound final : public SoundStream
 {
-	// playback position
-	short realtimeBuffer[BUF_SIZE / sizeof(short)];
-
 public:
 	bool Start() override;
 	void SoundLoop() override;
@@ -23,4 +18,14 @@ public:
 	void Update() override;
 
 	static bool isValid() { return true; }
+
+private:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define BUFFER_SIZE (48000 * 4 / 32)
+#else
+	static constexpr size_t BUFFER_SIZE = 48000 * 4 / 32;
+#endif
+
+	// Playback position
+	std::array<short, BUFFER_SIZE / sizeof(short)> m_realtime_buffer;
 };

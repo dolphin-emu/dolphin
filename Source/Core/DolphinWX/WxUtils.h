@@ -5,13 +5,11 @@
 #pragma once
 
 #include <string>
+#include <wx/gdicmn.h>
 #include <wx/string.h>
 
 class wxBitmap;
 class wxToolBar;
-
-// A shortcut to access the bitmaps
-#define wxGetBitmapFromMemory(name) WxUtils::_wxGetBitmapFromMemory(name, sizeof(name))
 
 namespace WxUtils
 {
@@ -25,7 +23,8 @@ void Explore(const std::string& path);
 // Displays a wxMessageBox geared for errors
 void ShowErrorDialog(const wxString& error_msg);
 
-wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length);
+// Reads a PNG from the Resources folder
+wxBitmap LoadResourceBitmap(const std::string& name, const wxSize& padded_size = wxSize());
 
 // From a wxBitmap, creates the corresponding disabled version for toolbar buttons
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original);

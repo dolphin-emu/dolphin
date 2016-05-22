@@ -6,7 +6,9 @@ find_library(MINIUPNPC_LIBRARY miniupnpc)
 
 if(MINIUPNPC_INCLUDE_DIR)
 	file(STRINGS "${MINIUPNPC_INCLUDE_DIR}/miniupnpc.h" MINIUPNPC_API_VERSION_STR REGEX "^#define[\t ]+MINIUPNPC_API_VERSION[\t ]+[0-9]+")
-	string(REGEX REPLACE "^#define[\t ]+MINIUPNPC_API_VERSION[\t ]+([0-9]+)" "\\1" MINIUPNPC_API_VERSION ${MINIUPNPC_API_VERSION_STR})
+	if(MINIUPNPC_API_VERSION_STR)
+		string(REGEX REPLACE "^#define[\t ]+MINIUPNPC_API_VERSION[\t ]+([0-9]+)" "\\1" MINIUPNPC_API_VERSION ${MINIUPNPC_API_VERSION_STR})
+	endif()
 endif()
 
 include(FindPackageHandleStandardArgs)

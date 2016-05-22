@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -14,22 +16,22 @@ namespace DX11
 
 class D3DVertexFormat : public NativeVertexFormat
 {
-	D3D11_INPUT_ELEMENT_DESC m_elems[32];
-	UINT m_num_elems;
-
-	ID3D11InputLayout* m_layout;
-
 public:
-	D3DVertexFormat() : m_num_elems(0), m_layout(nullptr) {}
+	D3DVertexFormat(const PortableVertexDeclaration& vtx_decl);
 	~D3DVertexFormat() { SAFE_RELEASE(m_layout); }
 
-	void Initialize(const PortableVertexDeclaration &_vtx_decl);
-	void SetupVertexPointers();
+	void SetupVertexPointers() override;
+
+private:
+	std::array<D3D11_INPUT_ELEMENT_DESC, 32> m_elems{};
+	UINT m_num_elems = 0;
+
+	ID3D11InputLayout* m_layout = nullptr;
 };
 
-NativeVertexFormat* VertexManager::CreateNativeVertexFormat()
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-	return new D3DVertexFormat();
+	return new D3DVertexFormat(vtx_decl);
 }
 
 static const DXGI_FORMAT d3d_format_lookup[5*4*2] =
@@ -57,10 +59,10 @@ DXGI_FORMAT VarToD3D(VarType t, int size, bool integer)
 	return retval;
 }
 
-void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
+D3DVertexFormat::D3DVertexFormat(const PortableVertexDeclaration& _vtx_decl)
 {
-	vtx_decl = _vtx_decl;
-	memset(m_elems, 0, sizeof(m_elems));
+	this->vtx_decl = _vtx_decl;
+
 	const AttributeFormat* format = &_vtx_decl.position;
 
 	if (format->enable)
@@ -134,7 +136,7 @@ void D3DVertexFormat::SetupVertexPointers()
 		// changes.
 		D3DBlob* vs_bytecode = DX11::VertexShaderCache::GetActiveShaderBytecode();
 
-		HRESULT hr = DX11::D3D::device->CreateInputLayout(m_elems, m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
+		HRESULT hr = DX11::D3D::device->CreateInputLayout(m_elems.data(), m_num_elems, vs_bytecode->Data(), vs_bytecode->Size(), &m_layout);
 		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
 		DX11::D3D::SetDebugObjectName((ID3D11DeviceChild*)m_layout, "input layout used to emulate the GX pipeline");
 	}

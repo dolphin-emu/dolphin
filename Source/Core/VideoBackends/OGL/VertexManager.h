@@ -4,9 +4,6 @@
 
 #pragma once
 
-#include "Common/GL/GLExtensions/GLExtensions.h"
-
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -15,10 +12,9 @@ namespace OGL
 	class GLVertexFormat : public NativeVertexFormat
 	{
 	public:
-		GLVertexFormat();
+		GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
 		~GLVertexFormat();
 
-		void Initialize(const PortableVertexDeclaration &_vtx_decl) override;
 		void SetupVertexPointers() override;
 
 		GLuint VAO;
@@ -26,12 +22,12 @@ namespace OGL
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
-class VertexManager : public ::VertexManager
+class VertexManager : public VertexManagerBase
 {
 public:
 	VertexManager();
 	~VertexManager();
-	NativeVertexFormat* CreateNativeVertexFormat() override;
+	NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
 	void CreateDeviceObjects() override;
 	void DestroyDeviceObjects() override;
 

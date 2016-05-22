@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-
+#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitAsm.h"
@@ -23,7 +25,12 @@ void JitArm64AsmRoutineManager::Generate()
 
 	ABI_PushRegisters(regs_to_save);
 
-	MOVI2R(X29, (u64)&PowerPC::ppcState);
+	MOVI2R(PPC_REG, (u64)&PowerPC::ppcState);
+	MOVI2R(MEM_REG, (u64)Memory::logical_base);
+
+	// Load the current PC into DISPATCHER_PC
+	LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
 	FixupBranch to_dispatcher = B();
 
 	// If we align the dispatcher to a page then we can load its location with one ADRP instruction
@@ -42,11 +49,10 @@ void JitArm64AsmRoutineManager::Generate()
 
 		// This block of code gets the address of the compiled block of code
 		// It runs though to the compiling portion if it isn't found
-		LDR(INDEX_UNSIGNED, W28, X29, PPCSTATE_OFF(pc)); // Load the current PC into W28
-		BFM(W28, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
+		BFM(DISPATCHER_PC, WSP, 3, 2); // Wipe the top 3 bits. Same as PC & JIT_ICACHE_MASK
 
 		MOVI2R(X27, (u64)jit->GetBlockCache()->iCache.data());
-		LDR(W27, X27, X28);
+		LDR(W27, X27, EncodeRegTo64(DISPATCHER_PC));
 
 		FixupBranch JitBlock = TBNZ(W27, 7); // Test the 7th bit
 			// Success, it is our Jitblock.
@@ -58,6 +64,8 @@ void JitArm64AsmRoutineManager::Generate()
 
 		SetJumpTarget(JitBlock);
 
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
 		MOVI2R(X30, (u64)&Jit);
 		BLR(X30);
 
@@ -65,19 +73,18 @@ void JitArm64AsmRoutineManager::Generate()
 
 	SetJumpTarget(bail);
 	doTiming = GetCodePtr();
+		// Write the current PC out to PPCSTATE
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+		STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+
 		MOVI2R(X30, (u64)&CoreTiming::Advance);
 		BLR(X30);
 
-		// Does exception checking
-		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
-		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
-			MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
-			BLR(X30);
-		LDR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(npc));
-		STR(INDEX_UNSIGNED, W0, X29, PPCSTATE_OFF(pc));
+		// Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+		LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 		// Check the state pointer to see if we are exiting
-		// Gets checked on every exception check
+		// Gets checked on at the end of every slice
 		MOVI2R(X0, (u64)PowerPC::GetStatePtr());
 		LDR(INDEX_UNSIGNED, W0, X0, 0);
 
@@ -87,6 +94,7 @@ void JitArm64AsmRoutineManager::Generate()
 	B(dispatcher);
 
 	SetJumpTarget(Exit);
+	STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
 	// Let the waiting thread know we are done leaving
 	MOVI2R(X0, (u64)&PowerPC::FinishStateMove);
@@ -581,7 +589,7 @@ void JitArm64AsmRoutineManager::GenMfcr()
 	const u8* start = GetCodePtr();
 	for (int i = 0; i < 8; i++)
 	{
-		LDR(INDEX_UNSIGNED, X1, X29, PPCSTATE_OFF(cr_val) + 8 * i);
+		LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * i);
 
 		// SO
 		if (i == 0)

@@ -18,6 +18,52 @@ inline float SignOf(float x)
 
 namespace MathUtil
 {
+
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	template <typename T>
+	inline T SNANConstant()
+	{
+		return std::numeric_limits<T>::signaling_NaN();
+	}
+#else
+	template <typename T>
+	constexpr T SNANConstant()
+	{
+		return std::numeric_limits<T>::signaling_NaN();
+	}
+#endif
+
+#ifdef _MSC_VER
+
+// MSVC needs a workaround, because its std::numeric_limits<double>::signaling_NaN()
+// will use __builtin_nans, which is improperly handled by the compiler and generates
+// a bad constant. Here we go back to the version MSVC used before the builtin.
+// TODO: Remove this and use numeric_limits directly whenever this bug is fixed.
+#if _MSC_VER <= 1800
+template <>
+inline double SNANConstant()
+{
+	return (_CSTD _Snan._Double);
+}
+template <>
+inline float SNANConstant()
+{
+	return (_CSTD _Snan._Float);
+}
+#else	
+template <>
+constexpr double SNANConstant()
+{
+	return (_CSTD _Snan._Double);
+}
+template <>
+constexpr float SNANConstant()
+{
+	return (_CSTD _Snan._Float);
+}
+#endif
+#endif
+
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 template<class T>
 inline T Clamp(const T val, const T& min, const T& max)
@@ -132,19 +178,31 @@ double ApproximateReciprocal(double val);
 template<class T>
 struct Rectangle
 {
-	T left;
-	T top;
-	T right;
-	T bottom;
+	T left{};
+	T top{};
+	T right{};
+	T bottom{};
 
-	Rectangle()
-	{ }
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	inline Rectangle() = default;
 
-	Rectangle(T theLeft, T theTop, T theRight, T theBottom)
+	inline Rectangle(T theLeft, T theTop, T theRight, T theBottom)
 		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
-	{ }
+	{}
 
-	bool operator==(const Rectangle& r) { return left==r.left && top==r.top && right==r.right && bottom==r.bottom; }
+	inline bool operator==(const Rectangle& r) const
+#else
+	constexpr Rectangle() = default;
+
+	constexpr Rectangle(T theLeft, T theTop, T theRight, T theBottom)
+		: left(theLeft), top(theTop), right(theRight), bottom(theBottom)
+	{}
+
+	constexpr bool operator==(const Rectangle& r) const
+#endif
+	{
+		return left == r.left && top == r.top && right == r.right && bottom == r.bottom;
+	}
 
 	T GetWidth() const { return abs(right - left); }
 	T GetHeight() const { return abs(bottom - top); }
@@ -219,19 +277,19 @@ public:
 class Matrix33
 {
 public:
-	static void LoadIdentity(Matrix33 &mtx);
+	static void LoadIdentity(Matrix33& mtx);
 	static void LoadQuaternion(Matrix33 &mtx, const Quaternion &quat);
 
 	// set mtx to be a rotation matrix around the x axis
-	static void RotateX(Matrix33 &mtx, float rad);
+	static void RotateX(Matrix33& mtx, float rad);
 	// set mtx to be a rotation matrix around the y axis
-	static void RotateY(Matrix33 &mtx, float rad);
+	static void RotateY(Matrix33& mtx, float rad);
 	// set mtx to be a rotation matrix around the z axis
 	static void RotateZ(Matrix33 &mtx, float rad);
 
 	// set result = a x b
-	static void Multiply(const Matrix33 &a, const Matrix33 &b, Matrix33 &result);
-	static void Multiply(const Matrix33 &a, const float vec[3], float result[3]);
+	static void Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result);
+	static void Multiply(const Matrix33& a, const float vec[3], float result[3]);
 
 	static void GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll);
 
@@ -241,15 +299,15 @@ public:
 class Matrix44
 {
 public:
-	static void LoadIdentity(Matrix44 &mtx);
-	static void LoadMatrix33(Matrix44 &mtx, const Matrix33 &m33);
-	static void Set(Matrix44 &mtx, const float mtxArray[16]);
+	static void LoadIdentity(Matrix44& mtx);
+	static void LoadMatrix33(Matrix44& mtx, const Matrix33& m33);
+	static void Set(Matrix44& mtx, const float mtxArray[16]);
 
-	static void Translate(Matrix44 &mtx, const float vec[3]);
-	static void Shear(Matrix44 &mtx, const float a, const float b = 0);
+	static void Translate(Matrix44& mtx, const float vec[3]);
+	static void Shear(Matrix44& mtx, const float a, const float b = 0);
 	static void Scale(Matrix44 &mtx, const float vec[3]);
 
-	static void Multiply(const Matrix44 &a, const Matrix44 &b, Matrix44 &result);
+	static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
 
 	float data[16];
 };

@@ -234,7 +234,7 @@ SConfig::SConfig()
   bJITPairedOff(false), bJITSystemRegistersOff(false),
   bJITBranchOff(false),
   bJITILTimeProfiling(false), bJITILOutputIR(false),
-  bFPRF(false), bAccurateNaNs(false),
+  bFPRF(false), bAccurateNaNs(false), iTimingVariance(40),
   bCPUThread(true), bDSPThread(false), bDSPHLE(true),
   bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
   bHLE_BS2(true), bEnableCheats(false),
@@ -464,6 +464,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
 	gamelist->Set("ColumnPlatform", m_showSystemColumn);
 	gamelist->Set("ColumnBanner", m_showBannerColumn);
 	gamelist->Set("ColumnNotes", m_showMakerColumn);
+	gamelist->Set("ColumnFileName", m_showFileNameColumn);
 	gamelist->Set("ColumnID", m_showIDColumn);
 	gamelist->Set("ColumnRegion", m_showRegionColumn);
 	gamelist->Set("ColumnSize", m_showSizeColumn);
@@ -476,6 +477,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	IniFile::Section* core = ini.GetOrCreateSection("Core");
 
 	core->Set("HLE_BS2", bHLE_BS2);
+	core->Set("TimingVariance", iTimingVariance);
 	core->Set("CPUCore", iCPUCore);
 	core->Set("Fastmem", bFastmem);
 	core->Set("CPUThread", bCPUThread);
@@ -486,6 +488,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
 	core->Set("SyncGpuMinDistance", iSyncGpuMinDistance);
 	core->Set("SyncGpuOverclock", fSyncGpuOverclock);
+	core->Set("FPRF", bFPRF);
+	core->Set("AccurateNaNs", bAccurateNaNs);
 	core->Set("DefaultISO", m_strDefaultISO);
 	core->Set("DVDRoot", m_strDVDRoot);
 	core->Set("Apploader", m_strApploader);
@@ -505,6 +509,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
+		core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
+		core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
 	}
 	core->Set("WiiSDCard", m_WiiSDCard);
 	core->Set("WiiKeyboard", m_WiiKeyboard);
@@ -512,15 +518,13 @@ void SConfig::SaveCoreSettings(IniFile& ini)
 	core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
 	core->Set("RunCompareServer", bRunCompareServer);
 	core->Set("RunCompareClient", bRunCompareClient);
-	if (!ARBruteForcer::ch_dont_save_settings)
-		core->Set("FrameLimit", m_Framelimit);
+	// if (!ARBruteForcer::ch_dont_save_settings)
+	// 	core->Set("FrameLimit", m_Framelimit);
 	core->Set("FrameSkip", m_FrameSkip);
 	core->Set("Overclock", m_OCFactor);
 	core->Set("OverclockEnable", m_OCEnable);
 	core->Set("GFXBackend", m_strVideoBackend);
 	core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
-	core->Set("GameCubeAdapter", m_GameCubeAdapter);
-	core->Set("AdapterRumble", m_AdapterRumble);
 	core->Set("PerfMapDir", m_perfDir);
 }
 
@@ -769,6 +773,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
 	gamelist->Get("ColumnPlatform",   &m_showSystemColumn,  true);
 	gamelist->Get("ColumnBanner",     &m_showBannerColumn,  true);
 	gamelist->Get("ColumnNotes",      &m_showMakerColumn,   true);
+	gamelist->Get("ColumnFileName",   &m_showFileNameColumn, false);
 	gamelist->Get("ColumnID",         &m_showIDColumn,      false);
 	gamelist->Get("ColumnRegion",     &m_showRegionColumn,  true);
 	gamelist->Get("ColumnSize",       &m_showSizeColumn,    true);
@@ -790,6 +795,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 #endif
 	core->Get("Fastmem",           &bFastmem,      true);
 	core->Get("DSPHLE",            &bDSPHLE,       true);
+	core->Get("TimingVariance",    &iTimingVariance, 40);
 	core->Get("CPUThread",         &bCPUThread,    true);
 	core->Get("SkipIdle",          &bSkipIdle,     true);
 	core->Get("SyncOnSkipIdle",    &bSyncGPUOnSkipIdleHack, true);
@@ -814,6 +820,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	for (int i = 0; i < MAX_SI_CHANNELS; ++i)
 	{
 		core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+		core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
+		core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
 	}
 	core->Get("WiiSDCard",                 &m_WiiSDCard,                                   false);
 	core->Get("WiiKeyboard",               &m_WiiKeyboard,                                 false);
@@ -829,18 +837,19 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 	core->Get("SyncGpuOverclock",          &fSyncGpuOverclock, 1.0);
 	core->Get("FastDiscSpeed",             &bFastDiscSpeed,    false);
 	core->Get("DCBZ",                      &bDCBZOFF,          false);
-	if (ARBruteForcer::ch_bruteforce)
-		m_Framelimit = 0;
-	else
-		core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	// if (ARBruteForcer::ch_bruteforce)
+	// 	m_Framelimit = 0;
+	// else
+	// 	core->Get("FrameLimit",                &m_Framelimit,                                  1); // auto frame limit by default
+	core->Get("FPRF",                      &bFPRF,             false);
+	core->Get("AccurateNaNs",              &bAccurateNaNs,     false);
+	core->Get("EmulationSpeed",            &m_EmulationSpeed,                              1.0f);
 	core->Get("Overclock",                 &m_OCFactor,                                    1.0f);
 	core->Get("OverclockEnable",           &m_OCEnable,                                    false);
 	core->Get("FrameSkip",                 &m_FrameSkip,                                   0);
 	core->Get("GFXBackend",                &m_strVideoBackend, "");
 	core->Get("GPUDeterminismMode",        &m_strGPUDeterminismMode, "auto");
 	m_GPUDeterminismMode = ParseGPUDeterminismMode(m_strGPUDeterminismMode);
-	core->Get("GameCubeAdapter",           &m_GameCubeAdapter,                             true);
-	core->Get("AdapterRumble",             &m_AdapterRumble,                               true);
 	core->Get("PerfMapDir",                &m_perfDir, "");
 }
 
@@ -910,6 +919,7 @@ void SConfig::LoadDefaults()
 	#endif
 
 	iCPUCore = PowerPC::CORE_JIT64;
+	iTimingVariance = 40;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bSyncGPUOnSkipIdleHack = true;
@@ -949,6 +959,7 @@ void SConfig::LoadDefaults()
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
+	m_revision = 0;
 }
 static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
 {
@@ -1280,6 +1291,12 @@ IniFile SConfig::LoadGameIni(const std::string& id, u16 revision)
 std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16 revision)
 {
 	std::vector<std::string> filenames;
+
+	if (id.empty())
+		return filenames;
+
+	// INIs that match the system code (unique for each Virtual Console system)
+	filenames.push_back(id.substr(0, 1) + ".ini");
 
 	// INIs that match all regions
 	if (id.size() >= 4)

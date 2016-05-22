@@ -257,20 +257,20 @@ struct CPState final
 	BitSet32 attr_dirty;
 	bool bases_dirty;
 	VertexLoaderBase* vertex_loaders[8];
+	int last_id;
 };
 
 class PointerWrap;
 
-extern void DoCPState(PointerWrap& p);
-
-extern void CopyPreprocessCPStateFromMain();
-
 extern CPState g_main_cp_state;
 extern CPState g_preprocess_cp_state;
-
 
 // Might move this into its own file later.
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
 
 // Fills memory with data from CP regs
 void FillCPMemoryArray(u32 *memory);
+
+void DoCPState(PointerWrap& p);
+
+void CopyPreprocessCPStateFromMain();

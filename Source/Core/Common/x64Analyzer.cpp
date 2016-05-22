@@ -4,9 +4,9 @@
 
 #include "Common/x64Analyzer.h"
 
-bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
+bool DisassembleMov(const unsigned char* codePtr, InstructionInfo* info)
 {
-	unsigned const char *startCodePtr = codePtr;
+	unsigned const char* startCodePtr = codePtr;
 	u8 rex = 0;
 	u32 opcode;
 	int opcode_length;
@@ -224,7 +224,7 @@ bool DisassembleMov(const unsigned char *codePtr, InstructionInfo *info)
 	return true;
 }
 
-bool InstructionInfo::operator==(const InstructionInfo &other) const
+bool InstructionInfo::operator==(const InstructionInfo& other) const
 {
 	return operandSize     == other.operandSize     &&
 	       instructionSize == other.instructionSize &&

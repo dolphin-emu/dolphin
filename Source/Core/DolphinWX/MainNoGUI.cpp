@@ -36,11 +36,11 @@ static bool running = true;
 class Platform
 {
 public:
-	virtual void Init() = 0;
-	virtual void SetTitle(const std::string &title) = 0;
-	virtual void MainLoop() = 0;
-	virtual void Shutdown() = 0;
-	virtual ~Platform() {};
+	virtual void Init() {}
+	virtual void SetTitle(const std::string &title) {}
+	virtual void MainLoop() { while(running) {} }
+	virtual void Shutdown() {}
+	virtual ~Platform() {}
 };
 
 static Platform* platform;
@@ -55,7 +55,7 @@ void Host_Message(int Id)
 		running = false;
 }
 
-static void* s_window_handle;
+static void* s_window_handle = nullptr;
 void* Host_GetRenderHandle()
 {
 	return s_window_handle;
@@ -292,7 +292,9 @@ class PlatformX11 : public Platform
 
 static Platform* GetPlatform()
 {
-#if HAVE_X11
+#if defined(USE_EGL) && defined(USE_HEADLESS)
+	return new Platform();
+#elif HAVE_X11
 	return new PlatformX11();
 #endif
 	return nullptr;
@@ -319,14 +321,14 @@ int main(int argc, char* argv[])
 			help = 1;
 			break;
 		case 'v':
-			fprintf(stderr, "%s%s\n", scm_rev_str, SCM_OCULUS_STR);
+			fprintf(stderr, "%s%s\n", scm_rev_str.c_str(), SCM_OCULUS_STR);
 			return 1;
 		}
 	}
 
 	if (help == 1 || argc == optind)
 	{
-		fprintf(stderr, "%s%s\n\n", scm_rev_str, SCM_OCULUS_STR);
+		fprintf(stderr, "%s%s\n\n", scm_rev_str.c_str(), SCM_OCULUS_STR);
 		fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
 		fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
 		fprintf(stderr, "  -e, --exec     Load the specified file\n");

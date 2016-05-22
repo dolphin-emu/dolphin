@@ -10,12 +10,15 @@
 // locating performance issues.
 
 #include <cstring>
-#include "disasm.h"
+#include <map>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Common/MemoryUtil.h"
+#include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 
 #ifdef _WIN32

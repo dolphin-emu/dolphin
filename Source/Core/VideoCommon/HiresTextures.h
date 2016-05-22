@@ -6,13 +6,19 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VideoCommon.h"
+#include <vector>
+
+#include "Common/CommonTypes.h"
 
 class HiresTexture
 {
 public:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	using SOILPointer = u8 *;
+#else
+	using SOILPointer = std::unique_ptr<u8, void(*)(unsigned char*)>;
+#endif
+
 	static void Init();
 	static void Update();
 	static void Shutdown();
@@ -36,15 +42,20 @@ public:
 
 	struct Level
 	{
-		u8* data;
-		size_t data_size;
-		u32 width, height;
+		Level();
+
+		SOILPointer data;
+		size_t data_size = 0;
+		u32 width = 0;
+		u32 height = 0;
 	};
 	std::vector<Level> m_levels;
 
 private:
-	static HiresTexture* Load(const std::string& base_filename, u32 width, u32 height);
+	static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width, u32 height);
 	static void Prefetch();
+
+	static std::string GetTextureDirectory(const std::string& game_id);
 
 	HiresTexture() {}
 

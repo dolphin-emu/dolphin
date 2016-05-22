@@ -30,11 +30,11 @@
 
 #define EXIDEV_MEMCARD_STR  _trans("Memory Card")
 #define EXIDEV_MEMDIR_STR   _trans("GCI Folder")
-#define EXIDEV_MIC_STR      _trans("Mic")
-#define EXIDEV_BBA_STR      "BBA"
-#define EXIDEV_AGP_STR      "Advance Game Port"
-#define EXIDEV_AM_BB_STR    _trans("AM-Baseboard")
-#define EXIDEV_GECKO_STR    "USBGecko"
+#define EXIDEV_MIC_STR      _trans("Microphone")
+#define EXIDEV_BBA_STR      _trans("Broadband Adapter")
+#define EXIDEV_AGP_STR      _trans("Advance Game Port")
+#define EXIDEV_AM_BB_STR    _trans("AM Baseboard")
+#define EXIDEV_GECKO_STR    _trans("USB Gecko")
 
 GameCubeConfigPane::GameCubeConfigPane(wxWindow* parent, wxWindowID id)
 	: wxPanel(parent, id)

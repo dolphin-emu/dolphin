@@ -57,7 +57,7 @@ void gdsp_mbox_write_l(Mailbox mbx, u16 val)
 
 u16 gdsp_mbox_read_h(Mailbox mbx)
 {
-	if (init_hax && mbx == MAILBOX_DSP)
+	if (g_init_hax && mbx == MAILBOX_DSP)
 	{
 		return 0x8054;
 	}
@@ -70,9 +70,9 @@ u16 gdsp_mbox_read_l(Mailbox mbx)
 	const u32 value = g_dsp.mbox[mbx].load(std::memory_order_acquire);
 	g_dsp.mbox[mbx].store(value & ~0x80000000, std::memory_order_release);
 
-	if (init_hax && mbx == MAILBOX_DSP)
+	if (g_init_hax && mbx == MAILBOX_DSP)
 	{
-		init_hax = false;
+		g_init_hax = false;
 		DSPCore_Reset();
 		return 0x4348;
 	}

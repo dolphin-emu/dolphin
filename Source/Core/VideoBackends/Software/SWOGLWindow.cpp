@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
@@ -25,10 +27,9 @@ void SWOGLWindow::Init(void *window_handle)
 void SWOGLWindow::Shutdown()
 {
 	GLInterface->Shutdown();
-	delete GLInterface;
-	GLInterface = nullptr;
+	GLInterface.reset();
 
-	SWOGLWindow::s_instance.release();
+	s_instance.reset();
 }
 
 void SWOGLWindow::Prepare()

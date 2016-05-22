@@ -10,9 +10,14 @@
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/Host.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/HLE/HLE.h"
+#include "Core/HW/CPU.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
@@ -173,7 +178,7 @@ void Interpreter::SingleStep()
 {
 	SingleStepInner();
 
-	CoreTiming::slicelength = 1;
+	CoreTiming::g_slicelength = 1;
 	PowerPC::ppcState.downcount = 0;
 	CoreTiming::Advance();
 
@@ -273,12 +278,6 @@ void Interpreter::Run()
 		}
 
 		CoreTiming::Advance();
-
-		if (PowerPC::ppcState.Exceptions)
-		{
-			PowerPC::CheckExceptions();
-			PC = NPC;
-		}
 	}
 
 	// Let the waiting thread know we are done leaving

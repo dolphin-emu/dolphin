@@ -174,7 +174,6 @@ private:
 	{
 		Toolbar_FileOpen,
 		Toolbar_Refresh,
-		Toolbar_Browse,
 		Toolbar_Play,
 		Toolbar_Stop,
 		Toolbar_Pause,
@@ -212,6 +211,7 @@ private:
 	wxAuiNotebook * GetNotebookFromId(u32 NBId);
 	int GetNotebookCount();
 	wxAuiNotebook *CreateEmptyNotebook();
+	void HandleFrameSkipHotkeys();
 
 	// Perspectives
 	void AddRemoveBlankPage();
@@ -259,7 +259,6 @@ private:
 	void OnOpen(wxCommandEvent& event); // File menu
 	void DoOpen(bool Boot);
 	void OnRefresh(wxCommandEvent& event);
-	void OnBrowse(wxCommandEvent& event);
 	void OnBootDrive(wxCommandEvent& event);
 
 	void OnPlay(wxCommandEvent& event); // Emulation

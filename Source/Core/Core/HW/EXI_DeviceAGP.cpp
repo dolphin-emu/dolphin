@@ -3,15 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <string>
 
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/MemoryUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/HW/EXI_Device.h"
 #include "Core/HW/EXI_DeviceAGP.h"
-#include "Core/HW/Memmap.h"
 
 CEXIAgp::CEXIAgp(int index)
 {

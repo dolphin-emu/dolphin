@@ -14,11 +14,8 @@
 #include "Common/Common.h"
 #include "Common/FifoQueue.h"
 #include "Common/NonCopyable.h"
-#include "Common/Timer.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
-#include "InputCommon/InputConfig.h"
 
 class PointerWrap;
 
@@ -29,7 +26,6 @@ namespace WiimoteReal
 
 class Wiimote : NonCopyable
 {
-friend class WiimoteEmu::Wiimote;
 public:
 	virtual ~Wiimote() {}
 	// This needs to be called in derived destructors!
@@ -42,8 +38,8 @@ public:
 
 	const Report& ProcessReadQueue();
 
-	bool Read();
-	bool Write();
+	void Read();
+	void Write();
 
 	void StartThread();
 	void StopThread();
@@ -63,12 +59,12 @@ public:
 	virtual bool ConnectInternal() = 0;
 	virtual void DisconnectInternal() = 0;
 
-	bool Connect();
+	bool Connect(int index);
 
 	// TODO: change to something like IsRelevant
 	virtual bool IsConnected() const = 0;
 
-	void Prepare(int index);
+	void Prepare();
 	bool PrepareOnThread();
 
 	void DisableDataReporting();
@@ -77,10 +73,11 @@ public:
 
 	void QueueReport(u8 rpt_id, const void* data, unsigned int size);
 
-	int m_index;
+	int GetIndex() const;
 
 protected:
 	Wiimote();
+	int m_index;
 	Report m_last_input_report;
 	u16 m_channel;
 	u8 m_last_connect_request_counter;
@@ -111,8 +108,6 @@ private:
 
 	Common::FifoQueue<Report> m_read_reports;
 	Common::FifoQueue<Report> m_write_reports;
-
-	Common::Timer m_last_audio_report;
 };
 
 class WiimoteScanner
@@ -144,7 +139,7 @@ private:
 	std::atomic<bool> m_want_bb {false};
 
 #if defined(_WIN32)
-	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, bool &real_wiimote, bool &is_bb);
+	void CheckDeviceType(std::basic_string<TCHAR> &devicepath, WinWriteMethod &write_method, bool &real_wiimote, bool &is_bb);
 #elif defined(__linux__) && HAVE_BLUEZ
 	int device_id;
 	int device_sock;
@@ -165,5 +160,9 @@ void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidBluetoothName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
+
+#ifdef ANDROID
+void InitAdapterClass();
+#endif
 
 } // WiimoteReal

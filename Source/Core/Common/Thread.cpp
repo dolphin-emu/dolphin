@@ -97,7 +97,7 @@ void SetThreadAffinity(std::thread::native_handle_type thread, u32 mask)
 {
 #ifdef __APPLE__
 	thread_policy_set(pthread_mach_thread_np(thread),
-		THREAD_AFFINITY_POLICY, (integer_t *)&mask, 1);
+		THREAD_AFFINITY_POLICY, (integer_t*)&mask, 1);
 #elif (defined __linux__ || defined BSD4_4 || defined __FreeBSD__) && !(defined ANDROID)
 #ifdef __FreeBSD__
 	cpuset_t cpu_set;
@@ -136,7 +136,8 @@ void SetCurrentThreadName(const char* szThreadName)
 #elif defined __FreeBSD__
 	pthread_set_name_np(pthread_self(), szThreadName);
 #else
-	pthread_setname_np(pthread_self(), szThreadName);
+	// linux doesn't allow to set more than 16 bytes, including \0.
+	pthread_setname_np(pthread_self(), std::string(szThreadName).substr(0, 15).c_str());
 #endif
 #ifdef USE_VTUNE
 	// VTune uses OS thread names by default but probably supports longer names when set via its own API.

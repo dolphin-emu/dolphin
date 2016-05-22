@@ -3,14 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <cmath>
+#include <cstring>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 bool PixelShaderManager::s_bFogRangeAdjustChanged;
 bool PixelShaderManager::s_bViewPortChanged;
@@ -136,13 +137,16 @@ void PixelShaderManager::SetDestAlpha()
 
 void PixelShaderManager::SetTexDims(int texmapid, u32 width, u32 height)
 {
+	float rwidth = 1.0f / (width * 128.0f);
+	float rheight = 1.0f / (height * 128.0f);
+
 	// TODO: move this check out to callee. There we could just call this function on texture changes
 	// or better, use textureSize() in glsl
-	if (constants.texdims[texmapid][0] != 1.0f/width || constants.texdims[texmapid][1] != 1.0f/height)
+	if (constants.texdims[texmapid][0] != rwidth || constants.texdims[texmapid][1] != rheight)
 		dirty = true;
 
-	constants.texdims[texmapid][0] = 1.0f/width;
-	constants.texdims[texmapid][1] = 1.0f/height;
+	constants.texdims[texmapid][0] = rwidth;
+	constants.texdims[texmapid][1] = rheight;
 }
 
 void PixelShaderManager::SetZTextureBias()
@@ -237,8 +241,8 @@ void PixelShaderManager::SetZTextureTypeChanged()
 void PixelShaderManager::SetTexCoordChanged(u8 texmapid)
 {
 	TCoordInfo& tc = bpmem.texcoords[texmapid];
-	constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1);
-	constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1);
+	constants.texdims[texmapid][2] = (float)(tc.s.scale_minus_1 + 1) * 128.0f;
+	constants.texdims[texmapid][3] = (float)(tc.t.scale_minus_1 + 1) * 128.0f;
 	dirty = true;
 }
 

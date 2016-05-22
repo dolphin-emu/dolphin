@@ -7,7 +7,9 @@
 #include <cstring>
 #include <fstream>
 #include <string>
+#include <type_traits>
 
+#include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 
@@ -29,7 +31,7 @@ template <typename K, typename V>
 class LinearDiskCacheReader
 {
 public:
-	virtual void Read(const K &key, const V *value, u32 value_size) = 0;
+	virtual void Read(const K& key, const V* value, u32 value_size) = 0;
 };
 
 // Dead simple unsorted key-value store with append functionality.
@@ -53,6 +55,15 @@ public:
 	{
 		using std::ios_base;
 
+		// Since we're reading/writing directly to the storage of K instances,
+		// K must be trivially copyable. TODO: Remove #if once GCC 5.0 is a
+		// minimum requirement.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+		static_assert(std::has_trivial_copy_constructor<K>::value, "K must be a trivially copyable type");
+#else
+		static_assert(std::is_trivially_copyable<K>::value, "K must be a trivially copyable type");
+#endif
+
 		// close any currently opened file
 		Close();
 		m_num_entries = 0;
@@ -66,12 +77,13 @@ public:
 		std::fstream::pos_type start_pos = m_file.tellg();
 		std::streamoff file_size = end_pos - start_pos;
 
+		m_header.Init();
 		if (m_file.is_open() && ValidateHeader())
 		{
 			// good header, read some key/value pairs
 			K key;
 
-			V *value = nullptr;
+			V* value = nullptr;
 			u32 value_size = 0;
 			u32 entry_number = 0;
 
@@ -131,7 +143,7 @@ public:
 	}
 
 	// Appends a key-value pair to the store.
-	void Append(const K &key, const V *value, u32 value_size)
+	void Append(const K& key, const V* value, u32 value_size)
 	{
 		// TODO: Should do a check that we don't already have "key"? (I think each caller does that already.)
 		Write(&value_size);
@@ -156,31 +168,30 @@ private:
 	}
 
 	template <typename D>
-	bool Write(const D *data, u32 count = 1)
+	bool Write(const D* data, u32 count = 1)
 	{
 		return m_file.write((const char*)data, count * sizeof(D)).good();
 	}
 
 	template <typename D>
-	bool Read(const D *data, u32 count = 1)
+	bool Read(const D* data, u32 count = 1)
 	{
 		return m_file.read((char*)data, count * sizeof(D)).good();
 	}
 
 	struct Header
 	{
-		Header()
-			: key_t_size(sizeof(K))
-			, value_t_size(sizeof(V))
+		void Init()
 		{
 			// Null-terminator is intentionally not copied.
 			std::memcpy(&id, "DCAC", sizeof(u32));
-			std::memcpy(ver, scm_rev_git_str, 40);
+			std::memcpy(ver, scm_rev_git_str.c_str(), std::min(scm_rev_git_str.size(), sizeof(ver)));
 		}
 
 		u32 id;
-		const u16 key_t_size, value_t_size;
-		char ver[40];
+		const u16 key_t_size = sizeof(K);
+		const u16 value_t_size = sizeof(V);
+		char ver[40] = {};
 
 	} m_header;
 

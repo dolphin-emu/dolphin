@@ -7,8 +7,10 @@
 
 #include "Common/Common.h"
 #include "Core/HW/Memmap.h"
-#include "VideoBackends/Software/BPMemLoader.h"
 #include "VideoBackends/Software/TextureSampler.h"
+
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureDecoder.h"
 
 #define ALLOW_MIPMAP 1
@@ -68,14 +70,14 @@ void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8 *sample)
 
 	s32 lodFract = lod & 0xf;
 
-	if (lod > 0 && tm0.min_filter & 3)
+	if (lod > 0 && SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0))
 	{
 		// use mipmap
 		baseMip = lod >> 4;
-		mipLinear = (lodFract && tm0.min_filter & 2);
+		mipLinear = (lodFract && tm0.min_filter & TexMode0::TEXF_LINEAR);
 
 		// if using nearest mip filter and lodFract >= 0.5 round up to next mip
-		baseMip += (lodFract >> 3) & (tm0.min_filter & 1);
+		baseMip += (lodFract >> 3) & (tm0.min_filter & TexMode0::TEXF_POINT);
 	}
 
 	if (mipLinear)

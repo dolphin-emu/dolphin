@@ -2,16 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
-#include "Core/Movie.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Channel.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/MMIO.h"
-#include "Core/HW/ProcessorInterface.h"
-#include "Core/PowerPC/PowerPC.h"
 
 enum
 {
@@ -35,7 +34,7 @@ CEXIChannel::CEXIChannel(u32 ChannelId) :
 		m_Status.CHIP_SELECT = 1;
 
 	for (auto& device : m_pDevices)
-		device.reset(EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId));
+		device = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -166,18 +165,17 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-	IEXIDevice* pNewDevice = EXIDevice_Create(device_type, m_ChannelId);
-	AddDevice(pNewDevice, device_num);
+	AddDevice(EXIDevice_Create(device_type, m_ChannelId), device_num);
 }
 
-void CEXIChannel::AddDevice(IEXIDevice* pDevice, const int device_num, bool notifyPresenceChanged)
+void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num, bool notify_presence_changed)
 {
 	_dbg_assert_(EXPANSIONINTERFACE, device_num < NUM_DEVICES);
 
-	// replace it with the new one
-	m_pDevices[device_num].reset(pDevice);
+	// Replace it with the new one
+	m_pDevices[device_num] = std::move(device);
 
-	if (notifyPresenceChanged)
+	if (notify_presence_changed)
 	{
 		// This means "device presence changed", software has to check
 		// m_Status.EXT to see if it is now present or not
@@ -228,27 +226,21 @@ void CEXIChannel::DoState(PointerWrap &p)
 	p.Do(m_Control);
 	p.Do(m_ImmData);
 
-	for (int d = 0; d < NUM_DEVICES; ++d)
+	for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
 	{
-		IEXIDevice* pDevice = m_pDevices[d].get();
-		TEXIDevices type = pDevice->m_deviceType;
+		std::unique_ptr<IEXIDevice>& device = m_pDevices[device_index];
+		TEXIDevices type = device->m_deviceType;
 		p.Do(type);
-		IEXIDevice* pSaveDevice = (type == pDevice->m_deviceType) ? pDevice : EXIDevice_Create(type, m_ChannelId);
-		pSaveDevice->DoState(p);
-		if (pSaveDevice != pDevice)
+
+		if (type == device->m_deviceType)
 		{
-			// if we had to create a temporary device, discard it if we're not loading.
-			// also, if no movie is active, we'll assume the user wants to keep their current devices
-			// instead of the ones they had when the savestate was created,
-			// unless the device is NONE (since ChangeDevice sets that temporarily).
-			if (p.GetMode() != PointerWrap::MODE_READ)
-			{
-				delete pSaveDevice;
-			}
-			else
-			{
-				AddDevice(pSaveDevice, d, false);
-			}
+			device->DoState(p);
+		}
+		else
+		{
+			std::unique_ptr<IEXIDevice> save_device = EXIDevice_Create(type, m_ChannelId);
+			save_device->DoState(p);
+			AddDevice(std::move(save_device), device_index, false);
 		}
 	}
 }

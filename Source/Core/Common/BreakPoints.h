@@ -41,7 +41,7 @@ struct TMemCheck
 	u32 numHits;
 
 	// returns whether to break
-	bool Action(DebugInterface *dbg_interface, u32 _iValue, u32 addr,
+	bool Action(DebugInterface* dbg_interface, u32 _iValue, u32 addr,
 	            bool write, int size, u32 pc);
 };
 
@@ -99,7 +99,7 @@ public:
 	void Add(const TMemCheck& _rMemoryCheck);
 
 	// memory breakpoint
-	TMemCheck *GetMemCheck(u32 address);
+	TMemCheck* GetMemCheck(u32 address);
 	void Remove(u32 _Address);
 
 	void Clear() { m_MemChecks.clear(); }

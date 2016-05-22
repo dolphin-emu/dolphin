@@ -20,7 +20,7 @@ static const u32 NUM_STATES = 10;
 
 struct StateHeader
 {
-	u8 gameID[6];
+	char gameID[6];
 	u32 size;
 	double time;
 };
@@ -32,6 +32,10 @@ void Shutdown();
 void EnableCompression(bool compression);
 
 bool ReadHeader(const std::string& filename, StateHeader& header);
+
+// Returns a string containing information of the savestate in the given slot
+// which can be presented to the user for identification purposes
+std::string GetInfoStringOfSlot(int slot);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main CPU thread.

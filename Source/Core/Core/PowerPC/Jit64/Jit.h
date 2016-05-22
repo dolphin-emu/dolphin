@@ -18,21 +18,11 @@
 // ----------
 #pragma once
 
-#include "Common/x64ABI.h"
-#include "Common/x64Analyzer.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/CoreTiming.h"
-#include "Core/HW/GPFifo.h"
-#include "Core/HW/Memmap.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 
@@ -51,7 +41,7 @@ private:
 	Jit64AsmRoutineManager asm_routines;
 
 	bool m_enable_blr_optimization;
-	bool m_clear_cache_asap;
+	bool m_cleanup_after_stackfault;
 	u8* m_stack;
 
 public:
@@ -67,6 +57,8 @@ public:
 	void Shutdown() override;
 
 	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+	bool HandleStackFault() override;
 
 	// Jit!
 
@@ -214,7 +206,7 @@ public:
 
 	void fp_arith(UGeckoInstruction inst);
 
-	void fcmpx(UGeckoInstruction inst);
+	void fcmpX(UGeckoInstruction inst);
 	void fctiwx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);
 	void frspx(UGeckoInstruction inst);

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstdio>
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -34,7 +35,7 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-	static CISOFileReader* Create(const std::string& filename);
+	static std::unique_ptr<CISOFileReader> Create(const std::string& filename);
 
 	BlobType GetBlobType() const override { return BlobType::CISO; }
 

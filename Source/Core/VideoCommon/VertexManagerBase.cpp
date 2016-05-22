@@ -2,22 +2,27 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
+#include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/Core.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
+#include "VideoCommon/DataReader.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/MainBase.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
@@ -25,24 +30,24 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-VertexManager *g_vertex_manager;
+std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
-u8 *VertexManager::s_pCurBufferPointer;
-u8 *VertexManager::s_pBaseBufferPointer;
-u8 *VertexManager::s_pEndBufferPointer;
+u8* VertexManagerBase::s_pCurBufferPointer;
+u8* VertexManagerBase::s_pBaseBufferPointer;
+u8* VertexManagerBase::s_pEndBufferPointer;
 
-u8 *VertexManager::s_pCurReplayBufferPointer;
-u8 *VertexManager::s_pBaseReplayBufferPointer;
+u8 *VertexManagerBase::s_pCurReplayBufferPointer;
+u8 *VertexManagerBase::s_pBaseReplayBufferPointer;
 
-u16 *VertexManager::s_pCurIReplayBufferPointer;
-u16 *VertexManager::s_pBaseIReplayBufferPointer;
+u16 *VertexManagerBase::s_pCurIReplayBufferPointer;
+u16 *VertexManagerBase::s_pBaseIReplayBufferPointer;
 
-PrimitiveType VertexManager::current_primitive_type;
+PrimitiveType VertexManagerBase::current_primitive_type;
 
-Slope VertexManager::s_zslope;
+Slope VertexManagerBase::s_zslope;
 
-bool VertexManager::s_is_flushed;
-bool VertexManager::s_cull_all;
+bool VertexManagerBase::s_is_flushed;
+bool VertexManagerBase::s_cull_all;
 
 static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_TRIANGLES, // GX_DRAW_QUADS
@@ -55,22 +60,22 @@ static const PrimitiveType primitive_from_gx[8] = {
 	PRIMITIVE_POINTS,    // GX_DRAW_POINTS
 };
 
-VertexManager::VertexManager()
+VertexManagerBase::VertexManagerBase()
 {
 	s_is_flushed = true;
 	s_cull_all = false;
 }
 
-VertexManager::~VertexManager()
+VertexManagerBase::~VertexManagerBase()
 {
 }
 
-u32 VertexManager::GetRemainingSize()
+u32 VertexManagerBase::GetRemainingSize()
 {
 	return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
 }
 
-DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
+DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall)
 {
 	// The SSE vertex loader can write up to 4 bytes past the end
 	u32 const needed_vertex_bytes = count * stride + 4;
@@ -108,12 +113,12 @@ DataReader VertexManager::PrepareForAdditionalData(int primitive, u32 count, u32
 	return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
 }
 
-void VertexManager::FlushData(u32 count, u32 stride)
+void VertexManagerBase::FlushData(u32 count, u32 stride)
 {
 	s_pCurBufferPointer += count * stride;
 }
 
-u32 VertexManager::GetRemainingIndices(int primitive)
+u32 VertexManagerBase::GetRemainingIndices(int primitive)
 {
 	u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
 
@@ -171,7 +176,7 @@ u32 VertexManager::GetRemainingIndices(int primitive)
 	}
 }
 
-void VertexManager::Flush()
+void VertexManagerBase::Flush()
 {
 	if (s_is_flushed)
 		return;
@@ -220,10 +225,10 @@ void VertexManager::Flush()
 				if (bpmem.tevind[i].IsActive() && bpmem.tevind[i].bt < bpmem.genMode.numindstages)
 					usedtextures[bpmem.tevindref.getTexMap(bpmem.tevind[i].bt)] = true;
 
-		TextureCache::UnbindTextures();
+		TextureCacheBase::UnbindTextures();
 		for (unsigned int i : usedtextures)
 		{
-			const TextureCache::TCacheEntryBase* tentry = TextureCache::Load(i);
+			const TextureCacheBase::TCacheEntryBase* tentry = TextureCacheBase::Load(i);
 
 			if (tentry)
 			{
@@ -235,7 +240,7 @@ void VertexManager::Flush()
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
 		}
-		TextureCache::BindTextures();
+		g_texture_cache->BindTextures();
 	}
 
 	// set global vertex constants
@@ -260,8 +265,8 @@ void VertexManager::Flush()
 		PixelShaderManager::SetConstants();
 
 		bool useDstAlpha = bpmem.dstalpha.enable &&
-						   bpmem.blendmode.alphaupdate &&
-						   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+		                   bpmem.blendmode.alphaupdate &&
+		                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
 		if (PerfQueryBase::ShouldEmulate())
 			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
@@ -279,13 +284,13 @@ void VertexManager::Flush()
 	s_cull_all = false;
 }
 
-int VertexManager::GetNumberOfVertices()
+int VertexManagerBase::GetNumberOfVertices()
 {
 	const PortableVertexDeclaration vert_decl = VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration();
 	return (int)((s_pCurBufferPointer - s_pBaseBufferPointer) / vert_decl.stride);
 }
 
-void VertexManager::DoState(PointerWrap& p)
+void VertexManagerBase::DoState(PointerWrap& p)
 {
 	p.Do(s_zslope);
 	if (!g_vertex_manager && ARBruteForcer::ch_bruteforce)
@@ -293,7 +298,7 @@ void VertexManager::DoState(PointerWrap& p)
 	g_vertex_manager->vDoState(p);
 }
 
-void VertexManager::CalculateZSlope(NativeVertexFormat* format)
+void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
 {
 	float out[12];
 	float viewOffset[2] = { xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,

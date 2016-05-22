@@ -30,8 +30,6 @@ namespace EMM
 
 #ifdef _WIN32
 
-const bool g_exception_handlers_supported = true;
-
 LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 {
 	switch (pPtrs->ExceptionRecord->ExceptionCode)
@@ -60,8 +58,10 @@ LONG NTAPI Handler(PEXCEPTION_POINTERS pPtrs)
 		}
 
 	case EXCEPTION_STACK_OVERFLOW:
-		MessageBox(nullptr, _T("Stack overflow!"), nullptr, 0);
-		return EXCEPTION_CONTINUE_SEARCH;
+		if (JitInterface::HandleStackFault())
+			return EXCEPTION_CONTINUE_EXECUTION;
+		else
+			return EXCEPTION_CONTINUE_SEARCH;
 
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
 		//No SSE support? Or simply bad codegen?
@@ -99,8 +99,6 @@ void InstallExceptionHandler()
 void UninstallExceptionHandler() {}
 
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
-
-const bool g_exception_handlers_supported = true;
 
 static void CheckKR(const char* name, kern_return_t kr)
 {
@@ -222,8 +220,6 @@ void UninstallExceptionHandler() {}
 
 #elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
 
-const bool g_exception_handlers_supported = true;
-
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {
 	if (sig != SIGSEGV && sig != SIGBUS)
@@ -294,7 +290,6 @@ void UninstallExceptionHandler()
 }
 #else // _M_GENERIC or unsupported platform
 
-const bool g_exception_handlers_supported = false;
 void InstallExceptionHandler() {}
 void UninstallExceptionHandler() {}
 
