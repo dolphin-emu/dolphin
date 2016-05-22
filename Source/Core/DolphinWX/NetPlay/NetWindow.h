@@ -73,7 +73,9 @@ private:
   void OnKick(wxCommandEvent& event);
   void OnPlayerSelect(wxCommandEvent& event);
   void GetNetSettings(NetSettings& settings);
-  std::string FindGame();
+  std::string FindCurrentGame();
+  std::string FindGame(const std::string& game);
+
 
   void OnCopyIP(wxCommandEvent&);
   void OnChoice(wxCommandEvent& event);
