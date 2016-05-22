@@ -63,6 +63,7 @@ private:
 		PlayerId    pid;
 		std::string name;
 		std::string revision;
+		int         game_status;
 
 		ENetPeer* socket;
 		u32 ping;
