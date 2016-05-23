@@ -12,6 +12,7 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
+#include "DolphinWX/NetPlay/Md5Dialog.h"
 
 class CGameListCtrl;
 class wxButton;
@@ -27,11 +28,22 @@ enum
 	NP_GUI_EVT_CHANGE_GAME = 45,
 	NP_GUI_EVT_START_GAME,
 	NP_GUI_EVT_STOP_GAME,
+	NP_GUI_EVT_DISPLAY_MD5_DIALOG,
+	NP_GUI_EVT_MD5_PROGRESS,
+	NP_GUI_EVT_MD5_RESULT,
 };
 
 enum
 {
 	INITIAL_PAD_BUFFER_SIZE = 5
+};
+
+// ids are UI-dependent here
+enum class Md5Target
+{
+	CurrentGame = 1,
+	OtherGame   = 2,
+	SdCard      = 3
 };
 
 class NetPlayDialog : public wxFrame, public NetPlayUI
@@ -68,6 +80,12 @@ private:
 	void OnQuit(wxCommandEvent& event);
 	void OnThread(wxThreadEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
+	void OnMd5ComputeReq(wxCommandEvent& event);
+	void ShowMd5Dialog(const std::string file_identifier);
+	void SetMd5Progress(int pid, int progress);
+	void SetMd5Result(int pid, const std::string& result);
+	void AbortMd5();
+	void ReqAbortMd5();
 	void OnAdjustBuffer(wxCommandEvent& event);
 	void OnAssignPads(wxCommandEvent& event);
 	void OnKick(wxCommandEvent& event);
@@ -94,6 +112,8 @@ private:
 	wxStaticText* m_host_label;
 	wxChoice*     m_host_type_choice;
 	wxButton*     m_host_copy_btn;
+	wxChoice*     m_md5_choice;
+	Md5Dialog*    m_MD5_dialog = nullptr;
 	bool          m_host_copy_btn_is_retry;
 	bool          m_is_hosting;
 

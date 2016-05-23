@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -124,7 +125,8 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
 	wxPanel* const panel = new wxPanel(this);
 
-	// top crap
+	wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
+
 	m_game_btn = new wxButton(panel, wxID_ANY,
 		StrToWxStr(m_selected_game).Prepend(_(" Game : ")),
 		wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -133,6 +135,21 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 		m_game_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnChangeGame, this);
 	else
 		m_game_btn->Disable();
+
+	top_szr->Add(m_game_btn, 1, wxALL | wxEXPAND);
+
+	if (m_is_hosting)
+	{
+		m_md5_choice = new wxChoice(panel, wxID_ANY,  wxDefaultPosition, wxSize(150, -1));
+		m_md5_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnMd5ComputeReq, this);
+		m_md5_choice->Append(_("MD5 check..."));
+		m_md5_choice->Append(_("Curent game"));
+		m_md5_choice->Append(_("Other game"));
+		m_md5_choice->Append(_("SD card"));
+		m_md5_choice->SetSelection(0);
+
+		top_szr->Add(m_md5_choice, 0, wxALL);
+	}
 
 	// middle crap
 
@@ -234,7 +251,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
 	// main sizer
 	wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-	main_szr->Add(m_game_btn, 0, wxEXPAND | wxALL, 5);
+	main_szr->Add(top_szr, 0, wxEXPAND | wxALL, 5);
 	main_szr->Add(mid_szr, 1, wxEXPAND | wxLEFT | wxRIGHT, 5);
 	main_szr->Add(bottom_szr, 0, wxEXPAND | wxALL, 5);
 
@@ -474,6 +491,35 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 		netplay_client->StopGame();
 	}
 	break;
+	case NP_GUI_EVT_DISPLAY_MD5_DIALOG:
+	{
+		m_MD5_dialog = new Md5Dialog(
+			this,
+			netplay_server,
+			netplay_client->GetPlayers(),
+			event.GetString().ToStdString()
+		);
+		m_MD5_dialog->Show();
+	}
+	break;
+	case NP_GUI_EVT_MD5_PROGRESS:
+	{
+		if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+			break;
+
+		std::pair<int, int> payload = event.GetPayload<std::pair<int, int>>();
+		m_MD5_dialog->SetProgress(payload.first, payload.second);
+	}
+	break;
+	case NP_GUI_EVT_MD5_RESULT:
+	{
+		if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+			break;
+
+		std::pair<int, std::string> payload = event.GetPayload<std::pair<int, std::string>>();
+		m_MD5_dialog->SetResult(payload.first, payload.second);
+	}
+	break;
 	}
 
 	// chat messages
@@ -498,6 +544,65 @@ void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 	m_selected_game = WxStrToStr(game_name);
 	netplay_server->ChangeGame(m_selected_game);
 	m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
+}
+
+void NetPlayDialog::OnMd5ComputeReq(wxCommandEvent&)
+{
+	Md5Target selection = static_cast<Md5Target>(m_md5_choice->GetSelection());
+	m_md5_choice->SetSelection(0);
+	std::string file_identifier;
+	ChangeGameDialog cgd(this, m_game_list);
+
+	switch (selection)
+	{
+	case Md5Target::CurrentGame:
+		file_identifier = m_selected_game;
+		break;
+
+	case Md5Target::OtherGame:
+		cgd.ShowModal();
+
+		file_identifier = cgd.GetChosenGameName().ToStdString();
+		if (file_identifier.empty())
+			return;
+		break;
+
+	case Md5Target::SdCard:
+		file_identifier = "sd.raw";
+		break;
+
+	default:
+		return;
+	}
+
+	netplay_server->ComputeMd5(file_identifier);
+}
+
+void NetPlayDialog::ShowMd5Dialog(const std::string file_identifier)
+{
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_DISPLAY_MD5_DIALOG);
+	evt.SetString(file_identifier);
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMd5Progress(int pid, int progress)
+{
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_PROGRESS);
+	evt.SetPayload(std::pair<int, int>(pid, progress));
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMd5Result(int pid, const std::string& result)
+{
+	wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_RESULT);
+	evt.SetPayload(std::pair<int, std::string>(pid, result));
+	GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::AbortMd5()
+{
+	if (m_MD5_dialog != nullptr && !m_MD5_dialog->IsBeingDeleted())
+		m_MD5_dialog->Destroy();
 }
 
 void NetPlayDialog::OnAssignPads(wxCommandEvent&)

@@ -36,6 +36,10 @@ public:
 	virtual void OnMsgStopGame() = 0;
 	virtual bool IsRecording() = 0;
 	virtual std::string FindGame(const std::string& game) = 0;
+	virtual void ShowMd5Dialog(const std::string file_identifier) = 0;
+	virtual void SetMd5Progress(int pid, int progress) = 0;
+	virtual void SetMd5Result(int pid, const std::string& result) = 0;
+	virtual void AbortMd5() = 0;
 };
 
 enum class PlayerGameStatus
@@ -153,6 +157,8 @@ private:
 	void Send(sf::Packet& packet);
 	void Disconnect();
 	bool Connect();
+	void ComputeMd5(const std::string file_identifier);
+	static void ComputeMd5ThreadFunc(NetPlayClient* client, std::string game);
 
 	bool m_is_connected = false;
 	ConnectionState m_connection_state = ConnectionState::Failure;
@@ -163,6 +169,8 @@ private:
 	std::string m_player_name;
 	bool m_connecting = false;
 	TraversalClient* m_traversal_client = nullptr;
+	std::thread m_md5_thread;
+	bool m_should_compute_md5 = false;
 
 	u32 m_timebase_frame = 0;
 };

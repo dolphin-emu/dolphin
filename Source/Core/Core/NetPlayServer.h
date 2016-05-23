@@ -28,6 +28,8 @@ public:
 	~NetPlayServer();
 
 	bool ChangeGame(const std::string& game);
+	bool ComputeMd5(const std::string file_identifier);
+	bool AbortMd5();
 	void SendChatMessage(const std::string& msg);
 
 	void SetNetSettings(const NetSettings &settings);

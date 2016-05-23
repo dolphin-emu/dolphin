@@ -4,6 +4,9 @@
 
 #include <algorithm>
 #include <memory>
+#include <mbedtls/md5.h>
+#include <fstream>
+#include <thread>
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
@@ -506,10 +509,58 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	}
 	break;
 
+	case NP_MSG_COMPUTE_MD5:
+	{
+		std::string file_identifier;
+		packet >> file_identifier;
+
+		ComputeMd5(file_identifier);
+	}
+	break;
+
+	case NP_MSG_MD5_PROGRESS:
+	{
+		PlayerId pid;
+		int progress;
+		packet >> pid;
+		packet >> progress;
+
+		m_dialog->SetMd5Progress(pid, progress);
+	}
+	break;
+
+	case NP_MSG_MD5_RESULT:
+	{
+		PlayerId pid;
+		std::string result;
+		packet >> pid;
+		packet >> result;
+
+		m_dialog->SetMd5Result(pid, result);
+	}
+	break;
+
+	case NP_MSG_MD5_ERROR:
+	{
+		PlayerId pid;
+		std::string error;
+		packet >> pid;
+		packet >> error;
+
+		m_dialog->SetMd5Result(pid, error);
+	}
+	break;
+
+	case NP_MSG_MD5_ABORT:
+	{
+		m_should_compute_md5 = false;
+		m_dialog->AbortMd5();
+	}
+	break;
+
 	default:
 		PanicAlertT("Unknown message received with id : %d", mid);
 		break;
-
 	}
 
 	return 0;
@@ -1191,6 +1242,90 @@ bool NetPlayClient::DoAllPlayersHaveGame()
 	return std::all_of(std::begin(m_players), std::end(m_players), [](auto entry) {
 		return entry.second.game_status == PlayerGameStatus::Ok;
 	});
+}
+
+void NetPlayClient::ComputeMd5(const std::string file_identifier)
+{
+	if (m_should_compute_md5)
+		return;
+
+	m_dialog->ShowMd5Dialog(file_identifier);
+	m_should_compute_md5 = true;
+
+	std::string file;
+	if (file_identifier == "sd.raw")
+		file = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
+	else
+		file = m_dialog->FindGame(file_identifier);
+
+	if (file.empty())
+	{
+		sf::Packet spac;
+		spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+		spac << "file not found";
+		Send(spac);
+		return;
+	}
+
+	m_md5_thread = std::thread(NetPlayClient::ComputeMd5ThreadFunc, this, file);
+	m_md5_thread.detach();
+}
+
+void NetPlayClient::ComputeMd5ThreadFunc(NetPlayClient* client, std::string file_path)
+{
+	u8 output[16];
+	std::string output_string;
+	std::vector<u8> data(8 * 1024 * 1024);
+	u64 read_offset = 0;
+	mbedtls_md5_context ctx;
+
+	std::unique_ptr<DiscIO::IBlobReader> file(DiscIO::CreateBlobReader(file_path));
+
+	if (file == nullptr)
+	{
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_MD5_ERROR;
+		spac << "file not found";
+		client->Send(spac);
+		return;
+	}
+
+	u64 game_size = file->GetDataSize();
+
+	mbedtls_md5_starts(&ctx);
+
+	while(read_offset < game_size)
+	{
+		if (!client->m_should_compute_md5)
+			return;
+
+		size_t read_size = std::min((u64)data.size(), game_size - read_offset);
+		if (!file->Read(read_offset, read_size, data.data()))
+			return;
+
+		mbedtls_md5_update(&ctx, data.data(), read_size);
+		read_offset += read_size;
+
+		int progress = static_cast<int>(static_cast<float>(read_offset) / static_cast<float>(game_size) * 100);
+
+		sf::Packet spac;
+		spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+		spac << progress;
+		client->Send(spac);
+	}
+
+	mbedtls_md5_finish(&ctx, output);
+
+	// Convert to hex
+	for (int a = 0; a < 16; ++a)
+		output_string += StringFromFormat("%02x", output[a]);
+
+	sf::Packet spac;
+	spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+	spac << output_string;
+	client->Send(spac);
+
+	client->m_should_compute_md5 = false;
 }
 
 // stuff hacked into dolphin
