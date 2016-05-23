@@ -675,6 +675,49 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 		}
 	}
 	break;
+
+	case NP_MSG_MD5_PROGRESS:
+	{
+		int progress;
+		packet >> progress;
+
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_MD5_PROGRESS;
+		spac << player.pid;
+		spac << progress;
+
+		SendToClients(spac);
+	}
+	break;
+
+	case NP_MSG_MD5_RESULT:
+	{
+		std::string result;
+		packet >> result;
+
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_MD5_RESULT;
+		spac << player.pid;
+		spac << result;
+
+		SendToClients(spac);
+	}
+	break;
+
+	case NP_MSG_MD5_ERROR:
+	{
+		std::string error;
+		packet >> error;
+
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_MD5_ERROR;
+		spac << player.pid;
+		spac << error;
+
+		SendToClients(spac);
+	}
+	break;
+
 	default:
 		PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
@@ -714,6 +757,29 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	auto spac = std::make_unique<sf::Packet>();
 	*spac << (MessageId)NP_MSG_CHANGE_GAME;
 	*spac << game;
+
+	SendAsyncToClients(std::move(spac));
+
+	return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::ComputeMd5(const std::string file_identifier)
+{
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << (MessageId)NP_MSG_COMPUTE_MD5;
+	*spac << file_identifier;
+
+	SendAsyncToClients(std::move(spac));
+
+	return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::AbortMd5()
+{
+	auto spac = std::make_unique<sf::Packet>();
+	*spac << (MessageId)NP_MSG_MD5_ABORT;
 
 	SendAsyncToClients(std::move(spac));
 
