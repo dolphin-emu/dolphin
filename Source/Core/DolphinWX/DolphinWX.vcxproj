@@ -124,6 +124,7 @@
     <ClInclude Include="Config\PathConfigPane.h" />
     <ClInclude Include="Config\WiiConfigPane.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
+    <ClInclude Include="NetPlay\MD5Dialog.h" />
     <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
     <ClInclude Include="NetPlay\PadMapDialog.h" />
     <ClInclude Include="resource.h" />

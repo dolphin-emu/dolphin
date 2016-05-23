@@ -14,21 +14,28 @@
 #include "Core/NetPlayServer.h"
 
 class CGameListCtrl;
+class MD5Dialog;
 class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
-class wxString;
 class wxStaticText;
+class wxString;
 class wxTextCtrl;
 
 enum {
   NP_GUI_EVT_CHANGE_GAME = 45,
   NP_GUI_EVT_START_GAME,
   NP_GUI_EVT_STOP_GAME,
+  NP_GUI_EVT_DISPLAY_MD5_DIALOG,
+  NP_GUI_EVT_MD5_PROGRESS,
+  NP_GUI_EVT_MD5_RESULT,
 };
 
 enum { INITIAL_PAD_BUFFER_SIZE = 5 };
+
+// IDs are UI-dependent here
+enum class MD5Target { CurrentGame = 1, OtherGame = 2, SdCard = 3 };
 
 class NetPlayDialog : public wxFrame, public NetPlayUI {
 public:
@@ -47,6 +54,11 @@ public:
   void Update() override;
   void AppendChat(const std::string &msg) override;
 
+  void ShowMD5Dialog(const std::string &file_identifier) override;
+  void SetMD5Progress(int pid, int progress) override;
+  void SetMD5Result(int pid, const std::string &result) override;
+  void AbortMD5() override;
+
   void OnMsgChangeGame(const std::string &filename) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
@@ -64,6 +76,7 @@ private:
   void OnQuit(wxCommandEvent &event);
   void OnThread(wxThreadEvent &event);
   void OnChangeGame(wxCommandEvent &event);
+  void OnMD5ComputeRequested(wxCommandEvent &event);
   void OnAdjustBuffer(wxCommandEvent &event);
   void OnAssignPads(wxCommandEvent &event);
   void OnKick(wxCommandEvent &event);
@@ -90,6 +103,8 @@ private:
   wxStaticText *m_host_label;
   wxChoice *m_host_type_choice;
   wxButton *m_host_copy_btn;
+  wxChoice *m_MD5_choice;
+  MD5Dialog *m_MD5_dialog = nullptr;
   bool m_host_copy_btn_is_retry;
   bool m_is_hosting;
 

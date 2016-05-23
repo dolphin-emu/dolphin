@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -42,6 +43,7 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 #include "DolphinWX/WxUtils.h"
+#include "MD5Dialog.h"
 
 NetPlayServer *NetPlayDialog::netplay_server = nullptr;
 NetPlayClient *NetPlayDialog::netplay_client = nullptr;
@@ -118,7 +120,8 @@ NetPlayDialog::NetPlayDialog(wxWindow *const parent,
 
   wxPanel *const panel = new wxPanel(this);
 
-  // top crap
+  wxBoxSizer *const top_szr = new wxBoxSizer(wxHORIZONTAL);
+
   m_game_btn = new wxButton(panel, wxID_ANY,
                             StrToWxStr(m_selected_game).Prepend(_(" Game : ")),
                             wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
@@ -127,6 +130,22 @@ NetPlayDialog::NetPlayDialog(wxWindow *const parent,
     m_game_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnChangeGame, this);
   else
     m_game_btn->Disable();
+
+  top_szr->Add(m_game_btn, 1, wxALL | wxEXPAND);
+
+  if (m_is_hosting) {
+    m_MD5_choice =
+        new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(150, -1));
+    m_MD5_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnMD5ComputeRequested,
+                       this);
+    m_MD5_choice->Append(_("MD5 check..."));
+    m_MD5_choice->Append(_("Curent game"));
+    m_MD5_choice->Append(_("Other game"));
+    m_MD5_choice->Append(_("SD card"));
+    m_MD5_choice->SetSelection(0);
+
+    top_szr->Add(m_MD5_choice, 0, wxALL);
+  }
 
   // middle crap
 
@@ -239,7 +258,7 @@ NetPlayDialog::NetPlayDialog(wxWindow *const parent,
 
   // main sizer
   wxBoxSizer *const main_szr = new wxBoxSizer(wxVERTICAL);
-  main_szr->Add(m_game_btn, 0, wxEXPAND | wxALL, 5);
+  main_szr->Add(top_szr, 0, wxEXPAND | wxALL, 5);
   main_szr->Add(mid_szr, 1, wxEXPAND | wxLEFT | wxRIGHT, 5);
   main_szr->Add(bottom_szr, 0, wxEXPAND | wxALL, 5);
 
@@ -447,6 +466,27 @@ void NetPlayDialog::OnThread(wxThreadEvent &event) {
     // client stop game
     { netplay_client->StopGame(); }
     break;
+  case NP_GUI_EVT_DISPLAY_MD5_DIALOG: {
+    m_MD5_dialog =
+        new MD5Dialog(this, netplay_server, netplay_client->GetPlayers(),
+                      event.GetString().ToStdString());
+    m_MD5_dialog->Show();
+  } break;
+  case NP_GUI_EVT_MD5_PROGRESS: {
+    if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+      break;
+
+    std::pair<int, int> payload = event.GetPayload<std::pair<int, int>>();
+    m_MD5_dialog->SetProgress(payload.first, payload.second);
+  } break;
+  case NP_GUI_EVT_MD5_RESULT: {
+    if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+      break;
+
+    std::pair<int, std::string> payload =
+        event.GetPayload<std::pair<int, std::string>>();
+    m_MD5_dialog->SetResult(payload.first, payload.second);
+  } break;
   }
 
   // chat messages
@@ -459,16 +499,70 @@ void NetPlayDialog::OnThread(wxThreadEvent &event) {
 }
 
 void NetPlayDialog::OnChangeGame(wxCommandEvent &) {
-  ChangeGameDialog cgd(this, m_game_list);
-  cgd.ShowModal();
+  ChangeGameDialog change_game_dialog(this, m_game_list);
+  change_game_dialog.ShowModal();
 
-  wxString game_name = cgd.GetChosenGameName();
+  wxString game_name = change_game_dialog.GetChosenGameName();
   if (game_name.empty())
     return;
 
   m_selected_game = WxStrToStr(game_name);
   netplay_server->ChangeGame(m_selected_game);
   m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
+}
+
+void NetPlayDialog::OnMD5ComputeRequested(wxCommandEvent &) {
+  MD5Target selection = static_cast<MD5Target>(m_MD5_choice->GetSelection());
+  std::string file_identifier;
+  ChangeGameDialog change_game_dialog(this, m_game_list);
+
+  m_MD5_choice->SetSelection(0);
+
+  switch (selection) {
+  case MD5Target::CurrentGame:
+    file_identifier = m_selected_game;
+    break;
+
+  case MD5Target::OtherGame:
+    change_game_dialog.ShowModal();
+
+    file_identifier = WxStrToStr(change_game_dialog.GetChosenGameName());
+    if (file_identifier.empty())
+      return;
+    break;
+
+  case MD5Target::SdCard:
+    file_identifier = "sd.raw";
+    break;
+
+  default:
+    return;
+  }
+
+  netplay_server->ComputeMD5(file_identifier);
+}
+
+void NetPlayDialog::ShowMD5Dialog(const std::string &file_identifier) {
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_DISPLAY_MD5_DIALOG);
+  evt.SetString(file_identifier);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMD5Progress(int pid, int progress) {
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_PROGRESS);
+  evt.SetPayload(std::pair<int, int>(pid, progress));
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMD5Result(int pid, const std::string &result) {
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_RESULT);
+  evt.SetPayload(std::pair<int, std::string>(pid, result));
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::AbortMD5() {
+  if (m_MD5_dialog != nullptr && !m_MD5_dialog->IsBeingDeleted())
+    m_MD5_dialog->Destroy();
 }
 
 void NetPlayDialog::OnAssignPads(wxCommandEvent &) {

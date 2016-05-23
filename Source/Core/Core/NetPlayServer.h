@@ -18,6 +18,7 @@
 #include "Core/NetPlayProto.h"
 
 class NetPlayUI;
+enum class PlayerGameStatus;
 
 class NetPlayServer : public TraversalClientClient {
 public:
@@ -29,6 +30,8 @@ public:
   ~NetPlayServer();
 
   bool ChangeGame(const std::string &game);
+  bool ComputeMD5(const std::string &file_identifier);
+  bool AbortMD5();
   void SendChatMessage(const std::string &msg);
 
   void SetNetSettings(const NetSettings &settings);
