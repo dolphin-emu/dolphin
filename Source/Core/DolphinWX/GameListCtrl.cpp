@@ -407,7 +407,7 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 			break;
 		case COLUMN_FILENAME:
 			SetItem(_Index, COLUMN_FILENAME,
-			        wxFileNameFromPath(rISOFile.GetFileName()), -1);
+			        wxFileNameFromPath(StrToWxStr(rISOFile.GetFileName())), -1);
 			break;
 		case COLUMN_EMULATION_STATE:
 			SetItemColumnImage(_Index, COLUMN_EMULATION_STATE,
