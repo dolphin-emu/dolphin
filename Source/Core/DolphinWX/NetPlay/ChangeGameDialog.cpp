@@ -10,14 +10,14 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 
 ChangeGameDialog::ChangeGameDialog(wxWindow* parent, const CGameListCtrl* const game_list)
-	: wxDialog(parent, wxID_ANY, _("Change Game"))
+	: wxDialog(parent, wxID_ANY, _("Select Game"))
 {
 	m_game_lbox = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
 	m_game_lbox->Bind(wxEVT_LISTBOX_DCLICK, &ChangeGameDialog::OnPick, this);
 
 	NetPlayDialog::FillWithGameNames(m_game_lbox, *game_list);
 
-	wxButton* const ok_btn = new wxButton(this, wxID_OK, _("Change"));
+	wxButton* const ok_btn = new wxButton(this, wxID_OK, _("Select"));
 	ok_btn->Bind(wxEVT_BUTTON, &ChangeGameDialog::OnPick, this);
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
