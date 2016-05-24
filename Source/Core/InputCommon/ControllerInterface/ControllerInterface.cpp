@@ -37,6 +37,8 @@
 	#include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 #endif
 
+#include "InputCommon/ControllerInterface/Oculus/OculusInput.h"
+
 #ifdef _WIN32
 	#include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 #endif
@@ -90,6 +92,7 @@ void ControllerInterface::Initialize(void* const hwnd)
 	ciface::Pipes::Init(m_devices);
 #endif
 #ifdef _WIN32
+	ciface::OculusInput::Init(m_devices);
 	// VR Sixense Razer Hydra or STEM
 	InitSixenseLib();
 #endif
@@ -151,6 +154,7 @@ void ControllerInterface::Shutdown()
 	// nothing needed
 #endif
 #ifdef _WIN32
+	ciface::OculusInput::DeInit();
 	// VR Razer Hydra or Sixense STEM
 	if (g_sixense_initialized && Hydra_Exit)
 	{

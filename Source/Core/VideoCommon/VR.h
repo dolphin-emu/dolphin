@@ -15,6 +15,24 @@ const int DEFAULT_VR_EXTRA_FRAMES = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
+#define OCULUS_BUTTON_A 1
+#define OCULUS_BUTTON_B 2
+#define OCULUS_BUTTON_RTHUMB 4
+#define OCULUS_BUTTON_RSHOULDER 8
+#define OCULUS_BUTTON_X 0x100
+#define OCULUS_BUTTON_Y 0x200
+#define OCULUS_BUTTON_LTHUMB 0x400
+#define OCULUS_BUTTON_LSHOULDER 0x800
+#define OCULUS_BUTTON_UP 0x10000
+#define OCULUS_BUTTON_DOWN 0x20000
+#define OCULUS_BUTTON_LEFT 0x40000
+#define OCULUS_BUTTON_RIGHT 0x80000
+#define OCULUS_BUTTON_ENTER 0x100000
+#define OCULUS_BUTTON_BACK 0x200000
+#define OCULUS_BUTTON_PLUS 0x400000
+#define OCULUS_BUTTON_MINUS 0x800000
+#define OCULUS_BUTTON_HOME 0x1000000
+
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
 #ifndef OVR_PRODUCT_VERSION
@@ -149,6 +167,8 @@ void VR_GetProjectionHalfTan(float &hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
 void VR_GetEyePos(float *posLeft, float *posRight);
 void VR_GetFovTextureSize(int *width, int *height);
+
+bool VR_GetRemoteButtons(u32 *buttons);
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);

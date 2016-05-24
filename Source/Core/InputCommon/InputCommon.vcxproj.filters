@@ -19,6 +19,9 @@
     <Filter Include="ControllerInterface\Sixense">
       <UniqueIdentifier>{8e4d9d8d-1a70-4a65-839f-34437b5f461c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\Oculus">
+      <UniqueIdentifier>{672b1388-7caf-429a-a257-eba78ec02de8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ControllerEmu.cpp" />
@@ -61,10 +64,12 @@
       <Filter>ControllerInterface\Sixense</Filter>
     </ClCompile>
     <ClCompile Include="HotkeysXInput.cpp" />
+    <ClCompile Include="ControllerInterface\Oculus\OculusInput.cpp">
+      <Filter>ControllerInterface\Oculus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
-    <ClCompile Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h">
@@ -107,6 +112,10 @@
       <Filter>ControllerInterface\Sixense</Filter>
     </ClInclude>
     <ClInclude Include="HotkeysXInput.h" />
+    <ClInclude Include="GCAdapter.h" />
+    <ClInclude Include="ControllerInterface\Oculus\OculusInput.h">
+      <Filter>ControllerInterface\Oculus</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

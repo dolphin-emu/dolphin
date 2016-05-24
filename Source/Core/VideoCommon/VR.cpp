@@ -948,6 +948,24 @@ void VR_GetFovTextureSize(int *width, int *height)
 #endif
 }
 
+bool VR_GetRemoteButtons(u32 *buttons)
+{
+	*buttons = 0;
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION >= 1
+	if (g_has_rift)
+	{
+		ovrInputState sidInput = {};
+		bool HasInputState = OVR_SUCCESS(ovr_GetInputState(hmd, ovrControllerType_Remote, &sidInput));
+		*buttons = sidInput.Buttons;
+		return HasInputState;
+	}
+	else
+#endif
+	{
+		return false;
+	}
+}
+
 bool VR_GetLeftHydraPos(float *pos)
 {
 	pos[0] = -0.15f;

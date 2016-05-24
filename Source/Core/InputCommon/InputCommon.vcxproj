@@ -16,7 +16,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-	<PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
+    <PlatformToolset Condition="'$(VisualStudioVersion)' == '12.0'">v120</PlatformToolset>
     <PlatformToolset Condition="'$(VisualStudioVersion)' == '14.0'">v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -36,6 +36,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="ControllerInterface\Oculus\OculusInput.cpp" />
     <ClCompile Include="HotkeysXInput.cpp" />
     <ClCompile Include="ControllerEmu.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
@@ -67,6 +68,7 @@
     <ClCompile Include="InputConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControllerInterface\Oculus\OculusInput.h" />
     <ClInclude Include="HotkeysXInput.h" />
     <ClInclude Include="ControllerEmu.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
