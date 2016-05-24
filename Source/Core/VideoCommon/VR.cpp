@@ -527,6 +527,25 @@ void VR_RecenterHMD()
 #endif
 }
 
+void VR_CheckStatus(bool *ShouldRecenter, bool *ShouldQuit)
+{
+#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1)
+	if (g_has_rift)
+	{
+		ovrSessionStatus sessionStatus;
+		ovr_GetSessionStatus(hmd, &sessionStatus);
+		*ShouldRecenter = sessionStatus.ShouldRecenter ? true : false;
+		*ShouldQuit = sessionStatus.ShouldQuit ? true : false;
+	}
+	else
+	{
+		*ShouldRecenter = *ShouldQuit = false;
+	}
+#else
+	*ShouldRecenter = *ShouldQuit = false;
+#endif
+}
+
 void VR_ConfigureHMDTracking()
 {
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0

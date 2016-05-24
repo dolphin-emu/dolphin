@@ -137,6 +137,7 @@ void InitVR();
 void VR_StopRendering();
 void ShutdownVR();
 void VR_RecenterHMD();
+void VR_CheckStatus(bool *ShouldRecenter, bool *ShouldQuit);
 void VR_ConfigureHMDTracking();
 void VR_ConfigureHMDPrediction();
 void NewVRFrame();

@@ -1314,6 +1314,9 @@ void CFrame::ParseHotkeys()
 		return;
 	}
 
+	bool ShouldRecenter, ShouldQuit;
+	VR_CheckStatus(&ShouldRecenter, &ShouldQuit);
+
 	// Toggle fullscreen
 	if (IsHotkey(HK_FULLSCREEN))
 		DoFullscreen(!RendererIsFullscreen());
@@ -1328,7 +1331,7 @@ void CFrame::ParseHotkeys()
 	// Screenshot hotkey
 	if (IsHotkey(HK_SCREENSHOT))
 		Core::SaveScreenShot();
-	if (IsHotkey(HK_EXIT))
+	if (ShouldQuit || IsHotkey(HK_EXIT))
 		wxPostEvent(this, wxCommandEvent(wxEVT_MENU, wxID_EXIT));
 	if (IsHotkey(HK_VOLUME_DOWN))
 		AudioCommon::DecreaseVolume(3);
@@ -1532,7 +1535,7 @@ void CFrame::ParseHotkeys()
 		VertexShaderManager::TranslateView(0.0f, freeLookSpeed);
 	else if (IsHotkey(HK_FREELOOK_ZOOM_OUT))
 		VertexShaderManager::TranslateView(0.0f, -freeLookSpeed);
-	else if (IsHotkey(HK_FREELOOK_RESET))
+	else if (ShouldRecenter || IsHotkey(HK_FREELOOK_RESET))
 	{
 		VertexShaderManager::ResetView();
 		VR_RecenterHMD();
