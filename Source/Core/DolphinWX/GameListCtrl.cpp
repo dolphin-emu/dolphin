@@ -440,6 +440,10 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 			SetItemColumnImage(_Index, COLUMN_EMULATION_STATE,
 			                   m_EmuStateImageIndex[rISOFile.GetEmuState()]);
 			break;
+		case COLUMN_VR_STATE:
+			SetItemColumnImage(_Index, COLUMN_VR_STATE,
+				m_EmuStateImageIndex[rISOFile.GetVRState()]);
+			break;
 		case COLUMN_COUNTRY:
 			SetItemColumnImage(_Index, COLUMN_COUNTRY,
 			                   m_FlagImageIndex[rISOFile.GetCountry()]);
