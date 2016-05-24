@@ -119,9 +119,9 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
 				return -1 * t;
 			return 0;
 		case CGameListCtrl::COLUMN_PLATFORM:
-			if (iso1->GetPlatform() > iso2->GetPlatform())
+			if (iso1->GetDetailedPlatform() > iso2->GetDetailedPlatform())
 				return  1 * t;
-			if (iso1->GetPlatform() < iso2->GetPlatform())
+			if (iso1->GetDetailedPlatform() < iso2->GetDetailedPlatform())
 				return -1 * t;
 			return 0;
 
@@ -213,11 +213,21 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_WORLD]       = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_International", size));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN]     = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Flag_Unknown", size));
 
-	m_PlatformImageIndex.resize(4);
+	m_PlatformImageIndex.resize(DiscIO::IVolume::NUMBER_OF_PLATFORMS);
 	m_PlatformImageIndex[DiscIO::IVolume::GAMECUBE_DISC]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Gamecube", size));
 	m_PlatformImageIndex[DiscIO::IVolume::WII_DISC]        = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Wii", size));
 	m_PlatformImageIndex[DiscIO::IVolume::WII_WAD]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Wad", size));
 	m_PlatformImageIndex[DiscIO::IVolume::ELF_DOL]         = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_File", size));
+	m_PlatformImageIndex[DiscIO::IVolume::TRIFORCE_DISC]   = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Triforce", size));
+	m_PlatformImageIndex[DiscIO::IVolume::N64_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_N64", size));
+	m_PlatformImageIndex[DiscIO::IVolume::SNES_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_SNES", size));
+	m_PlatformImageIndex[DiscIO::IVolume::NES_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_NES", size));
+	m_PlatformImageIndex[DiscIO::IVolume::TG16_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Turbografx", size));
+	m_PlatformImageIndex[DiscIO::IVolume::C64_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_C64", size));
+	m_PlatformImageIndex[DiscIO::IVolume::SMS_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_SMS", size));
+	m_PlatformImageIndex[DiscIO::IVolume::GENESIS_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Genesis", size));
+	m_PlatformImageIndex[DiscIO::IVolume::ARCADE_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Arcade", size));
+	m_PlatformImageIndex[DiscIO::IVolume::NEOGEO_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_NeoGeo", size));
 
 	m_EmuStateImageIndex.resize(6);
 	m_EmuStateImageIndex[0] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("rating0", size));
@@ -390,7 +400,7 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
 		case COLUMN_PLATFORM:
 		{
 			SetItemColumnImage(_Index, COLUMN_PLATFORM,
-			                   m_PlatformImageIndex[rISOFile.GetPlatform()]);
+			                   m_PlatformImageIndex[rISOFile.GetDetailedPlatform()]);
 			break;
 		}
 		case COLUMN_BANNER:

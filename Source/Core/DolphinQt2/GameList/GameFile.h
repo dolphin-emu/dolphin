@@ -39,6 +39,7 @@ public:
 	int GetRating()           const { return m_rating; }
 
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_platform; }
+	DiscIO::IVolume::EPlatform GetDetailedPlatform() const { return m_detailed_platform; }
 	DiscIO::IVolume::ECountry GetCountry()   const { return m_country; }
 	DiscIO::BlobType GetBlobType()           const { return m_blob_type; }
 
@@ -91,7 +92,7 @@ private:
 	QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
 	QString m_company;
 	u8 m_disc_number = 0;
-	DiscIO::IVolume::EPlatform m_platform;
+	DiscIO::IVolume::EPlatform m_platform, m_detailed_platform;
 	DiscIO::IVolume::ECountry m_country;
 	DiscIO::BlobType m_blob_type;
 	u64 m_raw_size = 0;

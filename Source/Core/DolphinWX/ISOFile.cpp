@@ -159,6 +159,73 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 		m_blob_type = DiscIO::BlobType::DIRECTORY;
 	}
 
+	if (IsValid())
+	{
+		switch (m_Platform)
+		{
+		case DiscIO::IVolume::GAMECUBE_DISC:
+			if ((!m_UniqueID.empty()) && (
+			    m_UniqueID == "GFZJ8P" || // F-Zero AX
+			    m_UniqueID == "GMYJ8P" || // Gekitou Pro Yakyuu
+			    m_UniqueID == "GGPE01" || m_UniqueID == "MKAGP1" || // Mario Kart Arcade GP
+			    m_UniqueID == "GGPE02" || m_UniqueID == "MKAGP2" || // Mario Kart Arcade GP 2
+			    m_UniqueID == "GVSJ8P" || m_UniqueID == "GVSP8P" || // Virtua Striker 2002
+			    m_UniqueID == "GVS46J" || m_UniqueID == "GVS46E" || m_UniqueID == "GVSJ9P" // Virtua Striker 4 Ver.2006
+				//todo: Donkey Kong Jungle Fever, Donkey Kong Banana Kingdom, F-Zero AX Monster Ride, Firmware Update, Starfox, The Key of Avalon
+			))
+				m_Detailed_Platform = DiscIO::IVolume::TRIFORCE_DISC;
+			else
+				m_Detailed_Platform = m_Platform;
+			break;
+		case DiscIO::IVolume::WII_WAD:
+			char c;
+			if (m_UniqueID.empty())
+				c = '\0';
+			else
+				c = m_UniqueID.at(0);
+			switch (c)
+			{
+			case 'C':
+				m_Detailed_Platform = DiscIO::IVolume::C64_WAD;
+				break;
+			case 'E':
+				char c2;
+				if (m_UniqueID.length()<2)
+					c2 = '\0';
+				else
+					c2 = m_UniqueID.at(1);
+				m_Detailed_Platform = (c2 >= 'A') ? DiscIO::IVolume::NEOGEO_WAD : DiscIO::IVolume::ARCADE_WAD;
+				break;
+			case 'F':
+				m_Detailed_Platform = DiscIO::IVolume::NES_WAD;
+				break;
+			case 'J':
+				m_Detailed_Platform = DiscIO::IVolume::SNES_WAD;
+				break;
+			case 'L':
+				m_Detailed_Platform = DiscIO::IVolume::SMS_WAD;
+				break;
+			case 'M':
+				m_Detailed_Platform = DiscIO::IVolume::GENESIS_WAD;
+				break;
+			case 'N':
+				m_Detailed_Platform = DiscIO::IVolume::N64_WAD;
+				break;
+			case 'P':
+			case 'Q':
+				m_Detailed_Platform = DiscIO::IVolume::TG16_WAD;
+				break;
+			default:
+				m_Detailed_Platform = m_Platform;
+				break;
+			}
+			break;
+		default:
+			m_Detailed_Platform = m_Platform;
+			break;
+		}
+	}
+
 	std::string path, name;
 	SplitPath(m_FileName, &path, &name, nullptr);
 

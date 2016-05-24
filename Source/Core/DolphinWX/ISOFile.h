@@ -38,6 +38,7 @@ public:
 	const std::string GetWiiFSPath() const;
 	DiscIO::IVolume::ECountry GetCountry() const {return m_Country;}
 	DiscIO::IVolume::EPlatform GetPlatform() const { return m_Platform; }
+	DiscIO::IVolume::EPlatform GetDetailedPlatform() const { return m_Detailed_Platform; }
 	DiscIO::BlobType GetBlobType() const { return m_blob_type; }
 	const std::string& GetIssues() const { return m_issues; }
 	const std::string& GetVRIssues() const { return m_vr_issues; }
@@ -76,7 +77,7 @@ private:
 	u64 m_VolumeSize;
 
 	DiscIO::IVolume::ECountry m_Country;
-	DiscIO::IVolume::EPlatform m_Platform;
+	DiscIO::IVolume::EPlatform m_Platform, m_Detailed_Platform;
 	DiscIO::BlobType m_blob_type;
 	u16 m_Revision;
 
