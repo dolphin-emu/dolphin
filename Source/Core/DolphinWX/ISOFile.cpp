@@ -189,12 +189,14 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 				m_Detailed_Platform = DiscIO::IVolume::C64_WAD;
 				break;
 			case 'E':
-				char c2;
-				if (m_UniqueID.length()<2)
-					c2 = '\0';
-				else
-					c2 = m_UniqueID.at(1);
-				m_Detailed_Platform = (c2 >= 'A') ? DiscIO::IVolume::NEOGEO_WAD : DiscIO::IVolume::ARCADE_WAD;
+				{
+					char c2;
+					if (m_UniqueID.length() < 2)
+						c2 = '\0';
+					else
+						c2 = m_UniqueID.at(1);
+					m_Detailed_Platform = (c2 >= 'A') ? DiscIO::IVolume::NEOGEO_WAD : DiscIO::IVolume::ARCADE_WAD;
+				}
 				break;
 			case 'F':
 				m_Detailed_Platform = DiscIO::IVolume::NES_WAD;
@@ -214,6 +216,17 @@ GameListItem::GameListItem(const std::string& _rFileName, const std::unordered_m
 			case 'P':
 			case 'Q':
 				m_Detailed_Platform = DiscIO::IVolume::TG16_WAD;
+				break;
+			case 'X':
+				{
+					char c2;
+					if (m_UniqueID.length() < 2)
+						c2 = '\0';
+					else
+						c2 = m_UniqueID.at(1);
+					// MSX = XA*,  WiiWare Demos = XH*
+					m_Detailed_Platform = (c2 == 'A') ? DiscIO::IVolume::MSX_WAD : m_Platform;
+				}
 				break;
 			default:
 				m_Detailed_Platform = m_Platform;

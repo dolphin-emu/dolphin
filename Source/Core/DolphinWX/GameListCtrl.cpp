@@ -224,6 +224,7 @@ void CGameListCtrl::InitBitmaps()
 	m_PlatformImageIndex[DiscIO::IVolume::NES_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_NES", size));
 	m_PlatformImageIndex[DiscIO::IVolume::TG16_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Turbografx", size));
 	m_PlatformImageIndex[DiscIO::IVolume::C64_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_C64", size));
+	m_PlatformImageIndex[DiscIO::IVolume::MSX_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_MSX", size));
 	m_PlatformImageIndex[DiscIO::IVolume::SMS_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_SMS", size));
 	m_PlatformImageIndex[DiscIO::IVolume::GENESIS_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Genesis", size));
 	m_PlatformImageIndex[DiscIO::IVolume::ARCADE_WAD] = m_imageListSmall->Add(WxUtils::LoadResourceBitmap("Platform_Arcade", size));

@@ -32,6 +32,7 @@ public:
 		NES_WAD,
 		TG16_WAD,
 		C64_WAD,
+		MSX_WAD,
 		SMS_WAD,
 		GENESIS_WAD,
 		ARCADE_WAD,
