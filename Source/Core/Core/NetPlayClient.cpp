@@ -1076,14 +1076,14 @@ bool NetPlayClient::LocalPlayerHasControllerMapped() const
 
 bool NetPlayClient::IsFirstInGamePad(u8 ingame_pad) const
 {
-	return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad, [](auto mapping) {
+	return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad, [](PlayerId mapping) {
 		return mapping > 0;
 	});
 }
 
 u8 NetPlayClient::NumLocalPads() const
 {
-	return static_cast<u8>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
+	return static_cast<u8>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](PlayerId mapping) {
 		return mapping == m_local_player->pid;
 	}));
 }
