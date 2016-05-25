@@ -966,6 +966,67 @@ bool VR_GetRemoteButtons(u32 *buttons)
 	}
 }
 
+bool VR_GetTouchButtons(u32 *buttons, u32 *touches)
+{
+	*buttons = 0;
+	*touches = 0;
+#if defined(OVR_MAJOR_VERSION) && (OVR_MAJOR_VERSION > 7 || OVR_PRODUCT_VERSION >= 1)
+	if (g_has_rift)
+	{
+		ovrInputState touchInput = {};
+		bool HasInputState = OVR_SUCCESS(ovr_GetInputState(hmd, ovrControllerType_Touch, &touchInput));
+		*buttons = touchInput.Buttons;
+		*touches = touchInput.Touches;
+		return HasInputState;
+	}
+	else
+#endif
+	{
+		return false;
+	}
+}
+
+#if defined(OVR_MAJOR_VERSION)
+bool WasItTapped(ovrVector3f linearAcc, double time)
+{
+	const float thresholdForTap = 10.0f;
+	const float thresholdForReset = 2.0f;
+	const double keepDownTime = 0.050;
+	float magOfAccelSquared = linearAcc.x*linearAcc.x + linearAcc.y*linearAcc.y + linearAcc.z*linearAcc.z;
+	static bool readyForNewSingleTap = false;
+	static double lastTapTime = 0.0;
+	if (magOfAccelSquared < thresholdForReset*thresholdForReset)
+		readyForNewSingleTap = true;
+	if ((readyForNewSingleTap) && (magOfAccelSquared > thresholdForTap*thresholdForTap))
+	{
+		readyForNewSingleTap = false;
+		lastTapTime = time;
+		return(true);
+	}
+	return time - lastTapTime < keepDownTime;
+}
+#endif
+
+bool VR_GetHMDGestures(u32 *gestures)
+{
+	*gestures = 0;
+#if defined(OVR_MAJOR_VERSION)
+	if (g_has_rift)
+	{
+		ovrTrackingState t = ovr_GetTrackingState(hmd, 0, false);
+		if (WasItTapped(t.HeadPose.LinearAcceleration, t.HeadPose.TimeInSeconds))
+		{
+			*gestures |= OCULUS_BUTTON_A;
+		}
+		return true;
+	}
+	else
+#endif
+	{
+		return false;
+	}
+}
+
 bool VR_GetLeftHydraPos(float *pos)
 {
 	pos[0] = -0.15f;

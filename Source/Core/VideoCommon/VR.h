@@ -19,10 +19,18 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #define OCULUS_BUTTON_B 2
 #define OCULUS_BUTTON_RTHUMB 4
 #define OCULUS_BUTTON_RSHOULDER 8
+#define OCULUS_BUTTON_RTRIGGER 0x10
+#define OCULUS_BUTTON_RPOINT 0x20
+#define OCULUS_BUTTON_RTHUMBUP 0x40
+
 #define OCULUS_BUTTON_X 0x100
 #define OCULUS_BUTTON_Y 0x200
 #define OCULUS_BUTTON_LTHUMB 0x400
 #define OCULUS_BUTTON_LSHOULDER 0x800
+#define OCULUS_BUTTON_LTRIGGER 0x1000
+#define OCULUS_BUTTON_LPOINT 0x2000
+#define OCULUS_BUTTON_LTHUMBUP 0x4000
+
 #define OCULUS_BUTTON_UP 0x10000
 #define OCULUS_BUTTON_DOWN 0x20000
 #define OCULUS_BUTTON_LEFT 0x40000
@@ -169,6 +177,8 @@ void VR_GetEyePos(float *posLeft, float *posRight);
 void VR_GetFovTextureSize(int *width, int *height);
 
 bool VR_GetRemoteButtons(u32 *buttons);
+bool VR_GetTouchButtons(u32 *buttons, u32 *touches);
+bool VR_GetHMDGestures(u32 *gestures);
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);
