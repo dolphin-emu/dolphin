@@ -152,8 +152,8 @@ OculusTouch::OculusTouch()
 
 	ZeroMemory(&m_buttons, sizeof(m_buttons));
 	ZeroMemory(&m_touches, sizeof(m_touches));
-	ZeroMemory(&m_triggers, sizeof(m_triggers));
-	ZeroMemory(&m_axes, sizeof(m_axes));
+	ZeroMemory(m_triggers, sizeof(m_triggers));
+	ZeroMemory(m_axes, sizeof(m_axes));
 }
 
 std::string OculusTouch::GetName() const
