@@ -1165,7 +1165,6 @@ void VertexShaderManager::SetProjectionConstants()
 	//     2D HUD as thick pane of glass floating in 3D space
 	//     3D HUD element as a 3D object attached to that pane of glass
 	//     3D world
-
 	float UnitsPerMetre = g_ActiveConfig.fUnitsPerMetre * fScaleHack / g_ActiveConfig.fScale;
 
 	bHide = bHide && (bFlashing || (g_has_hmd && g_ActiveConfig.bEnableVR));
@@ -1631,16 +1630,25 @@ void VertexShaderManager::SetProjectionConstants()
 			else
 			// HUD over 3D world
 			{
+				// The HUD distance might have been carefully chosen to line up with objects, so we should scale it with the world
+				// But we can't make the HUD too close or it's hard to look at, and we should't make the HUD too far or it stops looking 3D
+				const float MinHudDistance = 0.28f, MaxHudDistance = 3.00f; // HUD shouldn't go closer than 28 cm when shrinking scale, or further than 3m when growing
+				float HUDScale = g_ActiveConfig.fScale;
+				if (HUDScale < 1.0f && g_ActiveConfig.fHudDistance >= MinHudDistance && g_ActiveConfig.fHudDistance * HUDScale < MinHudDistance)
+					HUDScale = MinHudDistance / g_ActiveConfig.fHudDistance;
+				else if (HUDScale > 1.0f && g_ActiveConfig.fHudDistance <= MaxHudDistance && g_ActiveConfig.fHudDistance * HUDScale > MaxHudDistance)
+					HUDScale = MaxHudDistance / g_ActiveConfig.fHudDistance;
+
 				// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
-				HudThickness = g_ActiveConfig.fHudThickness * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
-				HudDistance = g_ActiveConfig.fHudDistance * UnitsPerMetre;   // depth 0 on the HUD should be this far away
+				HudThickness = g_ActiveConfig.fHudThickness * HUDScale * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
+				HudDistance = g_ActiveConfig.fHudDistance * HUDScale * UnitsPerMetre;   // depth 0 on the HUD should be this far away
 				HudUp = 0;
 				if (bNoForward)
 					CameraForward = 0;
 				else
-					CameraForward = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
+					CameraForward = (g_ActiveConfig.fCameraForward + zoom_forward) * g_ActiveConfig.fScale * UnitsPerMetre;
 				// When moving the camera forward, correct the size of the HUD so that aiming is correct at AimDistance
-				AimDistance = g_ActiveConfig.fAimDistance * UnitsPerMetre;
+				AimDistance = g_ActiveConfig.fAimDistance * g_ActiveConfig.fScale * UnitsPerMetre;
 				if (AimDistance <= 0)
 					AimDistance = HudDistance;
 				// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
