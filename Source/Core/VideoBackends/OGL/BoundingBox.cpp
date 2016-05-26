@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <string.h>
+
 #include "Common/GL/GLUtil.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
