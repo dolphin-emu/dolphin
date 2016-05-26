@@ -177,7 +177,7 @@ void VR_GetEyePos(float *posLeft, float *posRight);
 void VR_GetFovTextureSize(int *width, int *height);
 
 bool VR_GetRemoteButtons(u32 *buttons);
-bool VR_GetTouchButtons(u32 *buttons, u32 *touches);
+bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[]);
 bool VR_GetHMDGestures(u32 *gestures);
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);

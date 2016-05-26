@@ -966,7 +966,7 @@ bool VR_GetRemoteButtons(u32 *buttons)
 	}
 }
 
-bool VR_GetTouchButtons(u32 *buttons, u32 *touches)
+bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[])
 {
 	*buttons = 0;
 	*touches = 0;
@@ -977,6 +977,9 @@ bool VR_GetTouchButtons(u32 *buttons, u32 *touches)
 		bool HasInputState = OVR_SUCCESS(ovr_GetInputState(hmd, ovrControllerType_Touch, &touchInput));
 		*buttons = touchInput.Buttons;
 		*touches = touchInput.Touches;
+		memcpy(m_triggers, touchInput.IndexTrigger, 2 * sizeof(float));
+		memcpy(&m_triggers[2], touchInput.HandTrigger, 2 * sizeof(float));
+		memcpy(m_axes, touchInput.Thumbstick, 4 * sizeof(float));
 		return HasInputState;
 	}
 	else

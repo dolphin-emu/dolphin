@@ -136,6 +136,15 @@ OculusTouch::OculusTouch()
 	{
 		AddInput(new Button(i, m_buttons));
 	}
+	for (int i = 0; i < 4; ++i)
+	{
+		AddInput(new Trigger(i, m_triggers));
+	}
+	for (int i = 0; i < 4; ++i)
+	{
+		AddInput(new Axis(i, -1, m_axes));
+		AddInput(new Axis(i, 1, m_axes));
+	}
 	for (int i = 0; i != sizeof(touch_touches) / sizeof(*touch_touches); ++i)
 	{
 		AddInput(new Touch(i, m_touches));
@@ -143,6 +152,8 @@ OculusTouch::OculusTouch()
 
 	ZeroMemory(&m_buttons, sizeof(m_buttons));
 	ZeroMemory(&m_touches, sizeof(m_touches));
+	ZeroMemory(&m_triggers, sizeof(m_triggers));
+	ZeroMemory(&m_axes, sizeof(m_axes));
 }
 
 std::string OculusTouch::GetName() const
@@ -164,7 +175,7 @@ std::string OculusTouch::GetSource() const
 
 void OculusTouch::UpdateInput()
 {
-	VR_GetTouchButtons(&m_buttons, &m_touches);
+	VR_GetTouchButtons(&m_buttons, &m_touches, m_triggers, m_axes);
 }
 
 // GET name/source/id
@@ -214,12 +225,12 @@ ControlState OculusTouch::Touch::GetState() const
 
 ControlState OculusTouch::Trigger::GetState() const
 {
-	return ControlState(m_trigger) / m_range;
+	return ControlState(m_triggers[m_index]);
 }
 
 ControlState OculusTouch::Axis::GetState() const
 {
-	return std::max(0.0, ControlState(m_axis) / m_range);
+	return std::max(0.0, ControlState(m_axes[m_index]*m_range));
 }
 
 u32 OculusTouch::Touch::GetStates() const

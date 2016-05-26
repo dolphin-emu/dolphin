@@ -74,25 +74,24 @@ private:
 	class Trigger : public Core::Device::Input
 	{
 	public:
-		Trigger(u8 index, const BYTE& trigger, BYTE range) : m_trigger(trigger), m_range(range), m_index(index) {}
+		Trigger(u8 index, float *triggers) : m_triggers(triggers), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
 	private:
-		const BYTE& m_trigger;
-		const BYTE m_range;
+		float* m_triggers;
 		const u8 m_index;
 	};
 
 	class Axis : public Core::Device::Input
 	{
 	public:
-		Axis(u8 index, const SHORT& axis, SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
+		Axis(u8 index, s8 range, float *axes) : m_axes(axes), m_index(index), m_range(range) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
 	private:
-		const SHORT& m_axis;
-		const SHORT m_range;
+		float* m_axes;
 		const u8 m_index;
+		const s8 m_range;
 	};
 
 public:
@@ -106,6 +105,7 @@ public:
 
 private:
 	u32 m_buttons, m_touches;
+	float m_triggers[4], m_axes[4];
 };
 
 class HMDDevice : public Core::Device
