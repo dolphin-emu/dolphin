@@ -8,6 +8,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <limits.h>
+#include <memory>
 #include <string>
 #include <vector>
 #include <sys/stat.h>
@@ -657,8 +658,11 @@ std::string GetCurrentDir()
 				GetLastErrorMsg().c_str());
 		return nullptr;
 	}
-	std::string strDir = dir;
-	free(dir);
+
+	// Although chances are near zero, std::string's constructor can throw.
+	// That would leak the memory acquired by malloc.
+	std::unique_ptr<char, decltype(free)*> ptrDir(dir, free);
+	std::string strDir = ptrDir.get();
 	return strDir;
 }
 
