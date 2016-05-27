@@ -1515,18 +1515,18 @@ void CFrame::ParseHotkeys()
 	}
 
 	// Maths is probably cheaper than if statements, so always recalculate
-	float freeLookSpeed = 0.1f * g_ActiveConfig.fFreeLookSensitivity;
+	float freeLookSpeed = 0.5f * g_ActiveConfig.fFreeLookSensitivity;
 
 	if (IsHotkey(HK_FREELOOK_DECREASE_SPEED))
-		g_ActiveConfig.fFreeLookSensitivity /= 2.0f;
+		g_Config.fFreeLookSensitivity /= 2.0f;
 	else if (IsHotkey(HK_FREELOOK_INCREASE_SPEED))
-		g_ActiveConfig.fFreeLookSensitivity *= 2.0f;
+		g_Config.fFreeLookSensitivity *= 2.0f;
 	else if (IsHotkey(HK_FREELOOK_RESET_SPEED))
-		g_ActiveConfig.fFreeLookSensitivity = 1.0f;
+		g_Config.fFreeLookSensitivity = 1.0f;
 	else if (IsHotkey(HK_FREELOOK_UP))
-		VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed / 2);
+		VertexShaderManager::TranslateView(0.0f, 0.0f, -freeLookSpeed);
 	else if (IsHotkey(HK_FREELOOK_DOWN))
-		VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed / 2);
+		VertexShaderManager::TranslateView(0.0f, 0.0f, freeLookSpeed);
 	else if (IsHotkey(HK_FREELOOK_LEFT))
 		VertexShaderManager::TranslateView(freeLookSpeed, 0.0f);
 	else if (IsHotkey(HK_FREELOOK_RIGHT))
