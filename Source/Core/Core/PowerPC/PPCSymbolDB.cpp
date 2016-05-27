@@ -396,7 +396,10 @@ const std::string PPCSymbolDB::Demangle(const std::string& name)
 		}
 		else
 		{
-			return result + "__" + name.substr(p, std::string::npos);
+			if (p < name.length())
+				return result + "__" + name.substr(p, std::string::npos);
+			else
+				return result;
 		}
 	}
 	else
@@ -436,12 +439,18 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 	bool started = false, four_columns = false;
 	int good_count = 0, bad_count = 0;
 
+	int line_number = 0;
+
 	char line[512];
 	while (fgets(line, 512, f.GetHandle()))
 	{
+		line_number++;
+
 		size_t length = strlen(line);
 		if (length < 4)
 			continue;
+
+		NOTICE_LOG(VR, "%6d: '%s'", line_number, line);
 
 		if (length == 34 && strcmp(line, "  address  Size   address  offset\n") == 0)
 		{
