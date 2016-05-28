@@ -88,7 +88,7 @@ void InitBackendInfo()
 	IDXGIAdapter* ad;
 	//Oculus SDK Bug: Once OpenGL mode has been attached in Direct Mode,
 	//running the next line will cause a crash in Oculus SDK.  Seems to work
-    //If you never ShutdownVR() the OpenGL mode, and never InitVR() for the
+    //If you never VR_Shutdown() the OpenGL mode, and never VR_Init() for the
 	//Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
 	//crash, bug kills Direct Mode. Wait until SDK fixes this issue?
 #if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
@@ -250,7 +250,7 @@ void VideoBackend::Shutdown()
 		g_vertex_manager.reset();
 		g_texture_cache.reset();
 		g_renderer.reset();
-		ShutdownVR();
+		VR_Shutdown();
 	}
 }
 

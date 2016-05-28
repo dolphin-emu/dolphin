@@ -998,7 +998,7 @@ void CFrame::StartGame(const std::string& filename)
 			position = wxDefaultPosition;
 #endif
 
-		InitVR(); //Must be done before g_has_hmd is used below.
+		VR_Init(); //Must be done before g_has_hmd is used below.
 
 		VR_RecenterHMD();
 

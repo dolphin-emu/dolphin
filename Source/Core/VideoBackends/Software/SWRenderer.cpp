@@ -165,7 +165,7 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, 
 		g_ActiveConfig.bUseRealXFB = true;
 #endif
 
-	NewVRFrame();
+	VR_NewVRFrame();
 }
 
 u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)

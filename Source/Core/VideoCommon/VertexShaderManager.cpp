@@ -1444,7 +1444,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// head tracking
 			if (g_ActiveConfig.bOrientationTracking)
 			{
-				UpdateHeadTrackingIfNeeded();
+				VR_UpdateHeadTrackingIfNeeded();
 				Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
 			}
 			else

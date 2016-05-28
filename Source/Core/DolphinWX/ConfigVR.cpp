@@ -21,6 +21,7 @@
 #include "DolphinWX/WxUtils.h"
 
 #include "InputCommon/HotkeysXInput.h"
+#include "VideoCommon/VR.h"
 
 #include <wx/msgdlg.h>
 
@@ -29,8 +30,8 @@ static wxString temp_desc = wxTRANSLATE("Game specific VR option, in metres or d
 static wxString minfov_desc = wxTRANSLATE("Minimum horizontal degrees of your view that the action will fill.\nWhen the game tries to render from a distance with a zoom lens, this will move thhe camera closer instead. When the FOV is less than the minimum the camera will move forward until objects at Aim Distance fill the minimum FOV.\nIf unsure, leave this at 10 degrees.");
 static wxString scale_desc = wxTRANSLATE("(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = Barbie doll size, 0.02x = Lego size\n\nIf unsure, use 1.00.");
 static wxString lean_desc = wxTRANSLATE("How many degrees leaning back should count as vertical.\n0 = sitting/standing, 45 = reclining\n90 = playing lying on your back, -90 = on your front\n\nIf unsure, use 0.");
-static wxString extraframes_desc = wxTRANSLATE("How many extra frames to render via timewarp.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
-static wxString replaybuffer_desc = wxTRANSLATE("How many extra frames to render through replaying the video loop.  Set to 0 for 60fps games, 1 for 30fps games, 2 for 20fps games and the framelimiter to your Rift's refresh rate.  For 25fps PAL games, set to 2 and set the frame limiter to 60 (assuming the Rift's refresh rate is set to 75hz).  If unsure, use 0.");
+static wxString extraframes_desc = wxTRANSLATE("How many extra frames to render each frame via timewarp.\nIf unsure, use 0.");
+static wxString replaybuffer_desc = wxTRANSLATE("How many extra frames to render each frame through replaying the video loop.\nIf unsure, use 0.");
 static wxString stabilizeroll_desc = wxTRANSLATE("Counteract the game's camera roll. Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
 static wxString stabilizepitch_desc = wxTRANSLATE("Counteract the game's camera pitch. Fixes tilt in 3rd person games and allows free y-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this checked.");
 static wxString stabilizeyaw_desc = wxTRANSLATE("Counteract the game's camera yaw. Use this when playing standing up or in a swivel chair. Also allows completely free x-axis aiming in 1st person games.  Requires 'Read Camera Angles' to be checked in the 'VR Game' tab.\nIf unsure, leave this unchecked.");
@@ -41,15 +42,15 @@ static wxString keyhole_desc = wxTRANSLATE("Allows keyhole aiming in 1st person 
 static wxString keyholewidth_desc = wxTRANSLATE("The width of the horizontal keyhole in degrees.\nIf unsure, use 45.");
 static wxString keyholesnap_desc = wxTRANSLATE("Snaps the view a certain amount of degrees to the side if the edge of the keyhole is reached. This lowers motion sickness during 1st person turns, but may be considered less immersive.\nIf unsure, leave this unchcked.");
 static wxString keyholesnapsize_desc = wxTRANSLATE("The size of the heyhole snap jump in degrees.\nIf unsure, use 30.");
-static wxString pullup20_desc = wxTRANSLATE("Make headtracking work at 75fps for a 20fps game. Enable this on 20fps games to fix judder.\nIf unsure, leave this unchecked.");
-static wxString pullup30_desc = wxTRANSLATE("Make headtracking work at 75fps for a 30fps game. Enable this on 30fps games to fix judder.\nIf unsure, leave this unchecked.");
-static wxString pullup60_desc = wxTRANSLATE("Make headtracking work at 75fps for a 60fps game. Enable this on 60fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString pullup20_desc = wxTRANSLATE("Make headtracking work at 60/75/90fps for a 20fps game. Enable this on 20fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString pullup30_desc = wxTRANSLATE("Make headtracking work at 60/75/90fps for a 30fps game. Enable this on 30fps games to fix judder.\nIf unsure, leave this unchecked.");
+static wxString pullup60_desc = wxTRANSLATE("Make headtracking work at 60/75/90fps for a 60fps game. Enable this on 60fps games to fix judder.\nIf unsure, leave this unchecked.");
 static wxString opcodewarning_desc = wxTRANSLATE("Turn off Opcode Warnings.  Will ignore errors in the Opcode Replay Buffer, allowing many games with minor problems to be played.  This should be turned on if trying to play a game with Opcode Replay enabled. Once all the bugs in the Opcode Buffer are fixed, this option will be removed!");
 static wxString replayvertex_desc = wxTRANSLATE("Records and replays the vertex buffer and vertex shader constants. This is only needed for certain games that overwrite the vertex buffer midframe, causing corruption with Opcode Replay enabled, e.g. Metroid Prime and DK Country.\nIf unsure, leave this unchecked.");
 static wxString replayother_desc = wxTRANSLATE("Records and replays many other parts of the frame such as the Index Buffer, Geometery Shader Constants, and Pixel Shader constants.  This has not been found to help with any games (yet), and should be left disabled for most games. Enabling this will use more memory most likely for no reason.\nIf unsure, leave this unchecked.");
-static wxString pullup20timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 20fps game. Enable this on 20fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
-static wxString pullup30timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 30fps game. Enable this on 30fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
-static wxString pullup60timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 75fps for a 60fps game. Enable this on 60fps games to timewarp the headtracking to 75fps.\nIf unsure, leave this unchecked.");
+static wxString pullup20timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 60/75/90fps for a 20fps game. Enable this on 20fps games to timewarp the headtracking.\nIf unsure, leave this unchecked.");
+static wxString pullup30timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 60/75/90fps for a 30fps game. Enable this on 30fps games to timewarp the headtrackings.\nIf unsure, leave this unchecked.");
+static wxString pullup60timewarp_desc = wxTRANSLATE("Timewarp headtracking up to 60/75/90fps for a 60fps game. Enable this on 60fps games to timewarp the headtracking.\nIf unsure, leave this unchecked.");
 static wxString timewarptweak_desc = wxTRANSLATE("How long before the expected Vsync the timewarped frame should be injected. Ideally this value should be around 0.0040, but some configurations may benefit from tweaking this value.  Only used if 'Extra Timewarped Frames' is non-zero. If unsure, set this to 0.0040.");
 static wxString enablevr_desc = wxTRANSLATE("Enable Virtual Reality (if your HMD was detected when you started Dolphin).\n\nIf unsure, leave this checked.");
 static wxString player_desc = wxTRANSLATE("During split-screen games, which player is wearing the Oculus Rift?\nPlayer 1 is top left, player 2 is top right, player 3 is bottom left, player 4 is bottom right.\nThe player in the Rift will only see their player's view.\n\nIf unsure, say Player 1.");
@@ -240,21 +241,37 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(spacer2, 1, 0, 0);
 		}
 		{
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Low Persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Dynamic Prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Orientation Tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Magnetic Yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Position Tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Chromatic Aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+			//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Enable VR"), wxGetTranslation(enablevr_desc), vconfig.bEnableVR));
+			vconfig.bEnableVR = true;
+			if (!(g_vr_cant_motion_blur || g_vr_must_motion_blur))
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Low Persistence"), wxGetTranslation(lowpersistence_desc), vconfig.bLowPersistence));
+			if (g_vr_has_dynamic_predict)
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Dynamic Prediction"), wxGetTranslation(dynamicpred_desc), vconfig.bDynamicPrediction));
+			if (g_vr_has_configure_tracking)
+			{
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Orientation Tracking"), wxGetTranslation(orientation_desc), vconfig.bOrientationTracking));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Magnetic Yaw"), wxGetTranslation(magyaw_desc), vconfig.bMagYawCorrection));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Position Tracking"), wxGetTranslation(position_desc), vconfig.bPositionTracking));
+			}
+			if (g_vr_has_configure_rendering)
+			{
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Chromatic Aberration"), wxGetTranslation(chromatic_desc), vconfig.bChromatic));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Timewarp"), wxGetTranslation(timewarp_desc), vconfig.bTimewarp));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Vignette"), wxGetTranslation(vignette_desc), vconfig.bVignette));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Don't Restore"), wxGetTranslation(norestore_desc), vconfig.bNoRestore));
+			}
 			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Flip Vertical"), wxGetTranslation(flipvertical_desc), vconfig.bFlipVertical));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
-			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+			if (g_vr_has_configure_rendering)
+			{
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("sRGB"), wxGetTranslation(srgb_desc), vconfig.bSRGB));
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Overdrive"), wxGetTranslation(overdrive_desc), vconfig.bOverdrive));
+			}
 			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HQ Distortion"), wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION==0 && OVR_MAJOR_VERSION < 7
 			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"), wxGetTranslation(nomirrortowindow_desc), vconfig.bNoMirrorToWindow));
+#else
+			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Mirroring"), wxGetTranslation(nomirrortowindow_desc), vconfig.bNoMirrorToWindow));
+#endif
 
 #ifdef OCULUSSDK042
 			szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, wxTRANSLATE("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().bAsynchronousTimewarp));
@@ -294,9 +311,18 @@ void CConfigVR::CreateGUIControls()
 			//spin_replay_buffer_divider->Enable(!vconfig.bPullUp20fpsTimewarp && !vconfig.bPullUp30fpsTimewarp && !vconfig.bPullUp60fpsTimewarp && !vconfig.bPullUp20fps && !vconfig.bPullUp30fps && !vconfig.bPullUp60fps);
 
 			szr_opcode->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Quick Opcode Replay Settings:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			checkbox_pullup20 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
-			checkbox_pullup30 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
-			checkbox_pullup60 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			if (g_hmd_refresh_rate == 75)
+			{
+				checkbox_pullup20 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 20fps to 75fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
+				checkbox_pullup30 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 30fps to 75fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
+				checkbox_pullup60 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 60fps to 75fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			}
+			else
+			{
+				checkbox_pullup20 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 20fps to 90fps"), wxGetTranslation(pullup20_desc), vconfig.bPullUp20fps);
+				checkbox_pullup30 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 30fps to 90fps"), wxGetTranslation(pullup30_desc), vconfig.bPullUp30fps);
+				checkbox_pullup60 = CreateCheckBox(page_vr, wxTRANSLATE("Pullup 60fps to 90fps"), wxGetTranslation(pullup60_desc), vconfig.bPullUp60fps);
+			}
 			SettingCheckBox* checkbox_disable_warnings = CreateCheckBox(page_vr, wxTRANSLATE("Disable Opcode Warnings"), wxGetTranslation(opcodewarning_desc), vconfig.bOpcodeWarningDisable);
 			checkbox_replay_vertex_data = CreateCheckBox(page_vr, wxTRANSLATE("Replay Vertex Data"), wxGetTranslation(replayvertex_desc), vconfig.bReplayVertexData);
 			checkbox_replay_other_data = CreateCheckBox(page_vr, wxTRANSLATE("Replay Other Data"), wxGetTranslation(replayother_desc), vconfig.bReplayOtherData);
@@ -346,17 +372,28 @@ void CConfigVR::CreateGUIControls()
 			spin_timewarp_tweak->Enable(!vconfig.bOpcodeReplay);
 
 			label->SetToolTip(wxGetTranslation(timewarptweak_desc));
-			szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-			szr_timewarp->Add(spin_timewarp_tweak);
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
-			szr_timewarp->Add(spacer1, 1, 0, 0);
-			szr_timewarp->Add(spacer2, 1, 0, 0);
-
+			if (g_vr_has_timewarp_tweak)
+			{
+				szr_timewarp->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+				szr_timewarp->Add(spin_timewarp_tweak);
+				wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+				wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+				szr_timewarp->Add(spacer1, 1, 0, 0);
+				szr_timewarp->Add(spacer2, 1, 0, 0);
+			}
 			szr_timewarp->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Timewarp Pull-Up:")), 1, wxALIGN_CENTER_VERTICAL, 0);
-			checkbox_pullup20_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
-			checkbox_pullup30_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
-			checkbox_pullup60_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
+			if (g_hmd_refresh_rate == 75)
+			{
+				checkbox_pullup20_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 20fps to 75fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
+				checkbox_pullup30_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 30fps to 75fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
+				checkbox_pullup60_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 60fps to 75fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
+			}
+			else
+			{
+				checkbox_pullup20_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 20fps to 90fps"), wxGetTranslation(pullup20timewarp_desc), vconfig.bPullUp20fpsTimewarp);
+				checkbox_pullup30_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 30fps to 90fps"), wxGetTranslation(pullup30timewarp_desc), vconfig.bPullUp30fpsTimewarp);
+				checkbox_pullup60_timewarp = CreateCheckBox(page_vr, wxTRANSLATE("Timewarp 60fps to 90fps"), wxGetTranslation(pullup60timewarp_desc), vconfig.bPullUp60fpsTimewarp);
+			}
 			szr_timewarp->Add(checkbox_pullup20_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(checkbox_pullup30_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_timewarp->Add(checkbox_pullup60_timewarp, 1, wxALIGN_CENTER_VERTICAL, 0);

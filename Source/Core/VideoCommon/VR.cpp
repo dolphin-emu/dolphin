@@ -52,6 +52,33 @@ LUID *g_hmd_luid = nullptr;
 
 std::mutex g_vr_lock;
 
+#if defined(OVR_MAJOR_VERSION)
+#if OVR_PRODUCT_VERSION >= 1
+bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
+bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
+bool g_vr_has_configure_tracking = false;
+#elif OVR_MAJOR_VERSION >= 7
+bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
+bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
+bool g_vr_has_configure_tracking = true;
+#else
+bool g_vr_cant_motion_blur = false, g_vr_must_motion_blur = false;
+bool g_vr_has_dynamic_predict = true, g_vr_has_configure_rendering = true, g_vr_has_hq_distortion = true;
+bool g_vr_has_configure_tracking = true;
+#endif
+#else
+bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
+bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
+bool g_vr_has_configure_tracking = true;
+#endif
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+bool g_vr_has_timewarp_tweak = true;
+#else
+bool g_vr_has_timewarp_tweak = false;
+#endif
+
+bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
+
 bool g_force_vr = false, g_prefer_steamvr = false;
 bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
@@ -61,7 +88,7 @@ u32 skip_objects_count = 0;
 Matrix44 g_head_tracking_matrix;
 float g_head_tracking_position[3];
 float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
-int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0;
+int g_hmd_window_width = 0, g_hmd_window_height = 0, g_hmd_window_x = 0, g_hmd_window_y = 0, g_hmd_refresh_rate = 90;
 const char *g_hmd_device_name = nullptr;
 float g_vr_speed = 0;
 float vr_freelook_speed = 0;
@@ -103,7 +130,7 @@ int skipped_opcode_replay_count = 0;
 static char hmd_device_name[MAX_PATH] = "";
 #endif
 
-void NewVRFrame()
+void VR_NewVRFrame()
 {
 	g_new_tracking_frame = true;
 	g_new_frame_tracker_for_efb_skip = true;
@@ -267,6 +294,8 @@ bool InitSteamVR()
 		std::string m_strDisplay = "No Display";
 		m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 		m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
+		vr::TrackedPropertyError error;
+		g_hmd_refresh_rate = (int)(0.5f + m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float, &error));
 		NOTICE_LOG(VR, "SteamVR strDriver = '%s'", m_strDriver.c_str());
 		NOTICE_LOG(VR, "SteamVR strDisplay = '%s'", m_strDisplay.c_str());
 
@@ -277,6 +306,15 @@ bool InitSteamVR()
 				ERROR_LOG(VR, "%s - Failed to initialize SteamVR Compositor!\n", __FUNCTION__);
 				g_has_steamvr = false;
 			}
+		}
+		if (g_has_steamvr) {
+			g_vr_cant_motion_blur = true;
+			g_vr_has_dynamic_predict = false;
+			g_vr_has_configure_rendering = false;
+			g_vr_has_configure_tracking = false;
+			g_vr_has_hq_distortion = false;
+			g_vr_should_swap_buffers = true; // todo: check if this is right
+			g_vr_has_timewarp_tweak = false;
 		}
 		return g_has_steamvr;
 	}
@@ -307,23 +345,53 @@ bool InitOculusHMD()
 #ifdef OVR_MAJOR_VERSION
 	if (hmd)
 	{
+		g_vr_dont_vsync = true;
+	#if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 5 || (OVR_MINOR_VERSION == 4 && OVR_BUILD_VERSION >= 2)
+		g_vr_has_hq_distortion = true;
+	#else
+		g_vr_has_hq_distortion = false;
+	#endif
+	#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+		g_vr_should_swap_buffers = false;
+	#else
+		g_vr_should_swap_buffers = true;
+	#endif
+
+	#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+		g_vr_has_timewarp_tweak = true;
+	#else
+		g_vr_has_timewarp_tweak = false;
+	#endif
+
 		// Get more details about the HMD
-		//ovrHmd_GetDesc(hmd, &hmdDesc);
 	#if OVR_PRODUCT_VERSION >= 1
+		g_vr_cant_motion_blur = true;
+		g_vr_has_dynamic_predict = false;
+		g_vr_has_configure_rendering = false;
 		hmdDesc = ovr_GetHmdDesc(hmd);
 	#elif OVR_MAJOR_VERSION >= 7
+		g_vr_cant_motion_blur = true;
+		g_vr_has_dynamic_predict = false;
+		g_vr_has_configure_rendering = false;
 		hmdDesc = ovr_GetHmdDesc(hmd);
 		ovr_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | 0);
 	#else
+		g_vr_cant_motion_blur = false;
+		g_vr_has_dynamic_predict = true;
+		g_vr_has_configure_rendering = true;
+		//ovrHmd_GetDesc(hmd, &hmdDesc);
 		hmdDesc = *hmd;
 		ovrHmd_SetEnabledCaps(hmd, ovrHmd_GetEnabledCaps(hmd) | ovrHmdCap_DynamicPrediction | ovrHmdCap_LowPersistence);
 	#endif
 
 	#if OVR_PRODUCT_VERSION >= 1
 		// no need to configure tracking
-	#elif OVR_MAJOR_VERSION >= 6
+		g_vr_has_configure_tracking = false;
+#elif OVR_MAJOR_VERSION >= 6
+		g_vr_has_configure_tracking = true;
 		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
 	#else
+		g_vr_has_configure_tracking = true;
 		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0))
 	#endif
 		{
@@ -341,7 +409,18 @@ bool InitOculusHMD()
 			g_hmd_window_x = hmdDesc.WindowsPos.x;
 			g_hmd_window_y = hmdDesc.WindowsPos.y;
 			g_is_direct_mode = !(hmdDesc.HmdCaps & ovrHmdCap_ExtendDesktop);
+			if (hmdDesc.Type < 6)
+				g_hmd_refresh_rate = 60;
+			else if (hmdDesc.Type > 6)
+				g_hmd_refresh_rate = 90;
+			else
+				g_hmd_refresh_rate = 75;
 	#else
+		#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION == 6
+			g_hmd_refresh_rate = (int)(1.0f / ovrHmd_GetFloat(hmd, "VsyncToNextVsync", 0.f) + 0.5f);
+		#else
+			g_hmd_refresh_rate = (int)(hmdDesc.DisplayRefreshRate + 0.5f);
+		#endif
 			g_hmd_window_x = 0;
 			g_hmd_window_y = 0;
 			g_is_direct_mode = true;
@@ -416,13 +495,21 @@ bool InitVR920VR()
 		// Todo: find vr920
 		g_hmd_window_x = 0;
 		g_hmd_window_y = 0;
+		g_hmd_refresh_rate = 60; // or 30, depending on how we implement it
+		g_vr_must_motion_blur = true;
+		g_vr_has_dynamic_predict = false;
+		g_vr_has_configure_rendering = false;
+		g_vr_has_configure_tracking = false;
+		g_vr_has_hq_distortion = false;
+		g_vr_should_swap_buffers = true;
+		g_vr_has_timewarp_tweak = false;
 		return true;
 	}
 #endif
 	return false;
 }
 
-void InitVR()
+void VR_Init()
 {
 	g_has_hmd = false;
 	g_is_direct_mode = false;
@@ -482,7 +569,7 @@ void VR_StopRendering()
 #endif
 }
 
-void ShutdownVR()
+void VR_Shutdown()
 {
 #ifdef HAVE_OPENVR
 	if (g_has_steamvr && m_pHMD)
@@ -789,7 +876,7 @@ void UpdateVuzixHeadTracking()
 }
 #endif
 
-void UpdateHeadTrackingIfNeeded()
+void VR_UpdateHeadTrackingIfNeeded()
 {
 	if (g_new_tracking_frame)
 	{
@@ -1152,46 +1239,86 @@ void OpcodeReplayBuffer()
 	if (g_ActiveConfig.bOpcodeReplay && SConfig::GetInstance().m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION)
 	{
 		g_opcode_replay_enabled = true;
-		if (g_ActiveConfig.bPullUp20fps)
+		if (g_hmd_refresh_rate == 75)
 		{
-			if (real_frame_count % 4 == 1)
+			if (g_ActiveConfig.bPullUp20fps)
 			{
-				g_ActiveConfig.iExtraVideoLoops = 2;
-				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				if (real_frame_count % 4 == 1)
+				{
+					g_ActiveConfig.iExtraVideoLoops = 2;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
+				else
+				{
+					g_ActiveConfig.iExtraVideoLoops = 3;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
 			}
-			else
+			else if (g_ActiveConfig.bPullUp30fps)
 			{
-				g_ActiveConfig.iExtraVideoLoops = 3;
-				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				if (real_frame_count % 2 == 1)
+				{
+					g_ActiveConfig.iExtraVideoLoops = 1;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
+				else
+				{
+					g_ActiveConfig.iExtraVideoLoops = 2;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
 			}
-		}
-		else if (g_ActiveConfig.bPullUp30fps)
-		{
-			if (real_frame_count % 2 == 1)
+			else if (g_ActiveConfig.bPullUp60fps)
 			{
+				//if (real_frame_count % 4 == 0)
+				//{
+				//	g_ActiveConfig.iExtraVideoLoops = 1;
+				//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				//}
+				//else
+				//{
+				//	g_ActiveConfig.iExtraVideoLoops = 0;
+				//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				//}
 				g_ActiveConfig.iExtraVideoLoops = 1;
-				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 3;
 			}
-			else
+		}
+		else
+		{
+			// 90 FPS
+			if (g_ActiveConfig.bPullUp20fps)
+			{
+				if (real_frame_count % 2 == 1)
+				{
+					g_ActiveConfig.iExtraVideoLoops = 4;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
+				else
+				{
+					g_ActiveConfig.iExtraVideoLoops = 5;
+					g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				}
+			}
+			else if (g_ActiveConfig.bPullUp30fps)
 			{
 				g_ActiveConfig.iExtraVideoLoops = 2;
 				g_ActiveConfig.iExtraVideoLoopsDivider = 0;
 			}
-		}
-		else if (g_ActiveConfig.bPullUp60fps)
-		{
-			//if (real_frame_count % 4 == 0)
-			//{
-			//	g_ActiveConfig.iExtraVideoLoops = 1;
-			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
-			//}
-			//else
-			//{
-			//	g_ActiveConfig.iExtraVideoLoops = 0;
-			//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
-			//}
-			g_ActiveConfig.iExtraVideoLoops = 1;
-			g_ActiveConfig.iExtraVideoLoopsDivider = 3;
+			else if (g_ActiveConfig.bPullUp60fps)
+			{
+				//if (real_frame_count % 4 == 0)
+				//{
+				//	g_ActiveConfig.iExtraVideoLoops = 1;
+				//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				//}
+				//else
+				//{
+				//	g_ActiveConfig.iExtraVideoLoops = 0;
+				//	g_ActiveConfig.iExtraVideoLoopsDivider = 0;
+				//}
+				g_ActiveConfig.iExtraVideoLoops = 1;
+				g_ActiveConfig.iExtraVideoLoopsDivider = 1;
+			}
 		}
 
 		if ((g_opcode_replay_frame && (extra_video_loops_count >= (int)g_ActiveConfig.iExtraVideoLoops)))
@@ -1291,46 +1418,84 @@ void OpcodeReplayBufferInline()
 	{
 		g_opcode_replay_enabled = true;
 		g_opcode_replay_log_frame = true;
-		if (g_ActiveConfig.bPullUp60fps)
+		if (g_hmd_refresh_rate == 75)
 		{
-			if (real_frame_count % 4 == 0)
+			if (g_ActiveConfig.bPullUp60fps)
 			{
-				extra_video_loops = 1;
+				if (real_frame_count % 4 == 0)
+				{
+					extra_video_loops = 1;
+				}
+				else
+				{
+					extra_video_loops = 0;
+					if ((real_frame_count + 1) % 4 != 0)
+						g_opcode_replay_log_frame = false;
+				}
+			}
+			else if (g_ActiveConfig.bPullUp30fps)
+			{
+				if (real_frame_count % 2 == 1)
+				{
+					extra_video_loops = 1;
+				}
+				else
+				{
+					extra_video_loops = 2;
+				}
+			}
+			else if (g_ActiveConfig.bPullUp20fps)
+			{
+				if (real_frame_count % 4 == 1)
+				{
+					extra_video_loops = 2;
+				}
+				else
+				{
+					extra_video_loops = 3;
+				}
 			}
 			else
 			{
-				extra_video_loops = 0;
-				if ((real_frame_count + 1) % 4 != 0)
-					g_opcode_replay_log_frame = false;
-			}
-		}
-		else if (g_ActiveConfig.bPullUp30fps)
-		{
-			if (real_frame_count % 2 == 1)
-			{
-				extra_video_loops = 1;
-			}
-			else
-			{
-				extra_video_loops = 2;
-			}
-		}
-		else if (g_ActiveConfig.bPullUp20fps)
-		{
-			if (real_frame_count % 4 == 1)
-			{
-				extra_video_loops = 2;
-			}
-			else
-			{
-				extra_video_loops = 3;
+				extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
 			}
 		}
 		else
 		{
-			extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
+			// 90 FPS
+			if (g_ActiveConfig.bPullUp60fps)
+			{
+				if (real_frame_count % 2 == 0)
+				{
+					extra_video_loops = 1;
+				}
+				else
+				{
+					extra_video_loops = 0;
+					if ((real_frame_count + 1) % 2 != 0)
+						g_opcode_replay_log_frame = false;
+				}
+			}
+			else if (g_ActiveConfig.bPullUp30fps)
+			{
+				extra_video_loops = 2;
+			}
+			else if (g_ActiveConfig.bPullUp20fps)
+			{
+				if (real_frame_count % 2 == 1)
+				{
+					extra_video_loops = 4;
+				}
+				else
+				{
+					extra_video_loops = 5;
+				}
+			}
+			else
+			{
+				extra_video_loops = g_ActiveConfig.iExtraVideoLoops;
+			}
 		}
-
 		++real_frame_count;
 		g_opcode_replay_frame = true;
 		skipped_opcode_replay_count = 0;

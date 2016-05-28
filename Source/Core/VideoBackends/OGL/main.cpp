@@ -286,7 +286,7 @@ void VideoBackend::Video_Cleanup()
 		GLInterface->ClearCurrentOffscreen();
 	else
 		GLInterface->ClearCurrent();
-	ShutdownVR();
+	VR_Shutdown();
 }
 
 void VideoBackend::Video_CleanupOtherThread()

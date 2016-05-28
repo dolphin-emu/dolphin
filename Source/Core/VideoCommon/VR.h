@@ -159,18 +159,18 @@ typedef enum
 	CS_ARCADE_RIGHT
 } ControllerStyle;
 
-void InitVR();
+void VR_Init();
 void VR_StopRendering();
-void ShutdownVR();
+void VR_Shutdown();
 void VR_RecenterHMD();
 void VR_CheckStatus(bool *ShouldRecenter, bool *ShouldQuit);
 void VR_ConfigureHMDTracking();
 void VR_ConfigureHMDPrediction();
-void NewVRFrame();
+void VR_NewVRFrame();
 void VR_BeginFrame();
 void VR_GetEyePoses();
 void ReadHmdOrientation(float *roll, float *pitch, float *yaw, float *x, float *y, float *z);
-void UpdateHeadTrackingIfNeeded();
+void VR_UpdateHeadTrackingIfNeeded();
 void VR_GetProjectionHalfTan(float &hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44 &left_eye, Matrix44 &right_eye, float znear, float zfar);
 void VR_GetEyePos(float *posLeft, float *posRight);
@@ -190,13 +190,17 @@ void OpcodeReplayBufferInline();
 
 extern bool g_force_vr, g_prefer_steamvr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
+extern bool g_vr_cant_motion_blur, g_vr_must_motion_blur;
+extern bool g_vr_has_dynamic_predict, g_vr_has_configure_rendering, g_vr_has_hq_distortion;
+extern bool g_vr_has_configure_tracking, g_vr_has_timewarp_tweak;
+extern bool g_vr_should_swap_buffers, g_vr_dont_vsync;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
 extern u32 skip_objects_count;
 extern Matrix44 g_head_tracking_matrix;
 extern float g_head_tracking_position[3];
 extern float g_left_hand_tracking_position[3], g_right_hand_tracking_position[3];
-extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y; 
+extern int g_hmd_window_width, g_hmd_window_height, g_hmd_window_x, g_hmd_window_y, g_hmd_refresh_rate;
 extern const char *g_hmd_device_name;
 extern bool g_fov_changed, g_vr_black_screen;
 extern bool g_vr_had_3D_already;
