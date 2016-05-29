@@ -63,7 +63,6 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
-#include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
@@ -77,8 +76,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_BUTTON(ID_MD5SUMCOMPUTE, CISOProperties::OnComputeMD5Sum)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
-	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
-	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
+	EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 	EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
 	EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 	EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
@@ -114,8 +112,6 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 	GameIniLocal = SConfig::LoadLocalGameIni(game_id, m_open_iso->GetRevision());
 
 	// Setup GUI
-	bRefreshList = false;
-
 	CreateGUIControls();
 
 	LoadGameConfig();
@@ -647,8 +643,6 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
 		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
-	if (bRefreshList)
-		((CGameListCtrl*)GetParent())->Update();
 	Destroy();
 }
 
@@ -991,12 +985,9 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	}
 }
 
-void CISOProperties::SetRefresh(wxCommandEvent& event)
+void CISOProperties::OnEmustateChanged(wxCommandEvent& event)
 {
-	bRefreshList = true;
-
-	if (event.GetId() == ID_EMUSTATE)
-		EmuIssues->Enable(event.GetSelection() != 0);
+	EmuIssues->Enable(event.GetSelection() != 0);
 }
 
 void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox)
@@ -1211,9 +1202,6 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 		WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
 		return;
 	}
-
-	if (wait_until_closed)
-		bRefreshList = true; // Just in case
 #endif
 }
 
