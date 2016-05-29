@@ -1472,8 +1472,8 @@ void OpcodeReplayBufferInline()
 				else
 				{
 					extra_video_loops = 0;
-					if ((real_frame_count + 1) % 2 != 0)
-						g_opcode_replay_log_frame = false;
+					//if ((real_frame_count + 1) % 2 != 0)
+					//	g_opcode_replay_log_frame = false;
 				}
 			}
 			else if (g_ActiveConfig.bPullUp30fps)
@@ -1528,4 +1528,5 @@ void OpcodeReplayBufferInline()
 		g_opcode_replay_enabled = false;
 		g_opcode_replay_log_frame = false;
 	}
+	g_Config.iExtraVideoLoopsDivider = 0;
 }
