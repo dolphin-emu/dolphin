@@ -109,6 +109,10 @@ public:
 	{
 	}
 
+	virtual void PrepareForState(PointerWrap::Mode mode)
+	{
+	}
+
 	virtual void DoState(PointerWrap& p)
 	{
 		DoStateShared(p);
