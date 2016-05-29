@@ -320,22 +320,22 @@ void DoState(PointerWrap &p)
 	}
 	else
 	{
-		for (auto& dev : g_FdMap)
+		for (auto& descriptor : g_FdMap)
 		{
-			u32 exists = dev ? 1 : 0;
+			u32 exists = descriptor ? 1 : 0;
 			p.Do(exists);
 			if (exists)
 			{
-				u32 isHw = dev->IsHardware() ? 1 : 0;
+				u32 isHw = descriptor->IsHardware() ? 1 : 0;
 				p.Do(isHw);
 				if (isHw)
 				{
-					u32 hwId = dev->GetDeviceID();
+					u32 hwId = descriptor->GetDeviceID();
 					p.Do(hwId);
 				}
 				else
 				{
-					dev->DoState(p);
+					descriptor->DoState(p);
 				}
 			}
 		}
