@@ -40,7 +40,7 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id)
 void GeneralConfigPane::InitializeGUI()
 {
 	m_throttler_array_string.Add(_("Unlimited"));
-	for (int i = 10; i <= 200; i += 10) // from 10% to 200%
+	for (int i = 5; i <= 300; i += 5) // from 5% to 300%
 	{
 		if (i == 100)
 			m_throttler_array_string.Add(wxString::Format(_("%i%% (Normal Speed)"), i));
@@ -113,7 +113,7 @@ void GeneralConfigPane::LoadGUIValues()
 	m_idle_skip_checkbox->SetValue(startup_params.bSkipIdle);
 	m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
 	m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
-	u32 selection = std::lround(startup_params.m_EmulationSpeed * 10.0f);
+	u32 selection = std::lround(startup_params.m_EmulationSpeed * 20.0f);
 	if (selection < m_throttler_array_string.size())
 		m_throttler_choice->SetSelection(selection);
 
@@ -169,7 +169,7 @@ void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
 void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 {
 	if (m_throttler_choice->GetSelection() != wxNOT_FOUND)
-		SConfig::GetInstance().m_EmulationSpeed = m_throttler_choice->GetSelection() * 0.1f;
+		SConfig::GetInstance().m_EmulationSpeed = m_throttler_choice->GetSelection() * 0.05f;
 }
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
