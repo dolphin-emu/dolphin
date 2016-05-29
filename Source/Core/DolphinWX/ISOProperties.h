@@ -209,7 +209,7 @@ private:
 	void OnExtractDir(wxCommandEvent& event);
 	void OnExtractDataFromHeader(wxCommandEvent& event);
 	void CheckPartitionIntegrity(wxCommandEvent& event);
-	void SetRefresh(wxCommandEvent& event);
+	void OnEmustateChanged(wxCommandEvent& event);
 	void OnChangeBannerLang(wxCommandEvent& event);
 
 	const GameListItem OpenGameListItem;
@@ -232,8 +232,6 @@ private:
 
 	std::set<std::string> DefaultPatches;
 	std::set<std::string> DefaultCheats;
-
-	bool bRefreshList;
 
 	void LoadGameConfig();
 	bool SaveGameConfig();
