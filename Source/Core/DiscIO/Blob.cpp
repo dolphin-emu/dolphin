@@ -143,7 +143,7 @@ u32 SectorReader::ReadChunk(u8* buffer, u64 chunk_num)
 	// read a whole chunk. We need to clamp down in that case.
 	u64 end_block = GetDataSize() / m_block_size;
 	if (end_block)
-		cnt_blocks = static_cast<u32>(std::min<u64>(m_chunk_blocks, end_block - block_num));
+		cnt_blocks = static_cast<u32>(std::min<u64>(m_chunk_blocks, end_block - block_num + 1));
 
 	if (ReadMultipleAlignedBlocks(block_num, cnt_blocks, buffer))
 	{
