@@ -109,6 +109,11 @@ public:
 	{
 	}
 
+	// Release any resources which might interfere with savestating.
+	virtual void PrepareForState(PointerWrap::Mode mode)
+	{
+	}
+
 	virtual void DoState(PointerWrap& p)
 	{
 		DoStateShared(p);

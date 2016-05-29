@@ -356,6 +356,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 	return GetDefaultReply();
 }
 
+
+void CWII_IPC_HLE_Device_FileIO::PrepareForState(PointerWrap::Mode mode)
+{
+	// Temporally close the file, to prevent any issues with the savestating of /tmp
+	// it can be opened again with another call to OpenFile()
+	m_file.reset();
+}
+
 void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 {
 	DoStateShared(p);
@@ -365,8 +373,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 
 	m_filepath = HLE_IPC_BuildFilename(m_Name);
 
-	if (p.GetMode() == PointerWrap::MODE_READ)
-	{
-		OpenFile();
-	}
+	// The file was closed during state (and might now be pointing at another file)
+	// Open it again
+	OpenFile();
 }
