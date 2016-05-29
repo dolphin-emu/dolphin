@@ -270,11 +270,11 @@ void DoState(PointerWrap &p)
 	p.Do(reply_queue);
 	p.Do(last_reply_time);
 
-	if (p.GetMode() == PointerWrap::MODE_READ)
+	// We need to make sure all file handles are closed so WII_IPC_Devices_fs::DoState can successfully save or re-create /tmp
+	for (auto& descriptor : g_FdMap)
 	{
-		// We need to make sure all file handles are closed so WII_IPC_Devices_fs::DoState can successfully re-create /tmp
-		for (u32 i = 0; i < IPC_MAX_FDS; i++)
-			g_FdMap[i].reset();
+		if (descriptor)
+			descriptor->PrepareForState(p.GetMode());
 	}
 
 	for (const auto& entry : g_DeviceMap)
