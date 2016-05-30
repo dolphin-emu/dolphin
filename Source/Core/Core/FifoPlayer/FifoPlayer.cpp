@@ -84,7 +84,7 @@ public:
   {
     // NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
     //   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
-    PanicAlert("Cannot SingleStep the FIFO. Use Frame Advance instead.");
+    PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
   const char* GetName() override { return "FifoPlayer"; }
