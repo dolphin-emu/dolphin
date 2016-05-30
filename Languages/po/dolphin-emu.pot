@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-30 20:30+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1004,10 +1004,6 @@ msgstr ""
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:125
 #: Source/Core/DolphinWX/WXInputBase.cpp:33
 msgid "Cancel"
-msgstr ""
-
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:98
-msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:330

@@ -5,12 +5,13 @@
 # Translators:
 # Delirious <delirious@freemail.hu>, 2011,2013
 # Delirious <delirious@freemail.hu>, 2013
+# Evin <tomevin1@gmail.com>, 2016
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-30 20:30+0000\n"
-"PO-Revision-Date: 2016-05-30 20:30+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Hungarian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/hu/)\n"
@@ -1097,10 +1098,6 @@ msgstr "Wiimote nem található a kapcsolati leíró szerint: %02x"
 #: Source/Core/DolphinWX/WXInputBase.cpp:33
 msgid "Cancel"
 msgstr "Mégse"
-
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:98
-msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
-msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:330
 #, c-format

@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-30 20:30+0000\n"
-"PO-Revision-Date: 2016-05-30 20:30+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
@@ -1112,10 +1112,6 @@ msgstr "Impossibile trovare il Wiimote sull'handler di connessione %02x"
 #: Source/Core/DolphinWX/WXInputBase.cpp:33
 msgid "Cancel"
 msgstr "Annulla"
-
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:98
-msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
-msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:330
 #, c-format

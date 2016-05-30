@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-30 20:30+0000\n"
-"PO-Revision-Date: 2016-05-30 20:30+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -1091,10 +1091,6 @@ msgstr "%02x 연결 핸들로 위모트를 찾을 수 없음"
 #: Source/Core/DolphinWX/WXInputBase.cpp:33
 msgid "Cancel"
 msgstr "취소"
-
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:98
-msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
-msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:330
 #, c-format
