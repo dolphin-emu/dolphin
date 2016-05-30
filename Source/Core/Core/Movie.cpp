@@ -1389,14 +1389,40 @@ void GetSettings()
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 
-	unsigned int tmp;
-	memset(s_revision, 0, sizeof(s_revision));
-	size_t revision_bytes_to_copy = std::min(scm_rev_git_str.size() / 2, ArraySize(s_revision));
-	for (size_t i = 0; i < revision_bytes_to_copy; ++i)
+	// The revision string normally contains a git commit hash,
+	// which is 40 hexadecimal digits long. In DTM files, each pair of
+	// hexadecimal digits is stored as one byte, for a total of 20 bytes.
+	bool all_hexadecimal = true;
+	size_t revision_bytes_to_write = std::min((scm_rev_git_str.size() + 1) / 2, ArraySize(s_revision));
+	unsigned int temp1;
+	unsigned int temp2;
+	for (size_t i = 0; all_hexadecimal && i < revision_bytes_to_write; ++i)
 	{
-		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
-		s_revision[i] = tmp;
+		// If a single "%2x" sscanf call had been used instead of two "%1x" calls, the
+		// second character would not be required to be a hexadecimal digit. For instance,
+		// "1" (followed by null terminator) and "1." could get parsed as hexadecimal digit
+		// pairs with the same value as "01", which this implementation doesn't allow.
+		if (sscanf(&scm_rev_git_str[2 * i], "%1x", &temp1) == 1 &&
+			sscanf(&scm_rev_git_str[2 * i + 1], "%1x", &temp2) == 1)
+		{
+			s_revision[i] = temp1 * 0x10 + temp2;
+		}
+		else
+		{
+			all_hexadecimal = false;
+		}
 	}
+	// If the revision string for some reason doesn't only contain hexadecimal digit
+	// pairs, we instead copy the string with no conversion. This probably doesn't match
+	// the intended design of the DTM format, but it's the most sensible fallback.
+	if (!all_hexadecimal)
+	{
+		revision_bytes_to_write = std::min(scm_rev_git_str.size(), sizeof(s_revision));
+		memcpy(s_revision, scm_rev_git_str.c_str(), revision_bytes_to_write);
+	}
+	// If there are bytes that didn't get set, they now get cleared.
+	if (revision_bytes_to_write < sizeof(s_revision))
+		memset(s_revision + revision_bytes_to_write, 0, sizeof(s_revision) - revision_bytes_to_write);
 
 	if (!s_bDSPHLE)
 	{
