@@ -1604,6 +1604,23 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			static int real_frame_count_for_timewarp = 0;
 			SConfig& startup_parameter = SConfig::GetInstance();
 
+			static int timewarp_count = 0;
+			static int old_rate = 0;
+			int real_framerate = ((int)((g_current_fps + 2.5) / 5)) * 5;
+			if (real_framerate != old_rate)
+			{
+				//MessageBeep(MB_ICONASTERISK);
+				WARN_LOG(VR, "new FPS = %d", real_framerate);
+				timewarp_count = 0;
+				old_rate = real_framerate;
+			}
+			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate)
+			{
+				real_framerate = g_hmd_refresh_rate;
+				timewarp_count = 0;
+			}
+			int timewarps_per_second = 0;
+
 			if (g_ActiveConfig.bSynchronousTimewarp)
 			{
 				if ((startup_parameter.bSkipIdle && startup_parameter.bSyncGPUOnSkipIdleHack) ||
@@ -1613,7 +1630,19 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
 
-				if (g_hmd_refresh_rate == 75)
+				if (g_ActiveConfig.bPullUpAutoTimewarp)
+				{
+					timewarps_per_second = g_hmd_refresh_rate - real_framerate;
+					timewarp_count += timewarps_per_second;
+					u32 extra = 0;
+					while (timewarp_count >= real_framerate)
+					{
+						++extra;
+						timewarp_count -= real_framerate;
+					}
+					g_ActiveConfig.iExtraTimewarpedFrames = extra;
+				}
+				else if (g_hmd_refresh_rate == 75)
 				{
 					if (g_ActiveConfig.bPullUp20fpsTimewarp)
 					{
@@ -1670,10 +1699,12 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				else
 					SConfig::GetInstance().m_AudioSlowDown = 1.25;
 				g_ActiveConfig.iExtraTimewarpedFrames = 0;
+				timewarp_count = 0;
 			}
 			else
 			{
 				SConfig::GetInstance().m_AudioSlowDown = startup_parameter.fAudioSlowDown;
+				timewarp_count = 0;
 			}
 
 			for (int i = 0; i < (int)g_ActiveConfig.iExtraTimewarpedFrames; ++i)

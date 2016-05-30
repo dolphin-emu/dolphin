@@ -212,6 +212,8 @@ extern float vr_widest_3d_zFar;
 extern float g_game_camera_pos[3];
 extern Matrix44 g_game_camera_rotmat;
 
+extern float g_current_fps;
+
 //Opcode Replay Buffer
 struct TimewarpLogEntry {
 	DataReader timewarp_log;

@@ -77,9 +77,11 @@ private:
 	SettingCheckBox* checkbox_pullup20_timewarp;
 	SettingCheckBox* checkbox_pullup30_timewarp;
 	SettingCheckBox* checkbox_pullup60_timewarp;
+	SettingCheckBox* checkbox_pullupauto_timewarp;
 	SettingCheckBox* checkbox_pullup20;
 	SettingCheckBox* checkbox_pullup30;
 	SettingCheckBox* checkbox_pullup60;
+	SettingCheckBox* checkbox_pullupauto;
 	SettingCheckBox* checkbox_replay_vertex_data;
 	SettingCheckBox* checkbox_replay_other_data;
 	SettingCheckBox* checkbox_roll;

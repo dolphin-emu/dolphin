@@ -164,6 +164,7 @@ struct VideoConfig final
 	bool bPullUp20fps;
 	bool bPullUp30fps;
 	bool bPullUp60fps;
+	bool bPullUpAuto;
 	bool bSynchronousTimewarp;
 	bool bOpcodeWarningDisable;
 	bool bReplayVertexData;
@@ -171,6 +172,7 @@ struct VideoConfig final
 	bool bPullUp20fpsTimewarp;
 	bool bPullUp30fpsTimewarp;
 	bool bPullUp60fpsTimewarp;
+	bool bPullUpAutoTimewarp;
 	bool bOpcodeReplay;
 	bool bAsynchronousTimewarp;
 	bool bEnableVR;

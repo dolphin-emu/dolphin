@@ -15,6 +15,8 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
+float g_current_fps = 60.0f;
+
 #ifdef HAVE_OPENVR
 #include <openvr.h>
 
@@ -1418,7 +1420,36 @@ void OpcodeReplayBufferInline()
 	{
 		g_opcode_replay_enabled = true;
 		g_opcode_replay_log_frame = true;
-		if (g_hmd_refresh_rate == 75)
+		if (g_ActiveConfig.bPullUpAuto)
+		{
+			static int replay_count = 0;
+			static int old_rate = 0;
+			int real_framerate = ((int)((g_current_fps + 2.5) / 5)) * 5;
+			if (real_framerate != old_rate)
+			{
+				//MessageBeep(MB_ICONASTERISK);
+				WARN_LOG(VR, "new FPS = %d", real_framerate);
+				replay_count = 0;
+				old_rate = real_framerate;
+			}
+			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate)
+			{
+				real_framerate = g_hmd_refresh_rate;
+				replay_count = 0;
+			}
+			int replays_per_second = g_hmd_refresh_rate - real_framerate;
+			extra_video_loops = 0;
+			replay_count += replays_per_second;
+			while (replay_count >= real_framerate)
+			{
+				++extra_video_loops;
+				replay_count -= real_framerate;
+			}
+			// check if next frame will need replays
+			if (replay_count + replays_per_second < real_framerate)
+				g_opcode_replay_log_frame = false;
+		}
+		else if (g_hmd_refresh_rate == 75)
 		{
 			if (g_ActiveConfig.bPullUp60fps)
 			{
