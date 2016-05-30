@@ -192,7 +192,7 @@ extern bool g_force_vr, g_prefer_steamvr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
 extern bool g_vr_cant_motion_blur, g_vr_must_motion_blur;
 extern bool g_vr_has_dynamic_predict, g_vr_has_configure_rendering, g_vr_has_hq_distortion;
-extern bool g_vr_has_configure_tracking, g_vr_has_timewarp_tweak;
+extern bool g_vr_has_configure_tracking, g_vr_has_timewarp_tweak, g_vr_has_asynchronous_timewarp;
 extern bool g_vr_should_swap_buffers, g_vr_dont_vsync;
 extern bool g_new_tracking_frame;
 extern bool g_new_frame_tracker_for_efb_skip;
@@ -212,7 +212,7 @@ extern float vr_widest_3d_zFar;
 extern float g_game_camera_pos[3];
 extern Matrix44 g_game_camera_rotmat;
 
-extern float g_current_fps;
+extern float g_current_fps, g_current_speed;
 
 //Opcode Replay Buffer
 struct TimewarpLogEntry {

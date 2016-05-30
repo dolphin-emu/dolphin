@@ -1088,6 +1088,7 @@ void UpdateTitle()
 	float VRPS  = (float)(g_drawn_vr.load()    * 1000.0 / ElapseTime);
 	float Speed = (float)(s_drawn_video.load() * (100 * 1000.0) / (VideoInterface::GetTargetRefreshRate() * ElapseTime));
 
+	g_current_speed = Speed;
 	g_current_fps = FPS * Speed * 0.01f;
 
 	// Settings are shown the same for both extended and summary info

@@ -15,7 +15,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 
-float g_current_fps = 60.0f;
+float g_current_fps = 60.0f, g_current_speed = 0.0f; // g_current_speed is a percentage
 
 #ifdef HAVE_OPENVR
 #include <openvr.h>
@@ -58,20 +58,20 @@ std::mutex g_vr_lock;
 #if OVR_PRODUCT_VERSION >= 1
 bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = false;
+bool g_vr_has_configure_tracking = false, g_vr_has_asynchronous_timewarp = true;
 #elif OVR_MAJOR_VERSION >= 7
 bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true;
+bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
 #else
 bool g_vr_cant_motion_blur = false, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = true, g_vr_has_configure_rendering = true, g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true;
+bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
 #endif
 #else
 bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false, g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true;
+bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
 #endif
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 bool g_vr_has_timewarp_tweak = true;
@@ -317,6 +317,7 @@ bool InitSteamVR()
 			g_vr_has_hq_distortion = false;
 			g_vr_should_swap_buffers = true; // todo: check if this is right
 			g_vr_has_timewarp_tweak = false;
+			g_vr_has_asynchronous_timewarp = false;
 		}
 		return g_has_steamvr;
 	}
@@ -387,12 +388,15 @@ bool InitOculusHMD()
 	#endif
 
 	#if OVR_PRODUCT_VERSION >= 1
+		g_vr_has_asynchronous_timewarp = true;
 		// no need to configure tracking
 		g_vr_has_configure_tracking = false;
 #elif OVR_MAJOR_VERSION >= 6
+		g_vr_has_asynchronous_timewarp = false;
 		g_vr_has_configure_tracking = true;
 		if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0)))
 	#else
+		g_vr_has_asynchronous_timewarp = false;
 		g_vr_has_configure_tracking = true;
 		if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position | ovrTrackingCap_MagYawCorrection, 0))
 	#endif
@@ -505,6 +509,7 @@ bool InitVR920VR()
 		g_vr_has_hq_distortion = false;
 		g_vr_should_swap_buffers = true;
 		g_vr_has_timewarp_tweak = false;
+		g_vr_has_asynchronous_timewarp = false; // but it doesn't need it either, so maybe this should be true?
 		return true;
 	}
 #endif
@@ -1432,7 +1437,7 @@ void OpcodeReplayBufferInline()
 				replay_count = 0;
 				old_rate = real_framerate;
 			}
-			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate)
+			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate || (g_vr_has_asynchronous_timewarp && g_current_speed < 95.0f))
 			{
 				real_framerate = g_hmd_refresh_rate;
 				replay_count = 0;

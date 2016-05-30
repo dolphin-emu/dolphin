@@ -1614,7 +1614,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 				timewarp_count = 0;
 				old_rate = real_framerate;
 			}
-			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate)
+			if (real_framerate < 19 || real_framerate > g_hmd_refresh_rate || (g_vr_has_asynchronous_timewarp && g_current_speed < 95.0f))
 			{
 				real_framerate = g_hmd_refresh_rate;
 				timewarp_count = 0;
