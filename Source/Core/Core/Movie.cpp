@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
+#include <cctype>
 #include <mutex>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
@@ -121,6 +123,35 @@ static bool IsMovieHeader(u8 magic[4])
 	       magic[1] == 'T' &&
 	       magic[2] == 'M' &&
 	       magic[3] == 0x1A;
+}
+
+static std::array<u8, 20> ConvertGitRevisionToBytes(const std::string& revision)
+{
+	std::array<u8, 20> revision_bytes{};
+
+	if (revision.size() % 2 == 0 && std::all_of(revision.begin(), revision.end(), ::isxdigit))
+	{
+		// The revision string normally contains a git commit hash,
+		// which is 40 hexadecimal digits long. In DTM files, each pair of
+		// hexadecimal digits is stored as one byte, for a total of 20 bytes.
+		size_t bytes_to_write = std::min(revision.size() / 2, revision_bytes.size());
+		unsigned int temp;
+		for (size_t i = 0; i < bytes_to_write; ++i)
+		{
+			sscanf(&revision[2 * i], "%02x", &temp);
+			revision_bytes[i] = temp;
+		}
+	}
+	else
+	{
+		// If the revision string for some reason doesn't only contain hexadecimal digit
+		// pairs, we instead copy the string with no conversion. This probably doesn't match
+		// the intended design of the DTM format, but it's the most sensible fallback.
+		size_t bytes_to_write = std::min(revision.size(), revision_bytes.size());
+		memcpy(revision_bytes.data(), revision.c_str(), bytes_to_write);
+	}
+
+	return revision_bytes;
 }
 
 // NOTE: GPU Thread
@@ -1389,14 +1420,8 @@ void GetSettings()
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
 	s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 
-	unsigned int tmp;
-	memset(s_revision, 0, sizeof(s_revision));
-	size_t revision_bytes_to_copy = std::min(scm_rev_git_str.size() / 2, ArraySize(s_revision));
-	for (size_t i = 0; i < revision_bytes_to_copy; ++i)
-	{
-		sscanf(&scm_rev_git_str[2 * i], "%02x", &tmp);
-		s_revision[i] = tmp;
-	}
+	std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
+	std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));
 
 	if (!s_bDSPHLE)
 	{
