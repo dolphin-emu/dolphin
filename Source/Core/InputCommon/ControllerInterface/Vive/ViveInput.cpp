@@ -17,35 +17,65 @@ namespace ViveInput
 		const u32 bitmask;
 	} vive_buttons[] =
 	{
-		{ "LA", VIVE_BUTTON_LEFT_A },
+		// These exist on a normal Vive controller
+		{ "LTouchpad", VIVE_BUTTON_LEFT_TOUCHPAD },
 		{ "LMenu", VIVE_BUTTON_LEFT_MENU },
 		{ "LGrip", VIVE_BUTTON_LEFT_GRIP },
+		{ "RTouchpad", VIVE_BUTTON_RIGHT_TOUCHPAD },
+		{ "RMenu", VIVE_BUTTON_RIGHT_MENU },
+		{ "RGrip", VIVE_BUTTON_RIGHT_GRIP },
+		// These exist but aren't normally readable
 		{ "LSystem", VIVE_BUTTON_LEFT_SYSTEM },
+		{ "RSystem", VIVE_BUTTON_RIGHT_SYSTEM },
+		// These are defined in the SDK, but don't exist on a normal Vive controller
+		// Other controllers are usable with OpenVR though, so we expose these
+		{ "LA", VIVE_BUTTON_LEFT_A },
 		{ "LDPadUp", VIVE_BUTTON_LEFT_UP },
 		{ "LDPadDown", VIVE_BUTTON_LEFT_DOWN },
 		{ "LDPadLeft", VIVE_BUTTON_LEFT_LEFT },
 		{ "LDPadRight", VIVE_BUTTON_LEFT_RIGHT },
 		{ "RA", VIVE_BUTTON_RIGHT_A },
-		{ "RMenu", VIVE_BUTTON_RIGHT_MENU },
-		{ "RGrip", VIVE_BUTTON_RIGHT_GRIP },
-		{ "RSystem", VIVE_BUTTON_RIGHT_SYSTEM },
 		{ "RDPadUp", VIVE_BUTTON_RIGHT_UP },
 		{ "RDPadDown", VIVE_BUTTON_RIGHT_DOWN },
 		{ "RDPadRight", VIVE_BUTTON_RIGHT_LEFT },
 		{ "RDPadRight", VIVE_BUTTON_RIGHT_RIGHT },
+	}, vive_specials[] =
+	{
+		{ "LClickUp", VIVE_SPECIAL_DPAD_UP },
+		{ "LClickDown", VIVE_SPECIAL_DPAD_DOWN },
+		{ "LClickLeft", VIVE_SPECIAL_DPAD_LEFT },
+		{ "LClickRight", VIVE_SPECIAL_DPAD_RIGHT },
+		{ "LClickMiddle", VIVE_SPECIAL_DPAD_MIDDLE },
+		{ "RClickUp", VIVE_SPECIAL_DPAD_UP << 16},
+		{ "RClickDown", VIVE_SPECIAL_DPAD_DOWN << 16},
+		{ "RClickLeft", VIVE_SPECIAL_DPAD_LEFT << 16},
+		{ "RClickRight", VIVE_SPECIAL_DPAD_RIGHT << 16},
+		{ "RClickMiddle", VIVE_SPECIAL_DPAD_MIDDLE << 16},
+		{ "RGameCubeA", VIVE_SPECIAL_GC_A << 16},
+		{ "RGameCubeB", VIVE_SPECIAL_GC_B << 16 },
+		{ "RGameCubeX", VIVE_SPECIAL_GC_X << 16 },
+		{ "RGameCubeY", VIVE_SPECIAL_GC_Y << 16 },
+		{ "RGameCubeEmpty", VIVE_SPECIAL_GC_EMPTY << 16 },
 	}, vive_touches[] =
 	{
-		{ "TouchLA", VIVE_BUTTON_LEFT_A },
+		// These exist on a normal Vive controller
+		{ "TouchLTouchpad", VIVE_BUTTON_LEFT_TOUCHPAD },
+		{ "TouchRTouchpad", VIVE_BUTTON_RIGHT_TOUCHPAD },
+		// These are defined in the SDK, but don't exist on a normal Vive controller
+		// Other controllers are usable with OpenVR though, so we expose these
+		{ "TouchLTrigger", VIVE_BUTTON_LEFT_TRIGGER },
 		{ "TouchLMenu", VIVE_BUTTON_LEFT_MENU },
 		{ "TouchLGrip", VIVE_BUTTON_LEFT_GRIP },
+		{ "TouchRTrigger", VIVE_BUTTON_RIGHT_TRIGGER },
+		{ "TouchRMenu", VIVE_BUTTON_RIGHT_MENU },
+		{ "TouchRGrip", VIVE_BUTTON_RIGHT_GRIP },
 		{ "TouchLSystem", VIVE_BUTTON_LEFT_SYSTEM },
+		{ "TouchLA", VIVE_BUTTON_LEFT_A },
 		{ "TouchLDPadUp", VIVE_BUTTON_LEFT_UP },
 		{ "TouchLDPadDown", VIVE_BUTTON_LEFT_DOWN },
 		{ "TouchLDPadLeft", VIVE_BUTTON_LEFT_LEFT },
 		{ "TouchLDPadRight", VIVE_BUTTON_LEFT_RIGHT },
 		{ "TouchRA", VIVE_BUTTON_RIGHT_A },
-		{ "TouchRMenu", VIVE_BUTTON_RIGHT_MENU },
-		{ "TouchRGrip", VIVE_BUTTON_RIGHT_GRIP },
 		{ "TouchRSystem", VIVE_BUTTON_RIGHT_SYSTEM },
 		{ "TouchRDPadUp", VIVE_BUTTON_RIGHT_UP },
 		{ "TouchRDPadDown", VIVE_BUTTON_RIGHT_DOWN },
@@ -61,12 +91,15 @@ namespace ViveInput
 
 	static const char* const named_axes[] =
 	{
+		"LAnalogX",
+		"LAnalogY",
+		"RAnalogX",
+		"RAnalogY",
 		"LTouchX",
 		"LTouchY",
 		"RTouchX",
 		"RTouchY"
 	};
-
 
 void Init(std::vector<Core::Device*>& devices)
 {
@@ -87,7 +120,11 @@ ViveController::ViveController()
 	{
 		AddInput(new Trigger(i, m_triggers));
 	}
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i != sizeof(vive_specials) / sizeof(*vive_specials); ++i)
+	{
+		AddInput(new Special(i, m_specials));
+	}
+	for (int i = 0; i < 8; ++i)
 	{
 		AddInput(new Axis(i, -1, m_axes));
 		AddInput(new Axis(i, 1, m_axes));
@@ -122,7 +159,7 @@ std::string ViveController::GetSource() const
 
 void ViveController::UpdateInput()
 {
-	VR_GetViveButtons(&m_buttons, &m_touches, m_triggers, m_axes);
+	VR_GetViveButtons(&m_buttons, &m_touches, &m_specials, m_triggers, m_axes);
 }
 
 // GET name/source/id
@@ -140,6 +177,25 @@ ControlState ViveController::Button::GetState() const
 }
 
 u32 ViveController::Button::GetStates() const
+{
+	return (u32)m_buttons;
+}
+
+// GET name/source/id
+
+std::string ViveController::Special::GetName() const
+{
+	return vive_specials[m_index].name;
+}
+
+// GET / SET STATES
+
+ControlState ViveController::Special::GetState() const
+{
+	return (m_buttons & vive_specials[m_index].bitmask) > 0;
+}
+
+u32 ViveController::Special::GetStates() const
 {
 	return (u32)m_buttons;
 }

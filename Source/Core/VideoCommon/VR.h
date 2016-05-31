@@ -49,6 +49,8 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #define VIVE_BUTTON_LEFT_RIGHT  0x20
 #define VIVE_BUTTON_LEFT_DOWN   0x40
 #define VIVE_BUTTON_LEFT_A      0x80
+#define VIVE_BUTTON_LEFT_TOUCHPAD 0x0100
+#define VIVE_BUTTON_LEFT_TRIGGER  0x0200
 #define VIVE_BUTTON_RIGHT_SYSTEM 0x010000
 #define VIVE_BUTTON_RIGHT_MENU   0x020000
 #define VIVE_BUTTON_RIGHT_GRIP   0x040000
@@ -57,6 +59,19 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #define VIVE_BUTTON_RIGHT_RIGHT  0x200000
 #define VIVE_BUTTON_RIGHT_DOWN   0x400000
 #define VIVE_BUTTON_RIGHT_A      0x800000
+#define VIVE_BUTTON_RIGHT_TOUCHPAD 0x01000000
+#define VIVE_BUTTON_RIGHT_TRIGGER  0x02000000
+
+#define VIVE_SPECIAL_DPAD_UP     0x1
+#define VIVE_SPECIAL_DPAD_DOWN   0x2
+#define VIVE_SPECIAL_DPAD_LEFT   0x4
+#define VIVE_SPECIAL_DPAD_RIGHT  0x8
+#define VIVE_SPECIAL_DPAD_MIDDLE 0x10
+#define VIVE_SPECIAL_GC_A        0x20
+#define VIVE_SPECIAL_GC_B        0x40
+#define VIVE_SPECIAL_GC_X        0x80
+#define VIVE_SPECIAL_GC_Y       0x100
+#define VIVE_SPECIAL_GC_EMPTY   0x200
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
@@ -196,7 +211,7 @@ void VR_GetFovTextureSize(int *width, int *height);
 bool VR_GetRemoteButtons(u32 *buttons);
 bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[]);
 bool VR_GetHMDGestures(u32 *gestures);
-bool VR_GetViveButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[]);
+bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[]);
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);

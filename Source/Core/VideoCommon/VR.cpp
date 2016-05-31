@@ -1073,7 +1073,123 @@ bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_
 	}
 }
 
-bool VR_GetViveButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[])
+// 0 = unknown, 1 = buttons, -1 = analog
+static int s_vive_button_mode[2] = {};
+static bool s_vive_was_touched[2] = {};
+static float s_vive_initial_touch_x[2] = {};
+static float s_vive_initial_touch_y[2] = {};
+
+
+void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y, u16* specials, float analogs[])
+{
+	*specials = 0;
+	analogs[0] = 0;
+	analogs[1] = 0;
+	if (!touched && !pressed)
+	{
+		s_vive_button_mode[hand] = 0;
+	}
+	else
+	{
+		if (pressed)
+		{
+			s_vive_button_mode[hand] = 1;
+			// dpad or classic controller diamond button layout
+			if (x < -1.0f / 3.0f)
+				*specials |= VIVE_SPECIAL_DPAD_LEFT;
+			else if (x > 1.0f / 3.0f)
+				*specials |= VIVE_SPECIAL_DPAD_RIGHT;
+			else if (-1.0f / 3.0f < y && y < 1.0f / 3.0f)
+				*specials |= VIVE_SPECIAL_DPAD_MIDDLE;
+			if (y < -1.0f / 3.0f)
+				*specials |= VIVE_SPECIAL_DPAD_DOWN;
+			else if (y > 1.0f / 3.0f)
+				*specials |= VIVE_SPECIAL_DPAD_UP;
+			// GameCube style buttons
+			float angle = RADIANS_TO_DEGREES(atan2f(y, x));
+			float dd = x*x + y*y;
+#define A_RADIUS 0.372f
+#define INNER_XY_RADIUS 0.498f
+#define OUTER_XY_RADIUS 0.856f
+#define INNER_B_RADIUS 0.544f
+#define B_MIN_ANGLE -170.0f
+#define B_MAX_ANGLE -134.0f
+#define EMPTY_MIN_ANGLE -100.0f
+#define EMPTY_MAX_ANGLE -52.0f
+#define X_MIN_ANGLE -18.0f
+#define X_MAX_ANGLE 39.0f
+#define Y_MIN_ANGLE 76.0f
+#define Y_MAX_ANGLE 137.0f
+			// pressing just the A button
+			if (dd < A_RADIUS * A_RADIUS)
+			{
+				*specials |= VIVE_SPECIAL_GC_A;
+			}
+			else
+			{
+				// pressing the B button
+				if (angle > B_MIN_ANGLE && angle < B_MAX_ANGLE)
+				{
+					*specials |= VIVE_SPECIAL_GC_B;
+					// pressing in between A and B counts as both
+					if (dd < INNER_B_RADIUS * INNER_B_RADIUS)
+						*specials |= VIVE_SPECIAL_GC_A;
+				}
+				else
+				{
+					// pressing the X button (may also be pressing Y)
+					if (angle >= X_MIN_ANGLE && angle < Y_MIN_ANGLE)
+					{
+						*specials |= VIVE_SPECIAL_GC_X;
+						// pressing in between A and X counts as both
+						if (dd < INNER_XY_RADIUS * INNER_XY_RADIUS)
+							*specials |= VIVE_SPECIAL_GC_A;
+					}
+					// pressing the Y button (may also be pressing X)
+					if (angle > X_MAX_ANGLE && angle <= Y_MAX_ANGLE)
+					{
+						*specials |= VIVE_SPECIAL_GC_Y;
+						// pressing in between A and Y counts as both
+						if (dd < INNER_XY_RADIUS * INNER_XY_RADIUS)
+							*specials |= VIVE_SPECIAL_GC_A;
+					}
+					// pressing the empty space below B and X
+					else if (angle >= EMPTY_MIN_ANGLE && angle <= EMPTY_MAX_ANGLE && dd > INNER_B_RADIUS * INNER_B_RADIUS)
+					{
+						*specials |= VIVE_SPECIAL_GC_EMPTY;
+					}
+				}
+			}
+			// todo: quadrant buttons, for NES, TurboGraphx, sideways wiimote, etc.
+			// todo: 6 buttons diagonally, for N64, sega, arcade
+			// todo: various wiimote face button layouts
+		}
+		if (!s_vive_was_touched[hand])
+		{
+			// touching for first time
+			s_vive_initial_touch_x[hand] = x;
+			s_vive_initial_touch_y[hand] = y;
+		}
+		else if (!pressed && s_vive_button_mode[hand]==0)
+		{
+			const float min_dist = 0.2f;
+			float dx = x - s_vive_initial_touch_x[hand];
+			float dy = y - s_vive_initial_touch_y[hand];
+			float dist_squared = dx*dx + dy*dy;
+			if (dist_squared > min_dist * min_dist)
+				s_vive_button_mode[hand] = -1;
+		}
+		if (s_vive_button_mode[hand] < 0)
+		{
+			analogs[0] = x;
+			analogs[1] = y;
+		}
+	}
+	s_vive_was_touched[hand] = touched;
+}
+
+
+bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[])
 {
 	*buttons = 0;
 	*touches = 0;
@@ -1081,6 +1197,7 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_a
 	bool result = false;
 	if (m_pHMD)
 	{
+		// find the controllers for each hand, 100 = not found
 		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
 		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
 		{
@@ -1101,22 +1218,27 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_a
 					right_hand = i;
 			}
 		}
-		if (left_hand == 100 && right_hand == 100)
-			MessageBeep(MB_ICONASTERISK);
+		// get the state of each hand
 		vr::VRControllerState_t states[2];
 		ZeroMemory(&states, 2*sizeof(*states));
 		if (m_pHMD->GetControllerState(left_hand, &states[0]))
 			result = true;
 		if (m_pHMD->GetControllerState(right_hand, &states[1]))
 			result = true;
-		*buttons = (states[0].ulButtonPressed & 0xFFFF) | ((states[1].ulButtonPressed & 0xFFFF) << 16);
-		*touches = (states[0].ulButtonTouched & 0xFFFF) | ((states[1].ulButtonTouched & 0xFFFF) << 16);
-		m_triggers[0] = states[0].rAxis[vr::k_eControllerAxis_Trigger].x;
-		m_triggers[1] = states[1].rAxis[vr::k_eControllerAxis_Trigger].y;
-		m_axes[0] = states[0].rAxis[vr::k_eControllerAxis_TrackPad].x;
-		m_axes[1] = states[0].rAxis[vr::k_eControllerAxis_TrackPad].y;
-		m_axes[2] = states[1].rAxis[vr::k_eControllerAxis_TrackPad].x;
-		m_axes[3] = states[1].rAxis[vr::k_eControllerAxis_TrackPad].y;
+		// save the results in our own format
+		*buttons = (states[0].ulButtonPressed & 0xFF) | ((states[0].ulButtonPressed >> 24) & 0xFF00) |
+		         (((states[1].ulButtonPressed & 0xFF) | ((states[1].ulButtonPressed >> 24) & 0xFF00)) << 16);
+		*touches =  (states[0].ulButtonTouched & 0xFF) | ((states[0].ulButtonTouched >> 24) & 0xFF00) |
+		          (((states[1].ulButtonTouched & 0xFF) | ((states[1].ulButtonTouched >> 24) & 0xFF00)) << 16);
+		axes[4] = states[0].rAxis[0].x;
+		axes[5] = states[0].rAxis[0].y;
+		axes[6] = states[1].rAxis[0].x;
+		axes[7] = states[1].rAxis[0].y;
+		triggers[0] = states[0].rAxis[1].x;
+		triggers[1] = states[1].rAxis[1].x;
+		// our own special processing
+		for (int hand = 0; hand < 2; ++hand)
+			ProcessViveTouchpad(hand, (states[hand].ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, (states[hand].ulButtonPressed & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, states[hand].rAxis[0].x, states[hand].rAxis[0].y, ((u16 *)specials)+hand, &axes[hand * 2]);
 		return result;
 	}
 	else

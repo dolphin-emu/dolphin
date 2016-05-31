@@ -31,6 +31,18 @@ private:
 		u8 m_index;
 	};
 
+	class Special : public Core::Device::Input
+	{
+	public:
+		Special(u8 index, const u32& buttons) : m_buttons(buttons), m_index(index) {}
+		std::string GetName() const override;
+		ControlState GetState() const override;
+		u32 GetStates() const;
+	private:
+		const u32& m_buttons;
+		u8 m_index;
+	};
+
 	class Touch : public Core::Device::Input
 	{
 	public:
@@ -76,8 +88,8 @@ public:
 	std::string GetSource() const override;
 
 private:
-	u32 m_buttons, m_touches;
-	float m_triggers[2], m_axes[4];
+	u32 m_buttons, m_touches, m_specials;
+	float m_triggers[2], m_axes[8];
 };
 
 }
