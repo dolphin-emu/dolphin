@@ -450,8 +450,6 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
 		if (length < 4)
 			continue;
 
-		NOTICE_LOG(VR, "%6d: '%s'", line_number, line);
-
 		if (length == 34 && strcmp(line, "  address  Size   address  offset\n") == 0)
 		{
 			four_columns = true;
