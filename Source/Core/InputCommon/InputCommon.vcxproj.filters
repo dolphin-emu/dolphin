@@ -22,6 +22,9 @@
     <Filter Include="ControllerInterface\Oculus">
       <UniqueIdentifier>{672b1388-7caf-429a-a257-eba78ec02de8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerInterface\Vive">
+      <UniqueIdentifier>{10ecdec1-b487-4457-85ad-69939aec7d9d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ControllerEmu.cpp" />
@@ -66,6 +69,9 @@
     <ClCompile Include="HotkeysXInput.cpp" />
     <ClCompile Include="ControllerInterface\Oculus\OculusInput.cpp">
       <Filter>ControllerInterface\Oculus</Filter>
+    </ClCompile>
+    <ClCompile Include="ControllerInterface\Vive\ViveInput.cpp">
+      <Filter>ControllerInterface\Vive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +121,9 @@
     <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="ControllerInterface\Oculus\OculusInput.h">
       <Filter>ControllerInterface\Oculus</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Vive\ViveInput.h">
+      <Filter>ControllerInterface\Vive</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

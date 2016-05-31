@@ -37,6 +37,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="ControllerInterface\Oculus\OculusInput.cpp" />
+    <ClCompile Include="ControllerInterface\Vive\ViveInput.cpp" />
     <ClCompile Include="HotkeysXInput.cpp" />
     <ClCompile Include="ControllerEmu.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
@@ -69,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerInterface\Oculus\OculusInput.h" />
+    <ClInclude Include="ControllerInterface\Vive\ViveInput.h" />
     <ClInclude Include="HotkeysXInput.h" />
     <ClInclude Include="ControllerEmu.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />

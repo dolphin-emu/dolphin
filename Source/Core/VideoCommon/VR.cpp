@@ -1073,6 +1073,59 @@ bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_
 	}
 }
 
+bool VR_GetViveButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[])
+{
+	*buttons = 0;
+	*touches = 0;
+#if defined(HAVE_OPENVR)
+	bool result = false;
+	if (m_pHMD)
+	{
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (left_hand == 100 && right_hand == 100)
+			MessageBeep(MB_ICONASTERISK);
+		vr::VRControllerState_t states[2];
+		ZeroMemory(&states, 2*sizeof(*states));
+		if (m_pHMD->GetControllerState(left_hand, &states[0]))
+			result = true;
+		if (m_pHMD->GetControllerState(right_hand, &states[1]))
+			result = true;
+		*buttons = (states[0].ulButtonPressed & 0xFFFF) | ((states[1].ulButtonPressed & 0xFFFF) << 16);
+		*touches = (states[0].ulButtonTouched & 0xFFFF) | ((states[1].ulButtonTouched & 0xFFFF) << 16);
+		m_triggers[0] = states[0].rAxis[vr::k_eControllerAxis_Trigger].x;
+		m_triggers[1] = states[1].rAxis[vr::k_eControllerAxis_Trigger].y;
+		m_axes[0] = states[0].rAxis[vr::k_eControllerAxis_TrackPad].x;
+		m_axes[1] = states[0].rAxis[vr::k_eControllerAxis_TrackPad].y;
+		m_axes[2] = states[1].rAxis[vr::k_eControllerAxis_TrackPad].x;
+		m_axes[3] = states[1].rAxis[vr::k_eControllerAxis_TrackPad].y;
+		return result;
+	}
+	else
+#endif
+	{
+		return false;
+	}
+}
+
 #if defined(OVR_MAJOR_VERSION)
 bool WasItTapped(ovrVector3f linearAcc, double time)
 {
