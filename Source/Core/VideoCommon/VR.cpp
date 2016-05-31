@@ -225,30 +225,20 @@ std::string GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t
 //-----------------------------------------------------------------------------
 bool BInitCompositor()
 {
-	vr::HmdError peError = vr::HmdError_None;
+	vr::EVRInitError peError = vr::VRInitError_None;
 
 	m_pCompositor = (vr::IVRCompositor*)vr::VR_GetGenericInterface(vr::IVRCompositor_Version, &peError);
 
-	if (peError != vr::HmdError_None)
+	if (peError != vr::VRInitError_None)
 	{
 		m_pCompositor = nullptr;
 
-		NOTICE_LOG(VR, "Compositor initialization failed with error: %s\n", vr::VR_GetStringForHmdError(peError));
-		return false;
-	}
-
-	uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
-	if (unSize > 1)
-	{
-		char* buffer = new char[unSize];
-		m_pCompositor->GetLastError(buffer, unSize);
-		NOTICE_LOG(VR, "Compositor - %s\n", buffer);
-		delete[] buffer;
+		NOTICE_LOG(VR, "Compositor initialization failed with error: %s: %s\n", vr::VR_GetVRInitErrorAsSymbol(peError), vr::VR_GetVRInitErrorAsEnglishDescription(peError));
 		return false;
 	}
 
 	// change grid room colour
-	m_pCompositor->FadeToColor(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, true);
+	//m_pCompositor->FadeToColor(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, true);
 
 	return true;
 }
@@ -258,13 +248,13 @@ bool InitSteamVR()
 {
 #ifdef HAVE_OPENVR
 	// Loading the SteamVR Runtime
-	vr::HmdError eError = vr::HmdError_None;
+	vr::EVRInitError eError = vr::VRInitError_None;
 	m_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 
-	if (eError != vr::HmdError_None)
+	if (eError != vr::VRInitError_None)
 	{
 		m_pHMD = nullptr;
-		ERROR_LOG(VR, "Unable to init SteamVR: %s", vr::VR_GetStringForHmdError(eError));
+		ERROR_LOG(VR, "Unable to init SteamVR: %s: %s", vr::VR_GetVRInitErrorAsSymbol(eError), vr::VR_GetVRInitErrorAsEnglishDescription(eError));
 		g_has_steamvr = false;
 	}
 	else
@@ -275,7 +265,7 @@ bool InitSteamVR()
 			m_pHMD = nullptr;
 			vr::VR_Shutdown();
 
-			ERROR_LOG(VR, "Unable to get render model interface: %s", vr::VR_GetStringForHmdError(eError));
+			ERROR_LOG(VR, "Unable to get render model interface: %s: %s", vr::VR_GetVRInitErrorAsSymbol(eError), vr::VR_GetVRInitErrorAsEnglishDescription(eError));
 			g_has_steamvr = false;
 		}
 		else
@@ -287,10 +277,10 @@ bool InitSteamVR()
 
 		u32 m_nWindowWidth = 0;
 		u32 m_nWindowHeight = 0;
-		m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
+		//m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
 		g_hmd_window_width = m_nWindowWidth;
 		g_hmd_window_height = m_nWindowHeight;
-		NOTICE_LOG(VR, "SteamVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
+		//NOTICE_LOG(VR, "SteamVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y, g_hmd_window_width, g_hmd_window_height);
 
 		std::string m_strDriver = "No Driver";
 		std::string m_strDisplay = "No Display";
@@ -538,10 +528,10 @@ void VR_Init()
 	}
 	InitOculusHMD();
 
-	if (g_has_hmd)
+	if (g_has_hmd && g_hmd_window_width > 0 && g_hmd_window_height > 0)
 	{
 		SConfig::GetInstance().strFullscreenResolution =
-			StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
+		StringFromFormat("%dx%d", g_hmd_window_width, g_hmd_window_height);
 		SConfig::GetInstance().iRenderWindowXPos = g_hmd_window_x;
 		SConfig::GetInstance().iRenderWindowYPos = g_hmd_window_y;
 		SConfig::GetInstance().iRenderWindowWidth = g_hmd_window_width;
@@ -813,7 +803,7 @@ void UpdateSteamVRHeadTracking()
 {
 	// Process SteamVR events
 	vr::VREvent_t event;
-	while (m_pHMD->PollNextEvent(&event))
+	while (m_pHMD->PollNextEvent(&event, sizeof(event)))
 	{
 		ProcessVREvent(event);
 	}

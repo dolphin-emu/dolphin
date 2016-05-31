@@ -938,17 +938,13 @@ void VR_PresentHMDFrame()
 #ifdef HAVE_OPENVR
 	if (m_pCompositor)
 	{
-		m_pCompositor->Submit(vr::Eye_Left, vr::API_OpenGL, (void*)(size_t)m_left_texture, nullptr);
-		m_pCompositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)(size_t)m_right_texture, nullptr);
+		vr::Texture_t leftEyeTexture = { (void*)m_left_texture, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+		vr::Texture_t rightEyeTexture = { (void*)m_right_texture, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+
 		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-		uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
-		if (unSize > 1)
-		{
-			char* buffer = new char[unSize];
-			m_pCompositor->GetLastError(buffer, unSize);
-			ERROR_LOG(VR, "Compositor - %s\n", buffer);
-			delete[] buffer;
-		}
+
 		if (!g_ActiveConfig.bNoMirrorToWindow)
 		{
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
