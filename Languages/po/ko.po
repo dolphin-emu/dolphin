@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-15 20:30+0000\n"
-"PO-Revision-Date: 2016-05-10 21:05+0000\n"
-"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -509,7 +509,7 @@ msgstr "<발견된 해상도가 없음>"
 msgid "<Nothing>"
 msgstr "<없음>"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:76
 msgid "<System Language>"
 msgstr "<시스템 언어>"
 
@@ -1016,9 +1016,9 @@ msgstr "출력 디렉토리 찾아보기"
 msgid "Buffer:"
 msgstr "버퍼:"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:133
-#: Source/Core/DolphinWX/TASInputDlg.cpp:247
-#: Source/Core/DolphinWX/TASInputDlg.cpp:347
+#: Source/Core/DolphinWX/TASInputDlg.cpp:140
+#: Source/Core/DolphinWX/TASInputDlg.cpp:265
+#: Source/Core/DolphinWX/TASInputDlg.cpp:365
 #: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "버튼"
@@ -1034,7 +1034,7 @@ msgid ""
 msgstr ""
 "DCBZ 명령에 의해 데이터 캐쉬 청소를 우회합니다. 평소엔 이 옵션을 꺼둡니다."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:331
+#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 #: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "C Stick"
 msgstr "C 스틱"
@@ -1082,7 +1082,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1868
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1870
 #, c-format
 msgid "Can't find Wiimote by connection handle %02x"
 msgstr "%02x 연결 핸들로 위모트를 찾을 수 없음"
@@ -1131,12 +1131,12 @@ msgstr "디스크 변경"
 msgid "Change Game"
 msgstr "게임 변경"
 
-#: Source/Core/Core/Movie.cpp:1138
+#: Source/Core/Core/Movie.cpp:1183
 #, c-format
 msgid "Change the disc to %s"
 msgstr "%s 로 디스크를 변경합니다."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1323,7 +1323,7 @@ msgstr "환경 설정..."
 msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확인"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
 msgid "Confirm on Stop"
 msgstr "중지시 확인"
 
@@ -1370,7 +1370,7 @@ msgstr "위모트 연결"
 msgid "Connected"
 msgstr "연결되었습니다."
 
-#: Source/Core/DolphinWX/Main.cpp:492
+#: Source/Core/DolphinWX/Main.cpp:517
 msgid "Connecting..."
 msgstr "연결 중..."
 
@@ -1495,11 +1495,11 @@ msgstr ""
 "에뮬레이터 디렉토리를 이동한 후에 이 메시지를 받고 있나요?\n"
 "그렇다면, 옵션에서 메모리카드 위치를 재지정해야 합니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:74
+#: Source/Core/Core/NetPlayClient.cpp:77
 msgid "Couldn't Create Client"
 msgstr "클라이언트를 생성할 수 없습니다."
 
-#: Source/Core/Core/NetPlayClient.cpp:85
+#: Source/Core/Core/NetPlayClient.cpp:88
 msgid "Couldn't create peer."
 msgstr "피어를 생성할 수 없습니다."
 
@@ -1815,7 +1815,7 @@ msgstr "횡단 서버에서 연결이 끊겼습니다."
 msgid "Display"
 msgstr "디스플레이"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:116
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:124
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -2044,7 +2044,7 @@ msgstr "내장형 프레임 버퍼 (EFB)"
 msgid "Empty"
 msgstr "비어있음"
 
-#: Source/Core/Core/Core.cpp:220
+#: Source/Core/Core/Core.cpp:232
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
@@ -2288,7 +2288,7 @@ msgstr "목록 1/%d"
 msgid "Equal"
 msgstr "같음"
 
-#: Source/Core/DolphinWX/Main.cpp:329 Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:331 Source/Core/DolphinWX/Main.cpp:337
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
@@ -2296,7 +2296,7 @@ msgstr "같음"
 msgid "Error"
 msgstr "오류"
 
-#: Source/Core/DolphinWX/Main.cpp:329
+#: Source/Core/DolphinWX/Main.cpp:331
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "선택된 언어 가져오는 데 오류가 발생했습니다. 기본 시스템 언어로 돌아갑니다."
@@ -2439,11 +2439,11 @@ msgstr "FIFO 플레이어"
 msgid "FST Size:"
 msgstr "FST 크기:"
 
-#: Source/Core/Core/NetPlayClient.cpp:156
+#: Source/Core/Core/NetPlayClient.cpp:159
 msgid "Failed To Connect!"
 msgstr "연결에 실패했습니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:100
+#: Source/Core/Core/NetPlayClient.cpp:103
 msgid "Failed to Connect!"
 msgstr "연결에 실패했습니다!"
 
@@ -2496,7 +2496,7 @@ msgstr ""
 "타겟 폴더에 쓰기 권한을 가지고 있는지와 미디어가 쓰여질 수 있는지를 확인하세"
 "요."
 
-#: Source/Core/Core/Movie.cpp:909
+#: Source/Core/Core/Movie.cpp:944
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s 을 읽을 수 없습니다."
@@ -2587,7 +2587,7 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1167
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2955,11 +2955,11 @@ msgstr "게임 ID"
 msgid "Game ID:"
 msgstr "게임 ID:"
 
-#: Source/Core/Core/NetPlayClient.cpp:693
+#: Source/Core/Core/NetPlayClient.cpp:696
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1009
+#: Source/Core/Core/NetPlayClient.cpp:1029
 msgid "Game isn't running!"
 msgstr "게임이 구동중이지 않습니다!"
 
@@ -3146,7 +3146,7 @@ msgstr "호스트"
 msgid "Host Code :"
 msgstr "호스트 코드:"
 
-#: Source/Core/Core/NetPlayClient.cpp:108
+#: Source/Core/Core/NetPlayClient.cpp:111
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -3199,7 +3199,7 @@ msgstr "IPL 설정"
 msgid "IPL with unknown hash %x"
 msgstr "알려지지 않은 해쉬 %x 를 가진 IPL"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:126
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "IR"
 msgstr "IR"
@@ -3382,7 +3382,7 @@ msgstr ""
 msgid "Interface"
 msgstr "인터페이스"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
 msgid "Interface Settings"
 msgstr "인터페이스 설정"
 
@@ -3423,7 +3423,7 @@ msgstr "소개화면"
 msgid "Invalid bat.map or dir entry."
 msgstr "비적합 bat.map 혹은 디렉토리 엔트리."
 
-#: Source/Core/Core/CoreTiming.cpp:499
+#: Source/Core/Core/CoreTiming.cpp:496
 #, c-format
 msgid "Invalid event type %i"
 msgstr "부적합한 이벤트 타입 %i"
@@ -3432,7 +3432,7 @@ msgstr "부적합한 이벤트 타입 %i"
 msgid "Invalid file"
 msgstr "부적합 파일"
 
-#: Source/Core/Core/NetPlayClient.cpp:828
+#: Source/Core/Core/NetPlayClient.cpp:841
 msgid "Invalid host"
 msgstr "부적합 호스트"
 
@@ -3440,7 +3440,7 @@ msgstr "부적합 호스트"
 msgid "Invalid index"
 msgstr "부적합 목록"
 
-#: Source/Core/Core/Movie.cpp:851
+#: Source/Core/Core/Movie.cpp:885
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -3554,7 +3554,7 @@ msgstr "L 버튼"
 msgid "L-Analog"
 msgstr "L-아날로그"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:129
 msgid "Language:"
 msgstr "언어:"
 
@@ -3576,7 +3576,7 @@ msgstr "왼쪽"
 msgid "Left Stick"
 msgstr "왼쪽 스틱"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:235
+#: Source/Core/DolphinWX/TASInputDlg.cpp:253
 msgid "Left stick"
 msgstr "왼쪽 스틱"
 
@@ -3796,7 +3796,7 @@ msgstr "로거 출력"
 msgid "Logging"
 msgstr "로깅"
 
-#: Source/Core/Core/NetPlayClient.cpp:563
+#: Source/Core/Core/NetPlayClient.cpp:566
 msgid "Lost connection to server!"
 msgstr "서버에 연결을 잃어버림!"
 
@@ -3813,7 +3813,7 @@ msgstr "MD5 체크섬:"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz 게임샤크 파일들(*.gcs)"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:328
+#: Source/Core/DolphinWX/TASInputDlg.cpp:346
 msgid "Main Stick"
 msgstr "메인 스틱"
 
@@ -4102,7 +4102,7 @@ msgstr "원본 GCI 파일들(*.gci)"
 msgid "Netherlands"
 msgstr "네덜란드"
 
-#: Source/Core/Core/NetPlayClient.cpp:994
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "넷플레이가 갈렸습니다. 이것으로부터 복구할 방법이 없습니다."
 
@@ -4167,7 +4167,7 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "설정 안함"
 
-#: Source/Core/DolphinWX/Main.cpp:491
+#: Source/Core/DolphinWX/Main.cpp:516
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -4195,11 +4195,11 @@ msgstr "코드 번호:"
 msgid "Nunchuk"
 msgstr "눈처크"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:178
+#: Source/Core/DolphinWX/TASInputDlg.cpp:190
 msgid "Nunchuk orientation"
 msgstr "눈처크 방향"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:173
+#: Source/Core/DolphinWX/TASInputDlg.cpp:185
 msgid "Nunchuk stick"
 msgstr "눈처크 스틱"
 
@@ -4224,7 +4224,7 @@ msgstr "끔"
 msgid "Offset:"
 msgstr "오프셋:"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:102
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:110
 msgid "On-Screen Display Messages"
 msgstr "온-스크린 메시지 보여주기"
 
@@ -4296,7 +4296,7 @@ msgstr ""
 "우클릭하시고 모든 세이브들을 내보네세요,\n"
 "그리고 새로운 메모리카드로 세이브들을 가져오세요\n"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:131
+#: Source/Core/DolphinWX/TASInputDlg.cpp:138
 msgid "Orientation"
 msgstr "방향"
 
@@ -4305,7 +4305,7 @@ msgstr "방향"
 msgid "Other"
 msgstr "다른 것들"
 
-#: Source/Core/Core/NetPlayClient.cpp:410
+#: Source/Core/Core/NetPlayClient.cpp:413
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
@@ -4372,11 +4372,11 @@ msgstr "일시정지"
 msgid "Pause at End of Movie"
 msgstr "무비의 끝에서 멈추기"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:111
 msgid "Pause on Focus Lost"
 msgstr "포커스 잃을 시 멈추기"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:125
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "에뮬레이션 윈도우로부터 포커스가 없어졌을 때 에뮬레이터를 멈춥니다."
 
@@ -4454,17 +4454,17 @@ msgstr "후-처리 효과:"
 msgid "Prefetch Custom Textures"
 msgstr "프리패치 커스텀 텍스처"
 
-#: Source/Core/Core/Movie.cpp:1058
+#: Source/Core/Core/Movie.cpp:1095
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "PlayController에 영상마무리가 미완성되었습니다. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1177
+#: Source/Core/Core/Movie.cpp:1223
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "PlayWiimote에 영상 마무리가 미완성되었습니다. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1202
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "PlayWiimote에 영상 마무리가 미완성되었습니다. %u > %u"
@@ -4688,7 +4688,7 @@ msgstr "오른쪽"
 msgid "Right Stick"
 msgstr "오른쪽 스틱"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:236
+#: Source/Core/DolphinWX/TASInputDlg.cpp:254
 msgid "Right stick"
 msgstr "오른쪽 스틱"
 
@@ -4801,7 +4801,7 @@ msgstr "선택된 슬롯에 저장합니다"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "/Wii/sd.raw 에 저장되었습니다 (기본 크기 128mb)"
 
-#: Source/Core/Core/Movie.cpp:918
+#: Source/Core/Core/Movie.cpp:953
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "%s 영상 상태저장이 손상되었습니다, 영상 기록 중지..."
@@ -5071,7 +5071,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사용하는 포트이다."
 
-#: Source/Core/Core/NetPlayClient.cpp:825
+#: Source/Core/Core/NetPlayClient.cpp:838
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
@@ -5123,8 +5123,8 @@ msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 msgid "Shake"
 msgstr "흔들기"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:241
-#: Source/Core/DolphinWX/TASInputDlg.cpp:333
+#: Source/Core/DolphinWX/TASInputDlg.cpp:259
+#: Source/Core/DolphinWX/TASInputDlg.cpp:351
 msgid "Shoulder Buttons"
 msgstr "숄더 버튼"
 
@@ -5256,11 +5256,11 @@ msgstr "Wii"
 msgid "Show World"
 msgstr "세계 보기"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:122
 msgid "Show a confirmation box before stopping a game."
 msgstr "게임을 멈추기 전에 확인 상자 보여주기."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -5747,7 +5747,7 @@ msgstr "이름은 비워둘 수 없습니다"
 msgid "The name cannot contain the character ','"
 msgstr "이름은 ',' 문자를 포함할 수 없습니다"
 
-#: Source/Core/Core/Movie.cpp:183
+#: Source/Core/Core/Movie.cpp:195
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "기록된 게임 (%s) 은 선택된 게임 (%s) 과 같지 않습니다"
@@ -5760,7 +5760,7 @@ msgstr "해독된 AR 코드 결과가 없습니다."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "당신이 복사하려는 저장은 부적합한 파일 크기입니다."
 
-#: Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:337
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -5768,19 +5768,19 @@ msgstr ""
 "선택된 언어는 당신의 시스템에서 지원되지 않습니다. 시스템 디폴트로 돌아갑니"
 "다."
 
-#: Source/Core/Core/NetPlayClient.cpp:194
+#: Source/Core/Core/NetPlayClient.cpp:197
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "서버와 클라이언트의 넷플레이 버전들이 호환되지 않는다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:191
+#: Source/Core/Core/NetPlayClient.cpp:194
 msgid "The server is full!"
 msgstr "서버가 가득참!"
 
-#: Source/Core/Core/NetPlayClient.cpp:197
+#: Source/Core/Core/NetPlayClient.cpp:200
 msgid "The server responded: the game is currently running!"
 msgstr "서버가 응답했습니다: 그 게임은 현재 구동중이다!"
 
-#: Source/Core/Core/NetPlayClient.cpp:200
+#: Source/Core/Core/NetPlayClient.cpp:203
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 
@@ -5793,7 +5793,7 @@ msgstr "기술된 \"%s\" 파일은 존재하지 않는다"
 msgid "The value is invalid"
 msgstr "값이 부적합 합니다"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:131
 msgid "Theme:"
 msgstr "테마:"
 
@@ -5989,7 +5989,7 @@ msgstr "횡단 서버"
 msgid "Traversal Server:"
 msgstr "횡단 서버:"
 
-#: Source/Core/Core/NetPlayClient.cpp:822
+#: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
 msgstr "횡단 서버가 호스트에 연결이 시간초과되었습니다"
 
@@ -6091,7 +6091,7 @@ msgstr "예상하지 못한 0x80 콜? 중단시킴..."
 msgid "Unknown"
 msgstr "알려지지 않은"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1252
+#: Source/Core/Core/HW/DVDInterface.cpp:1251
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
@@ -6101,7 +6101,7 @@ msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "알려지지 않은 엔트리 타입 %i SYSCONF (%s@%x)안에!"
 
-#: Source/Core/Core/NetPlayClient.cpp:831
+#: Source/Core/Core/NetPlayClient.cpp:844
 #, c-format
 msgid "Unknown error %x"
 msgstr "알려지지 않은 오류 %x"
@@ -6111,7 +6111,7 @@ msgstr "알려지지 않은 오류 %x"
 msgid "Unknown memory card error"
 msgstr "알려지지 않은 메모리 카드 오류"
 
-#: Source/Core/Core/NetPlayClient.cpp:481
+#: Source/Core/Core/NetPlayClient.cpp:484
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "id : %d의 알려지지 않은 메시지를 받었다"
@@ -6155,7 +6155,7 @@ msgstr "16진수 사용"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "PAL60 모드 (EuRGB60) 사용"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:109
 msgid "Use Panic Handlers"
 msgstr "패닉 핸들러 사용"
 
@@ -6307,7 +6307,7 @@ msgstr ""
 "그리고 당신의 메모리카드에 파일로 같은 이름을 가집니다\n"
 "계속합니까?"
 
-#: Source/Core/Core/Movie.cpp:964
+#: Source/Core/Core/Movie.cpp:999
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6318,7 +6318,7 @@ msgstr ""
 "%u > %u). You should load another save before continuing, or load this state "
 "with read-only mode off."
 
-#: Source/Core/Core/Movie.cpp:941
+#: Source/Core/Core/Movie.cpp:976
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6328,7 +6328,7 @@ msgstr ""
 "경고: 당신은 저장 (byte %u < %u) (frame %u < %u)에서 저장의 무비가 현재 프레"
 "임 전에 끝나는 저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:981
+#: Source/Core/Core/Movie.cpp:1016
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6339,7 +6339,7 @@ msgstr ""
 "전에 다른 세이브를 로드해야합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그"
 "렇지 않으면 아마도 싱크 어긋남이 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:991
+#: Source/Core/Core/Movie.cpp:1026
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6431,7 +6431,7 @@ msgstr "위모트 %i"
 msgid "Wiimote %i %s"
 msgstr "위모트 %i %s"
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:518
 msgid "Wiimote Connected"
 msgstr "위모트가 연결됨"
 
@@ -6487,7 +6487,7 @@ msgstr "윈도우에 쓰기"
 msgid "Write to memcards/SD"
 msgstr "메모리카드/SD에 기록합니다"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:430
+#: Source/Core/DolphinWX/TASInputDlg.cpp:454
 msgid "X"
 msgstr "X"
 
@@ -6495,7 +6495,7 @@ msgstr "X"
 msgid "XF register "
 msgstr "XF 레지스터"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:431
+#: Source/Core/DolphinWX/TASInputDlg.cpp:455
 msgid "Y"
 msgstr "Y"
 
@@ -6523,7 +6523,7 @@ msgstr "적합한 10진수나 16진수나 8진수 값을 넣어야 합니다."
 msgid "You must enter a valid profile name."
 msgstr "적합한 프로파일 이름을 넣어야 합니다."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:199
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:207
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "변경이 적용되려면 돌핀을 재시작 해야 합니다."
 
@@ -6556,7 +6556,7 @@ msgstr ""
 "0x%04x 이어야 합니다(하지만 0x%04<PRIx64> 입니다)\n"
 "새로운 것을 생성하시겠습니까?"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:432
+#: Source/Core/DolphinWX/TASInputDlg.cpp:456
 msgid "Z"
 msgstr "Z"
 

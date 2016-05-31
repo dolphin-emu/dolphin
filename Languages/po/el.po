@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-15 20:30+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Greek (http://www.transifex.com/delroth/dolphin-emu/language/"
 "el/)\n"
@@ -516,7 +516,7 @@ msgstr "<Δε βρέθηκαν αναλύσεις>"
 msgid "<Nothing>"
 msgstr "<Τίποτα>"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:76
 msgid "<System Language>"
 msgstr "<Γλώσσα Συστήματος>"
 
@@ -1017,9 +1017,9 @@ msgstr "Εύρεση φακέλου προορισμού"
 msgid "Buffer:"
 msgstr "Buffer:"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:133
-#: Source/Core/DolphinWX/TASInputDlg.cpp:247
-#: Source/Core/DolphinWX/TASInputDlg.cpp:347
+#: Source/Core/DolphinWX/TASInputDlg.cpp:140
+#: Source/Core/DolphinWX/TASInputDlg.cpp:265
+#: Source/Core/DolphinWX/TASInputDlg.cpp:365
 #: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "Κουμπιά"
@@ -1036,7 +1036,7 @@ msgstr ""
 "Προσπελάστε τον καθαρισμό της cache δεδομένων από την εντολή DCBZ. "
 "Προτείνεται συνήθως να αφήνεται αυτή η επιλογή απενεργοποιημένη."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:331
+#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 #: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "C Stick"
 msgstr "Stick Κάμερας "
@@ -1088,7 +1088,7 @@ msgstr ""
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1868
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1870
 #, c-format
 msgid "Can't find Wiimote by connection handle %02x"
 msgstr "Αδυναμία εύρεσης του Wiimote με handle σύνδεσης %02x"
@@ -1137,12 +1137,12 @@ msgstr "Αλλαγή Δίσκου"
 msgid "Change Game"
 msgstr "Αλλαγή Παιχνιδιού"
 
-#: Source/Core/Core/Movie.cpp:1138
+#: Source/Core/Core/Movie.cpp:1183
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Αλλαγή Δίσκου Σε %s"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1327,7 +1327,7 @@ msgstr "Γενικές Ρυθμίσεις..."
 msgid "Confirm File Overwrite"
 msgstr "Επιβεβαίωση Αντικατάστασης Αρχείου"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
 msgid "Confirm on Stop"
 msgstr "Επιβεβαίωση Διακοπής"
 
@@ -1374,7 +1374,7 @@ msgstr "Σύνδεση Wiimotes"
 msgid "Connected"
 msgstr "Συνδεδεμένο"
 
-#: Source/Core/DolphinWX/Main.cpp:492
+#: Source/Core/DolphinWX/Main.cpp:517
 msgid "Connecting..."
 msgstr "Γίνεται Σύνδεση..."
 
@@ -1496,11 +1496,11 @@ msgstr ""
 "Άμα ναι, τότε μπορεί να χρειαστεί να ορίσετε ξανά την θέση της κάρτας μνήμης "
 "στις ρυθμίσεις."
 
-#: Source/Core/Core/NetPlayClient.cpp:74
+#: Source/Core/Core/NetPlayClient.cpp:77
 msgid "Couldn't Create Client"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:85
+#: Source/Core/Core/NetPlayClient.cpp:88
 msgid "Couldn't create peer."
 msgstr ""
 
@@ -1814,7 +1814,7 @@ msgstr ""
 msgid "Display"
 msgstr "Οθόνη"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:116
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:124
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -2044,7 +2044,7 @@ msgstr ""
 msgid "Empty"
 msgstr "Κενή"
 
-#: Source/Core/Core/Core.cpp:220
+#: Source/Core/Core/Core.cpp:232
 msgid "Emu Thread already running"
 msgstr "Το νήμα εξομοίωσης εκτελείται ήδη"
 
@@ -2286,7 +2286,7 @@ msgstr "Εγγραφή 1/%d"
 msgid "Equal"
 msgstr "Ίσο"
 
-#: Source/Core/DolphinWX/Main.cpp:329 Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:331 Source/Core/DolphinWX/Main.cpp:337
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
@@ -2294,7 +2294,7 @@ msgstr "Ίσο"
 msgid "Error"
 msgstr "Σφάλμα"
 
-#: Source/Core/DolphinWX/Main.cpp:329
+#: Source/Core/DolphinWX/Main.cpp:331
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Αποτυχία φόρτωσης της επιλεγμένης γλώσσας. Επαναφορά στην προεπιλογή "
@@ -2439,11 +2439,11 @@ msgstr "Αναπαραγωγή FIFO"
 msgid "FST Size:"
 msgstr "Μέγεθος FST:"
 
-#: Source/Core/Core/NetPlayClient.cpp:156
+#: Source/Core/Core/NetPlayClient.cpp:159
 msgid "Failed To Connect!"
 msgstr "Αποτυχία Σύνδεσης!"
 
-#: Source/Core/Core/NetPlayClient.cpp:100
+#: Source/Core/Core/NetPlayClient.cpp:103
 msgid "Failed to Connect!"
 msgstr "Αποτυχία σύνδεσης!"
 
@@ -2489,7 +2489,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:909
+#: Source/Core/Core/Movie.cpp:944
 #, c-format
 msgid "Failed to read %s"
 msgstr "Αποτυχία ανάγνωσης %s"
@@ -2575,7 +2575,7 @@ msgstr "Γρήγορη"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1167
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2916,11 +2916,11 @@ msgstr "ID Παιχνιδιού"
 msgid "Game ID:"
 msgstr "ID Παιχνιδιού:"
 
-#: Source/Core/Core/NetPlayClient.cpp:693
+#: Source/Core/Core/NetPlayClient.cpp:696
 msgid "Game is already running!"
 msgstr "Το παιχνίδι εκτελείται ήδη!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1009
+#: Source/Core/Core/NetPlayClient.cpp:1029
 msgid "Game isn't running!"
 msgstr "Το παιχνίδι δεν εκτελείται!"
 
@@ -3104,7 +3104,7 @@ msgstr "Host"
 msgid "Host Code :"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:108
+#: Source/Core/Core/NetPlayClient.cpp:111
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -3155,7 +3155,7 @@ msgstr "Ρυθμίσεις IPL"
 msgid "IPL with unknown hash %x"
 msgstr "IPL με άγνωστο hash %x"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:126
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "IR"
 msgstr "IR"
@@ -3332,7 +3332,7 @@ msgstr ""
 msgid "Interface"
 msgstr "Διεπαφή"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
 msgid "Interface Settings"
 msgstr "Ρυθμίσεις Διεπαφής"
 
@@ -3373,7 +3373,7 @@ msgstr "Εισαγωγή"
 msgid "Invalid bat.map or dir entry."
 msgstr "Μη έγκυρο bat.map ή εγγραφή φακέλου"
 
-#: Source/Core/Core/CoreTiming.cpp:499
+#: Source/Core/Core/CoreTiming.cpp:496
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Μη έγκυρος τύπος συμβάντος %i"
@@ -3382,7 +3382,7 @@ msgstr "Μη έγκυρος τύπος συμβάντος %i"
 msgid "Invalid file"
 msgstr "Μη έγκυρο αρχείο"
 
-#: Source/Core/Core/NetPlayClient.cpp:828
+#: Source/Core/Core/NetPlayClient.cpp:841
 msgid "Invalid host"
 msgstr "Μη έγκυρος host"
 
@@ -3390,7 +3390,7 @@ msgstr "Μη έγκυρος host"
 msgid "Invalid index"
 msgstr "Μη έγκυρο ευρετήριο"
 
-#: Source/Core/Core/Movie.cpp:851
+#: Source/Core/Core/Movie.cpp:885
 msgid "Invalid recording file"
 msgstr "Μη έγκυρο αρχείο εγγραφής"
 
@@ -3504,7 +3504,7 @@ msgstr "L Button"
 msgid "L-Analog"
 msgstr "L-Αναλογική"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:129
 msgid "Language:"
 msgstr "Γλώσσα:"
 
@@ -3526,7 +3526,7 @@ msgstr "Αριστερά"
 msgid "Left Stick"
 msgstr "Αριστερό Stick"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:235
+#: Source/Core/DolphinWX/TASInputDlg.cpp:253
 msgid "Left stick"
 msgstr "Αριστερό Stick"
 
@@ -3741,7 +3741,7 @@ msgstr "Έξοδοι Καταγραφής"
 msgid "Logging"
 msgstr "Καταγραφή"
 
-#: Source/Core/Core/NetPlayClient.cpp:563
+#: Source/Core/Core/NetPlayClient.cpp:566
 msgid "Lost connection to server!"
 msgstr "Χάθηκε η σύνδεση με τον διακομιστή!"
 
@@ -3758,7 +3758,7 @@ msgstr "MD5 Checksum:"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "Αρχεία MadCatz Gameshark (*.gcs)"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:328
+#: Source/Core/DolphinWX/TASInputDlg.cpp:346
 msgid "Main Stick"
 msgstr "Κύριο Stick"
 
@@ -4051,7 +4051,7 @@ msgstr "Αρχεία Native GCI (*.gci)"
 msgid "Netherlands"
 msgstr "Ολλανδία"
 
-#: Source/Core/Core/NetPlayClient.cpp:994
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 "Το NetPlay έχει αποσυγχρονιστεί. Δεν υπάρχει κανένας τρόπος για να "
@@ -4117,7 +4117,7 @@ msgstr "Όχι ίσο"
 msgid "Not Set"
 msgstr "Μη Ορισμένο"
 
-#: Source/Core/DolphinWX/Main.cpp:491
+#: Source/Core/DolphinWX/Main.cpp:516
 msgid "Not connected"
 msgstr "Μη Συνδεδεμένο"
 
@@ -4145,11 +4145,11 @@ msgstr "Αριθμός Κωδικών: "
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:178
+#: Source/Core/DolphinWX/TASInputDlg.cpp:190
 msgid "Nunchuk orientation"
 msgstr "Nunchuk προσανατολισμός"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:173
+#: Source/Core/DolphinWX/TASInputDlg.cpp:185
 msgid "Nunchuk stick"
 msgstr "Nunchuk stick"
 
@@ -4174,7 +4174,7 @@ msgstr "Ανενεργός"
 msgid "Offset:"
 msgstr "Offset:"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:102
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:110
 msgid "On-Screen Display Messages"
 msgstr "Απεικόνιση Μηνυμάτων Στην Οθόνη"
 
@@ -4248,7 +4248,7 @@ msgstr ""
 "Κάντε δεξί κλίκ, εξάγετε όλα τα αρχεία αποθήκευσης\n"
 "και εισάγετέ τα σε μία νέα κάρτα μνήμης.\n"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:131
+#: Source/Core/DolphinWX/TASInputDlg.cpp:138
 msgid "Orientation"
 msgstr "Προσανατολισμός"
 
@@ -4257,7 +4257,7 @@ msgstr "Προσανατολισμός"
 msgid "Other"
 msgstr "Άλλα"
 
-#: Source/Core/Core/NetPlayClient.cpp:410
+#: Source/Core/Core/NetPlayClient.cpp:413
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
@@ -4322,11 +4322,11 @@ msgstr "Παύση"
 msgid "Pause at End of Movie"
 msgstr "Παύση στο Τέλος της Ταινίας"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:111
 msgid "Pause on Focus Lost"
 msgstr "Παύση Όταν Χάνεται η Εστίαση"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:125
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
 "Προκαλεί παύση στην εξομοίωση όταν χάνεται η εστίαση από το παράθυρο "
@@ -4406,17 +4406,17 @@ msgstr "Post-Processing Εφέ:"
 msgid "Prefetch Custom Textures"
 msgstr "Προφόρτωση Τροποποιημένων Υφών"
 
-#: Source/Core/Core/Movie.cpp:1058
+#: Source/Core/Core/Movie.cpp:1095
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1177
+#: Source/Core/Core/Movie.cpp:1223
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1202
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Πρόωρος τερματισμός της ταινίας σε PlayWiimote. %u > %u"
@@ -4633,7 +4633,7 @@ msgstr "Δεξιά"
 msgid "Right Stick"
 msgstr "Δεξί Stick"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:236
+#: Source/Core/DolphinWX/TASInputDlg.cpp:254
 msgid "Right stick"
 msgstr "Δεξί Stick"
 
@@ -4746,7 +4746,7 @@ msgstr "Αποθήκευση στην επιλεγμένη θέση"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Αποθηκεύτηκε σε /Wii/sd.raw (το προεπιλεγμένο μέγεθος είναι 128mb)"
 
-#: Source/Core/Core/Movie.cpp:918
+#: Source/Core/Core/Movie.cpp:953
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr ""
@@ -4987,7 +4987,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:825
+#: Source/Core/Core/NetPlayClient.cpp:838
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5039,8 +5039,8 @@ msgstr "SetupWiiMemory: Αδυναμία δημιουργίας αρχείου s
 msgid "Shake"
 msgstr "Κούνημα"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:241
-#: Source/Core/DolphinWX/TASInputDlg.cpp:333
+#: Source/Core/DolphinWX/TASInputDlg.cpp:259
+#: Source/Core/DolphinWX/TASInputDlg.cpp:351
 msgid "Shoulder Buttons"
 msgstr "Κουμπιά Shoulder"
 
@@ -5172,11 +5172,11 @@ msgstr "Εμφάνιση Wii"
 msgid "Show World"
 msgstr "Εμφάνιση Κόσμου"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:122
 msgid "Show a confirmation box before stopping a game."
 msgstr "Εμφάνιση επιβεβαίωσης πριν τη διακοπή ενός παιχνιδιού."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -5630,7 +5630,7 @@ msgstr "Το όνομα δεν μπορεί να είναι κενό"
 msgid "The name cannot contain the character ','"
 msgstr "Το όνομα δεν μπορεί να περιέχει τον χαρακτήρα ','"
 
-#: Source/Core/Core/Movie.cpp:183
+#: Source/Core/Core/Movie.cpp:195
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5644,7 +5644,7 @@ msgstr ""
 msgid "The save you are trying to copy has an invalid file size."
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:337
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -5652,19 +5652,19 @@ msgstr ""
 "Η επιλεγμένη γλώσσα δεν υποστηρίζεται από το σύστημά σας. Επαναφορά στην "
 "προεπιλογή συστήματος."
 
-#: Source/Core/Core/NetPlayClient.cpp:194
+#: Source/Core/Core/NetPlayClient.cpp:197
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "Οι εκδόσεις NetPlay του διακομιστή και του πελάτη δεν είναι συμβατές!"
 
-#: Source/Core/Core/NetPlayClient.cpp:191
+#: Source/Core/Core/NetPlayClient.cpp:194
 msgid "The server is full!"
 msgstr "Ο διακομιστής είναι γεμάτος!"
 
-#: Source/Core/Core/NetPlayClient.cpp:197
+#: Source/Core/Core/NetPlayClient.cpp:200
 msgid "The server responded: the game is currently running!"
 msgstr "Ο διακομιστής απάντησε: το παιχνίδι τρέχει!"
 
-#: Source/Core/Core/NetPlayClient.cpp:200
+#: Source/Core/Core/NetPlayClient.cpp:203
 msgid "The server sent an unknown error message!"
 msgstr "Ο διακομιστής επέστρεψε ένα άγνωστο μήνυμα σφάλματος!"
 
@@ -5677,7 +5677,7 @@ msgstr "Το επιλεγμένο αρχείο \"%s\" δεν υπάρχει"
 msgid "The value is invalid"
 msgstr "Η τιμή είναι άκυρη"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:131
 msgid "Theme:"
 msgstr "Θέμα:"
 
@@ -5856,7 +5856,7 @@ msgstr ""
 msgid "Traversal Server:"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:822
+#: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5959,7 +5959,7 @@ msgstr "Αναπάντεχη 0x80 κλήση; Ματαίωση..."
 msgid "Unknown"
 msgstr "Άγνωστο"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1252
+#: Source/Core/Core/HW/DVDInterface.cpp:1251
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Άγνωστη εντολή DVD %08x - κρίσιμο σφάλμα"
@@ -5969,7 +5969,7 @@ msgstr "Άγνωστη εντολή DVD %08x - κρίσιμο σφάλμα"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Άγνωστος τύπος καταχώρησης %i στο SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:831
+#: Source/Core/Core/NetPlayClient.cpp:844
 #, c-format
 msgid "Unknown error %x"
 msgstr "Άγνωστο σφάλμα %x"
@@ -5979,7 +5979,7 @@ msgstr "Άγνωστο σφάλμα %x"
 msgid "Unknown memory card error"
 msgstr "Άγνωστο σφάλμα της κάρτας μνήμης"
 
-#: Source/Core/Core/NetPlayClient.cpp:481
+#: Source/Core/Core/NetPlayClient.cpp:484
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Ελήφθη άγνωστο μήνυμα με id : %d"
@@ -6022,7 +6022,7 @@ msgstr "Χρήση Hex"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "Χρήση Λειτουργίας  PAL60 (EuRGB60)"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:109
 msgid "Use Panic Handlers"
 msgstr "Χρήση Οθονών Πανικού"
 
@@ -6169,7 +6169,7 @@ msgstr ""
 "και έχουν το ίδιο όνομα με αρχεία στη memcard\n"
 "Συνέχεια;"
 
-#: Source/Core/Core/Movie.cpp:964
+#: Source/Core/Core/Movie.cpp:999
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6181,7 +6181,7 @@ msgstr ""
 "φορτώσετε άλλο σημείο αποθήκευσης πρωτού συνεχίσετε ή να φορτώσετε το τρέχων "
 "με απενεργοποιημένη την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής)."
 
-#: Source/Core/Core/Movie.cpp:941
+#: Source/Core/Core/Movie.cpp:976
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6189,7 +6189,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:981
+#: Source/Core/Core/Movie.cpp:1016
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6202,7 +6202,7 @@ msgstr ""
 "την λειτουργία Μόνο Για Ανάγνωση (Εγγραφής). Ειδάλλως πιθανώς θα εμφανιστεί "
 "ασυγχρονισμός."
 
-#: Source/Core/Core/Movie.cpp:991
+#: Source/Core/Core/Movie.cpp:1026
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6296,7 +6296,7 @@ msgstr "Wiimote %i"
 msgid "Wiimote %i %s"
 msgstr "Wiimote %i %s"
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:518
 msgid "Wiimote Connected"
 msgstr "Συνδεδεμένο Wiimote"
 
@@ -6352,7 +6352,7 @@ msgstr "Εγγραφή στο Παράθυρο"
 msgid "Write to memcards/SD"
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:430
+#: Source/Core/DolphinWX/TASInputDlg.cpp:454
 msgid "X"
 msgstr "X"
 
@@ -6360,7 +6360,7 @@ msgstr "X"
 msgid "XF register "
 msgstr "XF Καταχωρητές"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:431
+#: Source/Core/DolphinWX/TASInputDlg.cpp:455
 msgid "Y"
 msgstr "Y"
 
@@ -6388,7 +6388,7 @@ msgstr "Πρέπει να εισάγετε μία έγκυρη οκταδική 
 msgid "You must enter a valid profile name."
 msgstr "Πρέπει να εισάγετε ένα έγκυρο όνομα προφίλ."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:199
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:207
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr ""
 "Πρέπει να κάνετε επανεκκίνηση του Dolphin για να έχει επίπτωση αυτή η αλλαγή."
@@ -6422,7 +6422,7 @@ msgstr ""
 "Θα έπρεπε να είναι 0x%04x (αλλά είναι 0x%04<PRIx64>)\n"
 "Θέλετε να δημιουργηθεί ένα καινούριο;"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:432
+#: Source/Core/DolphinWX/TASInputDlg.cpp:456
 msgid "Z"
 msgstr "Z"
 

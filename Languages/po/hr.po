@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-15 20:30+0000\n"
-"PO-Revision-Date: 2016-05-09 20:51+0000\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Croatian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/hr/)\n"
@@ -479,7 +479,7 @@ msgstr "<Rezolucija nije pronađena>"
 msgid "<Nothing>"
 msgstr "<Ništa>"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:76
 msgid "<System Language>"
 msgstr ""
 
@@ -966,9 +966,9 @@ msgstr "Potraži izlazni direktorij"
 msgid "Buffer:"
 msgstr "Međuspremnik:"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:133
-#: Source/Core/DolphinWX/TASInputDlg.cpp:247
-#: Source/Core/DolphinWX/TASInputDlg.cpp:347
+#: Source/Core/DolphinWX/TASInputDlg.cpp:140
+#: Source/Core/DolphinWX/TASInputDlg.cpp:265
+#: Source/Core/DolphinWX/TASInputDlg.cpp:365
 #: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "Tipke"
@@ -985,7 +985,7 @@ msgstr ""
 "Čišćenje predmemorije DCBZ naredbama se preskače. Obično se ova opcija "
 "ostavi onemogućena."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:331
+#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 #: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "C Stick"
 msgstr "C Gljiva"
@@ -1024,7 +1024,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1868
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1870
 #, c-format
 msgid "Can't find Wiimote by connection handle %02x"
 msgstr ""
@@ -1070,12 +1070,12 @@ msgstr "Promjeni disk"
 msgid "Change Game"
 msgstr "Promjeni igru"
 
-#: Source/Core/Core/Movie.cpp:1138
+#: Source/Core/Core/Movie.cpp:1183
 #, c-format
 msgid "Change the disc to %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1260,7 +1260,7 @@ msgstr "Podesi..."
 msgid "Confirm File Overwrite"
 msgstr "Potvrdite pisanje preko datoteke"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
 msgid "Confirm on Stop"
 msgstr "Potvrdite zaustavljanje igre"
 
@@ -1307,7 +1307,7 @@ msgstr ""
 msgid "Connected"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:492
+#: Source/Core/DolphinWX/Main.cpp:517
 msgid "Connecting..."
 msgstr "Spajanje..."
 
@@ -1424,11 +1424,11 @@ msgstr ""
 "Ako je tako, u postavkama ćete trebati ponovno unijeti lokaciju memorijske "
 "kartice."
 
-#: Source/Core/Core/NetPlayClient.cpp:74
+#: Source/Core/Core/NetPlayClient.cpp:77
 msgid "Couldn't Create Client"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:85
+#: Source/Core/Core/NetPlayClient.cpp:88
 msgid "Couldn't create peer."
 msgstr ""
 
@@ -1738,7 +1738,7 @@ msgstr ""
 msgid "Display"
 msgstr "Prikaz"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:116
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:124
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -1955,7 +1955,7 @@ msgstr ""
 msgid "Empty"
 msgstr ""
 
-#: Source/Core/Core/Core.cpp:220
+#: Source/Core/Core/Core.cpp:232
 msgid "Emu Thread already running"
 msgstr "Emu Thread je već pokrenut"
 
@@ -2187,7 +2187,7 @@ msgstr "Ulazak 1/%d"
 msgid "Equal"
 msgstr "Jednako"
 
-#: Source/Core/DolphinWX/Main.cpp:329 Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:331 Source/Core/DolphinWX/Main.cpp:337
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
@@ -2195,7 +2195,7 @@ msgstr "Jednako"
 msgid "Error"
 msgstr "Pogreška"
 
-#: Source/Core/DolphinWX/Main.cpp:329
+#: Source/Core/DolphinWX/Main.cpp:331
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Pogreška u čitanju odabranoga jezika. Vraćam na standardne vrijednosti."
@@ -2338,11 +2338,11 @@ msgstr "FIFO Pokretač Datoteka"
 msgid "FST Size:"
 msgstr "FST Veličina:"
 
-#: Source/Core/Core/NetPlayClient.cpp:156
+#: Source/Core/Core/NetPlayClient.cpp:159
 msgid "Failed To Connect!"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:100
+#: Source/Core/Core/NetPlayClient.cpp:103
 msgid "Failed to Connect!"
 msgstr "Povezivanje nije uspjelo!"
 
@@ -2388,7 +2388,7 @@ msgid ""
 "media can be written."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:909
+#: Source/Core/Core/Movie.cpp:944
 #, c-format
 msgid "Failed to read %s"
 msgstr "Neuspjeh u čitanju %s"
@@ -2474,7 +2474,7 @@ msgstr "Brzo"
 msgid "Fast Depth Calculation"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1167
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2808,11 +2808,11 @@ msgstr ""
 msgid "Game ID:"
 msgstr "Identifikacija Igre:"
 
-#: Source/Core/Core/NetPlayClient.cpp:693
+#: Source/Core/Core/NetPlayClient.cpp:696
 msgid "Game is already running!"
 msgstr "Igra je već pokrenuta!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1009
+#: Source/Core/Core/NetPlayClient.cpp:1029
 msgid "Game isn't running!"
 msgstr "Igra nije pokrenuta!"
 
@@ -2984,7 +2984,7 @@ msgstr "Domaćin"
 msgid "Host Code :"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:108
+#: Source/Core/Core/NetPlayClient.cpp:111
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
@@ -3030,7 +3030,7 @@ msgstr "IPL Postavke"
 msgid "IPL with unknown hash %x"
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:126
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "IR"
 msgstr "IR"
@@ -3190,7 +3190,7 @@ msgstr ""
 msgid "Interface"
 msgstr "Sučelje"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
 msgid "Interface Settings"
 msgstr "Postavke Sučelja"
 
@@ -3231,7 +3231,7 @@ msgstr "Uvod"
 msgid "Invalid bat.map or dir entry."
 msgstr ""
 
-#: Source/Core/Core/CoreTiming.cpp:499
+#: Source/Core/Core/CoreTiming.cpp:496
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Nevažeći tip događaja %i"
@@ -3240,7 +3240,7 @@ msgstr "Nevažeći tip događaja %i"
 msgid "Invalid file"
 msgstr "Nevažeća datoteka"
 
-#: Source/Core/Core/NetPlayClient.cpp:828
+#: Source/Core/Core/NetPlayClient.cpp:841
 msgid "Invalid host"
 msgstr ""
 
@@ -3248,7 +3248,7 @@ msgstr ""
 msgid "Invalid index"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:851
+#: Source/Core/Core/Movie.cpp:885
 msgid "Invalid recording file"
 msgstr "Nevažeći video snimak"
 
@@ -3362,7 +3362,7 @@ msgstr "L Tipka"
 msgid "L-Analog"
 msgstr "L-Analog"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:129
 msgid "Language:"
 msgstr "Jezik:"
 
@@ -3384,7 +3384,7 @@ msgstr "Lijevo"
 msgid "Left Stick"
 msgstr "Lijeva Gljiva"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:235
+#: Source/Core/DolphinWX/TASInputDlg.cpp:253
 msgid "Left stick"
 msgstr ""
 
@@ -3591,7 +3591,7 @@ msgstr "Ispisi Bilježenja"
 msgid "Logging"
 msgstr "Bilježenje"
 
-#: Source/Core/Core/NetPlayClient.cpp:563
+#: Source/Core/Core/NetPlayClient.cpp:566
 msgid "Lost connection to server!"
 msgstr "Izgubljena veza sa serverom!"
 
@@ -3608,7 +3608,7 @@ msgstr ""
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz Gameshark datoteke(*.gcs)"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:328
+#: Source/Core/DolphinWX/TASInputDlg.cpp:346
 msgid "Main Stick"
 msgstr "Glavna Gljiva"
 
@@ -3896,7 +3896,7 @@ msgstr "Izvorne GCI datoteke(*.gci)"
 msgid "Netherlands"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:994
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
 
@@ -3960,7 +3960,7 @@ msgstr "Nije Jednako"
 msgid "Not Set"
 msgstr "Nije Postavljeno"
 
-#: Source/Core/DolphinWX/Main.cpp:491
+#: Source/Core/DolphinWX/Main.cpp:516
 msgid "Not connected"
 msgstr "Nije spojen"
 
@@ -3988,11 +3988,11 @@ msgstr "Broj Kodova:"
 msgid "Nunchuk"
 msgstr "Wii Nunchuk"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:178
+#: Source/Core/DolphinWX/TASInputDlg.cpp:190
 msgid "Nunchuk orientation"
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:173
+#: Source/Core/DolphinWX/TASInputDlg.cpp:185
 msgid "Nunchuk stick"
 msgstr ""
 
@@ -4017,7 +4017,7 @@ msgstr "Isključeno"
 msgid "Offset:"
 msgstr "Neutralizirati:"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:102
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:110
 msgid "On-Screen Display Messages"
 msgstr "Poruke na emulacijskom ekranu"
 
@@ -4088,7 +4088,7 @@ msgstr ""
 "Desni klik za izvoz svih snimaka,\n"
 "i ponovni uvoz u novu memorijsku karticu\n"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:131
+#: Source/Core/DolphinWX/TASInputDlg.cpp:138
 msgid "Orientation"
 msgstr ""
 
@@ -4097,7 +4097,7 @@ msgstr ""
 msgid "Other"
 msgstr "Drugo"
 
-#: Source/Core/Core/NetPlayClient.cpp:410
+#: Source/Core/Core/NetPlayClient.cpp:413
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
@@ -4162,11 +4162,11 @@ msgstr "Pauza"
 msgid "Pause at End of Movie"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:111
 msgid "Pause on Focus Lost"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:125
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
 
@@ -4244,17 +4244,17 @@ msgstr "Post-Processing Efekt:"
 msgid "Prefetch Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1058
+#: Source/Core/Core/Movie.cpp:1095
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1177
+#: Source/Core/Core/Movie.cpp:1223
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1202
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr ""
@@ -4471,7 +4471,7 @@ msgstr "Desno"
 msgid "Right Stick"
 msgstr "Desna Gljiva"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:236
+#: Source/Core/DolphinWX/TASInputDlg.cpp:254
 msgid "Right stick"
 msgstr ""
 
@@ -4584,7 +4584,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:918
+#: Source/Core/Core/Movie.cpp:953
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Mjesto snimanja za video %s je oštećeno, snimanje videa se prekida..."
@@ -4820,7 +4820,7 @@ msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:825
+#: Source/Core/Core/NetPlayClient.cpp:838
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -4867,8 +4867,8 @@ msgstr ""
 msgid "Shake"
 msgstr "Protresti"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:241
-#: Source/Core/DolphinWX/TASInputDlg.cpp:333
+#: Source/Core/DolphinWX/TASInputDlg.cpp:259
+#: Source/Core/DolphinWX/TASInputDlg.cpp:351
 msgid "Shoulder Buttons"
 msgstr ""
 
@@ -5000,11 +5000,11 @@ msgstr "Pokaži Wii"
 msgid "Show World"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:122
 msgid "Show a confirmation box before stopping a game."
 msgstr "Pokaži prozor za potvrdu prije zaustavljanja igre."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -5451,7 +5451,7 @@ msgstr ""
 msgid "The name cannot contain the character ','"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:183
+#: Source/Core/Core/Movie.cpp:195
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5464,25 +5464,25 @@ msgstr "Rezultirajući de-šifrirani AR kod ne sadrži niti jedan redak."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:337
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
 msgstr "Vaš sistem ne podržava odabrani jezik. Vraćam na zadane postavke."
 
-#: Source/Core/Core/NetPlayClient.cpp:194
+#: Source/Core/Core/NetPlayClient.cpp:197
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr "Verzije servera i klijenta su inkompatibilne!"
 
-#: Source/Core/Core/NetPlayClient.cpp:191
+#: Source/Core/Core/NetPlayClient.cpp:194
 msgid "The server is full!"
 msgstr "Server je pun!"
 
-#: Source/Core/Core/NetPlayClient.cpp:197
+#: Source/Core/Core/NetPlayClient.cpp:200
 msgid "The server responded: the game is currently running!"
 msgstr "Server je odgovorio: igra je već pokrenuta!"
 
-#: Source/Core/Core/NetPlayClient.cpp:200
+#: Source/Core/Core/NetPlayClient.cpp:203
 msgid "The server sent an unknown error message!"
 msgstr "Server je poslao poruku o nepoznatoj grešci!"
 
@@ -5495,7 +5495,7 @@ msgstr "Naznačena datoteka \"%s\" ne postoji"
 msgid "The value is invalid"
 msgstr "Nevažeća vrijednost"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:131
 msgid "Theme:"
 msgstr "Tema:"
 
@@ -5668,7 +5668,7 @@ msgstr ""
 msgid "Traversal Server:"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:822
+#: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -5767,7 +5767,7 @@ msgstr "Neočekivani 0x80 poziv? Prekidanje..."
 msgid "Unknown"
 msgstr "Nepoznato"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1252
+#: Source/Core/Core/HW/DVDInterface.cpp:1251
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Nepoznata DVD naredba %08x - kobna greška"
@@ -5777,7 +5777,7 @@ msgstr "Nepoznata DVD naredba %08x - kobna greška"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Nepoznati tip unosa %i u SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:831
+#: Source/Core/Core/NetPlayClient.cpp:844
 #, c-format
 msgid "Unknown error %x"
 msgstr ""
@@ -5787,7 +5787,7 @@ msgstr ""
 msgid "Unknown memory card error"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:481
+#: Source/Core/Core/NetPlayClient.cpp:484
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Nepoznata poruka primljena sa identifikatorom : %d"
@@ -5832,7 +5832,7 @@ msgstr "Koristi Hex"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:109
 msgid "Use Panic Handlers"
 msgstr "Koristi Rješavanje Panike"
 
@@ -5973,7 +5973,7 @@ msgstr ""
 "koje imaju isto ime kao datoteke na memorijskoj kartici\n"
 "Nastaviti?"
 
-#: Source/Core/Core/Movie.cpp:964
+#: Source/Core/Core/Movie.cpp:999
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -5984,7 +5984,7 @@ msgstr ""
 "(byte %u > %u) (frame %u > %u). Prije nastavka bi trebali ili učitati drugi "
 "snimak ili učitati snimak koji nije samo za čitanje."
 
-#: Source/Core/Core/Movie.cpp:941
+#: Source/Core/Core/Movie.cpp:976
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -5992,7 +5992,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:981
+#: Source/Core/Core/Movie.cpp:1016
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6003,7 +6003,7 @@ msgstr ""
 "Prije nastavka bi trebali ili učitati drugi snimak ili učitati snimak koji "
 "nije samo za čitanje. U suprotnom ćete dobiti desinkronizaciju."
 
-#: Source/Core/Core/Movie.cpp:991
+#: Source/Core/Core/Movie.cpp:1026
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6094,7 +6094,7 @@ msgstr "Wiimote %i"
 msgid "Wiimote %i %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:518
 msgid "Wiimote Connected"
 msgstr "Wiimote je spojen"
 
@@ -6150,7 +6150,7 @@ msgstr "Pisati na Prozor"
 msgid "Write to memcards/SD"
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:430
+#: Source/Core/DolphinWX/TASInputDlg.cpp:454
 msgid "X"
 msgstr ""
 
@@ -6158,7 +6158,7 @@ msgstr ""
 msgid "XF register "
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:431
+#: Source/Core/DolphinWX/TASInputDlg.cpp:455
 msgid "Y"
 msgstr ""
 
@@ -6187,7 +6187,7 @@ msgstr ""
 msgid "You must enter a valid profile name."
 msgstr "Morate unijeti valjano ime za profil."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:199
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:207
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Morate ponovno pokrenuti Dolphin da bi promjene imale efekta."
 
@@ -6217,7 +6217,7 @@ msgid ""
 "Do you want to generate a new one?"
 msgstr ""
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:432
+#: Source/Core/DolphinWX/TASInputDlg.cpp:456
 msgid "Z"
 msgstr ""
 

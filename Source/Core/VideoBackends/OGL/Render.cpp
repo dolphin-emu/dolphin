@@ -59,7 +59,7 @@ void VideoConfig::UpdateProjectionHack()
 }
 
 static int OSDInternalW, OSDInternalH;
-static int s_max_texture_size;
+static int s_max_texture_size = 0;
 
 namespace OGL
 {
@@ -753,9 +753,6 @@ void Renderer::Init()
 	s_raster_font = std::make_unique<RasterFont>();
 
 	OpenGL_CreateAttributelessVAO();
-
-	// Cache this, because if you do this multiple times a frame, it shows up really high on a profile.
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_max_texture_size);
 }
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
@@ -2261,6 +2258,10 @@ bool Renderer::SaveScreenshot(const std::string &filename, const TargetRectangle
 
 int Renderer::GetMaxTextureSize()
 {
+	// Right now nvidia seems to do something very weird if we try to cache GL_MAX_TEXTURE_SIZE in init. This is a workaround that lets
+	// us keep the perf improvement that caching it gives us.
+	if (s_max_texture_size == 0)
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_max_texture_size);
 	return s_max_texture_size;
 }
 

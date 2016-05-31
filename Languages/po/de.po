@@ -18,6 +18,7 @@
 # Moritz Bruder <muesli4@gmail.com>, 2015
 # M T <michtrz@gmail.com>, 2013-2014
 # no_cluez <neobrainx@gmail.com>, 2013
+# Neui Neui, 2016
 # MexicanWithGun <nibirush@inbox.com>, 2015
 # no_cluez <neobrainx@gmail.com>, 2013
 # Shinrai, 2013
@@ -28,9 +29,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-15 20:30+0000\n"
-"PO-Revision-Date: 2016-05-13 18:44+0000\n"
-"Last-Translator: Minty123 <d.ruediger@ok.de>\n"
+"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"PO-Revision-Date: 2016-05-30 20:47+0000\n"
+"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
 "de/)\n"
 "Language: de\n"
@@ -536,7 +537,7 @@ msgstr "<Keine Auflösungen gefunden>"
 msgid "<Nothing>"
 msgstr "<Nichts>"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:73
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:76
 msgid "<System Language>"
 msgstr "<Systemsprache>"
 
@@ -556,7 +557,7 @@ msgid ""
 "You must manually connect your Wiimotes."
 msgstr ""
 "Es wurde kein unterstütztes Bluetoothgerät gefunden.\n"
-"Sie müssen ihre Wiimotes manuell verbinden."
+"Du musst deine Wiimotes manuell verbinden."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:130
 msgid ""
@@ -661,9 +662,9 @@ msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
 "Master codes are not needed. Do not use master codes."
 msgstr ""
-"Action Replay Fehler: Master code und Write To CCXXXXXX nicht integriert "
+"Action Replay Fehler: Master Code und Write To CCXXXXXX nicht implementiert "
 "(%s)\n"
-"Master Codes werden nicht benötigt. Benutzen Sie keine Master Codes."
+"Master Codes werden nicht benötigt. Benutze keine Master Codes."
 
 #: Source/Core/Core/ActionReplay.cpp:181
 #, c-format
@@ -1051,9 +1052,9 @@ msgstr "Ausgabeverzeichnis auswählen"
 msgid "Buffer:"
 msgstr "Buffer:"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:133
-#: Source/Core/DolphinWX/TASInputDlg.cpp:247
-#: Source/Core/DolphinWX/TASInputDlg.cpp:347
+#: Source/Core/DolphinWX/TASInputDlg.cpp:140
+#: Source/Core/DolphinWX/TASInputDlg.cpp:265
+#: Source/Core/DolphinWX/TASInputDlg.cpp:365
 #: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "Tasten"
@@ -1070,7 +1071,7 @@ msgstr ""
 "Umgeht die Leerung des Datencaches von der DCBZ-Anweisung. Für gewöhnlich "
 "deaktiviert lassen."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:331
+#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 #: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "C Stick"
 msgstr "C-Stick"
@@ -1121,7 +1122,7 @@ msgstr ""
 "\n"
 "Im Zweifel deaktiviert lassen."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1868
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:1870
 #, c-format
 msgid "Can't find Wiimote by connection handle %02x"
 msgstr "Kann Wiimote bei Verbindungs-Handle %02x nicht finden"
@@ -1170,12 +1171,12 @@ msgstr "Disc wechseln"
 msgid "Change Game"
 msgstr "Spiel wechseln"
 
-#: Source/Core/Core/Movie.cpp:1138
+#: Source/Core/Core/Movie.cpp:1183
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Wechsle die Disc zu %s"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1272,8 +1273,8 @@ msgid ""
 "Client disconnect while game is running!! NetPlay is disabled. You must "
 "manually stop the game."
 msgstr ""
-"Client kann während ein Spiel emuliert wird nicht verbunden werden! NetPlay "
-"ist deaktiviert. Sie müssen zuerst manuell das Spiel beenden."
+"Verbindung zu Client abgebrochen, während ein Spiel läuft!\n"
+"NetPlay ist jetzt deaktiviert. Das Spiel muss manuell beendet werden."
 
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:118
 #: Source/Core/DolphinWX/ISOProperties.cpp:616
@@ -1363,7 +1364,7 @@ msgstr "Einstellungen ...."
 msgid "Confirm File Overwrite"
 msgstr "Überschreiben Bestätigen"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:100
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
 msgid "Confirm on Stop"
 msgstr "Beim Beenden bestätigen"
 
@@ -1410,7 +1411,7 @@ msgstr "Wiimotes verbinden"
 msgid "Connected"
 msgstr "Verbunden"
 
-#: Source/Core/DolphinWX/Main.cpp:492
+#: Source/Core/DolphinWX/Main.cpp:517
 msgid "Connecting..."
 msgstr "Verbinden..."
 
@@ -1428,11 +1429,11 @@ msgstr "Strg"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:65
 msgid "Control Stick"
-msgstr ""
+msgstr "Control Stick"
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:17
 msgid "Controller Ports"
-msgstr ""
+msgstr "Controller-Ports"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:553
 msgid "Controller settings"
@@ -1540,11 +1541,11 @@ msgstr ""
 "Wenn einer dieser Fälle zutriffst, solltest du den Speicherort der "
 "Speicherkarte in den Optionen ändern."
 
-#: Source/Core/Core/NetPlayClient.cpp:74
+#: Source/Core/Core/NetPlayClient.cpp:77
 msgid "Couldn't Create Client"
 msgstr "Client konnte nicht erstellt werden"
 
-#: Source/Core/Core/NetPlayClient.cpp:85
+#: Source/Core/Core/NetPlayClient.cpp:88
 msgid "Couldn't create peer."
 msgstr "Peer konnte nicht erstellt werden."
 
@@ -1557,8 +1558,8 @@ msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
 msgstr ""
-"Konnte Kern nicht initialisieren.\n"
-"Überprüfen Sie Ihre Konfiguration."
+"Konnte Core nicht initialisieren.\n"
+"Überprüfe die Konfiguration."
 
 #: Source/Core/Common/TraversalClient.cpp:221
 #, c-format
@@ -1798,6 +1799,7 @@ msgstr "Direktverbindung"
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
 msgstr ""
+"Verzeichnis-Prüfsumme und Backup-Verzeichnis-Prüfsumme sind fehlerhaft."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:506
 msgid "Disable"
@@ -1862,7 +1864,7 @@ msgstr "Verbindung zum Übergangsserver beendet"
 msgid "Display"
 msgstr "Anzeige"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:116
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:124
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -2093,7 +2095,7 @@ msgstr "Eingebetteter Bildspeicher (EFB)"
 msgid "Empty"
 msgstr "Leer"
 
-#: Source/Core/Core/Core.cpp:220
+#: Source/Core/Core/Core.cpp:232
 msgid "Emu Thread already running"
 msgstr "Emu-Thread läuft bereits."
 
@@ -2201,6 +2203,11 @@ msgid ""
 "\n"
 "If unsure, select 1x."
 msgstr ""
+"Anisotropische Filterung aktivieren.\n"
+"Verbessert die Texturenqualität bei schrägen Blickwinkeln.\n"
+"Kann bei einigen wenigen Spielen Fehler verursachen.\n"
+"\n"
+"Im Zweifel, wähle 1x."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2305,7 +2312,7 @@ msgstr "Ende"
 
 #: Source/Core/Core/NetPlayServer.cpp:64
 msgid "Enet Didn't Initialize"
-msgstr "Enet wurde nicht initialisiert"
+msgstr "Enet konnte nicht initialisiert werden"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:49
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:32
@@ -2336,7 +2343,7 @@ msgstr "Eintrag 1/%d"
 msgid "Equal"
 msgstr "Gleich"
 
-#: Source/Core/DolphinWX/Main.cpp:329 Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:331 Source/Core/DolphinWX/Main.cpp:337
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
@@ -2344,7 +2351,7 @@ msgstr "Gleich"
 msgid "Error"
 msgstr "Fehler"
 
-#: Source/Core/DolphinWX/Main.cpp:329
+#: Source/Core/DolphinWX/Main.cpp:331
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Fehler beim Laden der ausgewählten Sprache. Kehre nun zum Systemstandard "
@@ -2369,9 +2376,9 @@ msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
 "fonts correctly, or crash."
 msgstr ""
-"Fehler: Versuche auf Schriftart %s zuzugreifen, aber sie wurde nicht "
-"geladen. Spiele werden die Schriftart nicht korrekt darstellen oder "
-"abstürzen."
+"Fehler: Emulierte Software versucht auf Schriftart %s zuzugreifen, die aber "
+"nicht geladen wurde. Spiele werden die Schriftart nicht korrekt darstellen "
+"oder abstürzen."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:22
 msgid "Escape"
@@ -2489,11 +2496,11 @@ msgstr "FIFO-Player"
 msgid "FST Size:"
 msgstr "FST-Größe:"
 
-#: Source/Core/Core/NetPlayClient.cpp:156
+#: Source/Core/Core/NetPlayClient.cpp:159
 msgid "Failed To Connect!"
 msgstr "Verbindungsaufbau fehlgeschlagen!"
 
-#: Source/Core/Core/NetPlayClient.cpp:100
+#: Source/Core/Core/NetPlayClient.cpp:103
 msgid "Failed to Connect!"
 msgstr "Verbindungsaufbau fehlgeschlagen!"
 
@@ -2528,6 +2535,8 @@ msgid ""
 "Failed to listen. Someone is probably already listening on the port you "
 "specified."
 msgstr ""
+"Konnte nicht auf dem Port lauschen. Jemand benutzt wahrscheinlich schon den "
+"Port, den Sie angegeben haben."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:164
 #: Source/Core/DiscIO/CompressedBlob.cpp:342
@@ -2544,10 +2553,10 @@ msgid ""
 "media can be written."
 msgstr ""
 "Öffnen der Ausgabedatei \"%s\" fehlgeschlagen.\n"
-"Prüfen Sie, ob Sie über Schreibrechte im Zielordner verfügen und ob das "
-"Medium beschreibbar ist."
+"Überprüfe ob du über Schreibrechte im Zielordner verfügst und ob das Medium "
+"beschreibbar ist."
 
-#: Source/Core/Core/Movie.cpp:909
+#: Source/Core/Core/Movie.cpp:944
 #, c-format
 msgid "Failed to read %s"
 msgstr "Konnte %s nicht lesen"
@@ -2614,7 +2623,7 @@ msgstr "Fehler beim Lesen einer eindeutigen Kennung des Disc-Abbildes."
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:135
 msgid "Failed to update country code in SYSCONF"
-msgstr "Fehler beim aktualisieren des Ländercode in SYSCONF"
+msgstr "Fehler beim Aktualisieren des Ländercodes in SYSCONF"
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb.cpp:103
 msgid "Failed to write BT.DINF to SYSCONF"
@@ -2628,7 +2637,7 @@ msgid ""
 "Check that you have enough space available on the target drive."
 msgstr ""
 "Schreiben in Ausgabedatei \"%s\" fehlgeschlagen.\n"
-"Prüfen Sie, ob ausreichend Speicherplatz auf dem Ziellaufwerk vorhanden ist."
+"Überprüfe ob ausreichend Speicherplatz auf dem Ziellaufwerk vorhanden ist."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:498
 msgid "Fast"
@@ -2638,7 +2647,7 @@ msgstr "Schnell"
 msgid "Fast Depth Calculation"
 msgstr "Schnelle Tiefenberechnung"
 
-#: Source/Core/Core/Movie.cpp:1167
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2759,7 +2768,7 @@ msgstr "NTSC-J erzwingen"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:164
 msgid "Force Listen Port: "
-msgstr ""
+msgstr "Zwinge Port:"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:415
 msgid "Force Texture Filtering"
@@ -2788,6 +2797,15 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Zwingt das Spiel, ein bestimmtes Seitenverhältnis auszugeben.\n"
+"Setze \"Seitenverhältnis\" auf \"16:9 erzwingen\" um nur-4:3 Spiele auf 16:9 "
+"laufen zu können.\n"
+"Produziert nur selten gute Resultate und kann Probleme mit Grafiken und "
+"Spiele UIs verursachen.\n"
+"Wenn AR/Gecko-Codes für Breitbild benutzt wird, ist dies Unnötig (und kann "
+"noch Fehler verursachen).\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/GCMemcard.cpp:38
 msgid ""
@@ -2795,7 +2813,7 @@ msgid ""
 "Choose no for Shift JIS (NTSC-J)"
 msgstr ""
 "Als ASCII (NTSC\\PAL) formatieren?\n"
-"Wählen Sie Nein für Shift JIS (NTSC-J)"
+"Wähle Nein für Shift JIS (NTSC-J)"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:198
 msgid "Forward"
@@ -2831,15 +2849,15 @@ msgstr "Einzelbildwiedergabe"
 
 #: Source/Core/Core/HotkeyManager.cpp:23
 msgid "Frame Advance Decrease Speed"
-msgstr ""
+msgstr "Erhöhe Einzelbildwiedergabegeschwindigkeit"
 
 #: Source/Core/Core/HotkeyManager.cpp:24
 msgid "Frame Advance Increase Speed"
-msgstr ""
+msgstr "Verringere Einzelbildwiedergabegeschwindigkeit"
 
 #: Source/Core/Core/HotkeyManager.cpp:25
 msgid "Frame Advance Reset Speed"
-msgstr ""
+msgstr "Einzelbildwiedergabegeschwindigkeit zurücksetzen"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Frame Dumps use FFV1"
@@ -2961,7 +2979,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:368
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
-msgstr ""
+msgstr "GCMemcardDirectory: ClearBlock mit ungültiger Blockadresse aufgerufen"
 
 #: Source/Core/VideoCommon/OpcodeDecoding.cpp:81
 #, c-format
@@ -2976,6 +2994,16 @@ msgid ""
 "Further errors will be sent to the Video Backend log and\n"
 "Dolphin will now likely crash or hang. Enjoy."
 msgstr ""
+"GFX FIFO: Unbekannter Befehl (0X%02x @ %p, %s).\n"
+"Das bedeutet eines der folgenden Dinge:\n"
+"* Die emulierte GPU ist nicht mehr synchron, das deaktivieren von Dual Core "
+"kann helfen\n"
+"* Der Befehlsstrom wurde durch einen Speicherfehler beschädigt\n"
+"* Dies ist wirklich ein unbekannter Befehl (unwahrscheinlich)\n"
+"* Ein anderer Fehler\n"
+"\n"
+"Weitere Fehler werden in den Video-Backend-Log protokolliert und Dolphin "
+"wird nun wahrscheinlich abstürzen. Viel Spaß."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:319
 msgid "Game Boy Advance Carts (*.gba)"
@@ -2989,11 +3017,11 @@ msgstr "Spielkennung"
 msgid "Game ID:"
 msgstr "Spielkennung:"
 
-#: Source/Core/Core/NetPlayClient.cpp:693
+#: Source/Core/Core/NetPlayClient.cpp:696
 msgid "Game is already running!"
 msgstr "Spiel läuft bereits!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1009
+#: Source/Core/Core/NetPlayClient.cpp:1029
 msgid "Game isn't running!"
 msgstr "Spiel läuft nicht!"
 
@@ -3006,6 +3034,8 @@ msgstr "Spiel nicht gefunden!"
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
 msgstr ""
+"Spielstand mit dem Spielstand eines anderen Spiels überschrieben. "
+"Datenkorruption voraus 0x%x, 0x%x"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:406
 msgid "Game-Specific Settings"
@@ -3161,6 +3191,15 @@ msgid ""
 "cause glitches. Do so at your own risk. Please do not report bugs that occur "
 "with a non-default clock. "
 msgstr ""
+"Übertaktung der emulierten CPU kann die Framerate von Spielen mit variabler "
+"Framerate verbessern, benötigt aber mehr Prozessorleistung.\n"
+"Untertaktung der emulierten CPU kann weniger Prozessorleistung benötigen, "
+"verschlechtert aber die Framerate von Spielen mit variabler Framerate.\n"
+"\n"
+"WARNUNG: Das Ändern dieses Wertes von den standartmäßigen 100% kann und wird "
+"Probleme und Fehler in Spielen verursachen. Benutze diese Option auf eigene "
+"Gefahr! Melde bitte keine Fehler, die mit Über- oder Untertaktung der "
+"emulierten CPU passieren."
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:46
 msgid "Home"
@@ -3175,11 +3214,13 @@ msgstr "Host"
 msgid "Host Code :"
 msgstr "Hostcode :"
 
-#: Source/Core/Core/NetPlayClient.cpp:108
+#: Source/Core/Core/NetPlayClient.cpp:111
 msgid ""
 "Host code size is to large.\n"
 "Please recheck that you have the correct code"
 msgstr ""
+"Host-Code-Größe ist zu groß.\n"
+"Bitte überprüfe, dass du den richtigen Code hast"
 
 #: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Hotkeys"
@@ -3226,7 +3267,7 @@ msgstr "IPL-Einstellungen"
 msgid "IPL with unknown hash %x"
 msgstr "Unbekanntes IPL mit Prüfsumme %x"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:126
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
 msgid "IR"
 msgstr "IR"
@@ -3291,6 +3332,15 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Verwende ein Randloses Fenster das den gesamten Bildschirm füllt für den "
+"Vollbildmodus anstatt des Exklusiven Vollbildmodus.\n"
+"Macht das Wechseln vom und zum Vollbildmodus schneller, erhöht aber "
+"Eingabelatenz ein bisschen, macht Bewegungen etwas ruckliger und "
+"verschlechtert Performance ein bisschen.\n"
+"Der Exklusive Vollbildmodus muss aktiviert sein damit Nvidia 3D Vision in "
+"Direct3D funktioniert.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:812
 msgid "Import Save"
@@ -3402,7 +3452,7 @@ msgstr ""
 msgid "Interface"
 msgstr "Benutzeroberfläche"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:134
 msgid "Interface Settings"
 msgstr "Benutzeroberflächeneinstellungen"
 
@@ -3443,7 +3493,7 @@ msgstr "Intro"
 msgid "Invalid bat.map or dir entry."
 msgstr "Ungültige bat.map oder Verzeichnis-Eintrag"
 
-#: Source/Core/Core/CoreTiming.cpp:499
+#: Source/Core/Core/CoreTiming.cpp:496
 #, c-format
 msgid "Invalid event type %i"
 msgstr "Ungültiger Ereignis-Typ %i"
@@ -3452,7 +3502,7 @@ msgstr "Ungültiger Ereignis-Typ %i"
 msgid "Invalid file"
 msgstr "Ungültige Datei"
 
-#: Source/Core/Core/NetPlayClient.cpp:828
+#: Source/Core/Core/NetPlayClient.cpp:841
 msgid "Invalid host"
 msgstr "Ungültiger Host"
 
@@ -3460,7 +3510,7 @@ msgstr "Ungültiger Host"
 msgid "Invalid index"
 msgstr "Ungültiger Index"
 
-#: Source/Core/Core/Movie.cpp:851
+#: Source/Core/Core/Movie.cpp:885
 msgid "Invalid recording file"
 msgstr "Ungültige Aufnahmedatei"
 
@@ -3574,7 +3624,7 @@ msgstr "L-Taste"
 msgid "L-Analog"
 msgstr "L-Analog"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:121
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:129
 msgid "Language:"
 msgstr "Sprache:"
 
@@ -3596,7 +3646,7 @@ msgstr "Links"
 msgid "Left Stick"
 msgstr "Stick links"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:235
+#: Source/Core/DolphinWX/TASInputDlg.cpp:253
 msgid "Left stick"
 msgstr "Linker Stick"
 
@@ -3628,6 +3678,9 @@ msgid ""
 "This can allow the use of extra translations for a few games, but can also "
 "lead to text display issues."
 msgstr ""
+"Setzt die Systemsprache zu Sprachen, für die die Spiele nicht ausgelegt "
+"wurden. Dies kann für Extra-Übersetzungen für wenige Spiele verwendet "
+"werden, aber es kann auch zum Text-Anzeige Fehler kommen."
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:41
 msgid "License"
@@ -3800,6 +3853,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Benötigte Zeit für das Rendern jedes Frames in User/Logs/render_time.txt "
+"loggen.\n"
+"Verwende diese Funktion wenn du die Leistung von Dolphin messen willst.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:70
 msgid "Logger Outputs"
@@ -3810,7 +3868,7 @@ msgstr "Logger-Ausgabe"
 msgid "Logging"
 msgstr "Logging"
 
-#: Source/Core/Core/NetPlayClient.cpp:563
+#: Source/Core/Core/NetPlayClient.cpp:566
 msgid "Lost connection to server!"
 msgstr "Die Verbindung zum Server wurde getrennt!"
 
@@ -3827,7 +3885,7 @@ msgstr "MD5-Prüfsumme:"
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz Gameshark-Dateien(*.gcs)"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:328
+#: Source/Core/DolphinWX/TASInputDlg.cpp:346
 msgid "Main Stick"
 msgstr "Main Stick"
 
@@ -3895,12 +3953,12 @@ msgid ""
 "%s\n"
 "Would you like to copy the old file to this new location?\n"
 msgstr ""
-"Der Speicherkarten-Dateiname in Slot %c is ungültig,\n"
+"Der Speicherkarten-Dateiname in Slot %c is ungültig.\n"
 "Region ist nicht festgelegt.\n"
 "\n"
 "Slot %c Pfad wurde geändert zu:\n"
 "%s\n"
-"Möchten Sie die alte Datei zum neuen Speicherort kopieren?\n"
+"Soll die alte Datei zum neuen Speicherort kopiert werden?\n"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:90
 msgid "Memory card file size does not match the header size"
@@ -3914,7 +3972,7 @@ msgstr "MemoryCard: ClearBlock auf ungültiger Adresse aufgerufen (0x%x)"
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:154
 #, c-format
 msgid "MemoryCard: Read called with invalid source address (0x%x)"
-msgstr ""
+msgstr "MemoryCard: Lesevorgang mit ungültiger Quelladresse aufgerufen (0x%x)"
 
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:167
 #, c-format
@@ -4118,10 +4176,10 @@ msgstr "Native GCI-Dateien(*.gci)"
 msgid "Netherlands"
 msgstr "Niederlande"
 
-#: Source/Core/Core/NetPlayClient.cpp:994
+#: Source/Core/Core/NetPlayClient.cpp:1014
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr ""
-"Netplay wurde desynchronisiert. Es gibt keine Möglichkeit dies zu beheben."
+"Netplay ist desynchronisiert. Es gibt keine Möglichkeit dies zu beheben."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:42
 msgid "New Scan"
@@ -4183,7 +4241,7 @@ msgstr "Ungleich"
 msgid "Not Set"
 msgstr "Nicht Festgelegt"
 
-#: Source/Core/DolphinWX/Main.cpp:491
+#: Source/Core/DolphinWX/Main.cpp:516
 msgid "Not connected"
 msgstr "Nicht verbunden"
 
@@ -4211,11 +4269,11 @@ msgstr "Codeanzahl:"
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:178
+#: Source/Core/DolphinWX/TASInputDlg.cpp:190
 msgid "Nunchuk orientation"
 msgstr "Nunchuck Orientierung"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:173
+#: Source/Core/DolphinWX/TASInputDlg.cpp:185
 msgid "Nunchuk stick"
 msgstr "Nunchuck-Stick"
 
@@ -4240,7 +4298,7 @@ msgstr "Aus"
 msgid "Offset:"
 msgstr "Offset:"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:102
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:110
 msgid "On-Screen Display Messages"
 msgstr "Bildschirmnachrichten"
 
@@ -4314,7 +4372,7 @@ msgstr ""
 "Rechtsklicke und exportiere alle Spielstände\n"
 "und importiere sie auf eine neue Speicherkarte.\n"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:131
+#: Source/Core/DolphinWX/TASInputDlg.cpp:138
 msgid "Orientation"
 msgstr "Orientation"
 
@@ -4323,13 +4381,13 @@ msgstr "Orientation"
 msgid "Other"
 msgstr "Andere"
 
-#: Source/Core/Core/NetPlayClient.cpp:410
+#: Source/Core/Core/NetPlayClient.cpp:413
 msgid ""
 "Other client disconnected while game is running!! NetPlay is disabled. You "
 "must manually stop the game."
 msgstr ""
-"Der andere Client wurde während des laufenden Spiels getrennt! NetPlay ist "
-"deaktiviert. Beenden Sie das Spiel manuell."
+"Der andere Client wurde während des laufenden Spiels getrennt! Netplay ist "
+"jetzt deaktiviert. Das Spiel muss manuell beendet werden."
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:570
 msgid "Output"
@@ -4390,11 +4448,11 @@ msgstr "Pause"
 msgid "Pause at End of Movie"
 msgstr "Pause am Filmende"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:103
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:111
 msgid "Pause on Focus Lost"
 msgstr "Pausiert wenn der Fokus verloren wird"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:125
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
 "Pausiert den Emulator wenn der Fokus vom Emulationsfenster weggenommen wird."
@@ -4445,7 +4503,7 @@ msgstr "Bitte bestätigen..."
 
 #: Source/Core/DolphinWX/FrameAui.cpp:511
 msgid "Please create a perspective before saving"
-msgstr "Bitte legen Sie vor dem Speichern eine Perspektive fest"
+msgstr "Bitte lege vor dem Speichern eine Perspektive fest"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:28
 msgid "Plus-Minus"
@@ -4473,17 +4531,17 @@ msgstr "Nachbearbeitungseffekt:"
 msgid "Prefetch Custom Textures"
 msgstr "Benutzerdefinierte Texturen vorladen"
 
-#: Source/Core/Core/Movie.cpp:1058
+#: Source/Core/Core/Movie.cpp:1095
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Vorzeitiges Filmende in PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1177
+#: Source/Core/Core/Movie.cpp:1223
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Vorzeitiges Filmende in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1156
+#: Source/Core/Core/Movie.cpp:1202
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Vorzeitiges Filmende in PlayWiimote. %u > %u"
@@ -4510,7 +4568,7 @@ msgstr "Eigenschaften"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:339
 msgid "Purge Game List Cache"
-msgstr ""
+msgstr "Spieleliste Cache leeren"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:75
 msgid "Put BIOS roms in User/GC/{region}."
@@ -4659,7 +4717,7 @@ msgstr "Rendervorgang"
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:348
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
-msgstr ""
+msgstr "Bericht: GCIFolder Schreibe zu nicht zugewiesener Block 0x%x"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1017
 #: Source/Core/Core/HotkeyManager.cpp:21
@@ -4700,7 +4758,7 @@ msgstr "Rechts"
 msgid "Right Stick"
 msgstr "Stick rechts"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:236
+#: Source/Core/DolphinWX/TASInputDlg.cpp:254
 msgid "Right stick"
 msgstr "Rechter Stick"
 
@@ -4813,7 +4871,7 @@ msgstr "Spielstand im ausgewählten Slot speichern"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Wird in /Wii/sd.raw gespeichert (standardmäßig 128MB)"
 
-#: Source/Core/Core/Movie.cpp:918
+#: Source/Core/Core/Movie.cpp:953
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Spielstandfilm %s ist fehlerhaft, breche die Filmaufnahme ab..."
@@ -4855,7 +4913,7 @@ msgstr "Suche"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:89
 msgid "Search (clear to use previous value)"
-msgstr ""
+msgstr "Suche (nichts für vorheriger Wert)"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5012,6 +5070,12 @@ msgid ""
 "\n"
 "If unsure, select auto."
 msgstr ""
+"Wählt die Bildauflösung im Vollbildmodus.\n"
+"Diese Option sollte immer genau so groß oder größer als die interne "
+"Auflösung sein.\n"
+"Die Performanceauswirkungen dieser Option sind vernachlässigbar.\n"
+"\n"
+"Im Zweifel Automatisch wählen."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
 msgid ""
@@ -5079,7 +5143,7 @@ msgstr ""
 "Serial Port 1 - Dieser Port wird von externen Zusatzgeräten wie dem "
 "Netzwerkadapter verwendet."
 
-#: Source/Core/Core/NetPlayClient.cpp:825
+#: Source/Core/Core/NetPlayClient.cpp:838
 msgid "Server rejected traversal attempt"
 msgstr ""
 
@@ -5134,8 +5198,8 @@ msgstr "SetupWiiMem: setting.txt kann nicht erstellt werden"
 msgid "Shake"
 msgstr "Schütteln"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:241
-#: Source/Core/DolphinWX/TASInputDlg.cpp:333
+#: Source/Core/DolphinWX/TASInputDlg.cpp:259
+#: Source/Core/DolphinWX/TASInputDlg.cpp:351
 msgid "Shoulder Buttons"
 msgstr "Schultertasten"
 
@@ -5267,11 +5331,11 @@ msgstr "Wii anzeigen"
 msgid "Show World"
 msgstr "Welt anzeigen"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:114
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:122
 msgid "Show a confirmation box before stopping a game."
 msgstr "Vor dem Beenden der Emulation bestätigen."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -5365,6 +5429,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Beschleunigt EFB-zu-RAM-Kopien geringfügig auf Kosten der "
+"Emulationsgenauigkeit.\n"
+"Wenn Fehler auftreten, erhöhe die Texturen-Cache-Genauigkeit oder "
+"deaktiviere diese Option.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:458
 #: Source/Core/DolphinWX/FrameTools.cpp:473
@@ -5539,6 +5609,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Speichert EFB-Kopien nur auf der GPU und nicht im Arbeitsspeicher. Kann "
+"Grafikfehler in wenige Spiele verursachen.\n"
+"\n"
+"Aktiviert = EFB-Kopien in Texturen ablegen\n"
+"Deaktiviert = EFB-Kopien im Arbeitsspeicher (und in Texturen) ablegen\n"
+"\n"
+"Im Zweifel aktiviert lassen."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Stretch to Window"
@@ -5671,6 +5748,12 @@ msgid ""
 "\n"
 "If unsure, use the rightmost value."
 msgstr ""
+"Die \"Sicher\" Einstellung eliminiert die Gefahr, dass die GPU Texturen vom "
+"Arbeitsspeicher verpasst.\n"
+"Ungenauere Einstellungen können Grafikfehler in Texte in bestimmte Spiele "
+"auftreten.\n"
+"\n"
+"Im Zweifel den Wert ganz rechts benutzen."
 
 #: Source/Core/Core/ConfigManager.cpp:777
 msgid "The WAD has been installed successfully"
@@ -5749,7 +5832,7 @@ msgstr "Der Name darf nicht leer sein"
 msgid "The name cannot contain the character ','"
 msgstr "Der Name darf nicht das Zeichen ',' enthalten"
 
-#: Source/Core/Core/Movie.cpp:183
+#: Source/Core/Core/Movie.cpp:195
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr ""
@@ -5762,9 +5845,9 @@ msgstr "Der resultierende entschlüsselte AR-Code enthält keine Zeilen."
 #: Source/Core/DolphinWX/MemcardManager.cpp:450
 msgid "The save you are trying to copy has an invalid file size."
 msgstr ""
-"Der Spielstand, den Sie versuchen zu kopieren, hat eine ungültige Dateigröße."
+"Der Spielstand den du versuchst zu kopieren hat eine ungültige Dateigröße."
 
-#: Source/Core/DolphinWX/Main.cpp:335
+#: Source/Core/DolphinWX/Main.cpp:337
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -5772,20 +5855,20 @@ msgstr ""
 "Die ausgewählte Sprache wird von Ihrem System nicht unterstützt. Kehre nun "
 "zum Systemstandard zurück."
 
-#: Source/Core/Core/NetPlayClient.cpp:194
+#: Source/Core/Core/NetPlayClient.cpp:197
 msgid "The server and client's NetPlay versions are incompatible!"
 msgstr ""
 "Die NetPlay-Version von Server und Client sind  nicht zueinander kompatibel!"
 
-#: Source/Core/Core/NetPlayClient.cpp:191
+#: Source/Core/Core/NetPlayClient.cpp:194
 msgid "The server is full!"
 msgstr "Der Server ist voll!"
 
-#: Source/Core/Core/NetPlayClient.cpp:197
+#: Source/Core/Core/NetPlayClient.cpp:200
 msgid "The server responded: the game is currently running!"
 msgstr "Der Server meldet: Das Spiel läuft derzeit!"
 
-#: Source/Core/Core/NetPlayClient.cpp:200
+#: Source/Core/Core/NetPlayClient.cpp:203
 msgid "The server sent an unknown error message!"
 msgstr "Der Server sendete einen unbekannten Fehler!"
 
@@ -5798,7 +5881,7 @@ msgstr "Die ausgewählte Datei \"%s\" existiert nicht"
 msgid "The value is invalid"
 msgstr "Der eingegebene Wert ist ungültig"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:131
 msgid "Theme:"
 msgstr "Design:"
 
@@ -5853,6 +5936,15 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Diese Einstellung erlaubt es dir, die Kamera im Spiel zu bewegen.\n"
+"Halte die rechte Maustaste gedrückt und bewege die Maus um die Kamera zu "
+"schwenken und halte die mittlere Maustaste gedrückt um sie zu bewegen.\n"
+"Halte Umschalt und drücke eine der WASD-Tasten um die Kamera eine bestimmte "
+"Entfernung zu bewegen (Umschalt+2 um sie schneller zu bewegen und Umschalt+1 "
+"um sie langsamer zu bewegen). Drücke Umschalt+R um die Kamera zurückzusetzen "
+"und Umschalt+F um die Geschwindigkeit zurückzusetzen.\n"
+"\n"
+"Im Zweifel deaktiviert lassen."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:94
 #, c-format
@@ -5862,6 +5954,10 @@ msgid ""
 "\n"
 "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX."
 msgstr ""
+"Dieser Titel könnte mit der DSP HLE Audioemulation inkompatibel sein. "
+"Versuche, DSP LLE zu verwenden, falls es sich um Homebrew handelt.\n"
+"\n"
+"DSPHLE: Unbekannter ucode (CRC = %08x) - erzwinge AX."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:88
 #, c-format
@@ -5871,6 +5967,10 @@ msgid ""
 "\n"
 "Unknown ucode (CRC = %08x) - forcing AXWii."
 msgstr ""
+"Dieser Titel könnte mit der DSP HLE Audioemulation inkompatibel sein. "
+"Versuche, DSP LLE zu verwenden, falls es sich um Homebrew handelt.\n"
+"\n"
+"Unbekannter ucode (CRC = %08x) - erzwinge AXWii."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:361
 msgid ""
@@ -5922,7 +6022,7 @@ msgstr "3D-Nebeneinander umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:69
 msgid "Toggle 3D Top-bottom"
-msgstr ""
+msgstr "3D Oben-und-Unten umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Toggle 3D Vision"
@@ -5938,7 +6038,7 @@ msgstr "Seitenverhältnis umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Toggle Crop"
-msgstr ""
+msgstr "Zuschneiden umschalten"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
 msgid "Toggle EFB Copies"
@@ -5981,7 +6081,7 @@ msgstr ""
 msgid "Traversal Server:"
 msgstr ""
 
-#: Source/Core/Core/NetPlayClient.cpp:822
+#: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
 msgstr ""
 
@@ -6037,7 +6137,7 @@ msgstr "USA"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:37
 msgid "USB Gecko"
-msgstr ""
+msgstr "USB Gecko"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 msgid ""
@@ -6084,7 +6184,7 @@ msgstr "Unerwarteter 0x80 Aufruf? Abbruch..."
 msgid "Unknown"
 msgstr "Unbekannt"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1252
+#: Source/Core/Core/HW/DVDInterface.cpp:1251
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unbekannter DVD-Befehl %08x - fataler Fehler"
@@ -6094,7 +6194,7 @@ msgstr "Unbekannter DVD-Befehl %08x - fataler Fehler"
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Unbekannter Eintragstyp %i in SYSCONF (%s@%x)!"
 
-#: Source/Core/Core/NetPlayClient.cpp:831
+#: Source/Core/Core/NetPlayClient.cpp:844
 #, c-format
 msgid "Unknown error %x"
 msgstr "Unbekannter Fehler %x"
@@ -6104,7 +6204,7 @@ msgstr "Unbekannter Fehler %x"
 msgid "Unknown memory card error"
 msgstr "Unbekannter Speicherkartenfehler"
 
-#: Source/Core/Core/NetPlayClient.cpp:481
+#: Source/Core/Core/NetPlayClient.cpp:484
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "Unbekannte Meldung mit Kennung: %d"
@@ -6122,7 +6222,7 @@ msgstr "Unbegrenzt"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:369
 msgid "Unpacking"
-msgstr ""
+msgstr "Auspacken"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:48
 #: Source/Core/InputCommon/ControllerEmu.cpp:194
@@ -6149,7 +6249,7 @@ msgstr "Hex verwenden"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "PAL60-Modus (EuRGB60) verwenden"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:101
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:109
 msgid "Use Panic Handlers"
 msgstr "Warnmeldungen anzeigen"
 
@@ -6161,6 +6261,11 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Benutzt einen weniger genauen Algorithmus um Tiefenwerte zu berechnen.\n"
+"Verursacht Fehler in ein paar Spielen, kann aber je nach Spiel und "
+"Grafikkarte einen ordentlichen Geschwindigkeitsvorteil bringen.\n"
+"\n"
+"Im Zweifel aktiviert lassen."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6271,9 +6376,10 @@ msgid ""
 "%s\n"
 "Do you wish to continue?"
 msgstr ""
-"Warnung! Empfehle ein Backup aller Dateien im Ordner:\n"
+"Warnung! Es wird empfohlen eine Sicherungskopie aller Dateien in folgendem "
+"Ordner anzulegen:\n"
 "%s\n"
-"Wollen Sie fortfahren?"
+"Fortfahren?"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:546
 #, c-format
@@ -6295,7 +6401,7 @@ msgstr ""
 "besitzen.\n"
 "Möchtest du fortfahren?"
 
-#: Source/Core/Core/Movie.cpp:964
+#: Source/Core/Core/Movie.cpp:999
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6307,15 +6413,18 @@ msgstr ""
 "anderen Spielstand bevor du fortfährst oder lade diesen Spielstand nicht im "
 "schreibgeschützen Modus."
 
-#: Source/Core/Core/Movie.cpp:941
+#: Source/Core/Core/Movie.cpp:976
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
 "save (byte %u < %u) (frame %u < %u). You should load another save before "
 "continuing."
 msgstr ""
+"Warnung: Du hast einen Spielstand geladen, dessen Speicherpunkt hinter dem "
+"Ende der aktuellen Aufnahme liegt. (Byte %u > %u) (Bild %u > %u). Lade einen "
+"anderen Spielstand bevor du fortfährst."
 
-#: Source/Core/Core/Movie.cpp:981
+#: Source/Core/Core/Movie.cpp:1016
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6327,7 +6436,7 @@ msgstr ""
 "oder lade diesen Spielstand nicht im schreibgeschützen Modus, andernfalls "
 "könnten Desyncs auftreten."
 
-#: Source/Core/Core/Movie.cpp:991
+#: Source/Core/Core/Movie.cpp:1026
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6422,7 +6531,7 @@ msgstr "Wiimote %i"
 msgid "Wiimote %i %s"
 msgstr "Wiimote %i %s"
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:518
 msgid "Wiimote Connected"
 msgstr "Wiimote angeschlossen"
 
@@ -6476,9 +6585,9 @@ msgstr "In Fenster ausgeben"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "Auf Speicher- und SD-Karten schreiben"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:430
+#: Source/Core/DolphinWX/TASInputDlg.cpp:454
 msgid "X"
 msgstr "X"
 
@@ -6486,7 +6595,7 @@ msgstr "X"
 msgid "XF register "
 msgstr "XF-Register"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:431
+#: Source/Core/DolphinWX/TASInputDlg.cpp:455
 msgid "Y"
 msgstr "Y"
 
@@ -6500,11 +6609,11 @@ msgstr "Es können keine Paletten geschlossen werden, die Seiten behinhalten."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:326
 msgid "You must choose a game!"
-msgstr "Sie müssen ein Spiel auswählen!"
+msgstr "Du musst ein Spiel auswählen!"
 
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:64
 msgid "You must enter a name."
-msgstr "Sie müssen einen Namen eingeben."
+msgstr "Du musst einen Namen eingeben."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:330
 msgid "You must enter a valid decimal, hexadecimal or octal value."
@@ -6514,7 +6623,7 @@ msgstr "Du musst eine gültige Dezimal-, Hexadezimal- oder Oktalzahl eingeben."
 msgid "You must enter a valid profile name."
 msgstr "Du musst einen gültigen Profilnamen eingeben!"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:199
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:207
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "Sie müssen Dolphin neu starten, damit die Änderungen wirksam werden."
 
@@ -6547,7 +6656,7 @@ msgstr ""
 "Erwartet wurde eine Größe von 0x%04x (aber deine ist 0x%04<PRIx64>).\n"
 "Soll eine neue Datei generiert werden?"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:432
+#: Source/Core/DolphinWX/TASInputDlg.cpp:456
 msgid "Z"
 msgstr "Z"
 
