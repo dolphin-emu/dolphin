@@ -56,8 +56,8 @@ bool SysConf::LoadFromFile(const std::string& filename)
   u64 size = File::GetSize(filename);
   if (size != SYSCONF_SIZE)
   {
-    if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x (but is 0x%04" PRIx64
-                  ")\nDo you want to generate a new one?",
+    if (AskYesNoT("Your SYSCONF file is the wrong size.\nIt should be 0x%04x "
+                  "(but is 0x%04" PRIx64 ")\nDo you want to generate a new one?",
                   SYSCONF_SIZE, size))
     {
       GenerateSysConf();
@@ -76,13 +76,6 @@ bool SysConf::LoadFromFile(const std::string& filename)
     {
       m_Filename = filename;
       m_IsValid = true;
-      // Apply Wii settings from normal SYSCONF on Movie recording/playback
-      if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-      {
-        SetData("IPL.LNG", Movie::GetLanguage());
-        SetData("IPL.E60", Movie::IsPAL60());
-        SetData("IPL.PGS", Movie::IsProgressive());
-      }
       return true;
     }
   }
@@ -184,10 +177,12 @@ static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std
   switch (type)
   {
   case Type_BigArray:
-    // size of description + name length + size of dataLength + data length + null
+    // size of description + name length + size of dataLength + data length +
+    // null
     return 1 + item.nameLength + 2 + item.dataLength + 1;
   case Type_SmallArray:
-    // size of description + name length + size of dataLength + data length + null
+    // size of description + name length + size of dataLength + data length +
+    // null
     return 1 + item.nameLength + 1 + item.dataLength + 1;
   case Type_Byte:
   case Type_Bool:
@@ -422,7 +417,8 @@ bool SysConf::Save()
 
 void SysConf::UpdateLocation()
 {
-  // if the old Wii User dir had a sysconf file save any settings that have been changed to it
+  // if the old Wii User dir had a sysconf file save any settings that have been
+  // changed to it
   if (m_IsValid)
     Save();
 
