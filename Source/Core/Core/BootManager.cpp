@@ -347,6 +347,7 @@ bool BootCore(const std::string& _rFilename)
   if (NetPlay::IsNetPlayRunning())
   {
     StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
+    StartUp.bEnableCheats = g_NetPlaySettings.m_enableCheats;
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
     StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
     StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
