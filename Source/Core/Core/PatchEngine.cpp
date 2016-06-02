@@ -31,6 +31,7 @@
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Common;
@@ -190,12 +191,15 @@ static void ApplyPatches(const std::vector<Patch> &patches)
 				{
 				case PATCH_8BIT:
 					PowerPC::HostWrite_U8((u8)value, addr);
+					JitInterface::InvalidateICache(addr, 1, false);
 					break;
 				case PATCH_16BIT:
 					PowerPC::HostWrite_U16((u16)value, addr);
+					JitInterface::InvalidateICache(addr, 2, false);
 					break;
 				case PATCH_32BIT:
 					PowerPC::HostWrite_U32(value, addr);
+					JitInterface::InvalidateICache(addr, 4, false);
 					break;
 				default:
 					//unknown patchtype
