@@ -1286,9 +1286,9 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			//NOTICE_LOG(VR, "invalid!");
 			return false;
 		}
-		float x = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[0][3];
-		float y = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[1][3];
-		float z = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[2][3];
+		float rx = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[0][3];
+		float ry = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[1][3];
+		float rz = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[2][3];
 		Matrix33 m;
 		for (int r = 0; r < 3; r++)
 			for (int c = 0; c < 3; c++)
@@ -1317,17 +1317,59 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 
 		// Note that here gX means to the CONTROLLER'S left, gY means to the CONTROLLER'S tail, and gZ means to the CONTROLLER'S top! 
 		// Tilt sensing.
-		// If the left Hydra is docked, or an extension is plugged in then just
-		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
-		// with no extension pitch is controlled by the angle between the hydras.
+		// If the left Vive controller is off, or an extension is plugged in then just
+		// hold the right Vive sideways yourself. Otherwise in sideways mode 
+		// with no extension pitch is controlled by the angle between the Vive controllers.
 		if (sideways &&
 			!has_extension &&
 			left_hand != 100)
 		{
-			//NOTICE_LOG(VR, "sideways!");
+			// Left vive controller's left side = front of wiimote
+			// Right vive controller's right side = back of wiimote
+			// Right vive controller's front = right side of wiimote
+			// Right vive controller's face = top side of wiimote
+
 			// angle between the controllers
-			// todo!
-			return false;
+			float lx = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[0][3];
+			float ly = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[1][3];
+			float lz = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[2][3];
+			float x = rx - lx;
+			float y = ry - ly;
+			float z = rz - lz;
+			float dist = sqrtf(x*x + y*y + z*z);
+			if (dist > 0)
+			{
+				x = x / dist;
+				y = y / dist;
+				z = z / dist;
+			}
+			else
+			{
+				x = 1;
+				y = 0;
+				z = 0;
+			}
+			*gy = y;
+			float tail_up = m.data[2*3+1];
+			float touchpad_up = m.data[1*3+1];
+			float len = sqrtf(tail_up*tail_up + touchpad_up*touchpad_up);
+			if (len == 0)
+			{
+				// neither the tail or the touchpad is up, the side is up
+				*gx = 0;
+				*gz = 0;
+			}
+			else
+			{
+				float horiz_dist = sqrtf(x*x + z*z);
+				*gx = horiz_dist * tail_up / len;
+				*gz = horiz_dist * touchpad_up / len;
+			}
+
+			// Convert rel acc from m/s/s to G's, and to sideways Wiimote's coordinate system.
+			//*gx += rel_acc[2] / 9.8f;
+			//*gz += rel_acc[1] / 9.8f;
+			//*gy -= rel_acc[0] / 9.8f;
 		}
 		else
 		{
