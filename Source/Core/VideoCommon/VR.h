@@ -215,6 +215,8 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz);
 
+bool VR_PairViveControllers();
+
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftHydraPos(float *pos);
 bool VR_GetRightHydraPos(float *pos);

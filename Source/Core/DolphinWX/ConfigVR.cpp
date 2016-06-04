@@ -78,6 +78,7 @@ static wxString canreadcamera_desc = wxTRANSLATE("Read the camera angle from the
 static wxString camminpoly_desc = wxTRANSLATE("Only read camera angle if at least this many polygons were drawn last frame.\nIncrease this number if stabilisation makes the world rotate in menus when it shouldn't.\n\nIf unsure, leave this at 0.");
 static wxString detectskybox_desc = wxTRANSLATE("Assume any object drawn at 0,0,0 in camera space is a skybox.\nUse this if the sky looks too close, or to enable hiding or locking the skybox for motion sickness prevention (see the Motion Sickness tab).\n\nIf unsure, either setting is usually fine.");
 static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
+static wxString autopair_desc = wxTRANSLATE("Hack! When the Vive controllers lose tracking, this automatically right-clicks a controller in VR Status Window, chooses Pair, then clicks back in the current window.\nThis fixes the Vive controllers losing and never regaining tracking.\nYour Dolphin and SteamVR status windows must not be covered by other windows.\n\nIf unsure, leave this unchecked.");
 static wxString showcontroller_desc = wxTRANSLATE("Show the razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now. \n\nIf unsure, leave this unchecked.");
 static wxString showhands_desc = wxTRANSLATE("Show your hands inside the game world.\n\nIf unsure, leave this unchecked.");
 static wxString showfeet_desc = wxTRANSLATE("Show your feet inside the game world.\nBased on your height in Oculus Configuration Utility.\n\nIf unsure, leave this unchecked.");
@@ -279,6 +280,10 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(page_vr, wxTRANSLATE("Asynchronous timewarp"), wxGetTranslation(async_desc), SConfig::GetInstance().bAsynchronousTimewarp));
 #endif
 			szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Near-Clipping"), wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
+			if (g_has_steamvr)
+			{
+				szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Auto Pair Vive"), wxGetTranslation(autopair_desc), vconfig.bAutoPairViveControllers));
+			}
 		}
 
 		// Opcode Replay Buffer GUI Options

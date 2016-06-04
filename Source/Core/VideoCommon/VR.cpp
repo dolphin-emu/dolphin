@@ -1195,7 +1195,7 @@ void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y,
 	s_vive_was_touched[hand] = touched;
 }
 
-
+double last_good_tracking_time = 0;
 bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[])
 {
 	*buttons = 0;
@@ -1224,6 +1224,22 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 				else if (right_hand == 100 && i != left_hand)
 					right_hand = i;
 			}
+		}
+		if (g_ActiveConfig.bAutoPairViveControllers && (left_hand == 100 || right_hand == 100 || !m_rTrackedDevicePose[left_hand].bPoseIsValid || !m_rTrackedDevicePose[right_hand].bPoseIsValid))
+		{
+			// one of the controllers lost tracking
+			double t = Common::Timer::GetTimeMs() / 1000.0;
+			// if we haven't had tracking for a whole second, try repairing
+			if (t - last_good_tracking_time > 1.0)
+			{
+				VR_PairViveControllers();
+				// don't try again for 20 seconds
+				last_good_tracking_time = t + 20;
+			}
+		}
+		else
+		{
+			last_good_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
 		}
 		// get the state of each hand
 		vr::VRControllerState_t states[2];
@@ -1624,6 +1640,59 @@ ControllerStyle VR_GetHydraStyle(int hand)
 	else
 		return vr_left_controller;
 }
+
+bool VR_PairViveControllers()
+{
+#ifdef _WIN32
+	HWND SteamVRStatusWindow = FindWindowA("Qt5QWindowIcon", "SteamVR Status");
+	if (!SteamVRStatusWindow)
+		return false;
+	POINT C;
+	BOOL hasC = GetCursorPos(&C);
+	//HWND W = GetForegroundWindow();
+	//RECT rw;
+	//GetWindowRect(W, &rw);
+	//SetForegroundWindow(SteamVRStatusWindow);
+	INPUT input[16] = {};
+	RECT r;
+	if (!GetWindowRect(SteamVRStatusWindow, &r))
+		return false;
+	SetCursorPos(r.left+100, r.top+100);
+	input[0].type = INPUT_MOUSE;
+	input[0].mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+	input[1].type = INPUT_MOUSE;
+	input[1].mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+	SendInput(2, &input[0], sizeof(INPUT));
+	Sleep(100);
+
+	input[2].type = INPUT_KEYBOARD;
+	input[2].ki.wVk = VK_DOWN;
+	input[3].ki.dwFlags = 0;
+	input[3].type = INPUT_KEYBOARD;
+	input[3].ki.wVk = VK_DOWN;
+	input[3].ki.dwFlags = KEYEVENTF_KEYUP;
+	input[6] = input[4] = input[2];
+	input[7] = input[5] = input[3];
+	SendInput(4, &input[2], sizeof(INPUT));
+	Sleep(100);
+
+	input[6].ki.wVk = VK_RETURN;
+	input[7].ki.wVk = VK_RETURN;
+	SendInput(2, &input[6], sizeof(INPUT));
+	Sleep(100);
+
+	if (hasC)
+	{
+		SetCursorPos(C.x, C.y);
+		input[0].mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+		input[1].mi.dwFlags = MOUSEEVENTF_LEFTUP;
+		SendInput(2, input, sizeof(INPUT));
+	}
+	return true;
+#endif
+	return false;
+}
+
 
 
 void OpcodeReplayBuffer()

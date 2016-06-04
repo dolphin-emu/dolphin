@@ -85,6 +85,7 @@ VideoConfig::VideoConfig()
 	bOverdrive = true;
 	bHqDistortion = false;
 	bDisableNearClipping = true;
+	bAutoPairViveControllers = false;
 	bShowHands = false;
 	bShowFeet = false;
 	bShowController = false;
@@ -262,6 +263,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("Overdrive", &bOverdrive, true);
 	vr->Get("HQDistortion", &bHqDistortion, false);
 	vr->Get("DisableNearClipping", &bDisableNearClipping, true);
+	vr->Get("AutoPairViveControllers", &bAutoPairViveControllers, false);
 	vr->Get("ShowHands", &bShowHands, false);
 	vr->Get("ShowFeet", &bShowFeet, false);
 	vr->Get("ShowController", &bShowController, false);
@@ -727,6 +729,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("Overdrive", bOverdrive);
 	vr->Set("HQDistortion", bHqDistortion);
 	vr->Set("DisableNearClipping", bDisableNearClipping);
+	vr->Set("AutoPairViveControllers", bAutoPairViveControllers);
 	vr->Set("ShowHands", bShowHands);
 	vr->Set("ShowFeet", bShowFeet);
 	vr->Set("ShowController", bShowController);

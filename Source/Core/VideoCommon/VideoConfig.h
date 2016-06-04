@@ -191,6 +191,7 @@ struct VideoConfig final
 	bool bOverdrive;
 	bool bHqDistortion;
 	bool bDisableNearClipping;
+	bool bAutoPairViveControllers;
 	bool bShowHands;
 	bool bShowFeet;
 	bool bShowController;
