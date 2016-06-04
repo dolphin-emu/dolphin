@@ -106,6 +106,7 @@ Matrix44 g_game_camera_rotmat;
 
 // used for calculating acceleration of vive controllers
 double g_older_tracking_time = 0, g_old_tracking_time = 0, g_last_tracking_time = 0;
+float g_steamvr_ipd = 0.064f;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -292,6 +293,8 @@ bool InitSteamVR()
 		m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
 		vr::TrackedPropertyError error;
 		g_hmd_refresh_rate = (int)(0.5f + m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float, &error));
+		g_steamvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_UserIpdMeters_Float, &error);
+
 		NOTICE_LOG(VR, "SteamVR strDriver = '%s'", m_strDriver.c_str());
 		NOTICE_LOG(VR, "SteamVR strDisplay = '%s'", m_strDisplay.c_str());
 
@@ -737,6 +740,12 @@ void ProcessVREvent(const vr::VREvent_t & event)
 			NOTICE_LOG(VR, "Device %u updated.\n", event.trackedDeviceIndex);
 			break;
 		}
+	case vr::VREvent_IpdChanged:
+		{
+			g_steamvr_ipd = event.data.ipd.ipdMeters;
+			NOTICE_LOG(VR, "IPD changed to %fm", g_steamvr_ipd);
+		}
+
 	}
 }
 #endif
@@ -998,18 +1007,17 @@ void VR_GetEyePos(float *posLeft, float *posRight)
 #ifdef HAVE_OPENVR
 	if (g_has_steamvr)
 	{
-		// assume 62mm IPD
-		posLeft[0] = 0.031f;
-		posRight[0] = -0.031f;
+		posLeft[0] = g_steamvr_ipd / 2;
+		posRight[0] = -posLeft[0];
 		posLeft[1] = posRight[1] = 0;
 		posLeft[2] = posRight[2] = 0;
 	}
 	else
 #endif
 	{
-		// assume 62mm IPD
-		posLeft[0] = 0.031f;
-		posRight[0] = -0.031f;
+		// assume 64mm IPD
+		posLeft[0] = 0.032f;
+		posRight[0] = -0.032f;
 		posLeft[1] = posRight[1] = 0;
 		posLeft[2] = posRight[2] = 0;
 	}
