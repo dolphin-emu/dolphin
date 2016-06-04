@@ -105,7 +105,7 @@ float g_game_camera_pos[3];
 Matrix44 g_game_camera_rotmat;
 
 // used for calculating acceleration of vive controllers
-double s_old_tracking_time = 0, s_last_tracking_time = 0;
+double s_older_tracking_time = 0, s_old_tracking_time = 0, s_last_tracking_time = 0;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -823,8 +823,9 @@ void UpdateSteamVRHeadTracking()
 	}
 	float fSecondsUntilPhotons = 0.0f;
 	m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+	s_older_tracking_time = s_old_tracking_time;
 	s_old_tracking_time = s_last_tracking_time;
-	s_last_tracking_time = Common::Timer::GetDoubleTime();
+	s_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
 	m_iValidPoseCount = 0;
 	//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
 	//{
@@ -1254,7 +1255,7 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 	}
 }
 
-float right_hand_old_velocity[3] = {};
+float right_hand_old_velocity[3] = {}, right_hand_older_velocity[3] = {};
 
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz)
 {
@@ -1294,7 +1295,7 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			for (int c = 0; c < 3; c++)
 				m.data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[c][r];
 		float acc[3] = {};
-		float dt = (float)(s_last_tracking_time-s_old_tracking_time);
+		float dt = (float)(s_last_tracking_time-s_older_tracking_time);
 		if (dt < 0.001f)
 		{
 			//NOTICE_LOG(VR, "too fast!");
@@ -1302,7 +1303,8 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 		}
 		for (int axis = 0; axis < 3; ++axis)
 		{
-			acc[axis] = (m_rTrackedDevicePose[right_hand].vVelocity.v[axis] - right_hand_old_velocity[axis]) / dt;
+			acc[axis] = (m_rTrackedDevicePose[right_hand].vVelocity.v[axis] - right_hand_older_velocity[axis]) / dt;
+			right_hand_older_velocity[axis] = right_hand_old_velocity[axis];
 			right_hand_old_velocity[axis] = m_rTrackedDevicePose[right_hand].vVelocity.v[axis];
 		}
 		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
@@ -1367,9 +1369,9 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			}
 
 			// Convert rel acc from m/s/s to G's, and to sideways Wiimote's coordinate system.
-			//*gx += rel_acc[2] / 9.8f;
-			//*gz += rel_acc[1] / 9.8f;
-			//*gy -= rel_acc[0] / 9.8f;
+			*gx += rel_acc[2] / 9.8f;
+			*gz += rel_acc[1] / 9.8f;
+			*gy -= rel_acc[0] / 9.8f;
 		}
 		else
 		{
@@ -1380,9 +1382,11 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			//NOTICE_LOG(VR, "gx=%f, gy=%f, gz=%f", *gx, *gy, *gz);
 
 			// Convert rel acc from m/s/s to G's, and to Wiimote's coordinate system.
-			//*gx -= rel_acc[0] / 9.8f;
-			//*gz += rel_acc[1] / 9.8f;
-			//*gy += rel_acc[2] / 9.8f;
+			*gx -= rel_acc[0] / 9.8f;
+			*gz += rel_acc[1] / 9.8f;
+			*gy += rel_acc[2] / 9.8f;
+			//NOTICE_LOG(VR, "dt=%f", dt);
+			//NOTICE_LOG(VR, "gx=%f, gy=%f, gz=%f", -rel_acc[0] / 9.8f, rel_acc[2] / 9.8f, rel_acc[1] / 9.8f);
 		}
 		return true;
 	}
