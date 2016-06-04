@@ -1255,6 +1255,7 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 	}
 }
 
+float left_hand_old_velocity[3] = {}, left_hand_older_velocity[3] = {};
 float right_hand_old_velocity[3] = {}, right_hand_older_velocity[3] = {};
 
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz)
@@ -1387,6 +1388,83 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			*gy += rel_acc[2] / 9.8f;
 			//NOTICE_LOG(VR, "dt=%f", dt);
 			//NOTICE_LOG(VR, "gx=%f, gy=%f, gz=%f", -rel_acc[0] / 9.8f, rel_acc[2] / 9.8f, rel_acc[1] / 9.8f);
+		}
+		return true;
+	}
+#endif
+	return false;
+}
+
+bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
+{
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr && index == 0)
+	{
+		// find the controllers for each hand, 100 = not found
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (left_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[left_hand].bPoseIsValid) {
+			//NOTICE_LOG(VR, "invalid!");
+			return false;
+		}
+		float lx = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[0][3];
+		float ly = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[1][3];
+		float lz = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[2][3];
+		Matrix33 m;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m.data[r * 3 + c] = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[c][r];
+		float acc[3] = {};
+		float dt = (float)(s_last_tracking_time - s_older_tracking_time);
+		if (dt < 0.001f)
+		{
+			//NOTICE_LOG(VR, "too fast!");
+			//return false;
+		}
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			acc[axis] = (m_rTrackedDevicePose[left_hand].vVelocity.v[axis] - left_hand_older_velocity[axis]) / dt;
+			left_hand_older_velocity[axis] = left_hand_old_velocity[axis];
+			left_hand_old_velocity[axis] = m_rTrackedDevicePose[left_hand].vVelocity.v[axis];
+		}
+		// World-space accelerations need to be converted into accelerations relative to the Nunchuk's sensor.
+		float rel_acc[3];
+		for (int i = 0; i < 3; ++i)
+		{
+			rel_acc[i] = acc[0] * m.data[i * 3 + 0]
+				+ acc[1] * m.data[i * 3 + 1]
+				+ acc[2] * m.data[i * 3 + 2];
+			// todo: check if this is correct!
+		}
+
+		{
+			// Tilt sensing.
+			*gx = -m.data[0 * 3 + 1];
+			*gz = m.data[1 * 3 + 1];
+			*gy = m.data[2 * 3 + 1];
+
+			// Convert from metres per second per second to G's, and to Wiimote's coordinate system.
+			*gx -= rel_acc[0] / 9.8f;
+			*gz += rel_acc[1] / 9.8f;
+			*gy += rel_acc[2] / 9.8f;
 		}
 		return true;
 	}

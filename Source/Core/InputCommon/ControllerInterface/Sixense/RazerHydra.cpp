@@ -259,6 +259,8 @@ bool getNunchuk(int index, float* jx, float* jy, u8* mask)
 
 bool getNunchuckAccel(int index, float* gx, float* gy, float* gz)
 {
+	if (VR_GetNunchuckAccel(index, gx, gy, gz))
+		return true;
 #ifdef _WIN32
 	// VR Sixense Razer hydra support
 	// Left controller will be nunchuck: stick=stick, LB (or 1)=C, LT (or 2)=Z
