@@ -47,7 +47,7 @@ namespace DX11
 		void Draw();
 
 	private:
-		void DrawHydra(float *pos, ControllerStyle cs);
+		void DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs);
 
 		ID3D11Buffer* m_vertex_shader_params;
 		ID3D11Buffer* m_vertex_buffer;

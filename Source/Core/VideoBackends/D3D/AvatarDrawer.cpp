@@ -296,7 +296,7 @@ namespace DX11
 		SAFE_RELEASE(m_vertex_shader_params);
 	}
 
-	void AvatarDrawer::DrawHydra(float *pos, ControllerStyle cs)
+	void AvatarDrawer::DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs)
 	{
 		params.color[3] = 1.0f;
 		switch (cs)
@@ -354,15 +354,20 @@ namespace DX11
 				params.color[2] = 0.5f;
 				break;
 		}
+		params.color[0] = 1.0f;
 		// world matrix
-		Matrix44 world, scale, location;
+		Matrix44 world, scale, rotation, scalerot, location, offset;
 		float v[3] = { 0.0025f, 0.0025f, 0.0025f };
+		Matrix44::LoadMatrix33(rotation, m);
 		Matrix44::Scale(scale, v);
+		Matrix44::Multiply(rotation, scale, scalerot);
 		float p[3];
 		for (int i = 0; i < 3; ++i)
-			p[i] = pos[i] - hydra_mid[i] * 0.0025f;
-		Matrix44::Translate(location, p);
-		Matrix44::Multiply(location, scale, world);
+			p[i] = -hydra_mid[i];
+		Matrix44::Translate(offset, p);
+		Matrix44::Multiply(scalerot, offset, rotation);
+		Matrix44::Translate(location, pos);
+		Matrix44::Multiply(location, rotation, world);
 		// copy matrices into buffer
 		memcpy(params.world, world.data, 16 * sizeof(float));
 		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
@@ -467,17 +472,21 @@ namespace DX11
 		memcpy(params.projection, proj.data, 16 * sizeof(float));
 		memcpy(params.view, view.data, 16 * sizeof(float));
 
+		// Clear depth buffer
+		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
+
+		Matrix33 m;
 		// Draw Left Razer Hydra
-		if (VR_GetLeftHydraPos(pos))
+		if (VR_GetLeftHydraPos(pos, &m))
 		{
 			ControllerStyle cs = VR_GetHydraStyle(0);
-			DrawHydra(pos, cs);
+			DrawHydra(pos, m, cs);
 		}
 		// Draw Right Razer Hydra
-		if (VR_GetRightHydraPos(pos))
+		if (VR_GetRightHydraPos(pos, &m))
 		{
 			ControllerStyle cs = VR_GetHydraStyle(1);
-			DrawHydra(pos, cs);
+			DrawHydra(pos, m, cs);
 		}
 
 		D3D::stateman->SetPixelShader(nullptr);

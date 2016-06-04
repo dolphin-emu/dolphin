@@ -279,8 +279,8 @@ bool InitSteamVR()
 			g_has_hmd = true;
 		}
 
-		u32 m_nWindowWidth = 0;
-		u32 m_nWindowHeight = 0;
+		u32 m_nWindowWidth = 512;
+		u32 m_nWindowHeight = 512;
 		//m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
 		g_hmd_window_width = m_nWindowWidth;
 		g_hmd_window_height = m_nWindowHeight;
@@ -1530,20 +1530,108 @@ bool VR_GetHMDGestures(u32 *gestures)
 	}
 }
 
-bool VR_GetLeftHydraPos(float *pos)
+bool VR_GetLeftHydraPos(float *pos, Matrix33 *m)
 {
-	pos[0] = -0.15f;
-	pos[1] = -0.30f;
-	pos[2] = -0.4f;
-	return true;
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+	{
+		// find the controllers for each hand, 100 = not found
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (left_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[left_hand].bPoseIsValid) {
+			//NOTICE_LOG(VR, "invalid!");
+			pos[0] = pos[1] = pos[2] = 0;
+			return false;
+		}
+		float lx = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[0][3];
+		float ly = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[1][3];
+		float lz = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[2][3];
+		pos[0] = lx;
+		pos[1] = ly;
+		pos[2] = lz;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m->data[r * 3 + c] = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[r][c];
+		return true;
+	}
+	else
+#endif
+	{
+		pos[0] = -0.15f;
+		pos[1] = -0.30f;
+		pos[2] = -0.4f;
+		return true;
+	}
 }
 
-bool VR_GetRightHydraPos(float *pos)
+bool VR_GetRightHydraPos(float *pos, Matrix33 *m)
 {
-	pos[0] = 0.15f;
-	pos[1] = -0.30f;
-	pos[2] = -0.4f;
-	return true;
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+	{
+		// find the controllers for each hand, 100 = not found
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (left_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[left_hand].bPoseIsValid) {
+			//NOTICE_LOG(VR, "invalid!");
+			pos[0] = pos[1] = pos[2] = 0;
+			return false;
+		}
+		float rx = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[0][3];
+		float ry = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[1][3];
+		float rz = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[2][3];
+		pos[0] = rx;
+		pos[1] = ry;
+		pos[2] = rz;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m->data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[r][c];
+		return true;
+	}
+	else
+#endif
+	{
+		pos[0] = 0.15f;
+		pos[1] = -0.30f;
+		pos[2] = -0.4f;
+		return true;
+	}
 }
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id)
