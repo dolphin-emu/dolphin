@@ -249,6 +249,8 @@ extern float vr_widest_3d_zFar;
 extern float g_game_camera_pos[3];
 extern Matrix44 g_game_camera_rotmat;
 
+extern double g_older_tracking_time, g_old_tracking_time, g_last_tracking_time;
+
 extern float g_current_fps, g_current_speed;
 
 //Opcode Replay Buffer

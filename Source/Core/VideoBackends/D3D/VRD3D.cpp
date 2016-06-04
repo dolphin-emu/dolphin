@@ -475,6 +475,9 @@ void VR_PresentHMDFrame()
 		vr::Texture_t rightEyeTexture = { (void*)m_right_texture, vr::API_DirectX, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+		g_older_tracking_time = g_old_tracking_time;
+		g_old_tracking_time = g_last_tracking_time;
+		g_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
 		if (!g_ActiveConfig.bNoMirrorToWindow)
 		{
 			TargetRectangle sourceRc;

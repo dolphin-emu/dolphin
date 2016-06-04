@@ -105,7 +105,7 @@ float g_game_camera_pos[3];
 Matrix44 g_game_camera_rotmat;
 
 // used for calculating acceleration of vive controllers
-double s_older_tracking_time = 0, s_old_tracking_time = 0, s_last_tracking_time = 0;
+double g_older_tracking_time = 0, g_old_tracking_time = 0, g_last_tracking_time = 0;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -707,7 +707,7 @@ void VR_GetEyePoses()
 	{
 		if (m_pCompositor)
 		{
-			m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+			//m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 		}
 	}
 #endif
@@ -812,20 +812,8 @@ void UpdateSteamVRHeadTracking()
 		ProcessVREvent(event);
 	}
 
-	// Process SteamVR controller state
-	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-	{
-		vr::VRControllerState_t state;
-		if (m_pHMD->GetControllerState(unDevice, &state))
-		{
-			m_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
-		}
-	}
 	float fSecondsUntilPhotons = 0.0f;
-	m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
-	s_older_tracking_time = s_old_tracking_time;
-	s_old_tracking_time = s_last_tracking_time;
-	s_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
+	//m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
 	m_iValidPoseCount = 0;
 	//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
 	//{
@@ -1312,7 +1300,7 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 			for (int c = 0; c < 3; c++)
 				m.data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[c][r];
 		float acc[3] = {};
-		float dt = (float)(s_last_tracking_time-s_older_tracking_time);
+		float dt = (float)(g_last_tracking_time-g_older_tracking_time);
 		if (dt < 0.001f)
 		{
 			//NOTICE_LOG(VR, "too fast!");
@@ -1449,7 +1437,7 @@ bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
 			for (int c = 0; c < 3; c++)
 				m.data[r * 3 + c] = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[c][r];
 		float acc[3] = {};
-		float dt = (float)(s_last_tracking_time - s_older_tracking_time);
+		float dt = (float)(g_last_tracking_time - g_older_tracking_time);
 		if (dt < 0.001f)
 		{
 			//NOTICE_LOG(VR, "too fast!");
