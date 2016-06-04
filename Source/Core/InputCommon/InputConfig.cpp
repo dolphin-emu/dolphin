@@ -47,6 +47,10 @@ bool InputConfig::LoadConfig(bool isGC)
 					{
 						useProfile[i] = true;
 					}
+					else if (File::Exists(File::GetSysDirectory() + path + profile[i] + ".ini"))
+					{
+						useProfile[i] = true;
+					}
 					else
 					{
 						// TODO: PanicAlert shouldn't be used for this.
@@ -66,7 +70,8 @@ bool InputConfig::LoadConfig(bool isGC)
 			if (useProfile[n])
 			{
 				IniFile profile_ini;
-				profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini");
+				if (profile_ini.Load(File::GetUserPath(D_CONFIG_IDX) + path + profile[n] + ".ini") ||
+					profile_ini.Load(File::GetSysDirectory() + path + profile[n] + ".ini"))
 				controller->LoadConfig(profile_ini.GetOrCreateSection("Profile"));
 			}
 			else

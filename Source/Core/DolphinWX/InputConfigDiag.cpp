@@ -182,6 +182,21 @@ void InputConfigDialog::UpdateProfileComboBox()
 		strs.push_back(StrToWxStr(base));
 	}
 
+	// Now do the same thing for the default profiles in the system directory
+	pname = File::GetSysDirectory();
+	pname += PROFILES_PATH;
+	pname += m_config.GetProfileName();
+
+	sv = DoFileSearch({ ".ini" }, { pname });
+
+	for (const std::string& filename : sv)
+	{
+		std::string base;
+		SplitPath(filename, nullptr, &base, nullptr);
+		if (strs.Index(base, false)==wxNOT_FOUND)
+			strs.push_back(StrToWxStr(base));
+	}
+
 	for (GamepadPage* page : m_padpages)
 	{
 		page->profile_cbox->Clear();
@@ -665,7 +680,16 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 	GamepadPage::GetProfilePath(fname);
 
 	if (!File::Exists(fname))
-		return;
+	{
+		fname = File::GetSysDirectory();
+		fname += PROFILES_PATH;
+		fname += m_config.GetProfileName();
+		fname += '/';
+		fname += WxStrToStr(profile_cbox->GetValue());
+		fname += ".ini";
+		if (!File::Exists(fname))
+			return;
+	}
 
 	IniFile inifile;
 	inifile.Load(fname);
