@@ -9,12 +9,15 @@
 #include "Common/Common.h"
 #include "Common/Logging/LogManager.h"
 #include "InputCommon/ControllerInterface/Sixense/RazerHydra.h"
+#include "VideoCommon/VR.h"
 
 namespace RazerHydra
 {
 
 bool getAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz)
 {
+	if (VR_GetAccel(index, sideways, has_extension, gx, gy, gz))
+		return true;
 #ifdef _WIN32
 	const int left = 0, right = 1;
 	if (index == 0 && HydraUpdate() && g_hydra.c[right].enabled && !g_hydra.c[right].docked)

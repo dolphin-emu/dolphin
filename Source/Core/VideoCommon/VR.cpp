@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
+#include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "VideoCommon/OpcodeDecoding.h"
@@ -102,6 +103,9 @@ float vr_widest_3d_zNear = 0;
 float vr_widest_3d_zFar = 0;
 float g_game_camera_pos[3];
 Matrix44 g_game_camera_rotmat;
+
+// used for calculating acceleration of vive controllers
+double s_old_tracking_time = 0, s_last_tracking_time = 0;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -819,6 +823,8 @@ void UpdateSteamVRHeadTracking()
 	}
 	float fSecondsUntilPhotons = 0.0f;
 	m_pHMD->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseSeated, fSecondsUntilPhotons, m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount);
+	s_old_tracking_time = s_last_tracking_time;
+	s_last_tracking_time = Common::Timer::GetDoubleTime();
 	m_iValidPoseCount = 0;
 	//for ( int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice )
 	//{
@@ -1247,6 +1253,101 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 		return false;
 	}
 }
+
+float right_hand_old_velocity[3] = {};
+
+bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz)
+{
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+	{
+		// find the controllers for each hand, 100 = not found
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (right_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[right_hand].bPoseIsValid) {
+			//NOTICE_LOG(VR, "invalid!");
+			return false;
+		}
+		float x = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[0][3];
+		float y = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[1][3];
+		float z = -m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[2][3];
+		Matrix33 m;
+		for (int r = 0; r < 3; r++)
+			for (int c = 0; c < 3; c++)
+				m.data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[c][r];
+		float acc[3] = {};
+		float dt = (float)(s_last_tracking_time-s_old_tracking_time);
+		if (dt < 0.001f)
+		{
+			//NOTICE_LOG(VR, "too fast!");
+			//return false;
+		}
+		for (int axis = 0; axis < 3; ++axis)
+		{
+			acc[axis] = (m_rTrackedDevicePose[right_hand].vVelocity.v[axis] - right_hand_old_velocity[axis]) / dt;
+			right_hand_old_velocity[axis] = m_rTrackedDevicePose[right_hand].vVelocity.v[axis];
+		}
+		// World-space accelerations need to be converted into accelerations relative to the Wiimote's sensor.
+		float rel_acc[3];
+		for (int i = 0; i < 3; ++i)
+		{
+			rel_acc[i] = acc[0] * m.data[i*3+0]
+				+ acc[1] * m.data[i*3+1]
+				+ acc[2] * m.data[i*3+2];
+			// todo: check if this is correct!
+		}
+
+		// Note that here gX means to the CONTROLLER'S left, gY means to the CONTROLLER'S tail, and gZ means to the CONTROLLER'S top! 
+		// Tilt sensing.
+		// If the left Hydra is docked, or an extension is plugged in then just
+		// hold the right Hydra sideways yourself. Otherwise in sideways mode 
+		// with no extension pitch is controlled by the angle between the hydras.
+		if (sideways &&
+			!has_extension &&
+			left_hand != 100)
+		{
+			//NOTICE_LOG(VR, "sideways!");
+			// angle between the controllers
+			// todo!
+			return false;
+		}
+		else
+		{
+			// Tilt sensing.
+			*gx = -m.data[0*3+1];
+			*gz = m.data[1*3+1];
+			*gy = m.data[2*3+1];
+			//NOTICE_LOG(VR, "gx=%f, gy=%f, gz=%f", *gx, *gy, *gz);
+
+			// Convert rel acc from m/s/s to G's, and to Wiimote's coordinate system.
+			//*gx -= rel_acc[0] / 9.8f;
+			//*gz += rel_acc[1] / 9.8f;
+			//*gy += rel_acc[2] / 9.8f;
+		}
+		return true;
+	}
+#endif
+	return false;
+}
+
 
 #if defined(OVR_MAJOR_VERSION)
 bool WasItTapped(ovrVector3f linearAcc, double time)
