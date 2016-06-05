@@ -46,7 +46,13 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 {
 	ApplyShader();
 
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#if IOS
+    GLint defaultFBO;
+    glGetIntegerv(0x8CA6, &defaultFBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFBO);
+#else
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+#endif
 
 	glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
