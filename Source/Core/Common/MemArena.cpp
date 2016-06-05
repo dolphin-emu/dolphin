@@ -100,10 +100,17 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 #ifdef _WIN32
 	return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
+    int flags;
+#if APPLE_IOS
+    //ANON and PRIVATE are required for MAP_FIXED on iOS
+    flags = MAP_ANON | MAP_PRIVATE | ((base == nullptr) ? 0 : MAP_FIXED);
+#else
+    flags = MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED);
+#endif
 	void* retval = mmap(
 		base, size,
 		PROT_READ | PROT_WRITE,
-		MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED),
+		flags,
 		fd, offset);
 
 	if (retval == MAP_FAILED)
@@ -137,6 +144,16 @@ u8* MemArena::FindMemoryBase()
 	u8* base = (u8*)VirtualAlloc(0, 0x400000000, MEM_RESERVE, PAGE_READWRITE);
 	VirtualFree(base, 0, MEM_RELEASE);
 	return base;
+#elif APPLE_IOS
+    const u32 MemSize = 0x31000000 / 2;
+    void* base = mmap(0, MemSize, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+    if (base == MAP_FAILED)
+    {
+        PanicAlert("Failed to map 0.5 GB of memory space: %s", strerror(errno));
+        return 0;
+    }
+    munmap(base, MemSize);
+    return static_cast<u8*>(base);
 #else
 	// Very precarious - mmap cannot return an error when trying to map already used pages.
 	// This makes the Windows approach above unusable on Linux, so we will simply pray...
@@ -186,15 +203,15 @@ static bool Memory_TryBase(u8* base, MemoryView* views, int num_views, u32 flags
 
 		SKIP(flags, view->flags);
 
-#if _ARCH_64
+#if _ARCH_64 && !APPLE_IOS
 		// On 64-bit, we map the same file position multiple times, so we
 		// don't need the software fallback for the mirrors.
 		view_base = base + view->virtual_address;
 		use_sw_mirror = false;
 #else
-		// On 32-bit, we don't have the actual address space to store all
-		// the mirrors, so we just map the fallbacks somewhere in our address
-		// space and use the software fallbacks for mirroring.
+		// On 32-bit and iOS, we don't have the actual address space to store
+		// all the mirrors, so we just map the fallbacks somewhere in our
+		// address space and use the software fallbacks for mirroring.
 		view_base = base + (view->virtual_address & 0x3FFFFFFF);
 		use_sw_mirror = true;
 #endif
