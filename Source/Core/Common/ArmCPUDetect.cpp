@@ -6,8 +6,11 @@
 #include <sstream>
 #include <string>
 #include <unistd.h>
+
+#if !IOS
 #include <asm/hwcap.h>
 #include <sys/auxv.h>
+#endif
 
 #include "Common/CommonTypes.h"
 #include "Common/CPUDetect.h"
@@ -59,7 +62,7 @@ void CPUInfo::Detect()
 	// Get the information about the CPU
 	num_cores = sysconf(_SC_NPROCESSORS_CONF);
 	strncpy(cpu_string, GetCPUString().c_str(), sizeof(cpu_string));
-
+#if !IOS
 	unsigned long hwcaps = getauxval(AT_HWCAP);
 	bFP = hwcaps & HWCAP_FP;
 	bASIMD = hwcaps & HWCAP_ASIMD;
@@ -67,6 +70,7 @@ void CPUInfo::Detect()
 	bCRC32 = hwcaps & HWCAP_CRC32;
 	bSHA1 = hwcaps & HWCAP_SHA1;
 	bSHA2 = hwcaps & HWCAP_SHA2;
+#endif
 }
 
 // Turn the CPU info into a string we can show
