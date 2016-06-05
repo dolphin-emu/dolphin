@@ -48,7 +48,7 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 
 #if IOS
     GLint defaultFBO;
-    glGetIntegerv(0x8CA6, &defaultFBO);
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &defaultFBO);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, defaultFBO);
 #else
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
