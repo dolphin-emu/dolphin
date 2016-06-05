@@ -29,6 +29,8 @@ namespace Gecko
 	class CodeConfigPanel;
 }
 
+wxDECLARE_EVENT(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, wxCommandEvent);
+
 class wxCheatsWindow final : public wxDialog
 {
 public:
@@ -37,11 +39,7 @@ public:
 	void UpdateGUI();
 
 private:
-	struct ARCodeIndex
-	{
-		u32 uiIndex;
-		size_t index;
-	};
+	struct CodeData;
 
 	// --- GUI Controls ---
 	wxButton* m_button_apply;
@@ -63,14 +61,14 @@ private:
 
 	wxStaticBox* m_groupbox_info;
 
-	wxArrayString m_cheat_string_list;
-
-	std::vector<ARCodeIndex> m_index_list;
-
 	Gecko::CodeConfigPanel* m_geckocode_panel;
 	IniFile m_gameini_default;
 	IniFile m_gameini_local;
 	std::string m_gameini_local_path;
+	std::string m_game_id;
+	u32 m_game_revision;
+
+	bool m_ignore_ini_callback = false;
 
 	void Init_ChildControls();
 
@@ -78,6 +76,8 @@ private:
 	void Load_GeckoCodes();
 
 	// --- Wx Events Handlers ---
+	// Cheat Search
+	void OnNewARCodeCreated(wxCommandEvent& ev);
 
 	// Close Button
 	void OnEvent_ButtonClose_Press(wxCommandEvent& event);
@@ -85,7 +85,6 @@ private:
 
 	// Cheats List
 	void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
-	void OnEvent_CheatsList_ItemToggled(wxCommandEvent& event);
 	void OnEvent_CheatsList_Update(wxCommandEvent& event);
 
 	// Apply Changes Button
@@ -93,6 +92,7 @@ private:
 
 	// Update Log Button
 	void OnEvent_ButtonUpdateLog_Press(wxCommandEvent& event);
+	void OnClearActionReplayLog(wxCommandEvent& event);
 
 	// Enable Logging Checkbox
 	void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& event);
