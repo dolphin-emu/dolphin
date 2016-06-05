@@ -18,7 +18,7 @@
 
 Name:       dolphin-emu
 Summary:    Dolphin Emulator
-Version:    4.0.2
+Version:    4.0
 Release:    0%{?dist}
 Group:      System/Emulators/Other
 License:    GPL-2.0
