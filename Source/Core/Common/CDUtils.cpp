@@ -16,7 +16,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#elif __APPLE__
+#elif __APPLE__ && !APPLE_IOS
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOBSD.h>
 #include <IOKit/IOKitLib.h>
@@ -65,6 +65,11 @@ std::vector<std::string> cdio_get_devices()
 		}
 	}
 	return drives;
+}
+#elif APPLE_IOS
+std::vector<std::string> cdio_get_devices()
+{
+    return {};
 }
 #elif defined __APPLE__
 // Returns a pointer to an array of strings with the device names
