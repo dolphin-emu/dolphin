@@ -1,0 +1,1825 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */; };
+		4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */; };
+		4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */; };
+		CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249611CFE7766004C11C5 /* DolphinGame.m */; };
+		CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */; };
+		CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA12496B1CFE7D0E004C11C5 /* GameTableView.m */; };
+		CA1249D31CFE7F7D004C11C5 /* 7zBuf.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */; };
+		CA1249D41CFE7F7D004C11C5 /* 7zBuf2.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */; };
+		CA1249D51CFE7F7D004C11C5 /* 7zDec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B71CFE7F7C004C11C5 /* 7zDec.c */; };
+		CA1249D61CFE7F7D004C11C5 /* 7zFile.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B81CFE7F7C004C11C5 /* 7zFile.c */; };
+		CA1249D71CFE7F7D004C11C5 /* 7zIn.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */; };
+		CA1249D81CFE7F7D004C11C5 /* 7zStream.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */; };
+		CA1249D91CFE7F7D004C11C5 /* Alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BD1CFE7F7C004C11C5 /* Alloc.c */; };
+		CA1249DA1CFE7F7D004C11C5 /* CpuArch.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */; };
+		CA1249DB1CFE7F7D004C11C5 /* Delta.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C11CFE7F7C004C11C5 /* Delta.c */; };
+		CA1249DC1CFE7F7D004C11C5 /* Lzma2Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */; };
+		CA1249DD1CFE7F7D004C11C5 /* LzmaDec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */; };
+		CA1249DE1CFE7F7D004C11C5 /* LZMAExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */; };
+		CA1249DF1CFE7F7D004C11C5 /* Ppmd7.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */; };
+		CA1249E01CFE7F7D004C11C5 /* Ppmd7Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */; };
+		CA1249E11CFE7F7D004C11C5 /* Ppmd8.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */; };
+		CA1249E21CFE7F7D004C11C5 /* Ppmd8Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */; };
+		CA1249E61CFE7FAD004C11C5 /* 7zAlloc.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */; };
+		CA1249E71CFE7FAD004C11C5 /* 7zMain.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E51CFE7FAD004C11C5 /* 7zMain.c */; };
+		CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */; };
+		CA1249F61CFE7FCF004C11C5 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249EC1CFE7FCF004C11C5 /* ioapi.c */; };
+		CA1249F71CFE7FCF004C11C5 /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249EE1CFE7FCF004C11C5 /* mztools.c */; };
+		CA1249F81CFE7FCF004C11C5 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F01CFE7FCF004C11C5 /* unzip.c */; };
+		CA1249F91CFE7FCF004C11C5 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F21CFE7FCF004C11C5 /* zip.c */; };
+		CA1249FA1CFE7FCF004C11C5 /* SSZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */; };
+		CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */; };
+		CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */; };
+		CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A001CFE7FDC004C11C5 /* SCLButton.m */; };
+		CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */; };
+		CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */; };
+		CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */; };
+		CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A091CFE7FDC004C11C5 /* SCLTextView.m */; };
+		CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */; };
+		CA124A1E1CFE7FED004C11C5 /* mute.caf in Resources */ = {isa = PBXBuildFile; fileRef = CA124A131CFE7FED004C11C5 /* mute.caf */; };
+		CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */; };
+		CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A181CFE7FED004C11C5 /* RBVolumeButtons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A1A1CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m */; };
+		CA124A221CFE7FED004C11C5 /* NSString+CompareToVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A1C1CFE7FED004C11C5 /* NSString+CompareToVersion.m */; };
+		CA124A241CFE8139004C11C5 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A231CFE8139004C11C5 /* GameController.framework */; };
+		CA124A261CFE814E004C11C5 /* Twitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A251CFE814E004C11C5 /* Twitter.framework */; };
+		CA124A281CFE8164004C11C5 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A271CFE8164004C11C5 /* MediaPlayer.framework */; };
+		CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */; };
+		CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */; };
+		CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */; };
+		CA124A411CFE8237004C11C5 /* WCEasySettingsSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */; };
+		CA124A421CFE8237004C11C5 /* WCEasySettingsSegment.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */; };
+		CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */; };
+		CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */; };
+		CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */; };
+		CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */; };
+		CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */; };
+		CA124A521CFE852B004C11C5 /* ZAActivityBar.bundle in Resources */ = {isa = PBXBuildFile; fileRef = CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */; };
+		CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */; };
+		CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */; };
+		CA53A23F1CEFA30E005937F5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A23E1CEFA30E005937F5 /* main.m */; };
+		CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2411CEFA30E005937F5 /* AppDelegate.m */; };
+		CA53A2451CEFA30E005937F5 /* EmulatorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */; };
+		CA53A2481CEFA30E005937F5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA53A2461CEFA30E005937F5 /* Main.storyboard */; };
+		CA53A24A1CEFA30E005937F5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA53A2491CEFA30E005937F5 /* Assets.xcassets */; };
+		CA53A24D1CEFA30E005937F5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA53A24B1CEFA30E005937F5 /* LaunchScreen.storyboard */; };
+		CA53A2581CEFA30E005937F5 /* DolphiniOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2571CEFA30E005937F5 /* DolphiniOSTests.m */; };
+		CA53A2631CEFA30E005937F5 /* DolphiniOSUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */; };
+		CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2781CEFA426005937F5 /* DolphinBridge.mm */; };
+		CA53A2B21CEFB485005937F5 /* MainiOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2B11CEFB485005937F5 /* MainiOS.mm */; };
+		CA53A2B51CEFC78A005937F5 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B41CEFC78A005937F5 /* libz.tbd */; };
+		CA53A2B71CEFC7CC005937F5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */; };
+		CA53A2B91CEFC7D1005937F5 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */; };
+		CA53A2BB1CEFC7DB005937F5 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2BA1CEFC7DB005937F5 /* AudioToolbox.framework */; };
+		CA53A2BD1CEFC7E1005937F5 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */; };
+		CA53A2BF1CEFC7F2005937F5 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */; };
+		CA53A2C11CEFC8A4005937F5 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */; };
+		CA53A3401CF0B852005937F5 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A33F1CF0B852005937F5 /* GLKit.framework */; };
+		CA751EE91D04826800771302 /* gcpad_a@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EC91D04826800771302 /* gcpad_a@2x.png */; };
+		CA751EEA1D04826800771302 /* gcpad_a_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECA1D04826800771302 /* gcpad_a_pressed@2x.png */; };
+		CA751EEB1D04826800771302 /* gcpad_b@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECB1D04826800771302 /* gcpad_b@2x.png */; };
+		CA751EEC1D04826800771302 /* gcpad_b_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECC1D04826800771302 /* gcpad_b_pressed@2x.png */; };
+		CA751EED1D04826800771302 /* gcpad_c@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECD1D04826800771302 /* gcpad_c@2x.png */; };
+		CA751EEE1D04826800771302 /* gcpad_c_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECE1D04826800771302 /* gcpad_c_pressed@2x.png */; };
+		CA751EEF1D04826800771302 /* gcpad_dpad@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ECF1D04826800771302 /* gcpad_dpad@2x.png */; };
+		CA751EF01D04826800771302 /* gcpad_dpad_pressed_down@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED01D04826800771302 /* gcpad_dpad_pressed_down@2x.png */; };
+		CA751EF11D04826800771302 /* gcpad_dpad_pressed_downleft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED11D04826800771302 /* gcpad_dpad_pressed_downleft@2x.png */; };
+		CA751EF21D04826800771302 /* gcpad_dpad_pressed_downright@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED21D04826800771302 /* gcpad_dpad_pressed_downright@2x.png */; };
+		CA751EF31D04826800771302 /* gcpad_dpad_pressed_left@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED31D04826800771302 /* gcpad_dpad_pressed_left@2x.png */; };
+		CA751EF41D04826800771302 /* gcpad_dpad_pressed_right@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED41D04826800771302 /* gcpad_dpad_pressed_right@2x.png */; };
+		CA751EF51D04826800771302 /* gcpad_dpad_pressed_up@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED51D04826800771302 /* gcpad_dpad_pressed_up@2x.png */; };
+		CA751EF61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png */; };
+		CA751EF71D04826800771302 /* gcpad_dpad_pressed_upright@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED71D04826800771302 /* gcpad_dpad_pressed_upright@2x.png */; };
+		CA751EF81D04826800771302 /* gcpad_joystick@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED81D04826800771302 /* gcpad_joystick@2x.png */; };
+		CA751EF91D04826800771302 /* gcpad_joystick_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751ED91D04826800771302 /* gcpad_joystick_pressed@2x.png */; };
+		CA751EFA1D04826800771302 /* gcpad_joystick_range@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDA1D04826800771302 /* gcpad_joystick_range@2x.png */; };
+		CA751EFB1D04826800771302 /* gcpad_l@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDB1D04826800771302 /* gcpad_l@2x.png */; };
+		CA751EFC1D04826800771302 /* gcpad_l_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDC1D04826800771302 /* gcpad_l_pressed@2x.png */; };
+		CA751EFD1D04826800771302 /* gcpad_r@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDD1D04826800771302 /* gcpad_r@2x.png */; };
+		CA751EFE1D04826800771302 /* gcpad_r_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDE1D04826800771302 /* gcpad_r_pressed@2x.png */; };
+		CA751EFF1D04826800771302 /* gcpad_start@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EDF1D04826800771302 /* gcpad_start@2x.png */; };
+		CA751F001D04826800771302 /* gcpad_start_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE01D04826800771302 /* gcpad_start_pressed@2x.png */; };
+		CA751F011D04826800771302 /* gcpad_x@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE11D04826800771302 /* gcpad_x@2x.png */; };
+		CA751F021D04826800771302 /* gcpad_x_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE21D04826800771302 /* gcpad_x_pressed@2x.png */; };
+		CA751F031D04826800771302 /* gcpad_y@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE31D04826800771302 /* gcpad_y@2x.png */; };
+		CA751F041D04826800771302 /* gcpad_y_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE41D04826800771302 /* gcpad_y_pressed@2x.png */; };
+		CA751F051D04826800771302 /* gcpad_z@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE51D04826800771302 /* gcpad_z@2x.png */; };
+		CA751F061D04826800771302 /* gcpad_z_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE61D04826800771302 /* gcpad_z_pressed@2x.png */; };
+		CA751F071D04826800771302 /* ic_gamecube.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE71D04826800771302 /* ic_gamecube.png */; };
+		CA751F081D04826800771302 /* ic_wii.png in Resources */ = {isa = PBXBuildFile; fileRef = CA751EE81D04826800771302 /* ic_wii.png */; };
+		CA76E1911CFCDDE20009BB8E /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA76E1901CFCDDE20009BB8E /* Entitlements.plist */; };
+		CAD333CA1D030D6C00431946 /* GC in Resources */ = {isa = PBXBuildFile; fileRef = CAD333C81D030D6C00431946 /* GC */; };
+		CAD333CB1D030D6C00431946 /* Shaders in Resources */ = {isa = PBXBuildFile; fileRef = CAD333C91D030D6C00431946 /* Shaders */; };
+		CAD333E21D0310D100431946 /* libaudiocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333CC1D0310D100431946 /* libaudiocommon.a */; };
+		CAD333E31D0310D100431946 /* libbdisasm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333CD1D0310D100431946 /* libbdisasm.a */; };
+		CAD333E41D0310D100431946 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333CE1D0310D100431946 /* libcommon.a */; };
+		CAD333E51D0310D100431946 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333CF1D0310D100431946 /* libcore.a */; };
+		CAD333E61D0310D100431946 /* libdiscio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D01D0310D100431946 /* libdiscio.a */; };
+		CAD333E71D0310D100431946 /* libenet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D11D0310D100431946 /* libenet.a */; };
+		CAD333E81D0310D100431946 /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D21D0310D100431946 /* libgtest.a */; };
+		CAD333E91D0310D100431946 /* libinputcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D31D0310D100431946 /* libinputcommon.a */; };
+		CAD333EA1D0310D100431946 /* liblzo2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D41D0310D100431946 /* liblzo2.a */; };
+		CAD333EB1D0310D100431946 /* libmbedcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D51D0310D100431946 /* libmbedcrypto.a */; };
+		CAD333EC1D0310D100431946 /* libmbedtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D61D0310D100431946 /* libmbedtls.a */; };
+		CAD333ED1D0310D100431946 /* libmbedx509.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D71D0310D100431946 /* libmbedx509.a */; };
+		CAD333EE1D0310D100431946 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D81D0310D100431946 /* libpng.a */; };
+		CAD333EF1D0310D100431946 /* libsfml-network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333D91D0310D100431946 /* libsfml-network.a */; };
+		CAD333F01D0310D100431946 /* libsfml-system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DA1D0310D100431946 /* libsfml-system.a */; };
+		CAD333F11D0310D100431946 /* libSOIL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DB1D0310D100431946 /* libSOIL.a */; };
+		CAD333F21D0310D100431946 /* libSoundTouch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DC1D0310D100431946 /* libSoundTouch.a */; };
+		CAD333F31D0310D100431946 /* libuicommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DD1D0310D100431946 /* libuicommon.a */; };
+		CAD333F41D0310D100431946 /* libvideocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DE1D0310D100431946 /* libvideocommon.a */; };
+		CAD333F51D0310D100431946 /* libvideoogl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333DF1D0310D100431946 /* libvideoogl.a */; };
+		CAD333F61D0310D100431946 /* libvideosoftware.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333E01D0310D100431946 /* libvideosoftware.a */; };
+		CAD333F71D0310D100431946 /* libxxhash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CAD333E11D0310D100431946 /* libxxhash.a */; };
+		CAD333FC1D03155A00431946 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = CAD333FB1D03155A00431946 /* Roms */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CA53A2541CEFA30E005937F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 99032692BF074FB7B8925999 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA53A23A1CEFA30E005937F5;
+			remoteInfo = DolphiniOS;
+		};
+		CA53A25F1CEFA30E005937F5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 99032692BF074FB7B8925999 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CA53A23A1CEFA30E005937F5;
+			remoteInfo = DolphiniOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CAE2B1CC1D00EE33000C4576 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4C8E6C191CFF390300D87BC3 /* GCControllerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCControllerView.h; sourceTree = "<group>"; };
+		4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCControllerView.m; sourceTree = "<group>"; };
+		4C8E6C1B1CFF390300D87BC3 /* WCButtonControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCButtonControl.h; sourceTree = "<group>"; };
+		4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCButtonControl.m; sourceTree = "<group>"; };
+		4C8E6C1D1CFF390300D87BC3 /* WCDirectionalControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCDirectionalControl.h; sourceTree = "<group>"; };
+		4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCDirectionalControl.m; sourceTree = "<group>"; };
+		4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "DolphiniOS copy-Info.plist"; path = "/Users/sc-wcobb-osx/Dropbox/Xcode/dolphinIOS/DolphiniOS copy-Info.plist"; sourceTree = "<absolute>"; };
+		CA1249601CFE7766004C11C5 /* DolphinGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinGame.h; sourceTree = "<group>"; };
+		CA1249611CFE7766004C11C5 /* DolphinGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DolphinGame.m; sourceTree = "<group>"; };
+		CA1249681CFE7D0E004C11C5 /* RomTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RomTableViewController.h; sourceTree = "<group>"; };
+		CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomTableViewController.m; sourceTree = "<group>"; };
+		CA12496A1CFE7D0E004C11C5 /* GameTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameTableView.h; sourceTree = "<group>"; };
+		CA12496B1CFE7D0E004C11C5 /* GameTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameTableView.m; sourceTree = "<group>"; };
+		CA1249B31CFE7F7C004C11C5 /* 7z.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7z.h; sourceTree = "<group>"; };
+		CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zBuf.c; sourceTree = "<group>"; };
+		CA1249B51CFE7F7C004C11C5 /* 7zBuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zBuf.h; sourceTree = "<group>"; };
+		CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zBuf2.c; sourceTree = "<group>"; };
+		CA1249B71CFE7F7C004C11C5 /* 7zDec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zDec.c; sourceTree = "<group>"; };
+		CA1249B81CFE7F7C004C11C5 /* 7zFile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zFile.c; sourceTree = "<group>"; };
+		CA1249B91CFE7F7C004C11C5 /* 7zFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zFile.h; sourceTree = "<group>"; };
+		CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zIn.c; sourceTree = "<group>"; };
+		CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zStream.c; sourceTree = "<group>"; };
+		CA1249BC1CFE7F7C004C11C5 /* 7zVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zVersion.h; sourceTree = "<group>"; };
+		CA1249BD1CFE7F7C004C11C5 /* Alloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Alloc.c; sourceTree = "<group>"; };
+		CA1249BE1CFE7F7C004C11C5 /* Alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Alloc.h; sourceTree = "<group>"; };
+		CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CpuArch.c; sourceTree = "<group>"; };
+		CA1249C01CFE7F7C004C11C5 /* CpuArch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CpuArch.h; sourceTree = "<group>"; };
+		CA1249C11CFE7F7C004C11C5 /* Delta.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Delta.c; sourceTree = "<group>"; };
+		CA1249C21CFE7F7C004C11C5 /* Delta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delta.h; sourceTree = "<group>"; };
+		CA1249C31CFE7F7C004C11C5 /* LzHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LzHash.h; sourceTree = "<group>"; };
+		CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Lzma2Dec.c; sourceTree = "<group>"; };
+		CA1249C51CFE7F7C004C11C5 /* Lzma2Dec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Lzma2Dec.h; sourceTree = "<group>"; };
+		CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LzmaDec.c; sourceTree = "<group>"; };
+		CA1249C71CFE7F7C004C11C5 /* LzmaDec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LzmaDec.h; sourceTree = "<group>"; };
+		CA1249C81CFE7F7C004C11C5 /* LZMAExtractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LZMAExtractor.h; sourceTree = "<group>"; };
+		CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LZMAExtractor.m; sourceTree = "<group>"; };
+		CA1249CA1CFE7F7D004C11C5 /* Ppmd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd.h; sourceTree = "<group>"; };
+		CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd7.c; sourceTree = "<group>"; };
+		CA1249CC1CFE7F7D004C11C5 /* Ppmd7.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd7.h; sourceTree = "<group>"; };
+		CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd7Dec.c; sourceTree = "<group>"; };
+		CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd8.c; sourceTree = "<group>"; };
+		CA1249CF1CFE7F7D004C11C5 /* Ppmd8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd8.h; sourceTree = "<group>"; };
+		CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd8Dec.c; sourceTree = "<group>"; };
+		CA1249D11CFE7F7D004C11C5 /* RotateDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RotateDefs.h; sourceTree = "<group>"; };
+		CA1249D21CFE7F7D004C11C5 /* Types2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Types2.h; sourceTree = "<group>"; };
+		CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zAlloc.c; sourceTree = "<group>"; };
+		CA1249E41CFE7FAD004C11C5 /* 7zAlloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zAlloc.h; sourceTree = "<group>"; };
+		CA1249E51CFE7FAD004C11C5 /* 7zMain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zMain.c; sourceTree = "<group>"; };
+		CA1249E81CFE7FBD004C11C5 /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MHWDirectoryWatcher.h; sourceTree = "<group>"; };
+		CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MHWDirectoryWatcher.m; sourceTree = "<group>"; };
+		CA1249EB1CFE7FCF004C11C5 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt.h; sourceTree = "<group>"; };
+		CA1249EC1CFE7FCF004C11C5 /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
+		CA1249ED1CFE7FCF004C11C5 /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
+		CA1249EE1CFE7FCF004C11C5 /* mztools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mztools.c; sourceTree = "<group>"; };
+		CA1249EF1CFE7FCF004C11C5 /* mztools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mztools.h; sourceTree = "<group>"; };
+		CA1249F01CFE7FCF004C11C5 /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unzip.c; sourceTree = "<group>"; };
+		CA1249F11CFE7FCF004C11C5 /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
+		CA1249F21CFE7FCF004C11C5 /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
+		CA1249F31CFE7FCF004C11C5 /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
+		CA1249F41CFE7FCF004C11C5 /* SSZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSZipArchive.h; sourceTree = "<group>"; };
+		CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSZipArchive.m; sourceTree = "<group>"; };
+		CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
+		CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
+		CA1249FD1CFE7FDC004C11C5 /* SCLAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertView.h; sourceTree = "<group>"; };
+		CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertView.m; sourceTree = "<group>"; };
+		CA1249FF1CFE7FDC004C11C5 /* SCLButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLButton.h; sourceTree = "<group>"; };
+		CA124A001CFE7FDC004C11C5 /* SCLButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLButton.m; sourceTree = "<group>"; };
+		CA124A011CFE7FDC004C11C5 /* SCLAlertViewResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertViewResponder.h; sourceTree = "<group>"; };
+		CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertViewResponder.m; sourceTree = "<group>"; };
+		CA124A031CFE7FDC004C11C5 /* SCLAlertViewStyleKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertViewStyleKit.h; sourceTree = "<group>"; };
+		CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertViewStyleKit.m; sourceTree = "<group>"; };
+		CA124A051CFE7FDC004C11C5 /* SCLMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLMacros.h; sourceTree = "<group>"; };
+		CA124A061CFE7FDC004C11C5 /* SCLTimerDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLTimerDisplay.h; sourceTree = "<group>"; };
+		CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTimerDisplay.m; sourceTree = "<group>"; };
+		CA124A081CFE7FDC004C11C5 /* SCLTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLTextView.h; sourceTree = "<group>"; };
+		CA124A091CFE7FDC004C11C5 /* SCLTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTextView.m; sourceTree = "<group>"; };
+		CA124A111CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharkfoodMuteSwitchDetector.h; sourceTree = "<group>"; };
+		CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SharkfoodMuteSwitchDetector.m; sourceTree = "<group>"; };
+		CA124A131CFE7FED004C11C5 /* mute.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = mute.caf; sourceTree = "<group>"; };
+		CA124A141CFE7FED004C11C5 /* UITapticEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UITapticEngine.h; sourceTree = "<group>"; };
+		CA124A151CFE7FED004C11C5 /* UIDevice+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+Private.h"; sourceTree = "<group>"; };
+		CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+Private.m"; sourceTree = "<group>"; };
+		CA124A171CFE7FED004C11C5 /* RBVolumeButtons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBVolumeButtons.h; sourceTree = "<group>"; };
+		CA124A181CFE7FED004C11C5 /* RBVolumeButtons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RBVolumeButtons.m; sourceTree = "<group>"; };
+		CA124A191CFE7FED004C11C5 /* UIViewController+BackButtonHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+BackButtonHandler.h"; sourceTree = "<group>"; };
+		CA124A1A1CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+BackButtonHandler.m"; sourceTree = "<group>"; };
+		CA124A1B1CFE7FED004C11C5 /* NSString+CompareToVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+CompareToVersion.h"; sourceTree = "<group>"; };
+		CA124A1C1CFE7FED004C11C5 /* NSString+CompareToVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+CompareToVersion.m"; sourceTree = "<group>"; };
+		CA124A231CFE8139004C11C5 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
+		CA124A251CFE814E004C11C5 /* Twitter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Twitter.framework; path = System/Library/Frameworks/Twitter.framework; sourceTree = SDKROOT; };
+		CA124A271CFE8164004C11C5 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
+		CA124A2A1CFE8237004C11C5 /* WCEasySettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsViewController.h; sourceTree = "<group>"; };
+		CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsViewController.m; sourceTree = "<group>"; };
+		CA124A2C1CFE8237004C11C5 /* WCEasySettingsSection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSection.h; sourceTree = "<group>"; };
+		CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSection.m; sourceTree = "<group>"; };
+		CA124A2E1CFE8237004C11C5 /* WCEasySettingsItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsItem.h; sourceTree = "<group>"; };
+		CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsItem.m; sourceTree = "<group>"; };
+		CA124A301CFE8237004C11C5 /* WCEasySettingsSwitch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSwitch.h; sourceTree = "<group>"; };
+		CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSwitch.m; sourceTree = "<group>"; };
+		CA124A321CFE8237004C11C5 /* WCEasySettingsSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSegment.h; sourceTree = "<group>"; };
+		CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSegment.m; sourceTree = "<group>"; };
+		CA124A341CFE8237004C11C5 /* WCEasySettingsSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSlider.h; sourceTree = "<group>"; };
+		CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSlider.m; sourceTree = "<group>"; };
+		CA124A361CFE8237004C11C5 /* WCEasySettingsOption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsOption.h; sourceTree = "<group>"; };
+		CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsOption.m; sourceTree = "<group>"; };
+		CA124A381CFE8237004C11C5 /* WCEasySettingsOptionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsOptionViewController.h; sourceTree = "<group>"; };
+		CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsOptionViewController.m; sourceTree = "<group>"; };
+		CA124A3A1CFE8237004C11C5 /* WCEasySettingsUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsUrl.h; sourceTree = "<group>"; };
+		CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsUrl.m; sourceTree = "<group>"; };
+		CA124A3C1CFE8237004C11C5 /* WCEasySettingsCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsCustom.h; sourceTree = "<group>"; };
+		CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsCustom.m; sourceTree = "<group>"; };
+		CA124A481CFE8258004C11C5 /* WCEasySettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WCEasySettings.h; sourceTree = "<group>"; };
+		CA124A491CFE830E004C11C5 /* Dolphin-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Dolphin-Prefix.pch"; sourceTree = "<group>"; };
+		CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = ZAActivityBar.bundle; sourceTree = "<group>"; };
+		CA124A4E1CFE852B004C11C5 /* ZAActivityBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAActivityBar.h; sourceTree = "<group>"; };
+		CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAActivityBar.m; sourceTree = "<group>"; };
+		CA124A501CFE852B004C11C5 /* SKBounceAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SKBounceAnimation.h; sourceTree = "<group>"; };
+		CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SKBounceAnimation.m; sourceTree = "<group>"; };
+		CA53A23B1CEFA30E005937F5 /* Dolphin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dolphin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA53A23E1CEFA30E005937F5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		CA53A2401CEFA30E005937F5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		CA53A2411CEFA30E005937F5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		CA53A2431CEFA30E005937F5 /* EmulatorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulatorViewController.h; sourceTree = "<group>"; };
+		CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulatorViewController.mm; sourceTree = "<group>"; };
+		CA53A2471CEFA30E005937F5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CA53A2491CEFA30E005937F5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CA53A24C1CEFA30E005937F5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		CA53A24E1CEFA30E005937F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA53A2531CEFA30E005937F5 /* DolphiniOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DolphiniOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA53A2571CEFA30E005937F5 /* DolphiniOSTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DolphiniOSTests.m; sourceTree = "<group>"; };
+		CA53A2591CEFA30E005937F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA53A25E1CEFA30E005937F5 /* DolphiniOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DolphiniOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DolphiniOSUITests.m; sourceTree = "<group>"; };
+		CA53A2641CEFA30E005937F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA53A2771CEFA426005937F5 /* DolphinBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinBridge.h; sourceTree = "<group>"; };
+		CA53A2781CEFA426005937F5 /* DolphinBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DolphinBridge.mm; sourceTree = "<group>"; };
+		CA53A2B11CEFB485005937F5 /* MainiOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainiOS.mm; sourceTree = "<group>"; };
+		CA53A2B41CEFC78A005937F5 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		CA53A2BA1CEFC7DB005937F5 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		CA53A2C21CEFCA3D005937F5 /* GCAdapteriOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GCAdapteriOS.cpp; path = ../GCAdapteriOS.cpp; sourceTree = "<group>"; };
+		CA53A33F1CF0B852005937F5 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		CA751EC91D04826800771302 /* gcpad_a@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a@2x.png"; sourceTree = "<group>"; };
+		CA751ECA1D04826800771302 /* gcpad_a_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751ECB1D04826800771302 /* gcpad_b@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_b@2x.png"; sourceTree = "<group>"; };
+		CA751ECC1D04826800771302 /* gcpad_b_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_b_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751ECD1D04826800771302 /* gcpad_c@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_c@2x.png"; sourceTree = "<group>"; };
+		CA751ECE1D04826800771302 /* gcpad_c_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_c_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751ECF1D04826800771302 /* gcpad_dpad@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad@2x.png"; sourceTree = "<group>"; };
+		CA751ED01D04826800771302 /* gcpad_dpad_pressed_down@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_down@2x.png"; sourceTree = "<group>"; };
+		CA751ED11D04826800771302 /* gcpad_dpad_pressed_downleft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_downleft@2x.png"; sourceTree = "<group>"; };
+		CA751ED21D04826800771302 /* gcpad_dpad_pressed_downright@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_downright@2x.png"; sourceTree = "<group>"; };
+		CA751ED31D04826800771302 /* gcpad_dpad_pressed_left@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_left@2x.png"; sourceTree = "<group>"; };
+		CA751ED41D04826800771302 /* gcpad_dpad_pressed_right@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_right@2x.png"; sourceTree = "<group>"; };
+		CA751ED51D04826800771302 /* gcpad_dpad_pressed_up@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_up@2x.png"; sourceTree = "<group>"; };
+		CA751ED61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_upleft@2x.png"; sourceTree = "<group>"; };
+		CA751ED71D04826800771302 /* gcpad_dpad_pressed_upright@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_upright@2x.png"; sourceTree = "<group>"; };
+		CA751ED81D04826800771302 /* gcpad_joystick@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick@2x.png"; sourceTree = "<group>"; };
+		CA751ED91D04826800771302 /* gcpad_joystick_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EDA1D04826800771302 /* gcpad_joystick_range@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick_range@2x.png"; sourceTree = "<group>"; };
+		CA751EDB1D04826800771302 /* gcpad_l@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_l@2x.png"; sourceTree = "<group>"; };
+		CA751EDC1D04826800771302 /* gcpad_l_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_l_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EDD1D04826800771302 /* gcpad_r@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_r@2x.png"; sourceTree = "<group>"; };
+		CA751EDE1D04826800771302 /* gcpad_r_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_r_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EDF1D04826800771302 /* gcpad_start@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_start@2x.png"; sourceTree = "<group>"; };
+		CA751EE01D04826800771302 /* gcpad_start_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_start_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EE11D04826800771302 /* gcpad_x@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_x@2x.png"; sourceTree = "<group>"; };
+		CA751EE21D04826800771302 /* gcpad_x_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_x_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EE31D04826800771302 /* gcpad_y@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_y@2x.png"; sourceTree = "<group>"; };
+		CA751EE41D04826800771302 /* gcpad_y_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_y_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EE51D04826800771302 /* gcpad_z@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_z@2x.png"; sourceTree = "<group>"; };
+		CA751EE61D04826800771302 /* gcpad_z_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_z_pressed@2x.png"; sourceTree = "<group>"; };
+		CA751EE71D04826800771302 /* ic_gamecube.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_gamecube.png; sourceTree = "<group>"; };
+		CA751EE81D04826800771302 /* ic_wii.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_wii.png; sourceTree = "<group>"; };
+		CA76E1901CFCDDE20009BB8E /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
+		CAD333C81D030D6C00431946 /* GC */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GC; path = Data/Sys/GC; sourceTree = "<group>"; };
+		CAD333C91D030D6C00431946 /* Shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shaders; path = Data/Sys/Shaders; sourceTree = "<group>"; };
+		CAD333CC1D0310D100431946 /* libaudiocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudiocommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libaudiocommon.a"; sourceTree = "<group>"; };
+		CAD333CD1D0310D100431946 /* libbdisasm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbdisasm.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libbdisasm.a"; sourceTree = "<group>"; };
+		CAD333CE1D0310D100431946 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libcommon.a"; sourceTree = "<group>"; };
+		CAD333CF1D0310D100431946 /* libcore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcore.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libcore.a"; sourceTree = "<group>"; };
+		CAD333D01D0310D100431946 /* libdiscio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdiscio.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libdiscio.a"; sourceTree = "<group>"; };
+		CAD333D11D0310D100431946 /* libenet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libenet.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libenet.a"; sourceTree = "<group>"; };
+		CAD333D21D0310D100431946 /* libgtest.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgtest.a; path = "Build/Externals/gtest/Debug-iphoneos/libgtest.a"; sourceTree = "<group>"; };
+		CAD333D31D0310D100431946 /* libinputcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libinputcommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libinputcommon.a"; sourceTree = "<group>"; };
+		CAD333D41D0310D100431946 /* liblzo2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzo2.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/liblzo2.a"; sourceTree = "<group>"; };
+		CAD333D51D0310D100431946 /* libmbedcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedcrypto.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libmbedcrypto.a"; sourceTree = "<group>"; };
+		CAD333D61D0310D100431946 /* libmbedtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedtls.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libmbedtls.a"; sourceTree = "<group>"; };
+		CAD333D71D0310D100431946 /* libmbedx509.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedx509.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libmbedx509.a"; sourceTree = "<group>"; };
+		CAD333D81D0310D100431946 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libpng.a"; sourceTree = "<group>"; };
+		CAD333D91D0310D100431946 /* libsfml-network.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-network.a"; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libsfml-network.a"; sourceTree = "<group>"; };
+		CAD333DA1D0310D100431946 /* libsfml-system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-system.a"; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libsfml-system.a"; sourceTree = "<group>"; };
+		CAD333DB1D0310D100431946 /* libSOIL.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSOIL.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libSOIL.a"; sourceTree = "<group>"; };
+		CAD333DC1D0310D100431946 /* libSoundTouch.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSoundTouch.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libSoundTouch.a"; sourceTree = "<group>"; };
+		CAD333DD1D0310D100431946 /* libuicommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuicommon.a; path = "Build/Source/Core/UICommon/Debug-iphoneos/libuicommon.a"; sourceTree = "<group>"; };
+		CAD333DE1D0310D100431946 /* libvideocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideocommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libvideocommon.a"; sourceTree = "<group>"; };
+		CAD333DF1D0310D100431946 /* libvideoogl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideoogl.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libvideoogl.a"; sourceTree = "<group>"; };
+		CAD333E01D0310D100431946 /* libvideosoftware.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideosoftware.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libvideosoftware.a"; sourceTree = "<group>"; };
+		CAD333E11D0310D100431946 /* libxxhash.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxxhash.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-dqsetpnmdhrihfayhunjnnfxrkwz/Build/Products/Debug-iphoneos/libxxhash.a"; sourceTree = "<group>"; };
+		CAD333FB1D03155A00431946 /* Roms */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Roms; path = Build/DolphiniOS/Roms; sourceTree = "<group>"; };
+		CAE2B1C61D00ED22000C4576 /* UnrarKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = UnrarKit.framework; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CA53A2381CEFA30E005937F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CAD333E21D0310D100431946 /* libaudiocommon.a in Frameworks */,
+				CAD333E31D0310D100431946 /* libbdisasm.a in Frameworks */,
+				CAD333E41D0310D100431946 /* libcommon.a in Frameworks */,
+				CAD333E51D0310D100431946 /* libcore.a in Frameworks */,
+				CAD333E61D0310D100431946 /* libdiscio.a in Frameworks */,
+				CAD333E71D0310D100431946 /* libenet.a in Frameworks */,
+				CAD333E81D0310D100431946 /* libgtest.a in Frameworks */,
+				CAD333E91D0310D100431946 /* libinputcommon.a in Frameworks */,
+				CAD333EA1D0310D100431946 /* liblzo2.a in Frameworks */,
+				CAD333EB1D0310D100431946 /* libmbedcrypto.a in Frameworks */,
+				CAD333EC1D0310D100431946 /* libmbedtls.a in Frameworks */,
+				CAD333ED1D0310D100431946 /* libmbedx509.a in Frameworks */,
+				CAD333EE1D0310D100431946 /* libpng.a in Frameworks */,
+				CAD333EF1D0310D100431946 /* libsfml-network.a in Frameworks */,
+				CAD333F01D0310D100431946 /* libsfml-system.a in Frameworks */,
+				CAD333F11D0310D100431946 /* libSOIL.a in Frameworks */,
+				CAD333F21D0310D100431946 /* libSoundTouch.a in Frameworks */,
+				CAD333F31D0310D100431946 /* libuicommon.a in Frameworks */,
+				CAD333F41D0310D100431946 /* libvideocommon.a in Frameworks */,
+				CAD333F51D0310D100431946 /* libvideoogl.a in Frameworks */,
+				CAD333F61D0310D100431946 /* libvideosoftware.a in Frameworks */,
+				CAD333F71D0310D100431946 /* libxxhash.a in Frameworks */,
+				CA124A281CFE8164004C11C5 /* MediaPlayer.framework in Frameworks */,
+				CA124A261CFE814E004C11C5 /* Twitter.framework in Frameworks */,
+				CA124A241CFE8139004C11C5 /* GameController.framework in Frameworks */,
+				CA53A3401CF0B852005937F5 /* GLKit.framework in Frameworks */,
+				CA53A2C11CEFC8A4005937F5 /* OpenAL.framework in Frameworks */,
+				CA53A2BF1CEFC7F2005937F5 /* OpenGLES.framework in Frameworks */,
+				CA53A2BD1CEFC7E1005937F5 /* UIKit.framework in Frameworks */,
+				CA53A2BB1CEFC7DB005937F5 /* AudioToolbox.framework in Frameworks */,
+				CA53A2B91CEFC7D1005937F5 /* CoreAudio.framework in Frameworks */,
+				CA53A2B71CEFC7CC005937F5 /* libiconv.tbd in Frameworks */,
+				CA53A2B51CEFC78A005937F5 /* libz.tbd in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A2501CEFA30E005937F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A25B1CEFA30E005937F5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		36F8AC164103411E9AD0FA42 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CAD333C81D030D6C00431946 /* GC */,
+				CAD333C91D030D6C00431946 /* Shaders */,
+				CAD333FB1D03155A00431946 /* Roms */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		4C8E6B711CFF370100D87BC3 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				4C8E6B851CFF370100D87BC3 /* GameCube */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		4C8E6B851CFF370100D87BC3 /* GameCube */ = {
+			isa = PBXGroup;
+			children = (
+				CA751EC81D04826800771302 /* Retina */,
+			);
+			path = GameCube;
+			sourceTree = "<group>";
+		};
+		4C8E6C181CFF390300D87BC3 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				CA53A2C21CEFCA3D005937F5 /* GCAdapteriOS.cpp */,
+				4C8E6C191CFF390300D87BC3 /* GCControllerView.h */,
+				4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */,
+				4C8E6C1B1CFF390300D87BC3 /* WCButtonControl.h */,
+				4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */,
+				4C8E6C1D1CFF390300D87BC3 /* WCDirectionalControl.h */,
+				4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		4CE423BC1CFDE4E90054EB82 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				4C8E6B711CFF370100D87BC3 /* Controllers */,
+			);
+			path = Images;
+			sourceTree = "<group>";
+		};
+		B7D3E4EB688E4DAA8B0EDA06 = {
+			isa = PBXGroup;
+			children = (
+				CAD333CC1D0310D100431946 /* libaudiocommon.a */,
+				CAD333CD1D0310D100431946 /* libbdisasm.a */,
+				CAD333CE1D0310D100431946 /* libcommon.a */,
+				CAD333CF1D0310D100431946 /* libcore.a */,
+				CAD333D01D0310D100431946 /* libdiscio.a */,
+				CAD333D11D0310D100431946 /* libenet.a */,
+				CAD333D21D0310D100431946 /* libgtest.a */,
+				CAD333D31D0310D100431946 /* libinputcommon.a */,
+				CAD333D41D0310D100431946 /* liblzo2.a */,
+				CAD333D51D0310D100431946 /* libmbedcrypto.a */,
+				CAD333D61D0310D100431946 /* libmbedtls.a */,
+				CAD333D71D0310D100431946 /* libmbedx509.a */,
+				CAD333D81D0310D100431946 /* libpng.a */,
+				CAD333D91D0310D100431946 /* libsfml-network.a */,
+				CAD333DA1D0310D100431946 /* libsfml-system.a */,
+				CAD333DB1D0310D100431946 /* libSOIL.a */,
+				CAD333DC1D0310D100431946 /* libSoundTouch.a */,
+				CAD333DD1D0310D100431946 /* libuicommon.a */,
+				CAD333DE1D0310D100431946 /* libvideocommon.a */,
+				CAD333DF1D0310D100431946 /* libvideoogl.a */,
+				CAD333E01D0310D100431946 /* libvideosoftware.a */,
+				CAD333E11D0310D100431946 /* libxxhash.a */,
+				CA124A271CFE8164004C11C5 /* MediaPlayer.framework */,
+				CA124A251CFE814E004C11C5 /* Twitter.framework */,
+				CA124A231CFE8139004C11C5 /* GameController.framework */,
+				CA53A33F1CF0B852005937F5 /* GLKit.framework */,
+				CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */,
+				CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */,
+				CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */,
+				CA53A2BA1CEFC7DB005937F5 /* AudioToolbox.framework */,
+				CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */,
+				CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */,
+				CA53A2B41CEFC78A005937F5 /* libz.tbd */,
+				36F8AC164103411E9AD0FA42 /* Resources */,
+				CA53A23C1CEFA30E005937F5 /* DolphiniOS */,
+				CA53A2561CEFA30E005937F5 /* DolphiniOSTests */,
+				CA53A2611CEFA30E005937F5 /* DolphiniOSUITests */,
+				E18AD58894AA4E54AE5424B8 /* Products */,
+				4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */,
+			);
+			sourceTree = "<group>";
+		};
+		CA1249AD1CFE7F74004C11C5 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				CA124A4C1CFE851C004C11C5 /* ZAActivityBar */,
+				CA1249AE1CFE7F74004C11C5 /* 7z */,
+				CA1249AF1CFE7F74004C11C5 /* DocWatchHelper */,
+				CA1249B01CFE7F74004C11C5 /* Misc */,
+				CA1249B11CFE7F74004C11C5 /* SCLAlertView */,
+				CA124A291CFE8209004C11C5 /* WCEasySettings */,
+				CA1249B21CFE7F74004C11C5 /* Zip */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		CA1249AE1CFE7F74004C11C5 /* 7z */ = {
+			isa = PBXGroup;
+			children = (
+				CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */,
+				CA1249E41CFE7FAD004C11C5 /* 7zAlloc.h */,
+				CA1249E51CFE7FAD004C11C5 /* 7zMain.c */,
+				CA1249B31CFE7F7C004C11C5 /* 7z.h */,
+				CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */,
+				CA1249B51CFE7F7C004C11C5 /* 7zBuf.h */,
+				CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */,
+				CA1249B71CFE7F7C004C11C5 /* 7zDec.c */,
+				CA1249B81CFE7F7C004C11C5 /* 7zFile.c */,
+				CA1249B91CFE7F7C004C11C5 /* 7zFile.h */,
+				CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */,
+				CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */,
+				CA1249BC1CFE7F7C004C11C5 /* 7zVersion.h */,
+				CA1249BD1CFE7F7C004C11C5 /* Alloc.c */,
+				CA1249BE1CFE7F7C004C11C5 /* Alloc.h */,
+				CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */,
+				CA1249C01CFE7F7C004C11C5 /* CpuArch.h */,
+				CA1249C11CFE7F7C004C11C5 /* Delta.c */,
+				CA1249C21CFE7F7C004C11C5 /* Delta.h */,
+				CA1249C31CFE7F7C004C11C5 /* LzHash.h */,
+				CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */,
+				CA1249C51CFE7F7C004C11C5 /* Lzma2Dec.h */,
+				CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */,
+				CA1249C71CFE7F7C004C11C5 /* LzmaDec.h */,
+				CA1249C81CFE7F7C004C11C5 /* LZMAExtractor.h */,
+				CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */,
+				CA1249CA1CFE7F7D004C11C5 /* Ppmd.h */,
+				CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */,
+				CA1249CC1CFE7F7D004C11C5 /* Ppmd7.h */,
+				CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */,
+				CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */,
+				CA1249CF1CFE7F7D004C11C5 /* Ppmd8.h */,
+				CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */,
+				CA1249D11CFE7F7D004C11C5 /* RotateDefs.h */,
+				CA1249D21CFE7F7D004C11C5 /* Types2.h */,
+			);
+			path = 7z;
+			sourceTree = "<group>";
+		};
+		CA1249AF1CFE7F74004C11C5 /* DocWatchHelper */ = {
+			isa = PBXGroup;
+			children = (
+				CA1249E81CFE7FBD004C11C5 /* MHWDirectoryWatcher.h */,
+				CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */,
+			);
+			path = DocWatchHelper;
+			sourceTree = "<group>";
+		};
+		CA1249B01CFE7F74004C11C5 /* Misc */ = {
+			isa = PBXGroup;
+			children = (
+				CA124A111CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.h */,
+				CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */,
+				CA124A131CFE7FED004C11C5 /* mute.caf */,
+				CA124A141CFE7FED004C11C5 /* UITapticEngine.h */,
+				CA124A151CFE7FED004C11C5 /* UIDevice+Private.h */,
+				CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */,
+				CA124A171CFE7FED004C11C5 /* RBVolumeButtons.h */,
+				CA124A181CFE7FED004C11C5 /* RBVolumeButtons.m */,
+				CA124A191CFE7FED004C11C5 /* UIViewController+BackButtonHandler.h */,
+				CA124A1A1CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m */,
+				CA124A1B1CFE7FED004C11C5 /* NSString+CompareToVersion.h */,
+				CA124A1C1CFE7FED004C11C5 /* NSString+CompareToVersion.m */,
+			);
+			path = Misc;
+			sourceTree = "<group>";
+		};
+		CA1249B11CFE7F74004C11C5 /* SCLAlertView */ = {
+			isa = PBXGroup;
+			children = (
+				CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */,
+				CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */,
+				CA1249FD1CFE7FDC004C11C5 /* SCLAlertView.h */,
+				CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */,
+				CA1249FF1CFE7FDC004C11C5 /* SCLButton.h */,
+				CA124A001CFE7FDC004C11C5 /* SCLButton.m */,
+				CA124A011CFE7FDC004C11C5 /* SCLAlertViewResponder.h */,
+				CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */,
+				CA124A031CFE7FDC004C11C5 /* SCLAlertViewStyleKit.h */,
+				CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */,
+				CA124A051CFE7FDC004C11C5 /* SCLMacros.h */,
+				CA124A061CFE7FDC004C11C5 /* SCLTimerDisplay.h */,
+				CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */,
+				CA124A081CFE7FDC004C11C5 /* SCLTextView.h */,
+				CA124A091CFE7FDC004C11C5 /* SCLTextView.m */,
+			);
+			path = SCLAlertView;
+			sourceTree = "<group>";
+		};
+		CA1249B21CFE7F74004C11C5 /* Zip */ = {
+			isa = PBXGroup;
+			children = (
+				CA1249EB1CFE7FCF004C11C5 /* crypt.h */,
+				CA1249EC1CFE7FCF004C11C5 /* ioapi.c */,
+				CA1249ED1CFE7FCF004C11C5 /* ioapi.h */,
+				CA1249EE1CFE7FCF004C11C5 /* mztools.c */,
+				CA1249EF1CFE7FCF004C11C5 /* mztools.h */,
+				CA1249F01CFE7FCF004C11C5 /* unzip.c */,
+				CA1249F11CFE7FCF004C11C5 /* unzip.h */,
+				CA1249F21CFE7FCF004C11C5 /* zip.c */,
+				CA1249F31CFE7FCF004C11C5 /* zip.h */,
+				CA1249F41CFE7FCF004C11C5 /* SSZipArchive.h */,
+				CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */,
+			);
+			path = Zip;
+			sourceTree = "<group>";
+		};
+		CA124A291CFE8209004C11C5 /* WCEasySettings */ = {
+			isa = PBXGroup;
+			children = (
+				CA124A481CFE8258004C11C5 /* WCEasySettings.h */,
+				CA124A2A1CFE8237004C11C5 /* WCEasySettingsViewController.h */,
+				CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */,
+				CA124A2C1CFE8237004C11C5 /* WCEasySettingsSection.h */,
+				CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */,
+				CA124A2E1CFE8237004C11C5 /* WCEasySettingsItem.h */,
+				CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */,
+				CA124A301CFE8237004C11C5 /* WCEasySettingsSwitch.h */,
+				CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */,
+				CA124A321CFE8237004C11C5 /* WCEasySettingsSegment.h */,
+				CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */,
+				CA124A341CFE8237004C11C5 /* WCEasySettingsSlider.h */,
+				CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */,
+				CA124A361CFE8237004C11C5 /* WCEasySettingsOption.h */,
+				CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */,
+				CA124A381CFE8237004C11C5 /* WCEasySettingsOptionViewController.h */,
+				CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */,
+				CA124A3A1CFE8237004C11C5 /* WCEasySettingsUrl.h */,
+				CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */,
+				CA124A3C1CFE8237004C11C5 /* WCEasySettingsCustom.h */,
+				CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */,
+			);
+			name = WCEasySettings;
+			path = Build/DolphiniOS/Utilities/WCEasySettings;
+			sourceTree = SOURCE_ROOT;
+		};
+		CA124A4C1CFE851C004C11C5 /* ZAActivityBar */ = {
+			isa = PBXGroup;
+			children = (
+				CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */,
+				CA124A4E1CFE852B004C11C5 /* ZAActivityBar.h */,
+				CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */,
+				CA124A501CFE852B004C11C5 /* SKBounceAnimation.h */,
+				CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */,
+			);
+			path = ZAActivityBar;
+			sourceTree = "<group>";
+		};
+		CA53A23C1CEFA30E005937F5 /* DolphiniOS */ = {
+			isa = PBXGroup;
+			children = (
+				4C8E6C181CFF390300D87BC3 /* Controller */,
+				CA53A2B01CEFB44D005937F5 /* Bridge */,
+				CA53A2401CEFA30E005937F5 /* AppDelegate.h */,
+				CA53A2411CEFA30E005937F5 /* AppDelegate.m */,
+				CA1249681CFE7D0E004C11C5 /* RomTableViewController.h */,
+				CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */,
+				CA12496A1CFE7D0E004C11C5 /* GameTableView.h */,
+				CA12496B1CFE7D0E004C11C5 /* GameTableView.m */,
+				CA53A2431CEFA30E005937F5 /* EmulatorViewController.h */,
+				CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */,
+				CA53A2461CEFA30E005937F5 /* Main.storyboard */,
+				CA53A2491CEFA30E005937F5 /* Assets.xcassets */,
+				CA53A24B1CEFA30E005937F5 /* LaunchScreen.storyboard */,
+				CA53A24E1CEFA30E005937F5 /* Info.plist */,
+				CA1249AD1CFE7F74004C11C5 /* Utilities */,
+				CAE2B1C51D00ED1A000C4576 /* Frameworks */,
+				4CE423BC1CFDE4E90054EB82 /* Images */,
+				CA53A23D1CEFA30E005937F5 /* Supporting Files */,
+			);
+			name = DolphiniOS;
+			path = Build/DolphiniOS;
+			sourceTree = "<group>";
+		};
+		CA53A23D1CEFA30E005937F5 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				CA76E1901CFCDDE20009BB8E /* Entitlements.plist */,
+				CA124A491CFE830E004C11C5 /* Dolphin-Prefix.pch */,
+				CA53A23E1CEFA30E005937F5 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		CA53A2561CEFA30E005937F5 /* DolphiniOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				CA53A2571CEFA30E005937F5 /* DolphiniOSTests.m */,
+				CA53A2591CEFA30E005937F5 /* Info.plist */,
+			);
+			name = DolphiniOSTests;
+			path = Build/DolphiniOSTests;
+			sourceTree = "<group>";
+		};
+		CA53A2611CEFA30E005937F5 /* DolphiniOSUITests */ = {
+			isa = PBXGroup;
+			children = (
+				CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */,
+				CA53A2641CEFA30E005937F5 /* Info.plist */,
+			);
+			name = DolphiniOSUITests;
+			path = Build/DolphiniOSUITests;
+			sourceTree = "<group>";
+		};
+		CA53A2B01CEFB44D005937F5 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				CA53A2771CEFA426005937F5 /* DolphinBridge.h */,
+				CA53A2781CEFA426005937F5 /* DolphinBridge.mm */,
+				CA1249601CFE7766004C11C5 /* DolphinGame.h */,
+				CA1249611CFE7766004C11C5 /* DolphinGame.m */,
+				CA53A2B11CEFB485005937F5 /* MainiOS.mm */,
+			);
+			name = Bridge;
+			sourceTree = "<group>";
+		};
+		CA751EC81D04826800771302 /* Retina */ = {
+			isa = PBXGroup;
+			children = (
+				CA751EC91D04826800771302 /* gcpad_a@2x.png */,
+				CA751ECA1D04826800771302 /* gcpad_a_pressed@2x.png */,
+				CA751ECB1D04826800771302 /* gcpad_b@2x.png */,
+				CA751ECC1D04826800771302 /* gcpad_b_pressed@2x.png */,
+				CA751ECD1D04826800771302 /* gcpad_c@2x.png */,
+				CA751ECE1D04826800771302 /* gcpad_c_pressed@2x.png */,
+				CA751ECF1D04826800771302 /* gcpad_dpad@2x.png */,
+				CA751ED01D04826800771302 /* gcpad_dpad_pressed_down@2x.png */,
+				CA751ED11D04826800771302 /* gcpad_dpad_pressed_downleft@2x.png */,
+				CA751ED21D04826800771302 /* gcpad_dpad_pressed_downright@2x.png */,
+				CA751ED31D04826800771302 /* gcpad_dpad_pressed_left@2x.png */,
+				CA751ED41D04826800771302 /* gcpad_dpad_pressed_right@2x.png */,
+				CA751ED51D04826800771302 /* gcpad_dpad_pressed_up@2x.png */,
+				CA751ED61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png */,
+				CA751ED71D04826800771302 /* gcpad_dpad_pressed_upright@2x.png */,
+				CA751ED81D04826800771302 /* gcpad_joystick@2x.png */,
+				CA751ED91D04826800771302 /* gcpad_joystick_pressed@2x.png */,
+				CA751EDA1D04826800771302 /* gcpad_joystick_range@2x.png */,
+				CA751EDB1D04826800771302 /* gcpad_l@2x.png */,
+				CA751EDC1D04826800771302 /* gcpad_l_pressed@2x.png */,
+				CA751EDD1D04826800771302 /* gcpad_r@2x.png */,
+				CA751EDE1D04826800771302 /* gcpad_r_pressed@2x.png */,
+				CA751EDF1D04826800771302 /* gcpad_start@2x.png */,
+				CA751EE01D04826800771302 /* gcpad_start_pressed@2x.png */,
+				CA751EE11D04826800771302 /* gcpad_x@2x.png */,
+				CA751EE21D04826800771302 /* gcpad_x_pressed@2x.png */,
+				CA751EE31D04826800771302 /* gcpad_y@2x.png */,
+				CA751EE41D04826800771302 /* gcpad_y_pressed@2x.png */,
+				CA751EE51D04826800771302 /* gcpad_z@2x.png */,
+				CA751EE61D04826800771302 /* gcpad_z_pressed@2x.png */,
+				CA751EE71D04826800771302 /* ic_gamecube.png */,
+				CA751EE81D04826800771302 /* ic_wii.png */,
+			);
+			path = Retina;
+			sourceTree = "<group>";
+		};
+		CAE2B1C51D00ED1A000C4576 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CAE2B1C61D00ED22000C4576 /* UnrarKit.framework */,
+			);
+			path = Frameworks;
+			sourceTree = "<group>";
+		};
+		E18AD58894AA4E54AE5424B8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CA53A23B1CEFA30E005937F5 /* Dolphin.app */,
+				CA53A2531CEFA30E005937F5 /* DolphiniOSTests.xctest */,
+				CA53A25E1CEFA30E005937F5 /* DolphiniOSUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CA53A23A1CEFA30E005937F5 /* Dolphin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA53A2651CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "Dolphin" */;
+			buildPhases = (
+				CA53A2371CEFA30E005937F5 /* Sources */,
+				CA53A2381CEFA30E005937F5 /* Frameworks */,
+				CAE2B1CC1D00EE33000C4576 /* CopyFiles */,
+				CA53A2391CEFA30E005937F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Dolphin;
+			productName = DolphiniOS;
+			productReference = CA53A23B1CEFA30E005937F5 /* Dolphin.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CA53A2521CEFA30E005937F5 /* DolphiniOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA53A26A1CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "DolphiniOSTests" */;
+			buildPhases = (
+				CA53A24F1CEFA30E005937F5 /* Sources */,
+				CA53A2501CEFA30E005937F5 /* Frameworks */,
+				CA53A2511CEFA30E005937F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA53A2551CEFA30E005937F5 /* PBXTargetDependency */,
+			);
+			name = DolphiniOSTests;
+			productName = DolphiniOSTests;
+			productReference = CA53A2531CEFA30E005937F5 /* DolphiniOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		CA53A25D1CEFA30E005937F5 /* DolphiniOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CA53A26F1CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "DolphiniOSUITests" */;
+			buildPhases = (
+				CA53A25A1CEFA30E005937F5 /* Sources */,
+				CA53A25B1CEFA30E005937F5 /* Frameworks */,
+				CA53A25C1CEFA30E005937F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CA53A2601CEFA30E005937F5 /* PBXTargetDependency */,
+			);
+			name = DolphiniOSUITests;
+			productName = DolphiniOSUITests;
+			productReference = CA53A25E1CEFA30E005937F5 /* DolphiniOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		99032692BF074FB7B8925999 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 0730;
+				TargetAttributes = {
+					CA53A23A1CEFA30E005937F5 = {
+						CreatedOnToolsVersion = 7.3;
+						DevelopmentTeam = MRGX8T9A4Y;
+					};
+					CA53A2521CEFA30E005937F5 = {
+						CreatedOnToolsVersion = 7.3;
+						TestTargetID = CA53A23A1CEFA30E005937F5;
+					};
+					CA53A25D1CEFA30E005937F5 = {
+						CreatedOnToolsVersion = 7.3;
+						TestTargetID = CA53A23A1CEFA30E005937F5;
+					};
+				};
+			};
+			buildConfigurationList = 64D41682D6A74925A1D1731E /* Build configuration list for PBXProject "DolphiniOS" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = B7D3E4EB688E4DAA8B0EDA06;
+			projectDirPath = ../;
+			projectRoot = "";
+			targets = (
+				CA53A23A1CEFA30E005937F5 /* Dolphin */,
+				CA53A2521CEFA30E005937F5 /* DolphiniOSTests */,
+				CA53A25D1CEFA30E005937F5 /* DolphiniOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CA53A2391CEFA30E005937F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA751EF81D04826800771302 /* gcpad_joystick@2x.png in Resources */,
+				CA751EF41D04826800771302 /* gcpad_dpad_pressed_right@2x.png in Resources */,
+				CA124A1E1CFE7FED004C11C5 /* mute.caf in Resources */,
+				CA751F011D04826800771302 /* gcpad_x@2x.png in Resources */,
+				CA751EF31D04826800771302 /* gcpad_dpad_pressed_left@2x.png in Resources */,
+				CA751EFA1D04826800771302 /* gcpad_joystick_range@2x.png in Resources */,
+				CA751EFB1D04826800771302 /* gcpad_l@2x.png in Resources */,
+				CA751EEE1D04826800771302 /* gcpad_c_pressed@2x.png in Resources */,
+				CA751F001D04826800771302 /* gcpad_start_pressed@2x.png in Resources */,
+				CA751F081D04826800771302 /* ic_wii.png in Resources */,
+				CA751EF71D04826800771302 /* gcpad_dpad_pressed_upright@2x.png in Resources */,
+				CAD333FC1D03155A00431946 /* Roms in Resources */,
+				CA751EF91D04826800771302 /* gcpad_joystick_pressed@2x.png in Resources */,
+				CAD333CB1D030D6C00431946 /* Shaders in Resources */,
+				CA751EFD1D04826800771302 /* gcpad_r@2x.png in Resources */,
+				CA751EEC1D04826800771302 /* gcpad_b_pressed@2x.png in Resources */,
+				CA751EEF1D04826800771302 /* gcpad_dpad@2x.png in Resources */,
+				CA751EEB1D04826800771302 /* gcpad_b@2x.png in Resources */,
+				CA751EFE1D04826800771302 /* gcpad_r_pressed@2x.png in Resources */,
+				CA751EFC1D04826800771302 /* gcpad_l_pressed@2x.png in Resources */,
+				CA76E1911CFCDDE20009BB8E /* Entitlements.plist in Resources */,
+				CA751EF61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png in Resources */,
+				CA751F051D04826800771302 /* gcpad_z@2x.png in Resources */,
+				CAD333CA1D030D6C00431946 /* GC in Resources */,
+				CA124A521CFE852B004C11C5 /* ZAActivityBar.bundle in Resources */,
+				CA751EEA1D04826800771302 /* gcpad_a_pressed@2x.png in Resources */,
+				CA751EF51D04826800771302 /* gcpad_dpad_pressed_up@2x.png in Resources */,
+				CA53A24D1CEFA30E005937F5 /* LaunchScreen.storyboard in Resources */,
+				CA751EF21D04826800771302 /* gcpad_dpad_pressed_downright@2x.png in Resources */,
+				CA751F041D04826800771302 /* gcpad_y_pressed@2x.png in Resources */,
+				CA751F021D04826800771302 /* gcpad_x_pressed@2x.png in Resources */,
+				CA751F061D04826800771302 /* gcpad_z_pressed@2x.png in Resources */,
+				CA751EED1D04826800771302 /* gcpad_c@2x.png in Resources */,
+				CA53A24A1CEFA30E005937F5 /* Assets.xcassets in Resources */,
+				CA751EFF1D04826800771302 /* gcpad_start@2x.png in Resources */,
+				CA751EF01D04826800771302 /* gcpad_dpad_pressed_down@2x.png in Resources */,
+				CA751EE91D04826800771302 /* gcpad_a@2x.png in Resources */,
+				CA53A2481CEFA30E005937F5 /* Main.storyboard in Resources */,
+				CA751F031D04826800771302 /* gcpad_y@2x.png in Resources */,
+				CA751F071D04826800771302 /* ic_gamecube.png in Resources */,
+				CA751EF11D04826800771302 /* gcpad_dpad_pressed_downleft@2x.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A2511CEFA30E005937F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A25C1CEFA30E005937F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CA53A2371CEFA30E005937F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA124A221CFE7FED004C11C5 /* NSString+CompareToVersion.m in Sources */,
+				CA1249DF1CFE7F7D004C11C5 /* Ppmd7.c in Sources */,
+				CA124A421CFE8237004C11C5 /* WCEasySettingsSegment.m in Sources */,
+				CA1249DD1CFE7F7D004C11C5 /* LzmaDec.c in Sources */,
+				CA1249D41CFE7F7D004C11C5 /* 7zBuf2.c in Sources */,
+				CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */,
+				CA1249E01CFE7F7D004C11C5 /* Ppmd7Dec.c in Sources */,
+				CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */,
+				CA1249D51CFE7F7D004C11C5 /* 7zDec.c in Sources */,
+				CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */,
+				CA53A2451CEFA30E005937F5 /* EmulatorViewController.mm in Sources */,
+				CA1249E61CFE7FAD004C11C5 /* 7zAlloc.c in Sources */,
+				CA1249D91CFE7F7D004C11C5 /* Alloc.c in Sources */,
+				CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */,
+				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
+				CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */,
+				CA1249DB1CFE7F7D004C11C5 /* Delta.c in Sources */,
+				CA1249DC1CFE7F7D004C11C5 /* Lzma2Dec.c in Sources */,
+				CA1249F81CFE7FCF004C11C5 /* unzip.c in Sources */,
+				CA53A2B21CEFB485005937F5 /* MainiOS.mm in Sources */,
+				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
+				CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */,
+				CA1249E71CFE7FAD004C11C5 /* 7zMain.c in Sources */,
+				CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */,
+				CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */,
+				CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */,
+				CA1249D61CFE7F7D004C11C5 /* 7zFile.c in Sources */,
+				CA53A23F1CEFA30E005937F5 /* main.m in Sources */,
+				CA1249F61CFE7FCF004C11C5 /* ioapi.c in Sources */,
+				CA1249F71CFE7FCF004C11C5 /* mztools.c in Sources */,
+				CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */,
+				CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */,
+				CA1249DE1CFE7F7D004C11C5 /* LZMAExtractor.m in Sources */,
+				CA1249D31CFE7F7D004C11C5 /* 7zBuf.c in Sources */,
+				CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */,
+				CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */,
+				CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */,
+				CA1249F91CFE7FCF004C11C5 /* zip.c in Sources */,
+				CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */,
+				CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */,
+				CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */,
+				4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */,
+				CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */,
+				4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */,
+				CA1249FA1CFE7FCF004C11C5 /* SSZipArchive.m in Sources */,
+				CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */,
+				CA1249D81CFE7F7D004C11C5 /* 7zStream.c in Sources */,
+				CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */,
+				CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */,
+				4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */,
+				CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */,
+				CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */,
+				CA1249E21CFE7F7D004C11C5 /* Ppmd8Dec.c in Sources */,
+				CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */,
+				CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */,
+				CA1249D71CFE7F7D004C11C5 /* 7zIn.c in Sources */,
+				CA1249DA1CFE7F7D004C11C5 /* CpuArch.c in Sources */,
+				CA1249E11CFE7F7D004C11C5 /* Ppmd8.c in Sources */,
+				CA124A411CFE8237004C11C5 /* WCEasySettingsSwitch.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A24F1CEFA30E005937F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA53A2581CEFA30E005937F5 /* DolphiniOSTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CA53A25A1CEFA30E005937F5 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA53A2631CEFA30E005937F5 /* DolphiniOSUITests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CA53A2551CEFA30E005937F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA53A23A1CEFA30E005937F5 /* Dolphin */;
+			targetProxy = CA53A2541CEFA30E005937F5 /* PBXContainerItemProxy */;
+		};
+		CA53A2601CEFA30E005937F5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CA53A23A1CEFA30E005937F5 /* Dolphin */;
+			targetProxy = CA53A25F1CEFA30E005937F5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CA53A2461CEFA30E005937F5 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA53A2471CEFA30E005937F5 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		CA53A24B1CEFA30E005937F5 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA53A24C1CEFA30E005937F5 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		0ECA60918655410E94F5CE32 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					armv7,
+					armv7s,
+					arm64,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk;
+				SYMROOT = "$(SRCROOT)/Build/build";
+			};
+			name = Release;
+		};
+		164D5D201F184937AD4A9D62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					armv7,
+					armv7s,
+					arm64,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk;
+				SYMROOT = "$(SRCROOT)/Build/build";
+			};
+			name = Debug;
+		};
+		16D7197BFA564EAF86496C87 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					armv7,
+					armv7s,
+					arm64,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk;
+				SYMROOT = "$(SRCROOT)/Build/build";
+			};
+			name = MinSizeRel;
+		};
+		CA53A2661CEFA30E005937F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "$(SRCROOT)/Build/DolphiniOS/Entitlements.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Build/Source/**",
+					"$(PROJECT_DIR)/Build/DolphiniOS/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Build/DolphiniOS/Dolphin-prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					$SRCROOT/Build/Libraries,
+					"$(PROJECT_DIR)/Build/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Build/Source/Core/UICommon/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.Dolphin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CA53A2671CEFA30E005937F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "$(SRCROOT)/Build/DolphiniOS/Entitlements.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Build/Source/**",
+					"$(PROJECT_DIR)/Build/DolphiniOS/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = fast;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Build/DolphiniOS/Dolphin-prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					$SRCROOT/Build/Libraries,
+					"$(PROJECT_DIR)/Build/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Build/Source/Core/UICommon/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.Dolphin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CA53A2681CEFA30E005937F5 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "$(SRCROOT)/Build/DolphiniOS/Entitlements.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Build/Source/**",
+					"$(PROJECT_DIR)/Build/DolphiniOS/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Build/DolphiniOS/Dolphin-prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					$SRCROOT/Build/Libraries,
+					"$(PROJECT_DIR)/Build/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Build/Source/Core/UICommon/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.Dolphin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = MinSizeRel;
+		};
+		CA53A2691CEFA30E005937F5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = "$(SRCROOT)/Build/DolphiniOS/Entitlements.plist";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Build/Source/**",
+					"$(PROJECT_DIR)/Build/DolphiniOS/Frameworks",
+				);
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 1;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Build/DolphiniOS/Dolphin-prefix.pch";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					$SRCROOT/Build/Libraries,
+					"$(PROJECT_DIR)/Build/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Build/Source/Core/UICommon/Debug-iphoneos",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.Dolphin;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = RelWithDebInfo;
+		};
+		CA53A26B1CEFA30E005937F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+			};
+			name = Debug;
+		};
+		CA53A26C1CEFA30E005937F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CA53A26D1CEFA30E005937F5 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = MinSizeRel;
+		};
+		CA53A26E1CEFA30E005937F5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = RelWithDebInfo;
+		};
+		CA53A2701CEFA30E005937F5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_TARGET_NAME = DolphiniOS;
+			};
+			name = Debug;
+		};
+		CA53A2711CEFA30E005937F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_TARGET_NAME = DolphiniOS;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CA53A2721CEFA30E005937F5 /* MinSizeRel */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_TARGET_NAME = DolphiniOS;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = MinSizeRel;
+		};
+		CA53A2731CEFA30E005937F5 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.WilliamCobb.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				TEST_TARGET_NAME = DolphiniOS;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = RelWithDebInfo;
+		};
+		D867E6C2764B447BB5DC7DE6 /* RelWithDebInfo */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = (
+					armv7,
+					armv7s,
+					arm64,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				SDKROOT = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS9.3.sdk;
+				SYMROOT = "$(SRCROOT)/Build/build";
+			};
+			name = RelWithDebInfo;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		64D41682D6A74925A1D1731E /* Build configuration list for PBXProject "DolphiniOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				164D5D201F184937AD4A9D62 /* Debug */,
+				0ECA60918655410E94F5CE32 /* Release */,
+				16D7197BFA564EAF86496C87 /* MinSizeRel */,
+				D867E6C2764B447BB5DC7DE6 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CA53A2651CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "Dolphin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA53A2661CEFA30E005937F5 /* Debug */,
+				CA53A2671CEFA30E005937F5 /* Release */,
+				CA53A2681CEFA30E005937F5 /* MinSizeRel */,
+				CA53A2691CEFA30E005937F5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CA53A26A1CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "DolphiniOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA53A26B1CEFA30E005937F5 /* Debug */,
+				CA53A26C1CEFA30E005937F5 /* Release */,
+				CA53A26D1CEFA30E005937F5 /* MinSizeRel */,
+				CA53A26E1CEFA30E005937F5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CA53A26F1CEFA30E005937F5 /* Build configuration list for PBXNativeTarget "DolphiniOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CA53A2701CEFA30E005937F5 /* Debug */,
+				CA53A2711CEFA30E005937F5 /* Release */,
+				CA53A2721CEFA30E005937F5 /* MinSizeRel */,
+				CA53A2731CEFA30E005937F5 /* RelWithDebInfo */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 99032692BF074FB7B8925999 /* Project object */;
+}

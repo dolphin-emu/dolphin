@@ -1,0 +1,6 @@
+framework module UnrarKit {
+  umbrella header "UnrarKit.h"
+
+  export *
+  module * { export * }
+}
