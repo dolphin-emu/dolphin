@@ -6,7 +6,7 @@
 
 #ifdef _WIN32
 	#include <windows.h>
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) && !IOS
 	// Work around an Apple bug: for some reason, IOBluetooth.h errors on
 	// inclusion in Mavericks, but only in Objective-C++ C++11 mode.  I filed
 	// this as <rdar://15312520>; in the meantime...

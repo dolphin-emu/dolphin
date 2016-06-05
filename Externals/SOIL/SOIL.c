@@ -22,7 +22,7 @@
 	#if 0
 		#include <GL/gl.h>
 	#endif
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#elif ((defined(__APPLE__) || defined(__APPLE_CC__)) && !IOS)
 	/*	I can't test this Apple stuff!	*/
 	#if 0
 		#include <OpenGL/gl.h>
