@@ -1,3 +1,6 @@
+!define DOLPHIN_ARCH x64
+!define BASE_INSTALL_DIR "$PROGRAMFILES64"
+!define PRODUCT_NAME "Dolphin"
 !define PRODUCT_VERSION 4.0
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
