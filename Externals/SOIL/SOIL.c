@@ -27,8 +27,10 @@
 	#if 0
 		#include <OpenGL/gl.h>
 	#endif
-	#include <Carbon/Carbon.h>
-	#define APIENTRY
+	#ifndef APPLE_IOS
+		#include <Carbon/Carbon.h>
+		#define APIENTRY
+	#endif
 #else
 	#if 0
 		#include <GL/gl.h>
