@@ -13,30 +13,7 @@
 		CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249611CFE7766004C11C5 /* DolphinGame.m */; };
 		CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */; };
 		CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA12496B1CFE7D0E004C11C5 /* GameTableView.m */; };
-		CA1249D31CFE7F7D004C11C5 /* 7zBuf.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */; };
-		CA1249D41CFE7F7D004C11C5 /* 7zBuf2.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */; };
-		CA1249D51CFE7F7D004C11C5 /* 7zDec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B71CFE7F7C004C11C5 /* 7zDec.c */; };
-		CA1249D61CFE7F7D004C11C5 /* 7zFile.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249B81CFE7F7C004C11C5 /* 7zFile.c */; };
-		CA1249D71CFE7F7D004C11C5 /* 7zIn.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */; };
-		CA1249D81CFE7F7D004C11C5 /* 7zStream.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */; };
-		CA1249D91CFE7F7D004C11C5 /* Alloc.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BD1CFE7F7C004C11C5 /* Alloc.c */; };
-		CA1249DA1CFE7F7D004C11C5 /* CpuArch.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */; };
-		CA1249DB1CFE7F7D004C11C5 /* Delta.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C11CFE7F7C004C11C5 /* Delta.c */; };
-		CA1249DC1CFE7F7D004C11C5 /* Lzma2Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */; };
-		CA1249DD1CFE7F7D004C11C5 /* LzmaDec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */; };
-		CA1249DE1CFE7F7D004C11C5 /* LZMAExtractor.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */; };
-		CA1249DF1CFE7F7D004C11C5 /* Ppmd7.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */; };
-		CA1249E01CFE7F7D004C11C5 /* Ppmd7Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */; };
-		CA1249E11CFE7F7D004C11C5 /* Ppmd8.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */; };
-		CA1249E21CFE7F7D004C11C5 /* Ppmd8Dec.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */; };
-		CA1249E61CFE7FAD004C11C5 /* 7zAlloc.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */; };
-		CA1249E71CFE7FAD004C11C5 /* 7zMain.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E51CFE7FAD004C11C5 /* 7zMain.c */; };
 		CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */; };
-		CA1249F61CFE7FCF004C11C5 /* ioapi.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249EC1CFE7FCF004C11C5 /* ioapi.c */; };
-		CA1249F71CFE7FCF004C11C5 /* mztools.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249EE1CFE7FCF004C11C5 /* mztools.c */; };
-		CA1249F81CFE7FCF004C11C5 /* unzip.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F01CFE7FCF004C11C5 /* unzip.c */; };
-		CA1249F91CFE7FCF004C11C5 /* zip.c in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F21CFE7FCF004C11C5 /* zip.c */; };
-		CA1249FA1CFE7FCF004C11C5 /* SSZipArchive.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */; };
 		CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */; };
 		CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */; };
 		CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A001CFE7FDC004C11C5 /* SCLButton.m */; };
@@ -187,54 +164,8 @@
 		CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomTableViewController.m; sourceTree = "<group>"; };
 		CA12496A1CFE7D0E004C11C5 /* GameTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameTableView.h; sourceTree = "<group>"; };
 		CA12496B1CFE7D0E004C11C5 /* GameTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameTableView.m; sourceTree = "<group>"; };
-		CA1249B31CFE7F7C004C11C5 /* 7z.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7z.h; sourceTree = "<group>"; };
-		CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zBuf.c; sourceTree = "<group>"; };
-		CA1249B51CFE7F7C004C11C5 /* 7zBuf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zBuf.h; sourceTree = "<group>"; };
-		CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zBuf2.c; sourceTree = "<group>"; };
-		CA1249B71CFE7F7C004C11C5 /* 7zDec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zDec.c; sourceTree = "<group>"; };
-		CA1249B81CFE7F7C004C11C5 /* 7zFile.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zFile.c; sourceTree = "<group>"; };
-		CA1249B91CFE7F7C004C11C5 /* 7zFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zFile.h; sourceTree = "<group>"; };
-		CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zIn.c; sourceTree = "<group>"; };
-		CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zStream.c; sourceTree = "<group>"; };
-		CA1249BC1CFE7F7C004C11C5 /* 7zVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zVersion.h; sourceTree = "<group>"; };
-		CA1249BD1CFE7F7C004C11C5 /* Alloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Alloc.c; sourceTree = "<group>"; };
-		CA1249BE1CFE7F7C004C11C5 /* Alloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Alloc.h; sourceTree = "<group>"; };
-		CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = CpuArch.c; sourceTree = "<group>"; };
-		CA1249C01CFE7F7C004C11C5 /* CpuArch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CpuArch.h; sourceTree = "<group>"; };
-		CA1249C11CFE7F7C004C11C5 /* Delta.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Delta.c; sourceTree = "<group>"; };
-		CA1249C21CFE7F7C004C11C5 /* Delta.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delta.h; sourceTree = "<group>"; };
-		CA1249C31CFE7F7C004C11C5 /* LzHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LzHash.h; sourceTree = "<group>"; };
-		CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Lzma2Dec.c; sourceTree = "<group>"; };
-		CA1249C51CFE7F7C004C11C5 /* Lzma2Dec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Lzma2Dec.h; sourceTree = "<group>"; };
-		CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = LzmaDec.c; sourceTree = "<group>"; };
-		CA1249C71CFE7F7C004C11C5 /* LzmaDec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LzmaDec.h; sourceTree = "<group>"; };
-		CA1249C81CFE7F7C004C11C5 /* LZMAExtractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LZMAExtractor.h; sourceTree = "<group>"; };
-		CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LZMAExtractor.m; sourceTree = "<group>"; };
-		CA1249CA1CFE7F7D004C11C5 /* Ppmd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd.h; sourceTree = "<group>"; };
-		CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd7.c; sourceTree = "<group>"; };
-		CA1249CC1CFE7F7D004C11C5 /* Ppmd7.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd7.h; sourceTree = "<group>"; };
-		CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd7Dec.c; sourceTree = "<group>"; };
-		CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd8.c; sourceTree = "<group>"; };
-		CA1249CF1CFE7F7D004C11C5 /* Ppmd8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ppmd8.h; sourceTree = "<group>"; };
-		CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Ppmd8Dec.c; sourceTree = "<group>"; };
-		CA1249D11CFE7F7D004C11C5 /* RotateDefs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RotateDefs.h; sourceTree = "<group>"; };
-		CA1249D21CFE7F7D004C11C5 /* Types2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Types2.h; sourceTree = "<group>"; };
-		CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zAlloc.c; sourceTree = "<group>"; };
-		CA1249E41CFE7FAD004C11C5 /* 7zAlloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = 7zAlloc.h; sourceTree = "<group>"; };
-		CA1249E51CFE7FAD004C11C5 /* 7zMain.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = 7zMain.c; sourceTree = "<group>"; };
 		CA1249E81CFE7FBD004C11C5 /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MHWDirectoryWatcher.h; sourceTree = "<group>"; };
 		CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MHWDirectoryWatcher.m; sourceTree = "<group>"; };
-		CA1249EB1CFE7FCF004C11C5 /* crypt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = crypt.h; sourceTree = "<group>"; };
-		CA1249EC1CFE7FCF004C11C5 /* ioapi.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ioapi.c; sourceTree = "<group>"; };
-		CA1249ED1CFE7FCF004C11C5 /* ioapi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ioapi.h; sourceTree = "<group>"; };
-		CA1249EE1CFE7FCF004C11C5 /* mztools.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = mztools.c; sourceTree = "<group>"; };
-		CA1249EF1CFE7FCF004C11C5 /* mztools.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mztools.h; sourceTree = "<group>"; };
-		CA1249F01CFE7FCF004C11C5 /* unzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = unzip.c; sourceTree = "<group>"; };
-		CA1249F11CFE7FCF004C11C5 /* unzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = unzip.h; sourceTree = "<group>"; };
-		CA1249F21CFE7FCF004C11C5 /* zip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = zip.c; sourceTree = "<group>"; };
-		CA1249F31CFE7FCF004C11C5 /* zip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = zip.h; sourceTree = "<group>"; };
-		CA1249F41CFE7FCF004C11C5 /* SSZipArchive.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSZipArchive.h; sourceTree = "<group>"; };
-		CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSZipArchive.m; sourceTree = "<group>"; };
 		CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
 		CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
 		CA1249FD1CFE7FDC004C11C5 /* SCLAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertView.h; sourceTree = "<group>"; };
@@ -536,56 +467,12 @@
 			isa = PBXGroup;
 			children = (
 				CA124A4C1CFE851C004C11C5 /* ZAActivityBar */,
-				CA1249AE1CFE7F74004C11C5 /* 7z */,
 				CA1249AF1CFE7F74004C11C5 /* DocWatchHelper */,
 				CA1249B01CFE7F74004C11C5 /* Misc */,
 				CA1249B11CFE7F74004C11C5 /* SCLAlertView */,
 				CA124A291CFE8209004C11C5 /* WCEasySettings */,
-				CA1249B21CFE7F74004C11C5 /* Zip */,
 			);
 			path = Utilities;
-			sourceTree = "<group>";
-		};
-		CA1249AE1CFE7F74004C11C5 /* 7z */ = {
-			isa = PBXGroup;
-			children = (
-				CA1249E31CFE7FAD004C11C5 /* 7zAlloc.c */,
-				CA1249E41CFE7FAD004C11C5 /* 7zAlloc.h */,
-				CA1249E51CFE7FAD004C11C5 /* 7zMain.c */,
-				CA1249B31CFE7F7C004C11C5 /* 7z.h */,
-				CA1249B41CFE7F7C004C11C5 /* 7zBuf.c */,
-				CA1249B51CFE7F7C004C11C5 /* 7zBuf.h */,
-				CA1249B61CFE7F7C004C11C5 /* 7zBuf2.c */,
-				CA1249B71CFE7F7C004C11C5 /* 7zDec.c */,
-				CA1249B81CFE7F7C004C11C5 /* 7zFile.c */,
-				CA1249B91CFE7F7C004C11C5 /* 7zFile.h */,
-				CA1249BA1CFE7F7C004C11C5 /* 7zIn.c */,
-				CA1249BB1CFE7F7C004C11C5 /* 7zStream.c */,
-				CA1249BC1CFE7F7C004C11C5 /* 7zVersion.h */,
-				CA1249BD1CFE7F7C004C11C5 /* Alloc.c */,
-				CA1249BE1CFE7F7C004C11C5 /* Alloc.h */,
-				CA1249BF1CFE7F7C004C11C5 /* CpuArch.c */,
-				CA1249C01CFE7F7C004C11C5 /* CpuArch.h */,
-				CA1249C11CFE7F7C004C11C5 /* Delta.c */,
-				CA1249C21CFE7F7C004C11C5 /* Delta.h */,
-				CA1249C31CFE7F7C004C11C5 /* LzHash.h */,
-				CA1249C41CFE7F7C004C11C5 /* Lzma2Dec.c */,
-				CA1249C51CFE7F7C004C11C5 /* Lzma2Dec.h */,
-				CA1249C61CFE7F7C004C11C5 /* LzmaDec.c */,
-				CA1249C71CFE7F7C004C11C5 /* LzmaDec.h */,
-				CA1249C81CFE7F7C004C11C5 /* LZMAExtractor.h */,
-				CA1249C91CFE7F7D004C11C5 /* LZMAExtractor.m */,
-				CA1249CA1CFE7F7D004C11C5 /* Ppmd.h */,
-				CA1249CB1CFE7F7D004C11C5 /* Ppmd7.c */,
-				CA1249CC1CFE7F7D004C11C5 /* Ppmd7.h */,
-				CA1249CD1CFE7F7D004C11C5 /* Ppmd7Dec.c */,
-				CA1249CE1CFE7F7D004C11C5 /* Ppmd8.c */,
-				CA1249CF1CFE7F7D004C11C5 /* Ppmd8.h */,
-				CA1249D01CFE7F7D004C11C5 /* Ppmd8Dec.c */,
-				CA1249D11CFE7F7D004C11C5 /* RotateDefs.h */,
-				CA1249D21CFE7F7D004C11C5 /* Types2.h */,
-			);
-			path = 7z;
 			sourceTree = "<group>";
 		};
 		CA1249AF1CFE7F74004C11C5 /* DocWatchHelper */ = {
@@ -636,24 +523,6 @@
 				CA124A091CFE7FDC004C11C5 /* SCLTextView.m */,
 			);
 			path = SCLAlertView;
-			sourceTree = "<group>";
-		};
-		CA1249B21CFE7F74004C11C5 /* Zip */ = {
-			isa = PBXGroup;
-			children = (
-				CA1249EB1CFE7FCF004C11C5 /* crypt.h */,
-				CA1249EC1CFE7FCF004C11C5 /* ioapi.c */,
-				CA1249ED1CFE7FCF004C11C5 /* ioapi.h */,
-				CA1249EE1CFE7FCF004C11C5 /* mztools.c */,
-				CA1249EF1CFE7FCF004C11C5 /* mztools.h */,
-				CA1249F01CFE7FCF004C11C5 /* unzip.c */,
-				CA1249F11CFE7FCF004C11C5 /* unzip.h */,
-				CA1249F21CFE7FCF004C11C5 /* zip.c */,
-				CA1249F31CFE7FCF004C11C5 /* zip.h */,
-				CA1249F41CFE7FCF004C11C5 /* SSZipArchive.h */,
-				CA1249F51CFE7FCF004C11C5 /* SSZipArchive.m */,
-			);
-			path = Zip;
 			sourceTree = "<group>";
 		};
 		CA124A291CFE8209004C11C5 /* WCEasySettings */ = {
@@ -992,63 +861,40 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA124A221CFE7FED004C11C5 /* NSString+CompareToVersion.m in Sources */,
-				CA1249DF1CFE7F7D004C11C5 /* Ppmd7.c in Sources */,
 				CA124A421CFE8237004C11C5 /* WCEasySettingsSegment.m in Sources */,
-				CA1249DD1CFE7F7D004C11C5 /* LzmaDec.c in Sources */,
-				CA1249D41CFE7F7D004C11C5 /* 7zBuf2.c in Sources */,
 				CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */,
-				CA1249E01CFE7F7D004C11C5 /* Ppmd7Dec.c in Sources */,
 				CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */,
-				CA1249D51CFE7F7D004C11C5 /* 7zDec.c in Sources */,
 				CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */,
 				CA53A2451CEFA30E005937F5 /* EmulatorViewController.mm in Sources */,
-				CA1249E61CFE7FAD004C11C5 /* 7zAlloc.c in Sources */,
-				CA1249D91CFE7F7D004C11C5 /* Alloc.c in Sources */,
 				CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */,
 				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
 				CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */,
-				CA1249DB1CFE7F7D004C11C5 /* Delta.c in Sources */,
-				CA1249DC1CFE7F7D004C11C5 /* Lzma2Dec.c in Sources */,
-				CA1249F81CFE7FCF004C11C5 /* unzip.c in Sources */,
 				CA53A2B21CEFB485005937F5 /* MainiOS.mm in Sources */,
 				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
 				CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */,
-				CA1249E71CFE7FAD004C11C5 /* 7zMain.c in Sources */,
 				CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */,
 				CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */,
 				CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */,
-				CA1249D61CFE7F7D004C11C5 /* 7zFile.c in Sources */,
 				CA53A23F1CEFA30E005937F5 /* main.m in Sources */,
-				CA1249F61CFE7FCF004C11C5 /* ioapi.c in Sources */,
-				CA1249F71CFE7FCF004C11C5 /* mztools.c in Sources */,
 				CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */,
 				CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */,
-				CA1249DE1CFE7F7D004C11C5 /* LZMAExtractor.m in Sources */,
-				CA1249D31CFE7F7D004C11C5 /* 7zBuf.c in Sources */,
 				CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */,
 				CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */,
 				CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */,
-				CA1249F91CFE7FCF004C11C5 /* zip.c in Sources */,
 				CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */,
 				CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */,
 				CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */,
 				4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */,
 				CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */,
 				4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */,
-				CA1249FA1CFE7FCF004C11C5 /* SSZipArchive.m in Sources */,
 				CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */,
-				CA1249D81CFE7F7D004C11C5 /* 7zStream.c in Sources */,
 				CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */,
 				CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */,
 				4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */,
 				CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */,
 				CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */,
-				CA1249E21CFE7F7D004C11C5 /* Ppmd8Dec.c in Sources */,
 				CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */,
 				CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */,
-				CA1249D71CFE7F7D004C11C5 /* 7zIn.c in Sources */,
-				CA1249DA1CFE7F7D004C11C5 /* CpuArch.c in Sources */,
-				CA1249E11CFE7F7D004C11C5 /* Ppmd8.c in Sources */,
 				CA124A411CFE8237004C11C5 /* WCEasySettingsSwitch.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
