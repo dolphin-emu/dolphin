@@ -10,6 +10,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
+#include "Common/MathUtil.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -1352,6 +1353,36 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
         }
       }
       break;
+    case GX_CTF_XFB:
+    {
+      for (int y = 0; y < height; y += 1)
+      {
+        for (int x = 0; x < width; x += 2)
+        {
+          size_t offset = (y * width + x) * 2;
+
+          // We do this one color sample (aka 2 RGB pixles) at a time
+          int Y1 = int(src[offset]) - 16;
+          int U = int(src[offset + 1]) - 128;
+          int Y2 = int(src[offset + 2]) - 16;
+          int V = int(src[offset + 3]) - 128;
+
+          // We do the inverse BT.601 conversion for YCbCr to RGB
+          // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+          u8 R1 = MathUtil::Clamp(int(1.164f * Y1 + 1.596f * V), 0, 255);
+          u8 G1 = MathUtil::Clamp(int(1.164f * Y1 - 0.392f * U - 0.813f * V), 0, 255);
+          u8 B1 = MathUtil::Clamp(int(1.164f * Y1 + 2.017f * U), 0, 255);
+
+          u8 R2 = MathUtil::Clamp(int(1.164f * Y2 + 1.596f * V), 0, 255);
+          u8 G2 = MathUtil::Clamp(int(1.164f * Y2 - 0.392f * U - 0.813f * V), 0, 255);
+          u8 B2 = MathUtil::Clamp(int(1.164f * Y2 + 2.017f * U), 0, 255);
+
+          dst[y * width + x] = 0xff000000 | B1 << 16 | G1 << 8 | R1;
+          dst[y * width + x + 1] = 0xff000000 | B2 << 16 | G2 << 8 | R2;
+        }
+      }
+    }
+    break;
     }
   }
 }
