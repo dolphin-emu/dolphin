@@ -27,7 +27,11 @@
 	#endif
 #endif
 #if defined(__APPLE__)
-	#define CIFACE_USE_OSX
+	#if defined(APPLE_IOS)
+		#define CIFACE_USE_EAGL
+	#else
+		#define CIFACE_USE_OSX
+	#endif
 #endif
 #if defined(HAVE_SDL) && HAVE_SDL
 	#define CIFACE_USE_SDL
