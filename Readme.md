@@ -111,7 +111,7 @@ Building Dolphin on iOS requires [CMake](http://www.cmake.org/) and XCode 7.0+. 
 4. `open -a xcode DolphiniOS.xcworkspace`
 5. `Select your device and run from XCode`
 
-Alternatively, you can build Dolphin with `xcodebuild -workspace DolphiniOS.xcworkspace -scheme DolphiniOS"
+Alternatively, you can build Dolphin with `xcodebuild -workspace DolphiniOS.xcworkspace -scheme DolphiniOS" after step 3.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
