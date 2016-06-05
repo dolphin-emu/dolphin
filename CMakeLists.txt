@@ -31,6 +31,10 @@ if(APPLE)
 	option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
 endif()
 
+if (APPLE_IOS) # Moving this to the toolchain does not work atm
+	set (CMAKE_SYSTEM_PROCESSOR "aarch64")
+endif()
+
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -143,14 +147,6 @@ else()
 	set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
 endif()
 
-# If Dolphin is not built from a Git repository, default the version info to
-# reasonable values.
-if(NOT DOLPHIN_WC_REVISION)
-	set(DOLPHIN_WC_DESCRIBE "${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}")
-	set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
-	set(DOLPHIN_WC_BRANCH "master")
-endif()
-
 # Architecture detection and arch specific settings
 message(${CMAKE_SYSTEM_PROCESSOR})
 
@@ -158,7 +154,7 @@ message(${CMAKE_SYSTEM_PROCESSOR})
 # CMake doesn't provide a simple way to determine 32bit or 64bit
 # If we ever support a architecture that is 64bit with 32bit pointers then this'll break
 # Of course the chances of that are slim(x32?) so who cares
-if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+if((CMAKE_SIZEOF_VOID_P EQUAL 8) OR APPLE_IOS)
 	set(_ARCH_64 1)
 	add_definitions(-D_ARCH_64=1)
 else()
@@ -170,7 +166,7 @@ if(NOT ENABLE_GENERIC)
 	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
 	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	   APPLE)
+	   (APPLE AND NOT APPLE_IOS))
 		if(_ARCH_64)
 			set(_M_X86 1)
 			set(_M_X86_64 1)
@@ -186,7 +182,9 @@ if(NOT ENABLE_GENERIC)
 		set(_M_ARM 1)
 		set(_M_ARM_64 1)
 		add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
-		add_definitions(-march=armv8-a+crc)
+		if(NOT APPLE_IOS)
+			add_definitions(-march=armv8-a+crc)
+		endif()
 	else()
 		set(ENABLE_GENERIC 1)
 	endif()
@@ -245,7 +243,7 @@ if(ENABLE_LTO)
 	endif()
 endif()
 
-if(APPLE)
+if(APPLE AND NOT APPLE_IOS)
 	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
 		# Hack up the path to prioritize the path to built-in OS libraries to
 		# increase the chance of not depending on a bunch of copies of them
@@ -402,6 +400,14 @@ if(ANDROID)
 	# We are cross compiling, search only the toolchain for libraries and includes
 	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+elseif(APPLE_IOS)
+	add_definitions(-DAPPLE_IOS)
+	set(USE_X11 0)
+	set(USE_UPNP 0)
+	set(USE_EAGL 1)
+	set(DISABLE_WX 1)
+	set(ENABLE_QT2 0)
+	set(ENABLE_PCH 0)
 elseif(NOT APPLE)
 	list(APPEND LIBS rt)
 endif()
@@ -884,7 +890,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 	set(LIBS ${LIBS} usbhid)
 endif()
 
-if(APPLE)
+if(APPLE AND NOT APPLE_IOS)
 	# Link against OS X system frameworks.
 	list(APPEND LIBS
 		${APPKIT_LIBRARY}
