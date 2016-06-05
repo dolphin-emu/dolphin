@@ -36,7 +36,7 @@
 	#else
 		#error No context definition for OS
 	#endif
-#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE) && !IOS
 	// for modules:
 	#define _XOPEN_SOURCE
 	#include <ucontext.h>
