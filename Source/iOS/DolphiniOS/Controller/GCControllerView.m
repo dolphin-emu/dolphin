@@ -3,12 +3,10 @@
 //  CloudConsoleiOS
 //
 //  Created by Will Cobb on 1/18/16.
-//  Copyright © 2016 Will Cobb. All rights reserved.
 //
 
 #import "GCControllerView.h"
 #import "WCDirectionalControl.h"
-//#include "InputCommon/GCPadStatus.h"
 
 enum PadButton
 {
@@ -190,22 +188,6 @@ enum PadButton
     [self.delegate joystick:joystick.tag movedToPosition:(CGPoint)joystick.joyLocation];
 }
 
-/*- (void)buttonChanged:(UIButton *)sender
- {
- if (sender.highlighted) {
- NSLog(@"highlighted");
- _buttonState |= sender.tag;
- } else {
- NSLog(@"not highlighted");
- _buttonState &= ~sender.tag;
- }
- if ([self.delegate respondsToSelector:@selector(buttonStateChanged:)]) {
- [self.delegate buttonStateChanged:self.buttonState];
- } else {
- NSLog(@"Error. Delegate doesnt respond to buttonStateChanged:");
- }
- }*/
-
 - (void)trackTouches:(NSSet<UITouch *> *)touches
 {
     uint32_t added = 0;
@@ -218,7 +200,6 @@ enum PadButton
                 added |= button.tag;
                 button.highlighted = YES;
             } else if (!(button.tag & added)) {
-                //NSLog(@"%@ not in %@", NSStringFromCGPoint(touchPoint), NSStringFromCGRect(button.frame));
                 _buttonState &= ~button.tag;
                 button.highlighted = NO;
             }
