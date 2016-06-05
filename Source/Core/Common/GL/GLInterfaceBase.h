@@ -38,6 +38,8 @@ public:
 	virtual bool MakeCurrent() { return true; }
 	virtual bool ClearCurrent() { return true; }
 	virtual void Shutdown() {}
+	virtual void Prepare() {}
+	virtual int GetDefaultFramebuffer() { return 0; }
 
 	virtual void SwapInterval(int Interval) { }
 	virtual u32 GetBackBufferWidth() { return s_backbuffer_width; }
