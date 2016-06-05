@@ -7,6 +7,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/sfont.inc"
@@ -613,6 +614,25 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 			}
 
 			*((u32*)dst) = color;
+		}
+		break;
+	case GX_CTF_XFB:
+		{
+			// TODO: I should kind of like... ACTUALLY TEST THIS!!!!!
+			size_t offset = (t * imageWidth + (s & (~1))) * 2;
+
+			// We do this one color sample (aka 2 RGB pixles) at a time
+			int Y = int((s & 1) == 0 ? src[offset] : src[offset + 2]) - 16;
+			int U = int(src[offset + 1]) - 128;
+			int V = int(src[offset + 3]) - 128;
+
+			// We do the inverse BT.601 conversion for YCbCr to RGB
+			// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
+			u8 R = MathUtil::Clamp(int(1.164f * Y + 1.596f * V), 0, 255);
+			u8 G = MathUtil::Clamp(int(1.164f * Y - 0.392f * U - 0.813f * V), 0, 255);
+			u8 B = MathUtil::Clamp(int(1.164f * Y+ 2.017f * U), 0, 255);
+
+			dst[t * imageWidth + s] = 0xff000000 | B << 16 | G << 8 | R;
 		}
 		break;
 	}
