@@ -23,7 +23,7 @@ void GenerateMacAddress(const MACConsumer type, u8* mac)
 	case BBA:
 		memcpy(mac, oui_bba, 3);
 		break;
-	case IOS:
+	case _IOS:
 		memcpy(mac, oui_ios, 3);
 		break;
 	}
