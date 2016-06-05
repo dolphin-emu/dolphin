@@ -26,7 +26,12 @@
 #elif defined __FreeBSD__
 #include <sys/disk.h>   // DIOCGMEDIASIZE
 #elif defined __APPLE__
-#include <sys/disk.h>   // DKIOCGETBLOCKCOUNT / DKIOCGETBLOCKSIZE
+    #if IOS
+        #define DKIOCGETBLOCKCOUNT 2
+        #define DKIOCGETBLOCKSIZE  1
+    #else
+        #include <sys/disk.h>   // DKIOCGETBLOCKCOUNT / DKIOCGETBLOCKSIZE
+    #endif
 #endif
 #endif
 
