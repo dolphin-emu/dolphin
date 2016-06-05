@@ -105,7 +105,7 @@ SetCompressor /SOLID lzma
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+Name "${PRODUCT_NAME}"
 !define UN_NAME "Uninstall $(^Name)"
 OutFile "dolphin-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
