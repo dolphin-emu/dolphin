@@ -4,12 +4,7 @@
 //
 //  Created by Will Cobb on 5/20/16.
 //
-//
-// Notes
-// Changes marked by "//Will Edited"
-// Changed machinecontext.h to use dummy JIT
-// Commented out JITArm64_Backpatch.cpp out of build sources due to errors
-// Commented out Android stuff in ControllerInterface
+
 #import "AppDelegate.h"
 #import "DolphinGame.h"
 #import "EmulatorViewController.h"
@@ -17,12 +12,6 @@
 
 #import "SCLAlertView.h"
 #import "ZAActivityBar.h"
-
-
-
-//#import <UnrarKit/UnrarKit.h>
-
-
 
 @interface AppDelegate ()
 
@@ -41,28 +30,13 @@
     if (![[NSFileManager defaultManager] fileExistsAtPath:self.documentsPath]) {
         [[NSFileManager defaultManager] createDirectoryAtPath:self.documentsPath withIntermediateDirectories:YES attributes:nil error:nil];
     }
-    
-    
-    //syscall(26, -1, 0, 0, 0);
+
+    //syscall(26, -1, 0, 0, 0); //Allows us map executable pages
     return YES;
 }
 
 - (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation {
-    NSLog(@"Opening: %@", url);
-    if ([[[NSString stringWithFormat:@"%@", url] substringToIndex:2] isEqualToString: @"db"]) {
-        NSLog(@"DB");
-//        if ([[DBSession sharedSession] handleOpenURL:url]) {
-//            if ([[DBSession sharedSession] isLinked]) {
-//                SCLAlertView * alert = [[SCLAlertView alloc] initWithNewWindow];
-//                [alert showInfo:NSLocalizedString(@"SUCCESS", nil) subTitle:NSLocalizedString(@"SUCCESS_DETAIL", nil) closeButtonTitle:@"Okay!" duration:0.0];
-//                [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"enableDropbox"];
-//                [CHBgDropboxSync clearLastSyncData];
-//                [CHBgDropboxSync start];
-//                [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"enableDropbox"];
-//            }
-//            return YES;
-//        }
-    } else if (url.isFileURL && [[NSFileManager defaultManager] fileExistsAtPath:url.path]) {
+    if (url.isFileURL && [[NSFileManager defaultManager] fileExistsAtPath:url.path]) {
         NSLog(@"Zip File (maybe)");
         NSFileManager *fm = [NSFileManager defaultManager];
         NSError *err = nil;
@@ -102,10 +76,10 @@
         self.currentEmulationController = (EmulatorViewController *)[[UIStoryboard storyboardWithName:@"Main" bundle:nil] instantiateViewControllerWithIdentifier:@"emulatorView"];
     }
     [[self topMostController] presentViewController:self.currentEmulationController
-                                                                                 animated:YES
-                                                                               completion:^{
-                                                                                   [self.currentEmulationController launchGame:game];
-                                                                               }];
+                                            animated:YES
+                                         completion:^{
+                                                        [self.currentEmulationController launchGame:game];
+                                                     }];
 }
 
 - (NSString *)batteryDir
