@@ -541,16 +541,7 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
                                        const EFBRectangle& sourceRc, float Gamma)
 {
-  u8* xfb_in_ram = Memory::GetPointer(xfbAddr);
-  if (!xfb_in_ram)
-  {
-    WARN_LOG(VIDEO, "Tried to copy to invalid XFB address");
-    return;
-  }
 
-  TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
-  TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram,
-                                    sourceRc.GetWidth(), fbStride, fbHeight);
 }
 
 void FramebufferManager::SetFramebuffer(GLuint fb)
@@ -621,7 +612,6 @@ XFBSource::~XFBSource()
 
 void XFBSource::DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-  TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, texture);
 }
 
 void XFBSource::CopyEFB(float Gamma)

@@ -69,6 +69,8 @@ u16 GetEncodedSampleCount(u32 format)
     return 4;
   case GX_CTF_Z16L:
     return 2;
+  case GX_CTF_XFB:
+    return 2;
   default:
     return 1;
   }
@@ -612,6 +614,29 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
+static void WriteXFBEncoder(char*& p, API_TYPE ApiType)
+{
+  WriteSwizzler(p, GX_CTF_XFB, ApiType);
+
+  WRITE(p, "  float3 y_const = float3(0.257, 0.504, 0.098);\n");
+  WRITE(p, "  float3 u_const = float3(-0.148, -0.291, 0.439);\n");
+  WRITE(p, "  float3 v_const = float3(0.439, -0.368, -0.071);\n");
+
+  // TODO: This causes macroblocking on opengl at IRs higher than 1x
+  //       I hate macroblocking bugs.
+
+  WriteSampleColor(p, "rgb", "float3 color0", 0, ApiType);
+  WriteSampleColor(p, "rgb", "float3 color1", 1, ApiType);
+  WRITE(p, "  float3 average = (color0 + color1) * 0.5;\n");
+
+  WRITE(p, "  ocol0.b = dot(color0,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.g = dot(average, u_const) + 0.5;\n");
+  WRITE(p, "  ocol0.r = dot(color1,  y_const) + 0.0625;\n");
+  WRITE(p, "  ocol0.a = dot(average, v_const) + 0.5;\n");
+
+  WriteEncoderEnd(p);
+}
+
 const char* GenerateEncodingShader(u32 format, API_TYPE ApiType)
 {
   text[sizeof(text) - 1] = 0x7C;  // canary
@@ -690,6 +715,9 @@ const char* GenerateEncodingShader(u32 format, API_TYPE ApiType)
     break;
   case GX_CTF_Z16L:
     WriteZ16LEncoder(p, ApiType);
+    break;
+  case GX_CTF_XFB:
+    WriteXFBEncoder(p, ApiType);
     break;
   default:
     PanicAlert("Unknown texture copy format: 0x%x\n", format);

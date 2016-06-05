@@ -1212,7 +1212,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       ColorMask[3] = 0.0f;
       fConstAdd[3] = 1.0f;
       cbufid = 30;  // just re-use the RGBX8 cbufid from above
-      copy_to_ram = false;
+      copy_to_ram = g_ActiveConfig.bUseRealXFB;
       is_xfb_copy = true;
       break;
 
