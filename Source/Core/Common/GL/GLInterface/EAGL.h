@@ -22,7 +22,6 @@ public:
 	bool ClearCurrent() override;
 	void Shutdown() override;
 	void UpdateHandle(void* window_handle) override;
-	void Update() override;
 	void Prepare() override;
 	int GetDefaultFramebuffer() override;
 

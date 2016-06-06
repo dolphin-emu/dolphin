@@ -7,11 +7,10 @@
 
 #import "WCDirectionalControl.h"
 #import "WCButtonControl.h"
-#include "Common/CommonTypes.h"
 
 @protocol GCControllerViewDelegate <NSObject>
 
-- (void)buttonStateChanged:(u16)buttonState;
+- (void)buttonStateChanged:(uint16_t)buttonState;
 - (void)joystick:(NSInteger)joyid movedToPosition:(CGPoint)joyPosition;
 @end
 
