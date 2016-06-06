@@ -52,7 +52,6 @@
 		CA53A2581CEFA30E005937F5 /* DolphiniOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2571CEFA30E005937F5 /* DolphiniOSTests.m */; };
 		CA53A2631CEFA30E005937F5 /* DolphiniOSUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */; };
 		CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2781CEFA426005937F5 /* DolphinBridge.mm */; };
-		CA53A2B21CEFB485005937F5 /* MainiOS.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2B11CEFB485005937F5 /* MainiOS.mm */; };
 		CA53A2B51CEFC78A005937F5 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B41CEFC78A005937F5 /* libz.tbd */; };
 		CA53A2B71CEFC7CC005937F5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */; };
 		CA53A2B91CEFC7D1005937F5 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */; };
@@ -241,7 +240,6 @@
 		CA53A2641CEFA30E005937F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CA53A2771CEFA426005937F5 /* DolphinBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinBridge.h; sourceTree = "<group>"; };
 		CA53A2781CEFA426005937F5 /* DolphinBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DolphinBridge.mm; sourceTree = "<group>"; };
-		CA53A2B11CEFB485005937F5 /* MainiOS.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainiOS.mm; sourceTree = "<group>"; };
 		CA53A2B41CEFC78A005937F5 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -629,7 +627,6 @@
 				CA53A2781CEFA426005937F5 /* DolphinBridge.mm */,
 				CA1249601CFE7766004C11C5 /* DolphinGame.h */,
 				CA1249611CFE7766004C11C5 /* DolphinGame.m */,
-				CA53A2B11CEFB485005937F5 /* MainiOS.mm */,
 			);
 			name = Bridge;
 			sourceTree = "<group>";
@@ -869,7 +866,6 @@
 				CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */,
 				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
 				CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */,
-				CA53A2B21CEFB485005937F5 /* MainiOS.mm in Sources */,
 				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
 				CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */,
 				CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */,
