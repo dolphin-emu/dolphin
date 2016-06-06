@@ -3,9 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <vector>
-#include <array>
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"

@@ -17,11 +17,10 @@
 #import <OpenGLES/ES2/gl.h>
 
 #include "Common/GL/GLInterfaceBase.h"
-
+#include "Core/HW/GCPadEmu.h"
 #include "InputCommon/ControllerInterface/iOS/iOSButtonManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
-#include "Core/HW/GCPadEmu.h"
 
 @interface EmulatorViewController () <GLKViewDelegate, GCControllerViewDelegate> {
 	DolphinBridge*		bridge;
