@@ -3,7 +3,7 @@
 //  DolphiniOS
 //
 //  Created by mac on 2015-03-17.
-//  Copyright (c) 2015 OatmealDome. All rights reserved.
+//  Copyright (c) 2015 OatmealDome.
 //
 
 #import <Foundation/Foundation.h>

@@ -1,8 +1,8 @@
 //
 //  CCIApplicationCubeControllerView.h
-//  CloudConsoleiOS
+//  Dolphin
 //
-//  Created by Will Cobb on 1/18/16.
+//  Created by Will Cobb on 5/31/16.
 //
 
 #import "WCDirectionalControl.h"

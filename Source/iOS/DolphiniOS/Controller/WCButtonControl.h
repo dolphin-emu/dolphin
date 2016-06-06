@@ -1,9 +1,8 @@
 //
 //  ButtonControl.h
-//  CC
+//  Dolphin
 //
-//  Created by CC on 7/5/13.
-//  Copyright (c) 2014 CC. All rights reserved.
+//  Created by Will Cobb on 5/31/16.
 //
 
 #import "Controller/WCDirectionalControl.h"
