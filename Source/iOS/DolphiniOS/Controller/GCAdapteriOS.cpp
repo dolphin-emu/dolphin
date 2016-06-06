@@ -1,5 +1,4 @@
 // Copyright 2014 Dolphin Emulator Project
-// Copyright 2016 Will Cobb
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -19,48 +18,16 @@
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
-// Global java_vm class
-//extern JavaVM* g_java_vm;
 
 namespace GCAdapter
 {
-static void Setup();
-static void Reset();
 
-static void ThreadFunc()
-{
-        
-}
-    
-static void ScanThreadFunc()
-{
-
-}
-
-static void Write()
-{
-
-}
-
-static void Read()
-{
-
-}
 
 void Init()
 {
 
 }
 
-static void Setup()
-{
-    
-}
-
-static void Reset()
-{
-    
-}
 
 void Shutdown()
 {
