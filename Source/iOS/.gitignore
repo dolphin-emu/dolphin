@@ -80,3 +80,4 @@ build/
 
 # As per build/ and DerivedData/, this ought to have a trailing slash
 xcuserdata/
+xcshareddata/

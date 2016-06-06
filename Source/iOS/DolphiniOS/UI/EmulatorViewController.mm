@@ -96,7 +96,8 @@ GLKView* v;
 
 #pragma mark - UIFunctions
 
-- (NSUInteger)supportedInterfaceOrientations {
+- (NSUInteger)supportedInterfaceOrientations
+{
 	return UIInterfaceOrientationMaskLandscape;
 }
 
@@ -120,7 +121,8 @@ GLKView* v;
 	return UIInterfaceOrientationIsPortrait([UIApplication sharedApplication].statusBarOrientation);
 }
 
-- (void)didReceiveMemoryWarning {
+- (void)didReceiveMemoryWarning
+{
 	[super didReceiveMemoryWarning];
 }
 

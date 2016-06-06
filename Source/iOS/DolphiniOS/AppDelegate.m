@@ -24,7 +24,7 @@
 	return [[UIApplication sharedApplication] delegate];
 }
 
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (BOOL)application:(UIApplication*)application didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
 {
 	// Override point for customization after application launch.
 	if (![[NSFileManager defaultManager] fileExistsAtPath:self.documentsPath])
@@ -36,13 +36,13 @@
 	return YES;
 }
 
-- (BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
+- (BOOL)application:(UIApplication*)application openURL:(NSURL*)url sourceApplication:(NSString*)sourceApplication annotation:(id)annotation
 {
 	if (url.isFileURL && [[NSFileManager defaultManager] fileExistsAtPath:url.path])
 	{
 		NSLog(@"Zip File (maybe)");
-		NSFileManager *fm = [NSFileManager defaultManager];
-		NSError *err = nil;
+		NSFileManager* fm = [NSFileManager defaultManager];
+		NSError* err = nil;
 		if ([url.pathExtension.lowercaseString isEqualToString:@"iso"] ||
 			[url.pathExtension.lowercaseString isEqualToString:@"dol"])
 		{
@@ -68,20 +68,20 @@
 	return NO;
 }
 
-- (void)showError:(NSString *)error
+- (void)showError:(NSString*)error
 {
 	dispatch_async(dispatch_get_main_queue(), ^{
-		SCLAlertView * alertView = [[SCLAlertView alloc] init];
+		SCLAlertView*  alertView = [[SCLAlertView alloc] init];
 		alertView.shouldDismissOnTapOutside = YES;
 		[alertView showError:[self topMostController] title:@"Error!" subTitle:error closeButtonTitle:@"Okay" duration:0.0];
 	});
 }
 
-- (void)startGame:(DolphinGame *)game
+- (void)startGame:(DolphinGame*)game
 {
 	if (!self.currentEmulationController)
 	{
-		self.currentEmulationController = (EmulatorViewController *)[[UIStoryboard storyboardWithName:@"Main"
+		self.currentEmulationController = (EmulatorViewController*)[[UIStoryboard storyboardWithName:@"Main"
 																							   bundle:nil]
 																	 instantiateViewControllerWithIdentifier:@"emulatorView"];
 	}
@@ -92,12 +92,12 @@
 													 }];
 }
 
-- (NSString *)batteryDir
+- (NSString*)batteryDir
 {
 	return [self.documentsPath stringByAppendingPathComponent:@"Battery"];
 }
 
-- (NSString *)documentsPath
+- (NSString*)documentsPath
 {
 	if ([self isSystemApplication])
 	{
@@ -109,7 +109,7 @@
 	}
 }
 
-- (NSString *)rootDocumentsPath
+- (NSString*)rootDocumentsPath
 {
 	return [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) objectAtIndex:0];
 }
@@ -121,7 +121,7 @@
 
 - (UIViewController*) topMostController
 {
-	UIViewController *topController = [UIApplication sharedApplication].keyWindow.rootViewController;
+	UIViewController* topController = [UIApplication sharedApplication].keyWindow.rootViewController;
 	while (topController.presentedViewController) {
 		topController = topController.presentedViewController;
 	}

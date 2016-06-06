@@ -10,7 +10,6 @@
 
 #import "MHWDirectoryWatcher.h"
 #import "WCEasySettingsViewController.h"
-#import "SharkfoodMuteSwitchDetector.h"
 #import "SCLAlertView.h"
 
 #import "UI/RomTableViewController.h"
@@ -103,7 +102,8 @@
 	return YES;
 }
 
-- (void)tableView:(UITableView*)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
+- (void)tableView:(UITableView*)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath
+{
 	if (editingStyle == UITableViewCellEditingStyleDelete)
 	{
 		if (indexPath.section == 0)

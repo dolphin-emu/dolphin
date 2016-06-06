@@ -14,16 +14,16 @@
 @class DolphinGame;
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property (strong, nonatomic) UIWindow *window;
+@property (strong, nonatomic) UIWindow*	window;
 @property (strong, nonatomic, getter=getSettingsViewController) WCEasySettingsViewController *settingsViewController;
-@property EmulatorViewController	* currentEmulationController;
+@property EmulatorViewController*	currentEmulationController;
 
-+ (AppDelegate *)sharedInstance;
++ (AppDelegate*)sharedInstance;
 
-- (NSString *)cheatsDir;
-- (NSString *)batteryDir;
-- (NSString *)documentsPath;
+- (NSString*)cheatsDir;
+- (NSString*)batteryDir;
+- (NSString*)documentsPath;
 
-- (void)startGame:(DolphinGame *)game;
+- (void)startGame:(DolphinGame*)game;
 
 @end
