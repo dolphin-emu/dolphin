@@ -24,8 +24,6 @@
 		CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */; };
 		CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */; };
 		CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A091CFE7FDC004C11C5 /* SCLTextView.m */; };
-		CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */; };
-		CA124A1E1CFE7FED004C11C5 /* mute.caf in Resources */ = {isa = PBXBuildFile; fileRef = CA124A131CFE7FED004C11C5 /* mute.caf */; };
 		CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */; };
 		CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A181CFE7FED004C11C5 /* RBVolumeButtons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A1A1CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m */; };
@@ -186,9 +184,6 @@
 		CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTimerDisplay.m; sourceTree = "<group>"; };
 		CA124A081CFE7FDC004C11C5 /* SCLTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLTextView.h; sourceTree = "<group>"; };
 		CA124A091CFE7FDC004C11C5 /* SCLTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTextView.m; sourceTree = "<group>"; };
-		CA124A111CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SharkfoodMuteSwitchDetector.h; sourceTree = "<group>"; };
-		CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SharkfoodMuteSwitchDetector.m; sourceTree = "<group>"; };
-		CA124A131CFE7FED004C11C5 /* mute.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = mute.caf; sourceTree = "<group>"; };
 		CA124A141CFE7FED004C11C5 /* UITapticEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UITapticEngine.h; sourceTree = "<group>"; };
 		CA124A151CFE7FED004C11C5 /* UIDevice+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+Private.h"; sourceTree = "<group>"; };
 		CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+Private.m"; sourceTree = "<group>"; };
@@ -518,9 +513,6 @@
 		CA1249B01CFE7F74004C11C5 /* Misc */ = {
 			isa = PBXGroup;
 			children = (
-				CA124A111CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.h */,
-				CA124A121CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m */,
-				CA124A131CFE7FED004C11C5 /* mute.caf */,
 				CA124A141CFE7FED004C11C5 /* UITapticEngine.h */,
 				CA124A151CFE7FED004C11C5 /* UIDevice+Private.h */,
 				CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */,
@@ -811,7 +803,6 @@
 			files = (
 				CA751EF81D04826800771302 /* gcpad_joystick@2x.png in Resources */,
 				CA751EF41D04826800771302 /* gcpad_dpad_pressed_right@2x.png in Resources */,
-				CA124A1E1CFE7FED004C11C5 /* mute.caf in Resources */,
 				CA751F011D04826800771302 /* gcpad_x@2x.png in Resources */,
 				CA751EF31D04826800771302 /* gcpad_dpad_pressed_left@2x.png in Resources */,
 				CA751EFA1D04826800771302 /* gcpad_joystick_range@2x.png in Resources */,
@@ -880,7 +871,6 @@
 				CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */,
 				CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */,
 				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
-				CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */,
 				CA1072DD1D052C290042478E /* EmulatorViewController.mm in Sources */,
 				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
 				CA1072DE1D052C290042478E /* GameTableView.m in Sources */,

@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -22,12 +22,10 @@
 namespace GCAdapter
 {
 
-
 void Init()
 {
 
 }
-
 
 void Shutdown()
 {
@@ -41,32 +39,37 @@ void StartScanThread()
 
 void StopScanThread()
 {
-    
+
 }
 
 void Input(int chan, GCPadStatus* pad)
 {
-    printf("Input!\n");
+	printf("Input!\n");
 }
 
 void Output(int chan, u8 rumble_command)
 {
-    printf("Output!\n");
+	printf("Output!\n");
 }
 
-bool IsDetected() {
-    return 1;
+bool IsDetected()
+{
+	return 1;
 }
-bool IsDriverDetected() { return true; }
+	
+bool IsDriverDetected()
+{
+	return true;
+}
+	
 bool DeviceConnected(int chan)
 {
-    return 1;
+	return 1;
 }
 
 bool UseAdapter()
 {
-    return 1;
-
+	return 1;
 }
 
 void ResetRumble()
@@ -74,6 +77,9 @@ void ResetRumble()
 
 }
 
-void SetAdapterCallback(std::function<void(void)> func) { }
+void SetAdapterCallback(std::function<void(void)> func)
+{
 
-} // end of namespace GCAdapter
+}
+
+} // namespace GCAdapte

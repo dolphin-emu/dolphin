@@ -70,7 +70,7 @@ void ControllerInterface::Initialize(void* const hwnd)
 	#endif
 #endif
 #ifdef CIFACE_USE_APPLE_IOS
-    ciface::iOS::Init(m_devices);
+	ciface::iOS::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::Init(m_devices, hwnd);

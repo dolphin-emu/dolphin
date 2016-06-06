@@ -9,13 +9,14 @@
 #import <UIKit/UIKit.h>
 
 #import "Utilities/WCEasySettings/WCEasySettings.h"
+
 @class EmulatorViewController;
 @class DolphinGame;
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 @property (strong, nonatomic, getter=getSettingsViewController) WCEasySettingsViewController *settingsViewController;
-@property EmulatorViewController    * currentEmulationController;
+@property EmulatorViewController	* currentEmulationController;
 
 + (AppDelegate *)sharedInstance;
 

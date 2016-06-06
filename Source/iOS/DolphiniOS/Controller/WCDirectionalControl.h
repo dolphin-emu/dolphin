@@ -7,16 +7,18 @@
 
 #import <UIKit/UIKit.h>
 
-typedef NS_ENUM(NSInteger, WCDirectionalControlDirection) {
-    WCDirectionalControlDirectionLeft   = 1 << 0,
-    WCDirectionalControlDirectionRight  = 1 << 1,
-    WCDirectionalControlDirectionDown   = 1 << 2,
-    WCDirectionalControlDirectionUp     = 1 << 3,
+typedef NS_ENUM(NSInteger, WCDirectionalControlDirection)
+{
+	WCDirectionalControlDirectionLeft   = 1 << 0,
+	WCDirectionalControlDirectionRight  = 1 << 1,
+	WCDirectionalControlDirectionDown   = 1 << 2,
+	WCDirectionalControlDirectionUp	 = 1 << 3,
 };
 
-typedef NS_ENUM(NSInteger, WCDirectionalControlStyle) {
-    WCDirectionalControlStyleDPad = 0,
-    WCDirectionalControlStyleJoystick = 1,
+typedef NS_ENUM(NSInteger, WCDirectionalControlStyle)
+{
+	WCDirectionalControlStyleDPad = 0,
+	WCDirectionalControlStyleJoystick = 1,
 };
 
 @interface WCDirectionalControl : UIControl
@@ -24,10 +26,10 @@ typedef NS_ENUM(NSInteger, WCDirectionalControlStyle) {
 @property (readonly, nonatomic) WCDirectionalControlDirection direction;
 @property (assign, nonatomic) WCDirectionalControlStyle style;
 
-- (id)initWithFrame:(CGRect)frame BoundsImage:(NSString *)boundsImage StickImage:(NSString *)stickImage;
-- (id)initWithFrame:(CGRect)frame DPadImages:(NSArray <UIImage *> *)dpadImages;
+- (id)initWithFrame:(CGRect)frame BoundsImage:(NSString*)boundsImage StickImage:(NSString*)stickImage;
+- (id)initWithFrame:(CGRect)frame DPadImages:(NSArray <UIImage*>*)dpadImages;
 
 - (CGPoint)joyLocation;
-- (void) frameUpdated;
+- (void)frameUpdated;
 
 @end

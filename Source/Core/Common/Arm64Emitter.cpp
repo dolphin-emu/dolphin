@@ -5,15 +5,16 @@
 #include <algorithm>
 #include <cstring>
 #include <vector>
+#include <array>
 
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+
 #if APPLE_IOS
-    #include <array>
-    #include <libkern/OSCacheControl.h>
+	#include <libkern/OSCacheControl.h>
 #endif
 
 namespace Arm64Gen

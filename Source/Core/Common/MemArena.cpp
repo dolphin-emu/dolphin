@@ -100,12 +100,12 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 #ifdef _WIN32
 	return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
 #else
-    int flags;
+	int flags;
 #if APPLE_IOS
-    //ANON and PRIVATE are required for MAP_FIXED on iOS
-    flags = MAP_ANON | MAP_PRIVATE | ((base == nullptr) ? 0 : MAP_FIXED);
+	//ANON and PRIVATE are required for MAP_FIXED on iOS
+	flags = MAP_ANONYMOUS | MAP_PRIVATE | ((base == nullptr) ? 0 : MAP_FIXED);
 #else
-    flags = MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED);
+	flags = MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED);
 #endif
 	void* retval = mmap(
 		base, size,

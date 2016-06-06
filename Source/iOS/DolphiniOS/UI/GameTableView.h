@@ -13,6 +13,6 @@
 @class DolphinGame;
 @interface GameTableView : UITableViewController
 
-@property (atomic, strong) DolphinGame * game;
+@property (atomic, strong) DolphinGame* game;
 
 @end

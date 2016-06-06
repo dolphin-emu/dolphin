@@ -9,7 +9,7 @@
 
 @interface WCDirectionalControl ()
 
-@property (strong, nonatomic) UIImageView *backgroundImageView;
+@property (strong, nonatomic) UIImageView* backgroundImageView;
 
 @end
 
@@ -21,18 +21,19 @@
 
 @implementation WCButtonControl
 
-- (id)initWithCoder:(NSCoder *)aDecoder
+- (id)initWithCoder:(NSCoder*)aDecoder
 {
-    self = [super initWithCoder:aDecoder];
-    if (self) {
-        // Initialization code
-        self.backgroundImageView.image = [UIImage imageNamed:@"ABXYPad"];
-    }
-    return self;
+	self = [super initWithCoder:aDecoder];
+	if (self)
+	{
+		self.backgroundImageView.image = [UIImage imageNamed:@"ABXYPad"];
+	}
+	return self;
 }
 
-- (WCButtonControlButton)selectedButtons {
-    return (WCButtonControlButton)self.direction;
+- (WCButtonControlButton)selectedButtons
+{
+	return (WCButtonControlButton)self.direction;
 }
 
 @end

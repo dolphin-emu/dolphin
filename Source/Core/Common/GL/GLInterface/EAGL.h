@@ -14,25 +14,24 @@ class cInterfaceEAGL : public cInterfaceBase
 {
 public:
 	void Swap() override;
-	void SwapInterval(int interval) override;
 	void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
-    GLInterfaceMode GetMode() override;
+	GLInterfaceMode GetMode() override;
 	bool Create(void* window_handle, bool core) override;
 	bool Create(cInterfaceBase* main_context) override;
 	bool MakeCurrent() override;
 	bool ClearCurrent() override;
 	void Shutdown() override;
 	void UpdateHandle(void* window_handle) override;
-	void UpdateSurface() override;
-    void Update() override;
-    void Prepare() override;
-    int GetDefaultFramebuffer() override;
+	void Update() override;
+	void Prepare() override;
+	int GetDefaultFramebuffer() override;
 
 protected:
 	void DetectMode();
 	virtual void ShutdownPlatform() {}
-    
+
 private:
 	EAGLContext *m_context;
-	GLKView     *m_glkView;
+	GLKView		*m_glkView;
+	bool		m_bufferStorageCreated;
 };

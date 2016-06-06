@@ -13,9 +13,9 @@ if(WIN32)
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(APPLE_IOS)
-	set(SRCS ${SRCS}
-	         	ControllerInterface/iOS/iOS.mm
-		 	ControllerInterface/iOS/iOSButtonManager.cpp)
+	set(SRCS	${SRCS}
+				ControllerInterface/iOS/iOS.mm
+				ControllerInterface/iOS/iOSButtonManager.cpp)
 elseif(APPLE)
 	find_library(COREFOUNDATION_LIBRARY CoreFoundation)
 	find_library(CARBON_LIBRARY Carbon)

@@ -25,13 +25,11 @@
 #include <linux/fs.h>   // BLKGETSIZE64
 #elif defined __FreeBSD__
 #include <sys/disk.h>   // DIOCGMEDIASIZE
+#elif APPLE_IOS
+#define DKIOCGETBLOCKCOUNT 2
+#define DKIOCGETBLOCKSIZE  1
 #elif defined __APPLE__
-    #if APPLE_IOS
-        #define DKIOCGETBLOCKCOUNT 2
-        #define DKIOCGETBLOCKSIZE  1
-    #else
-        #include <sys/disk.h>   // DKIOCGETBLOCKCOUNT / DKIOCGETBLOCKSIZE
-    #endif
+#include <sys/disk.h>   // DKIOCGETBLOCKCOUNT / DKIOCGETBLOCKSIZE
 #endif
 #endif
 

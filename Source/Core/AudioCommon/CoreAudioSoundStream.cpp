@@ -30,7 +30,7 @@ bool CoreAudioSound::Start()
 
 	desc.componentType = kAudioUnitType_Output;
 #if APPLE_IOS
-    desc.componentSubType = kAudioUnitSubType_GenericOutput;
+	desc.componentSubType = kAudioUnitSubType_GenericOutput;
 #else
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
 #endif

@@ -22,15 +22,13 @@
 	#if 0
 		#include <GL/gl.h>
 	#endif
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#elif defined(__APPLE__) || defined(__APPLE_CC__) && !defined(APPLE_IOS)
 	/*	I can't test this Apple stuff!	*/
 	#if 0
 		#include <OpenGL/gl.h>
 	#endif
-	#ifndef APPLE_IOS
-		#include <Carbon/Carbon.h>
-		#define APIENTRY
-	#endif
+	#include <Carbon/Carbon.h>
+	#define APIENTRY
 #else
 	#if 0
 		#include <GL/gl.h>

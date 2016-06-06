@@ -1,4 +1,4 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -13,7 +13,7 @@ namespace ciface
 namespace iOS
 {
 
-void Init( std::vector<Core::Device*>& devices )
+void Init(std::vector<Core::Device*>& devices)
 {
 	devices.push_back(new Touchscreen(0));
 	devices.push_back(new Touchscreen(1));
@@ -25,7 +25,6 @@ void Init( std::vector<Core::Device*>& devices )
 	devices.push_back(new Touchscreen(7));
 }
 
-// Touchscreens and stuff
 std::string Touchscreen::GetName() const
 {
 	return "Touchscreen";
@@ -192,5 +191,5 @@ ControlState Touchscreen::Axis::GetState() const
 	return ButtonManager::GetAxisValue(_padID, _index) * _neg;
 }
 
-}
-}
+} // namespace iOS
+} // namespace ciface

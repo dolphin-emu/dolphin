@@ -10,7 +10,7 @@
 
 @interface RomTableViewController : UITableViewController <UIAlertViewDelegate>
 {
-    NSArray *games;
+	NSArray* games;
 }
 
 - (void)reloadGames:(id)sender;

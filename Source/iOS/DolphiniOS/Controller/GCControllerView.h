@@ -7,22 +7,24 @@
 
 #import "WCDirectionalControl.h"
 #import "WCButtonControl.h"
+#include "Common/CommonTypes.h"
 
 @protocol GCControllerViewDelegate <NSObject>
 
-- (void)buttonStateChanged:(uint16_t)buttonState;
+- (void)buttonStateChanged:(u16)buttonState;
 - (void)joystick:(NSInteger)joyid movedToPosition:(CGPoint)joyPosition;
 @end
 
-@interface GCControllerView : UIView {
-    NSMutableArray *buttons;
+@interface GCControllerView : UIView
+{
+	NSMutableArray* buttons;
 }
 
 @property uint16_t  buttonState;
 @property (weak) id <GCControllerViewDelegate> delegate;
-- (void)addButtonWithFrame:(CGRect)frame Tag:(NSInteger) tag Image:(NSString *) image PressedImage:(NSString *)pressedImage;
+- (void)addButtonWithFrame:(CGRect)frame Tag:(NSInteger) tag Image:(NSString*) image PressedImage:(NSString*)pressedImage;
 
-- (void)joystickMoved:(WCDirectionalControl *)joystick;
-- (void)dpadChanged:(WCDirectionalControl *)dpad;
+- (void)joystickMoved:(WCDirectionalControl*)joystick;
+- (void)dpadChanged:(WCDirectionalControl*)dpad;
 
 @end

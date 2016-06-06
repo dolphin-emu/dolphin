@@ -333,4 +333,3 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 	ctx->CTX_PC = (u64)slow_handler_iter->first;
 	return true;
 }
-

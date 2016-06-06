@@ -7,13 +7,14 @@
 //
 
 #import <UIKit/UIKit.h>
+
 @class GLKView;
 @class DolphinGame;
 @interface EmulatorViewController : UIViewController
 
-@property IBOutlet GLKView *glkView;
+@property IBOutlet GLKView* glkView;
 
-- (void)launchGame:(DolphinGame *)game;
+- (void)launchGame:(DolphinGame*)game;
 
 @end
 
