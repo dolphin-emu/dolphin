@@ -163,7 +163,9 @@ typedef enum
 	CS_HYDRA_LEFT,
 	CS_HYDRA_RIGHT,
 	CS_WIIMOTE,
+	CS_WIIMOTE_IR,
 	CS_NUNCHUK,
+	CS_NUNCHUK_UNREAD,
 	CS_WIIMOTE_LEFT,
 	CS_WIIMOTE_RIGHT,
 	CS_CLASSIC_LEFT,
@@ -214,6 +216,8 @@ bool VR_GetHMDGestures(u32 *gestures);
 bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[]);
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz);
+// called whenever the game reads the wiimote, to let us know which features they are reading
+void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext);
 
 bool VR_PairViveControllers();
 
@@ -252,6 +256,9 @@ extern Matrix44 g_game_camera_rotmat;
 extern double g_older_tracking_time, g_old_tracking_time, g_last_tracking_time;
 
 extern float g_current_fps, g_current_speed;
+
+// 4 Wiimotes + 1 Balance Board
+extern u8 g_vr_reading_wiimote_accel[5], g_vr_reading_wiimote_ir[5], g_vr_reading_wiimote_ext[5];
 
 //Opcode Replay Buffer
 struct TimewarpLogEntry {

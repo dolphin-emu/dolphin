@@ -108,6 +108,8 @@ Matrix44 g_game_camera_rotmat;
 double g_older_tracking_time = 0, g_old_tracking_time = 0, g_last_tracking_time = 0;
 float g_steamvr_ipd = 0.064f;
 
+u8 g_vr_reading_wiimote_accel[5] = {}, g_vr_reading_wiimote_ir[5] = {}, g_vr_reading_wiimote_ext[5] = {};
+
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
 std::vector<TimewarpLogEntry> timewarp_logentries;
@@ -1526,6 +1528,14 @@ bool VR_GetHMDGestures(u32 *gestures)
 	}
 }
 
+void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext)
+{
+	g_vr_reading_wiimote_accel[index] = accel;
+	g_vr_reading_wiimote_ir[index] = ir;
+	g_vr_reading_wiimote_ext[index] = ext;
+}
+
+
 bool VR_GetLeftHydraPos(float *pos, Matrix33 *m)
 {
 #if defined(HAVE_OPENVR)
@@ -1642,7 +1652,7 @@ void VR_SetGame(bool is_wii, bool is_nand, std::string id)
 	// Wii Discs or homebrew files use the Wiimote and Nunchuk
 	else if (!is_nand)
 	{
-		vr_left_controller = CS_NUNCHUK;
+		vr_left_controller = CS_NUNCHUK_UNREAD;
 		vr_right_controller = CS_WIIMOTE;
 	}
 	else
@@ -1710,7 +1720,7 @@ void VR_SetGame(bool is_wii, bool is_nand, std::string id)
 		case 'W':
 		default:
 			// WiiWare
-			vr_left_controller = CS_NUNCHUK;
+			vr_left_controller = CS_NUNCHUK_UNREAD;
 			vr_right_controller = CS_WIIMOTE;
 			break;
 		}
@@ -1720,9 +1730,21 @@ void VR_SetGame(bool is_wii, bool is_nand, std::string id)
 ControllerStyle VR_GetHydraStyle(int hand)
 {
 	if (hand)
+	{
+		if (vr_right_controller == CS_WIIMOTE && g_vr_reading_wiimote_ir[0])
+			vr_right_controller = CS_WIIMOTE_IR;
+		else if (vr_right_controller == CS_WIIMOTE_IR && !g_vr_reading_wiimote_ir[0])
+			vr_right_controller = CS_WIIMOTE;
 		return vr_right_controller;
+	}
 	else
+	{
+		if (vr_left_controller == CS_NUNCHUK && !g_vr_reading_wiimote_ext[0])
+			vr_left_controller = CS_NUNCHUK_UNREAD;
+		else if (vr_left_controller == CS_NUNCHUK_UNREAD && g_vr_reading_wiimote_ext[0])
+			vr_left_controller = CS_NUNCHUK;
 		return vr_left_controller;
+	}
 }
 
 bool VR_PairViveControllers()

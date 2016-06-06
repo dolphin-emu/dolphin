@@ -331,6 +331,16 @@ namespace DX11
 				params.color[1] = 1.0f;
 				params.color[2] = 1.0f;
 				break;
+			case CS_NUNCHUK_UNREAD:
+				params.color[0] = 0.8f;
+				params.color[1] = 0.8f;
+				params.color[2] = 0.8f;
+				break;
+			case CS_WIIMOTE_IR:
+				params.color[0] = 1.0f;
+				params.color[1] = 0.8f;
+				params.color[2] = 0.8f;
+				break;
 			case CS_FAMICON_LEFT:
 			case CS_SNES_LEFT:
 				params.color[0] = 0.75f;

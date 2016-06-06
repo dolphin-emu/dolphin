@@ -26,6 +26,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VR.h"
 
 namespace
 {
@@ -690,7 +691,10 @@ void Wiimote::Update()
 {
 	// no channel == not connected i guess
 	if (0 == m_reporting_channel)
+	{
+		VR_UpdateWiimoteReportingMode(m_index, false, false, false);
 		return;
+	}
 
 	// returns true if a report was sent
 	if (Step())
@@ -714,6 +718,8 @@ void Wiimote::Update()
 	{
 		data[0] = 0xA1;
 		data[1] = m_reporting_mode;
+
+		VR_UpdateWiimoteReportingMode(m_index, rptf.accel, rptf.ir, rptf.ext);
 
 		// core buttons
 		if (rptf.core)
