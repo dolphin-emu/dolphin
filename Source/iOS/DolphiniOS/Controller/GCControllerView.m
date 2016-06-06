@@ -5,8 +5,8 @@
 //  Created by Will Cobb on 1/18/16.
 //
 
-#import "GCControllerView.h"
-#import "WCDirectionalControl.h"
+#import "Controller/GCControllerView.h"
+#import "Controller/WCDirectionalControl.h"
 
 enum PadButton
 {

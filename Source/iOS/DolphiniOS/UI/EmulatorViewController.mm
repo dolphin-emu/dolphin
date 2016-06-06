@@ -6,14 +6,17 @@
 //
 //
 
-#import "EmulatorViewController.h"
-#import "DolphinBridge.h"
+#import "UI/EmulatorViewController.h"
+
+#import "Bridge/DolphinBridge.h"
+#import "Bridge/DolphinGame.h"
+
+#import "Controller/GCControllerView.h"
+
 #import <GLKit/GLKit.h>
 #import <OpenGLES/ES2/gl.h>
-#include "Common/GL/GLInterfaceBase.h"
-#import "GCControllerView.h"
-#import "DolphinGame.h"
 
+#include "Common/GL/GLInterfaceBase.h"
 
 #include "InputCommon/ControllerInterface/iOS/iOSButtonManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"

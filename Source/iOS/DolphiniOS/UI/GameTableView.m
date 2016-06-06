@@ -6,10 +6,13 @@
 //  Copyright © 2015 iNDS. All rights reserved.
 //
 
-#import "GameTableView.h"
-#import "EmulatorViewController.h"
+
 #import "SCLAlertView.h"
-#import "DolphinGame.h"
+
+#import "UI/GameTableView.h"
+#import "UI/EmulatorViewController.h"
+
+#import "Bridge/DolphinGame.h"
 
 @interface GameTableView() {
     

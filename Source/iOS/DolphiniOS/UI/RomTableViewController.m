@@ -7,13 +7,16 @@
 //
 
 #import "AppDelegate.h"
-#import "RomTableViewController.h"
-#import "GameTableView.h"
-#import "SCLAlertView.h"
+
 #import "MHWDirectoryWatcher.h"
 #import "WCEasySettingsViewController.h"
 #import "SharkfoodMuteSwitchDetector.h"
-#import "DolphinGame.h"
+#import "SCLAlertView.h"
+
+#import "UI/RomTableViewController.h"
+#import "UI/GameTableView.h"
+
+#import "Bridge/DolphinGame.h"
 
 #import <mach/mach.h>
 #import <mach/mach_host.h>

@@ -6,7 +6,7 @@
 //  Copyright (c) 2016 iNDS. All rights reserved.
 //  http://problemkaputt.de/gbatek.htm
 
-#import "DolphinGame.h"
+#import "Bridge/DolphinGame.h"
 
 NSString * const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStatesChangedNotification";
 

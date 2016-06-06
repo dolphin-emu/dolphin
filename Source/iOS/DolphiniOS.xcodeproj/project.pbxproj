@@ -10,9 +10,12 @@
 		4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */; };
 		4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */; };
 		4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */; };
-		CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249611CFE7766004C11C5 /* DolphinGame.m */; };
-		CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */; };
-		CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA12496B1CFE7D0E004C11C5 /* GameTableView.m */; };
+		CA1072DA1D052C290042478E /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA1072CF1D052C290042478E /* DolphinBridge.mm */; };
+		CA1072DB1D052C290042478E /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D11D052C290042478E /* DolphinGame.m */; };
+		CA1072DD1D052C290042478E /* EmulatorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D51D052C290042478E /* EmulatorViewController.mm */; };
+		CA1072DE1D052C290042478E /* GameTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D71D052C290042478E /* GameTableView.m */; };
+		CA1072DF1D052C290042478E /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D91D052C290042478E /* RomTableViewController.m */; };
+		CA1072E11D052C410042478E /* GCAdapteriOS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1072E01D052C410042478E /* GCAdapteriOS.cpp */; };
 		CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */; };
 		CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */; };
 		CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */; };
@@ -45,13 +48,11 @@
 		CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */; };
 		CA53A23F1CEFA30E005937F5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A23E1CEFA30E005937F5 /* main.m */; };
 		CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2411CEFA30E005937F5 /* AppDelegate.m */; };
-		CA53A2451CEFA30E005937F5 /* EmulatorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */; };
 		CA53A2481CEFA30E005937F5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA53A2461CEFA30E005937F5 /* Main.storyboard */; };
 		CA53A24A1CEFA30E005937F5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA53A2491CEFA30E005937F5 /* Assets.xcassets */; };
 		CA53A24D1CEFA30E005937F5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA53A24B1CEFA30E005937F5 /* LaunchScreen.storyboard */; };
 		CA53A2581CEFA30E005937F5 /* DolphiniOSTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2571CEFA30E005937F5 /* DolphiniOSTests.m */; };
 		CA53A2631CEFA30E005937F5 /* DolphiniOSUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */; };
-		CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2781CEFA426005937F5 /* DolphinBridge.mm */; };
 		CA53A2B51CEFC78A005937F5 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B41CEFC78A005937F5 /* libz.tbd */; };
 		CA53A2B71CEFC7CC005937F5 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */; };
 		CA53A2B91CEFC7D1005937F5 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */; };
@@ -157,12 +158,17 @@
 		4C8E6C1D1CFF390300D87BC3 /* WCDirectionalControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCDirectionalControl.h; sourceTree = "<group>"; };
 		4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCDirectionalControl.m; sourceTree = "<group>"; };
 		4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "DolphiniOS copy-Info.plist"; path = "/Users/sc-wcobb-osx/Dropbox/Xcode/dolphinIOS/DolphiniOS copy-Info.plist"; sourceTree = "<absolute>"; };
-		CA1249601CFE7766004C11C5 /* DolphinGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinGame.h; sourceTree = "<group>"; };
-		CA1249611CFE7766004C11C5 /* DolphinGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DolphinGame.m; sourceTree = "<group>"; };
-		CA1249681CFE7D0E004C11C5 /* RomTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RomTableViewController.h; sourceTree = "<group>"; };
-		CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomTableViewController.m; sourceTree = "<group>"; };
-		CA12496A1CFE7D0E004C11C5 /* GameTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameTableView.h; sourceTree = "<group>"; };
-		CA12496B1CFE7D0E004C11C5 /* GameTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameTableView.m; sourceTree = "<group>"; };
+		CA1072CE1D052C290042478E /* DolphinBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinBridge.h; sourceTree = "<group>"; };
+		CA1072CF1D052C290042478E /* DolphinBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DolphinBridge.mm; sourceTree = "<group>"; };
+		CA1072D01D052C290042478E /* DolphinGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinGame.h; sourceTree = "<group>"; };
+		CA1072D11D052C290042478E /* DolphinGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DolphinGame.m; sourceTree = "<group>"; };
+		CA1072D41D052C290042478E /* EmulatorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmulatorViewController.h; sourceTree = "<group>"; };
+		CA1072D51D052C290042478E /* EmulatorViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulatorViewController.mm; sourceTree = "<group>"; };
+		CA1072D61D052C290042478E /* GameTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameTableView.h; sourceTree = "<group>"; };
+		CA1072D71D052C290042478E /* GameTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameTableView.m; sourceTree = "<group>"; };
+		CA1072D81D052C290042478E /* RomTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RomTableViewController.h; sourceTree = "<group>"; };
+		CA1072D91D052C290042478E /* RomTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomTableViewController.m; sourceTree = "<group>"; };
+		CA1072E01D052C410042478E /* GCAdapteriOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GCAdapteriOS.cpp; sourceTree = "<group>"; };
 		CA1249E81CFE7FBD004C11C5 /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MHWDirectoryWatcher.h; sourceTree = "<group>"; };
 		CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MHWDirectoryWatcher.m; sourceTree = "<group>"; };
 		CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
@@ -226,8 +232,6 @@
 		CA53A23E1CEFA30E005937F5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		CA53A2401CEFA30E005937F5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		CA53A2411CEFA30E005937F5 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		CA53A2431CEFA30E005937F5 /* EmulatorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulatorViewController.h; sourceTree = "<group>"; };
-		CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulatorViewController.mm; sourceTree = "<group>"; };
 		CA53A2471CEFA30E005937F5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CA53A2491CEFA30E005937F5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CA53A24C1CEFA30E005937F5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -238,8 +242,6 @@
 		CA53A25E1CEFA30E005937F5 /* DolphiniOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DolphiniOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA53A2621CEFA30E005937F5 /* DolphiniOSUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DolphiniOSUITests.m; sourceTree = "<group>"; };
 		CA53A2641CEFA30E005937F5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		CA53A2771CEFA426005937F5 /* DolphinBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinBridge.h; sourceTree = "<group>"; };
-		CA53A2781CEFA426005937F5 /* DolphinBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DolphinBridge.mm; sourceTree = "<group>"; };
 		CA53A2B41CEFC78A005937F5 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
 		CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -247,7 +249,6 @@
 		CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
-		CA53A2C21CEFCA3D005937F5 /* GCAdapteriOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = GCAdapteriOS.cpp; path = ../GCAdapteriOS.cpp; sourceTree = "<group>"; };
 		CA53A33F1CF0B852005937F5 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		CA751EC91D04826800771302 /* gcpad_a@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a@2x.png"; sourceTree = "<group>"; };
 		CA751ECA1D04826800771302 /* gcpad_a_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a_pressed@2x.png"; sourceTree = "<group>"; };
@@ -397,7 +398,7 @@
 		4C8E6C181CFF390300D87BC3 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
-				CA53A2C21CEFCA3D005937F5 /* GCAdapteriOS.cpp */,
+				CA1072E01D052C410042478E /* GCAdapteriOS.cpp */,
 				4C8E6C191CFF390300D87BC3 /* GCControllerView.h */,
 				4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */,
 				4C8E6C1B1CFF390300D87BC3 /* WCButtonControl.h */,
@@ -417,6 +418,30 @@
 			sourceTree = "<group>";
 		};
 		B7D3E4EB688E4DAA8B0EDA06 = {
+			isa = PBXGroup;
+			children = (
+				CA124A271CFE8164004C11C5 /* MediaPlayer.framework */,
+				CA124A251CFE814E004C11C5 /* Twitter.framework */,
+				CA124A231CFE8139004C11C5 /* GameController.framework */,
+				CA53A33F1CF0B852005937F5 /* GLKit.framework */,
+				CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */,
+				CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */,
+				CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */,
+				CA53A2BA1CEFC7DB005937F5 /* AudioToolbox.framework */,
+				CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */,
+				CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */,
+				CA53A2B41CEFC78A005937F5 /* libz.tbd */,
+				CA1072CC1D052B220042478E /* Libs */,
+				36F8AC164103411E9AD0FA42 /* Resources */,
+				CA53A23C1CEFA30E005937F5 /* DolphiniOS */,
+				CA53A2561CEFA30E005937F5 /* DolphiniOSTests */,
+				CA53A2611CEFA30E005937F5 /* DolphiniOSUITests */,
+				E18AD58894AA4E54AE5424B8 /* Products */,
+				4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */,
+			);
+			sourceTree = "<group>";
+		};
+		CA1072CC1D052B220042478E /* Libs */ = {
 			isa = PBXGroup;
 			children = (
 				CAD333CC1D0310D100431946 /* libaudiocommon.a */,
@@ -441,24 +466,32 @@
 				CAD333DF1D0310D100431946 /* libvideoogl.a */,
 				CAD333E01D0310D100431946 /* libvideosoftware.a */,
 				CAD333E11D0310D100431946 /* libxxhash.a */,
-				CA124A271CFE8164004C11C5 /* MediaPlayer.framework */,
-				CA124A251CFE814E004C11C5 /* Twitter.framework */,
-				CA124A231CFE8139004C11C5 /* GameController.framework */,
-				CA53A33F1CF0B852005937F5 /* GLKit.framework */,
-				CA53A2C01CEFC8A4005937F5 /* OpenAL.framework */,
-				CA53A2BE1CEFC7F2005937F5 /* OpenGLES.framework */,
-				CA53A2BC1CEFC7E1005937F5 /* UIKit.framework */,
-				CA53A2BA1CEFC7DB005937F5 /* AudioToolbox.framework */,
-				CA53A2B81CEFC7D1005937F5 /* CoreAudio.framework */,
-				CA53A2B61CEFC7CC005937F5 /* libiconv.tbd */,
-				CA53A2B41CEFC78A005937F5 /* libz.tbd */,
-				36F8AC164103411E9AD0FA42 /* Resources */,
-				CA53A23C1CEFA30E005937F5 /* DolphiniOS */,
-				CA53A2561CEFA30E005937F5 /* DolphiniOSTests */,
-				CA53A2611CEFA30E005937F5 /* DolphiniOSUITests */,
-				E18AD58894AA4E54AE5424B8 /* Products */,
-				4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */,
 			);
+			name = Libs;
+			sourceTree = "<group>";
+		};
+		CA1072CD1D052C290042478E /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				CA1072CE1D052C290042478E /* DolphinBridge.h */,
+				CA1072CF1D052C290042478E /* DolphinBridge.mm */,
+				CA1072D01D052C290042478E /* DolphinGame.h */,
+				CA1072D11D052C290042478E /* DolphinGame.m */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		CA1072D31D052C290042478E /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				CA1072D41D052C290042478E /* EmulatorViewController.h */,
+				CA1072D51D052C290042478E /* EmulatorViewController.mm */,
+				CA1072D61D052C290042478E /* GameTableView.h */,
+				CA1072D71D052C290042478E /* GameTableView.m */,
+				CA1072D81D052C290042478E /* RomTableViewController.h */,
+				CA1072D91D052C290042478E /* RomTableViewController.m */,
+			);
+			path = UI;
 			sourceTree = "<group>";
 		};
 		CA1249AD1CFE7F74004C11C5 /* Utilities */ = {
@@ -568,15 +601,10 @@
 			isa = PBXGroup;
 			children = (
 				4C8E6C181CFF390300D87BC3 /* Controller */,
-				CA53A2B01CEFB44D005937F5 /* Bridge */,
+				CA1072CD1D052C290042478E /* Bridge */,
+				CA1072D31D052C290042478E /* UI */,
 				CA53A2401CEFA30E005937F5 /* AppDelegate.h */,
 				CA53A2411CEFA30E005937F5 /* AppDelegate.m */,
-				CA1249681CFE7D0E004C11C5 /* RomTableViewController.h */,
-				CA1249691CFE7D0E004C11C5 /* RomTableViewController.m */,
-				CA12496A1CFE7D0E004C11C5 /* GameTableView.h */,
-				CA12496B1CFE7D0E004C11C5 /* GameTableView.m */,
-				CA53A2431CEFA30E005937F5 /* EmulatorViewController.h */,
-				CA53A2441CEFA30E005937F5 /* EmulatorViewController.mm */,
 				CA53A2461CEFA30E005937F5 /* Main.storyboard */,
 				CA53A2491CEFA30E005937F5 /* Assets.xcassets */,
 				CA53A24B1CEFA30E005937F5 /* LaunchScreen.storyboard */,
@@ -618,17 +646,6 @@
 			);
 			name = DolphiniOSUITests;
 			path = Build/DolphiniOSUITests;
-			sourceTree = "<group>";
-		};
-		CA53A2B01CEFB44D005937F5 /* Bridge */ = {
-			isa = PBXGroup;
-			children = (
-				CA53A2771CEFA426005937F5 /* DolphinBridge.h */,
-				CA53A2781CEFA426005937F5 /* DolphinBridge.mm */,
-				CA1249601CFE7766004C11C5 /* DolphinGame.h */,
-				CA1249611CFE7766004C11C5 /* DolphinGame.m */,
-			);
-			name = Bridge;
 			sourceTree = "<group>";
 		};
 		CA751EC81D04826800771302 /* Retina */ = {
@@ -862,32 +879,33 @@
 				CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */,
 				CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */,
 				CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */,
-				CA53A2451CEFA30E005937F5 /* EmulatorViewController.mm in Sources */,
-				CA1249701CFE7D0E004C11C5 /* RomTableViewController.m in Sources */,
 				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
 				CA124A1D1CFE7FED004C11C5 /* SharkfoodMuteSwitchDetector.m in Sources */,
+				CA1072DD1D052C290042478E /* EmulatorViewController.mm in Sources */,
 				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
+				CA1072DE1D052C290042478E /* GameTableView.m in Sources */,
 				CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */,
 				CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */,
 				CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */,
 				CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */,
 				CA53A23F1CEFA30E005937F5 /* main.m in Sources */,
 				CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */,
+				CA1072E11D052C410042478E /* GCAdapteriOS.cpp in Sources */,
 				CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */,
-				CA1249621CFE7766004C11C5 /* DolphinGame.m in Sources */,
 				CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */,
+				CA1072DB1D052C290042478E /* DolphinGame.m in Sources */,
 				CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */,
+				CA1072DF1D052C290042478E /* RomTableViewController.m in Sources */,
 				CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */,
 				CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */,
-				CA53A2791CEFA426005937F5 /* DolphinBridge.mm in Sources */,
 				4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */,
 				CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */,
 				4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */,
 				CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */,
 				CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */,
 				CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */,
+				CA1072DA1D052C290042478E /* DolphinBridge.mm in Sources */,
 				4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */,
-				CA1249711CFE7D0E004C11C5 /* GameTableView.m in Sources */,
 				CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */,
 				CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */,
 				CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */,
@@ -1035,7 +1053,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Source/Core",
+					"$(SRCROOT)/Build/DolphiniOS",
+				);
 				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1051,6 +1072,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USE_HEADERMAP = YES;
 			};
 			name = Debug;
 		};
@@ -1096,7 +1118,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Source/Core",
+					"$(SRCROOT)/Build/DolphiniOS",
+				);
 				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1112,6 +1137,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USE_HEADERMAP = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -1158,7 +1184,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Source/Core",
+					"$(SRCROOT)/Build/DolphiniOS",
+				);
 				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1174,6 +1203,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USE_HEADERMAP = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = MinSizeRel;
@@ -1220,7 +1250,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/Source/Core";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/Source/Core",
+					"$(SRCROOT)/Build/DolphiniOS",
+				);
 				INFOPLIST_FILE = Build/DolphiniOS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -1236,6 +1269,7 @@
 				PROVISIONING_PROFILE = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USE_HEADERMAP = YES;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = RelWithDebInfo;

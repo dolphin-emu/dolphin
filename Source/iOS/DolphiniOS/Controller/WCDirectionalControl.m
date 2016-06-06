@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 CC. All rights reserved.
 //
 
-#import "WCDirectionalControl.h"
+#import "Controller/WCDirectionalControl.h"
 
 @interface WCDirectionalControl() {
     CALayer *buttonImage;

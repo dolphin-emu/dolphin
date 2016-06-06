@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 CC. All rights reserved.
 //
 
-#import "WCDirectionalControl.h"
+#import "Controller/WCDirectionalControl.h"
 
 // This class really doesn't do much. It's basically here to make the code easier to read, but also in case of future expansion.
 

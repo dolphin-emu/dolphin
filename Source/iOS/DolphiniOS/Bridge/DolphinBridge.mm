@@ -8,7 +8,7 @@
 
 // Big thank you to OatmealDome for this bridge class
 
-#import "DolphinBridge.h"
+#import "Bridge/DolphinBridge.h"
 
 #import <Foundation/Foundation.h>
 

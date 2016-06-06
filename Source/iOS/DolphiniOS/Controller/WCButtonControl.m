@@ -6,7 +6,7 @@
 //  Copyright (c) 2014 CC. All rights reserved.
 //
 
-#import "WCButtonControl.h"
+#import "Controller/WCButtonControl.h"
 
 @interface WCDirectionalControl ()
 

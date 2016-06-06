@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-#import "WCEasySettings.h"
+#import "Utilities/WCEasySettings/WCEasySettings.h"
 @class EmulatorViewController;
 @class DolphinGame;
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
@@ -26,4 +26,3 @@
 - (void)startGame:(DolphinGame *)game;
 
 @end
-
