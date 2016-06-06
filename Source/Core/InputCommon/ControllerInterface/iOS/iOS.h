@@ -22,8 +22,8 @@ namespace iOS
 			Button(int padID, ButtonManager::ButtonType index) : _padID(padID), _index(index) {}
 			ControlState GetState() const;
 		private:
-			const int m_padID;
-			const ButtonManager::ButtonType m_index;
+			const int _padID;
+			const ButtonManager::ButtonType _index;
 		};
 		class Axis : public Input
 		{
@@ -32,9 +32,9 @@ namespace iOS
 			Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f) : _padID(padID), _index(index), _neg(neg) {}
 			ControlState GetState() const;
 		private:
-			const int m_padID;
-			const ButtonManager::ButtonType m_index;
-			const float m_neg;
+			const int _padID;
+			const ButtonManager::ButtonType _index;
+			const float _neg;
 		};
 
 	public:
@@ -45,7 +45,7 @@ namespace iOS
 		int GetId() const;
 		std::string GetSource() const;
 	private:
-		const int m_padID;
+		const int _padID;
 	};
 
 } // namespace iOS

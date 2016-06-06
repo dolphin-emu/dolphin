@@ -35,105 +35,105 @@ enum PadButton
 		// Set up Buttons
 		//A
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 135,
-											frame.size.height - 215,
-											80,
-											80)
-							 Tag:PAD_BUTTON_A
-						   Image:@"gcpad_a.png"
-					PressedImage:@"gcpad_a_pressed.png"];
+		                                    frame.size.height - 215,
+		                                    50,
+		                                    50)
+		                     Tag:PAD_BUTTON_A
+		                   Image:@"gcpad_a.png"
+		            PressedImage:@"gcpad_a_pressed.png"];
 		// B
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 195,
-											frame.size.height - 200,
-											50,
-											50)
-							 Tag:PAD_BUTTON_B
-						   Image:@"gcpad_b.png"
-					PressedImage:@"gcpad_b_pressed.png"];
+		                                    frame.size.height - 200,
+		                                    50,
+		                                    50)
+		                     Tag:PAD_BUTTON_B
+		                   Image:@"gcpad_b.png"
+		            PressedImage:@"gcpad_b_pressed.png"];
 		// X
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 60,
-											frame.size.height - 205,
-											50,
-											50)
-							 Tag:PAD_BUTTON_X
-						   Image:@"gcpad_x.png"
-					PressedImage:@"gcpad_x_pressed.png"];
+		                                    frame.size.height - 205,
+		                                    50,
+		                                    50)
+		                     Tag:PAD_BUTTON_X
+		                   Image:@"gcpad_x.png"
+		            PressedImage:@"gcpad_x_pressed.png"];
 		// Y
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 130,
-											frame.size.height - 260,
-											50,
-											50)
-							 Tag:PAD_BUTTON_Y
-						   Image:@"gcpad_y.png"
-					PressedImage:@"gcpad_y_pressed.png"];
+		                                    frame.size.height - 260,
+		                                    50,
+		                                    50)
+		                     Tag:PAD_BUTTON_Y
+		                   Image:@"gcpad_y.png"
+		            PressedImage:@"gcpad_y_pressed.png"];
 		// Z
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 120,
-											frame.size.height - 125,
-											50,
-											50)
-							 Tag:PAD_TRIGGER_Z
-						   Image:@"gcpad_z.png"
-					PressedImage:@"gcpad_z_pressed.png"];
+		                                    frame.size.height - 125,
+		                                    50,
+		                                    50)
+		                     Tag:PAD_TRIGGER_Z
+		                   Image:@"gcpad_z.png"
+		            PressedImage:@"gcpad_z_pressed.png"];
 		// R
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 80,
-											frame.size.height/2 - 160,
-											60,
-											60)
-							 Tag:PAD_TRIGGER_R
-						   Image:@"gcpad_r.png"
-					PressedImage:@"gcpad_r_pressed.png"];
+		                                    frame.size.height/2 - 160,
+		                                    60,
+		                                    60)
+		                     Tag:PAD_TRIGGER_R
+		                   Image:@"gcpad_r.png"
+		            PressedImage:@"gcpad_r_pressed.png"];
 		// L
 		[self addButtonWithFrame:CGRectMake(20,
-											frame.size.height/2 - 160,
-											60,
-											60)
-							 Tag:PAD_TRIGGER_L
-						   Image:@"gcpad_l.png"
-					PressedImage:@"gcpad_l_pressed.png"];
+		                                    frame.size.height/2 - 160,
+		                                    60,
+		                                    60)
+		                     Tag:PAD_TRIGGER_L
+		                   Image:@"gcpad_l.png"
+		            PressedImage:@"gcpad_l_pressed.png"];
 		// Start
 		[self addButtonWithFrame:CGRectMake(frame.size.width/2 - 20,
-											frame.size.height  - 45,
-											40,
-											40)
-							 Tag:PAD_BUTTON_START
-						   Image:@"gcpad_start.png"
-					PressedImage:@"gcpad_start_pressed.png"];
+		                                    frame.size.height  - 45,
+		                                    40,
+		                                    40)
+		                     Tag:PAD_BUTTON_START
+		                   Image:@"gcpad_start.png"
+		            PressedImage:@"gcpad_start_pressed.png"];
 		// Dpad
 		NSArray* dpadImages = @[[UIImage imageNamed:@"gcpad_dpad.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_up.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_upright.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_right.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_downright.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_down.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_downleft.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_left.png"],
-								[UIImage imageNamed:@"gcpad_dpad_pressed_upleft.png"]];
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_up.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_upright.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_right.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_downright.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_down.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_downleft.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_left.png"],
+		                        [UIImage imageNamed:@"gcpad_dpad_pressed_upleft.png"]];
 
-		WCDirectionalControl* dpad =	[[WCDirectionalControl alloc]
-										 initWithFrame:CGRectMake(130, frame.size.height - 130, 110, 110)
-										 DPadImages:dpadImages];
+		WCDirectionalControl* dpad =     [[WCDirectionalControl alloc]
+		                                 initWithFrame:CGRectMake(130, frame.size.height - 130, 110, 110)
+		                                 DPadImages:dpadImages];
 		dpad.tag = 0;
 		[self addSubview:dpad];
 		[dpad addTarget:self action:@selector(dpadChanged:) forControlEvents:UIControlEventValueChanged];
 
 		// Joystick
 		WCDirectionalControl* leftJoy = [[WCDirectionalControl alloc]
-										  initWithFrame:CGRectMake(10,
-																   self.frame.size.height - 230,
-																   140,
-																   140)
-										  BoundsImage:@"gcpad_joystick_range.png"
-										  StickImage:@"gcpad_joystick.png"];
+		                                 initWithFrame:CGRectMake(10,
+		                                                          self.frame.size.height - 230,
+		                                                           140,
+		                                                           140)
+		                                 BoundsImage:@"gcpad_joystick_range.png"
+		                                 StickImage:@"gcpad_joystick.png"];
 		leftJoy.tag = 0;
 		[self addSubview:leftJoy];
 		[leftJoy addTarget:self action:@selector(joystickMoved:) forControlEvents:UIControlEventValueChanged];
 		// C Stick
-		WCDirectionalControl* cJoy =	[[WCDirectionalControl alloc]
-										 initWithFrame:CGRectMake(self.frame.size.width - 240,
-																  self.frame.size.height - 130,
-																  110,
-																  110)
-										 BoundsImage:@"gcpad_joystick_range.png"
-										 StickImage:@"gcpad_joystick.png"];
+		WCDirectionalControl* cJoy =     [[WCDirectionalControl alloc]
+		                                 initWithFrame:CGRectMake(self.frame.size.width - 240,
+		                                                          self.frame.size.height - 130,
+		                                                          110,
+		                                                          110)
+		                                 BoundsImage:@"gcpad_joystick_range.png"
+		                                 StickImage:@"gcpad_joystick.png"];
 		cJoy.tag = 1;
 		[self addSubview:cJoy];
 		[cJoy addTarget:self action:@selector(joystickMoved:) forControlEvents:UIControlEventValueChanged];

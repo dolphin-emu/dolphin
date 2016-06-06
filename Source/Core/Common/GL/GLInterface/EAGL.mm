@@ -78,11 +78,6 @@ void cInterfaceEAGL::UpdateHandle(void* window_handle)
 	m_glkView = (GLKView *)window_handle;
 }
 
-void cInterfaceEAGL::UpdateSurface()
-{
-	
-}
-
 bool cInterfaceEAGL::ClearCurrent()
 {
 	[EAGLContext setCurrentContext:nil];

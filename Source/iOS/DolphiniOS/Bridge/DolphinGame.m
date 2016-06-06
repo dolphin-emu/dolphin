@@ -26,7 +26,7 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 	for(NSString* file in files)
 	{
 		if ([file.pathExtension isEqualToString:@"iso"] ||
-			[file.pathExtension isEqualToString:@"dol"])
+		    [file.pathExtension isEqualToString:@"dol"])
 		{
 			DolphinGame* game = [DolphinGame gameWithPath:[gamesPath stringByAppendingPathComponent:file] saveStateDirectoryPath:saveStatePath];
 			if (game)
