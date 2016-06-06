@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <vector>
 #include <mbedtls/md5.h>
+#include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -64,8 +65,7 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
-#include "DolphinWX/GameListCtrl.h"
-//#include "DolphinWX/Frame.h"
+#include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/PatchAddEdit.h"
@@ -83,8 +83,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 	EVT_BUTTON(ID_MD5SUMCOMPUTE, CISOProperties::OnComputeMD5Sum)
 	EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
-	EVT_CHOICE(ID_EMUSTATE, CISOProperties::SetRefresh)
-	EVT_CHOICE(ID_EMU_ISSUES, CISOProperties::SetRefresh)
+	EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 	EVT_LISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::ListSelectionChanged)
 	EVT_CHECKLISTBOX(ID_HIDEOBJECTS_LIST, CISOProperties::CheckboxSelectionChanged)
 	EVT_BUTTON(ID_EDITHIDEOBJECT, CISOProperties::HideObjectButtonClicked)
@@ -107,6 +106,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 	EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
+	EVT_CHECKLISTBOX(ID_CHEATS_LIST, CISOProperties::OnActionReplayCodeChecked)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -124,8 +124,6 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 	GameIniLocal = SConfig::LoadLocalGameIni(game_id, m_open_iso->GetRevision());
 
 	// Setup GUI
-	bRefreshList = false;
-
 	CreateGUIControls();
 
 	LoadGameConfig();
@@ -241,6 +239,8 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
 		m_Treectrl->Expand(RootId);
 	}
+
+	wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CISOProperties::OnLocalIniModified, this);
 }
 
 CISOProperties::~CISOProperties()
@@ -820,8 +820,6 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED (event))
 {
 	if (!SaveGameConfig())
 		WxUtils::ShowErrorDialog(wxString::Format(_("Could not save %s."), GameIniFileLocal.c_str()));
-	if (bRefreshList)
-		((CGameListCtrl*)GetParent())->Update();
 	Destroy();
 }
 
@@ -1164,12 +1162,9 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 	}
 }
 
-void CISOProperties::SetRefresh(wxCommandEvent& event)
+void CISOProperties::OnEmustateChanged(wxCommandEvent& event)
 {
-	bRefreshList = true;
-
-	if (event.GetId() == ID_EMUSTATE)
-		EmuIssues->Enable(event.GetSelection() != 0);
+	EmuIssues->Enable(event.GetSelection() != 0);
 }
 
 void CISOProperties::SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox)
@@ -1469,6 +1464,9 @@ bool CISOProperties::SaveGameConfig()
 	if (success && File::GetSize(GameIniFileLocal) == 0)
 		File::Delete(GameIniFileLocal);
 
+	if (success)
+		GenerateLocalIniModified();
+
 	return success;
 }
 
@@ -1510,10 +1508,25 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 		WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
 		return;
 	}
-
-	if (wait_until_closed)
-		bRefreshList = true; // Just in case
 #endif
+}
+
+void CISOProperties::GenerateLocalIniModified()
+{
+	wxCommandEvent event_update(DOLPHIN_EVT_LOCAL_INI_CHANGED);
+	event_update.SetString(StrToWxStr(game_id));
+	event_update.SetInt(OpenGameListItem.GetRevision());
+	wxTheApp->ProcessEvent(event_update);
+}
+
+void CISOProperties::OnLocalIniModified(wxCommandEvent& ev)
+{
+	ev.Skip();
+	if (WxStrToStr(ev.GetString()) != game_id)
+		return;
+
+	GameIniLocal.Load(GameIniFileLocal);
+	LoadGameConfig();
 }
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
@@ -1526,8 +1539,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 		blankFile.close();
 	}
 	LaunchExternalEditor(GameIniFileLocal, true);
-	GameIniLocal.Load(GameIniFileLocal);
-	LoadGameConfig();
+	GenerateLocalIniModified();
 }
 
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED (event))
@@ -1619,7 +1631,7 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		break;
 	case ID_CHEATS_LIST:
 		if (Cheats->GetSelection() == wxNOT_FOUND ||
-		    DefaultCheats.find(Cheats->GetString(Cheats->GetSelection()).ToStdString()) != DefaultCheats.end())
+		    DefaultCheats.find(Cheats->RemoveMnemonics(Cheats->GetString(Cheats->GetSelection())).ToStdString()) != DefaultCheats.end())
 		{
 			EditCheat->Disable();
 			RemoveCheat->Disable();
@@ -1631,6 +1643,11 @@ void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
 		}
 		break;
 	}
+}
+
+void CISOProperties::OnActionReplayCodeChecked(wxCommandEvent& event)
+{
+	arCodes[event.GetSelection()].active = Cheats->IsChecked(event.GetSelection());
 }
 
 void CISOProperties::CheckboxSelectionChanged(wxCommandEvent& event)
@@ -1809,46 +1826,24 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
 void CISOProperties::ActionReplayList_Load()
 {
-	arCodes.clear();
-	Cheats->Clear();
-	ActionReplay::LoadCodes(arCodes, GameIniDefault, GameIniLocal);
+	arCodes = ActionReplay::LoadCodes(GameIniDefault, GameIniLocal);
+	DefaultCheats.clear();
 
-	u32 index = 0;
+	Cheats->Freeze();
+	Cheats->Clear();
 	for (const ActionReplay::ARCode& arCode : arCodes)
 	{
-		Cheats->Append(StrToWxStr(arCode.name));
-		Cheats->Check(index, arCode.active);
+		int idx = Cheats->Append(Cheats->EscapeMnemonics(StrToWxStr(arCode.name)));
+		Cheats->Check(idx, arCode.active);
 		if (!arCode.user_defined)
 			DefaultCheats.insert(arCode.name);
-		++index;
 	}
+	Cheats->Thaw();
 }
 
 void CISOProperties::ActionReplayList_Save()
 {
-	std::vector<std::string> lines;
-	std::vector<std::string> enabledLines;
-	u32 index = 0;
-	u32 cheats_chkbox_count = Cheats->GetCount();
-	for (const ActionReplay::ARCode& code : arCodes)
-	{
-		// Check the index against the count because of the hacky way codes are added from the "Cheat Search" dialog
-		if ((index < cheats_chkbox_count) && Cheats->IsChecked(index))
-			enabledLines.push_back("$" + code.name);
-
-		// Do not save default cheats.
-		if (DefaultCheats.find(code.name) == DefaultCheats.end())
-		{
-			lines.push_back("$" + code.name);
-			for (const ActionReplay::AREntry& op : code.ops)
-			{
-				lines.push_back(WxStrToStr(wxString::Format("%08X %08X", op.cmd_addr, op.value)));
-			}
-		}
-		++index;
-	}
-	GameIniLocal.SetLines("ActionReplay_Enabled", enabledLines);
-	GameIniLocal.SetLines("ActionReplay", lines);
+	ActionReplay::SaveCodes(&GameIniLocal, arCodes);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
@@ -1888,11 +1883,6 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 
 	EditCheat->Disable();
 	RemoveCheat->Disable();
-}
-
-void CISOProperties::AddARCode(const ActionReplay::ARCode& code)
-{
-	arCodes.emplace_back(code);
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)

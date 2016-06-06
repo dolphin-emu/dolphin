@@ -19,7 +19,13 @@
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
 // -------------------------------------------------------------------------------------------------------------
 
+#include <algorithm>
+#include <atomic>
+#include <iterator>
+#include <mutex>
 #include <string>
+#include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -74,14 +80,14 @@ enum
 	SUB_MASTER_CODE   = 0x03,
 };
 
+// General lock. Protects codes list and internal log.
+static std::mutex s_lock;
+static std::vector<ARCode> s_active_codes;
+static std::vector<std::string> s_internal_log;
+static std::atomic<bool> s_use_internal_log{ false };
 // pointer to the code currently being run, (used by log messages that include the code name)
-static ARCode const* current_code = nullptr;
-
-static bool b_RanOnce = false;
-static std::vector<ARCode> arCodes;
-static std::vector<ARCode> activeCodes;
-static bool logSelf = false;
-static std::vector<std::string> arLog;
+static const ARCode* s_current_code = nullptr;
+static bool s_disable_logging = false;
 
 struct ARAddr
 {
@@ -104,33 +110,64 @@ struct ARAddr
 
 // ----------------------
 // AR Remote Functions
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad)
+void ApplyCodes(const std::vector<ARCode>& codes)
 {
-	// Parses the Action Replay section of a game ini file.
-	if (!SConfig::GetInstance().bEnableCheats &&
-		!forceLoad)
+	if (!SConfig::GetInstance().bEnableCheats)
 		return;
 
-	arCodes.clear();
-
-	std::vector<std::string> enabledLines;
-	std::set<std::string> enabledNames;
-	localIni.GetLines("ActionReplay_Enabled", &enabledLines);
-	for (const std::string& line : enabledLines)
+	std::lock_guard<std::mutex> guard(s_lock);
+	s_disable_logging = false;
+	s_active_codes.clear();
+	std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes), [](const ARCode& code)
 	{
-		if (line.size() != 0 && line[0] == '$')
+		return code.active;
+	});
+	s_active_codes.shrink_to_fit();
+}
+
+void AddCode(ARCode code)
+{
+	if (!SConfig::GetInstance().bEnableCheats)
+		return;
+
+	if (code.active)
+	{
+		std::lock_guard<std::mutex> guard(s_lock);
+		s_disable_logging = false;
+		s_active_codes.emplace_back(std::move(code));
+	}
+}
+
+void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini)
+{
+	ApplyCodes(LoadCodes(global_ini, local_ini));
+}
+
+// Parses the Action Replay section of a game ini file.
+std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini)
+{
+	std::vector<ARCode> codes;
+
+	std::unordered_set<std::string> enabled_names;
+	{
+		std::vector<std::string> enabled_lines;
+		local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
+		for (const std::string& line : enabled_lines)
 		{
-			std::string name = line.substr(1, line.size() - 1);
-			enabledNames.insert(name);
+			if (line.size() != 0 && line[0] == '$')
+			{
+				std::string name = line.substr(1, line.size() - 1);
+				enabled_names.insert(name);
+			}
 		}
 	}
 
-	const IniFile* inis[2] = {&globalIni, &localIni};
+	const IniFile* inis[2] = {&global_ini, &local_ini};
 	for (const IniFile* ini : inis)
 	{
 		std::vector<std::string> lines;
-		std::vector<std::string> encryptedLines;
-		ARCode currentCode;
+		std::vector<std::string> encrypted_lines;
+		ARCode current_code;
 
 		ini->GetLines("ActionReplay", &lines);
 
@@ -146,22 +183,22 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 			// Check if the line is a name of the code
 			if (line[0] == '$')
 			{
-				if (currentCode.ops.size())
+				if (current_code.ops.size())
 				{
-					arCodes.push_back(currentCode);
-					currentCode.ops.clear();
+					codes.push_back(current_code);
+					current_code.ops.clear();
 				}
-				if (encryptedLines.size())
+				if (encrypted_lines.size())
 				{
-					DecryptARCode(encryptedLines, currentCode.ops);
-					arCodes.push_back(currentCode);
-					currentCode.ops.clear();
-					encryptedLines.clear();
+					DecryptARCode(encrypted_lines, current_code.ops);
+					codes.push_back(current_code);
+					current_code.ops.clear();
+					encrypted_lines.clear();
 				}
 
-				currentCode.name = line.substr(1, line.size() - 1);
-				currentCode.active = enabledNames.find(currentCode.name) != enabledNames.end();
-				currentCode.user_defined = (ini == &localIni);
+				current_code.name = line.substr(1, line.size() - 1);
+				current_code.active = enabled_names.find(current_code.name) != enabled_names.end();
+				current_code.user_defined = (ini == &local_ini);
 			}
 			else
 			{
@@ -176,7 +213,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 
 					if (success_addr && success_val)
 					{
-						currentCode.ops.push_back(op);
+						current_code.ops.push_back(op);
 					}
 					else
 					{
@@ -197,110 +234,91 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, bool forceLoad
 						// Encrypted AR code
 						// Decryption is done in "blocks", so we must push blocks into a vector,
 						// then send to decrypt when a new block is encountered, or if it's the last block.
-						encryptedLines.push_back(pieces[0]+pieces[1]+pieces[2]);
+						encrypted_lines.emplace_back(pieces[0] + pieces[1] + pieces[2]);
 					}
 				}
 			}
 		}
 
 		// Handle the last code correctly.
-		if (currentCode.ops.size())
+		if (current_code.ops.size())
 		{
-			arCodes.push_back(currentCode);
+			codes.push_back(current_code);
 		}
-		if (encryptedLines.size())
+		if (encrypted_lines.size())
 		{
-			DecryptARCode(encryptedLines, currentCode.ops);
-			arCodes.push_back(currentCode);
+			DecryptARCode(encrypted_lines, current_code.ops);
+			codes.push_back(current_code);
 		}
 	}
 
-	UpdateActiveList();
+	return codes;
 }
 
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalIni, IniFile& localIni)
+void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
 {
-	LoadCodes(globalIni, localIni, true);
-	_arCodes = arCodes;
-}
-
-
-static void LogInfo(const char *format, ...)
-{
-	if (!b_RanOnce)
+	std::vector<std::string> lines;
+	std::vector<std::string> enabled_lines;
+	for (const ActionReplay::ARCode& code : codes)
 	{
-		if (LogManager::GetMaxLevel() >= LogTypes::LINFO || logSelf)
-		{
-			va_list args;
-			va_start(args, format);
-			std::string text = StringFromFormatV(format, args);
-			va_end(args);
-			INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
+		if (code.active)
+			enabled_lines.emplace_back("$" + code.name);
 
-			if (logSelf)
+		if (code.user_defined)
+		{
+			lines.emplace_back("$" + code.name);
+			for (const ActionReplay::AREntry& op : code.ops)
 			{
-				text += '\n';
-				arLog.push_back(text);
+				lines.emplace_back(StringFromFormat("%08X %08X", op.cmd_addr, op.value));
 			}
 		}
 	}
+	local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
+	local_ini->SetLines("ActionReplay", lines);
 }
 
-size_t GetCodeListSize()
-{
-	return arCodes.size();
-}
 
-ARCode GetARCode(size_t index)
+static void LogInfo(const char* format, ...)
 {
-	if (index > arCodes.size())
-	{
-		PanicAlertT("GetARCode: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
-		return ARCode();
-	}
-	return arCodes[index];
-}
-
-void SetARCode_IsActive(bool active, size_t index)
-{
-	if (index > arCodes.size())
-	{
-		PanicAlertT("SetARCode_IsActive: Index is greater than "
-			"ar code list size %lu", (unsigned long)index);
+	if (s_disable_logging)
 		return;
-	}
-	arCodes[index].active = active;
-	UpdateActiveList();
-}
+	bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
+	if (LogManager::GetMaxLevel() < LogTypes::LINFO && !use_internal_log)
+		return;
 
-void UpdateActiveList()
-{
-	bool old_value = SConfig::GetInstance().bEnableCheats;
-	SConfig::GetInstance().bEnableCheats = false;
-	b_RanOnce = false;
-	activeCodes.clear();
-	for (auto& arCode : arCodes)
+	va_list args;
+	va_start(args, format);
+	std::string text = StringFromFormatV(format, args);
+	va_end(args);
+	INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
+
+	if (use_internal_log)
 	{
-		if (arCode.active)
-			activeCodes.push_back(arCode);
+		text += '\n';
+		s_internal_log.emplace_back(std::move(text));
 	}
-	SConfig::GetInstance().bEnableCheats = old_value;
 }
 
 void EnableSelfLogging(bool enable)
 {
-	logSelf = enable;
+	s_use_internal_log.store(enable, std::memory_order_relaxed);
 }
 
-const std::vector<std::string> &GetSelfLog()
+std::vector<std::string> GetSelfLog()
 {
-	return arLog;
+	std::lock_guard<std::mutex> guard(s_lock);
+	return s_internal_log;
+}
+
+void ClearSelfLog()
+{
+	std::lock_guard<std::mutex> guard(s_lock);
+	s_internal_log.clear();
 }
 
 bool IsSelfLogging()
 {
-	return logSelf;
+	return s_use_internal_log.load(std::memory_order_relaxed);
 }
 
 // ----------------------
@@ -357,8 +375,8 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 	default:
 		LogInfo("Bad Size");
 		PanicAlertT("Action Replay Error: Invalid size "
-			"(%08x : address = %08x) in Ram Write And Fill (%s)",
-			addr.size, addr.gcaddr, current_code->name.c_str());
+		            "(%08x : address = %08x) in Ram Write And Fill (%s)",
+		            addr.size, addr.gcaddr, s_current_code->name.c_str());
 		return false;
 	}
 
@@ -396,7 +414,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 		LogInfo("Write 16-bit to pointer");
 		LogInfo("--------");
 		const u16 theshort = data & 0xFFFF;
-		const u32 offset = (data >> 16) << 1;
+		const u32 offset   = (data >> 16) << 1;
 		LogInfo("Pointer: %08x", ptr);
 		LogInfo("Byte: %08x", theshort);
 		LogInfo("Offset: %08x", offset);
@@ -420,8 +438,8 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
 	default:
 		LogInfo("Bad Size");
 		PanicAlertT("Action Replay Error: Invalid size "
-			"(%08x : address = %08x) in Write To Pointer (%s)",
-			addr.size, addr.gcaddr, current_code->name.c_str());
+		            "(%08x : address = %08x) in Write To Pointer (%s)",
+		            addr.size, addr.gcaddr, s_current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -470,8 +488,10 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 		LogInfo("--------");
 
 		const u32 read = PowerPC::HostRead_U32(new_addr);
-		const float fread = *((float*)&read) + (float)data; // data contains an integer value
-		const u32 newval = *((u32*)&fread);
+		const float read_float = reinterpret_cast<const float&>(read);
+		// data contains an (unsigned?) integer value
+		const float fread = read_float + static_cast<float>(data);
+		const u32 newval  = reinterpret_cast<const u32&>(fread);
 		PowerPC::HostWrite_U32(newval, new_addr);
 		JitInterface::InvalidateICache(new_addr, 4, false);
 		LogInfo("Old Value %08x", read);
@@ -484,8 +504,8 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
 	default:
 		LogInfo("Bad Size");
 		PanicAlertT("Action Replay Error: Invalid size "
-			"(%08x : address = %08x) in Add Code (%s)",
-			addr.size, addr.gcaddr, current_code->name.c_str());
+		            "(%08x : address = %08x) in Add Code (%s)",
+		            addr.size, addr.gcaddr, s_current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -499,18 +519,20 @@ static bool Subtype_MasterCodeAndWriteToCCXXXXXX(const ARAddr& addr, const u32 d
 	// u8  mcode_count = (data & 0xFF00) >> 8;
 	// u8  mcode_number = data & 0xFF;
 	PanicAlertT("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
-		"Master codes are not needed. Do not use master codes.", current_code->name.c_str());
+	            "Master codes are not needed. Do not use master codes.",
+	            s_current_code->name.c_str());
 	return false;
 }
 
-static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data) // This needs more testing
+// This needs more testing
+static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const u32 data)
 {
-	const u32 new_addr = ((ARAddr*)&val_last)->GCAddress();
-	const u8 size = ((ARAddr*)&val_last)->size;
+	const u32 new_addr = ARAddr(val_last).GCAddress();
+	const u8  size     = ARAddr(val_last).size;
 
-	const s16 addr_incr = (s16)(data & 0xFFFF);
-	const s8  val_incr = (s8)(data >> 24);
-	const u8  write_num = (data & 0xFF0000) >> 16;
+	const s16 addr_incr = static_cast<s16>(data & 0xFFFF);
+	const s8  val_incr  = static_cast<s8>(data >> 24);
+	const u8  write_num = static_cast<u8>((data & 0xFF0000) >> 16);
 
 	u32 val = addr;
 	u32 curr_addr = new_addr;
@@ -574,7 +596,8 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlertT("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)", size, new_addr, current_code->name.c_str());
+		PanicAlertT("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)",
+		            size, new_addr, s_current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -623,7 +646,8 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 	else
 	{
 		LogInfo("Bad Value");
-		PanicAlertT("Action Replay Error: Invalid value (%08x) in Memory Copy (%s)", (data & ~0x7FFF), current_code->name.c_str());
+		PanicAlertT("Action Replay Error: Invalid value (%08x) in Memory Copy (%s)",
+		            (data & ~0x7FFF), s_current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -659,9 +683,9 @@ static bool NormalCode(const ARAddr& addr, const u32 data)
 
 	default:
 		LogInfo("Bad Subtype");
-		PanicAlertT("Action Replay: Normal Code 0: Invalid Subtype %08x (%s)", addr.subtype, current_code->name.c_str());
+		PanicAlertT("Action Replay: Normal Code 0: Invalid Subtype %08x (%s)", addr.subtype,
+		            s_current_code->name.c_str());
 		return false;
-		break;
 	}
 
 	return true;
@@ -673,43 +697,36 @@ static bool CompareValues(const u32 val1, const u32 val2, const int type)
 	{
 	case CONDTIONAL_EQUAL:
 		LogInfo("Type 1: If Equal");
-		return (val1 == val2);
-		break;
+		return val1 == val2;
 
 	case CONDTIONAL_NOT_EQUAL:
 		LogInfo("Type 2: If Not Equal");
-		return (val1 != val2);
-		break;
+		return val1 != val2;
 
 	case CONDTIONAL_LESS_THAN_SIGNED:
 		LogInfo("Type 3: If Less Than (Signed)");
-		return ((int)val1 < (int)val2);
-		break;
+		return static_cast<s32>(val1) < static_cast<s32>(val2);
 
 	case CONDTIONAL_GREATER_THAN_SIGNED:
 		LogInfo("Type 4: If Greater Than (Signed)");
-		return ((int)val1 >(int)val2);
-		break;
+		return static_cast<s32>(val1) > static_cast<s32>(val2);
 
 	case CONDTIONAL_LESS_THAN_UNSIGNED:
 		LogInfo("Type 5: If Less Than (Unsigned)");
-		return (val1 < val2);
-		break;
+		return val1 < val2;
 
 	case CONDTIONAL_GREATER_THAN_UNSIGNED:
 		LogInfo("Type 6: If Greater Than (Unsigned)");
-		return (val1 > val2);
-		break;
+		return val1 > val2;
 
 	case CONDTIONAL_AND:
 		LogInfo("Type 7: If And");
 		return !!(val1 & val2); // bitwise AND
-		break;
 
 	default: LogInfo("Unknown Compare type");
-		PanicAlertT("Action Replay: Invalid Normal Code Type %08x (%s)", type, current_code->name.c_str());
+		PanicAlertT("Action Replay: Invalid Normal Code Type %08x (%s)",
+		            type, s_current_code->name.c_str());
 		return false;
-		break;
 	}
 }
 
@@ -725,11 +742,11 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 	switch (addr.size)
 	{
 	case DATATYPE_8BIT:
-		result = CompareValues((u32)PowerPC::HostRead_U8(new_addr), (data & 0xFF), addr.type);
+		result = CompareValues(PowerPC::HostRead_U8(new_addr), (data & 0xFF), addr.type);
 		break;
 
 	case DATATYPE_16BIT:
-		result = CompareValues((u32)PowerPC::HostRead_U16(new_addr), (data & 0xFFFF), addr.type);
+		result = CompareValues(PowerPC::HostRead_U16(new_addr), (data & 0xFFFF), addr.type);
 		break;
 
 	case DATATYPE_32BIT_FLOAT:
@@ -739,9 +756,9 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlertT("Action Replay: Conditional Code: Invalid Size %08x (%s)", addr.size, current_code->name.c_str());
+		PanicAlertT("Action Replay: Conditional Code: Invalid Size %08x (%s)", addr.size,
+		            s_current_code->name.c_str());
 		return false;
-		break;
 	}
 
 	// if the comparison failed we need to skip some lines
@@ -758,13 +775,169 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 		// Skip lines until a "00000000 40000000" line is reached
 		case CONDTIONAL_ALL_LINES:
 		case CONDTIONAL_ALL_LINES_UNTIL:
-			*pSkipCount = -(int) addr.subtype;
+			*pSkipCount = -static_cast<int>(addr.subtype);
 			break;
 
 		default:
 			LogInfo("Bad Subtype");
-			PanicAlertT("Action Replay: Normal Code %i: Invalid subtype %08x (%s)", 1, addr.subtype, current_code->name.c_str());
+			PanicAlertT("Action Replay: Normal Code %i: Invalid subtype %08x (%s)",
+			            1, addr.subtype, s_current_code->name.c_str());
 			return false;
+		}
+	}
+
+	return true;
+}
+
+// NOTE: Lock needed to give mutual exclusion to s_current_code and LogInfo
+static bool RunCodeLocked(const ARCode& arcode)
+{
+	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
+
+	bool do_fill_and_slide = false;
+	bool do_memory_copy = false;
+
+	// used for conditional codes
+	int skip_count = 0;
+
+	u32 val_last = 0;
+
+	s_current_code = &arcode;
+
+	LogInfo("Code Name: %s", arcode.name.c_str());
+	LogInfo("Number of codes: %zu", arcode.ops.size());
+
+	for (const AREntry& entry : arcode.ops)
+	{
+		const ARAddr addr(entry.cmd_addr);
+		const u32 data = entry.value;
+
+		// after a conditional code, skip lines if needed
+		if (skip_count)
+		{
+			if (skip_count > 0) // skip x lines
+			{
+				LogInfo("Line skipped");
+				--skip_count;
+			}
+			else if (-CONDTIONAL_ALL_LINES == skip_count)
+			{
+				// skip all lines
+				LogInfo("All Lines skipped");
+				return true; // don't need to iterate through the rest of the ops
+			}
+			else if (-CONDTIONAL_ALL_LINES_UNTIL == skip_count)
+			{
+				// skip until a "00000000 40000000" line is reached
+				LogInfo("Line skipped");
+				if (addr == 0 && 0x40000000 == data) // check for an endif line
+					skip_count = 0;
+			}
+
+			continue;
+		}
+
+		LogInfo("--- Running Code: %08x %08x ---", addr.address, data);
+		//LogInfo("Command: %08x", cmd);
+
+		// Do Fill & Slide
+		if (do_fill_and_slide)
+		{
+			do_fill_and_slide = false;
+			LogInfo("Doing Fill And Slide");
+			if (false == ZeroCode_FillAndSlide(val_last, addr, data))
+				return false;
+			continue;
+		}
+
+		// Memory Copy
+		if (do_memory_copy)
+		{
+			do_memory_copy = false;
+			LogInfo("Doing Memory Copy");
+			if (false == ZeroCode_MemoryCopy(val_last, addr, data))
+				return false;
+			continue;
+		}
+
+		// ActionReplay program self modification codes
+		if (addr >= 0x00002000 && addr < 0x00003000)
+		{
+			LogInfo("This action replay simulator does not support codes that modify Action Replay itself.");
+			PanicAlertT("This action replay simulator does not support codes that modify Action Replay itself.");
+			return false;
+		}
+
+		// skip these weird init lines
+		// TODO: Where are the "weird init lines"?
+		//if (iter == code.ops.begin() && cmd == 1)
+		//continue;
+
+		// Zero codes
+		if (0x0 == addr) // Check if the code is a zero code
+		{
+			const u8 zcode = data >> 29;
+
+			LogInfo("Doing Zero Code %08x", zcode);
+
+			switch (zcode)
+			{
+			case ZCODE_END: // END OF CODES
+				LogInfo("ZCode: End Of Codes");
+				return true;
+
+				// TODO: the "00000000 40000000"(end if) codes fall into this case, I don't think that is correct
+			case ZCODE_NORM: // Normal execution of codes
+				// Todo: Set register 1BB4 to 0
+				LogInfo("ZCode: Normal execution of codes, set register 1BB4 to 0 (zcode not supported)");
+				break;
+
+			case ZCODE_ROW: // Executes all codes in the same row
+				// Todo: Set register 1BB4 to 1
+				LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not supported)");
+				PanicAlertT("Zero 3 code not supported");
+				return false;
+
+			case ZCODE_04: // Fill & Slide or Memory Copy
+				if (0x3 == ((data >> 25) & 0x03))
+				{
+					LogInfo("ZCode: Memory Copy");
+					do_memory_copy = true;
+					val_last = data;
+				}
+				else
+				{
+					LogInfo("ZCode: Fill And Slide");
+					do_fill_and_slide = true;
+					val_last = data;
+				}
+				break;
+
+			default:
+				LogInfo("ZCode: Unknown");
+				PanicAlertT("Zero code unknown to Dolphin: %08x", zcode);
+				return false;
+			}
+
+			// done handling zero codes
+			continue;
+		}
+
+		// Normal codes
+		LogInfo("Doing Normal Code %08x", addr.type);
+		LogInfo("Subtype: %08x", addr.subtype);
+
+		switch (addr.type)
+		{
+		case 0x00:
+			if (false == NormalCode(addr, data))
+				return false;
+			break;
+
+		default:
+			LogInfo("This Normal Code is a Conditional Code");
+			if (false == ConditionalCode(addr, data, &skip_count))
+				return false;
 			break;
 		}
 	}
@@ -809,183 +982,27 @@ void RunAllActive()
 		{
 			ch_currentCode.ops.push_back(op);
 		}
-		RunCode(ch_currentCode);
-		b_RanOnce = true;
+		{
+			std::lock_guard<std::mutex> guard(s_lock);
+			RunCodeLocked(ch_currentCode);
+		}
+		//b_RanOnce = true;
 	}
 
-	if (SConfig::GetInstance().bEnableCheats)
+	if (!SConfig::GetInstance().bEnableCheats)
+		return;
+
+	// If the mutex is idle then acquiring it should be cheap, fast mutexes
+	// are only atomic ops unless contested. It should be rare for this to
+	// be contested.
+	std::lock_guard<std::mutex> guard(s_lock);
+	s_active_codes.erase(std::remove_if(s_active_codes.begin(), s_active_codes.end(), [](const ARCode& code)
 	{
-		for (auto& activeCode : activeCodes)
-		{
-			if (activeCode.active)
-			{
-				activeCode.active = RunCode(activeCode);
-				LogInfo("\n");
-			}
-		}
-
-		b_RanOnce = true;
-	}
-}
-
-bool RunCode(const ARCode &arcode)
-{
-	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
-
-	bool doFillNSlide = false;
-	bool doMemoryCopy = false;
-
-	// used for conditional codes
-	int skip_count = 0;
-
-	u32 val_last = 0;
-
-	current_code = &arcode;
-
-	LogInfo("Code Name: %s", arcode.name.c_str());
-	LogInfo("Number of codes: %zu", arcode.ops.size());
-
-	for (const AREntry& entry : arcode.ops)
-	{
-		const ARAddr& addr = *(ARAddr*)&entry.cmd_addr;
-		const u32 data = entry.value;
-
-		// after a conditional code, skip lines if needed
-		if (skip_count)
-		{
-			if (skip_count > 0) // skip x lines
-			{
-				LogInfo("Line skipped");
-				--skip_count;
-			}
-			else if (-CONDTIONAL_ALL_LINES == skip_count)
-			{
-				// skip all lines
-				LogInfo("All Lines skipped");
-				return true; // don't need to iterate through the rest of the ops
-			}
-			else if (-CONDTIONAL_ALL_LINES_UNTIL == skip_count)
-			{
-				// skip until a "00000000 40000000" line is reached
-				LogInfo("Line skipped");
-				if (addr == 0 && 0x40000000 == data) // check for an endif line
-					skip_count = 0;
-			}
-
-			continue;
-		}
-
-		LogInfo("--- Running Code: %08x %08x ---", addr.address, data);
-		//LogInfo("Command: %08x", cmd);
-
-		// Do Fill & Slide
-		if (doFillNSlide)
-		{
-			doFillNSlide = false;
-			LogInfo("Doing Fill And Slide");
-			if (false == ZeroCode_FillAndSlide(val_last, addr, data))
-				return false;
-			continue;
-		}
-
-		// Memory Copy
-		if (doMemoryCopy)
-		{
-			doMemoryCopy = false;
-			LogInfo("Doing Memory Copy");
-			if (false == ZeroCode_MemoryCopy(val_last, addr, data))
-				return false;
-			continue;
-		}
-
-		// ActionReplay program self modification codes
-		if (addr >= 0x00002000 && addr < 0x00003000)
-		{
-			LogInfo("This action replay simulator does not support codes that modify Action Replay itself.");
-			PanicAlertT("This action replay simulator does not support codes that modify Action Replay itself.");
-			return false;
-		}
-
-		// skip these weird init lines
-		// TODO: Where are the "weird init lines"?
-		//if (iter == code.ops.begin() && cmd == 1)
-		//continue;
-
-		// Zero codes
-		if (0x0 == addr) // Check if the code is a zero code
-		{
-			const u8 zcode = (data >> 29);
-
-			LogInfo("Doing Zero Code %08x", zcode);
-
-			switch (zcode)
-			{
-			case ZCODE_END: // END OF CODES
-				LogInfo("ZCode: End Of Codes");
-				return true;
-				break;
-
-				// TODO: the "00000000 40000000"(end if) codes fall into this case, I don't think that is correct
-			case ZCODE_NORM: // Normal execution of codes
-				// Todo: Set register 1BB4 to 0
-				LogInfo("ZCode: Normal execution of codes, set register 1BB4 to 0 (zcode not supported)");
-				break;
-
-			case ZCODE_ROW: // Executes all codes in the same row
-				// Todo: Set register 1BB4 to 1
-				LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not supported)");
-				PanicAlertT("Zero 3 code not supported");
-				return false;
-				break;
-
-			case ZCODE_04: // Fill & Slide or Memory Copy
-				if (0x3 == ((data >> 25) & 0x03))
-				{
-					LogInfo("ZCode: Memory Copy");
-					doMemoryCopy = true;
-					val_last = data;
-				}
-				else
-				{
-					LogInfo("ZCode: Fill And Slide");
-					doFillNSlide = true;
-					val_last = data;
-				}
-				break;
-
-			default:
-				LogInfo("ZCode: Unknown");
-				PanicAlertT("Zero code unknown to Dolphin: %08x", zcode);
-				return false;
-				break;
-			}
-
-			// done handling zero codes
-			continue;
-		}
-
-		// Normal codes
-		LogInfo("Doing Normal Code %08x", addr.type);
-		LogInfo("Subtype: %08x", addr.subtype);
-
-		switch (addr.type)
-		{
-		case 0x00:
-			if (false == NormalCode(addr, data))
-				return false;
-			break;
-
-		default:
-			LogInfo("This Normal Code is a Conditional Code");
-			if (false == ConditionalCode(addr, data, &skip_count))
-				return false;
-			break;
-		}
-	}
-
-	b_RanOnce = true;
-
-	return true;
+		bool success = RunCodeLocked(code);
+		LogInfo("\n");
+		return !success;
+	}), s_active_codes.end());
+	s_disable_logging = true;
 }
 
 } // namespace ActionReplay

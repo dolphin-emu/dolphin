@@ -227,6 +227,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 // help button.
 
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 
@@ -260,6 +261,7 @@ EVT_MENU(IDM_CONFIG_AUDIO, CFrame::OnConfigAudio)
 EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
 EVT_MENU(IDM_CONFIG_VR, CFrame::OnConfigVR)
 EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
+
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
 EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
 // Drop down
