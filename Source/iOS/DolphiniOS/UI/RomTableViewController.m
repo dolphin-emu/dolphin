@@ -107,7 +107,7 @@
 	if (editingStyle == UITableViewCellEditingStyleDelete)
 	{
 		if (indexPath.section == 0)
-		{  // Del game
+		{ // Delete game
 			DolphinGame* game = games[indexPath.row];
 			if ([[NSFileManager defaultManager] removeItemAtPath:game.path error:NULL])
 			{
@@ -117,7 +117,8 @@
 		}
 		else
 		{
-			if (indexPath.row >= activeDownloads.count) return;
+			if (indexPath.row >= activeDownloads.count)
+				return;
 			[self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 		}
 	}
@@ -138,16 +139,22 @@
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
 	UITableViewCell* cell;
-	if (indexPath.section == 0) { // Game
+	if (indexPath.section == 0)
+	{ // Game
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"DolphinGame"];
-		if (indexPath.row >= games.count) return [UITableViewCell new];
+		if (indexPath.row >= games.count)
+			return [UITableViewCell new];
+
 		DolphinGame* game = games[indexPath.row];
-		if (game.gameTitle) {
+		if (game.gameTitle)
+		{
 			// use title from ROM
 			NSArray* titleLines = [game.gameTitle componentsSeparatedByString:@"\n"];
 			cell.textLabel.text = titleLines[0];
 			cell.detailTextLabel.text = titleLines.count >= 1 ? titleLines[1] : nil;
-		} else {
+		}
+		else
+		{
 			// use filename
 			cell.textLabel.text = game.title;
 			cell.detailTextLabel.text = nil;

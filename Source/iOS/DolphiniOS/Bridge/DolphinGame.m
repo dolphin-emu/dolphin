@@ -39,11 +39,11 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 			//Recurse
 			BOOL isDirectory;
 			if ([[NSFileManager defaultManager] fileExistsAtPath:[gamesPath stringByAppendingPathComponent:file]
-													 isDirectory:&isDirectory] &&
+			                                         isDirectory:&isDirectory] &&
 				isDirectory)
 			{
 				[games addObjectsFromArray:[DolphinGame gamesAtPath:[gamesPath stringByAppendingPathComponent:file]
-											 saveStateDirectoryPath:saveStatePath]];
+				                             saveStateDirectoryPath:saveStatePath]];
 			}
 		}
 	}
@@ -75,7 +75,8 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 	{
 		return nil;
 	}
-	if ((self = [super init])) {
+	if ((self = [super init]))
+	{
 		self.path = path;
 		self.pathForSavedStates = saveStatePath;
 		[self _loadSaveStates];
@@ -127,7 +128,8 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 {
 	NSString* preferredLanguage = [[NSLocale preferredLanguages][0] substringToIndex:2];
 	NSUInteger pos = [@[@"ja",@"en",@"fr",@"de",@"it",@"es",@"zh"] indexOfObject:preferredLanguage];
-	if (pos == NSNotFound) return 1; // NDS_FW_LANG_ENG
+	if (pos == NSNotFound)
+		return 1; // NDS_FW_LANG_ENG
 	return (int)pos;
 }
 
@@ -169,7 +171,8 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 	if (idx < 0 || idx >= saveStates.count)
 		return NO;
 	NSLog(@"Deleting: %@", [self pathForSaveStateAtIndex:idx]);
-	if (![[NSFileManager defaultManager] removeItemAtPath:[self pathForSaveStateAtIndex:idx] error:NULL]) return NO;
+	if (![[NSFileManager defaultManager] removeItemAtPath:[self pathForSaveStateAtIndex:idx] error:NULL])
+		return NO;
 	[self reloadSaveStates];
 	return YES;
 }
@@ -234,14 +237,17 @@ NSString* const DolphinGameSaveStatesChangedNotification = @"DolphinGameSaveStat
 		// read location of icon+title
 		[fh seekToFileOffset:0x68];
 		data = [fh readDataOfLength:4];
-		if (data.length != 4) return;
+		if (data.length != 4)
+			return;
 		uint32_t iconOffset = OSReadLittleInt32(data.bytes, 0);
-		if (iconOffset == 0) return; //No header
+		if (iconOffset == 0)
+			return; //No header
 
 		// read icon+title data
 		[fh seekToFileOffset:iconOffset];
 		data = [fh readDataOfLength:0xA00];
-		if (data.length != 0xA00) return;
+		if (data.length != 0xA00)
+			return;
 		iconTitleData = data;
 	}
 	@catch (NSException* exception)

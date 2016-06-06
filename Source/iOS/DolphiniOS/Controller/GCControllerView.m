@@ -148,7 +148,7 @@ enum PadButton
 	button.tag = tag;
 	[button setImage:[UIImage imageNamed:image] forState:UIControlStateNormal];
 	if (pressedImage)
-		[button setImage:[UIImage imageNamed:pressedImage] forState:UIControlStateHighlighted];*
+		[button setImage:[UIImage imageNamed:pressedImage] forState:UIControlStateHighlighted];
 	button.userInteractionEnabled = NO;
 	[self addSubview:button];
 	[buttons addObject:button];
