@@ -195,6 +195,7 @@ struct VideoConfig final
 	bool bShowHands;
 	bool bShowFeet;
 	bool bShowController;
+	bool bShowLaserPointer;
 	bool bShowSensorBar;
 	bool bShowGameCamera;
 	bool bShowGameFrustum;

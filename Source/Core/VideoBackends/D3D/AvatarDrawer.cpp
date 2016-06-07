@@ -24,13 +24,6 @@
 namespace DX11
 {
 
-	struct VERTEX
-	{
-		float X, Y, Z;      // position
-		float nx, ny, nz;   // normal
-		float u, v;         // texture coordinates
-	};
-
 	static const char AVATAR_DRAWER_VS[] =
 		"// dolphin-emu AvatarDrawer vertex shader\n"
 
@@ -72,6 +65,42 @@ namespace DX11
 		"}\n"
 		;
 
+	static const char AVATAR_LINE_DRAWER_VS[] =
+		"// dolphin-emu AvatarDrawer line vertex shader\n"
+
+		"cbuffer MatrixBuffer : register(b0)\n"
+		"{\n"
+		"matrix worldMatrix;\n"
+		"matrix viewMatrix;\n"
+		"matrix projectionMatrix;\n"
+		"float4 color;\n"
+		"}\n"
+
+		"struct Output\n"
+		"{\n"
+		"float4 position : SV_POSITION;\n"
+		"float4 color : COLOR;\n"
+		"float3 uv: TEXCOORD;\n"
+		"};\n"
+
+		"Output main(in float4 position : POSITION, in float3 normal : NORMAL, in float2 uv : TEXCOORD)\n"
+		"{\n"
+		"Output o;\n"
+		// Change the position vector to be 4 units for proper matrix calculations.
+		"position.w = 1.0;\n"
+
+		// Calculate the position of the vertex against the world, view, and projection matrices.
+		"o.position = mul(position, worldMatrix);\n"
+		"o.position = mul(o.position, viewMatrix);\n"
+		"o.position = mul(o.position, projectionMatrix);\n"
+
+		// calculate the colour and texture mapping
+		"o.color = color;\n"
+		"o.uv = float3(uv.x, uv.y, 0);\n"
+		"return o;\n"
+		"}\n"
+		;
+
 	static const char AVATAR_DRAWER_PS[] =
 		"// dolphin-emu AvatarDrawer pixel shader\n"
 
@@ -91,10 +120,10 @@ namespace DX11
 
 	AvatarDrawer::AvatarDrawer()
 		: m_vertex_shader_params(nullptr),
-		m_vertex_buffer(nullptr), m_index_buffer(nullptr), m_vertex_layout(nullptr),
-		m_vertex_shader(nullptr), m_geometry_shader(nullptr), m_pixel_shader(nullptr),
+		m_vertex_buffer(nullptr), m_line_vertex_buffer(nullptr), m_index_buffer(nullptr), m_vertex_layout(nullptr),
+		m_vertex_shader(nullptr), m_line_vertex_shader(nullptr), m_geometry_shader(nullptr), m_line_geometry_shader(nullptr), m_pixel_shader(nullptr),
 		m_avatar_blend_state(nullptr), m_avatar_depth_state(nullptr),
-		m_avatar_rast_state(nullptr), m_avatar_sampler(nullptr)
+		m_avatar_rast_state(nullptr), m_avatar_line_rast_state(nullptr), m_avatar_sampler(nullptr)
 	{ }
 
 	void AvatarDrawer::Init()
@@ -113,6 +142,13 @@ namespace DX11
 			m_vertex_count = shapes[0].mesh.vertices.size();
 			m_index_count = shapes[0].mesh.indices.size();
 			m_vertices = new float[m_vertex_count];
+			m_line_vertices = new VERTEX[2];
+			ZeroMemory(m_line_vertices, sizeof(m_line_vertices[0]) * 2);
+			m_line_vertices[0].X = 0; m_line_vertices[0].Y = 0; m_line_vertices[0].Z = 0;
+			m_line_vertices[1].X = 0; m_line_vertices[1].Y = 0; m_line_vertices[1].Z = -1000; // -ve = forwards
+			m_line_vertices[0].nx = 1; m_line_vertices[0].ny = 0; m_line_vertices[0].nz = 0;
+			m_line_vertices[0].u = 0;
+			m_line_vertices[1].u = 1;
 			m_indices = new u16[m_index_count];
 			for (size_t i = 0; i < m_vertex_count; ++i)
 			{
@@ -186,6 +222,14 @@ namespace DX11
 		CHECK(SUCCEEDED(hr), "create AvatarDrawer vertex buffer");
 		D3D::SetDebugObjectName(m_vertex_buffer, "AvatarDrawer vertex buffer");
 
+		// Create line vertex buffer
+		bd = CD3D11_BUFFER_DESC(2 * sizeof(VERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC);
+		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		srd = { m_line_vertices, 0, 0 };
+		hr = D3D::device->CreateBuffer(&bd, &srd, &m_line_vertex_buffer);
+		CHECK(SUCCEEDED(hr), "create AvatarDrawer line vertex buffer");
+		D3D::SetDebugObjectName(m_vertex_buffer, "AvatarDrawer line vertex buffer");
+
 		// Create index buffer
 		bd = CD3D11_BUFFER_DESC(m_index_count * sizeof(u16), D3D11_BIND_INDEX_BUFFER, D3D11_USAGE_DYNAMIC);
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -214,6 +258,18 @@ namespace DX11
 
 		bytecode->Release();
 
+		// Create line vertex shader
+		bytecode = nullptr;
+		if (!D3D::CompileVertexShader(AVATAR_LINE_DRAWER_VS, &bytecode))
+		{
+			ERROR_LOG(VR, "AvatarDrawer line vertex shader failed to compile");
+			return;
+		}
+		hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(), nullptr, &m_line_vertex_shader);
+		CHECK(SUCCEEDED(hr), "create AvatarDrawer line vertex shader");
+		D3D::SetDebugObjectName(m_line_vertex_shader, "AvatarDrawer line vertex shader");
+		bytecode->Release();
+
 		// Create constant buffer for uploading params to shaders
 
 		bd = CD3D11_BUFFER_DESC(sizeof(VertexShaderParams),
@@ -222,7 +278,7 @@ namespace DX11
 		CHECK(SUCCEEDED(hr), "create AvatarDrawer params buffer");
 		D3D::SetDebugObjectName(m_vertex_shader_params, "AvatarDrawer params buffer");
 
-		// Create geometry shader
+		// Create triangle geometry shader
 		ShaderCode code;
 		code = GenerateAvatarGeometryShaderCode(PRIMITIVE_TRIANGLES, API_D3D);
 		if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode))
@@ -233,6 +289,17 @@ namespace DX11
 		hr = D3D::device->CreateGeometryShader(bytecode->Data(), bytecode->Size(), nullptr, &m_geometry_shader);
 		CHECK(SUCCEEDED(hr), "create AvatarDrawer geometry shader");
 		D3D::SetDebugObjectName(m_geometry_shader, "AvatarDrawer geometry shader");
+		bytecode->Release();
+		// Create line geometry shader
+		code = GenerateAvatarGeometryShaderCode(PRIMITIVE_LINES, API_D3D);
+		if (!D3D::CompileGeometryShader(code.GetBuffer(), &bytecode))
+		{
+			ERROR_LOG(VR, "AvatarDrawer geometry shader failed to compile");
+			return;
+		}
+		hr = D3D::device->CreateGeometryShader(bytecode->Data(), bytecode->Size(), nullptr, &m_line_geometry_shader);
+		CHECK(SUCCEEDED(hr), "create AvatarDrawer line geometry shader");
+		D3D::SetDebugObjectName(m_line_geometry_shader, "AvatarDrawer line geometry shader");
 		bytecode->Release();
 
 		// Create pixel shader
@@ -271,6 +338,16 @@ namespace DX11
 		CHECK(SUCCEEDED(hr), "create AvatarDrawer rasterizer state");
 		D3D::SetDebugObjectName(m_avatar_rast_state, "AvatarDrawer rast state");
 
+		// Create line rasterizer state
+
+		rd = CD3D11_RASTERIZER_DESC(CD3D11_DEFAULT());
+		rd.CullMode = D3D11_CULL_NONE;
+		rd.FrontCounterClockwise = TRUE;
+		rd.DepthClipEnable = FALSE;
+		hr = D3D::device->CreateRasterizerState(&rd, &m_avatar_line_rast_state);
+		CHECK(SUCCEEDED(hr), "create AvatarDrawer line rasterizer state");
+		D3D::SetDebugObjectName(m_avatar_line_rast_state, "AvatarDrawer line rast state");
+
 		// Create texture sampler
 
 		D3D11_SAMPLER_DESC sd = CD3D11_SAMPLER_DESC(CD3D11_DEFAULT());
@@ -285,16 +362,52 @@ namespace DX11
 	{
 		SAFE_RELEASE(m_avatar_sampler);
 		SAFE_RELEASE(m_avatar_rast_state);
+		SAFE_RELEASE(m_avatar_line_rast_state);
 		SAFE_RELEASE(m_avatar_depth_state);
 		SAFE_RELEASE(m_avatar_blend_state);
 		SAFE_RELEASE(m_pixel_shader);
 		SAFE_RELEASE(m_geometry_shader);
+		SAFE_RELEASE(m_line_geometry_shader);
 		SAFE_RELEASE(m_vertex_layout);
 		SAFE_RELEASE(m_vertex_shader);
+		SAFE_RELEASE(m_line_vertex_shader);
 		SAFE_RELEASE(m_vertex_buffer);
+		SAFE_RELEASE(m_line_vertex_buffer);
 		SAFE_RELEASE(m_index_buffer);
 		SAFE_RELEASE(m_vertex_shader_params);
 	}
+
+	void AvatarDrawer::DrawLine(float *pos, Matrix33 &m, float r, float g, float b)
+	{
+		params.color[0] = r;
+		params.color[1] = g;
+		params.color[2] = b;
+		params.color[3] = 1.0f;
+		// world matrix
+		Matrix44 world, rotation, location;
+		Matrix44::LoadMatrix33(rotation, m);
+		Matrix44::Translate(location, pos);
+		Matrix44::Multiply(location, rotation, world);
+		// copy matrices into buffer
+		memcpy(params.world, world.data, 16 * sizeof(float));
+		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
+
+		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
+		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetSampler(0, m_avatar_sampler);
+
+		// Draw!
+		D3D::stateman->Apply();
+		D3D::context->Draw(2, 0);
+
+		// Clean up state
+		D3D::stateman->SetSampler(0, nullptr);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetPixelConstants(nullptr);
+		D3D::stateman->SetVertexConstants(nullptr);
+	}
+
 
 	void AvatarDrawer::DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs)
 	{
@@ -499,6 +612,19 @@ namespace DX11
 			DrawHydra(pos, m, cs);
 		}
 
+		if (g_ActiveConfig.bShowLaserPointer && VR_GetHydraStyle(1) == CS_WIIMOTE_IR && VR_GetRightHydraPos(pos, &m))
+		{
+			// Draw Laser Sight
+			D3D::stateman->SetVertexShader(m_line_vertex_shader);
+			D3D::stateman->SetGeometryShader(m_line_geometry_shader);
+			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+			D3D::stateman->PushRasterizerState(m_avatar_line_rast_state);
+			D3D::stateman->SetVertexBuffer(m_line_vertex_buffer, stride, offset);
+			DrawLine(pos, m, 1, 0, 0);
+			D3D::stateman->PopRasterizerState();
+		}
+
+		// restore state
 		D3D::stateman->SetPixelShader(nullptr);
 		D3D::stateman->SetVertexShader(nullptr);
 		D3D::stateman->SetGeometryShader(nullptr);

@@ -79,7 +79,8 @@ static wxString camminpoly_desc = wxTRANSLATE("Only read camera angle if at leas
 static wxString detectskybox_desc = wxTRANSLATE("Assume any object drawn at 0,0,0 in camera space is a skybox.\nUse this if the sky looks too close, or to enable hiding or locking the skybox for motion sickness prevention (see the Motion Sickness tab).\n\nIf unsure, either setting is usually fine.");
 static wxString nearclip_desc = wxTRANSLATE("Always draw things which are close to (or far from) the camera.\nThis fixes the problem of things disappearing when you move your head close.\nThere can still be problems when two objects are in front of the near clipping plane, if they are drawn in the wrong order.\n\nIf unsure, leave this checked.");
 static wxString autopair_desc = wxTRANSLATE("Hack! When the Vive controllers lose tracking, this automatically right-clicks a controller in VR Status Window, chooses Pair, then clicks back in the current window.\nThis fixes the Vive controllers losing and never regaining tracking.\nYour Dolphin and SteamVR status windows must not be covered by other windows.\n\nIf unsure, leave this unchecked.");
-static wxString showcontroller_desc = wxTRANSLATE("Show the razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now. \n\nIf unsure, leave this unchecked.");
+static wxString showcontroller_desc = wxTRANSLATE("Show the Vive controller, razer hydra, wiimote, or gamecube controller inside the game world. Note: Only works in Direct3D for now.\n\nIf unsure, leave this unchecked.");
+static wxString showlaser_desc = wxTRANSLATE("Show a laser pointer coming out of the controller, for IR aiming. Note: Only works in Direct3D for now. Show Controllers must be set too.\n\nIf unsure, leave this unchecked.");
 static wxString showhands_desc = wxTRANSLATE("Show your hands inside the game world.\n\nIf unsure, leave this unchecked.");
 static wxString showfeet_desc = wxTRANSLATE("Show your feet inside the game world.\nBased on your height in Oculus Configuration Utility.\n\nIf unsure, leave this unchecked.");
 static wxString showgamecamera_desc = wxTRANSLATE("Show the location of the game's camera inside the game world.\nNormally this will be where your head is unless you move your head.\n\nIf unsure, leave this unchecked.");
@@ -619,7 +620,8 @@ void CConfigVR::CreateGUIControls()
 		// - vr
 		wxFlexGridSizer* const szr_vr = new wxFlexGridSizer(4, 5, 5);
 
-		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Controller"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Controllers"), wxGetTranslation(showcontroller_desc), vconfig.bShowController));
+		szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Laser Pointer"), wxGetTranslation(showlaser_desc), vconfig.bShowLaserPointer));
 		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Hands"), wxGetTranslation(showhands_desc), vconfig.bShowHands));
 		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Feet"), wxGetTranslation(showfeet_desc), vconfig.bShowFeet));
 		//szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Show Sensor Bar"), wxGetTranslation(showsensorbar_desc), vconfig.bShowSensorBar));

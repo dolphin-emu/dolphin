@@ -89,6 +89,7 @@ VideoConfig::VideoConfig()
 	bShowHands = false;
 	bShowFeet = false;
 	bShowController = false;
+	bShowLaserPointer = false;
 	bShowSensorBar = false;
 	bShowGameCamera = false;
 	bShowGameFrustum = false;
@@ -267,6 +268,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("ShowHands", &bShowHands, false);
 	vr->Get("ShowFeet", &bShowFeet, false);
 	vr->Get("ShowController", &bShowController, false);
+	vr->Get("ShowLaserPointer", &bShowLaserPointer, false);
 	vr->Get("ShowSensorBar", &bShowSensorBar, false);
 	vr->Get("ShowGameCamera", &bShowGameCamera, false);
 	vr->Get("ShowGameFrustum", &bShowGameFrustum, false);
@@ -733,6 +735,7 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("ShowHands", bShowHands);
 	vr->Set("ShowFeet", bShowFeet);
 	vr->Set("ShowController", bShowController);
+	vr->Set("ShowLaserPointer", bShowLaserPointer);
 	vr->Set("ShowSensorBar", bShowSensorBar);
 	vr->Set("ShowGameCamera", bShowGameCamera);
 	vr->Set("ShowGameFrustum", bShowGameFrustum);

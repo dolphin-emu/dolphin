@@ -48,21 +48,31 @@ namespace DX11
 
 	private:
 		void DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs);
+		void DrawLine(float *pos, Matrix33 &m, float r, float g, float b);
 
 		ID3D11Buffer* m_vertex_shader_params;
 		ID3D11Buffer* m_vertex_buffer;
+		ID3D11Buffer* m_line_vertex_buffer;
 		ID3D11Buffer* m_index_buffer;
 		ID3D11InputLayout* m_vertex_layout;
-		ID3D11VertexShader* m_vertex_shader;
-		ID3D11GeometryShader* m_geometry_shader;
+		ID3D11VertexShader* m_vertex_shader, * m_line_vertex_shader;
+		ID3D11GeometryShader* m_geometry_shader, * m_line_geometry_shader;
 		ID3D11PixelShader* m_pixel_shader;
 		ID3D11BlendState* m_avatar_blend_state;
 		ID3D11DepthStencilState* m_avatar_depth_state;
-		ID3D11RasterizerState* m_avatar_rast_state;
+		ID3D11RasterizerState* m_avatar_rast_state, * m_avatar_line_rast_state;
 		ID3D11SamplerState* m_avatar_sampler;
 		VertexShaderParams params;
 
+		struct VERTEX
+		{
+			float X, Y, Z;      // position
+			float nx, ny, nz;   // normal
+			float u, v;         // texture coordinates
+		};
+
 		float *m_vertices;
+		struct VERTEX *m_line_vertices;
 		u16 *m_indices;
 		int m_vertex_count, m_index_count;
 		float hydra_size[3], hydra_mid[3];
