@@ -1,9 +1,6 @@
-//
-//  WCDirectionalControl.m
-//  Dolphin
-//
-//  Created by Will Cobb on 5/31/16.
-//
+// Copyright 2016 WillCobb
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import "Controller/WCDirectionalControl.h"
 
@@ -47,7 +44,7 @@
 	return self;
 }
 
-//Accepts 1, 5, or 9 images
+// Accepts 1, 5, or 9 images
 - (id)initWithFrame:(CGRect)frame DPadImages:(NSArray <UIImage*>*)images;
 {
 	if (self = [super initWithFrame:frame])

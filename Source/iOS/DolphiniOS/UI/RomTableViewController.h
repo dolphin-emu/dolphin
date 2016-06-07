@@ -1,17 +1,10 @@
-//
-//  iNDSMasterViewController.h
-//  iNDS
-//
-//  Created by iNDS on 6/9/13.
-//  Copyright (c) 2014 iNDS. All rights reserved.
-//
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <UIKit/UIKit.h>
 
 @interface RomTableViewController : UITableViewController <UIAlertViewDelegate>
-{
-	NSArray* games;
-}
 
 - (void)reloadGames:(id)sender;
 

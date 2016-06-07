@@ -1,6 +1,6 @@
-// Copyright 2016 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
+// Copyright 2016 Dolphin
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #include <algorithm>
 #include <mutex>

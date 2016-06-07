@@ -1,9 +1,6 @@
-//
-//  WCDirectionalControl.h
-//  Dolphin
-//
-//  Created by Will Cobb on 5/31/16.
-//
+// Copyright 2016 WillCobb
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <UIKit/UIKit.h>
 
@@ -28,7 +25,6 @@ typedef NS_ENUM(NSInteger, WCDirectionalControlStyle)
 
 - (id)initWithFrame:(CGRect)frame BoundsImage:(NSString*)boundsImage StickImage:(NSString*)stickImage;
 - (id)initWithFrame:(CGRect)frame DPadImages:(NSArray <UIImage*>*)dpadImages;
-
 - (CGPoint)joyLocation;
 - (void)frameUpdated;
 

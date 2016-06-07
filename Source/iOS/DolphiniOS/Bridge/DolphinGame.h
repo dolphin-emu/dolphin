@@ -1,9 +1,6 @@
-//
-//  DolphinGame.h
-//  DolphiniOS
-//
-//  Created by Will Cobb on 5/31/16.
-//
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -14,25 +11,12 @@ FOUNDATION_EXPORT NSString* const DolphinGameSaveStatesChangedNotification;
 
 @property (strong, nonatomic) NSString*		path;
 @property (nonatomic, readonly) NSString*	title;
-@property (nonatomic, readonly) NSString*	rawTitle;
 @property (nonatomic, readonly) NSString*	gameTitle;
-@property (nonatomic, readonly) UIImage*	icon;
-@property (nonatomic, readonly) NSInteger	numberOfSaveStates;
-@property (strong, nonatomic) NSString*		pathForSavedStates;
-@property (nonatomic, readonly) BOOL		hasPauseState;
+@property (nonatomic, readonly) NSString*	gameSubtitle;
+@property (nonatomic, readonly) UIImage*	banner;
 
-+ (int)preferredLanguage; // returns a NDS_FW_LANG_ constant
-+ (NSArray*)gamesAtPath:(NSString*)path saveStateDirectoryPath:(NSString*)saveStatePath;
-+ (DolphinGame*)gameWithPath:(NSString*)path saveStateDirectoryPath:(NSString*)saveStatePath;
-- (DolphinGame*)initWithPath:(NSString*)path saveStateDirectoryPath:(NSString*)saveStatePath;
-- (NSString*)pathForSaveStateWithName:(NSString*)name;
-- (NSString*)pathForSaveStateAtIndex:(NSInteger)idx;
-- (NSString*)nameOfSaveStateAtIndex:(NSInteger)idx;
-- (NSString*)nameOfSaveStateAtPath:(NSString*)path;
-- (NSDate*)dateOfSaveStateAtIndex:(NSInteger)idx;
-- (BOOL)deleteSaveStateAtIndex:(NSInteger)idx;
-- (BOOL)deleteSaveStateWithName:(NSString*)name;
-- (void)reloadSaveStates;
-- (NSArray*)saveStates;
++ (int)preferredLanguage;
++ (NSArray*)gamesAtPath:(NSString*)path;
+- (DolphinGame*)initWithPath:(NSString*)path;
 
 @end

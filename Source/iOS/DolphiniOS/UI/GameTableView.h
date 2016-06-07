@@ -1,11 +1,6 @@
-//
-//  DolphinGameTableView.h
-//  Dolphin
-//
-//  Created by Will Cobb on 5/31/16.
-//  Copyright 2016 Dolphin Emulator Project
-//  Licensed under GPLv2+
-//  Refer to the license.txt file included.
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <UIKit/UIKit.h>
 #import "AppDelegate.h"

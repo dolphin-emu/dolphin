@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4C3B31A81D0722CD008E6BA1 /* Config in Resources */ = {isa = PBXBuildFile; fileRef = 4C3B31A71D0722CD008E6BA1 /* Config */; };
 		4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */; };
-		4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */; };
 		4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */ = {isa = PBXBuildFile; fileRef = 4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */; };
 		CA1072DA1D052C290042478E /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA1072CF1D052C290042478E /* DolphinBridge.mm */; };
 		CA1072DB1D052C290042478E /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D11D052C290042478E /* DolphinGame.m */; };
@@ -17,13 +17,6 @@
 		CA1072DF1D052C290042478E /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1072D91D052C290042478E /* RomTableViewController.m */; };
 		CA1072E11D052C410042478E /* GCAdapteriOS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA1072E01D052C410042478E /* GCAdapteriOS.cpp */; };
 		CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */; };
-		CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */; };
-		CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */; };
-		CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A001CFE7FDC004C11C5 /* SCLButton.m */; };
-		CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */; };
-		CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */; };
-		CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */; };
-		CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A091CFE7FDC004C11C5 /* SCLTextView.m */; };
 		CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */; };
 		CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A181CFE7FED004C11C5 /* RBVolumeButtons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A1A1CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m */; };
@@ -31,19 +24,6 @@
 		CA124A241CFE8139004C11C5 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A231CFE8139004C11C5 /* GameController.framework */; };
 		CA124A261CFE814E004C11C5 /* Twitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A251CFE814E004C11C5 /* Twitter.framework */; };
 		CA124A281CFE8164004C11C5 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA124A271CFE8164004C11C5 /* MediaPlayer.framework */; };
-		CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */; };
-		CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */; };
-		CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */; };
-		CA124A411CFE8237004C11C5 /* WCEasySettingsSwitch.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */; };
-		CA124A421CFE8237004C11C5 /* WCEasySettingsSegment.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */; };
-		CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */; };
-		CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */; };
-		CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */; };
-		CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */; };
-		CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */; };
-		CA124A521CFE852B004C11C5 /* ZAActivityBar.bundle in Resources */ = {isa = PBXBuildFile; fileRef = CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */; };
-		CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */; };
-		CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */; };
 		CA53A23F1CEFA30E005937F5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A23E1CEFA30E005937F5 /* main.m */; };
 		CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CA53A2411CEFA30E005937F5 /* AppDelegate.m */; };
 		CA53A2481CEFA30E005937F5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA53A2461CEFA30E005937F5 /* Main.storyboard */; };
@@ -149,10 +129,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		4C3B31A71D0722CD008E6BA1 /* Config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Config; path = Source/iOS/DolphiniOS/Config; sourceTree = "<group>"; };
 		4C8E6C191CFF390300D87BC3 /* GCControllerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCControllerView.h; sourceTree = "<group>"; };
 		4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCControllerView.m; sourceTree = "<group>"; };
-		4C8E6C1B1CFF390300D87BC3 /* WCButtonControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCButtonControl.h; sourceTree = "<group>"; };
-		4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCButtonControl.m; sourceTree = "<group>"; };
 		4C8E6C1D1CFF390300D87BC3 /* WCDirectionalControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCDirectionalControl.h; sourceTree = "<group>"; };
 		4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCDirectionalControl.m; sourceTree = "<group>"; };
 		4CE423BB1CFDDE030054EB82 /* DolphiniOS copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "DolphiniOS copy-Info.plist"; path = "/Users/sc-wcobb-osx/Dropbox/Xcode/dolphinIOS/DolphiniOS copy-Info.plist"; sourceTree = "<absolute>"; };
@@ -169,21 +148,6 @@
 		CA1072E01D052C410042478E /* GCAdapteriOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GCAdapteriOS.cpp; sourceTree = "<group>"; };
 		CA1249E81CFE7FBD004C11C5 /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MHWDirectoryWatcher.h; sourceTree = "<group>"; };
 		CA1249E91CFE7FBD004C11C5 /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MHWDirectoryWatcher.m; sourceTree = "<group>"; };
-		CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+ImageEffects.h"; sourceTree = "<group>"; };
-		CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+ImageEffects.m"; sourceTree = "<group>"; };
-		CA1249FD1CFE7FDC004C11C5 /* SCLAlertView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertView.h; sourceTree = "<group>"; };
-		CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertView.m; sourceTree = "<group>"; };
-		CA1249FF1CFE7FDC004C11C5 /* SCLButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLButton.h; sourceTree = "<group>"; };
-		CA124A001CFE7FDC004C11C5 /* SCLButton.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLButton.m; sourceTree = "<group>"; };
-		CA124A011CFE7FDC004C11C5 /* SCLAlertViewResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertViewResponder.h; sourceTree = "<group>"; };
-		CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertViewResponder.m; sourceTree = "<group>"; };
-		CA124A031CFE7FDC004C11C5 /* SCLAlertViewStyleKit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLAlertViewStyleKit.h; sourceTree = "<group>"; };
-		CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLAlertViewStyleKit.m; sourceTree = "<group>"; };
-		CA124A051CFE7FDC004C11C5 /* SCLMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLMacros.h; sourceTree = "<group>"; };
-		CA124A061CFE7FDC004C11C5 /* SCLTimerDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLTimerDisplay.h; sourceTree = "<group>"; };
-		CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTimerDisplay.m; sourceTree = "<group>"; };
-		CA124A081CFE7FDC004C11C5 /* SCLTextView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SCLTextView.h; sourceTree = "<group>"; };
-		CA124A091CFE7FDC004C11C5 /* SCLTextView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SCLTextView.m; sourceTree = "<group>"; };
 		CA124A141CFE7FED004C11C5 /* UITapticEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UITapticEngine.h; sourceTree = "<group>"; };
 		CA124A151CFE7FED004C11C5 /* UIDevice+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+Private.h"; sourceTree = "<group>"; };
 		CA124A161CFE7FED004C11C5 /* UIDevice+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+Private.m"; sourceTree = "<group>"; };
@@ -196,33 +160,7 @@
 		CA124A231CFE8139004C11C5 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
 		CA124A251CFE814E004C11C5 /* Twitter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Twitter.framework; path = System/Library/Frameworks/Twitter.framework; sourceTree = SDKROOT; };
 		CA124A271CFE8164004C11C5 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
-		CA124A2A1CFE8237004C11C5 /* WCEasySettingsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsViewController.h; sourceTree = "<group>"; };
-		CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsViewController.m; sourceTree = "<group>"; };
-		CA124A2C1CFE8237004C11C5 /* WCEasySettingsSection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSection.h; sourceTree = "<group>"; };
-		CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSection.m; sourceTree = "<group>"; };
-		CA124A2E1CFE8237004C11C5 /* WCEasySettingsItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsItem.h; sourceTree = "<group>"; };
-		CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsItem.m; sourceTree = "<group>"; };
-		CA124A301CFE8237004C11C5 /* WCEasySettingsSwitch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSwitch.h; sourceTree = "<group>"; };
-		CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSwitch.m; sourceTree = "<group>"; };
-		CA124A321CFE8237004C11C5 /* WCEasySettingsSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSegment.h; sourceTree = "<group>"; };
-		CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSegment.m; sourceTree = "<group>"; };
-		CA124A341CFE8237004C11C5 /* WCEasySettingsSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsSlider.h; sourceTree = "<group>"; };
-		CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsSlider.m; sourceTree = "<group>"; };
-		CA124A361CFE8237004C11C5 /* WCEasySettingsOption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsOption.h; sourceTree = "<group>"; };
-		CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsOption.m; sourceTree = "<group>"; };
-		CA124A381CFE8237004C11C5 /* WCEasySettingsOptionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsOptionViewController.h; sourceTree = "<group>"; };
-		CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsOptionViewController.m; sourceTree = "<group>"; };
-		CA124A3A1CFE8237004C11C5 /* WCEasySettingsUrl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsUrl.h; sourceTree = "<group>"; };
-		CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsUrl.m; sourceTree = "<group>"; };
-		CA124A3C1CFE8237004C11C5 /* WCEasySettingsCustom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCEasySettingsCustom.h; sourceTree = "<group>"; };
-		CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCEasySettingsCustom.m; sourceTree = "<group>"; };
-		CA124A481CFE8258004C11C5 /* WCEasySettings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WCEasySettings.h; sourceTree = "<group>"; };
 		CA124A491CFE830E004C11C5 /* Dolphin-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Dolphin-Prefix.pch"; sourceTree = "<group>"; };
-		CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = ZAActivityBar.bundle; sourceTree = "<group>"; };
-		CA124A4E1CFE852B004C11C5 /* ZAActivityBar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ZAActivityBar.h; sourceTree = "<group>"; };
-		CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ZAActivityBar.m; sourceTree = "<group>"; };
-		CA124A501CFE852B004C11C5 /* SKBounceAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SKBounceAnimation.h; sourceTree = "<group>"; };
-		CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SKBounceAnimation.m; sourceTree = "<group>"; };
 		CA53A23B1CEFA30E005937F5 /* Dolphin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dolphin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA53A23E1CEFA30E005937F5 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		CA53A2401CEFA30E005937F5 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -367,6 +305,7 @@
 		36F8AC164103411E9AD0FA42 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				4C3B31A71D0722CD008E6BA1 /* Config */,
 				CAD333C81D030D6C00431946 /* GC */,
 				CAD333C91D030D6C00431946 /* Shaders */,
 				CAD333FB1D03155A00431946 /* Roms */,
@@ -396,8 +335,6 @@
 				CA1072E01D052C410042478E /* GCAdapteriOS.cpp */,
 				4C8E6C191CFF390300D87BC3 /* GCControllerView.h */,
 				4C8E6C1A1CFF390300D87BC3 /* GCControllerView.m */,
-				4C8E6C1B1CFF390300D87BC3 /* WCButtonControl.h */,
-				4C8E6C1C1CFF390300D87BC3 /* WCButtonControl.m */,
 				4C8E6C1D1CFF390300D87BC3 /* WCDirectionalControl.h */,
 				4C8E6C1E1CFF390300D87BC3 /* WCDirectionalControl.m */,
 			);
@@ -492,11 +429,8 @@
 		CA1249AD1CFE7F74004C11C5 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				CA124A4C1CFE851C004C11C5 /* ZAActivityBar */,
 				CA1249AF1CFE7F74004C11C5 /* DocWatchHelper */,
 				CA1249B01CFE7F74004C11C5 /* Misc */,
-				CA1249B11CFE7F74004C11C5 /* SCLAlertView */,
-				CA124A291CFE8209004C11C5 /* WCEasySettings */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -524,69 +458,6 @@
 				CA124A1C1CFE7FED004C11C5 /* NSString+CompareToVersion.m */,
 			);
 			path = Misc;
-			sourceTree = "<group>";
-		};
-		CA1249B11CFE7F74004C11C5 /* SCLAlertView */ = {
-			isa = PBXGroup;
-			children = (
-				CA1249FB1CFE7FDC004C11C5 /* UIImage+ImageEffects.h */,
-				CA1249FC1CFE7FDC004C11C5 /* UIImage+ImageEffects.m */,
-				CA1249FD1CFE7FDC004C11C5 /* SCLAlertView.h */,
-				CA1249FE1CFE7FDC004C11C5 /* SCLAlertView.m */,
-				CA1249FF1CFE7FDC004C11C5 /* SCLButton.h */,
-				CA124A001CFE7FDC004C11C5 /* SCLButton.m */,
-				CA124A011CFE7FDC004C11C5 /* SCLAlertViewResponder.h */,
-				CA124A021CFE7FDC004C11C5 /* SCLAlertViewResponder.m */,
-				CA124A031CFE7FDC004C11C5 /* SCLAlertViewStyleKit.h */,
-				CA124A041CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m */,
-				CA124A051CFE7FDC004C11C5 /* SCLMacros.h */,
-				CA124A061CFE7FDC004C11C5 /* SCLTimerDisplay.h */,
-				CA124A071CFE7FDC004C11C5 /* SCLTimerDisplay.m */,
-				CA124A081CFE7FDC004C11C5 /* SCLTextView.h */,
-				CA124A091CFE7FDC004C11C5 /* SCLTextView.m */,
-			);
-			path = SCLAlertView;
-			sourceTree = "<group>";
-		};
-		CA124A291CFE8209004C11C5 /* WCEasySettings */ = {
-			isa = PBXGroup;
-			children = (
-				CA124A481CFE8258004C11C5 /* WCEasySettings.h */,
-				CA124A2A1CFE8237004C11C5 /* WCEasySettingsViewController.h */,
-				CA124A2B1CFE8237004C11C5 /* WCEasySettingsViewController.m */,
-				CA124A2C1CFE8237004C11C5 /* WCEasySettingsSection.h */,
-				CA124A2D1CFE8237004C11C5 /* WCEasySettingsSection.m */,
-				CA124A2E1CFE8237004C11C5 /* WCEasySettingsItem.h */,
-				CA124A2F1CFE8237004C11C5 /* WCEasySettingsItem.m */,
-				CA124A301CFE8237004C11C5 /* WCEasySettingsSwitch.h */,
-				CA124A311CFE8237004C11C5 /* WCEasySettingsSwitch.m */,
-				CA124A321CFE8237004C11C5 /* WCEasySettingsSegment.h */,
-				CA124A331CFE8237004C11C5 /* WCEasySettingsSegment.m */,
-				CA124A341CFE8237004C11C5 /* WCEasySettingsSlider.h */,
-				CA124A351CFE8237004C11C5 /* WCEasySettingsSlider.m */,
-				CA124A361CFE8237004C11C5 /* WCEasySettingsOption.h */,
-				CA124A371CFE8237004C11C5 /* WCEasySettingsOption.m */,
-				CA124A381CFE8237004C11C5 /* WCEasySettingsOptionViewController.h */,
-				CA124A391CFE8237004C11C5 /* WCEasySettingsOptionViewController.m */,
-				CA124A3A1CFE8237004C11C5 /* WCEasySettingsUrl.h */,
-				CA124A3B1CFE8237004C11C5 /* WCEasySettingsUrl.m */,
-				CA124A3C1CFE8237004C11C5 /* WCEasySettingsCustom.h */,
-				CA124A3D1CFE8237004C11C5 /* WCEasySettingsCustom.m */,
-			);
-			name = WCEasySettings;
-			path = Build/DolphiniOS/Utilities/WCEasySettings;
-			sourceTree = SOURCE_ROOT;
-		};
-		CA124A4C1CFE851C004C11C5 /* ZAActivityBar */ = {
-			isa = PBXGroup;
-			children = (
-				CA124A4D1CFE852B004C11C5 /* ZAActivityBar.bundle */,
-				CA124A4E1CFE852B004C11C5 /* ZAActivityBar.h */,
-				CA124A4F1CFE852B004C11C5 /* ZAActivityBar.m */,
-				CA124A501CFE852B004C11C5 /* SKBounceAnimation.h */,
-				CA124A511CFE852B004C11C5 /* SKBounceAnimation.m */,
-			);
-			path = ZAActivityBar;
 			sourceTree = "<group>";
 		};
 		CA53A23C1CEFA30E005937F5 /* DolphiniOS */ = {
@@ -821,10 +692,10 @@
 				CA751EFE1D04826800771302 /* gcpad_r_pressed@2x.png in Resources */,
 				CA751EFC1D04826800771302 /* gcpad_l_pressed@2x.png in Resources */,
 				CA76E1911CFCDDE20009BB8E /* Entitlements.plist in Resources */,
+				4C3B31A81D0722CD008E6BA1 /* Config in Resources */,
 				CA751EF61D04826800771302 /* gcpad_dpad_pressed_upleft@2x.png in Resources */,
 				CA751F051D04826800771302 /* gcpad_z@2x.png in Resources */,
 				CAD333CA1D030D6C00431946 /* GC in Resources */,
-				CA124A521CFE852B004C11C5 /* ZAActivityBar.bundle in Resources */,
 				CA751EEA1D04826800771302 /* gcpad_a_pressed@2x.png in Resources */,
 				CA751EF51D04826800771302 /* gcpad_dpad_pressed_up@2x.png in Resources */,
 				CA53A24D1CEFA30E005937F5 /* LaunchScreen.storyboard in Resources */,
@@ -866,40 +737,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				CA124A221CFE7FED004C11C5 /* NSString+CompareToVersion.m in Sources */,
-				CA124A421CFE8237004C11C5 /* WCEasySettingsSegment.m in Sources */,
-				CA124A471CFE8237004C11C5 /* WCEasySettingsCustom.m in Sources */,
-				CA124A461CFE8237004C11C5 /* WCEasySettingsUrl.m in Sources */,
-				CA124A431CFE8237004C11C5 /* WCEasySettingsSlider.m in Sources */,
 				CA124A1F1CFE7FED004C11C5 /* UIDevice+Private.m in Sources */,
 				CA1072DD1D052C290042478E /* EmulatorViewController.mm in Sources */,
-				CA124A0D1CFE7FDC004C11C5 /* SCLAlertViewResponder.m in Sources */,
 				CA1072DE1D052C290042478E /* GameTableView.m in Sources */,
-				CA124A0E1CFE7FDC004C11C5 /* SCLAlertViewStyleKit.m in Sources */,
 				CA53A2421CEFA30E005937F5 /* AppDelegate.m in Sources */,
-				CA124A3E1CFE8237004C11C5 /* WCEasySettingsViewController.m in Sources */,
 				CA124A211CFE7FED004C11C5 /* UIViewController+BackButtonHandler.m in Sources */,
 				CA53A23F1CEFA30E005937F5 /* main.m in Sources */,
-				CA124A3F1CFE8237004C11C5 /* WCEasySettingsSection.m in Sources */,
 				CA1072E11D052C410042478E /* GCAdapteriOS.cpp in Sources */,
-				CA124A0C1CFE7FDC004C11C5 /* SCLButton.m in Sources */,
-				CA124A101CFE7FDC004C11C5 /* SCLTextView.m in Sources */,
 				CA1072DB1D052C290042478E /* DolphinGame.m in Sources */,
-				CA124A531CFE852B004C11C5 /* ZAActivityBar.m in Sources */,
 				CA1072DF1D052C290042478E /* RomTableViewController.m in Sources */,
 				CA124A201CFE7FED004C11C5 /* RBVolumeButtons.m in Sources */,
-				CA124A541CFE852B004C11C5 /* SKBounceAnimation.m in Sources */,
 				4C8E6C1F1CFF390300D87BC3 /* GCControllerView.m in Sources */,
 				CA1249EA1CFE7FBD004C11C5 /* MHWDirectoryWatcher.m in Sources */,
 				4C8E6C211CFF390300D87BC3 /* WCDirectionalControl.m in Sources */,
-				CA124A441CFE8237004C11C5 /* WCEasySettingsOption.m in Sources */,
-				CA124A451CFE8237004C11C5 /* WCEasySettingsOptionViewController.m in Sources */,
-				CA124A0B1CFE7FDC004C11C5 /* SCLAlertView.m in Sources */,
 				CA1072DA1D052C290042478E /* DolphinBridge.mm in Sources */,
-				4C8E6C201CFF390300D87BC3 /* WCButtonControl.m in Sources */,
-				CA124A0F1CFE7FDC004C11C5 /* SCLTimerDisplay.m in Sources */,
-				CA124A401CFE8237004C11C5 /* WCEasySettingsItem.m in Sources */,
-				CA124A0A1CFE7FDC004C11C5 /* UIImage+ImageEffects.m in Sources */,
-				CA124A411CFE8237004C11C5 /* WCEasySettingsSwitch.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

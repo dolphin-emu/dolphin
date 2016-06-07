@@ -1,29 +1,14 @@
-//
-//  AppDelegate.h
-//  DolphiniOS
-//
-//  Created by Will Cobb on 5/20/16.
-//
-//
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <UIKit/UIKit.h>
 
-#import "Utilities/WCEasySettings/WCEasySettings.h"
-
-@class EmulatorViewController;
-@class DolphinGame;
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow*	window;
-@property (strong, nonatomic, getter=getSettingsViewController) WCEasySettingsViewController *settingsViewController;
-@property EmulatorViewController*	currentEmulationController;
 
-+ (AppDelegate*)sharedInstance;
-
-- (NSString*)cheatsDir;
-- (NSString*)batteryDir;
-- (NSString*)documentsPath;
-
-- (void)startGame:(DolphinGame*)game;
++(NSString*)documentsPath;
++(NSString*)libraryPath;
 
 @end

@@ -1,29 +1,18 @@
-//
-//  iNDSMasterViewController.m
-//  iNDS
-//
-//  Created by iNDS on 6/9/13.
-//  Copyright (c) 2014 iNDS. All rights reserved.
-//
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import "AppDelegate.h"
-
 #import "MHWDirectoryWatcher.h"
-#import "WCEasySettingsViewController.h"
-#import "SCLAlertView.h"
 
+#import "Bridge/DolphinGame.h"
 #import "UI/RomTableViewController.h"
 #import "UI/GameTableView.h"
 
-#import "Bridge/DolphinGame.h"
-
-#import <mach/mach.h>
-#import <mach/mach_host.h>
-
 @interface RomTableViewController ()
 {
-	NSMutableArray* activeDownloads;
 	MHWDirectoryWatcher* docWatchHelper;
+	NSArray* games;
 }
 
 @end
@@ -33,46 +22,29 @@
 - (void)viewDidLoad
 {
 	[super viewDidLoad];
-	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:NO];
-	self.navigationItem.title = @"Roms";
-}
+	self.navigationItem.title = @"ROMs";
 
-- (void)didReceiveMemoryWarning
-{
-	[super didReceiveMemoryWarning];
-	// Dispose of any resources that can be recreated.
-}
+	[self.tableView registerClass:[UITableViewCell class] forCellReuseIdentifier:@"DolphinGame"];
 
-- (void)viewWillAppear:(BOOL)animated
-{
-	[super viewWillAppear:animated];
-	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleLightContent animated:NO];
-	[self reloadGames:nil];
-}
-
-- (void)viewDidAppear:(BOOL)animated {
-	[super viewWillAppear:animated];
-	// watch for changes in documents folder
-	docWatchHelper = [MHWDirectoryWatcher directoryWatcherAtPath:AppDelegate.sharedInstance.documentsPath
+	docWatchHelper = [MHWDirectoryWatcher directoryWatcherAtPath:[AppDelegate documentsPath]
 														callback:^{
 															[self reloadGames:self];
 														}];
 }
 
-- (IBAction)openSettings:(id)sender
+- (void)didReceiveMemoryWarning
 {
-	WCEasySettingsViewController* settingsView = AppDelegate.sharedInstance.settingsViewController;
-	settingsView.title = @"Emulator Settings";
+	[super didReceiveMemoryWarning];
+}
 
-	UINavigationController* nav = [[UINavigationController alloc] initWithRootViewController:settingsView];
-	UIColor* globalTint = [[[UIApplication sharedApplication] delegate] window].tintColor;
+- (void)viewWillAppear:(BOOL)animated
+{
+	[super viewWillAppear:animated];
+	[self reloadGames:nil];
+}
 
-	nav.navigationBar.barTintColor = globalTint;
-	nav.navigationBar.translucent = NO;
-	nav.navigationBar.tintColor = [UIColor whiteColor];
-	[nav.navigationBar setTitleTextAttributes:@{NSForegroundColorAttributeName : [UIColor whiteColor]}];
-
-	[self presentViewController:nav animated:YES completion:nil];
+- (void)viewDidAppear:(BOOL)animated {
+	[super viewWillAppear:animated];
 }
 
 - (void)reloadGames:(id)sender
@@ -85,10 +57,9 @@
 	}
 	else
 	{
-		// reload all games
-		games = [DolphinGame gamesAtPath:AppDelegate.sharedInstance.documentsPath saveStateDirectoryPath:AppDelegate.sharedInstance.batteryDir];
+		games = [DolphinGame gamesAtPath:[AppDelegate documentsPath]];
 		NSString* romsPath = [[NSBundle mainBundle] resourcePath];
-		games = [games arrayByAddingObjectsFromArray:[DolphinGame gamesAtPath:romsPath saveStateDirectoryPath:AppDelegate.sharedInstance.batteryDir]];
+		games = [games arrayByAddingObjectsFromArray:[DolphinGame gamesAtPath:romsPath]];
 		dispatch_async(dispatch_get_main_queue(), ^{
 			[self.tableView reloadData];
 		});
@@ -106,19 +77,11 @@
 {
 	if (editingStyle == UITableViewCellEditingStyleDelete)
 	{
-		if (indexPath.section == 0)
-		{ // Delete game
-			DolphinGame* game = games[indexPath.row];
-			if ([[NSFileManager defaultManager] removeItemAtPath:game.path error:NULL])
-			{
-				[self reloadGames:nil];
-				[self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
-			}
-		}
-		else
+		// Delete game
+		DolphinGame* game = games[indexPath.row];
+		if ([[NSFileManager defaultManager] removeItemAtPath:game.path error:NULL])
 		{
-			if (indexPath.row >= activeDownloads.count)
-				return;
+			[self reloadGames:nil];
 			[self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationAutomatic];
 		}
 	}
@@ -126,9 +89,7 @@
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section
 {
-	if (section == 0)
-		return games.count;
-	return activeDownloads.count;
+	return games.count;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
@@ -138,30 +99,23 @@
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-	UITableViewCell* cell;
-	if (indexPath.section == 0)
-	{ // Game
-		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:@"DolphinGame"];
-		if (indexPath.row >= games.count)
-			return [UITableViewCell new];
+	UITableViewCell* cell = [tableView dequeueReusableCellWithIdentifier:@"DolphinGame"];
+	DolphinGame* game = games[indexPath.row];
 
-		DolphinGame* game = games[indexPath.row];
-		if (game.gameTitle)
-		{
-			// use title from ROM
-			NSArray* titleLines = [game.gameTitle componentsSeparatedByString:@"\n"];
-			cell.textLabel.text = titleLines[0];
-			cell.detailTextLabel.text = titleLines.count >= 1 ? titleLines[1] : nil;
-		}
-		else
-		{
-			// use filename
-			cell.textLabel.text = game.title;
-			cell.detailTextLabel.text = nil;
-		}
-		cell.imageView.image = game.icon;
-		cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
+	if (game.gameTitle)
+	{
+		// use title from ROM
+		cell.textLabel.text = game.gameTitle;
+		cell.detailTextLabel.text = game.gameSubtitle;
 	}
+	else
+	{
+		// use filename
+		cell.textLabel.text = game.title;
+		cell.detailTextLabel.text = nil;
+	}
+	cell.imageView.image = game.banner;
+	cell.accessoryType = UITableViewCellAccessoryDisclosureIndicator;
 	return cell;
 }
 
@@ -173,7 +127,7 @@
 	if (indexPath.section == 0)
 	{
 		DolphinGame* game = games[indexPath.row];
-		GameTableView*  gameInfo = [[GameTableView alloc] init];
+		GameTableView* gameInfo = [[GameTableView alloc] init];
 		gameInfo.game = game;
 		[self.navigationController pushViewController:gameInfo animated:YES];
 	}

@@ -1,24 +1,18 @@
-//
-//  DolphinBridge.h
-//  DolphiniOS
-//
-//  Created by mac on 2015-03-17.
-//  Copyright (c) 2015 OatmealDome.
-//
+// Copyright 2016 OatmealDome, WillCobb
+// Licensed under GPLV2+
+// Refer to the license.txt provided
+
+// Consider making this a singleton
 
 #import <Foundation/Foundation.h>
+#import <GLKit/GLKit.h>
+
+@protocol DolphinBridgeDelegate <NSObject>
+
+@end
 
 @interface DolphinBridge : NSObject
 
-- (void)createUserFolders;
-- (NSString*) getUserDirectory;
-- (void) setUserDirectory: (NSString*)userDir;
-- (NSString*) getLibraryDirectory;
-- (void) copyResources;
-- (void) copyDirectoryOrFile:(NSFileManager*)fileMgr :(NSString *)directory;
-- (void) loadPreferences;
-- (void) saveDefaultPreferences;
-- (void) openRomAtPath:(NSString *)path;
-- (void) redirectConsole;
+-(void)openRomAtPath:(NSString*)path inView:(GLKView*)view;
 
 @end

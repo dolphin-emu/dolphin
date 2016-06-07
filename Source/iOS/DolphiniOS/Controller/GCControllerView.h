@@ -1,12 +1,8 @@
-//
-//  CCIApplicationCubeControllerView.h
-//  Dolphin
-//
-//  Created by Will Cobb on 5/31/16.
-//
+// Copyright 2016 WillCobb
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import "WCDirectionalControl.h"
-#import "WCButtonControl.h"
 
 @protocol GCControllerViewDelegate <NSObject>
 
@@ -21,8 +17,8 @@
 
 @property uint16_t  buttonState;
 @property (weak) id <GCControllerViewDelegate> delegate;
-- (void)addButtonWithFrame:(CGRect)frame Tag:(NSInteger) tag Image:(NSString*) image PressedImage:(NSString*)pressedImage;
 
+- (void)addButtonWithFrame:(CGRect)frame Tag:(NSInteger) tag Image:(NSString*) image PressedImage:(NSString*)pressedImage;
 - (void)joystickMoved:(WCDirectionalControl*)joystick;
 - (void)dpadChanged:(WCDirectionalControl*)dpad;
 

@@ -1,10 +1,6 @@
-//
-//  ViewController.h
-//  DolphiniOS
-//
-//  Created by Will Cobb on 5/20/16.
-//
-//
+// Copyright 2016 WillCobb, OatmealDome
+// Licensed under GPLV2+
+// Refer to the license.txt provided
 
 #import <UIKit/UIKit.h>
 
