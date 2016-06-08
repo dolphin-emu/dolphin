@@ -29,6 +29,10 @@ option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
 # unique name here.
 set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 
+if(ANDROID)
+	set(ENABLE_PCH False)
+endif()
+
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
 	option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
@@ -189,20 +193,16 @@ else()
 endif()
 
 if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	   APPLE)
-		if(_ARCH_64)
-			set(_M_X86 1)
-			set(_M_X86_64 1)
-			add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-		else()
-			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
+	if(_ARCH_64 AND (
+		${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+		${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+		${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
+		APPLE
+	))
+		set(_M_X86 1)
+		set(_M_X86_64 1)
+		add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
 	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 		# This option only applies to 64bit ARM
 		set(_M_ARM 1)
@@ -424,6 +424,8 @@ if(ANDROID)
 	# We are cross compiling, search only the toolchain for libraries and includes
 	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 elseif(NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD)
 	list(APPEND LIBS rt)
 endif()
