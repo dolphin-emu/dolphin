@@ -188,36 +188,28 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	   APPLE)
-		if(_ARCH_64)
-			set(_M_X86 1)
-			set(_M_X86_64 1)
-			add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-		else()
-			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-		# This option only applies to 64bit ARM
-		set(_M_ARM 1)
-		set(_M_ARM_64 1)
-		add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
-		add_definitions(-march=armv8-a+crc)
-	else()
-		set(ENABLE_GENERIC 1)
-	endif()
-endif()
 
 if(ENABLE_GENERIC)
 	message("Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
+elseif(_ARCH_64 AND (
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
+	APPLE
+))
+	set(_M_X86 1)
+	set(_M_X86_64 1)
+	add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
+elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	set(_M_ARM 1)
+	set(_M_ARM_64 1)
+	add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
+	add_definitions(-march=armv8-a+crc)
+else()
+	message(FATAL_ERROR "You're building on an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -423,6 +415,8 @@ if(ANDROID)
 	# We are cross compiling, search only the toolchain for libraries and includes
 	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 elseif(NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD)
 	list(APPEND LIBS rt)
 endif()
