@@ -9,7 +9,6 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -92,7 +91,7 @@ GLKView* renderView;
 	dolphinConfig.GetOrCreateSection("Core")->Set("CPUCore", useJIT ? PowerPC::CORE_JITARM64 : PowerPC::CORE_CACHEDINTERPRETER);
 	dolphinConfig.GetOrCreateSection("Core")->Set("CPUThread", YES);
 	dolphinConfig.GetOrCreateSection("Core")->Set("Fastmem", NO);
-	dolphinConfig.GetOrCreateSection("Core")->Set("GFXBackend", "ISetThis");
+	dolphinConfig.GetOrCreateSection("Core")->Set("GFXBackend", std::string("OGL"));
 	dolphinConfig.GetOrCreateSection("Core")->Set("FrameSkip", 2);
 
 	int scale = [UIScreen mainScreen].scale;
