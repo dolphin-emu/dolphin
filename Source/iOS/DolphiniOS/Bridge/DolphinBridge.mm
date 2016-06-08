@@ -9,6 +9,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -80,16 +81,24 @@ GLKView* renderView;
 
 - (void)saveDefaultPreferences
 {
-	
+	// Must use std::string when passing in strings to config
+	// If you don't, the string will be passed as a bool and will always
+	// Evaluate to true
+
 	// Dolphin
 	IniFile dolphinConfig;
 	dolphinConfig.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 	BOOL useJIT = [[NSUserDefaults standardUserDefaults] boolForKey:@"UseJIT"];
 	dolphinConfig.GetOrCreateSection("Core")->Set("CPUCore", useJIT ? PowerPC::CORE_JITARM64 : PowerPC::CORE_CACHEDINTERPRETER);
-	dolphinConfig.GetOrCreateSection("Core")->Set("CPUThread", "True");
-	dolphinConfig.GetOrCreateSection("Core")->Set("Fastmem", "False");
-	dolphinConfig.GetOrCreateSection("Core")->Set("GFXBackend", "OGL");
-	dolphinConfig.GetOrCreateSection("Core")->Set("FrameSkip", "0x00000000");
+	dolphinConfig.GetOrCreateSection("Core")->Set("CPUThread", YES);
+	dolphinConfig.GetOrCreateSection("Core")->Set("Fastmem", NO);
+	dolphinConfig.GetOrCreateSection("Core")->Set("GFXBackend", "ISetThis");
+	dolphinConfig.GetOrCreateSection("Core")->Set("FrameSkip", 2);
+
+	int scale = [UIScreen mainScreen].scale;
+	CGSize renderWindowSize = CGSizeMake(renderView.frame.size.width * scale, renderView.frame.size.height * scale);
+	dolphinConfig.GetOrCreateSection("Display")->Set("RenderWindowWidth", (int)renderWindowSize.width);
+	dolphinConfig.GetOrCreateSection("Display")->Set("RenderWindowHeight", (int)renderWindowSize.height);
 	dolphinConfig.Save(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
 
 	// OpenGL
@@ -97,35 +106,36 @@ GLKView* renderView;
 	oglConfig.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
 
 	IniFile::Section* oglSettings = oglConfig.GetOrCreateSection("Settings");
-	oglSettings->Set("ShowFPS", "True");
-	oglSettings->Set("EFBScale", "2");
-	oglSettings->Set("MSAA", "0");
-	oglSettings->Set("EnablePixelLighting", "False");
-	oglSettings->Set("DisableFog", "False");
+	oglSettings->Set("ShowFPS", YES);
+	oglSettings->Set("ExtendedFPSInfo", YES);
+	oglSettings->Set("EFBScale", 2);
+	oglSettings->Set("MSAA", 0);
+	oglSettings->Set("EnablePixelLighting", YES);
+	oglSettings->Set("DisableFog", NO);
 
 	IniFile::Section* oglEnhancements = oglConfig.GetOrCreateSection("Enhancements");
-	oglEnhancements->Set("MaxAnisotropy", "0");
-	oglEnhancements->Set("ForceFiltering", "False");
-	oglEnhancements->Set("StereoSwapEyes", "False");
-	oglEnhancements->Set("StereoMode", "0");
-	oglEnhancements->Set("StereoDepth", "20");
-	oglEnhancements->Set("StereoConvergence", "20");
+	oglEnhancements->Set("MaxAnisotropy", 0);
+	oglEnhancements->Set("ForceFiltering", YES);
+	oglEnhancements->Set("StereoSwapEyes", NO);
+	oglEnhancements->Set("StereoMode", 0);
+	oglEnhancements->Set("StereoDepth", 20);
+	oglEnhancements->Set("StereoConvergence", 20);
 
 	IniFile::Section* oglHacks = oglConfig.GetOrCreateSection("Hacks");
-	oglHacks->Set("EFBScaledCopy", "True");
-	oglHacks->Set("EFBAccessEnable", "False");
-	oglHacks->Set("EFBEmulateFormatChanges", "False");
-	oglHacks->Set("EFBCopyEnable", "True");
-	oglHacks->Set("EFBToTextureEnable", "True");
-	oglHacks->Set("EFBCopyCacheEnable", "False");
+	oglHacks->Set("EFBScaledCopy", YES);
+	oglHacks->Set("EFBAccessEnable", NO);
+	oglHacks->Set("EFBEmulateFormatChanges", NO);
+	oglHacks->Set("EFBCopyEnable", NO);
+	oglHacks->Set("EFBToTextureEnable", YES);
+	oglHacks->Set("EFBCopyCacheEnable", YES);
 
 	oglConfig.Save(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
 
 	// Move Controller Settings
-	NSString *configPath = [NSString stringWithCString:File::GetUserPath(D_GCUSER_IDX).c_str()
+	NSString *configPath = [NSString stringWithCString:File::GetUserPath(D_CONFIG_IDX).c_str()
 	                                          encoding:NSUTF8StringEncoding];
-	[self copyBundleDirectoryOrFile:@"Config/GCPadNew.ini" toPath:configPath];
-	[self copyBundleDirectoryOrFile:@"Config/WiimoteNew.ini" toPath:configPath];
+	[self copyBundleDirectoryOrFile:@"Config/GCPadNew.ini" toPath:[configPath stringByAppendingPathComponent:@"GCPadNew.ini"]];
+	[self copyBundleDirectoryOrFile:@"Config/WiimoteNew.ini" toPath:[configPath stringByAppendingPathComponent:@"WiimoteNew.ini.ini"]];
 }
 
 -(void)copyResourcesToPath:(NSString*)resourcesPath
@@ -158,19 +168,7 @@ GLKView* renderView;
 {
 	std::string directory([path cStringUsingEncoding:NSUTF8StringEncoding]);
 	UICommon::SetUserDirectory(directory);
-	File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_SHADERS_IDX));
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + USA_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + EUR_DIR DIR_SEP);
-	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX) + JAP_DIR DIR_SEP);
+	UICommon::CreateDirectories();
 }
 
 #pragma mark - Host Calls

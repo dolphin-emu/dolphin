@@ -9,7 +9,7 @@ typedef NS_ENUM(NSInteger, WCDirectionalControlDirection)
 	WCDirectionalControlDirectionLeft   = 1 << 0,
 	WCDirectionalControlDirectionRight  = 1 << 1,
 	WCDirectionalControlDirectionDown   = 1 << 2,
-	WCDirectionalControlDirectionUp	 = 1 << 3,
+	WCDirectionalControlDirectionUp     = 1 << 3,
 };
 
 typedef NS_ENUM(NSInteger, WCDirectionalControlStyle)

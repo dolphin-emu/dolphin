@@ -33,8 +33,8 @@ enum PadButton
 		//A
 		[self addButtonWithFrame:CGRectMake(frame.size.width - 135,
 		                                    frame.size.height - 215,
-		                                    50,
-		                                    50)
+		                                    80,
+		                                    80)
 		                     Tag:PAD_BUTTON_A
 		                   Image:@"gcpad_a.png"
 		            PressedImage:@"gcpad_a_pressed.png"];
