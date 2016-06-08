@@ -52,30 +52,32 @@ GLKView* renderView;
 
 - (void)openRomAtPath:(NSString* )path inView:(GLKView *)view;
 {
-	renderView = view;
-	NSLog(@"Loading game at path: %@", path);
-	UICommon::Init();
-
-	if (BootManager::BootCore([path UTF8String]))
-	{
-		NSLog(@"Booted Core");
-	}
-	else
-	{
-		NSLog(@"Unable to boot");
-		return;
-	}
-	while (!Core::IsRunning())
-	{
-		NSLog(@"Waiting for run");
-		usleep(100000);
-	}
-	while (Core::IsRunning())
-	{
-		updateMainFrameEvent.Wait();
-		Core::HostDispatchJobs();
-	}
-	UICommon::Shutdown();
+	dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+		renderView = view;
+		NSLog(@"Loading game at path: %@", path);
+		UICommon::Init();
+		
+		if (BootManager::BootCore([path UTF8String]))
+		{
+			NSLog(@"Booted Core");
+		}
+		else
+		{
+			NSLog(@"Unable to boot");
+			return;
+		}
+		while (!Core::IsRunning())
+		{
+			NSLog(@"Waiting for run");
+			usleep(100000);
+		}
+		while (Core::IsRunning())
+		{
+			updateMainFrameEvent.Wait();
+			Core::HostDispatchJobs();
+		}
+		UICommon::Shutdown();
+	});
 }
 
 - (void)saveDefaultPreferences
