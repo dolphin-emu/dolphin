@@ -82,7 +82,11 @@ void MemoryCard::FlushThread()
 	{
 		// If triggered, we're exiting.
 		// If timed out, check if we need to flush.
+#if IOS
+        bool do_exit = true; //WaitFor() crashes on iOS?
+#else
 		bool do_exit = m_flush_trigger.WaitFor(flush_interval);
+#endif
 		if (!do_exit)
 		{
 			bool is_dirty = m_dirty.TestAndClear();

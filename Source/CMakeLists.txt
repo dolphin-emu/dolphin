@@ -49,6 +49,8 @@ endmacro(add_dolphin_library)
 add_subdirectory(Core)
 if (ANDROID)
 	add_subdirectory(Android/jni)
+elseif (IOS)
+	add_subdirectory(iOS)
 endif()
 add_subdirectory(UnitTests)
 

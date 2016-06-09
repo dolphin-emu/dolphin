@@ -11,7 +11,7 @@
 enum MACConsumer
 {
 	BBA = 0,
-	IOS = 1
+	_IOS = 1
 };
 
 enum

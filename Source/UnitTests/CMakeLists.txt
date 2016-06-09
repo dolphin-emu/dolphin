@@ -1,5 +1,5 @@
 set(LIBS core gtest)
-if(APPLE)
+if(APPLE AND NOT IOS)
 	list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
 endif()
 if(ANDROID)

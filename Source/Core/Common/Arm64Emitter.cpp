@@ -11,6 +11,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+#if IOS
+    #include <array>
+    #include <libkern/OSCacheControl.h>
+#endif
+
 namespace Arm64Gen
 {
 

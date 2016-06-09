@@ -328,7 +328,7 @@ static void GetMacAddress(u8* mac)
 
 	if (!StringToMacAddress(wireless_mac, mac))
 	{
-		GenerateMacAddress(IOS, mac);
+		GenerateMacAddress(_IOS, mac);
 		SaveMacAddress(mac);
 		if (!wireless_mac.empty())
 		{

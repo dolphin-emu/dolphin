@@ -37,6 +37,9 @@ set(SRCS BreakPoints.cpp
 if(ANDROID)
 	set(SRCS ${SRCS}
 	         Logging/ConsoleListenerDroid.cpp)
+elseif(IOS)
+	set(SRCS ${SRCS}
+	         Logging/ConsoleListeneriOS.cpp)
 else()
 	set(SRCS ${SRCS}
 	         Logging/ConsoleListenerNix.cpp)
@@ -68,7 +71,7 @@ set(SRCS ${SRCS}
 	GL/GLExtensions/GLExtensions.cpp
 	GL/GLInterface/GLInterface.cpp)
 
-if(USE_EGL)
+if(USE_EGL AND NOT IOS)
     set(SRCS ${SRCS} GL/GLInterface/EGL.cpp)
     if(ANDROID)
         set(SRCS ${SRCS} GL/GLInterface/EGLAndroid.cpp)
@@ -80,6 +83,8 @@ endif()
 
 if(WIN32)
     set(SRCS ${SRCS} GL/GLInterface/WGL.cpp)
+elseif(IOS)
+    set(SRCS ${SRCS} GL/GLInterface/IGL.mm)
 elseif(APPLE)
     set(SRCS ${SRCS} GL/GLInterface/AGL.cpp)
 elseif(USE_X11)

@@ -31,6 +31,14 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
     * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
 
+## IOS
+* OS
+    * iOS 8.1 or higher.
+* Processor
+    * Apple A7 processor or newer. 
+* Ram
+    * Atleast 1GB of Ram.
+
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
 ## Building for Windows
@@ -92,6 +100,18 @@ binary into the correct location for inclusion in the Android APK.
 Execute the Gradle task `assembleArm_64Debug` to build, or `installArm_64Debug` to
 install the application onto a connected device. If other ABIs are eventually supported,
 execute the tasks corresponding to the desired ABI.
+
+## Building for iOS
+Building Dolphin on iOS requires [CMake](http://www.cmake.org/) and XCode 7.0+. Dolphin for iOS can be built on OSX 10.8+ or a system running OSX 10.8+ in a virtual machine.
+
+### Build Steps:
+1. `mkdir Build`
+2. `cd Build`
+3. `cmake .. -G Xcode -DENABLE_PCH=false -DCMAKE_TOOLCHAIN_FILE=../Source/iOS/ios.toolchain.cmake`
+4. `open -a xcode DolphiniOS.xcworkspace`
+5. `Select your device and run from XCode`
+
+Alternatively, you can build Dolphin with `xcodebuild -workspace DolphiniOS.xcworkspace -scheme DolphiniOS" after step 3.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall

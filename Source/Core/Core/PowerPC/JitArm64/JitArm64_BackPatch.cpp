@@ -17,6 +17,8 @@
 
 using namespace Arm64Gen;
 
+#if !IOS
+
 static void DoBacktrace(uintptr_t access_address, SContext* ctx)
 {
 	for (int i = 0; i < 30; i += 2)
@@ -333,3 +335,11 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
 	ctx->CTX_PC = (u64)slow_handler_iter->first;
 	return true;
 }
+
+#else
+static void DoBacktrace(uintptr_t access_address, SContext* ctx) {}
+void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode,
+                                    ARM64Reg RS, ARM64Reg addr,
+                                    BitSet32 gprs_to_push, BitSet32 fprs_to_push) {}
+bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx) {}
+#endif
