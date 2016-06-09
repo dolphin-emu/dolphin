@@ -124,9 +124,17 @@ Section "Base" SEC01
   ; TODO: Make a nice subsection-ized display
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  ; Delete old install directory if it exists
-  IfFileExists "$INSTDIR\*.*" 0 +2
-  RMDir /r "$INSTDIR"
+  ; Only delete what we put there; all $INSTDIR\User is left as is
+  Delete "$INSTDIR\uninst.exe"
+  Delete "$INSTDIR\license.txt"
+  Delete "$INSTDIR\*.dll"
+  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\DSPTool.exe"
+  Delete "$INSTDIR\cpack_package_description.txt"
+  Delete "$INSTDIR\qt.conf"
+  RMDir /r "$INSTDIR\Sys"
+  RMDir /r "$INSTDIR\Languages"
+
   File "${BASE_DIR}\Dolphin.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
