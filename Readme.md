@@ -39,7 +39,7 @@ Dolphin now prefers and recommends Visual Studio 2015 Update 2 (get the free Com
 But Dolphin VR also still supports Visual Studio 2013 Update 3 or above.
 Previous versions don't support many C++ features that we use. Git and Windows 10 SDK 10.0.10586.0 must be installed.
 
-An installer can be created by using the `Installer_x64.nsi` script in the
+An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
 since the Binary directory contains a working Dolphin distribution.
