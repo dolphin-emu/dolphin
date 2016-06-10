@@ -6,10 +6,10 @@
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
 ; HM NIS Edit Wizard helper defines
-!define PRODUCT_PUBLISHER "Dolphin Team"
-!define PRODUCT_WEB_SITE "https://dolphin-emu.org/"
+!define PRODUCT_PUBLISHER "Dolphin VR Team"
+!define PRODUCT_WEB_SITE "https://dolphinvr.wordpress.com/"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${PRODUCT_NAME}.exe"
-!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME} VR"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 SetCompressor /SOLID lzma
@@ -141,8 +141,8 @@ Section "Base" SEC01
   
   ; This needs to be done after Dolphin.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
-  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} VR.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME} VR.lnk" "$INSTDIR\Dolphin.exe"
   
   SetOutPath "$TEMP"
   SetOverwrite on
@@ -175,6 +175,10 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Readme" "$INSTDIR\readme.txt"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Comments" "Play GameCube and Wii games in VR"
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" 25976  
 SectionEnd
 
 ; Section descriptions
@@ -189,12 +193,13 @@ Section Uninstall
   ; Only uninstall what we put there; all $INSTDIR\User is left as is
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\license.txt"
+  Delete "$INSTDIR\readme.txt"
   Delete "$INSTDIR\*.dll"
   Delete "$INSTDIR\Dolphin.exe"
 
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
-  Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
-  Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk"
+  Delete "$DESKTOP\${PRODUCT_NAME} VR.lnk"
+  Delete "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} VR.lnk"
 
   RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
   RMDir /r "$INSTDIR\Sys"
