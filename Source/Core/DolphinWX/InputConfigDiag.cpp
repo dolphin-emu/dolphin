@@ -69,6 +69,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 		dlg.SetSizerAndFit(main_szr);
 		dlg.Center();
 
+		UpdateGUI();
 		dlg.ShowModal();
 
 		// remove the new groups that were just added, now that the window closed
@@ -287,6 +288,19 @@ void GamepadPage::UpdateGUI()
 		for (ControlButton* button : cgBox->control_buttons)
 		{
 			wxString expr = StrToWxStr(button->control_reference->expression);
+			expr.Replace("`", "");
+			expr.Replace("DInput/0/Keyboard Mouse:Click ", "M:Click");
+			expr.Replace("DInput/0/Keyboard Mouse:Axis ", "M:Axis");
+			expr.Replace("DInput/0/Keyboard Mouse:Cursor ", "M:Cursor");
+			expr.Replace("DInput/0/Keyboard Mouse:", "K:");
+			expr.Replace("XInput/0/Gamepad:", "X:");
+			expr.Replace("XInput/1/Gamepad:", "X1:");
+			expr.Replace("XInput/2/Gamepad:", "X2:");
+			expr.Replace("XInput/3/Gamepad:", "X3:");
+			expr.Replace("VR/0/Remote:", "R:");
+			expr.Replace("VR/0/HMD:", "H:");
+			expr.Replace("VR/0/Touch:", "T:");
+			expr.Replace("VR/0/Vive:", "V:");
 			expr.Replace("&", "&&");
 			button->SetLabel(expr);
 		}
