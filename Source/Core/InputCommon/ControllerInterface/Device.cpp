@@ -15,6 +15,9 @@
 
 namespace ciface
 {
+
+std::recursive_mutex g_devices_mutex;
+
 namespace Core
 {
 
