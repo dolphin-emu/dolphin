@@ -60,7 +60,7 @@ std::string VideoBackend::GetName() const
 
 std::string VideoBackend::GetDisplayName() const
 {
-	return "Direct3D 12 (experimental)";
+	return "Direct3D 12 (no VR)";
 }
 
 void InitBackendInfo()

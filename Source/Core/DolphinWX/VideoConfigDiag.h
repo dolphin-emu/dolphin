@@ -116,7 +116,7 @@ protected:
 			bool do_switch = !Core::IsRunning();
 			if (new_backend->GetName() == "Software Renderer")
 			{
-				do_switch = (wxYES == wxMessageBox(_("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
+				do_switch = (wxYES == wxMessageBox("Software rendering does not support VR.\n" + _("Software rendering is an order of magnitude slower than using the other backends.\nIt's only useful for debugging purposes.\nDo you really want to enable software rendering? If unsure, select 'No'."),
 							_("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, wxWindow::FindFocus()));
 			}
 

@@ -129,7 +129,7 @@ std::string VideoSoftware::GetName() const
 
 std::string VideoSoftware::GetDisplayName() const
 {
-	return "Software Renderer";
+	return "Software Renderer (no VR)";
 }
 
 static void InitBackendInfo()
