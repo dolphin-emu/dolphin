@@ -7,6 +7,49 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4CD5E8C91D0B16E3003D33A2 /* gcpad_a.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */; };
+		4CD5E8CA1D0B16E3003D33A2 /* gcpad_a_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */; };
+		4CD5E8CB1D0B16E3003D33A2 /* gcpad_b.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */; };
+		4CD5E8CC1D0B16E3003D33A2 /* gcpad_b_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */; };
+		4CD5E8CD1D0B16E3003D33A2 /* gcpad_c.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */; };
+		4CD5E8CE1D0B16E3003D33A2 /* gcpad_c_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */; };
+		4CD5E8CF1D0B16E3003D33A2 /* gcpad_dpad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */; };
+		4CD5E8D01D0B16E3003D33A2 /* gcpad_joystick.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */; };
+		4CD5E8D11D0B16E3003D33A2 /* gcpad_joystick_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */; };
+		4CD5E8D21D0B16E3003D33A2 /* gcpad_joystick_range.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */; };
+		4CD5E8D31D0B16E3003D33A2 /* gcpad_l.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */; };
+		4CD5E8D41D0B16E3003D33A2 /* gcpad_l_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */; };
+		4CD5E8D51D0B16E3003D33A2 /* gcpad_r.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */; };
+		4CD5E8D61D0B16E3003D33A2 /* gcpad_r_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */; };
+		4CD5E8D71D0B16E3003D33A2 /* gcpad_start.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */; };
+		4CD5E8D81D0B16E3003D33A2 /* gcpad_start_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */; };
+		4CD5E8D91D0B16E3003D33A2 /* gcpad_x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */; };
+		4CD5E8DA1D0B16E3003D33A2 /* gcpad_x_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */; };
+		4CD5E8DB1D0B16E3003D33A2 /* gcpad_y.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */; };
+		4CD5E8DC1D0B16E3003D33A2 /* gcpad_y_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */; };
+		4CD5E8DD1D0B16E3003D33A2 /* gcpad_z.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */; };
+		4CD5E8DE1D0B16E3003D33A2 /* gcpad_z_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */; };
+		4CD5E8DF1D0B16E3003D33A2 /* ic_add.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B31D0B16E3003D33A2 /* ic_add.png */; };
+		4CD5E8E01D0B16E3003D33A2 /* ic_cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */; };
+		4CD5E8E11D0B16E3003D33A2 /* ic_company.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B51D0B16E3003D33A2 /* ic_company.png */; };
+		4CD5E8E21D0B16E3003D33A2 /* ic_country.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B61D0B16E3003D33A2 /* ic_country.png */; };
+		4CD5E8E31D0B16E3003D33A2 /* ic_date.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B71D0B16E3003D33A2 /* ic_date.png */; };
+		4CD5E8E41D0B16E3003D33A2 /* ic_drawer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */; };
+		4CD5E8E51D0B16E3003D33A2 /* ic_folder.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */; };
+		4CD5E8E61D0B16E3003D33A2 /* ic_gamecube.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */; };
+		4CD5E8E71D0B16E3003D33A2 /* ic_launcher.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */; };
+		4CD5E8E81D0B16E3003D33A2 /* ic_menu_file.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */; };
+		4CD5E8E91D0B16E3003D33A2 /* ic_menu_folder.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */; };
+		4CD5E8EA1D0B16E3003D33A2 /* ic_play.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */; };
+		4CD5E8EB1D0B16E3003D33A2 /* ic_quickload.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */; };
+		4CD5E8EC1D0B16E3003D33A2 /* ic_quicksave.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */; };
+		4CD5E8ED1D0B16E3003D33A2 /* ic_refresh.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */; };
+		4CD5E8EE1D0B16E3003D33A2 /* ic_screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */; };
+		4CD5E8EF1D0B16E3003D33A2 /* ic_settings_core.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */; };
+		4CD5E8F01D0B16E3003D33A2 /* ic_settings_gcpad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */; };
+		4CD5E8F11D0B16E3003D33A2 /* ic_settings_graphics.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */; };
+		4CD5E8F21D0B16E3003D33A2 /* ic_settings_wiimote.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */; };
+		4CD5E8F31D0B16E3003D33A2 /* ic_wii.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */; };
 		CA5B0CE91D08C4CC00FB8387 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CE81D08C4CC00FB8387 /* CoreMedia.framework */; };
 		CA5B0CEB1D08C4D100FB8387 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CEA1D08C4D100FB8387 /* GameController.framework */; };
 		CA5B0CED1D08C4D700FB8387 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CEC1D08C4D700FB8387 /* GLKit.framework */; };
@@ -33,38 +76,6 @@
 		CA5B0D5A1D08C52200FB8387 /* RBVolumeButtons.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D191D08C52200FB8387 /* RBVolumeButtons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		CA5B0D5B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D1B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m */; };
 		CA5B0D5C1D08C52200FB8387 /* NSString+CompareToVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D1D1D08C52200FB8387 /* NSString+CompareToVersion.m */; };
-		CA5B0D5E1D08C52200FB8387 /* gcpad_a@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D221D08C52200FB8387 /* gcpad_a@2x.png */; };
-		CA5B0D5F1D08C52200FB8387 /* gcpad_a_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D231D08C52200FB8387 /* gcpad_a_pressed@2x.png */; };
-		CA5B0D601D08C52200FB8387 /* gcpad_b@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D241D08C52200FB8387 /* gcpad_b@2x.png */; };
-		CA5B0D611D08C52200FB8387 /* gcpad_b_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D251D08C52200FB8387 /* gcpad_b_pressed@2x.png */; };
-		CA5B0D621D08C52200FB8387 /* gcpad_c@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D261D08C52200FB8387 /* gcpad_c@2x.png */; };
-		CA5B0D631D08C52200FB8387 /* gcpad_c_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D271D08C52200FB8387 /* gcpad_c_pressed@2x.png */; };
-		CA5B0D641D08C52200FB8387 /* gcpad_dpad@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D281D08C52200FB8387 /* gcpad_dpad@2x.png */; };
-		CA5B0D651D08C52200FB8387 /* gcpad_dpad_pressed_down@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D291D08C52200FB8387 /* gcpad_dpad_pressed_down@2x.png */; };
-		CA5B0D661D08C52200FB8387 /* gcpad_dpad_pressed_downleft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2A1D08C52200FB8387 /* gcpad_dpad_pressed_downleft@2x.png */; };
-		CA5B0D671D08C52200FB8387 /* gcpad_dpad_pressed_downright@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2B1D08C52200FB8387 /* gcpad_dpad_pressed_downright@2x.png */; };
-		CA5B0D681D08C52200FB8387 /* gcpad_dpad_pressed_left@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2C1D08C52200FB8387 /* gcpad_dpad_pressed_left@2x.png */; };
-		CA5B0D691D08C52200FB8387 /* gcpad_dpad_pressed_right@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2D1D08C52200FB8387 /* gcpad_dpad_pressed_right@2x.png */; };
-		CA5B0D6A1D08C52200FB8387 /* gcpad_dpad_pressed_up@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2E1D08C52200FB8387 /* gcpad_dpad_pressed_up@2x.png */; };
-		CA5B0D6B1D08C52200FB8387 /* gcpad_dpad_pressed_upleft@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D2F1D08C52200FB8387 /* gcpad_dpad_pressed_upleft@2x.png */; };
-		CA5B0D6C1D08C52200FB8387 /* gcpad_dpad_pressed_upright@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D301D08C52200FB8387 /* gcpad_dpad_pressed_upright@2x.png */; };
-		CA5B0D6D1D08C52200FB8387 /* gcpad_joystick@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D311D08C52200FB8387 /* gcpad_joystick@2x.png */; };
-		CA5B0D6E1D08C52200FB8387 /* gcpad_joystick_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D321D08C52200FB8387 /* gcpad_joystick_pressed@2x.png */; };
-		CA5B0D6F1D08C52200FB8387 /* gcpad_joystick_range@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D331D08C52200FB8387 /* gcpad_joystick_range@2x.png */; };
-		CA5B0D701D08C52200FB8387 /* gcpad_l@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D341D08C52200FB8387 /* gcpad_l@2x.png */; };
-		CA5B0D711D08C52200FB8387 /* gcpad_l_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D351D08C52200FB8387 /* gcpad_l_pressed@2x.png */; };
-		CA5B0D721D08C52200FB8387 /* gcpad_r@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D361D08C52200FB8387 /* gcpad_r@2x.png */; };
-		CA5B0D731D08C52200FB8387 /* gcpad_r_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D371D08C52200FB8387 /* gcpad_r_pressed@2x.png */; };
-		CA5B0D741D08C52200FB8387 /* gcpad_start@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D381D08C52200FB8387 /* gcpad_start@2x.png */; };
-		CA5B0D751D08C52200FB8387 /* gcpad_start_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D391D08C52200FB8387 /* gcpad_start_pressed@2x.png */; };
-		CA5B0D761D08C52200FB8387 /* gcpad_x@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3A1D08C52200FB8387 /* gcpad_x@2x.png */; };
-		CA5B0D771D08C52200FB8387 /* gcpad_x_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3B1D08C52200FB8387 /* gcpad_x_pressed@2x.png */; };
-		CA5B0D781D08C52200FB8387 /* gcpad_y@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3C1D08C52200FB8387 /* gcpad_y@2x.png */; };
-		CA5B0D791D08C52200FB8387 /* gcpad_y_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3D1D08C52200FB8387 /* gcpad_y_pressed@2x.png */; };
-		CA5B0D7A1D08C52200FB8387 /* gcpad_z@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3E1D08C52200FB8387 /* gcpad_z@2x.png */; };
-		CA5B0D7B1D08C52200FB8387 /* gcpad_z_pressed@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D3F1D08C52200FB8387 /* gcpad_z_pressed@2x.png */; };
-		CA5B0D7C1D08C52200FB8387 /* ic_gamecube.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D401D08C52200FB8387 /* ic_gamecube.png */; };
-		CA5B0D7D1D08C52200FB8387 /* ic_wii.png in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D411D08C52200FB8387 /* ic_wii.png */; };
 		CA5B0D7E1D08C52200FB8387 /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D461D08C52200FB8387 /* Entitlements.plist */; };
 		CA5B0D7F1D08C52200FB8387 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D481D08C52200FB8387 /* main.m */; };
 		CA5B0D851D08C54100FB8387 /* Config in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D801D08C54100FB8387 /* Config */; };
@@ -115,6 +126,49 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_a.png; sourceTree = "<group>"; };
+		4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_a_pressed.png; sourceTree = "<group>"; };
+		4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_b.png; sourceTree = "<group>"; };
+		4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_b_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_c.png; sourceTree = "<group>"; };
+		4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_c_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_dpad.png; sourceTree = "<group>"; };
+		4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick.png; sourceTree = "<group>"; };
+		4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick_range.png; sourceTree = "<group>"; };
+		4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_l.png; sourceTree = "<group>"; };
+		4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_l_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_r.png; sourceTree = "<group>"; };
+		4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_r_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_start.png; sourceTree = "<group>"; };
+		4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_start_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_x.png; sourceTree = "<group>"; };
+		4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_x_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_y.png; sourceTree = "<group>"; };
+		4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_y_pressed.png; sourceTree = "<group>"; };
+		4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_z.png; sourceTree = "<group>"; };
+		4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_z_pressed.png; sourceTree = "<group>"; };
+		4CD5E8B31D0B16E3003D33A2 /* ic_add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_add.png; sourceTree = "<group>"; };
+		4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_cancel.png; sourceTree = "<group>"; };
+		4CD5E8B51D0B16E3003D33A2 /* ic_company.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_company.png; sourceTree = "<group>"; };
+		4CD5E8B61D0B16E3003D33A2 /* ic_country.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_country.png; sourceTree = "<group>"; };
+		4CD5E8B71D0B16E3003D33A2 /* ic_date.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_date.png; sourceTree = "<group>"; };
+		4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_drawer.png; sourceTree = "<group>"; };
+		4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_folder.png; sourceTree = "<group>"; };
+		4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_gamecube.png; sourceTree = "<group>"; };
+		4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
+		4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_menu_file.png; sourceTree = "<group>"; };
+		4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_menu_folder.png; sourceTree = "<group>"; };
+		4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_play.png; sourceTree = "<group>"; };
+		4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_quickload.png; sourceTree = "<group>"; };
+		4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_quicksave.png; sourceTree = "<group>"; };
+		4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_refresh.png; sourceTree = "<group>"; };
+		4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_screenshot.png; sourceTree = "<group>"; };
+		4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_core.png; sourceTree = "<group>"; };
+		4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_gcpad.png; sourceTree = "<group>"; };
+		4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_graphics.png; sourceTree = "<group>"; };
+		4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_wiimote.png; sourceTree = "<group>"; };
+		4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_wii.png; sourceTree = "<group>"; };
 		CA5B0CD81D08C46C00FB8387 /* Dolphin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dolphin.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CA5B0CE81D08C4CC00FB8387 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		CA5B0CEA1D08C4D100FB8387 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
@@ -157,38 +211,6 @@
 		CA5B0D1C1D08C52200FB8387 /* NSString+CompareToVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+CompareToVersion.h"; sourceTree = "<group>"; };
 		CA5B0D1D1D08C52200FB8387 /* NSString+CompareToVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+CompareToVersion.m"; sourceTree = "<group>"; };
 		CA5B0D201D08C52200FB8387 /* UnrarKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UnrarKit.framework; path = DolphiniOS/Frameworks/UnrarKit.framework; sourceTree = "<group>"; };
-		CA5B0D221D08C52200FB8387 /* gcpad_a@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a@2x.png"; sourceTree = "<group>"; };
-		CA5B0D231D08C52200FB8387 /* gcpad_a_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_a_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D241D08C52200FB8387 /* gcpad_b@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_b@2x.png"; sourceTree = "<group>"; };
-		CA5B0D251D08C52200FB8387 /* gcpad_b_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_b_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D261D08C52200FB8387 /* gcpad_c@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_c@2x.png"; sourceTree = "<group>"; };
-		CA5B0D271D08C52200FB8387 /* gcpad_c_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_c_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D281D08C52200FB8387 /* gcpad_dpad@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad@2x.png"; sourceTree = "<group>"; };
-		CA5B0D291D08C52200FB8387 /* gcpad_dpad_pressed_down@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_down@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2A1D08C52200FB8387 /* gcpad_dpad_pressed_downleft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_downleft@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2B1D08C52200FB8387 /* gcpad_dpad_pressed_downright@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_downright@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2C1D08C52200FB8387 /* gcpad_dpad_pressed_left@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_left@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2D1D08C52200FB8387 /* gcpad_dpad_pressed_right@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_right@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2E1D08C52200FB8387 /* gcpad_dpad_pressed_up@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_up@2x.png"; sourceTree = "<group>"; };
-		CA5B0D2F1D08C52200FB8387 /* gcpad_dpad_pressed_upleft@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_upleft@2x.png"; sourceTree = "<group>"; };
-		CA5B0D301D08C52200FB8387 /* gcpad_dpad_pressed_upright@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_dpad_pressed_upright@2x.png"; sourceTree = "<group>"; };
-		CA5B0D311D08C52200FB8387 /* gcpad_joystick@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick@2x.png"; sourceTree = "<group>"; };
-		CA5B0D321D08C52200FB8387 /* gcpad_joystick_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D331D08C52200FB8387 /* gcpad_joystick_range@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_joystick_range@2x.png"; sourceTree = "<group>"; };
-		CA5B0D341D08C52200FB8387 /* gcpad_l@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_l@2x.png"; sourceTree = "<group>"; };
-		CA5B0D351D08C52200FB8387 /* gcpad_l_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_l_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D361D08C52200FB8387 /* gcpad_r@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_r@2x.png"; sourceTree = "<group>"; };
-		CA5B0D371D08C52200FB8387 /* gcpad_r_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_r_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D381D08C52200FB8387 /* gcpad_start@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_start@2x.png"; sourceTree = "<group>"; };
-		CA5B0D391D08C52200FB8387 /* gcpad_start_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_start_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3A1D08C52200FB8387 /* gcpad_x@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_x@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3B1D08C52200FB8387 /* gcpad_x_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_x_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3C1D08C52200FB8387 /* gcpad_y@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_y@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3D1D08C52200FB8387 /* gcpad_y_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_y_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3E1D08C52200FB8387 /* gcpad_z@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_z@2x.png"; sourceTree = "<group>"; };
-		CA5B0D3F1D08C52200FB8387 /* gcpad_z_pressed@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "gcpad_z_pressed@2x.png"; sourceTree = "<group>"; };
-		CA5B0D401D08C52200FB8387 /* ic_gamecube.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_gamecube.png; sourceTree = "<group>"; };
-		CA5B0D411D08C52200FB8387 /* ic_wii.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_wii.png; sourceTree = "<group>"; };
 		CA5B0D461D08C52200FB8387 /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		CA5B0D471D08C52200FB8387 /* Dolphin-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Dolphin-Prefix.pch"; sourceTree = "<group>"; };
 		CA5B0D481D08C52200FB8387 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -281,6 +303,56 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4CD5E89B1D0B16E3003D33A2 /* Retina */ = {
+			isa = PBXGroup;
+			children = (
+				4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */,
+				4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */,
+				4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */,
+				4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */,
+				4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */,
+				4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */,
+				4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */,
+				4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */,
+				4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */,
+				4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */,
+				4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */,
+				4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */,
+				4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */,
+				4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */,
+				4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */,
+				4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */,
+				4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */,
+				4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */,
+				4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */,
+				4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */,
+				4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */,
+				4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */,
+				4CD5E8B31D0B16E3003D33A2 /* ic_add.png */,
+				4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */,
+				4CD5E8B51D0B16E3003D33A2 /* ic_company.png */,
+				4CD5E8B61D0B16E3003D33A2 /* ic_country.png */,
+				4CD5E8B71D0B16E3003D33A2 /* ic_date.png */,
+				4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */,
+				4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */,
+				4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */,
+				4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */,
+				4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */,
+				4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */,
+				4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */,
+				4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */,
+				4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */,
+				4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */,
+				4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */,
+				4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */,
+				4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */,
+				4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */,
+				4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */,
+				4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */,
+			);
+			path = Retina;
+			sourceTree = "<group>";
+		};
 		CA5B0CFD1D08C52200FB8387 /* Controller */ = {
 			isa = PBXGroup;
 			children = (
@@ -359,49 +431,10 @@
 			path = Frameworks;
 			sourceTree = "<group>";
 		};
-		CA5B0D421D08C52200FB8387 /* Retina */ = {
-			isa = PBXGroup;
-			children = (
-				CA5B0D221D08C52200FB8387 /* gcpad_a@2x.png */,
-				CA5B0D231D08C52200FB8387 /* gcpad_a_pressed@2x.png */,
-				CA5B0D241D08C52200FB8387 /* gcpad_b@2x.png */,
-				CA5B0D251D08C52200FB8387 /* gcpad_b_pressed@2x.png */,
-				CA5B0D261D08C52200FB8387 /* gcpad_c@2x.png */,
-				CA5B0D271D08C52200FB8387 /* gcpad_c_pressed@2x.png */,
-				CA5B0D281D08C52200FB8387 /* gcpad_dpad@2x.png */,
-				CA5B0D291D08C52200FB8387 /* gcpad_dpad_pressed_down@2x.png */,
-				CA5B0D2A1D08C52200FB8387 /* gcpad_dpad_pressed_downleft@2x.png */,
-				CA5B0D2B1D08C52200FB8387 /* gcpad_dpad_pressed_downright@2x.png */,
-				CA5B0D2C1D08C52200FB8387 /* gcpad_dpad_pressed_left@2x.png */,
-				CA5B0D2D1D08C52200FB8387 /* gcpad_dpad_pressed_right@2x.png */,
-				CA5B0D2E1D08C52200FB8387 /* gcpad_dpad_pressed_up@2x.png */,
-				CA5B0D2F1D08C52200FB8387 /* gcpad_dpad_pressed_upleft@2x.png */,
-				CA5B0D301D08C52200FB8387 /* gcpad_dpad_pressed_upright@2x.png */,
-				CA5B0D311D08C52200FB8387 /* gcpad_joystick@2x.png */,
-				CA5B0D321D08C52200FB8387 /* gcpad_joystick_pressed@2x.png */,
-				CA5B0D331D08C52200FB8387 /* gcpad_joystick_range@2x.png */,
-				CA5B0D341D08C52200FB8387 /* gcpad_l@2x.png */,
-				CA5B0D351D08C52200FB8387 /* gcpad_l_pressed@2x.png */,
-				CA5B0D361D08C52200FB8387 /* gcpad_r@2x.png */,
-				CA5B0D371D08C52200FB8387 /* gcpad_r_pressed@2x.png */,
-				CA5B0D381D08C52200FB8387 /* gcpad_start@2x.png */,
-				CA5B0D391D08C52200FB8387 /* gcpad_start_pressed@2x.png */,
-				CA5B0D3A1D08C52200FB8387 /* gcpad_x@2x.png */,
-				CA5B0D3B1D08C52200FB8387 /* gcpad_x_pressed@2x.png */,
-				CA5B0D3C1D08C52200FB8387 /* gcpad_y@2x.png */,
-				CA5B0D3D1D08C52200FB8387 /* gcpad_y_pressed@2x.png */,
-				CA5B0D3E1D08C52200FB8387 /* gcpad_z@2x.png */,
-				CA5B0D3F1D08C52200FB8387 /* gcpad_z_pressed@2x.png */,
-				CA5B0D401D08C52200FB8387 /* ic_gamecube.png */,
-				CA5B0D411D08C52200FB8387 /* ic_wii.png */,
-			);
-			path = Retina;
-			sourceTree = "<group>";
-		};
 		CA5B0D431D08C52200FB8387 /* GameCube */ = {
 			isa = PBXGroup;
 			children = (
-				CA5B0D421D08C52200FB8387 /* Retina */,
+				4CD5E89B1D0B16E3003D33A2 /* Retina */,
 			);
 			path = GameCube;
 			sourceTree = "<group>";
@@ -626,47 +659,58 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CA5B0D6D1D08C52200FB8387 /* gcpad_joystick@2x.png in Resources */,
+				4CD5E8EB1D0B16E3003D33A2 /* ic_quickload.png in Resources */,
+				4CD5E8CB1D0B16E3003D33A2 /* gcpad_b.png in Resources */,
 				CA5B0D871D08C54100FB8387 /* Shaders in Resources */,
 				CA5B0D881D08C54100FB8387 /* Roms in Resources */,
-				CA5B0D7D1D08C52200FB8387 /* ic_wii.png in Resources */,
-				CA5B0D6B1D08C52200FB8387 /* gcpad_dpad_pressed_upleft@2x.png in Resources */,
-				CA5B0D771D08C52200FB8387 /* gcpad_x_pressed@2x.png in Resources */,
-				CA5B0D761D08C52200FB8387 /* gcpad_x@2x.png in Resources */,
-				CA5B0D661D08C52200FB8387 /* gcpad_dpad_pressed_downleft@2x.png in Resources */,
-				CA5B0D6C1D08C52200FB8387 /* gcpad_dpad_pressed_upright@2x.png in Resources */,
-				CA5B0D751D08C52200FB8387 /* gcpad_start_pressed@2x.png in Resources */,
-				CA5B0D611D08C52200FB8387 /* gcpad_b_pressed@2x.png in Resources */,
-				CA5B0D641D08C52200FB8387 /* gcpad_dpad@2x.png in Resources */,
-				CA5B0D631D08C52200FB8387 /* gcpad_c_pressed@2x.png in Resources */,
 				CA5B0D7E1D08C52200FB8387 /* Entitlements.plist in Resources */,
+				4CD5E8D21D0B16E3003D33A2 /* gcpad_joystick_range.png in Resources */,
+				4CD5E8D71D0B16E3003D33A2 /* gcpad_start.png in Resources */,
+				4CD5E8D81D0B16E3003D33A2 /* gcpad_start_pressed.png in Resources */,
+				4CD5E8CC1D0B16E3003D33A2 /* gcpad_b_pressed.png in Resources */,
+				4CD5E8E11D0B16E3003D33A2 /* ic_company.png in Resources */,
+				4CD5E8F11D0B16E3003D33A2 /* ic_settings_graphics.png in Resources */,
 				CA5B0D571D08C52200FB8387 /* Info.plist in Resources */,
-				CA5B0D781D08C52200FB8387 /* gcpad_y@2x.png in Resources */,
-				CA5B0D731D08C52200FB8387 /* gcpad_r_pressed@2x.png in Resources */,
-				CA5B0D691D08C52200FB8387 /* gcpad_dpad_pressed_right@2x.png in Resources */,
-				CA5B0D5F1D08C52200FB8387 /* gcpad_a_pressed@2x.png in Resources */,
-				CA5B0D711D08C52200FB8387 /* gcpad_l_pressed@2x.png in Resources */,
-				CA5B0D701D08C52200FB8387 /* gcpad_l@2x.png in Resources */,
-				CA5B0D681D08C52200FB8387 /* gcpad_dpad_pressed_left@2x.png in Resources */,
+				4CD5E8F01D0B16E3003D33A2 /* ic_settings_gcpad.png in Resources */,
+				4CD5E8D91D0B16E3003D33A2 /* gcpad_x.png in Resources */,
+				4CD5E8E71D0B16E3003D33A2 /* ic_launcher.png in Resources */,
+				4CD5E8E21D0B16E3003D33A2 /* ic_country.png in Resources */,
+				4CD5E8D01D0B16E3003D33A2 /* gcpad_joystick.png in Resources */,
 				CA5B0D851D08C54100FB8387 /* Config in Resources */,
-				CA5B0D7A1D08C52200FB8387 /* gcpad_z@2x.png in Resources */,
-				CA5B0D601D08C52200FB8387 /* gcpad_b@2x.png in Resources */,
 				CA5B0D861D08C54100FB8387 /* GC in Resources */,
-				CA5B0D6F1D08C52200FB8387 /* gcpad_joystick_range@2x.png in Resources */,
+				4CD5E8DC1D0B16E3003D33A2 /* gcpad_y_pressed.png in Resources */,
+				4CD5E8D61D0B16E3003D33A2 /* gcpad_r_pressed.png in Resources */,
+				4CD5E8E91D0B16E3003D33A2 /* ic_menu_folder.png in Resources */,
+				4CD5E8C91D0B16E3003D33A2 /* gcpad_a.png in Resources */,
+				4CD5E8DD1D0B16E3003D33A2 /* gcpad_z.png in Resources */,
 				CA5B0D561D08C52200FB8387 /* LaunchScreen.storyboard in Resources */,
+				4CD5E8DE1D0B16E3003D33A2 /* gcpad_z_pressed.png in Resources */,
 				CA5B0D551D08C52200FB8387 /* Assets.xcassets in Resources */,
-				CA5B0D6E1D08C52200FB8387 /* gcpad_joystick_pressed@2x.png in Resources */,
-				CA5B0D7B1D08C52200FB8387 /* gcpad_z_pressed@2x.png in Resources */,
-				CA5B0D5E1D08C52200FB8387 /* gcpad_a@2x.png in Resources */,
+				4CD5E8E01D0B16E3003D33A2 /* ic_cancel.png in Resources */,
+				4CD5E8CF1D0B16E3003D33A2 /* gcpad_dpad.png in Resources */,
+				4CD5E8CE1D0B16E3003D33A2 /* gcpad_c_pressed.png in Resources */,
+				4CD5E8EE1D0B16E3003D33A2 /* ic_screenshot.png in Resources */,
+				4CD5E8D31D0B16E3003D33A2 /* gcpad_l.png in Resources */,
+				4CD5E8EF1D0B16E3003D33A2 /* ic_settings_core.png in Resources */,
+				4CD5E8DA1D0B16E3003D33A2 /* gcpad_x_pressed.png in Resources */,
+				4CD5E8ED1D0B16E3003D33A2 /* ic_refresh.png in Resources */,
+				4CD5E8D41D0B16E3003D33A2 /* gcpad_l_pressed.png in Resources */,
+				4CD5E8CA1D0B16E3003D33A2 /* gcpad_a_pressed.png in Resources */,
+				4CD5E8DB1D0B16E3003D33A2 /* gcpad_y.png in Resources */,
+				4CD5E8D11D0B16E3003D33A2 /* gcpad_joystick_pressed.png in Resources */,
+				4CD5E8E41D0B16E3003D33A2 /* ic_drawer.png in Resources */,
+				4CD5E8E81D0B16E3003D33A2 /* ic_menu_file.png in Resources */,
+				4CD5E8CD1D0B16E3003D33A2 /* gcpad_c.png in Resources */,
+				4CD5E8EC1D0B16E3003D33A2 /* ic_quicksave.png in Resources */,
+				4CD5E8E31D0B16E3003D33A2 /* ic_date.png in Resources */,
 				CA5B0D541D08C52200FB8387 /* Main.storyboard in Resources */,
-				CA5B0D671D08C52200FB8387 /* gcpad_dpad_pressed_downright@2x.png in Resources */,
-				CA5B0D721D08C52200FB8387 /* gcpad_r@2x.png in Resources */,
-				CA5B0D6A1D08C52200FB8387 /* gcpad_dpad_pressed_up@2x.png in Resources */,
-				CA5B0D741D08C52200FB8387 /* gcpad_start@2x.png in Resources */,
-				CA5B0D651D08C52200FB8387 /* gcpad_dpad_pressed_down@2x.png in Resources */,
-				CA5B0D621D08C52200FB8387 /* gcpad_c@2x.png in Resources */,
-				CA5B0D7C1D08C52200FB8387 /* ic_gamecube.png in Resources */,
-				CA5B0D791D08C52200FB8387 /* gcpad_y_pressed@2x.png in Resources */,
+				4CD5E8EA1D0B16E3003D33A2 /* ic_play.png in Resources */,
+				4CD5E8DF1D0B16E3003D33A2 /* ic_add.png in Resources */,
+				4CD5E8E51D0B16E3003D33A2 /* ic_folder.png in Resources */,
+				4CD5E8E61D0B16E3003D33A2 /* ic_gamecube.png in Resources */,
+				4CD5E8D51D0B16E3003D33A2 /* gcpad_r.png in Resources */,
+				4CD5E8F21D0B16E3003D33A2 /* ic_settings_wiimote.png in Resources */,
+				4CD5E8F31D0B16E3003D33A2 /* ic_wii.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

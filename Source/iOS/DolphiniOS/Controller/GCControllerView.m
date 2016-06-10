@@ -95,15 +95,7 @@ enum PadButton
 		                   Image:@"gcpad_start.png"
 		            PressedImage:@"gcpad_start_pressed.png"];
 		// Dpad
-		NSArray* dpadImages = @[[UIImage imageNamed:@"gcpad_dpad.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_up.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_upright.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_right.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_downright.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_down.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_downleft.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_left.png"],
-		                        [UIImage imageNamed:@"gcpad_dpad_pressed_upleft.png"]];
+		NSArray* dpadImages = @[[UIImage imageNamed:@"gcpad_dpad.png"]];
 
 		WCDirectionalControl* dpad =     [[WCDirectionalControl alloc]
 		                                 initWithFrame:CGRectMake(130, frame.size.height - 130, 110, 110)
