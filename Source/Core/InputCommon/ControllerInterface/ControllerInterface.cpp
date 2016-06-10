@@ -54,6 +54,8 @@ void ControllerInterface::Initialize(void* const hwnd)
 
 	m_hwnd = hwnd;
 
+	std::lock_guard<std::recursive_mutex> lk(ciface::g_devices_mutex);
+
 #ifdef CIFACE_USE_DINPUT
 	ciface::DInput::Init(m_devices, (HWND)hwnd);
 #endif
@@ -90,6 +92,8 @@ void ControllerInterface::Reinitialize()
 	if (!m_is_init)
 		return;
 
+	std::lock_guard<std::recursive_mutex> lk(ciface::g_devices_mutex);
+
 	Shutdown();
 	Initialize(m_hwnd);
 }
@@ -103,6 +107,8 @@ void ControllerInterface::Shutdown()
 {
 	if (!m_is_init)
 		return;
+
+	std::lock_guard<std::recursive_mutex> lk(ciface::g_devices_mutex);
 
 	for (ciface::Core::Device* d : m_devices)
 	{
@@ -135,6 +141,9 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_ANDROID
 	// nothing needed
 #endif
+#ifdef CIFACE_USE_EVDEV
+	ciface::evdev::Shutdown();
+#endif
 
 	m_is_init = false;
 }
@@ -146,6 +155,8 @@ void ControllerInterface::Shutdown()
 //
 void ControllerInterface::UpdateInput()
 {
+	std::lock_guard<std::recursive_mutex> lk(ciface::g_devices_mutex);
+
 	for (ciface::Core::Device* d : m_devices)
 		d->UpdateInput();
 }

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>

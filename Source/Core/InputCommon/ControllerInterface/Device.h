@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,9 @@ typedef double ControlState;
 
 namespace ciface
 {
+
+extern std::recursive_mutex g_devices_mutex;
+
 namespace Core
 {
 

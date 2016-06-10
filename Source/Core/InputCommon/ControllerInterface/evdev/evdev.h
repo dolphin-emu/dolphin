@@ -15,7 +15,11 @@ namespace ciface
 namespace evdev
 {
 
+void StartHotplugThread(std::vector<Core::Device*> &controllerDevices);
+void StopHotplugThread();
+
 void Init(std::vector<Core::Device*>& devices);
+void Shutdown();
 
 class evdevDevice : public Core::Device
 {
@@ -70,6 +74,8 @@ public:
 	int GetId() const override { return m_id; }
 	std::string GetSource() const override { return "evdev"; }
 
+	void ChangeFd(int new_fd);
+	bool IsStillValid();
 	bool IsInteresting() const { return m_initialized && m_interesting; }
 
 private:
