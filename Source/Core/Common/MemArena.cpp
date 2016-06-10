@@ -55,6 +55,8 @@ void MemArena::GrabSHMSegment(size_t size)
 {
 #ifdef _WIN32
 	hMemoryMapping = CreateFileMapping(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE, 0, (DWORD)(size), nullptr);
+#elif defined(APPLE_IOS)
+	fd = -1;
 #elif defined(ANDROID)
 	fd = AshmemCreateFileMapping("Dolphin-emu", size);
 	if (fd < 0)
@@ -104,6 +106,8 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 #if APPLE_IOS
 	//ANON and PRIVATE are required for MAP_FIXED on iOS
 	flags = MAP_ANONYMOUS | MAP_PRIVATE | ((base == nullptr) ? 0 : MAP_FIXED);
+	//iOS does not have file backed memory. This should be -1 anyways but set it just incase
+	fd = -1;
 #else
 	flags = MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED);
 #endif
