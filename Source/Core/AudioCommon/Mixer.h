@@ -57,6 +57,7 @@ private:
 		void PushSamples(const short* samples, unsigned int num_samples);
 		unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
 		void SetInputSampleRate(unsigned int rate);
+		unsigned int GetInputSampleRate();
 		void SetVolume(unsigned int lvolume, unsigned int rvolume);
 	private:
 		CMixer* m_mixer;
