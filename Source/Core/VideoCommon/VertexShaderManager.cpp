@@ -54,7 +54,7 @@ static int nLightsChanged[2]; // min,max
 static Matrix44 s_viewportCorrection;
 static Matrix33 s_viewRotationMatrix;
 static Matrix33 s_viewInvRotationMatrix;
-static float s_fViewTranslationVector[3];
+float s_fViewTranslationVector[3];
 static float s_fViewRotation[2];
 
 static Matrix44 s_VRTransformationMatrix;

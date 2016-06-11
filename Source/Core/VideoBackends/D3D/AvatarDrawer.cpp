@@ -21,6 +21,9 @@
 
 #include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
 
+extern float s_fViewTranslationVector[3];
+extern EFBRectangle g_final_screen_region;
+
 namespace DX11
 {
 
@@ -131,6 +134,45 @@ namespace DX11
 		HRESULT hr;
 		D3D11_BUFFER_DESC bd;
 
+		// set up vertices for drawing lines (laser pointer) and rectangles
+		m_line_vertices = new VERTEX[34];
+		ZeroMemory(m_line_vertices, sizeof(m_line_vertices[0]) * 34);
+		m_line_vertices[0].X = 0; m_line_vertices[0].Y = 0; m_line_vertices[0].Z = 0;
+		m_line_vertices[1].X = 0; m_line_vertices[1].Y = 0; m_line_vertices[1].Z = -1000; // -ve = forwards
+		m_line_vertices[0].nx = 1; m_line_vertices[0].ny = 0; m_line_vertices[0].nz = 0;
+		m_line_vertices[0].u = 0;
+		m_line_vertices[1].u = 1;
+		// rectangle
+		for (size_t i = 0; i < 8; ++i)
+		{
+			m_line_vertices[2 + i] = m_line_vertices[0];
+			m_line_vertices[2 + i].nx = 0;
+			m_line_vertices[2 + i].nz = 1;
+			m_line_vertices[2 + i].u = (float)(i % 2);
+		}
+		m_line_vertices[3].X = 1;
+		m_line_vertices[4] = m_line_vertices[3];
+		m_line_vertices[5].X = 1; m_line_vertices[5].Y = 1;
+		m_line_vertices[6] = m_line_vertices[5];
+		m_line_vertices[7].X = 0; m_line_vertices[7].Y = 1;
+		m_line_vertices[8] = m_line_vertices[7];
+		m_line_vertices[9] = m_line_vertices[2];
+		for (int i = 0; i < 8; ++i)
+		{
+			m_line_vertices[10 + i] = m_line_vertices[2 + i];
+			m_line_vertices[10 + i].Z = 1.0f;
+			m_line_vertices[18 + i] = m_line_vertices[2 + i];
+			m_line_vertices[18 + i].Z = -1.0f;
+		}
+		m_line_vertices[26] = m_line_vertices[10];
+		m_line_vertices[27] = m_line_vertices[18];
+		m_line_vertices[28] = m_line_vertices[10 + 2];
+		m_line_vertices[29] = m_line_vertices[18 + 2];
+		m_line_vertices[30] = m_line_vertices[10 + 4];
+		m_line_vertices[31] = m_line_vertices[18 + 4];
+		m_line_vertices[32] = m_line_vertices[10 + 6];
+		m_line_vertices[33] = m_line_vertices[18 + 6];
+
 		// Load Hydra model
 		{
 			std::vector<tinyobj::shape_t> shapes;
@@ -142,13 +184,6 @@ namespace DX11
 			m_vertex_count = shapes[0].mesh.vertices.size();
 			m_index_count = shapes[0].mesh.indices.size();
 			m_vertices = new float[m_vertex_count];
-			m_line_vertices = new VERTEX[2];
-			ZeroMemory(m_line_vertices, sizeof(m_line_vertices[0]) * 2);
-			m_line_vertices[0].X = 0; m_line_vertices[0].Y = 0; m_line_vertices[0].Z = 0;
-			m_line_vertices[1].X = 0; m_line_vertices[1].Y = 0; m_line_vertices[1].Z = -1000; // -ve = forwards
-			m_line_vertices[0].nx = 1; m_line_vertices[0].ny = 0; m_line_vertices[0].nz = 0;
-			m_line_vertices[0].u = 0;
-			m_line_vertices[1].u = 1;
 			m_indices = new u16[m_index_count];
 			for (size_t i = 0; i < m_vertex_count; ++i)
 			{
@@ -223,7 +258,7 @@ namespace DX11
 		D3D::SetDebugObjectName(m_vertex_buffer, "AvatarDrawer vertex buffer");
 
 		// Create line vertex buffer
-		bd = CD3D11_BUFFER_DESC(2 * sizeof(VERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC);
+		bd = CD3D11_BUFFER_DESC(34 * sizeof(VERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC);
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		srd = { m_line_vertices, 0, 0 };
 		hr = D3D::device->CreateBuffer(&bd, &srd, &m_line_vertex_buffer);
@@ -408,6 +443,410 @@ namespace DX11
 		D3D::stateman->SetVertexConstants(nullptr);
 	}
 
+	void AvatarDrawer::DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b)
+	{
+		params.color[0] = r;
+		params.color[1] = g;
+		params.color[2] = b;
+		params.color[3] = 1.0f;
+		// view matrix
+		CalculateViewMatrix(kind);
+		// world matrix
+		Matrix44 world, rotation, location;
+		Matrix44::LoadMatrix33(rotation, m);
+		Matrix44::Translate(location, pos);
+		Matrix44::Multiply(location, rotation, world);
+		// copy matrices into buffer
+		memcpy(params.world, world.data, 16 * sizeof(float));
+		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
+
+		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
+		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetSampler(0, m_avatar_sampler);
+
+		// Draw!
+		D3D::stateman->Apply();
+		if (kind == 0)
+			D3D::context->Draw(8, 2);
+		else
+			D3D::context->Draw(32, 2);
+
+		// Clean up state
+		D3D::stateman->SetSampler(0, nullptr);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetPixelConstants(nullptr);
+		D3D::stateman->SetVertexConstants(nullptr);
+	}
+
+
+	void AvatarDrawer::CalculateViewMatrix(int kind)
+	{
+		bool bStuckToHead = false, bIsSkybox = false, bIsPerspective = false, bHasWidest = (vr_widest_3d_HFOV > 0);
+		bool bIsHudElement = false, bIsOffscreen = false, bAspectWide = true, bNoForward = false, bShowAim = false;
+		float UnitsPerMetre = 1.0f;
+
+		// Show HUD
+		if (kind == 1)
+		{
+			if (!bHasWidest)
+				return;
+		}
+		// Show Aim
+		else if (kind == 0)
+		{
+			if (bHasWidest)
+				bShowAim = true;
+		}
+		// Show 2D
+		else if (kind == 2)
+		{
+			bHasWidest = false;
+		}
+
+		float zoom_forward = 0.0f;
+		if (vr_widest_3d_HFOV <= g_ActiveConfig.fMinFOV && bHasWidest)
+		{
+			zoom_forward = g_ActiveConfig.fAimDistance * tanf(DEGREES_TO_RADIANS(g_ActiveConfig.fMinFOV) / 2) / tanf(DEGREES_TO_RADIANS(vr_widest_3d_HFOV) / 2);
+			zoom_forward -= g_ActiveConfig.fAimDistance;
+		}
+
+		float hfov = 0, vfov = 0;
+		hfov = vr_widest_3d_HFOV;
+		vfov = vr_widest_3d_VFOV;
+
+		//VR Headtracking and leaning back compensation
+		Matrix44 rotation_matrix;
+		Matrix44 lean_back_matrix;
+		Matrix44 camera_pitch_matrix;
+		if (bStuckToHead)
+		{
+			Matrix44::LoadIdentity(rotation_matrix);
+			Matrix44::LoadIdentity(lean_back_matrix);
+			Matrix44::LoadIdentity(camera_pitch_matrix);
+		}
+		else
+		{
+			// head tracking
+			if (g_ActiveConfig.bOrientationTracking)
+			{
+				VR_UpdateHeadTrackingIfNeeded();
+				Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(rotation_matrix);
+			}
+
+			Matrix33 pitch_matrix33;
+
+			// leaning back
+			float extra_pitch = -g_ActiveConfig.fLeanBackAngle;
+			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
+
+			// camera pitch
+			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.iMotionSicknessSkybox != 2 || !bIsSkybox))
+			{
+				if (!g_ActiveConfig.bStabilizePitch)
+				{
+					Matrix44 user_pitch44;
+					Matrix44 roll_and_yaw_matrix;
+
+					if (bIsPerspective || bHasWidest)
+						extra_pitch = g_ActiveConfig.fCameraPitch;
+					else
+						extra_pitch = g_ActiveConfig.fScreenPitch;
+					Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+					Matrix44::LoadMatrix33(user_pitch44, pitch_matrix33);
+					Matrix44::Set(roll_and_yaw_matrix, g_game_camera_rotmat.data);
+					Matrix44::Multiply(roll_and_yaw_matrix, user_pitch44, camera_pitch_matrix);
+				}
+				else
+				{
+					Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+				}
+			}
+			else
+			{
+				if (xfmem.projection.type == GX_PERSPECTIVE || bHasWidest)
+					extra_pitch = g_ActiveConfig.fCameraPitch;
+				else
+					extra_pitch = g_ActiveConfig.fScreenPitch;
+				Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
+				Matrix44::LoadMatrix33(camera_pitch_matrix, pitch_matrix33);
+			}
+		}
+
+		// Position matrices
+		Matrix44 head_position_matrix, free_look_matrix, camera_forward_matrix, camera_position_matrix;
+		if (bStuckToHead || bIsSkybox)
+		{
+			Matrix44::LoadIdentity(head_position_matrix);
+			Matrix44::LoadIdentity(free_look_matrix);
+			Matrix44::LoadIdentity(camera_position_matrix);
+		}
+		else
+		{
+			float pos[3];
+			// head tracking
+			if (g_ActiveConfig.bPositionTracking)
+			{
+				for (int i = 0; i < 3; ++i)
+					pos[i] = g_head_tracking_position[i] * UnitsPerMetre;
+				Matrix44::Translate(head_position_matrix, pos);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(head_position_matrix);
+			}
+
+			// freelook camera position
+			for (int i = 0; i < 3; ++i)
+				pos[i] = s_fViewTranslationVector[i] * UnitsPerMetre;
+			Matrix44::Translate(free_look_matrix, pos);
+
+			// camera position stabilisation
+			if (g_ActiveConfig.bStabilizeX || g_ActiveConfig.bStabilizeY || g_ActiveConfig.bStabilizeZ)
+			{
+				for (int i = 0; i < 3; ++i)
+					pos[i] = -g_game_camera_pos[i] * UnitsPerMetre;
+				Matrix44::Translate(camera_position_matrix, pos);
+			}
+			else
+			{
+				Matrix44::LoadIdentity(camera_position_matrix);
+			}
+		}
+
+		Matrix44 look_matrix;
+		if (bIsPerspective && !bIsHudElement && !bIsOffscreen)
+		{
+			// Transformations must be applied in the following order for VR:
+			// camera position stabilisation
+			// camera forward
+			// camera pitch
+			// free look
+			// leaning back
+			// head position tracking
+			// head rotation tracking
+			if (bNoForward || bIsSkybox || bStuckToHead)
+			{
+				Matrix44::LoadIdentity(camera_forward_matrix);
+			}
+			else
+			{
+				float pos[3];
+				pos[0] = 0;
+				pos[1] = 0;
+				pos[2] = (g_ActiveConfig.fCameraForward + zoom_forward) * UnitsPerMetre;
+				Matrix44::Translate(camera_forward_matrix, pos);
+			}
+
+			Matrix44 A, B;
+			Matrix44::Multiply(camera_position_matrix, camera_forward_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
+			Matrix44::Multiply(free_look_matrix, A, B);
+			Matrix44::Multiply(lean_back_matrix, B, A);
+			Matrix44::Multiply(head_position_matrix, A, B);
+			Matrix44::Multiply(rotation_matrix, B, look_matrix);
+		}
+		else
+		{
+			float HudWidth, HudHeight, HudThickness, HudDistance, HudUp, CameraForward, AimDistance;
+
+			// 2D Screen
+			if (!bHasWidest)
+			{
+				HudThickness = g_ActiveConfig.fScreenThickness * UnitsPerMetre;
+				HudDistance = g_ActiveConfig.fScreenDistance * UnitsPerMetre;
+				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
+				HudHeight = g_ActiveConfig.fScreenHeight * UnitsPerMetre;
+				// NES games are supposed to be 1.175:1 (16:13.62) even though VC normally renders them as 16:9
+				// http://forums.nesdev.com/viewtopic.php?t=8063
+				if (g_is_nes)
+					HudWidth = HudHeight * 1.175f;
+				else if (bAspectWide)
+					HudWidth = HudHeight * (float)16 / 9;
+				else
+					HudWidth = HudHeight * (float)4 / 3;
+				CameraForward = 0;
+				HudUp = g_ActiveConfig.fScreenUp * UnitsPerMetre;
+				AimDistance = HudDistance;
+			}
+			else
+				// HUD over 3D world
+			{
+				// The HUD distance might have been carefully chosen to line up with objects, so we should scale it with the world
+				// But we can't make the HUD too close or it's hard to look at, and we should't make the HUD too far or it stops looking 3D
+				const float MinHudDistance = 0.28f, MaxHudDistance = 3.00f; // HUD shouldn't go closer than 28 cm when shrinking scale, or further than 3m when growing
+				float HUDScale = g_ActiveConfig.fScale;
+				if (HUDScale < 1.0f && g_ActiveConfig.fHudDistance >= MinHudDistance && g_ActiveConfig.fHudDistance * HUDScale < MinHudDistance)
+					HUDScale = MinHudDistance / g_ActiveConfig.fHudDistance;
+				else if (HUDScale > 1.0f && g_ActiveConfig.fHudDistance <= MaxHudDistance && g_ActiveConfig.fHudDistance * HUDScale > MaxHudDistance)
+					HUDScale = MaxHudDistance / g_ActiveConfig.fHudDistance;
+
+				// Give the 2D layer a 3D effect if different parts of the 2D layer are rendered at different z coordinates
+				HudThickness = g_ActiveConfig.fHudThickness * HUDScale * UnitsPerMetre;  // the 2D layer is actually a 3D box this many game units thick
+				HudDistance = g_ActiveConfig.fHudDistance * HUDScale * UnitsPerMetre;   // depth 0 on the HUD should be this far away
+
+				HudUp = 0;
+				if (bNoForward)
+					CameraForward = 0;
+				else
+					CameraForward = (g_ActiveConfig.fCameraForward + zoom_forward) * g_ActiveConfig.fScale * UnitsPerMetre;
+				// When moving the camera forward, correct the size of the HUD so that aiming is correct at AimDistance
+				AimDistance = g_ActiveConfig.fAimDistance * g_ActiveConfig.fScale * UnitsPerMetre;
+				if (AimDistance <= 0)
+					AimDistance = HudDistance;
+				if (bShowAim)
+				{
+					HudThickness = 0;
+					HudDistance = AimDistance;
+					HUDScale = g_ActiveConfig.fScale;
+				}
+				// Now that we know how far away the box is, and what FOV it should fill, we can work out the width and height in game units
+				// Note: the HUD won't line up exactly (except at AimDistance) if CameraForward is non-zero 
+				//float HudWidth = 2.0f * tanf(hfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
+				//float HudHeight = 2.0f * tanf(vfov / 2.0f * 3.14159f / 180.0f) * (HudDistance) * Correction;
+				HudWidth = 2.0f * tanf(DEGREES_TO_RADIANS(hfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
+				HudHeight = 2.0f * tanf(DEGREES_TO_RADIANS(vfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
+			}
+
+			float scale[3]; // width, height, and depth of box in game units divided by 2D width, height, and depth 
+			float position[3]; // position of front of box relative to the camera, in game units 
+
+			float viewport_scale[2];
+			float viewport_offset[2]; // offset as a fraction of the viewport's width
+			if (!bIsHudElement && !bIsOffscreen)
+			{
+				viewport_scale[0] = 1.0f;
+				viewport_scale[1] = 1.0f;
+				viewport_offset[0] = 0.0f;
+				viewport_offset[1] = 0.0f;
+			}
+			else
+			{
+				Viewport &v = xfmem.viewport;
+				float left, top, width, height;
+				left = v.xOrig - v.wd - 342;
+				top = v.yOrig + v.ht - 342;
+				width = 2 * v.wd;
+				height = -2 * v.ht;
+				float screen_width = (float)g_final_screen_region.GetWidth();
+				float screen_height = (float)g_final_screen_region.GetHeight();
+				viewport_scale[0] = width / screen_width;
+				viewport_scale[1] = height / screen_height;
+				viewport_offset[0] = ((left + (width / 2)) - (0 + (screen_width / 2))) / screen_width;
+				viewport_offset[1] = -((top + (height / 2)) - (0 + (screen_height / 2))) / screen_height;
+			}
+
+			// 3D HUD elements (may be part of 2D screen or HUD)
+			if (bIsPerspective)
+			{
+				// these are the edges of the near clipping plane in game coordinates
+				float left2D = 0;
+				float right2D = 1;
+				float bottom2D = 1;
+				float top2D = 0;
+				float zFar2D = 1;
+				float zNear2D = -1;
+				float zObj = zNear2D + (zFar2D - zNear2D) * g_ActiveConfig.fHud3DCloser;
+
+				left2D *= zObj;
+				right2D *= zObj;
+				bottom2D *= zObj;
+				top2D *= zObj;
+
+				// Scale the width and height to fit the HUD in metres
+				if (right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = viewport_scale[0] * HudWidth / (right2D - left2D);
+				}
+				if (top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = viewport_scale[1] * HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				// Keep depth the same scale as width, so it looks like a real object
+				if (zFar2D == zNear2D) {
+					scale[2] = scale[0];
+				}
+				else {
+					scale[2] = scale[0];
+				}
+				// Adjust the position for off-axis projection matrices, and shifting the 2D screen
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f) + viewport_offset[0] * HudWidth; // shift it right into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + viewport_offset[1] * HudHeight + HudUp; // shift it up into the centre of the view;
+																												// Shift it from the old near clipping plane to the HUD distance, and shift the camera forward
+				if (!bHasWidest)
+					position[2] = scale[2] * zObj - HudDistance;
+				else
+					position[2] = scale[2] * zObj - HudDistance; // - CameraForward;
+			}
+			// 2D layer, or 2D viewport (may be part of 2D screen or HUD)
+			else
+			{
+				float left2D = 0;
+				float right2D = 1;
+				float bottom2D = 1;
+				float top2D = 0;
+				float zNear2D = -1;
+				float zFar2D = 1;
+
+				// for 2D, work out the fraction of the HUD we should fill, and multiply the scale by that
+				// also work out what fraction of the height we should shift it up, and what fraction of the width we should shift it left
+				// only multiply by the extra scale after adjusting the position?
+
+				if (right2D == left2D) {
+					scale[0] = 0;
+				}
+				else {
+					scale[0] = viewport_scale[0] * HudWidth / (right2D - left2D);
+				}
+				if (top2D == bottom2D) {
+					scale[1] = 0;
+				}
+				else {
+					scale[1] = viewport_scale[1] * HudHeight / (top2D - bottom2D); // note that positive means up in 3D
+				}
+				if (zFar2D == zNear2D) {
+					scale[2] = 0; // The 2D layer was flat, so we make it flat instead of a box to avoid dividing by zero
+				}
+				else {
+					scale[2] = HudThickness / (zFar2D - zNear2D); // Scale 2D z values into 3D game units so it is the right thickness
+				}
+				position[0] = scale[0] * (-(right2D + left2D) / 2.0f) + viewport_offset[0] * HudWidth; // shift it right into the centre of the view
+				position[1] = scale[1] * (-(top2D + bottom2D) / 2.0f) + viewport_offset[1] * HudHeight + HudUp; // shift it up into the centre of the view;
+																												// Shift it from the zero plane to the HUD distance, and shift the camera forward
+				if (!bHasWidest)
+					position[2] = -HudDistance;
+				else
+					position[2] = -HudDistance; // - CameraForward;
+			}
+
+			Matrix44 A, B, scale_matrix, position_matrix, box_matrix;
+			Matrix44::Scale(scale_matrix, scale);
+			Matrix44::Translate(position_matrix, position);
+
+			// order: scale, position
+			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
+
+			Matrix44::Multiply(camera_position_matrix, box_matrix, B);
+			Matrix44::Multiply(camera_pitch_matrix, B, A);
+			Matrix44::Multiply(free_look_matrix, A, B);
+			Matrix44::Multiply(lean_back_matrix, B, A);
+			Matrix44::Multiply(head_position_matrix, A, B);
+			Matrix44::Multiply(rotation_matrix, B, look_matrix);
+		}
+
+
+		// copy matrices into buffer
+		memcpy(params.view, look_matrix.data, 16 * sizeof(float));
+	}
 
 	void AvatarDrawer::DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs)
 	{
@@ -599,28 +1038,54 @@ namespace DX11
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
 		Matrix33 m;
+		ControllerStyle cs;
 		// Draw Left Razer Hydra
 		if (VR_GetLeftHydraPos(pos, &m))
 		{
-			ControllerStyle cs = VR_GetHydraStyle(0);
+			cs = VR_GetHydraStyle(0);
 			DrawHydra(pos, m, cs);
 		}
 		// Draw Right Razer Hydra
-		if (VR_GetRightHydraPos(pos, &m))
+		bool has_right_controller = VR_GetRightHydraPos(pos, &m);
+		if (has_right_controller)
 		{
-			ControllerStyle cs = VR_GetHydraStyle(1);
+			cs = VR_GetHydraStyle(1);
 			DrawHydra(pos, m, cs);
 		}
 
-		if (g_ActiveConfig.bShowLaserPointer && VR_GetHydraStyle(1) == CS_WIIMOTE_IR && VR_GetRightHydraPos(pos, &m))
+		// Draw Lines
+		bool draw_laser_pointer = g_ActiveConfig.bShowLaserPointer && has_right_controller && cs == CS_WIIMOTE_IR;
+		if (g_ActiveConfig.bShowAimRectangle || g_ActiveConfig.bShowHudBox || g_ActiveConfig.bShow2DBox || draw_laser_pointer)
 		{
-			// Draw Laser Sight
 			D3D::stateman->SetVertexShader(m_line_vertex_shader);
 			D3D::stateman->SetGeometryShader(m_line_geometry_shader);
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::stateman->PushRasterizerState(m_avatar_line_rast_state);
 			D3D::stateman->SetVertexBuffer(m_line_vertex_buffer, stride, offset);
-			DrawLine(pos, m, 1, 0, 0);
+			// Draw Laser Sight
+			if (draw_laser_pointer)
+			{
+				DrawLine(pos, m, 1, 0, 0);
+			}
+
+			pos[0] = 0; pos[1] = 0; pos[2] = 0;
+			Matrix33 m;
+			if (g_ActiveConfig.bShow2DBox)
+			{
+				Matrix33::LoadIdentity(m);
+				DrawBox(2, pos, m, 0.1f, 0.3f, 1.0f);
+			}
+			if (g_ActiveConfig.bShowAimRectangle)
+			{
+				Matrix33::LoadIdentity(m);
+				DrawBox(0, pos, m, 1, 0.3f, 0.3f);
+			}
+			if (g_ActiveConfig.bShowHudBox)
+			{
+				Matrix33::LoadIdentity(m);
+				DrawBox(1, pos, m, 0.1f, 1.0f, 0.1f);
+			}
+
 			D3D::stateman->PopRasterizerState();
 		}
 

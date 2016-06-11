@@ -47,8 +47,10 @@ namespace DX11
 		void Draw();
 
 	private:
+		void CalculateViewMatrix(int kind);
 		void DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs);
 		void DrawLine(float *pos, Matrix33 &m, float r, float g, float b);
+		void DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b);
 
 		ID3D11Buffer* m_vertex_shader_params;
 		ID3D11Buffer* m_vertex_buffer;
