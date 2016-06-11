@@ -11,6 +11,10 @@
 #include "Common/Flag.h"
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
+#include "Core/HotkeyManager.h"
+#include "Core/HW/GCKeyboard.h"
+#include "Core/HW/GCPad.h"
+#include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
 
@@ -18,6 +22,12 @@ namespace ciface
 {
 namespace evdev
 {
+
+// this is used to number the joysticks
+// multiple joysticks with the same name shall get unique ids starting at 0
+std::map<std::string, int> name_counts;
+
+int num_controllers = 0;
 
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
@@ -88,6 +98,7 @@ static void HotplugThreadFunc(std::vector<Core::Device*> &controllerDevices)
 				s_is_handling_hotplug_event = true;
 
 				NOTICE_LOG(SERIALINTERFACE, "Found new device: %s (%s)", devnode, name.c_str());
+				bool found_replugged_device = false;
 				// Try to find a device that was unplugged then replugged
 				// If found, update the fd on the libevdev device, so we can get input
 				// from the device again.
@@ -106,7 +117,27 @@ static void HotplugThreadFunc(std::vector<Core::Device*> &controllerDevices)
 					device->ChangeFd(new_fd);
 					NOTICE_LOG(SERIALINTERFACE, "Detected replugged device (%s): fd changed to %d",
 					           name.c_str(), new_fd);
+					found_replugged_device = true;
 					break;
+				}
+
+				if (!found_replugged_device)
+				{
+					evdevDevice* input = new evdevDevice(devnode, name_counts[name]++);
+
+					if (input->IsInteresting())
+					{
+						controllerDevices.push_back(input);
+						NOTICE_LOG(SERIALINTERFACE, "Added new device: %s", name.c_str());
+						Wiimote::LoadConfig();
+						Keyboard::LoadConfig();
+						Pad::LoadConfig();
+						HotkeyManagerEmu::LoadConfig();
+					}
+					else
+					{
+						delete input;
+					}
 				}
 
 				s_is_handling_hotplug_event = false;
@@ -135,11 +166,8 @@ void StopHotplugThread()
 
 void Init(std::vector<Core::Device*> &controllerDevices)
 {
-	// this is used to number the joysticks
-	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map<std::string, int> name_counts;
-
-	int num_controllers = 0;
+	name_counts.clear();
+	num_controllers = 0;
 
 	// We use udev to find any devices. Hotplugging is handled in another thread;
 	// we first iterate over /dev/input/event0 to event31. However if the
