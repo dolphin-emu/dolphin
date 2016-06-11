@@ -1078,6 +1078,24 @@ bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_
 	}
 }
 
+bool VR_SetTouchVibration(int hands, float freq, float amplitude)
+{
+#if defined(OVR_MAJOR_VERSION) && (OVR_MAJOR_VERSION > 7 || OVR_PRODUCT_VERSION >= 1)
+	if (g_has_rift)
+	{
+		if (amplitude <= 0)
+			amplitude = 0;
+		else
+			amplitude = 1;
+		return OVR_SUCCESS(ovr_SetControllerVibration(hmd, (ovrControllerType)hands, freq, amplitude));
+	}
+	else
+#endif
+	{
+		return false;
+	}
+}
+
 // 0 = unknown, 1 = buttons, -1 = analog
 static int s_vive_button_mode[2] = {};
 static bool s_vive_was_touched[2] = {};

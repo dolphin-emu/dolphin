@@ -212,6 +212,7 @@ void VR_GetFovTextureSize(int *width, int *height);
 
 bool VR_GetRemoteButtons(u32 *buttons);
 bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[]);
+bool VR_SetTouchVibration(int hands, float freq, float amplitude);
 bool VR_GetHMDGestures(u32 *gestures);
 bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[]);
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);

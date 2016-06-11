@@ -66,6 +66,15 @@ namespace OculusInput
 		"RStickY"
 	};
 
+	static const char* const named_motors[] =
+	{
+		"LRumble00",
+		"LRumble05",
+		"LRumble10",
+		"RRumble00",
+		"RRumble05",
+		"RRumble10",
+	};
 
 void Init(std::vector<Core::Device*>& devices)
 {
@@ -150,10 +159,16 @@ OculusTouch::OculusTouch()
 		AddInput(new Touch(i, m_touches));
 	}
 
+	for (int i = 0; i != sizeof(named_motors) / sizeof(*named_motors); ++i)
+	{
+		AddOutput(new Motor(i, this, m_motors[i]));
+	}
+
 	ZeroMemory(&m_buttons, sizeof(m_buttons));
 	ZeroMemory(&m_touches, sizeof(m_touches));
 	ZeroMemory(m_triggers, sizeof(m_triggers));
 	ZeroMemory(m_axes, sizeof(m_axes));
+	ZeroMemory(m_motors, sizeof(m_motors));
 }
 
 std::string OculusTouch::GetName() const
@@ -176,6 +191,23 @@ std::string OculusTouch::GetSource() const
 void OculusTouch::UpdateInput()
 {
 	VR_GetTouchButtons(&m_buttons, &m_touches, m_triggers, m_axes);
+	UpdateMotors();
+}
+
+void OculusTouch::UpdateMotors()
+{
+	for (int hand = 0; hand < 2; ++hand)
+	{
+		float f, a;
+		if (m_motors[hand * 3 + 0] > m_motors[hand * 3 + 1] && m_motors[hand * 3 + 0] > m_motors[hand * 3 + 2])
+			f = 0.0f;
+		else if (m_motors[hand * 3 + 1] >= m_motors[hand * 3 + 0] && m_motors[hand * 3 + 1] >= m_motors[hand * 3 + 2])
+			f = 0.5f;
+		else
+			f = 1.0f;
+		a = m_motors[hand * 3 + 0] + m_motors[hand * 3 + 1] + m_motors[hand * 3 + 2];
+		VR_SetTouchVibration(hand+1, f, a);
+	}
 }
 
 // GET name/source/id
@@ -214,6 +246,10 @@ std::string OculusTouch::Trigger::GetName() const
 	return named_triggers[m_index];
 }
 
+std::string OculusTouch::Motor::GetName() const
+{
+	return named_motors[m_index];
+}
 
 
 // GET / SET STATES
@@ -231,6 +267,12 @@ ControlState OculusTouch::Trigger::GetState() const
 ControlState OculusTouch::Axis::GetState() const
 {
 	return std::max(0.0, ControlState(m_axes[m_index]*m_range));
+}
+
+void OculusTouch::Motor::SetState(ControlState state)
+{
+	m_motor = (float)state;
+	m_parent->UpdateMotors();
 }
 
 u32 OculusTouch::Touch::GetStates() const

@@ -94,6 +94,18 @@ private:
 		const s8 m_range;
 	};
 
+	class Motor : public Core::Device::Output
+	{
+	public:
+		Motor(u8 index, OculusTouch* parent, float &motor) : m_motor(motor), m_index(index), m_parent(parent) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	private:
+		float& m_motor;
+		const u8 m_index;
+		OculusTouch* m_parent;
+	};
+
 public:
 	void UpdateInput() override;
 
@@ -103,9 +115,11 @@ public:
 	int GetId() const override;
 	std::string GetSource() const override;
 
+	void UpdateMotors();
+
 private:
 	u32 m_buttons, m_touches;
-	float m_triggers[4], m_axes[4];
+	float m_triggers[4], m_axes[4], m_motors[6];
 };
 
 class HMDDevice : public Core::Device
