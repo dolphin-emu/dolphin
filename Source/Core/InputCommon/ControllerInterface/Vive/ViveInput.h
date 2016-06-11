@@ -78,6 +78,18 @@ private:
 		const s8 m_range;
 	};
 
+	class Motor : public Core::Device::Output
+	{
+	public:
+		Motor(u8 index, ViveController* parent, u32 &motors) : m_motors(motors), m_index(index), m_parent(parent) {}
+		std::string GetName() const override;
+		void SetState(ControlState state) override;
+	private:
+		u32& m_motors;
+		const u8 m_index;
+		ViveController* m_parent;
+	};
+
 public:
 	void UpdateInput() override;
 
@@ -87,8 +99,10 @@ public:
 	int GetId() const override;
 	std::string GetSource() const override;
 
+	void UpdateMotors();
+
 private:
-	u32 m_buttons, m_touches, m_specials;
+	u32 m_buttons, m_touches, m_specials, m_motors;
 	float m_triggers[2], m_axes[8];
 };
 

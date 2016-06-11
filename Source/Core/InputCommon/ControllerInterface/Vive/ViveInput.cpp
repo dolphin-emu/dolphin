@@ -101,6 +101,12 @@ namespace ViveInput
 		"RTouchY"
 	};
 
+	static const char* const named_motors[] =
+	{
+		"LHaptic",
+		"RHaptic",
+	};
+
 void Init(std::vector<Core::Device*>& devices)
 {
 	devices.push_back(new ViveController());
@@ -134,8 +140,14 @@ ViveController::ViveController()
 		AddInput(new Touch(i, m_touches));
 	}
 
+	for (int i = 0; i != sizeof(named_motors) / sizeof(*named_motors); ++i)
+	{
+		AddOutput(new Motor(i, this, m_motors));
+	}
+
 	ZeroMemory(&m_buttons, sizeof(m_buttons));
 	ZeroMemory(&m_touches, sizeof(m_touches));
+	ZeroMemory(&m_motors, sizeof(m_motors));
 	ZeroMemory(m_triggers, sizeof(m_triggers));
 	ZeroMemory(m_axes, sizeof(m_axes));
 }
@@ -160,6 +172,13 @@ std::string ViveController::GetSource() const
 void ViveController::UpdateInput()
 {
 	VR_GetViveButtons(&m_buttons, &m_touches, &m_specials, m_triggers, m_axes);
+	UpdateMotors();
+}
+
+void ViveController::UpdateMotors()
+{
+	if (m_motors)
+		VR_ViveHapticPulse(m_motors, 3999);
 }
 
 // GET name/source/id
@@ -217,7 +236,10 @@ std::string ViveController::Trigger::GetName() const
 	return named_triggers[m_index];
 }
 
-
+std::string ViveController::Motor::GetName() const
+{
+	return named_motors[m_index];
+}
 
 // GET / SET STATES
 
@@ -234,6 +256,15 @@ ControlState ViveController::Trigger::GetState() const
 ControlState ViveController::Axis::GetState() const
 {
 	return std::max(0.0, ControlState(m_axes[m_index]*m_range));
+}
+
+void ViveController::Motor::SetState(ControlState state)
+{
+	if (state > 0)
+		m_motors |= (1 << m_index);
+	else
+		m_motors &= ~(1 << m_index);
+	m_parent->UpdateMotors();
 }
 
 u32 ViveController::Touch::GetStates() const

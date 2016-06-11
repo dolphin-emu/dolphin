@@ -1287,6 +1287,42 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 	}
 }
 
+bool VR_ViveHapticPulse(int hands, int microseconds)
+{
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr && hands)
+	{
+		// find the controllers for each hand, 100 = not found
+		vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedControllerRole hand = m_pHMD->GetControllerRoleForTrackedDeviceIndex(i);
+			if (hand == vr::TrackedControllerRole_LeftHand)
+				left_hand = i;
+			else if (hand == vr::TrackedControllerRole_RightHand)
+				right_hand = i;
+		}
+		for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i)
+		{
+			vr::ETrackedDeviceClass kind = m_pHMD->GetTrackedDeviceClass(i);
+			if (kind == vr::TrackedDeviceClass_Controller)
+			{
+				if (left_hand == 100 && i != right_hand)
+					left_hand = i;
+				else if (right_hand == 100 && i != left_hand)
+					right_hand = i;
+			}
+		}
+		if (hands & 1)
+			m_pHMD->TriggerHapticPulse(left_hand, 0, microseconds);
+		if (hands & 2)
+			m_pHMD->TriggerHapticPulse(right_hand, 0, microseconds);
+	}
+#endif
+	return false;
+}
+
+
 float left_hand_old_velocity[3] = {}, left_hand_older_velocity[3] = {};
 float right_hand_old_velocity[3] = {}, right_hand_older_velocity[3] = {};
 

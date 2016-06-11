@@ -215,6 +215,7 @@ bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_
 bool VR_SetTouchVibration(int hands, float freq, float amplitude);
 bool VR_GetHMDGestures(u32 *gestures);
 bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[]);
+bool VR_ViveHapticPulse(int hands, int microseconds);
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz);
 // called whenever the game reads the wiimote, to let us know which features they are reading
