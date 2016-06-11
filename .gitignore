@@ -47,4 +47,6 @@ OSVR
 *.diagsession
 # Ignore installer exe file
 /Installer/dolphin-vr-x64-4.0.exe
+/Installer/dolphin-vr-x64-5.0.exe
+/Installer/dolphin-x64-5.0.exe
 # Ignore other files
