@@ -62,4 +62,6 @@ if(SDL_FOUND OR SDL2_FOUND)
 	endif()
 endif()
 
+list(APPEND LIBS core)
+
 add_dolphin_library(inputcommon "${SRCS}" "${LIBS}")
