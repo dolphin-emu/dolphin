@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -177,6 +178,7 @@ public:
 	const std::vector<Device*>& Devices() const { return m_devices; }
 	Device* FindDevice(const DeviceQualifier& devq) const;
 protected:
+	std::mutex m_devices_mutex;
 	std::vector<Device*> m_devices;
 };
 
