@@ -11,16 +11,16 @@ namespace ciface
 namespace Android
 {
 
-void Init( std::vector<Core::Device*>& devices )
+void Init()
 {
-	devices.push_back(new Touchscreen(0));
-	devices.push_back(new Touchscreen(1));
-	devices.push_back(new Touchscreen(2));
-	devices.push_back(new Touchscreen(3));
-	devices.push_back(new Touchscreen(4));
-	devices.push_back(new Touchscreen(5));
-	devices.push_back(new Touchscreen(6));
-	devices.push_back(new Touchscreen(7));
+	g_controller_interface.AddDevice(new Touchscreen(0));
+	g_controller_interface.AddDevice(new Touchscreen(1));
+	g_controller_interface.AddDevice(new Touchscreen(2));
+	g_controller_interface.AddDevice(new Touchscreen(3));
+	g_controller_interface.AddDevice(new Touchscreen(4));
+	g_controller_interface.AddDevice(new Touchscreen(5));
+	g_controller_interface.AddDevice(new Touchscreen(6));
+	g_controller_interface.AddDevice(new Touchscreen(7));
 }
 
 // Touchscreens and stuff

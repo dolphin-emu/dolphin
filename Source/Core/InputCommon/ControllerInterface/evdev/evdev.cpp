@@ -33,7 +33,7 @@ static std::string GetName(const std::string& devnode)
 	return res;
 }
 
-void Init(std::vector<Core::Device*> &controllerDevices)
+void Init()
 {
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
@@ -73,7 +73,7 @@ void Init(std::vector<Core::Device*> &controllerDevices)
 
 			if (input->IsInteresting())
 			{
-				controllerDevices.push_back(input);
+				g_controller_interface.AddDevice(input);
 				num_controllers++;
 			}
 			else

@@ -33,7 +33,7 @@ static const struct
 // lil silly
 static HWND m_hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
 {
 	m_hwnd = _hwnd;
 
@@ -56,7 +56,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& de
 					{
 						if (SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 						{
-							devices.push_back(new KeyboardMouse(kb_device, mo_device));
+							g_controller_interface.AddDevice(new KeyboardMouse(kb_device, mo_device));
 							return;
 						}
 					}

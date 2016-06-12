@@ -152,26 +152,23 @@ static void DeviceMatching_callback(void* inContext,
 
 	DeviceDebugPrint(inIOHIDDeviceRef);
 
-	std::vector<Core::Device*> *devices =
-		(std::vector<Core::Device*> *)inContext;
-
-	// Add to the devices vector if it's of a type we want
+	// Add a device if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-		devices->push_back(new Keyboard(inIOHIDDeviceRef,
+		g_controller_interface.AddDevice(new Keyboard(inIOHIDDeviceRef,
 			name, kbd_name_counts[name]++, g_window));
 #if 0
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-		devices->push_back(new Mouse(inIOHIDDeviceRef,
+		g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef,
 			name, mouse_name_counts[name]++));
 #endif
-	else 
-		devices->push_back(new Joystick(inIOHIDDeviceRef,
+	else
+		g_controller_interface.AddDevice(new Joystick(inIOHIDDeviceRef,
 			name, joy_name_counts[name]++));
 }
 
-void Init(std::vector<Core::Device*>& devices, void *window)
+void Init(void *window)
 {
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault,
 		kIOHIDOptionsTypeNone);
@@ -184,7 +181,7 @@ void Init(std::vector<Core::Device*>& devices, void *window)
 
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager,
-		DeviceMatching_callback, (void *)&devices);
+		DeviceMatching_callback, nullptr);
 
 	// Match devices that are plugged in right now
 	IOHIDManagerScheduleWithRunLoop(HIDManager,

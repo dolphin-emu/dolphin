@@ -8,7 +8,7 @@
 
 #include <SDL.h>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 
 #if SDL_VERSION_ATLEAST(1, 3, 0)
@@ -24,7 +24,7 @@ namespace ciface
 namespace SDL
 {
 
-void Init( std::vector<Core::Device*>& devices );
+void Init();
 
 class Joystick : public Core::Device
 {
