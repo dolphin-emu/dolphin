@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "InputCommon/ControllerInterface/Device.h"
-
 namespace ciface
 {
 namespace Pipes
@@ -24,7 +22,7 @@ namespace Pipes
 // SET {L, R} [0, 1]
 // SET {MAIN, C} [0, 1] [0, 1]
 
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 
 class PipeDevice : public Core::Device
 {

@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/StringUtil.h"
-
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
@@ -44,7 +44,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   return result;
 }
 
-void Init(std::vector<Core::Device*>& devices, HWND hwnd)
+void Init(HWND hwnd)
 {
   IDirectInput8* idi8;
   if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,
@@ -53,8 +53,8 @@ void Init(std::vector<Core::Device*>& devices, HWND hwnd)
     return;
   }
 
-  InitKeyboardMouse(idi8, devices, hwnd);
-  InitJoystick(idi8, devices, hwnd);
+  InitKeyboardMouse(idi8, hwnd);
+  InitJoystick(idi8, hwnd);
 
   idi8->Release();
 }
