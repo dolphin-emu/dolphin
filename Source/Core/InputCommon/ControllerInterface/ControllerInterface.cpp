@@ -104,6 +104,8 @@ void ControllerInterface::Shutdown()
 	if (!m_is_init)
 		return;
 
+	std::lock_guard<std::mutex> lk(m_devices_mutex);
+
 	for (ciface::Core::Device* d : m_devices)
 	{
 		// Set outputs to ZERO before destroying device
@@ -141,6 +143,7 @@ void ControllerInterface::Shutdown()
 
 void ControllerInterface::AddDevice(ciface::Core::Device* device)
 {
+	std::lock_guard<std::mutex> lk(m_devices_mutex);
 	m_devices.push_back(device);
 }
 
@@ -151,6 +154,7 @@ void ControllerInterface::AddDevice(ciface::Core::Device* device)
 //
 void ControllerInterface::UpdateInput()
 {
+	std::lock_guard<std::mutex> lk(m_devices_mutex);
 	for (ciface::Core::Device* d : m_devices)
 		d->UpdateInput();
 }
