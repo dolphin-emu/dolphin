@@ -1591,13 +1591,7 @@ void VertexShaderManager::SetProjectionConstants()
 				Matrix44::Translate(camera_forward_matrix, pos);
 			}
 
-			Matrix44 A, B;
-			Matrix44::Multiply(camera_position_matrix, camera_forward_matrix, B);
-			Matrix44::Multiply(camera_pitch_matrix, B, A);
-			Matrix44::Multiply(free_look_matrix, A, B);
-			Matrix44::Multiply(lean_back_matrix, B, A);
-			Matrix44::Multiply(head_position_matrix, A, B);
-			Matrix44::Multiply(rotation_matrix, B, look_matrix);
+			look_matrix = camera_forward_matrix * camera_position_matrix * camera_pitch_matrix * free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
 		}
 		else
 		//if (xfmem.projection.type != GX_PERSPECTIVE || g_viewport_type == VIEW_HUD_ELEMENT || g_viewport_type == VIEW_OFFSCREEN)
@@ -1775,19 +1769,11 @@ void VertexShaderManager::SetProjectionConstants()
 					position[2] = -HudDistance; // - CameraForward;
 			}
 
-			Matrix44 A, B, scale_matrix, position_matrix, box_matrix;
+			Matrix44 scale_matrix, position_matrix;
 			Matrix44::Scale(scale_matrix, scale);
 			Matrix44::Translate(position_matrix, position);
 
-			// order: scale, position
-			Matrix44::Multiply(position_matrix, scale_matrix, box_matrix);
-
-			Matrix44::Multiply(camera_position_matrix, box_matrix, B);
-			Matrix44::Multiply(camera_pitch_matrix, B, A);
-			Matrix44::Multiply(free_look_matrix, A, B);
-			Matrix44::Multiply(lean_back_matrix, B, A);
-			Matrix44::Multiply(head_position_matrix, A, B);
-			Matrix44::Multiply(rotation_matrix, B, look_matrix);
+			look_matrix = scale_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix * free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
 		}
 
 		Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;

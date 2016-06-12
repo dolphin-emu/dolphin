@@ -344,6 +344,13 @@ void Matrix33::Multiply(const Matrix33& a, const float vec[3], float result[3])
 	}
 }
 
+Matrix33 Matrix33::operator*(const Matrix33 &rhs) const
+{
+	Matrix33 result;
+	MatrixMul(3, rhs.data, this->data, result.data);
+	return result;
+}
+
 // GlovePIE function for extracting yaw, pitch, and roll from a rotation matrix
 void Matrix33::GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll)
 {
@@ -388,6 +395,12 @@ void Matrix44::LoadMatrix33(Matrix44& mtx, const Matrix33& m33)
 	mtx.data[15] = 1.0f;
 }
 
+Matrix44 &Matrix44::operator=(const Matrix33 &rhs)
+{
+	LoadMatrix33(*this, rhs);
+	return *this;
+}
+
 void Matrix44::Set(Matrix44& mtx, const float mtxArray[16])
 {
 	for (int i = 0; i < 16; ++i)
@@ -402,6 +415,97 @@ void Matrix44::Translate(Matrix44& mtx, const float vec[3])
 	mtx.data[3] = vec[0];
 	mtx.data[7] = vec[1];
 	mtx.data[11] = vec[2];
+}
+
+void Matrix44::InvertTranslation(Matrix44 &mtx)
+{
+	mtx.data[3] = -mtx.data[3];
+	mtx.data[7] = -mtx.data[7];
+	mtx.data[11] = -mtx.data[11];
+}
+
+void Matrix44::InvertScale(Matrix44 &mtx)
+{
+	mtx.data[0] = 1 / mtx.data[0];
+	mtx.data[1 * 4 + 1] = 1 / mtx.data[1 * 4 + 1];
+	mtx.data[2 * 4 + 2] = 1 / mtx.data[2 * 4 + 2];
+}
+
+void Matrix44::InvertRotation(Matrix44 &mtx)
+{
+	for (int r = 0; r < 3; ++r)
+		for (int c = 0; c < r; ++c)
+		{
+			float temp = mtx.data[r * 4 + c];
+			mtx.data[r * 4 + c] = mtx.data[c * 4 + r];
+			mtx.data[c * 4 + r] = temp;
+		}
+}
+
+// from PPSSPP
+Matrix44 Matrix44::inverse() const {
+	Matrix44 temp;
+	float dW = 1.0f / (xx*(yy*zz - yz*zy) - xy*(yx*zz - yz*zx) - xz*(yy*zx - yx*zy));
+
+	temp.xx = (yy*zz - yz*zy) * dW;
+	temp.xy = (xz*zy - xy*zz) * dW;
+	temp.xz = (xy*yz - xz*yy) * dW;
+	temp.xw = xw;
+
+	temp.yx = (yz*zx - yx*zz) * dW;
+	temp.yy = (xx*zz - xz*zx) * dW;
+	temp.yz = (xz*yx - xx*zx) * dW;
+	temp.yw = yw;
+
+	temp.zx = (yx*zy - yy*zx) * dW;
+	temp.zy = (xy*zx - xx*zy) * dW;
+	temp.zz = (xx*yy - xy*yx) * dW;
+	temp.zw = zw;
+
+	temp.wx = (yy*(zx*wz - zz*wx) + yz*(zy*wx - zx*wy) - yx*(zy*wz - zz*wy)) * dW;
+	temp.wy = (xx*(zy*wz - zz*wy) + xy*(zz*wx - zx*wz) + xz*(zx*wy - zy*wx)) * dW;
+	temp.wz = (xy*(yx*wz - yz*wx) + xz*(yy*wx - yx*wy) - xx*(yy*wz - yz*wy)) * dW;
+	temp.ww = ww;
+
+	return temp;
+}
+
+// from PPSSPP - assumes there's no scale, only rotation and translation
+Matrix44 Matrix44::simpleInverse() const
+{
+	Matrix44 out;
+	out.xx = xx;
+	out.xy = yx;
+	out.xz = zx;
+
+	out.yx = xy;
+	out.yy = yy;
+	out.yz = zy;
+
+	out.zx = xz;
+	out.zy = yz;
+	out.zz = zz;
+
+	out.wx = -(xx * wx + xy * wy + xz * wz);
+	out.wy = -(yx * wx + yy * wy + yz * wz);
+	out.wz = -(zx * wx + zy * wy + zz * wz);
+
+	out.xw = 0.0f;
+	out.yw = 0.0f;
+	out.zw = 0.0f;
+	out.ww = 1.0f;
+
+	return out;
+}
+
+Matrix44 Matrix44::transpose() const
+{
+	Matrix44 out;
+	out.xx = xx; out.xy = yx; out.xz = zx; out.xw = wx;
+	out.yx = xy; out.yy = yy; out.yz = zy; out.yw = wy;
+	out.zx = xz; out.zy = yz; out.zz = zz; out.zw = wz;
+	out.wx = xw; out.wy = yw; out.wz = zw; out.ww = ww;
+	return out;
 }
 
 void Matrix44::Shear(Matrix44& mtx, const float a, const float b)
@@ -421,6 +525,13 @@ void Matrix44::Scale(Matrix44 &mtx, const float vec[3])
 void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result)
 {
 	MatrixMul(4, a.data, b.data, result.data);
+}
+
+Matrix44 Matrix44::operator*(const Matrix44 &rhs) const
+{
+	Matrix44 result;
+	MatrixMul(4, rhs.data, this->data, result.data);
+	return result;
 }
 
 void Quaternion::LoadIdentity(Quaternion &quat)

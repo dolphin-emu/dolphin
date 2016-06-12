@@ -278,6 +278,15 @@ class Matrix33
 {
 public:
 	static void LoadIdentity(Matrix33& mtx);
+	void setIdentity()
+	{
+		Matrix33::LoadIdentity(*this);
+	}
+	void empty()
+	{
+		memset(this->data, 0, sizeof(this->data));
+	}
+
 	static void LoadQuaternion(Matrix33 &mtx, const Quaternion &quat);
 
 	// set mtx to be a rotation matrix around the x axis
@@ -287,27 +296,193 @@ public:
 	// set mtx to be a rotation matrix around the z axis
 	static void RotateZ(Matrix33 &mtx, float rad);
 
+
+	void setScaling(const float f)
+	{
+		empty();
+		xx = yy = zz = f;
+	}
+	void setScaling(const float vec[3])
+	{
+		empty();
+		xx = vec[0];
+		yy = vec[1];
+		zz = vec[2];
+	}
+
 	// set result = a x b
 	static void Multiply(const Matrix33& a, const Matrix33& b, Matrix33& result);
 	static void Multiply(const Matrix33& a, const float vec[3], float result[3]);
+	Matrix33 operator*(const Matrix33& rhs) const;
+	void operator*=(const Matrix33& rhs)
+	{
+		*this = *this * rhs;
+	}
 
 	static void GetPieYawPitchRollR(const Matrix33 &m, float &yaw, float &pitch, float &roll);
 
-	float data[9];
+	const float& operator[](int i) const
+	{
+		return *(((const float *)this->data) + i);
+	}
+	float& operator[](int i)
+	{
+		return *(((float *)this->data) + i);
+	}
+	const float* getReadPtr() const {
+		return (const float *)data;
+	}
+	void setRight(const float v[3])
+	{
+		xx = v[0]; xy = v[1]; xz = v[2];
+	}
+	void setUp(const float v[3])
+	{
+		yx = v[0]; yy = v[1]; yz = v[2];
+	}
+	void setFront(const float v[3])
+	{
+		zx = v[0]; zy = v[1]; zz = v[2];
+	}
+
+	union {
+		struct {
+			float xx, yx, zx;
+			float xy, yy, zy;
+			float xz, yz, zz;
+		};
+		float data[9];
+	};
 };
 
 class Matrix44
 {
 public:
 	static void LoadIdentity(Matrix44& mtx);
+	void setIdentity()
+	{
+		Matrix44::LoadIdentity(*this);
+	}
+	void empty()
+	{
+		memset(this->data, 0, sizeof(this->data));
+	}
+
 	static void LoadMatrix33(Matrix44& mtx, const Matrix33& m33);
+	Matrix44& operator=(const Matrix33 &rhs);
+
 	static void Set(Matrix44& mtx, const float mtxArray[16]);
 
 	static void Translate(Matrix44& mtx, const float vec[3]);
+	void setTranslation(const float trans[3])
+	{
+		Matrix44::Translate(*this, trans);
+	}
+
 	static void Shear(Matrix44& mtx, const float a, const float b = 0);
+
 	static void Scale(Matrix44 &mtx, const float vec[3]);
+	void setScaling(const float f)
+	{
+		empty();
+		xx = yy = zz = f;
+		ww = 1.0f;
+	}
+	void setScaling(const float vec[3])
+	{
+		Matrix44::Scale(*this, vec);
+	}
 
+	// Matrix44::Multiply(RHS, LHS, Result); is the same as Result = LHS * RHS;
 	static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
+	Matrix44 operator*(const Matrix44& rhs) const;
+	void operator*=(const Matrix44& rhs)
+	{
+		*this = *this * rhs;
+	}
 
-	float data[16];
+	static void InvertTranslation(Matrix44 &mtx);
+	static void InvertRotation(Matrix44 &mtx);
+	static void InvertScale(Matrix44 &mtx);
+
+	const float& operator[](int i) const
+	{
+		return *(((const float *)this->data) + i);
+	}
+	float& operator[](int i)
+	{
+		return *(((float *)this->data) + i);
+	}
+	const float* getReadPtr() const {
+		return (const float *)data;
+	}
+	void setTranslationAndScaling(const float trans[3], const float scale[3])
+	{
+		setScaling(scale);
+		wx = trans[0];
+		wy = trans[1];
+		wz = trans[2];
+	}
+	void setRight(const float v[3])
+	{
+		xx = v[0]; xy = v[1]; xz = v[2];
+	}
+	void setUp(const float v[3])
+	{
+		yx = v[0]; yy = v[1]; yz = v[2];
+	}
+	void setFront(const float v[3])
+	{
+		zx = v[0]; zy = v[1]; zz = v[2];
+	}
+	void setMove(const float v[3])
+	{
+		wx = v[0]; wy = v[1]; wz = v[2];
+	}
+
+	Matrix44 inverse() const;
+	Matrix44 simpleInverse() const;
+	Matrix44 transpose() const;
+
+	void setRotationX(const float a)
+	{
+		empty();
+		float c = cosf(a);
+		float s = sinf(a);
+		xx = 1.0f;
+		yy = c;			yz = s;
+		zy = -s;			zz = c;
+		ww = 1.0f;
+	}
+	void setRotationY(const float a)
+	{
+		empty();
+		float c = cosf(a);
+		float s = sinf(a);
+		xx = c;									 xz = -s;
+		yy = 1.0f;
+		zx = s;									 zz = c;
+		ww = 1.0f;
+	}
+	void setRotationZ(const float a)
+	{
+		empty();
+		float c = cosf(a);
+		float s = sinf(a);
+		xx = c;		xy = s;
+		yx = -s;	 yy = c;
+		zz = 1.0f;
+		ww = 1.0f;
+	}
+
+	union {
+		// Dolphin stores matrix elements in a different order than PPSSPP
+		struct {
+			float xx, yx, zx, wx;
+			float xy, yy, zy, wy;
+			float xz, yz, zz, wz;
+			float xw, yw, zw, ww;
+		};
+		float data[16];
+	};
 };
