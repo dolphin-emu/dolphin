@@ -12,7 +12,7 @@
 #include <windows.h>
 #include <XInput.h>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifndef XINPUT_DEVSUBTYPE_FLIGHT_STICK
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.
@@ -23,7 +23,7 @@ namespace ciface
 namespace XInput
 {
 
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 void DeInit();
 
 class Device : public Core::Device

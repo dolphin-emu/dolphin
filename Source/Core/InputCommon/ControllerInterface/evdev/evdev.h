@@ -8,14 +8,14 @@
 #include <vector>
 #include <libevdev/libevdev.h>
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface
 {
 namespace evdev
 {
 
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 
 class evdevDevice : public Core::Device
 {

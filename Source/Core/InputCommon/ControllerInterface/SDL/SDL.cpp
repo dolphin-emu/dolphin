@@ -32,7 +32,7 @@ static std::string GetJoystickName(int index)
 #endif
 }
 
-void Init( std::vector<Core::Device*>& devices )
+void Init()
 {
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
@@ -60,7 +60,7 @@ void Init( std::vector<Core::Device*>& devices )
 			Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
 			// only add if it has some inputs/outputs
 			if (js->Inputs().size() || js->Outputs().size())
-				devices.push_back( js );
+				g_controller_interface.AddDevice(js);
 			else
 				delete js;
 		}

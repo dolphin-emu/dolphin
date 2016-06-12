@@ -62,7 +62,7 @@ static double StringToDouble(const std::string& text)
 	return result;
 }
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
 	// Search the Pipes directory for files that we can open in read-only,
 	// non-blocking mode. The device name is the virtual name of the file.
@@ -82,7 +82,7 @@ void Init(std::vector<Core::Device*>& devices)
 		int fd = open(child.physicalName.c_str(), O_RDONLY | O_NONBLOCK);
 		if (fd < 0)
 			continue;
-		devices.push_back(new PipeDevice(fd, child.virtualName, found++));
+		g_controller_interface.AddDevice(new PipeDevice(fd, child.virtualName, found++));
 	}
 }
 

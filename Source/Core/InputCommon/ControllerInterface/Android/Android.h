@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "jni/ButtonManager.h"
 
 namespace ciface
@@ -12,7 +12,7 @@ namespace ciface
 namespace Android
 {
 
-void Init( std::vector<Core::Device*>& devices );
+void Init();
 class Touchscreen : public Core::Device
 {
 private:

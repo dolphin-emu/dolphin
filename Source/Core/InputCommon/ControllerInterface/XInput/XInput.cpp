@@ -69,7 +69,7 @@ static XInputGetState_t PXInputGetState = nullptr;
 
 static bool haveGuideButton = false;
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
 	if (!hXInput)
 	{
@@ -109,7 +109,7 @@ void Init(std::vector<Core::Device*>& devices)
 	XINPUT_CAPABILITIES caps;
 	for (int i = 0; i != 4; ++i)
 		if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))
-			devices.push_back(new Device(caps, i));
+			g_controller_interface.AddDevice(new Device(caps, i));
 }
 
 void DeInit()
