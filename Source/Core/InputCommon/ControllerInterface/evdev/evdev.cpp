@@ -107,6 +107,17 @@ static void HotplugThreadFunc()
 				NOTICE_LOG(SERIALINTERFACE, "Detected replugged device (%s): fd changed to %d",
 				           name.c_str(), new_fd);
 			}
+			else
+			{
+				auto input = std::make_unique<evdevDevice>(devnode, s_name_counts[name]++);
+
+				if (input->IsInteresting())
+				{
+					g_controller_interface.AddDevice(input.release());
+					NOTICE_LOG(SERIALINTERFACE, "Added new device: %s", name.c_str());
+					g_controller_interface.InvokeDeviceCallbacks();
+				}
+			}
 
 			s_is_handling_hotplug_event = false;
 		}
@@ -167,7 +178,7 @@ void Init()
 			// Unfortunately udev gives us no way to filter out the non event device interfaces.
 			// So we open it and see if it works with evdev ioctls or not.
 			std::string name = GetName(devnode);
-			std::unique_ptr<evdevDevice> input(new evdevDevice(devnode, s_name_counts[name]++));
+			auto input = std::make_unique<evdevDevice>(devnode, s_name_counts[name]++);
 
 			if (input->IsInteresting())
 			{
