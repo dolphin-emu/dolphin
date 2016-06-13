@@ -101,6 +101,17 @@ static void HotplugThreadFunc()
         NOTICE_LOG(SERIALINTERFACE, "Detected replugged device (%s): fd changed to %d",
                    name.c_str(), new_fd);
       }
+      else
+      {
+        auto input = std::make_shared<evdevDevice>(devnode, s_name_counts[name]++);
+
+        if (input->IsInteresting())
+        {
+          g_controller_interface.AddDevice(std::move(input));
+          NOTICE_LOG(SERIALINTERFACE, "Added new device: %s", name.c_str());
+          g_controller_interface.InvokeDeviceCallbacks();
+        }
+      }
     }
     udev_device_unref(dev);
   }
