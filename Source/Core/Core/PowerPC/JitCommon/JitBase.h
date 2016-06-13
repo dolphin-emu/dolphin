@@ -103,6 +103,7 @@ protected:
     bool generatingTrampoline = false;
     u8* trampolineExceptionHandler;
 
+    bool mustCheckFifo;
     int fifoBytesThisBlock;
 
     PPCAnalyst::BlockStats st;
