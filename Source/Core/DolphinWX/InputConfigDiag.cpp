@@ -1092,6 +1092,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 
   UpdateDeviceComboBox();
   UpdateProfileComboBox();
+  g_controller_interface.RegisterDeviceCallback([&] { UpdateDeviceComboBox(); });
 
   Bind(wxEVT_BUTTON, &InputConfigDialog::ClickSave, this, wxID_OK);
 
