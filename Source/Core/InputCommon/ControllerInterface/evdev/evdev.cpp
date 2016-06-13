@@ -8,6 +8,8 @@
 #include <unistd.h>
 
 #include "Common/Assert.h"
+#include "Common/Flag.h"
+#include "Common/Thread.h"
 #include "Common/Logging/Log.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
@@ -16,6 +18,17 @@ namespace ciface
 {
 namespace evdev
 {
+
+// this is used to number the joysticks
+// multiple joysticks with the same name shall get unique ids starting at 0
+static std::map<std::string, int> s_name_counts;
+
+static int s_num_controllers = 0;
+
+static std::thread s_hotplug_thread;
+static Common::Flag s_hotplug_thread_running;
+static std::atomic<bool> s_is_handling_hotplug_event{ false };
+static std::array<int, 2> s_pipe_fds;
 
 static std::string GetName(const std::string& devnode)
 {
@@ -33,16 +46,101 @@ static std::string GetName(const std::string& devnode)
 	return res;
 }
 
+static void HotplugThreadFunc()
+{
+	Common::SetCurrentThreadName("evdev Hotplug Thread");
+	NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
+
+	struct udev* udev = udev_new();
+	_assert_msg_(PAD, udev != 0, "Couldn't initilize libudev.");
+
+	// Set up monitoring
+	struct udev_monitor* monitor = udev_monitor_new_from_netlink(udev, "udev");
+	udev_monitor_filter_add_match_subsystem_devtype(monitor, "input", nullptr);
+	udev_monitor_enable_receiving(monitor);
+	int monitor_fd = udev_monitor_get_fd(monitor);
+
+	while (s_hotplug_thread_running.IsSet())
+	{
+		fd_set fds;
+
+		FD_ZERO(&fds);
+		FD_SET(monitor_fd, &fds);
+		FD_SET(s_pipe_fds[0], &fds);
+
+		int ret = select(monitor_fd + 1, &fds, nullptr, nullptr, nullptr);
+		if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
+			continue;
+
+		udev_device* dev = udev_monitor_receive_device(monitor);
+
+		const char* action = udev_device_get_action(dev);
+		const char* devnode = udev_device_get_devnode(dev);
+
+		if (!devnode)
+			continue;
+
+		// Only react to "device add" events for evdev devices that we can access.
+		// If the device name is empty, it is probably not an evdev device, so we skip it
+		// Note: evdev can actually return an empty string, but in such cases,
+		// we have nothing to match against when trying to detect which device
+		// was unplugged then replugged.
+		std::string name = GetName(devnode);
+		if (strcmp(action, "add") == 0 && access(devnode, W_OK) == 0 && !name.empty())
+		{
+			s_is_handling_hotplug_event = true;
+
+			NOTICE_LOG(SERIALINTERFACE, "Found new device: %s (%s)", devnode, name.c_str());
+			// Try to find a device that was unplugged then replugged
+			// If found, update the fd on the libevdev device, so we can get input
+			// from the device again.
+			ciface::Core::Device* d = g_controller_interface.FindDevice(name, "evdev");
+			if (d != nullptr)
+			{
+				evdevDevice* device = static_cast<evdevDevice*>(d);
+
+				if (device->IsStillValid())
+					continue;
+
+				int new_fd = open(devnode, O_RDWR|O_NONBLOCK);
+				device->ChangeFd(new_fd);
+				NOTICE_LOG(SERIALINTERFACE, "Detected replugged device (%s): fd changed to %d",
+				           name.c_str(), new_fd);
+			}
+
+			s_is_handling_hotplug_event = false;
+		}
+		udev_device_unref(dev);
+	}
+	NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
+}
+
+void StartHotplugThread()
+{
+	if (s_hotplug_thread_running.IsSet())
+		return;
+
+	pipe(s_pipe_fds.data());
+	s_hotplug_thread_running.Set(true);
+	s_hotplug_thread = std::thread(HotplugThreadFunc);
+}
+
+void StopHotplugThread()
+{
+	if (s_hotplug_thread_running.TestAndClear())
+	{
+		write(s_pipe_fds[1], " ", 1);
+		s_hotplug_thread.join();
+	}
+}
+
 void Init()
 {
-	// this is used to number the joysticks
-	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map<std::string, int> name_counts;
+	s_name_counts.clear();
+	s_num_controllers = 0;
 
-	int num_controllers = 0;
-
-	// We use Udev to find any devices. In the future this will allow for hotplugging.
-	// But for now it is essentially iterating over /dev/input/event0 to event31. However if the
+	// We use udev to find any devices. Hotplugging is handled in another thread;
+	// we first iterate over /dev/input/event0 to event31. However if the
 	// naming scheme is ever updated in the future, this *should* be forwards compatable.
 
 	struct udev* udev = udev_new();
@@ -69,23 +167,28 @@ void Init()
 			// Unfortunately udev gives us no way to filter out the non event device interfaces.
 			// So we open it and see if it works with evdev ioctls or not.
 			std::string name = GetName(devnode);
-			evdevDevice* input = new evdevDevice(devnode, name_counts[name]++);
+			std::unique_ptr<evdevDevice> input(new evdevDevice(devnode, s_name_counts[name]++));
 
 			if (input->IsInteresting())
 			{
-				g_controller_interface.AddDevice(input);
-				num_controllers++;
-			}
-			else
-			{
-				// Either it wasn't a evdev device, or it didn't have at least 8 buttons or two axis.
-				delete input;
+				g_controller_interface.AddDevice(input.release());
+				s_num_controllers++;
 			}
 		}
 		udev_device_unref(dev);
 	}
 	udev_enumerate_unref(enumerate);
 	udev_unref(udev);
+
+	StartHotplugThread();
+}
+
+void Shutdown()
+{
+	if (s_is_handling_hotplug_event)
+		return;
+
+	StopHotplugThread();
 }
 
 evdevDevice::evdevDevice(const std::string &devnode, int id) : m_devfile(devnode), m_id(id)
@@ -145,6 +248,33 @@ evdevDevice::~evdevDevice()
 		libevdev_free(m_dev);
 		close(m_fd);
 	}
+}
+
+void evdevDevice::ChangeFd(int new_fd)
+{
+	if (!m_initialized)
+		return;
+	int ret = libevdev_change_fd(m_dev, new_fd);
+	if (ret != 0)
+		ERROR_LOG(SERIALINTERFACE, "error changing fd to %d", new_fd);
+}
+
+bool evdevDevice::IsStillValid() const
+{
+	int current_fd = libevdev_get_fd(m_dev);
+	if (current_fd == -1)
+		return false;
+
+	libevdev* device;
+	int ret = libevdev_new_from_fd(current_fd, &device);
+	if (ret != 0)
+	{
+		close(current_fd);
+		return false;
+	}
+
+	libevdev_free(device);
+	return true;
 }
 
 void evdevDevice::UpdateInput()

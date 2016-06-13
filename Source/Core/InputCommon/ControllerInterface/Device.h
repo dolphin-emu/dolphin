@@ -177,6 +177,7 @@ public:
 
 	const std::vector<Device*>& Devices() const { return m_devices; }
 	Device* FindDevice(const DeviceQualifier& devq) const;
+	Device* FindDevice(const std::string& name, const std::string& source) const;
 protected:
 	std::mutex m_devices_mutex;
 	std::vector<Device*> m_devices;

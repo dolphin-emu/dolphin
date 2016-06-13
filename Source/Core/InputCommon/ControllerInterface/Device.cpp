@@ -156,6 +156,17 @@ Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 	return nullptr;
 }
 
+Device* DeviceContainer::FindDevice(const std::string& name, const std::string& source) const
+{
+	for (Device* d : m_devices)
+	{
+		if (d->GetName() == name && d->GetSource() == source)
+			return d;
+	}
+
+	return nullptr;
+}
+
 Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
 {
 	if (def_dev)
