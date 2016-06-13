@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -151,6 +152,18 @@ std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq)
   }
 
   return nullptr;
+}
+
+std::shared_ptr<Device>
+DeviceContainer::FindDevice(std::function<bool(const Device*)> callback) const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  const auto iterator =
+      std::find_if(m_devices.begin(), m_devices.end(),
+                   [&callback](const auto& device) { return callback(device.get()); });
+  if (iterator == m_devices.end())
+    return nullptr;
+  return *iterator;
 }
 
 std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
