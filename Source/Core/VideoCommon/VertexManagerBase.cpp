@@ -259,7 +259,7 @@ void VertexManagerBase::Flush()
 		                   bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
 		if (PerfQueryBase::ShouldEmulate())
-			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
+			g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP, current_primitive_type);
 		g_vertex_manager->vFlush(useDstAlpha);
 		if (PerfQueryBase::ShouldEmulate())
 			g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);

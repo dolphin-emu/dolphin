@@ -10,6 +10,7 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 #include "VideoCommon/PerfQueryBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
@@ -21,7 +22,7 @@ public:
 	PerfQuery();
 	~PerfQuery() {}
 
-	void EnableQuery(PerfQueryGroup type) override;
+	void EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type) override;
 	void DisableQuery(PerfQueryGroup type) override;
 	void ResetQuery() override;
 	u32 GetQueryResult(PerfQueryType type) override;
@@ -33,6 +34,7 @@ protected:
 	{
 		GLuint query_id;
 		PerfQueryGroup query_type;
+		PrimitiveType primitive_type;
 	};
 
 	// when testing in SMS: 64 was too small, 128 was ok
@@ -54,7 +56,7 @@ public:
 	PerfQueryGL(GLenum query_type);
 	~PerfQueryGL();
 
-	void EnableQuery(PerfQueryGroup type) override;
+	void EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type) override;
 	void DisableQuery(PerfQueryGroup type) override;
 	void FlushResults() override;
 
@@ -73,7 +75,7 @@ public:
 	PerfQueryGLESNV();
 	~PerfQueryGLESNV();
 
-	void EnableQuery(PerfQueryGroup type) override;
+	void EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type) override;
 	void DisableQuery(PerfQueryGroup type) override;
 	void FlushResults() override;
 

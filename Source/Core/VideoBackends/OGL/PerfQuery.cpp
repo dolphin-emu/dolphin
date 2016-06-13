@@ -32,9 +32,9 @@ PerfQuery::PerfQuery()
 	ResetQuery();
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type)
 {
-	m_query->EnableQuery(type);
+	m_query->EnableQuery(type, primitive_type);
 }
 
 void PerfQuery::DisableQuery(PerfQueryGroup type)
@@ -80,7 +80,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 		result = m_results[PQG_EFB_COPY_CLOCKS];
 	}
 
-	return result / 4;
+	return result;
 }
 
 // Implementations
@@ -97,7 +97,7 @@ PerfQueryGL::~PerfQueryGL()
 		glDeleteQueries(1, &query.query_id);
 }
 
-void PerfQueryGL::EnableQuery(PerfQueryGroup type)
+void PerfQueryGL::EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type)
 {
 	// Is this sane?
 	if (m_query_count > m_query_buffer.size() / 2)
@@ -116,6 +116,7 @@ void PerfQueryGL::EnableQuery(PerfQueryGroup type)
 
 		glBeginQuery(m_query_type, entry.query_id);
 		entry.query_type = type;
+		entry.primitive_type = primitive_type;
 
 		++m_query_count;
 	}
@@ -157,7 +158,28 @@ void PerfQueryGL::FlushOne()
 	glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+	result = (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+
+	// Adjust for multisampling
+	if (g_ActiveConfig.iMultisamples > 1)
+		result /= g_ActiveConfig.iMultisamples;
+
+	if (entry.query_type != PQG_EFB_COPY_CLOCKS)
+	{
+		// PRIMITIVE_POINTS (as used for coronas in TimeSplitters: Future Perfect) isn't divided.
+		if (entry.primitive_type == PRIMITIVE_TRIANGLES)
+		{
+			// Dividing by 4 because we're expected to return the number of 2x2 quads instead of pixels
+			result /= 4;
+		}
+		else if (entry.primitive_type == PRIMITIVE_LINES)
+		{
+			// Division by 2 is just a guess, worth doing a hardware test?
+			result /= 2;
+		}
+	}
+
+	m_results[entry.query_type] += result;
 
 	m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 	--m_query_count;
@@ -182,7 +204,7 @@ PerfQueryGLESNV::~PerfQueryGLESNV()
 		glDeleteOcclusionQueriesNV(1, &query.query_id);
 }
 
-void PerfQueryGLESNV::EnableQuery(PerfQueryGroup type)
+void PerfQueryGLESNV::EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type)
 {
 	// Is this sane?
 	if (m_query_count > m_query_buffer.size() / 2)
@@ -201,6 +223,7 @@ void PerfQueryGLESNV::EnableQuery(PerfQueryGroup type)
 
 		glBeginOcclusionQueryNV(entry.query_id);
 		entry.query_type = type;
+		entry.primitive_type = primitive_type;
 
 		++m_query_count;
 	}
@@ -242,7 +265,7 @@ void PerfQueryGLESNV::FlushOne()
 	glGetOcclusionQueryuivNV(entry.query_id, GL_OCCLUSION_TEST_RESULT_HP, &result);
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+	m_results[entry.query_type] += ((u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight()) / 4;
 
 	m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 	--m_query_count;

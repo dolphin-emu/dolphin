@@ -6,6 +6,7 @@
 
 #include <memory>
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VertexManagerBase.h"
 
 enum PerfQueryType
 {
@@ -41,7 +42,7 @@ public:
 	static bool ShouldEmulate();
 
 	// Begin querying the specified value for the following host GPU commands
-	virtual void EnableQuery(PerfQueryGroup type) {}
+	virtual void EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type) {}
 
 	// Stop querying the specified value for the following host GPU commands
 	virtual void DisableQuery(PerfQueryGroup type) {}

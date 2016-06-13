@@ -16,7 +16,7 @@ public:
 	PerfQuery();
 	~PerfQuery();
 
-	void EnableQuery(PerfQueryGroup type) override;
+	void EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type) override;
 	void DisableQuery(PerfQueryGroup type) override;
 	void ResetQuery() override;
 	u32 GetQueryResult(PerfQueryType type) override;

@@ -32,7 +32,7 @@ PerfQuery::~PerfQuery()
 	}
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type)
 {
 	// Is this sane?
 	if (m_query_count > m_query_buffer.size() / 2)

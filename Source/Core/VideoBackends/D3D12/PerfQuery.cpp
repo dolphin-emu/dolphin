@@ -39,7 +39,7 @@ PerfQuery::~PerfQuery()
 	SAFE_RELEASE(m_query_readback_buffer);
 }
 
-void PerfQuery::EnableQuery(PerfQueryGroup type)
+void PerfQuery::EnableQuery(PerfQueryGroup type, PrimitiveType primitive_type)
 {
 	if (m_query_count > m_query_buffer.size() / 2)
 		WeakFlush();
