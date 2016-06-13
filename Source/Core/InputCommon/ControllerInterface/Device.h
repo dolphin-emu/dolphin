@@ -168,6 +168,7 @@ public:
   std::vector<std::string> GetAllDeviceStrings() const;
   std::string GetDefaultDeviceString() const;
   std::shared_ptr<Device> FindDevice(const DeviceQualifier& devq) const;
+  std::shared_ptr<Device> FindDevice(const std::string& name, const std::string& source) const;
 
 protected:
   mutable std::mutex m_devices_mutex;

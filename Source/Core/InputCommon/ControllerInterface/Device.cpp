@@ -153,6 +153,18 @@ std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq)
   return nullptr;
 }
 
+std::shared_ptr<Device> DeviceContainer::FindDevice(const std::string& name,
+                                                    const std::string& source) const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
+  {
+    if (d->GetName() == name && d->GetSource() == source)
+      return d;
+  }
+  return nullptr;
+}
+
 std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
 {
   std::lock_guard<std::mutex> lk(m_devices_mutex);

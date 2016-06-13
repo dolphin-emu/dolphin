@@ -5,6 +5,7 @@
 #pragma once
 
 #include <libevdev/libevdev.h>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -12,7 +13,11 @@ namespace ciface
 {
 namespace evdev
 {
+void StartHotplugThread();
+void StopHotplugThread();
+
 void Init();
+void Shutdown();
 
 class evdevDevice : public Core::Device
 {
@@ -69,8 +74,11 @@ public:
   std::string GetName() const override { return m_name; }
   int GetId() const override { return m_id; }
   std::string GetSource() const override { return "evdev"; }
+  void ChangeFd(int new_fd);
+  bool IsStillValid() const;
   bool IsInteresting() const { return m_initialized && m_interesting; }
 private:
+  std::mutex m_device_mutex;
   const std::string m_devfile;
   int m_fd;
   libevdev* m_dev;
