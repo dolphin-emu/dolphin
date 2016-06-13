@@ -39,6 +39,7 @@ void Initialize(void* const hwnd, bool wait)
 	}
 
 	g_controller_interface.Initialize(hwnd);
+	g_controller_interface.RegisterDeviceCallback(LoadConfig);
 
 	s_config.LoadConfig(false);
 
