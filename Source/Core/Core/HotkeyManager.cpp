@@ -187,6 +187,7 @@ void Initialize(void* const hwnd)
 		s_config.CreateController<HotkeyManager>();
 
 	g_controller_interface.Initialize(hwnd);
+	g_controller_interface.RegisterDeviceCallback([&] { LoadConfig(); });
 
 	// load the saved controller config
 	s_config.LoadConfig(true);

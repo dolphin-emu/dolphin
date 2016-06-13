@@ -37,6 +37,7 @@ void Initialize(void* const hwnd)
 	}
 
 	g_controller_interface.Initialize(hwnd);
+	g_controller_interface.RegisterDeviceCallback([&] { LoadConfig(); });
 
 	// Load the saved controller config
 	s_config.LoadConfig(true);
