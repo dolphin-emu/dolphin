@@ -162,6 +162,27 @@ void ControllerInterface::UpdateInput()
 }
 
 //
+// RegisterDeviceCallback
+//
+// Register a callback to be called when there is a new device
+//
+void ControllerInterface::RegisterDeviceCallback(std::function<void()> callback)
+{
+  m_device_callbacks.push_back(std::move(callback));
+}
+
+//
+// InvokeDeviceCallbacks
+//
+// Invoke all callbacks that were registered
+//
+void ControllerInterface::InvokeDeviceCallbacks() const
+{
+  for (const auto& callback : m_device_callbacks)
+    callback();
+}
+
+//
 // InputReference :: State
 //
 // Gets the state of an input reference

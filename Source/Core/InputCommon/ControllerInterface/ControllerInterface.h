@@ -127,7 +127,11 @@ public:
                        const ciface::Core::DeviceQualifier& default_device) const;
   void UpdateInput();
 
+  void RegisterDeviceCallback(std::function<void(void)> callback);
+  void InvokeDeviceCallbacks() const;
+
 private:
+  std::vector<std::function<void()>> m_device_callbacks;
   bool m_is_init;
   void* m_hwnd;
 };
