@@ -1246,14 +1246,13 @@ void VertexShaderManager::SetProjectionConstants()
 		Matrix44 projMtx, scale_matrix, correctedMtx;
 		Matrix44::Set(projMtx, g_fProjectionMatrix);
 
-		projMtx.data[0 * 4 + 0] = projMtx.data[0 * 4 + 0] * fWidthHack;
-		projMtx.data[1 * 4 + 1] = projMtx.data[1 * 4 + 1] * fHeightHack;
-		projMtx.data[0 * 4 + 3] = projMtx.data[0 * 4 + 3] + fRightHack;
-		projMtx.data[1 * 4 + 3] = projMtx.data[1 * 4 + 3] + fUpHack;
+		projMtx.xx *= fWidthHack;
+		projMtx.yy *= fHeightHack;
+		projMtx.wx += fRightHack;
+		projMtx.wy += fUpHack;
 
 		Matrix44::LoadIdentity(scale_matrix);
-
-		Matrix44::Multiply(scale_matrix, projMtx, correctedMtx);
+		correctedMtx = projMtx * scale_matrix;
 
 		memcpy(constants.projection, correctedMtx.data, 4 * 16);
 		memcpy(constants_eye_projection[0], correctedMtx.data, 4 * 16);
@@ -1445,7 +1444,7 @@ void VertexShaderManager::SetProjectionConstants()
 			if (g_ActiveConfig.bOrientationTracking)
 			{
 				VR_UpdateHeadTrackingIfNeeded();
-				Matrix44::Set(rotation_matrix, g_head_tracking_matrix.data);
+				rotation_matrix = g_head_tracking_matrix;
 			}
 			else
 			{
@@ -1457,7 +1456,7 @@ void VertexShaderManager::SetProjectionConstants()
 			// leaning back
 			float extra_pitch = -g_ActiveConfig.fLeanBackAngle;
 			Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
-			Matrix44::LoadMatrix33(lean_back_matrix, pitch_matrix33);
+			lean_back_matrix = pitch_matrix33;
 
 			// camera pitch
 			if ((g_ActiveConfig.bStabilizePitch || g_ActiveConfig.bStabilizeRoll || g_ActiveConfig.bStabilizeYaw) && g_ActiveConfig.bCanReadCameraAngles && (g_ActiveConfig.iMotionSicknessSkybox!=2 || !g_is_skybox))
@@ -1472,13 +1471,13 @@ void VertexShaderManager::SetProjectionConstants()
 					else
 						extra_pitch = g_ActiveConfig.fScreenPitch;
 					Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
-					Matrix44::LoadMatrix33(user_pitch44, pitch_matrix33);
-					Matrix44::Set(roll_and_yaw_matrix, g_game_camera_rotmat.data);
-					Matrix44::Multiply(roll_and_yaw_matrix, user_pitch44, camera_pitch_matrix);
+					user_pitch44 = pitch_matrix33;
+					roll_and_yaw_matrix = g_game_camera_rotmat;
+					camera_pitch_matrix = user_pitch44 * roll_and_yaw_matrix;
 				}
 				else
 				{
-					Matrix44::Set(camera_pitch_matrix, g_game_camera_rotmat.data);
+					camera_pitch_matrix = g_game_camera_rotmat;
 				}
 			}
 			else
@@ -1488,7 +1487,7 @@ void VertexShaderManager::SetProjectionConstants()
 				else
 					extra_pitch = g_ActiveConfig.fScreenPitch;
 				Matrix33::RotateX(pitch_matrix33, -DEGREES_TO_RADIANS(extra_pitch));
-				Matrix44::LoadMatrix33(camera_pitch_matrix, pitch_matrix33);
+				camera_pitch_matrix = pitch_matrix33;
 			}
 		}
 
@@ -2034,12 +2033,12 @@ void VertexShaderManager::CheckOrientationConstants()
 		else if (g_ActiveConfig.bStabilizeRoll)
 		{
 			Matrix33::RotateZ(matrix_roll, -roll);
-			memcpy(&temp, &matrix_roll, sizeof(matrix_roll));
+			temp = matrix_roll;
 		}
 		else if (g_ActiveConfig.bStabilizeYaw)
 		{
 			Matrix33::RotateY(matrix_yaw, yaw);
-			memcpy(&temp, &matrix_yaw, sizeof(matrix_yaw));
+			temp = matrix_yaw;
 		}
 		else
 		{
@@ -2049,12 +2048,12 @@ void VertexShaderManager::CheckOrientationConstants()
 		if (g_ActiveConfig.bStabilizePitch)
 		{
 			Matrix33::RotateX(matrix_pitch, -pitch);
-			Matrix33::Multiply(temp, matrix_pitch, rot);
-			Matrix44::LoadMatrix33(g_game_camera_rotmat, rot);
+			rot = matrix_pitch * temp;
+			g_game_camera_rotmat = rot;
 		}
 		else
 		{
-			Matrix44::LoadMatrix33(g_game_camera_rotmat, temp);
+			g_game_camera_rotmat = temp;
 		}
 
 		// A more elegant solution to all of the if statements above, but probably a lot slower.
