@@ -727,6 +727,7 @@ void InputConfigDialog::UpdateDeviceComboBox()
 {
   for (GamepadPage* page : m_padpages)
   {
+    page->device_cbox->Dismiss();
     page->device_cbox->Clear();
 
     for (const std::string& device_string : g_controller_interface.GetAllDeviceStrings())
@@ -1092,6 +1093,7 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 
   UpdateDeviceComboBox();
   UpdateProfileComboBox();
+  g_controller_interface.RegisterHotplugCallback([&] { UpdateDeviceComboBox(); });
 
   Bind(wxEVT_BUTTON, &InputConfigDialog::ClickSave, this, wxID_OK);
 
