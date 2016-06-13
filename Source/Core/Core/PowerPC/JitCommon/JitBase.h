@@ -85,6 +85,7 @@ protected:
 		bool carryFlagSet;
 		bool carryFlagInverted;
 
+		bool mustCheckFifo;
 		int fifoBytesThisBlock;
 
 		PPCAnalyst::BlockStats st;

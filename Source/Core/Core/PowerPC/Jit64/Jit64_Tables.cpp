@@ -301,7 +301,7 @@ static GekkoOPTemplate table31[] =
 	// Unused instructions on GC
 	{310, &Jit64::FallBackToInterpreter},  // eciwx
 	{438, &Jit64::FallBackToInterpreter},  // ecowx
-	{854, &Jit64::DoNothing},              // eieio
+	{854, &Jit64::eieio},                  // eieio
 	{306, &Jit64::FallBackToInterpreter},  // tlbie
 	{566, &Jit64::DoNothing},              // tlbsync
 };
