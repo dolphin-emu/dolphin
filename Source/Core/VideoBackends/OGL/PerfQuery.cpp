@@ -11,6 +11,7 @@
 
 #include "VideoBackends/OGL/PerfQuery.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
@@ -80,7 +81,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 		result = m_results[PQG_EFB_COPY_CLOCKS];
 	}
 
-	return result / 4;
+	return result;
 }
 
 // Implementations
@@ -157,7 +158,13 @@ void PerfQueryGL::FlushOne()
 	glGetQueryObjectuiv(entry.query_id, GL_QUERY_RESULT, &result);
 
 	// NOTE: Reported pixel metrics should be referenced to native resolution
-	m_results[entry.query_type] += (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+	result = (u64)result * EFB_WIDTH / g_renderer->GetTargetWidth() * EFB_HEIGHT / g_renderer->GetTargetHeight();
+
+	// Adjust for multisampling
+	if (g_ActiveConfig.iMultisamples > 1)
+		result /= g_ActiveConfig.iMultisamples;
+
+	m_results[entry.query_type] += result;
 
 	m_query_read_pos = (m_query_read_pos + 1) % m_query_buffer.size();
 	--m_query_count;

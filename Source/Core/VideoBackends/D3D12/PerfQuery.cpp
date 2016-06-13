@@ -96,7 +96,7 @@ u32 PerfQuery::GetQueryResult(PerfQueryType type)
 	else if (type == PQ_EFB_COPY_CLOCKS)
 		result = m_results[PQG_EFB_COPY_CLOCKS];
 
-	return result / 4;
+	return result;
 }
 
 void PerfQuery::FlushOne()
