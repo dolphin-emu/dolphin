@@ -14,7 +14,7 @@ namespace Xlib
 
 void Init(void* const hwnd)
 {
-	g_controller_interface.AddDevice(new KeyboardMouse((Window)hwnd));
+	g_controller_interface.AddDevice(std::make_unique<KeyboardMouse>((Window) hwnd));
 }
 
 KeyboardMouse::KeyboardMouse(Window window) : m_window(window)

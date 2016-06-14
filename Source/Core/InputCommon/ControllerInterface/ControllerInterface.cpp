@@ -106,14 +106,14 @@ void ControllerInterface::Shutdown()
 
 	std::lock_guard<std::mutex> lk(m_devices_mutex);
 
-	for (ciface::Core::Device* d : m_devices)
+	for (std::unique_ptr<ciface::Core::Device>& d : m_devices)
 	{
 		// Set outputs to ZERO before destroying device
 		for (ciface::Core::Device::Output* o : d->Outputs())
 			o->SetState(0);
 
 		// Delete device
-		delete d;
+		d.reset();
 	}
 
 	m_devices.clear();
@@ -141,10 +141,10 @@ void ControllerInterface::Shutdown()
 	m_is_init = false;
 }
 
-void ControllerInterface::AddDevice(ciface::Core::Device* device)
+void ControllerInterface::AddDevice(std::unique_ptr<ciface::Core::Device> device)
 {
 	std::lock_guard<std::mutex> lk(m_devices_mutex);
-	m_devices.push_back(device);
+	m_devices.push_back(std::move(device));
 }
 
 //
@@ -155,7 +155,7 @@ void ControllerInterface::AddDevice(ciface::Core::Device* device)
 void ControllerInterface::UpdateInput()
 {
 	std::lock_guard<std::mutex> lk(m_devices_mutex);
-	for (ciface::Core::Device* d : m_devices)
+	for (const std::unique_ptr<ciface::Core::Device>& d : m_devices)
 		d->UpdateInput();
 }
 

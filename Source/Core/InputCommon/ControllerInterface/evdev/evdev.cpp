@@ -69,17 +69,12 @@ void Init()
 			// Unfortunately udev gives us no way to filter out the non event device interfaces.
 			// So we open it and see if it works with evdev ioctls or not.
 			std::string name = GetName(devnode);
-			evdevDevice* input = new evdevDevice(devnode, name_counts[name]++);
+			auto input = std::make_unique<evdevDevice>(devnode, name_counts[name]++);
 
 			if (input->IsInteresting())
 			{
-				g_controller_interface.AddDevice(input);
+				g_controller_interface.AddDevice(std::move(input));
 				num_controllers++;
-			}
-			else
-			{
-				// Either it wasn't a evdev device, or it didn't have at least 8 buttons or two axis.
-				delete input;
 			}
 		}
 		udev_device_unref(dev);

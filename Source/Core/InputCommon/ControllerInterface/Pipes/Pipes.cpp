@@ -82,7 +82,7 @@ void Init()
 		int fd = open(child.physicalName.c_str(), O_RDONLY | O_NONBLOCK);
 		if (fd < 0)
 			continue;
-		g_controller_interface.AddDevice(new PipeDevice(fd, child.virtualName, found++));
+		g_controller_interface.AddDevice(std::make_unique<PipeDevice>(fd, child.virtualName, found++));
 	}
 }
 

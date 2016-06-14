@@ -57,12 +57,10 @@ void Init()
 		SDL_Joystick* dev = SDL_JoystickOpen(i);
 		if (dev)
 		{
-			Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
+			auto js = std::make_unique<Joystick>(dev, i, name_counts[GetJoystickName(i)]++);
 			// only add if it has some inputs/outputs
 			if (js->Inputs().size() || js->Outputs().size())
-				g_controller_interface.AddDevice(js);
-			else
-				delete js;
+				g_controller_interface.AddDevice(std::move(js));
 		}
 	}
 }

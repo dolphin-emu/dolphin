@@ -155,7 +155,7 @@ static void DeviceMatching_callback(void* inContext,
 	// Add a device if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-		g_controller_interface.AddDevice(new Keyboard(inIOHIDDeviceRef,
+		g_controller_interface.AddDevice(std::make_unique<Keyboard>(inIOHIDDeviceRef,
 			name, kbd_name_counts[name]++, g_window));
 #if 0
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
@@ -164,7 +164,7 @@ static void DeviceMatching_callback(void* inContext,
 			name, mouse_name_counts[name]++));
 #endif
 	else
-		g_controller_interface.AddDevice(new Joystick(inIOHIDDeviceRef,
+		g_controller_interface.AddDevice(std::make_unique<Joystick>(inIOHIDDeviceRef,
 			name, joy_name_counts[name]++));
 }
 

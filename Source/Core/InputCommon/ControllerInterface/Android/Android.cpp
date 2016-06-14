@@ -13,14 +13,8 @@ namespace Android
 
 void Init()
 {
-	g_controller_interface.AddDevice(new Touchscreen(0));
-	g_controller_interface.AddDevice(new Touchscreen(1));
-	g_controller_interface.AddDevice(new Touchscreen(2));
-	g_controller_interface.AddDevice(new Touchscreen(3));
-	g_controller_interface.AddDevice(new Touchscreen(4));
-	g_controller_interface.AddDevice(new Touchscreen(5));
-	g_controller_interface.AddDevice(new Touchscreen(6));
-	g_controller_interface.AddDevice(new Touchscreen(7));
+	for (int i = 0; i < 8; ++i)
+		g_controller_interface.AddDevice(std::make_unique<Touchscreen>(i));
 }
 
 // Touchscreens and stuff
