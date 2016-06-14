@@ -445,12 +445,14 @@ namespace DX11
 
 	void AvatarDrawer::DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b)
 	{
+		// view matrix
+		if (!CalculateViewMatrix(kind))
+			return;
+		// colour
 		params.color[0] = r;
 		params.color[1] = g;
 		params.color[2] = b;
 		params.color[3] = 1.0f;
-		// view matrix
-		CalculateViewMatrix(kind);
 		// world matrix
 		Matrix44 world, rotation, location;
 		Matrix44::LoadMatrix33(rotation, m);
@@ -480,7 +482,7 @@ namespace DX11
 	}
 
 
-	void AvatarDrawer::CalculateViewMatrix(int kind)
+	bool AvatarDrawer::CalculateViewMatrix(int kind)
 	{
 		bool bStuckToHead = false, bIsSkybox = false, bIsPerspective = false, bHasWidest = (vr_widest_3d_HFOV > 0);
 		bool bIsHudElement = false, bIsOffscreen = false, bAspectWide = true, bNoForward = false, bShowAim = false;
@@ -490,7 +492,7 @@ namespace DX11
 		if (kind == 1)
 		{
 			if (!bHasWidest)
-				return;
+				return false;
 		}
 		// Show Aim
 		else if (kind == 0)
@@ -848,9 +850,10 @@ namespace DX11
 
 		// copy matrices into buffer
 		memcpy(params.view, look_matrix.data, 16 * sizeof(float));
+		return true;
 	}
 
-	void AvatarDrawer::CalculateTrackingSpaceToViewSpaceMatrix(int kind, Matrix44 &look_matrix)
+	bool AvatarDrawer::CalculateTrackingSpaceToViewSpaceMatrix(int kind, Matrix44 &look_matrix)
 	{
 		bool bStuckToHead = false, bIsSkybox = false, bIsPerspective = false, bHasWidest = (vr_widest_3d_HFOV > 0);
 		bool bIsHudElement = false, bIsOffscreen = false, bAspectWide = true, bNoForward = false, bShowAim = false;
@@ -860,7 +863,7 @@ namespace DX11
 		if (kind == 1)
 		{
 			if (!bHasWidest)
-				return;
+				return false;
 		}
 		// Aim space
 		else if (kind == 0)
@@ -1214,6 +1217,7 @@ namespace DX11
 			Matrix44::Multiply(box_matrix, A, look_matrix);
 		}
 		// done
+		return true;
 	}
 
 	void AvatarDrawer::DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs)
@@ -1284,7 +1288,7 @@ namespace DX11
 				params.color[2] = 0.5f;
 				break;
 		}
-		params.color[0] = 1.0f;
+		params.color[3] = 1.0f;
 		// world matrix
 		Matrix44 world, scale, rotation, scalerot, location, offset;
 		float v[3] = { 0.0025f, 0.0025f, 0.0025f };
