@@ -69,6 +69,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 		dlg.SetSizerAndFit(main_szr);
 		dlg.Center();
 
+		UpdateGUI();
 		dlg.ShowModal();
 
 		// remove the new groups that were just added, now that the window closed
@@ -272,6 +273,10 @@ void GamepadPage::UpdateGUI()
 		for (ControlButton* button : cgBox->control_buttons)
 		{
 			wxString expr = StrToWxStr(button->control_reference->expression);
+			if (button->control_reference->is_input)
+				button->SetToolTip(_("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options.") + "\n\n" + expr);
+			else
+				button->SetToolTip(_("Left/Right-click for more options.\nMiddle-click to clear.") + "\n\n" + expr);
 			expr.Replace("&", "&&");
 			button->SetLabel(expr);
 		}
