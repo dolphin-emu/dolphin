@@ -69,6 +69,7 @@ void GamepadPage::ConfigExtension(wxCommandEvent& event)
 		dlg.SetSizerAndFit(main_szr);
 		dlg.Center();
 
+		UpdateGUI();
 		dlg.ShowModal();
 
 		// remove the new groups that were just added, now that the window closed
@@ -272,6 +273,47 @@ void GamepadPage::UpdateGUI()
 		for (ControlButton* button : cgBox->control_buttons)
 		{
 			wxString expr = StrToWxStr(button->control_reference->expression);
+#ifdef CIFACE_USE_DINPUT
+			expr.Replace("((`DInput/0/Keyboard Mouse:LMENU` | `DInput/0/Keyboard Mouse:RMENU`) & !(`DInput/0/Keyboard Mouse:LSHIFT` | `DInput/0/Keyboard Mouse:RSHIFT`) & !(`DInput/0/Keyboard Mouse:LCONTROL` | `DInput/0/Keyboard Mouse:RCONTROL`))", "K:Alt");
+			expr.Replace("(!(`DInput/0/Keyboard Mouse:LMENU` | `DInput/0/Keyboard Mouse:RMENU`) & !(`DInput/0/Keyboard Mouse:LSHIFT` | `DInput/0/Keyboard Mouse:RSHIFT`) & (`DInput/0/Keyboard Mouse:LCONTROL` | `DInput/0/Keyboard Mouse:RCONTROL`))", "K:Ctrl");
+			expr.Replace("(!(`DInput/0/Keyboard Mouse:LMENU` | `DInput/0/Keyboard Mouse:RMENU`) & (`DInput/0/Keyboard Mouse:LSHIFT` | `DInput/0/Keyboard Mouse:RSHIFT`) & !(`DInput/0/Keyboard Mouse:LCONTROL` | `DInput/0/Keyboard Mouse:RCONTROL`))", "K:Shift");
+			expr.Replace("(!(`DInput/0/Keyboard Mouse:LMENU` | `DInput/0/Keyboard Mouse:RMENU`) & !(`DInput/0/Keyboard Mouse:LSHIFT` | `DInput/0/Keyboard Mouse:RSHIFT`) & !(`DInput/0/Keyboard Mouse:LCONTROL` | `DInput/0/Keyboard Mouse:RCONTROL`)) &", "K:Only");
+			expr.Replace("(`DInput/0/Keyboard Mouse:LMENU` | `DInput/0/Keyboard Mouse:RMENU`)", "K:ALT");
+			expr.Replace("(`DInput/0/Keyboard Mouse:LCONTROL` | `DInput/0/Keyboard Mouse:RCONTROL`)", "K:CTRL");
+			expr.Replace("(`DInput/0/Keyboard Mouse:LSHIFT` | `DInput/0/Keyboard Mouse:RSHIFT`)", "K:SHIFT");
+			expr.Replace("DInput/0/Keyboard Mouse:Click ", "M:Click");
+			expr.Replace("DInput/0/Keyboard Mouse:Axis ", "M:Axis");
+			expr.Replace("DInput/0/Keyboard Mouse:Cursor ", "M:Cursor");
+			expr.Replace("DInput/0/Keyboard Mouse:", "K:");
+#endif
+#if _WIN32
+			expr.Replace("((LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))", "Alt");
+			expr.Replace("(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & (LCONTROL | RCONTROL))", "Ctrl");
+			expr.Replace("(!(LMENU | RMENU) & (LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))", "Shift");
+			expr.Replace("(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL)) &", "Only");
+			expr.Replace("(LMENU | RMENU)", "ALT");
+			expr.Replace("(LCONTROL | RCONTROL)", "CTRL");
+			expr.Replace("(LSHIFT | RSHIFT)", "SHIFT");
+#else
+			expr.Replace("(`Alt_L` & !(`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` ))", "Alt");
+			expr.Replace("(!`Alt_L` & !(`Shift_L` | `Shift_R`) & (`Control_L` | `Control_R` ))", "Ctrl");
+			expr.Replace("(!`Alt_L` & (`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` ))", "Shift");
+			expr.Replace("(!`Alt_L` & !(`Shift_L` | `Shift_R`) & !(`Control_L` | `Control_R` )) &", "Only");
+			expr.Replace("(`Control_L` | `Control_R` )", "Ctrl");
+			expr.Replace("(`Control_L` | `Control_R`)", "Ctrl");
+			expr.Replace("(`Shift_L` | `Shift_R`)", "Shift");
+#endif
+#ifdef CIFACE_USE_XINPUT
+			expr.Replace("XInput/0/Gamepad:", "X:");
+			expr.Replace("XInput/1/Gamepad:", "X1:");
+			expr.Replace("XInput/2/Gamepad:", "X2:");
+			expr.Replace("XInput/3/Gamepad:", "X3:");
+#endif
+			expr.Replace("`", "");
+			if (button->control_reference->is_input)
+				button->SetToolTip(_("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options.") + "\n\n" + expr);
+			else
+				button->SetToolTip(_("Left/Right-click for more options.\nMiddle-click to clear.") + "\n\n" + expr);
 			expr.Replace("&", "&&");
 			button->SetLabel(expr);
 		}
