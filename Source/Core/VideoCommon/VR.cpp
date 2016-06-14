@@ -109,6 +109,8 @@ double g_older_tracking_time = 0, g_old_tracking_time = 0, g_last_tracking_time 
 float g_steamvr_ipd = 0.064f;
 
 u8 g_vr_reading_wiimote_accel[5] = {}, g_vr_reading_wiimote_ir[5] = {}, g_vr_reading_wiimote_ext[5] = {};
+bool g_vr_has_ir = false;
+float g_vr_ir_x = 0, g_vr_ir_y = 0, g_vr_ir_z = 0;
 
 ControllerStyle vr_left_controller = CS_HYDRA_LEFT, vr_right_controller = CS_HYDRA_RIGHT;
 
@@ -246,6 +248,7 @@ bool BInitCompositor()
 
 	// change grid room colour
 	//m_pCompositor->FadeToColor(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, true);
+	m_pCompositor->SetTrackingSpace(vr::TrackingUniverseSeated);
 
 	return true;
 }
@@ -1535,6 +1538,23 @@ bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
 			*gy += rel_acc[2] / 9.8f;
 		}
 		return true;
+	}
+#endif
+	return false;
+}
+
+bool VR_GetIR(int index, double* irx, double* iry, double* irz)
+{
+#if defined(HAVE_OPENVR)
+	if (g_has_steamvr)
+	{
+		if (g_vr_has_ir)
+		{
+			*irx = g_vr_ir_x;
+			*iry = g_vr_ir_y;
+			*irz = g_vr_ir_z;
+			return true;
+		}
 	}
 #endif
 	return false;

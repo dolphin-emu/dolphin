@@ -395,6 +395,7 @@ public:
 
 	// Matrix44::Multiply(RHS, LHS, Result); is the same as Result = LHS * RHS;
 	static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result);
+	static void Multiply(const Matrix44& a, const float vec[3], float result[3]);
 	Matrix44 operator*(const Matrix44& rhs) const;
 	void operator*=(const Matrix44& rhs)
 	{

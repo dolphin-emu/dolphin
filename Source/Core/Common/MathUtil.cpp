@@ -527,6 +527,22 @@ void Matrix44::Multiply(const Matrix44& a, const Matrix44& b, Matrix44& result)
 	MatrixMul(4, a.data, b.data, result.data);
 }
 
+void Matrix44::Multiply(const Matrix44& a, const float vec[3], float result[3])
+{
+	float v[4], r[4];
+	v[0] = vec[0]; v[1] = vec[1]; v[2] = vec[2]; v[3] = 1.0;
+	for (int i = 0; i < 4; ++i)
+	{
+		r[i] = 0;
+		for (int k = 0; k < 4; ++k)
+		{
+			r[i] += a.data[i * 4 + k] * v[k];
+		}
+	}
+	for (int i = 0; i < 3; ++i)
+		result[i] = r[i];
+}
+
 Matrix44 Matrix44::operator*(const Matrix44 &rhs) const
 {
 	Matrix44 result;

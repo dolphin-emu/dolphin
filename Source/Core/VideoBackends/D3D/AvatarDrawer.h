@@ -48,6 +48,7 @@ namespace DX11
 
 	private:
 		void CalculateViewMatrix(int kind);
+		void CalculateTrackingSpaceToViewSpaceMatrix(int kind, Matrix44 &look_matrix);
 		void DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs);
 		void DrawLine(float *pos, Matrix33 &m, float r, float g, float b);
 		void DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b);

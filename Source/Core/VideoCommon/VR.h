@@ -218,6 +218,7 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 bool VR_ViveHapticPulse(int hands, int microseconds);
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz);
+bool VR_GetIR(int index, double* irx, double* iry, double* irz);
 // called whenever the game reads the wiimote, to let us know which features they are reading
 void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext);
 
@@ -261,6 +262,9 @@ extern float g_current_fps, g_current_speed;
 
 // 4 Wiimotes + 1 Balance Board
 extern u8 g_vr_reading_wiimote_accel[5], g_vr_reading_wiimote_ir[5], g_vr_reading_wiimote_ext[5];
+
+extern bool g_vr_has_ir;
+extern float g_vr_ir_x, g_vr_ir_y, g_vr_ir_z;
 
 //Opcode Replay Buffer
 struct TimewarpLogEntry {

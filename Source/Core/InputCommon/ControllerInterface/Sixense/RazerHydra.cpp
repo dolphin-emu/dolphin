@@ -207,6 +207,8 @@ bool getButtons(int index, bool sideways, bool has_extension, u32* mask, bool* c
 
 void getIR(int index, double* x, double* y, double* z)
 {
+	if (VR_GetIR(index, x, y, z))
+		return;
 #ifdef _WIN32
 	// VR Sixense Razer Hydra
 	// Use right Hydra's position as IR pointer.
