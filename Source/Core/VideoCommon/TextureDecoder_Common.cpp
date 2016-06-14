@@ -591,10 +591,10 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 					color = MakeRGBA(red2, green2, blue2, 255);
 					break;
 				case 2:
-					color = MakeRGBA(red1+(red2-red1)/3, green1+(green2-green1)/3, blue1+(blue2-blue1)/3, 255);
+					color = MakeRGBA(red1+(red2-red1)*3/8, green1+(green2-green1)*3/8, blue1+(blue2-blue1)*3/8, 255);
 					break;
 				case 3:
-					color = MakeRGBA(red2+(red1-red2)/3, green2+(green1-green2)/3, blue2+(blue1-blue2)/3, 255);
+					color = MakeRGBA(red2+(red1-red2)*3/8, green2+(green1-green2)*3/8, blue2+(blue1-blue2)*3/8, 255);
 					break;
 				case 6:
 					color = MakeRGBA((int)ceil((float)(red1+red2)/2), (int)ceil((float)(green1+green2)/2), (int)ceil((float)(blue1+blue2)/2), 255);
