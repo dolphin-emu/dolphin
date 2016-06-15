@@ -9,8 +9,8 @@
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
-
 #include "InputCommon/ControllerInterface/Sixense/RazerHydra.h"
+#include "VideoCommon/VR.h"
 
 namespace HydraTLayer
 {
@@ -46,6 +46,22 @@ void GetAcceleration(int index, bool sideways, bool has_extension, WiimoteEmu::A
 	float x, y, z;
 	if (RazerHydra::getAccel(index, sideways, has_extension, &x, &y, &z))
 	{
+		// If we're IR pointing at the "screen", then we need to check we aren't pitching up or down more than 60 degrees
+		// because the Wii doesn't return IR results when pitching up or down 60 degrees or more.
+		// We need to force it to return IR results by pretending it is only pitched 59 degrees.
+		if (g_vr_has_ir && g_vr_ir_x > -1 && g_vr_ir_x < 1 && g_vr_ir_y > -1 && g_vr_ir_y < 1)
+		{
+			float pitch = RADIANS_TO_DEGREES(asin(-y));
+			float roll = atan2(z, x);
+			if (fabs(pitch) > 60)
+			{
+				pitch = 50*SignOf(pitch);
+				y = sin(DEGREES_TO_RADIANS(pitch));
+				float c = cos(DEGREES_TO_RADIANS(pitch));
+				x = sin(roll)*c;
+				z = cos(roll)*c;
+			}
+		}
 		data->x = x;
 		data->y = y;
 		data->z = z;
