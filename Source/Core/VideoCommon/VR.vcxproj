@@ -64,6 +64,7 @@
     <ClCompile Include="..\DolphinWX\ISOProperties.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="VRGameMatrices.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\VideoBackends\D3D\OculusSystemLibraryHeaderD3D11.h" />
@@ -79,6 +80,7 @@
     <ClInclude Include="..\DolphinWX\ConfigVR.h" />
     <ClInclude Include="..\DolphinWX\HideObjectAddEdit.h" />
     <ClInclude Include="..\DolphinWX\ISOProperties.h" />
+    <ClInclude Include="VRGameMatrices.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">

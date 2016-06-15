@@ -53,6 +53,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
+#include "VideoCommon/VRGameMatrices.h"
 #include "VideoCommon/XFMemory.h"
 
 // TODO: Move these out of here.
@@ -616,6 +617,8 @@ void Renderer::RecordVideoMemory()
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc, float Gamma)
 {
 	g_final_screen_region = rc;
+	VRCalculateIRPointer();
+
 	// TODO: merge more generic parts into VideoCommon
 	g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
 
