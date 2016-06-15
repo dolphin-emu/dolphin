@@ -127,7 +127,7 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 	// Check for custom communication
 	if (99 == channel)
 	{
-		EmuStop();
+		DisconnectInternal();
 	}
 	else
 	{
