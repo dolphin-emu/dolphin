@@ -1075,6 +1075,8 @@ namespace DX11
 				HudWidth = 2.0f * tanf(DEGREES_TO_RADIANS(hfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 				HudHeight = 2.0f * tanf(DEGREES_TO_RADIANS(vfov / 2.0f)) * HudDistance * (AimDistance + CameraForward) / AimDistance;
 			}
+			if (kind = 0 | bShowAim)
+				HudThickness = HudWidth;
 
 			float scale[3]; // width, height, and depth of box in game units divided by 2D width, height, and depth 
 			float position[3]; // position of front of box relative to the camera, in game units 
@@ -1466,7 +1468,7 @@ namespace DX11
 			Matrix44 ToAimSpace;
 			CalculateTrackingSpaceToViewSpaceMatrix(0, ToAimSpace);
 
-			float r[3], rp[3], v[3] = { 0, 0, -1.0f }, ppos[3];
+			float r[3], rp[3], d[3], v[3] = { 0, 0, -1.0f }, ppos[3], aimpoint[3];
 			Matrix44 WiimoteRot;
 			WiimoteRot = wmrot;
 			// find pointer position
@@ -1476,10 +1478,23 @@ namespace DX11
 
 			Matrix44::Multiply(ToAimSpace, wmpos, r);
 			Matrix44::Multiply(ToAimSpace, ppos, rp);
-			//NOTICE_LOG(VR, "r=%f, %f, %f", r[0], r[1], r[2]);
-			g_vr_ir_x = rp[0]*2-1;
-			g_vr_ir_y = 1 - (rp[1] * 2);
-			g_vr_ir_z = rp[2]*2-1;
+			for (int i = 0; i < 3; ++i)
+				d[i] = rp[i] - r[i];
+			float s = -r[2] / d[2];
+			if (s < 0)
+			{
+				// aimed away from screen, so set aim point to infinity on the closest side
+				// this is for first person games where we will turn the camera towards the IR point if it is off-screen
+				s = std::numeric_limits<float>::infinity();
+			}
+
+			for (int i = 0; i < 3; ++i)
+				aimpoint[i] = r[i] + d[i]*s;
+
+			//NOTICE_LOG(VR, "r=%8f, %8f, %8f       %8f     d=%8f, %8f, %8f     a=%8f, %8f, %8f", r[0], r[1], r[2], rp[2]-r[2], d[0], d[1], d[2], aimpoint[0], aimpoint[1], aimpoint[2]);
+			g_vr_ir_x = aimpoint[0]*2-1;
+			g_vr_ir_y = 1 - (aimpoint[1] * 2);
+			g_vr_ir_z = aimpoint[2]; //todo: currently always 0, but should be based on actual controller distance from screen, not aimpoint
 			g_vr_has_ir = true;
 
 			D3D::stateman->PopRasterizerState();
