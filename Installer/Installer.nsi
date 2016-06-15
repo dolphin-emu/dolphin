@@ -14,6 +14,8 @@
 
 SetCompressor /SOLID lzma
 
+!include "FileFunc.nsh"
+
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
 
@@ -125,8 +127,11 @@ Section "Base" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   ; Only delete what we put there; all $INSTDIR\User is left as is
-  Delete "$INSTDIR\*.exe"
+  Delete "$INSTDIR\uninst.exe"
+  Delete "$INSTDIR\license.txt"
   Delete "$INSTDIR\*.dll"
+  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\DSPTool.exe"
   Delete "$INSTDIR\cpack_package_description.txt"
   Delete "$INSTDIR\qt.conf"
   RMDir /r "$INSTDIR\Sys"
@@ -176,9 +181,10 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Readme" "$INSTDIR\readme.txt"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Comments" "Play GameCube and Wii games in VR"
-  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" 25976  
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" "$0"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Comments" "GameCube and Wii emulator"
 SectionEnd
 
 ; Section descriptions
