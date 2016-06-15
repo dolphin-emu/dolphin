@@ -78,6 +78,7 @@ namespace DX11
 		u16 *m_indices;
 		int m_vertex_count, m_index_count;
 		float hydra_size[3], hydra_mid[3];
+		float m_scale;
 	};
 
 	void GetModelSize(tinyobj::shape_t *shape, float *width, float *height, float *depth, float *x, float *y, float *z);

@@ -174,8 +174,47 @@ namespace DX11
 		m_line_vertices[32] = m_line_vertices[10 + 6];
 		m_line_vertices[33] = m_line_vertices[18 + 6];
 
+#ifdef HAVE_OPENVR
+		// Load Vive model
+		if (g_has_steamvr)
+		{
+			vr::RenderModel_t *pModel;
+			vr::EVRRenderModelError error;
+			const char *openvrpath = vr::VR_RuntimePath();
+			char path[MAX_PATH] = "";
+			sprintf(path, "%s\\resources\\rendermodels\\vr_controller_vive_1_5\\vr_controller_vive_1_5.obj", openvrpath);
+			while (true)
+			{
+				error = vr::VRRenderModels()->LoadRenderModel_Async(path, &pModel);
+				if (error != vr::VRRenderModelError_Loading)
+					break;
+				Sleep(2);
+			}
+
+			if (error != vr::VRRenderModelError_None)
+			{
+				NOTICE_LOG(VR, "Unable to load render model %s - %s\n", path, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
+				m_vertex_count = 0;
+				m_index_count = 0;
+				m_scale = 1;
+			}
+			else
+			{
+				NOTICE_LOG(VR, "Loaded render model %s\n", path);
+				m_vertex_count = pModel->unVertexCount * sizeof(VERTEX) / sizeof(float);
+				m_index_count = pModel->unTriangleCount * 3;
+				m_vertices = new float[m_vertex_count];
+				m_indices = new u16[m_index_count];
+				memcpy(m_vertices, pModel->rVertexData, m_vertex_count * sizeof(float));
+				memcpy(m_indices, pModel->rIndexData, m_index_count * sizeof(u16));
+				m_scale = 1;
+			}
+		}
+		else
+#endif
 		// Load Hydra model
 		{
+			m_scale = 0.0025f;
 			std::vector<tinyobj::shape_t> shapes;
 			std::vector<tinyobj::material_t> materials;
 			std::string path = File::GetSysDirectory() + "\\Resources\\Models\\HydraModel.obj";
@@ -909,7 +948,7 @@ namespace DX11
 		params.color[3] = 1.0f;
 		// world matrix
 		Matrix44 world, scale, rotation, scalerot, location, offset;
-		float v[3] = { 0.0025f, 0.0025f, 0.0025f };
+		float v[3] = { m_scale, m_scale, m_scale };
 		rotation = m;
 		Matrix44::Scale(scale, v);
 		scalerot = scale * rotation;
