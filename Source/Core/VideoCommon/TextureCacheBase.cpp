@@ -319,6 +319,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		TCacheEntryBase* entry = iter->second;
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
+			&& entry->references.count(entry_to_update) == 0
 			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
@@ -329,6 +330,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 					TCacheEntryBase *decoded_entry = entry->ApplyPalette(palette, tlutfmt);
 					if (decoded_entry)
 					{
+						// Link the efb copy with the partially updated texture, so we won't apply this partial update again
+						entry->CreateReference(entry_to_update);
 						// Mark the texture update as used, as if it was loaded directly
 						entry->frameCount = FRAMECOUNT_INVALID;
 						entry = decoded_entry;
@@ -394,12 +397,20 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				dstrect.right = (dst_x + copy_width);
 				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
-				// Mark the texture update as used, as if it was loaded directly
-				entry->frameCount = FRAMECOUNT_INVALID;
 
-				// Remove the converted texture, it won't be used anywhere else
+
 				if (isPaletteTexture)
+				{
+					// Remove the converted texture, it won't be used anywhere else
 					FreeTexture(GetTexCacheIter(entry));
+				}
+				else
+				{
+					// Link the two textures together, so we won't apply this partial update again
+					entry->CreateReference(entry_to_update);
+					// Mark the texture update as used, as if it was loaded directly
+					entry->frameCount = FRAMECOUNT_INVALID;
+				}
 			}
 			else
 			{
@@ -1301,6 +1312,16 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::GetTexCacheIter(TextureCa
 	return textures_by_address.end();
 }
 
+void TextureCacheBase::TCacheEntryBase::Reset()
+{
+	// Unlink any references
+	for (auto& reference : references)
+		reference->references.erase(this);
+
+	references.clear();
+	frameCount = FRAMECOUNT_INVALID;
+}
+
 TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::iterator iter)
 {
 	if (iter == textures_by_address.end())
@@ -1314,7 +1335,7 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::ite
 		entry->textures_by_hash_iter = textures_by_hash.end();
 	}
 
-	entry->frameCount = FRAMECOUNT_INVALID;
+	entry->Reset();
 	texture_pool.emplace(entry->config, entry);
 
 	return textures_by_address.erase(iter);

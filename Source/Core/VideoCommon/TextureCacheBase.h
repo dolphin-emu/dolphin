@@ -8,6 +8,7 @@
 #include <memory>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
@@ -68,6 +69,11 @@ public:
 		// Keep an iterator to the entry in textures_by_hash, so it does not need to be searched when removing the cache entry
 		std::multimap<u64, TCacheEntryBase*>::iterator textures_by_hash_iter;
 
+		// This is used to keep track of both:
+		//   * efb copies used by this partially updated texture
+		//   * partially updated textures which refer to this efb copy
+		std::unordered_set<TCacheEntryBase*> references;
+
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
 			addr = _addr;
@@ -89,10 +95,19 @@ public:
 			hash = _hash;
 		}
 
+		// This texture entry is used by the other entry as a sub-texture
+		void CreateReference(TCacheEntryBase* other_entry)
+		{
+			this->references.emplace(other_entry);
+			other_entry->references.emplace(this);
+		}
+
 		void SetEfbCopy(u32 stride);
+		void Reset(); // Prepare for reuse
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
+
 
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
