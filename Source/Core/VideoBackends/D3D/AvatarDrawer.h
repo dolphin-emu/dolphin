@@ -21,7 +21,7 @@ struct ID3D11SamplerState;
 
 namespace DX11
 {
-
+	class D3DTexture2D;
 
 	union VertexShaderParams
 	{
@@ -59,11 +59,12 @@ namespace DX11
 		ID3D11InputLayout* m_vertex_layout;
 		ID3D11VertexShader* m_vertex_shader, * m_line_vertex_shader;
 		ID3D11GeometryShader* m_geometry_shader, * m_line_geometry_shader;
-		ID3D11PixelShader* m_pixel_shader;
+		ID3D11PixelShader* m_color_pixel_shader, * m_texture_pixel_shader;
 		ID3D11BlendState* m_avatar_blend_state;
 		ID3D11DepthStencilState* m_avatar_depth_state;
 		ID3D11RasterizerState* m_avatar_rast_state, * m_avatar_line_rast_state;
 		ID3D11SamplerState* m_avatar_sampler;
+		D3DTexture2D * m_texture;
 		VertexShaderParams params;
 
 		struct VERTEX

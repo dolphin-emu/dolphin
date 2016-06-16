@@ -115,6 +115,21 @@ namespace DX11
 		"}\n"
 		;
 
+	static const char AVATAR_DRAWER_TEXTURE_PS[] =
+		"// dolphin-emu AvatarDrawer texture pixel shader\n"
+
+		"SamplerState samp : register(s0);\n"
+		"Texture2D Tex : register(t0);\n"
+
+		"void main(out float4 ocol0 : SV_Target, in float4 position : SV_Position, in float4 color : COLOR, "
+		"in float3 uv : TEXCOORD, in uint layer : SV_RenderTargetArrayIndex)\n"
+		"{\n"
+		"float4 textureColor;\n"
+		"textureColor = Tex.Sample(samp, uv.xy);\n"
+		"ocol0 = textureColor * color;\n"
+		"}\n"
+		;
+
 	static const D3D11_INPUT_ELEMENT_DESC QUAD_LAYOUT_DESC[] = {
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -125,7 +140,7 @@ namespace DX11
 	AvatarDrawer::AvatarDrawer()
 		: m_vertex_shader_params(nullptr),
 		m_vertex_buffer(nullptr), m_line_vertex_buffer(nullptr), m_index_buffer(nullptr), m_vertex_layout(nullptr),
-		m_vertex_shader(nullptr), m_line_vertex_shader(nullptr), m_geometry_shader(nullptr), m_line_geometry_shader(nullptr), m_pixel_shader(nullptr),
+		m_vertex_shader(nullptr), m_line_vertex_shader(nullptr), m_geometry_shader(nullptr), m_line_geometry_shader(nullptr), m_color_pixel_shader(nullptr), m_texture_pixel_shader(nullptr),
 		m_avatar_blend_state(nullptr), m_avatar_depth_state(nullptr),
 		m_avatar_rast_state(nullptr), m_avatar_line_rast_state(nullptr), m_avatar_sampler(nullptr)
 	{ }
@@ -178,7 +193,7 @@ namespace DX11
 		// Load Vive model
 		if (g_has_steamvr)
 		{
-			vr::RenderModel_t *pModel;
+			vr::RenderModel_t *pModel = nullptr;
 			vr::EVRRenderModelError error;
 			const char *openvrpath = vr::VR_RuntimePath();
 			char path[MAX_PATH] = "";
@@ -190,13 +205,22 @@ namespace DX11
 					break;
 				Sleep(2);
 			}
-
+			vr::RenderModel_TextureMap_t *pTexture = nullptr;
+			while (1)
+			{
+				error = vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture);
+				if (error != vr::VRRenderModelError_Loading)
+					break;
+				Sleep(2);
+			}
+			
 			if (error != vr::VRRenderModelError_None)
 			{
 				NOTICE_LOG(VR, "Unable to load render model %s - %s\n", path, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
 				m_vertex_count = 0;
 				m_index_count = 0;
 				m_scale = 1;
+				m_texture = nullptr;
 			}
 			else
 			{
@@ -208,7 +232,12 @@ namespace DX11
 				memcpy(m_vertices, pModel->rVertexData, m_vertex_count * sizeof(float));
 				memcpy(m_indices, pModel->rIndexData, m_index_count * sizeof(u16));
 				m_scale = 1;
+				D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, pTexture->unWidth * 4, pTexture->unWidth * pTexture->unHeight * 4 };
+				m_texture = DX11::D3DTexture2D::Create(pTexture->unWidth, pTexture->unHeight, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
+
 			}
+			vr::VRRenderModels()->FreeRenderModel(pModel);
+			vr::VRRenderModels()->FreeTexture(pTexture);
 		}
 		else
 #endif
@@ -287,6 +316,7 @@ namespace DX11
 				}
 				DEBUG_LOG(VR, "\n");
 			}
+			m_texture = nullptr;
 		}
 
 		// Create vertex buffer
@@ -379,13 +409,21 @@ namespace DX11
 
 		// Create pixel shader
 
-		m_pixel_shader = D3D::CompileAndCreatePixelShader(AVATAR_DRAWER_PS);
-		if (!m_pixel_shader)
+		m_texture_pixel_shader = D3D::CompileAndCreatePixelShader(AVATAR_DRAWER_TEXTURE_PS);
+		if (!m_texture_pixel_shader)
 		{
-			ERROR_LOG(VR, "AvatarDrawer pixel shader failed to compile");
+			ERROR_LOG(VR, "AvatarDrawer texture pixel shader failed to compile");
 			return;
 		}
-		D3D::SetDebugObjectName(m_pixel_shader, "AvatarDrawer pixel shader");
+		D3D::SetDebugObjectName(m_texture_pixel_shader, "AvatarDrawer texture pixel shader");
+
+		m_color_pixel_shader = D3D::CompileAndCreatePixelShader(AVATAR_DRAWER_PS);
+		if (!m_color_pixel_shader)
+		{
+			ERROR_LOG(VR, "AvatarDrawer color pixel shader failed to compile");
+			return;
+		}
+		D3D::SetDebugObjectName(m_color_pixel_shader, "AvatarDrawer color pixel shader");
 
 		// Create blend state
 
@@ -435,12 +473,14 @@ namespace DX11
 
 	void AvatarDrawer::Shutdown()
 	{
+		SAFE_RELEASE(m_texture);
 		SAFE_RELEASE(m_avatar_sampler);
 		SAFE_RELEASE(m_avatar_rast_state);
 		SAFE_RELEASE(m_avatar_line_rast_state);
 		SAFE_RELEASE(m_avatar_depth_state);
 		SAFE_RELEASE(m_avatar_blend_state);
-		SAFE_RELEASE(m_pixel_shader);
+		SAFE_RELEASE(m_color_pixel_shader);
+		SAFE_RELEASE(m_texture_pixel_shader);
 		SAFE_RELEASE(m_geometry_shader);
 		SAFE_RELEASE(m_line_geometry_shader);
 		SAFE_RELEASE(m_vertex_layout);
@@ -965,7 +1005,7 @@ namespace DX11
 
 		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
 		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
-		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetTexture(0, m_texture->GetSRV());
 		D3D::stateman->SetSampler(0, m_avatar_sampler);
 
 		// Draw!
@@ -990,7 +1030,7 @@ namespace DX11
 
 		// Set up all the state for Avatar drawing
 
-		D3D::stateman->SetPixelShader(m_pixel_shader);
+		D3D::stateman->SetPixelShader(m_texture_pixel_shader);
 		D3D::stateman->SetVertexShader(m_vertex_shader);
 		D3D::stateman->SetGeometryShader(m_geometry_shader);
 
@@ -1093,6 +1133,7 @@ namespace DX11
 		{
 			D3D::stateman->SetVertexShader(m_line_vertex_shader);
 			D3D::stateman->SetGeometryShader(m_line_geometry_shader);
+			D3D::stateman->SetPixelShader(m_color_pixel_shader);
 			D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 			D3D::stateman->PushRasterizerState(m_avatar_line_rast_state);
 			D3D::stateman->SetVertexBuffer(m_line_vertex_buffer, stride, offset);
