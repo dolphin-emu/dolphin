@@ -319,7 +319,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		TCacheEntryBase* entry = iter->second;
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
-			&& entry->refrences.count(entry_to_update) == 0
+			&& entry->references.count(entry_to_update) == 0
 			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
@@ -330,6 +330,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 					TCacheEntryBase *decoded_entry = entry->ApplyPalette(palette, tlutfmt);
 					if (decoded_entry)
 					{
+						// Link the efb copy with the partially updated texture, so we won't apply this partial update again
+						entry->references.emplace(entry_to_update);
+						entry_to_update->references.emplace(entry);
 						// Mark the texture update as used, as if it was loaded directly
 						entry->frameCount = FRAMECOUNT_INVALID;
 						entry = decoded_entry;
@@ -396,6 +399,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
 
+
 				if (isPaletteTexture)
 				{
 					// Remove the converted texture, it won't be used anywhere else
@@ -404,9 +408,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				else
 				{
 					// Link the two textures together, so we won't apply this partial update again
-					entry->refrences.emplace(entry_to_update);
-					entry_to_update->refrences.emplace(entry);
-
+					entry->references.emplace(entry_to_update);
+					entry_to_update->references.emplace(entry);
 					// Mark the texture update as used, as if it was loaded directly
 					entry->frameCount = FRAMECOUNT_INVALID;
 				}
@@ -1325,9 +1328,9 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::ite
 	}
 
 	// Unlink any references
-	for (auto& refrence : entry->refrences)
-		refrence->refrences.erase(entry);
-	entry->refrences.clear();
+	for (auto& reference : entry->references)
+		reference->references.erase(entry);
+	entry->references.clear();
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 	texture_pool.emplace(entry->config, entry);

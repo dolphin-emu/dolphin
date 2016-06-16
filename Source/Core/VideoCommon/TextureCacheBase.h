@@ -72,7 +72,7 @@ public:
 		// This is used to keep track of both:
 		//   * efb copies used by this partially updated texture
 		//   * partially updated textures which refer to this efb copy
-		std::unordered_set<TCacheEntryBase*> refrences;
+		std::unordered_set<TCacheEntryBase*> references;
 
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
