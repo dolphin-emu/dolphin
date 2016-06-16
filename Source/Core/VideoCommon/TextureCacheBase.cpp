@@ -331,7 +331,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 					if (decoded_entry)
 					{
 						// Link the efb copy with the partially updated texture, so we won't apply this partial update again
-						entry->CreateRefrence(entry_to_update);
+						entry->CreateReference(entry_to_update);
 						// Mark the texture update as used, as if it was loaded directly
 						entry->frameCount = FRAMECOUNT_INVALID;
 						entry = decoded_entry;
@@ -407,7 +407,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				else
 				{
 					// Link the two textures together, so we won't apply this partial update again
-					entry->CreateRefrence(entry_to_update);
+					entry->CreateReference(entry_to_update);
 					// Mark the texture update as used, as if it was loaded directly
 					entry->frameCount = FRAMECOUNT_INVALID;
 				}

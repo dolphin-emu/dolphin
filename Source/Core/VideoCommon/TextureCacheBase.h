@@ -96,7 +96,7 @@ public:
 		}
 
 		// This texture entry is used by the other entry as a sub-texture
-		void CreateRefrence(TCacheEntryBase* other_entry)
+		void CreateReference(TCacheEntryBase* other_entry)
 		{
 			this->references.emplace(other_entry);
 			other_entry->references.emplace(this);
