@@ -233,6 +233,21 @@ void CConfigVR::CreateGUIControls()
 			szr_vr->Add(label_snap_size, 1, wxALIGN_CENTER_VERTICAL, 0);
 			szr_vr->Add(keyhole_snap_size);
 		}
+		// Free Look Sensitivity
+		{
+			SettingNumber *const spin_freelook_sensitivity = CreateNumber(page_vr, vconfig.fFreeLookSensitivity,
+				wxGetTranslation(temp_desc), 0.0001f, 10000, 0.05f);
+			wxStaticText *spin_freelook_scale_label = new wxStaticText(page_vr, wxID_ANY, _("Free Look Sensitivity:"));
+			spin_freelook_sensitivity->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+			spin_freelook_scale_label->SetToolTip(_("Scales the rate at which Camera Forward/Backwards/Left/Right/Up/Down move per key or button press."));
+
+			szr_vr->Add(spin_freelook_scale_label, 1, wxALIGN_CENTER_VERTICAL, 0);
+			szr_vr->Add(spin_freelook_sensitivity, 1, wxALIGN_CENTER_VERTICAL, 0);
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, "");
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, "");
+			szr_vr->Add(spacer1, 1, 0, 0);
+			szr_vr->Add(spacer2, 1, 0, 0);
+		}
 		// VR Player
 		{
 			const wxString vr_choices[] = { wxTRANSLATE("Player 1"), wxTRANSLATE("Player 2"), wxTRANSLATE("Player 3"), wxTRANSLATE("Player 4") };
@@ -242,8 +257,8 @@ void CConfigVR::CreateGUIControls()
 				sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
 			szr_vr->Add(choice_vr, 1, 0, 0);
 			choice_vr->Select(vconfig.iVRPlayer);
-			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
-			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE(""));
+			wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, "");
+			wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, "");
 			szr_vr->Add(spacer1, 1, 0, 0);
 			szr_vr->Add(spacer2, 1, 0, 0);
 		}
