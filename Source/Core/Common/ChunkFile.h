@@ -32,7 +32,7 @@
 #include "Common/Logging/Log.h"
 
 // ewww
-#if _LIBCPP_VERSION || __GNUC__ >= 5
+#if _LIBCPP_VERSION || __GNUC__ >= 5 || ( __clang_major__ >= 3 && __clang_minor__ >= 7 )
 #define IsTriviallyCopyable(T) std::is_trivially_copyable<typename std::remove_volatile<T>::type>::value
 #elif __GNUC__
 #define IsTriviallyCopyable(T) std::has_trivial_copy_constructor<T>::value
