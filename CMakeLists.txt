@@ -209,7 +209,7 @@ endmacro()
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
 	add_definitions(-Wall)
-
+	add_definitions(-D_DEFAULT_SOURCE)
 	# TODO: would like these but they produce overwhelming amounts of warnings
 	#check_and_add_flag(EXTRA -Wextra)
 	#check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
