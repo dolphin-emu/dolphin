@@ -319,6 +319,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 		TCacheEntryBase* entry = iter->second;
 		if (entry != entry_to_update
 			&& entry->IsEfbCopy()
+			&& entry->refrences.count(entry_to_update) == 0
 			&& entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes)
 			&& entry->memory_stride == numBlocksX * block_size)
 		{
@@ -394,12 +395,21 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 				dstrect.right = (dst_x + copy_width);
 				dstrect.bottom = (dst_y + copy_height);
 				entry_to_update->CopyRectangleFromTexture(entry, srcrect, dstrect);
-				// Mark the texture update as used, as if it was loaded directly
-				entry->frameCount = FRAMECOUNT_INVALID;
 
-				// Remove the converted texture, it won't be used anywhere else
 				if (isPaletteTexture)
+				{
+					// Remove the converted texture, it won't be used anywhere else
 					FreeTexture(GetTexCacheIter(entry));
+				}
+				else
+				{
+					// Link the two textures together, so we won't apply this partial update again
+					entry->refrences.emplace(entry_to_update);
+					entry_to_update->refrences.emplace(entry);
+
+					// Mark the texture update as used, as if it was loaded directly
+					entry->frameCount = FRAMECOUNT_INVALID;
+				}
 			}
 			else
 			{
@@ -1313,6 +1323,11 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::ite
 		textures_by_hash.erase(entry->textures_by_hash_iter);
 		entry->textures_by_hash_iter = textures_by_hash.end();
 	}
+
+	// Unlink any references
+	for (auto& refrence : entry->refrences)
+		refrence->refrences.erase(entry);
+	entry->refrences.clear();
 
 	entry->frameCount = FRAMECOUNT_INVALID;
 	texture_pool.emplace(entry->config, entry);
