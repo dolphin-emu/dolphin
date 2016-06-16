@@ -5,6 +5,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "SOIL/SOIL.h"
 #include "VideoBackends/D3D/AvatarDrawer.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"
@@ -213,7 +214,10 @@ namespace DX11
 					break;
 				Sleep(2);
 			}
-			
+
+			int width, height, channels;
+			u8 *img = SOIL_load_image((File::GetSysDirectory() + "\\Resources\\Textures\\vive_wiimote.png").c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+
 			if (error != vr::VRRenderModelError_None)
 			{
 				NOTICE_LOG(VR, "Unable to load render model %s - %s\n", path, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
@@ -232,12 +236,20 @@ namespace DX11
 				memcpy(m_vertices, pModel->rVertexData, m_vertex_count * sizeof(float));
 				memcpy(m_indices, pModel->rIndexData, m_index_count * sizeof(u16));
 				m_scale = 1;
-				D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, pTexture->unWidth * 4, pTexture->unWidth * pTexture->unHeight * 4 };
-				m_texture = DX11::D3DTexture2D::Create(pTexture->unWidth, pTexture->unHeight, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
-
+				if (img)
+				{
+					D3D11_SUBRESOURCE_DATA srd = { img, width * 4, width * height * 4 };
+					m_texture = DX11::D3DTexture2D::Create(width, height, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
+				}
+				else
+				{
+					D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, pTexture->unWidth * 4, pTexture->unWidth * pTexture->unHeight * 4 };
+					m_texture = DX11::D3DTexture2D::Create(pTexture->unWidth, pTexture->unHeight, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
+				}
 			}
 			vr::VRRenderModels()->FreeRenderModel(pModel);
 			vr::VRRenderModels()->FreeTexture(pTexture);
+			SOIL_free_image_data(img);
 		}
 		else
 #endif
