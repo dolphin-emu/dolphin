@@ -95,10 +95,19 @@ public:
 			hash = _hash;
 		}
 
+		// This texture entry is used by the other entry as a sub-texture
+		void CreateRefrence(TCacheEntryBase* other_entry)
+		{
+			this->references.emplace(other_entry);
+			other_entry->references.emplace(this);
+		}
+
 		void SetEfbCopy(u32 stride);
+		void Reset(); // Prepare for reuse
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
+
 
 		virtual void Bind(unsigned int stage) = 0;
 		virtual bool Save(const std::string& filename, unsigned int level) = 0;
