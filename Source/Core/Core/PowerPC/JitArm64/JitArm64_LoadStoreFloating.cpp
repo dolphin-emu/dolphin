@@ -442,7 +442,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
       ADD(W0, W0, accessSize >> 3);
       STR(INDEX_UNSIGNED, W0, X30, count_off);
-      js.fifoBytesThisBlock += accessSize >> 3;
+      js.fifoBytesSinceCheck += accessSize >> 3;
 
       if (update)
       {
