@@ -8,6 +8,7 @@
 #include <memory>
 #include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
@@ -68,6 +69,11 @@ public:
 		// Keep an iterator to the entry in textures_by_hash, so it does not need to be searched when removing the cache entry
 		std::multimap<u64, TCacheEntryBase*>::iterator textures_by_hash_iter;
 
+		// This is used to keep track of both:
+		//   * efb copies used by this partially updated texture
+		//   * partially updated textures which refer to this efb copy
+		std::unordered_set<TCacheEntryBase*> references;
+
 		void SetGeneralParameters(u32 _addr, u32 _size, u32 _format)
 		{
 			addr = _addr;
@@ -87,6 +93,22 @@ public:
 		{
 			base_hash = _base_hash;
 			hash = _hash;
+		}
+
+		// This texture entry is used by the other entry as a sub-texture
+		void CreateReference(TCacheEntryBase* other_entry)
+		{
+			// References are two-way, so they can easily be destroyed later
+			this->references.emplace(other_entry);
+			other_entry->references.emplace(this);
+		}
+
+		void DestroyAllReferences()
+		{
+			for (auto& reference : references)
+				reference->references.erase(this);
+
+			references.clear();
 		}
 
 		void SetEfbCopy(u32 stride);
@@ -164,7 +186,9 @@ private:
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
-	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
+
+	// Removes and unlinks texture from texture cache and returns it to the pool
+	static TexCache::iterator InvalidateTexture(TexCache::iterator t_iter);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
