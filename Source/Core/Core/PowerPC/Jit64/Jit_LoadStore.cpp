@@ -607,6 +607,6 @@ void Jit64::eieio(UGeckoInstruction inst)
   // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
   // which is generally safe. However postponing FIFO writes across eieio instructions
   // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
-  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
     js.mustCheckFifo = true;
 }

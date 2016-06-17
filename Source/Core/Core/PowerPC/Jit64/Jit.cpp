@@ -349,7 +349,7 @@ bool Jit64::Cleanup()
 {
   bool did_something = false;
 
-  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunction((void*)&GPFifo::FastCheckGatherPipe);
@@ -597,7 +597,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   js.firstFPInstructionFound = false;
   js.isLastInstruction = false;
   js.blockStart = em_address;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.mustCheckFifo = false;
   js.curBlock = b;
   js.numLoadStoreInst = 0;
@@ -690,6 +690,38 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     }
   }
 
+  // If the block depends on an input register which looks like a gather pipe or MMIO related
+  // constant, guess that it is actually a constant input, and specialize the block based on this
+  // assumption. This happens when there are branches in code writing to the gather pipe, but only
+  // the first block loads the constant.
+  // Insert a check at the start of the block to verify that the value is actually constant.
+  // This can save a lot of backpatching and optimize gather pipe writes in more places.
+  if (js.noSpeculativeConstantsAddresses.find(js.blockStart) ==
+      js.noSpeculativeConstantsAddresses.end())
+  {
+    for (auto i : code_block.m_gpr_inputs)
+    {
+      u32 compileTimeValue = PowerPC::ppcState.gpr[i];
+      if (PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue) ||
+          PowerPC::IsOptimizableGatherPipeWrite(compileTimeValue - 0x8000) ||
+          compileTimeValue == 0xCC000000)
+      {
+        CMP(32, PPCSTATE(gpr[i]), Imm32(compileTimeValue));
+        FixupBranch failure = J_CC(CC_NZ, true);
+        SwitchToFarCode();
+        SetJumpTarget(failure);
+        MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
+        ABI_PushRegistersAndAdjustStack({}, 0);
+        ABI_CallFunctionC((void*)&JitInterface::CompileExceptionCheck,
+                          (u32)JitInterface::ExceptionType::EXCEPTIONS_SPECULATIVE_CONSTANTS);
+        ABI_PopRegistersAndAdjustStack({}, 0);
+        JMP(asm_routines.dispatcher, true);
+        SwitchToNearCode();
+        gpr.SetImmediate32(i, compileTimeValue, false);
+      }
+    }
+  }
+
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -724,10 +756,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
 
     // Gather pipe writes using an immediate address are explicitly tracked.
-    if (jo.optimizeGatherPipe && (js.fifoBytesThisBlock >= 32 || js.mustCheckFifo))
+    if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
     {
-      if (js.fifoBytesThisBlock >= 32)
-        js.fifoBytesThisBlock -= 32;
+      js.fifoBytesSinceCheck = 0;
       js.mustCheckFifo = false;
       BitSet32 registersInUse = CallerSavedRegistersInUse();
       ABI_PushRegistersAndAdjustStack(registersInUse, 0);

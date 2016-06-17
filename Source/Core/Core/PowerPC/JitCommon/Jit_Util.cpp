@@ -475,7 +475,7 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
     CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
     break;
   }
-  jit->js.fifoBytesThisBlock += accessSize >> 3;
+  jit->js.fifoBytesSinceCheck += accessSize >> 3;
 }
 
 bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,

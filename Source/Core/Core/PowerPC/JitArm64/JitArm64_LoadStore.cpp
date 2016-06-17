@@ -333,7 +333,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     }
     ADD(W0, W0, accessSize >> 3);
     STR(INDEX_UNSIGNED, W0, X30, count_off);
-    js.fifoBytesThisBlock += accessSize >> 3;
+    js.fifoBytesSinceCheck += accessSize >> 3;
 
     if (accessSize != 8)
       gpr.Unlock(WA);
@@ -862,6 +862,6 @@ void JitArm64::eieio(UGeckoInstruction inst)
   // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
   // which is generally safe. However postponing FIFO writes across eieio instructions
   // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
-  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
     js.mustCheckFifo = true;
 }
