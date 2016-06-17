@@ -162,7 +162,7 @@ void TextureCacheBase::Cleanup(int _frameCount)
 				if ((_frameCount - iter->second->frameCount) % TEXTURE_KILL_THRESHOLD == 1 &&
 					iter->second->hash != iter->second->CalculateHash())
 				{
-					iter = FreeTexture(iter);
+					iter = InvalidateTexture(iter);
 				}
 				else
 				{
@@ -171,7 +171,7 @@ void TextureCacheBase::Cleanup(int _frameCount)
 			}
 			else
 			{
-				iter = FreeTexture(iter);
+				iter = InvalidateTexture(iter);
 			}
 		}
 		else
@@ -282,7 +282,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 			newentry->textures_by_hash_iter = textures_by_hash.emplace((*entry)->hash, newentry);
 		}
 
-		FreeTexture(GetTexCacheIter(*entry));
+		InvalidateTexture(GetTexCacheIter(*entry));
 
 		*entry = newentry;
 		textures_by_address.emplace((*entry)->addr, *entry);
@@ -401,8 +401,9 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 
 				if (isPaletteTexture)
 				{
-					// Remove the converted texture, it won't be used anywhere else
-					FreeTexture(GetTexCacheIter(entry));
+					// Remove the temporary converted texture, it won't be used anywhere else
+					// TODO: It would be nice to convert and copy in one step, but this code path isn't common
+					InvalidateTexture(GetTexCacheIter(entry));
 				}
 				else
 				{
@@ -415,7 +416,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::DoPartialTextureUpdates(Tex
 			else
 			{
 				// If the hash does not match, this EFB copy will not be used for anything, so remove it
-				iter = FreeTexture(iter);
+				iter = InvalidateTexture(iter);
 				continue;
 			}
 		}
@@ -623,7 +624,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 				// never be useful again.  It's theoretically possible for a game to do
 				// something weird where the copy could become useful in the future, but in
 				// practice it doesn't happen.
-				iter = FreeTexture(iter);
+				iter = InvalidateTexture(iter);
 				continue;
 			}
 		}
@@ -691,7 +692,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 	if (temp_frameCount != 0x7fffffff)
 	{
 		// pool this texture and make a new one later
-		FreeTexture(oldest_entry);
+		InvalidateTexture(oldest_entry);
 	}
 
 	std::shared_ptr<HiresTexture> hires_tex;
@@ -1139,13 +1140,17 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
 	unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
 
-	// remove all texture cache entries at dstAddr
+	// Remove all texture cache entries at dstAddr
+	//   It's not possible to have two EFB copies at the same address, this makes sure any old efb copies
+	//   (or normal textures) are removed from texture cache. They are also un-linked from any partially
+	//   updated textures, which forces that partially updated texture to be updated.
+	// TODO: This also wipes out non-efb copies, which is counterproductive.
 	{
 		std::pair<TexCache::iterator, TexCache::iterator> iter_range = textures_by_address.equal_range((u64)dstAddr);
 		TexCache::iterator iter = iter_range.first;
 		while (iter != iter_range.second)
 		{
-			iter = FreeTexture(iter);
+			iter = InvalidateTexture(iter);
 		}
 	}
 
@@ -1226,6 +1231,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 	// Invalidate all textures that overlap the range of our efb copy.
 	// Unless our efb copy has a weird stride, then we want avoid invalidating textures which
 	// we might be able to do a partial texture update on.
+	// TODO: This also invalidates partial overlaps, which we currently don't have a better way
+	//       of dealing with.
 	if (dstStride == bytes_per_row || !copy_to_vram)
 	{
 		TexCache::iterator iter = textures_by_address.begin();
@@ -1234,7 +1241,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 			if (iter->second->addr + iter->second->size_in_bytes <= dstAddr || iter->second->addr >= dstAddr + num_blocks_y * dstStride)
 				++iter;
 			else
-				iter = FreeTexture(iter);
+				iter = InvalidateTexture(iter);
 		}
 	}
 
@@ -1312,17 +1319,7 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::GetTexCacheIter(TextureCa
 	return textures_by_address.end();
 }
 
-void TextureCacheBase::TCacheEntryBase::Reset()
-{
-	// Unlink any references
-	for (auto& reference : references)
-		reference->references.erase(this);
-
-	references.clear();
-	frameCount = FRAMECOUNT_INVALID;
-}
-
-TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::iterator iter)
+TextureCacheBase::TexCache::iterator TextureCacheBase::InvalidateTexture(TexCache::iterator iter)
 {
 	if (iter == textures_by_address.end())
 		return textures_by_address.end();
@@ -1335,7 +1332,9 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::FreeTexture(TexCache::ite
 		entry->textures_by_hash_iter = textures_by_hash.end();
 	}
 
-	entry->Reset();
+	entry->DestroyAllReferences();
+
+	entry->frameCount = FRAMECOUNT_INVALID;
 	texture_pool.emplace(entry->config, entry);
 
 	return textures_by_address.erase(iter);
