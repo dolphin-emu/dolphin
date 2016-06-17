@@ -24,6 +24,11 @@ option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 #    of our software in the wild.
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
 
+# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
+# unofficial builds) please consider identifying your distribution with a
+# unique name here.
+set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
 	option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
@@ -935,6 +940,7 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
 	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
 	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_STABLE} "\n"
+	"#define SCM_DISTRIBUTOR_STR \"" ${DISTRIBUTOR} "\"\n"
 	)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
 
