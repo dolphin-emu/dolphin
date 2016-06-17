@@ -98,12 +98,20 @@ public:
 		// This texture entry is used by the other entry as a sub-texture
 		void CreateReference(TCacheEntryBase* other_entry)
 		{
+			// References are two-way, so they can easily be destroyed later
 			this->references.emplace(other_entry);
 			other_entry->references.emplace(this);
 		}
 
+		void DestroyAllReferences()
+		{
+			for (auto& reference : references)
+				reference->references.erase(this);
+
+			references.clear();
+		}
+
 		void SetEfbCopy(u32 stride);
-		void Reset(); // Prepare for reuse
 
 		TCacheEntryBase(const TCacheEntryConfig& c) : config(c) {}
 		virtual ~TCacheEntryBase();
@@ -179,7 +187,9 @@ private:
 
 	static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
 	static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
-	static TexCache::iterator FreeTexture(TexCache::iterator t_iter);
+
+	// Removes and unlinks texture from texture cache and returns it to the pool
+	static TexCache::iterator InvalidateTexture(TexCache::iterator t_iter);
 
 	static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
