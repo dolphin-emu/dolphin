@@ -267,6 +267,25 @@ void DolphinApp::AfterInit()
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
 
+	if (!SConfig::GetInstance().m_analytics_permission_asked)
+	{
+		int answer = wxMessageBox(
+				_("Dolphin optionally collects data about the hardware, operating "
+				  "system, performance, feature usage, and application configuration "
+				  "while running the emulator.\n\n"
+				  "No private data is ever collected. This data helps us understand "
+				  "how people use Dolphin and prioritize our efforts.\n\n"
+				  "Do you authorize Dolphin to report this information to Dolphin "
+				  "developers?\n\n"
+				  "You can revoke this authorization later in the Dolphin settings."),
+				_("Usage statistics reporting"),
+				wxYES_NO, main_frame);
+
+		SConfig::GetInstance().m_analytics_permission_asked = true;
+		SConfig::GetInstance().m_analytics_enabled = (answer == wxYES);
+		SConfig::GetInstance().SaveSettings();
+	}
+
 	if (m_confirm_stop)
 	{
 		if (m_confirm_setting.Upper() == "TRUE")
