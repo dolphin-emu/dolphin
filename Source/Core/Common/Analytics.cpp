@@ -9,6 +9,7 @@
 
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 namespace Common
@@ -63,8 +64,10 @@ void AppendType(std::string* out, TypeId type)
 }
 
 // Dummy write function for curl.
-size_t DummyCurlWriteFunction(char* ptr, size_t size, size_t nmemb, void* userdata)
+size_t CurlWriteFunction(char* ptr, size_t size, size_t nmemb, void* userdata)
 {
+	std::string data(ptr, size * nmemb);
+	NOTICE_LOG(COMMON, "curl log: %s", data.c_str());
 	return size * nmemb;
 }
 
@@ -200,7 +203,8 @@ HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint)
 	{
 		curl_easy_setopt(curl, CURLOPT_URL, endpoint.c_str());
 		curl_easy_setopt(curl, CURLOPT_POST, true);
-		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &DummyCurlWriteFunction);
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &CurlWriteFunction);
+		curl_easy_setopt(curl, CURLOPT_VERBOSE, true);
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000);
 		m_curl = curl;
 	}
