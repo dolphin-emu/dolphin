@@ -25,6 +25,7 @@
 #include "Common/Timer.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -544,6 +545,8 @@ void EmuThread()
 	// The hardware is initialized.
 	s_hardware_initialized = true;
 	s_is_booting.store(false);
+
+	DolphinAnalytics::Instance()->ReportGameStart();
 
 	// Set execution state to known values (CPU/FIFO/Audio Paused)
 	CPU::Break();
