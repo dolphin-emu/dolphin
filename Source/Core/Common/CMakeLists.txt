@@ -1,4 +1,5 @@
-set(SRCS BreakPoints.cpp
+set(SRCS Analytics.cpp
+         BreakPoints.cpp
          CDUtils.cpp
          ColorUtil.cpp
          ENetUtil.cpp
@@ -42,7 +43,7 @@ else()
 	         Logging/ConsoleListenerNix.cpp)
 endif()
 
-list(APPEND LIBS enet)
+list(APPEND LIBS enet ${CURL_LIBRARIES})
 if(_M_ARM_64)
 	set(SRCS ${SRCS}
 	         Arm64Emitter.cpp

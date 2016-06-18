@@ -1,4 +1,5 @@
 set(SRCS	ActionReplay.cpp
+			Analytics.cpp
 			ARDecrypt.cpp
 			BootManager.cpp
 			ConfigManager.cpp
