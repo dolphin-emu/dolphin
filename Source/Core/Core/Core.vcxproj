@@ -36,6 +36,7 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
+    <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="ARDecrypt.cpp" />
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
@@ -248,6 +249,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
+    <ClInclude Include="Analytics.h" />
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
