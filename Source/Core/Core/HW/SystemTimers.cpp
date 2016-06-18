@@ -102,6 +102,10 @@ static void DSPCallback(u64 userdata, s64 cyclesLate)
 static void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
 	int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
+	if (SConfig::GetInstance().bEmulationSpeedFixAudio &&
+		SConfig::GetInstance().m_EmulationSpeed != 1.0f)
+		// times 10 divided by 10 greatly reduces crackling
+		period = (period * (int)(SConfig::GetInstance().m_EmulationSpeed * 10)) / 10;
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
 	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
 }
