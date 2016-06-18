@@ -28,6 +28,7 @@
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -124,6 +125,8 @@ bool DolphinApp::OnInit()
 		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
 	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+
+	DolphinAnalytics::Instance()->ReportDolphinStart("wx");
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
