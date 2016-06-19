@@ -6,5 +6,6 @@
 
 #include "Common/MathUtil.h"
 
-bool CalculateTrackingSpaceToViewSpaceMatrix(int kind, Matrix44 &look_matrix);
+bool CalculateTrackingSpaceToViewSpaceMatrix(int kind, Matrix44& look_matrix);
+bool CalculateViewMatrix(int kind, Matrix44& look_matrix);
 void VRCalculateIRPointer();

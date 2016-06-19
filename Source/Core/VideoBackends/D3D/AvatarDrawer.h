@@ -47,8 +47,7 @@ namespace DX11
 		void Draw();
 
 	private:
-		bool CalculateViewMatrix(int kind);
-		void DrawHydra(float *pos, Matrix33 &m, ControllerStyle cs);
+		void DrawHydra(int hand, float *pos, Matrix33 &m, ControllerStyle cs);
 		void DrawLine(float *pos, Matrix33 &m, float r, float g, float b);
 		void DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b);
 
@@ -64,7 +63,7 @@ namespace DX11
 		ID3D11DepthStencilState* m_avatar_depth_state;
 		ID3D11RasterizerState* m_avatar_rast_state, * m_avatar_line_rast_state;
 		ID3D11SamplerState* m_avatar_sampler;
-		D3DTexture2D * m_texture;
+		D3DTexture2D * m_left_texture, * m_right_texture;
 		VertexShaderParams params;
 
 		struct VERTEX
