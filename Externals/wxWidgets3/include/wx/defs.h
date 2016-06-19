@@ -1190,6 +1190,10 @@ typedef wxUint32 wxDword;
     #define wxIF_LONG_LONG_TYPE(x)
 #endif
 
+#ifdef _SSIZE_T_DEFINED
+#define HAVE_SSIZE_T
+#endif
+
 
 /* Make sure ssize_t is defined (a signed type the same size as size_t). */
 /* (HAVE_SSIZE_T is not already defined by configure) */

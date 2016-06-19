@@ -76,7 +76,11 @@ var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
-var isStable	= +("master" == branch || "stable" == branch);
+var isStable = +("master" == branch || "stable" == branch);
+
+// Get environment information.
+var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
+if (distributor == "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
 
 // remove hash (and trailing "-0" if needed) from description
 describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
@@ -85,7 +89,8 @@ var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
 	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
-	"#define SCM_IS_MASTER " + isStable + "\n";
+	"#define SCM_IS_MASTER " + isStable + "\n" +
+	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n";
 
 // check if file needs updating
 if (out_contents == GetFileContents(outfile))

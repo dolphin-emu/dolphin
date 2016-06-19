@@ -28,6 +28,7 @@
 #include "Common/Thread.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -124,6 +125,8 @@ bool DolphinApp::OnInit()
 		SConfig::GetInstance().bDSPHLE = (m_audio_emulation_name.Upper() == "HLE");
 
 	VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+
+	DolphinAnalytics::Instance()->ReportDolphinStart("wx");
 
 	// Enable the PNG image handler for screenshots
 	wxImage::AddHandler(new wxPNGHandler);
@@ -263,6 +266,30 @@ void DolphinApp::AfterInit()
 {
 	if (!m_batch_mode)
 		main_frame->UpdateGameList();
+
+	if (!SConfig::GetInstance().m_analytics_permission_asked)
+	{
+		int answer = wxMessageBox(
+				_("If authorized, Dolphin can collect data on its performance, "
+				  "feature usage, and configuration, as well as data on your system's "
+				  "hardware and operating system.\n\n"
+				  "No private data is ever collected. This data helps us understand "
+				  "how people and emulated games use Dolphin and prioritize our "
+				  "efforts. It also helps us identify rare configurations that are "
+				  "causing bugs, performance and stability issues.\n"
+				  "This authorization can be revoked at any time through Dolphin's "
+				  "settings.\n\n"
+				  "Do you authorize Dolphin to report this information to Dolphin's "
+				  "developers?"),
+				_("Usage statistics reporting"),
+				wxYES_NO, main_frame);
+
+		SConfig::GetInstance().m_analytics_permission_asked = true;
+		SConfig::GetInstance().m_analytics_enabled = (answer == wxYES);
+		SConfig::GetInstance().SaveSettings();
+
+		DolphinAnalytics::Instance()->ReloadConfig();
+	}
 
 	if (m_confirm_stop)
 	{

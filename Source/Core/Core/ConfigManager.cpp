@@ -55,6 +55,7 @@ SConfig::SConfig()
   bProgressive(false), bPAL60(false),
   bDisableScreenSaver(false),
   iPosX(100), iPosY(100), iWidth(800), iHeight(600),
+  m_analytics_enabled(false), m_analytics_permission_asked(false),
   bLoopFifoReplay(true)
 {
 	LoadDefaults();
@@ -95,6 +96,7 @@ void SConfig::SaveSettings()
 	SaveDSPSettings(ini);
 	SaveInputSettings(ini);
 	SaveFifoPlayerSettings(ini);
+	SaveAnalyticsSettings(ini);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -309,6 +311,15 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
 	fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
+void SConfig::SaveAnalyticsSettings(IniFile& ini)
+{
+	IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
+
+	analytics->Set("ID", m_analytics_id);
+	analytics->Set("Enabled", m_analytics_enabled);
+	analytics->Set("PermissionAsked", m_analytics_permission_asked);
+}
+
 void SConfig::LoadSettings()
 {
 	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -324,6 +335,7 @@ void SConfig::LoadSettings()
 	LoadDSPSettings(ini);
 	LoadInputSettings(ini);
 	LoadFifoPlayerSettings(ini);
+	LoadAnalyticsSettings(ini);
 
 	m_SYSCONF = new SysConf();
 }
@@ -586,6 +598,15 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
 	fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
 }
 
+void SConfig::LoadAnalyticsSettings(IniFile& ini)
+{
+	IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
+
+	analytics->Get("ID", &m_analytics_id, "");
+	analytics->Get("Enabled", &m_analytics_enabled, false);
+	analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+}
+
 void SConfig::LoadDefaults()
 {
 	bEnableDebugging = false;
@@ -625,6 +646,10 @@ void SConfig::LoadDefaults()
 	iPosY = 100;
 	iWidth = 800;
 	iHeight = 600;
+
+	m_analytics_id = "";
+	m_analytics_enabled = false;
+	m_analytics_permission_asked = false;
 
 	bLoopFifoReplay = true;
 
