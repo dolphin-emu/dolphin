@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-05-30 20:46+0000\n"
+"POT-Creation-Date: 2016-06-19 04:24+0200\n"
 "PO-Revision-Date: 2016-05-30 20:47+0000\n"
 "Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
 "Language-Team: Malay (Malaysia) (http://www.transifex.com/delroth/dolphin-"
@@ -36,7 +36,7 @@ msgstr ""
 msgid " (internal IP)"
 msgstr "(IP dalaman)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:211
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:210
 msgid " (too many to display)"
 msgstr "(terlalu banyak untuk dipaparkan)"
 
@@ -69,7 +69,7 @@ msgstr "\"%s\" gagal diskrub. Berkemungkinan imej telah rosak."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" sudahpun dimampat! Tidak dapat mampat ia lagi."
 
-#: Source/Core/Core/ConfigManager.cpp:711
+#: Source/Core/Core/ConfigManager.cpp:736
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" ialah fail GCM/ISO tidak sah, atau bukan ISO GC/Wii."
@@ -84,12 +84,12 @@ msgstr "%1$sSalin%1$s"
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i dari %i blok. Nisbah mampatan %i%%"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:48
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:51
 #, c-format
 msgid "%i%%"
 msgstr "%i%%"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:46
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:49
 #, c-format
 msgid "%i%% (Normal Speed)"
 msgstr "%i%% (Kelajuan Biasa)"
@@ -156,7 +156,7 @@ msgstr ""
 "ingatan\n"
 "Jumlah Blok: %d; Blok Bebas: %d"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:399
+#: Source/Core/DolphinWX/GameListCtrl.cpp:400
 #, c-format
 msgid "%s (Disc %i)"
 msgstr "%s (Cakera %i)"
@@ -282,11 +282,11 @@ msgstr "&Pengurus Menipu"
 msgid "&Controller Settings"
 msgstr "Tetapan Ka&walan"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:903
+#: Source/Core/DolphinWX/GameListCtrl.cpp:943
 msgid "&Delete File..."
 msgstr "Pa&dam Fail..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:925
+#: Source/Core/DolphinWX/GameListCtrl.cpp:965
 msgid "&Delete selected ISOs..."
 msgstr "Pa&dam ISO terpilih..."
 
@@ -358,7 +358,7 @@ msgstr "&Jeda"
 msgid "&Play"
 msgstr "&Main"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:884
+#: Source/Core/DolphinWX/GameListCtrl.cpp:924
 msgid "&Properties"
 msgstr "Si&fat"
 
@@ -406,7 +406,7 @@ msgstr "&Tonton"
 msgid "&Website"
 msgstr "&Laman Sesawang"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:885
+#: Source/Core/DolphinWX/GameListCtrl.cpp:925
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -557,12 +557,12 @@ msgstr ""
 "\n"
 "Sokongan Wiimote bermasalah dalam netplay dan dilumpuhkan.\n"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:52
 msgid "AM Baseboard"
 msgstr "Papandasar AM"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:116
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:129
 #: Source/Core/DolphinWX/ISOProperties.cpp:312
 msgid "AR Codes"
 msgstr "Kod AR"
@@ -590,7 +590,7 @@ msgstr ""
 "Kod Punca:\n"
 "%s"
 
-#: Source/Core/Core/ActionReplay.cpp:474
+#: Source/Core/Core/ActionReplay.cpp:494
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
@@ -598,7 +598,7 @@ msgstr ""
 "Ralat Action Replay: Saiz (%08x : alamat = %08x) tidak sah dalam Kod Tambah "
 "(%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:562
+#: Source/Core/Core/ActionReplay.cpp:584
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
@@ -607,7 +607,7 @@ msgstr ""
 "Ralat Action Replay: Saiz (%08x : alamat = %08x) tidak sah dalam Isian dan "
 "Lungsur (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:354
+#: Source/Core/Core/ActionReplay.cpp:372
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
@@ -616,7 +616,7 @@ msgstr ""
 "Ralat Action Replay: Saiz (%08x : address = %08x) tidak sah dalam Tulis Dan "
 "Isian Ram (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:414
+#: Source/Core/Core/ActionReplay.cpp:432
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
@@ -625,12 +625,12 @@ msgstr ""
 "Ralat Action Replay: Saiz (%08x : alamat = %08x) tidak sah dalam Tulis Ke "
 "Penuding (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:609
+#: Source/Core/Core/ActionReplay.cpp:632
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Ralat Action Replay: Nilai (%08x) tidak sah dalam Salinan Ingatan (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:489
+#: Source/Core/Core/ActionReplay.cpp:509
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
@@ -640,27 +640,27 @@ msgstr ""
 "(%s)\n"
 "Kod master tidak diperlukan. Jangan guna kod master."
 
-#: Source/Core/Core/ActionReplay.cpp:181
+#: Source/Core/Core/ActionReplay.cpp:218
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
 msgstr "Ralat Action Replay: baris kod AR tidak sah: %s"
 
-#: Source/Core/Core/ActionReplay.cpp:725
+#: Source/Core/Core/ActionReplay.cpp:742
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
 msgstr "Action Replay: Kod Bersyarat: Saiz %08x Tidak Sah (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:693
+#: Source/Core/Core/ActionReplay.cpp:710
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
 msgstr "Action Replay: Jenis Kod Biasa  %08x Tidak Sah (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:749
+#: Source/Core/Core/ActionReplay.cpp:766
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
 msgstr "Action Replay: Kod Biasa %i: Subjenis %08x Tidak Sah (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:645
+#: Source/Core/Core/ActionReplay.cpp:669
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Kod Biasa  0: Subjenis %08x Tidak Sah (%s)"
@@ -679,16 +679,16 @@ msgstr "Penyesuai Tidak Dikesan"
 msgid "Adapter:"
 msgstr "Penyesuai"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:68
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:80
+#: Source/Core/DolphinWX/WXInputBase.cpp:68
 msgid "Add"
 msgstr "Tambah"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1459
+#: Source/Core/DolphinWX/ISOProperties.cpp:1454
 msgid "Add ActionReplay Code"
 msgstr "Tambah Kod ActionReplay"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1376
+#: Source/Core/DolphinWX/ISOProperties.cpp:1393
 msgid "Add Patch"
 msgstr "Tambah Tampalan"
 
@@ -698,7 +698,7 @@ msgstr "Tambah Tampalan"
 msgid "Add..."
 msgstr "Tambah..."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:317
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:316
 msgid "Address"
 msgstr "Alamat"
 
@@ -716,7 +716,7 @@ msgstr "Port Advance Game"
 msgid "Advanced"
 msgstr "Lanjutan"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:97
 msgid "Advanced Settings"
 msgstr "Tetapan Lanjutan"
 
@@ -725,7 +725,7 @@ msgstr "Tetapan Lanjutan"
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Semua fail GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1238
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 msgid "All GameCube GCM files (gcm)"
 msgstr "Semua fail GCM Gamecube (gcm)"
 
@@ -734,11 +734,11 @@ msgstr "Semua fail GCM Gamecube (gcm)"
 msgid "All Save States (sav, s##)"
 msgstr "Semua Keadaan Simpan (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1236
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1276
 msgid "All Wii ISO files (iso)"
 msgstr "Semua fail ISO Wii (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1259
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1299
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Semua fail ISO GC/Wii termampat (gcz)"
 
@@ -795,10 +795,6 @@ msgstr "Pemuatapl tidak boleh dimuatkan dari fail"
 msgid "Apploader:"
 msgstr "Pemuatapl:"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:123
-msgid "Apply"
-msgstr "Laksana"
-
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:138
 msgid ""
 "Apply a post-processing effect after finishing a frame.\n"
@@ -814,11 +810,11 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Anda pasti ingin memadam \"%s\"?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1047
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1087
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr "Anda pasti ingin memadam fail ini? Ia akan hilang secara kekal!"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1046
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1086
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "Anda pasti ingin memadam fail ini? Ia akan hilang secara kekal!"
 
@@ -839,7 +835,7 @@ msgstr "Umpuk Port Kawalan"
 msgid "At least one pane must remain open."
 msgstr "Sekurang-kurangnya satu anak tetingkap kekal dibuka."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:67
 msgid ""
 "Attempt to detect and skip wait-loops.\n"
 "If unsure, leave this checked."
@@ -859,7 +855,7 @@ msgstr "Bahagian Belakang Audio:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "UmumAudio: Ralat membuka peranti AO.\n"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:128
+#: Source/Core/DolphinWX/ISOProperties.cpp:126
 msgid "Australia"
 msgstr "Australia"
 
@@ -910,15 +906,14 @@ msgstr "Undur"
 msgid "Backend Settings"
 msgstr "Tetapan Bahagian Belakang"
 
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:61
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:234
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:61
 msgid "Backend:"
 msgstr "Bahagian Belakang:"
 
-#: Source/Core/Core/HotkeyManager.cpp:227
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:247
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:303
-#: Source/Core/Core/HW/GCPadEmu.cpp:84
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:247
+#: Source/Core/Core/HW/GCPadEmu.cpp:84 Source/Core/Core/HotkeyManager.cpp:227
 msgid "Background Input"
 msgstr "Input Latar Belakang"
 
@@ -930,9 +925,9 @@ msgstr "Undur"
 msgid "Balance Board"
 msgstr "Papan Imbang"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:270
 #: Source/Core/DolphinWX/MemcardManager.cpp:644
 #: Source/Core/DolphinWX/FrameTools.cpp:345
+#: Source/Core/DolphinWX/GameListCtrl.cpp:263
 msgid "Banner"
 msgstr "Sepanduk"
 
@@ -952,7 +947,7 @@ msgstr "Palang"
 msgid "Basic"
 msgstr "Asas"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:78
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:87
 msgid "Basic Settings"
 msgstr "Tetapan Asas"
 
@@ -1014,7 +1009,7 @@ msgstr "Rosak"
 msgid "Browse for a directory to add"
 msgstr "Layar direktori untuk ditambah"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1127
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1167
 msgid "Browse for output directory"
 msgstr "Layar direktori output"
 
@@ -1022,10 +1017,10 @@ msgstr "Layar direktori output"
 msgid "Buffer:"
 msgstr "Penimbal:"
 
+#: Source/Core/Core/HW/GCPadEmu.cpp:60
 #: Source/Core/DolphinWX/TASInputDlg.cpp:140
 #: Source/Core/DolphinWX/TASInputDlg.cpp:265
 #: Source/Core/DolphinWX/TASInputDlg.cpp:365
-#: Source/Core/Core/HW/GCPadEmu.cpp:60
 msgid "Buttons"
 msgstr "Butang"
 
@@ -1041,8 +1036,8 @@ msgstr ""
 "Melangkaui pengosongan cache data dengan arahan DCBZ. Biasanya biarkan "
 "pilihan ini dilumpuhkan."
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 #: Source/Core/Core/HW/GCPadEmu.cpp:66
+#: Source/Core/DolphinWX/TASInputDlg.cpp:349
 msgid "C Stick"
 msgstr "Batang C"
 
@@ -1050,7 +1045,7 @@ msgstr "Batang C"
 msgid "CP register "
 msgstr "Daftar CP"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:64
 msgid "CPU Emulator Engine"
 msgstr "Enjin Emulator CPU"
 
@@ -1070,7 +1065,7 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia tidak bertanda."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:26
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:29
 msgid "Cached Interpreter (slower)"
 msgstr "Pentafsir bercache (lebih perlahan)"
 
@@ -1095,7 +1090,6 @@ msgstr ""
 msgid "Can't find Wiimote by connection handle %02x"
 msgstr "Tidak dapat cari Wiimote melalui pengendali sambungan %02x"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:125
 #: Source/Core/DolphinWX/WXInputBase.cpp:33
 msgid "Cancel"
 msgstr "Batal"
@@ -1123,7 +1117,7 @@ msgstr "Tengah"
 msgid "Change"
 msgstr "Ubah"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:912
+#: Source/Core/DolphinWX/GameListCtrl.cpp:952
 msgid "Change &Disc"
 msgstr "Ubah &Cakera"
 
@@ -1139,7 +1133,7 @@ msgstr "Ubah Cakera"
 msgid "Change Game"
 msgstr "Ubah Permainan"
 
-#: Source/Core/Core/Movie.cpp:1183
+#: Source/Core/Core/Movie.cpp:1214
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Ubah cakera ke %s"
@@ -1164,15 +1158,15 @@ msgstr "Sembang"
 msgid "Cheat Code"
 msgstr "Kod Menipu"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:166
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:177
 msgid "Cheat Manager"
 msgstr "Pengurus Menipu"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:119
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:132
 msgid "Cheat Search"
 msgstr "Gelitar Menipu"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:713
+#: Source/Core/DolphinWX/ISOProperties.cpp:711
 msgid "Check Partition Integrity"
 msgstr "Semak Integriti Sekatan"
 
@@ -1180,7 +1174,7 @@ msgstr "Semak Integriti Sekatan"
 msgid "Check for updates: "
 msgstr "Semak kemaskini:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:958
+#: Source/Core/DolphinWX/ISOProperties.cpp:956
 msgid "Checking integrity..."
 msgstr "Memeriksa integiriti..."
 
@@ -1216,8 +1210,8 @@ msgstr ""
 "Pilih fail yang digunakan sebagai pemuatapl: (dilaksana pada cakera yang "
 "dibina melalui direktori sahaja)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:851
-#: Source/Core/DolphinWX/ISOProperties.cpp:904
+#: Source/Core/DolphinWX/ISOProperties.cpp:849
+#: Source/Core/DolphinWX/ISOProperties.cpp:902
 msgid "Choose the folder to extract to"
 msgstr "Pilih folder untuk diekstrak ke"
 
@@ -1229,10 +1223,11 @@ msgstr "Batang Bulat"
 msgid "Classic"
 msgstr "Klasik"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:35
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:108
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:579
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1015
 #: Source/Core/DolphinWX/LogWindow.cpp:133
+#: Source/Core/DolphinWX/WXInputBase.cpp:35
 msgid "Clear"
 msgstr "Kosongkan"
 
@@ -1244,12 +1239,12 @@ msgstr ""
 "Klien terputus semasa permainan berjalan!! NetPlay dilumpuhkan. Anda mesti "
 "hentikan permainan secara manual."
 
-#: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:118
-#: Source/Core/DolphinWX/ISOProperties.cpp:616
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:279
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:132
 #: Source/Core/DolphinWX/MemcardManager.cpp:252
+#: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:118
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:606
+#: Source/Core/DolphinWX/ISOProperties.cpp:616
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:132
 msgid "Close"
 msgstr "Tutup"
 
@@ -1257,7 +1252,7 @@ msgstr "Tutup"
 msgid "Co&nfigure..."
 msgstr "Ko&nfigur..."
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:74
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:84
 msgid "Code Info"
 msgstr "Maklumat Kod"
 
@@ -1265,7 +1260,7 @@ msgstr "Maklumat Kod"
 msgid "Code:"
 msgstr "Kod:"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:25
 msgid "Code: "
 msgstr "Kod:"
 
@@ -1277,20 +1272,20 @@ msgstr "Perintah"
 msgid "Comment"
 msgstr "Ulasan"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:910
+#: Source/Core/DolphinWX/GameListCtrl.cpp:950
 msgid "Compress ISO..."
 msgstr "Mampat ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:927
+#: Source/Core/DolphinWX/GameListCtrl.cpp:967
 msgid "Compress selected ISOs..."
 msgstr "Mampat ISO terpilih..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1136
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1276
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1176
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1316
 msgid "Compressing ISO"
 msgstr "Memampat ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1374
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1415
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1303,7 +1298,7 @@ msgstr ""
 msgid "Compute"
 msgstr "Kira"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1239
+#: Source/Core/DolphinWX/ISOProperties.cpp:1251
 msgid "Computing MD5 checksum"
 msgstr "Mengira hasil tambah semak MD5"
 
@@ -1312,9 +1307,9 @@ msgstr "Mengira hasil tambah semak MD5"
 msgid "Config"
 msgstr "Konfig"
 
-#: Source/Core/DolphinWX/InputConfigDiag.h:162
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:88
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:177
+#: Source/Core/DolphinWX/InputConfigDiag.h:162
 msgid "Configure"
 msgstr "Konfigur"
 
@@ -1326,9 +1321,9 @@ msgstr "Konfigur Kawalan"
 msgid "Configure..."
 msgstr "Konfigur..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1166
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1194
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1269
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1206
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1234
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1309
 msgid "Confirm File Overwrite"
 msgstr "Sahkan Tulis-Ganti Fail"
 
@@ -1341,8 +1336,8 @@ msgstr "Sahkan bil Berhenti"
 msgid "Connect"
 msgstr "Sambung"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:446
 #: Source/Core/Core/HotkeyManager.cpp:40
+#: Source/Core/DolphinWX/FrameTools.cpp:446
 msgid "Connect Balance Board"
 msgstr "Sambung Papan Imbang"
 
@@ -1379,7 +1374,7 @@ msgstr "Sambung Wiimotes"
 msgid "Connected"
 msgstr "Bersambung"
 
-#: Source/Core/DolphinWX/Main.cpp:517
+#: Source/Core/DolphinWX/Main.cpp:544
 msgid "Connecting..."
 msgstr "Menyambung..."
 
@@ -1452,7 +1447,7 @@ msgstr "Tukar ke GCI"
 msgid "Copy"
 msgstr "Salin"
 
-#: Source/Core/Core/ConfigManager.cpp:902
+#: Source/Core/Core/ConfigManager.cpp:927
 msgid "Copy failed"
 msgstr "Salin gagal"
 
@@ -1465,7 +1460,7 @@ msgstr "Salin ke Kad Ingatan %c"
 msgid "Core"
 msgstr "Teras"
 
-#: Source/Core/Core/ConfigManager.cpp:706
+#: Source/Core/Core/ConfigManager.cpp:731
 #, c-format
 msgid ""
 "Could not read \"%s\".  There is no disc in the drive, or it is not a GC/Wii "
@@ -1476,7 +1471,7 @@ msgstr ""
 "Wii. Perhatian cakera asli Gamecube dan Wii tidak dapat dibaca oleh "
 "kebanyakan pemacu DVD PC."
 
-#: Source/Core/Core/ConfigManager.cpp:816
+#: Source/Core/Core/ConfigManager.cpp:841
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Tidak dapat kenalpasti fail ISO %s"
@@ -1514,7 +1509,7 @@ msgstr "Tidak Dapat Cipta Klien"
 msgid "Couldn't create peer."
 msgstr "Tidak dapat cipta rakan."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1191
+#: Source/Core/DolphinWX/ISOProperties.cpp:1189
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Tidak dapat cari perintah buka untuk sambungan 'ini'!"
 
@@ -1535,7 +1530,7 @@ msgstr "Tidak dapat cari pelayan pusat %s"
 msgid "Count:"
 msgstr "Kiraan:"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:207
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:206
 #, c-format
 msgid "Count: %lu"
 msgstr "Kiraan: %lu"
@@ -1545,7 +1540,7 @@ msgid "Country:"
 msgstr "Negara:"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:62
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:21
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:19
 msgid "Create AR Code"
 msgstr "Cipta Kod AR"
 
@@ -1654,16 +1649,16 @@ msgstr "Menyahpepijat"
 msgid "Decimal"
 msgstr "Desimal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:908
+#: Source/Core/DolphinWX/GameListCtrl.cpp:948
 msgid "Decompress ISO..."
 msgstr "Nyahmampat ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:928
+#: Source/Core/DolphinWX/GameListCtrl.cpp:968
 msgid "Decompress selected ISOs..."
 msgstr "Nyahmampat ISO terpilih..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1136
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1276
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1176
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1316
 msgid "Decompressing ISO"
 msgstr "Menyahmampat ISO"
 
@@ -1695,8 +1690,8 @@ msgstr "ISO Lalai:"
 msgid "Default font"
 msgstr "Fon lalai"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:24
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1028
+#: Source/Core/DolphinWX/WXInputBase.cpp:24
 msgid "Delete"
 msgstr "Padam"
 
@@ -1855,8 +1850,8 @@ msgstr "Penyahkod Dolby Pro Logic II"
 msgid "Dolphin"
 msgstr "Dolphin"
 
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:210
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Konfigurasi Grafik %s Dolphin"
@@ -1894,7 +1889,7 @@ msgstr "Persediaan NetPlay Dolphin"
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Cereka TAS Dolphin (*.dtm)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:333
+#: Source/Core/DolphinWX/GameListCtrl.cpp:332
 msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
@@ -1902,7 +1897,7 @@ msgstr ""
 "Dolphin tidak dapat cari mana-mana ISO Wii/GameCube atau WAD. Dwi-klik di "
 "sini untuk tetapkan direktori permainan..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:329
+#: Source/Core/DolphinWX/GameListCtrl.cpp:328
 msgid ""
 "Dolphin is currently set to hide all games. Double-click here to show all "
 "games..."
@@ -1914,8 +1909,8 @@ msgstr ""
 msgid "Dolphin too old for traversal server"
 msgstr "Dolphin terlalu tua untuk pelayan traversal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1207
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1298
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1247
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1338
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin tidak dapat selesaikan tindakan yang dipinta."
 
@@ -1977,8 +1972,8 @@ msgstr "Longgok Tahap TEV"
 msgid "Dump Texture Fetches"
 msgstr "Longgok Dapatan Tekstur"
 
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
 msgid "Dump Textures"
 msgstr "Longgok Tekstur"
 
@@ -2058,7 +2053,7 @@ msgstr "Penimbal Bingkai Terbenam (EFB)"
 msgid "Empty"
 msgstr "Kosong"
 
-#: Source/Core/Core/Core.cpp:232
+#: Source/Core/Core/Core.cpp:233
 msgid "Emu Thread already running"
 msgstr "Bebenang Emu sudah berjalan"
 
@@ -2100,7 +2095,7 @@ msgstr "Wiimote Teremulasi"
 msgid "Emulation State: "
 msgstr "Keadaan Emulasi:"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:99
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:111
 msgid "Enable AR Logging"
 msgstr "Benarkan Pengelogan AR"
 
@@ -2108,7 +2103,7 @@ msgstr "Benarkan Pengelogan AR"
 msgid "Enable CPU Clock Override"
 msgstr "Benarkan Pembatalan Jam CPU"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:56
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:59
 msgid "Enable Cheats"
 msgstr "Benarkan Menipu"
 
@@ -2116,7 +2111,7 @@ msgstr "Benarkan Menipu"
 msgid "Enable Dual Core"
 msgstr "Benarkan Dwi-Teras"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:54
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
 msgid "Enable Dual Core (speedup)"
 msgstr "Benarkan Dwi-Teras (lajukan)"
 
@@ -2128,7 +2123,7 @@ msgstr "Benarkan FPRF"
 msgid "Enable Idle Skipping"
 msgstr "Benarkan Melangkau Melahu"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:55
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:58
 msgid "Enable Idle Skipping (speedup)"
 msgstr "Benarkan Melangkau Melahu (lajukan)"
 
@@ -2147,6 +2142,10 @@ msgstr "Benarkan Penyelamat Skrin"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
 msgid "Enable Speaker Data"
 msgstr "Benarkan Data Pembesar Suara"
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
+msgid "Enable Usage Statistics Reporting"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2250,7 +2249,15 @@ msgstr ""
 "Benarkan Unit Pengurusan Ingatan, diperlukan oleh sesetengah permainan. "
 "(HIDUP = Serasi, MATI = Pantas)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:63
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:70
+msgid ""
+"Enables the collection and sharing of usage statistics data with the Dolphin "
+"development team. This data is used to improve the emulator and help us "
+"understand how our users interact with the system. No private data is ever "
+"collected."
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
 msgstr "Benarkan penggunaan tipuan Action Replay dan Gecko."
 
@@ -2302,15 +2309,15 @@ msgstr "Masukan 1/%d"
 msgid "Equal"
 msgstr "Sama"
 
-#: Source/Core/DolphinWX/Main.cpp:331 Source/Core/DolphinWX/Main.cpp:337
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:229
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/WxUtils.cpp:60
+#: Source/Core/DolphinWX/WxUtils.cpp:60 Source/Core/DolphinWX/Main.cpp:358
+#: Source/Core/DolphinWX/Main.cpp:364
 msgid "Error"
 msgstr "Ralat"
 
-#: Source/Core/DolphinWX/Main.cpp:331
+#: Source/Core/DolphinWX/Main.cpp:358
 msgid "Error loading selected language. Falling back to system default."
 msgstr "Ralat memuatkan bahasa pilihan. Jatuh balik ke lalai sistem."
 
@@ -2344,7 +2351,7 @@ msgstr "Escape"
 msgid "Euphoria"
 msgstr "Euforia"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:131
+#: Source/Core/DolphinWX/ISOProperties.cpp:129
 msgid "Europe"
 msgstr "Eropah"
 
@@ -2352,8 +2359,8 @@ msgstr "Eropah"
 msgid "Execute"
 msgstr "Lakukan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:435
 #: Source/Core/Core/HotkeyManager.cpp:34
+#: Source/Core/DolphinWX/FrameTools.cpp:435
 msgid "Exit"
 msgstr "Keluar"
 
@@ -2361,7 +2368,7 @@ msgstr "Keluar"
 msgid "Export All Wii Saves"
 msgstr "Eskport Semua Simpan Wii"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:726
+#: Source/Core/DolphinWX/ISOProperties.cpp:724
 msgid "Export File"
 msgstr "Eksport Fail"
 
@@ -2377,7 +2384,7 @@ msgstr "Eksport Rakaman..."
 msgid "Export Save"
 msgstr "Eksport Simpan"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:891
+#: Source/Core/DolphinWX/GameListCtrl.cpp:931
 msgid "Export Wii save (Experimental)"
 msgstr "Eksport simpan Wii (Eksperimental)"
 
@@ -2385,8 +2392,8 @@ msgstr "Eksport simpan Wii (Eksperimental)"
 msgid "Export all saves"
 msgstr "Eksport semua simpan"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:464
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:61
+#: Source/Core/DolphinWX/MemcardManager.cpp:464
 msgid "Export failed"
 msgstr "Eksport gagal"
 
@@ -2402,44 +2409,44 @@ msgstr "Sambungan"
 msgid "External Frame Buffer (XFB)"
 msgstr "Penimbal Bingkai Luaran (XFB)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:698
+#: Source/Core/DolphinWX/ISOProperties.cpp:696
 msgid "Extract All Files..."
 msgstr "Ekstrak Semua Fail..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:705
+#: Source/Core/DolphinWX/ISOProperties.cpp:703
 msgid "Extract Apploader..."
 msgstr "Ekstrak Pemuatapl..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:706
+#: Source/Core/DolphinWX/ISOProperties.cpp:704
 msgid "Extract DOL..."
 msgstr "Ekstrak DOL..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:691
+#: Source/Core/DolphinWX/ISOProperties.cpp:689
 msgid "Extract Directory..."
 msgstr "Ekstrak Direktori..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:695
+#: Source/Core/DolphinWX/ISOProperties.cpp:693
 msgid "Extract File..."
 msgstr "Ekstrak Fail..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:687
+#: Source/Core/DolphinWX/ISOProperties.cpp:685
 msgid "Extract Partition..."
 msgstr "Ekstrak Sekatan..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:809
+#: Source/Core/DolphinWX/ISOProperties.cpp:807
 #, c-format
 msgid "Extracting %s"
 msgstr "Mengekstrak %s"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:792
+#: Source/Core/DolphinWX/ISOProperties.cpp:790
 msgid "Extracting All Files"
 msgstr "Mengekstrak Semua Fail"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:792
+#: Source/Core/DolphinWX/ISOProperties.cpp:790
 msgid "Extracting Directory"
 msgstr "Mengekstrak Direktori"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:795
+#: Source/Core/DolphinWX/ISOProperties.cpp:793
 msgid "Extracting..."
 msgstr "Mengekstrak..."
 
@@ -2464,7 +2471,7 @@ msgstr "Gagal Menyambung!"
 msgid "Failed to download codes."
 msgstr "Gagal muat turun kod."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:930
+#: Source/Core/DolphinWX/ISOProperties.cpp:928
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "Gagal ekstrak ke %s!"
@@ -2509,7 +2516,7 @@ msgstr ""
 "Semak sama ada anda mempunyai keizinan tulis ke folder sasaran dan media "
 "boleh ditulis."
 
-#: Source/Core/Core/Movie.cpp:944
+#: Source/Core/Core/Movie.cpp:975
 #, c-format
 msgid "Failed to read %s"
 msgstr "Gagal membaca %s"
@@ -2600,7 +2607,7 @@ msgstr "Pantas"
 msgid "Fast Depth Calculation"
 msgstr "Pengiraan Kedalaman Pantas"
 
-#: Source/Core/Core/Movie.cpp:1213
+#: Source/Core/Core/Movie.cpp:1244
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2608,7 +2615,7 @@ msgstr ""
 "Nyahsegerak mati. Menghenti paksa main balik (Ralat dalam PlayWiimote: %u != "
 "%u, baitt %u.)%s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:274
+#: Source/Core/DolphinWX/GameListCtrl.cpp:267
 msgid "File"
 msgstr "Fail"
 
@@ -2671,7 +2678,7 @@ msgstr "Fail dibuka, sedia untuk dimampatkan."
 msgid "Filesystem"
 msgstr "Sistem Fail"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1183
+#: Source/Core/DolphinWX/ISOProperties.cpp:1181
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Jenis fail 'ini' tidak diketahui! Tidak akan dibuka!"
 
@@ -2715,7 +2722,7 @@ msgstr "Paksa 16:9"
 msgid "Force 4:3"
 msgstr "Paksa 4:3"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:57
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
 msgid "Force Console as NTSC-J"
 msgstr "Paksa Konsol sebagai NTSC-J"
 
@@ -2727,7 +2734,7 @@ msgstr "Paksa Port Dengar:"
 msgid "Force Texture Filtering"
 msgstr "Paksa Penapisan Tesktur"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:64
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:69
 msgid ""
 "Forces NTSC-J mode for using the Japanese ROM font.\n"
 "If left unchecked, Dolphin defaults to NTSC-U and automatically enables this "
@@ -2831,7 +2838,7 @@ msgstr "Me&langkau Bingkai"
 msgid "Frames To Record"
 msgstr "Bingkai Untuk Dirakam"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:134
+#: Source/Core/DolphinWX/ISOProperties.cpp:132
 msgid "France"
 msgstr "Perancis"
 
@@ -3022,15 +3029,15 @@ msgstr "Kad Ingatan GameCube (*.raw, .gcp)"
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr "Fail Simpan GameCube(*.gci;*.gcs;*.sav)"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:118
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:131
 #: Source/Core/DolphinWX/ISOProperties.cpp:314
 msgid "Gecko Codes"
 msgstr "Kod Gecko"
 
-#: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:114
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:70
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:50
+#: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:114
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:225
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:50
 msgid "General"
 msgstr "Am"
 
@@ -3038,20 +3045,19 @@ msgstr "Am"
 msgid "General Settings"
 msgstr "Tetapan Am"
 
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
+msgid "Generate a New Statistics Identity"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
 #: Source/Core/DolphinWX/ISOProperties.cpp:500
 msgid "German"
 msgstr "Jerman"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:140
+#: Source/Core/DolphinWX/ISOProperties.cpp:138
 msgid "Germany"
 msgstr "Jerman"
-
-#: Source/Core/Core/ActionReplay.cpp:256
-#, c-format
-msgid "GetARCode: Index is greater than ar code list size %zu"
-msgstr "GetARCode: Indeks lebih besar berbanding saiz senarai kod ar %zu"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:552
 msgid "Graphics"
@@ -3179,7 +3185,7 @@ msgstr "Kekunci Panas"
 msgid "Hybrid Wiimote"
 msgstr "Wiimote Hidbrid"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:275
+#: Source/Core/DolphinWX/GameListCtrl.cpp:268
 msgid "ID"
 msgstr "ID"
 
@@ -3216,8 +3222,8 @@ msgstr "Tetapan IPL"
 msgid "IPL with unknown hash %x"
 msgstr "IPL dengan cincangan %x tidak diketahui"
 
-#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
+#: Source/Core/DolphinWX/TASInputDlg.cpp:133
 msgid "IR"
 msgstr "IR"
 
@@ -3236,6 +3242,25 @@ msgstr "Direktori ISO"
 #: Source/Core/DolphinWX/MemcardManager.cpp:647
 msgid "Icon"
 msgstr "Ikon"
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
+msgid "Identity generation"
+msgstr ""
+
+#: Source/Core/DolphinWX/Main.cpp:273
+msgid ""
+"If authorized, Dolphin can collect data on its performance, feature usage, "
+"and configuration, as well as data on your system's hardware and operating "
+"system.\n"
+"\n"
+"No private data is ever collected. This data helps us understand how people "
+"and emulated games use Dolphin and prioritize our efforts. It also helps us "
+"identify rare configurations that are causing bugs, performance and "
+"stability issues.\n"
+"This authorization can be revoked at any time through Dolphin's settings.\n"
+"\n"
+"Do you authorize Dolphin to report this information to Dolphin's developers?"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -3343,8 +3368,8 @@ msgstr "Tingkatkan Kelajuan Emulasi"
 msgid "Increase IR"
 msgstr "Tingkatkan IR"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:316
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:45
+#: Source/Core/DolphinWX/ISOProperties.cpp:316
 msgid "Info"
 msgstr "Maklumat"
 
@@ -3368,7 +3393,7 @@ msgstr "Sisip Kad SD"
 msgid "Install WAD"
 msgstr "Pasang WAD"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:917
+#: Source/Core/DolphinWX/GameListCtrl.cpp:957
 msgid "Install to Wii Menu"
 msgstr "Pasang ke Menu Wii"
 
@@ -3376,19 +3401,19 @@ msgstr "Pasang ke Menu Wii"
 msgid "Installing WAD..."
 msgstr "Memasang WAD..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:980
+#: Source/Core/DolphinWX/ISOProperties.cpp:978
 msgid "Integrity Check Error"
 msgstr "Ralat Semak Integriti"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:986
+#: Source/Core/DolphinWX/ISOProperties.cpp:984
 msgid "Integrity check completed"
 msgstr "Semakan integriti selesai"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:985
+#: Source/Core/DolphinWX/ISOProperties.cpp:983
 msgid "Integrity check completed. No errors have been found."
 msgstr "Semak integriti selesai. Tiada  ralat ditemui."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:977
+#: Source/Core/DolphinWX/ISOProperties.cpp:975
 #, c-format
 msgid ""
 "Integrity check for %s failed. The disc image is most likely corrupted or "
@@ -3430,7 +3455,7 @@ msgstr "Nama Dalaman:"
 msgid "Internal Resolution:"
 msgstr "Resolusi Dalaman:"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:25
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:28
 msgid "Interpreter (slowest)"
 msgstr "Pentafsir (paling perlahan)"
 
@@ -3459,7 +3484,7 @@ msgstr "Hos tidak sah"
 msgid "Invalid index"
 msgstr "Indeks tidak sah"
 
-#: Source/Core/Core/Movie.cpp:885
+#: Source/Core/Core/Movie.cpp:916
 msgid "Invalid recording file"
 msgstr "Fail rakaman tidak sah"
 
@@ -3475,7 +3500,7 @@ msgstr "Parameter gelintar tidak sah (tidak dapat tukar ke nombor)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Parameter gelintar tidak sah (hanya panjang rentetan disokong)"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:72
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:70
 msgid "Invalid value."
 msgstr "Nilai tidak sah."
 
@@ -3485,30 +3510,29 @@ msgstr "Nilai tidak sah."
 msgid "Italian"
 msgstr "Itali"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:137
+#: Source/Core/DolphinWX/ISOProperties.cpp:135
 msgid "Italy"
 msgstr "Itali"
 
-#: Source/Core/Core/HotkeyManager.cpp:228
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:248
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:306
-#: Source/Core/Core/HW/GCPadEmu.cpp:85
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:248
+#: Source/Core/Core/HW/GCPadEmu.cpp:85 Source/Core/Core/HotkeyManager.cpp:228
 msgid "Iterative Input"
 msgstr "Input Iteratif"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:31
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:34
 msgid "JIT Arm64 (experimental)"
 msgstr "JIT Arm64 (eksperimental)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:28
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:31
 msgid "JIT Recompiler (recommended)"
 msgstr "Pengkompil JIT (disarankan)"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:29
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:32
 msgid "JITIL Recompiler (slow, experimental)"
 msgstr "Pengompil Semula JITIL (perlahan, eksperimental)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:155
+#: Source/Core/DolphinWX/ISOProperties.cpp:153
 msgid "Japan"
 msgstr "Jepun"
 
@@ -3531,18 +3555,18 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia tidak bertanda."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 #: Source/Core/Core/HW/GCKeyboard.cpp:18
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
 msgid "Keyboard"
 msgstr "Papan Kekunci"
 
-#: Source/Core/Core/HotkeyManager.cpp:221
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:220
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:224
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:228
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:232
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:236
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:240
+#: Source/Core/Core/HotkeyManager.cpp:221
 msgid "Keys"
 msgstr "Kekunci"
 
@@ -3550,7 +3574,7 @@ msgstr "Kekunci"
 msgid "Kick Player"
 msgstr "Tendang Pemain"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:158
+#: Source/Core/DolphinWX/ISOProperties.cpp:156
 msgid "Korea"
 msgstr "Korea"
 
@@ -3635,7 +3659,7 @@ msgstr ""
 msgid "License"
 msgstr "Lesen"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:65
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:72
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
 "Note that raising or lowering the emulation speed will also raise or lower "
@@ -3810,8 +3834,8 @@ msgstr ""
 msgid "Logger Outputs"
 msgstr "Output Pengelog"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:120
-#: Source/Core/DolphinWX/Frame.cpp:430
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:133
+#: Source/Core/DolphinWX/Frame.cpp:431
 msgid "Logging"
 msgstr "Mengelog"
 
@@ -3836,8 +3860,8 @@ msgstr "Fail Gameshark MadCatz(*.gcs)"
 msgid "Main Stick"
 msgstr "Bidak Utama"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:273
 #: Source/Core/DolphinWX/FrameTools.cpp:347
+#: Source/Core/DolphinWX/GameListCtrl.cpp:266
 msgid "Maker"
 msgstr "Pembuat:"
 
@@ -3890,7 +3914,7 @@ msgstr "Kad Ingatan"
 msgid "Memory Card Manager"
 msgstr "Pengurus Kad Ingatan"
 
-#: Source/Core/Core/ConfigManager.cpp:894
+#: Source/Core/Core/ConfigManager.cpp:919
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4097,16 +4121,16 @@ msgstr "NP Tab"
 msgid "NP Up"
 msgstr "NP Naik"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:534
-#: Source/Core/DolphinWX/ARCodeAddEdit.cpp:51
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:57
+#: Source/Core/DolphinWX/ARCodeAddEdit.cpp:51
+#: Source/Core/DolphinWX/ISOProperties.cpp:534
 msgid "Name:"
 msgstr "Nama:"
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:29
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:24
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:73
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:213
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:83
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:226
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:22
 msgid "Name: "
 msgstr "Nama:"
 
@@ -4119,7 +4143,7 @@ msgstr "Natif (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "Fail GCI Tabii(*.gci)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:143
+#: Source/Core/DolphinWX/ISOProperties.cpp:141
 msgid "Netherlands"
 msgstr "Belanda"
 
@@ -4130,6 +4154,10 @@ msgstr "Netplay telah dinyahsegerakkan. Tiada lagi cara untuk memulihkannya."
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:42
 msgid "New Scan"
 msgstr "Imbas Baharu"
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
+msgid "New identity generated."
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -4171,11 +4199,11 @@ msgstr ""
 "Tiada undo.dtm ditemui, menghenti paksa buat asal keadaan muat untuk "
 "menghindari nyahsegerak cereka"
 
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:25
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:44
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:163
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:233
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:759
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:25
 msgid "None"
 msgstr "Tiada"
 
@@ -4183,13 +4211,13 @@ msgstr "Tiada"
 msgid "Not Equal"
 msgstr "Tiada Sama"
 
+#: Source/Core/DolphinWX/GameListCtrl.cpp:856
 #: Source/Core/DolphinWX/ISOProperties.cpp:338
 #: Source/Core/DolphinWX/ISOProperties.cpp:370
-#: Source/Core/DolphinWX/GameListCtrl.cpp:816
 msgid "Not Set"
 msgstr "Tidak Ditetapkan"
 
-#: Source/Core/DolphinWX/Main.cpp:516
+#: Source/Core/DolphinWX/Main.cpp:543
 msgid "Not connected"
 msgstr "Tidak bersambung"
 
@@ -4197,11 +4225,11 @@ msgstr "Tidak bersambung"
 msgid "Notes: "
 msgstr "Nota:"
 
-#: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 #: Source/Core/DolphinWX/FrameAui.cpp:76 Source/Core/DolphinWX/FrameAui.cpp:81
 #: Source/Core/DolphinWX/FrameAui.cpp:512
 #: Source/Core/DolphinWX/FrameAui.cpp:559
 #: Source/Core/DolphinWX/FrameAui.cpp:567
+#: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 msgid "Notice"
 msgstr "Notis"
 
@@ -4209,7 +4237,8 @@ msgstr "Notis"
 msgid "Num Lock"
 msgstr "Num Lock"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:76
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:86
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:229
 msgid "Number Of Codes: "
 msgstr "Bilangan Kod:"
 
@@ -4259,16 +4288,16 @@ msgstr "&Dokumentasi Atas Talian"
 msgid "Only %d blocks available"
 msgstr "Hanya %d blok tersedia"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:543
 #: Source/Core/Core/HotkeyManager.cpp:15
+#: Source/Core/DolphinWX/FrameTools.cpp:543
 msgid "Open"
 msgstr "Buka"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:893
+#: Source/Core/DolphinWX/GameListCtrl.cpp:933
 msgid "Open &containing folder"
 msgstr "Buka fail &dikandungi"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:890
+#: Source/Core/DolphinWX/GameListCtrl.cpp:930
 msgid "Open Wii &save folder"
 msgstr "Buka folder &simpan Wii"
 
@@ -4298,10 +4327,9 @@ msgstr ""
 "Buka konfigurasi lalai (baca-sahaja) untuk permainan ini di dalam penyunting "
 "teks luar."
 
-#: Source/Core/Core/HotkeyManager.cpp:226
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:246
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
-#: Source/Core/Core/HW/GCPadEmu.cpp:83
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:246
+#: Source/Core/Core/HW/GCPadEmu.cpp:83 Source/Core/Core/HotkeyManager.cpp:226
 msgid "Options"
 msgstr "Pilihan"
 
@@ -4372,7 +4400,7 @@ msgstr "Page Up"
 msgid "Paragraph"
 msgstr "Perenggan"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:205
+#: Source/Core/DolphinWX/ISOProperties.cpp:203
 #, c-format
 msgid "Partition %i"
 msgstr "Sekatan %i"
@@ -4477,17 +4505,17 @@ msgstr "Kesan Pasca-Pemprosesan:"
 msgid "Prefetch Custom Textures"
 msgstr "Dapatkan Tekstur Suai"
 
-#: Source/Core/Core/Movie.cpp:1095
+#: Source/Core/Core/Movie.cpp:1126
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Penamatan cereka pramatang dalam Pengawal Main. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1223
+#: Source/Core/Core/Movie.cpp:1254
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Penamatan cereka pramatang dalam PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1202
+#: Source/Core/Core/Movie.cpp:1233
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Penamatan cereka dalam PlayWiimote. %u > %u"
@@ -4644,9 +4672,9 @@ msgid "Region"
 msgstr "Wilayah"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:39
+#: Source/Core/DolphinWX/PatchAddEdit.cpp:83
 #: Source/Core/DolphinWX/ISOProperties.cpp:425
 #: Source/Core/DolphinWX/ISOProperties.cpp:446
-#: Source/Core/DolphinWX/PatchAddEdit.cpp:83
 msgid "Remove"
 msgstr "Buang"
 
@@ -4673,8 +4701,8 @@ msgstr "Penerapan"
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Report: GCIFolder Menulis ke blok tak-peruntuk 0x%x"
 
-#: Source/Core/DolphinWX/InputConfigDiag.cpp:1017
 #: Source/Core/Core/HotkeyManager.cpp:21
+#: Source/Core/DolphinWX/InputConfigDiag.cpp:1017
 msgid "Reset"
 msgstr "Tetap Semula"
 
@@ -4720,13 +4748,13 @@ msgstr "Bidak kanan"
 msgid "Room ID:"
 msgstr "ID bilik:"
 
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
 #: Source/Core/Core/HW/GCPadEmu.cpp:74
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:23
 msgid "Rumble"
 msgstr "Rumble"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:146
+#: Source/Core/DolphinWX/ISOProperties.cpp:144
 msgid "Russia"
 msgstr "Rusia"
 
@@ -4747,8 +4775,8 @@ msgstr "Simpan"
 msgid "Save GCI as..."
 msgstr "Simpan GCI sebagai..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:498
 #: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/DolphinWX/FrameTools.cpp:498
 msgid "Save Oldest State"
 msgstr "Simpan Keadaan Terlama"
 
@@ -4800,16 +4828,16 @@ msgstr "Simpan Slot Keadaan 9"
 msgid "Save State..."
 msgstr "Simpan Keadaan..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:659
-#: Source/Core/DolphinWX/ISOProperties.cpp:669
+#: Source/Core/DolphinWX/ISOProperties.cpp:657
+#: Source/Core/DolphinWX/ISOProperties.cpp:667
 msgid "Save as..."
 msgstr "Simpan sebagai..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1295
 msgid "Save compressed GCM/ISO"
 msgstr "Simpan GCM/ISO termampat "
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1241
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1281
 msgid "Save decompressed GCM/ISO"
 msgstr "Simpan GCM/ISO ternyahmampat"
 
@@ -4825,7 +4853,7 @@ msgstr "Simpan ke slot terpilih"
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "Disimpan ke /Wii/sd.raw (saiz lalai ialah 128mb)"
 
-#: Source/Core/Core/Movie.cpp:953
+#: Source/Core/Core/Movie.cpp:984
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Keadaan simpan cakera %s telah rosak, rakaman cereka dihentikan..."
@@ -4834,16 +4862,16 @@ msgstr "Keadaan simpan cakera %s telah rosak, rakaman cereka dihentikan..."
 msgid "Scaled EFB Copy"
 msgstr "salin EFB Terskala"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:542
+#: Source/Core/DolphinWX/GameListCtrl.cpp:547
 #, c-format
 msgid "Scanning %s"
 msgstr "Mengimbas %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:525
+#: Source/Core/DolphinWX/GameListCtrl.cpp:530
 msgid "Scanning for ISOs"
 msgstr "Mengimbas untuk ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:526
+#: Source/Core/DolphinWX/GameListCtrl.cpp:531
 msgid "Scanning..."
 msgstr "Mengimbas..."
 
@@ -4886,8 +4914,8 @@ msgstr "Gelintar untuk Nilai heks:"
 msgid "Section %s not found in SYSCONF"
 msgstr "Seksyen %s tidak ditemui dalam SYSCONF"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:51
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:581
+#: Source/Core/DolphinWX/WXInputBase.cpp:51
 msgid "Select"
 msgstr "Pilih"
 
@@ -5103,7 +5131,7 @@ msgstr ""
 msgid "Server rejected traversal attempt"
 msgstr "Pelayan menolak percubaan travesal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:896
+#: Source/Core/DolphinWX/GameListCtrl.cpp:936
 msgid "Set as &default ISO"
 msgstr "Tetapkan sebagai ISO &lalai"
 
@@ -5111,12 +5139,6 @@ msgstr "Tetapkan sebagai ISO &lalai"
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "Tetapkan sebagai Kad Ingatan lalai %c"
-
-#: Source/Core/Core/ActionReplay.cpp:267
-#, c-format
-msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-msgstr ""
-"SetARCode_IsActive: Indeks lebih besar berbanding saiz senarai kod ar %zu"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 msgid "Sets the GameCube system language."
@@ -5358,7 +5380,7 @@ msgstr "Cina Ringkas"
 msgid "Simulate DK Bongos"
 msgstr "Simulasikan DK Bongos"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:277
+#: Source/Core/DolphinWX/GameListCtrl.cpp:270
 msgid "Size"
 msgstr "Saiz"
 
@@ -5437,7 +5459,7 @@ msgstr "Bahagian belakang bunyi %s tidak sah."
 msgid "Space"
 msgstr "Jaraj"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:149
+#: Source/Core/DolphinWX/ISOProperties.cpp:147
 msgid "Spain"
 msgstr "Sepanyol"
 
@@ -5478,7 +5500,7 @@ msgstr ""
 "\n"
 "Jika tidak pasti, pilih 640x528."
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:75
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
 msgid "Speed Limit:"
 msgstr "Had Kelajuan:"
 
@@ -5486,7 +5508,7 @@ msgstr "Had Kelajuan:"
 msgid "Speed up Disc Transfer Rate"
 msgstr "Lajukan Kadar Pemindahan Cakera"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:66
 msgid ""
 "Splits the CPU and GPU threads so they can be run on separate cores.\n"
 "Provides major speed improvements on most modern PCs, but can cause "
@@ -5501,10 +5523,10 @@ msgstr ""
 msgid "Standard Controller"
 msgstr "Pengawal Piawai"
 
+#: Source/Core/Core/HW/GCPadEmu.cpp:39
+#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:213
 #: Source/Core/DolphinWX/WXInputBase.cpp:30
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:123
-#: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:213
-#: Source/Core/Core/HW/GCPadEmu.cpp:39
 msgid "Start"
 msgstr "Mula"
 
@@ -5520,8 +5542,8 @@ msgstr "Mula Me&rakam Input"
 msgid "Start Recording"
 msgstr "Mula Rakaman"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:278
 #: Source/Core/DolphinWX/FrameTools.cpp:357
+#: Source/Core/DolphinWX/GameListCtrl.cpp:271
 msgid "State"
 msgstr "Keadaan"
 
@@ -5533,8 +5555,8 @@ msgstr "Roda Pacu"
 msgid "Stereoscopic 3D Mode:"
 msgstr "Mod Stereoskopik 3D:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:401
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:454
+#: Source/Core/DolphinWX/ISOProperties.cpp:401
 msgid "Stereoscopy"
 msgstr "Stereoskopi"
 
@@ -5542,9 +5564,9 @@ msgstr "Stereoskopi"
 msgid "Stick"
 msgstr "Bidak"
 
+#: Source/Core/Core/HotkeyManager.cpp:20
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:413
 #: Source/Core/DolphinWX/FrameTools.cpp:547
-#: Source/Core/Core/HotkeyManager.cpp:20
 msgid "Stop"
 msgstr "Henti"
 
@@ -5641,8 +5663,8 @@ msgstr "Ralat sintaks"
 msgid "System Language:"
 msgstr "Bahasa Sistem:"
 
-#: Source/Core/DolphinWX/TASInputDlg.h:26
 #: Source/Core/DolphinWX/FrameTools.cpp:197
+#: Source/Core/DolphinWX/TASInputDlg.h:26
 msgid "TAS Input"
 msgstr "Input TAS"
 
@@ -5668,12 +5690,12 @@ msgstr "Jadual Kiri"
 msgid "Table Right"
 msgstr "Jadual Kanan"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:161
+#: Source/Core/DolphinWX/ISOProperties.cpp:159
 msgid "Taiwan"
 msgstr "Taiwan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:432
 #: Source/Core/Core/HotkeyManager.cpp:33
+#: Source/Core/DolphinWX/FrameTools.cpp:432
 msgid "Take Screenshot"
 msgstr "Ambil Cekupan Skrin"
 
@@ -5708,11 +5730,11 @@ msgstr ""
 "\n"
 "Jika tidak pasti, guna nilai paling kanan."
 
-#: Source/Core/Core/ConfigManager.cpp:777
+#: Source/Core/Core/ConfigManager.cpp:802
 msgid "The WAD has been installed successfully"
 msgstr "WAD berjaya dipasang"
 
-#: Source/Core/Core/ActionReplay.cpp:184
+#: Source/Core/Core/ActionReplay.cpp:221
 msgid "The address is invalid"
 msgstr "Alamat tidak sah"
 
@@ -5752,9 +5774,9 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "Imej cakera \"%s\" dipangkas, beberapa data telah hilang."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1164
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1192
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1268
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1204
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1232
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1308
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -5785,7 +5807,7 @@ msgstr "Nama tidak boleh kosong"
 msgid "The name cannot contain the character ','"
 msgstr "Nama tidak boleh mengandungi aksara ','"
 
-#: Source/Core/Core/Movie.cpp:195
+#: Source/Core/Core/Movie.cpp:226
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "Permainan dirakam (%s) tidak sama dengan permainan dipilih (%s)"
@@ -5798,7 +5820,7 @@ msgstr "Kod AR dinyahsulit yang terhasil tidak mengandungi sebarang baris."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "Simpan yang anda cuba salin mempunyai saiz fail tidak sah."
 
-#: Source/Core/DolphinWX/Main.cpp:337
+#: Source/Core/DolphinWX/Main.cpp:364
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -5822,12 +5844,12 @@ msgstr "Pelayan membalas: permainan kini sedang berjalan!"
 msgid "The server sent an unknown error message!"
 msgstr "Pelayan menghantar mesej ralat tidak diketahui!"
 
-#: Source/Core/Core/ConfigManager.cpp:688
+#: Source/Core/Core/ConfigManager.cpp:713
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Fail \"%s\" yang dinyatakan tidak wujud"
 
-#: Source/Core/Core/ActionReplay.cpp:187
+#: Source/Core/Core/ActionReplay.cpp:224
 msgid "The value is invalid"
 msgstr "Nilai tidak sah"
 
@@ -5952,8 +5974,8 @@ msgstr "Condong"
 msgid "Timeout connecting to traversal server"
 msgstr "Had masa tamat ketika menyambung ke pelayan traversal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:271
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
+#: Source/Core/DolphinWX/GameListCtrl.cpp:264
 msgid "Title"
 msgstr "Tajuk"
 
@@ -6039,7 +6061,7 @@ msgstr "Pelayan travesal tamat masa ketika menyambung ke hos"
 msgid "Traversal: "
 msgstr "Traversal: "
 
-#: Source/Core/DiscIO/VolumeGC.cpp:36 Source/Core/DiscIO/VolumeDirectory.cpp:79
+#: Source/Core/DiscIO/VolumeDirectory.cpp:79 Source/Core/DiscIO/VolumeGC.cpp:36
 #: Source/Core/DiscIO/VolumeWad.cpp:49
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Cuba menyahsulit data dari volum bukan-Wii"
@@ -6081,7 +6103,7 @@ msgstr "Jenis"
 msgid "UNKNOWN_%02X"
 msgstr "UNKNOWN_%02X"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:152
+#: Source/Core/DolphinWX/ISOProperties.cpp:150
 msgid "USA"
 msgstr "USA"
 
@@ -6113,13 +6135,13 @@ msgstr ""
 msgid "Undefined %i"
 msgstr "%i tidak ditakrif"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:499
 #: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/DolphinWX/FrameTools.cpp:499
 msgid "Undo Load State"
 msgstr "Buat Asal Muat Keadaan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:500
 #: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/DolphinWX/FrameTools.cpp:500
 msgid "Undo Save State"
 msgstr "Buat Asal Keadaan Simpan"
 
@@ -6127,9 +6149,10 @@ msgstr "Buat Asal Keadaan Simpan"
 msgid "Unexpected 0x80 call? Aborting..."
 msgstr "Panggilan 0x80 tidak dijangka? Menghentipaksa..."
 
+#: Source/Core/Core/State.cpp:470
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:80
-#: Source/Core/DolphinWX/ISOProperties.cpp:168
-#: Source/Core/DolphinWX/ISOProperties.cpp:525 Source/Core/Core/State.cpp:470
+#: Source/Core/DolphinWX/ISOProperties.cpp:166
+#: Source/Core/DolphinWX/ISOProperties.cpp:525
 msgid "Unknown"
 msgstr "Tidak diketahui"
 
@@ -6164,7 +6187,7 @@ msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr ""
 "Mesej tidak diketahui dengan id: %d diterima dari pemain:%d Menendang pemain!"
 
-#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:42
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:45
 msgid "Unlimited"
 msgstr "Tanpa had"
 
@@ -6177,7 +6200,7 @@ msgstr "Nyahpek"
 msgid "Up"
 msgstr "Naik"
 
-#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:96
+#: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:106
 msgid "Update"
 msgstr "Kemaskini"
 
@@ -6185,11 +6208,26 @@ msgstr "Kemaskini"
 msgid "Upright Wiimote"
 msgstr "Upright Wiimote"
 
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
+msgid "Usage Statistics Reporting Settings"
+msgstr ""
+
+#: Source/Core/DolphinWX/Main.cpp:284
+msgid "Usage statistics reporting"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
+msgid ""
+"Usage statistics reporting uses a unique random per-machine identifier to "
+"distinguish users from one another. This button generates a new random "
+"identifier for this machine which is dissociated from the previous one."
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
 msgstr "Guna Skrin Penuh"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:34
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:32
 msgid "Use Hex"
 msgstr "Guna Heks"
 
@@ -6221,8 +6259,8 @@ msgstr ""
 "Guna penimbal kedalaman tunggal untuk kedua-dua belah mata. Diperlukan untuk "
 "beberapa jenis permainan."
 
-#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:98
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
+#: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:98
 msgid "Utility"
 msgstr "Utiliti"
 
@@ -6230,15 +6268,15 @@ msgstr "Utiliti"
 msgid "V-Sync"
 msgstr "Segerak-V"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:318
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:317
 msgid "Value"
 msgstr "Nilai"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:320
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:319
 msgid "Value (double)"
 msgstr "Nilai (ganda dua)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:319
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:318
 msgid "Value (float)"
 msgstr "Nilai (apung)"
 
@@ -6246,7 +6284,7 @@ msgstr "Nilai (apung)"
 msgid "Value:"
 msgstr "Nilai:"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:31
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:29
 msgid "Value: "
 msgstr "Nilai:"
 
@@ -6300,12 +6338,12 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia tidak bertanda."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1049
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1375
-#: Source/Core/DolphinWX/MemcardManager.cpp:598
-#: Source/Core/DolphinWX/VideoConfigDiag.h:93
-#: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/Common/MsgHandler.cpp:63
+#: Source/Core/DolphinWX/MemcardManager.cpp:598
+#: Source/Core/DolphinWX/LogConfigWindow.cpp:44
+#: Source/Core/DolphinWX/VideoConfigDiag.h:93
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1089
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1416
 msgid "Warning"
 msgstr "Amaran"
 
@@ -6350,7 +6388,7 @@ msgstr ""
 "dan yang mempunyai nama yang serupa sebagai fail dalam kad ingatan anda\n"
 "Teruskan?"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:1030
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6361,7 +6399,7 @@ msgstr ""
 "(bait %u > %u) (bingkai %u > %u). Anda seharusnya memuatkan simpan lain "
 "sebelum diteruskan, atau muat keadaan ini dengan mod baca-sahaja dimatikan."
 
-#: Source/Core/Core/Movie.cpp:976
+#: Source/Core/Core/Movie.cpp:1007
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6372,7 +6410,7 @@ msgstr ""
 "di dalam simpan. (bait %u < %u) (bingkai %u < %u). Anda seharusnya memuatkan "
 "simpan lain sebelum diteruskan."
 
-#: Source/Core/Core/Movie.cpp:1016
+#: Source/Core/Core/Movie.cpp:1047
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
@@ -6384,7 +6422,7 @@ msgstr ""
 "keadaan ini dengan mod baca-sahaja dimatikan. Jika tidak anda berkemungkinan "
 "akan mendapat nyah-segerak."
 
-#: Source/Core/Core/Movie.cpp:1026
+#: Source/Core/Core/Movie.cpp:1057
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %d. You should "
@@ -6477,7 +6515,7 @@ msgstr "Wiimote %i"
 msgid "Wiimote %i %s"
 msgstr "Wiimote %i %s"
 
-#: Source/Core/DolphinWX/Main.cpp:518
+#: Source/Core/DolphinWX/Main.cpp:545
 msgid "Wiimote Connected"
 msgstr "Wiimote  Bersambung"
 
@@ -6505,15 +6543,15 @@ msgstr "Tetingkap Kanan"
 msgid "Word Wrap"
 msgstr "Lilit Kata"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:958
-#: Source/Core/DolphinWX/ISOProperties.cpp:1240
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1137
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1277
 #: Source/Core/DolphinWX/FrameTools.cpp:1488
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1177
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1317
+#: Source/Core/DolphinWX/ISOProperties.cpp:956
+#: Source/Core/DolphinWX/ISOProperties.cpp:1252
 msgid "Working..."
 msgstr "Berfungsi..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:164
+#: Source/Core/DolphinWX/ISOProperties.cpp:162
 msgid "World"
 msgstr "Dunia"
 
@@ -6558,11 +6596,11 @@ msgstr ""
 msgid "You must choose a game!"
 msgstr "Anda mesti pilih satu permainan!"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:64
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:62
 msgid "You must enter a name."
 msgstr "Anda mesti masukkan satu nama."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:330
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:329
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Anda mesti masukkan nilai desimal, heksadesimal atau oktal yang sah."
 
@@ -6584,7 +6622,7 @@ msgstr ""
 "Anda hendak hentikan sekarang untuk membaiki masalah?\n"
 "Jika anda pilih \"Tidak\", audio akan tidak berbutir."
 
-#: Source/Core/Core/ConfigManager.cpp:725
+#: Source/Core/Core/ConfigManager.cpp:750
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -6607,11 +6645,11 @@ msgstr ""
 msgid "Z"
 msgstr "Z"
 
-#: Source/Core/Core/ActionReplay.cpp:882
+#: Source/Core/Core/ActionReplay.cpp:881
 msgid "Zero 3 code not supported"
 msgstr "Kod Zero 3 tidak disokong"
 
-#: Source/Core/Core/ActionReplay.cpp:903
+#: Source/Core/Core/ActionReplay.cpp:901
 #, c-format
 msgid "Zero code unknown to Dolphin: %08x"
 msgstr "Kod Zero tidak diketahui pada Dolphin: %08x"
@@ -6637,10 +6675,20 @@ msgstr "pelengkapan-palsu"
 msgid "none"
 msgstr "tiada"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1204
+#: Source/Core/DolphinWX/ISOProperties.cpp:1202
 msgid "wxExecute returned -1 on application run!"
 msgstr "wxExecute kemnalikan -1 pada aplikasi yang berjalan!"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OR"
+
+#~ msgid "Apply"
+#~ msgstr "Laksana"
+
+#~ msgid "GetARCode: Index is greater than ar code list size %zu"
+#~ msgstr "GetARCode: Indeks lebih besar berbanding saiz senarai kod ar %zu"
+
+#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
+#~ msgstr ""
+#~ "SetARCode_IsActive: Indeks lebih besar berbanding saiz senarai kod ar %zu"
