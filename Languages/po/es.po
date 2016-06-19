@@ -20,8 +20,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 09:54+0000\n"
-"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
+"PO-Revision-Date: 2016-06-19 14:13+0000\n"
+"Last-Translator: Petiso_Carambanal <diegoae@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -2176,7 +2176,7 @@ msgstr "Activar envío de datos al altavoz"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr "Habilitar el uso de informes de estadisticas"
+msgstr "Habilitar el uso de informes de estadísticas"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2288,6 +2288,10 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Activa la recopilación e intercambio de datos de estadísticas de uso con el "
+"equipo de desarrollo de Dolphin. Estos datos son utilizados para mejorar el "
+"emulador y ayudarnos a comprender cómo nuestros usuarios interactúan con el "
+"sistema. No se recogen datos privados."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3088,7 +3092,7 @@ msgstr "Ajustes generales"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Generar una nueva identidad estadística"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3290,7 +3294,7 @@ msgstr "Icono"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "Generación de la identidad"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3306,6 +3310,18 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"Si lo permites, Dolphin recopilará información útil sobre el rendimiento, "
+"uso y ajustes que hagas del emulador, junto con datos sobre el hardware de "
+"tu equipo y sistema operativo.\n"
+"\n"
+"No se almacena ningún dato privado. Esta información nos ayuda a entender "
+"qué es lo que más se usa y a tener las prioridades claras. También nos ayuda "
+"a detectar configuraciones extrañas que estén causando problemas, así como "
+"fallos de rendimiento y estabilidad.\n"
+"\n"
+"Puedes desactivarlo en cualquier momento en los ajustes de Dolphin.\n"
+"\n"
+"¿Nos permites compartir estos datos con los desarrolladores de Dolphin?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4211,7 +4227,7 @@ msgstr "Nuevo escaneado"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "Nueva identidad generada."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6290,11 +6306,11 @@ msgstr "Wiimote en vertical"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Configuración del uso de informes de estadísticas"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Estadísticas del uso de informes"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6302,6 +6318,10 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"Las estadísticas del uso de informes utilizan un identificador único al azar "
+"por la máquina para distinguir a los usuarios una de la otra. Este botón "
+"genera un nuevo identificador aleatorio para esta máquina distinto del "
+"anterior."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
