@@ -37,7 +37,7 @@ namespace ViveInput
 		{ "RA", VIVE_BUTTON_RIGHT_A },
 		{ "RDPadUp", VIVE_BUTTON_RIGHT_UP },
 		{ "RDPadDown", VIVE_BUTTON_RIGHT_DOWN },
-		{ "RDPadRight", VIVE_BUTTON_RIGHT_LEFT },
+		{ "RDPadLeft", VIVE_BUTTON_RIGHT_LEFT },
 		{ "RDPadRight", VIVE_BUTTON_RIGHT_RIGHT },
 	}, vive_specials[] =
 	{
