@@ -203,8 +203,10 @@ HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint)
 		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, &DummyCurlWriteFunction);
 		curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 3000);
 
+#ifdef _WIN32
 		// ALPN support is enabled by default but requires Windows >= 8.1.
 		curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, false);
+#endif
 
 		m_curl = curl;
 	}
