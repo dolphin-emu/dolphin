@@ -20,6 +20,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace
@@ -187,10 +188,13 @@ void DolphinAnalytics::MakePerGameBuilder()
 	builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
 	builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
 	builder.AddData("cfg-audio-backend", SConfig::GetInstance().sBackend);
-	builder.AddData("cfg-video-backend", SConfig::GetInstance().m_strVideoBackend);
 	builder.AddData("cfg-oc-enable", SConfig::GetInstance().m_OCEnable);
 	builder.AddData("cfg-oc-factor", SConfig::GetInstance().m_OCFactor);
 	builder.AddData("cfg-render-to-main", SConfig::GetInstance().bRenderToMain);
+	if (g_video_backend)
+	{
+		builder.AddData("cfg-video-backend", g_video_backend->GetName());
+	}
 
 	// Video configuration.
 	builder.AddData("cfg-gfx-multisamples", g_Config.iMultisamples);
