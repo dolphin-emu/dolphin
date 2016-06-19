@@ -164,7 +164,7 @@ protected:
 	AnalyticsReportBuilder m_base_builder;
 
 	std::thread m_reporter_thread;
-	Common::Event m_reporter_event;
+	Common::Event m_reporter_event, m_reporter_finished_event;
 	Common::Flag m_reporter_stop_request;
 	FifoQueue<std::string> m_reports_queue;
 };

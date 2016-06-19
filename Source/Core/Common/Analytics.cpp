@@ -145,7 +145,11 @@ AnalyticsReporter::~AnalyticsReporter()
 	m_reporter_stop_request.Set();
 	m_reporter_event.Set();
 #if defined(_MSC_VER) && _MSC_VER <= 1800
-	//Sleep(100);
+	// the join hangs forever on VS2013, so instead we wait for an event indicating the thread has finished, then terminate it
+	// don't display an error message when we crash, I don't know why we crash.
+	_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+	m_reporter_finished_event.WaitFor(std::chrono::milliseconds(1000));
+	//TerminateThread(m_reporter_thread.native_handle(), 1);
 #else
 	m_reporter_thread.join();
 #endif
@@ -174,6 +178,9 @@ void AnalyticsReporter::ThreadProc()
 		m_reporter_event.Wait();
 		if (m_reporter_stop_request.IsSet())
 		{
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+			m_reporter_finished_event.Set();
+#endif
 			return;
 		}
 
@@ -195,6 +202,9 @@ void AnalyticsReporter::ThreadProc()
 			// Recheck after each report sent.
 			if (m_reporter_stop_request.IsSet())
 			{
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+				m_reporter_finished_event.Set();
+#endif
 				return;
 			}
 		}
