@@ -10,6 +10,7 @@
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 
 namespace Common
 {
@@ -143,7 +144,11 @@ AnalyticsReporter::~AnalyticsReporter()
 	// Set the exit request flag and wait for the thread to honor it.
 	m_reporter_stop_request.Set();
 	m_reporter_event.Set();
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	//Sleep(100);
+#else
 	m_reporter_thread.join();
+#endif
 }
 
 void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
@@ -163,6 +168,7 @@ void AnalyticsReporter::Send(AnalyticsReportBuilder&& report)
 
 void AnalyticsReporter::ThreadProc()
 {
+	Common::SetCurrentThreadName("Reporter Thread");
 	while (true)
 	{
 		m_reporter_event.Wait();
