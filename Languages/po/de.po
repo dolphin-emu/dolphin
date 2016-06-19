@@ -18,7 +18,7 @@
 # Moritz Bruder <muesli4@gmail.com>, 2015
 # M T <michtrz@gmail.com>, 2013-2014
 # no_cluez <neobrainx@gmail.com>, 2013
-# Neui Neui, 2016
+# Neui, 2016
 # MexicanWithGun <nibirush@inbox.com>, 2015
 # no_cluez <neobrainx@gmail.com>, 2013
 # Shinrai, 2013
