@@ -21,8 +21,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 03:57+0000\n"
+"Last-Translator: Mateus B. Cassiano <jhonn.copperfield@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -2164,7 +2164,7 @@ msgstr "Ativar Dados do Auto-Falante"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Ativar Envio de Estatísticas de Uso"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2277,6 +2277,10 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Ativa a coleta e compartilhamento de estatíscas de uso com a equipe de "
+"desenvolvimento do Dolphin. Esses dados são utilizados para melhorar o "
+"emulador e para ajudar a compreender como nossos usuários interagem com o "
+"sistema. Dados pessoais nunca serão coletado."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3070,7 +3074,7 @@ msgstr "Configurações Gerais"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Gerar uma Nova ID de Estatísticas "
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3269,7 +3273,7 @@ msgstr "Ícone"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "ID de estatísticas"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3285,6 +3289,20 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"Se autorizado, o Dolphin pode coletar dados relacionados à performance, uso "
+"de recursos e configurações do emulador, assim como informações sobre o seu "
+"hardware e sistema operacional.\n"
+"\n"
+"Dados pessoais nunca serão coletados. Essas informações nos ajudam a "
+"compreender como os usuários e os jogos emulados utilizam o Dolphin e a "
+"priorizar nossos esforços. Elas também nos ajudam a identificar "
+"configurações raras que estejam causando bugs ou problemas de performance e "
+"estabilidade.\n"
+"Essa permissão pode ser revogada a qualquer momento através das "
+"configurações do Dolphin.\n"
+"\n"
+"Permitir que o Dolphin compartilhe essas informações com a equipe de "
+"desenvolvimento?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4185,7 +4203,7 @@ msgstr "Nova Pesquisa"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "Uma nova ID foi gerada."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6246,11 +6264,11 @@ msgstr "Wiimote na Vertical"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Configurações do Envio de Estatísticas de Uso"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Envio de estatísticas de uso"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6258,6 +6276,9 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"O envio de estatísticas de uso utiliza um identificador aleatório único para "
+"distinguir usuários diferentes. Esse botão gera um novo identificador único "
+"para essa máquina que seja distinto do identificador anterior."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
@@ -6720,15 +6741,3 @@ msgstr "wxExecute retornou -1 ao executar o aplicativo!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Apply"
-#~ msgstr "Aplicar"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "GetARCode: O índice é maior do que o tamanho da lista dos códigos AR %zu"
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "SetARCode_IsActive: O índice é maior do que o tamanho da lista de códigos "
-#~ "AR %zu"

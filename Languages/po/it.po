@@ -10,8 +10,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 10:13+0000\n"
+"Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
 "Language: it\n"
@@ -2161,7 +2161,7 @@ msgstr "Abilita Dati Altoparlante"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Abilità Report Statistiche d'Uso"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2274,6 +2274,10 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Attiva la raccolta di dati sulle statistiche d'uso e la condivisione con il "
+"team di sviluppo di Dolphin. Questi dati sono usati per migliorare "
+"l'emulatore e per aiutarci a capire come gli utenti interagiscono con il "
+"sistema. Non vengono raccolti dati privati."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3069,7 +3073,7 @@ msgstr "Impostazioni Generali"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Generà una nuova Identità Statistiche"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3269,7 +3273,7 @@ msgstr "Icona"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "Generazione Identità"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3285,6 +3289,18 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"Se autorizzato, Dolphin può raccogliere dati sulle proprie performance, "
+"utilizzo delle feature, configurazioni e dati sul tuo hardware e sistema "
+"operativo installato.\n"
+"\n"
+"Non verranno raccolti dati privati. Questi dati ci aiutano a capire come "
+"giochi e giocatori utilizzano Dolphin per indicarci dove dobbiamo impegnarci "
+"maggiormente. Aiutano anche a sconvare configurazioni particolari che "
+"causano bug e problemi di performance e stabilità.\n"
+"L'autorizzazione può essere revocata in qualunque momento nel menu di "
+"impostazioni di Dolphin.\n"
+"\n"
+"Autorizzi Dolphin a inviare queste informazioni agli sviluppatori di Dolphin?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4190,7 +4206,7 @@ msgstr "Nuova Ricerca"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "Generata Nuova Identità"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6252,11 +6268,11 @@ msgstr "Wiimote in posizione verticale"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Impostazioni Report Statistiche d'Uso"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Report statistiche d'uso"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6264,6 +6280,10 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"Il report sulle statistiche d'uso genera un unico identificatore per "
+"computer per distinguere i vari utenti.\n"
+"Questo pulsante genera un nuovo identificatore, diverso dal precedente, per "
+"questo sistema."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
@@ -6726,16 +6746,3 @@ msgstr "wxExecute ritorna -1 all'avvio dell'applicazione!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Apply"
-#~ msgstr "Applica"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "GetARCode: Indice troppo grande rispetto alla dimensione dell'elenco dei "
-#~ "codici AR %zu"
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "SetARCode_IsActive: Indice troppo grande rispetto alla dimensione "
-#~ "dell'elenco dei codici AR %zu"

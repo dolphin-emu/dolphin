@@ -13,8 +13,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 07:34+0000\n"
+"Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
 "Language: sv\n"
@@ -2146,7 +2146,7 @@ msgstr "Aktivera högtalardata"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Aktivera statistikrapportering"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2259,6 +2259,9 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Aktiverar samlandet och skickandet av användningsstatistik till Dolphins "
+"utvecklingsteam. Datan används för att förbättra emulatorn och hjälpa oss "
+"förstå hur användare använder systemet. Ingen privat data samlas någonsin in."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3055,7 +3058,7 @@ msgstr "Allmänna inställningar"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Generera en ny statistikidentitet"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3251,7 +3254,7 @@ msgstr "Ikon"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "Identitetsgenerering"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3267,6 +3270,19 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"Om du godkänner det kan Dolphin skicka data om prestanda, användning av "
+"funktioner, konfiguration, och även vilken hårdvara och vilket "
+"operativsystem som används.\n"
+"\n"
+"Ingen privat data samlas någonsin in. Datan hjälper oss att förstå hur folk "
+"och emulerade spel använder Dolphin, så att vi kan prioritera vårt arbete "
+"bättre. Den hjälper oss också att upptäcka sällsynta konfigurationer som "
+"leder till buggar och prestanda- och stabilitetsproblem.\n"
+"Du kan dra tillbaka detta godkännande när som helst genom Dolphins "
+"inställningar.\n"
+"\n"
+"Godkänner du att Dolphin rapporterar den här informationen till Dolphins "
+"utvecklare?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4164,7 +4180,7 @@ msgstr "Ny sökning"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "En ny identitet har genererats."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6214,11 +6230,11 @@ msgstr "Stående Wiimote"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Statistikrapporteringsinställningar"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Statistikrapportering"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6226,6 +6242,9 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"Statistikrapportering använder ett unikt slumpmässigt nummer per dator för "
+"att kunna skilja användare åt. Den här knappen genererar ett nytt "
+"slumpmässigt nummer för den här datorn som inte är associerat med det förra."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
@@ -6686,14 +6705,3 @@ msgstr "wxExecute returnerade -1 i applikationkörningen!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| ELLER"
-
-#~ msgid "Apply"
-#~ msgstr "Verkställ"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr "GetARCode: Index är större än AR-kodlistans storlek %zu"
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "SetARCode_IsActive: Indexet är större än storleken på listan över AR-"
-#~ "koder %zu"

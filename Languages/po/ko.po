@@ -12,8 +12,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 03:51+0000\n"
+"Last-Translator: its take <bexco2010@gmail.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -2131,7 +2131,7 @@ msgstr "스피커 데이터 활성화"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "사용 통계 "
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -6636,12 +6636,3 @@ msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Apply"
-#~ msgstr "적용"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr "GetARCode: 인덱스가 ar 코드 리스트 크기 %zu 보다 더 큽니다 ."
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr "SetARCode_IsActive: 목록이 ar 코드 목록 크기 %zu 보다 더 큽니다"
