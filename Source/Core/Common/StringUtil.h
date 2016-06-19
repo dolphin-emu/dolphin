@@ -97,6 +97,9 @@ bool TryParseVector(const std::string& str, std::vector<N>* output, const char d
 	return true;
 }
 
+// Generates an hexdump-like representation of a binary data blob.
+std::string HexDump(const u8* data, size_t size);
+
 // TODO: kill this
 bool AsciiToHex(const std::string& _szValue, u32& result);
 

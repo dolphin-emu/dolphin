@@ -15,6 +15,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Logging/LogManager.h"
 
+#include "Core/Analytics.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -362,6 +363,8 @@ int main(int argc, char* argv[])
 	UICommon::Init();
 
 	platform->Init();
+
+	DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
 	if (!BootManager::BootCore(argv[optind]))
 	{

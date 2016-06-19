@@ -36,3 +36,4 @@ const std::string scm_rev_git_str = SCM_REV_STR;
 
 const std::string scm_desc_str = SCM_DESC_STR;
 const std::string scm_branch_str = SCM_BRANCH_STR;
+const std::string scm_distributor_str = SCM_DISTRIBUTOR_STR;

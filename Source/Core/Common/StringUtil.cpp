@@ -36,6 +36,43 @@ static locale_t GetCLocale()
 }
 #endif
 
+std::string HexDump(const u8* data, size_t size)
+{
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+	const size_t BYTES_PER_LINE = 16;
+#else
+	constexpr size_t BYTES_PER_LINE = 16;
+#endif
+
+	std::string out;
+	for (size_t row_start = 0; row_start < size; row_start += BYTES_PER_LINE)
+	{
+		out += StringFromFormat("%06zx: ", row_start);
+		for (size_t i = 0; i < BYTES_PER_LINE; ++i)
+		{
+			if (row_start + i < size)
+			{
+				out += StringFromFormat("%02hhx ", data[row_start + i]);
+			}
+			else
+			{
+				out += "   ";
+			}
+		}
+		out += " ";
+		for (size_t i = 0; i < BYTES_PER_LINE; ++i)
+		{
+			if (row_start + i < size)
+			{
+				char c = static_cast<char>(data[row_start + i]);
+				out += StringFromFormat("%c", isprint(c) ? c : '.');
+			}
+		}
+		out += "\n";
+	}
+	return out;
+}
+
 // faster than sscanf
 bool AsciiToHex(const std::string& _szValue, u32& result)
 {

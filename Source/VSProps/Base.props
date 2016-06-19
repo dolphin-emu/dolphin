@@ -36,6 +36,7 @@
       <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)LibOVR\Include;$(ExternalsDir)LibOVR\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -63,6 +64,7 @@
       <PreprocessorDefinitions>USE_UPNP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>PSAPI_VERSION=1;_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       Make sure we include a clean version of windows.h.

@@ -146,6 +146,11 @@ struct SConfig : NonCopyable
 
 	int iPosX, iPosY, iWidth, iHeight;
 
+	// Analytics settings.
+	std::string m_analytics_id;
+	bool m_analytics_enabled;
+	bool m_analytics_permission_asked;
+
 	// Fifo Player related settings
 	bool bLoopFifoReplay;
 
@@ -321,6 +326,7 @@ private:
 	void SaveInputSettings(IniFile& ini);
 	void SaveMovieSettings(IniFile& ini);
 	void SaveFifoPlayerSettings(IniFile& ini);
+	void SaveAnalyticsSettings(IniFile& ini);
 	void SaveVRSettings(IniFile& ini);
 
 	void LoadGeneralSettings(IniFile& ini);
@@ -333,6 +339,7 @@ private:
 	void LoadInputSettings(IniFile& ini);
 	void LoadMovieSettings(IniFile& ini);
 	void LoadFifoPlayerSettings(IniFile& ini);
+	void LoadAnalyticsSettings(IniFile& ini);
 	void LoadVRSettings(IniFile& ini);
 
 	static SConfig* m_Instance;

@@ -4,6 +4,8 @@
 #pragma once
 #include "Common/CommonTypes.h"
 
+#undef OS  // CURL defines that, nobody uses it...
+
 namespace DriverDetails
 {
 	// Enum of supported operating systems

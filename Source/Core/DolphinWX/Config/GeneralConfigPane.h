@@ -7,6 +7,7 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
+class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxRadioBox;
@@ -35,6 +36,8 @@ private:
 	void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
 	void OnThrottlerChoiceChanged(wxCommandEvent&);
 	void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
+	void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
+	void OnAnalyticsNewIdButtonClick(wxCommandEvent&);
 
 	wxArrayString m_throttler_array_string;
 	wxArrayString m_gpu_determinism_string;
@@ -44,6 +47,9 @@ private:
 	wxCheckBox* m_idle_skip_checkbox;
 	wxCheckBox* m_cheats_checkbox;
 	wxCheckBox* m_force_ntscj_checkbox;
+
+	wxCheckBox* m_analytics_checkbox;
+	wxButton* m_analytics_new_id;
 
 	wxChoice* m_throttler_choice;
 	wxChoice* m_gpu_determinism;
