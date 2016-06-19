@@ -10,7 +10,7 @@
 # Erik Fargas <efargaspro@gmail.com>, 2015
 # Jambi <jlarrondobunop@yahoo.es>, 2015-2016
 # Katabi Oka, 2015
-# Puniasterus <puniasterus@gmail.com>, 2013-2015
+# Puniasterus <puniasterus@gmail.com>, 2013-2016
 # Puniasterus <puniasterus@gmail.com>, 2013
 # Puniasterus <puniasterus@gmail.com>, 2013
 # Sithdown <afdezmnez@gmail.com>, 2013
@@ -20,8 +20,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 09:54+0000\n"
+"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -2176,7 +2176,7 @@ msgstr "Activar envío de datos al altavoz"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Habilitar el uso de informes de estadisticas"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -5203,7 +5203,7 @@ msgstr "Definir como ISO por &defecto"
 #: Source/Core/DolphinWX/MemcardManager.cpp:823
 #, c-format
 msgid "Set as default Memcard %c"
-msgstr "Utilizar como tarjeta %c predeterminada"
+msgstr "Establecer tarjeta %c como predeterminada"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 msgid "Sets the GameCube system language."
@@ -6769,15 +6769,3 @@ msgstr "¡wxExecute dio un -1 al iniciar la aplicación!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| OR"
-
-#~ msgid "Apply"
-#~ msgstr "Aplicar"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "GetARCode: El índice es mayor que el tamaño de la lista de códigos AR %zu"
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "SetARCode_IsActive: El índice es mayor que el tamaño de la lista de "
-#~ "códigos AR %zu"

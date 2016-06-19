@@ -5,6 +5,7 @@
 # Translators:
 # khiav kn <khiav1118@yahoo.com.tw>, 2011
 # khiav kn <khiav1118@yahoo.com.tw>, 2011
+# Narusawa Yui <yuifan@gmail.com>, 2016
 # Ryan Zhou <sentret_c@sina.cn>, 2013
 # Victor Lo <victor1justin@gmail.com>, 2016
 # zhenchao zhang <z734789215@gmail.com>, 2016
@@ -13,8 +14,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 08:41+0000\n"
+"Last-Translator: Narusawa Yui <yuifan@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/zh_TW/)\n"
 "Language: zh_TW\n"
@@ -33,7 +34,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:538
 msgid " (internal IP)"
-msgstr ""
+msgstr "(內部IP)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:210
 msgid " (too many to display)"
@@ -209,12 +210,12 @@ msgstr "剩餘 %u 個區塊；剩餘 %u 個目錄項目"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
 #, c-format
 msgid "%u frames"
-msgstr ""
+msgstr "%u 畫格"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
 #, c-format
 msgid "%u objects"
-msgstr ""
+msgstr "%u 物件"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
 #, c-format
@@ -252,11 +253,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "&Controller Settings"
-msgstr ""
+msgstr "控制器設定(&C)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:943
 msgid "&Delete File..."
-msgstr ""
+msgstr "刪除檔案(&D)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:965
 msgid "&Delete selected ISOs..."
@@ -312,7 +313,7 @@ msgstr "記憶卡(&M)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:213
 msgid "&Movie"
-msgstr ""
+msgstr "影片(&M)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:390
 msgid "&Open..."
@@ -336,7 +337,7 @@ msgstr "屬性(&P)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:425
 msgid "&Read-Only Mode"
-msgstr ""
+msgstr "唯讀模式(&R)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:396
 msgid "&Refresh List"
@@ -376,7 +377,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:373
 msgid "&Website"
-msgstr ""
+msgstr "網站(&W)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:925
 msgid "&Wiki"
@@ -674,7 +675,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1278
 msgid "All GameCube GCM files (gcm)"
-msgstr ""
+msgstr "所有 GameCube GCM 檔案 (gcm)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1584
 #: Source/Core/DolphinWX/FrameTools.cpp:1598
@@ -856,7 +857,7 @@ msgstr "向後"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:226
 msgid "Balance Board"
-msgstr ""
+msgstr "平衡板"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:644
 #: Source/Core/DolphinWX/FrameTools.cpp:345
@@ -890,7 +891,7 @@ msgstr "Bass"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:308
 msgid "Battery"
-msgstr ""
+msgstr "電池"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:152
 msgid "Block Allocation Table checksum failed"
@@ -914,7 +915,7 @@ msgstr "藍 右"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:592
 msgid "Borderless Fullscreen"
-msgstr ""
+msgstr "無框全螢幕"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:281
 msgid "Bottom"
@@ -982,7 +983,7 @@ msgstr "CPU 模擬引擎"
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:52
 msgid "CPU Options"
-msgstr ""
+msgstr "CPU 選項"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:131
 msgid ""
@@ -1037,7 +1038,7 @@ msgstr "更改"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:952
 msgid "Change &Disc"
-msgstr ""
+msgstr "更換光碟(&D)"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:393
 msgid "Change &Disc..."
@@ -1054,7 +1055,7 @@ msgstr "更換遊戲"
 #: Source/Core/Core/Movie.cpp:1214
 #, c-format
 msgid "Change the disc to %s"
-msgstr ""
+msgstr "更換光碟為 %s"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
@@ -2184,7 +2185,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:234
 msgid "Export All Wii Saves"
-msgstr ""
+msgstr "匯出全部 Wii 存檔"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:724
 msgid "Export File"
@@ -2213,7 +2214,7 @@ msgstr "匯出所有存檔"
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:61
 #: Source/Core/DolphinWX/MemcardManager.cpp:464
 msgid "Export failed"
-msgstr ""
+msgstr "匯出失敗"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:570
 msgid "Export save as..."
@@ -2425,15 +2426,15 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
-msgstr ""
+msgstr "檔案資訊"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:349
 msgid "File Name"
-msgstr ""
+msgstr "檔案名稱"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:355
 msgid "File Size"
-msgstr ""
+msgstr "檔案大小"
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:296
 msgid "File contained no codes."
@@ -2457,6 +2458,8 @@ msgid ""
 "File has the extension \"%s\".\n"
 "Valid extensions are (.raw/.gcp)"
 msgstr ""
+"檔案已有副檔名 \"%s\"\n"
+"正確的副檔名為 (.raw/.gcp)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:430
 msgid "File is not recognized as a memcard"
@@ -2470,11 +2473,11 @@ msgstr "檔案未壓縮"
 #: Source/Core/DolphinWX/MemcardManager.cpp:470
 #: Source/Core/DolphinWX/MemcardManager.cpp:518
 msgid "File write failed"
-msgstr ""
+msgstr "檔案寫入失敗"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:195
 msgid "Files opened, ready to compress."
-msgstr ""
+msgstr "檔案已開啟, 準備壓縮。"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:595
 msgid "Filesystem"
@@ -2689,7 +2692,7 @@ msgstr "全螢幕"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
 msgid "Fullscreen Resolution:"
-msgstr ""
+msgstr "全螢幕解析度:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 msgid "GBA"
@@ -2705,7 +2708,7 @@ msgstr "GCI 檔案(*.gci)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:32
 msgid "GCI Folder"
-msgstr ""
+msgstr "GCI 資料夾"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:63
 #, c-format
@@ -2739,7 +2742,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "Game ID"
-msgstr ""
+msgstr "遊戲 ID"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:463
 msgid "Game ID:"
@@ -2755,7 +2758,7 @@ msgstr "遊戲未執行！"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:301
 msgid "Game not found!"
-msgstr ""
+msgstr "找不到遊戲！"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:437
 #, c-format
@@ -2773,7 +2776,7 @@ msgstr "遊戲設定"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:73
 msgid "GameCube"
-msgstr ""
+msgstr "GameCube"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:46
 msgid "GameCube Adapter for Wii U"
@@ -6169,6 +6172,3 @@ msgstr "wxExecute 返回 -1 在應用程式執行時！"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| 或"
-
-#~ msgid "Apply"
-#~ msgstr "套用"

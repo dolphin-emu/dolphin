@@ -21,6 +21,7 @@
 # Neui, 2016
 # MexicanWithGun <nibirush@inbox.com>, 2015
 # no_cluez <neobrainx@gmail.com>, 2013
+# Karim Yaakoubi <kmy@gmx.net>, 2016
 # Shinrai, 2013
 # Shinrai, 2013
 # Tillmann Karras <tilkax@gmail.com>, 2014
@@ -30,8 +31,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-05-30 20:47+0000\n"
-"Last-Translator: dolphinbot <delroth@dolphin-emu.org>\n"
+"PO-Revision-Date: 2016-06-19 10:45+0000\n"
+"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language-Team: German (http://www.transifex.com/delroth/dolphin-emu/language/"
 "de/)\n"
 "Language: de\n"
@@ -164,7 +165,8 @@ msgid ""
 "memory card"
 msgstr ""
 "%s\n"
-"wurde nicht geladen, da der virtuellen Memory Card freie Blöcke fehlen."
+"wurde nicht geladen, da nicht genug freier Speicherplatz auf der virtuellen "
+"Speicherkarte vorhanden ist."
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:115
 #, c-format
@@ -2184,7 +2186,7 @@ msgstr "Lautsprecherdaten aktivieren"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Berichterstattung für Nutzungsdaten aktivieren"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2297,6 +2299,10 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Aktiviert die Erfassung und Weitergabe von Nutzungsstatistiken an das "
+"Dolphin-Entwicklerteam. Diese Daten werden zur Verbesserung des Emulators "
+"genutzt und helfen uns zu verstehen, wie unsere Nutzer mit dem System "
+"interagieren. Private Daten werden niemals erfasst."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3096,7 +3102,7 @@ msgstr "Allgemeine Einstellungen"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Neue Statistikidentität erzeugen"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3296,7 +3302,7 @@ msgstr "Symbol"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "Indentitätserzeugung"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3312,6 +3318,19 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"Falls authorisiert, kann Dolphin Daten zu seiner Leistung, "
+"Funktionsverwendung und -einstellungen, sowie Systemhardware und -"
+"betriebssystem sammeln.\n"
+"\n"
+"Private Daten werden niemals erfasst. Diese Daten helfen uns zu verstehen, "
+"wie Nutzer und emulierte Spiele Dolphin nutzen und können so unsere "
+"Bemühungen priorisieren. Zusätzlich hilft es bei der Indentifizierung "
+"seltener Konfigurationen, die Fehler und Probleme im Bereich Leistung und "
+"Stabilität verursachen.\n"
+"Diese Authorisierung kann jederzeit in den Dolphin-Einstellungen widerrufen "
+"werden\n"
+"\n"
+"Dolphin autorisieren, diese Informationen an das Entwicklerteam zu senden?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4211,7 +4230,7 @@ msgstr "Neue Suche"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "Neue identität erzeugt."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -4250,6 +4269,8 @@ msgstr "Keine Aufnahmedatei"
 #: Source/Core/Core/State.cpp:744
 msgid "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 msgstr ""
+"Keine undo.dtm gefunden, undo load state ab wird abgebrochen, um Film-"
+"Desynchronisationen zu vermeiden"
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:25
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:44
@@ -4698,6 +4719,12 @@ msgid ""
 "\n"
 "If unsure, select None."
 msgstr ""
+"Reduziert den durch die Rasterisierung von 3D-Grafiken enstandenen "
+"Treppeneffekt. Diese Funktion glättet eckige Kanten an Objekten.\n"
+"Erhöht die GPU-Last und kann Grafikprobleme verursachen. SSAA benötigt "
+"deutlich mehr Leistung als MSAA, bietet aber hochqualitatives Geometrie Anti-"
+"Aliasing und wendet Anti-Aliasing auch bei Belichtung, Shader-Effekten und "
+"Texturen an."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:256
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1005
@@ -4754,7 +4781,7 @@ msgstr "Zurücksetzen"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:68
 msgid "Reset Traversal Settings"
-msgstr ""
+msgstr "Traversal-Einstellungen zurücksetzen."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
 msgid "Results"
@@ -5115,6 +5142,15 @@ msgid ""
 "\n"
 "If unsure, select Off."
 msgstr ""
+"Bestimmt den stereoskopischen 3D-Modus. Stereoskopie ermöglicht eine bessere "
+"Tiefenwahrnehmung, falls entsprechende Hardware vorhanden ist.\n"
+"Seite-an-Seite und Oben-und-unten werden von den meisten 3D-Fernsehern "
+"verwendet.\n"
+"Anaglyph wird von Rot-Cyan gefärbten Brillen verwendet.\n"
+"Vermindert stark die Emulationsgeschwindigkeit und kann Probleme "
+"verursachen.\n"
+"\n"
+"Bei Unsicherheit, Aus verwenden."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:94
 msgid ""
@@ -5173,7 +5209,7 @@ msgstr ""
 
 #: Source/Core/Core/NetPlayClient.cpp:838
 msgid "Server rejected traversal attempt"
-msgstr ""
+msgstr "Server hat Traversal-Versuch abgelehnt."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:936
 msgid "Set as &default ISO"
@@ -5478,7 +5514,7 @@ msgstr "Snapshot"
 
 #: Source/Core/Common/TraversalClient.cpp:230
 msgid "Socket error sending to traversal server"
-msgstr ""
+msgstr "Socket-Fehler beim Senden an Traversal-Server"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.h:92
 msgid ""
@@ -5518,7 +5554,7 @@ msgstr "Spanisch"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:307
 msgid "Speaker Pan"
-msgstr ""
+msgstr "Lautsprecherregler"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:295
 msgid "Speaker Volume:"
@@ -5663,7 +5699,7 @@ msgstr "Die Datei wurde erfolgreich nach %s exportiert"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:123
 msgid "Successfully imported save files"
-msgstr "Der Spielstand wurde erfolgreich importiert"
+msgstr "Spielstände wurden erfolgreich importiert"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:43
 msgid "Support"
@@ -5799,6 +5835,9 @@ msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
 "The filename of the disc image must not be longer than 40 characters."
 msgstr ""
+"Die Änderung des Datenträgers zu \"%s\" könnte nicht in der .dtm-Datei "
+"gespeichert werden.\n"
+"Der Dateiname des Datenträgerabbildes darf nicht länger als 40 Zeichen sein."
 
 #: Source/Core/Core/HW/DVDThread.cpp:145
 #, c-format
@@ -5999,6 +6038,7 @@ msgid ""
 "This value is added to the convergence value set in the graphics "
 "configuration."
 msgstr ""
+"Dieser Wert wird zum Konvergenzwert aus den Grafikeinstellungen hinzugefügt."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:353
 msgid ""
@@ -6022,7 +6062,7 @@ msgstr "Neigung"
 
 #: Source/Core/Common/TraversalClient.cpp:233
 msgid "Timeout connecting to traversal server"
-msgstr ""
+msgstr "Zeitüberschreitung bei der Verbindung zum Traversal-Server."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:645
 #: Source/Core/DolphinWX/GameListCtrl.cpp:264
@@ -6097,19 +6137,19 @@ msgstr "Chinesisch (Traditionell)"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "Traversal-Server"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "Traversal-Server:"
 
 #: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
-msgstr ""
+msgstr "Zeitüberschreitung bei der Verbindung vom Traversal-Server zum Host."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:403
 msgid "Traversal: "
-msgstr ""
+msgstr "Traversal:"
 
 #: Source/Core/DiscIO/VolumeDirectory.cpp:79 Source/Core/DiscIO/VolumeGC.cpp:36
 #: Source/Core/DiscIO/VolumeWad.cpp:49
@@ -6262,11 +6302,11 @@ msgstr "Aufrechte Wiimote"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Einstellungen zur Berichterstattung von Nutzungsdaten"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Berichterstattung von Nutzungsdaten"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6274,6 +6314,11 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"Die Berichtertattung von Nutzungsdaten nutzt einen einzigartigen, zufällig "
+"erzeugten, gerätegebundenen Schlüssel, um Nutzer voneinander zu "
+"unterscheiden. Diese Schaltfläche erzeugt einen neuen, zufälligen Schlüssel "
+"für dieses Gerät, welcher nicht mit dem vorherigen Schlüssel in Verbindung "
+"steht."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
@@ -6425,6 +6470,8 @@ msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
 "the loaded file header (%u)"
 msgstr ""
+"Warnung: Anzahl der von der BAT (%u) angegebenen Blöcke stimmt nicht mit der "
+"aus den geladenen Dateikopfdaten (%u) überein"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:597
 #, c-format
@@ -6735,13 +6782,3 @@ msgstr "wxExecute gab beim Anwendungsstart -1 zurück!"
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:584
 msgid "| OR"
 msgstr "| ODER"
-
-#~ msgid "Apply"
-#~ msgstr "Übernehmen"
-
-#~ msgid "GetARCode: Index is greater than ar code list size %zu"
-#~ msgstr "GetARCode: Index ist größer als die Länge der AR-Code-Liste %zu"
-
-#~ msgid "SetARCode_IsActive: Index is greater than ar code list size %zu"
-#~ msgstr ""
-#~ "SetARCode_IsActive: Index ist größer als die Länge der AR-Code-Liste %zu"
