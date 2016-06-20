@@ -156,6 +156,9 @@ struct VideoConfig final
 		std::vector<std::string> PPShaders; // post-processing shaders
 		std::vector<std::string> AnaglyphShaders; // anaglyph shaders
 
+		// TODO: merge AdapterName and Adapters array
+		std::string AdapterName; // for OpenGL
+
 		bool bSupportsExclusiveFullscreen;
 		bool bSupportsDualSourceBlend;
 		bool bSupportsPrimitiveRestart;
