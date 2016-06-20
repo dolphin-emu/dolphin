@@ -15,8 +15,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 02:25+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2016-06-20 01:47+0000\n"
+"Last-Translator: DanbSky <danbsky@live.jp>\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -1134,7 +1134,7 @@ msgstr "ゲームを変更"
 #: Source/Core/Core/Movie.cpp:1214
 #, c-format
 msgid "Change the disc to %s"
-msgstr ""
+msgstr "次のディスクに変更：%s"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid ""
@@ -2140,7 +2140,7 @@ msgstr "Wiiリモコンのスピーカーを有効化"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "統計レポートの収集に協力する"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2251,6 +2251,9 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"統計データの収集と共有を許可します。データの使用目的はエミュレータの改善と"
+"ユーザー⇔システム間でどのようなやりとりをしているかの理解のためで、個人情報は"
+"一切収集されません"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3036,7 +3039,7 @@ msgstr "一般"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "新しい統計IDを作成する"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3237,7 +3240,7 @@ msgstr "アイコン"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "IDの作成"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3253,6 +3256,17 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"統計レポートの収集を許可した場合、Dolphinでどのくらいパフォーマンスが出ている"
+"か、どんな機能を使っているかといったことや、あなたがどのようなOSやハードウェ"
+"アを使っているかといったデータを収集し、Dolphinの開発チームに送信するようにし"
+"ます。\n"
+"\n"
+"個人に関する情報が収集されることはありません。収集したデータは人々がどのよう"
+"にDolphinを使っているかを調べ、開発の優先順位を決めたり、稀な環境で発生するバ"
+"グの特定に役立てたりします。\n"
+"また、この許可はいつでもDolphinの設定から取り消すことが可能です。\n"
+"\n"
+"ご協力いただけますか？"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4151,7 +4165,7 @@ msgstr "新規検索"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "新しいIDが作成されました。"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6189,11 +6203,11 @@ msgstr "直立状態(Upright)で使用"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "統計レポートの設定"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "統計レポートの収集について"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6201,6 +6215,9 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"統計レポートの収集には、他のPCと区別するため、PCごとに固有のIDが割り当てられ"
+"ます。このボタンを押すことで、このPC用の新しいIDを発行し、以前の情報との関連"
+"をなくすことができます"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
