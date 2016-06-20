@@ -219,6 +219,10 @@ void DolphinAnalytics::MakePerGameBuilder()
 	{
 		builder.AddData("gpu-adapter", g_Config.backend_info.Adapters[g_Config.iAdapter]);
 	}
+	else if (!g_Config.backend_info.AdapterName.empty())
+	{
+		builder.AddData("gpu-adapter", g_Config.backend_info.AdapterName);
+	}
 	builder.AddData("gpu-has-exclusive-fullscreen", g_Config.backend_info.bSupportsExclusiveFullscreen);
 	builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
 	builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
