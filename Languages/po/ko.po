@@ -12,8 +12,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 03:51+0000\n"
-"Last-Translator: its take <bexco2010@gmail.com>\n"
+"PO-Revision-Date: 2016-06-20 01:28+0000\n"
+"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -2242,6 +2242,9 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"돌핀 개발팀과 사용 통계 데이터의 수집과 나누기를 켭니다. 이 데이터는 에뮬레이"
+"터를 향상시키기 위해 사용되고 어떻게 유저들이 시스템과 상호작용하는지를 우리"
+"가 이해하도록 도와줍니다. 개인 데이터는 절대로 수집되어지지 않습니다."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3032,7 +3035,7 @@ msgstr "일반 설정"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "새로운 통계 식별자를 생성합니다"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3228,7 +3231,7 @@ msgstr "아이콘"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "식별자 생성"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3244,6 +3247,16 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"허가되면, 돌핀은 그 성능, 특성 사용, 환경설정 데이터, 또 시스템의 하드웨어 "
+"와 운영체제에 대한 데이터를 수집할 수 있습니다.\n"
+"\n"
+"사적인 데이터는 절대 수집되어지지 않습니다. 이 데이터는 우리가 어떻게 사람들"
+"과 에뮬레이트된 게임들이 돌핀을 사용하는지 이해하고 우리의 노력 우선순위를 매"
+"기게 도와줍니다. 이것은 또한 버그, 성능과 안정성 이슈들을 유발하는 드문 환경"
+"설정을 우리가 식별하게 도와줍니다.\n"
+"이 허가는 돌핀 설정에서 어느 때라도 철회될 수 있습니다.\n"
+"\n"
+"돌핀이 이 정보를 돌핀 개발자들에게 리포트하도록 허락하시겠습니까?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4136,7 +4149,7 @@ msgstr "새로운 스캔"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "새로운 식별자가 생성되었습니다."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6169,11 +6182,11 @@ msgstr "업라이트 위모트"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "사용 통계 리포팅 설정"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "사용 통계 리포팅"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6181,6 +6194,9 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"사용 통계 리포팅은 다른 유저들로부터 유저들을 구분하기 위해 고유 랜덤 기계별 "
+"식별자를 사용합니다. 이 버튼은 이전 것과 분리된 이 기계에 대한 새로운 랜덤 식"
+"별자를 생성합니다."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
