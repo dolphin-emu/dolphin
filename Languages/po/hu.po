@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 02:25+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2016-06-20 19:22+0000\n"
+"Last-Translator: Evin <tomevin1@gmail.com>\n"
 "Language-Team: Hungarian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/hu/)\n"
 "Language: hu\n"
@@ -2141,7 +2141,7 @@ msgstr "Hangszóró adatok bekapcsolása"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "Használati statisztika jelentése"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2253,6 +2253,10 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"Használati statisztikát gyűjtése és megosztása a Dolphin fejlesztőcsapattal. "
+"Az adatok az emulátor fejlesztéséhez és a felhasználók rendszer-"
+"szemléletének megértéséhez lesznek felhasználva. Személyes adat nem kerül "
+"begyűjtésre!"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3043,7 +3047,7 @@ msgstr "Általános beállítások"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "Új statisztikai azonosító generálása"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3241,7 +3245,7 @@ msgstr "Ikon"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "Azonosító generálása"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3257,6 +3261,19 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"A Dolphin adatokat gyűjthet a teljesítményről, funkcióhasználatról, "
+"beállításokról, valamint a rendszered hardveréről és operációs "
+"rendszeréről.\n"
+"\n"
+"Személyes adat nem kerül begyűjtésre. Az adatok segítenek megérteni az "
+"emberek hogy használják az emulátort, és az emulált játékok a Dolphint és "
+"rangsorolni az erőfeszítéseinket. Valamint segít azonosítani a ritka "
+"beállításokat, melyek hibákat, teljesítmény- és stabilitási problémákat "
+"okoznak.\n"
+"Az engedély bármikor visszavonható a Dolphin beállításaiban.\n"
+"\n"
+"Felhatalmazod a Dolphint, hogy információt osszon meg a Dolphin "
+"fejlesztőivel?"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4152,7 +4169,7 @@ msgstr "Új keresés"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "Új azonosító generálva."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -6202,11 +6219,11 @@ msgstr "Függőleges Wiimote"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "Használati statisztika-jelentés beállítások"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "Használati statisztika jelentése"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6214,6 +6231,9 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"A használati statisztika egyedi, gépenként véletlenszerű azonosítót használ "
+"a felhasználók megkülönböztetéséhez. A gomb egy új véletlen azonosítót "
+"generál ehhez a géphez, mely eltér az előzőtől."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
