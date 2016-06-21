@@ -222,6 +222,11 @@ struct VideoConfig final
 	u32 iExtraTimewarpedFrames;
 	u32 iExtraVideoLoops;
 	u32 iExtraVideoLoopsDivider;
+	
+	std::string sLeftTexture;
+	std::string sRightTexture;
+	std::string sGCLeftTexture;
+	std::string sGCRightTexture;
 
 	// VR per game
 	float fUnitsPerMetre;

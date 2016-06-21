@@ -378,10 +378,10 @@ bool CalculateViewMatrix(int kind, Matrix44& look_matrix)
 
 void VRCalculateIRPointer()
 {
-	float wmpos[3];
+	float wmpos[3], thumb[3];
 	Matrix33 wmrot;
 	ControllerStyle cs = CS_HYDRA_RIGHT;
-	bool has_right_controller = VR_GetRightHydraPos(wmpos, &wmrot);
+	bool has_right_controller = VR_GetRightControllerPos(wmpos, thumb, &wmrot);
 	if (has_right_controller)
 		cs = VR_GetHydraStyle(1);
 	if (cs != CS_WIIMOTE_IR)

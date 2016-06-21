@@ -225,8 +225,8 @@ void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext);
 bool VR_PairViveControllers();
 
 void VR_SetGame(bool is_wii, bool is_nand, std::string id);
-bool VR_GetLeftHydraPos(float *pos, Matrix33 *m);
-bool VR_GetRightHydraPos(float *pos, Matrix33 *m);
+bool VR_GetLeftControllerPos(float *pos, float *thumbpos, Matrix33 *m);
+bool VR_GetRightControllerPos(float *pos, float *thumbpos, Matrix33 *m);
 ControllerStyle VR_GetHydraStyle(int hand);
 
 void OpcodeReplayBuffer();

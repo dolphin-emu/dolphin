@@ -31,6 +31,7 @@
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -47,6 +48,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
+#include "VideoCommon/VideoConfig.h"
 
 using namespace ciface::ExpressionParser;
 
@@ -205,6 +207,25 @@ void InputConfigDialog::UpdateProfileComboBox()
 	}
 }
 
+void InputConfigDialog::UpdateTextureComboBoxes()
+{
+	std::string pname(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "Textures");
+	std::vector<std::string> sv = DoFileSearch({ ".png" }, { pname });
+
+	wxArrayString strs;
+	for (const std::string& filename : sv)
+	{
+		std::string base;
+		SplitPath(filename, nullptr, &base, nullptr);
+		strs.push_back(StrToWxStr(base));
+	}
+
+	m_left_texture_box->Clear();
+	m_left_texture_box->Append(strs);
+	m_right_texture_box->Clear();
+	m_right_texture_box->Append(strs);
+}
+
 void InputConfigDialog::UpdateControlReferences()
 {
 	for (GamepadPage* page : m_padpages)
@@ -216,6 +237,19 @@ void InputConfigDialog::UpdateControlReferences()
 void InputConfigDialog::ClickSave(wxCommandEvent& event)
 {
 	m_config.SaveConfig();
+	g_Config.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	if (m_config.GetProfileName() == "GCPad")
+	{
+		g_Config.sGCLeftTexture = m_left_texture_box->GetValue();
+		g_Config.sGCRightTexture = m_right_texture_box->GetValue();
+		g_Config.SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	}
+	else if (m_config.GetProfileName() == "Wiimote")
+	{
+		g_Config.sLeftTexture = m_left_texture_box->GetValue();
+		g_Config.sRightTexture = m_right_texture_box->GetValue();
+		g_Config.SaveVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	}
 	event.Skip();
 }
 
@@ -739,8 +773,13 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
 
 	IniFile inifile;
 	inifile.Load(fname);
-
-	controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
+	IniFile::Section* profile = inifile.GetOrCreateSection("Profile");
+	std::string left, right;
+	profile->Get("LeftTexture", &left);
+	profile->Get("RightTexture", &right);
+	m_config_dialog->m_left_texture_box->SetValue(left);
+	m_config_dialog->m_right_texture_box->SetValue(right);
+	controller->LoadConfig(profile);
 	controller->UpdateReferences(g_controller_interface);
 
 	UpdateGUI();
@@ -755,7 +794,12 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 	if (!fname.empty())
 	{
 		IniFile inifile;
-		controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
+		IniFile::Section* profile = inifile.GetOrCreateSection("Profile");
+		controller->SaveConfig(profile);
+		std::string left = m_config_dialog->m_left_texture_box->GetValue();
+		std::string right = m_config_dialog->m_right_texture_box->GetValue();
+		profile->Set("LeftTexture", left);
+		profile->Set("RightTexture", right);
 		inifile.Save(fname);
 
 		m_config_dialog->UpdateProfileComboBox();
@@ -1149,7 +1193,37 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
 
 	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
 	szr->Add(m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5);
-	szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND|wxALL, 5);
+
+	// Add texture drop-down boxes
+	wxSizer* b_szr = CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT);
+	g_Config.LoadVR(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+	wxString left = "", right = "";
+	if (m_config.GetProfileName() == "GCPad")
+	{
+		left = g_Config.sGCLeftTexture;
+		right = g_Config.sGCRightTexture;
+	}
+	else if (m_config.GetProfileName() == "Wiimote")
+	{
+		left = g_Config.sLeftTexture;
+		right = g_Config.sRightTexture;
+	}
+
+	wxStaticText* left_label = new wxStaticText(this, wxID_ANY, "Left texture:");
+	m_left_texture_box = new wxComboBox(this, wxID_ANY, left, wxDefaultPosition, wxSize(64, -1));
+	m_left_texture_box->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+	wxStaticText* right_label = new wxStaticText(this, wxID_ANY, "Right texture:");
+	m_right_texture_box = new wxComboBox(this, wxID_ANY, right, wxDefaultPosition, wxSize(64, -1));
+	m_right_texture_box->ToggleWindowStyle(wxTE_PROCESS_ENTER);
+	b_szr->Insert(0, left_label, 0, wxEXPAND | wxALL, 5);
+	b_szr->Insert(1, m_left_texture_box, 10, wxEXPAND | wxALL, 5);
+	b_szr->Insert(2, right_label, 0, wxEXPAND | wxALL, 5);
+	b_szr->Insert(3, m_right_texture_box, 10, wxEXPAND | wxALL, 5);
+	szr->Add(b_szr, 0, wxEXPAND | wxALL, 5);
+
+	UpdateTextureComboBoxes();
+	m_left_texture_box->SetValue(left);
+	m_right_texture_box->SetValue(right);
 
 	SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
 	SetSizerAndFit(szr);

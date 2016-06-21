@@ -257,12 +257,13 @@ public:
 
 	void UpdateDeviceComboBox();
 	void UpdateProfileComboBox();
+	void UpdateTextureComboBoxes();
 
 	void UpdateControlReferences();
 	void UpdateBitmaps(wxTimerEvent&);
 
+	wxComboBox*               m_left_texture_box, *m_right_texture_box;
 private:
-
 	wxNotebook*               m_pad_notebook;
 	std::vector<GamepadPage*> m_padpages;
 	InputConfig&              m_config;

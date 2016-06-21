@@ -1610,7 +1610,7 @@ void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext)
 }
 
 
-bool VR_GetLeftHydraPos(float *pos, Matrix33 *m)
+bool VR_GetLeftControllerPos(float *pos, float *thumbpos, Matrix33 *m)
 {
 #if defined(HAVE_OPENVR)
 	if (g_has_steamvr)
@@ -1650,6 +1650,31 @@ bool VR_GetLeftHydraPos(float *pos, Matrix33 *m)
 		for (int r = 0; r < 3; r++)
 			for (int c = 0; c < 3; c++)
 				m->data[r * 3 + c] = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[r][c];
+		vr::VRControllerState_t cs;
+		if (m_pHMD->GetControllerState(left_hand, &cs))
+		{
+			thumbpos[0] = cs.rAxis[0].x;
+			thumbpos[1] = cs.rAxis[0].y;
+			if (cs.ulButtonPressed & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+				thumbpos[2] = 1;
+			else if (cs.ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+				thumbpos[2] = 0;
+			else
+				thumbpos[2] = -1;
+			if ((cs.ulButtonPressed | cs.ulButtonTouched) & ((u64)1 << vr::k_EButton_ApplicationMenu))
+			{
+				if (cs.ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+					thumbpos[1] = 1.18f;
+				else
+					thumbpos[1] = 1.5f;
+				thumbpos[2] = 1;
+			}
+		}
+		else
+		{
+			thumbpos[0] = thumbpos[1] = 0;
+			thumbpos[2] = -1;
+		}
 		return true;
 	}
 	else
@@ -1662,7 +1687,7 @@ bool VR_GetLeftHydraPos(float *pos, Matrix33 *m)
 	}
 }
 
-bool VR_GetRightHydraPos(float *pos, Matrix33 *m)
+bool VR_GetRightControllerPos(float *pos, float *thumbpos, Matrix33 *m)
 {
 #if defined(HAVE_OPENVR)
 	if (g_has_steamvr)
@@ -1702,6 +1727,31 @@ bool VR_GetRightHydraPos(float *pos, Matrix33 *m)
 		for (int r = 0; r < 3; r++)
 			for (int c = 0; c < 3; c++)
 				m->data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[r][c];
+		vr::VRControllerState_t cs;
+		if (m_pHMD->GetControllerState(right_hand, &cs))
+		{
+			thumbpos[0] = cs.rAxis[0].x;
+			thumbpos[1] = cs.rAxis[0].y;
+			if (cs.ulButtonPressed & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+				thumbpos[2] = 1;
+			else if (cs.ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+				thumbpos[2] = 0;
+			else
+				thumbpos[2] = -1;
+			if ((cs.ulButtonPressed | cs.ulButtonTouched) & ((u64)1 << vr::k_EButton_ApplicationMenu))
+			{
+				if (cs.ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad))
+					thumbpos[1] = 1.18f;
+				else
+					thumbpos[1] = 1.5f;
+				thumbpos[2] = 1;
+			}
+		}
+		else
+		{
+			thumbpos[0] = thumbpos[1] = 0;
+			thumbpos[2] = -1;
+		}
 		return true;
 	}
 	else

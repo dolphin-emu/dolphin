@@ -49,6 +49,7 @@ namespace DX11
 	private:
 		void DrawHydra(int hand, float *pos, Matrix33 &m, ControllerStyle cs);
 		void DrawLine(float *pos, Matrix33 &m, float r, float g, float b);
+		void DrawThumb(float *pos, float x, float y, Matrix33 &m);
 		void DrawBox(int kind, float *pos, Matrix33 &m, float r, float g, float b);
 
 		ID3D11Buffer* m_vertex_shader_params;

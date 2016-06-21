@@ -116,6 +116,11 @@ VideoConfig::VideoConfig()
 	iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
 	iExtraVideoLoopsDivider = DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER;
 
+	sLeftTexture = "";
+	sRightTexture = "";
+	sGCLeftTexture = "";
+	sGCRightTexture = "";
+
 	fUnitsPerMetre = DEFAULT_VR_UNITS_PER_METRE;
 	// in metres
 	fFreeLookSensitivity = DEFAULT_VR_FREE_LOOK_SENSITIVITY;
@@ -319,6 +324,10 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 	vr->Get("PullUp60fpsTimewarp", &bPullUp60fpsTimewarp, false);
 	vr->Get("PullUpAutoTimewarp", &bPullUpAutoTimewarp, false);
 	vr->Get("SynchronousTimewarp", &bSynchronousTimewarp, false);
+	vr->Get("LeftTexture", &sLeftTexture);
+	vr->Get("RightTexture", &sRightTexture);
+	vr->Get("GCLeftTexture", &sGCLeftTexture);
+	vr->Get("GCRightTexture", &sGCRightTexture);
 }
 
 
@@ -789,6 +798,10 @@ void VideoConfig::SaveVR(const std::string& ini_file)
 	vr->Set("PullUp60fpsTimewarp", bPullUp60fpsTimewarp);
 	vr->Set("PullUpAutoTimewarp", bPullUpAutoTimewarp);
 	vr->Set("SynchronousTimewarp", bSynchronousTimewarp);
+	vr->Set("LeftTexture", sLeftTexture);
+	vr->Set("RightTexture", sRightTexture);
+	vr->Set("GCLeftTexture", sGCLeftTexture);
+	vr->Set("GCRightTexture", sGCRightTexture);
 
 	iniFile.Save(ini_file);
 }

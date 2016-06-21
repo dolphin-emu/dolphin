@@ -152,8 +152,8 @@ namespace DX11
 		D3D11_BUFFER_DESC bd;
 
 		// set up vertices for drawing lines (laser pointer) and rectangles
-		m_line_vertices = new VERTEX[34];
-		ZeroMemory(m_line_vertices, sizeof(m_line_vertices[0]) * 34);
+		m_line_vertices = new VERTEX[36];
+		ZeroMemory(m_line_vertices, sizeof(m_line_vertices[0]) * 36);
 		m_line_vertices[0].X = 0; m_line_vertices[0].Y = 0; m_line_vertices[0].Z = 0;
 		m_line_vertices[1].X = 0; m_line_vertices[1].Y = 0; m_line_vertices[1].Z = -1000; // -ve = forwards
 		m_line_vertices[0].nx = 1; m_line_vertices[0].ny = 0; m_line_vertices[0].nz = 0;
@@ -189,6 +189,15 @@ namespace DX11
 		m_line_vertices[31] = m_line_vertices[18 + 4];
 		m_line_vertices[32] = m_line_vertices[10 + 6];
 		m_line_vertices[33] = m_line_vertices[18 + 6];
+		// thumb line
+		m_line_vertices[34] = m_line_vertices[0];
+		m_line_vertices[35] = m_line_vertices[1];
+		m_line_vertices[34].X = 0;
+		m_line_vertices[34].Y = 0.002f;
+		m_line_vertices[34].Z = 0.049f;
+		m_line_vertices[35].X = 0;
+		m_line_vertices[35].Y = 0.002f + 0.012f; // 12mm line above touchpad
+		m_line_vertices[35].Z = 0.049f;
 
 #ifdef HAVE_OPENVR
 		// Load Vive model
@@ -216,8 +225,20 @@ namespace DX11
 			}
 
 			int width, width2, height, height2, channels, channels2;
-			u8 *left_img = SOIL_load_image((File::GetSysDirectory() + "\\Resources\\Textures\\Vive Nunchuk.png").c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
-			u8 *right_img = SOIL_load_image((File::GetSysDirectory() + "\\Resources\\Textures\\Vive Wiimote A12MP.png").c_str(), &width2, &height2, &channels2, SOIL_LOAD_RGBA);
+			u8* left_img = nullptr, *right_img = nullptr;
+			std::string s = "";
+			if (VR_GetHydraStyle(0) != CS_GC_LEFT && !g_ActiveConfig.sLeftTexture.empty())
+				s = g_ActiveConfig.sLeftTexture;
+			else
+				s = g_ActiveConfig.sGCLeftTexture;
+			if (!s.empty())
+				left_img = SOIL_load_image((File::GetSysDirectory() + "\\Resources\\Textures\\" + s + ".png").c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+			if (VR_GetHydraStyle(1) != CS_GC_RIGHT && !g_ActiveConfig.sRightTexture.empty())
+				s = g_ActiveConfig.sRightTexture;
+			else
+				s = g_ActiveConfig.sGCRightTexture;
+			if (!s.empty())
+				right_img = SOIL_load_image((File::GetSysDirectory() + "\\Resources\\Textures\\" + s + ".png").c_str(), &width2, &height2, &channels2, SOIL_LOAD_RGBA);
 
 			if (error != vr::VRRenderModelError_None)
 			{
@@ -354,7 +375,7 @@ namespace DX11
 		D3D::SetDebugObjectName(m_vertex_buffer, "AvatarDrawer vertex buffer");
 
 		// Create line vertex buffer
-		bd = CD3D11_BUFFER_DESC(34 * sizeof(VERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC);
+		bd = CD3D11_BUFFER_DESC(36 * sizeof(VERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC);
 		bd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		srd = { m_line_vertices, 0, 0 };
 		hr = D3D::device->CreateBuffer(&bd, &srd, &m_line_vertex_buffer);
@@ -542,6 +563,39 @@ namespace DX11
 		// Draw!
 		D3D::stateman->Apply();
 		D3D::context->Draw(2, 0);
+
+		// Clean up state
+		D3D::stateman->SetSampler(0, nullptr);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetPixelConstants(nullptr);
+		D3D::stateman->SetVertexConstants(nullptr);
+	}
+
+	void AvatarDrawer::DrawThumb(float *pos, float x, float y, Matrix33 &m)
+	{
+		params.color[0] = 0.8f;
+		params.color[1] = 0.4f;
+		params.color[2] = 0.4f;
+		params.color[3] = 1.0f;
+		// world matrix
+		Matrix44 world, rotation, location, offset;
+		rotation = m;
+		Matrix44::Translate(location, pos);
+		float thumbpos[3] = { x * 0.02f, 0, y * 0.02f };
+		Matrix44::Translate(offset, thumbpos);
+		world = offset * rotation * location;
+		// copy matrices into buffer
+		memcpy(params.world, world.data, 16 * sizeof(float));
+		D3D::context->UpdateSubresource(m_vertex_shader_params, 0, nullptr, &params, 0, 0);
+
+		D3D::stateman->SetVertexConstants(m_vertex_shader_params);
+		D3D::stateman->SetPixelConstants(m_vertex_shader_params);
+		D3D::stateman->SetTexture(0, nullptr);
+		D3D::stateman->SetSampler(0, m_avatar_sampler);
+
+		// Draw!
+		D3D::stateman->Apply();
+		D3D::context->Draw(2, 34);
 
 		// Clean up state
 		D3D::stateman->SetSampler(0, nullptr);
@@ -759,8 +813,11 @@ namespace DX11
 		Matrix44::LoadIdentity(proj);
 		Matrix44::LoadIdentity(view);
 		float pos[3] = { 0, 0, 0 };
+		float leftpos[3] = { 0, 0, 0 };
 		float wmpos[3] = { 0, 0, 0 };
-		Matrix33 wmrot;
+		float leftthumbpos[3] = { 0, 0, 0 };
+		float rightthumbpos[3] = { 0, 0, 0 };
+		Matrix33 leftrot, wmrot;
 
 		// view matrix
 		if (g_ActiveConfig.bPositionTracking)
@@ -795,23 +852,20 @@ namespace DX11
 		// Clear depth buffer
 		D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 1.f, 0);
 
-		Matrix33 m;
 		ControllerStyle cs;
 		// Draw Left Razer Hydra
-		if (VR_GetLeftHydraPos(pos, &m))
+		bool has_left_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+		if (has_left_controller)
 		{
 			cs = VR_GetHydraStyle(0);
-			DrawHydra(0, pos, m, cs);
+			DrawHydra(0, leftpos, leftrot, cs);
 		}
 		// Draw Right Razer Hydra
-		bool has_right_controller = VR_GetRightHydraPos(pos, &wmrot);
+		bool has_right_controller = VR_GetRightControllerPos(wmpos, rightthumbpos, &wmrot);
 		if (has_right_controller)
 		{
 			cs = VR_GetHydraStyle(1);
-			DrawHydra(1, pos, wmrot, cs);
-			wmpos[0] = pos[0];
-			wmpos[1] = pos[1];
-			wmpos[2] = pos[2];
+			DrawHydra(1, wmpos, wmrot, cs);
 		}
 
 		// Draw Lines
@@ -827,7 +881,15 @@ namespace DX11
 			// Draw Laser Sight
 			if (draw_laser_pointer)
 			{
-				DrawLine(pos, wmrot, 1, 0, 0);
+				DrawLine(wmpos, wmrot, 1, 0, 0);
+			}
+			if (has_right_controller && rightthumbpos[2] >= 0)
+			{
+				DrawThumb(wmpos, rightthumbpos[0], -rightthumbpos[1], wmrot);
+			}
+			if (has_left_controller && leftthumbpos[2] >= 0)
+			{
+				DrawThumb(leftpos, leftthumbpos[0], -leftthumbpos[1], leftrot);
 			}
 
 			pos[0] = 0; pos[1] = 0; pos[2] = 0;
