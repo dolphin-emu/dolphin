@@ -247,12 +247,10 @@ void DolphinAnalytics::MakePerGameBuilder()
 	builder.AddData("movie", Movie::IsMovieActive());
 
 	// Controller information
+	// We grab enough to tell what percentage of our users are playing with keyboard/mouse, some kind of gamepad
+	// or the official gamecube adapter.
 	builder.AddData("gcadapter-detected", GCAdapter::IsDetected());
-
-	// For privacy reasons, limit this to type of the first controller.
-	// The ControllersNeedToBeCreated() check is enough to ensure GetController(0) won't return nullptr or throw exceptions.
-	if (!Pad::GetConfig()->ControllersNeedToBeCreated())
-		builder.AddData("controller-type", Pad::GetConfig()->GetController(0)->default_device.name);
+	builder.AddData("has-controller", Pad::GetConfig()->IsControllerControlledBySomeTypeOfGamepadDevice(0) || GCAdapter::IsDetected());
 
 	m_per_game_builder = builder;
 }

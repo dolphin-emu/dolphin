@@ -31,6 +31,7 @@ public:
 	ControllerEmu* GetController(int index);
 	void ClearControllers();
 	bool ControllersNeedToBeCreated() const;
+	bool IsControllerControlledBySomeTypeOfGamepadDevice(int index) const;
 
 	std::string GetGUIName() const { return m_gui_name; }
 	std::string GetProfileName() const { return m_profile_name; }
