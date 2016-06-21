@@ -20,6 +20,10 @@
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "Core/HW/GCPad.h"
+#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/GCAdapter.h"
+#include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -223,6 +227,10 @@ void DolphinAnalytics::MakePerGameBuilder()
 	{
 		builder.AddData("gpu-adapter", g_Config.backend_info.Adapters[g_Config.iAdapter]);
 	}
+	else if (!g_Config.backend_info.AdapterName.empty())
+	{
+		builder.AddData("gpu-adapter", g_Config.backend_info.AdapterName);
+	}
 	builder.AddData("gpu-has-exclusive-fullscreen", g_Config.backend_info.bSupportsExclusiveFullscreen);
 	builder.AddData("gpu-has-dual-source-blend", g_Config.backend_info.bSupportsDualSourceBlend);
 	builder.AddData("gpu-has-primitive-restart", g_Config.backend_info.bSupportsPrimitiveRestart);
@@ -241,6 +249,14 @@ void DolphinAnalytics::MakePerGameBuilder()
 	// NetPlay / recording.
 	builder.AddData("netplay", NetPlay::IsNetPlayRunning());
 	builder.AddData("movie", Movie::IsMovieActive());
+
+	// Controller information
+	builder.AddData("gcadapter-detected", GCAdapter::IsDetected());
+
+	// For privacy reasons, limit this to type of the first controller.
+	// The ControllersNeedToBeCreated() check is enough to ensure GetController(0) won't return nullptr or throw exceptions.
+	if (!Pad::GetConfig()->ControllersNeedToBeCreated())
+		builder.AddData("controller-type", Pad::GetConfig()->GetController(0)->default_device.name);
 
 	m_per_game_builder = builder;
 }

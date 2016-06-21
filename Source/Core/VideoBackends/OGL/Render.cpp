@@ -414,6 +414,9 @@ Renderer::Renderer()
 		}
 	}
 
+	// Copy the GPU name to g_Config, so Analytics can see it.
+	g_Config.backend_info.AdapterName = g_ogl_config.gl_renderer;
+
 	g_Config.backend_info.bSupportsDualSourceBlend = GLExtensions::Supports("GL_ARB_blend_func_extended") ||
 	                                                 GLExtensions::Supports("GL_EXT_blend_func_extended");
 	g_Config.backend_info.bSupportsPrimitiveRestart = !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
