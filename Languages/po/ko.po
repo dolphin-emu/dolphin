@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-20 01:28+0000\n"
+"PO-Revision-Date: 2016-06-21 18:19+0000\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -30,9 +30,10 @@ msgid ""
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
 "\n"
-"돌핀은 오픈 소스이자 무료인 게임큐브 및 Wii 에뮬레이터입니다.\n"
+"돌핀은 무료이고 오픈-소스 게임큐브 및 Wii 에뮬레이터입니다. \n"
 "\n"
-"이 소프트웨어는 합법적 소유가 아닌 게임을 플레이할 때 쓰여져서는 안됩니다.\n"
+"이 소프트웨어는 합법적 소유가 아닌 게임을 플레이하기 위해 사용되서는 안됩니"
+"다.\n"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:538
 msgid " (internal IP)"
@@ -438,8 +439,8 @@ msgid ""
 "(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of "
 "Nintendo. Dolphin is not affiliated with Nintendo in any way."
 msgstr ""
-"(c) 2003-2015+ 돌핀 팀. \"게임큐브\" 와 \"Wii\" 는 Nintendo의 상표입니다. 돌"
-"핀은 닌텐도와 전혀 관계가 없습니다."
+"(c) 2003-2015+ 돌핀 팀. \"게임큐브\" 와 \"Wii\" 는 닌텐도의 상표입니다. 돌핀"
+"은 닌텐도와 어떻게도 제휴되어 있지 않습니다."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:722
 msgid "(off)"
@@ -1164,7 +1165,7 @@ msgstr "파티션 무결성 체크"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:36
 msgid "Check for updates: "
-msgstr "업데이트 확인"
+msgstr "업데이트 확인: "
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:956
 msgid "Checking integrity..."
@@ -1761,7 +1762,7 @@ msgstr "에뮬 속도 제한 끄기"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:417
 msgid "Disable Fog"
-msgstr "안개 끔"
+msgstr "안개 끄기"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:126
 msgid ""
@@ -1962,7 +1963,7 @@ msgstr "텍스처 패치 덤프"
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:556
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:103
 msgid "Dump Textures"
-msgstr "텍스처들 덤프"
+msgstr "텍스처 덤프"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:129
 msgid ""
@@ -2809,7 +2810,7 @@ msgstr "프레임 진행 속도 리셋"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Frame Dumps use FFV1"
-msgstr "프레임 덤프가 FFV1를 사용"
+msgstr "프레임 덤프에 FFV1 사용"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:210
 msgid "Frame Info"
@@ -3651,7 +3652,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:41
 msgid "License"
-msgstr "자격증"
+msgstr "라이선스"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:72
 msgid ""
@@ -4013,7 +4014,7 @@ msgid ""
 "\n"
 "\n"
 msgstr ""
-"자세한 설명을 보려면 마우스 포인터를 옵션위로 움직이세요.\n"
+"자세한 설명을 보려면 마우스 포인터를 옵션위로 이동하세요.\n"
 "\n"
 "\n"
 "\n"
@@ -4260,7 +4261,7 @@ msgstr "오브젝트 범위"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Off"
-msgstr "끔"
+msgstr "끄기"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:61
 msgid "Offset:"
@@ -4713,12 +4714,12 @@ msgstr "Enter"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:469
 msgid "Revision:"
-msgstr "개정판:"
+msgstr "개정:"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:35
 #, c-format
 msgid "Revision: %s"
-msgstr "리비전: %s"
+msgstr "개정: %s"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:49
 #: Source/Core/InputCommon/ControllerEmu.cpp:197
@@ -5266,7 +5267,7 @@ msgstr "스폐인 보기"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
 msgid "Show Statistics"
-msgstr "통계들"
+msgstr "통계 보기"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:330
 msgid "Show Taiwan"
