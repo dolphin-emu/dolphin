@@ -647,9 +647,14 @@ namespace DX11
 
 	void AvatarDrawer::DrawHydra(int hand, float *pos, Matrix33 &m, ControllerStyle cs)
 	{
+		params.color[0] = 1.0f;
+		params.color[1] = 1.0f;
+		params.color[2] = 1.0f;
 		params.color[3] = 1.0f;
-		switch (cs)
+		if ((hand == 0 && !m_left_texture) || (hand == 1 && !m_right_texture))
 		{
+			switch (cs)
+			{
 			case CS_HYDRA_LEFT:
 			case CS_HYDRA_RIGHT:
 			case CS_NES_LEFT:
@@ -712,8 +717,8 @@ namespace DX11
 				params.color[1] = 0.5f;
 				params.color[2] = 0.5f;
 				break;
+			}
 		}
-		params.color[3] = 1.0f;
 		// world matrix
 		Matrix44 world, scale, rotation, scalerot, location, offset;
 		float v[3] = { m_scale, m_scale, m_scale };
