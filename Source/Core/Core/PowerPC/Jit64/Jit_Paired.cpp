@@ -23,6 +23,8 @@ void Jit64::ps_mr(UGeckoInstruction inst)
 	if (d == b)
 		return;
 
+	fpr.EnsureDefaultShape(b);
+
 	fpr.BindToRegister(d, false);
 	MOVAPD(fpr.RX(d), fpr.R(b));
 }
@@ -37,6 +39,9 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 	int a = inst.FA;
 	int b = inst.FB;
 	int c = inst.FC;
+
+	fpr.EnsureDefaultShape(a, b, c);
+
 	fpr.Lock(a, b, c, d);
 	OpArg op_a = fpr.R(a);
 	fpr.BindToRegister(d, d == b || d == c);
@@ -87,6 +92,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 	int a = inst.FA;
 	int c = inst.FC;
 	bool round_input = !jit->js.op->fprIsSingle[c];
+	fpr.EnsureDefaultShape(a, c);
 	fpr.Lock(a, c, d);
 	switch (inst.SUBOP5)
 	{
@@ -119,6 +125,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 	int d = inst.FD;
 	int a = inst.FA;
 	int b = inst.FB;
+	fpr.EnsureDefaultShape(a, b);
 	fpr.Lock(a, b, d);
 	fpr.BindToRegister(d, d == a || d == b);
 
@@ -150,6 +157,8 @@ void Jit64::ps_rsqrte(UGeckoInstruction inst)
 	int b = inst.FB;
 	int d = inst.FD;
 
+	fpr.EnsureDefaultShape(b);
+
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);
 	fpr.BindToRegister(b, true, false);
@@ -176,6 +185,8 @@ void Jit64::ps_res(UGeckoInstruction inst)
 	FALLBACK_IF(inst.Rc);
 	int b = inst.FB;
 	int d = inst.FD;
+
+	fpr.EnsureDefaultShape(b);
 
 	gpr.FlushLockX(RSCRATCH_EXTRA);
 	fpr.Lock(b, d);

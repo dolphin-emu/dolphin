@@ -7,7 +7,7 @@
 #include <array>
 #include <cinttypes>
 
-#include "Common/x64Emitter.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 enum FlushMode
@@ -16,11 +16,23 @@ enum FlushMode
 	FLUSH_MAINTAIN_STATE,
 };
 
+// "FPR shape" is an optimization to allow defering conversions.
+// SHAPE_DEFAULT is the "paired-doubles" form, while
+// "SHAPE_LAZY_SINGLE" means the register contains an unpaired,
+// single-precision value.
+enum FPRShape
+{
+	SHAPE_DEFAULT,
+	SHAPE_LAZY_SINGLE,
+	SHAPE_SAFE_LAZY_SINGLE,
+};
+
 struct PPCCachedReg
 {
 	Gen::OpArg location;
 	bool away;  // value not in source register
 	bool locked;
+	uint8_t shape;
 };
 
 struct X64CachedReg
@@ -47,7 +59,7 @@ protected:
 	virtual BitSet32 GetRegUtilization() = 0;
 	virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
 
-	Gen::XEmitter *emit;
+	EmuCodeBlock *emit;
 
 	float ScoreRegister(Gen::X64Reg xreg);
 
@@ -58,7 +70,7 @@ public:
 	void Start();
 
 	void DiscardRegContentsIfCached(size_t preg);
-	void SetEmitter(Gen::XEmitter *emitter)
+	void SetEmitter(EmuCodeBlock *emitter)
 	{
 		emit = emitter;
 	}
@@ -88,17 +100,18 @@ public:
 
 	//TODO - instead of doload, use "read", "write"
 	//read only will not set dirty flag
-	void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
+	void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true, int shape = SHAPE_DEFAULT);
 	void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
 	virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
 	virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
+	virtual void ConvertRegister(size_t preg, int shape) = 0;
 
-	const Gen::OpArg &R(size_t preg) const
+	const Gen::OpArg &R(size_t preg)
 	{
 		return regs[preg].location;
 	}
 
-	Gen::X64Reg RX(size_t preg) const
+	Gen::X64Reg RX(size_t preg)
 	{
 		if (IsBound(preg))
 			return regs[preg].location.GetSimpleReg();
@@ -110,6 +123,10 @@ public:
 
 	// Register locking.
 
+	void LockAnyShape(size_t p)
+	{
+		regs[p].locked = true;
+	}
 	// these are powerpc reg indices
 	template<typename T>
 	void Lock(T p)
@@ -180,6 +197,7 @@ public:
 	void SetImmediate32(size_t preg, u32 immValue);
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+	void ConvertRegister(size_t preg, int shape) override;
 };
 
 
@@ -192,4 +210,62 @@ public:
 	Gen::OpArg GetDefaultLocation(size_t reg) const override;
 	BitSet32 GetRegUtilization() override;
 	BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+	void ConvertRegister(size_t preg, int shape) override;
+
+	bool IsLazySingle(size_t preg)
+	{
+		return regs[preg].shape == SHAPE_LAZY_SINGLE || regs[preg].shape == SHAPE_SAFE_LAZY_SINGLE;
+	}
+
+	const Gen::OpArg &R(size_t preg)
+	{
+		return regs[preg].location;
+	}
+	Gen::X64Reg RX(size_t preg)
+	{
+		if (IsBound(preg))
+		{
+			return regs[preg].location.GetSimpleReg();
+		}
+
+		PanicAlert("Unbound register - %zu", preg);
+		return Gen::INVALID_REG;
+	}
+
+	const Gen::OpArg &R_lazy_single(size_t preg)
+	{
+		if (!IsLazySingle(preg))
+			PanicAlert("Not a lazy single!");
+		return regs[preg].location;
+	}
+
+	Gen::X64Reg RX_lazy_single(size_t preg)
+	{
+		if (IsBound(preg))
+		{
+			return R_lazy_single(preg).GetSimpleReg();
+		}
+
+		PanicAlert("Unbound register - %zu", preg);
+		return Gen::INVALID_REG;
+	}
+
+	void MarkSafeLazySingle(size_t preg)
+	{
+		regs[preg].shape = SHAPE_SAFE_LAZY_SINGLE;
+	}
+
+	// these are powerpc reg indices
+	template<typename T>
+	void EnsureDefaultShape(T p)
+	{
+		if (regs[p].shape != SHAPE_DEFAULT)
+			ConvertRegister(p, SHAPE_DEFAULT);
+	}
+	template<typename T, typename... Args>
+	void EnsureDefaultShape(T first, Args... args)
+	{
+		EnsureDefaultShape(first);
+		EnsureDefaultShape(args...);
+	}
 };

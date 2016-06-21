@@ -183,14 +183,14 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
 		FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
 		                                 !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+		gpr.Flush(FLUSH_MAINTAIN_STATE);
+		fpr.Flush(FLUSH_MAINTAIN_STATE);
 		MOV(32, R(RSCRATCH), PPCSTATE_CTR);
 		AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
 		//MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
 		if (inst.LK_3)
 			MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
 
-		gpr.Flush(FLUSH_MAINTAIN_STATE);
-		fpr.Flush(FLUSH_MAINTAIN_STATE);
 		WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
@@ -232,6 +232,9 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
 
+	gpr.Flush(FLUSH_MAINTAIN_STATE);
+	fpr.Flush(FLUSH_MAINTAIN_STATE);
+
 	MOV(32, R(RSCRATCH), PPCSTATE_LR);
 	// We don't have to do this because WriteBLRExit handles it for us. Specifically, since we only ever push
 	// divisible-by-four instruction addresses onto the stack, if the return address matches, we're already
@@ -241,8 +244,6 @@ void Jit64::bclrx(UGeckoInstruction inst)
 	if (inst.LK)
 		MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-	gpr.Flush(FLUSH_MAINTAIN_STATE);
-	fpr.Flush(FLUSH_MAINTAIN_STATE);
 	WriteBLRExit();
 
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

@@ -841,7 +841,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				if (fpr.NumFreeRegisters() < 2)
 					break;
 				if (ops[i].fprInXmm[reg])
-					fpr.BindToRegister(reg, true, false);
+				{
+					if (!fpr.IsLazySingle(reg))
+						fpr.BindToRegister(reg, true, false);
+				}
 			}
 
 			Jit64Tables::CompileInstruction(ops[i]);

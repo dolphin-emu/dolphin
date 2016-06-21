@@ -38,6 +38,7 @@ void RegCache::Start()
 		regs[i].location = GetDefaultLocation(i);
 		regs[i].away = false;
 		regs[i].locked = false;
+		regs[i].shape = SHAPE_DEFAULT;
 	}
 
 	// todo: sort to find the most popular regs
@@ -223,6 +224,7 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
 		xregs[xr].dirty = false;
 		xregs[xr].ppcReg = INVALID_REG;
 		regs[preg].away = false;
+		regs[preg].shape = SHAPE_DEFAULT;
 		regs[preg].location = GetDefaultLocation(preg);
 	}
 }
@@ -281,8 +283,11 @@ void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
 	}
 }
 
-void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
+void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty, int shape)
 {
+	if (doLoad && shape != SHAPE_DEFAULT)
+		PanicAlert("can only load to default shape");
+
 	if (!regs[i].away && regs[i].location.IsImm())
 		PanicAlert("Bad immediate");
 
@@ -311,7 +316,10 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 		// reg location must be simplereg; memory locations
 		// and immediates are taken care of above.
 		xregs[RX(i)].dirty |= makeDirty;
+		if (doLoad)
+			ConvertRegister(i, shape);
 	}
+	regs[i].shape = shape;
 
 	if (xregs[RX(i)].locked)
 	{
@@ -342,11 +350,21 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
 		}
 		OpArg newLoc = GetDefaultLocation(i);
 		if (doStore)
+		{
+			if (regs[i].shape != SHAPE_DEFAULT)
+			{
+				uint8_t oldShape = regs[i].shape;
+				ConvertRegister(i, SHAPE_DEFAULT);
+				if (mode == FLUSH_MAINTAIN_STATE)
+					regs[i].shape = oldShape;
+			}
 			StoreRegister(i, newLoc);
+		}
 		if (mode == FLUSH_ALL)
 		{
 			regs[i].location = newLoc;
 			regs[i].away = false;
+			regs[i].shape = SHAPE_DEFAULT;
 		}
 	}
 }
@@ -369,6 +387,39 @@ void FPURegCache::LoadRegister(size_t preg, X64Reg newLoc)
 void FPURegCache::StoreRegister(size_t preg, const OpArg& newLoc)
 {
 	emit->MOVAPD(newLoc, regs[preg].location.GetSimpleReg());
+}
+
+void GPRRegCache::ConvertRegister(size_t preg, int shape)
+{
+}
+
+void FPURegCache::ConvertRegister(size_t preg, int shape)
+{
+	if (shape == regs[preg].shape)
+		return;
+
+	if (shape == SHAPE_DEFAULT)
+	{
+		if (regs[preg].shape == SHAPE_LAZY_SINGLE)
+		{
+			emit->ConvertSingleToDouble(regs[preg].location.GetSimpleReg(), regs[preg].location.GetSimpleReg());
+			regs[preg].shape = SHAPE_DEFAULT;
+		}
+		else if (regs[preg].shape == SHAPE_SAFE_LAZY_SINGLE)
+		{
+			emit->CVTSS2SD(regs[preg].location.GetSimpleReg(), regs[preg].location);
+			emit->MOVDDUP(regs[preg].location.GetSimpleReg(), regs[preg].location);
+		}
+		else
+		{
+			PanicAlert("FPURegCache::ConvertRegister failed");
+		}
+		regs[preg].shape = SHAPE_DEFAULT;
+	}
+	else
+	{
+		PanicAlert("FPURegCache::ConvertRegister can only convert to SHAPE_DEFAULT");
+	}
 }
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)

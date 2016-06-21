@@ -35,6 +35,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 	int w = indexed ? inst.Wx : inst.W;
 	FALLBACK_IF(!a);
 
+	fpr.EnsureDefaultShape(s);
+
 	gpr.Lock(a, b);
 	if (js.assumeNoPairedQuantize)
 	{

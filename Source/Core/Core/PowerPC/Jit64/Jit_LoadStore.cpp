@@ -249,6 +249,10 @@ void Jit64::lXXx(UGeckoInstruction inst)
 				{
 					LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
 				}
+				else if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+				{
+					MOV(32, opAddress, Imm32(gpr.R(a).Imm32() + gpr.R(b).Imm32()));
+				}
 				else
 				{
 					MOV(32, opAddress, gpr.R(a));

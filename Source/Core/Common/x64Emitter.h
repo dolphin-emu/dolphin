@@ -763,6 +763,10 @@ public:
 	void BLENDPD(X64Reg dest, const OpArg& arg, u8 blend);
 
 	// AVX
+	void VADDSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+	void VSUBSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+	void VMULSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+	void VDIVSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
 	void VADDSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
 	void VSUBSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
 	void VMULSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);

@@ -53,20 +53,32 @@ class EmuCodeBlock : public Gen::X64CodeBlock
 public:
 	FarCodeCache farcode;
 	u8* nearcode; // Backed up when we switch to far code.
+	bool inFarCode = false;
 
 	void MemoryExceptionCheck();
 
 	// Simple functions to switch between near and far code emitting
 	void SwitchToFarCode()
 	{
+		if (inFarCode)
+			PanicAlert("SwitchToFarCode from far code");
+		inFarCode = true;
 		nearcode = GetWritableCodePtr();
 		SetCodePtr(farcode.GetWritableCodePtr());
 	}
 
 	void SwitchToNearCode()
 	{
+		if (!inFarCode)
+			PanicAlert("SwitchToNearCode from near code");
+		inFarCode = false;
 		farcode.SetCodePtr(GetWritableCodePtr());
 		SetCodePtr(nearcode);
+	}
+
+	bool InFarCode()
+	{
+		return inFarCode;
 	}
 
 	Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr, BitSet32 registers_in_use, u32 mem_mask);
