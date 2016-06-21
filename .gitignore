@@ -15,7 +15,6 @@ Source/Core/Common/scmrev.h
 *.opensdf
 *.sdf
 *.suo
-*.vcxproj.user
 *.obj
 *.tlog
 *.VC.opendb
