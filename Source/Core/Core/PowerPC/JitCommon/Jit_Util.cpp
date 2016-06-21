@@ -398,8 +398,8 @@ static OpArg FixImmediate(int accessSize, OpArg arg)
 {
   if (arg.IsImm())
   {
-    arg = accessSize == 8 ? Imm8((u8)arg.Imm32()) : accessSize == 16 ? Imm16((u16)arg.Imm32()) :
-                                                                       Imm32((u32)arg.Imm32());
+    arg = accessSize == 8 ? Imm8((u8)arg.Imm32()) :
+                            accessSize == 16 ? Imm16((u16)arg.Imm32()) : Imm32((u32)arg.Imm32());
   }
   return arg;
 }
@@ -907,18 +907,31 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
 
   UCOMISS(dst, R(dst));
   CVTSS2SD(dst, R(dst));
-  FixupBranch nanConversion = J_CC(CC_P, true);
 
-  SwitchToFarCode();
-  SetJumpTarget(nanConversion);
-  TEST(32, R(gprsrc), Imm32(0x00400000));
-  FixupBranch continue1 = J_CC(CC_NZ, true);
-  ANDPD(dst, M(&double_qnan_bit));
-  FixupBranch continue2 = J(true);
-  SwitchToNearCode();
+  if (!InFarCode())
+  {
+    FixupBranch nanConversion = J_CC(CC_P, true);
+    SwitchToFarCode();
+    SetJumpTarget(nanConversion);
+    TEST(32, R(gprsrc), Imm32(0x00400000));
+    FixupBranch continue1 = J_CC(CC_NZ, true);
+    ANDPD(dst, M(&double_qnan_bit));
+    FixupBranch continue2 = J(true);
+    SwitchToNearCode();
 
-  SetJumpTarget(continue1);
-  SetJumpTarget(continue2);
+    SetJumpTarget(continue1);
+    SetJumpTarget(continue2);
+  }
+  else
+  {
+    FixupBranch noNanConversion = J_CC(CC_NP);
+    TEST(32, R(gprsrc), Imm32(0x00400000));
+    FixupBranch continue1 = J_CC(CC_NZ);
+    ANDPD(dst, M(&double_qnan_bit));
+    SetJumpTarget(noNanConversion);
+    SetJumpTarget(continue1);
+  }
+
   MOVDDUP(dst, R(dst));
 }
 

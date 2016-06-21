@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 
@@ -31,6 +31,9 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   int b = inst.RB;
 
   FALLBACK_IF(!indexed && !a);
+
+  if (!single || jo.memcheck)
+    fpr.EnsureDefaultShape(d);
 
   gpr.BindToRegister(a, true, update);
 
@@ -74,7 +77,23 @@ void Jit64::lfXXX(UGeckoInstruction inst)
     fpr.StoreFromRegister(d);
     js.revertFprLoad = d;
   }
-  fpr.BindToRegister(d, !single);
+  // TODO: get this from the analyst
+  bool generateLazySingle = true;
+  if (single)
+  {
+    if (generateLazySingle)
+    {
+      fpr.BindToRegister(d, false, true, SHAPE_LAZY_SINGLE);
+    }
+    else
+    {
+      fpr.BindToRegister(d, false);
+    }
+  }
+  else
+  {
+    fpr.BindToRegister(d, true);
+  }
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   if (update && jo.memcheck)
     registersInUse[RSCRATCH2] = true;
@@ -83,7 +102,10 @@ void Jit64::lfXXX(UGeckoInstruction inst)
   MemoryExceptionCheck();
   if (single)
   {
-    ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
+    if (generateLazySingle)
+      MOVD_xmm(fpr.RX_lazy_single(d), R(RSCRATCH));
+    else
+      ConvertSingleToDouble(fpr.RX(d), RSCRATCH, true);
   }
   else
   {
@@ -100,6 +122,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
+
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
@@ -115,19 +138,27 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (jit->js.op->fprIsStoreSafe[s])
+    if (fpr.IsLazySingle(s))
     {
+      MOVD_xmm(R(RSCRATCH), fpr.RX_lazy_single(s));
+    }
+    else if (jit->js.op->fprIsStoreSafe[s])
+    {
+      fpr.EnsureDefaultShape(s);
       CVTSD2SS(XMM0, fpr.R(s));
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
     else
     {
+      fpr.EnsureDefaultShape(s);
       fpr.BindToRegister(s, true, false);
       ConvertDoubleToSingle(XMM0, fpr.RX(s));
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
-    MOVD_xmm(R(RSCRATCH), XMM0);
   }
   else
   {
+    fpr.EnsureDefaultShape(s);
     if (fpr.R(s).IsSimpleReg())
       MOVQ_xmm(R(RSCRATCH), fpr.RX(s));
     else
@@ -212,6 +243,8 @@ void Jit64::stfiwx(UGeckoInstruction inst)
   int s = inst.RS;
   int a = inst.RA;
   int b = inst.RB;
+
+  fpr.EnsureDefaultShape(s);
 
   MOV(32, R(RSCRATCH2), gpr.R(b));
   if (a)

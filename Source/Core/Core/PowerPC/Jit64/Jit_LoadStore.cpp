@@ -5,7 +5,6 @@
 // TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
 // Should give a very noticable speed boost to paired single heavy code.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -16,6 +15,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -251,6 +251,10 @@ void Jit64::lXXx(UGeckoInstruction inst)
         else if (gpr.R(a).IsSimpleReg() && gpr.R(b).IsSimpleReg())
         {
           LEA(32, RSCRATCH2, MRegSum(gpr.RX(a), gpr.RX(b)));
+        }
+        else if (gpr.R(a).IsImm() && gpr.R(b).IsImm())
+        {
+          MOV(32, opAddress, Imm32(gpr.R(a).Imm32() + gpr.R(b).Imm32()));
         }
         else
         {

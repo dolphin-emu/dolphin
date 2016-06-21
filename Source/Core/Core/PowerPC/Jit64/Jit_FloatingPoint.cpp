@@ -31,6 +31,7 @@ X64Reg Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool single,
                         bool preserve_inputs, bool roundRHS)
 {
   fpr.Lock(d, a, b);
+  fpr.EnsureDefaultShape(a, b);
   fpr.BindToRegister(d, d == a || d == b || !single);
   X64Reg dest = preserve_inputs ? XMM1 : fpr.RX(d);
   if (roundRHS)
@@ -196,36 +197,103 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
     packed = false;
 
-  bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
-  bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
-
-  X64Reg dest = INVALID_REG;
-  switch (inst.SUBOP5)
+  // lazy single optimization for "add" and "sub"
+  if (single && fpr.IsLazySingle(a) && fpr.IsLazySingle(arg2) && cpu_info.bAVX &&
+      !SConfig::GetInstance().bAccurateNaNs && !(SConfig::GetInstance().bFPRF && js.op->wantsFPRF))
   {
-  case 18:
-    dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
-                     packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed, preserve_inputs);
-    break;
-  case 20:
-    dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
-                     packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed, preserve_inputs);
-    break;
-  case 21:
-    dest = fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
-                     packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed, preserve_inputs);
-    break;
-  case 25:
-    dest = fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
-                     packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, preserve_inputs,
-                     round_input);
-    break;
-  default:
-    _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+    // this assumes that lazy singles are always in dirty registers
+    fpr.LockAnyShape(a);
+    fpr.LockAnyShape(arg2);
+
+    Gen::X64Reg opa = fpr.RX_lazy_single(a);
+    Gen::X64Reg opb = fpr.RX_lazy_single(arg2);
+
+    Gen::X64Reg dest;
+    if (d == a)
+    {
+      dest = opa;
+    }
+    else if (d == arg2)
+    {
+      dest = opb;
+    }
+    else
+    {
+      fpr.BindToRegister(d, false, true, SHAPE_LAZY_SINGLE);
+      dest = fpr.RX_lazy_single(d);
+    }
+
+    // TODO: SSE2 support
+    switch (inst.SUBOP5)
+    {
+    case 18:
+      VDIVSS(dest, opa, fpr.R_lazy_single(arg2));
+      break;
+    case 20:
+      VSUBSS(dest, opa, fpr.R_lazy_single(arg2));
+      break;
+    case 21:
+      VADDSS(dest, opa, fpr.R_lazy_single(arg2));
+      break;
+    case 25:
+      VMULSS(dest, opa, fpr.R_lazy_single(arg2));
+      break;
+    default:
+      _assert_msg_(DYNA_REC, 0, "fp_arith lazy WTF!!!");
+    }
+    fpr.MarkSafeLazySingle(d);
   }
-  HandleNaNs(inst, fpr.RX(d), dest);
-  if (single)
-    ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
-  SetFPRFIfNeeded(fpr.RX(d));
+  else
+  {
+    fpr.EnsureDefaultShape(a, arg2);
+    if (!single)
+      fpr.EnsureDefaultShape(d);
+
+    bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
+    bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
+
+    X64Reg dest = INVALID_REG;
+    switch (inst.SUBOP5)
+    {
+    case 18:
+      dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VDIVPD : &XEmitter::VDIVSD,
+                       packed ? &XEmitter::DIVPD : &XEmitter::DIVSD, packed, preserve_inputs);
+      break;
+    case 20:
+      dest = fp_tri_op(d, a, b, false, single, packed ? &XEmitter::VSUBPD : &XEmitter::VSUBSD,
+                       packed ? &XEmitter::SUBPD : &XEmitter::SUBSD, packed, preserve_inputs);
+      break;
+    case 21:
+      dest = fp_tri_op(d, a, b, true, single, packed ? &XEmitter::VADDPD : &XEmitter::VADDSD,
+                       packed ? &XEmitter::ADDPD : &XEmitter::ADDSD, packed, preserve_inputs);
+      break;
+    case 25:
+      dest = fp_tri_op(d, a, c, true, single, packed ? &XEmitter::VMULPD : &XEmitter::VMULSD,
+                       packed ? &XEmitter::MULPD : &XEmitter::MULSD, packed, preserve_inputs,
+                       round_input);
+      break;
+    default:
+      _assert_msg_(DYNA_REC, 0, "fp_arith WTF!!!");
+    }
+    HandleNaNs(inst, fpr.RX(d), dest);
+    if (single)
+    {
+      if (!packed)
+      {
+        CVTSD2SS(fpr.RX(d), fpr.R(d));
+        fpr.MarkSafeLazySingle(d);
+      }
+      else
+      {
+        ForceSinglePrecision(fpr.RX(d), fpr.R(d), packed, true);
+      }
+    }
+
+    if (SConfig::GetInstance().bFPRF && js.op->wantsFPRF)
+    {
+      SetFPRFIfNeeded(fpr.RX(d));
+    }
+  }
   fpr.UnlockAll();
 }
 
@@ -246,6 +314,10 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
                          jit->js.op->fprIsDuplicated[b] && jit->js.op->fprIsDuplicated[c]);
 
   fpr.Lock(a, b, c, d);
+
+  fpr.EnsureDefaultShape(a, b, c);
+  if (!single)
+    fpr.EnsureDefaultShape(d);
 
   switch (inst.SUBOP5)
   {
@@ -377,6 +449,8 @@ void Jit64::fsign(UGeckoInstruction inst)
   int b = inst.FB;
   bool packed = inst.OPCD == 4;
 
+  fpr.EnsureDefaultShape(b);
+
   fpr.Lock(b, d);
   OpArg src = fpr.R(b);
   fpr.BindToRegister(d, false);
@@ -415,7 +489,12 @@ void Jit64::fselx(UGeckoInstruction inst)
 
   bool packed = inst.OPCD == 4;  // ps_sel
 
+  fpr.EnsureDefaultShape(a, b, c);
+  if (!packed)
+    fpr.EnsureDefaultShape(d);
+
   fpr.Lock(a, b, c, d);
+
   PXOR(XMM0, R(XMM0));
   // This condition is very tricky; there's only one right way to handle both the case of
   // negative/positive zero and NaN properly.
@@ -458,6 +537,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
   if (d == b)
     return;
 
+  fpr.EnsureDefaultShape(b, d);
   fpr.Lock(b, d);
 
   if (fpr.IsBound(d))
@@ -502,23 +582,32 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
     output[3 - (next.CRBA & 3)] |= 1 << dst;
     output[3 - (next.CRBB & 3)] |= 1 << dst;
   }
-
-  fpr.Lock(a, b);
-  fpr.BindToRegister(b, true, false);
-
-  if (fprf)
-    AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
-
-  if (upper)
+  if (fpr.IsLazySingle(a) && fpr.IsLazySingle(b) && !upper && !fprf)
   {
-    fpr.BindToRegister(a, true, false);
-    MOVHLPS(XMM0, fpr.RX(a));
-    MOVHLPS(XMM1, fpr.RX(b));
-    UCOMISD(XMM1, R(XMM0));
+    fpr.LockAnyShape(a);
+    fpr.LockAnyShape(b);
+    UCOMISS(fpr.RX_lazy_single(b), fpr.R_lazy_single(a));
   }
   else
   {
-    UCOMISD(fpr.RX(b), fpr.R(a));
+    fpr.EnsureDefaultShape(a, b);
+    fpr.Lock(a, b);
+    fpr.BindToRegister(b, true, false);
+
+    if (fprf)
+      AND(32, PPCSTATE(fpscr), Imm32(~FPRF_MASK));
+
+    if (upper)
+    {
+      fpr.BindToRegister(a, true, false);
+      MOVHLPS(XMM0, fpr.RX(a));
+      MOVHLPS(XMM1, fpr.RX(b));
+      UCOMISD(XMM1, R(XMM0));
+    }
+    else
+    {
+      UCOMISD(fpr.RX(b), fpr.R(a));
+    }
   }
 
   FixupBranch pNaN, pLesser, pGreater;
@@ -594,6 +683,8 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 
   int d = inst.RD;
   int b = inst.RB;
+
+  fpr.EnsureDefaultShape(d, b);
   fpr.Lock(d, b);
   fpr.BindToRegister(d);
 
@@ -634,6 +725,9 @@ void Jit64::frspx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
+
+  fpr.EnsureDefaultShape(b);
+
   bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
   fpr.Lock(b, d);
@@ -651,6 +745,8 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
+
+  fpr.EnsureDefaultShape(d, b);
 
   gpr.FlushLockX(RSCRATCH_EXTRA);
   fpr.Lock(b, d);
@@ -670,6 +766,8 @@ void Jit64::fresx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
+
+  fpr.EnsureDefaultShape(b);
 
   gpr.FlushLockX(RSCRATCH_EXTRA);
   fpr.Lock(b, d);
