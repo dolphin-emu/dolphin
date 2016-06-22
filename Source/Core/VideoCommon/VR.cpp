@@ -1106,7 +1106,7 @@ static float s_vive_initial_touch_x[2] = {};
 static float s_vive_initial_touch_y[2] = {};
 
 
-void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y, u16* specials, float analogs[])
+void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y, u32* specials, float analogs[])
 {
 	*specials = 0;
 	analogs[0] = 0;
@@ -1186,8 +1186,46 @@ void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y,
 					}
 				}
 			}
-			// todo: quadrant buttons, for NES, TurboGraphx, sideways wiimote, etc.
-			// todo: 6 buttons diagonally, for N64, sega, arcade
+			// quadrant buttons, for NES, TurboGraphx, sideways wiimote, etc.
+			if (y > -0.15)
+			{
+				if (x < 0.15)
+					*specials |= VIVE_SPECIAL_TOPLEFT;
+				if (x > -0.15)
+					*specials |= VIVE_SPECIAL_TOPRIGHT;
+			}
+			if (y < 0.15)
+			{
+				if (x < 0.15)
+					*specials |= VIVE_SPECIAL_BOTTOMLEFT;
+				if (x > -0.15)
+					*specials |= VIVE_SPECIAL_BOTTOMRIGHT;
+			}
+
+			// 6 buttons diagonally, for N64, sega, arcade
+			angle = DEGREES_TO_RADIANS(40);
+			float xd = x * cos(angle) + y * sin(angle);
+			float yd = y * cos(angle) - x * sin(angle);
+			// top row
+			if (yd >= -0.1)
+			{
+				if (xd < -1/3.0f + 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_X;
+				if (xd > -1/3.0f - 0.04f && xd < 1/3.0f + 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_Y;
+				if (xd > 1 / 3.0f - 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_Z;
+			}
+			// bottom row
+			if (yd <= 0.1)
+			{
+				if (xd < -1/3.0f + 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_A;
+				if (xd > -1/3.0f - 0.04f && xd < 1/3.0f + 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_B;
+				if (xd > 1/3.0f - 0.04f)
+					*specials |= VIVE_SPECIAL_SIX_C;
+			}
 			// todo: various wiimote face button layouts
 		}
 		if (!s_vive_was_touched[hand])
@@ -1215,7 +1253,7 @@ void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y,
 }
 
 double last_good_tracking_time = 0;
-bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[])
+bool VR_GetViveButtons(u32 *buttons, u32 *touches, u64 *specials, float triggers[], float axes[])
 {
 	*buttons = 0;
 	*touches = 0;
@@ -1280,7 +1318,7 @@ bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers
 		triggers[1] = states[1].rAxis[1].x;
 		// our own special processing
 		for (int hand = 0; hand < 2; ++hand)
-			ProcessViveTouchpad(hand, (states[hand].ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, (states[hand].ulButtonPressed & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, states[hand].rAxis[0].x, states[hand].rAxis[0].y, ((u16 *)specials)+hand, &axes[hand * 2]);
+			ProcessViveTouchpad(hand, (states[hand].ulButtonTouched & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, (states[hand].ulButtonPressed & ((u64)1 << vr::k_EButton_SteamVR_Touchpad)) != 0, states[hand].rAxis[0].x, states[hand].rAxis[0].y, ((u32 *)specials)+hand, &axes[hand * 2]);
 		return result;
 	}
 	else

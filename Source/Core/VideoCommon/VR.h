@@ -72,6 +72,17 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #define VIVE_SPECIAL_GC_X        0x80
 #define VIVE_SPECIAL_GC_Y       0x100
 #define VIVE_SPECIAL_GC_EMPTY   0x200
+#define VIVE_SPECIAL_SIX_A      0x400
+#define VIVE_SPECIAL_SIX_B      0x800
+#define VIVE_SPECIAL_SIX_C     0x1000
+#define VIVE_SPECIAL_SIX_X     0x2000
+#define VIVE_SPECIAL_SIX_Y     0x4000
+#define VIVE_SPECIAL_SIX_Z     0x8000
+#define VIVE_SPECIAL_TOPLEFT     0x10000
+#define VIVE_SPECIAL_TOPRIGHT    0x20000
+#define VIVE_SPECIAL_BOTTOMLEFT  0x40000
+#define VIVE_SPECIAL_BOTTOMRIGHT 0x80000
+
 
 #ifdef HAVE_OCULUSSDK
 #include "OVR_Version.h"
@@ -214,7 +225,7 @@ bool VR_GetRemoteButtons(u32 *buttons);
 bool VR_GetTouchButtons(u32 *buttons, u32 *touches, float m_triggers[], float m_axes[]);
 bool VR_SetTouchVibration(int hands, float freq, float amplitude);
 bool VR_GetHMDGestures(u32 *gestures);
-bool VR_GetViveButtons(u32 *buttons, u32 *touches, u32 *specials, float triggers[], float axes[]);
+bool VR_GetViveButtons(u32 *buttons, u32 *touches, u64 *specials, float triggers[], float axes[]);
 bool VR_ViveHapticPulse(int hands, int microseconds);
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz);
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz);

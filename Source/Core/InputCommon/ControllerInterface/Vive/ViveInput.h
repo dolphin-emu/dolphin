@@ -34,12 +34,12 @@ private:
 	class Special : public Core::Device::Input
 	{
 	public:
-		Special(u8 index, const u32& buttons) : m_buttons(buttons), m_index(index) {}
+		Special(u8 index, const u64& buttons) : m_buttons(buttons), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
 		u32 GetStates() const;
 	private:
-		const u32& m_buttons;
+		const u64& m_buttons;
 		u8 m_index;
 	};
 
@@ -102,7 +102,8 @@ public:
 	void UpdateMotors();
 
 private:
-	u32 m_buttons, m_touches, m_specials, m_motors;
+	u64 m_specials;
+	u32 m_buttons, m_touches, m_motors;
 	float m_triggers[2], m_axes[8];
 };
 

@@ -14,7 +14,7 @@ namespace ViveInput
 	static const struct
 	{
 		const char* const name;
-		const u32 bitmask;
+		const u64 bitmask;
 	} vive_buttons[] =
 	{
 		// These exist on a normal Vive controller
@@ -46,17 +46,27 @@ namespace ViveInput
 		{ "LClickLeft", VIVE_SPECIAL_DPAD_LEFT },
 		{ "LClickRight", VIVE_SPECIAL_DPAD_RIGHT },
 		{ "LClickMiddle", VIVE_SPECIAL_DPAD_MIDDLE },
-		{ "RClickUp", VIVE_SPECIAL_DPAD_UP << 16},
-		{ "RClickDown", VIVE_SPECIAL_DPAD_DOWN << 16},
-		{ "RClickLeft", VIVE_SPECIAL_DPAD_LEFT << 16},
-		{ "RClickRight", VIVE_SPECIAL_DPAD_RIGHT << 16},
-		{ "RClickMiddle", VIVE_SPECIAL_DPAD_MIDDLE << 16},
-		{ "RGameCubeA", VIVE_SPECIAL_GC_A << 16},
-		{ "RGameCubeB", VIVE_SPECIAL_GC_B << 16 },
-		{ "RGameCubeX", VIVE_SPECIAL_GC_X << 16 },
-		{ "RGameCubeY", VIVE_SPECIAL_GC_Y << 16 },
-		{ "RGameCubeEmpty", VIVE_SPECIAL_GC_EMPTY << 16 },
-	}, vive_touches[] =
+		{ "RClickUp", (u64)VIVE_SPECIAL_DPAD_UP << 32 },
+		{ "RClickDown", (u64)VIVE_SPECIAL_DPAD_DOWN << 32 },
+		{ "RClickLeft", (u64)VIVE_SPECIAL_DPAD_LEFT << 32 },
+		{ "RClickRight", (u64)VIVE_SPECIAL_DPAD_RIGHT << 32 },
+		{ "RClickMiddle", (u64)VIVE_SPECIAL_DPAD_MIDDLE << 32 },
+		{ "RGameCubeA", (u64)VIVE_SPECIAL_GC_A << 32 },
+		{ "RGameCubeB", (u64)VIVE_SPECIAL_GC_B << 32 },
+		{ "RGameCubeX", (u64)VIVE_SPECIAL_GC_X << 32 },
+		{ "RGameCubeY", (u64)VIVE_SPECIAL_GC_Y << 32 },
+		{ "RGameCubeEmpty", (u64)VIVE_SPECIAL_GC_EMPTY << 32 },
+		{ "RSixA", (u64)VIVE_SPECIAL_SIX_A << 32 },
+		{ "RSixB", (u64)VIVE_SPECIAL_SIX_B << 32 },
+		{ "RSixC", (u64)VIVE_SPECIAL_SIX_C << 32 },
+		{ "RSixX", (u64)VIVE_SPECIAL_SIX_X << 32 },
+		{ "RSixY", (u64)VIVE_SPECIAL_SIX_Y << 32 },
+		{ "RSixZ", (u64)VIVE_SPECIAL_SIX_Z << 32 },
+		{ "RTopLeft", (u64)VIVE_SPECIAL_TOPLEFT << 32 },
+		{ "RTopRight", (u64)VIVE_SPECIAL_TOPRIGHT << 32 },
+		{ "RBottomLeft", (u64)VIVE_SPECIAL_BOTTOMLEFT << 32 },
+		{ "RBottomRight", (u64)VIVE_SPECIAL_BOTTOMRIGHT << 32 },
+		}, vive_touches[] =
 	{
 		// These exist on a normal Vive controller
 		{ "TouchLTouchpad", VIVE_BUTTON_LEFT_TOUCHPAD },
@@ -118,7 +128,7 @@ void DeInit()
 
 ViveController::ViveController()
 {
-	for (int i = 0; i != sizeof(vive_buttons) / sizeof(*vive_buttons); ++i)
+	for (int i = 0; i < 6; ++i)
 	{
 		AddInput(new Button(i, m_buttons));
 	}
@@ -135,7 +145,15 @@ ViveController::ViveController()
 		AddInput(new Axis(i, -1, m_axes));
 		AddInput(new Axis(i, 1, m_axes));
 	}
-	for (int i = 0; i != sizeof(vive_touches) / sizeof(*vive_touches); ++i)
+	for (int i = 0; i < 2; ++i)
+	{
+		AddInput(new Touch(i, m_touches));
+	}
+	for (int i = 6; i != sizeof(vive_buttons) / sizeof(*vive_buttons); ++i)
+	{
+		AddInput(new Button(i, m_buttons));
+	}
+	for (int i = 2; i < sizeof(vive_touches) / sizeof(*vive_touches); ++i)
 	{
 		AddInput(new Touch(i, m_touches));
 	}
