@@ -61,7 +61,7 @@ public:
 
 		virtual ControlState GetState() const = 0;
 
-		ControlState GetGatedState()
+		virtual ControlState GetGatedState()
 		{
 			if (InputGateOn())
 				return GetState();
@@ -89,7 +89,7 @@ public:
 
 		virtual void SetState(ControlState state) = 0;
 
-		void SetGatedState(ControlState state)
+		virtual void SetGatedState(ControlState state)
 		{
 			if (InputGateOn())
 				SetState(state);

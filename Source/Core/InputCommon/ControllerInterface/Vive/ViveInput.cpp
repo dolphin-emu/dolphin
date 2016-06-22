@@ -260,6 +260,30 @@ std::string ViveController::Motor::GetName() const
 }
 
 // GET / SET STATES
+ControlState ViveController::Button::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState ViveController::Touch::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState ViveController::Special::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState ViveController::Trigger::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState ViveController::Axis::GetGatedState()
+{
+	return GetState();
+}
 
 ControlState ViveController::Touch::GetState() const
 {
@@ -283,6 +307,11 @@ void ViveController::Motor::SetState(ControlState state)
 	else
 		m_motors &= ~(1 << m_index);
 	m_parent->UpdateMotors();
+}
+
+void ViveController::Motor::SetGatedState(ControlState state)
+{
+	SetState(state);
 }
 
 u32 ViveController::Touch::GetStates() const

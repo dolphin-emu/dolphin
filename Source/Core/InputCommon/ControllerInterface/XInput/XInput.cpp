@@ -4,6 +4,7 @@
 
 
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
+#include "VideoCommon/VR.h"
 
 #ifndef XINPUT_GAMEPAD_GUIDE
 #define XINPUT_GAMEPAD_GUIDE 0x0400
@@ -253,6 +254,29 @@ std::string Device::Motor::GetName() const
 }
 
 // GET / SET STATES
+ControlState Device::Button::GetGatedState()
+{
+	if (g_has_hmd || InputGateOn())
+		return GetState();
+	else
+		return 0.0;
+}
+
+ControlState Device::Trigger::GetGatedState()
+{
+	if (g_has_hmd || InputGateOn())
+		return GetState();
+	else
+		return 0.0;
+}
+
+ControlState Device::Axis::GetGatedState()
+{
+	if (g_has_hmd || InputGateOn())
+		return GetState();
+	else
+		return 0.0;
+}
 
 ControlState Device::Button::GetState() const
 {
@@ -267,6 +291,12 @@ ControlState Device::Trigger::GetState() const
 ControlState Device::Axis::GetState() const
 {
 	return std::max( 0.0, ControlState(m_axis) / m_range );
+}
+
+void Device::Motor::SetGatedState(ControlState state)
+{
+	if (g_has_hmd || InputGateOn())
+		SetState(state);
 }
 
 void Device::Motor::SetState(ControlState state)

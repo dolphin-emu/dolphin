@@ -129,6 +129,11 @@ std::string SIDRemote::Button::GetName() const
 
 // GET / SET STATES
 
+ControlState SIDRemote::Button::GetGatedState()
+{
+	return GetState();
+}
+
 ControlState SIDRemote::Button::GetState() const
 {
 	return (m_buttons & named_buttons[m_index].bitmask) > 0;
@@ -254,6 +259,26 @@ std::string OculusTouch::Motor::GetName() const
 
 // GET / SET STATES
 
+ControlState OculusTouch::Button::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState OculusTouch::Touch::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState OculusTouch::Trigger::GetGatedState()
+{
+	return GetState();
+}
+
+ControlState OculusTouch::Axis::GetGatedState()
+{
+	return GetState();
+}
+
 ControlState OculusTouch::Touch::GetState() const
 {
 	return (m_touches & touch_touches[m_index].bitmask) > 0;
@@ -267,6 +292,11 @@ ControlState OculusTouch::Trigger::GetState() const
 ControlState OculusTouch::Axis::GetState() const
 {
 	return std::max(0.0, ControlState(m_axes[m_index]*m_range));
+}
+
+void OculusTouch::Motor::SetGatedState(ControlState state)
+{
+	SetState(state);
 }
 
 void OculusTouch::Motor::SetState(ControlState state)
@@ -320,6 +350,11 @@ std::string HMDDevice::Gesture::GetName() const
 }
 
 // GET / SET STATES
+
+ControlState HMDDevice::Gesture::GetGatedState()
+{
+	return GetState();
+}
 
 ControlState HMDDevice::Gesture::GetState() const
 {

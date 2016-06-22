@@ -25,6 +25,7 @@ private:
 		Button(u8 index, const u32& buttons) : m_buttons(buttons), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 		u32 GetStates() const;
 	private:
 		const u32& m_buttons;
@@ -53,6 +54,7 @@ private:
 		Button(u8 index, const u32& buttons) : m_buttons(buttons), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 		u32 GetStates() const;
 	private:
 		const u32& m_buttons;
@@ -65,6 +67,7 @@ private:
 		Touch(u8 index, const u32& touches) : m_touches(touches), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 		u32 GetStates() const;
 	private:
 		const u32& m_touches;
@@ -77,6 +80,7 @@ private:
 		Trigger(u8 index, float *triggers) : m_triggers(triggers), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 	private:
 		float* m_triggers;
 		const u8 m_index;
@@ -88,6 +92,7 @@ private:
 		Axis(u8 index, s8 range, float *axes) : m_axes(axes), m_index(index), m_range(range) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 	private:
 		float* m_axes;
 		const u8 m_index;
@@ -100,6 +105,7 @@ private:
 		Motor(u8 index, OculusTouch* parent, float &motor) : m_motor(motor), m_index(index), m_parent(parent) {}
 		std::string GetName() const override;
 		void SetState(ControlState state) override;
+		void SetGatedState(ControlState state) override;
 	private:
 		float& m_motor;
 		const u8 m_index;
@@ -131,6 +137,7 @@ private:
 		Gesture(u8 index, const u32& gestures) : m_gestures(gestures), m_index(index) {}
 		std::string GetName() const override;
 		ControlState GetState() const override;
+		ControlState GetGatedState() override;
 		u32 GetStates() const;
 	private:
 		const u32& m_gestures;
