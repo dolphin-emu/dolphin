@@ -17,8 +17,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 11:03+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2016-06-22 14:39+0000\n"
+"Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
 "Language: fr\n"
@@ -5301,7 +5301,7 @@ msgstr "Afficher Allemagne"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:206
 msgid "Show Input Display"
-msgstr "Afficher le graphisme en entrée"
+msgstr "Afficher les entrées du contrôleur"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:320
 msgid "Show Italy"

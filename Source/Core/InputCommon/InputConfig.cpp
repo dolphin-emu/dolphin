@@ -122,3 +122,17 @@ bool InputConfig::ControllersNeedToBeCreated() const
 {
 	return m_controllers.empty();
 }
+
+bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
+{
+	if (static_cast<size_t>(index) >= m_controllers.size())
+		return false;
+
+	const auto& controller = m_controllers.at(index).get()->default_device;
+
+	// Filter out anything which obviously not a gamepad
+	return !((controller.source == "Keyboard") // OSX Keyboard/Mouse
+		|| (controller.source == "XInput2") // Linux and BSD Keyboard/Mouse
+		|| (controller.source == "Android" && controller.name == "Touchscreen") // Android Touchscreen
+		|| (controller.source == "DInput" && controller.name == "Keyboard Mouse")); // Windows Keyboard/Mouse
+}
