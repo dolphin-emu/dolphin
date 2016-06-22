@@ -233,6 +233,7 @@ set(LIBS
 	${LZO}
 	sfml-network
 	sfml-system
+	videovulkan
 	videoogl
 	videosoftware
 	z
