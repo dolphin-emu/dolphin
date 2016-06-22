@@ -73,7 +73,8 @@ enum API_TYPE
 {
   API_OPENGL = 1,
   API_D3D = 2,
-  API_NONE = 3
+  API_VULKAN = 3,
+  API_NONE = 4
 };
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
