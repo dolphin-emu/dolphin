@@ -14,7 +14,7 @@
 #include <intrin.h>
 
 template <typename T>
-static inline int CountSetBits(T v)
+static inline constexpr int CountSetBits(T v)
 {
 	// from https://graphics.stanford.edu/~seander/bithacks.html
 	// GCC has this built in, but MSVC's intrinsic will only emit the actual
@@ -92,9 +92,9 @@ public:
 	class Ref
 	{
 	public:
-		Ref(Ref&& other) : m_bs(other.m_bs), m_mask(other.m_mask) {}
-		Ref(BitSet* bs, IntTy mask) : m_bs(bs), m_mask(mask) {}
-		operator bool() const { return (m_bs->m_val & m_mask) != 0; }
+		constexpr Ref(Ref&& other) : m_bs(other.m_bs), m_mask(other.m_mask) {}
+		constexpr Ref(BitSet* bs, IntTy mask) : m_bs(bs), m_mask(mask) {}
+		constexpr operator bool() const { return (m_bs->m_val & m_mask) != 0; }
 		bool operator=(bool set)
 		{
 			m_bs->m_val = (m_bs->m_val & ~m_mask) | (set ? m_mask : 0);
@@ -109,10 +109,10 @@ public:
 	class Iterator
 	{
 	public:
-		Iterator(const Iterator& other) : m_val(other.m_val), m_bit(other.m_bit) {}
-		Iterator(IntTy val, int bit) : m_val(val), m_bit(bit) {}
+		constexpr Iterator(const Iterator& other) : m_val(other.m_val), m_bit(other.m_bit) {}
+		constexpr Iterator(IntTy val, int bit) : m_val(val), m_bit(bit) {}
 		Iterator& operator=(Iterator other) { new (this) Iterator(other); return *this; }
-		int operator*() { return m_bit; }
+		constexpr int operator*() const { return m_bit; }
 		Iterator& operator++()
 		{
 			if (m_val == 0)
@@ -127,21 +127,21 @@ public:
 			}
 			return *this;
 		}
-		Iterator operator++(int _)
+		Iterator operator++(int)
 		{
 			Iterator other(*this);
 			++*this;
 			return other;
 		}
-		bool operator==(Iterator other) const { return m_bit == other.m_bit; }
-		bool operator!=(Iterator other) const { return m_bit != other.m_bit; }
+		constexpr bool operator==(Iterator other) const { return m_bit == other.m_bit; }
+		constexpr bool operator!=(Iterator other) const { return m_bit != other.m_bit; }
 	private:
 		IntTy m_val;
 		int m_bit;
 	};
 
-	BitSet() : m_val(0) {}
-	explicit BitSet(IntTy val) : m_val(val) {}
+	constexpr BitSet() : m_val(0) {}
+	constexpr explicit BitSet(IntTy val) : m_val(val) {}
 	BitSet(std::initializer_list<int> init)
 	{
 		m_val = 0;
@@ -155,28 +155,27 @@ public:
 	}
 
 	Ref operator[](size_t bit) { return Ref(this, (IntTy)1 << bit); }
-	const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
-	bool operator==(BitSet other) const { return m_val == other.m_val; }
-	bool operator!=(BitSet other) const { return m_val != other.m_val; }
-	bool operator<(BitSet other) const { return m_val < other.m_val; }
-	bool operator>(BitSet other) const { return m_val > other.m_val; }
-	BitSet operator|(BitSet other) const { return BitSet(m_val | other.m_val); }
-	BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
-	BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }
-	BitSet operator~() const { return BitSet(~m_val); }
+	constexpr const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
+	constexpr bool operator==(BitSet other) const { return m_val == other.m_val; }
+	constexpr bool operator!=(BitSet other) const { return m_val != other.m_val; }
+	constexpr bool operator<(BitSet other) const { return m_val < other.m_val; }
+	constexpr bool operator>(BitSet other) const { return m_val > other.m_val; }
+	constexpr BitSet operator|(BitSet other) const { return BitSet(m_val | other.m_val); }
+	constexpr BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
+	constexpr BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }
+	constexpr BitSet operator~() const { return BitSet(~m_val); }
 	BitSet& operator|=(BitSet other) { return *this = *this | other; }
 	BitSet& operator&=(BitSet other) { return *this = *this & other; }
 	BitSet& operator^=(BitSet other) { return *this = *this ^ other; }
-	explicit operator bool() const { return m_val != 0; }
+	constexpr explicit operator bool() const { return m_val != 0; }
 
 	// Warning: Even though on modern CPUs this is a single fast instruction,
 	// Dolphin's official builds do not currently assume POPCNT support on x86,
 	// so slower explicit bit twiddling is generated.  Still should generally
 	// be faster than a loop.
-	unsigned int Count() const { return CountSetBits(m_val); }
-
-	Iterator begin() const { Iterator it(m_val, 0); return ++it; }
-	Iterator end() const { return Iterator(m_val, -1); }
+	constexpr unsigned int Count() const { return CountSetBits(m_val); }
+	constexpr Iterator begin() const { return ++Iterator(m_val, 0); }
+	constexpr Iterator end() const { return Iterator(m_val, -1); }
 
 	IntTy m_val;
 };
