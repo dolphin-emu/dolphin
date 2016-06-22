@@ -134,5 +134,6 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
 	return !((controller.source == "Keyboard") // OSX Keyboard/Mouse
 		|| (controller.source == "XInput2") // Linux and BSD Keyboard/Mouse
 		|| (controller.source == "Android" && controller.name == "Touchscreen") // Android Touchscreen
+		|| (controller.source == "VR")
 		|| (controller.source == "DInput" && controller.name == "Keyboard Mouse")); // Windows Keyboard/Mouse
 }
