@@ -339,7 +339,7 @@ void VideoConfig::GameIniLoad()
 	// XXX: This will add an OSD message for each projection hack value... meh
 #define CHECK_SETTING(section, key, var) do { \
 		decltype(var) temp = var; \
-		if (iniFile.GetIfExists(section, key, &var) && var != temp) { \
+		if (iniFile.GetIfExists(section, key, &var, var) && var != temp) { \
 			std::string msg = StringFromFormat("Note: Option \"%s\" is overridden by game ini.", key); \
 			OSD::AddMessage(msg, 7500); \
 			gfx_override_exists = true; \
@@ -347,6 +347,15 @@ void VideoConfig::GameIniLoad()
 	} while (0)
 
 	IniFile iniFile = SConfig::GetInstance().LoadGameIni();
+	
+	if (g_has_hmd)
+	{
+		iniFile.OverrideSectionWithSection("Video_Settings", "Video_Settings_VR");
+		iniFile.OverrideSectionWithSection("Video_Hardware", "Video_Hardware_VR");
+		iniFile.OverrideSectionWithSection("Video_Enhancements", "Video_Enhancements_VR");
+		iniFile.OverrideSectionWithSection("Video_Hacks", "Video_Hacks_VR");
+		iniFile.OverrideSectionWithSection("Video", "Video_VR");
+	}
 
 	CHECK_SETTING("Video_Hardware", "VSync", bVSync);
 
@@ -393,45 +402,6 @@ void VideoConfig::GameIniLoad()
 
 	CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
 
-	if (g_has_hmd)
-	{
-		CHECK_SETTING("Video_Settings_VR", "UseXFB", bUseXFB);
-		CHECK_SETTING("Video_Settings_VR", "UseRealXFB", bUseRealXFB);
-		CHECK_SETTING("Video_Settings_VR", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-		CHECK_SETTING("Video_Settings_VR", "HiresTextures", bHiresTextures);
-		CHECK_SETTING("Video_Settings_VR", "EnablePixelLighting", bEnablePixelLighting);
-		CHECK_SETTING("Video_Settings_VR", "FastDepthCalc", bFastDepthCalc);
-		CHECK_SETTING("Video_Settings_VR", "MSAA", iMultisamples);
-		int tmp = -9000;
-		CHECK_SETTING("Video_Settings_VR", "EFBScale", tmp); // integral
-		if (tmp != -9000)
-		{
-			if (tmp != SCALE_FORCE_INTEGRAL)
-			{
-				iEFBScale = tmp;
-			}
-			else // Round down to multiple of native IR
-			{
-				switch (iEFBScale)
-				{
-				case SCALE_AUTO:
-					iEFBScale = SCALE_AUTO_INTEGRAL;
-					break;
-				case SCALE_1_5X:
-					iEFBScale = SCALE_1X;
-					break;
-				case SCALE_2_5X:
-					iEFBScale = SCALE_2X;
-					break;
-				default:
-					break;
-				}
-			}
-		}
-
-		CHECK_SETTING("Video_Settings_VR", "DisableFog", bDisableFog);
-	}
-
 	CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
 	CHECK_SETTING("Video_Enhancements", "MaxAnisotropy", iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
@@ -453,15 +423,6 @@ void VideoConfig::GameIniLoad()
 	CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
 	CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	if (g_has_hmd)
-	{
-		CHECK_SETTING("Video_Hacks_VR", "EFBAccessEnable", bEFBAccessEnable);
-		CHECK_SETTING("Video_Hacks_VR", "EFBCopyEnable", bEFBCopyEnable);
-		CHECK_SETTING("Video_Hacks_VR", "EFBCopyClearDisable", bEFBCopyClearDisable);
-		CHECK_SETTING("Video_Hacks_VR", "EFBToTextureEnable", bSkipEFBCopyToRam);
-		CHECK_SETTING("Video_Hacks_VR", "EFBScaledCopy", bCopyEFBScaled);
-		CHECK_SETTING("Video_Hacks_VR", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-	}
 
 	CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
 	CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);

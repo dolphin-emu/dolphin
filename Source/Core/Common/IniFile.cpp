@@ -17,6 +17,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
 {
@@ -222,6 +223,25 @@ IniFile::Section* IniFile::GetOrCreateSection(const std::string& sectionName)
 		section = &sections.back();
 	}
 	return section;
+}
+
+bool IniFile::OverrideSectionWithSection(const std::string& sectionName, const std::string& sectionName2)
+{
+	Section* section = GetSection(sectionName);
+	Section* section2 = GetSection(sectionName2);
+	if (!section || !section2)
+		return false;
+	std::vector<std::string> keys = section2->keys_order;
+	for (const std::string& key : keys)
+	{
+		std::string value, oldvalue;
+		if (!section->Get(key, &oldvalue))
+			oldvalue = "<none>";
+		section2->Get(key, &value);
+		section->Set(key, value);
+		NOTICE_LOG(VR, "Override [%s] %s=\"%s\" with [%s] %s=\"%s\"", sectionName.c_str(), key.c_str(), oldvalue.c_str(), sectionName2.c_str(), key.c_str(), value.c_str());
+	}
+	return true;
 }
 
 bool IniFile::DeleteSection(const std::string& sectionName)

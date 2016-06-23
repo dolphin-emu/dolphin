@@ -141,6 +141,8 @@ public:
 
 	Section* GetOrCreateSection(const std::string& section);
 
+	bool OverrideSectionWithSection(const std::string& sectionName, const std::string& sectionName2);
+
 	// This function is related to parsing data from lines of INI files
 	// It's used outside of IniFile, which is why it is exposed publicly
 	// In particular it is used in PostProcessing for its configuration
