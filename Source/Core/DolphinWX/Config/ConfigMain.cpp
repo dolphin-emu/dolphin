@@ -81,7 +81,11 @@ void CConfigMain::CreateGUIControls()
 	main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
 	main_sizer->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
+#ifdef __APPLE__
+	main_sizer->SetMinSize(550, 0);
+#else
 	main_sizer->SetMinSize(400, 0);
+#endif
 
 	SetSizerAndFit(main_sizer);
 	Center();

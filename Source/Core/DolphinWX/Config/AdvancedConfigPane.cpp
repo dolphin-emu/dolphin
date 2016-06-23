@@ -37,7 +37,12 @@ void AdvancedConfigPane::InitializeGUI()
 	    "can and will break games and cause glitches. "
 	    "Do so at your own risk. Please do not report "
 	    "bugs that occur with a non-default clock. "));
+
+#ifdef __APPLE__
+	clock_override_description->Wrap(550);
+#else
 	clock_override_description->Wrap(400);
+#endif
 
 	wxBoxSizer* const clock_override_checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
 	clock_override_checkbox_sizer->Add(m_clock_override_checkbox, 1, wxALL, 5);
