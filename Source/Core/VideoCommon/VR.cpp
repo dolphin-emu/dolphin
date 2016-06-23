@@ -1236,7 +1236,7 @@ void ProcessViveTouchpad(int hand, bool touched, bool pressed, float x, float y,
 		}
 		else if (!pressed && s_vive_button_mode[hand]==0)
 		{
-			const float min_dist = 0.2f;
+			const float min_dist = 0.4f;
 			float dx = x - s_vive_initial_touch_x[hand];
 			float dy = y - s_vive_initial_touch_y[hand];
 			float dist_squared = dx*dx + dy*dy;
