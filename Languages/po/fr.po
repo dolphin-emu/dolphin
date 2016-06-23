@@ -17,7 +17,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-22 14:39+0000\n"
+"PO-Revision-Date: 2016-06-23 10:38+0000\n"
 "Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
@@ -322,7 +322,7 @@ msgstr "Dépôt &GitHub"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:219
 msgid "&Graphics Settings"
-msgstr "Paramètres &Graphiques"
+msgstr "Paramètres &graphiques"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 msgid "&Help"
@@ -4294,7 +4294,7 @@ msgstr "Notes :"
 #: Source/Core/DolphinWX/FrameAui.cpp:567
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 msgid "Notice"
-msgstr "Note"
+msgstr "Information"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:97
 msgid "Num Lock"
@@ -4968,7 +4968,7 @@ msgstr "Rechercher (effacer pour utiliser la valeur précédente)"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
-msgstr "Chercher dans sous-dossiers"
+msgstr "Chercher dans les sous-dossiers"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Search current Object"
@@ -5285,7 +5285,7 @@ msgstr "Afficher les FPS"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:203
 msgid "Show Frame Counter"
-msgstr "Affiche le compteur d'images"
+msgstr "Afficher le compteur d'images"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:316
 msgid "Show France"
@@ -6290,7 +6290,7 @@ msgstr "Wiimote debout"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr "Réglages d'envoi de données statistiques"
+msgstr "Paramètres de l'envoi des données statistiques"
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
@@ -6429,7 +6429,7 @@ msgstr ""
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1089
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1416
 msgid "Warning"
-msgstr "Attention"
+msgstr "Avertissement"
 
 #: Source/Core/Core/Boot/Boot.cpp:332
 msgid "Warning - starting DOL in wrong console mode!"
