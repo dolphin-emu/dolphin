@@ -284,6 +284,9 @@ static void BPWritten(const BPCmd& bp)
 			if (g_bRecordFifoData)
 				FifoRecorder::GetInstance().UseMemory(addr, tlutXferCount, MemoryUpdate::TMEM);
 
+			// Invalidate all bound textures (could be smarter and only invalidate textures using TLUTs)
+			TextureCacheBase::InvalidateBindPoint(0xff);
+
 			return;
 		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
@@ -393,7 +396,12 @@ static void BPWritten(const BPCmd& bp)
 		}
 		return;
 	case BPMEM_TEXINVALIDATE:
-		// TODO: Needs some restructuring in TextureCacheBase.
+		// We only have a very minimal implementation of TMEM which saving hashing/rebinding only
+		// when we are 100% sure nothing has changed.
+
+		// While not all textures might be invalidated by a TMEM invalidate, we just re-hash them
+		// all anyway.
+		TextureCacheBase::InvalidateBindPoint(0xff);
 		return;
 
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
@@ -491,6 +499,9 @@ static void BPWritten(const BPCmd& bp)
 
 			if (g_bRecordFifoData)
 				FifoRecorder::GetInstance().UseMemory(src_addr, bytes_read, MemoryUpdate::TMEM);
+
+			// Invalidate all bound textures.
+			TextureCacheBase::InvalidateBindPoint(0xff);
 		}
 		return;
 
@@ -584,11 +595,13 @@ static void BPWritten(const BPCmd& bp)
 	// BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
 	// ------------------------
 	case BPMEM_TX_SETMODE0: // (0x90 for linear)
-	case BPMEM_TX_SETMODE0_4:
+	case BPMEM_TX_SETMODE1:
+		TextureCacheBase::InvalidateBindPoint(0x01 << (bp.address & 0x3));
 		return;
 
-	case BPMEM_TX_SETMODE1:
+	case BPMEM_TX_SETMODE0_4: // (0x90 for linear)
 	case BPMEM_TX_SETMODE1_4:
+		TextureCacheBase::InvalidateBindPoint(0x10 << (bp.address & 0x3));
 		return;
 	// --------------------------------------------
 	// BPMEM_TX_SETIMAGE0 - Texture width, height, format
@@ -597,20 +610,26 @@ static void BPWritten(const BPCmd& bp)
 	// BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
 	// --------------------------------------------
 	case BPMEM_TX_SETIMAGE0:
-	case BPMEM_TX_SETIMAGE0_4:
 	case BPMEM_TX_SETIMAGE1:
-	case BPMEM_TX_SETIMAGE1_4:
 	case BPMEM_TX_SETIMAGE2:
-	case BPMEM_TX_SETIMAGE2_4:
 	case BPMEM_TX_SETIMAGE3:
+		TextureCacheBase::InvalidateBindPoint(0x01 << (bp.address & 0x3));
+		return;
+	case BPMEM_TX_SETIMAGE0_4:
+	case BPMEM_TX_SETIMAGE1_4:
+	case BPMEM_TX_SETIMAGE2_4:
 	case BPMEM_TX_SETIMAGE3_4:
+		TextureCacheBase::InvalidateBindPoint(0x10 << (bp.address & 0x3));
 		return;
 	// -------------------------------
 	// Set a TLUT
 	// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
 	// -------------------------------
 	case BPMEM_TX_SETTLUT:
+		TextureCacheBase::InvalidateBindPoint(0x01 << (bp.address & 0x3));
+		return;
 	case BPMEM_TX_SETTLUT_4:
+		TextureCacheBase::InvalidateBindPoint(0x10 << (bp.address & 0x3));
 		return;
 
 	default:

@@ -48,6 +48,8 @@ TextureCacheBase::TexCache TextureCacheBase::textures_by_address;
 TextureCacheBase::TexCache TextureCacheBase::textures_by_hash;
 TextureCacheBase::TexPool TextureCacheBase::texture_pool;
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::bound_textures[8];
+u8 TextureCacheBase::invalidated_binds;
+u8 TextureCacheBase::stale_binds;
 
 TextureCacheBase::BackupConfig TextureCacheBase::backup_config;
 
@@ -76,6 +78,8 @@ TextureCacheBase::TextureCacheBase()
 	HiresTexture::Init();
 
 	SetHash64Function();
+
+	invalidated_binds = 0xff;
 }
 
 void TextureCacheBase::Invalidate()
@@ -94,6 +98,8 @@ void TextureCacheBase::Invalidate()
 		delete rt.second;
 	}
 	texture_pool.clear();
+
+	invalidated_binds = 0xff;
 }
 
 TextureCacheBase::~TextureCacheBase()
@@ -453,9 +459,14 @@ static u32 CalculateLevelSize(u32 level_0_size, u32 level)
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::ReturnEntry(unsigned int stage, TCacheEntryBase* entry)
 {
 	entry->frameCount = FRAMECOUNT_INVALID;
-	bound_textures[stage] = entry;
 
-	GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
+	if (bound_textures[stage] != entry)
+	{
+		bound_textures[stage] = entry;
+		stale_binds |= 1 << stage; // Mark this bind point as stale, so we will know to bind the new texture
+		GFX_DEBUGGER_PAUSE_AT(NEXT_TEXTURE_CHANGE, true);
+	}
+	invalidated_binds &= 0xff ^ (1 << stage); // We need to keep track of invalided textures until they have actually been replaced or re-loaded
 
 	return entry;
 }
@@ -464,18 +475,24 @@ void TextureCacheBase::BindTextures()
 {
 	for (int i = 0; i < 8; ++i)
 	{
-		if (bound_textures[i])
+		if (bound_textures[i] && stale_binds & (1 << i))
 			bound_textures[i]->Bind(i);
 	}
+
 }
 
 void TextureCacheBase::UnbindTextures()
 {
-	std::fill(std::begin(bound_textures), std::end(bound_textures), nullptr);
+	//std::fill(std::begin(bound_textures), std::end(bound_textures), nullptr);
+	stale_binds = 0;
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 {
+	// if nothing has changed, just keep the current texture.
+	if ((invalidated_binds & (1 << stage)) == 0)
+		return bound_textures[stage];
+
 	const FourTexUnits &tex = bpmem.tex[stage >> 2];
 	const u32 id = stage & 3;
 	const u32 address = (tex.texImage3[id].image_base/* & 0x1FFFFF*/) << 5;

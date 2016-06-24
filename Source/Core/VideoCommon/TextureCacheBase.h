@@ -161,6 +161,7 @@ public:
 	virtual void DeleteShaders() = 0; // currently only implemented by OGL
 
 	static TCacheEntryBase* Load(const u32 stage);
+	static void InvalidateBindPoint(u8 mask) { invalidated_binds |= mask; }
 	static void UnbindTextures();
 	virtual void BindTextures();
 	static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
@@ -175,6 +176,8 @@ protected:
 	static size_t temp_size;
 
 	static TCacheEntryBase* bound_textures[8];
+	static u8 invalidated_binds;
+	static u8 stale_binds;
 
 private:
 	typedef std::multimap<u64, TCacheEntryBase*> TexCache;
