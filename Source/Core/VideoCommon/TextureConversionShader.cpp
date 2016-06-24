@@ -86,7 +86,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
   int blkH = TexDecoder_GetBlockHeightInTexels(format);
   int samples = GetEncodedSampleCount(format);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     WRITE(p, "#define samp0 samp9\n");
     WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
@@ -145,7 +145,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
                              API_TYPE ApiType, bool depth = false)
 {
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n", dest,
           xoffset, colorComp);
