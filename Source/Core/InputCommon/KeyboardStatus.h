@@ -6,8 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-enum KeyMasks
-{
+enum KeyMasks {
   KEYMASK_HOME = (1 << 0),
   KEYMASK_END = (1 << 1),
   KEYMASK_PGUP = (1 << 2),
@@ -95,8 +94,7 @@ enum KeyMasks
   KEYMASK_ENTER = (1 << 4),
 };
 
-enum KeyScanCode
-{
+enum KeyScanCode {
   KEY_HOME = 0x06,
   KEY_END = 0x07,
   KEY_PGUP = 0x08,
@@ -185,8 +183,7 @@ enum KeyScanCode
 
 };
 
-struct KeyboardStatus
-{
+struct KeyboardStatus {
   u16 key0x;
   u16 key1x;
   u16 key2x;

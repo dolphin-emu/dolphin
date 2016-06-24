@@ -6,4 +6,5 @@
 #include <wx/font.h>
 
 // The default font
-wxFont DebuggerFont = wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, "monospace");
+wxFont DebuggerFont =
+    wxFont(9, wxMODERN, wxNORMAL, wxNORMAL, false, "monospace");

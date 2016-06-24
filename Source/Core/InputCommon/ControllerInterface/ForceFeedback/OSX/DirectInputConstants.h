@@ -8,7 +8,8 @@
  * Define all constants from ForceFeedbackConstants.h with DirectInput prefixes.
  *
  * No effort was made to confirm if all definitions are actually supported by
- * DirectInput, so some of these definitions may actually only exist on Mac OS X.
+ * DirectInput, so some of these definitions may actually only exist on Mac OS
+ * X.
  */
 
 // UUIDs

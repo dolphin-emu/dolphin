@@ -6,8 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace PowerPC
-{
+namespace PowerPC {
 const u32 ICACHE_SETS = 128;
 const u32 ICACHE_WAYS = 8;
 // size of an instruction cache block in words
@@ -16,8 +15,7 @@ const u32 ICACHE_BLOCK_SIZE = 8;
 const u32 ICACHE_EXRAM_BIT = 0x10000000;
 const u32 ICACHE_VMEM_BIT = 0x20000000;
 
-struct InstructionCache
-{
+struct InstructionCache {
   u32 data[ICACHE_SETS][ICACHE_WAYS][ICACHE_BLOCK_SIZE];
   u32 tags[ICACHE_SETS][ICACHE_WAYS];
   u32 plru[ICACHE_SETS];

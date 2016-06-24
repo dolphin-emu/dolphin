@@ -15,8 +15,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-namespace Rasterizer
-{
+namespace Rasterizer {
 static constexpr int BLOCK_SIZE = 2;
 
 static Slope ZSlope;
@@ -32,11 +31,11 @@ static float vertexOffsetY;
 static Tev tev;
 static RasterBlock rasterBlock;
 
-void Init()
-{
+void Init() {
   tev.Init();
 
-  // Set initial z reference plane in the unlikely case that zfreeze is enabled when drawing the
+  // Set initial z reference plane in the unlikely case that zfreeze is enabled
+  // when drawing the
   // first primitive.
   // TODO: This is just a guess!
   ZSlope.dfdx = ZSlope.dfdy = 0.f;
@@ -45,19 +44,17 @@ void Init()
 
 // Returns approximation of log2(f) in s28.4
 // results are close enough to use for LOD
-static s32 FixedLog2(float f)
-{
+static s32 FixedLog2(float f) {
   u32 x;
   std::memcpy(&x, &f, sizeof(u32));
 
-  s32 logInt = ((x & 0x7F800000) >> 19) - 2032;  // integer part
-  s32 logFract = (x & 0x007fffff) >> 19;         // approximate fractional part
+  s32 logInt = ((x & 0x7F800000) >> 19) - 2032; // integer part
+  s32 logFract = (x & 0x007fffff) >> 19;        // approximate fractional part
 
   return logInt + logFract;
 }
 
-static inline int iround(float x)
-{
+static inline int iround(float x) {
   int t = (int)x;
   if ((x - t) >= 0.5)
     return t + 1;
@@ -65,26 +62,23 @@ static inline int iround(float x)
   return t;
 }
 
-void SetTevReg(int reg, int comp, s16 color)
-{
+void SetTevReg(int reg, int comp, s16 color) {
   tev.SetRegColor(reg, comp, color);
 }
 
-static void Draw(s32 x, s32 y, s32 xi, s32 yi)
-{
+static void Draw(s32 x, s32 y, s32 xi, s32 yi) {
   INCSTAT(stats.thisFrame.rasterizedPixels);
 
   float dx = vertexOffsetX + (float)(x - vertex0X);
   float dy = vertexOffsetY + (float)(y - vertex0Y);
 
-  s32 z = (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
+  s32 z =
+      (s32)MathUtil::Clamp<float>(ZSlope.GetValue(dx, dy), 0.0f, 16777215.0f);
 
-  if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc)
-  {
+  if (bpmem.UseEarlyDepthTest() && g_ActiveConfig.bZComploc) {
     // TODO: Test if perf regs are incremented even if test is disabled
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_INPUT_ZCOMPLOC);
-    if (bpmem.zmode.testenable)
-    {
+    if (bpmem.zmode.testenable) {
       // early z
       if (!EfbInterface::ZCompare(x, y, z))
         return;
@@ -92,17 +86,15 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
     EfbInterface::IncPerfCounterQuadCount(PQ_ZCOMP_OUTPUT_ZCOMPLOC);
   }
 
-  RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+  RasterBlockPixel &pixel = rasterBlock.Pixel[xi][yi];
 
   tev.Position[0] = x;
   tev.Position[1] = y;
   tev.Position[2] = z;
 
   //  colors
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
-  {
-    for (int comp = 0; comp < 4; comp++)
-    {
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++) {
+    for (int comp = 0; comp < 4; comp++) {
       u16 color = (u16)ColorSlopes[i][comp].GetValue(dx, dy);
 
       // clamp color value to 0
@@ -113,21 +105,18 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   }
 
   // tex coords
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
-  {
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++) {
     // multiply by 128 because TEV stores UVs as s17.7
     tev.Uv[i].s = (s32)(pixel.Uv[i][0] * 128);
     tev.Uv[i].t = (s32)(pixel.Uv[i][1] * 128);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
-  {
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++) {
     tev.IndirectLod[i] = rasterBlock.IndirectLod[i];
     tev.IndirectLinear[i] = rasterBlock.IndirectLinear[i];
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
-  {
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++) {
     tev.TextureLod[i] = rasterBlock.TextureLod[i];
     tev.TextureLinear[i] = rasterBlock.TextureLinear[i];
   }
@@ -135,8 +124,7 @@ static void Draw(s32 x, s32 y, s32 xi, s32 yi)
   tev.Draw();
 }
 
-static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
-{
+static void InitTriangle(float X1, float Y1, s32 xi, s32 yi) {
   vertex0X = xi;
   vertex0Y = yi;
 
@@ -147,9 +135,8 @@ static void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
   vertexOffsetY = ((float)yi - Y1) + adjust;
 }
 
-static void InitSlope(Slope* slope, float f1, float f2, float f3, float DX31, float DX12,
-                      float DY12, float DY31)
-{
+static void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31,
+                      float DX12, float DY12, float DY31) {
   float DF31 = f3 - f1;
   float DF21 = f2 - f1;
   float a = DF31 * -DY12 - DF21 * DY31;
@@ -160,30 +147,27 @@ static void InitSlope(Slope* slope, float f1, float f2, float f3, float DX31, fl
   slope->f0 = f1;
 }
 
-static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoord)
-{
-  const FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+static inline void CalculateLOD(s32 *lodp, bool *linear, u32 texmap,
+                                u32 texcoord) {
+  const FourTexUnits &texUnit = bpmem.tex[(texmap >> 2) & 1];
   const u8 subTexmap = texmap & 3;
 
   // LOD calculation requires data from the texture mode for bias, etc.
   // it does not seem to use the actual texture size
-  const TexMode0& tm0 = texUnit.texMode0[subTexmap];
-  const TexMode1& tm1 = texUnit.texMode1[subTexmap];
+  const TexMode0 &tm0 = texUnit.texMode0[subTexmap];
+  const TexMode1 &tm1 = texUnit.texMode1[subTexmap];
 
   float sDelta, tDelta;
-  if (tm0.diag_lod)
-  {
-    float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-    float* uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
+  if (tm0.diag_lod) {
+    float *uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
+    float *uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
 
     sDelta = fabsf(uv0[0] - uv1[0]);
     tDelta = fabsf(uv0[1] - uv1[1]);
-  }
-  else
-  {
-    float* uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
-    float* uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
-    float* uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
+  } else {
+    float *uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
+    float *uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
+    float *uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
     sDelta = std::max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
     tDelta = std::max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
@@ -208,13 +192,10 @@ static inline void CalculateLOD(s32* lodp, bool* linear, u32 texmap, u32 texcoor
   *lodp = lod;
 }
 
-static void BuildBlock(s32 blockX, s32 blockY)
-{
-  for (s32 yi = 0; yi < BLOCK_SIZE; yi++)
-  {
-    for (s32 xi = 0; xi < BLOCK_SIZE; xi++)
-    {
-      RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
+static void BuildBlock(s32 blockX, s32 blockY) {
+  for (s32 yi = 0; yi < BLOCK_SIZE; yi++) {
+    for (s32 xi = 0; xi < BLOCK_SIZE; xi++) {
+      RasterBlockPixel &pixel = rasterBlock.Pixel[xi][yi];
 
       float dx = vertexOffsetX + (float)(xi + blockX - vertex0X);
       float dy = vertexOffsetY + (float)(yi + blockY - vertex0Y);
@@ -223,11 +204,9 @@ static void BuildBlock(s32 blockX, s32 blockY)
       pixel.InvW = invW;
 
       // tex coords
-      for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
-      {
+      for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++) {
         float projection = invW;
-        if (xfmem.texMtxInfo[i].projection)
-        {
+        if (xfmem.texMtxInfo[i].projection) {
           float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
           if (q != 0.0f)
             projection = invW / q;
@@ -240,37 +219,37 @@ static void BuildBlock(s32 blockX, s32 blockY)
   }
 
   u32 indref = bpmem.tevindref.hex;
-  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++)
-  {
+  for (unsigned int i = 0; i < bpmem.genMode.numindstages; i++) {
     u32 texmap = indref & 3;
     indref >>= 3;
     u32 texcoord = indref & 3;
     indref >>= 3;
 
-    CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i], texmap, texcoord);
+    CalculateLOD(&rasterBlock.IndirectLod[i], &rasterBlock.IndirectLinear[i],
+                 texmap, texcoord);
   }
 
-  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++)
-  {
+  for (unsigned int i = 0; i <= bpmem.genMode.numtevstages; i++) {
     int stageOdd = i & 1;
-    const TwoTevStageOrders& order = bpmem.tevorders[i >> 1];
-    if (order.getEnable(stageOdd))
-    {
+    const TwoTevStageOrders &order = bpmem.tevorders[i >> 1];
+    if (order.getEnable(stageOdd)) {
       u32 texmap = order.getTexMap(stageOdd);
       u32 texcoord = order.getTexCoord(stageOdd);
 
-      CalculateLOD(&rasterBlock.TextureLod[i], &rasterBlock.TextureLinear[i], texmap, texcoord);
+      CalculateLOD(&rasterBlock.TextureLod[i], &rasterBlock.TextureLinear[i],
+                   texmap, texcoord);
     }
   }
 }
 
-void DrawTriangleFrontFace(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
-{
+void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1,
+                           OutputVertexData *v2) {
   INCSTAT(stats.thisFrame.numTrianglesDrawn);
 
   // adapted from http://devmaster.net/posts/6145/advanced-rasterization
 
-  // 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
+  // 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match
+  // hardware output
   // could also take floor and adjust -8
   const s32 Y1 = iround(16.0f * v0->screenPosition[1]) - 9;
   const s32 Y2 = iround(16.0f * v1->screenPosition[1]) - 9;
@@ -347,27 +326,29 @@ void DrawTriangleFrontFace(OutputVertexData* v0, OutputVertexData* v1, OutputVer
   InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
   // TODO: The zfreeze emulation is not quite correct, yet!
-  // Many things might prevent us from reaching this line (culling, clipping, scissoring).
-  // However, the zslope is always guaranteed to be calculated unless all vertices are trivially
+  // Many things might prevent us from reaching this line (culling, clipping,
+  // scissoring).
+  // However, the zslope is always guaranteed to be calculated unless all
+  // vertices are trivially
   // rejected during clipping!
-  // We're currently sloppy at this since we abort early if any of the culling/clipping/scissoring
+  // We're currently sloppy at this since we abort early if any of the
+  // culling/clipping/scissoring
   // tests fail.
   if (!bpmem.genMode.zfreeze || !g_ActiveConfig.bZFreeze)
-    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31,
-              fltdx12, fltdy12, fltdy31);
+    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2],
+              v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
-  {
+  for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++) {
     for (int comp = 0; comp < 4; comp++)
-      InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp],
-                fltdx31, fltdx12, fltdy12, fltdy31);
+      InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp],
+                v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31);
   }
 
-  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
-  {
+  for (unsigned int i = 0; i < bpmem.genMode.numtexgens; i++) {
     for (int comp = 0; comp < 3; comp++)
-      InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1],
-                v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
+      InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0],
+                v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2],
+                fltdx31, fltdx12, fltdy12, fltdy31);
   }
 
   // Half-edge constants
@@ -388,10 +369,8 @@ void DrawTriangleFrontFace(OutputVertexData* v0, OutputVertexData* v1, OutputVer
   miny &= ~(BLOCK_SIZE - 1);
 
   // Loop through blocks
-  for (s32 y = miny; y < maxy; y += BLOCK_SIZE)
-  {
-    for (s32 x = minx; x < maxx; x += BLOCK_SIZE)
-    {
+  for (s32 y = miny; y < maxy; y += BLOCK_SIZE) {
+    for (s32 x = minx; x < maxx; x += BLOCK_SIZE) {
       // Corners of block
       s32 x0 = x << 4;
       s32 x1 = (x + BLOCK_SIZE - 1) << 4;
@@ -424,32 +403,25 @@ void DrawTriangleFrontFace(OutputVertexData* v0, OutputVertexData* v1, OutputVer
       BuildBlock(x, y);
 
       // Accept whole block when totally covered
-      if (a == 0xF && b == 0xF && c == 0xF)
-      {
-        for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
-        {
-          for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
-          {
+      if (a == 0xF && b == 0xF && c == 0xF) {
+        for (s32 iy = 0; iy < BLOCK_SIZE; iy++) {
+          for (s32 ix = 0; ix < BLOCK_SIZE; ix++) {
             Draw(x + ix, y + iy, ix, iy);
           }
         }
-      }
-      else  // Partially covered block
+      } else // Partially covered block
       {
         s32 CY1 = C1 + DX12 * y0 - DY12 * x0;
         s32 CY2 = C2 + DX23 * y0 - DY23 * x0;
         s32 CY3 = C3 + DX31 * y0 - DY31 * x0;
 
-        for (s32 iy = 0; iy < BLOCK_SIZE; iy++)
-        {
+        for (s32 iy = 0; iy < BLOCK_SIZE; iy++) {
           s32 CX1 = CY1;
           s32 CX2 = CY2;
           s32 CX3 = CY3;
 
-          for (s32 ix = 0; ix < BLOCK_SIZE; ix++)
-          {
-            if (CX1 > 0 && CX2 > 0 && CX3 > 0)
-            {
+          for (s32 ix = 0; ix < BLOCK_SIZE; ix++) {
+            if (CX1 > 0 && CX2 > 0 && CX3 > 0) {
               Draw(x + ix, y + iy, ix, iy);
             }
 

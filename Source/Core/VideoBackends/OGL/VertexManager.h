@@ -7,12 +7,10 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
-namespace OGL
-{
-class GLVertexFormat : public NativeVertexFormat
-{
+namespace OGL {
+class GLVertexFormat : public NativeVertexFormat {
 public:
-  GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
+  GLVertexFormat(const PortableVertexDeclaration &vtx_decl);
   ~GLVertexFormat();
 
   void SetupVertexPointers() override;
@@ -22,12 +20,12 @@ public:
 
 // Handles the OpenGL details of drawing lots of vertices quickly.
 // Other functionality is moving out.
-class VertexManager : public VertexManagerBase
-{
+class VertexManager : public VertexManagerBase {
 public:
   VertexManager();
   ~VertexManager();
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  NativeVertexFormat *
+  CreateNativeVertexFormat(const PortableVertexDeclaration &vtx_decl) override;
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 

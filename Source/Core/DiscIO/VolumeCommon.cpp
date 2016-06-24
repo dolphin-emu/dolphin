@@ -16,21 +16,21 @@
 #include "Common/StringUtil.h"
 #include "DiscIO/Volume.h"
 
-namespace DiscIO
-{
+namespace DiscIO {
 static const unsigned int WII_BANNER_WIDTH = 192;
 static const unsigned int WII_BANNER_HEIGHT = 64;
-static const unsigned int WII_BANNER_SIZE = WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
+static const unsigned int WII_BANNER_SIZE =
+    WII_BANNER_WIDTH * WII_BANNER_HEIGHT * 2;
 static const unsigned int WII_BANNER_OFFSET = 0xA0;
 
-std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
-{
+std::vector<u32> IVolume::GetWiiBanner(int *width, int *height, u64 title_id) {
   *width = 0;
   *height = 0;
 
-  std::string file_name = StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
-                                           File::GetUserPath(D_WIIROOT_IDX).c_str(),
-                                           (u32)(title_id >> 32), (u32)title_id);
+  std::string file_name =
+      StringFromFormat("%s/title/%08x/%08x/data/banner.bin",
+                       File::GetUserPath(D_WIIROOT_IDX).c_str(),
+                       (u32)(title_id >> 32), (u32)title_id);
   if (!File::Exists(file_name))
     return std::vector<u32>();
 
@@ -46,27 +46,27 @@ std::vector<u32> IVolume::GetWiiBanner(int* width, int* height, u64 title_id)
     return std::vector<u32>();
 
   std::vector<u32> image_buffer(WII_BANNER_WIDTH * WII_BANNER_HEIGHT);
-  ColorUtil::decode5A3image(image_buffer.data(), (u16*)banner_file.data(), WII_BANNER_WIDTH,
-                            WII_BANNER_HEIGHT);
+  ColorUtil::decode5A3image(image_buffer.data(), (u16 *)banner_file.data(),
+                            WII_BANNER_WIDTH, WII_BANNER_HEIGHT);
 
   *width = WII_BANNER_WIDTH;
   *height = WII_BANNER_HEIGHT;
   return image_buffer;
 }
 
-std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(const std::vector<u8>& data)
-{
+std::map<IVolume::ELanguage, std::string>
+IVolume::ReadWiiNames(const std::vector<u8> &data) {
   std::map<IVolume::ELanguage, std::string> names;
-  for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i)
-  {
+  for (size_t i = 0; i < NUMBER_OF_LANGUAGES; ++i) {
     size_t name_start = NAME_BYTES_LENGTH * i;
     size_t name_end = name_start + NAME_BYTES_LENGTH;
-    if (data.size() >= name_end)
-    {
-      u16* temp = (u16*)(data.data() + name_start);
+    if (data.size() >= name_end) {
+      u16 *temp = (u16 *)(data.data() + name_start);
       std::wstring out_temp(NAME_STRING_LENGTH, '\0');
-      std::transform(temp, temp + out_temp.size(), out_temp.begin(), (u16(&)(u16))Common::swap16);
-      out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00), out_temp.end());
+      std::transform(temp, temp + out_temp.size(), out_temp.begin(),
+                     (u16(&)(u16))Common::swap16);
+      out_temp.erase(std::find(out_temp.begin(), out_temp.end(), 0x00),
+                     out_temp.end());
       std::string name = UTF16ToUTF8(out_temp);
       if (!name.empty())
         names[(IVolume::ELanguage)i] = name;
@@ -75,11 +75,10 @@ std::map<IVolume::ELanguage, std::string> IVolume::ReadWiiNames(const std::vecto
   return names;
 }
 
-// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp & GameFile.cpp)
-IVolume::ECountry CountrySwitch(u8 country_code)
-{
-  switch (country_code)
-  {
+// Increment CACHE_REVISION if the code below is modified (ISOFile.cpp &
+// GameFile.cpp)
+IVolume::ECountry CountrySwitch(u8 country_code) {
+  switch (country_code) {
   // Worldwide
   case 'A':
     return IVolume::COUNTRY_WORLD;
@@ -88,10 +87,10 @@ IVolume::ECountry CountrySwitch(u8 country_code)
   case 'D':
     return IVolume::COUNTRY_GERMANY;
 
-  case 'X':  // Used by a couple PAL games
-  case 'Y':  // German, French
-  case 'L':  // Japanese import to PAL regions
-  case 'M':  // Japanese import to PAL regions
+  case 'X': // Used by a couple PAL games
+  case 'Y': // German, French
+  case 'L': // Japanese import to PAL regions
+  case 'M': // Japanese import to PAL regions
   case 'P':
     return IVolume::COUNTRY_EUROPE;
 
@@ -115,33 +114,31 @@ IVolume::ECountry CountrySwitch(u8 country_code)
 
   // NTSC
   case 'E':
-  case 'N':  // Japanese import to USA and other NTSC regions
-  case 'Z':  // Prince of Persia - The Forgotten Sands (Wii)
-  case 'B':  // Ufouria: The Saga (Virtual Console)
+  case 'N': // Japanese import to USA and other NTSC regions
+  case 'Z': // Prince of Persia - The Forgotten Sands (Wii)
+  case 'B': // Ufouria: The Saga (Virtual Console)
     return IVolume::COUNTRY_USA;
 
   case 'J':
     return IVolume::COUNTRY_JAPAN;
 
   case 'K':
-  case 'Q':  // Korea with Japanese language
-  case 'T':  // Korea with English language
+  case 'Q': // Korea with Japanese language
+  case 'T': // Korea with English language
     return IVolume::COUNTRY_KOREA;
 
   case 'W':
     return IVolume::COUNTRY_TAIWAN;
 
   default:
-    if (country_code > 'A')  // Silently ignore IOS wads
+    if (country_code > 'A') // Silently ignore IOS wads
       WARN_LOG(DISCIO, "Unknown Country Code! %c", country_code);
     return IVolume::COUNTRY_UNKNOWN;
   }
 }
 
-u8 GetSysMenuRegion(u16 _TitleVersion)
-{
-  switch (_TitleVersion)
-  {
+u8 GetSysMenuRegion(u16 _TitleVersion) {
+  switch (_TitleVersion) {
   case 128:
   case 192:
   case 224:
@@ -190,8 +187,7 @@ u8 GetSysMenuRegion(u16 _TitleVersion)
   }
 }
 
-std::string GetCompanyFromID(const std::string& company_id)
-{
+std::string GetCompanyFromID(const std::string &company_id) {
   static const std::map<std::string, std::string> companies = {
       {"01", "Nintendo"},
       {"02", "Rocket Games / Ajinomoto"},

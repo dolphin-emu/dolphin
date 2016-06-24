@@ -4,20 +4,19 @@
 
 #pragma once
 
-#include <memory>
 #include "VideoCommon/VertexManagerBase.h"
+#include <memory>
 
-namespace DX12
-{
+namespace DX12 {
 class D3DStreamBuffer;
 
-class VertexManager final : public VertexManagerBase
-{
+class VertexManager final : public VertexManagerBase {
 public:
   VertexManager();
   ~VertexManager();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  NativeVertexFormat *
+  CreateNativeVertexFormat(const PortableVertexDeclaration &vtx_decl) override;
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
@@ -44,4 +43,4 @@ private:
   std::vector<u8> m_vertex_cpu_buffer;
 };
 
-}  // namespace
+} // namespace

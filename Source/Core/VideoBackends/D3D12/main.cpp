@@ -37,13 +37,10 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace DX12
-{
-unsigned int VideoBackend::PeekMessages()
-{
+namespace DX12 {
+unsigned int VideoBackend::PeekMessages() {
   MSG msg;
-  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-  {
+  while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE)) {
     if (msg.message == WM_QUIT)
       return FALSE;
     TranslateMessage(&msg);
@@ -52,25 +49,19 @@ unsigned int VideoBackend::PeekMessages()
   return TRUE;
 }
 
-std::string VideoBackend::GetName() const
-{
-  return "D3D12";
-}
+std::string VideoBackend::GetName() const { return "D3D12"; }
 
-std::string VideoBackend::GetDisplayName() const
-{
+std::string VideoBackend::GetDisplayName() const {
   return "Direct3D 12 (experimental)";
 }
 
-void InitBackendInfo()
-{
+void InitBackendInfo() {
   HRESULT hr = D3D::LoadDXGI();
   if (FAILED(hr))
     return;
 
   hr = D3D::LoadD3D();
-  if (FAILED(hr))
-  {
+  if (FAILED(hr)) {
     D3D::UnloadDXGI();
     return;
   }
@@ -86,11 +77,10 @@ void InitBackendInfo()
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
 
-  IDXGIFactory* factory;
-  IDXGIAdapter* ad;
-  hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void**)&factory);
-  if (FAILED(hr))
-  {
+  IDXGIFactory *factory;
+  IDXGIAdapter *ad;
+  hr = create_dxgi_factory(__uuidof(IDXGIFactory), (void **)&factory);
+  if (FAILED(hr)) {
     PanicAlert("Failed to create IDXGIFactory object");
     D3D::UnloadD3D();
     D3D::UnloadDXGI();
@@ -100,30 +90,28 @@ void InitBackendInfo()
   // adapters
   g_Config.backend_info.Adapters.clear();
   g_Config.backend_info.AAModes.clear();
-  while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(), &ad) !=
-         DXGI_ERROR_NOT_FOUND)
-  {
+  while (factory->EnumAdapters((UINT)g_Config.backend_info.Adapters.size(),
+                               &ad) != DXGI_ERROR_NOT_FOUND) {
     const size_t adapter_index = g_Config.backend_info.Adapters.size();
 
     DXGI_ADAPTER_DESC desc;
     ad->GetDesc(&desc);
 
     // TODO: These don't get updated on adapter change, yet
-    if (adapter_index == g_Config.iAdapter)
-    {
-      ID3D12Device* temp_device;
-      hr = d3d12_create_device(ad, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&temp_device));
-      if (SUCCEEDED(hr))
-      {
+    if (adapter_index == g_Config.iAdapter) {
+      ID3D12Device *temp_device;
+      hr = d3d12_create_device(ad, D3D_FEATURE_LEVEL_11_0,
+                               IID_PPV_ARGS(&temp_device));
+      if (SUCCEEDED(hr)) {
         std::string samples;
         std::vector<DXGI_SAMPLE_DESC> modes = D3D::EnumAAModes(temp_device);
         // First iteration will be 1. This equals no AA.
-        for (unsigned int i = 0; i < modes.size(); ++i)
-        {
+        for (unsigned int i = 0; i < modes.size(); ++i) {
           g_Config.backend_info.AAModes.push_back(modes[i].Count);
         }
 
-        // Requires the earlydepthstencil attribute (only available in shader model 5)
+        // Requires the earlydepthstencil attribute (only available in shader
+        // model 5)
         g_Config.backend_info.bSupportsEarlyZ = true;
 
         // Requires full UAV functionality (only available in shader model 5)
@@ -152,14 +140,12 @@ void InitBackendInfo()
   D3D::UnloadDXGI();
 }
 
-void VideoBackend::ShowConfig(void* hParent)
-{
+void VideoBackend::ShowConfig(void *hParent) {
   InitBackendInfo();
   Host_ShowVideoConfig(hParent, GetDisplayName(), "gfx_dx12");
 }
 
-bool VideoBackend::Initialize(void* window_handle)
-{
+bool VideoBackend::Initialize(void *window_handle) {
   if (window_handle == nullptr)
     return false;
 
@@ -187,8 +173,7 @@ bool VideoBackend::Initialize(void* window_handle)
   return true;
 }
 
-void VideoBackend::Video_Prepare()
-{
+void VideoBackend::Video_Prepare() {
   // internal interfaces
   g_renderer = std::make_unique<Renderer>(m_window_handle);
   g_texture_cache = std::make_unique<TextureCache>();
@@ -198,7 +183,8 @@ void VideoBackend::Video_Prepare()
   ShaderCache::Init();
   ShaderConstantsManager::Init();
   StaticShaderCache::Init();
-  StateCache::Init();  // PSO cache is populated here, after constituent shaders are loaded.
+  StateCache::Init(); // PSO cache is populated here, after constituent shaders
+                      // are loaded.
   D3D::InitUtils();
 
   // VideoCommon
@@ -218,14 +204,13 @@ void VideoBackend::Video_Prepare()
   Host_Message(WM_USER_CREATE);
 }
 
-void VideoBackend::Shutdown()
-{
+void VideoBackend::Shutdown() {
   m_initialized = true;
 
   // TODO: should be in Video_Cleanup
-  if (g_renderer)
-  {
-    // Immediately stop app from submitting work to GPU, and wait for all submitted work to
+  if (g_renderer) {
+    // Immediately stop app from submitting work to GPU, and wait for all
+    // submitted work to
     // complete. D3D12TODO: Check this.
     D3D::command_list_mgr->ExecuteQueuedWork(true);
 
@@ -255,7 +240,5 @@ void VideoBackend::Shutdown()
   }
 }
 
-void VideoBackend::Video_Cleanup()
-{
-}
+void VideoBackend::Video_Cleanup() {}
 }

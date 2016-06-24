@@ -2,30 +2,27 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 #include <algorithm>
 #include <string>
-#include "Common/Thread.h"
 
-namespace ciface
-{
-namespace ForceFeedback
-{
+namespace ciface {
+namespace ForceFeedback {
 // template instantiation
 template class ForceFeedbackDevice::Force<DICONSTANTFORCE>;
 template class ForceFeedbackDevice::Force<DIRAMPFORCE>;
 template class ForceFeedbackDevice::Force<DIPERIODIC>;
 
-struct ForceType
-{
+struct ForceType {
   GUID guid;
   const std::string name;
 };
 
 static const ForceType force_type_names[] = {
-    {GUID_ConstantForce, "Constant"},  // DICONSTANTFORCE
-    {GUID_RampForce, "Ramp"},          // DIRAMPFORCE
-    {GUID_Square, "Square"},           // DIPERIODIC ...
+    {GUID_ConstantForce, "Constant"}, // DICONSTANTFORCE
+    {GUID_RampForce, "Ramp"},         // DIRAMPFORCE
+    {GUID_Square, "Square"},          // DIPERIODIC ...
     {GUID_Sine, "Sine"},
     {GUID_Triangle, "Triangle"},
     {GUID_SawtoothUp, "Sawtooth Up"},
@@ -36,8 +33,8 @@ static const ForceType force_type_names[] = {
     //{GUID_Friction, "Friction"},
 };
 
-bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, int cAxes)
-{
+bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device,
+                                            int cAxes) {
   if (cAxes == 0)
     return false;
 
@@ -51,7 +48,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   memset(&eff, 0, sizeof(eff));
   eff.dwSize = sizeof(DIEFFECT);
   eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
-  eff.dwDuration = INFINITE;  // (4 * DI_SECONDS)
+  eff.dwDuration = INFINITE; // (4 * DI_SECONDS)
   eff.dwSamplePeriod = 0;
   eff.dwGain = DI_FFNOMINALMAX;
   eff.dwTriggerButton = DIEB_NOTRIGGER;
@@ -72,28 +69,21 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   // ZeroMemory(&env, sizeof(env));
   // env.dwSize = sizeof(env);
 
-  for (const ForceType& f : force_type_names)
-  {
-    if (f.guid == GUID_ConstantForce)
-    {
+  for (const ForceType &f : force_type_names) {
+    if (f.guid == GUID_ConstantForce) {
       eff.cbTypeSpecificParams = sizeof(DICONSTANTFORCE);
       eff.lpvTypeSpecificParams = &diCF;
-    }
-    else if (f.guid == GUID_RampForce)
-    {
+    } else if (f.guid == GUID_RampForce) {
       eff.cbTypeSpecificParams = sizeof(DIRAMPFORCE);
       eff.lpvTypeSpecificParams = &diRF;
-    }
-    else
-    {
+    } else {
       // all other forces need periodic parameters
       eff.cbTypeSpecificParams = sizeof(DIPERIODIC);
       eff.lpvTypeSpecificParams = &diPE;
     }
 
     LPDIRECTINPUTEFFECT pEffect;
-    if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
-    {
+    if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr))) {
       if (f.guid == GUID_ConstantForce)
         AddOutput(new ForceConstant(f.name, pEffect));
       else if (f.guid == GUID_RampForce)
@@ -104,8 +94,7 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   }
 
   // disable autocentering
-  if (Outputs().size())
-  {
+  if (Outputs().size()) {
     DIPROPDWORD dipdw;
     dipdw.diph.dwSize = sizeof(DIPROPDWORD);
     dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
@@ -118,17 +107,13 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
   return true;
 }
 
-template <typename P>
-ForceFeedbackDevice::Force<P>::~Force()
-{
+template <typename P> ForceFeedbackDevice::Force<P>::~Force() {
   m_iface->Stop();
   m_iface->Unload();
   m_iface->Release();
 }
 
-template <typename P>
-void ForceFeedbackDevice::Force<P>::Update()
-{
+template <typename P> void ForceFeedbackDevice::Force<P>::Update() {
   DIEFFECT eff = {};
   eff.dwSize = sizeof(DIEFFECT);
   eff.dwFlags = DIEFF_CARTESIAN | DIEFF_OBJECTOFFSETS;
@@ -140,15 +125,12 @@ void ForceFeedbackDevice::Force<P>::Update()
   m_iface->SetParameters(&eff, DIEP_TYPESPECIFICPARAMS | DIEP_START);
 }
 
-template <typename P>
-void ForceFeedbackDevice::Force<P>::Stop()
-{
+template <typename P> void ForceFeedbackDevice::Force<P>::Stop() {
   m_iface->Stop();
 }
 
 template <>
-void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
-{
+void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state) {
   const LONG new_val = LONG(10000 * state);
 
   if (params.lMagnitude == new_val)
@@ -162,8 +144,7 @@ void ForceFeedbackDevice::ForceConstant::SetState(const ControlState state)
 }
 
 template <>
-void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
-{
+void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state) {
   const LONG new_val = LONG(10000 * state);
 
   if (params.lStart == new_val)
@@ -177,8 +158,7 @@ void ForceFeedbackDevice::ForceRamp::SetState(const ControlState state)
 }
 
 template <>
-void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
-{
+void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state) {
   const DWORD new_val = DWORD(10000 * state);
 
   if (params.dwMagnitude == new_val)
@@ -192,15 +172,14 @@ void ForceFeedbackDevice::ForcePeriodic::SetState(const ControlState state)
 }
 
 template <typename P>
-ForceFeedbackDevice::Force<P>::Force(const std::string& name, LPDIRECTINPUTEFFECT iface)
-    : m_name(name), m_iface(iface)
-{
+ForceFeedbackDevice::Force<P>::Force(const std::string &name,
+                                     LPDIRECTINPUTEFFECT iface)
+    : m_name(name), m_iface(iface) {
   memset(&params, 0, sizeof(params));
 }
 
 template <typename P>
-std::string ForceFeedbackDevice::Force<P>::GetName() const
-{
+std::string ForceFeedbackDevice::Force<P>::GetName() const {
   return m_name;
 }
 }

@@ -2,70 +2,76 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/StaticShaderCache.h"
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DShader.h"
+#include "VideoBackends/D3D12/StaticShaderCache.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace DX12
-{
+namespace DX12 {
 // Pixel Shader blobs
-static ID3DBlob* s_color_matrix_program_blob[2] = {};
-static ID3DBlob* s_color_copy_program_blob[2] = {};
-static ID3DBlob* s_depth_matrix_program_blob[2] = {};
-static ID3DBlob* s_depth_resolve_to_color_program_blob = {};
-static ID3DBlob* s_clear_program_blob = {};
-static ID3DBlob* s_anaglyph_program_blob = {};
-static ID3DBlob* s_xfb_encode_shader_blob = {};
-static ID3DBlob* s_xfb_decode_shader_blob = {};
-static ID3DBlob* s_rgba6_to_rgb8_program_blob[2] = {};
-static ID3DBlob* s_rgb8_to_rgba6_program_blob[2] = {};
+static ID3DBlob *s_color_matrix_program_blob[2] = {};
+static ID3DBlob *s_color_copy_program_blob[2] = {};
+static ID3DBlob *s_depth_matrix_program_blob[2] = {};
+static ID3DBlob *s_depth_resolve_to_color_program_blob = {};
+static ID3DBlob *s_clear_program_blob = {};
+static ID3DBlob *s_anaglyph_program_blob = {};
+static ID3DBlob *s_xfb_encode_shader_blob = {};
+static ID3DBlob *s_xfb_decode_shader_blob = {};
+static ID3DBlob *s_rgba6_to_rgb8_program_blob[2] = {};
+static ID3DBlob *s_rgb8_to_rgba6_program_blob[2] = {};
 
 // Vertex Shader blobs/input layouts
-static ID3DBlob* s_simple_vertex_shader_blob = {};
-static ID3DBlob* s_simple_clear_vertex_shader_blob = {};
+static ID3DBlob *s_simple_vertex_shader_blob = {};
+static ID3DBlob *s_simple_clear_vertex_shader_blob = {};
 
-static const D3D12_INPUT_ELEMENT_DESC s_simple_vertex_shader_input_elements[] = {
-    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-     0},
-    {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-     0},
+static const D3D12_INPUT_ELEMENT_DESC s_simple_vertex_shader_input_elements[] =
+    {
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+        {"TEXCOORD", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 12,
+         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 };
 
 static const D3D12_INPUT_LAYOUT_DESC s_simple_vertex_shader_input_layout = {
-    s_simple_vertex_shader_input_elements, ARRAYSIZE(s_simple_vertex_shader_input_elements)};
+    s_simple_vertex_shader_input_elements,
+    ARRAYSIZE(s_simple_vertex_shader_input_elements)};
 
 static const D3D12_INPUT_ELEMENT_DESC s_clear_vertex_shader_input_elements[] = {
-    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-     0},
-    {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+    {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+     D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+    {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12,
+     D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
 };
 
 static const D3D12_INPUT_LAYOUT_DESC s_clear_vertex_shader_input_layout = {
-    s_clear_vertex_shader_input_elements, ARRAYSIZE(s_clear_vertex_shader_input_elements)};
+    s_clear_vertex_shader_input_elements,
+    ARRAYSIZE(s_clear_vertex_shader_input_elements)};
 
 // Geometry Shader blobs
-static ID3DBlob* s_clear_geometry_shader_blob = nullptr;
-static ID3DBlob* s_copy_geometry_shader_blob = nullptr;
+static ID3DBlob *s_clear_geometry_shader_blob = nullptr;
+static ID3DBlob *s_copy_geometry_shader_blob = nullptr;
 
 // Pixel Shader HLSL
-static constexpr const char s_clear_program_hlsl[] = {"void main(\n"
-                                                      "out float4 ocol0 : SV_Target,\n"
-                                                      "in float4 pos : SV_Position,\n"
-                                                      "in float4 incol0 : COLOR0){\n"
-                                                      "ocol0 = incol0;\n"
-                                                      "}\n"};
+static constexpr const char s_clear_program_hlsl[] = {
+    "void main(\n"
+    "out float4 ocol0 : SV_Target,\n"
+    "in float4 pos : SV_Position,\n"
+    "in float4 incol0 : COLOR0){\n"
+    "ocol0 = incol0;\n"
+    "}\n"};
 
-// EXISTINGD3D11TODO: Find some way to avoid having separate shaders for non-MSAA and MSAA...
-static constexpr const char s_color_copy_program_hlsl[] = {"sampler samp0 : register(s0);\n"
-                                                           "Texture2DArray Tex0 : register(t0);\n"
-                                                           "void main(\n"
-                                                           "out float4 ocol0 : SV_Target,\n"
-                                                           "in float4 pos : SV_Position,\n"
-                                                           "in float3 uv0 : TEXCOORD0){\n"
-                                                           "ocol0 = Tex0.Sample(samp0,uv0);\n"
-                                                           "}\n"};
+// EXISTINGD3D11TODO: Find some way to avoid having separate shaders for
+// non-MSAA and MSAA...
+static constexpr const char s_color_copy_program_hlsl[] = {
+    "sampler samp0 : register(s0);\n"
+    "Texture2DArray Tex0 : register(t0);\n"
+    "void main(\n"
+    "out float4 ocol0 : SV_Target,\n"
+    "in float4 pos : SV_Position,\n"
+    "in float3 uv0 : TEXCOORD0){\n"
+    "ocol0 = Tex0.Sample(samp0,uv0);\n"
+    "}\n"};
 
 // Anaglyph Red-Cyan shader based on Dubois algorithm
 // Constants taken from the paper:
@@ -119,7 +125,8 @@ static constexpr const char s_depth_resolve_to_color_program_hlsl[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	ocol0 = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
     "	for(int i = 1; i < SAMPLES; ++i)\n"
-    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
+    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i).x);\n"
     "}\n"};
 
 static constexpr const char s_color_matrix_program_hlsl[] = {
@@ -133,7 +140,8 @@ static constexpr const char s_color_matrix_program_hlsl[] = {
     "float4 texcol = Tex0.Sample(samp0,uv0);\n"
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,"
+    "cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -154,7 +162,8 @@ static constexpr const char s_color_matrix_program_msaa_hlsl[] = {
     "texcol /= SAMPLES;\n"
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,"
+    "cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -183,7 +192,8 @@ static constexpr const char s_depth_matrix_program_hlsl[] = {
 
     // Apply color matrix
     "	ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,"
+    "cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -200,7 +210,8 @@ static constexpr const char s_depth_matrix_program_msaa_hlsl[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	float4 texcol = 0;\n"
     "	for(int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+    "		texcol += Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
     "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
@@ -218,8 +229,9 @@ static constexpr const char s_depth_matrix_program_msaa_hlsl[] = {
 
     // Apply color matrix
     "	ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
-    "texcol,cColMatrix[3])) + cColMatrix[4];\n"
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot("
+    "texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + "
+    "cColMatrix[4];\n"
     "}\n"};
 
 static constexpr const char s_reint_rgba6_to_rgb8_program_hlsl[] = {
@@ -252,7 +264,8 @@ static constexpr const char s_reint_rgba6_to_rgb8_program_msaa_hlsl[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	float4 texcol = 0;\n"
     "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+    "		texcol += Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
     "	int4 src6 = round(texcol * 63.f);\n"
     "	int4 dst8;\n"
@@ -293,7 +306,8 @@ static constexpr const char s_reint_rgb8_to_rgba6_program_msaa_hlsl[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	float4 texcol = 0;\n"
     "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+    "		texcol += Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
     "	int4 src8 = round(texcol * 255.f);\n"
     "	int4 dst6;\n"
@@ -485,26 +499,23 @@ void main(
 
 )";
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetReinterpRGBA6ToRGB8PixelShader(bool multisampled)
-{
+D3D12_SHADER_BYTECODE
+StaticShaderCache::GetReinterpRGBA6ToRGB8PixelShader(bool multisampled) {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (!multisampled || g_ActiveConfig.iMultisamples == 1)
-  {
-    if (!s_rgba6_to_rgb8_program_blob[0])
-    {
-      D3D::CompilePixelShader(s_reint_rgba6_to_rgb8_program_hlsl, &s_rgba6_to_rgb8_program_blob[0]);
+  if (!multisampled || g_ActiveConfig.iMultisamples == 1) {
+    if (!s_rgba6_to_rgb8_program_blob[0]) {
+      D3D::CompilePixelShader(s_reint_rgba6_to_rgb8_program_hlsl,
+                              &s_rgba6_to_rgb8_program_blob[0]);
     }
 
     bytecode = {s_rgba6_to_rgb8_program_blob[0]->GetBufferPointer(),
                 s_rgba6_to_rgb8_program_blob[0]->GetBufferSize()};
     return bytecode;
-  }
-  else if (!s_rgba6_to_rgb8_program_blob[1])
-  {
+  } else if (!s_rgba6_to_rgb8_program_blob[1]) {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_reint_rgba6_to_rgb8_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_reint_rgba6_to_rgb8_program_msaa_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_rgba6_to_rgb8_program_blob[1]);
     bytecode = {s_rgba6_to_rgb8_program_blob[1]->GetBufferPointer(),
@@ -513,26 +524,23 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetReinterpRGBA6ToRGB8PixelShader(bool 
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetReinterpRGB8ToRGBA6PixelShader(bool multisampled)
-{
+D3D12_SHADER_BYTECODE
+StaticShaderCache::GetReinterpRGB8ToRGBA6PixelShader(bool multisampled) {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (!multisampled || g_ActiveConfig.iMultisamples == 1)
-  {
-    if (!s_rgb8_to_rgba6_program_blob[0])
-    {
-      D3D::CompilePixelShader(s_reint_rgb8_to_rgba6_program_hlsl, &s_rgb8_to_rgba6_program_blob[0]);
+  if (!multisampled || g_ActiveConfig.iMultisamples == 1) {
+    if (!s_rgb8_to_rgba6_program_blob[0]) {
+      D3D::CompilePixelShader(s_reint_rgb8_to_rgba6_program_hlsl,
+                              &s_rgb8_to_rgba6_program_blob[0]);
     }
 
     bytecode = {s_rgb8_to_rgba6_program_blob[0]->GetBufferPointer(),
                 s_rgb8_to_rgba6_program_blob[0]->GetBufferSize()};
     return bytecode;
-  }
-  else if (!s_rgb8_to_rgba6_program_blob[1])
-  {
+  } else if (!s_rgb8_to_rgba6_program_blob[1]) {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_reint_rgb8_to_rgba6_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_reint_rgb8_to_rgba6_program_msaa_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_rgb8_to_rgba6_program_blob[1]);
     bytecode = {s_rgb8_to_rgba6_program_blob[1]->GetBufferPointer(),
@@ -542,25 +550,20 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetReinterpRGB8ToRGBA6PixelShader(bool 
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetColorCopyPixelShader(bool multisampled)
-{
+D3D12_SHADER_BYTECODE
+StaticShaderCache::GetColorCopyPixelShader(bool multisampled) {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (!multisampled || g_ActiveConfig.iMultisamples == 1)
-  {
+  if (!multisampled || g_ActiveConfig.iMultisamples == 1) {
     bytecode = {s_color_copy_program_blob[0]->GetBufferPointer(),
                 s_color_copy_program_blob[0]->GetBufferSize()};
-  }
-  else if (s_color_copy_program_blob[1])
-  {
+  } else if (s_color_copy_program_blob[1]) {
     bytecode = {s_color_copy_program_blob[1]->GetBufferPointer(),
                 s_color_copy_program_blob[1]->GetBufferSize()};
-  }
-  else
-  {
+  } else {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_color_copy_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_color_copy_program_msaa_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_color_copy_program_blob[1]);
     bytecode = {s_color_copy_program_blob[1]->GetBufferPointer(),
@@ -570,20 +573,16 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetColorCopyPixelShader(bool multisampl
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthResolveToColorPixelShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthResolveToColorPixelShader() {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (s_depth_resolve_to_color_program_blob)
-  {
+  if (s_depth_resolve_to_color_program_blob) {
     bytecode = {s_depth_resolve_to_color_program_blob->GetBufferPointer(),
                 s_depth_resolve_to_color_program_blob->GetBufferSize()};
-  }
-  else
-  {
+  } else {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_depth_resolve_to_color_program_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_depth_resolve_to_color_program_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_depth_resolve_to_color_program_blob);
     bytecode = {s_depth_resolve_to_color_program_blob->GetBufferPointer(),
@@ -593,25 +592,20 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthResolveToColorPixelShader()
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetColorMatrixPixelShader(bool multisampled)
-{
+D3D12_SHADER_BYTECODE
+StaticShaderCache::GetColorMatrixPixelShader(bool multisampled) {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (!multisampled || g_ActiveConfig.iMultisamples == 1)
-  {
+  if (!multisampled || g_ActiveConfig.iMultisamples == 1) {
     bytecode = {s_color_matrix_program_blob[0]->GetBufferPointer(),
                 s_color_matrix_program_blob[0]->GetBufferSize()};
-  }
-  else if (s_color_matrix_program_blob[1])
-  {
+  } else if (s_color_matrix_program_blob[1]) {
     bytecode = {s_color_matrix_program_blob[1]->GetBufferPointer(),
                 s_color_matrix_program_blob[1]->GetBufferSize()};
-  }
-  else
-  {
+  } else {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_color_matrix_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_color_matrix_program_msaa_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_color_matrix_program_blob[1]);
     bytecode = {s_color_matrix_program_blob[1]->GetBufferPointer(),
@@ -621,25 +615,20 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetColorMatrixPixelShader(bool multisam
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthMatrixPixelShader(bool multisampled)
-{
+D3D12_SHADER_BYTECODE
+StaticShaderCache::GetDepthMatrixPixelShader(bool multisampled) {
   D3D12_SHADER_BYTECODE bytecode = {};
 
-  if (!multisampled || g_ActiveConfig.iMultisamples == 1)
-  {
+  if (!multisampled || g_ActiveConfig.iMultisamples == 1) {
     bytecode = {s_depth_matrix_program_blob[0]->GetBufferPointer(),
                 s_depth_matrix_program_blob[0]->GetBufferSize()};
-  }
-  else if (s_depth_matrix_program_blob[1])
-  {
+  } else if (s_depth_matrix_program_blob[1]) {
     bytecode = {s_depth_matrix_program_blob[1]->GetBufferPointer(),
                 s_depth_matrix_program_blob[1]->GetBufferSize()};
-  }
-  else
-  {
+  } else {
     // create MSAA shader for current AA mode
-    std::string buf =
-        StringFromFormat(s_depth_matrix_program_msaa_hlsl, g_ActiveConfig.iMultisamples);
+    std::string buf = StringFromFormat(s_depth_matrix_program_msaa_hlsl,
+                                       g_ActiveConfig.iMultisamples);
 
     D3D::CompilePixelShader(buf, &s_depth_matrix_program_blob[1]);
 
@@ -650,8 +639,7 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetDepthMatrixPixelShader(bool multisam
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetClearPixelShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetClearPixelShader() {
   D3D12_SHADER_BYTECODE shader = {};
   shader.BytecodeLength = s_clear_program_blob->GetBufferSize();
   shader.pShaderBytecode = s_clear_program_blob->GetBufferPointer();
@@ -659,8 +647,7 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetClearPixelShader()
   return shader;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetAnaglyphPixelShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetAnaglyphPixelShader() {
   D3D12_SHADER_BYTECODE shader = {};
   shader.BytecodeLength = s_anaglyph_program_blob->GetBufferSize();
   shader.pShaderBytecode = s_anaglyph_program_blob->GetBufferPointer();
@@ -668,8 +655,7 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetAnaglyphPixelShader()
   return shader;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetSimpleVertexShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetSimpleVertexShader() {
   D3D12_SHADER_BYTECODE shader = {};
   shader.BytecodeLength = s_simple_vertex_shader_blob->GetBufferSize();
   shader.pShaderBytecode = s_simple_vertex_shader_blob->GetBufferPointer();
@@ -677,30 +663,26 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetSimpleVertexShader()
   return shader;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetClearVertexShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetClearVertexShader() {
   D3D12_SHADER_BYTECODE shader = {};
   shader.BytecodeLength = s_simple_clear_vertex_shader_blob->GetBufferSize();
-  shader.pShaderBytecode = s_simple_clear_vertex_shader_blob->GetBufferPointer();
+  shader.pShaderBytecode =
+      s_simple_clear_vertex_shader_blob->GetBufferPointer();
 
   return shader;
 }
 
-D3D12_INPUT_LAYOUT_DESC StaticShaderCache::GetSimpleVertexShaderInputLayout()
-{
+D3D12_INPUT_LAYOUT_DESC StaticShaderCache::GetSimpleVertexShaderInputLayout() {
   return s_simple_vertex_shader_input_layout;
 }
 
-D3D12_INPUT_LAYOUT_DESC StaticShaderCache::GetClearVertexShaderInputLayout()
-{
+D3D12_INPUT_LAYOUT_DESC StaticShaderCache::GetClearVertexShaderInputLayout() {
   return s_clear_vertex_shader_input_layout;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetClearGeometryShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetClearGeometryShader() {
   D3D12_SHADER_BYTECODE bytecode = {};
-  if (g_ActiveConfig.iStereoMode > 0)
-  {
+  if (g_ActiveConfig.iStereoMode > 0) {
     bytecode.BytecodeLength = s_clear_geometry_shader_blob->GetBufferSize();
     bytecode.pShaderBytecode = s_clear_geometry_shader_blob->GetBufferPointer();
   }
@@ -708,11 +690,9 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetClearGeometryShader()
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetCopyGeometryShader()
-{
+D3D12_SHADER_BYTECODE StaticShaderCache::GetCopyGeometryShader() {
   D3D12_SHADER_BYTECODE bytecode = {};
-  if (g_ActiveConfig.iStereoMode > 0)
-  {
+  if (g_ActiveConfig.iStereoMode > 0) {
     bytecode.BytecodeLength = s_copy_geometry_shader_blob->GetBufferSize();
     bytecode.pShaderBytecode = s_copy_geometry_shader_blob->GetBufferPointer();
   }
@@ -720,45 +700,51 @@ D3D12_SHADER_BYTECODE StaticShaderCache::GetCopyGeometryShader()
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBEncodePixelShader()
-{
-  D3D12_SHADER_BYTECODE bytecode = {s_xfb_encode_shader_blob->GetBufferPointer(),
-                                    s_xfb_encode_shader_blob->GetBufferSize()};
+D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBEncodePixelShader() {
+  D3D12_SHADER_BYTECODE bytecode = {
+      s_xfb_encode_shader_blob->GetBufferPointer(),
+      s_xfb_encode_shader_blob->GetBufferSize()};
 
   return bytecode;
 }
 
-D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBDecodePixelShader()
-{
-  D3D12_SHADER_BYTECODE bytecode = {s_xfb_decode_shader_blob->GetBufferPointer(),
-                                    s_xfb_decode_shader_blob->GetBufferSize()};
+D3D12_SHADER_BYTECODE StaticShaderCache::GetXFBDecodePixelShader() {
+  D3D12_SHADER_BYTECODE bytecode = {
+      s_xfb_decode_shader_blob->GetBufferPointer(),
+      s_xfb_decode_shader_blob->GetBufferSize()};
 
   return bytecode;
 }
 
-void StaticShaderCache::Init()
-{
+void StaticShaderCache::Init() {
   // Compile static pixel shaders
   D3D::CompilePixelShader(s_clear_program_hlsl, &s_clear_program_blob);
   D3D::CompilePixelShader(s_anaglyph_program_hlsl, &s_anaglyph_program_blob);
-  D3D::CompilePixelShader(s_color_copy_program_hlsl, &s_color_copy_program_blob[0]);
-  D3D::CompilePixelShader(s_color_matrix_program_hlsl, &s_color_matrix_program_blob[0]);
-  D3D::CompilePixelShader(s_depth_matrix_program_hlsl, &s_depth_matrix_program_blob[0]);
+  D3D::CompilePixelShader(s_color_copy_program_hlsl,
+                          &s_color_copy_program_blob[0]);
+  D3D::CompilePixelShader(s_color_matrix_program_hlsl,
+                          &s_color_matrix_program_blob[0]);
+  D3D::CompilePixelShader(s_depth_matrix_program_hlsl,
+                          &s_depth_matrix_program_blob[0]);
   D3D::CompilePixelShader(s_xfb_encode_shader_hlsl, &s_xfb_encode_shader_blob);
   D3D::CompilePixelShader(s_xfb_decode_shader_hlsl, &s_xfb_decode_shader_blob);
 
   // Compile static vertex shaders
-  D3D::CompileVertexShader(s_simple_vertex_shader_hlsl, &s_simple_vertex_shader_blob);
-  D3D::CompileVertexShader(s_clear_vertex_shader_hlsl, &s_simple_clear_vertex_shader_blob);
+  D3D::CompileVertexShader(s_simple_vertex_shader_hlsl,
+                           &s_simple_vertex_shader_blob);
+  D3D::CompileVertexShader(s_clear_vertex_shader_hlsl,
+                           &s_simple_clear_vertex_shader_blob);
 
   // Compile static geometry shaders
-  D3D::CompileGeometryShader(s_clear_geometry_shader_hlsl, &s_clear_geometry_shader_blob);
-  D3D::CompileGeometryShader(s_copy_geometry_shader_hlsl, &s_copy_geometry_shader_blob);
+  D3D::CompileGeometryShader(s_clear_geometry_shader_hlsl,
+                             &s_clear_geometry_shader_blob);
+  D3D::CompileGeometryShader(s_copy_geometry_shader_hlsl,
+                             &s_copy_geometry_shader_blob);
 }
 
-// Call this when multisampling mode changes, and shaders need to be regenerated.
-void StaticShaderCache::InvalidateMSAAShaders()
-{
+// Call this when multisampling mode changes, and shaders need to be
+// regenerated.
+void StaticShaderCache::InvalidateMSAAShaders() {
   SAFE_RELEASE(s_color_copy_program_blob[1]);
   SAFE_RELEASE(s_color_matrix_program_blob[1]);
   SAFE_RELEASE(s_depth_matrix_program_blob[1]);
@@ -767,8 +753,7 @@ void StaticShaderCache::InvalidateMSAAShaders()
   SAFE_RELEASE(s_depth_resolve_to_color_program_blob);
 }
 
-void StaticShaderCache::Shutdown()
-{
+void StaticShaderCache::Shutdown() {
   // Free pixel shader blobs
   SAFE_RELEASE(s_xfb_decode_shader_blob);
   SAFE_RELEASE(s_xfb_encode_shader_blob);
@@ -776,8 +761,7 @@ void StaticShaderCache::Shutdown()
   SAFE_RELEASE(s_anaglyph_program_blob);
   SAFE_RELEASE(s_depth_resolve_to_color_program_blob);
 
-  for (unsigned int i = 0; i < 2; ++i)
-  {
+  for (unsigned int i = 0; i < 2; ++i) {
     SAFE_RELEASE(s_color_copy_program_blob[i]);
     SAFE_RELEASE(s_color_matrix_program_blob[i]);
     SAFE_RELEASE(s_depth_matrix_program_blob[i]);

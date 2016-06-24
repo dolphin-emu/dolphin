@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -11,34 +10,31 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
 
 // Not PowerPC state.  Can't put in 'this' because it's out of range...
-static void* s_saved_rsp;
+static void *s_saved_rsp;
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
-void Jit64AsmRoutineManager::Generate()
-{
+void Jit64AsmRoutineManager::Generate() {
   enterCode = AlignCode16();
   // We need to own the beginning of RSP, so we do an extra stack adjustment
   // for the shadow region before calls in this function.  This call will
   // waste a bit of space for a second shadow, but whatever.
   ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
-  if (m_stack_top)
-  {
+  if (m_stack_top) {
     // Pivot the stack to our custom one.
     MOV(64, R(RSCRATCH), R(RSP));
     MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
     MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
-  }
-  else
-  {
+  } else {
     MOV(64, M(&s_saved_rsp), R(RSP));
   }
   // something that can't pass the BLR test
@@ -48,16 +44,17 @@ void Jit64AsmRoutineManager::Generate()
   // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
   MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
-  const u8* outerLoop = GetCodePtr();
+  const u8 *outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(reinterpret_cast<void*>(&CoreTiming::Advance));
+  ABI_CallFunction(reinterpret_cast<void *>(&CoreTiming::Advance));
   ABI_PopRegistersAndAdjustStack({}, 0);
   FixupBranch skipToRealDispatch =
-      J(SConfig::GetInstance().bEnableDebugging);  // skip the sync and compare first time
+      J(SConfig::GetInstance()
+            .bEnableDebugging); // skip the sync and compare first time
   dispatcherMispredictedBLR = GetCodePtr();
   AND(32, PPCSTATE(pc), Imm32(0xFFFFFFFC));
 
-#if 0  // debug mispredicts
+#if 0 // debug mispredicts
 		MOV(32, R(ABI_PARAM1), MDisp(RSP, 8)); // guessed_pc
 		ABI_PushRegistersAndAdjustStack(1 << RSCRATCH2, 0);
 		CALL(reinterpret_cast<void *>(&ReportMispredict));
@@ -69,18 +66,18 @@ void Jit64AsmRoutineManager::Generate()
   SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
 
   dispatcher = GetCodePtr();
-  // The result of slice decrementation should be in flags if somebody jumped here
+  // The result of slice decrementation should be in flags if somebody jumped
+  // here
   // IMPORTANT - We jump on negative, not carry!!!
   FixupBranch bail = J_CC(CC_BE, true);
 
   FixupBranch dbg_exit;
 
-  if (SConfig::GetInstance().bEnableDebugging)
-  {
+  if (SConfig::GetInstance().bEnableDebugging) {
     TEST(32, M(CPU::GetStatePtr()), Imm32(CPU::CPU_STEPPING));
     FixupBranch notStepping = J_CC(CC_Z);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
+    ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
     ABI_PopRegistersAndAdjustStack({}, 0);
     TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
@@ -124,12 +121,9 @@ void Jit64AsmRoutineManager::Generate()
   no_mem = J_CC(CC_NZ);
   AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
 
-  if (icache <= INT_MAX)
-  {
+  if (icache <= INT_MAX) {
     MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icache));
-  }
-  else
-  {
+  } else {
     MOV(64, R(RSCRATCH2), Imm64(icache));
     MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
   }
@@ -139,12 +133,9 @@ void Jit64AsmRoutineManager::Generate()
   TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_VMEM_BIT));
   FixupBranch no_vmem = J_CC(CC_Z);
   AND(32, R(RSCRATCH), Imm32(JIT_ICACHE_MASK));
-  if (icacheVmem <= INT_MAX)
-  {
+  if (icacheVmem <= INT_MAX) {
     MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheVmem));
-  }
-  else
-  {
+  } else {
     MOV(64, R(RSCRATCH2), Imm64(icacheVmem));
     MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
   }
@@ -152,18 +143,14 @@ void Jit64AsmRoutineManager::Generate()
   if (SConfig::GetInstance().bWii)
     exit_vmem = J();
   SetJumpTarget(no_vmem);
-  if (SConfig::GetInstance().bWii)
-  {
+  if (SConfig::GetInstance().bWii) {
     TEST(32, R(RSCRATCH), Imm32(JIT_ICACHE_EXRAM_BIT));
     FixupBranch no_exram = J_CC(CC_Z);
     AND(32, R(RSCRATCH), Imm32(JIT_ICACHEEX_MASK));
 
-    if (icacheEx <= INT_MAX)
-    {
+    if (icacheEx <= INT_MAX) {
       MOV(32, R(RSCRATCH), MDisp(RSCRATCH, (s32)icacheEx));
-    }
-    else
-    {
+    } else {
       MOV(64, R(RSCRATCH2), Imm64(icacheEx));
       MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
     }
@@ -178,12 +165,9 @@ void Jit64AsmRoutineManager::Generate()
   FixupBranch notfound = J_CC(CC_L);
   // grab from list and jump to it
   u64 codePointers = (u64)jit->GetBlockCache()->GetCodePointers();
-  if (codePointers <= INT_MAX)
-  {
+  if (codePointers <= INT_MAX) {
     JMPptr(MScaled(RSCRATCH, SCALE_8, (s32)codePointers));
-  }
-  else
-  {
+  } else {
     MOV(64, R(RSCRATCH2), Imm64(codePointers));
     JMPptr(MComplex(RSCRATCH2, RSCRATCH, SCALE_8, 0));
   }
@@ -197,15 +181,16 @@ void Jit64AsmRoutineManager::Generate()
 
   // Ok, no block, let's jit
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionA(32, (void*)&Jit, PPCSTATE(pc));
+  ABI_CallFunctionA(32, (void *)&Jit, PPCSTATE(pc));
   ABI_PopRegistersAndAdjustStack({}, 0);
 
-  JMP(dispatcherNoCheck, true);  // no point in special casing this
+  JMP(dispatcherNoCheck, true); // no point in special casing this
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();
 
-  // make sure npc contains the next pc (needed for exception checking in CoreTiming::Advance)
+  // make sure npc contains the next pc (needed for exception checking in
+  // CoreTiming::Advance)
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(RSCRATCH));
 
@@ -218,8 +203,7 @@ void Jit64AsmRoutineManager::Generate()
   if (SConfig::GetInstance().bEnableDebugging)
     SetJumpTarget(dbg_exit);
   ResetStack();
-  if (m_stack_top)
-  {
+  if (m_stack_top) {
     ADD(64, R(RSP), Imm8(0x18));
     POP(RSP);
   }
@@ -232,16 +216,14 @@ void Jit64AsmRoutineManager::Generate()
   GenerateCommon();
 }
 
-void Jit64AsmRoutineManager::ResetStack()
-{
+void Jit64AsmRoutineManager::ResetStack() {
   if (m_stack_top)
     MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
   else
     MOV(64, R(RSP), M(&s_saved_rsp));
 }
 
-void Jit64AsmRoutineManager::GenerateCommon()
-{
+void Jit64AsmRoutineManager::GenerateCommon() {
   fifoDirectWrite8 = AlignCode4();
   GenFifoWrite(8);
   fifoDirectWrite16 = AlignCode4();

@@ -5,10 +5,8 @@
 #pragma once
 #include "VideoBackends/D3D12/D3DBase.h"
 
-namespace DX12
-{
-class BBox
-{
+namespace DX12 {
+class BBox {
 public:
   static void Init();
   static void Bind();

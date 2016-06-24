@@ -5,12 +5,9 @@
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #include <sstream>
 
-namespace ciface
-{
-namespace Android
-{
-void Init(std::vector<Core::Device*>& devices)
-{
+namespace ciface {
+namespace Android {
+void Init(std::vector<Core::Device *> &devices) {
   devices.push_back(new Touchscreen(0));
   devices.push_back(new Touchscreen(1));
   devices.push_back(new Touchscreen(2));
@@ -22,22 +19,12 @@ void Init(std::vector<Core::Device*>& devices)
 }
 
 // Touchscreens and stuff
-std::string Touchscreen::GetName() const
-{
-  return "Touchscreen";
-}
+std::string Touchscreen::GetName() const { return "Touchscreen"; }
 
-std::string Touchscreen::GetSource() const
-{
-  return "Android";
-}
+std::string Touchscreen::GetSource() const { return "Android"; }
 
-int Touchscreen::GetId() const
-{
-  return _padID;
-}
-Touchscreen::Touchscreen(int padID) : _padID(padID)
-{
+int Touchscreen::GetId() const { return _padID; }
+Touchscreen::Touchscreen(int padID) : _padID(padID) {
   // GC
   AddInput(new Button(_padID, ButtonManager::BUTTON_A));
   AddInput(new Button(_padID, ButtonManager::BUTTON_B));
@@ -202,26 +189,22 @@ Touchscreen::Touchscreen(int padID) : _padID(padID)
 }
 // Buttons and stuff
 
-std::string Touchscreen::Button::GetName() const
-{
+std::string Touchscreen::Button::GetName() const {
   std::ostringstream ss;
   ss << "Button " << (int)_index;
   return ss.str();
 }
 
-ControlState Touchscreen::Button::GetState() const
-{
+ControlState Touchscreen::Button::GetState() const {
   return ButtonManager::GetButtonPressed(_padID, _index);
 }
-std::string Touchscreen::Axis::GetName() const
-{
+std::string Touchscreen::Axis::GetName() const {
   std::ostringstream ss;
   ss << "Axis " << (int)_index;
   return ss.str();
 }
 
-ControlState Touchscreen::Axis::GetState() const
-{
+ControlState Touchscreen::Axis::GetState() const {
   return ButtonManager::GetAxisValue(_padID, _index) * _neg;
 }
 }

@@ -8,8 +8,7 @@
 #include <QPixmap>
 
 // Store for various QPixmaps that will be used repeatedly.
-class Resources final
-{
+class Resources final {
 public:
   static void Init();
 
@@ -19,12 +18,7 @@ public:
 
   static QPixmap GetMisc(int id);
 
-  enum
-  {
-    BANNER_MISSING,
-    LOGO_LARGE,
-    LOGO_SMALL
-  };
+  enum { BANNER_MISSING, LOGO_LARGE, LOGO_SMALL };
 
 private:
   Resources() {}

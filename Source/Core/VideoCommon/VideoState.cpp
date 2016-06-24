@@ -19,8 +19,7 @@
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoCommon_DoState(PointerWrap& p)
-{
+void VideoCommon_DoState(PointerWrap &p) {
   // BP Memory
   p.Do(bpmem);
   p.DoMarker("BP Memory");
@@ -46,7 +45,8 @@ void VideoCommon_DoState(PointerWrap& p)
   PixelEngine::DoState(p);
   p.DoMarker("PixelEngine");
 
-  // the old way of replaying current bpmem as writes to push side effects to pixel shader manager
+  // the old way of replaying current bpmem as writes to push side effects to
+  // pixel shader manager
   // doesn't really work.
   PixelShaderManager::DoState(p);
   p.DoMarker("PixelShaderManager");
@@ -66,8 +66,7 @@ void VideoCommon_DoState(PointerWrap& p)
   // TODO: search for more data that should be saved and add it here
 }
 
-void VideoCommon_Init()
-{
+void VideoCommon_Init() {
   memset(&g_main_cp_state, 0, sizeof(g_main_cp_state));
   memset(&g_preprocess_cp_state, 0, sizeof(g_preprocess_cp_state));
   memset(texMem, 0, TMEM_SIZE);

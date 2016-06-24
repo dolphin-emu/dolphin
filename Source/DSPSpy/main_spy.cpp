@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// This is a test program for running code on the Wii DSP, with full control over input
-// and automatic compare with output. VERY useful for figuring out what those little
+// This is a test program for running code on the Wii DSP, with full control
+// over input
+// and automatic compare with output. VERY useful for figuring out what those
+// little
 // ops actually do.
 // It's very unpolished though
 // Use Dolphin's dsptool to generate a new dsp_code.h.
-// Originally written by duddie and modified by FIRES. Then further modified by ector.
+// Originally written by duddie and modified by FIRES. Then further modified by
+// ector.
 
 #include <debug.h>
 #include <fat.h>
@@ -27,7 +30,7 @@
 
 #ifdef _MSC_VER
 // Just for easy looking :)
-#define HW_RVL  // HW_DOL
+#define HW_RVL // HW_DOL
 #endif
 
 #ifdef HW_RVL
@@ -53,21 +56,22 @@
 // Used for communications with the DSP, such as dumping registers etc.
 u16 dspbuffer[16 * 1024] __attribute__((aligned(0x4000)));
 
-static void* xfb = nullptr;
+static void *xfb = nullptr;
 void (*reboot)() = (void (*)())0x80001800;
-GXRModeObj* rmode;
+GXRModeObj *rmode;
 
-static vu16* const _dspReg = (u16*)0xCC005000;
+static vu16 *const _dspReg = (u16 *)0xCC005000;
 
-u16* dspbufP;
-u16* dspbufC;
-u32* dspbufU;
+u16 *dspbufP;
+u16 *dspbufC;
+u32 *dspbufU;
 
 u16 dspreg_in[32] = {
-    0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10, 0xFFFF, 0xFFFF, 0xFFFF,
-    0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88, 0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000,
-    0x0000, 0x0000, 0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
-};  ///            ax_h_1   ax_h_1
+    0x0410, 0x0510, 0x0610, 0x0710, 0x0810, 0x0910, 0x0a10, 0x0b10,
+    0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x0855, 0x0966, 0x0a77, 0x0b88,
+    0x0014, 0xfff5, 0x00ff, 0x2200, 0x0000, 0x0000, 0x0000, 0x0000,
+    0x0003, 0x0004, 0x8000, 0x000C, 0x0007, 0x0008, 0x0009, 0x000a,
+}; ///            ax_h_1   ax_h_1
 
 /* ttt ?
 
@@ -84,7 +88,8 @@ u16 dspreg_in[32] = {
 // zelda 0x00da
 u16 dspreg_in[32] = {
 0x0a50, 0x0ca2, 0x04f8, 0x0ab0, 0x8039, 0x0000, 0x0000, 0x0000,
-0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x03d1, 0x0000, 0x0418, 0x0002,     // r08 must have a value ... no
+0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x03d1, 0x0000, 0x0418, 0x0002,     // r08 must
+have a value ... no
 idea why (ector: it's the looped addressing regs)
 0x0000, 0x0000, 0x00ff, 0x1804, 0xdb70, 0x4ddb, 0x0000, 0x0000,
 0x0000, 0x0000, 0x0000, 0xde6d, 0x0000, 0x0000, 0x0000, 0x004e,
@@ -116,8 +121,7 @@ u32 SecParams_in[8] __attribute__ ((aligned (0x20))) = {
 // UI (interactive register editing)
 u32 ui_mode;
 
-enum
-{
+enum {
   UIM_SEL = 1,
   UIM_EDIT_REG = 2,
   UIM_EDIT_BIN = 4,
@@ -128,7 +132,7 @@ s32 cursor_reg = 0;
 // Currently selected digit.
 s32 small_cursor_x;
 // Value currently being edited.
-u16* reg_value;
+u16 *reg_value;
 
 RealDSP real_dsp;
 
@@ -138,53 +142,51 @@ int curUcode = 0, runningUcode = 1;
 int dsp_steps = 0;
 
 // When comparing regs, ignore the loop stack registers.
-bool regs_equal(int reg, u16 value1, u16 value2)
-{
+bool regs_equal(int reg, u16 value1, u16 value2) {
   if (reg >= DSP_REG_ST0 && reg <= DSP_REG_ST3)
     return true;
   else
     return value1 == value2;
 }
 
-void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
-{
-  for (int j = 0; j < 4; j++)
-  {
-    for (int i = 0; i < 8; i++)
-    {
+void print_reg_block(int x, int y, int sel, const u16 *regs,
+                     const u16 *compare_regs) {
+  for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 8; i++) {
       // Do not even display the loop stack registers.
       const int reg = j * 8 + i;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
       CON_Printf(x + j * 8, i + y, "%02x ", reg);
-      if (j != 1 || i < 4)
-      {
-        u8 color1 =
-            regs_equal(reg, regs[reg], compare_regs[reg]) ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
-        for (int k = 0; k < 4; k++)
-        {
+      if (j != 1 || i < 4) {
+        u8 color1 = regs_equal(reg, regs[reg], compare_regs[reg])
+                        ? CON_BRIGHT_WHITE
+                        : CON_BRIGHT_RED;
+        for (int k = 0; k < 4; k++) {
           if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
             CON_SetColor(CON_BRIGHT_CYAN);
           else
             CON_SetColor(color1);
-          CON_Printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
+          CON_Printf(x + 3 + j * 8 + k, i + y, "%01x",
+                     (regs[reg] >> ((3 - k) * 4)) & 0xf);
         }
       }
     }
   }
   CON_SetColor(CON_WHITE);
 
-  CON_Printf(x + 2, y + 9, "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0] & 0xff, regs[DSP_REG_ACM0],
-             regs[DSP_REG_ACL0]);
-  CON_Printf(x + 2, y + 10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1] & 0xff, regs[DSP_REG_ACM1],
-             regs[DSP_REG_ACL1]);
-  CON_Printf(x + 2, y + 11, "AX0: %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
-  CON_Printf(x + 2, y + 12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
+  CON_Printf(x + 2, y + 9, "ACC0: %02x %04x %04x", regs[DSP_REG_ACH0] & 0xff,
+             regs[DSP_REG_ACM0], regs[DSP_REG_ACL0]);
+  CON_Printf(x + 2, y + 10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1] & 0xff,
+             regs[DSP_REG_ACM1], regs[DSP_REG_ACL1]);
+  CON_Printf(x + 2, y + 11, "AX0: %04x %04x", regs[DSP_REG_AXH0],
+             regs[DSP_REG_AXL0]);
+  CON_Printf(x + 2, y + 12, "AX1: %04x %04x", regs[DSP_REG_AXH1],
+             regs[DSP_REG_AXL1]);
 }
 
-void print_regs(int _step, int _dsp_steps)
-{
-  const u16* regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
-  const u16* regs2 = dspreg_out[_step];
+void print_regs(int _step, int _dsp_steps) {
+  const u16 *regs = _step == 0 ? dspreg_in : dspreg_out[_step - 1];
+  const u16 *regs2 = dspreg_out[_step];
 
   print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
   print_reg_block(33, 2, -1, regs2, regs);
@@ -200,15 +202,12 @@ void print_regs(int _step, int _dsp_steps)
     CON_Clear();
   count = 0;
   CON_SetColor(CON_WHITE);
-  for (int i = 0x0; i < 0xf70; i++)
-  {
-    if (dspbufC[i] != mem_dump[i])
-    {
+  for (int i = 0x0; i < 0xf70; i++) {
+    if (dspbufC[i] != mem_dump[i]) {
       CON_Printf(x, y, "%04x=%04x", i, dspbufC[i]);
       count++;
       x += 10;
-      if (x >= 60)
-      {
+      if (x >= 60) {
         x = 0;
         y++;
       }
@@ -217,28 +216,21 @@ void print_regs(int _step, int _dsp_steps)
   CON_Printf(4, 25, "%08x", count);
 }
 
-void UpdateLastMessage(const char* msg)
-{
-  CON_PrintRow(4, 24, msg);
-}
+void UpdateLastMessage(const char *msg) { CON_PrintRow(4, 24, msg); }
 
-void DumpDSP_ROMs(const u16* rom, const u16* coef)
-{
+void DumpDSP_ROMs(const u16 *rom, const u16 *coef) {
   char filename[260] = {0};
   sprintf(filename, "sd:/dsp_rom.bin");
-  FILE* fROM = fopen(filename, "wb");
+  FILE *fROM = fopen(filename, "wb");
   sprintf(filename, "sd:/dsp_coef.bin");
-  FILE* fCOEF = fopen(filename, "wb");
+  FILE *fCOEF = fopen(filename, "wb");
 
-  if (fROM && fCOEF)
-  {
+  if (fROM && fCOEF) {
     fwrite(MEM_PHYSICAL_TO_K0(rom), 0x2000, 1, fROM);
     fwrite(MEM_PHYSICAL_TO_K0(coef), 0x1000, 1, fCOEF);
 
     UpdateLastMessage("DSP ROMs dumped to SD");
-  }
-  else
-  {
+  } else {
     UpdateLastMessage("SD Write Error");
   }
 
@@ -248,8 +240,7 @@ void DumpDSP_ROMs(const u16* rom, const u16* coef)
     fclose(fCOEF);
 }
 
-void ui_pad_sel(void)
-{
+void ui_pad_sel(void) {
 #ifdef HW_RVL
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
     cursor_reg += 8;
@@ -260,8 +251,7 @@ void ui_pad_sel(void)
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_DOWN)
     cursor_reg++;
   cursor_reg &= 0x1f;
-  if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A)
-  {
+  if (WPAD_ButtonsDown(0) & WPAD_BUTTON_A) {
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
@@ -275,16 +265,14 @@ void ui_pad_sel(void)
   if (PAD_ButtonsDown(0) & PAD_BUTTON_DOWN)
     cursor_reg++;
   cursor_reg &= 0x1f;
-  if (PAD_ButtonsDown(0) & PAD_BUTTON_A)
-  {
+  if (PAD_ButtonsDown(0) & PAD_BUTTON_A) {
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
 #endif
 }
 
-void ui_pad_edit_reg(void)
-{
+void ui_pad_edit_reg(void) {
 #ifdef HW_RVL
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_RIGHT)
     small_cursor_x++;
@@ -322,61 +310,53 @@ void ui_pad_edit_reg(void)
 #endif
 }
 
-void handle_dsp_mail(void)
-{
+void handle_dsp_mail(void) {
   // Should put a loop around this too.
-  if (DSP_CheckMailFrom())
-  {
+  if (DSP_CheckMailFrom()) {
     u32 mail = DSP_ReadMailFrom();
 
-    if (mail == 0x8071feed)
-    {
+    if (mail == 0x8071feed) {
       // DSP ready for task. Let's send one.
       // First, prepare data.
       for (int n = 0; n < 32; n++)
         dspbufC[0x00 + n] = dspreg_in[n];
       DCFlushRange(dspbufC, 0x2000);
       // Then send the code.
-      DCFlushRange((void*)dsp_code[curUcode], 0x2000);
-      // DMA ucode to iram base, entry point is just after exception vectors...0x10
+      DCFlushRange((void *)dsp_code[curUcode], 0x2000);
+      // DMA ucode to iram base, entry point is just after exception
+      // vectors...0x10
       // NOTE: for any ucode made by dsptool, the block length will be 8191
-      real_dsp.SendTask((void*)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0,
+      real_dsp.SendTask((void *)MEM_VIRTUAL_TO_PHYSICAL(dsp_code[curUcode]), 0,
                         sizeof(dsp_code[curUcode]) - 1, 0x10);
 
       runningUcode = curUcode + 1;
 
       // Clear exception status since we've loaded a new ucode
       CON_BlankRow(25);
-    }
-    else if ((mail & 0xffff0000) == 0x8bad0000)
-    {
+    } else if ((mail & 0xffff0000) == 0x8bad0000) {
       // dsp_base.inc is reporting an exception happened
-      CON_PrintRow(4, 25, "%s caused exception %x at step %i", UCODE_NAMES[curUcode], mail & 0xff,
-                   dsp_steps);
-    }
-    else if (mail == 0x8888dead)
-    {
+      CON_PrintRow(4, 25, "%s caused exception %x at step %i",
+                   UCODE_NAMES[curUcode], mail & 0xff, dsp_steps);
+    } else if (mail == 0x8888dead) {
       // Send memory dump (DSP DRAM from someone's GameCube?)
-      // not really sure why this is important - I guess just to try to keep tests predictable
-      u16* tmpBuf = (u16*)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
+      // not really sure why this is important - I guess just to try to keep
+      // tests predictable
+      u16 *tmpBuf = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(mem_dump);
 
       while (real_dsp.CheckMailTo())
         ;
       real_dsp.SendMailTo((u32)tmpBuf);
       while (real_dsp.CheckMailTo())
         ;
-    }
-    else if (mail == 0x8888beef)
-    {
-      // Provide register base to DSP (if using dsp_base.inc, it will DMA them to the correct place)
+    } else if (mail == 0x8888beef) {
+      // Provide register base to DSP (if using dsp_base.inc, it will DMA them
+      // to the correct place)
       while (real_dsp.CheckMailTo())
         ;
       real_dsp.SendMailTo((u32)dspbufP);
       while (real_dsp.CheckMailTo())
         ;
-    }
-    else if (mail == 0x8888feeb)
-    {
+    } else if (mail == 0x8888feeb) {
       // We got a stepful of registers.
       DCInvalidateRange(dspbufC, 0x2000);
       for (int i = 0; i < 32; i++)
@@ -392,17 +372,14 @@ void handle_dsp_mail(void)
     }
 
     // ROM dumping mails
-    else if (mail == 0x8888c0de)
-    {
+    else if (mail == 0x8888c0de) {
       // DSP has copied irom to its DRAM...send address so it can dma it back
       while (real_dsp.CheckMailTo())
         ;
       real_dsp.SendMailTo((u32)dspbufP);
       while (real_dsp.CheckMailTo())
         ;
-    }
-    else if (mail == 0x8888da7a)
-    {
+    } else if (mail == 0x8888da7a) {
       // DSP has copied coef to its DRAM...send address so it can DMA it back
       while (real_dsp.CheckMailTo())
         ;
@@ -428,7 +405,8 @@ void handle_dsp_mail(void)
     }
     else if (mail == 0xdcd10003) // DSP_DONE
     {
-      real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls end_of_test)
+      real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell DSP to halt (calls
+    end_of_test)
       while (real_dsp.CheckMailTo());
 
       DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
@@ -437,23 +415,21 @@ void handle_dsp_mail(void)
     }
     */
 
-    CON_PrintRow(2, 1, "UCode: %d/%d %s, Last mail: %08x", curUcode + 1, NUM_UCODES,
-                 UCODE_NAMES[curUcode], mail);
+    CON_PrintRow(2, 1, "UCode: %d/%d %s, Last mail: %08x", curUcode + 1,
+                 NUM_UCODES, UCODE_NAMES[curUcode], mail);
   }
 }
 
-void dump_all_ucodes(bool fastmode)
-{
+void dump_all_ucodes(bool fastmode) {
   char filename[260] = {0};
   char temp[100];
   u32 written;
 
   sprintf(filename, "sd:/dsp_dump_all.bin");
-  FILE* f2 = fopen(filename, "wb");
+  FILE *f2 = fopen(filename, "wb");
   fclose(f2);
 
-  for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++)
-  {
+  for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++) {
     // First, change the microcode
     dsp_steps = 0;
     curUcode = UCodeToDump;
@@ -467,62 +443,51 @@ void dump_all_ucodes(bool fastmode)
     VIDEO_WaitVSync();
     // Loop over handling mail until we've stopped stepping
     // dsp_steps-3 compensates for mails to setup the ucode
-    for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps; steps_cache++)
+    for (int steps_cache = dsp_steps - 3; steps_cache <= dsp_steps;
+         steps_cache++)
       handle_dsp_mail();
     VIDEO_WaitVSync();
 
     sprintf(filename, "sd:/dsp_dump_all.bin");
-    FILE* f2 = fopen(filename, "ab");
+    FILE *f2 = fopen(filename, "ab");
 
-    if (fastmode == false)
-    {
+    if (fastmode == false) {
       // Then write microcode dump to file
       sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
-      FILE* f = fopen(filename, "wb");
-      if (f)
-      {
+      FILE *f = fopen(filename, "wb");
+      if (f) {
         // First write initial regs
         written = fwrite(dspreg_in, 1, 32 * 2, f);
 
         // Then write all the dumps.
         written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
         fclose(f);
-      }
-      else
-      {
+      } else {
         UpdateLastMessage("SD Write Error");
         break;
       }
     }
 
-    if (f2)  // all in 1 dump file (extra)
+    if (f2) // all in 1 dump file (extra)
     {
-      if (UCodeToDump == 0)
-      {
+      if (UCodeToDump == 0) {
         // First write initial regs
         written = fwrite(dspreg_in, 1, 32 * 2, f2);
         written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f2);
-      }
-      else
-      {
+      } else {
         written = fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f2);
       }
 
       fclose(f2);
 
-      if (UCodeToDump < NUM_UCODES - 1)
-      {
-        sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump + 1, written,
-                dsp_steps);
+      if (UCodeToDump < NUM_UCODES - 1) {
+        sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d",
+                UCodeToDump + 1, written, dsp_steps);
         UpdateLastMessage(temp);
-      }
-      else
-      {
+      } else {
         UpdateLastMessage("DUMPING DONE!");
       }
-    }
-    else
-    {
+    } else {
       UpdateLastMessage("SD Write Error");
       break;
     }
@@ -530,8 +495,7 @@ void dump_all_ucodes(bool fastmode)
 }
 
 // Shove common, un-dsp-ish init things here
-void InitGeneral()
-{
+void InitGeneral() {
   // Initialize the video system
   VIDEO_Init();
 
@@ -562,7 +526,8 @@ void InitGeneral()
     VIDEO_WaitVSync();
 
   // Initialize the console, required for printf
-  CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight, rmode->fbWidth * VI_DISPLAY_PIX_SZ);
+  CON_Init(xfb, 20, 64, rmode->fbWidth, rmode->xfbHeight,
+           rmode->fbWidth * VI_DISPLAY_PIX_SZ);
 
 #ifdef HW_RVL
   // Initialize FAT so we can write to SD.
@@ -580,8 +545,7 @@ void InitGeneral()
 #endif
 }
 
-void ExitToLoader()
-{
+void ExitToLoader() {
   fatUnmount("sd");
 #ifdef HW_RVL
   __io_wiisd.shutdown();
@@ -592,15 +556,14 @@ void ExitToLoader()
   reboot();
 }
 
-int main()
-{
+int main() {
   InitGeneral();
 
   ui_mode = UIM_SEL;
 
-  dspbufP = (u16*)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer);  // physical
+  dspbufP = (u16 *)MEM_VIRTUAL_TO_PHYSICAL(dspbuffer); // physical
   dspbufC = dspbuffer;                                 // cached
-  dspbufU = (u32*)(MEM_K0_TO_K1(dspbuffer));           // uncached
+  dspbufU = (u32 *)(MEM_K0_TO_K1(dspbuffer));          // uncached
 
   DCInvalidateRange(dspbuffer, 0x2000);
   for (int j = 0; j < 0x800; j++)
@@ -610,8 +573,7 @@ int main()
   real_dsp.Init();
 
   int show_step = 0;
-  while (true)
-  {
+  while (true) {
     handle_dsp_mail();
 
     VIDEO_WaitVSync();
@@ -628,8 +590,8 @@ int main()
     CON_Printf(4, 19, "+/- (GC:'L'/'R') to move");
     CON_Printf(4, 20, "A (GC:'A') to edit register; B (GC:'B') to start over");
     CON_Printf(4, 21, "1 (GC:'Z') to move next microcode");
-    CON_Printf(4, 22,
-               "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
+    CON_Printf(4, 22, "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results "
+                      "to SD (SINGLE FILE)");
     CON_Printf(4, 23, "Home (GC:'START') to exit");
 #else
     CON_Printf(2, 18, "Controls:");
@@ -641,8 +603,7 @@ int main()
 
     print_regs(show_step, dsp_steps);
 
-    switch (ui_mode)
-    {
+    switch (ui_mode) {
     case UIM_SEL:
       ui_pad_sel();
       break;
@@ -659,13 +620,14 @@ int main()
 
 // Use B to start over.
 #ifdef HW_RVL
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) || (PAD_ButtonsDown(0) & PAD_BUTTON_B))
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_B) ||
+        (PAD_ButtonsDown(0) & PAD_BUTTON_B))
 #else
     if (PAD_ButtonsDown(0) & PAD_BUTTON_B)
 #endif
     {
-      dsp_steps =
-          0;  // Let's not add the new steps after the original ones. That was just annoying.
+      dsp_steps = 0; // Let's not add the new steps after the original ones.
+                     // That was just annoying.
 
       DCInvalidateRange(dspbufC, 0x2000);
       DCFlushRange(dspbufC, 0x2000);
@@ -677,7 +639,8 @@ int main()
 
 // Navigate between results using + and - buttons.
 #ifdef HW_RVL
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS) || (PAD_ButtonsDown(0) & PAD_TRIGGER_R))
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_PLUS) ||
+        (PAD_ButtonsDown(0) & PAD_TRIGGER_R))
 #else
     if (PAD_ButtonsDown(0) & PAD_TRIGGER_R)
 #endif
@@ -688,7 +651,8 @@ int main()
       UpdateLastMessage("OK");
     }
 #ifdef HW_RVL
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) || (PAD_ButtonsDown(0) & PAD_TRIGGER_L))
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_MINUS) ||
+        (PAD_ButtonsDown(0) & PAD_TRIGGER_L))
 #else
     if (PAD_ButtonsDown(0) & PAD_TRIGGER_L)
 #endif
@@ -700,7 +664,8 @@ int main()
     }
 
 #ifdef HW_RVL
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_1) || (PAD_ButtonsDown(0) & PAD_TRIGGER_Z))
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_1) ||
+        (PAD_ButtonsDown(0) & PAD_TRIGGER_Z))
 #else
     if (PAD_ButtonsDown(0) & PAD_TRIGGER_Z)
 #endif
@@ -714,8 +679,7 @@ int main()
       dsp_steps = 0;
 
       DCInvalidateRange(dspbufC, 0x2000);
-      for (int n = 0; n < 0x2000; n++)
-      {
+      for (int n = 0; n < 0x2000; n++) {
         //	dspbufU[n/2] = 0; dspbufC[n] = 0;
       }
       DCFlushRange(dspbufC, 0x2000);
@@ -731,20 +695,21 @@ int main()
 #ifdef HW_RVL
     // Probably could offer to save to sd gecko or something on gc...
     // The future is web-based reporting ;)
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_2) || (PAD_ButtonsDown(0) & PAD_BUTTON_X))
-    {
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_2) ||
+        (PAD_ButtonsDown(0) & PAD_BUTTON_X)) {
       dump_all_ucodes(false);
     }
 
-    // Dump all results into 1 file (skip file per ucode part) = FAST because of LIBFAT filecreate
+    // Dump all results into 1 file (skip file per ucode part) = FAST because of
+    // LIBFAT filecreate
     // bug
-    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_UP) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
-    {
+    if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_UP) ||
+        (PAD_ButtonsDown(0) & PAD_BUTTON_Y)) {
       dump_all_ucodes(true);
     }
 #endif
 
-  }  // end main loop
+  } // end main loop
 
   ExitToLoader();
 

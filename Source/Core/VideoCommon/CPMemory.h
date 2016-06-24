@@ -8,8 +8,7 @@
 #include "Common/CommonTypes.h"
 
 // Vertex array numbers
-enum
-{
+enum {
   ARRAY_POSITION = 0,
   ARRAY_NORMAL = 1,
   ARRAY_COLOR = 2,
@@ -18,8 +17,7 @@ enum
 };
 
 // Vertex components
-enum
-{
+enum {
   NOT_PRESENT = 0,
   DIRECT = 1,
   INDEX8 = 2,
@@ -28,18 +26,16 @@ enum
   MASK_INDEXED = 2,
 };
 
-enum
-{
-  FORMAT_UBYTE = 0,  // 2 Cmp
-  FORMAT_BYTE = 1,   // 3 Cmp
+enum {
+  FORMAT_UBYTE = 0, // 2 Cmp
+  FORMAT_BYTE = 1,  // 3 Cmp
   FORMAT_USHORT = 2,
   FORMAT_SHORT = 3,
   FORMAT_FLOAT = 4,
 };
 
-enum
-{
-  FORMAT_16B_565 = 0,  // NA
+enum {
+  FORMAT_16B_565 = 0, // NA
   FORMAT_24B_888 = 1,
   FORMAT_32B_888x = 2,
   FORMAT_16B_4444 = 3,
@@ -50,8 +46,7 @@ enum
 #pragma pack(4)
 union TVtxDesc {
   u64 Hex;
-  struct
-  {
+  struct {
     // 0: not present
     // 1: present
     u64 PosMatIdx : 1;
@@ -83,8 +78,7 @@ union TVtxDesc {
     u64 : 31;
   };
 
-  struct
-  {
+  struct {
     u32 Hex0, Hex1;
   };
 
@@ -94,8 +88,7 @@ union TVtxDesc {
 
 union UVAT_group0 {
   u32 Hex;
-  struct
-  {
+  struct {
     // 0:8
     u32 PosElements : 1;
     u32 PosFormat : 3;
@@ -121,8 +114,7 @@ union UVAT_group0 {
 
 union UVAT_group1 {
   u32 Hex;
-  struct
-  {
+  struct {
     // 0:8
     u32 Tex1CoordElements : 1;
     u32 Tex1CoordFormat : 3;
@@ -145,8 +137,7 @@ union UVAT_group1 {
 
 union UVAT_group2 {
   u32 Hex;
-  struct
-  {
+  struct {
     // 0:4
     u32 Tex4Frac : 5;
     // 5:13
@@ -164,21 +155,18 @@ union UVAT_group2 {
   };
 };
 
-struct ColorAttr
-{
+struct ColorAttr {
   u8 Elements;
   u8 Comp;
 };
 
-struct TexAttr
-{
+struct TexAttr {
   u8 Elements;
   u8 Format;
   u8 Frac;
 };
 
-struct TVtxAttr
-{
+struct TVtxAttr {
   u8 PosElements;
   u8 PosFormat;
   u8 PosFrac;
@@ -192,31 +180,27 @@ struct TVtxAttr
 
 // Matrix indices
 union TMatrixIndexA {
-  struct
-  {
+  struct {
     u32 PosNormalMtxIdx : 6;
     u32 Tex0MtxIdx : 6;
     u32 Tex1MtxIdx : 6;
     u32 Tex2MtxIdx : 6;
     u32 Tex3MtxIdx : 6;
   };
-  struct
-  {
+  struct {
     u32 Hex : 30;
     u32 unused : 2;
   };
 };
 
 union TMatrixIndexB {
-  struct
-  {
+  struct {
     u32 Tex4MtxIdx : 6;
     u32 Tex5MtxIdx : 6;
     u32 Tex6MtxIdx : 6;
     u32 Tex7MtxIdx : 6;
   };
-  struct
-  {
+  struct {
     u32 Hex : 24;
     u32 unused : 8;
   };
@@ -224,8 +208,7 @@ union TMatrixIndexB {
 
 #pragma pack()
 
-struct VAT
-{
+struct VAT {
   UVAT_group0 g0;
   UVAT_group1 g1;
   UVAT_group2 g2;
@@ -234,20 +217,20 @@ struct VAT
 class VertexLoaderBase;
 
 // STATE_TO_SAVE
-struct CPState final
-{
+struct CPState final {
   u32 array_bases[16];
   u32 array_strides[16];
   TMatrixIndexA matrix_index_a;
   TMatrixIndexB matrix_index_b;
   TVtxDesc vtx_desc;
-  // Most games only use the first VtxAttr and simply reconfigure it all the time as needed.
+  // Most games only use the first VtxAttr and simply reconfigure it all the
+  // time as needed.
   VAT vtx_attr[8];
 
   // Attributes that actually belong to VertexLoaderManager:
   BitSet32 attr_dirty;
   bool bases_dirty;
-  VertexLoaderBase* vertex_loaders[8];
+  VertexLoaderBase *vertex_loaders[8];
   int last_id;
 };
 
@@ -260,8 +243,8 @@ extern CPState g_preprocess_cp_state;
 void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
 
 // Fills memory with data from CP regs
-void FillCPMemoryArray(u32* memory);
+void FillCPMemoryArray(u32 *memory);
 
-void DoCPState(PointerWrap& p);
+void DoCPState(PointerWrap &p);
 
 void CopyPreprocessCPStateFromMain();

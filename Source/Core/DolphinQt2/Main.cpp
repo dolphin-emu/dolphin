@@ -12,8 +12,7 @@
 #include "DolphinQt2/Resources.h"
 #include "UICommon/UICommon.h"
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
 
   UICommon::SetUserDirectory("");
@@ -23,8 +22,9 @@ int main(int argc, char* argv[])
 
   // Whenever the event loop is about to go to sleep, dispatch the jobs
   // queued in the Core first.
-  QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
-                   &app, &Core::HostDispatchJobs);
+  QObject::connect(QAbstractEventDispatcher::instance(),
+                   &QAbstractEventDispatcher::aboutToBlock, &app,
+                   &Core::HostDispatchJobs);
 
   MainWindow win;
   win.show();

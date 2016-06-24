@@ -14,92 +14,84 @@ extern "C" {
 
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace XInput2
-{
-void Init(std::vector<Core::Device*>& devices, void* const hwnd);
+namespace ciface {
+namespace XInput2 {
+void Init(std::vector<Core::Device *> &devices, void *const hwnd);
 
-class KeyboardMouse : public Core::Device
-{
+class KeyboardMouse : public Core::Device {
 private:
-  struct State
-  {
+  struct State {
     char keyboard[32];
     unsigned int buttons;
-    struct
-    {
+    struct {
       float x, y;
     } cursor, axis;
   };
 
-  class Key : public Input
-  {
+  class Key : public Input {
     friend class KeyboardMouse;
 
   public:
     std::string GetName() const override { return m_keyname; }
-    Key(Display* display, KeyCode keycode, const char* keyboard);
+    Key(Display *display, KeyCode keycode, const char *keyboard);
     ControlState GetState() const override;
 
   private:
     std::string m_keyname;
-    Display* const m_display;
-    const char* const m_keyboard;
+    Display *const m_display;
+    const char *const m_keyboard;
     const KeyCode m_keycode;
   };
 
-  class Button : public Input
-  {
+  class Button : public Input {
   public:
     std::string GetName() const override { return name; }
-    Button(unsigned int index, unsigned int* buttons);
+    Button(unsigned int index, unsigned int *buttons);
     ControlState GetState() const override;
 
   private:
-    const unsigned int* m_buttons;
+    const unsigned int *m_buttons;
     const unsigned int m_index;
     std::string name;
   };
 
-  class Cursor : public Input
-  {
+  class Cursor : public Input {
   public:
     std::string GetName() const override { return name; }
     bool IsDetectable() override { return false; }
-    Cursor(u8 index, bool positive, const float* cursor);
+    Cursor(u8 index, bool positive, const float *cursor);
     ControlState GetState() const override;
 
   private:
-    const float* m_cursor;
+    const float *m_cursor;
     const u8 m_index;
     const bool m_positive;
     std::string name;
   };
 
-  class Axis : public Input
-  {
+  class Axis : public Input {
   public:
     std::string GetName() const override { return name; }
     bool IsDetectable() override { return false; }
-    Axis(u8 index, bool positive, const float* axis);
+    Axis(u8 index, bool positive, const float *axis);
     ControlState GetState() const override;
 
   private:
-    const float* m_axis;
+    const float *m_axis;
     const u8 m_index;
     const bool m_positive;
     std::string name;
   };
 
 private:
-  void SelectEventsForDevice(Window window, XIEventMask* mask, int deviceid);
+  void SelectEventsForDevice(Window window, XIEventMask *mask, int deviceid);
   void UpdateCursor();
 
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(Window window, int opcode, int pointer_deviceid, int keyboard_deviceid);
+  KeyboardMouse(Window window, int opcode, int pointer_deviceid,
+                int keyboard_deviceid);
   ~KeyboardMouse();
 
   std::string GetName() const override;
@@ -108,7 +100,7 @@ public:
 
 private:
   Window m_window;
-  Display* m_display;
+  Display *m_display;
   State m_state;
   int xi_opcode;
   const int pointer_deviceid, keyboard_deviceid;

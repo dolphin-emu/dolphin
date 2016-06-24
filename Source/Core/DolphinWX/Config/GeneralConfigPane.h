@@ -12,14 +12,12 @@ class wxCheckBox;
 class wxChoice;
 class wxRadioBox;
 
-class GeneralConfigPane final : public wxPanel
-{
+class GeneralConfigPane final : public wxPanel {
 public:
-  GeneralConfigPane(wxWindow* parent, wxWindowID id);
+  GeneralConfigPane(wxWindow *parent, wxWindowID id);
 
 private:
-  struct CPUCore
-  {
+  struct CPUCore {
     int CPUid;
     wxString name;
   };
@@ -28,27 +26,27 @@ private:
   void LoadGUIValues();
   void RefreshGUI();
 
-  void OnDualCoreCheckBoxChanged(wxCommandEvent&);
-  void OnIdleSkipCheckBoxChanged(wxCommandEvent&);
-  void OnCheatCheckBoxChanged(wxCommandEvent&);
-  void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
-  void OnThrottlerChoiceChanged(wxCommandEvent&);
-  void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
-  void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
-  void OnAnalyticsNewIdButtonClick(wxCommandEvent&);
+  void OnDualCoreCheckBoxChanged(wxCommandEvent &);
+  void OnIdleSkipCheckBoxChanged(wxCommandEvent &);
+  void OnCheatCheckBoxChanged(wxCommandEvent &);
+  void OnForceNTSCJCheckBoxChanged(wxCommandEvent &);
+  void OnThrottlerChoiceChanged(wxCommandEvent &);
+  void OnCPUEngineRadioBoxChanged(wxCommandEvent &);
+  void OnAnalyticsCheckBoxChanged(wxCommandEvent &);
+  void OnAnalyticsNewIdButtonClick(wxCommandEvent &);
 
   wxArrayString m_throttler_array_string;
   wxArrayString m_cpu_engine_array_string;
 
-  wxCheckBox* m_dual_core_checkbox;
-  wxCheckBox* m_idle_skip_checkbox;
-  wxCheckBox* m_cheats_checkbox;
-  wxCheckBox* m_force_ntscj_checkbox;
+  wxCheckBox *m_dual_core_checkbox;
+  wxCheckBox *m_idle_skip_checkbox;
+  wxCheckBox *m_cheats_checkbox;
+  wxCheckBox *m_force_ntscj_checkbox;
 
-  wxCheckBox* m_analytics_checkbox;
-  wxButton* m_analytics_new_id;
+  wxCheckBox *m_analytics_checkbox;
+  wxButton *m_analytics_new_id;
 
-  wxChoice* m_throttler_choice;
+  wxChoice *m_throttler_choice;
 
-  wxRadioBox* m_cpu_engine_radiobox;
+  wxRadioBox *m_cpu_engine_radiobox;
 };

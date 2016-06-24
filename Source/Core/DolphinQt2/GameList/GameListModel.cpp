@@ -5,24 +5,24 @@
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/Resources.h"
 
-GameListModel::GameListModel(QObject* parent) : QAbstractTableModel(parent)
-{
-  connect(&m_tracker, &GameTracker::GameLoaded, this, &GameListModel::UpdateGame);
-  connect(&m_tracker, &GameTracker::GameRemoved, this, &GameListModel::RemoveGame);
-  connect(this, &GameListModel::DirectoryAdded, &m_tracker, &GameTracker::AddDirectory);
-  connect(this, &GameListModel::DirectoryRemoved, &m_tracker, &GameTracker::RemoveDirectory);
+GameListModel::GameListModel(QObject *parent) : QAbstractTableModel(parent) {
+  connect(&m_tracker, &GameTracker::GameLoaded, this,
+          &GameListModel::UpdateGame);
+  connect(&m_tracker, &GameTracker::GameRemoved, this,
+          &GameListModel::RemoveGame);
+  connect(this, &GameListModel::DirectoryAdded, &m_tracker,
+          &GameTracker::AddDirectory);
+  connect(this, &GameListModel::DirectoryRemoved, &m_tracker,
+          &GameTracker::RemoveDirectory);
 }
 
-QVariant GameListModel::data(const QModelIndex& index, int role) const
-{
+QVariant GameListModel::data(const QModelIndex &index, int role) const {
   if (!index.isValid())
     return QVariant();
 
   QSharedPointer<GameFile> game = m_games[index.row()];
-  if (role == Qt::DisplayRole)
-  {
-    switch (index.column())
-    {
+  if (role == Qt::DisplayRole) {
+    switch (index.column()) {
     case COL_PLATFORM:
       return game->GetPlatform();
     case COL_BANNER:
@@ -46,13 +46,12 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   return QVariant();
 }
 
-QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int role) const
-{
+QVariant GameListModel::headerData(int section, Qt::Orientation orientation,
+                                   int role) const {
   if (orientation == Qt::Vertical || role != Qt::DisplayRole)
     return QVariant();
 
-  switch (section)
-  {
+  switch (section) {
   case COL_TITLE:
     return tr("Title");
   case COL_ID:
@@ -71,20 +70,17 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
   return QVariant();
 }
 
-int GameListModel::rowCount(const QModelIndex& parent) const
-{
+int GameListModel::rowCount(const QModelIndex &parent) const {
   if (parent.isValid())
     return 0;
   return m_games.size();
 }
 
-int GameListModel::columnCount(const QModelIndex& parent) const
-{
+int GameListModel::columnCount(const QModelIndex &parent) const {
   return NUM_COLS;
 }
 
-void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
-{
+void GameListModel::UpdateGame(QSharedPointer<GameFile> game) {
   QString path = game->GetPath();
 
   int entry = FindGame(path);
@@ -96,8 +92,7 @@ void GameListModel::UpdateGame(QSharedPointer<GameFile> game)
   endInsertRows();
 }
 
-void GameListModel::RemoveGame(const QString& path)
-{
+void GameListModel::RemoveGame(const QString &path) {
   int entry = FindGame(path);
   if (entry < 0)
     return;
@@ -107,10 +102,8 @@ void GameListModel::RemoveGame(const QString& path)
   endRemoveRows();
 }
 
-int GameListModel::FindGame(const QString& path) const
-{
-  for (int i = 0; i < m_games.size(); i++)
-  {
+int GameListModel::FindGame(const QString &path) const {
+  for (int i = 0; i < m_games.size(); i++) {
     if (m_games[i]->GetPath() == path)
       return i;
   }

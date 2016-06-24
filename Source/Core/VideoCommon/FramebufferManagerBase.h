@@ -11,13 +11,12 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
-inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
-{
+inline bool AddressRangesOverlap(u32 aLower, u32 aUpper, u32 bLower,
+                                 u32 bUpper) {
   return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
-struct XFBSourceBase
-{
+struct XFBSourceBase {
   virtual ~XFBSourceBase() {}
   virtual void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) = 0;
 
@@ -34,11 +33,9 @@ struct XFBSourceBase
   TargetRectangle sourceRc;
 };
 
-class FramebufferManagerBase
-{
+class FramebufferManagerBase {
 public:
-  enum
-  {
+  enum {
     // There may be multiple XFBs in GameCube RAM. This is the maximum number to
     // virtualize.
     MAX_VIRTUAL_XFB = 8
@@ -47,22 +44,24 @@ public:
   FramebufferManagerBase();
   virtual ~FramebufferManagerBase();
 
-  static void CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
-                        float Gamma);
-  static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                  u32* xfbCount);
+  static void CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
+                        const EFBRectangle &sourceRc, float Gamma);
+  static const XFBSourceBase *const *GetXFBSource(u32 xfbAddr, u32 fbWidth,
+                                                  u32 fbHeight, u32 *xfbCount);
 
   static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
-  static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
+  static void SetLastXfbHeight(unsigned int height) {
+    s_last_xfb_height = height;
+  }
   static unsigned int LastXfbWidth() { return s_last_xfb_width; }
   static unsigned int LastXfbHeight() { return s_last_xfb_height; }
   static int ScaleToVirtualXfbWidth(int x);
   static int ScaleToVirtualXfbHeight(int y);
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
+
 protected:
-  struct VirtualXFB
-  {
+  struct VirtualXFB {
     VirtualXFB() {}
     // Address and size in GameCube RAM
     u32 xfbAddr = 0;
@@ -78,29 +77,35 @@ protected:
 
 private:
   virtual std::unique_ptr<XFBSourceBase>
-  CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
+  CreateXFBSource(unsigned int target_width, unsigned int target_height,
+                  unsigned int layers) = 0;
   // TODO: figure out why OGL is different for this guy
-  virtual void GetTargetSize(unsigned int* width, unsigned int* height) = 0;
+  virtual void GetTargetSize(unsigned int *width, unsigned int *height) = 0;
 
-  static VirtualXFBListType::iterator FindVirtualXFB(u32 xfbAddr, u32 width, u32 height);
+  static VirtualXFBListType::iterator FindVirtualXFB(u32 xfbAddr, u32 width,
+                                                     u32 height);
 
   static void ReplaceVirtualXFB();
 
   // TODO: merge these virtual funcs, they are nearly all the same
-  virtual void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
+  virtual void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
+                             const EFBRectangle &sourceRc,
                              float Gamma = 1.0f) = 0;
-  static void CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
+  static void CopyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
+                               const EFBRectangle &sourceRc,
                                float Gamma = 1.0f);
 
-  static const XFBSourceBase* const* GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                      u32* xfbCount);
-  static const XFBSourceBase* const* GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                         u32* xfbCount);
+  static const XFBSourceBase *const *
+  GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 *xfbCount);
+  static const XFBSourceBase *const *
+  GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 *xfbCount);
 
-  static std::unique_ptr<XFBSourceBase> m_realXFBSource;  // Only used in Real XFB mode
-  static VirtualXFBListType m_virtualXFBList;             // Only used in Virtual XFB mode
+  static std::unique_ptr<XFBSourceBase>
+      m_realXFBSource;                        // Only used in Real XFB mode
+  static VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
 
-  static std::array<const XFBSourceBase*, MAX_VIRTUAL_XFB> m_overlappingXFBArray;
+  static std::array<const XFBSourceBase *, MAX_VIRTUAL_XFB>
+      m_overlappingXFBArray;
 
   static unsigned int s_last_xfb_width;
   static unsigned int s_last_xfb_height;

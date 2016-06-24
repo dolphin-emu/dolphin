@@ -7,17 +7,13 @@
 
 #include "InputCommon/ControllerInterface/Xlib/Xlib.h"
 
-namespace ciface
-{
-namespace Xlib
-{
-void Init(std::vector<Core::Device*>& devices, void* const hwnd)
-{
+namespace ciface {
+namespace Xlib {
+void Init(std::vector<Core::Device *> &devices, void *const hwnd) {
   devices.push_back(new KeyboardMouse((Window)hwnd));
 }
 
-KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
-{
+KeyboardMouse::KeyboardMouse(Window window) : m_window(window) {
   memset(&m_state, 0, sizeof(m_state));
 
   m_display = XOpenDisplay(nullptr);
@@ -26,9 +22,8 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
   XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
 
   // Keyboard Keys
-  for (int i = min_keycode; i <= max_keycode; ++i)
-  {
-    Key* temp_key = new Key(m_display, i, m_state.keyboard);
+  for (int i = min_keycode; i <= max_keycode; ++i) {
+    Key *temp_key = new Key(m_display, i, m_state.keyboard);
     if (temp_key->m_keyname.length())
       AddInput(temp_key);
     else
@@ -47,19 +42,15 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (&m_state.cursor.x)[!!(i & 2)]));
 }
 
-KeyboardMouse::~KeyboardMouse()
-{
-  XCloseDisplay(m_display);
-}
+KeyboardMouse::~KeyboardMouse() { XCloseDisplay(m_display); }
 
-void KeyboardMouse::UpdateInput()
-{
+void KeyboardMouse::UpdateInput() {
   XQueryKeymap(m_display, m_state.keyboard);
 
   int root_x, root_y, win_x, win_y;
   Window root, child;
-  XQueryPointer(m_display, m_window, &root, &child, &root_x, &root_y, &win_x, &win_y,
-                &m_state.buttons);
+  XQueryPointer(m_display, m_window, &root, &child, &root_x, &root_y, &win_x,
+                &win_y, &m_state.buttons);
 
   // update mouse cursor
   XWindowAttributes win_attribs;
@@ -70,28 +61,18 @@ void KeyboardMouse::UpdateInput()
   m_state.cursor.y = (float)win_y / (float)win_attribs.height * 2 - 1;
 }
 
-std::string KeyboardMouse::GetName() const
-{
-  return "Keyboard Mouse";
-}
+std::string KeyboardMouse::GetName() const { return "Keyboard Mouse"; }
 
-std::string KeyboardMouse::GetSource() const
-{
-  return "Xlib";
-}
+std::string KeyboardMouse::GetSource() const { return "Xlib"; }
 
-int KeyboardMouse::GetId() const
-{
-  return 0;
-}
+int KeyboardMouse::GetId() const { return 0; }
 
-KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
-    : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
-{
+KeyboardMouse::Key::Key(Display *const display, KeyCode keycode,
+                        const char *keyboard)
+    : m_display(display), m_keyboard(keyboard), m_keycode(keycode) {
   int i = 0;
   KeySym keysym = 0;
-  do
-  {
+  do {
     keysym = XkbKeycodeToKeysym(m_display, keycode, i, 0);
     i++;
   } while (keysym == NoSymbol && i < 8);
@@ -102,45 +83,37 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 
   // 0x0110ffff is the top of the unicode character range according
   // to keysymdef.h although it is probably more than we need.
-  if (keysym == NoSymbol || keysym > 0x0110ffff || XKeysymToString(keysym) == nullptr)
+  if (keysym == NoSymbol || keysym > 0x0110ffff ||
+      XKeysymToString(keysym) == nullptr)
     m_keyname = std::string();
   else
     m_keyname = std::string(XKeysymToString(keysym));
 }
 
-ControlState KeyboardMouse::Key::GetState() const
-{
+ControlState KeyboardMouse::Key::GetState() const {
   return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
 }
 
-ControlState KeyboardMouse::Button::GetState() const
-{
+ControlState KeyboardMouse::Button::GetState() const {
   return ((m_buttons & m_index) != 0);
 }
 
-ControlState KeyboardMouse::Cursor::GetState() const
-{
+ControlState KeyboardMouse::Cursor::GetState() const {
   return std::max(0.0f, m_cursor / (m_positive ? 1.0f : -1.0f));
 }
 
-std::string KeyboardMouse::Key::GetName() const
-{
-  return m_keyname;
-}
+std::string KeyboardMouse::Key::GetName() const { return m_keyname; }
 
-std::string KeyboardMouse::Cursor::GetName() const
-{
+std::string KeyboardMouse::Cursor::GetName() const {
   static char tmpstr[] = "Cursor ..";
   tmpstr[7] = (char)('X' + m_index);
   tmpstr[8] = (m_positive ? '+' : '-');
   return tmpstr;
 }
 
-std::string KeyboardMouse::Button::GetName() const
-{
+std::string KeyboardMouse::Button::GetName() const {
   char button = '0';
-  switch (m_index)
-  {
+  switch (m_index) {
   case Button1Mask:
     button = '1';
     break;

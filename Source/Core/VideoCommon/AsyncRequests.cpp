@@ -12,29 +12,24 @@
 
 AsyncRequests AsyncRequests::s_singleton;
 
-AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true)
-{
-}
+AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true) {}
 
-void AsyncRequests::PullEventsInternal()
-{
+void AsyncRequests::PullEventsInternal() {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_empty.store(true);
 
-  while (!m_queue.empty())
-  {
+  while (!m_queue.empty()) {
     Event e = m_queue.front();
 
     // try to merge as many efb pokes as possible
     // it's a bit hacky, but some games render a complete frame in this way
-    if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z))
-    {
+    if ((e.type == Event::EFB_POKE_COLOR || e.type == Event::EFB_POKE_Z)) {
       m_merged_efb_pokes.clear();
       Event first_event = m_queue.front();
-      EFBAccessType t = first_event.type == Event::EFB_POKE_COLOR ? POKE_COLOR : POKE_Z;
+      EFBAccessType t =
+          first_event.type == Event::EFB_POKE_COLOR ? POKE_COLOR : POKE_Z;
 
-      do
-      {
+      do {
         e = m_queue.front();
 
         EfbPokeData d;
@@ -47,7 +42,8 @@ void AsyncRequests::PullEventsInternal()
       } while (!m_queue.empty() && m_queue.front().type == first_event.type);
 
       lock.unlock();
-      g_renderer->PokeEFB(t, m_merged_efb_pokes.data(), m_merged_efb_pokes.size());
+      g_renderer->PokeEFB(t, m_merged_efb_pokes.data(),
+                          m_merged_efb_pokes.size());
       lock.lock();
       continue;
     }
@@ -59,19 +55,17 @@ void AsyncRequests::PullEventsInternal()
     m_queue.pop();
   }
 
-  if (m_wake_me_up_again)
-  {
+  if (m_wake_me_up_again) {
     m_wake_me_up_again = false;
     m_cond.notify_all();
   }
 }
 
-void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
-{
+void AsyncRequests::PushEvent(const AsyncRequests::Event &event,
+                              bool blocking) {
   std::unique_lock<std::mutex> lock(m_mutex);
 
-  if (m_passthrough)
-  {
+  if (m_passthrough) {
     HandleEvent(event);
     return;
   }
@@ -85,19 +79,16 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
   m_queue.push(event);
 
   Fifo::RunGpu();
-  if (blocking)
-  {
+  if (blocking) {
     m_cond.wait(lock, [this] { return m_queue.empty(); });
   }
 }
 
-void AsyncRequests::SetEnable(bool enable)
-{
+void AsyncRequests::SetEnable(bool enable) {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_enable = enable;
 
-  if (!enable)
-  {
+  if (!enable) {
     // flush the queue on disabling
     while (!m_queue.empty())
       m_queue.pop();
@@ -106,36 +97,32 @@ void AsyncRequests::SetEnable(bool enable)
   }
 }
 
-void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
-{
+void AsyncRequests::HandleEvent(const AsyncRequests::Event &e) {
   EFBRectangle rc;
-  switch (e.type)
-  {
-  case Event::EFB_POKE_COLOR:
-  {
+  switch (e.type) {
+  case Event::EFB_POKE_COLOR: {
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(POKE_COLOR, &poke, 1);
-  }
-  break;
+  } break;
 
-  case Event::EFB_POKE_Z:
-  {
+  case Event::EFB_POKE_Z: {
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
     g_renderer->PokeEFB(POKE_Z, &poke, 1);
-  }
-  break;
+  } break;
 
   case Event::EFB_PEEK_COLOR:
-    *e.efb_peek.data = g_renderer->AccessEFB(PEEK_COLOR, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data =
+        g_renderer->AccessEFB(PEEK_COLOR, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::EFB_PEEK_Z:
-    *e.efb_peek.data = g_renderer->AccessEFB(PEEK_Z, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data =
+        g_renderer->AccessEFB(PEEK_Z, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::SWAP_EVENT:
-    Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                   e.swap_event.fbHeight, rc);
+    Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth,
+                   e.swap_event.fbStride, e.swap_event.fbHeight, rc);
     break;
 
   case Event::BBOX_READ:
@@ -148,8 +135,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   }
 }
 
-void AsyncRequests::SetPassthrough(bool enable)
-{
+void AsyncRequests::SetPassthrough(bool enable) {
   std::unique_lock<std::mutex> lock(m_mutex);
   m_passthrough = enable;
 }

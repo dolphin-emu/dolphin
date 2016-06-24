@@ -13,40 +13,29 @@
 
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace Core
-{
+namespace ciface {
+namespace Core {
 //
 // Device :: ~Device
 //
 // Destructor, delete all inputs/outputs on device destruction
 //
-Device::~Device()
-{
+Device::~Device() {
   // delete inputs
-  for (Device::Input* input : m_inputs)
+  for (Device::Input *input : m_inputs)
     delete input;
 
   // delete outputs
-  for (Device::Output* output : m_outputs)
+  for (Device::Output *output : m_outputs)
     delete output;
 }
 
-void Device::AddInput(Device::Input* const i)
-{
-  m_inputs.push_back(i);
-}
+void Device::AddInput(Device::Input *const i) { m_inputs.push_back(i); }
 
-void Device::AddOutput(Device::Output* const o)
-{
-  m_outputs.push_back(o);
-}
+void Device::AddOutput(Device::Output *const o) { m_outputs.push_back(o); }
 
-Device::Input* Device::FindInput(const std::string& name) const
-{
-  for (Input* input : m_inputs)
-  {
+Device::Input *Device::FindInput(const std::string &name) const {
+  for (Input *input : m_inputs) {
     if (input->GetName() == name)
       return input;
   }
@@ -54,10 +43,8 @@ Device::Input* Device::FindInput(const std::string& name) const
   return nullptr;
 }
 
-Device::Output* Device::FindOutput(const std::string& name) const
-{
-  for (Output* output : m_outputs)
-  {
+Device::Output *Device::FindOutput(const std::string &name) const {
+  for (Output *output : m_outputs) {
     if (output->GetName() == name)
       return output;
   }
@@ -65,8 +52,7 @@ Device::Output* Device::FindOutput(const std::string& name) const
   return nullptr;
 }
 
-bool Device::Control::InputGateOn()
-{
+bool Device::Control::InputGateOn() {
   if (SConfig::GetInstance().m_BackgroundInput)
     return true;
   else if (Host_RendererHasFocus() || Host_UIHasFocus())
@@ -80,8 +66,7 @@ bool Device::Control::InputGateOn()
 //
 // Get string from a device qualifier / serialize
 //
-std::string DeviceQualifier::ToString() const
-{
+std::string DeviceQualifier::ToString() const {
   if (source.empty() && (cid < 0) && name.empty())
     return "";
 
@@ -99,8 +84,7 @@ std::string DeviceQualifier::ToString() const
 //
 // Set a device qualifier from a string / unserialize
 //
-void DeviceQualifier::FromString(const std::string& str)
-{
+void DeviceQualifier::FromString(const std::string &str) {
   std::istringstream ss(str);
 
   std::getline(ss, source = "", '/');
@@ -117,15 +101,13 @@ void DeviceQualifier::FromString(const std::string& str)
 //
 // Set a device qualifier from a device
 //
-void DeviceQualifier::FromDevice(const Device* const dev)
-{
+void DeviceQualifier::FromDevice(const Device *const dev) {
   name = dev->GetName();
   cid = dev->GetId();
   source = dev->GetSource();
 }
 
-bool DeviceQualifier::operator==(const Device* const dev) const
-{
+bool DeviceQualifier::operator==(const Device *const dev) const {
   if (dev->GetId() == cid)
     if (dev->GetName() == name)
       if (dev->GetSource() == source)
@@ -134,8 +116,7 @@ bool DeviceQualifier::operator==(const Device* const dev) const
   return false;
 }
 
-bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
-{
+bool DeviceQualifier::operator==(const DeviceQualifier &devq) const {
   if (cid == devq.cid)
     if (name == devq.name)
       if (source == devq.source)
@@ -144,10 +125,8 @@ bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
   return false;
 }
 
-Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
-{
-  for (Device* d : m_devices)
-  {
+Device *DeviceContainer::FindDevice(const DeviceQualifier &devq) const {
+  for (Device *d : m_devices) {
     if (devq == d)
       return d;
   }
@@ -155,18 +134,16 @@ Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
   return nullptr;
 }
 
-Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
-{
-  if (def_dev)
-  {
-    Device::Input* const inp = def_dev->FindInput(name);
+Device::Input *DeviceContainer::FindInput(const std::string &name,
+                                          const Device *def_dev) const {
+  if (def_dev) {
+    Device::Input *const inp = def_dev->FindInput(name);
     if (inp)
       return inp;
   }
 
-  for (Device* d : m_devices)
-  {
-    Device::Input* const i = d->FindInput(name);
+  for (Device *d : m_devices) {
+    Device::Input *const i = d->FindInput(name);
 
     if (i)
       return i;
@@ -175,8 +152,8 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
   return nullptr;
 }
 
-Device::Output* DeviceContainer::FindOutput(const std::string& name, const Device* def_dev) const
-{
+Device::Output *DeviceContainer::FindOutput(const std::string &name,
+                                            const Device *def_dev) const {
   return def_dev->FindOutput(name);
 }
 }

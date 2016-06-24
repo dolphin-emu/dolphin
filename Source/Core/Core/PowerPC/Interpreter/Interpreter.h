@@ -8,8 +8,7 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
 
-class Interpreter : public CPUCoreBase
-{
+class Interpreter : public CPUCoreBase {
 public:
   void Init() override;
   void Shutdown() override;
@@ -18,7 +17,7 @@ public:
 
   void Run() override;
   void ClearCache() override;
-  const char* GetName() override;
+  const char *GetName() override;
 
   static bool m_EndBlock;
 
@@ -271,7 +270,7 @@ public:
   static Instruction m_opTable63[1024];
 
   // singleton
-  static Interpreter* getInstance();
+  static Interpreter *getInstance();
 
   static void RunTable4(UGeckoInstruction _instCode);
   static void RunTable19(UGeckoInstruction _instCode);
@@ -300,10 +299,13 @@ private:
   // other helper
   static u32 Helper_Mask(int mb, int me);
 
-  static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
-  static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
+  static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a,
+                                         double b);
+  static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a,
+                                           double b);
 
-  // TODO: These should really be in the save state, although it's unlikely to matter much.
+  // TODO: These should really be in the save state, although it's unlikely to
+  // matter much.
   // They are for lwarx and its friend stwcxd.
   static bool g_bReserve;
   static u32 g_reserveAddr;

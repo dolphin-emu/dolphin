@@ -2,19 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-void JitILBase::mtspr(UGeckoInstruction inst)
-{
+void JitILBase::mtspr(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
-  switch (iIndex)
-  {
+  switch (iIndex) {
   case SPR_TL:
   case SPR_TU:
     FALLBACK_IF(true);
@@ -43,13 +41,11 @@ void JitILBase::mtspr(UGeckoInstruction inst)
   }
 }
 
-void JitILBase::mfspr(UGeckoInstruction inst)
-{
+void JitILBase::mfspr(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
-  switch (iIndex)
-  {
+  switch (iIndex) {
   case SPR_TL:
   case SPR_TU:
     FALLBACK_IF(true);
@@ -77,35 +73,31 @@ void JitILBase::mfspr(UGeckoInstruction inst)
 // =======================================================================================
 // Don't interpret this, if we do we get thrown out
 // --------------
-void JitILBase::mtmsr(UGeckoInstruction inst)
-{
-  ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS), ibuild.EmitIntConst(js.compilerPC));
+void JitILBase::mtmsr(UGeckoInstruction inst) {
+  ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS),
+                      ibuild.EmitIntConst(js.compilerPC));
   ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }
 // ==============
 
-void JitILBase::mfmsr(UGeckoInstruction inst)
-{
+void JitILBase::mfmsr(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
   ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
-void JitILBase::mftb(UGeckoInstruction inst)
-{
+void JitILBase::mftb(UGeckoInstruction inst) {
   INSTRUCTION_START;
   JITDISABLE(bJITSystemRegistersOff);
   mfspr(inst);
 }
 
-void JitILBase::mfcr(UGeckoInstruction inst)
-{
+void JitILBase::mfcr(UGeckoInstruction inst) {
   INSTRUCTION_START;
   JITDISABLE(bJITSystemRegistersOff);
 
   IREmitter::InstLoc d = ibuild.EmitIntConst(0);
-  for (int i = 0; i < 8; ++i)
-  {
+  for (int i = 0; i < 8; ++i) {
     IREmitter::InstLoc cr = ibuild.EmitLoadCR(i);
     cr = ibuild.EmitConvertFromFastCR(cr);
     cr = ibuild.EmitShl(cr, ibuild.EmitIntConst(28 - 4 * i));
@@ -114,16 +106,13 @@ void JitILBase::mfcr(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(d, inst.RD);
 }
 
-void JitILBase::mtcrf(UGeckoInstruction inst)
-{
+void JitILBase::mtcrf(UGeckoInstruction inst) {
   INSTRUCTION_START;
   JITDISABLE(bJITSystemRegistersOff);
 
   IREmitter::InstLoc s = ibuild.EmitLoadGReg(inst.RS);
-  for (int i = 0; i < 8; ++i)
-  {
-    if (inst.CRM & (0x80 >> i))
-    {
+  for (int i = 0; i < 8; ++i) {
+    if (inst.CRM & (0x80 >> i)) {
       IREmitter::InstLoc value;
       value = ibuild.EmitShrl(s, ibuild.EmitIntConst(28 - i * 4));
       value = ibuild.EmitAnd(value, ibuild.EmitIntConst(0xF));
@@ -133,19 +122,16 @@ void JitILBase::mtcrf(UGeckoInstruction inst)
   }
 }
 
-void JitILBase::mcrf(UGeckoInstruction inst)
-{
+void JitILBase::mcrf(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
-  if (inst.CRFS != inst.CRFD)
-  {
+  if (inst.CRFS != inst.CRFD) {
     ibuild.EmitStoreCR(ibuild.EmitLoadCR(inst.CRFS), inst.CRFD);
   }
 }
 
-void JitILBase::crXX(UGeckoInstruction inst)
-{
+void JitILBase::crXX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITSystemRegistersOff);
 
@@ -169,35 +155,34 @@ void JitILBase::crXX(UGeckoInstruction inst)
 
   // Compute combined bit
   const unsigned subop = inst.SUBOP10;
-  switch (subop)
-  {
-  case 257:  // crand
+  switch (subop) {
+  case 257: // crand
     eax = ibuild.EmitAnd(eax, ecx);
     break;
-  case 129:  // crandc
+  case 129: // crandc
     ecx = ibuild.EmitNot(ecx);
     eax = ibuild.EmitAnd(eax, ecx);
     break;
-  case 289:  // creqv
+  case 289: // creqv
     eax = ibuild.EmitXor(eax, ecx);
     eax = ibuild.EmitNot(eax);
     break;
-  case 225:  // crnand
+  case 225: // crnand
     eax = ibuild.EmitAnd(eax, ecx);
     eax = ibuild.EmitNot(eax);
     break;
-  case 33:  // crnor
+  case 33: // crnor
     eax = ibuild.EmitOr(eax, ecx);
     eax = ibuild.EmitNot(eax);
     break;
-  case 449:  // cror
+  case 449: // cror
     eax = ibuild.EmitOr(eax, ecx);
     break;
-  case 417:  // crorc
+  case 417: // crorc
     ecx = ibuild.EmitNot(ecx);
     eax = ibuild.EmitOr(eax, ecx);
     break;
-  case 193:  // crxor
+  case 193: // crxor
     eax = ibuild.EmitXor(eax, ecx);
     break;
   default:

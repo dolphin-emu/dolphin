@@ -21,42 +21,39 @@ class GameLoader;
 // GameLoaded and GameRemoved signals. Ignore the PathChanged signal, it's
 // only there because the Qt people made fileChanged and directoryChanged
 // private.
-class GameTracker final : public QFileSystemWatcher
-{
+class GameTracker final : public QFileSystemWatcher {
   Q_OBJECT
 
 public:
-  explicit GameTracker(QObject* parent = nullptr);
+  explicit GameTracker(QObject *parent = nullptr);
   ~GameTracker();
 
 public slots:
-  void AddDirectory(const QString& dir);
-  void RemoveDirectory(const QString& dir);
+  void AddDirectory(const QString &dir);
+  void RemoveDirectory(const QString &dir);
 
 signals:
   void GameLoaded(QSharedPointer<GameFile> game);
-  void GameRemoved(const QString& path);
+  void GameRemoved(const QString &path);
 
-  void PathChanged(const QString& path);
+  void PathChanged(const QString &path);
 
 private:
-  void UpdateDirectory(const QString& dir);
-  void UpdateFile(const QString& path);
+  void UpdateDirectory(const QString &dir);
+  void UpdateFile(const QString &path);
 
   // game path -> number of directories that track it
   QMap<QString, int> m_tracked_files;
   QThread m_loader_thread;
-  GameLoader* m_loader;
+  GameLoader *m_loader;
 };
 
-class GameLoader final : public QObject
-{
+class GameLoader final : public QObject {
   Q_OBJECT
 
 public slots:
-  void LoadGame(const QString& path)
-  {
-    GameFile* game = new GameFile(path);
+  void LoadGame(const QString &path) {
+    GameFile *game = new GameFile(path);
     if (game->IsValid())
       emit GameLoaded(QSharedPointer<GameFile>(game));
   }

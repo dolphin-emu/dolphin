@@ -2,17 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-// TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs since they are so
+// TODO: Add peephole optimizations for multiple consecutive lfd/lfs/stfd/stfs
+// since they are so
 // common,
 // and pshufb could help a lot.
-// Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
+// Also add hacks for things like lfs/stfs the same reg consecutively, that is,
+// simple memory moves.
 
-void JitILBase::lfs(UGeckoInstruction inst)
-{
+void JitILBase::lfs(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -22,12 +23,12 @@ void JitILBase::lfs(UGeckoInstruction inst)
   if (inst.RA)
     addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-  IREmitter::InstLoc val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+  IREmitter::InstLoc val =
+      ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
   ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitILBase::lfsu(UGeckoInstruction inst)
-{
+void JitILBase::lfsu(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -36,13 +37,13 @@ void JitILBase::lfsu(UGeckoInstruction inst)
 
   addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-  IREmitter::InstLoc val = ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
+  IREmitter::InstLoc val =
+      ibuild.EmitDupSingleToMReg(ibuild.EmitLoadSingle(addr));
   ibuild.EmitStoreFReg(val, inst.FD);
   ibuild.EmitStoreGReg(addr, inst.RA);
 }
 
-void JitILBase::lfd(UGeckoInstruction inst)
-{
+void JitILBase::lfd(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -57,8 +58,7 @@ void JitILBase::lfd(UGeckoInstruction inst)
   ibuild.EmitStoreFReg(val, inst.RD);
 }
 
-void JitILBase::lfdu(UGeckoInstruction inst)
-{
+void JitILBase::lfdu(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -73,8 +73,7 @@ void JitILBase::lfdu(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(addr, inst.RA);
 }
 
-void JitILBase::stfd(UGeckoInstruction inst)
-{
+void JitILBase::stfd(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -90,8 +89,7 @@ void JitILBase::stfd(UGeckoInstruction inst)
   ibuild.EmitStoreDouble(val, addr);
 }
 
-void JitILBase::stfs(UGeckoInstruction inst)
-{
+void JitILBase::stfs(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -108,8 +106,7 @@ void JitILBase::stfs(UGeckoInstruction inst)
   ibuild.EmitStoreSingle(val, addr);
 }
 
-void JitILBase::stfsx(UGeckoInstruction inst)
-{
+void JitILBase::stfsx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);
@@ -124,8 +121,7 @@ void JitILBase::stfsx(UGeckoInstruction inst)
   ibuild.EmitStoreSingle(val, addr);
 }
 
-void JitILBase::lfsx(UGeckoInstruction inst)
-{
+void JitILBase::lfsx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
   FALLBACK_IF(jo.memcheck);

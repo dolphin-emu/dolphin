@@ -6,11 +6,11 @@
 
 // This subclass of QSortFilterProxyModel transforms the raw data into a
 // single-column large icon + name to be displayed in a QListView.
-class ListProxyModel final : public QSortFilterProxyModel
-{
+class ListProxyModel final : public QSortFilterProxyModel {
   Q_OBJECT
 
 public:
-  explicit ListProxyModel(QObject* parent = nullptr);
-  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  explicit ListProxyModel(QObject *parent = nullptr);
+  QVariant data(const QModelIndex &index,
+                int role = Qt::DisplayRole) const override;
 };

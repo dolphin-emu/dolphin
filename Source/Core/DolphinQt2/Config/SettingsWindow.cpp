@@ -2,19 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt2/Settings.h"
 #include "DolphinQt2/Config/SettingsWindow.h"
+#include "DolphinQt2/Settings.h"
 
-SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
-{
+SettingsWindow::SettingsWindow(QWidget *parent) : QDialog(parent) {
   // Set Window Properties
   setWindowTitle(tr("Settings"));
   resize(720, 600);
 
   // Main Layout
-  QVBoxLayout* layout = new QVBoxLayout;
-  QHBoxLayout* content = new QHBoxLayout;
-  QVBoxLayout* content_inner = new QVBoxLayout;
+  QVBoxLayout *layout = new QVBoxLayout;
+  QHBoxLayout *content = new QHBoxLayout;
+  QVBoxLayout *content_inner = new QVBoxLayout;
   // Content's widgets
   {
     // Category list
@@ -36,32 +35,31 @@ SettingsWindow::SettingsWindow(QWidget* parent) : QDialog(parent)
   layout->addLayout(content);
 
   // Dialog box buttons
-  QDialogButtonBox* ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
+  QDialogButtonBox *ok_box = new QDialogButtonBox(QDialogButtonBox::Ok);
   connect(ok_box, &QDialogButtonBox::accepted, this, &SettingsWindow::accept);
   layout->addWidget(ok_box);
 
   setLayout(layout);
 }
 
-void SettingsWindow::SetupSettingsWidget()
-{
+void SettingsWindow::SetupSettingsWidget() {
   m_settings_outer = new QStackedWidget;
   m_settings_outer->setCurrentIndex(0);
 }
 
-void SettingsWindow::MakeUnfinishedWarning()
-{
+void SettingsWindow::MakeUnfinishedWarning() {
   m_warning_group = new QGroupBox(tr("Warning"));
-  QHBoxLayout* m_warning_group_layout = new QHBoxLayout;
-  QLabel* warning_text = new QLabel(tr("Some categories and settings will not work.\n"
-                                       "This Settings Window is under active development."));
+  QHBoxLayout *m_warning_group_layout = new QHBoxLayout;
+  QLabel *warning_text =
+      new QLabel(tr("Some categories and settings will not work.\n"
+                    "This Settings Window is under active development."));
   m_warning_group_layout->addWidget(warning_text);
   m_warning_group->setLayout(m_warning_group_layout);
 }
 
-void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon)
-{
-  QListWidgetItem* button = new QListWidgetItem();
+void SettingsWindow::AddCategoryToList(const QString &title,
+                                       const QString &icon) {
+  QListWidgetItem *button = new QListWidgetItem();
   button->setIcon(QIcon(icon));
   button->setText(title);
   button->setTextAlignment(Qt::AlignVCenter);
@@ -70,8 +68,7 @@ void SettingsWindow::AddCategoryToList(const QString& title, const QString& icon
   m_categories->addItem(button);
 }
 
-void SettingsWindow::MakeCategoryList()
-{
+void SettingsWindow::MakeCategoryList() {
   QString dir = Settings().GetThemeDir();
 
   m_categories = new QListWidget;
@@ -80,11 +77,12 @@ void SettingsWindow::MakeCategoryList()
   m_categories->setMovement(QListView::Static);
   m_categories->setSpacing(0);
 
-  connect(m_categories, &QListWidget::currentItemChanged, this, &SettingsWindow::changePage);
+  connect(m_categories, &QListWidget::currentItemChanged, this,
+          &SettingsWindow::changePage);
 }
 
-void SettingsWindow::changePage(QListWidgetItem* current, QListWidgetItem* previous)
-{
+void SettingsWindow::changePage(QListWidgetItem *current,
+                                QListWidgetItem *previous) {
   if (!current)
     current = previous;
   m_settings_outer->setCurrentIndex(m_categories->row(current));

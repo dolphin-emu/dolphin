@@ -25,8 +25,7 @@
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-class JitIL : public JitILBase
-{
+class JitIL : public JitILBase {
 public:
   Jit64AsmRoutineManager asm_routines;
 
@@ -43,15 +42,16 @@ public:
   // Jit!
 
   void Jit(u32 em_address) override;
-  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  const u8 *DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b,
+                  u32 nextPC);
 
   void Trace();
 
-  JitBlockCache* GetBlockCache() override { return &blocks; }
+  JitBlockCache *GetBlockCache() override { return &blocks; }
   void ClearCache() override;
 
-  const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
-  const char* GetName() override { return "JIT64IL"; }
+  const CommonAsmRoutines *GetAsmRoutines() override { return &asm_routines; }
+  const char *GetName() override { return "JIT64IL"; }
   // Run!
   void Run() override;
   void SingleStep() override;
@@ -59,9 +59,9 @@ public:
   // Utilities for use by opcodes
 
   void WriteExit(u32 destination);
-  void WriteExitDestInOpArg(const Gen::OpArg& arg);
+  void WriteExitDestInOpArg(const Gen::OpArg &arg);
   void WriteExceptionExit();
-  void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
+  void WriteRfiExitDestInOpArg(const Gen::OpArg &arg);
   void Cleanup();
 
   void WriteCode(u32 exitAddress);

@@ -22,36 +22,26 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init(int size)
-{
-  AllocCodeSpace(size);
-}
+void TrampolineCache::Init(int size) { AllocCodeSpace(size); }
 
-void TrampolineCache::ClearCodeSpace()
-{
-  X64CodeBlock::ClearCodeSpace();
-}
+void TrampolineCache::ClearCodeSpace() { X64CodeBlock::ClearCodeSpace(); }
 
-void TrampolineCache::Shutdown()
-{
-  FreeCodeSpace();
-}
+void TrampolineCache::Shutdown() { FreeCodeSpace(); }
 
-const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo& info,
-                                                  BitSet32 registersInUse, u8* exceptionHandler,
-                                                  u8* returnPtr)
-{
+const u8 *TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info,
+                                                  BitSet32 registersInUse,
+                                                  u8 *exceptionHandler,
+                                                  u8 *returnPtr) {
   if (GetSpaceLeft() < 1024)
     PanicAlert("Trampoline cache full");
 
-  const u8* trampoline = GetCodePtr();
+  const u8 *trampoline = GetCodePtr();
   X64Reg addrReg = (X64Reg)info.scaledReg;
   X64Reg dataReg = (X64Reg)info.regOperandReg;
   int stack_offset = 0;
   bool push_param1 = registersInUse[ABI_PARAM1];
 
-  if (push_param1)
-  {
+  if (push_param1) {
     PUSH(ABI_PARAM1);
     stack_offset = 8;
     registersInUse[ABI_PARAM1] = 0;
@@ -67,19 +57,18 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo& info,
 
   ABI_PushRegistersAndAdjustStack(registersInUse, stack_offset);
 
-  switch (info.operandSize)
-  {
+  switch (info.operandSize) {
   case 8:
-    CALL((void*)&PowerPC::Read_U64);
+    CALL((void *)&PowerPC::Read_U64);
     break;
   case 4:
-    CALL((void*)&PowerPC::Read_U32);
+    CALL((void *)&PowerPC::Read_U32);
     break;
   case 2:
-    CALL((void*)&PowerPC::Read_U16);
+    CALL((void *)&PowerPC::Read_U16);
     break;
   case 1:
-    CALL((void*)&PowerPC::Read_U8);
+    CALL((void *)&PowerPC::Read_U8);
     break;
   }
 
@@ -88,8 +77,7 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo& info,
   if (push_param1)
     POP(ABI_PARAM1);
 
-  if (exceptionHandler)
-  {
+  if (exceptionHandler) {
     TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
     J_CC(CC_NZ, exceptionHandler);
   }
@@ -105,14 +93,14 @@ const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo& info,
   return trampoline;
 }
 
-const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo& info,
-                                                   BitSet32 registersInUse, u8* exceptionHandler,
-                                                   u8* returnPtr, u32 pc)
-{
+const u8 *TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info,
+                                                   BitSet32 registersInUse,
+                                                   u8 *exceptionHandler,
+                                                   u8 *returnPtr, u32 pc) {
   if (GetSpaceLeft() < 1024)
     PanicAlert("Trampoline cache full");
 
-  const u8* trampoline = GetCodePtr();
+  const u8 *trampoline = GetCodePtr();
 
   X64Reg dataReg = (X64Reg)info.regOperandReg;
   X64Reg addrReg = (X64Reg)info.scaledReg;
@@ -120,13 +108,13 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo& info,
   // Don't treat FIFO writes specially for now because they require a burst
   // check anyway.
 
-  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+  // PC is used by memory watchpoints (if enabled) or to print accurate PC
+  // locations in debug logs
   MOV(32, PPCSTATE(pc), Imm32(pc));
 
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-  if (info.hasImmediate)
-  {
+  if (info.hasImmediate) {
     if (addrReg != ABI_PARAM2 && info.displacement)
       LEA(32, ABI_PARAM2, MDisp(addrReg, info.displacement));
     else if (addrReg != ABI_PARAM2)
@@ -135,8 +123,7 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo& info,
       ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
 
     // we have to swap back the immediate to pass it to the write functions
-    switch (info.operandSize)
-    {
+    switch (info.operandSize) {
     case 8:
       PanicAlert("Invalid 64-bit immediate!");
       break;
@@ -150,32 +137,29 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo& info,
       MOV(8, R(ABI_PARAM1), Imm8((u8)info.immediate));
       break;
     }
-  }
-  else
-  {
+  } else {
     int dataRegSize = info.operandSize == 8 ? 64 : 32;
-    MOVTwo(dataRegSize, ABI_PARAM2, addrReg, info.displacement, ABI_PARAM1, dataReg);
+    MOVTwo(dataRegSize, ABI_PARAM2, addrReg, info.displacement, ABI_PARAM1,
+           dataReg);
   }
 
-  switch (info.operandSize)
-  {
+  switch (info.operandSize) {
   case 8:
-    CALL((void*)&PowerPC::Write_U64);
+    CALL((void *)&PowerPC::Write_U64);
     break;
   case 4:
-    CALL((void*)&PowerPC::Write_U32);
+    CALL((void *)&PowerPC::Write_U32);
     break;
   case 2:
-    CALL((void*)&PowerPC::Write_U16);
+    CALL((void *)&PowerPC::Write_U16);
     break;
   case 1:
-    CALL((void*)&PowerPC::Write_U8);
+    CALL((void *)&PowerPC::Write_U8);
     break;
   }
 
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-  if (exceptionHandler)
-  {
+  if (exceptionHandler) {
     TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
     J_CC(CC_NZ, exceptionHandler);
   }

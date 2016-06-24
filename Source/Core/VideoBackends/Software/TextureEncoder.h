@@ -6,7 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-namespace TextureEncoder
-{
-void Encode(u8* dest_ptr);
+namespace TextureEncoder {
+void Encode(u8 *dest_ptr);
 }

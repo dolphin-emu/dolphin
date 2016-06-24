@@ -70,35 +70,28 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-namespace OGL
-{
+namespace OGL {
 // Draw messages on top of the screen
-unsigned int VideoBackend::PeekMessages()
-{
+unsigned int VideoBackend::PeekMessages() {
   return GLInterface->PeekMessages();
 }
 
-std::string VideoBackend::GetName() const
-{
-  return "OGL";
-}
+std::string VideoBackend::GetName() const { return "OGL"; }
 
-std::string VideoBackend::GetDisplayName() const
-{
-  if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+std::string VideoBackend::GetDisplayName() const {
+  if (GLInterface != nullptr &&
+      GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
     return "OpenGLES";
   else
     return "OpenGL";
 }
 
-static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
-{
-  std::vector<std::string> paths =
-      DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
+static std::vector<std::string> GetShaders(const std::string &sub_dir = "") {
+  std::vector<std::string> paths = DoFileSearch(
+      {".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                  File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
   std::vector<std::string> result;
-  for (std::string path : paths)
-  {
+  for (std::string path : paths) {
     std::string name;
     SplitPath(path, nullptr, &name, nullptr);
     result.push_back(name);
@@ -106,8 +99,7 @@ static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
   return result;
 }
 
-static void InitBackendInfo()
-{
+static void InitBackendInfo() {
   g_Config.backend_info.APIType = API_OPENGL;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
@@ -126,16 +118,14 @@ static void InitBackendInfo()
   g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
-void VideoBackend::ShowConfig(void* parent_handle)
-{
+void VideoBackend::ShowConfig(void *parent_handle) {
   if (!m_initialized)
     InitBackendInfo();
 
   Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
 }
 
-bool VideoBackend::Initialize(void* window_handle)
-{
+bool VideoBackend::Initialize(void *window_handle) {
   InitializeShared();
   InitBackendInfo();
 
@@ -165,8 +155,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
 // This is called after Initialize() from the Core
 // Run from the graphics thread
-void VideoBackend::Video_Prepare()
-{
+void VideoBackend::Video_Prepare() {
   GLInterface->MakeCurrent();
 
   g_renderer = std::make_unique<Renderer>();
@@ -177,7 +166,7 @@ void VideoBackend::Video_Prepare()
   BPInit();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = GetPerfQuery();
-  Fifo::Init();  // must be done before OpcodeDecoder::Init()
+  Fifo::Init(); // must be done before OpcodeDecoder::Init()
   OpcodeDecoder::Init();
   IndexGenerator::Init();
   VertexShaderManager::Init();
@@ -195,8 +184,7 @@ void VideoBackend::Video_Prepare()
   Host_Message(WM_USER_CREATE);
 }
 
-void VideoBackend::Shutdown()
-{
+void VideoBackend::Shutdown() {
   m_initialized = false;
 
   // Do our OSD callbacks
@@ -206,8 +194,7 @@ void VideoBackend::Shutdown()
   GLInterface.reset();
 }
 
-void VideoBackend::Video_Cleanup()
-{
+void VideoBackend::Video_Cleanup() {
   if (!g_renderer)
     return;
 

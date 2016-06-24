@@ -11,28 +11,19 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/PerfQueryBase.h"
 
-namespace MMIO
-{
+namespace MMIO {
 class Mapping;
 }
 class PointerWrap;
 
-enum FieldType
-{
+enum FieldType {
   FIELD_ODD = 0,
   FIELD_EVEN = 1,
 };
 
-enum EFBAccessType
-{
-  PEEK_Z = 0,
-  POKE_Z,
-  PEEK_COLOR,
-  POKE_COLOR
-};
+enum EFBAccessType { PEEK_Z = 0, POKE_Z, PEEK_COLOR, POKE_COLOR };
 
-struct SCPFifoStruct
-{
+struct SCPFifoStruct {
   // fifo registers
   volatile u32 CPBase;
   volatile u32 CPEnd;
@@ -45,7 +36,8 @@ struct SCPFifoStruct
   volatile u32 SafeCPReadPointer;
   // Super Monkey Ball Adventure require this.
   // Because the read&check-PEToken-loop stays in its JITed block I suppose.
-  // So no possiblity to ack the Token irq by the scheduler until some sort of PPC watchdog do its
+  // So no possiblity to ack the Token irq by the scheduler until some sort of
+  // PPC watchdog do its
   // mess.
   volatile u16 PEToken;
 
@@ -62,22 +54,21 @@ struct SCPFifoStruct
   volatile u32 bFF_HiWatermark;
 };
 
-class VideoBackendBase
-{
+class VideoBackendBase {
 public:
   virtual ~VideoBackendBase() {}
   virtual unsigned int PeekMessages() = 0;
 
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(void *window_handle) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  virtual void ShowConfig(void*) = 0;
+  virtual void ShowConfig(void *) = 0;
 
   virtual void Video_Prepare() = 0;
   void Video_ExitLoop();
-  virtual void Video_Cleanup() = 0;  // called from gl/d3d thread
+  virtual void Video_Cleanup() = 0; // called from gl/d3d thread
 
   void Video_BeginField(u32, u32, u32, u32);
   void Video_EndField();
@@ -88,11 +79,12 @@ public:
 
   static void PopulateList();
   static void ClearList();
-  static void ActivateBackend(const std::string& name);
+  static void ActivateBackend(const std::string &name);
 
-  // the implementation needs not do synchronization logic, because calls to it are surrounded by
+  // the implementation needs not do synchronization logic, because calls to it
+  // are surrounded by
   // PauseAndLock now
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap &p);
 
   void CheckInvalidState();
 
@@ -103,5 +95,6 @@ protected:
   bool m_invalid = false;
 };
 
-extern std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;
-extern VideoBackendBase* g_video_backend;
+extern std::vector<std::unique_ptr<VideoBackendBase>>
+    g_available_video_backends;
+extern VideoBackendBase *g_video_backend;

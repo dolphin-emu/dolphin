@@ -11,11 +11,9 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
-namespace OGL
-{
+namespace OGL {
 // moved out of constructor, so m_buffer is allowed to be const
-static u32 GenBuffer()
-{
+static u32 GenBuffer() {
   u32 id;
   glGenBuffers(1, &id);
   return id;
@@ -23,95 +21,90 @@ static u32 GenBuffer()
 
 StreamBuffer::StreamBuffer(u32 type, u32 size)
     : m_buffer(GenBuffer()), m_buffertype(type), m_size(ROUND_UP_POW2(size)),
-      m_bit_per_slot(IntLog2(ROUND_UP_POW2(size) / SYNC_POINTS))
-{
+      m_bit_per_slot(IntLog2(ROUND_UP_POW2(size) / SYNC_POINTS)) {
   m_iterator = 0;
   m_used_iterator = 0;
   m_free_iterator = 0;
 }
 
-StreamBuffer::~StreamBuffer()
-{
-  glDeleteBuffers(1, &m_buffer);
-}
+StreamBuffer::~StreamBuffer() { glDeleteBuffers(1, &m_buffer); }
 
 /* Shared synchronization code for ring buffers
  *
  * The next three functions are to create/delete/use the OpenGL synchronization.
  * ARB_sync (OpenGL 3.2) is used and required.
  *
- * To reduce overhead, the complete buffer is splitted up into SYNC_POINTS chunks.
- * For each of this chunks, there is a fence which checks if this chunk is still in use.
+ * To reduce overhead, the complete buffer is splitted up into SYNC_POINTS
+ * chunks.
+ * For each of this chunks, there is a fence which checks if this chunk is still
+ * in use.
  *
- * As our API allows to alloc more memory then it has to use, we have to catch how much is already
+ * As our API allows to alloc more memory then it has to use, we have to catch
+ * how much is already
  * written.
  *
  * m_iterator      - writing position
  * m_free_iterator - last position checked if free
  * m_used_iterator - last position known to be written
  *
- * So on alloc, we have to wait for all slots between m_free_iterator and m_iterator (and set
+ * So on alloc, we have to wait for all slots between m_free_iterator and
+ * m_iterator (and set
  * m_free_iterator to m_iterator afterwards).
  *
- * We also assume that this buffer is accessed by the GPU between the Unmap and Map function,
+ * We also assume that this buffer is accessed by the GPU between the Unmap and
+ * Map function,
  * so we may create the fences on the start of mapping.
- * Some here, new fences for the chunks between m_used_iterator and m_iterator (also update
+ * Some here, new fences for the chunks between m_used_iterator and m_iterator
+ * (also update
  * m_used_iterator).
  *
- * As ring buffers have an ugly behavior on rollover, have fun to read this code ;)
+ * As ring buffers have an ugly behavior on rollover, have fun to read this code
+ * ;)
  */
 
-void StreamBuffer::CreateFences()
-{
-  for (int i = 0; i < SYNC_POINTS; i++)
-  {
+void StreamBuffer::CreateFences() {
+  for (int i = 0; i < SYNC_POINTS; i++) {
     m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   }
 }
-void StreamBuffer::DeleteFences()
-{
-  for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; i++)
-  {
+void StreamBuffer::DeleteFences() {
+  for (int i = Slot(m_free_iterator) + 1; i < SYNC_POINTS; i++) {
     glDeleteSync(m_fences[i]);
   }
-  for (int i = 0; i < Slot(m_iterator); i++)
-  {
+  for (int i = 0; i < Slot(m_iterator); i++) {
     glDeleteSync(m_fences[i]);
   }
 }
-void StreamBuffer::AllocMemory(u32 size)
-{
+void StreamBuffer::AllocMemory(u32 size) {
   // insert waiting slots for used memory
-  for (int i = Slot(m_used_iterator); i < Slot(m_iterator); i++)
-  {
+  for (int i = Slot(m_used_iterator); i < Slot(m_iterator); i++) {
     m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
   }
   m_used_iterator = m_iterator;
 
   // wait for new slots to end of buffer
-  for (int i = Slot(m_free_iterator) + 1; i <= Slot(m_iterator + size) && i < SYNC_POINTS; i++)
-  {
-    glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+  for (int i = Slot(m_free_iterator) + 1;
+       i <= Slot(m_iterator + size) && i < SYNC_POINTS; i++) {
+    glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT,
+                     GL_TIMEOUT_IGNORED);
     glDeleteSync(m_fences[i]);
   }
   m_free_iterator = m_iterator + size;
 
   // if buffer is full
-  if (m_iterator + size >= m_size)
-  {
+  if (m_iterator + size >= m_size) {
     // insert waiting slots in unused space at the end of the buffer
-    for (int i = Slot(m_used_iterator); i < SYNC_POINTS; i++)
-    {
+    for (int i = Slot(m_used_iterator); i < SYNC_POINTS; i++) {
       m_fences[i] = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
     // move to the start
-    m_used_iterator = m_iterator = 0;  // offset 0 is always aligned
+    m_used_iterator = m_iterator = 0; // offset 0 is always aligned
 
     // wait for space at the start
-    for (int i = 0; i <= Slot(m_iterator + size); i++)
-    {
-      glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+    for (int i = 0; i <= Slot(m_iterator + size); i++) {
+      glClientWaitSync(m_fences[i], GL_SYNC_FLUSH_COMMANDS_BIT,
+                       GL_TIMEOUT_IGNORED);
       glDeleteSync(m_fences[i]);
     }
     m_free_iterator = m_iterator + size;
@@ -119,37 +112,35 @@ void StreamBuffer::AllocMemory(u32 size)
 }
 
 /* The usual way to stream data to the GPU.
- * Described here: https://www.opengl.org/wiki/Buffer_Object_Streaming#Unsynchronized_buffer_mapping
+ * Described here:
+ * https://www.opengl.org/wiki/Buffer_Object_Streaming#Unsynchronized_buffer_mapping
  * Just do unsync appends until the buffer is full.
  * When it's full, orphan (alloc a new buffer and free the old one)
  *
- * As reallocation is an overhead, this method isn't as fast as it is known to be.
+ * As reallocation is an overhead, this method isn't as fast as it is known to
+ * be.
  */
-class MapAndOrphan : public StreamBuffer
-{
+class MapAndOrphan : public StreamBuffer {
 public:
-  MapAndOrphan(u32 type, u32 size) : StreamBuffer(type, size)
-  {
+  MapAndOrphan(u32 type, u32 size) : StreamBuffer(type, size) {
     glBindBuffer(m_buffertype, m_buffer);
     glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
   }
 
   ~MapAndOrphan() {}
-  std::pair<u8*, u32> Map(u32 size) override
-  {
-    if (m_iterator + size >= m_size)
-    {
+  std::pair<u8 *, u32> Map(u32 size) override {
+    if (m_iterator + size >= m_size) {
       glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
       m_iterator = 0;
     }
-    u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+    u8 *pointer =
+        (u8 *)glMapBufferRange(m_buffertype, m_iterator, size,
+                               GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
+                                   GL_MAP_UNSYNCHRONIZED_BIT);
     return std::make_pair(pointer, m_iterator);
   }
 
-  void Unmap(u32 used_size) override
-  {
+  void Unmap(u32 used_size) override {
     glFlushMappedBufferRange(m_buffertype, 0, used_size);
     glUnmapBuffer(m_buffertype);
     m_iterator += used_size;
@@ -163,28 +154,25 @@ public:
  * Else this fifo may overflow.
  * So we had traded orphan vs syncing.
  */
-class MapAndSync : public StreamBuffer
-{
+class MapAndSync : public StreamBuffer {
 public:
-  MapAndSync(u32 type, u32 size) : StreamBuffer(type, size)
-  {
+  MapAndSync(u32 type, u32 size) : StreamBuffer(type, size) {
     CreateFences();
     glBindBuffer(m_buffertype, m_buffer);
     glBufferData(m_buffertype, m_size, nullptr, GL_STREAM_DRAW);
   }
 
   ~MapAndSync() { DeleteFences(); }
-  std::pair<u8*, u32> Map(u32 size) override
-  {
+  std::pair<u8 *, u32> Map(u32 size) override {
     AllocMemory(size);
-    u8* pointer = (u8*)glMapBufferRange(m_buffertype, m_iterator, size,
-                                        GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
-                                            GL_MAP_UNSYNCHRONIZED_BIT);
+    u8 *pointer =
+        (u8 *)glMapBufferRange(m_buffertype, m_iterator, size,
+                               GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT |
+                                   GL_MAP_UNSYNCHRONIZED_BIT);
     return std::make_pair(pointer, m_iterator);
   }
 
-  void Unmap(u32 used_size) override
-  {
+  void Unmap(u32 used_size) override {
     glFlushMappedBufferRange(m_buffertype, 0, used_size);
     glUnmapBuffer(m_buffertype);
     m_iterator += used_size;
@@ -204,47 +192,45 @@ public:
  *
  * As persistently mapped buffer can't use orphaning, we also have to sync.
  */
-class BufferStorage : public StreamBuffer
-{
+class BufferStorage : public StreamBuffer {
 public:
   BufferStorage(u32 type, u32 size, bool _coherent = false)
-      : StreamBuffer(type, size), coherent(_coherent)
-  {
+      : StreamBuffer(type, size), coherent(_coherent) {
     CreateFences();
     glBindBuffer(m_buffertype, m_buffer);
 
     // PERSISTANT_BIT to make sure that the buffer can be used while mapped
     // COHERENT_BIT is set so we don't have to use a MemoryBarrier on write
-    // CLIENT_STORAGE_BIT is set since we access the buffer more frequently on the client side then
+    // CLIENT_STORAGE_BIT is set since we access the buffer more frequently on
+    // the client side then
     // server side
-    glBufferStorage(m_buffertype, m_size, nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                                       (coherent ? GL_MAP_COHERENT_BIT : 0));
-    m_pointer = (u8*)glMapBufferRange(
-        m_buffertype, 0, m_size, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                     (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
+    glBufferStorage(m_buffertype, m_size, nullptr,
+                    GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                        (coherent ? GL_MAP_COHERENT_BIT : 0));
+    m_pointer = (u8 *)glMapBufferRange(
+        m_buffertype, 0, m_size,
+        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+            (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT));
   }
 
-  ~BufferStorage()
-  {
+  ~BufferStorage() {
     DeleteFences();
     glUnmapBuffer(m_buffertype);
     glBindBuffer(m_buffertype, 0);
   }
 
-  std::pair<u8*, u32> Map(u32 size) override
-  {
+  std::pair<u8 *, u32> Map(u32 size) override {
     AllocMemory(size);
     return std::make_pair(m_pointer + m_iterator, m_iterator);
   }
 
-  void Unmap(u32 used_size) override
-  {
+  void Unmap(u32 used_size) override {
     if (!coherent)
       glFlushMappedBufferRange(m_buffertype, m_iterator, used_size);
     m_iterator += used_size;
   }
 
-  u8* m_pointer;
+  u8 *m_pointer;
   const bool coherent;
 };
 
@@ -255,38 +241,35 @@ public:
  * This one uses AMD_pinned_memory which is available on all AMD GPUs.
  * OpenGL 4.4 drivers should use BufferStorage.
  */
-class PinnedMemory : public StreamBuffer
-{
+class PinnedMemory : public StreamBuffer {
 public:
-  PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size)
-  {
+  PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size) {
     CreateFences();
-    m_pointer =
-        (u8*)AllocateAlignedMemory(ROUND_UP(m_size, ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY);
+    m_pointer = (u8 *)AllocateAlignedMemory(
+        ROUND_UP(m_size, ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY);
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
-    glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, ROUND_UP(m_size, ALIGN_PINNED_MEMORY),
-                 m_pointer, GL_STREAM_COPY);
+    glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD,
+                 ROUND_UP(m_size, ALIGN_PINNED_MEMORY), m_pointer,
+                 GL_STREAM_COPY);
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
     glBindBuffer(m_buffertype, m_buffer);
   }
 
-  ~PinnedMemory()
-  {
+  ~PinnedMemory() {
     DeleteFences();
     glBindBuffer(m_buffertype, 0);
-    glFinish();  // ogl pipeline must be flushed, else this buffer can be in use
+    glFinish(); // ogl pipeline must be flushed, else this buffer can be in use
     FreeAlignedMemory(m_pointer);
     m_pointer = nullptr;
   }
 
-  std::pair<u8*, u32> Map(u32 size) override
-  {
+  std::pair<u8 *, u32> Map(u32 size) override {
     AllocMemory(size);
     return std::make_pair(m_pointer + m_iterator, m_iterator);
   }
 
   void Unmap(u32 used_size) override { m_iterator += used_size; }
-  u8* m_pointer;
+  u8 *m_pointer;
   static const u32 ALIGN_PINNED_MEMORY = 4096;
 };
 
@@ -295,20 +278,22 @@ public:
  * an additional memcpy in the driver will be done.
  * So this is a huge overhead, only use it if required.
  */
-class BufferSubData : public StreamBuffer
-{
+class BufferSubData : public StreamBuffer {
 public:
-  BufferSubData(u32 type, u32 size) : StreamBuffer(type, size)
-  {
+  BufferSubData(u32 type, u32 size) : StreamBuffer(type, size) {
     glBindBuffer(m_buffertype, m_buffer);
     glBufferData(m_buffertype, size, nullptr, GL_STATIC_DRAW);
     m_pointer = new u8[m_size];
   }
 
   ~BufferSubData() { delete[] m_pointer; }
-  std::pair<u8*, u32> Map(u32 size) override { return std::make_pair(m_pointer, 0); }
-  void Unmap(u32 used_size) override { glBufferSubData(m_buffertype, 0, used_size, m_pointer); }
-  u8* m_pointer;
+  std::pair<u8 *, u32> Map(u32 size) override {
+    return std::make_pair(m_pointer, 0);
+  }
+  void Unmap(u32 used_size) override {
+    glBufferSubData(m_buffertype, 0, used_size, m_pointer);
+  }
+  u8 *m_pointer;
 };
 
 /* Fifo based on the glBufferData call.
@@ -316,31 +301,30 @@ public:
  * So here we use glBufferData, which realloc this buffer every time.
  * This may avoid stalls, but it is a bigger overhead than BufferSubData.
  */
-class BufferData : public StreamBuffer
-{
+class BufferData : public StreamBuffer {
 public:
-  BufferData(u32 type, u32 size) : StreamBuffer(type, size)
-  {
+  BufferData(u32 type, u32 size) : StreamBuffer(type, size) {
     glBindBuffer(m_buffertype, m_buffer);
     m_pointer = new u8[m_size];
   }
 
   ~BufferData() { delete[] m_pointer; }
-  std::pair<u8*, u32> Map(u32 size) override { return std::make_pair(m_pointer, 0); }
-  void Unmap(u32 used_size) override
-  {
+  std::pair<u8 *, u32> Map(u32 size) override {
+    return std::make_pair(m_pointer, 0);
+  }
+  void Unmap(u32 used_size) override {
     glBufferData(m_buffertype, used_size, m_pointer, GL_STREAM_DRAW);
   }
 
-  u8* m_pointer;
+  u8 *m_pointer;
 };
 
-// Chooses the best streaming method based on the supported extensions and known issues
-std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
-{
-  // without basevertex support, only streaming methods whith uploads everything to zero works fine:
-  if (!g_ogl_config.bSupportsGLBaseVertex)
-  {
+// Chooses the best streaming method based on the supported extensions and known
+// issues
+std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size) {
+  // without basevertex support, only streaming methods whith uploads everything
+  // to zero works fine:
+  if (!g_ogl_config.bSupportsGLBaseVertex) {
     if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
       return std::make_unique<BufferSubData>(type, size);
 
@@ -349,8 +333,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   }
 
   // Prefer the syncing buffers over the orphaning one
-  if (g_ogl_config.bSupportsGLSync)
-  {
+  if (g_ogl_config.bSupportsGLSync) {
     // pinned memory is much faster than buffer storage on AMD cards
     if (g_ogl_config.bSupportsGLPinnedMemory &&
         !(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) &&
@@ -358,7 +341,8 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
       return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations
-    bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKENEXPLICITFLUSH);
+    bool coherent =
+        DriverDetails::HasBug(DriverDetails::BUG_BROKENEXPLICITFLUSH);
     if (g_ogl_config.bSupportsGLBufferStorage &&
         !(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) &&
           type == GL_ARRAY_BUFFER) &&
@@ -375,7 +359,8 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
       return std::make_unique<MapAndSync>(type, size);
   }
 
-  // default fallback, should work everywhere, but isn't the best way to do this job
+  // default fallback, should work everywhere, but isn't the best way to do this
+  // job
   return std::make_unique<MapAndOrphan>(type, size);
 }
 }

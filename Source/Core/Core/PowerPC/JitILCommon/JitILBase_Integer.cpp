@@ -3,74 +3,71 @@
 // Refer to the license.txt file included.
 
 #ifdef _MSC_VER
-#pragma warning(                                                                                   \
-    disable : 4146)  // unary minus operator applied to unsigned type, result still unsigned
+#pragma warning(disable : 4146) // unary minus operator applied to unsigned
+                                // type, result still unsigned
 #endif
 
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-static void ComputeRC(IREmitter::IRBuilder& ibuild, IREmitter::InstLoc val)
-{
+static void ComputeRC(IREmitter::IRBuilder &ibuild, IREmitter::InstLoc val) {
   IREmitter::InstLoc res = ibuild.EmitICmpCRSigned(val, ibuild.EmitIntConst(0));
   ibuild.EmitStoreCR(res, 0);
 }
 
-void JitILBase::reg_imm(UGeckoInstruction inst)
-{
+void JitILBase::reg_imm(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   int d = inst.RD, a = inst.RA, s = inst.RS;
   IREmitter::InstLoc val, test, c;
-  switch (inst.OPCD)
-  {
-  case 14:  // addi
+  switch (inst.OPCD) {
+  case 14: // addi
     val = ibuild.EmitIntConst(inst.SIMM_16);
     if (a)
       val = ibuild.EmitAdd(ibuild.EmitLoadGReg(a), val);
     ibuild.EmitStoreGReg(val, d);
     break;
-  case 15:  // addis
+  case 15: // addis
     val = ibuild.EmitIntConst(inst.SIMM_16 << 16);
     if (a)
       val = ibuild.EmitAdd(ibuild.EmitLoadGReg(a), val);
     ibuild.EmitStoreGReg(val, d);
     break;
-  case 24:  // ori
+  case 24: // ori
     val = ibuild.EmitIntConst(inst.UIMM);
     val = ibuild.EmitOr(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     break;
-  case 25:  // oris
+  case 25: // oris
     val = ibuild.EmitIntConst(inst.UIMM << 16);
     val = ibuild.EmitOr(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     break;
-  case 28:  // andi
+  case 28: // andi
     val = ibuild.EmitIntConst(inst.UIMM);
     val = ibuild.EmitAnd(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     ComputeRC(ibuild, val);
     break;
-  case 29:  // andis
+  case 29: // andis
     val = ibuild.EmitIntConst(inst.UIMM << 16);
     val = ibuild.EmitAnd(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     ComputeRC(ibuild, val);
     break;
-  case 26:  // xori
+  case 26: // xori
     val = ibuild.EmitIntConst(inst.UIMM);
     val = ibuild.EmitXor(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     break;
-  case 27:  // xoris
+  case 27: // xoris
     val = ibuild.EmitIntConst(inst.UIMM << 16);
     val = ibuild.EmitXor(ibuild.EmitLoadGReg(s), val);
     ibuild.EmitStoreGReg(val, a);
     break;
-  case 12:  // addic
-  case 13:  // addic_rc
+  case 12: // addic
+  case 13: // addic_rc
     c = ibuild.EmitIntConst(inst.SIMM_16);
     val = ibuild.EmitAdd(ibuild.EmitLoadGReg(a), c);
     ibuild.EmitStoreGReg(val, d);
@@ -84,43 +81,34 @@ void JitILBase::reg_imm(UGeckoInstruction inst)
   }
 }
 
-void JitILBase::cmpXX(UGeckoInstruction inst)
-{
+void JitILBase::cmpXX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc lhs, rhs, res;
   lhs = ibuild.EmitLoadGReg(inst.RA);
 
-  if (inst.OPCD == 31)
-  {
+  if (inst.OPCD == 31) {
     rhs = ibuild.EmitLoadGReg(inst.RB);
-    if (inst.SUBOP10 == 32)
-    {
+    if (inst.SUBOP10 == 32) {
       res = ibuild.EmitICmpCRUnsigned(lhs, rhs);
-    }
-    else
-    {
+    } else {
       res = ibuild.EmitICmpCRSigned(lhs, rhs);
     }
-  }
-  else if (inst.OPCD == 10)
-  {
+  } else if (inst.OPCD == 10) {
     rhs = ibuild.EmitIntConst(inst.UIMM);
     res = ibuild.EmitICmpCRUnsigned(lhs, rhs);
-  }
-  else  // inst.OPCD == 11
+  } else // inst.OPCD == 11
   {
     rhs = ibuild.EmitIntConst(inst.SIMM_16);
     res = ibuild.EmitICmpCRSigned(lhs, rhs);
   }
 
-  js.downcountAmount++;  // TODO: should this be somewhere else?
+  js.downcountAmount++; // TODO: should this be somewhere else?
 
   ibuild.EmitStoreCR(res, inst.CRFD);
 }
 
-void JitILBase::boolX(UGeckoInstruction inst)
-{
+void JitILBase::boolX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -133,37 +121,28 @@ void JitILBase::boolX(UGeckoInstruction inst)
   if (inst.SUBOP10 == 28) /* andx */
   {
     a = ibuild.EmitAnd(s, b);
-  }
-  else if (inst.SUBOP10 == 476) /* nandx */
+  } else if (inst.SUBOP10 == 476) /* nandx */
   {
     a = ibuild.EmitNot(ibuild.EmitAnd(s, b));
-  }
-  else if (inst.SUBOP10 == 60) /* andcx */
+  } else if (inst.SUBOP10 == 60) /* andcx */
   {
     a = ibuild.EmitAnd(s, ibuild.EmitNot(b));
-  }
-  else if (inst.SUBOP10 == 444) /* orx */
+  } else if (inst.SUBOP10 == 444) /* orx */
   {
     a = ibuild.EmitOr(s, b);
-  }
-  else if (inst.SUBOP10 == 124) /* norx */
+  } else if (inst.SUBOP10 == 124) /* norx */
   {
     a = ibuild.EmitNot(ibuild.EmitOr(s, b));
-  }
-  else if (inst.SUBOP10 == 412) /* orcx */
+  } else if (inst.SUBOP10 == 412) /* orcx */
   {
     a = ibuild.EmitOr(s, ibuild.EmitNot(b));
-  }
-  else if (inst.SUBOP10 == 316) /* xorx */
+  } else if (inst.SUBOP10 == 316) /* xorx */
   {
     a = ibuild.EmitXor(s, b);
-  }
-  else if (inst.SUBOP10 == 284) /* eqvx */
+  } else if (inst.SUBOP10 == 284) /* eqvx */
   {
     a = ibuild.EmitNot(ibuild.EmitXor(s, b));
-  }
-  else
-  {
+  } else {
     PanicAlert("WTF!");
   }
 
@@ -172,8 +151,7 @@ void JitILBase::boolX(UGeckoInstruction inst)
     ComputeRC(ibuild, a);
 }
 
-void JitILBase::extsbx(UGeckoInstruction inst)
-{
+void JitILBase::extsbx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
@@ -183,8 +161,7 @@ void JitILBase::extsbx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::extshx(UGeckoInstruction inst)
-{
+void JitILBase::extshx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
@@ -194,20 +171,16 @@ void JitILBase::extshx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::subfic(UGeckoInstruction inst)
-{
+void JitILBase::subfic(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc nota, lhs, val, test;
   nota = ibuild.EmitXor(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst(-1));
 
-  if (inst.SIMM_16 == -1)
-  {
+  if (inst.SIMM_16 == -1) {
     val = nota;
     test = ibuild.EmitIntConst(1);
-  }
-  else
-  {
+  } else {
     lhs = ibuild.EmitIntConst(inst.SIMM_16 + 1);
     val = ibuild.EmitAdd(nota, lhs);
     test = ibuild.EmitICmpUgt(lhs, val);
@@ -217,8 +190,7 @@ void JitILBase::subfic(UGeckoInstruction inst)
   ibuild.EmitStoreCarry(test);
 }
 
-void JitILBase::subfcx(UGeckoInstruction inst)
-{
+void JitILBase::subfcx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -238,8 +210,7 @@ void JitILBase::subfcx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::subfex(UGeckoInstruction inst)
-{
+void JitILBase::subfex(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -263,8 +234,7 @@ void JitILBase::subfex(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::subfx(UGeckoInstruction inst)
-{
+void JitILBase::subfx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -279,8 +249,7 @@ void JitILBase::subfx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::mulli(UGeckoInstruction inst)
-{
+void JitILBase::mulli(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RA);
@@ -288,8 +257,7 @@ void JitILBase::mulli(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::mullwx(UGeckoInstruction inst)
-{
+void JitILBase::mullwx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
@@ -300,8 +268,7 @@ void JitILBase::mullwx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::mulhwux(UGeckoInstruction inst)
-{
+void JitILBase::mulhwux(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -314,10 +281,10 @@ void JitILBase::mulhwux(UGeckoInstruction inst)
     ComputeRC(ibuild, d);
 }
 
-// skipped some of the special handling in here - if we get crashes, let the interpreter handle this
+// skipped some of the special handling in here - if we get crashes, let the
+// interpreter handle this
 // op
-void JitILBase::divwux(UGeckoInstruction inst)
-{
+void JitILBase::divwux(UGeckoInstruction inst) {
   // FIXME
   FALLBACK_IF(true);
 
@@ -350,8 +317,7 @@ void JitILBase::divwux(UGeckoInstruction inst)
 #endif
 }
 
-void JitILBase::addx(UGeckoInstruction inst)
-{
+void JitILBase::addx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
@@ -362,8 +328,7 @@ void JitILBase::addx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::addzex(UGeckoInstruction inst)
-{
+void JitILBase::addzex(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc lhs = ibuild.EmitLoadGReg(inst.RA), val, newcarry;
@@ -376,8 +341,7 @@ void JitILBase::addzex(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::addex(UGeckoInstruction inst)
-{
+void JitILBase::addex(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -401,8 +365,7 @@ void JitILBase::addex(UGeckoInstruction inst)
     ComputeRC(ibuild, abc);
 }
 
-void JitILBase::rlwinmx(UGeckoInstruction inst)
-{
+void JitILBase::rlwinmx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   unsigned mask = Helper_Mask(inst.MB, inst.ME);
@@ -415,8 +378,7 @@ void JitILBase::rlwinmx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::rlwimix(UGeckoInstruction inst)
-{
+void JitILBase::rlwimix(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   unsigned mask = Helper_Mask(inst.MB, inst.ME);
@@ -432,8 +394,7 @@ void JitILBase::rlwimix(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::rlwnmx(UGeckoInstruction inst)
-{
+void JitILBase::rlwnmx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   unsigned int mask = Helper_Mask(inst.MB, inst.ME);
@@ -446,8 +407,7 @@ void JitILBase::rlwnmx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::negx(UGeckoInstruction inst)
-{
+void JitILBase::negx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RA);
@@ -458,8 +418,7 @@ void JitILBase::negx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::srwx(UGeckoInstruction inst)
-{
+void JitILBase::srwx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -480,8 +439,7 @@ void JitILBase::srwx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::slwx(UGeckoInstruction inst)
-{
+void JitILBase::slwx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
@@ -502,8 +460,7 @@ void JitILBase::slwx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::srawx(UGeckoInstruction inst)
-{
+void JitILBase::srawx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   // FIXME: We can do a lot better on 64-bit
@@ -528,17 +485,18 @@ void JitILBase::srawx(UGeckoInstruction inst)
     ComputeRC(ibuild, val);
 }
 
-void JitILBase::srawix(UGeckoInstruction inst)
-{
+void JitILBase::srawix(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   // Shift right by two
   IREmitter::InstLoc input = ibuild.EmitLoadGReg(inst.RS);
-  IREmitter::InstLoc output = ibuild.EmitSarl(input, ibuild.EmitIntConst(inst.SH));
+  IREmitter::InstLoc output =
+      ibuild.EmitSarl(input, ibuild.EmitIntConst(inst.SH));
   ibuild.EmitStoreGReg(output, inst.RA);
   // Check whether the input is negative and any bits got shifted out.
   unsigned int mask = -1u << inst.SH;
-  IREmitter::InstLoc test = ibuild.EmitOr(input, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
+  IREmitter::InstLoc test =
+      ibuild.EmitOr(input, ibuild.EmitIntConst(mask & 0x7FFFFFFF));
   test = ibuild.EmitICmpUgt(test, ibuild.EmitIntConst(mask));
 
   ibuild.EmitStoreCarry(test);
@@ -547,8 +505,7 @@ void JitILBase::srawix(UGeckoInstruction inst)
 }
 
 // count leading zeroes
-void JitILBase::cntlzwx(UGeckoInstruction inst)
-{
+void JitILBase::cntlzwx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);

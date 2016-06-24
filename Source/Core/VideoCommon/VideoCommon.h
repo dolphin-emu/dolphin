@@ -15,8 +15,7 @@
 extern bool g_bRecordFifoData;
 
 // These are accurate (disregarding AA modes).
-enum
-{
+enum {
   EFB_WIDTH = 640,
   EFB_HEIGHT = 528,
 };
@@ -36,23 +35,21 @@ const u32 MAX_XFB_HEIGHT = 574;
 // are 640 x 528.
 typedef MathUtil::Rectangle<int> EFBRectangle;
 
-// This structure should only be used to represent a rectangle in standard target
+// This structure should only be used to represent a rectangle in standard
+// target
 // coordinates, where the origin is at the lower left and the frame dimensions
 // depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
 // convert an EFBRectangle to a TargetRectangle.
-struct TargetRectangle : public MathUtil::Rectangle<int>
-{
+struct TargetRectangle : public MathUtil::Rectangle<int> {
 #ifdef _WIN32
   // Only used by D3D backend.
-  const RECT* AsRECT() const
-  {
+  const RECT *AsRECT() const {
     // The types are binary compatible so this works.
-    return (const RECT*)this;
+    return (const RECT *)this;
   }
-  RECT* AsRECT()
-  {
+  RECT *AsRECT() {
     // The types are binary compatible so this works.
-    return (RECT*)this;
+    return (RECT *)this;
   }
 #endif
 };
@@ -64,28 +61,23 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 #endif
 
 // warning: mapping buffer should be disabled to use this
-// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)g_vertex_manager_write_ptr)[-3],
-// ((float*)g_vertex_manager_write_ptr)[-2], ((float*)g_vertex_manager_write_ptr)[-1]);
+// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ",
+// ((float*)g_vertex_manager_write_ptr)[-3],
+// ((float*)g_vertex_manager_write_ptr)[-2],
+// ((float*)g_vertex_manager_write_ptr)[-1]);
 
 #define LOG_VTX()
 
-enum API_TYPE
-{
-  API_OPENGL = 1,
-  API_D3D = 2,
-  API_NONE = 3
-};
+enum API_TYPE { API_OPENGL = 1, API_D3D = 2, API_NONE = 3 };
 
-inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)
-{
+inline u32 RGBA8ToRGBA6ToRGBA8(u32 src) {
   u32 color = src;
   color &= 0xFCFCFCFC;
   color |= (color >> 6) & 0x03030303;
   return color;
 }
 
-inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
-{
+inline u32 RGBA8ToRGB565ToRGBA8(u32 src) {
   u32 color = (src & 0xF8FCF8);
   color |= (color >> 5) & 0x070007;
   color |= (color >> 6) & 0x000300;
@@ -93,7 +85,4 @@ inline u32 RGBA8ToRGB565ToRGBA8(u32 src)
   return color;
 }
 
-inline u32 Z24ToZ16ToZ24(u32 src)
-{
-  return (src & 0xFFFF00) | (src >> 16);
-}
+inline u32 Z24ToZ16ToZ24(u32 src) { return (src & 0xFFFF00) | (src >> 16); }

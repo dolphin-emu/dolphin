@@ -41,14 +41,11 @@
 // more responsive. This might be useful as a user-customizable option.
 #define MOUSE_AXIS_SMOOTHING 1.5f
 
-namespace ciface
-{
-namespace XInput2
-{
+namespace ciface {
+namespace XInput2 {
 // This function will add zero or more KeyboardMouse objects to devices.
-void Init(std::vector<Core::Device*>& devices, void* const hwnd)
-{
-  Display* dpy = XOpenDisplay(nullptr);
+void Init(std::vector<Core::Device *> &devices, void *const hwnd) {
+  Display *dpy = XOpenDisplay(nullptr);
 
   // xi_opcode is important; it will be used to identify XInput events by
   // the polling loop in UpdateInput.
@@ -66,19 +63,19 @@ void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 
   // register all master devices with Dolphin
 
-  XIDeviceInfo* all_masters;
-  XIDeviceInfo* current_master;
+  XIDeviceInfo *all_masters;
+  XIDeviceInfo *current_master;
   int num_masters;
 
   all_masters = XIQueryDevice(dpy, XIAllMasterDevices, &num_masters);
 
-  for (int i = 0; i < num_masters; i++)
-  {
+  for (int i = 0; i < num_masters; i++) {
     current_master = &all_masters[i];
     if (current_master->use == XIMasterPointer)
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      devices.push_back(new KeyboardMouse((Window)hwnd, xi_opcode, current_master->deviceid,
+      devices.push_back(new KeyboardMouse((Window)hwnd, xi_opcode,
+                                          current_master->deviceid,
                                           current_master->attachment));
   }
 
@@ -90,8 +87,8 @@ void Init(std::vector<Core::Device*>& devices, void* const hwnd)
 // Apply the event mask to the device and all its slaves. Only used in the
 // constructor. Remember, each KeyboardMouse has its own copy of the event
 // stream, which is how multiple event masks can "coexist."
-void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int deviceid)
-{
+void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask *mask,
+                                          int deviceid) {
   // Set the event mask for the master device.
   mask->deviceid = deviceid;
   XISelectEvents(m_display, window, mask, 1);
@@ -102,16 +99,16 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int 
   // devices) emit those. For keyboard devices, selecting slaves avoids
   // dealing with key focus.
 
-  XIDeviceInfo* all_slaves;
-  XIDeviceInfo* current_slave;
+  XIDeviceInfo *all_slaves;
+  XIDeviceInfo *current_slave;
   int num_slaves;
 
   all_slaves = XIQueryDevice(m_display, XIAllDevices, &num_slaves);
 
-  for (int i = 0; i < num_slaves; i++)
-  {
+  for (int i = 0; i < num_slaves; i++) {
     current_slave = &all_slaves[i];
-    if ((current_slave->use != XISlavePointer && current_slave->use != XISlaveKeyboard) ||
+    if ((current_slave->use != XISlavePointer &&
+         current_slave->use != XISlaveKeyboard) ||
         current_slave->attachment != deviceid)
       continue;
     mask->deviceid = current_slave->deviceid;
@@ -121,9 +118,10 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int 
   XIFreeDeviceInfo(all_slaves);
 }
 
-KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
-    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
-{
+KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer,
+                             int keyboard)
+    : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer),
+      keyboard_deviceid(keyboard) {
   memset(&m_state, 0, sizeof(m_state));
 
   // The cool thing about each KeyboardMouse object having its own Display
@@ -136,8 +134,9 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   int min_keycode, max_keycode;
   XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
 
-  int unused;  // should always be 1
-  XIDeviceInfo* pointer_device = XIQueryDevice(m_display, pointer_deviceid, &unused);
+  int unused; // should always be 1
+  XIDeviceInfo *pointer_device =
+      XIQueryDevice(m_display, pointer_deviceid, &unused);
   name = std::string(pointer_device->name);
   XIFreeDeviceInfo(pointer_device);
 
@@ -158,9 +157,8 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   SelectEventsForDevice(DefaultRootWindow(m_display), &mask, keyboard_deviceid);
 
   // Keyboard Keys
-  for (int i = min_keycode; i <= max_keycode; ++i)
-  {
-    Key* temp_key = new Key(m_display, i, m_state.keyboard);
+  for (int i = min_keycode; i <= max_keycode; ++i) {
+    Key *temp_key = new Key(m_display, i, m_state.keyboard);
     if (temp_key->m_keyname.length())
       AddInput(temp_key);
     else
@@ -173,21 +171,19 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 
   // Mouse Cursor, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
-    AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
+    AddInput(new Cursor(!!(i & 2), !!(i & 1),
+                        (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
 
   // Mouse Axis, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
-    AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
+    AddInput(new Axis(!!(i & 2), !!(i & 1),
+                      (i & 2) ? &m_state.axis.y : &m_state.axis.x));
 }
 
-KeyboardMouse::~KeyboardMouse()
-{
-  XCloseDisplay(m_display);
-}
+KeyboardMouse::~KeyboardMouse() { XCloseDisplay(m_display); }
 
 // Update the mouse cursor controls
-void KeyboardMouse::UpdateCursor()
-{
+void KeyboardMouse::UpdateCursor() {
   double root_x, root_y, win_x, win_y;
   Window root, child;
 
@@ -197,8 +193,8 @@ void KeyboardMouse::UpdateCursor()
   XIModifierState mods;
   XIGroupState group;
 
-  XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x, &root_y, &win_x,
-                 &win_y, &button_state, &mods, &group);
+  XIQueryPointer(m_display, pointer_deviceid, m_window, &root, &child, &root_x,
+                 &root_y, &win_x, &win_y, &button_state, &mods, &group);
 
   free(button_state.mask);
 
@@ -210,8 +206,7 @@ void KeyboardMouse::UpdateCursor()
   m_state.cursor.y = win_y / (float)win_attribs.height * 2 - 1;
 }
 
-void KeyboardMouse::UpdateInput()
-{
+void KeyboardMouse::UpdateInput() {
   XFlush(m_display);
 
   // Get the absolute position of the mouse pointer
@@ -224,8 +219,7 @@ void KeyboardMouse::UpdateInput()
   // Iterate through the event queue - update the axis controls, mouse
   // button controls, and keyboard controls.
   XEvent event;
-  while (XPending(m_display))
-  {
+  while (XPending(m_display)) {
     XNextEvent(m_display, &event);
 
     if (event.xcookie.type != GenericEvent)
@@ -236,11 +230,10 @@ void KeyboardMouse::UpdateInput()
       continue;
 
     // only one of these will get used
-    XIDeviceEvent* dev_event = (XIDeviceEvent*)event.xcookie.data;
-    XIRawEvent* raw_event = (XIRawEvent*)event.xcookie.data;
+    XIDeviceEvent *dev_event = (XIDeviceEvent *)event.xcookie.data;
+    XIRawEvent *raw_event = (XIRawEvent *)event.xcookie.data;
 
-    switch (event.xcookie.evtype)
-    {
+    switch (event.xcookie.evtype) {
     case XI_ButtonPress:
       m_state.buttons |= 1 << (dev_event->detail - 1);
       break;
@@ -251,21 +244,20 @@ void KeyboardMouse::UpdateInput()
       m_state.keyboard[dev_event->detail / 8] |= 1 << (dev_event->detail % 8);
       break;
     case XI_KeyRelease:
-      m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
+      m_state.keyboard[dev_event->detail / 8] &=
+          ~(1 << (dev_event->detail % 8));
       break;
     case XI_RawMotion:
       // always safe because there is always at least one byte in
       // raw_event->valuators.mask, and if a bit is set in the mask,
       // then the value in raw_values is also available.
-      if (XIMaskIsSet(raw_event->valuators.mask, 0))
-      {
+      if (XIMaskIsSet(raw_event->valuators.mask, 0)) {
         delta_delta = raw_event->raw_values[0];
         // test for inf and nan
         if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
           delta_x += delta_delta;
       }
-      if (XIMaskIsSet(raw_event->valuators.mask, 1))
-      {
+      if (XIMaskIsSet(raw_event->valuators.mask, 1)) {
         delta_delta = raw_event->raw_values[1];
         // test for inf and nan
         if (delta_delta == delta_delta && 1 + delta_delta != delta_delta)
@@ -286,30 +278,22 @@ void KeyboardMouse::UpdateInput()
   m_state.axis.y /= MOUSE_AXIS_SMOOTHING + 1.0f;
 }
 
-std::string KeyboardMouse::GetName() const
-{
+std::string KeyboardMouse::GetName() const {
   // This is the name string we got from the X server for this master
   // pointer/keyboard pair.
   return name;
 }
 
-std::string KeyboardMouse::GetSource() const
-{
-  return "XInput2";
-}
+std::string KeyboardMouse::GetSource() const { return "XInput2"; }
 
-int KeyboardMouse::GetId() const
-{
-  return -1;
-}
+int KeyboardMouse::GetId() const { return -1; }
 
-KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
-    : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
-{
+KeyboardMouse::Key::Key(Display *const display, KeyCode keycode,
+                        const char *keyboard)
+    : m_display(display), m_keyboard(keyboard), m_keycode(keycode) {
   int i = 0;
   KeySym keysym = 0;
-  do
-  {
+  do {
     keysym = XkbKeycodeToKeysym(m_display, keycode, i, 0);
     i++;
   } while (keysym == NoSymbol && i < 8);
@@ -320,49 +304,46 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 
   // 0x0110ffff is the top of the unicode character range according
   // to keysymdef.h although it is probably more than we need.
-  if (keysym == NoSymbol || keysym > 0x0110ffff || XKeysymToString(keysym) == nullptr)
+  if (keysym == NoSymbol || keysym > 0x0110ffff ||
+      XKeysymToString(keysym) == nullptr)
     m_keyname = std::string();
   else
     m_keyname = std::string(XKeysymToString(keysym));
 }
 
-ControlState KeyboardMouse::Key::GetState() const
-{
+ControlState KeyboardMouse::Key::GetState() const {
   return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
 }
 
-KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
-    : m_buttons(buttons), m_index(index)
-{
+KeyboardMouse::Button::Button(unsigned int index, unsigned int *buttons)
+    : m_buttons(buttons), m_index(index) {
   // this will be a problem if we remove the hardcoded five-button limit
   name = std::string("Click ") + (char)('1' + m_index);
 }
 
-ControlState KeyboardMouse::Button::GetState() const
-{
+ControlState KeyboardMouse::Button::GetState() const {
   return ((*m_buttons & (1 << m_index)) != 0);
 }
 
-KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)
-    : m_cursor(cursor), m_index(index), m_positive(positive)
-{
-  name = std::string("Cursor ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float *cursor)
+    : m_cursor(cursor), m_index(index), m_positive(positive) {
+  name =
+      std::string("Cursor ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
 }
 
-ControlState KeyboardMouse::Cursor::GetState() const
-{
+ControlState KeyboardMouse::Cursor::GetState() const {
   return std::max(0.0f, *m_cursor / (m_positive ? 1.0f : -1.0f));
 }
 
-KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
-    : m_axis(axis), m_index(index), m_positive(positive)
-{
-  name = std::string("Axis ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+KeyboardMouse::Axis::Axis(u8 index, bool positive, const float *axis)
+    : m_axis(axis), m_index(index), m_positive(positive) {
+  name =
+      std::string("Axis ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
 }
 
-ControlState KeyboardMouse::Axis::GetState() const
-{
-  return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY : -MOUSE_AXIS_SENSITIVITY));
+ControlState KeyboardMouse::Axis::GetState() const {
+  return std::max(0.0f, *m_axis / (m_positive ? MOUSE_AXIS_SENSITIVITY
+                                              : -MOUSE_AXIS_SENSITIVITY));
 }
 }
 }

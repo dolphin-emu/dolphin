@@ -14,13 +14,10 @@
 
 struct EfbPokeData;
 
-class AsyncRequests
-{
+class AsyncRequests {
 public:
-  struct Event
-  {
-    enum Type
-    {
+  struct Event {
+    enum Type {
       EFB_POKE_COLOR,
       EFB_POKE_Z,
       EFB_PEEK_COLOR,
@@ -32,55 +29,50 @@ public:
     u64 time;
 
     union {
-      struct
-      {
+      struct {
         u16 x;
         u16 y;
         u32 data;
       } efb_poke;
 
-      struct
-      {
+      struct {
         u16 x;
         u16 y;
-        u32* data;
+        u32 *data;
       } efb_peek;
 
-      struct
-      {
+      struct {
         u32 xfbAddr;
         u32 fbWidth;
         u32 fbStride;
         u32 fbHeight;
       } swap_event;
 
-      struct
-      {
+      struct {
         int index;
-        u16* data;
+        u16 *data;
       } bbox;
 
-      struct
-      {
+      struct {
       } perf_query;
     };
   };
 
   AsyncRequests();
 
-  void PullEvents()
-  {
+  void PullEvents() {
     if (!m_empty.load())
       PullEventsInternal();
   }
-  void PushEvent(const Event& event, bool blocking = false);
+  void PushEvent(const Event &event, bool blocking = false);
   void SetEnable(bool enable);
   void SetPassthrough(bool enable);
 
-  static AsyncRequests* GetInstance() { return &s_singleton; }
+  static AsyncRequests *GetInstance() { return &s_singleton; }
+
 private:
   void PullEventsInternal();
-  void HandleEvent(const Event& e);
+  void HandleEvent(const Event &e);
 
   static AsyncRequests s_singleton;
 

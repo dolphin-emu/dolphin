@@ -19,16 +19,15 @@
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 
-namespace GCAdapter
-{
-static bool CheckDeviceAccess(libusb_device* device);
-static void AddGCAdapter(libusb_device* device);
+namespace GCAdapter {
+static bool CheckDeviceAccess(libusb_device *device);
+static void AddGCAdapter(libusb_device *device);
 static void ResetRumbleLockNeeded();
 static void Reset();
 static void Setup();
 
 static bool s_detected = false;
-static libusb_device_handle* s_handle = nullptr;
+static libusb_device_handle *s_handle = nullptr;
 static u8 s_controller_type[MAX_SI_CHANNELS] = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
@@ -50,7 +49,7 @@ static Common::Flag s_adapter_detect_thread_running;
 static std::function<void(void)> s_detect_callback;
 
 static bool s_libusb_driver_not_supported = false;
-static libusb_context* s_libusb_context = nullptr;
+static libusb_context *s_libusb_context = nullptr;
 static bool s_libusb_hotplug_enabled = false;
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
 static libusb_hotplug_callback_handle s_hotplug_handle;
@@ -61,13 +60,12 @@ static u8 s_endpoint_out = 0;
 
 static u64 s_last_init = 0;
 
-static void Read()
-{
+static void Read() {
   int payload_size = 0;
-  while (s_adapter_thread_running.IsSet())
-  {
-    libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
-                              sizeof(s_controller_payload_swap), &payload_size, 16);
+  while (s_adapter_thread_running.IsSet()) {
+    libusb_interrupt_transfer(
+        s_handle, s_endpoint_in, s_controller_payload_swap,
+        sizeof(s_controller_payload_swap), &payload_size, 16);
 
     {
       std::lock_guard<std::mutex> lk(s_mutex);
@@ -80,19 +78,14 @@ static void Read()
 }
 
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotplug_event event,
-                           void* user_data)
-{
-  if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
-  {
-    if (s_handle == nullptr && CheckDeviceAccess(dev))
-    {
+static int HotplugCallback(libusb_context *ctx, libusb_device *dev,
+                           libusb_hotplug_event event, void *user_data) {
+  if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED) {
+    if (s_handle == nullptr && CheckDeviceAccess(dev)) {
       std::lock_guard<std::mutex> lk(s_init_mutex);
       AddGCAdapter(dev);
     }
-  }
-  else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
-  {
+  } else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT) {
     if (s_handle != nullptr && libusb_get_device(s_handle) == dev)
       Reset();
   }
@@ -100,37 +93,31 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 }
 #endif
 
-static void ScanThreadFunc()
-{
+static void ScanThreadFunc() {
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
-  if (s_libusb_hotplug_enabled)
-  {
+  if (s_libusb_hotplug_enabled) {
     if (libusb_hotplug_register_callback(
-            s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
-                                                     LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
-            LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
-            nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
+            s_libusb_context,
+            (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                                   LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
+            LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY,
+            HotplugCallback, nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
       s_libusb_hotplug_enabled = false;
     if (s_libusb_hotplug_enabled)
       NOTICE_LOG(SERIALINTERFACE, "Using libUSB hotplug detection");
   }
 #endif
 
-  while (s_adapter_detect_thread_running.IsSet())
-  {
-    if (s_libusb_hotplug_enabled)
-    {
+  while (s_adapter_detect_thread_running.IsSet()) {
+    if (s_libusb_hotplug_enabled) {
       static timeval tv = {0, 500000};
       libusb_handle_events_timeout(s_libusb_context, &tv);
-    }
-    else
-    {
-      if (s_handle == nullptr)
-      {
+    } else {
+      if (s_handle == nullptr) {
         std::lock_guard<std::mutex> lk(s_init_mutex);
         Setup();
         if (s_detected && s_detect_callback != nullptr)
@@ -142,19 +129,17 @@ static void ScanThreadFunc()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
 
-void SetAdapterCallback(std::function<void(void)> func)
-{
+void SetAdapterCallback(std::function<void(void)> func) {
   s_detect_callback = func;
 }
 
-void Init()
-{
+void Init() {
   if (s_handle != nullptr)
     return;
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
-  {
-    if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
+  if (Core::GetState() != Core::CORE_UNINITIALIZED) {
+    if ((CoreTiming::GetTicks() - s_last_init) <
+        SystemTimers::GetTicksPerSecond())
       return;
 
     s_last_init = CoreTiming::GetTicks();
@@ -164,21 +149,17 @@ void Init()
 
   int ret = libusb_init(&s_libusb_context);
 
-  if (ret)
-  {
+  if (ret) {
     ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
     s_libusb_driver_not_supported = true;
     Shutdown();
-  }
-  else
-  {
+  } else {
     if (UseAdapter())
       StartScanThread();
   }
 }
 
-void StartScanThread()
-{
+void StartScanThread() {
   if (s_adapter_detect_thread_running.IsSet())
     return;
 
@@ -186,31 +167,26 @@ void StartScanThread()
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
 
-void StopScanThread()
-{
-  if (s_adapter_detect_thread_running.TestAndClear())
-  {
+void StopScanThread() {
+  if (s_adapter_detect_thread_running.TestAndClear()) {
     s_adapter_detect_thread.join();
   }
 }
 
-static void Setup()
-{
-  libusb_device** list;
+static void Setup() {
+  libusb_device **list;
   ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
-  {
+  for (int i = 0; i < MAX_SI_CHANNELS; i++) {
     s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
     s_controller_rumble[i] = 0;
   }
 
-  for (int d = 0; d < cnt; d++)
-  {
-    libusb_device* device = list[d];
-    if (CheckDeviceAccess(device))
-    {
-      // Only connect to a single adapter in case the user has multiple connected
+  for (int d = 0; d < cnt; d++) {
+    libusb_device *device = list[d];
+    if (CheckDeviceAccess(device)) {
+      // Only connect to a single adapter in case the user has multiple
+      // connected
       AddGCAdapter(device);
       break;
     }
@@ -219,90 +195,77 @@ static void Setup()
   libusb_free_device_list(list, 1);
 }
 
-static bool CheckDeviceAccess(libusb_device* device)
-{
+static bool CheckDeviceAccess(libusb_device *device) {
   int ret;
   libusb_device_descriptor desc;
   int dRet = libusb_get_device_descriptor(device, &desc);
-  if (dRet)
-  {
+  if (dRet) {
     // could not acquire the descriptor, no point in trying to use it.
-    ERROR_LOG(SERIALINTERFACE, "libusb_get_device_descriptor failed with error: %d", dRet);
+    ERROR_LOG(SERIALINTERFACE,
+              "libusb_get_device_descriptor failed with error: %d", dRet);
     return false;
   }
 
-  if (desc.idVendor == 0x057e && desc.idProduct == 0x0337)
-  {
-    NOTICE_LOG(SERIALINTERFACE, "Found GC Adapter with Vendor: %X Product: %X Devnum: %d",
+  if (desc.idVendor == 0x057e && desc.idProduct == 0x0337) {
+    NOTICE_LOG(SERIALINTERFACE,
+               "Found GC Adapter with Vendor: %X Product: %X Devnum: %d",
                desc.idVendor, desc.idProduct, 1);
 
     u8 bus = libusb_get_bus_number(device);
     u8 port = libusb_get_device_address(device);
     ret = libusb_open(device, &s_handle);
-    if (ret)
-    {
-      if (ret == LIBUSB_ERROR_ACCESS)
-      {
-        if (dRet)
-        {
-          ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this device: Bus %03d Device "
-                                     "%03d: ID ????:???? (couldn't get id).",
-                    bus, port);
-        }
-        else
-        {
+    if (ret) {
+      if (ret == LIBUSB_ERROR_ACCESS) {
+        if (dRet) {
           ERROR_LOG(
               SERIALINTERFACE,
-              "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
-              bus, port, desc.idVendor, desc.idProduct);
+              "Dolphin does not have access to this device: Bus %03d Device "
+              "%03d: ID ????:???? (couldn't get id).",
+              bus, port);
+        } else {
+          ERROR_LOG(SERIALINTERFACE, "Dolphin does not have access to this "
+                                     "device: Bus %03d Device %03d: ID "
+                                     "%04X:%04X.",
+                    bus, port, desc.idVendor, desc.idProduct);
         }
-      }
-      else
-      {
-        ERROR_LOG(SERIALINTERFACE, "libusb_open failed to open device with error = %d", ret);
+      } else {
+        ERROR_LOG(SERIALINTERFACE,
+                  "libusb_open failed to open device with error = %d", ret);
         if (ret == LIBUSB_ERROR_NOT_SUPPORTED)
           s_libusb_driver_not_supported = true;
       }
       return false;
-    }
-    else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1)
-    {
-      if ((ret = libusb_detach_kernel_driver(s_handle, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-      {
-        ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
+    } else if ((ret = libusb_kernel_driver_active(s_handle, 0)) == 1) {
+      if ((ret = libusb_detach_kernel_driver(s_handle, 0)) &&
+          ret != LIBUSB_ERROR_NOT_SUPPORTED) {
+        ERROR_LOG(SERIALINTERFACE,
+                  "libusb_detach_kernel_driver failed with error: %d", ret);
       }
     }
     // this split is needed so that we don't avoid claiming the interface when
     // detaching the kernel driver is successful
-    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
-    {
+    if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED) {
       return false;
-    }
-    else if ((ret = libusb_claim_interface(s_handle, 0)))
-    {
-      ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d", ret);
-    }
-    else
-    {
+    } else if ((ret = libusb_claim_interface(s_handle, 0))) {
+      ERROR_LOG(SERIALINTERFACE, "libusb_claim_interface failed with error: %d",
+                ret);
+    } else {
       return true;
     }
   }
   return false;
 }
 
-static void AddGCAdapter(libusb_device* device)
-{
-  libusb_config_descriptor* config = nullptr;
+static void AddGCAdapter(libusb_device *device) {
+  libusb_config_descriptor *config = nullptr;
   libusb_get_config_descriptor(device, 0, &config);
-  for (u8 ic = 0; ic < config->bNumInterfaces; ic++)
-  {
-    const libusb_interface* interfaceContainer = &config->interface[ic];
-    for (int i = 0; i < interfaceContainer->num_altsetting; i++)
-    {
-      const libusb_interface_descriptor* interface = &interfaceContainer->altsetting[i];
-      for (u8 e = 0; e < interface->bNumEndpoints; e++)
-      {
-        const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
+  for (u8 ic = 0; ic < config->bNumInterfaces; ic++) {
+    const libusb_interface *interfaceContainer = &config->interface[ic];
+    for (int i = 0; i < interfaceContainer->num_altsetting; i++) {
+      const libusb_interface_descriptor *interface =
+          &interfaceContainer->altsetting[i];
+      for (u8 e = 0; e < interface->bNumEndpoints; e++) {
+        const libusb_endpoint_descriptor *endpoint = &interface->endpoint[e];
         if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
           s_endpoint_in = endpoint->bEndpointAddress;
         else
@@ -313,7 +276,8 @@ static void AddGCAdapter(libusb_device* device)
 
   int tmp = 0;
   unsigned char payload = 0x13;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload), &tmp, 16);
+  libusb_interrupt_transfer(s_handle, s_endpoint_out, &payload, sizeof(payload),
+                            &tmp, 16);
 
   s_adapter_thread_running.Set(true);
   s_adapter_thread = std::thread(Read);
@@ -324,8 +288,7 @@ static void AddGCAdapter(libusb_device* device)
   ResetRumbleLockNeeded();
 }
 
-void Shutdown()
-{
+void Shutdown() {
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
   if (s_libusb_hotplug_enabled)
@@ -333,8 +296,7 @@ void Shutdown()
 #endif
   Reset();
 
-  if (s_libusb_context)
-  {
+  if (s_libusb_context) {
     libusb_exit(s_libusb_context);
     s_libusb_context = nullptr;
   }
@@ -342,16 +304,14 @@ void Shutdown()
   s_libusb_driver_not_supported = false;
 }
 
-static void Reset()
-{
+static void Reset() {
   std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
   if (!lock.try_lock())
     return;
   if (!s_detected)
     return;
 
-  if (s_adapter_thread_running.TestAndClear())
-  {
+  if (s_adapter_thread_running.TestAndClear()) {
     s_adapter_thread.join();
   }
 
@@ -360,8 +320,7 @@ static void Reset()
 
   s_detected = false;
 
-  if (s_handle)
-  {
+  if (s_handle) {
     libusb_release_interface(s_handle, 0);
     libusb_close(s_handle);
     s_handle = nullptr;
@@ -371,8 +330,7 @@ static void Reset()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter detached");
 }
 
-void Input(int chan, GCPadStatus* pad)
-{
+void Input(int chan, GCPadStatus *pad) {
   if (!UseAdapter())
     return;
 
@@ -390,20 +348,17 @@ void Input(int chan, GCPadStatus* pad)
   }
 
   if (payload_size != sizeof(controller_payload_copy) ||
-      controller_payload_copy[0] != LIBUSB_DT_HID)
-  {
-    INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
-             controller_payload_copy[0]);
+      controller_payload_copy[0] != LIBUSB_DT_HID) {
+    INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)",
+             payload_size, controller_payload_copy[0]);
     Reset();
-  }
-  else
-  {
+  } else {
     bool get_origin = false;
     u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
     if (type != ControllerTypes::CONTROLLER_NONE &&
-        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
-    {
-      NOTICE_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
+        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE) {
+      NOTICE_LOG(SERIALINTERFACE,
+                 "New device connected to Port %d of Type: %02x", chan + 1,
                  controller_payload_copy[1 + (9 * chan)]);
       get_origin = true;
     }
@@ -411,8 +366,7 @@ void Input(int chan, GCPadStatus* pad)
     s_controller_type[chan] = type;
 
     memset(pad, 0, sizeof(*pad));
-    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
-    {
+    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE) {
       u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
       u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
@@ -452,9 +406,7 @@ void Input(int chan, GCPadStatus* pad)
       pad->substickY = controller_payload_copy[1 + (9 * chan) + 6];
       pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
       pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
-    }
-    else if (!NetPlay::IsNetPlayRunning())
-    {
+    } else if (!NetPlay::IsNetPlayRunning()) {
       // This is a hack to prevent a netplay desync due to SI devices
       // being different and returning different values.
       // The corresponding code in DeviceGCAdapter has the same check
@@ -463,21 +415,18 @@ void Input(int chan, GCPadStatus* pad)
   }
 }
 
-bool DeviceConnected(int chan)
-{
+bool DeviceConnected(int chan) {
   return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
 }
 
-bool UseAdapter()
-{
+bool UseAdapter() {
   return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
 }
 
-void ResetRumble()
-{
+void ResetRumble() {
   std::unique_lock<std::mutex> lock(s_init_mutex, std::defer_lock);
   if (!lock.try_lock())
     return;
@@ -486,57 +435,52 @@ void ResetRumble()
 
 // Needs to be called when s_init_mutex is locked in order to avoid
 // being called while the libusb state is being reset
-static void ResetRumbleLockNeeded()
-{
-  if (!UseAdapter() || (s_handle == nullptr || !s_detected))
-  {
+static void ResetRumbleLockNeeded() {
+  if (!UseAdapter() || (s_handle == nullptr || !s_detected)) {
     return;
   }
 
   std::fill(std::begin(s_controller_rumble), std::end(s_controller_rumble), 0);
 
-  unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1],
-                             s_controller_rumble[2], s_controller_rumble[3]};
+  unsigned char rumble[5] = {0x11, s_controller_rumble[0],
+                             s_controller_rumble[1], s_controller_rumble[2],
+                             s_controller_rumble[3]};
 
   int size = 0;
-  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+  libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble),
+                            &size, 16);
 
   DEBUG_LOG(SERIALINTERFACE, "Rumble state reset");
 }
 
-void Output(int chan, u8 rumble_command)
-{
-  if (s_handle == nullptr || !UseAdapter() || !SConfig::GetInstance().m_AdapterRumble[chan])
+void Output(int chan, u8 rumble_command) {
+  if (s_handle == nullptr || !UseAdapter() ||
+      !SConfig::GetInstance().m_AdapterRumble[chan])
     return;
 
-  // Skip over rumble commands if it has not changed or the controller is wireless
+  // Skip over rumble commands if it has not changed or the controller is
+  // wireless
   if (rumble_command != s_controller_rumble[chan] &&
-      s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS)
-  {
+      s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS) {
     s_controller_rumble[chan] = rumble_command;
 
-    unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1],
-                               s_controller_rumble[2], s_controller_rumble[3]};
+    unsigned char rumble[5] = {0x11, s_controller_rumble[0],
+                               s_controller_rumble[1], s_controller_rumble[2],
+                               s_controller_rumble[3]};
     int size = 0;
 
-    libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
+    libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble),
+                              &size, 16);
     // Netplay sends invalid data which results in size = 0x00.  Ignore it.
-    if (size != 0x05 && size != 0x00)
-    {
+    if (size != 0x05 && size != 0x00) {
       INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
       Reset();
     }
   }
 }
 
-bool IsDetected()
-{
-  return s_detected;
-}
+bool IsDetected() { return s_detected; }
 
-bool IsDriverDetected()
-{
-  return !s_libusb_driver_not_supported;
-}
+bool IsDriverDetected() { return !s_libusb_driver_not_supported; }
 
-}  // end of namespace GCAdapter
+} // end of namespace GCAdapter

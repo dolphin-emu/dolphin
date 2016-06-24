@@ -17,8 +17,7 @@
 class PathDialog;
 class SettingsWindow;
 
-class MainWindow final : public QMainWindow
-{
+class MainWindow final : public QMainWindow {
   Q_OBJECT
 
 public:
@@ -64,7 +63,7 @@ private:
   void ConnectToolBar();
   void ConnectPathsDialog();
 
-  void StartGame(const QString& path);
+  void StartGame(const QString &path);
   void ShowRenderWidget();
   void HideRenderWidget();
 
@@ -72,14 +71,14 @@ private:
   void ShowSettingsWindow();
   void ShowAboutDialog();
 
-  QStackedWidget* m_stack;
-  ToolBar* m_tool_bar;
-  MenuBar* m_menu_bar;
-  GameList* m_game_list;
-  RenderWidget* m_render_widget;
+  QStackedWidget *m_stack;
+  ToolBar *m_tool_bar;
+  MenuBar *m_menu_bar;
+  GameList *m_game_list;
+  RenderWidget *m_render_widget;
   bool m_rendering_to_main;
   int m_state_slot = 1;
 
-  PathDialog* m_paths_dialog;
-  SettingsWindow* m_settings_window;
+  PathDialog *m_paths_dialog;
+  SettingsWindow *m_settings_window;
 };

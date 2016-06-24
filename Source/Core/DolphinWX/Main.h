@@ -10,30 +10,29 @@
 class CFrame;
 class wxLocale;
 
-extern CFrame* main_frame;
+extern CFrame *main_frame;
 
 // Define a new application
-class DolphinApp : public wxApp
-{
+class DolphinApp : public wxApp {
 public:
-  CFrame* GetCFrame();
+  CFrame *GetCFrame();
 
 private:
   bool OnInit() override;
   int OnExit() override;
-  void OnInitCmdLine(wxCmdLineParser& parser) override;
-  bool OnCmdLineParsed(wxCmdLineParser& parser) override;
+  void OnInitCmdLine(wxCmdLineParser &parser) override;
+  bool OnCmdLineParsed(wxCmdLineParser &parser) override;
   void OnFatalException() override;
-  bool Initialize(int& c, wxChar** v) override;
+  bool Initialize(int &c, wxChar **v) override;
 
 #ifdef __APPLE__
-  void MacOpenFile(const wxString& fileName) override;
+  void MacOpenFile(const wxString &fileName) override;
 #endif
 
-  void OnEndSession(wxCloseEvent& event);
+  void OnEndSession(wxCloseEvent &event);
   void InitLanguageSupport();
   void AfterInit();
-  void OnIdle(wxIdleEvent&);
+  void OnIdle(wxIdleEvent &);
 
   bool m_batch_mode = false;
   bool m_confirm_stop = false;

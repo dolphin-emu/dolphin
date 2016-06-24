@@ -41,24 +41,20 @@
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-#define FALLBACK_IF(cond)                                                                          \
-  do                                                                                               \
-  {                                                                                                \
-    if (cond)                                                                                      \
-    {                                                                                              \
-      FallBackToInterpreter(inst);                                                                 \
-      return;                                                                                      \
-    }                                                                                              \
+#define FALLBACK_IF(cond)                                                      \
+  do {                                                                         \
+    if (cond) {                                                                \
+      FallBackToInterpreter(inst);                                             \
+      return;                                                                  \
+    }                                                                          \
   } while (0)
 
-#define JITDISABLE(setting)                                                                        \
+#define JITDISABLE(setting)                                                    \
   FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
 
-class JitBase : public CPUCoreBase
-{
+class JitBase : public CPUCoreBase {
 protected:
-  struct JitOptions
-  {
+  struct JitOptions {
     bool enableBlocklink;
     bool optimizeGatherPipe;
     bool accurateSinglePrecision;
@@ -66,8 +62,7 @@ protected:
     bool memcheck;
     bool alwaysUseMemFuncs;
   };
-  struct JitState
-  {
+  struct JitState {
     u32 compilerPC;
     u32 blockStart;
     int instructionNumber;
@@ -75,13 +70,16 @@ protected:
     int downcountAmount;
     u32 numLoadStoreInst;
     u32 numFloatingPointInst;
-    // If this is set, we need to generate an exception handler for the fastmem load.
-    u8* fastmemLoadStore;
-    // If this is set, a load or store already prepared a jump to the exception handler for us,
+    // If this is set, we need to generate an exception handler for the fastmem
+    // load.
+    u8 *fastmemLoadStore;
+    // If this is set, a load or store already prepared a jump to the exception
+    // handler for us,
     // so just fixup that branch instead of testing for a DSI again.
     bool fixupExceptionHandler;
     Gen::FixupBranch exceptionHandler;
-    // If these are set, we've stored the old value of a register which will be loaded in
+    // If these are set, we've stored the old value of a register which will be
+    // loaded in
     // revertLoad,
     // which lets us revert it on the exception path.
     int revertGprLoad;
@@ -99,10 +97,10 @@ protected:
     PPCAnalyst::BlockStats st;
     PPCAnalyst::BlockRegStats gpa;
     PPCAnalyst::BlockRegStats fpa;
-    PPCAnalyst::CodeOp* op;
-    u8* rewriteStart;
+    PPCAnalyst::CodeOp *op;
+    u8 *rewriteStart;
 
-    JitBlock* curBlock;
+    JitBlock *curBlock;
 
     std::unordered_set<u32> fifoWriteAddresses;
     std::unordered_set<u32> pairedQuantizeAddresses;
@@ -120,33 +118,32 @@ public:
   JitOptions jo;
   JitState js;
 
-  virtual JitBaseBlockCache* GetBlockCache() = 0;
+  virtual JitBaseBlockCache *GetBlockCache() = 0;
 
   virtual void Jit(u32 em_address) = 0;
 
-  virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
+  virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
-  virtual bool HandleFault(uintptr_t access_address, SContext* ctx) = 0;
+  virtual bool HandleFault(uintptr_t access_address, SContext *ctx) = 0;
   virtual bool HandleStackFault() { return false; }
 };
 
-class Jitx86Base : public JitBase, public EmuCodeBlock
-{
+class Jitx86Base : public JitBase, public EmuCodeBlock {
 protected:
-  bool BackPatch(u32 emAddress, SContext* ctx);
+  bool BackPatch(u32 emAddress, SContext *ctx);
   JitBlockCache blocks;
   TrampolineCache trampolines;
 
 public:
-  JitBlockCache* GetBlockCache() override { return &blocks; }
-  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  JitBlockCache *GetBlockCache() override { return &blocks; }
+  bool HandleFault(uintptr_t access_address, SContext *ctx) override;
 };
 
-extern JitBase* jit;
+extern JitBase *jit;
 
 void Jit(u32 em_address);
 
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
-                     JitBlock* b);
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer,
+                     const u8 *normalEntry, JitBlock *b);

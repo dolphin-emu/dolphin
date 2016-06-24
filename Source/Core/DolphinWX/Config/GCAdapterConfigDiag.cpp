@@ -13,35 +13,37 @@
 
 wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
 
-GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString& name,
+GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow *const parent,
+                                         const wxString &name,
                                          const int tab_num)
-    : wxDialog(parent, wxID_ANY, name, wxPoint(128, -1)), m_pad_id(tab_num)
-{
-  wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
+    : wxDialog(parent, wxID_ANY, name, wxPoint(128, -1)), m_pad_id(tab_num) {
+  wxBoxSizer *const szr = new wxBoxSizer(wxVERTICAL);
 
-  wxCheckBox* const gamecube_rumble = new wxCheckBox(this, wxID_ANY, _("Rumble"));
+  wxCheckBox *const gamecube_rumble =
+      new wxCheckBox(this, wxID_ANY, _("Rumble"));
   gamecube_rumble->SetValue(SConfig::GetInstance().m_AdapterRumble[m_pad_id]);
-  gamecube_rumble->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterRumble, this);
+  gamecube_rumble->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterRumble,
+                        this);
 
-  wxCheckBox* const gamecube_konga = new wxCheckBox(this, wxID_ANY, _("Simulate DK Bongos"));
+  wxCheckBox *const gamecube_konga =
+      new wxCheckBox(this, wxID_ANY, _("Simulate DK Bongos"));
   gamecube_konga->SetValue(SConfig::GetInstance().m_AdapterKonga[m_pad_id]);
-  gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga, this);
+  gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga,
+                       this);
 
-  m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
+  m_adapter_status =
+      new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
 
-  if (!GCAdapter::IsDetected())
-  {
-    if (!GCAdapter::IsDriverDetected())
-    {
+  if (!GCAdapter::IsDetected()) {
+    if (!GCAdapter::IsDriverDetected()) {
       m_adapter_status->SetLabelText(_("Driver Not Detected"));
       gamecube_rumble->Disable();
     }
-  }
-  else
-  {
+  } else {
     m_adapter_status->SetLabelText(_("Adapter Detected"));
   }
-  GCAdapter::SetAdapterCallback(std::bind(&GCAdapterConfigDiag::ScheduleAdapterUpdate, this));
+  GCAdapter::SetAdapterCallback(
+      std::bind(&GCAdapterConfigDiag::ScheduleAdapterUpdate, this));
 
   szr->Add(m_adapter_status, 0, wxEXPAND);
   szr->Add(gamecube_rumble, 0, wxEXPAND);
@@ -55,13 +57,11 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   Bind(wxEVT_ADAPTER_UPDATE, &GCAdapterConfigDiag::UpdateAdapter, this);
 }
 
-void GCAdapterConfigDiag::ScheduleAdapterUpdate()
-{
+void GCAdapterConfigDiag::ScheduleAdapterUpdate() {
   wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
 }
 
-void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent& ev)
-{
+void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent &ev) {
   bool unpause = Core::PauseAndLock(true);
   if (GCAdapter::IsDetected())
     m_adapter_status->SetLabelText(_("Adapter Detected"));
@@ -70,7 +70,6 @@ void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent& ev)
   Core::PauseAndLock(false, unpause);
 }
 
-GCAdapterConfigDiag::~GCAdapterConfigDiag()
-{
+GCAdapterConfigDiag::~GCAdapterConfigDiag() {
   GCAdapter::SetAdapterCallback(nullptr);
 }

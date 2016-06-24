@@ -7,10 +7,8 @@
 #include <Windows.h>
 #include <vector>
 
-namespace ciface
-{
-namespace DInput
-{
-void GetXInputGUIDS(std::vector<DWORD>* guids);
+namespace ciface {
+namespace DInput {
+void GetXInputGUIDS(std::vector<DWORD> *guids);
 }
 }

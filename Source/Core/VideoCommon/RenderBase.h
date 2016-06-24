@@ -8,8 +8,10 @@
 // 3d commands are issued through the fifo. The GPU draws to the 2MB EFB.
 // The efb can be copied back into ram in two forms: as textures or as XFB.
 // The XFB is the region in RAM that the VI chip scans out to the television.
-// So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
-// Next frame, that one is scanned out and the other one gets the copy. = double buffering.
+// So, after all rendering to EFB is done, the image is copied into one of two
+// XFBs in RAM.
+// Next frame, that one is scanned out and the other one gets the copy. = double
+// buffering.
 // ---------------------------------------------------------------------------------------------
 
 #pragma once
@@ -30,8 +32,7 @@
 
 class PostProcessingShaderImplementation;
 
-struct EfbPokeData
-{
+struct EfbPokeData {
   u16 x, y;
   u32 data;
 };
@@ -40,17 +41,17 @@ struct EfbPokeData
 extern int frameCount;
 extern int OSDChoice;
 
-// Renderer really isn't a very good name for this class - it's more like "Misc".
-// The long term goal is to get rid of this class and replace it with others that make
+// Renderer really isn't a very good name for this class - it's more like
+// "Misc".
+// The long term goal is to get rid of this class and replace it with others
+// that make
 // more sense.
-class Renderer
-{
+class Renderer {
 public:
   Renderer();
   virtual ~Renderer();
 
-  enum PixelPerfQuery
-  {
+  enum PixelPerfQuery {
     PP_ZCOMP_INPUT_ZCOMPLOC,
     PP_ZCOMP_OUTPUT_ZCOMPLOC,
     PP_ZCOMP_INPUT,
@@ -61,7 +62,7 @@ public:
 
   virtual void SetColorMask() {}
   virtual void SetBlendMode(bool forceUpdate) {}
-  virtual void SetScissorRect(const EFBRectangle& rc) {}
+  virtual void SetScissorRect(const EFBRectangle &rc) {}
   virtual void SetGenerationMode() {}
   virtual void SetDepthMode() {}
   virtual void SetLogicOpMode() {}
@@ -73,7 +74,8 @@ public:
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
-  // Ideal internal resolution - determined by display resolution (automatic scaling) and/or a
+  // Ideal internal resolution - determined by display resolution (automatic
+  // scaling) and/or a
   // multiple of the native EFB resolution
   static int GetTargetWidth() { return s_target_width; }
   static int GetTargetHeight() { return s_target_height; }
@@ -85,53 +87,66 @@ public:
   // EFB coordinate conversion functions
 
   // Use this to convert a whole native EFB rect to backbuffer coordinates
-  virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
+  virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle &rc) = 0;
 
-  static const TargetRectangle& GetTargetRectangle() { return target_rc; }
+  static const TargetRectangle &GetTargetRectangle() { return target_rc; }
   static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
 
   // Use this to convert a single target rectangle to two stereo rectangles
-  static void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                                     TargetRectangle& rightRc);
+  static void ConvertStereoRectangle(const TargetRectangle &rc,
+                                     TargetRectangle &leftRc,
+                                     TargetRectangle &rightRc);
 
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
   static int EFBToScaledX(int x);
   static int EFBToScaledY(int y);
 
   // Floating point versions of the above - only use them if really necessary
-  static float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
-  static float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
+  static float EFBToScaledXf(float x) {
+    return x * ((float)GetTargetWidth() / (float)EFB_WIDTH);
+  }
+  static float EFBToScaledYf(float y) {
+    return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT);
+  }
   // Random utilities
-  static void SetScreenshot(const std::string& filename);
+  static void SetScreenshot(const std::string &filename);
   static void DrawDebugText();
 
-  virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
+  virtual void RenderText(const std::string &text, int left, int top,
+                          u32 color) = 0;
 
-  virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
-                           u32 color, u32 z) = 0;
+  virtual void ClearScreen(const EFBRectangle &rc, bool colorEnable,
+                           bool alphaEnable, bool zEnable, u32 color,
+                           u32 z) = 0;
   virtual void ReinterpretPixelData(unsigned int convtype) = 0;
-  static void RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
-                          float Gamma = 1.0f);
+  static void RenderToXFB(u32 xfbAddr, const EFBRectangle &sourceRc,
+                          u32 fbStride, u32 fbHeight, float Gamma = 1.0f);
 
   virtual u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) = 0;
-  virtual void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) = 0;
+  virtual void PokeEFB(EFBAccessType type, const EfbPokeData *points,
+                       size_t num_points) = 0;
 
   virtual u16 BBoxRead(int index) = 0;
   virtual void BBoxWrite(int index, u16 value) = 0;
 
-  static void FlipImageData(u8* data, int w, int h, int pixel_width = 3);
+  static void FlipImageData(u8 *data, int w, int h, int pixel_width = 3);
 
   // Finish up the current frame, print some stats
-  static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                   float Gamma = 1.0f);
+  static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
+                   const EFBRectangle &rc, float Gamma = 1.0f);
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma = 1.0f) = 0;
+                        const EFBRectangle &rc, float Gamma = 1.0f) = 0;
 
-  virtual bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) = 0;
+  virtual bool SaveScreenshot(const std::string &filename,
+                              const TargetRectangle &rc) = 0;
 
   static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
-  static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
-  PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
+  static void StorePixelFormat(PEControl::PixelFormat new_format) {
+    prev_efb_format = new_format;
+  }
+  PostProcessingShaderImplementation *GetPostProcessor() {
+    return m_post_processor.get();
+  }
   // Max height/width
   virtual int GetMaxTextureSize() = 0;
 
@@ -142,8 +157,9 @@ public:
   static Common::Event s_ChangedSurface;
 
 protected:
-  static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
-  bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
+  static void CalculateTargetScale(int x, int y, int *scaledX, int *scaledY);
+  bool CalculateTargetSize(unsigned int framebuffer_width,
+                           unsigned int framebuffer_height);
 
   static void CheckFifoRecording();
   static void RecordVideoMemory();
@@ -161,7 +177,8 @@ protected:
   static int s_target_width;
   static int s_target_height;
 
-  // TODO: Add functionality to reinit all the render targets when the window is resized.
+  // TODO: Add functionality to reinit all the render targets when the window is
+  // resized.
   static int s_backbuffer_width;
   static int s_backbuffer_height;
 

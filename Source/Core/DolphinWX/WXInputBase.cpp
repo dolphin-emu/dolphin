@@ -9,12 +9,9 @@
 
 #include "DolphinWX/WXInputBase.h"
 
-namespace WxUtils
-{
-const wxString WXKeyToString(int keycode)
-{
-  switch (keycode)
-  {
+namespace WxUtils {
+const wxString WXKeyToString(int keycode) {
+  switch (keycode) {
   case WXK_BACK:
     return _("Back");
   case WXK_TAB:
@@ -232,16 +229,14 @@ const wxString WXKeyToString(int keycode)
     return _("Windows Menu");
   }
 
-  if (keycode > WXK_SPACE && keycode < WXK_DELETE)
-  {
+  if (keycode > WXK_SPACE && keycode < WXK_DELETE) {
     return wxString((wxChar)keycode, 1);
   }
 
   return "";
 }
 
-const wxString WXKeymodToString(int modifier)
-{
+const wxString WXKeymodToString(int modifier) {
   wxString mods;
 
   if (modifier & wxMOD_META)

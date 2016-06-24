@@ -23,21 +23,15 @@
 
 // F-zero 80005e60 wtf??
 
-enum
-{
-  IDM_WATCHADDRESS,
-  IDM_VIEWMEMORY,
-  IDM_VIEWCODE
-};
+enum { IDM_WATCHADDRESS, IDM_VIEWMEMORY, IDM_VIEWCODE };
 
-static const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
-                                          "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
-                                          "Int Cause", "DSISR", "DAR",  "PT hashmask"};
+static const char *special_reg_names[] = {
+    "PC",        "LR",    "CTR",  "CR",         "FPSCR",
+    "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
+    "Int Cause", "DSISR", "DAR",  "PT hashmask"};
 
-static u32 GetSpecialRegValue(int reg)
-{
-  switch (reg)
-  {
+static u32 GetSpecialRegValue(int reg) {
+  switch (reg) {
   case 0:
     return PowerPC::ppcState.pc;
   case 1:
@@ -65,18 +59,16 @@ static u32 GetSpecialRegValue(int reg)
   case 12:
     return PowerPC::ppcState.spr[SPR_DAR];
   case 13:
-    return (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
+    return (PowerPC::ppcState.pagetable_hashmask << 6) |
+           PowerPC::ppcState.pagetable_base;
   default:
     return 0;
   }
 }
 
-static wxString GetValueByRowCol(int row, int col)
-{
-  if (row < 32)
-  {
-    switch (col)
-    {
+static wxString GetValueByRowCol(int row, int col) {
+  if (row < 32) {
+    switch (col) {
     case 0:
       return StrToWxStr(GekkoDisassembler::GetGPRName(row));
     case 1:
@@ -87,8 +79,7 @@ static wxString GetValueByRowCol(int row, int col)
       return wxString::Format("%016llx", riPS0(row));
     case 4:
       return wxString::Format("%016llx", riPS1(row));
-    case 5:
-    {
+    case 5: {
       if (row < 4)
         return wxString::Format("DBAT%01d", row);
 
@@ -103,38 +94,39 @@ static wxString GetValueByRowCol(int row, int col)
 
       break;
     }
-    case 6:
-    {
+    case 6: {
       if (row < 4)
-        return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT0U + row * 2] << 32 |
-                                               PowerPC::ppcState.spr[SPR_DBAT0L + row * 2]);
+        return wxString::Format(
+            "%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT0U + row * 2] << 32 |
+                           PowerPC::ppcState.spr[SPR_DBAT0L + row * 2]);
 
       if (row < 8)
-        return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT0U + (row - 4) * 2]
-                                                   << 32 |
-                                               PowerPC::ppcState.spr[SPR_IBAT0L + (row - 4) * 2]);
+        return wxString::Format(
+            "%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT0U + (row - 4) * 2]
+                               << 32 |
+                           PowerPC::ppcState.spr[SPR_IBAT0L + (row - 4) * 2]);
 
       if (row < 12)
-        return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT4U + (row - 12) * 2]
-                                                   << 32 |
-                                               PowerPC::ppcState.spr[SPR_DBAT4L + (row - 12) * 2]);
+        return wxString::Format(
+            "%016llx", (u64)PowerPC::ppcState.spr[SPR_DBAT4U + (row - 12) * 2]
+                               << 32 |
+                           PowerPC::ppcState.spr[SPR_DBAT4L + (row - 12) * 2]);
 
       if (row < 16)
-        return wxString::Format("%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT4U + (row - 16) * 2]
-                                                   << 32 |
-                                               PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
+        return wxString::Format(
+            "%016llx", (u64)PowerPC::ppcState.spr[SPR_IBAT4U + (row - 16) * 2]
+                               << 32 |
+                           PowerPC::ppcState.spr[SPR_IBAT4L + (row - 16) * 2]);
 
       break;
     }
-    case 7:
-    {
+    case 7: {
       if (row < 16)
         return wxString::Format("SR%02d", row);
 
       break;
     }
-    case 8:
-    {
+    case 8: {
       if (row < 16)
         return wxString::Format("%08x", PowerPC::ppcState.sr[row]);
 
@@ -143,13 +135,9 @@ static wxString GetValueByRowCol(int row, int col)
     default:
       return wxEmptyString;
     }
-  }
-  else
-  {
-    if (row - 32 < NUM_SPECIALS)
-    {
-      switch (col)
-      {
+  } else {
+    if (row - 32 < NUM_SPECIALS) {
+      switch (col) {
       case 0:
         return StrToWxStr(special_reg_names[row - 32]);
       case 1:
@@ -162,15 +150,12 @@ static wxString GetValueByRowCol(int row, int col)
   return wxEmptyString;
 }
 
-wxString CRegTable::GetValue(int row, int col)
-{
+wxString CRegTable::GetValue(int row, int col) {
   return GetValueByRowCol(row, col);
 }
 
-static void SetSpecialRegValue(int reg, u32 value)
-{
-  switch (reg)
-  {
+static void SetSpecialRegValue(int reg, u32 value) {
+  switch (reg) {
   case 0:
     PowerPC::ppcState.pc = value;
     break;
@@ -198,7 +183,8 @@ static void SetSpecialRegValue(int reg, u32 value)
   case 8:
     PowerPC::ppcState.Exceptions = value;
     break;
-  // Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system
+  // Should we just change the value, or use ProcessorInterface::SetInterrupt()
+  // to make the system
   // aware?
   // case 9: return ProcessorInterface::GetMask();
   // case 10: return ProcessorInterface::GetCause();
@@ -208,40 +194,33 @@ static void SetSpecialRegValue(int reg, u32 value)
   case 12:
     PowerPC::ppcState.spr[SPR_DAR] = value;
     break;
-  // case 13: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
+  // case 13: (PowerPC::ppcState.pagetable_hashmask << 6) |
+  // PowerPC::ppcState.pagetable_base;
   default:
     return;
   }
 }
 
-void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
-{
+void CRegTable::SetValue(int row, int col, const wxString &strNewVal) {
   u32 newVal = 0;
-  if (TryParse("0x" + WxStrToStr(strNewVal), &newVal))
-  {
-    if (row < 32)
-    {
+  if (TryParse("0x" + WxStrToStr(strNewVal), &newVal)) {
+    if (row < 32) {
       if (col == 1)
         GPR(row) = newVal;
       else if (col == 3)
         riPS0(row) = newVal;
       else if (col == 4)
         riPS1(row) = newVal;
-    }
-    else
-    {
-      if ((row - 32 < NUM_SPECIALS) && (col == 1))
-      {
+    } else {
+      if ((row - 32 < NUM_SPECIALS) && (col == 1)) {
         SetSpecialRegValue(row - 32, newVal);
       }
     }
   }
 }
 
-void CRegTable::UpdateCachedRegs()
-{
-  for (int i = 0; i < 32; ++i)
-  {
+void CRegTable::UpdateCachedRegs() {
+  for (int i = 0; i < 32; ++i) {
     m_CachedRegHasChanged[i] = (m_CachedRegs[i] != GPR(i));
     m_CachedRegs[i] = GPR(i);
 
@@ -250,22 +229,21 @@ void CRegTable::UpdateCachedRegs()
     m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != riPS1(i));
     m_CachedFRegs[i][1] = riPS1(i);
   }
-  for (int i = 0; i < NUM_SPECIALS; ++i)
-  {
-    m_CachedSpecialRegHasChanged[i] = (m_CachedSpecialRegs[i] != GetSpecialRegValue(i));
+  for (int i = 0; i < NUM_SPECIALS; ++i) {
+    m_CachedSpecialRegHasChanged[i] =
+        (m_CachedSpecialRegs[i] != GetSpecialRegValue(i));
     m_CachedSpecialRegs[i] = GetSpecialRegValue(i);
   }
 }
 
-wxGridCellAttr* CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
-{
-  wxGridCellAttr* attr = new wxGridCellAttr();
+wxGridCellAttr *CRegTable::GetAttr(int row, int col,
+                                   wxGridCellAttr::wxAttrKind) {
+  wxGridCellAttr *attr = new wxGridCellAttr();
 
   attr->SetBackgroundColour(*wxWHITE);
   attr->SetFont(DebuggerFont);
 
-  switch (col)
-  {
+  switch (col) {
   case 1:
     attr->SetAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
     break;
@@ -279,10 +257,10 @@ wxGridCellAttr* CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
   }
 
   bool red = false;
-  switch (col)
-  {
+  switch (col) {
   case 1:
-    red = row < 32 ? m_CachedRegHasChanged[row] : m_CachedSpecialRegHasChanged[row - 32];
+    red = row < 32 ? m_CachedRegHasChanged[row]
+                   : m_CachedSpecialRegHasChanged[row - 32];
     break;
   case 3:
   case 4:
@@ -294,8 +272,8 @@ wxGridCellAttr* CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
   return attr;
 }
 
-CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
-{
+CRegisterView::CRegisterView(wxWindow *parent, wxWindowID id)
+    : wxGrid(parent, id) {
   m_register_table = new CRegTable();
 
   SetTable(m_register_table, true);
@@ -309,14 +287,12 @@ CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id) : wxGrid(parent, i
   AutoSizeColumns();
 }
 
-void CRegisterView::Update()
-{
+void CRegisterView::Update() {
   m_register_table->UpdateCachedRegs();
   ForceRefresh();
 }
 
-void CRegisterView::OnMouseDownR(wxGridEvent& event)
-{
+void CRegisterView::OnMouseDownR(wxGridEvent &event) {
   // popup menu
   int row = event.GetRow();
   int col = event.GetCol();
@@ -331,15 +307,13 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
   PopupMenu(&menu);
 }
 
-void CRegisterView::OnPopupMenu(wxCommandEvent& event)
-{
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
-  CMemoryWindow* memory_window = code_window->m_MemoryWindow;
+void CRegisterView::OnPopupMenu(wxCommandEvent &event) {
+  CFrame *main_frame = static_cast<CFrame *>(GetGrandParent()->GetParent());
+  CCodeWindow *code_window = main_frame->g_pCodeWindow;
+  CWatchWindow *watch_window = code_window->m_WatchWindow;
+  CMemoryWindow *memory_window = code_window->m_MemoryWindow;
 
-  switch (event.GetId())
-  {
+  switch (event.GetId()) {
   case IDM_WATCHADDRESS:
     PowerPC::watches.Add(m_selectedAddress);
     if (watch_window)

@@ -29,21 +29,22 @@ class wxMenu;
 class wxMenuBar;
 class wxToolBar;
 
-class CCodeWindow : public wxPanel
-{
+class CCodeWindow : public wxPanel {
 public:
-  CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id = wxID_ANY,
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxTAB_TRAVERSAL | wxBORDER_NONE, const wxString& name = _("Code"));
+  CCodeWindow(const SConfig &_LocalCoreStartupParameter, CFrame *parent,
+              wxWindowID id = wxID_ANY, const wxPoint &pos = wxDefaultPosition,
+              const wxSize &size = wxDefaultSize,
+              long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+              const wxString &name = _("Code"));
   ~CCodeWindow();
 
   void Load();
   void Save();
 
   // Parent interaction
-  CFrame* Parent;
-  wxMenuBar* GetMenuBar();
-  wxToolBar* GetToolBar();
+  CFrame *Parent;
+  wxMenuBar *GetMenuBar();
+  wxToolBar *GetToolBar();
   wxBitmap m_Bitmaps[Toolbar_Debug_Bitmap_Max];
 
   bool UseInterpreter();
@@ -55,10 +56,11 @@ public:
 
   void Update() override;
   void NotifyMapLoaded();
-  void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar* pMenuBar);
-  void CreateMenuOptions(wxMenu* pMenu);
-  void CreateMenuSymbols(wxMenuBar* pMenuBar);
-  void PopulateToolbar(wxToolBar* toolBar);
+  void CreateMenu(const SConfig &_LocalCoreStartupParameter,
+                  wxMenuBar *pMenuBar);
+  void CreateMenuOptions(wxMenu *pMenu);
+  void CreateMenuSymbols(wxMenuBar *pMenuBar);
+  void PopulateToolbar(wxToolBar *toolBar);
   void UpdateButtonStates();
   void OpenPages();
 
@@ -73,13 +75,13 @@ public:
   void ToggleVideoWindow(bool bShow);
 
   // Sub dialogs
-  CRegisterWindow* m_RegisterWindow;
-  CWatchWindow* m_WatchWindow;
-  CBreakPointWindow* m_BreakpointWindow;
-  CMemoryWindow* m_MemoryWindow;
-  CJitWindow* m_JitWindow;
-  DSPDebuggerLLE* m_SoundWindow;
-  GFXDebuggerPanel* m_VideoWindow;
+  CRegisterWindow *m_RegisterWindow;
+  CWatchWindow *m_WatchWindow;
+  CBreakPointWindow *m_BreakpointWindow;
+  CMemoryWindow *m_MemoryWindow;
+  CJitWindow *m_JitWindow;
+  DSPDebuggerLLE *m_SoundWindow;
+  GFXDebuggerPanel *m_VideoWindow;
 
   // Settings
   bool bAutomaticStart;
@@ -88,23 +90,23 @@ public:
   int iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
 private:
-  void OnCPUMode(wxCommandEvent& event);
+  void OnCPUMode(wxCommandEvent &event);
 
-  void OnChangeFont(wxCommandEvent& event);
+  void OnChangeFont(wxCommandEvent &event);
 
-  void OnCodeStep(wxCommandEvent& event);
-  void OnAddrBoxChange(wxCommandEvent& event);
-  void OnSymbolsMenu(wxCommandEvent& event);
-  void OnJitMenu(wxCommandEvent& event);
-  void OnProfilerMenu(wxCommandEvent& event);
+  void OnCodeStep(wxCommandEvent &event);
+  void OnAddrBoxChange(wxCommandEvent &event);
+  void OnSymbolsMenu(wxCommandEvent &event);
+  void OnJitMenu(wxCommandEvent &event);
+  void OnProfilerMenu(wxCommandEvent &event);
 
-  void OnSymbolListChange(wxCommandEvent& event);
-  void OnSymbolListContextMenu(wxContextMenuEvent& event);
-  void OnCallstackListChange(wxCommandEvent& event);
-  void OnCallersListChange(wxCommandEvent& event);
-  void OnCallsListChange(wxCommandEvent& event);
-  void OnCodeViewChange(wxCommandEvent& event);
-  void OnHostMessage(wxCommandEvent& event);
+  void OnSymbolListChange(wxCommandEvent &event);
+  void OnSymbolListContextMenu(wxContextMenuEvent &event);
+  void OnCallstackListChange(wxCommandEvent &event);
+  void OnCallersListChange(wxCommandEvent &event);
+  void OnCallsListChange(wxCommandEvent &event);
+  void OnCodeViewChange(wxCommandEvent &event);
+  void OnHostMessage(wxCommandEvent &event);
 
   // Debugger functions
   void SingleStep();
@@ -117,13 +119,13 @@ private:
 
   void InitBitmaps();
 
-  CCodeView* codeview;
-  wxListBox* callstack;
-  wxListBox* symbols;
-  wxListBox* callers;
-  wxListBox* calls;
+  CCodeView *codeview;
+  wxListBox *callstack;
+  wxListBox *symbols;
+  wxListBox *callers;
+  wxListBox *calls;
   Common::Event sync_event;
 
   wxAuiManager m_aui_manager;
-  wxAuiToolBar* m_aui_toolbar;
+  wxAuiToolBar *m_aui_toolbar;
 };

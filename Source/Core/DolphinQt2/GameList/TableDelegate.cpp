@@ -11,31 +11,25 @@
 static QSize NORMAL_BANNER_SIZE(96, 32);
 
 // Convert an integer size to a friendly string representation.
-static QString FormatSize(qint64 size)
-{
-  QStringList units{QStringLiteral("KB"), QStringLiteral("MB"), QStringLiteral("GB"),
-                    QStringLiteral("TB")};
+static QString FormatSize(qint64 size) {
+  QStringList units{QStringLiteral("KB"), QStringLiteral("MB"),
+                    QStringLiteral("GB"), QStringLiteral("TB")};
   QStringListIterator i(units);
   QString unit = QStringLiteral("B");
   double num = (double)size;
-  while (num > 1024.0 && i.hasNext())
-  {
+  while (num > 1024.0 && i.hasNext()) {
     unit = i.next();
     num /= 1024.0;
   }
   return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
 }
 
-TableDelegate::TableDelegate(QWidget* parent) : QStyledItemDelegate(parent)
-{
-}
+TableDelegate::TableDelegate(QWidget *parent) : QStyledItemDelegate(parent) {}
 
-void TableDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
-                          const QModelIndex& index) const
-{
+void TableDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
+                          const QModelIndex &index) const {
   QVariant data = index.data(Qt::DisplayRole);
-  switch (index.column())
-  {
+  switch (index.column()) {
   case GameListModel::COL_PLATFORM:
     DrawPixmap(painter, option.rect, Resources::GetPlatform(data.toInt()));
     break;
@@ -47,11 +41,13 @@ void TableDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
     break;
   case GameListModel::COL_BANNER:
     DrawPixmap(painter, option.rect,
-               data.value<QPixmap>().scaled(NORMAL_BANNER_SIZE, Qt::KeepAspectRatio,
+               data.value<QPixmap>().scaled(NORMAL_BANNER_SIZE,
+                                            Qt::KeepAspectRatio,
                                             Qt::SmoothTransformation));
     break;
   case GameListModel::COL_SIZE:
-    painter->drawText(option.rect, Qt::AlignCenter, FormatSize(data.toULongLong()));
+    painter->drawText(option.rect, Qt::AlignCenter,
+                      FormatSize(data.toULongLong()));
     break;
   // Fall through.
   case GameListModel::COL_ID:
@@ -65,10 +61,9 @@ void TableDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
   }
 }
 
-QSize TableDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const
-{
-  switch (index.column())
-  {
+QSize TableDelegate::sizeHint(const QStyleOptionViewItem &option,
+                              const QModelIndex &index) const {
+  switch (index.column()) {
   case GameListModel::COL_PLATFORM:
     return Resources::GetPlatform(0).size();
   case GameListModel::COL_COUNTRY:
@@ -82,9 +77,10 @@ QSize TableDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIn
   }
 }
 
-void TableDelegate::DrawPixmap(QPainter* painter, const QRect& rect, const QPixmap& pixmap) const
-{
+void TableDelegate::DrawPixmap(QPainter *painter, const QRect &rect,
+                               const QPixmap &pixmap) const {
   // We don't want to stretch the pixmap out, so center it in the rect.
   painter->drawPixmap(rect.left() + (rect.width() - pixmap.width()) / 2,
-                      rect.top() + (rect.height() - pixmap.height()) / 2, pixmap);
+                      rect.top() + (rect.height() - pixmap.height()) / 2,
+                      pixmap);
 }

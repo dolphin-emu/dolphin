@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D/XFBEncoder.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -12,22 +11,22 @@
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/Render.h"
+#include "VideoBackends/D3D/XFBEncoder.h"
 
-namespace DX11
-{
+namespace DX11 {
 union XFBEncodeParams {
-  struct
-  {
-    FLOAT Width;  // Width and height of encoded XFB in luma pixels
+  struct {
+    FLOAT Width; // Width and height of encoded XFB in luma pixels
     FLOAT Height;
-    FLOAT TexLeft;  // Normalized tex coordinates of XFB source area in EFB texture
+    FLOAT
+    TexLeft; // Normalized tex coordinates of XFB source area in EFB texture
     FLOAT TexTop;
     FLOAT TexRight;
     FLOAT TexBottom;
     FLOAT Gamma;
   };
   // Constant buffers must be a multiple of 16 bytes in size
-  u8 pad[32];  // Pad to the next multiple of 16
+  u8 pad[32]; // Pad to the next multiple of 16
 };
 
 static const char XFB_ENCODE_VS[] =
@@ -35,7 +34,7 @@ static const char XFB_ENCODE_VS[] =
 
     "cbuffer cbParams : register(b0)\n"
     "{\n"
-    "struct\n"  // Should match XFBEncodeParams above
+    "struct\n" // Should match XFBEncodeParams above
     "{\n"
     "float Width;\n"
     "float Height;\n"
@@ -66,7 +65,7 @@ static const char XFB_ENCODE_PS[] =
 
     "cbuffer cbParams : register(b0)\n"
     "{\n"
-    "struct\n"  // Should match XFBEncodeParams above
+    "struct\n" // Should match XFBEncodeParams above
     "{\n"
     "float Width;\n"
     "float Height;\n"
@@ -81,7 +80,8 @@ static const char XFB_ENCODE_PS[] =
     "Texture2DArray EFBTexture : register(t0);\n"
     "sampler EFBSampler : register(s0);\n"
 
-    // GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
+    // GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr;
+    // see
     // <http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion>
     "static const float3x4 RGB_TO_YCBCR = float3x4(\n"
     "0.257, 0.504, 0.098, 16.0/255.0,\n"
@@ -92,21 +92,27 @@ static const char XFB_ENCODE_PS[] =
     "float3 SampleEFB(float2 coord)\n"
     "{\n"
     "float2 texCoord = lerp(float2(Params.TexLeft,Params.TexTop), "
-    "float2(Params.TexRight,Params.TexBottom), coord / float2(Params.Width,Params.Height));\n"
+    "float2(Params.TexRight,Params.TexBottom), coord / "
+    "float2(Params.Width,Params.Height));\n"
     "return EFBTexture.Sample(EFBSampler, float3(texCoord, 0.0)).rgb;\n"
     "}\n"
 
-    "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in float2 Coord : "
+    "void main(out float4 ocol0 : SV_Target, in float4 Pos : SV_Position, in "
+    "float2 Coord : "
     "ENCODECOORD)\n"
     "{\n"
-    // Multiplying X by 2, moves pixel centers from (x+0.5) to (2x+1) instead of (2x+0.5), so
+    // Multiplying X by 2, moves pixel centers from (x+0.5) to (2x+1) instead of
+    // (2x+0.5), so
     // subtract 0.5 to compensate
     "float2 baseCoord = Coord * float2(2,1) - float2(0.5,0);\n"
     // FIXME: Shall we apply gamma here, or apply it below to the Y components?
-    // Be careful if you apply it to Y! The Y components are in the range (16..235) / 255.
-    "float3 sampleL = pow(abs(SampleEFB(baseCoord+float2(-1,0))), Params.Gamma);\n"  // Left
-    "float3 sampleM = pow(abs(SampleEFB(baseCoord)), Params.Gamma);\n"               // Middle
-    "float3 sampleR = pow(abs(SampleEFB(baseCoord+float2(1,0))), Params.Gamma);\n"   // Right
+    // Be careful if you apply it to Y! The Y components are in the range
+    // (16..235) / 255.
+    "float3 sampleL = pow(abs(SampleEFB(baseCoord+float2(-1,0))), "
+    "Params.Gamma);\n"                                                 // Left
+    "float3 sampleM = pow(abs(SampleEFB(baseCoord)), Params.Gamma);\n" // Middle
+    "float3 sampleR = pow(abs(SampleEFB(baseCoord+float2(1,0))), "
+    "Params.Gamma);\n" // Right
 
     "float3 yuvL = mul(RGB_TO_YCBCR, float4(sampleL,1));\n"
     "float3 yuvM = mul(RGB_TO_YCBCR, float4(sampleM,1));\n"
@@ -123,32 +129,31 @@ static const char XFB_ENCODE_PS[] =
     "}\n";
 
 static const D3D11_INPUT_ELEMENT_DESC QUAD_LAYOUT_DESC[] = {
-    {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0}};
+    {"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA,
+     0}};
 
-static const struct QuadVertex
-{
+static const struct QuadVertex {
   float posX;
   float posY;
 } QUAD_VERTS[4] = {{0, 0}, {1, 0}, {0, 1}, {1, 1}};
 
 XFBEncoder::XFBEncoder()
-    : m_out(nullptr), m_outRTV(nullptr), m_outStage(nullptr), m_encodeParams(nullptr),
-      m_quad(nullptr), m_vShader(nullptr), m_quadLayout(nullptr), m_pShader(nullptr),
-      m_xfbEncodeBlendState(nullptr), m_xfbEncodeDepthState(nullptr), m_xfbEncodeRastState(nullptr),
-      m_efbSampler(nullptr)
-{
-}
+    : m_out(nullptr), m_outRTV(nullptr), m_outStage(nullptr),
+      m_encodeParams(nullptr), m_quad(nullptr), m_vShader(nullptr),
+      m_quadLayout(nullptr), m_pShader(nullptr), m_xfbEncodeBlendState(nullptr),
+      m_xfbEncodeDepthState(nullptr), m_xfbEncodeRastState(nullptr),
+      m_efbSampler(nullptr) {}
 
-void XFBEncoder::Init()
-{
+void XFBEncoder::Init() {
   HRESULT hr;
 
   // Create output texture
 
   // The pixel shader can generate one YUYV entry per pixel. One YUYV entry
   // is created for every two EFB pixels.
-  D3D11_TEXTURE2D_DESC t2dd = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, MAX_XFB_WIDTH / 2,
-                                                    MAX_XFB_HEIGHT, 1, 1, D3D11_BIND_RENDER_TARGET);
+  D3D11_TEXTURE2D_DESC t2dd =
+      CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, MAX_XFB_WIDTH / 2,
+                            MAX_XFB_HEIGHT, 1, 1, D3D11_BIND_RENDER_TARGET);
   hr = D3D::device->CreateTexture2D(&t2dd, nullptr, &m_out);
   CHECK(SUCCEEDED(hr), "create xfb encoder output texture");
   D3D::SetDebugObjectName(m_out, "xfb encoder output texture");
@@ -172,14 +177,16 @@ void XFBEncoder::Init()
 
   // Create constant buffer for uploading params to shaders
 
-  D3D11_BUFFER_DESC bd = CD3D11_BUFFER_DESC(sizeof(XFBEncodeParams), D3D11_BIND_CONSTANT_BUFFER);
+  D3D11_BUFFER_DESC bd =
+      CD3D11_BUFFER_DESC(sizeof(XFBEncodeParams), D3D11_BIND_CONSTANT_BUFFER);
   hr = D3D::device->CreateBuffer(&bd, nullptr, &m_encodeParams);
   CHECK(SUCCEEDED(hr), "create xfb encode params buffer");
   D3D::SetDebugObjectName(m_encodeParams, "xfb encoder params buffer");
 
   // Create vertex quad
 
-  bd = CD3D11_BUFFER_DESC(sizeof(QUAD_VERTS), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_IMMUTABLE);
+  bd = CD3D11_BUFFER_DESC(sizeof(QUAD_VERTS), D3D11_BIND_VERTEX_BUFFER,
+                          D3D11_USAGE_IMMUTABLE);
   D3D11_SUBRESOURCE_DATA srd = {QUAD_VERTS, 0, 0};
 
   hr = D3D::device->CreateBuffer(&bd, &srd, &m_quad);
@@ -188,22 +195,23 @@ void XFBEncoder::Init()
 
   // Create vertex shader
 
-  D3DBlob* bytecode = nullptr;
-  if (!D3D::CompileVertexShader(XFB_ENCODE_VS, &bytecode))
-  {
+  D3DBlob *bytecode = nullptr;
+  if (!D3D::CompileVertexShader(XFB_ENCODE_VS, &bytecode)) {
     ERROR_LOG(VIDEO, "XFB encode vertex shader failed to compile");
     return;
   }
 
-  hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(), nullptr, &m_vShader);
+  hr = D3D::device->CreateVertexShader(bytecode->Data(), bytecode->Size(),
+                                       nullptr, &m_vShader);
   CHECK(SUCCEEDED(hr), "create xfb encode vertex shader");
   D3D::SetDebugObjectName(m_vShader, "xfb encoder vertex shader");
 
   // Create input layout for vertex quad using bytecode from vertex shader
 
-  hr = D3D::device->CreateInputLayout(QUAD_LAYOUT_DESC,
-                                      sizeof(QUAD_LAYOUT_DESC) / sizeof(D3D11_INPUT_ELEMENT_DESC),
-                                      bytecode->Data(), bytecode->Size(), &m_quadLayout);
+  hr = D3D::device->CreateInputLayout(
+      QUAD_LAYOUT_DESC,
+      sizeof(QUAD_LAYOUT_DESC) / sizeof(D3D11_INPUT_ELEMENT_DESC),
+      bytecode->Data(), bytecode->Size(), &m_quadLayout);
   CHECK(SUCCEEDED(hr), "create xfb encode quad vertex layout");
   D3D::SetDebugObjectName(m_quadLayout, "xfb encoder quad layout");
 
@@ -212,8 +220,7 @@ void XFBEncoder::Init()
   // Create pixel shader
 
   m_pShader = D3D::CompileAndCreatePixelShader(XFB_ENCODE_PS);
-  if (!m_pShader)
-  {
+  if (!m_pShader) {
     ERROR_LOG(VIDEO, "XFB encode pixel shader failed to compile");
     return;
   }
@@ -252,8 +259,7 @@ void XFBEncoder::Init()
   D3D::SetDebugObjectName(m_efbSampler, "xfb encoder texture sampler");
 }
 
-void XFBEncoder::Shutdown()
-{
+void XFBEncoder::Shutdown() {
   SAFE_RELEASE(m_efbSampler);
   SAFE_RELEASE(m_xfbEncodeRastState);
   SAFE_RELEASE(m_xfbEncodeDepthState);
@@ -268,8 +274,8 @@ void XFBEncoder::Shutdown()
   SAFE_RELEASE(m_out);
 }
 
-void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcRect, float gamma)
-{
+void XFBEncoder::Encode(u8 *dst, u32 width, u32 height,
+                        const EFBRectangle &srcRect, float gamma) {
   HRESULT hr;
 
   // Reset API
@@ -286,7 +292,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
   D3D::stateman->PushDepthState(m_xfbEncodeDepthState);
   D3D::stateman->PushRasterizerState(m_xfbEncodeRastState);
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, FLOAT(width / 2), FLOAT(height));
+  D3D11_VIEWPORT vp =
+      CD3D11_VIEWPORT(0.f, 0.f, FLOAT(width / 2), FLOAT(height));
   D3D::context->RSSetViewports(1, &vp);
 
   D3D::stateman->SetInputLayout(m_quadLayout);
@@ -309,7 +316,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
   D3D::context->OMSetRenderTargets(1, &m_outRTV, nullptr);
 
-  ID3D11ShaderResourceView* pEFB = FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+  ID3D11ShaderResourceView *pEFB =
+      FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
   D3D::stateman->SetVertexConstants(m_encodeParams);
   D3D::stateman->SetPixelConstants(m_encodeParams);
@@ -324,7 +332,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
   // Copy to staging buffer
 
   D3D11_BOX srcBox = CD3D11_BOX(0, 0, 0, width / 2, height, 1);
-  D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0, &srcBox);
+  D3D::context->CopySubresourceRegion(m_outStage, 0, 0, 0, 0, m_out, 0,
+                                      &srcBox);
 
   // Clean up state
 
@@ -348,9 +357,8 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
   hr = D3D::context->Map(m_outStage, 0, D3D11_MAP_READ, 0, &map);
   CHECK(SUCCEEDED(hr), "map staging buffer");
 
-  u8* src = (u8*)map.pData;
-  for (unsigned int y = 0; y < height; ++y)
-  {
+  u8 *src = (u8 *)map.pData;
+  for (unsigned int y = 0; y < height; ++y) {
     memcpy(dst, src, 2 * width);
     dst += bpmem.copyMipMapStrideChannels * 32;
     src += map.RowPitch;
@@ -360,8 +368,9 @@ void XFBEncoder::Encode(u8* dst, u32 width, u32 height, const EFBRectangle& srcR
 
   // Restore API
   g_renderer->RestoreAPIState();
-  D3D::stateman->Apply();  // force unbind efb texture as shader resource
-  D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                   FramebufferManager::GetEFBDepthTexture()->GetDSV());
+  D3D::stateman->Apply(); // force unbind efb texture as shader resource
+  D3D::context->OMSetRenderTargets(
+      1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
+      FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 }

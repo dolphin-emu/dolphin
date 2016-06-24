@@ -4,9 +4,9 @@
 
 #pragma once
 
-#include <string>
 #include "Common/CommonTypes.h"
+#include <string>
 
-bool SaveData(const std::string& filename, const std::string& data);
-bool TextureToPng(u8* data, int row_stride, const std::string& filename, int width, int height,
-                  bool saveAlpha = true);
+bool SaveData(const std::string &filename, const std::string &data);
+bool TextureToPng(u8 *data, int row_stride, const std::string &filename,
+                  int width, int height, bool saveAlpha = true);

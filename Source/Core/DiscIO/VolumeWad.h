@@ -14,24 +14,25 @@
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
-// Some of this code might look redundant with the CNANDContentLoader class, however,
+// Some of this code might look redundant with the CNANDContentLoader class,
+// however,
 // We do not do any decryption here, we do raw read, so things are -Faster-
 
-namespace DiscIO
-{
-class CVolumeWAD : public IVolume
-{
+namespace DiscIO {
+class CVolumeWAD : public IVolume {
 public:
   CVolumeWAD(std::unique_ptr<IBlobReader> reader);
   ~CVolumeWAD();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
-  bool GetTitleID(u64* buffer) const override;
+  bool Read(u64 _Offset, u64 _Length, u8 *_pBuffer,
+            bool decrypt = false) const override;
+  bool GetTitleID(u64 *buffer) const override;
   std::string GetUniqueID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override { return ""; }
-  std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::map<IVolume::ELanguage, std::string>
+  GetNames(bool prefer_long) const override;
+  std::vector<u32> GetBanner(int *width, int *height) const override;
   u64 GetFSTSize() const override { return 0; }
   std::string GetApploaderDate() const override { return ""; }
   EPlatform GetVolumeType() const override;
@@ -53,4 +54,4 @@ private:
   u32 m_data_size;
 };
 
-}  // namespace
+} // namespace

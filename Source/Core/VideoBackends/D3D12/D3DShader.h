@@ -10,16 +10,14 @@
 
 class D3DBlob;
 
-namespace DX12
-{
-namespace D3D
-{
+namespace DX12 {
+namespace D3D {
 // The returned bytecode buffers should be Release()d.
-bool CompileVertexShader(const std::string& code, ID3DBlob** blob);
-bool CompileGeometryShader(const std::string& code, ID3DBlob** blob,
-                           const D3D_SHADER_MACRO* defines = nullptr);
-bool CompilePixelShader(const std::string& code, ID3DBlob** blob,
-                        const D3D_SHADER_MACRO* defines = nullptr);
+bool CompileVertexShader(const std::string &code, ID3DBlob **blob);
+bool CompileGeometryShader(const std::string &code, ID3DBlob **blob,
+                           const D3D_SHADER_MACRO *defines = nullptr);
+bool CompilePixelShader(const std::string &code, ID3DBlob **blob,
+                        const D3D_SHADER_MACRO *defines = nullptr);
 }
 
-}  // namespace DX12
+} // namespace DX12

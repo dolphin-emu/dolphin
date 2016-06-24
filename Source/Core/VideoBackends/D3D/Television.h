@@ -11,10 +11,8 @@ struct ID3D11ShaderResourceView;
 struct ID3D11PixelShader;
 struct ID3D11SamplerState;
 
-namespace DX11
-{
-class Television
-{
+namespace DX11 {
+class Television {
 public:
   Television();
 
@@ -37,9 +35,9 @@ private:
 
   // Used for real XFB mode
 
-  ID3D11Texture2D* m_yuyvTexture;
-  ID3D11ShaderResourceView* m_yuyvTextureSRV;
-  ID3D11PixelShader* m_pShader;
-  ID3D11SamplerState* m_samplerState;
+  ID3D11Texture2D *m_yuyvTexture;
+  ID3D11ShaderResourceView *m_yuyvTextureSRV;
+  ID3D11PixelShader *m_pShader;
+  ID3D11SamplerState *m_samplerState;
 };
 }

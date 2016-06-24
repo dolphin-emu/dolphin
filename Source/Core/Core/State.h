@@ -11,13 +11,11 @@
 
 #include "Common/CommonTypes.h"
 
-namespace State
-{
+namespace State {
 // number of states
 static const u32 NUM_STATES = 10;
 
-struct StateHeader
-{
+struct StateHeader {
   char gameID[6];
   u32 size;
   double time;
@@ -29,7 +27,7 @@ void Shutdown();
 
 void EnableCompression(bool compression);
 
-bool ReadHeader(const std::string& filename, StateHeader& header);
+bool ReadHeader(const std::string &filename, StateHeader &header);
 
 // Returns a string containing information of the savestate in the given slot
 // which can be presented to the user for identification purposes
@@ -44,13 +42,13 @@ void Save(int slot, bool wait = false);
 void Load(int slot);
 void Verify(int slot);
 
-void SaveAs(const std::string& filename, bool wait = false);
-void LoadAs(const std::string& filename);
-void VerifyAt(const std::string& filename);
+void SaveAs(const std::string &filename, bool wait = false);
+void LoadAs(const std::string &filename);
+void VerifyAt(const std::string &filename);
 
-void SaveToBuffer(std::vector<u8>& buffer);
-void LoadFromBuffer(std::vector<u8>& buffer);
-void VerifyBuffer(std::vector<u8>& buffer);
+void SaveToBuffer(std::vector<u8> &buffer);
+void LoadFromBuffer(std::vector<u8> &buffer);
+void VerifyBuffer(std::vector<u8> &buffer);
 
 void LoadLastSaved(int i = 1);
 void SaveFirstSaved();

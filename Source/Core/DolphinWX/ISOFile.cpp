@@ -34,22 +34,22 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x127;  // Last changed in PR 3309
+static const u32 CACHE_REVISION = 0x127; // Last changed in PR 3309
 
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 
-static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
-                                     std::map<DiscIO::IVolume::ELanguage, std::string> strings)
-{
+static std::string
+GetLanguageString(DiscIO::IVolume::ELanguage language,
+                  std::map<DiscIO::IVolume::ELanguage, std::string> strings) {
   auto end = strings.end();
   auto it = strings.find(language);
   if (it != end)
     return it->second;
 
-  // English tends to be a good fallback when the requested language isn't available
-  if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
-  {
+  // English tends to be a good fallback when the requested language isn't
+  // available
+  if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
     it = strings.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
       return it->second;
@@ -62,34 +62,31 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
   return "";
 }
 
-GameListItem::GameListItem(const std::string& _rFileName,
-                           const std::unordered_map<std::string, std::string>& custom_titles)
+GameListItem::GameListItem(
+    const std::string &_rFileName,
+    const std::unordered_map<std::string, std::string> &custom_titles)
     : m_FileName(_rFileName), m_title_id(0), m_emu_state(0), m_FileSize(0),
-      m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN), m_Revision(0), m_Valid(false), m_ImageWidth(0),
-      m_ImageHeight(0), m_disc_number(0), m_has_custom_name(false)
-{
-  if (LoadFromCache())
-  {
+      m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN), m_Revision(0),
+      m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0),
+      m_has_custom_name(false) {
+  if (LoadFromCache()) {
     m_Valid = true;
 
     // Wii banners can only be read if there is a savefile,
     // so sometimes caches don't contain banners. Let's check
     // if a banner has become available after the cache was made.
-    if (m_pImage.empty())
-    {
-      std::vector<u32> buffer =
-          DiscIO::IVolume::GetWiiBanner(&m_ImageWidth, &m_ImageHeight, m_title_id);
+    if (m_pImage.empty()) {
+      std::vector<u32> buffer = DiscIO::IVolume::GetWiiBanner(
+          &m_ImageWidth, &m_ImageHeight, m_title_id);
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
       if (!m_pImage.empty())
         SaveToCache();
     }
-  }
-  else
-  {
-    std::unique_ptr<DiscIO::IVolume> volume(DiscIO::CreateVolumeFromFilename(_rFileName));
+  } else {
+    std::unique_ptr<DiscIO::IVolume> volume(
+        DiscIO::CreateVolumeFromFilename(_rFileName));
 
-    if (volume != nullptr)
-    {
+    if (volume != nullptr) {
       m_Platform = volume->GetVolumeType();
 
       m_names = volume->GetNames(true);
@@ -106,7 +103,8 @@ GameListItem::GameListItem(const std::string& _rFileName,
       m_disc_number = volume->GetDiscNumber();
       m_Revision = volume->GetRevision();
 
-      std::vector<u32> buffer = volume->GetBanner(&m_ImageWidth, &m_ImageHeight);
+      std::vector<u32> buffer =
+          volume->GetBanner(&m_ImageWidth, &m_ImageHeight);
       ReadVolumeBanner(buffer, m_ImageWidth, m_ImageHeight);
 
       m_Valid = true;
@@ -117,8 +115,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
   if (m_company.empty() && m_UniqueID.size() >= 6)
     m_company = DiscIO::GetCompanyFromID(m_UniqueID.substr(4, 2));
 
-  if (IsValid())
-  {
+  if (IsValid()) {
     std::string game_id = m_UniqueID;
 
     // Ignore publisher ID for WAD files
@@ -126,16 +123,14 @@ GameListItem::GameListItem(const std::string& _rFileName,
       game_id.erase(4);
 
     auto it = custom_titles.find(game_id);
-    if (it != custom_titles.end())
-    {
+    if (it != custom_titles.end()) {
       m_custom_name_titles_txt = it->second;
     }
 
     ReloadINI();
   }
 
-  if (!IsValid() && IsElfOrDol())
-  {
+  if (!IsValid() && IsElfOrDol()) {
     m_Valid = true;
     m_FileSize = File::GetSize(_rFileName);
     m_Platform = DiscIO::IVolume::ELF_DOL;
@@ -145,34 +140,34 @@ GameListItem::GameListItem(const std::string& _rFileName,
   std::string path, name;
   SplitPath(m_FileName, &path, &name, nullptr);
 
-  // A bit like the Homebrew Channel icon, except there can be multiple files in a folder with their
+  // A bit like the Homebrew Channel icon, except there can be multiple files in
+  // a folder with their
   // own icons.
-  // Useful for those who don't want to have a Homebrew Channel-style folder structure.
+  // Useful for those who don't want to have a Homebrew Channel-style folder
+  // structure.
   if (ReadPNGBanner(path + name + ".png"))
     return;
 
-  // Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with volumes.
+  // Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with
+  // volumes.
   if (ReadPNGBanner(path + "icon.png"))
     return;
 
   // Volume banner. Typical for everything that isn't a DOL or ELF.
-  if (!m_pImage.empty())
-  {
+  if (!m_pImage.empty()) {
     wxImage image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
     m_Bitmap = ScaleBanner(&image);
     return;
   }
 
   // Fallback in case no banner is available.
-  ReadPNGBanner(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "nobanner.png");
+  ReadPNGBanner(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP +
+                "nobanner.png");
 }
 
-GameListItem::~GameListItem()
-{
-}
+GameListItem::~GameListItem() {}
 
-void GameListItem::ReloadINI()
-{
+void GameListItem::ReloadINI() {
   if (!IsValid())
     return;
 
@@ -182,28 +177,26 @@ void GameListItem::ReloadINI()
 
   m_custom_name.clear();
   m_has_custom_name = ini.GetIfExists("EmuState", "Title", &m_custom_name);
-  if (!m_has_custom_name && !m_custom_name_titles_txt.empty())
-  {
+  if (!m_has_custom_name && !m_custom_name_titles_txt.empty()) {
     m_custom_name = m_custom_name_titles_txt;
     m_has_custom_name = true;
   }
 }
 
-bool GameListItem::LoadFromCache()
-{
-  return CChunkFileReader::Load<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
+bool GameListItem::LoadFromCache() {
+  return CChunkFileReader::Load<GameListItem>(CreateCacheFilename(),
+                                              CACHE_REVISION, *this);
 }
 
-void GameListItem::SaveToCache()
-{
+void GameListItem::SaveToCache() {
   if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
     File::CreateDir(File::GetUserPath(D_CACHE_IDX));
 
-  CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
+  CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION,
+                                       *this);
 }
 
-void GameListItem::DoState(PointerWrap& p)
-{
+void GameListItem::DoState(PointerWrap &p) {
   p.Do(m_names);
   p.Do(m_descriptions);
   p.Do(m_company);
@@ -221,8 +214,7 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_Revision);
 }
 
-bool GameListItem::IsElfOrDol() const
-{
+bool GameListItem::IsElfOrDol() const {
   if (m_FileName.size() < 4)
     return false;
 
@@ -231,20 +223,19 @@ bool GameListItem::IsElfOrDol() const
   return name_end == ".elf" || name_end == ".dol";
 }
 
-std::string GameListItem::CreateCacheFilename() const
-{
+std::string GameListItem::CreateCacheFilename() const {
   std::string Filename, LegalPathname, extension;
   SplitPath(m_FileName, &LegalPathname, &Filename, &extension);
 
   if (Filename.empty())
-    return Filename;  // Disc Drive
+    return Filename; // Disc Drive
 
   // Filename.extension_HashOfFolderPath_Size.cache
   // Append hash to prevent ISO name-clashing in different folders.
-  Filename.append(
-      StringFromFormat("%s_%x_%" PRIx64 ".cache", extension.c_str(),
-                       HashFletcher((const u8*)LegalPathname.c_str(), LegalPathname.size()),
-                       File::GetSize(m_FileName)));
+  Filename.append(StringFromFormat(
+      "%s_%x_%" PRIx64 ".cache", extension.c_str(),
+      HashFletcher((const u8 *)LegalPathname.c_str(), LegalPathname.size()),
+      File::GetSize(m_FileName)));
 
   std::string fullname(File::GetUserPath(D_CACHE_IDX));
   fullname += Filename;
@@ -252,11 +243,10 @@ std::string GameListItem::CreateCacheFilename() const
 }
 
 // Outputs to m_pImage
-void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height)
-{
+void GameListItem::ReadVolumeBanner(const std::vector<u32> &buffer, int width,
+                                    int height) {
   m_pImage.resize(width * height * 3);
-  for (int i = 0; i < width * height; i++)
-  {
+  for (int i = 0; i < width * height; i++) {
     m_pImage[i * 3 + 0] = (buffer[i] & 0xFF0000) >> 16;
     m_pImage[i * 3 + 1] = (buffer[i] & 0x00FF00) >> 8;
     m_pImage[i * 3 + 2] = (buffer[i] & 0x0000FF) >> 0;
@@ -264,8 +254,7 @@ void GameListItem::ReadVolumeBanner(const std::vector<u32>& buffer, int width, i
 }
 
 // Outputs to m_Bitmap
-bool GameListItem::ReadPNGBanner(const std::string& path)
-{
+bool GameListItem::ReadPNGBanner(const std::string &path) {
   if (!File::Exists(path))
     return false;
 
@@ -274,16 +263,16 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
   return true;
 }
 
-wxBitmap GameListItem::ScaleBanner(wxImage* image)
-{
+wxBitmap GameListItem::ScaleBanner(wxImage *image) {
   const double gui_scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
   const double target_width = DVD_BANNER_WIDTH * gui_scale;
   const double target_height = DVD_BANNER_HEIGHT * gui_scale;
-  const double banner_scale =
-      std::min(target_width / image->GetWidth(), target_height / image->GetHeight());
-  image->Rescale(image->GetWidth() * banner_scale, image->GetHeight() * banner_scale,
-                 wxIMAGE_QUALITY_HIGH);
-  image->Resize(wxSize(target_width, target_height), wxPoint(), 0xFF, 0xFF, 0xFF);
+  const double banner_scale = std::min(target_width / image->GetWidth(),
+                                       target_height / image->GetHeight());
+  image->Rescale(image->GetWidth() * banner_scale,
+                 image->GetHeight() * banner_scale, wxIMAGE_QUALITY_HIGH);
+  image->Resize(wxSize(target_width, target_height), wxPoint(), 0xFF, 0xFF,
+                0xFF);
 #ifdef __APPLE__
   return wxBitmap(*image, -1, gui_scale);
 #else
@@ -291,24 +280,21 @@ wxBitmap GameListItem::ScaleBanner(wxImage* image)
 #endif
 }
 
-std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
-{
+std::string
+GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const {
   return GetLanguageString(language, m_descriptions);
 }
 
-std::string GameListItem::GetDescription() const
-{
+std::string GameListItem::GetDescription() const {
   bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
   return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
-std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
-{
+std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const {
   return GetLanguageString(language, m_names);
 }
 
-std::string GameListItem::GetName() const
-{
+std::string GameListItem::GetName() const {
   if (m_has_custom_name)
     return m_custom_name;
 
@@ -323,30 +309,28 @@ std::string GameListItem::GetName() const
   return name + ext;
 }
 
-std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
-{
+std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const {
   std::vector<DiscIO::IVolume::ELanguage> languages;
   for (std::pair<DiscIO::IVolume::ELanguage, std::string> name : m_names)
     languages.push_back(name.first);
   return languages;
 }
 
-const std::string GameListItem::GetWiiFSPath() const
-{
-  std::unique_ptr<DiscIO::IVolume> iso(DiscIO::CreateVolumeFromFilename(m_FileName));
+const std::string GameListItem::GetWiiFSPath() const {
+  std::unique_ptr<DiscIO::IVolume> iso(
+      DiscIO::CreateVolumeFromFilename(m_FileName));
   std::string ret;
 
   if (iso == nullptr)
     return ret;
 
-  if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
-  {
+  if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC) {
     u64 title_id = 0;
     iso->GetTitleID(&title_id);
 
-    const std::string path =
-        StringFromFormat("%s/title/%08x/%08x/data/", File::GetUserPath(D_WIIROOT_IDX).c_str(),
-                         (u32)(title_id >> 32), (u32)title_id);
+    const std::string path = StringFromFormat(
+        "%s/title/%08x/%08x/data/", File::GetUserPath(D_WIIROOT_IDX).c_str(),
+        (u32)(title_id >> 32), (u32)title_id);
 
     if (!File::Exists(path))
       File::CreateFullPath(path);

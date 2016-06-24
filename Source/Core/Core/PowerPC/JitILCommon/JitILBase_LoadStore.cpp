@@ -2,15 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/CPU.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void JitILBase::lhax(UGeckoInstruction inst)
-{
+void JitILBase::lhax(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -24,8 +23,7 @@ void JitILBase::lhax(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::lhaux(UGeckoInstruction inst)
-{
+void JitILBase::lhaux(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -39,8 +37,7 @@ void JitILBase::lhaux(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(addr, inst.RA);
 }
 
-void JitILBase::lXz(UGeckoInstruction inst)
-{
+void JitILBase::lXz(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -57,28 +54,27 @@ void JitILBase::lXz(UGeckoInstruction inst)
   // TODO: This really should be done somewhere else. Either lower in the IR
   // or higher in PPCAnalyst
   // TODO: We shouldn't use debug reads here.
-  if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING &&
-      inst.OPCD == 32 &&  // Lwx
+  if (SConfig::GetInstance().bSkipIdle &&
+      CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 && // Lwx
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (PowerPC::HostRead_U32(js.compilerPC + 4) == 0x28000000 ||
-       (SConfig::GetInstance().bWii && PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
-      PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8)
-  {
+       (SConfig::GetInstance().bWii &&
+        PowerPC::HostRead_U32(js.compilerPC + 4) == 0x2C000000)) &&
+      PowerPC::HostRead_U32(js.compilerPC + 8) == 0x4182fff8) {
     val = ibuild.EmitLoad32(addr);
     ibuild.EmitIdleBranch(val, ibuild.EmitIntConst(js.compilerPC));
     ibuild.EmitStoreGReg(val, inst.RD);
     return;
   }
 
-  switch (inst.OPCD & ~0x1)
-  {
-  case 32:  // lwz
+  switch (inst.OPCD & ~0x1) {
+  case 32: // lwz
     val = ibuild.EmitLoad32(addr);
     break;
-  case 40:  // lhz
+  case 40: // lhz
     val = ibuild.EmitLoad16(addr);
     break;
-  case 34:  // lbz
+  case 34: // lbz
     val = ibuild.EmitLoad8(addr);
     break;
   default:
@@ -90,19 +86,17 @@ void JitILBase::lXz(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::lbzu(UGeckoInstruction inst)
-{
+void JitILBase::lbzu(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  const IREmitter::InstLoc uAddress =
-      ibuild.EmitAdd(ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
+  const IREmitter::InstLoc uAddress = ibuild.EmitAdd(
+      ibuild.EmitLoadGReg(inst.RA), ibuild.EmitIntConst((int)inst.SIMM_16));
   const IREmitter::InstLoc temp = ibuild.EmitLoad8(uAddress);
   ibuild.EmitStoreGReg(temp, inst.RD);
   ibuild.EmitStoreGReg(uAddress, inst.RA);
 }
 
-void JitILBase::lha(UGeckoInstruction inst)
-{
+void JitILBase::lha(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -117,8 +111,7 @@ void JitILBase::lha(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::lhau(UGeckoInstruction inst)
-{
+void JitILBase::lhau(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -133,56 +126,53 @@ void JitILBase::lhau(UGeckoInstruction inst)
   ibuild.EmitStoreGReg(addr, inst.RA);
 }
 
-void JitILBase::lXzx(UGeckoInstruction inst)
-{
+void JitILBase::lXzx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
 
   IREmitter::InstLoc addr = ibuild.EmitLoadGReg(inst.RB);
 
-  if (inst.RA)
-  {
+  if (inst.RA) {
     addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
     if (inst.SUBOP10 & 32)
       ibuild.EmitStoreGReg(addr, inst.RA);
   }
 
   IREmitter::InstLoc val;
-  switch (inst.SUBOP10 & ~32)
-  {
+  switch (inst.SUBOP10 & ~32) {
   default:
     PanicAlert("lXzx: invalid access size");
-  case 23:  // lwzx
+  case 23: // lwzx
     val = ibuild.EmitLoad32(addr);
     break;
-  case 279:  // lhzx
+  case 279: // lhzx
     val = ibuild.EmitLoad16(addr);
     break;
-  case 87:  // lbzx
+  case 87: // lbzx
     val = ibuild.EmitLoad8(addr);
     break;
   }
   ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void JitILBase::dcbst(UGeckoInstruction inst)
-{
+void JitILBase::dcbst(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
 
   // If the dcbst instruction is preceded by dcbt, it is flushing a prefetched
-  // memory location.  Do not invalidate the JIT cache in this case as the memory
+  // memory location.  Do not invalidate the JIT cache in this case as the
+  // memory
   // will be the same.
   // dcbt = 0x7c00022c
   // TODO: We shouldn't use a debug read here; it should be possible to get the
   // previous instruction from the JIT state.
-  FALLBACK_IF((PowerPC::HostRead_U32(js.compilerPC - 4) & 0x7c00022c) != 0x7c00022c);
+  FALLBACK_IF((PowerPC::HostRead_U32(js.compilerPC - 4) & 0x7c00022c) !=
+              0x7c00022c);
 }
 
 // Zero cache line.
-void JitILBase::dcbz(UGeckoInstruction inst)
-{
+void JitILBase::dcbz(UGeckoInstruction inst) {
   FALLBACK_IF(true);
 
 // TODO!
@@ -203,8 +193,7 @@ void JitILBase::dcbz(UGeckoInstruction inst)
 #endif
 }
 
-void JitILBase::stX(UGeckoInstruction inst)
-{
+void JitILBase::stX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -217,15 +206,14 @@ void JitILBase::stX(UGeckoInstruction inst)
   if (inst.OPCD & 1)
     ibuild.EmitStoreGReg(addr, inst.RA);
 
-  switch (inst.OPCD & ~1)
-  {
-  case 36:  // stw
+  switch (inst.OPCD & ~1) {
+  case 36: // stw
     ibuild.EmitStore32(value, addr);
     break;
-  case 44:  // sth
+  case 44: // sth
     ibuild.EmitStore16(value, addr);
     break;
-  case 38:  // stb
+  case 38: // stb
     ibuild.EmitStore8(value, addr);
     break;
   default:
@@ -234,8 +222,7 @@ void JitILBase::stX(UGeckoInstruction inst)
   }
 }
 
-void JitILBase::stXx(UGeckoInstruction inst)
-{
+void JitILBase::stXx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -248,15 +235,14 @@ void JitILBase::stXx(UGeckoInstruction inst)
   if (inst.SUBOP10 & 32)
     ibuild.EmitStoreGReg(addr, inst.RA);
 
-  switch (inst.SUBOP10 & ~32)
-  {
-  case 151:  // stw
+  switch (inst.SUBOP10 & ~32) {
+  case 151: // stw
     ibuild.EmitStore32(value, addr);
     break;
-  case 407:  // sth
+  case 407: // sth
     ibuild.EmitStore16(value, addr);
     break;
-  case 215:  // stb
+  case 215: // stb
     ibuild.EmitStore8(value, addr);
     break;
   default:
@@ -266,8 +252,7 @@ void JitILBase::stXx(UGeckoInstruction inst)
 }
 
 // A few games use these heavily in video codecs. (GFZP01 @ 0x80020E18)
-void JitILBase::lmw(UGeckoInstruction inst)
-{
+void JitILBase::lmw(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -277,16 +262,14 @@ void JitILBase::lmw(UGeckoInstruction inst)
   if (inst.RA)
     addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-  for (int i = inst.RD; i < 32; i++)
-  {
+  for (int i = inst.RD; i < 32; i++) {
     IREmitter::InstLoc val = ibuild.EmitLoad32(addr);
     ibuild.EmitStoreGReg(val, i);
     addr = ibuild.EmitAdd(addr, ibuild.EmitIntConst(4));
   }
 }
 
-void JitILBase::stmw(UGeckoInstruction inst)
-{
+void JitILBase::stmw(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
   FALLBACK_IF(jo.memcheck);
@@ -296,16 +279,14 @@ void JitILBase::stmw(UGeckoInstruction inst)
   if (inst.RA)
     addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
 
-  for (int i = inst.RD; i < 32; i++)
-  {
+  for (int i = inst.RD; i < 32; i++) {
     IREmitter::InstLoc val = ibuild.EmitLoadGReg(i);
     ibuild.EmitStore32(val, addr);
     addr = ibuild.EmitAdd(addr, ibuild.EmitIntConst(4));
   }
 }
 
-void JitILBase::icbi(UGeckoInstruction inst)
-{
+void JitILBase::icbi(UGeckoInstruction inst) {
   FallBackToInterpreter(inst);
   ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
 }

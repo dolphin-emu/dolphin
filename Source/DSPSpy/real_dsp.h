@@ -6,8 +6,7 @@
 
 #include "dsp_interface.h"
 
-class RealDSP : public IDSP
-{
+class RealDSP : public IDSP {
 public:
   virtual void Init();
   virtual void Reset();

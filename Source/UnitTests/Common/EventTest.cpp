@@ -9,15 +9,13 @@
 
 using Common::Event;
 
-TEST(Event, MultiThreaded)
-{
+TEST(Event, MultiThreaded) {
   Event has_sent, can_send;
   int shared_obj;
   const int ITERATIONS_COUNT = 100000;
 
   auto sender = [&]() {
-    for (int i = 0; i < ITERATIONS_COUNT; ++i)
-    {
+    for (int i = 0; i < ITERATIONS_COUNT; ++i) {
       can_send.Wait();
       shared_obj = i;
       has_sent.Set();
@@ -25,8 +23,7 @@ TEST(Event, MultiThreaded)
   };
 
   auto receiver = [&]() {
-    for (int i = 0; i < ITERATIONS_COUNT; ++i)
-    {
+    for (int i = 0; i < ITERATIONS_COUNT; ++i) {
       has_sent.Wait();
       EXPECT_EQ(i, shared_obj);
       can_send.Set();

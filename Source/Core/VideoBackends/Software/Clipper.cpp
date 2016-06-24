@@ -35,8 +35,8 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "VideoBackends/Software/Clipper.h"
 #include "Common/ChunkFile.h"
+#include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/Rasterizer.h"
 
@@ -44,25 +44,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/XFMemory.h"
 
-namespace Clipper
-{
-enum
-{
-  NUM_CLIPPED_VERTICES = 33,
-  NUM_INDICES = NUM_CLIPPED_VERTICES + 3
-};
+namespace Clipper {
+enum { NUM_CLIPPED_VERTICES = 33, NUM_INDICES = NUM_CLIPPED_VERTICES + 3 };
 
 static OutputVertexData ClippedVertices[NUM_CLIPPED_VERTICES];
-static OutputVertexData* Vertices[NUM_INDICES];
+static OutputVertexData *Vertices[NUM_INDICES];
 
-void Init()
-{
+void Init() {
   for (int i = 0; i < NUM_CLIPPED_VERTICES; ++i)
     Vertices[i + 3] = &ClippedVertices[i];
 }
 
-enum
-{
+enum {
   SKIP_FLAG = -1,
   CLIP_POS_X_BIT = 0x01,
   CLIP_NEG_X_BIT = 0x02,
@@ -72,8 +65,7 @@ enum
   CLIP_NEG_Z_BIT = 0x20
 };
 
-static inline int CalcClipMask(OutputVertexData* v)
-{
+static inline int CalcClipMask(OutputVertexData *v) {
   int cmask = 0;
   Vec4 pos = v->projectedPosition;
 
@@ -98,105 +90,93 @@ static inline int CalcClipMask(OutputVertexData* v)
   return cmask;
 }
 
-static inline void AddInterpolatedVertex(float t, int out, int in, int* numVertices)
-{
+static inline void AddInterpolatedVertex(float t, int out, int in,
+                                         int *numVertices) {
   Vertices[(*numVertices)++]->Lerp(t, Vertices[out], Vertices[in]);
 }
 
 #define DIFFERENT_SIGNS(x, y) ((x <= 0 && y > 0) || (x > 0 && y <= 0))
 
-#define CLIP_DOTPROD(I, A, B, C, D)                                                                \
-  (Vertices[I]->projectedPosition.x * A + Vertices[I]->projectedPosition.y * B +                   \
-   Vertices[I]->projectedPosition.z * C + Vertices[I]->projectedPosition.w * D)
+#define CLIP_DOTPROD(I, A, B, C, D)                                            \
+  (Vertices[I]->projectedPosition.x * A +                                      \
+   Vertices[I]->projectedPosition.y * B +                                      \
+   Vertices[I]->projectedPosition.z * C +                                      \
+   Vertices[I]->projectedPosition.w * D)
 
-#define POLY_CLIP(PLANE_BIT, A, B, C, D)                                                           \
-  {                                                                                                \
-    if (mask & PLANE_BIT)                                                                          \
-    {                                                                                              \
-      int idxPrev = inlist[0];                                                                     \
-      float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D);                                            \
-      int outcount = 0;                                                                            \
-                                                                                                   \
-      inlist[n] = inlist[0];                                                                       \
-      for (int j = 1; j <= n; j++)                                                                 \
-      {                                                                                            \
-        int idx = inlist[j];                                                                       \
-        float dp = CLIP_DOTPROD(idx, A, B, C, D);                                                  \
-        if (dpPrev >= 0)                                                                           \
-        {                                                                                          \
-          outlist[outcount++] = idxPrev;                                                           \
-        }                                                                                          \
-                                                                                                   \
-        if (DIFFERENT_SIGNS(dp, dpPrev))                                                           \
-        {                                                                                          \
-          if (dp < 0)                                                                              \
-          {                                                                                        \
-            float t = dp / (dp - dpPrev);                                                          \
-            AddInterpolatedVertex(t, idx, idxPrev, &numVertices);                                  \
-          }                                                                                        \
-          else                                                                                     \
-          {                                                                                        \
-            float t = dpPrev / (dpPrev - dp);                                                      \
-            AddInterpolatedVertex(t, idxPrev, idx, &numVertices);                                  \
-          }                                                                                        \
-          outlist[outcount++] = numVertices - 1;                                                   \
-        }                                                                                          \
-                                                                                                   \
-        idxPrev = idx;                                                                             \
-        dpPrev = dp;                                                                               \
-      }                                                                                            \
-                                                                                                   \
-      if (outcount < 3)                                                                            \
-        continue;                                                                                  \
-                                                                                                   \
-      {                                                                                            \
-        int* tmp = inlist;                                                                         \
-        inlist = outlist;                                                                          \
-        outlist = tmp;                                                                             \
-        n = outcount;                                                                              \
-      }                                                                                            \
-    }                                                                                              \
+#define POLY_CLIP(PLANE_BIT, A, B, C, D)                                       \
+  {                                                                            \
+    if (mask & PLANE_BIT) {                                                    \
+      int idxPrev = inlist[0];                                                 \
+      float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D);                        \
+      int outcount = 0;                                                        \
+                                                                               \
+      inlist[n] = inlist[0];                                                   \
+      for (int j = 1; j <= n; j++) {                                           \
+        int idx = inlist[j];                                                   \
+        float dp = CLIP_DOTPROD(idx, A, B, C, D);                              \
+        if (dpPrev >= 0) {                                                     \
+          outlist[outcount++] = idxPrev;                                       \
+        }                                                                      \
+                                                                               \
+        if (DIFFERENT_SIGNS(dp, dpPrev)) {                                     \
+          if (dp < 0) {                                                        \
+            float t = dp / (dp - dpPrev);                                      \
+            AddInterpolatedVertex(t, idx, idxPrev, &numVertices);              \
+          } else {                                                             \
+            float t = dpPrev / (dpPrev - dp);                                  \
+            AddInterpolatedVertex(t, idxPrev, idx, &numVertices);              \
+          }                                                                    \
+          outlist[outcount++] = numVertices - 1;                               \
+        }                                                                      \
+                                                                               \
+        idxPrev = idx;                                                         \
+        dpPrev = dp;                                                           \
+      }                                                                        \
+                                                                               \
+      if (outcount < 3)                                                        \
+        continue;                                                              \
+                                                                               \
+      {                                                                        \
+        int *tmp = inlist;                                                     \
+        inlist = outlist;                                                      \
+        outlist = tmp;                                                         \
+        n = outcount;                                                          \
+      }                                                                        \
+    }                                                                          \
   }
 
-#define LINE_CLIP(PLANE_BIT, A, B, C, D)                                                           \
-  {                                                                                                \
-    if (mask & PLANE_BIT)                                                                          \
-    {                                                                                              \
-      const float dp0 = CLIP_DOTPROD(0, A, B, C, D);                                               \
-      const float dp1 = CLIP_DOTPROD(1, A, B, C, D);                                               \
-      const bool neg_dp0 = dp0 < 0;                                                                \
-      const bool neg_dp1 = dp1 < 0;                                                                \
-                                                                                                   \
-      if (neg_dp0 && neg_dp1)                                                                      \
-        return;                                                                                    \
-                                                                                                   \
-      if (neg_dp1)                                                                                 \
-      {                                                                                            \
-        float t = dp1 / (dp1 - dp0);                                                               \
-        if (t > t1)                                                                                \
-          t1 = t;                                                                                  \
-      }                                                                                            \
-      else if (neg_dp0)                                                                            \
-      {                                                                                            \
-        float t = dp0 / (dp0 - dp1);                                                               \
-        if (t > t0)                                                                                \
-          t0 = t;                                                                                  \
-      }                                                                                            \
-    }                                                                                              \
+#define LINE_CLIP(PLANE_BIT, A, B, C, D)                                       \
+  {                                                                            \
+    if (mask & PLANE_BIT) {                                                    \
+      const float dp0 = CLIP_DOTPROD(0, A, B, C, D);                           \
+      const float dp1 = CLIP_DOTPROD(1, A, B, C, D);                           \
+      const bool neg_dp0 = dp0 < 0;                                            \
+      const bool neg_dp1 = dp1 < 0;                                            \
+                                                                               \
+      if (neg_dp0 && neg_dp1)                                                  \
+        return;                                                                \
+                                                                               \
+      if (neg_dp1) {                                                           \
+        float t = dp1 / (dp1 - dp0);                                           \
+        if (t > t1)                                                            \
+          t1 = t;                                                              \
+      } else if (neg_dp0) {                                                    \
+        float t = dp0 / (dp0 - dp1);                                           \
+        if (t > t0)                                                            \
+          t0 = t;                                                              \
+      }                                                                        \
+    }                                                                          \
   }
 
-static void ClipTriangle(int* indices, int* numIndices)
-{
+static void ClipTriangle(int *indices, int *numIndices) {
   int mask = 0;
 
   mask |= CalcClipMask(Vertices[0]);
   mask |= CalcClipMask(Vertices[1]);
   mask |= CalcClipMask(Vertices[2]);
 
-  if (mask != 0)
-  {
-    for (int i = 0; i < 3; i += 3)
-    {
+  if (mask != 0) {
+    for (int i = 0; i < 3; i += 3) {
       int vlist[2][2 * 6 + 1];
       int *inlist = vlist[0], *outlist = vlist[1];
       int n = 3;
@@ -225,8 +205,7 @@ static void ClipTriangle(int* indices, int* numIndices)
       indices[0] = inlist[0];
       indices[1] = inlist[1];
       indices[2] = inlist[2];
-      for (int j = 3; j < n; ++j)
-      {
+      for (int j = 3; j < n; ++j) {
         indices[(*numIndices)++] = inlist[0];
         indices[(*numIndices)++] = inlist[j - 1];
         indices[(*numIndices)++] = inlist[j];
@@ -235,13 +214,11 @@ static void ClipTriangle(int* indices, int* numIndices)
   }
 }
 
-static void ClipLine(int* indices)
-{
+static void ClipLine(int *indices) {
   int mask = 0;
   int clip_mask[2] = {0, 0};
 
-  for (int i = 0; i < 2; ++i)
-  {
+  for (int i = 0; i < 2; ++i) {
     clip_mask[i] = CalcClipMask(Vertices[i]);
     mask |= clip_mask[i];
   }
@@ -271,21 +248,19 @@ static void ClipLine(int* indices)
 
   int numVertices = 2;
 
-  if (clip_mask[0])
-  {
+  if (clip_mask[0]) {
     indices[0] = numVertices;
     AddInterpolatedVertex(t0, 0, 1, &numVertices);
   }
 
-  if (clip_mask[1])
-  {
+  if (clip_mask[1]) {
     indices[1] = numVertices;
     AddInterpolatedVertex(t1, 1, 0, &numVertices);
   }
 }
 
-void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
-{
+void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1,
+                     OutputVertexData *v2) {
   INCSTAT(stats.thisFrame.numTrianglesIn)
 
   bool backface;
@@ -293,20 +268,18 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   if (!CullTest(v0, v1, v2, backface))
     return;
 
-  int indices[NUM_INDICES] = {0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
-                              SKIP_FLAG, SKIP_FLAG, SKIP_FLAG};
+  int indices[NUM_INDICES] = {
+      0,         1,         2,         SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG, SKIP_FLAG,
+      SKIP_FLAG, SKIP_FLAG, SKIP_FLAG};
   int numIndices = 3;
 
-  if (backface)
-  {
+  if (backface) {
     Vertices[0] = v0;
     Vertices[1] = v2;
     Vertices[2] = v1;
-  }
-  else
-  {
+  } else {
     Vertices[0] = v0;
     Vertices[1] = v1;
     Vertices[2] = v2;
@@ -314,24 +287,22 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
 
   ClipTriangle(indices, &numIndices);
 
-  for (int i = 0; i + 3 <= numIndices; i += 3)
-  {
+  for (int i = 0; i + 3 <= numIndices; i += 3) {
     _assert_(i < NUM_INDICES);
-    if (indices[i] != SKIP_FLAG)
-    {
+    if (indices[i] != SKIP_FLAG) {
       PerspectiveDivide(Vertices[indices[i]]);
       PerspectiveDivide(Vertices[indices[i + 1]]);
       PerspectiveDivide(Vertices[indices[i + 2]]);
 
-      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]], Vertices[indices[i + 1]],
+      Rasterizer::DrawTriangleFrontFace(Vertices[indices[i]],
+                                        Vertices[indices[i + 1]],
                                         Vertices[indices[i + 2]]);
     }
   }
 }
 
-static void CopyVertex(OutputVertexData* dst, OutputVertexData* src, float dx, float dy,
-                       unsigned int sOffset)
-{
+static void CopyVertex(OutputVertexData *dst, OutputVertexData *src, float dx,
+                       float dy, unsigned int sOffset) {
   dst->screenPosition.x = src->screenPosition.x + dx;
   dst->screenPosition.y = src->screenPosition.y + dy;
   dst->screenPosition.z = src->screenPosition.z;
@@ -347,8 +318,7 @@ static void CopyVertex(OutputVertexData* dst, OutputVertexData* src, float dx, f
     dst->texCoords[i] = src->texCoords[i];
 }
 
-void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
-{
+void ProcessLine(OutputVertexData *lineV0, OutputVertexData *lineV1) {
   int indices[4] = {0, 1, SKIP_FLAG, SKIP_FLAG};
 
   Vertices[0] = lineV0;
@@ -359,10 +329,9 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 
   ClipLine(indices);
 
-  if (indices[0] != SKIP_FLAG)
-  {
-    OutputVertexData* v0 = Vertices[indices[0]];
-    OutputVertexData* v1 = Vertices[indices[1]];
+  if (indices[0] != SKIP_FLAG) {
+    OutputVertexData *v0 = Vertices[indices[0]];
+    OutputVertexData *v1 = Vertices[indices[1]];
 
     PerspectiveDivide(v0);
     PerspectiveDivide(v1);
@@ -373,15 +342,12 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
     float screenDx = 0;
     float screenDy = 0;
 
-    if (fabsf(dx) > fabsf(dy))
-    {
+    if (fabsf(dx) > fabsf(dy)) {
       if (dx > 0)
         screenDy = bpmem.lineptwidth.linesize / -12.0f;
       else
         screenDy = bpmem.lineptwidth.linesize / 12.0f;
-    }
-    else
-    {
+    } else {
       if (dy > 0)
         screenDx = bpmem.lineptwidth.linesize / 12.0f;
       else
@@ -392,25 +358,26 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
 
     CopyVertex(&triangle[0], v0, screenDx, screenDy, 0);
     CopyVertex(&triangle[1], v1, screenDx, screenDy, 0);
-    CopyVertex(&triangle[2], v1, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyVertex(&triangle[2], v1, -screenDx, -screenDy,
+               bpmem.lineptwidth.lineoff);
 
     // ccw winding
     Rasterizer::DrawTriangleFrontFace(&triangle[2], &triangle[1], &triangle[0]);
 
-    CopyVertex(&triangle[1], v0, -screenDx, -screenDy, bpmem.lineptwidth.lineoff);
+    CopyVertex(&triangle[1], v0, -screenDx, -screenDy,
+               bpmem.lineptwidth.lineoff);
 
     Rasterizer::DrawTriangleFrontFace(&triangle[0], &triangle[1], &triangle[2]);
   }
 }
 
-bool CullTest(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2, bool& backface)
-{
+bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2,
+              bool &backface) {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);
   mask &= CalcClipMask(v2);
 
-  if (mask)
-  {
+  if (mask) {
     INCSTAT(stats.thisFrame.numTrianglesRejected)
     return false;
   }
@@ -425,17 +392,18 @@ bool CullTest(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2, 
   float w1 = v1->projectedPosition.w;
   float w2 = v2->projectedPosition.w;
 
-  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 + (y2 * w0 - y0 * w2) * x1;
+  float normalZDir = (x0 * w2 - x2 * w0) * y1 + (x2 * y0 - x0 * y2) * w1 +
+                     (y2 * w0 - y0 * w2) * x1;
 
   backface = normalZDir <= 0.0f;
 
-  if ((bpmem.genMode.cullmode & 1) && !backface)  // cull frontfacing
+  if ((bpmem.genMode.cullmode & 1) && !backface) // cull frontfacing
   {
     INCSTAT(stats.thisFrame.numTrianglesCulled)
     return false;
   }
 
-  if ((bpmem.genMode.cullmode & 2) && backface)  // cull backfacing
+  if ((bpmem.genMode.cullmode & 2) && backface) // cull backfacing
   {
     INCSTAT(stats.thisFrame.numTrianglesCulled)
     return false;
@@ -444,14 +412,16 @@ bool CullTest(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2, 
   return true;
 }
 
-void PerspectiveDivide(OutputVertexData* vertex)
-{
-  Vec4& projected = vertex->projectedPosition;
-  Vec3& screen = vertex->screenPosition;
+void PerspectiveDivide(OutputVertexData *vertex) {
+  Vec4 &projected = vertex->projectedPosition;
+  Vec3 &screen = vertex->screenPosition;
 
   float wInverse = 1.0f / projected.w;
-  screen.x = projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
-  screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
-  screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
+  screen.x =
+      projected.x * wInverse * xfmem.viewport.wd + xfmem.viewport.xOrig - 342;
+  screen.y =
+      projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
+  screen.z =
+      projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
 }

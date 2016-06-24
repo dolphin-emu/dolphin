@@ -13,41 +13,38 @@
 
 #include "DolphinWX/ISOFile.h"
 
-class wxEmuStateTip : public wxTipWindow
-{
+class wxEmuStateTip : public wxTipWindow {
 public:
-  wxEmuStateTip(wxWindow* parent, const wxString& text, wxEmuStateTip** windowPtr)
-      : wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr)
-  {
+  wxEmuStateTip(wxWindow *parent, const wxString &text,
+                wxEmuStateTip **windowPtr)
+      : wxTipWindow(parent, text, 70, (wxTipWindow **)windowPtr) {
     Bind(wxEVT_KEY_DOWN, &wxEmuStateTip::OnKeyDown, this);
   }
 
-  // wxTipWindow doesn't correctly handle KeyEvents and crashes... we must overload that.
-  void OnKeyDown(wxKeyEvent& event)
-  {
+  // wxTipWindow doesn't correctly handle KeyEvents and crashes... we must
+  // overload that.
+  void OnKeyDown(wxKeyEvent &event) {
     event.StopPropagation();
     Close();
   }
 };
 
-class CGameListCtrl : public wxListCtrl
-{
+class CGameListCtrl : public wxListCtrl {
 public:
-  CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                long style);
+  CGameListCtrl(wxWindow *parent, const wxWindowID id, const wxPoint &pos,
+                const wxSize &size, long style);
   ~CGameListCtrl();
 
   void Update() override;
 
   void BrowseForDirectory();
-  const GameListItem* GetISO(size_t index) const;
-  const GameListItem* GetSelectedISO() const;
-  std::vector<const GameListItem*> GetAllSelectedISOs() const;
+  const GameListItem *GetISO(size_t index) const;
+  const GameListItem *GetSelectedISO() const;
+  std::vector<const GameListItem *> GetAllSelectedISOs() const;
 
   static bool IsHidingItems();
 
-  enum
-  {
+  enum {
     COLUMN_DUMMY = 0,
     COLUMN_PLATFORM,
     COLUMN_BANNER,
@@ -65,11 +62,10 @@ private:
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
   std::vector<int> m_EmuStateImageIndex;
-  std::vector<GameListItem*> m_ISOFiles;
+  std::vector<GameListItem *> m_ISOFiles;
 
-  void ClearIsoFiles()
-  {
-    while (!m_ISOFiles.empty())  // so lazy
+  void ClearIsoFiles() {
+    while (!m_ISOFiles.empty()) // so lazy
     {
       delete m_ISOFiles.back();
       m_ISOFiles.pop_back();
@@ -79,7 +75,7 @@ private:
   int last_column;
   int last_sort;
   wxSize lastpos;
-  wxEmuStateTip* toolTip;
+  wxEmuStateTip *toolTip;
   void InitBitmaps();
   void UpdateItemAtColumn(long _Index, int column);
   void InsertItemInReportView(long _Index);
@@ -87,31 +83,32 @@ private:
   void ScanForISOs();
 
   // events
-  void OnLeftClick(wxMouseEvent& event);
-  void OnRightClick(wxMouseEvent& event);
-  void OnMouseMotion(wxMouseEvent& event);
-  void OnColumnClick(wxListEvent& event);
-  void OnColBeginDrag(wxListEvent& event);
-  void OnKeyPress(wxListEvent& event);
-  void OnSize(wxSizeEvent& event);
-  void OnProperties(wxCommandEvent& event);
-  void OnWiki(wxCommandEvent& event);
-  void OnOpenContainingFolder(wxCommandEvent& event);
-  void OnOpenSaveFolder(wxCommandEvent& event);
-  void OnExportSave(wxCommandEvent& event);
-  void OnSetDefaultISO(wxCommandEvent& event);
-  void OnDeleteISO(wxCommandEvent& event);
-  void OnCompressISO(wxCommandEvent& event);
-  void OnMultiCompressISO(wxCommandEvent& event);
-  void OnMultiDecompressISO(wxCommandEvent& event);
-  void OnChangeDisc(wxCommandEvent& event);
-  void OnLocalIniModified(wxCommandEvent& event);
+  void OnLeftClick(wxMouseEvent &event);
+  void OnRightClick(wxMouseEvent &event);
+  void OnMouseMotion(wxMouseEvent &event);
+  void OnColumnClick(wxListEvent &event);
+  void OnColBeginDrag(wxListEvent &event);
+  void OnKeyPress(wxListEvent &event);
+  void OnSize(wxSizeEvent &event);
+  void OnProperties(wxCommandEvent &event);
+  void OnWiki(wxCommandEvent &event);
+  void OnOpenContainingFolder(wxCommandEvent &event);
+  void OnOpenSaveFolder(wxCommandEvent &event);
+  void OnExportSave(wxCommandEvent &event);
+  void OnSetDefaultISO(wxCommandEvent &event);
+  void OnDeleteISO(wxCommandEvent &event);
+  void OnCompressISO(wxCommandEvent &event);
+  void OnMultiCompressISO(wxCommandEvent &event);
+  void OnMultiDecompressISO(wxCommandEvent &event);
+  void OnChangeDisc(wxCommandEvent &event);
+  void OnLocalIniModified(wxCommandEvent &event);
 
   void CompressSelection(bool _compress);
   void AutomaticColumnWidth();
   void UnselectAll();
 
-  static bool CompressCB(const std::string& text, float percent, void* arg);
-  static bool MultiCompressCB(const std::string& text, float percent, void* arg);
+  static bool CompressCB(const std::string &text, float percent, void *arg);
+  static bool MultiCompressCB(const std::string &text, float percent,
+                              void *arg);
   static bool WiiCompressWarning();
 };

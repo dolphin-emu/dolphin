@@ -8,8 +8,10 @@
 // 3d commands are issued through the fifo. The GPU draws to the 2MB EFB.
 // The efb can be copied back into ram in two forms: as textures or as XFB.
 // The XFB is the region in RAM that the VI chip scans out to the television.
-// So, after all rendering to EFB is done, the image is copied into one of two XFBs in RAM.
-// Next frame, that one is scanned out and the other one gets the copy. = double buffering.
+// So, after all rendering to EFB is done, the image is copied into one of two
+// XFBs in RAM.
+// Next frame, that one is scanned out and the other one gets the copy. = double
+// buffering.
 // ---------------------------------------------------------------------------------------------
 
 #include <cinttypes>
@@ -68,7 +70,8 @@ Common::Event Renderer::s_ChangedSurface;
 int Renderer::s_target_width;
 int Renderer::s_target_height;
 
-// TODO: Add functionality to reinit all the render targets when the window is resized.
+// TODO: Add functionality to reinit all the render targets when the window is
+// resized.
 int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
@@ -86,13 +89,11 @@ unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
 
-static float AspectToWidescreen(float aspect)
-{
+static float AspectToWidescreen(float aspect) {
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer() : frame_data(), bLastFrameDumped(false)
-{
+Renderer::Renderer() : frame_data(), bLastFrameDumped(false) {
   UpdateActiveConfig();
   TextureCacheBase::OnConfigChanged(g_ActiveConfig);
 
@@ -104,21 +105,20 @@ Renderer::Renderer() : frame_data(), bLastFrameDumped(false)
   OSDTime = 0;
 }
 
-Renderer::~Renderer()
-{
+Renderer::~Renderer() {
   // invalidate previous efb format
   prev_efb_format = PEControl::INVALID_FMT;
 
-  efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
+  efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX =
+      efb_scale_denominatorY = 1;
 #if defined _WIN32 || defined HAVE_LIBAV
   if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
     AVIDump::Stop();
 #endif
 }
 
-void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
-                           float Gamma)
-{
+void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle &sourceRc,
+                           u32 fbStride, u32 fbHeight, float Gamma) {
   CheckFifoRecording();
 
   if (!fbStride || !fbHeight)
@@ -126,22 +126,19 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
   XFBWrited = true;
 
-  if (g_ActiveConfig.bUseXFB)
-  {
-    FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
-  }
-  else
-  {
-    // below div two to convert from bytes to pixels - it expects width, not stride
+  if (g_ActiveConfig.bUseXFB) {
+    FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc,
+                                      Gamma);
+  } else {
+    // below div two to convert from bytes to pixels - it expects width, not
+    // stride
     Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
   }
 }
 
-int Renderer::EFBToScaledX(int x)
-{
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
+int Renderer::EFBToScaledX(int x) {
+  switch (g_ActiveConfig.iEFBScale) {
+  case SCALE_AUTO: // fractional
     return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
 
   default:
@@ -149,11 +146,9 @@ int Renderer::EFBToScaledX(int x)
   };
 }
 
-int Renderer::EFBToScaledY(int y)
-{
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
+int Renderer::EFBToScaledY(int y) {
+  switch (g_ActiveConfig.iEFBScale) {
+  case SCALE_AUTO: // fractional
     return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
 
   default:
@@ -161,44 +156,38 @@ int Renderer::EFBToScaledY(int y)
   };
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
-{
-  if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
-  {
+void Renderer::CalculateTargetScale(int x, int y, int *scaledX, int *scaledY) {
+  if (g_ActiveConfig.iEFBScale == SCALE_AUTO ||
+      g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL) {
     *scaledX = x;
     *scaledY = y;
-  }
-  else
-  {
+  } else {
     *scaledX = x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
     *scaledY = y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
   }
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height)
-{
+bool Renderer::CalculateTargetSize(unsigned int framebuffer_width,
+                                   unsigned int framebuffer_height) {
   int newEFBWidth, newEFBHeight;
   newEFBWidth = newEFBHeight = 0;
 
   // TODO: Ugly. Clean up
-  switch (s_last_efb_scale)
-  {
+  switch (s_last_efb_scale) {
   case SCALE_AUTO:
   case SCALE_AUTO_INTEGRAL:
     newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
     newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
 
-    if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
-    {
+    if (s_last_efb_scale == SCALE_AUTO_INTEGRAL) {
       efb_scale_numeratorX = efb_scale_numeratorY =
-          std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
+          std::max((newEFBWidth - 1) / EFB_WIDTH + 1,
+                   (newEFBHeight - 1) / EFB_HEIGHT + 1);
       efb_scale_denominatorX = efb_scale_denominatorY = 1;
       newEFBWidth = EFBToScaledX(EFB_WIDTH);
       newEFBHeight = EFBToScaledY(EFB_HEIGHT);
-    }
-    else
-    {
+    } else {
       efb_scale_numeratorX = newEFBWidth;
       efb_scale_denominatorX = EFB_WIDTH;
       efb_scale_numeratorY = newEFBHeight;
@@ -232,8 +221,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
 
     int maxSize;
     maxSize = GetMaxTextureSize();
-    if ((unsigned)maxSize < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
-    {
+    if ((unsigned)maxSize <
+        EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX) {
       efb_scale_numeratorX = efb_scale_numeratorY = (maxSize / EFB_WIDTH);
       efb_scale_denominatorX = efb_scale_denominatorY = 1;
     }
@@ -243,8 +232,7 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
   if (s_last_efb_scale > SCALE_AUTO_INTEGRAL)
     CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
 
-  if (newEFBWidth != s_target_width || newEFBHeight != s_target_height)
-  {
+  if (newEFBWidth != s_target_width || newEFBHeight != s_target_height) {
     s_target_width = newEFBWidth;
     s_target_height = newEFBHeight;
     return true;
@@ -252,20 +240,17 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
   return false;
 }
 
-void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                                      TargetRectangle& rightRc)
-{
+void Renderer::ConvertStereoRectangle(const TargetRectangle &rc,
+                                      TargetRectangle &leftRc,
+                                      TargetRectangle &rightRc) {
   // Resize target to half its original size
   TargetRectangle drawRc = rc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-  {
+  if (g_ActiveConfig.iStereoMode == STEREO_TAB) {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
     drawRc.top += height / 4;
     drawRc.bottom -= height / 4;
-  }
-  else
-  {
+  } else {
     int width = rc.right - rc.left;
     drawRc.left += width / 4;
     drawRc.right -= width / 4;
@@ -273,15 +258,12 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
 
   // Create two target rectangle offset to the sides of the backbuffer
   leftRc = drawRc, rightRc = drawRc;
-  if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-  {
+  if (g_ActiveConfig.iStereoMode == STEREO_TAB) {
     leftRc.top -= s_backbuffer_height / 4;
     leftRc.bottom -= s_backbuffer_height / 4;
     rightRc.top += s_backbuffer_height / 4;
     rightRc.bottom += s_backbuffer_height / 4;
-  }
-  else
-  {
+  } else {
     leftRc.left -= s_backbuffer_width / 4;
     leftRc.right -= s_backbuffer_width / 4;
     rightRc.left += s_backbuffer_width / 4;
@@ -289,60 +271,55 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
   }
 }
 
-void Renderer::SetScreenshot(const std::string& filename)
-{
+void Renderer::SetScreenshot(const std::string &filename) {
   std::lock_guard<std::mutex> lk(s_criticalScreenshot);
   s_sScreenshotName = filename;
   s_bScreenshot = true;
 }
 
 // Create On-Screen-Messages
-void Renderer::DrawDebugText()
-{
+void Renderer::DrawDebugText() {
   std::string final_yellow, final_cyan;
 
-  if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
-  {
+  if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount) {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %u", g_renderer->m_fps_counter.GetFPS());
+      final_cyan +=
+          StringFromFormat("FPS: %u", g_renderer->m_fps_counter.GetFPS());
 
     if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
       final_cyan += " - ";
-    if (SConfig::GetInstance().m_ShowFrameCount)
-    {
-      final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::g_currentFrame);
+    if (SConfig::GetInstance().m_ShowFrameCount) {
+      final_cyan += StringFromFormat("Frame: %llu",
+                                     (unsigned long long)Movie::g_currentFrame);
       if (Movie::IsPlayingInput())
-        final_cyan += StringFromFormat(" / %llu", (unsigned long long)Movie::g_totalFrames);
+        final_cyan += StringFromFormat(
+            " / %llu", (unsigned long long)Movie::g_totalFrames);
     }
 
     final_cyan += "\n";
     final_yellow += "\n";
   }
 
-  if (SConfig::GetInstance().m_ShowLag)
-  {
-    final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+  if (SConfig::GetInstance().m_ShowLag) {
+    final_cyan +=
+        StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
     final_yellow += "\n";
   }
 
-  if (SConfig::GetInstance().m_ShowInputDisplay)
-  {
+  if (SConfig::GetInstance().m_ShowInputDisplay) {
     final_cyan += Movie::GetInputDisplay();
     final_yellow += "\n";
   }
 
   // OSD Menu messages
-  if (OSDChoice > 0)
-  {
+  if (OSDChoice > 0) {
     OSDTime = Common::Timer::GetTimeMs() + 3000;
     OSDChoice = -OSDChoice;
   }
 
-  if ((u32)OSDTime > Common::Timer::GetTimeMs())
-  {
+  if ((u32)OSDTime > Common::Timer::GetTimeMs()) {
     std::string res_text;
-    switch (g_ActiveConfig.iEFBScale)
-    {
+    switch (g_ActiveConfig.iEFBScale) {
     case SCALE_AUTO:
       res_text = "Auto (fractional)";
       break;
@@ -365,9 +342,8 @@ void Renderer::DrawDebugText()
       res_text = StringFromFormat("%dx", g_ActiveConfig.iEFBScale - 3);
       break;
     }
-    const char* ar_text = "";
-    switch (g_ActiveConfig.iAspectRatio)
-    {
+    const char *ar_text = "";
+    switch (g_ActiveConfig.iAspectRatio) {
     case ASPECT_AUTO:
       ar_text = "Auto";
       break;
@@ -381,36 +357,35 @@ void Renderer::DrawDebugText()
       ar_text = "Force 16:9";
     }
 
-    const char* const efbcopy_text = g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
+    const char *const efbcopy_text =
+        g_ActiveConfig.bSkipEFBCopyToRam ? "to Texture" : "to RAM";
 
     // The rows
     const std::string lines[] = {
         std::string("Internal Resolution: ") + res_text,
-        std::string("Aspect Ratio: ") + ar_text + (g_ActiveConfig.bCrop ? " (crop)" : ""),
+        std::string("Aspect Ratio: ") + ar_text +
+            (g_ActiveConfig.bCrop ? " (crop)" : ""),
         std::string("Copy EFB: ") + efbcopy_text,
-        std::string("Fog: ") + (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
-        SConfig::GetInstance().m_EmulationSpeed <= 0 ?
-            "Speed Limit: Unlimited" :
-            StringFromFormat("Speed Limit: %li%%",
-                             std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
+        std::string("Fog: ") +
+            (g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"),
+        SConfig::GetInstance().m_EmulationSpeed <= 0
+            ? "Speed Limit: Unlimited"
+            : StringFromFormat(
+                  "Speed Limit: %li%%",
+                  std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)),
     };
 
-    enum
-    {
-      lines_count = sizeof(lines) / sizeof(*lines)
-    };
+    enum { lines_count = sizeof(lines) / sizeof(*lines) };
 
     // The latest changed setting in yellow
-    for (int i = 0; i != lines_count; ++i)
-    {
+    for (int i = 0; i != lines_count; ++i) {
       if (OSDChoice == -i - 1)
         final_yellow += lines[i];
       final_yellow += '\n';
     }
 
     // The other settings in cyan
-    for (int i = 0; i != lines_count; ++i)
-    {
+    for (int i = 0; i != lines_count; ++i) {
       if (OSDChoice != -i - 1)
         final_cyan += lines[i];
       final_cyan += '\n';
@@ -430,8 +405,8 @@ void Renderer::DrawDebugText()
   g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
-{
+void Renderer::UpdateDrawRectangle(int backbuffer_width,
+                                   int backbuffer_height) {
   float FloatGLWidth = (float)backbuffer_width;
   float FloatGLHeight = (float)backbuffer_height;
   float FloatXOffset = 0;
@@ -443,16 +418,15 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
 
   // Update aspect ratio hack values
   // Won't take effect until next frame
-  // Don't know if there is a better place for this code so there isn't a 1 frame delay
-  if (g_ActiveConfig.bWidescreenHack)
-  {
+  // Don't know if there is a better place for this code so there isn't a 1
+  // frame delay
+  if (g_ActiveConfig.bWidescreenHack) {
     float source_aspect = VideoInterface::GetAspectRatio();
     if (Core::g_aspect_wide)
       source_aspect = AspectToWidescreen(source_aspect);
     float target_aspect;
 
-    switch (g_ActiveConfig.iAspectRatio)
-    {
+    switch (g_ActiveConfig.iAspectRatio) {
     case ASPECT_STRETCH:
       target_aspect = WinWidth / WinHeight;
       break;
@@ -469,21 +443,16 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
     }
 
     float adjust = source_aspect / target_aspect;
-    if (adjust > 1)
-    {
+    if (adjust > 1) {
       // Vert+
       g_Config.fAspectRatioHackW = 1;
       g_Config.fAspectRatioHackH = 1 / adjust;
-    }
-    else
-    {
+    } else {
       // Hor+
       g_Config.fAspectRatioHackW = adjust;
       g_Config.fAspectRatioHackH = 1;
     }
-  }
-  else
-  {
+  } else {
     // Hack is disabled
     g_Config.fAspectRatioHackW = 1;
     g_Config.fAspectRatioHackH = 1;
@@ -494,26 +463,21 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
   float Ratio;
   if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide))
-  {
-    Ratio = (WinWidth / WinHeight) / AspectToWidescreen(VideoInterface::GetAspectRatio());
-  }
-  else
-  {
+      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide)) {
+    Ratio = (WinWidth / WinHeight) /
+            AspectToWidescreen(VideoInterface::GetAspectRatio());
+  } else {
     Ratio = (WinWidth / WinHeight) / VideoInterface::GetAspectRatio();
   }
 
-  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
-  {
-    if (Ratio > 1.0f)
-    {
+  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH) {
+    if (Ratio > 1.0f) {
       // Scale down and center in the X direction.
       FloatGLWidth /= Ratio;
       FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
     }
     // The window is too high, we have to limit the height
-    else
-    {
+    else {
       // Scale down and center in the Y direction.
       FloatGLHeight *= Ratio;
       FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
@@ -524,14 +488,13 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
   // Crop the picture from Analog to 4:3 or from Analog (Wide) to 16:9.
   // Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
   // ------------------
-  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
-  {
+  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop) {
     Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio();
-    if (Ratio <= 1.0f)
-    {
+    if (Ratio <= 1.0f) {
       Ratio = 1.0f / Ratio;
     }
-    // The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is
+    // The width and height we will add (calculate this before FloatGLWidth and
+    // FloatGLHeight is
     // adjusted)
     float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
     float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
@@ -547,8 +510,8 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
   int YOffset = (int)(FloatYOffset + 0.5f);
   int iWhidth = (int)ceil(FloatGLWidth);
   int iHeight = (int)ceil(FloatGLHeight);
-  iWhidth -=
-      iWhidth % 4;  // ensure divisibility by 4 to make it compatible with all the video encoders
+  iWhidth -= iWhidth % 4; // ensure divisibility by 4 to make it compatible with
+                          // all the video encoders
   iHeight -= iHeight % 4;
 
   target_rc.left = XOffset;
@@ -557,8 +520,7 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
   target_rc.bottom = YOffset + iHeight;
 }
 
-void Renderer::SetWindowSize(int width, int height)
-{
+void Renderer::SetWindowSize(int width, int height) {
   if (width < 1)
     width = 1;
   if (height < 1)
@@ -570,15 +532,12 @@ void Renderer::SetWindowSize(int width, int height)
   Host_RequestRenderWindowSize(width, height);
 }
 
-void Renderer::CheckFifoRecording()
-{
+void Renderer::CheckFifoRecording() {
   bool wasRecording = g_bRecordFifoData;
   g_bRecordFifoData = FifoRecorder::GetInstance().IsRecording();
 
-  if (g_bRecordFifoData)
-  {
-    if (!wasRecording)
-    {
+  if (g_bRecordFifoData) {
+    if (!wasRecording) {
       RecordVideoMemory();
     }
 
@@ -587,25 +546,24 @@ void Renderer::CheckFifoRecording()
   }
 }
 
-void Renderer::RecordVideoMemory()
-{
-  u32* bpmem_ptr = (u32*)&bpmem;
+void Renderer::RecordVideoMemory() {
+  u32 *bpmem_ptr = (u32 *)&bpmem;
   u32 cpmem[256];
   // The FIFO recording format splits XF memory into xfmem and xfregs; follow
   // that split here.
-  u32* xfmem_ptr = (u32*)&xfmem;
-  u32* xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+  u32 *xfmem_ptr = (u32 *)&xfmem;
+  u32 *xfregs_ptr = (u32 *)&xfmem + FifoDataFile::XF_MEM_SIZE;
   u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
   memset(cpmem, 0, 256 * 4);
   FillCPMemoryArray(cpmem);
 
-  FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size);
+  FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr,
+                                             xfregs_ptr, xfregs_size);
 }
 
-void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    float Gamma)
-{
+void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
+                    const EFBRectangle &rc, float Gamma) {
   // TODO: merge more generic parts into VideoCommon
   g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
 
@@ -620,17 +578,14 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   // New frame
   stats.ResetFrame();
 
-  Core::Callback_VideoCopiedToXFB(XFBWrited ||
-                                  (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
+  Core::Callback_VideoCopiedToXFB(
+      XFBWrited || (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
   XFBWrited = false;
 }
 
-void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
-{
-  for (int y = 0; y < h / 2; ++y)
-  {
-    for (int x = 0; x < w; ++x)
-    {
+void Renderer::FlipImageData(u8 *data, int w, int h, int pixel_width) {
+  for (int y = 0; y < h / 2; ++y) {
+    for (int x = 0; x < w; ++x) {
       for (int delta = 0; delta < pixel_width; ++delta)
         std::swap(data[(y * w + x) * pixel_width + delta],
                   data[((h - 1 - y) * w + x) * pixel_width + delta]);

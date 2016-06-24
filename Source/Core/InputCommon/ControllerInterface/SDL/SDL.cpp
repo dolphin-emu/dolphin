@@ -13,18 +13,15 @@
 #pragma comment(lib, "SDL2.lib")
 #endif
 
-namespace ciface
-{
-namespace SDL
-{
+namespace ciface {
+namespace SDL {
 // 10ms = 100Hz which homebrew docs very roughly imply is within WiiMote normal
 // range, used for periodic haptic effects though often ignored by devices
 static const u16 RUMBLE_PERIOD = 10;
 static const u16 RUMBLE_LENGTH_MAX =
-    500;  // ms: enough to span multiple frames at low FPS, but still finite
+    500; // ms: enough to span multiple frames at low FPS, but still finite
 
-static std::string GetJoystickName(int index)
-{
+static std::string GetJoystickName(int index) {
 #if SDL_VERSION_ATLEAST(2, 0, 0)
   return SDL_JoystickNameForIndex(index);
 #else
@@ -32,32 +29,26 @@ static std::string GetJoystickName(int index)
 #endif
 }
 
-void Init(std::vector<Core::Device*>& devices)
-{
+void Init(std::vector<Core::Device *> &devices) {
   // this is used to number the joysticks
   // multiple joysticks with the same name shall get unique ids starting at 0
   std::map<std::string, int> name_counts;
 
 #ifdef USE_SDL_HAPTIC
-  if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) >= 0)
-  {
+  if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) >= 0) {
     // Correctly initialized
-  }
-  else
+  } else
 #endif
-      if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
-  {
+      if (SDL_Init(SDL_INIT_JOYSTICK) < 0) {
     // Failed to initialize
     return;
   }
 
   // joysticks
-  for (int i = 0; i < SDL_NumJoysticks(); ++i)
-  {
-    SDL_Joystick* dev = SDL_JoystickOpen(i);
-    if (dev)
-    {
-      Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
+  for (int i = 0; i < SDL_NumJoysticks(); ++i) {
+    SDL_Joystick *dev = SDL_JoystickOpen(i);
+    if (dev) {
+      Joystick *js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
       // only add if it has some inputs/outputs
       if (js->Inputs().size() || js->Outputs().size())
         devices.push_back(js);
@@ -67,9 +58,9 @@ void Init(std::vector<Core::Device*>& devices)
   }
 }
 
-Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index)
-    : m_joystick(joystick), m_sdl_index(sdl_index), m_index(index)
-{
+Joystick::Joystick(SDL_Joystick *const joystick, const int sdl_index,
+                   const unsigned int index)
+    : m_joystick(joystick), m_sdl_index(sdl_index), m_index(index) {
 // really bad HACKS:
 // to not use SDL for an XInput device
 // too many people on the forums pick the SDL device and ask:
@@ -78,20 +69,23 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
   // checking the name is probably good (and hacky) enough
   // but I'll double check with the num of buttons/axes
   std::string lcasename = GetName();
-  std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
+  std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(),
+                 tolower);
 
   if ((std::string::npos != lcasename.find("xbox 360")) &&
-      (10 == SDL_JoystickNumButtons(joystick)) && (5 == SDL_JoystickNumAxes(joystick)) &&
-      (1 == SDL_JoystickNumHats(joystick)) && (0 == SDL_JoystickNumBalls(joystick)))
-  {
+      (10 == SDL_JoystickNumButtons(joystick)) &&
+      (5 == SDL_JoystickNumAxes(joystick)) &&
+      (1 == SDL_JoystickNumHats(joystick)) &&
+      (0 == SDL_JoystickNumBalls(joystick))) {
     // this device won't be used
     return;
   }
 #endif
 
-  if (SDL_JoystickNumButtons(joystick) > 255 || SDL_JoystickNumAxes(joystick) > 255 ||
-      SDL_JoystickNumHats(joystick) > 255 || SDL_JoystickNumBalls(joystick) > 255)
-  {
+  if (SDL_JoystickNumButtons(joystick) > 255 ||
+      SDL_JoystickNumAxes(joystick) > 255 ||
+      SDL_JoystickNumHats(joystick) > 255 ||
+      SDL_JoystickNumBalls(joystick) > 255) {
     // This device is invalid, don't use it
     // Some crazy devices(HP webcam 2100) end up as HID devices
     // SDL tries parsing these as joysticks
@@ -103,25 +97,24 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
     AddInput(new Button(i, m_joystick));
 
   // get hats
-  for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
-  {
+  for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i) {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
       AddInput(new Hat(i, m_joystick, d));
   }
 
   // get axes
-  for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i)
-  {
-    // each axis gets a negative and a positive input instance associated with it
-    AddAnalogInputs(new Axis(i, m_joystick, -32768), new Axis(i, m_joystick, 32767));
+  for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i) {
+    // each axis gets a negative and a positive input instance associated with
+    // it
+    AddAnalogInputs(new Axis(i, m_joystick, -32768),
+                    new Axis(i, m_joystick, 32767));
   }
 
 #ifdef USE_SDL_HAPTIC
   // try to get supported ff effects
   m_haptic = SDL_HapticOpenFromJoystick(m_joystick);
-  if (m_haptic)
-  {
+  if (m_haptic) {
     // SDL_HapticSetGain( m_haptic, 1000 );
     // SDL_HapticSetAutocenter( m_haptic, 0 );
 
@@ -150,11 +143,9 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 #endif
 }
 
-Joystick::~Joystick()
-{
+Joystick::~Joystick() {
 #ifdef USE_SDL_HAPTIC
-  if (m_haptic)
-  {
+  if (m_haptic) {
     // stop/destroy all effects
     SDL_HapticStopAll(m_haptic);
     // close haptic first
@@ -167,82 +158,54 @@ Joystick::~Joystick()
 }
 
 #ifdef USE_SDL_HAPTIC
-void Joystick::HapticEffect::Update()
-{
-  if (m_id == -1 && m_effect.type > 0)
-  {
+void Joystick::HapticEffect::Update() {
+  if (m_id == -1 && m_effect.type > 0) {
     m_id = SDL_HapticNewEffect(m_haptic, &m_effect);
     if (m_id > -1)
       SDL_HapticRunEffect(m_haptic, m_id, 1);
-  }
-  else if (m_id > -1 && m_effect.type == 0)
-  {
+  } else if (m_id > -1 && m_effect.type == 0) {
     SDL_HapticStopEffect(m_haptic, m_id);
     SDL_HapticDestroyEffect(m_haptic, m_id);
     m_id = -1;
-  }
-  else if (m_id > -1)
-  {
+  } else if (m_id > -1) {
     SDL_HapticUpdateEffect(m_haptic, m_id, &m_effect);
   }
 }
 
-std::string Joystick::ConstantEffect::GetName() const
-{
-  return "Constant";
-}
+std::string Joystick::ConstantEffect::GetName() const { return "Constant"; }
 
-std::string Joystick::RampEffect::GetName() const
-{
-  return "Ramp";
-}
+std::string Joystick::RampEffect::GetName() const { return "Ramp"; }
 
-std::string Joystick::SineEffect::GetName() const
-{
-  return "Sine";
-}
+std::string Joystick::SineEffect::GetName() const { return "Sine"; }
 
-std::string Joystick::TriangleEffect::GetName() const
-{
-  return "Triangle";
-}
+std::string Joystick::TriangleEffect::GetName() const { return "Triangle"; }
 
-std::string Joystick::LeftRightEffect::GetName() const
-{
-  return "LeftRight";
-}
+std::string Joystick::LeftRightEffect::GetName() const { return "LeftRight"; }
 
-void Joystick::HapticEffect::SetState(ControlState state)
-{
+void Joystick::HapticEffect::SetState(ControlState state) {
   memset(&m_effect, 0, sizeof(m_effect));
-  if (state)
-  {
+  if (state) {
     SetSDLHapticEffect(state);
-  }
-  else
-  {
+  } else {
     // this module uses type==0 to indicate 'off'
     m_effect.type = 0;
   }
   Update();
 }
 
-void Joystick::ConstantEffect::SetSDLHapticEffect(ControlState state)
-{
+void Joystick::ConstantEffect::SetSDLHapticEffect(ControlState state) {
   m_effect.type = SDL_HAPTIC_CONSTANT;
   m_effect.constant.length = RUMBLE_LENGTH_MAX;
   m_effect.constant.level = (Sint16)(state * 0x7FFF);
 }
 
-void Joystick::RampEffect::SetSDLHapticEffect(ControlState state)
-{
+void Joystick::RampEffect::SetSDLHapticEffect(ControlState state) {
   m_effect.type = SDL_HAPTIC_RAMP;
   m_effect.ramp.length = RUMBLE_LENGTH_MAX;
   m_effect.ramp.start = (Sint16)(state * 0x7FFF);
 }
 
-void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
-{
+void Joystick::SineEffect::SetSDLHapticEffect(ControlState state) {
   m_effect.type = SDL_HAPTIC_SINE;
   m_effect.periodic.period = RUMBLE_PERIOD;
   m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
@@ -253,8 +216,7 @@ void Joystick::SineEffect::SetSDLHapticEffect(ControlState state)
   m_effect.periodic.attack_length = 0;
 }
 
-void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
-{
+void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state) {
   m_effect.type = SDL_HAPTIC_TRIANGLE;
   m_effect.periodic.period = RUMBLE_PERIOD;
   m_effect.periodic.magnitude = (Sint16)(state * 0x7FFF);
@@ -265,53 +227,42 @@ void Joystick::TriangleEffect::SetSDLHapticEffect(ControlState state)
   m_effect.periodic.attack_length = 0;
 }
 
-void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state)
-{
+void Joystick::LeftRightEffect::SetSDLHapticEffect(ControlState state) {
   m_effect.type = SDL_HAPTIC_LEFTRIGHT;
   m_effect.leftright.length = RUMBLE_LENGTH_MAX;
-  // max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360 controller
+  // max ranges tuned to 'feel' similar in magnitude to triangle/sine on xbox360
+  // controller
   m_effect.leftright.large_magnitude = (Uint16)(state * 0x4000);
   m_effect.leftright.small_magnitude = (Uint16)(state * 0xFFFF);
 }
 #endif
 
-void Joystick::UpdateInput()
-{
+void Joystick::UpdateInput() {
   // each joystick is doin this, o well
   SDL_JoystickUpdate();
 }
 
-std::string Joystick::GetName() const
-{
+std::string Joystick::GetName() const {
   return StripSpaces(GetJoystickName(m_sdl_index));
 }
 
-std::string Joystick::GetSource() const
-{
-  return "SDL";
-}
+std::string Joystick::GetSource() const { return "SDL"; }
 
-int Joystick::GetId() const
-{
-  return m_index;
-}
+int Joystick::GetId() const { return m_index; }
 
-std::string Joystick::Button::GetName() const
-{
+std::string Joystick::Button::GetName() const {
   std::ostringstream ss;
   ss << "Button " << (int)m_index;
   return ss.str();
 }
 
-std::string Joystick::Axis::GetName() const
-{
+std::string Joystick::Axis::GetName() const {
   std::ostringstream ss;
   ss << "Axis " << (int)m_index << (m_range < 0 ? '-' : '+');
   return ss.str();
 }
 
-std::string Joystick::Hat::GetName() const
-{
+std::string Joystick::Hat::GetName() const {
   static char tmpstr[] = "Hat . .";
   // I don't think more than 10 hats are supported
   tmpstr[4] = (char)('0' + m_index);
@@ -319,18 +270,16 @@ std::string Joystick::Hat::GetName() const
   return tmpstr;
 }
 
-ControlState Joystick::Button::GetState() const
-{
+ControlState Joystick::Button::GetState() const {
   return SDL_JoystickGetButton(m_js, m_index);
 }
 
-ControlState Joystick::Axis::GetState() const
-{
-  return std::max(0.0, ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range);
+ControlState Joystick::Axis::GetState() const {
+  return std::max(0.0,
+                  ControlState(SDL_JoystickGetAxis(m_js, m_index)) / m_range);
 }
 
-ControlState Joystick::Hat::GetState() const
-{
+ControlState Joystick::Hat::GetState() const {
   return (SDL_JoystickGetHat(m_js, m_index) & (1 << m_direction)) > 0;
 }
 }

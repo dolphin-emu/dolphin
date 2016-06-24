@@ -7,33 +7,27 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "jni/ButtonManager.h"
 
-namespace ciface
-{
-namespace Android
-{
-void Init(std::vector<Core::Device*>& devices);
-class Touchscreen : public Core::Device
-{
+namespace ciface {
+namespace Android {
+void Init(std::vector<Core::Device *> &devices);
+class Touchscreen : public Core::Device {
 private:
-  class Button : public Input
-  {
+  class Button : public Input {
   public:
     std::string GetName() const;
-    Button(int padID, ButtonManager::ButtonType index) : _padID(padID), _index(index) {}
+    Button(int padID, ButtonManager::ButtonType index)
+        : _padID(padID), _index(index) {}
     ControlState GetState() const;
 
   private:
     const int _padID;
     const ButtonManager::ButtonType _index;
   };
-  class Axis : public Input
-  {
+  class Axis : public Input {
   public:
     std::string GetName() const;
     Axis(int padID, ButtonManager::ButtonType index, float neg = 1.0f)
-        : _padID(padID), _index(index), _neg(neg)
-    {
-    }
+        : _padID(padID), _index(index), _neg(neg) {}
     ControlState GetState() const;
 
   private:

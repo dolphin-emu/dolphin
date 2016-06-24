@@ -8,12 +8,11 @@
 #include <QLineEdit>
 #include <QToolBar>
 
-class ToolBar final : public QToolBar
-{
+class ToolBar final : public QToolBar {
   Q_OBJECT
 
 public:
-  explicit ToolBar(QWidget* parent = nullptr);
+  explicit ToolBar(QWidget *parent = nullptr);
 
 public slots:
   void EmulationStarted();
@@ -35,13 +34,13 @@ private:
   void MakeActions();
   void UpdateIcons();
 
-  QAction* m_open_action;
-  QAction* m_play_action;
-  QAction* m_pause_action;
-  QAction* m_stop_action;
-  QAction* m_fullscreen_action;
-  QAction* m_screenshot_action;
-  QAction* m_paths_action;
-  QAction* m_config_action;
-  QAction* m_controllers_action;
+  QAction *m_open_action;
+  QAction *m_play_action;
+  QAction *m_pause_action;
+  QAction *m_stop_action;
+  QAction *m_fullscreen_action;
+  QAction *m_screenshot_action;
+  QAction *m_paths_action;
+  QAction *m_config_action;
+  QAction *m_controllers_action;
 };

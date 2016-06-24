@@ -19,9 +19,8 @@
 
 #define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, _(text))
 
-MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
-    : wxDialog(parent, wxID_ANY, _("Memory Check")), m_parent(parent)
-{
+MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow *parent)
+    : wxDialog(parent, wxID_ANY, _("Memory Check")), m_parent(parent) {
   Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
 
   m_pEditStartAddress = new wxTextCtrl(this, wxID_ANY, "");
@@ -34,35 +33,40 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   m_log_flag->SetValue(true);
   m_break_flag = new wxCheckBox(this, wxID_ANY, _("Break"));
 
-  wxStaticBoxSizer* sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Address Range"));
-  sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-  sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
-  sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
+  wxStaticBoxSizer *sAddressRangeBox =
+      new wxStaticBoxSizer(wxHORIZONTAL, this, _("Address Range"));
+  sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT,
+                        5);
+  sAddressRangeBox->Add(m_pEditStartAddress, 1,
+                        wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+  sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT,
+                        5);
   sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
 
-  wxStaticBoxSizer* sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
+  wxStaticBoxSizer *sActionBox =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
   sActionBox->Add(m_pWriteFlag);
   sActionBox->Add(m_pReadFlag);
 
-  wxBoxSizer* sFlags = new wxStaticBoxSizer(wxVERTICAL, this, _("Flags"));
+  wxBoxSizer *sFlags = new wxStaticBoxSizer(wxVERTICAL, this, _("Flags"));
   sFlags->Add(m_log_flag);
   sFlags->Add(m_break_flag);
 
-  wxBoxSizer* sControls = new wxBoxSizer(wxHORIZONTAL);
+  wxBoxSizer *sControls = new wxBoxSizer(wxHORIZONTAL);
   sControls->Add(sAddressRangeBox, 0, wxEXPAND);
   sControls->Add(sActionBox, 0, wxEXPAND);
   sControls->Add(sFlags, 0, wxEXPAND);
 
-  wxBoxSizer* sMainSizer = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *sMainSizer = new wxBoxSizer(wxVERTICAL);
   sMainSizer->Add(sControls, 0, wxEXPAND | wxALL, 5);
-  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0,
+                  wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
   SetSizerAndFit(sMainSizer);
   SetFocus();
 }
 
-void MemoryCheckDlg::OnOK(wxCommandEvent& event)
-{
+void MemoryCheckDlg::OnOK(wxCommandEvent &event) {
   wxString StartAddressString = m_pEditStartAddress->GetLineText(0);
   wxString EndAddressString = m_pEditEndAddress->GetLineText(0);
   bool OnRead = m_pReadFlag->GetValue();
@@ -71,12 +75,11 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
   bool Break = m_break_flag->GetValue();
 
   u32 StartAddress, EndAddress;
-  bool EndAddressOK =
-      EndAddressString.Len() && AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
+  bool EndAddressOK = EndAddressString.Len() &&
+                      AsciiToHex(WxStrToStr(EndAddressString), EndAddress);
 
-  if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) && (OnRead || OnWrite) &&
-      (Log || Break))
-  {
+  if (AsciiToHex(WxStrToStr(StartAddressString), StartAddress) &&
+      (OnRead || OnWrite) && (Log || Break)) {
     TMemCheck MemCheck;
 
     if (!EndAddressOK)

@@ -5,10 +5,8 @@
 #pragma once
 #include "Common/CommonTypes.h"
 
-struct BackPatchInfo
-{
-  enum
-  {
+struct BackPatchInfo {
+  enum {
     FLAG_STORE = (1 << 0),
     FLAG_LOAD = (1 << 1),
     FLAG_SIZE_8 = (1 << 2),
@@ -22,12 +20,11 @@ struct BackPatchInfo
     FLAG_EXTEND = (1 << 10),
     FLAG_SIZE_F32I = (1 << 11),
     FLAG_ZERO_256 = (1 << 12),
-    FLAG_MASK_FLOAT =
-        FLAG_SIZE_F32 | FLAG_SIZE_F32X2 | FLAG_SIZE_F32X2I | FLAG_SIZE_F64 | FLAG_SIZE_F32I,
+    FLAG_MASK_FLOAT = FLAG_SIZE_F32 | FLAG_SIZE_F32X2 | FLAG_SIZE_F32X2I |
+                      FLAG_SIZE_F64 | FLAG_SIZE_F32I,
   };
 
-  static u32 GetFlagSize(u32 flags)
-  {
+  static u32 GetFlagSize(u32 flags) {
     if (flags & FLAG_SIZE_8)
       return 8;
     if (flags & FLAG_SIZE_16)

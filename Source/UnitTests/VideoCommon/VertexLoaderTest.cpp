@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <unordered_set>
 
-#include <gtest/gtest.h>  // NOLINT
+#include <gtest/gtest.h> // NOLINT
 
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
@@ -18,8 +18,7 @@
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 
-TEST(VertexLoaderUID, UniqueEnough)
-{
+TEST(VertexLoaderUID, UniqueEnough) {
   std::unordered_set<VertexLoaderUID> uids;
 
   TVtxDesc vtx_desc;
@@ -42,11 +41,9 @@ TEST(VertexLoaderUID, UniqueEnough)
 static u8 input_memory[16 * 1024 * 1024];
 static u8 output_memory[16 * 1024 * 1024];
 
-class VertexLoaderTest : public testing::Test
-{
+class VertexLoaderTest : public testing::Test {
 protected:
-  void SetUp() override
-  {
+  void SetUp() override {
     memset(input_memory, 0, sizeof(input_memory));
     memset(output_memory, 0xFF, sizeof(input_memory));
 
@@ -58,22 +55,18 @@ protected:
     ResetPointers();
   }
 
-  void CreateAndCheckSizes(size_t input_size, size_t output_size)
-  {
+  void CreateAndCheckSizes(size_t input_size, size_t output_size) {
     m_loader = VertexLoaderBase::CreateVertexLoader(m_vtx_desc, m_vtx_attr);
     ASSERT_EQ((int)input_size, m_loader->m_VertexSize);
     ASSERT_EQ((int)output_size, m_loader->m_native_vtx_decl.stride);
   }
 
-  template <typename T>
-  void Input(T val)
-  {
+  template <typename T> void Input(T val) {
     // Write swapped.
     m_src.Write<T, true>(val);
   }
 
-  void ExpectOut(float val)
-  {
+  void ExpectOut(float val) {
     // Read unswapped.
     MathUtil::IntFloat expected(val), actual(m_dst.Read<float, false>());
     if (!actual.f || actual.f != actual.f)
@@ -82,8 +75,7 @@ protected:
       EXPECT_EQ(expected.f, actual.f);
   }
 
-  void RunVertices(int count, int expected_count = -1)
-  {
+  void RunVertices(int count, int expected_count = -1) {
     if (expected_count == -1)
       expected_count = count;
     ResetPointers();
@@ -91,8 +83,7 @@ protected:
     EXPECT_EQ(actual_count, expected_count);
   }
 
-  void ResetPointers()
-  {
+  void ResetPointers() {
     m_src = DataReader(input_memory, input_memory + sizeof(input_memory));
     m_dst = DataReader(output_memory, output_memory + sizeof(output_memory));
   }
@@ -105,22 +96,21 @@ protected:
   std::unique_ptr<VertexLoaderBase> m_loader;
 };
 
-class VertexLoaderParamTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<int, int, int, int>>
-{
-};
+class VertexLoaderParamTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<std::tuple<int, int, int, int>> {};
 extern int gtest_AllCombinationsVertexLoaderParamTest_dummy_;
-INSTANTIATE_TEST_CASE_P(AllCombinations, VertexLoaderParamTest,
-                        ::testing::Combine(::testing::Values(DIRECT, INDEX8, INDEX16),
-                                           ::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
-                                                             FORMAT_USHORT, FORMAT_SHORT,
-                                                             FORMAT_FLOAT),
-                                           ::testing::Values(0, 1),     // elements
-                                           ::testing::Values(0, 1, 31)  // frac
-                                           ));
+INSTANTIATE_TEST_CASE_P(
+    AllCombinations, VertexLoaderParamTest,
+    ::testing::Combine(::testing::Values(DIRECT, INDEX8, INDEX16),
+                       ::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
+                                         FORMAT_USHORT, FORMAT_SHORT,
+                                         FORMAT_FLOAT),
+                       ::testing::Values(0, 1),    // elements
+                       ::testing::Values(0, 1, 31) // frac
+                       ));
 
-TEST_P(VertexLoaderParamTest, PositionAll)
-{
+TEST_P(VertexLoaderParamTest, PositionAll) {
   int addr, format, elements, frac;
   std::tie(addr, format, elements, frac) = GetParam();
   this->m_vtx_desc.Position = addr;
@@ -156,8 +146,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   int count = (int)values.size() / elements;
   u32 elem_size = 1 << (format / 2);
   size_t input_size = elements * elem_size;
-  if (addr & MASK_INDEXED)
-  {
+  if (addr & MASK_INDEXED) {
     input_size = addr - 1;
     for (int i = 0; i < count; i++)
       if (addr == INDEX8)
@@ -168,10 +157,8 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     g_main_cp_state.array_strides[ARRAY_POSITION] = elements * elem_size;
   }
   CreateAndCheckSizes(input_size, elements * sizeof(float));
-  for (float value : values)
-  {
-    switch (format)
-    {
+  for (float value : values) {
+    switch (format) {
     case FORMAT_UBYTE:
       Input((u8)value);
       break;
@@ -193,11 +180,9 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   RunVertices(count);
 
   float scale = 1.f / (1u << (format == FORMAT_FLOAT ? 0 : frac));
-  for (auto iter = values.begin(); iter != values.end();)
-  {
+  for (auto iter = values.begin(); iter != values.end();) {
     float f, g;
-    switch (format)
-    {
+    switch (format) {
     case FORMAT_UBYTE:
       f = (u8)*iter++;
       g = (u8)*iter++;
@@ -224,15 +209,14 @@ TEST_P(VertexLoaderParamTest, PositionAll)
   }
 }
 
-TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
-{
+TEST_F(VertexLoaderTest, PositionIndex16FloatXY) {
   m_vtx_desc.Position = INDEX16;
   m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
   CreateAndCheckSizes(sizeof(u16), 2 * sizeof(float));
   Input<u16>(1);
   Input<u16>(0);
   VertexLoaderManager::cached_arraybases[ARRAY_POSITION] = m_src.GetPointer();
-  g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float);  // ;)
+  g_main_cp_state.array_strides[ARRAY_POSITION] = sizeof(float); // ;)
   Input(1.f);
   Input(2.f);
   Input(3.f);
@@ -243,23 +227,22 @@ TEST_F(VertexLoaderTest, PositionIndex16FloatXY)
   ExpectOut(2);
 }
 
-class VertexLoaderSpeedTest : public VertexLoaderTest,
-                              public ::testing::WithParamInterface<std::tuple<int, int>>
-{
-};
+class VertexLoaderSpeedTest
+    : public VertexLoaderTest,
+      public ::testing::WithParamInterface<std::tuple<int, int>> {};
 extern int gtest_FormatsAndElementsVertexLoaderSpeedTest_dummy_;
-INSTANTIATE_TEST_CASE_P(FormatsAndElements, VertexLoaderSpeedTest,
-                        ::testing::Combine(::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
-                                                             FORMAT_USHORT, FORMAT_SHORT,
-                                                             FORMAT_FLOAT),
-                                           ::testing::Values(0, 1)  // elements
-                                           ));
+INSTANTIATE_TEST_CASE_P(
+    FormatsAndElements, VertexLoaderSpeedTest,
+    ::testing::Combine(::testing::Values(FORMAT_UBYTE, FORMAT_BYTE,
+                                         FORMAT_USHORT, FORMAT_SHORT,
+                                         FORMAT_FLOAT),
+                       ::testing::Values(0, 1) // elements
+                       ));
 
-TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
-{
+TEST_P(VertexLoaderSpeedTest, PositionDirectAll) {
   int format, elements;
   std::tie(format, elements) = GetParam();
-  const char* map[] = {"u8", "s8", "u16", "s16", "float"};
+  const char *map[] = {"u8", "s8", "u16", "s16", "float"};
   printf("format: %s, elements: %d\n", map[format], elements);
   m_vtx_desc.Position = DIRECT;
   m_vtx_attr.g0.PosFormat = format;
@@ -271,11 +254,10 @@ TEST_P(VertexLoaderSpeedTest, PositionDirectAll)
     RunVertices(100000);
 }
 
-TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
-{
+TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement) {
   int format, elements;
   std::tie(format, elements) = GetParam();
-  const char* map[] = {"u8", "s8", "u16", "s16", "float"};
+  const char *map[] = {"u8", "s8", "u16", "s16", "float"};
   printf("format: %s, elements: %d\n", map[format], elements);
   m_vtx_desc.Position = DIRECT;
   m_vtx_attr.g0.PosFormat = FORMAT_BYTE;
@@ -290,8 +272,7 @@ TEST_P(VertexLoaderSpeedTest, TexCoordSingleElement)
     RunVertices(100000);
 }
 
-TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
-{
+TEST_F(VertexLoaderTest, LargeFloatVertexSpeed) {
   // Enables most attributes in floating point indexed mode to test speed.
   m_vtx_desc.PosMatIdx = 1;
   m_vtx_desc.Tex0MatIdx = 1;
@@ -315,35 +296,34 @@ TEST_F(VertexLoaderTest, LargeFloatVertexSpeed)
   m_vtx_desc.Tex6Coord = INDEX16;
   m_vtx_desc.Tex7Coord = INDEX16;
 
-  m_vtx_attr.g0.PosElements = 1;  // XYZ
+  m_vtx_attr.g0.PosElements = 1; // XYZ
   m_vtx_attr.g0.PosFormat = FORMAT_FLOAT;
-  m_vtx_attr.g0.NormalElements = 1;  // NBT
+  m_vtx_attr.g0.NormalElements = 1; // NBT
   m_vtx_attr.g0.NormalFormat = FORMAT_FLOAT;
-  m_vtx_attr.g0.Color0Elements = 1;  // Has Alpha
+  m_vtx_attr.g0.Color0Elements = 1; // Has Alpha
   m_vtx_attr.g0.Color0Comp = FORMAT_32B_8888;
-  m_vtx_attr.g0.Color1Elements = 1;  // Has Alpha
+  m_vtx_attr.g0.Color1Elements = 1; // Has Alpha
   m_vtx_attr.g0.Color1Comp = FORMAT_32B_8888;
-  m_vtx_attr.g0.Tex0CoordElements = 1;  // ST
+  m_vtx_attr.g0.Tex0CoordElements = 1; // ST
   m_vtx_attr.g0.Tex0CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex1CoordElements = 1;  // ST
+  m_vtx_attr.g1.Tex1CoordElements = 1; // ST
   m_vtx_attr.g1.Tex1CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex2CoordElements = 1;  // ST
+  m_vtx_attr.g1.Tex2CoordElements = 1; // ST
   m_vtx_attr.g1.Tex2CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex3CoordElements = 1;  // ST
+  m_vtx_attr.g1.Tex3CoordElements = 1; // ST
   m_vtx_attr.g1.Tex3CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g1.Tex4CoordElements = 1;  // ST
+  m_vtx_attr.g1.Tex4CoordElements = 1; // ST
   m_vtx_attr.g1.Tex4CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex5CoordElements = 1;  // ST
+  m_vtx_attr.g2.Tex5CoordElements = 1; // ST
   m_vtx_attr.g2.Tex5CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex6CoordElements = 1;  // ST
+  m_vtx_attr.g2.Tex6CoordElements = 1; // ST
   m_vtx_attr.g2.Tex6CoordFormat = FORMAT_FLOAT;
-  m_vtx_attr.g2.Tex7CoordElements = 1;  // ST
+  m_vtx_attr.g2.Tex7CoordElements = 1; // ST
   m_vtx_attr.g2.Tex7CoordFormat = FORMAT_FLOAT;
 
   CreateAndCheckSizes(33, 156);
 
-  for (int i = 0; i < 12; i++)
-  {
+  for (int i = 0; i < 12; i++) {
     VertexLoaderManager::cached_arraybases[i] = m_src.GetPointer();
     g_main_cp_state.array_strides[i] = 129;
   }

@@ -8,8 +8,7 @@
 
 #include "Common/Timer.h"
 
-class FPSCounter
-{
+class FPSCounter {
 public:
   // Initializes the FPS counter.
   FPSCounter();
@@ -18,6 +17,7 @@ public:
   void Update();
 
   unsigned int GetFPS() const { return m_fps; }
+
 private:
   unsigned int m_fps = 0;
   unsigned int m_counter = 0;

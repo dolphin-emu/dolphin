@@ -19,10 +19,8 @@
 
 #include <atomic>
 
-namespace Common
-{
-class Flag final
-{
+namespace Common {
+class Flag final {
 public:
   // Declared as explicit since we do not want "= true" to work on a flag
   // object - it should be made explicit that a flag is *not* a normal
@@ -31,15 +29,15 @@ public:
   void Set(bool val = true) { m_val.store(val); }
   void Clear() { Set(false); }
   bool IsSet() const { return m_val.load(); }
-  bool TestAndSet(bool val = true)
-  {
+  bool TestAndSet(bool val = true) {
     bool expected = !val;
     return m_val.compare_exchange_strong(expected, val);
   }
 
   bool TestAndClear() { return TestAndSet(false); }
+
 private:
   std::atomic_bool m_val;
 };
 
-}  // namespace Common
+} // namespace Common

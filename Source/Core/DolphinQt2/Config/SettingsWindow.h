@@ -17,21 +17,20 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-class SettingsWindow final : public QDialog
-{
+class SettingsWindow final : public QDialog {
   Q_OBJECT
 public:
-  explicit SettingsWindow(QWidget* parent = nullptr);
+  explicit SettingsWindow(QWidget *parent = nullptr);
 
 public slots:
-  void changePage(QListWidgetItem* current, QListWidgetItem* previous);
+  void changePage(QListWidgetItem *current, QListWidgetItem *previous);
 
 private:
   void MakeCategoryList();
   void MakeUnfinishedWarning();
-  void AddCategoryToList(const QString& title, const QString& icon);
+  void AddCategoryToList(const QString &title, const QString &icon);
   void SetupSettingsWidget();
-  QStackedWidget* m_settings_outer;
-  QListWidget* m_categories;
-  QGroupBox* m_warning_group;
+  QStackedWidget *m_settings_outer;
+  QListWidget *m_categories;
+  QGroupBox *m_warning_group;
 };

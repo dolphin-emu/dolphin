@@ -2,51 +2,46 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/PowerPC/JitILCommon/JitILBase.h"
 
-void JitILBase::fp_arith_s(UGeckoInstruction inst)
-{
+void JitILBase::fp_arith_s(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
-  FALLBACK_IF(inst.Rc || (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21));
+  FALLBACK_IF(inst.Rc ||
+              (inst.SUBOP5 != 25 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21));
 
   // Only the interpreter has "proper" support for (some) FP flags
   FALLBACK_IF(inst.SUBOP5 == 25 && SConfig::GetInstance().bFPRF);
 
   IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
-  switch (inst.SUBOP5)
-  {
-  case 20:  // sub
+  switch (inst.SUBOP5) {
+  case 20: // sub
     val = ibuild.EmitFDSub(val, ibuild.EmitLoadFReg(inst.FB));
     break;
-  case 21:  // add
+  case 21: // add
     val = ibuild.EmitFDAdd(val, ibuild.EmitLoadFReg(inst.FB));
     break;
-  case 25:  // mul
+  case 25: // mul
     val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
     break;
   default:
     _assert_msg_(DYNA_REC, 0, "fp_arith_s WTF!!!");
   }
 
-  if (inst.OPCD == 59)
-  {
+  if (inst.OPCD == 59) {
     val = ibuild.EmitDoubleToSingle(val);
     val = ibuild.EmitDupSingleToMReg(val);
-  }
-  else
-  {
+  } else {
     val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
   }
   ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitILBase::fmaddXX(UGeckoInstruction inst)
-{
+void JitILBase::fmaddXX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -65,21 +60,17 @@ void JitILBase::fmaddXX(UGeckoInstruction inst)
   if (inst.SUBOP5 & 2)
     val = ibuild.EmitFDNeg(val);
 
-  if (inst.OPCD == 59)
-  {
+  if (inst.OPCD == 59) {
     val = ibuild.EmitDoubleToSingle(val);
     val = ibuild.EmitDupSingleToMReg(val);
-  }
-  else
-  {
+  } else {
     val = ibuild.EmitInsertDoubleInMReg(val, ibuild.EmitLoadFReg(inst.FD));
   }
 
   ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitILBase::fmrx(UGeckoInstruction inst)
-{
+void JitILBase::fmrx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -89,8 +80,7 @@ void JitILBase::fmrx(UGeckoInstruction inst)
   ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void JitILBase::fcmpX(UGeckoInstruction inst)
-{
+void JitILBase::fcmpX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   IREmitter::InstLoc lhs, rhs, res;
@@ -102,21 +92,19 @@ void JitILBase::fcmpX(UGeckoInstruction inst)
   ibuild.EmitStoreCR(ibuild.EmitConvertToFastCR(res), inst.CRFD);
 }
 
-void JitILBase::fsign(UGeckoInstruction inst)
-{
+void JitILBase::fsign(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
 
   FALLBACK_IF(true);
 
   // TODO
-  switch (inst.SUBOP10)
-  {
-  case 40:  // fnegx
+  switch (inst.SUBOP10) {
+  case 40: // fnegx
     break;
-  case 264:  // fabsx
+  case 264: // fabsx
     break;
-  case 136:  // fnabs
+  case 136: // fnabs
     break;
   default:
     PanicAlert("fsign bleh");

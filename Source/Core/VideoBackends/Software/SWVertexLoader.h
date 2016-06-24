@@ -17,17 +17,18 @@
 
 class SetupUnit;
 
-class SWVertexLoader : public VertexManagerBase
-{
+class SWVertexLoader : public VertexManagerBase {
 public:
   SWVertexLoader();
   ~SWVertexLoader();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+  NativeVertexFormat *
+  CreateNativeVertexFormat(const PortableVertexDeclaration &vdec) override;
 
 protected:
   void ResetBuffer(u32 stride) override;
-  u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+  u16 *GetIndexBuffer() { return &LocalIBuffer[0]; }
+
 private:
   void vFlush(bool useDstAlpha) override;
   std::vector<u8> LocalVBuffer;
@@ -35,9 +36,9 @@ private:
 
   InputVertexData m_Vertex;
 
-  void ParseVertex(const PortableVertexDeclaration& vdec, int index);
+  void ParseVertex(const PortableVertexDeclaration &vdec, int index);
 
-  SetupUnit* m_SetupUnit;
+  SetupUnit *m_SetupUnit;
 
   bool m_TexGenSpecialCase;
 

@@ -33,15 +33,12 @@ static bool rendererHasFocus = true;
 static bool rendererIsFullscreen = false;
 static bool running = true;
 
-class Platform
-{
+class Platform {
 public:
   virtual void Init() {}
-  virtual void SetTitle(const std::string& title) {}
-  virtual void MainLoop()
-  {
-    while (running)
-    {
+  virtual void SetTitle(const std::string &title) {}
+  virtual void MainLoop() {
+    while (running) {
       Core::HostDispatchJobs();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -50,79 +47,46 @@ public:
   virtual ~Platform() {}
 };
 
-static Platform* platform;
+static Platform *platform;
 
-void Host_NotifyMapLoaded()
-{
-}
-void Host_RefreshDSPDebuggerWindow()
-{
-}
+void Host_NotifyMapLoaded() {}
+void Host_RefreshDSPDebuggerWindow() {}
 
 static Common::Event updateMainFrameEvent;
-void Host_Message(int Id)
-{
-  if (Id == WM_USER_STOP)
-  {
+void Host_Message(int Id) {
+  if (Id == WM_USER_STOP) {
     running = false;
     updateMainFrameEvent.Set();
   }
 }
 
-static void* s_window_handle = nullptr;
-void* Host_GetRenderHandle()
-{
-  return s_window_handle;
-}
+static void *s_window_handle = nullptr;
+void *Host_GetRenderHandle() { return s_window_handle; }
 
-void Host_UpdateTitle(const std::string& title)
-{
-  platform->SetTitle(title);
-}
+void Host_UpdateTitle(const std::string &title) { platform->SetTitle(title); }
 
-void Host_UpdateDisasmDialog()
-{
-}
+void Host_UpdateDisasmDialog() {}
 
-void Host_UpdateMainFrame()
-{
-  updateMainFrameEvent.Set();
-}
+void Host_UpdateMainFrame() { updateMainFrameEvent.Set(); }
 
-void Host_RequestRenderWindowSize(int width, int height)
-{
-}
+void Host_RequestRenderWindowSize(int width, int height) {}
 
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-}
+void Host_RequestFullscreen(bool enable_fullscreen) {}
 
-void Host_SetStartupDebuggingParameters()
-{
-  SConfig& StartUp = SConfig::GetInstance();
+void Host_SetStartupDebuggingParameters() {
+  SConfig &StartUp = SConfig::GetInstance();
   StartUp.bEnableDebugging = false;
   StartUp.bBootToPause = false;
 }
 
-bool Host_UIHasFocus()
-{
-  return false;
-}
+bool Host_UIHasFocus() { return false; }
 
-bool Host_RendererHasFocus()
-{
-  return rendererHasFocus;
-}
+bool Host_RendererHasFocus() { return rendererHasFocus; }
 
-bool Host_RendererIsFullscreen()
-{
-  return rendererIsFullscreen;
-}
+bool Host_RendererIsFullscreen() { return rendererIsFullscreen; }
 
-void Host_ConnectWiimote(int wm_idx, bool connect)
-{
-  if (Core::IsRunning() && SConfig::GetInstance().bWii)
-  {
+void Host_ConnectWiimote(int wm_idx, bool connect) {
+  if (Core::IsRunning() && SConfig::GetInstance().bWii) {
     Core::QueueHostJob([=] {
       bool was_unpaused = Core::PauseAndLock(true);
       GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
@@ -132,48 +96,42 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
   }
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
-{
-}
+void Host_SetWiiMoteConnectionState(int _State) {}
 
-void Host_ShowVideoConfig(void*, const std::string&, const std::string&)
-{
-}
+void Host_ShowVideoConfig(void *, const std::string &, const std::string &) {}
 
 #if HAVE_X11
-#include <X11/keysym.h>
 #include "DolphinWX/X11Utils.h"
+#include <X11/keysym.h>
 
-class PlatformX11 : public Platform
-{
-  Display* dpy;
+class PlatformX11 : public Platform {
+  Display *dpy;
   Window win;
   Cursor blankCursor = None;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-  X11Utils::XRRConfiguration* XRRConfig;
+  X11Utils::XRRConfiguration *XRRConfig;
 #endif
 
-  void Init() override
-  {
+  void Init() override {
     XInitThreads();
     dpy = XOpenDisplay(nullptr);
-    if (!dpy)
-    {
+    if (!dpy) {
       PanicAlert("No X11 display found");
       exit(1);
     }
 
-    win = XCreateSimpleWindow(dpy, DefaultRootWindow(dpy), SConfig::GetInstance().iRenderWindowXPos,
-                              SConfig::GetInstance().iRenderWindowYPos,
-                              SConfig::GetInstance().iRenderWindowWidth,
-                              SConfig::GetInstance().iRenderWindowHeight, 0, 0, BlackPixel(dpy, 0));
+    win = XCreateSimpleWindow(
+        dpy, DefaultRootWindow(dpy), SConfig::GetInstance().iRenderWindowXPos,
+        SConfig::GetInstance().iRenderWindowYPos,
+        SConfig::GetInstance().iRenderWindowWidth,
+        SConfig::GetInstance().iRenderWindowHeight, 0, 0, BlackPixel(dpy, 0));
     XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
     Atom wmProtocols[1];
     wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
     XSetWMProtocols(dpy, win, wmProtocols, 1);
     XMapRaised(dpy, win);
     XFlush(dpy);
-    s_window_handle = (void*)win;
+    s_window_handle = (void *)win;
 
     if (SConfig::GetInstance().bDisableScreenSaver)
       X11Utils::InhibitScreensaver(dpy, win, true);
@@ -182,26 +140,26 @@ class PlatformX11 : public Platform
     XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
 
-    if (SConfig::GetInstance().bHideCursor)
-    {
+    if (SConfig::GetInstance().bHideCursor) {
       // make a blank cursor
       Pixmap Blank;
       XColor DummyColor;
       char ZeroData[1] = {0};
       Blank = XCreateBitmapFromData(dpy, win, ZeroData, 1, 1);
-      blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+      blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor,
+                                        &DummyColor, 0, 0);
       XFreePixmap(dpy, Blank);
       XDefineCursor(dpy, win, blankCursor);
     }
   }
 
-  void SetTitle(const std::string& string) override { XStoreName(dpy, win, string.c_str()); }
-  void MainLoop() override
-  {
+  void SetTitle(const std::string &string) override {
+    XStoreName(dpy, win, string.c_str());
+  }
+  void MainLoop() override {
     bool fullscreen = SConfig::GetInstance().bFullscreen;
 
-    if (fullscreen)
-    {
+    if (fullscreen) {
       rendererIsFullscreen = X11Utils::ToggleFullscreen(dpy, win);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
       XRRConfig->ToggleDisplayMode(True);
@@ -209,54 +167,41 @@ class PlatformX11 : public Platform
     }
 
     // The actual loop
-    while (running)
-    {
+    while (running) {
       XEvent event;
       KeySym key;
-      for (int num_events = XPending(dpy); num_events > 0; num_events--)
-      {
+      for (int num_events = XPending(dpy); num_events > 0; num_events--) {
         XNextEvent(dpy, &event);
-        switch (event.type)
-        {
+        switch (event.type) {
         case KeyPress:
-          key = XLookupKeysym((XKeyEvent*)&event, 0);
-          if (key == XK_Escape)
-          {
-            if (Core::GetState() == Core::CORE_RUN)
-            {
+          key = XLookupKeysym((XKeyEvent *)&event, 0);
+          if (key == XK_Escape) {
+            if (Core::GetState() == Core::CORE_RUN) {
               if (SConfig::GetInstance().bHideCursor)
                 XUndefineCursor(dpy, win);
               Core::SetState(Core::CORE_PAUSE);
-            }
-            else
-            {
+            } else {
               if (SConfig::GetInstance().bHideCursor)
                 XDefineCursor(dpy, win, blankCursor);
               Core::SetState(Core::CORE_RUN);
             }
-          }
-          else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
-          {
+          } else if ((key == XK_Return) && (event.xkey.state & Mod1Mask)) {
             fullscreen = !fullscreen;
             X11Utils::ToggleFullscreen(dpy, win);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
             XRRConfig->ToggleDisplayMode(fullscreen);
 #endif
-          }
-          else if (key >= XK_F1 && key <= XK_F8)
-          {
+          } else if (key >= XK_F1 && key <= XK_F8) {
             int slot_number = key - XK_F1 + 1;
             if (event.xkey.state & ShiftMask)
               State::Save(slot_number);
             else
               State::Load(slot_number);
-          }
-          else if (key == XK_F9)
+          } else if (key == XK_F9)
             Core::SaveScreenShot();
           else if (key == XK_F11)
             State::LoadLastSaved();
-          else if (key == XK_F12)
-          {
+          else if (key == XK_F12) {
             if (event.xkey.state & ShiftMask)
               State::UndoLoadState();
             else
@@ -265,7 +210,8 @@ class PlatformX11 : public Platform
           break;
         case FocusIn:
           rendererHasFocus = true;
-          if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::CORE_PAUSE)
+          if (SConfig::GetInstance().bHideCursor &&
+              Core::GetState() != Core::CORE_PAUSE)
             XDefineCursor(dpy, win, blankCursor);
           break;
         case FocusOut:
@@ -274,20 +220,21 @@ class PlatformX11 : public Platform
             XUndefineCursor(dpy, win);
           break;
         case ClientMessage:
-          if ((unsigned long)event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
+          if ((unsigned long)event.xclient.data.l[0] ==
+              XInternAtom(dpy, "WM_DELETE_WINDOW", False))
             running = false;
           break;
         }
       }
-      if (!fullscreen)
-      {
+      if (!fullscreen) {
         Window winDummy;
         unsigned int borderDummy, depthDummy;
-        XGetGeometry(dpy, win, &winDummy, &SConfig::GetInstance().iRenderWindowXPos,
-                     &SConfig::GetInstance().iRenderWindowYPos,
-                     (unsigned int*)&SConfig::GetInstance().iRenderWindowWidth,
-                     (unsigned int*)&SConfig::GetInstance().iRenderWindowHeight, &borderDummy,
-                     &depthDummy);
+        XGetGeometry(
+            dpy, win, &winDummy, &SConfig::GetInstance().iRenderWindowXPos,
+            &SConfig::GetInstance().iRenderWindowYPos,
+            (unsigned int *)&SConfig::GetInstance().iRenderWindowWidth,
+            (unsigned int *)&SConfig::GetInstance().iRenderWindowHeight,
+            &borderDummy, &depthDummy);
         rendererIsFullscreen = false;
       }
       Core::HostDispatchJobs();
@@ -295,8 +242,7 @@ class PlatformX11 : public Platform
     }
   }
 
-  void Shutdown() override
-  {
+  void Shutdown() override {
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
     delete XRRConfig;
 #endif
@@ -309,8 +255,7 @@ class PlatformX11 : public Platform
 };
 #endif
 
-static Platform* GetPlatform()
-{
+static Platform *GetPlatform() {
 #if defined(USE_EGL) && defined(USE_HEADLESS)
   return new Platform();
 #elif HAVE_X11
@@ -319,18 +264,15 @@ static Platform* GetPlatform()
   return nullptr;
 }
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char *argv[]) {
   int ch, help = 0;
   struct option longopts[] = {{"exec", no_argument, nullptr, 'e'},
                               {"help", no_argument, nullptr, 'h'},
                               {"version", no_argument, nullptr, 'v'},
                               {nullptr, 0, nullptr, 0}};
 
-  while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
-  {
-    switch (ch)
-    {
+  while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1) {
+    switch (ch) {
     case 'e':
       break;
     case 'h':
@@ -343,8 +285,7 @@ int main(int argc, char* argv[])
     }
   }
 
-  if (help == 1 || argc == optind)
-  {
+  if (help == 1 || argc == optind) {
     fprintf(stderr, "%s\n\n", scm_rev_str.c_str());
     fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
     fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
@@ -355,27 +296,24 @@ int main(int argc, char* argv[])
   }
 
   platform = GetPlatform();
-  if (!platform)
-  {
+  if (!platform) {
     fprintf(stderr, "No platform found\n");
     return 1;
   }
 
-  UICommon::SetUserDirectory("");  // Auto-detect user folder
+  UICommon::SetUserDirectory(""); // Auto-detect user folder
   UICommon::Init();
 
   platform->Init();
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(argv[optind]))
-  {
+  if (!BootManager::BootCore(argv[optind])) {
     fprintf(stderr, "Could not boot %s\n", argv[optind]);
     return 1;
   }
 
-  while (!Core::IsRunning() && running)
-  {
+  while (!Core::IsRunning() && running) {
     Core::HostDispatchJobs();
     updateMainFrameEvent.Wait();
   }

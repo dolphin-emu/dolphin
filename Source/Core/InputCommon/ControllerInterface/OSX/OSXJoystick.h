@@ -9,17 +9,14 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
-namespace ciface
-{
-namespace OSX
-{
-class Joystick : public ForceFeedback::ForceFeedbackDevice
-{
+namespace ciface {
+namespace OSX {
+class Joystick : public ForceFeedback::ForceFeedbackDevice {
 private:
-  class Button : public Input
-  {
+  class Button : public Input {
   public:
-    Button(IOHIDElementRef element, IOHIDDeviceRef device) : m_element(element), m_device(device) {}
+    Button(IOHIDElementRef element, IOHIDDeviceRef device)
+        : m_element(element), m_device(device) {}
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -28,14 +25,9 @@ private:
     const IOHIDDeviceRef m_device;
   };
 
-  class Axis : public Input
-  {
+  class Axis : public Input {
   public:
-    enum direction
-    {
-      positive = 0,
-      negative
-    };
+    enum direction { positive = 0, negative };
 
     Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
     std::string GetName() const override;
@@ -50,16 +42,9 @@ private:
     float m_scale;
   };
 
-  class Hat : public Input
-  {
+  class Hat : public Input {
   public:
-    enum direction
-    {
-      up = 0,
-      right,
-      down,
-      left
-    };
+    enum direction { up = 0, right, down, left };
 
     Hat(IOHIDElementRef element, IOHIDDeviceRef device, direction dir);
     std::string GetName() const override;
@@ -68,7 +53,7 @@ private:
   private:
     const IOHIDElementRef m_element;
     const IOHIDDeviceRef m_device;
-    const char* m_name;
+    const char *m_name;
     const direction m_direction;
   };
 

@@ -23,9 +23,10 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void(APIENTRYP GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity,
-                                       GLsizei length, const GLchar* message,
-                                       const void* userParam);
+typedef void(APIENTRYP GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id,
+                                       GLenum severity, GLsizei length,
+                                       const GLchar *message,
+                                       const void *userParam);
 #define GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB 0x8242
 #define GL_DEBUG_NEXT_LOGGED_MESSAGE_LENGTH_ARB 0x8243
 #define GL_DEBUG_CALLBACK_FUNCTION_ARB 0x8244
@@ -49,18 +50,19 @@ typedef void(APIENTRYP GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GL
 #define GL_DEBUG_SEVERITY_MEDIUM_ARB 0x9147
 #define GL_DEBUG_SEVERITY_LOW_ARB 0x9148
 
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGECONTROLARBPROC)(GLenum source, GLenum type,
-                                                         GLenum severity, GLsizei count,
-                                                         const GLuint* ids, GLboolean enabled);
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGEINSERTARBPROC)(GLenum source, GLenum type, GLuint id,
-                                                        GLenum severity, GLsizei length,
-                                                        const GLchar* buf);
-typedef void(APIENTRYP PFNDOLDEBUGMESSAGECALLBACKARBPROC)(GLDEBUGPROCARB callback,
-                                                          const void* userParam);
-typedef GLuint(APIENTRYP PFNDOLGETDEBUGMESSAGELOGARBPROC)(GLuint count, GLsizei bufSize,
-                                                          GLenum* sources, GLenum* types,
-                                                          GLuint* ids, GLenum* severities,
-                                                          GLsizei* lengths, GLchar* messageLog);
+typedef void(APIENTRYP PFNDOLDEBUGMESSAGECONTROLARBPROC)(
+    GLenum source, GLenum type, GLenum severity, GLsizei count,
+    const GLuint *ids, GLboolean enabled);
+typedef void(APIENTRYP PFNDOLDEBUGMESSAGEINSERTARBPROC)(GLenum source,
+                                                        GLenum type, GLuint id,
+                                                        GLenum severity,
+                                                        GLsizei length,
+                                                        const GLchar *buf);
+typedef void(APIENTRYP PFNDOLDEBUGMESSAGECALLBACKARBPROC)(
+    GLDEBUGPROCARB callback, const void *userParam);
+typedef GLuint(APIENTRYP PFNDOLGETDEBUGMESSAGELOGARBPROC)(
+    GLuint count, GLsizei bufSize, GLenum *sources, GLenum *types, GLuint *ids,
+    GLenum *severities, GLsizei *lengths, GLchar *messageLog);
 
 extern PFNDOLDEBUGMESSAGECALLBACKARBPROC dolDebugMessageCallbackARB;
 extern PFNDOLDEBUGMESSAGECONTROLARBPROC dolDebugMessageControlARB;

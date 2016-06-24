@@ -14,10 +14,8 @@
 
 #include "VideoCommon/VideoCommon.h"
 
-namespace OGL
-{
-class StreamBuffer
-{
+namespace OGL {
+class StreamBuffer {
 public:
   static std::unique_ptr<StreamBuffer> Create(u32 type, u32 size);
   virtual ~StreamBuffer();
@@ -30,14 +28,12 @@ public:
    * Mapping invalidates the current buffer content,
    * so it isn't allowed to access the old content any more.
    */
-  virtual std::pair<u8*, u32> Map(u32 size) = 0;
+  virtual std::pair<u8 *, u32> Map(u32 size) = 0;
   virtual void Unmap(u32 used_size) = 0;
 
-  std::pair<u8*, u32> Map(u32 size, u32 stride)
-  {
+  std::pair<u8 *, u32> Map(u32 size, u32 stride) {
     u32 padding = m_iterator % stride;
-    if (padding)
-    {
+    if (padding) {
       m_iterator += stride - padding;
     }
     return Map(size);

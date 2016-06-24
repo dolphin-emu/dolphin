@@ -10,8 +10,7 @@
 
 using Common::Flag;
 
-TEST(Flag, Simple)
-{
+TEST(Flag, Simple) {
   Flag f;
   EXPECT_FALSE(f.IsSet());
 
@@ -31,15 +30,13 @@ TEST(Flag, Simple)
   EXPECT_TRUE(f2.IsSet());
 }
 
-TEST(Flag, MultiThreaded)
-{
+TEST(Flag, MultiThreaded) {
   Flag f;
   int count = 0;
   const int ITERATIONS_COUNT = 100000;
 
   auto setter = [&]() {
-    for (int i = 0; i < ITERATIONS_COUNT; ++i)
-    {
+    for (int i = 0; i < ITERATIONS_COUNT; ++i) {
       while (f.IsSet())
         ;
       f.Set();
@@ -47,8 +44,7 @@ TEST(Flag, MultiThreaded)
   };
 
   auto clearer = [&]() {
-    for (int i = 0; i < ITERATIONS_COUNT; ++i)
-    {
+    for (int i = 0; i < ITERATIONS_COUNT; ++i) {
       while (!f.IsSet())
         ;
       count++;
@@ -65,8 +61,7 @@ TEST(Flag, MultiThreaded)
   EXPECT_EQ(ITERATIONS_COUNT, count);
 }
 
-TEST(Flag, SpinLock)
-{
+TEST(Flag, SpinLock) {
   // Uses a flag to implement basic spinlocking using TestAndSet.
   Flag f;
   int count = 0;
@@ -74,8 +69,7 @@ TEST(Flag, SpinLock)
   const int THREADS_COUNT = 50;
 
   auto adder_func = [&]() {
-    for (int i = 0; i < ITERATIONS_COUNT; ++i)
-    {
+    for (int i = 0; i < ITERATIONS_COUNT; ++i) {
       // Acquire the spinlock.
       while (!f.TestAndSet())
         ;
@@ -85,9 +79,9 @@ TEST(Flag, SpinLock)
   };
 
   std::array<std::thread, THREADS_COUNT> threads;
-  for (auto& th : threads)
+  for (auto &th : threads)
     th = std::thread(adder_func);
-  for (auto& th : threads)
+  for (auto &th : threads)
     th.join();
 
   EXPECT_EQ(ITERATIONS_COUNT * THREADS_COUNT, count);

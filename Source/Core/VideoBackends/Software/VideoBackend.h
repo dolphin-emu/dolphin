@@ -4,19 +4,16 @@
 
 #pragma once
 
-#include <string>
 #include "VideoCommon/VideoBackendBase.h"
+#include <string>
 
-namespace MMIO
-{
+namespace MMIO {
 class Mapping;
 }
 
-namespace SW
-{
-class VideoSoftware : public VideoBackendBase
-{
-  bool Initialize(void* window_handle) override;
+namespace SW {
+class VideoSoftware : public VideoBackendBase {
+  bool Initialize(void *window_handle) override;
   void Shutdown() override;
 
   std::string GetName() const override;
@@ -25,7 +22,7 @@ class VideoSoftware : public VideoBackendBase
   void Video_Prepare() override;
   void Video_Cleanup() override;
 
-  void ShowConfig(void* parent) override;
+  void ShowConfig(void *parent) override;
 
   unsigned int PeekMessages() override;
 };

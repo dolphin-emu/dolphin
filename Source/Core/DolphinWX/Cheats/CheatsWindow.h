@@ -24,17 +24,15 @@ class wxStaticBox;
 class wxStaticText;
 class wxTextCtrl;
 
-namespace Gecko
-{
+namespace Gecko {
 class CodeConfigPanel;
 }
 
 wxDECLARE_EVENT(DOLPHIN_EVT_ADD_NEW_ACTION_REPLAY_CODE, wxCommandEvent);
 
-class wxCheatsWindow final : public wxDialog
-{
+class wxCheatsWindow final : public wxDialog {
 public:
-  wxCheatsWindow(wxWindow* const parent);
+  wxCheatsWindow(wxWindow *const parent);
   ~wxCheatsWindow();
   void UpdateGUI();
 
@@ -42,26 +40,26 @@ private:
   struct CodeData;
 
   // --- GUI Controls ---
-  wxButton* m_button_apply;
-  wxNotebook* m_notebook_main;
+  wxButton *m_button_apply;
+  wxNotebook *m_notebook_main;
 
-  wxPanel* m_tab_cheats;
-  wxPanel* m_tab_log;
+  wxPanel *m_tab_cheats;
+  wxPanel *m_tab_log;
 
-  wxCheckBox* m_checkbox_log_ar;
+  wxCheckBox *m_checkbox_log_ar;
 
-  wxStaticText* m_label_code_name;
-  wxStaticText* m_label_num_codes;
+  wxStaticText *m_label_code_name;
+  wxStaticText *m_label_num_codes;
 
-  wxCheckListBox* m_checklistbox_cheats_list;
+  wxCheckListBox *m_checklistbox_cheats_list;
 
-  wxTextCtrl* m_textctrl_log;
+  wxTextCtrl *m_textctrl_log;
 
-  wxListBox* m_listbox_codes_list;
+  wxListBox *m_listbox_codes_list;
 
-  wxStaticBox* m_groupbox_info;
+  wxStaticBox *m_groupbox_info;
 
-  Gecko::CodeConfigPanel* m_geckocode_panel;
+  Gecko::CodeConfigPanel *m_geckocode_panel;
   IniFile m_gameini_default;
   IniFile m_gameini_local;
   std::string m_gameini_local_path;
@@ -77,23 +75,23 @@ private:
 
   // --- Wx Events Handlers ---
   // Cheat Search
-  void OnNewARCodeCreated(wxCommandEvent& ev);
+  void OnNewARCodeCreated(wxCommandEvent &ev);
 
   // Close Button
-  void OnEvent_ButtonClose_Press(wxCommandEvent& event);
-  void OnEvent_Close(wxCloseEvent& ev);
+  void OnEvent_ButtonClose_Press(wxCommandEvent &event);
+  void OnEvent_Close(wxCloseEvent &ev);
 
   // Cheats List
-  void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
-  void OnEvent_CheatsList_Update(wxCommandEvent& event);
+  void OnEvent_CheatsList_ItemSelected(wxCommandEvent &event);
+  void OnEvent_CheatsList_Update(wxCommandEvent &event);
 
   // Apply Changes Button
-  void OnEvent_ApplyChanges_Press(wxCommandEvent& event);
+  void OnEvent_ApplyChanges_Press(wxCommandEvent &event);
 
   // Update Log Button
-  void OnEvent_ButtonUpdateLog_Press(wxCommandEvent& event);
-  void OnClearActionReplayLog(wxCommandEvent& event);
+  void OnEvent_ButtonUpdateLog_Press(wxCommandEvent &event);
+  void OnClearActionReplayLog(wxCommandEvent &event);
 
   // Enable Logging Checkbox
-  void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& event);
+  void OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent &event);
 };

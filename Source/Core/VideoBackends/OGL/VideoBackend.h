@@ -4,14 +4,12 @@
 
 #pragma once
 
-#include <string>
 #include "VideoCommon/VideoBackendBase.h"
+#include <string>
 
-namespace OGL
-{
-class VideoBackend : public VideoBackendBase
-{
-  bool Initialize(void*) override;
+namespace OGL {
+class VideoBackend : public VideoBackendBase {
+  bool Initialize(void *) override;
   void Shutdown() override;
 
   std::string GetName() const override;
@@ -20,7 +18,7 @@ class VideoBackend : public VideoBackendBase
   void Video_Prepare() override;
   void Video_Cleanup() override;
 
-  void ShowConfig(void* parent) override;
+  void ShowConfig(void *parent) override;
 
   unsigned int PeekMessages() override;
 };

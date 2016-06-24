@@ -14,16 +14,15 @@
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoCommon.h"
 
-namespace OGL
-{
-class OpenGLPostProcessing : public PostProcessingShaderImplementation
-{
+namespace OGL {
+class OpenGLPostProcessing : public PostProcessingShaderImplementation {
 public:
   OpenGLPostProcessing();
   ~OpenGLPostProcessing();
 
-  void BlitFromTexture(TargetRectangle src, TargetRectangle dst, int src_texture, int src_width,
-                       int src_height, int layer) override;
+  void BlitFromTexture(TargetRectangle src, TargetRectangle dst,
+                       int src_texture, int src_width, int src_height,
+                       int layer) override;
   void ApplyShader() override;
 
 private:
@@ -38,7 +37,7 @@ private:
   std::unordered_map<std::string, GLuint> m_uniform_bindings;
 
   void CreateHeader();
-  std::string LoadShaderOptions(const std::string& code);
+  std::string LoadShaderOptions(const std::string &code);
 };
 
-}  // namespace
+} // namespace

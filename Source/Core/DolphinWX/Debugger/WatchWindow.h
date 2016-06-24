@@ -9,23 +9,24 @@
 
 class CWatchView;
 
-class CWatchWindow : public wxPanel
-{
+class CWatchWindow : public wxPanel {
 public:
-  CWatchWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxNO_BORDER,
-               const wxString& name = _("Watch"));
+  CWatchWindow(wxWindow *parent, wxWindowID id = wxID_ANY,
+               const wxPoint &pos = wxDefaultPosition,
+               const wxSize &size = wxDefaultSize,
+               long style = wxTAB_TRAVERSAL | wxNO_BORDER,
+               const wxString &name = _("Watch"));
   ~CWatchWindow();
 
   void NotifyUpdate();
-  void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
+  void Event_SaveAll(wxCommandEvent &WXUNUSED(event));
   void SaveAll();
-  void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
+  void Event_LoadAll(wxCommandEvent &WXUNUSED(event));
   void LoadAll();
 
 private:
   wxAuiManager m_mgr;
 
   // Owned by wx. Deleted implicitly upon destruction.
-  CWatchView* m_GPRGridView;
+  CWatchView *m_GPRGridView;
 };

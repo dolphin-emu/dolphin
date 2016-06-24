@@ -9,23 +9,16 @@
 class PointerWrap;
 
 // Bounding Box manager
-namespace BoundingBox
-{
+namespace BoundingBox {
 // Determines if bounding box is active
 extern bool active;
 
 // Bounding box current coordinates
 extern u16 coords[4];
 
-enum
-{
-  LEFT = 0,
-  RIGHT = 1,
-  TOP = 2,
-  BOTTOM = 3
-};
+enum { LEFT = 0, RIGHT = 1, TOP = 2, BOTTOM = 3 };
 
 // Save state
-void DoState(PointerWrap& p);
+void DoState(PointerWrap &p);
 
-};  // end of namespace BoundingBox
+}; // end of namespace BoundingBox

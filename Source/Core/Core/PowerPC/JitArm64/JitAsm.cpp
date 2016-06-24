@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
@@ -10,15 +9,16 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Arm64Gen;
 
-void JitArm64::GenerateAsm()
-{
-  // This value is all of the callee saved registers that we are required to save.
+void JitArm64::GenerateAsm() {
+  // This value is all of the callee saved registers that we are required to
+  // save.
   // According to the AACPS64 we need to save R19 ~ R30.
   const u32 ALL_CALLEE_SAVED = 0x7FF80000;
   BitSet32 regs_to_save(ALL_CALLEE_SAVED);
@@ -34,7 +34,8 @@ void JitArm64::GenerateAsm()
 
   FixupBranch to_dispatcher = B();
 
-  // If we align the dispatcher to a page then we can load its location with one ADRP instruction
+  // If we align the dispatcher to a page then we can load its location with one
+  // ADRP instruction
   AlignCodePage();
   dispatcher = GetCodePtr();
   WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
@@ -42,7 +43,8 @@ void JitArm64::GenerateAsm()
   SetJumpTarget(to_dispatcher);
 
   // Downcount Check
-  // The result of slice decrementation should be in flags if somebody jumped here
+  // The result of slice decrementation should be in flags if somebody jumped
+  // here
   // IMPORTANT - We jump on negative, not carry!!!
   FixupBranch bail = B(CC_MI);
 
@@ -59,8 +61,7 @@ void JitArm64::GenerateAsm()
   vmem = B();
   SetJumpTarget(not_vmem);
 
-  if (SConfig::GetInstance().bWii)
-  {
+  if (SConfig::GetInstance().bWii) {
     // Wii EX-RAM
     not_exram = TBZ(DISPATCHER_PC, IntLog2(JIT_ICACHE_EXRAM_BIT));
     ANDI2R(pc_masked, DISPATCHER_PC, JIT_ICACHEEX_MASK);
@@ -79,13 +80,14 @@ void JitArm64::GenerateAsm()
 
   LDR(W27, cache_base, EncodeRegTo64(pc_masked));
 
-  FixupBranch JitBlock = TBNZ(W27, 7);  // Test the 7th bit
+  FixupBranch JitBlock = TBNZ(W27, 7); // Test the 7th bit
   // Success, it is our Jitblock.
   MOVI2R(X30, (u64)jit->GetBlockCache()->GetCodePointers());
-  UBFM(X27, X27, 61, 60);  // Same as X27 << 3
-  LDR(X30, X30, X27);      // Load the block address in to R14
+  UBFM(X27, X27, 61, 60); // Same as X27 << 3
+  LDR(X30, X30, X27);     // Load the block address in to R14
   BR(X30);
-  // No need to jump anywhere after here, the block will go back to dispatcher start
+  // No need to jump anywhere after here, the block will go back to dispatcher
+  // start
 
   SetJumpTarget(JitBlock);
 
@@ -106,7 +108,8 @@ void JitArm64::GenerateAsm()
   MOVI2R(X30, (u64)&CoreTiming::Advance);
   BLR(X30);
 
-  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+  // Load the PC back into DISPATCHER_PC (the exception handler might have
+  // changed it)
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
 
   // Check the state pointer to see if we are exiting
@@ -132,8 +135,7 @@ void JitArm64::GenerateAsm()
   FlushIcache();
 }
 
-void JitArm64::GenerateCommonAsm()
-{
+void JitArm64::GenerateCommonAsm() {
   // X0 is the scale
   // X1 is address
   // X2 is a temporary on stores
@@ -145,17 +147,17 @@ void JitArm64::GenerateCommonAsm()
   ARM64Reg scale_reg = X0;
   ARM64FloatEmitter float_emit(this);
 
-  const u8* start = GetCodePtr();
-  const u8* loadPairedIllegal = GetCodePtr();
+  const u8 *start = GetCodePtr();
+  const u8 *loadPairedIllegal = GetCodePtr();
   BRK(100);
-  const u8* loadPairedFloatTwo = GetCodePtr();
+  const u8 *loadPairedFloatTwo = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LD1(32, 1, D0, addr_reg);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
-  const u8* loadPairedU8Two = GetCodePtr();
+  const u8 *loadPairedU8Two = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -169,7 +171,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedS8Two = GetCodePtr();
+  const u8 *loadPairedS8Two = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -183,7 +185,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedU16Two = GetCodePtr();
+  const u8 *loadPairedU16Two = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LD1(16, 1, D0, addr_reg);
@@ -197,7 +199,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedS16Two = GetCodePtr();
+  const u8 *loadPairedS16Two = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LD1(16, 1, D0, addr_reg);
@@ -212,14 +214,14 @@ void JitArm64::GenerateCommonAsm()
     RET(X30);
   }
 
-  const u8* loadPairedFloatOne = GetCodePtr();
+  const u8 *loadPairedFloatOne = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
-  const u8* loadPairedU8One = GetCodePtr();
+  const u8 *loadPairedU8One = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -233,7 +235,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedS8One = GetCodePtr();
+  const u8 *loadPairedS8One = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -247,7 +249,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedU16One = GetCodePtr();
+  const u8 *loadPairedU16One = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -261,7 +263,7 @@ void JitArm64::GenerateCommonAsm()
     float_emit.FMUL(32, D0, D0, D1, 0);
     RET(X30);
   }
-  const u8* loadPairedS16One = GetCodePtr();
+  const u8 *loadPairedS16One = GetCodePtr();
   {
     MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
@@ -278,8 +280,9 @@ void JitArm64::GenerateCommonAsm()
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedLoad");
 
-  pairedLoadQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
-  ReserveCodeSpace(16 * sizeof(u8*));
+  pairedLoadQuantized =
+      reinterpret_cast<const u8 **>(const_cast<u8 *>(AlignCode16()));
+  ReserveCodeSpace(16 * sizeof(u8 *));
 
   pairedLoadQuantized[0] = loadPairedFloatTwo;
   pairedLoadQuantized[1] = loadPairedIllegal;
@@ -301,10 +304,10 @@ void JitArm64::GenerateCommonAsm()
 
   // Stores
   start = GetCodePtr();
-  const u8* storePairedIllegal = GetCodePtr();
+  const u8 *storePairedIllegal = GetCodePtr();
   BRK(0x101);
-  const u8* storePairedFloat;
-  const u8* storePairedFloatSlow;
+  const u8 *storePairedFloat;
+  const u8 *storePairedFloatSlow;
   {
     storePairedFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
@@ -319,8 +322,8 @@ void JitArm64::GenerateCommonAsm()
     BR(X2);
   }
 
-  const u8* storePairedU8;
-  const u8* storePairedU8Slow;
+  const u8 *storePairedU8;
+  const u8 *storePairedU8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -346,8 +349,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)PowerPC::Write_U16);
     BR(X2);
   }
-  const u8* storePairedS8;
-  const u8* storePairedS8Slow;
+  const u8 *storePairedS8;
+  const u8 *storePairedS8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -374,8 +377,8 @@ void JitArm64::GenerateCommonAsm()
     BR(X2);
   }
 
-  const u8* storePairedU16;
-  const u8* storePairedU16Slow;
+  const u8 *storePairedU16;
+  const u8 *storePairedU16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -401,8 +404,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)PowerPC::Write_U32);
     BR(X2);
   }
-  const u8* storePairedS16;  // Used by Viewtiful Joe's intro movie
-  const u8* storePairedS16Slow;
+  const u8 *storePairedS16; // Used by Viewtiful Joe's intro movie
+  const u8 *storePairedS16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -429,8 +432,8 @@ void JitArm64::GenerateCommonAsm()
     BR(X2);
   }
 
-  const u8* storeSingleFloat;
-  const u8* storeSingleFloatSlow;
+  const u8 *storeSingleFloat;
+  const u8 *storeSingleFloatSlow;
   {
     storeSingleFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
@@ -443,8 +446,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)&PowerPC::Write_U32);
     BR(X2);
   }
-  const u8* storeSingleU8;  // Used by MKWii
-  const u8* storeSingleU8Slow;
+  const u8 *storeSingleU8; // Used by MKWii
+  const u8 *storeSingleU8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -469,8 +472,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)&PowerPC::Write_U8);
     BR(X2);
   }
-  const u8* storeSingleS8;
-  const u8* storeSingleS8Slow;
+  const u8 *storeSingleS8;
+  const u8 *storeSingleS8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -495,8 +498,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)&PowerPC::Write_U8);
     BR(X2);
   }
-  const u8* storeSingleU16;  // Used by MKWii
-  const u8* storeSingleU16Slow;
+  const u8 *storeSingleU16; // Used by MKWii
+  const u8 *storeSingleU16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -521,8 +524,8 @@ void JitArm64::GenerateCommonAsm()
     MOVI2R(X2, (u64)&PowerPC::Write_U16);
     BR(X2);
   }
-  const u8* storeSingleS16;
-  const u8* storeSingleS16Slow;
+  const u8 *storeSingleS16;
+  const u8 *storeSingleS16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
       MOVI2R(X2, (u64)&m_quantizeTableS);
@@ -550,8 +553,9 @@ void JitArm64::GenerateCommonAsm()
 
   JitRegister::Register(start, GetCodePtr(), "JIT_QuantizedStore");
 
-  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
-  ReserveCodeSpace(32 * sizeof(u8*));
+  pairedStoreQuantized =
+      reinterpret_cast<const u8 **>(const_cast<u8 *>(AlignCode16()));
+  ReserveCodeSpace(32 * sizeof(u8 *));
 
   // Fast
   pairedStoreQuantized[0] = storePairedFloat;
@@ -595,35 +599,30 @@ void JitArm64::GenerateCommonAsm()
   GenMfcr();
 }
 
-void JitArm64::GenMfcr()
-{
+void JitArm64::GenMfcr() {
   // Input: Nothing
   // Returns: W0
   // Clobbers: X1, X2
-  const u8* start = GetCodePtr();
-  for (int i = 0; i < 8; i++)
-  {
+  const u8 *start = GetCodePtr();
+  for (int i = 0; i < 8; i++) {
     LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * i);
 
     // SO
-    if (i == 0)
-    {
+    if (i == 0) {
       UBFX(X0, X1, 61, 1);
-    }
-    else
-    {
+    } else {
       ORR(W0, WZR, W0, ArithOption(W0, ST_LSL, 4));
       UBFX(X2, X1, 61, 1);
       ORR(X0, X0, X2);
     }
 
     // EQ
-    ORR(W2, W0, 32 - 1, 0);  // W0 | 1<<1
+    ORR(W2, W0, 32 - 1, 0); // W0 | 1<<1
     CMP(W1, WZR);
     CSEL(W0, W2, W0, CC_EQ);
 
     // GT
-    ORR(W2, W0, 32 - 2, 0);  // W0 | 1<<2
+    ORR(W2, W0, 32 - 2, 0); // W0 | 1<<2
     CMP(X1, ZR);
     CSEL(W0, W2, W0, CC_GT);
 

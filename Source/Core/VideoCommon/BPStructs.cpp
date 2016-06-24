@@ -224,8 +224,7 @@ static void BPWritten(const BPCmd &bp) {
     {
       // The bottom right is within the rectangle
       // The values in bpmem.copyTexSrcXY and bpmem.copyTexSrcWH are updated in
-      // case 0x49 and 0x4a in
-      // this function
+      // case 0x49 and 0x4a in this function
 
       u32 destAddr = bpmem.copyTexDest << 5;
       u32 destStride = bpmem.copyMipMapStrideChannels << 5;
@@ -235,8 +234,7 @@ static void BPWritten(const BPCmd &bp) {
       srcRect.top = (int)bpmem.copyTexSrcXY.y;
 
       // Here Width+1 like Height, otherwise some textures are corrupted already
-      // since the native
-      // resolution.
+      // since the native resolution.
       // TODO: What's the behavior of out of bound access?
       srcRect.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
       srcRect.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
@@ -247,8 +245,7 @@ static void BPWritten(const BPCmd &bp) {
       if (PE_copy.copy_to_xfb == 0) {
         // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants
         // to
-        // copy from ZBuffer
-        // (Zbuffer uses 24-bit Format)
+        // copy from ZBuffer (Zbuffer uses 24-bit Format)
         TextureCacheBase::CopyRenderTargetToTexture(
             destAddr, PE_copy.tp_realFormat(), destStride,
             bpmem.zcontrol.pixel_format, srcRect, !!PE_copy.intensity_fmt,
@@ -277,9 +274,9 @@ static void BPWritten(const BPCmd &bp) {
           height = MAX_XFB_HEIGHT;
         }
 
-        DEBUG_LOG(VIDEO, "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} "
-                         "| fbWidth: %u | "
-                         "fbStride: %u | fbHeight: %u",
+        DEBUG_LOG(VIDEO,
+                  "RenderToXFB: destAddr: %08x | srcRect {%d %d %d %d} | "
+                  "fbWidth: %u | fbStride: %u | fbHeight: %u",
                   destAddr, srcRect.left, srcRect.top, srcRect.right,
                   srcRect.bottom, bpmem.copyTexSrcWH.x + 1, destStride, height);
         Renderer::RenderToXFB(destAddr, srcRect, destStride, height,

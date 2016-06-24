@@ -12,13 +12,10 @@
 #include "Common/Timer.h"
 #include "VideoCommon/VideoCommon.h"
 
-class PostProcessingShaderConfiguration
-{
+class PostProcessingShaderConfiguration {
 public:
-  struct ConfigurationOption
-  {
-    enum OptionType
-    {
+  struct ConfigurationOption {
+    enum OptionType {
       OPTION_BOOL = 0,
       OPTION_FLOAT,
       OPTION_INTEGER,
@@ -51,7 +48,8 @@ public:
   PostProcessingShaderConfiguration() : m_current_shader("") {}
   virtual ~PostProcessingShaderConfiguration() {}
   // Loads the configuration with a shader
-  // If the argument is "" the class will load the shader from the g_activeConfig option.
+  // If the argument is "" the class will load the shader from the
+  // g_activeConfig option.
   // Returns the loaded shader source from file
   std::string LoadShader(std::string shader = "");
   void SaveOptionsConfiguration();
@@ -60,32 +58,34 @@ public:
   bool IsDirty() { return m_any_options_dirty; }
   void SetDirty(bool dirty) { m_any_options_dirty = dirty; }
   bool HasOptions() { return m_options.size() > 0; }
-  ConfigMap& GetOptions() { return m_options; }
-  const ConfigurationOption& GetOption(const std::string& option) { return m_options[option]; }
+  ConfigMap &GetOptions() { return m_options; }
+  const ConfigurationOption &GetOption(const std::string &option) {
+    return m_options[option];
+  }
   // For updating option's values
-  void SetOptionf(const std::string& option, int index, float value);
-  void SetOptioni(const std::string& option, int index, s32 value);
-  void SetOptionb(const std::string& option, bool value);
+  void SetOptionf(const std::string &option, int index, float value);
+  void SetOptioni(const std::string &option, int index, s32 value);
+  void SetOptionb(const std::string &option, bool value);
 
 private:
   bool m_any_options_dirty;
   std::string m_current_shader;
   ConfigMap m_options;
 
-  void LoadOptions(const std::string& code);
+  void LoadOptions(const std::string &code);
   void LoadOptionsConfiguration();
 };
 
-class PostProcessingShaderImplementation
-{
+class PostProcessingShaderImplementation {
 public:
   PostProcessingShaderImplementation();
   virtual ~PostProcessingShaderImplementation();
 
-  PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
+  PostProcessingShaderConfiguration *GetConfig() { return &m_config; }
   // Should be implemented by the backends for backend specific code
-  virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst, int src_texture,
-                               int src_width, int src_height, int layer = 0) = 0;
+  virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst,
+                               int src_texture, int src_width, int src_height,
+                               int layer = 0) = 0;
   virtual void ApplyShader() = 0;
 
 protected:

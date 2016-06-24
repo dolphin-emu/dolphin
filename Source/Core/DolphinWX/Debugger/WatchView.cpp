@@ -20,63 +20,48 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/WxUtils.h"
 
-enum
-{
+enum {
   IDM_DELETEWATCH = 1,
   IDM_ADDMEMCHECK,
   IDM_VIEWMEMORY,
 };
 
-static std::string GetWatchName(int count)
-{
+static std::string GetWatchName(int count) {
   return PowerPC::watches.GetWatches().at(count - 1).name;
 }
 
-static u32 GetWatchAddr(int count)
-{
+static u32 GetWatchAddr(int count) {
   return PowerPC::watches.GetWatches().at(count - 1).iAddress;
 }
 
-static u32 GetWatchValue(int count)
-{
+static u32 GetWatchValue(int count) {
   return PowerPC::HostRead_U32(GetWatchAddr(count));
 }
 
-static void AddWatchAddr(int count, u32 value)
-{
-  PowerPC::watches.Add(value);
-}
+static void AddWatchAddr(int count, u32 value) { PowerPC::watches.Add(value); }
 
-static void UpdateWatchAddr(int count, u32 value)
-{
+static void UpdateWatchAddr(int count, u32 value) {
   PowerPC::watches.Update(count - 1, value);
 }
 
-static void SetWatchName(int count, const std::string& value)
-{
-  if ((count - 1) < (int)PowerPC::watches.GetWatches().size())
-  {
+static void SetWatchName(int count, const std::string &value) {
+  if ((count - 1) < (int)PowerPC::watches.GetWatches().size()) {
     PowerPC::watches.UpdateName(count - 1, value);
-  }
-  else
-  {
+  } else {
     PowerPC::watches.Add(0);
-    PowerPC::watches.UpdateName(PowerPC::watches.GetWatches().size() - 1, value);
+    PowerPC::watches.UpdateName(PowerPC::watches.GetWatches().size() - 1,
+                                value);
   }
 }
 
-static void SetWatchValue(int count, u32 value)
-{
+static void SetWatchValue(int count, u32 value) {
   PowerPC::HostWrite_U32(value, GetWatchAddr(count));
 }
 
-static wxString GetValueByRowCol(int row, int col)
-{
-  if (row == 0)
-  {
+static wxString GetValueByRowCol(int row, int col) {
+  if (row == 0) {
     // Column Labels
-    switch (col)
-    {
+    switch (col) {
     case 0:
       return _("Label");
     case 1:
@@ -90,13 +75,9 @@ static wxString GetValueByRowCol(int row, int col)
     default:
       return wxEmptyString;
     }
-  }
-  else if (row <= (int)PowerPC::watches.GetWatches().size())
-  {
-    if (Core::IsRunning())
-    {
-      switch (col)
-      {
+  } else if (row <= (int)PowerPC::watches.GetWatches().size()) {
+    if (Core::IsRunning()) {
+      switch (col) {
       case 0:
         return wxString::Format("%s", GetWatchName(row));
       case 1:
@@ -105,8 +86,7 @@ static wxString GetValueByRowCol(int row, int col)
         return wxString::Format("%08x", GetWatchValue(row));
       case 3:
         return wxString::Format("%u", GetWatchValue(row));
-      case 4:
-      {
+      case 4: {
         u32 addr = GetWatchAddr(row);
         if (PowerPC::HostIsRAMAddress(addr))
           return PowerPC::HostGetString(addr, 32).c_str();
@@ -121,40 +101,29 @@ static wxString GetValueByRowCol(int row, int col)
   return wxEmptyString;
 }
 
-wxString CWatchTable::GetValue(int row, int col)
-{
+wxString CWatchTable::GetValue(int row, int col) {
   return GetValueByRowCol(row, col);
 }
 
-void CWatchTable::SetValue(int row, int col, const wxString& strNewVal)
-{
+void CWatchTable::SetValue(int row, int col, const wxString &strNewVal) {
   u32 newVal = 0;
-  if (col == 0 || TryParse("0x" + WxStrToStr(strNewVal), &newVal))
-  {
-    if (row > 0)
-    {
-      switch (col)
-      {
-      case 0:
-      {
+  if (col == 0 || TryParse("0x" + WxStrToStr(strNewVal), &newVal)) {
+    if (row > 0) {
+      switch (col) {
+      case 0: {
         SetWatchName(row, std::string(WxStrToStr(strNewVal)));
         break;
       }
-      case 1:
-      {
-        if (row > (int)PowerPC::watches.GetWatches().size())
-        {
+      case 1: {
+        if (row > (int)PowerPC::watches.GetWatches().size()) {
           AddWatchAddr(row, newVal);
           row = (int)PowerPC::watches.GetWatches().size();
-        }
-        else
-        {
+        } else {
           UpdateWatchAddr(row, newVal);
         }
         break;
       }
-      case 2:
-      {
+      case 2: {
         SetWatchValue(row, newVal);
         break;
       }
@@ -165,24 +134,21 @@ void CWatchTable::SetValue(int row, int col, const wxString& strNewVal)
   }
 }
 
-void CWatchTable::UpdateWatch()
-{
-  for (int i = 0; i < (int)PowerPC::watches.GetWatches().size(); ++i)
-  {
+void CWatchTable::UpdateWatch() {
+  for (int i = 0; i < (int)PowerPC::watches.GetWatches().size(); ++i) {
     m_CachedWatchHasChanged[i] = (m_CachedWatch[i] != GetWatchValue(i + 1));
     m_CachedWatch[i] = GetWatchValue(i + 1);
   }
 }
 
-wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
-{
-  wxGridCellAttr* attr = new wxGridCellAttr();
+wxGridCellAttr *CWatchTable::GetAttr(int row, int col,
+                                     wxGridCellAttr::wxAttrKind) {
+  wxGridCellAttr *attr = new wxGridCellAttr();
 
   attr->SetBackgroundColour(*wxWHITE);
   attr->SetFont(DebuggerFont);
 
-  switch (col)
-  {
+  switch (col) {
   case 1:
     attr->SetAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
     break;
@@ -195,22 +161,19 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
     break;
   }
 
-  if (row == 0)
-  {
+  if (row == 0) {
     attr->SetReadOnly(true);
     attr->SetBackgroundColour(*wxBLACK);
     attr->SetTextColour(*wxWHITE);
-  }
-  else
-  {
+  } else {
     bool red = false;
     if (col == 1)
       red = m_CachedWatchHasChanged[row];
 
     attr->SetTextColour(red ? *wxRED : *wxBLACK);
 
-    if (row > (int)(PowerPC::watches.GetWatches().size() + 1) || !Core::IsRunning())
-    {
+    if (row > (int)(PowerPC::watches.GetWatches().size() + 1) ||
+        !Core::IsRunning()) {
       attr->SetReadOnly(true);
       attr->SetBackgroundColour(*wxLIGHT_GREY);
     }
@@ -219,8 +182,7 @@ wxGridCellAttr* CWatchTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKin
   return attr;
 }
 
-CWatchView::CWatchView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
-{
+CWatchView::CWatchView(wxWindow *parent, wxWindowID id) : wxGrid(parent, id) {
   m_watch_table = new CWatchTable();
 
   SetTable(m_watch_table, true);
@@ -232,25 +194,21 @@ CWatchView::CWatchView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
   Bind(wxEVT_MENU, &CWatchView::OnPopupMenu, this);
 }
 
-void CWatchView::Update()
-{
-  if (Core::IsRunning())
-  {
+void CWatchView::Update() {
+  if (Core::IsRunning()) {
     m_watch_table->UpdateWatch();
     ForceRefresh();
   }
 }
 
-void CWatchView::OnMouseDownR(wxGridEvent& event)
-{
+void CWatchView::OnMouseDownR(wxGridEvent &event) {
   // popup menu
   int row = event.GetRow();
   int col = event.GetCol();
 
   m_selectedRow = row;
 
-  if (col == 1 || col == 2)
-  {
+  if (col == 1 || col == 2) {
     wxString strNewVal = GetValueByRowCol(row, col);
     TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
   }
@@ -259,8 +217,8 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
   if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
     menu.Append(IDM_DELETEWATCH, _("&Delete watch"));
 
-  if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
-  {
+  if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) &&
+      (col == 1 || col == 2)) {
 #ifdef ENABLE_MEM_CHECK
     menu.Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
 #endif
@@ -269,23 +227,20 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
   PopupMenu(&menu);
 }
 
-void CWatchView::OnPopupMenu(wxCommandEvent& event)
-{
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
-  CMemoryWindow* memory_window = code_window->m_MemoryWindow;
-  CBreakPointWindow* breakpoint_window = code_window->m_BreakpointWindow;
+void CWatchView::OnPopupMenu(wxCommandEvent &event) {
+  CFrame *main_frame = static_cast<CFrame *>(GetGrandParent()->GetParent());
+  CCodeWindow *code_window = main_frame->g_pCodeWindow;
+  CWatchWindow *watch_window = code_window->m_WatchWindow;
+  CMemoryWindow *memory_window = code_window->m_MemoryWindow;
+  CBreakPointWindow *breakpoint_window = code_window->m_BreakpointWindow;
 
   wxString strNewVal;
   TMemCheck MemCheck;
 
-  switch (event.GetId())
-  {
+  switch (event.GetId()) {
   case IDM_DELETEWATCH:
     strNewVal = GetValueByRowCol(m_selectedRow, 1);
-    if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
-    {
+    if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress)) {
       PowerPC::watches.Remove(m_selectedAddress);
       if (watch_window)
         watch_window->NotifyUpdate();

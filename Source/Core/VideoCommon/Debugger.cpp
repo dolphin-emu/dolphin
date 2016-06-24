@@ -12,16 +12,15 @@
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/VideoConfig.h"
 
-GFXDebuggerBase* g_pdebugger = nullptr;
+GFXDebuggerBase *g_pdebugger = nullptr;
 volatile bool GFXDebuggerPauseFlag =
-    false;  // if true, the GFX thread will be spin locked until it's false again
+    false; // if true, the GFX thread will be spin locked until it's false again
 volatile PauseEvent GFXDebuggerToPauseAtNext =
-    NOT_PAUSE;  // Event which will trigger spin locking the GFX thread
+    NOT_PAUSE; // Event which will trigger spin locking the GFX thread
 volatile int GFXDebuggerEventToPauseCount =
-    0;  // Number of events to wait for until GFX thread will be paused
+    0; // Number of events to wait for until GFX thread will be paused
 
-void GFXDebuggerUpdateScreen()
-{
+void GFXDebuggerUpdateScreen() {
   // TODO: Implement this in a backend-independent way
   /*	// update screen
     if (D3D::bFrameInProgress)
@@ -49,13 +48,10 @@ void GFXDebuggerUpdateScreen()
 }
 
 // GFX thread
-void GFXDebuggerCheckAndPause(bool update)
-{
-  if (GFXDebuggerPauseFlag)
-  {
+void GFXDebuggerCheckAndPause(bool update) {
+  if (GFXDebuggerPauseFlag) {
     g_pdebugger->OnPause();
-    while (GFXDebuggerPauseFlag)
-    {
+    while (GFXDebuggerPauseFlag) {
       if (update)
         GFXDebuggerUpdateScreen();
       Common::SleepCurrentThread(5);
@@ -65,46 +61,37 @@ void GFXDebuggerCheckAndPause(bool update)
 }
 
 // GFX thread
-void GFXDebuggerToPause(bool update)
-{
+void GFXDebuggerToPause(bool update) {
   GFXDebuggerToPauseAtNext = NOT_PAUSE;
   GFXDebuggerPauseFlag = true;
   GFXDebuggerCheckAndPause(update);
 }
 
-void ContinueGFXDebugger()
-{
-  GFXDebuggerPauseFlag = false;
-}
+void ContinueGFXDebugger() { GFXDebuggerPauseFlag = false; }
 
-void GFXDebuggerBase::DumpPixelShader(const std::string& path)
-{
+void GFXDebuggerBase::DumpPixelShader(const std::string &path) {
   const std::string filename = StringFromFormat("%sdump_ps.txt", path.c_str());
 
   std::string output;
   bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
                      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  if (!useDstAlpha)
-  {
+  if (!useDstAlpha) {
     output = "Destination alpha disabled:\n";
-    ///		output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType,
-    /// g_nativeVertexFmt->m_components);
-  }
-  else
-  {
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-    {
+    ///		output += GeneratePixelShaderCode(DSTALPHA_NONE,
+    /// g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
+  } else {
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend) {
       output = "Using dual source blending for destination alpha:\n";
-      ///			output += GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND,
+      ///			output +=
+      /// GeneratePixelShaderCode(DSTALPHA_DUAL_SOURCE_BLEND,
       /// g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
-    }
-    else
-    {
+    } else {
       output = "Using two passes for emulating destination alpha:\n";
-      ///			output += GeneratePixelShaderCode(DSTALPHA_NONE, g_ActiveConfig.backend_info.APIType,
-      /// g_nativeVertexFmt->m_components);
+      ///			output += GeneratePixelShaderCode(DSTALPHA_NONE,
+      /// g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
       output += "\n\nDestination alpha pass shader:\n";
-      ///			output += GeneratePixelShaderCode(DSTALPHA_ALPHA_PASS,
+      ///			output +=
+      /// GeneratePixelShaderCode(DSTALPHA_ALPHA_PASS,
       /// g_ActiveConfig.backend_info.APIType, g_nativeVertexFmt->m_components);
     }
   }
@@ -113,8 +100,7 @@ void GFXDebuggerBase::DumpPixelShader(const std::string& path)
   File::WriteStringToFile(output, filename);
 }
 
-void GFXDebuggerBase::DumpVertexShader(const std::string& path)
-{
+void GFXDebuggerBase::DumpVertexShader(const std::string &path) {
   const std::string filename = StringFromFormat("%sdump_vs.txt", path.c_str());
 
   File::CreateEmptyFile(filename);
@@ -122,42 +108,34 @@ void GFXDebuggerBase::DumpVertexShader(const std::string& path)
   /// g_ActiveConfig.backend_info.APIType), filename);
 }
 
-void GFXDebuggerBase::DumpPixelShaderConstants(const std::string& path)
-{
+void GFXDebuggerBase::DumpPixelShaderConstants(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpVertexShaderConstants(const std::string& path)
-{
+void GFXDebuggerBase::DumpVertexShaderConstants(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpTextures(const std::string& path)
-{
+void GFXDebuggerBase::DumpTextures(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpFrameBuffer(const std::string& path)
-{
+void GFXDebuggerBase::DumpFrameBuffer(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpGeometry(const std::string& path)
-{
+void GFXDebuggerBase::DumpGeometry(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpVertexDecl(const std::string& path)
-{
+void GFXDebuggerBase::DumpVertexDecl(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpMatrices(const std::string& path)
-{
+void GFXDebuggerBase::DumpMatrices(const std::string &path) {
   // TODO
 }
 
-void GFXDebuggerBase::DumpStats(const std::string& path)
-{
+void GFXDebuggerBase::DumpStats(const std::string &path) {
   // TODO
 }

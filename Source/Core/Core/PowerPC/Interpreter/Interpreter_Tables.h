@@ -4,7 +4,6 @@
 
 #pragma once
 
-namespace InterpreterTables
-{
+namespace InterpreterTables {
 void InitTables();
 }

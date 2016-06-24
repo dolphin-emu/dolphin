@@ -26,46 +26,41 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
-class NullNativeVertexFormat : public NativeVertexFormat
-{
+class NullNativeVertexFormat : public NativeVertexFormat {
 public:
-  NullNativeVertexFormat(const PortableVertexDeclaration& _vtx_decl) { vtx_decl = _vtx_decl; }
+  NullNativeVertexFormat(const PortableVertexDeclaration &_vtx_decl) {
+    vtx_decl = _vtx_decl;
+  }
   void SetupVertexPointers() override {}
 };
 
-NativeVertexFormat*
-SWVertexLoader::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
-{
+NativeVertexFormat *SWVertexLoader::CreateNativeVertexFormat(
+    const PortableVertexDeclaration &vtx_decl) {
   return new NullNativeVertexFormat(vtx_decl);
 }
 
-SWVertexLoader::SWVertexLoader()
-{
+SWVertexLoader::SWVertexLoader() {
   LocalVBuffer.resize(MAXVBUFFERSIZE);
   LocalIBuffer.resize(MAXIBUFFERSIZE);
   m_SetupUnit = new SetupUnit;
 }
 
-SWVertexLoader::~SWVertexLoader()
-{
+SWVertexLoader::~SWVertexLoader() {
   delete m_SetupUnit;
   m_SetupUnit = nullptr;
 }
 
-void SWVertexLoader::ResetBuffer(u32 stride)
-{
+void SWVertexLoader::ResetBuffer(u32 stride) {
   s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer.data();
   s_pEndBufferPointer = s_pCurBufferPointer + LocalVBuffer.size();
   IndexGenerator::Start(GetIndexBuffer());
 }
 
-void SWVertexLoader::vFlush(bool useDstAlpha)
-{
+void SWVertexLoader::vFlush(bool useDstAlpha) {
   DebugUtil::OnObjectBegin();
 
   u8 primitiveType = 0;
-  switch (current_primitive_type)
-  {
+  switch (current_primitive_type) {
   case PRIMITIVE_POINTS:
     primitiveType = GX_DRAW_POINTS;
     break;
@@ -73,28 +68,30 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     primitiveType = GX_DRAW_LINES;
     break;
   case PRIMITIVE_TRIANGLES:
-    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GX_DRAW_TRIANGLE_STRIP :
-                                                                            GX_DRAW_TRIANGLES;
+    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart
+                        ? GX_DRAW_TRIANGLE_STRIP
+                        : GX_DRAW_TRIANGLES;
     break;
   }
 
   m_SetupUnit->Init(primitiveType);
 
   // set all states with are stored within video sw
-  for (int i = 0; i < 4; i++)
-  {
-    Rasterizer::SetTevReg(i, Tev::RED_C, PixelShaderManager::constants.kcolors[i][0]);
-    Rasterizer::SetTevReg(i, Tev::GRN_C, PixelShaderManager::constants.kcolors[i][1]);
-    Rasterizer::SetTevReg(i, Tev::BLU_C, PixelShaderManager::constants.kcolors[i][2]);
-    Rasterizer::SetTevReg(i, Tev::ALP_C, PixelShaderManager::constants.kcolors[i][3]);
+  for (int i = 0; i < 4; i++) {
+    Rasterizer::SetTevReg(i, Tev::RED_C,
+                          PixelShaderManager::constants.kcolors[i][0]);
+    Rasterizer::SetTevReg(i, Tev::GRN_C,
+                          PixelShaderManager::constants.kcolors[i][1]);
+    Rasterizer::SetTevReg(i, Tev::BLU_C,
+                          PixelShaderManager::constants.kcolors[i][2]);
+    Rasterizer::SetTevReg(i, Tev::ALP_C,
+                          PixelShaderManager::constants.kcolors[i][3]);
   }
 
-  for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++)
-  {
+  for (u32 i = 0; i < IndexGenerator::GetIndexLen(); i++) {
     u16 index = LocalIBuffer[i];
 
-    if (index == 0xffff)
-    {
+    if (index == 0xffff) {
       // primitive restart
       m_SetupUnit->Init(primitiveType);
       continue;
@@ -106,16 +103,20 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
 
     // parse the videocommon format to our own struct format (m_Vertex)
     SetFormat(g_main_cp_state.last_id, primitiveType);
-    ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
+    ParseVertex(
+        VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(),
+        index);
 
-    // transform this vertex so that it can be used for rasterization (outVertex)
-    OutputVertexData* outVertex = m_SetupUnit->GetVertex();
+    // transform this vertex so that it can be used for rasterization
+    // (outVertex)
+    OutputVertexData *outVertex = m_SetupUnit->GetVertex();
     TransformUnit::TransformPosition(&m_Vertex, outVertex);
     memset(&outVertex->normal, 0, sizeof(outVertex->normal));
-    if (VertexLoaderManager::g_current_components & VB_HAS_NRM0)
-    {
+    if (VertexLoaderManager::g_current_components & VB_HAS_NRM0) {
       TransformUnit::TransformNormal(
-          &m_Vertex, (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0, outVertex);
+          &m_Vertex,
+          (VertexLoaderManager::g_current_components & VB_HAS_NRM2) != 0,
+          outVertex);
     }
     TransformUnit::TransformColor(&m_Vertex, outVertex);
     TransformUnit::TransformTexCoord(&m_Vertex, outVertex, m_TexGenSpecialCase);
@@ -129,19 +130,26 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
   DebugUtil::OnObjectEnd();
 }
 
-void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
-{
+void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType) {
   // matrix index from xf regs or cp memory?
-  if (xfmem.MatrixIndexA.PosNormalMtxIdx != g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
-      xfmem.MatrixIndexA.Tex0MtxIdx != g_main_cp_state.matrix_index_a.Tex0MtxIdx ||
-      xfmem.MatrixIndexA.Tex1MtxIdx != g_main_cp_state.matrix_index_a.Tex1MtxIdx ||
-      xfmem.MatrixIndexA.Tex2MtxIdx != g_main_cp_state.matrix_index_a.Tex2MtxIdx ||
-      xfmem.MatrixIndexA.Tex3MtxIdx != g_main_cp_state.matrix_index_a.Tex3MtxIdx ||
-      xfmem.MatrixIndexB.Tex4MtxIdx != g_main_cp_state.matrix_index_b.Tex4MtxIdx ||
-      xfmem.MatrixIndexB.Tex5MtxIdx != g_main_cp_state.matrix_index_b.Tex5MtxIdx ||
-      xfmem.MatrixIndexB.Tex6MtxIdx != g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
-      xfmem.MatrixIndexB.Tex7MtxIdx != g_main_cp_state.matrix_index_b.Tex7MtxIdx)
-  {
+  if (xfmem.MatrixIndexA.PosNormalMtxIdx !=
+          g_main_cp_state.matrix_index_a.PosNormalMtxIdx ||
+      xfmem.MatrixIndexA.Tex0MtxIdx !=
+          g_main_cp_state.matrix_index_a.Tex0MtxIdx ||
+      xfmem.MatrixIndexA.Tex1MtxIdx !=
+          g_main_cp_state.matrix_index_a.Tex1MtxIdx ||
+      xfmem.MatrixIndexA.Tex2MtxIdx !=
+          g_main_cp_state.matrix_index_a.Tex2MtxIdx ||
+      xfmem.MatrixIndexA.Tex3MtxIdx !=
+          g_main_cp_state.matrix_index_a.Tex3MtxIdx ||
+      xfmem.MatrixIndexB.Tex4MtxIdx !=
+          g_main_cp_state.matrix_index_b.Tex4MtxIdx ||
+      xfmem.MatrixIndexB.Tex5MtxIdx !=
+          g_main_cp_state.matrix_index_b.Tex5MtxIdx ||
+      xfmem.MatrixIndexB.Tex6MtxIdx !=
+          g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
+      xfmem.MatrixIndexB.Tex7MtxIdx !=
+          g_main_cp_state.matrix_index_b.Tex7MtxIdx) {
     ERROR_LOG(VIDEO, "Matrix indices don't match");
   }
 
@@ -157,16 +165,15 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
   // special case if only pos and tex coord 0 and tex coord input is AB11
   // http://libogc.devkitpro.org/gx_8h.html#a55a426a3ff796db584302bddd829f002
-  m_TexGenSpecialCase = VertexLoaderManager::g_current_components == VB_HAS_UV0 &&
-                        xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST;
+  m_TexGenSpecialCase =
+      VertexLoaderManager::g_current_components == VB_HAS_UV0 &&
+      xfmem.texMtxInfo[0].projection == XF_TEXPROJ_ST;
 }
 
-template <typename T, typename I>
-static T ReadNormalized(I value)
-{
+template <typename T, typename I> static T ReadNormalized(I value) {
   T casted = (T)value;
-  if (!std::numeric_limits<T>::is_integer && std::numeric_limits<I>::is_integer)
-  {
+  if (!std::numeric_limits<T>::is_integer &&
+      std::numeric_limits<I>::is_integer) {
     // normalize if non-float is converted to a float
     casted *= (T)(1.0 / std::numeric_limits<I>::max());
   }
@@ -174,20 +181,18 @@ static T ReadNormalized(I value)
 }
 
 template <typename T, bool swap = false>
-static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& format,
-                                int base_component, int components, bool reverse)
-{
-  if (format.enable)
-  {
+static void
+ReadVertexAttribute(T *dst, DataReader src, const AttributeFormat &format,
+                    int base_component, int components, bool reverse) {
+  if (format.enable) {
     src.Skip(format.offset);
     src.Skip(base_component * (1 << (format.type >> 1)));
 
     int i;
-    for (i = 0; i < std::min(format.components - base_component, components); i++)
-    {
+    for (i = 0; i < std::min(format.components - base_component, components);
+         i++) {
       int i_dst = reverse ? components - i - 1 : i;
-      switch (format.type)
-      {
+      switch (format.type) {
       case VAR_UNSIGNED_BYTE:
         dst[i_dst] = ReadNormalized<T, u8>(src.Read<u8, swap>());
         break;
@@ -205,42 +210,43 @@ static void ReadVertexAttribute(T* dst, DataReader src, const AttributeFormat& f
         break;
       }
 
-      _assert_msg_(VIDEO, !format.integer || format.type != VAR_FLOAT,
-                   "only non-float values are allowed to be streamed as integer");
+      _assert_msg_(
+          VIDEO, !format.integer || format.type != VAR_FLOAT,
+          "only non-float values are allowed to be streamed as integer");
     }
-    for (; i < components; i++)
-    {
+    for (; i < components; i++) {
       int i_dst = reverse ? components - i - 1 : i;
       dst[i_dst] = i == 3;
     }
   }
 }
 
-void SWVertexLoader::ParseVertex(const PortableVertexDeclaration& vdec, int index)
-{
-  DataReader src(LocalVBuffer.data(), LocalVBuffer.data() + LocalVBuffer.size());
+void SWVertexLoader::ParseVertex(const PortableVertexDeclaration &vdec,
+                                 int index) {
+  DataReader src(LocalVBuffer.data(),
+                 LocalVBuffer.data() + LocalVBuffer.size());
   src.Skip(index * vdec.stride);
 
-  ReadVertexAttribute<float>(&m_Vertex.position[0], src, vdec.position, 0, 3, false);
+  ReadVertexAttribute<float>(&m_Vertex.position[0], src, vdec.position, 0, 3,
+                             false);
 
-  for (int i = 0; i < 3; i++)
-  {
-    ReadVertexAttribute<float>(&m_Vertex.normal[i][0], src, vdec.normals[i], 0, 3, false);
+  for (int i = 0; i < 3; i++) {
+    ReadVertexAttribute<float>(&m_Vertex.normal[i][0], src, vdec.normals[i], 0,
+                               3, false);
   }
 
-  for (int i = 0; i < 2; i++)
-  {
+  for (int i = 0; i < 2; i++) {
     ReadVertexAttribute<u8>(m_Vertex.color[i], src, vdec.colors[i], 0, 4, true);
   }
 
-  for (int i = 0; i < 8; i++)
-  {
-    ReadVertexAttribute<float>(m_Vertex.texCoords[i], src, vdec.texcoords[i], 0, 2, false);
+  for (int i = 0; i < 8; i++) {
+    ReadVertexAttribute<float>(m_Vertex.texCoords[i], src, vdec.texcoords[i], 0,
+                               2, false);
 
     // the texmtr is stored as third component of the texCoord
-    if (vdec.texcoords[i].components >= 3)
-    {
-      ReadVertexAttribute<u8>(&m_Vertex.texMtx[i], src, vdec.texcoords[i], 2, 1, false);
+    if (vdec.texcoords[i].components >= 3) {
+      ReadVertexAttribute<u8>(&m_Vertex.texMtx[i], src, vdec.texcoords[i], 2, 1,
+                              false);
     }
   }
 

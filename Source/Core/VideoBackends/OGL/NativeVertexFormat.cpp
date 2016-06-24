@@ -15,40 +15,36 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexShaderGen.h"
 
-// Here's some global state. We only use this to keep track of what we've sent to the OpenGL state
+// Here's some global state. We only use this to keep track of what we've sent
+// to the OpenGL state
 // machine.
 
-namespace OGL
-{
-NativeVertexFormat*
-VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
-{
+namespace OGL {
+NativeVertexFormat *VertexManager::CreateNativeVertexFormat(
+    const PortableVertexDeclaration &vtx_decl) {
   return new GLVertexFormat(vtx_decl);
 }
 
-static inline GLuint VarToGL(VarType t)
-{
-  static const GLuint lookup[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT, GL_SHORT,
-                                   GL_FLOAT};
+static inline GLuint VarToGL(VarType t) {
+  static const GLuint lookup[5] = {GL_UNSIGNED_BYTE, GL_BYTE, GL_UNSIGNED_SHORT,
+                                   GL_SHORT, GL_FLOAT};
   return lookup[t];
 }
 
-static void SetPointer(u32 attrib, u32 stride, const AttributeFormat& format)
-{
+static void SetPointer(u32 attrib, u32 stride, const AttributeFormat &format) {
   if (!format.enable)
     return;
 
   glEnableVertexAttribArray(attrib);
   if (format.integer)
-    glVertexAttribIPointer(attrib, format.components, VarToGL(format.type), stride,
-                           (u8*)nullptr + format.offset);
+    glVertexAttribIPointer(attrib, format.components, VarToGL(format.type),
+                           stride, (u8 *)nullptr + format.offset);
   else
-    glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true, stride,
-                          (u8*)nullptr + format.offset);
+    glVertexAttribPointer(attrib, format.components, VarToGL(format.type), true,
+                          stride, (u8 *)nullptr + format.offset);
 }
 
-GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
-{
+GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration &_vtx_decl) {
   this->vtx_decl = _vtx_decl;
   u32 vertex_stride = _vtx_decl.stride;
 
@@ -56,12 +52,14 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
   if (vertex_stride & 3)
     PanicAlert("Uneven vertex stride: %i", vertex_stride);
 
-  VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
+  VertexManager *const vm =
+      static_cast<VertexManager *>(g_vertex_manager.get());
 
   glGenVertexArrays(1, &VAO);
   glBindVertexArray(VAO);
 
-  // the element buffer is bound directly to the vao, so we must it set for every vao
+  // the element buffer is bound directly to the vao, so we must it set for
+  // every vao
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vm->m_index_buffers);
   glBindBuffer(GL_ARRAY_BUFFER, vm->m_vertex_buffers);
 
@@ -74,19 +72,15 @@ GLVertexFormat::GLVertexFormat(const PortableVertexDeclaration& _vtx_decl)
     SetPointer(SHADER_COLOR0_ATTRIB + i, vertex_stride, _vtx_decl.colors[i]);
 
   for (int i = 0; i < 8; i++)
-    SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride, _vtx_decl.texcoords[i]);
+    SetPointer(SHADER_TEXTURE0_ATTRIB + i, vertex_stride,
+               _vtx_decl.texcoords[i]);
 
   SetPointer(SHADER_POSMTX_ATTRIB, vertex_stride, _vtx_decl.posmtx);
 
   vm->m_last_vao = VAO;
 }
 
-GLVertexFormat::~GLVertexFormat()
-{
-  glDeleteVertexArrays(1, &VAO);
-}
+GLVertexFormat::~GLVertexFormat() { glDeleteVertexArrays(1, &VAO); }
 
-void GLVertexFormat::SetupVertexPointers()
-{
-}
+void GLVertexFormat::SetupVertexPointers() {}
 }

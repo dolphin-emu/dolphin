@@ -6,21 +6,16 @@
 
 #include "Common/CommonTypes.h"
 
-class AVIDump
-{
+class AVIDump {
 private:
   static bool CreateFile();
   static void CloseFile();
 
 public:
-  enum class DumpFormat
-  {
-    FORMAT_BGR,
-    FORMAT_RGBA
-  };
+  enum class DumpFormat { FORMAT_BGR, FORMAT_RGBA };
 
   static bool Start(int w, int h, DumpFormat format);
-  static void AddFrame(const u8* data, int width, int height);
+  static void AddFrame(const u8 *data, int width, int height);
   static void Stop();
   static void DoState();
 };

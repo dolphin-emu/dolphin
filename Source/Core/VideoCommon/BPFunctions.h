@@ -12,8 +12,7 @@
 
 struct BPCmd;
 
-namespace BPFunctions
-{
+namespace BPFunctions {
 void FlushPipeline();
 void SetGenerationMode();
 void SetScissor();
@@ -22,7 +21,7 @@ void SetBlendMode();
 void SetDitherMode();
 void SetLogicOpMode();
 void SetColorMask();
-void ClearScreen(const EFBRectangle& rc);
+void ClearScreen(const EFBRectangle &rc);
 void OnPixelFormatChange();
-void SetInterlacingMode(const BPCmd& bp);
+void SetInterlacingMode(const BPCmd &bp);
 }

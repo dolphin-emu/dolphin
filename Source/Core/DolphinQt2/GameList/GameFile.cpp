@@ -17,33 +17,27 @@
 #include "DolphinQt2/Resources.h"
 #include "DolphinQt2/Settings.h"
 
-static const int CACHE_VERSION = 13;  // Last changed in PR #3261
+static const int CACHE_VERSION = 13; // Last changed in PR #3261
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;
 
-static QMap<DiscIO::IVolume::ELanguage, QString>
-ConvertLanguageMap(const std::map<DiscIO::IVolume::ELanguage, std::string>& map)
-{
+static QMap<DiscIO::IVolume::ELanguage, QString> ConvertLanguageMap(
+    const std::map<DiscIO::IVolume::ELanguage, std::string> &map) {
   QMap<DiscIO::IVolume::ELanguage, QString> result;
   for (auto entry : map)
     result.insert(entry.first, QString::fromStdString(entry.second).trimmed());
   return result;
 }
 
-GameFile::GameFile(const QString& path) : m_path(path)
-{
+GameFile::GameFile(const QString &path) : m_path(path) {
   m_valid = false;
 
   if (!LoadFileInfo(path))
     return;
 
-  if (!TryLoadCache())
-  {
-    if (TryLoadVolume())
-    {
+  if (!TryLoadCache()) {
+    if (TryLoadVolume()) {
       LoadState();
-    }
-    else if (!TryLoadElfDol())
-    {
+    } else if (!TryLoadElfDol()) {
       return;
     }
   }
@@ -51,25 +45,24 @@ GameFile::GameFile(const QString& path) : m_path(path)
   m_valid = true;
 }
 
-QString GameFile::GetCacheFileName() const
-{
+QString GameFile::GetCacheFileName() const {
   QString folder = QString::fromStdString(File::GetUserPath(D_CACHE_IDX));
   // Append a hash of the full path to prevent name clashes between
   // files with the same names in different folders.
-  QString hash =
-      QString::fromUtf8(QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5).toHex());
+  QString hash = QString::fromUtf8(
+      QCryptographicHash::hash(m_path.toUtf8(), QCryptographicHash::Md5)
+          .toHex());
   return folder + m_file_name + hash;
 }
 
-void GameFile::ReadBanner(const DiscIO::IVolume& volume)
-{
+void GameFile::ReadBanner(const DiscIO::IVolume &volume) {
   int width, height;
   std::vector<u32> buffer = volume.GetBanner(&width, &height);
   QImage banner(width, height, QImage::Format_RGB888);
-  for (int i = 0; i < width * height; i++)
-  {
+  for (int i = 0; i < width * height; i++) {
     int x = i % width, y = i / width;
-    banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16, (buffer[i] & 0x00FF00) >> 8,
+    banner.setPixel(x, y, qRgb((buffer[i] & 0xFF0000) >> 16,
+                               (buffer[i] & 0x00FF00) >> 8,
                                (buffer[i] & 0x0000FF) >> 0));
   }
 
@@ -79,8 +72,7 @@ void GameFile::ReadBanner(const DiscIO::IVolume& volume)
     m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
 }
 
-bool GameFile::LoadFileInfo(const QString& path)
-{
+bool GameFile::LoadFileInfo(const QString &path) {
   QFileInfo info(path);
   if (!info.exists() || !info.isReadable())
     return false;
@@ -94,8 +86,7 @@ bool GameFile::LoadFileInfo(const QString& path)
   return true;
 }
 
-void GameFile::LoadState()
-{
+void GameFile::LoadState() {
   IniFile ini = SConfig::LoadGameIni(m_unique_id.toStdString(), m_revision);
   std::string issues_temp;
   ini.GetIfExists("EmuState", "EmulationStateId", &m_rating);
@@ -103,13 +94,12 @@ void GameFile::LoadState()
   m_issues = QString::fromStdString(issues_temp);
 }
 
-bool GameFile::IsElfOrDol()
-{
-  return m_extension == QStringLiteral("elf") || m_extension == QStringLiteral("dol");
+bool GameFile::IsElfOrDol() {
+  return m_extension == QStringLiteral("elf") ||
+         m_extension == QStringLiteral("dol");
 }
 
-bool GameFile::TryLoadCache()
-{
+bool GameFile::TryLoadCache() {
   QFile cache(GetCacheFileName());
   if (!cache.exists())
     return false;
@@ -129,8 +119,7 @@ bool GameFile::TryLoadCache()
   return false;
 }
 
-bool GameFile::TryLoadVolume()
-{
+bool GameFile::TryLoadVolume() {
   QSharedPointer<DiscIO::IVolume> volume(
       DiscIO::CreateVolumeFromFilename(m_path.toStdString()).release());
   if (volume == nullptr)
@@ -151,8 +140,8 @@ bool GameFile::TryLoadVolume()
   m_raw_size = volume->GetRawSize();
 
   if (m_company.isEmpty() && m_unique_id.size() >= 6)
-    m_company =
-        QString::fromStdString(DiscIO::GetCompanyFromID(m_unique_id.mid(4, 2).toStdString()));
+    m_company = QString::fromStdString(
+        DiscIO::GetCompanyFromID(m_unique_id.mid(4, 2).toStdString()));
 
   ReadBanner(*volume);
 
@@ -160,8 +149,7 @@ bool GameFile::TryLoadVolume()
   return true;
 }
 
-bool GameFile::TryLoadElfDol()
-{
+bool GameFile::TryLoadElfDol() {
   if (!IsElfOrDol())
     return false;
 
@@ -176,13 +164,12 @@ bool GameFile::TryLoadElfDol()
 
   return true;
 }
-void GameFile::SaveCache()
-{
+void GameFile::SaveCache() {
   // TODO
 }
 
-QString GameFile::GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const
-{
+QString GameFile::GetLanguageString(
+    const QMap<DiscIO::IVolume::ELanguage, QString> &m) const {
   // Try the settings language, then English, then just pick one.
   if (m.isEmpty())
     return QString();

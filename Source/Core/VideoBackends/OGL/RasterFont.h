@@ -8,17 +8,15 @@
 
 #include "Common/CommonTypes.h"
 
-namespace OGL
-{
-class RasterFont
-{
+namespace OGL {
+class RasterFont {
 public:
   RasterFont();
   ~RasterFont();
   static int debug;
 
-  void printMultilineText(const std::string& text, double x, double y, double z, int bbWidth,
-                          int bbHeight, u32 color);
+  void printMultilineText(const std::string &text, double x, double y, double z,
+                          int bbWidth, int bbHeight, u32 color);
 
 private:
   u32 VBO;

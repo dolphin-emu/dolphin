@@ -16,8 +16,7 @@ union UGeckoInstruction {
 
   UGeckoInstruction(u32 _hex) : hex(_hex) {}
   UGeckoInstruction() : hex(0) {}
-  struct
-  {
+  struct {
     // Record bit
     // 1, if the condition register should be updated by this instruction
     u32 Rc : 1;
@@ -31,8 +30,7 @@ union UGeckoInstruction {
     // Primary opcode
     u32 OPCD : 6;
   };
-  struct
-  {
+  struct {
     // Immediate, signed 16-bit
     signed SIMM_16 : 16;
     u32 : 5;
@@ -40,8 +38,7 @@ union UGeckoInstruction {
     u32 TO : 5;
     u32 OPCD_2 : 6;
   };
-  struct
-  {
+  struct {
     u32 Rc_2 : 1;
     u32 : 10;
     u32 : 5;
@@ -50,18 +47,17 @@ union UGeckoInstruction {
     u32 RS : 5;
     u32 OPCD_3 : 6;
   };
-  struct
-  {
+  struct {
     // Immediate, unsigned 16-bit
     u32 UIMM : 16;
     u32 : 5;
     u32 : 5;
     u32 OPCD_4 : 6;
   };
-  struct
-  {
+  struct {
     // Link bit
-    // 1, if branch instructions should put the address of the next instruction into the link
+    // 1, if branch instructions should put the address of the next instruction
+    // into the link
     // register
     u32 LK : 1;
     // Absolute address bit
@@ -71,8 +67,7 @@ union UGeckoInstruction {
     u32 LI : 24;
     u32 OPCD_5 : 6;
   };
-  struct
-  {
+  struct {
     u32 LK_2 : 1;
     u32 AA_2 : 1;
     // Branch displacement, signed 14-bit (right-extended by 0b00)
@@ -83,8 +78,7 @@ union UGeckoInstruction {
     u32 BO : 5;
     u32 OPCD_6 : 6;
   };
-  struct
-  {
+  struct {
     u32 LK_3 : 1;
     u32 : 10;
     u32 : 5;
@@ -92,8 +86,7 @@ union UGeckoInstruction {
     u32 BO_2 : 5;
     u32 OPCD_7 : 6;
   };
-  struct
-  {
+  struct {
     u32 : 11;
     u32 RB_2 : 5;
     u32 RA_2 : 5;
@@ -104,8 +97,7 @@ union UGeckoInstruction {
     u32 CRFD : 3;
     u32 OPCD_8 : 6;
   };
-  struct
-  {
+  struct {
     signed SIMM_16_2 : 16;
     u32 RA_3 : 5;
     u32 L_2 : 1;
@@ -113,8 +105,7 @@ union UGeckoInstruction {
     u32 CRFD_2 : 3;
     u32 OPCD_9 : 6;
   };
-  struct
-  {
+  struct {
     u32 UIMM_2 : 16;
     u32 RA_4 : 5;
     u32 L_3 : 1;
@@ -122,8 +113,7 @@ union UGeckoInstruction {
     u32 CRFD_3 : 3;
     u32 OPCD_A : 6;
   };
-  struct
-  {
+  struct {
     u32 : 1;
     u32 SUBOP10_2 : 10;
     u32 RB_5 : 5;
@@ -133,8 +123,7 @@ union UGeckoInstruction {
     u32 CRFD_4 : 3;
     u32 OPCD_B : 6;
   };
-  struct
-  {
+  struct {
     u32 : 16;
     // Segment register
     u32 SR : 4;
@@ -144,8 +133,7 @@ union UGeckoInstruction {
   };
 
   // Table 59
-  struct
-  {
+  struct {
     u32 Rc_4 : 1;
     u32 SUBOP5 : 5;
     // ?
@@ -156,8 +144,7 @@ union UGeckoInstruction {
     u32 OPCD_D : 6;
   };
 
-  struct
-  {
+  struct {
     u32 : 10;
     // Overflow enable
     u32 OE : 1;
@@ -165,8 +152,7 @@ union UGeckoInstruction {
     u32 SPR : 10;
     u32 : 11;
   };
-  struct
-  {
+  struct {
     u32 : 10;
     u32 OE_3 : 1;
     // Upper special-purpose register
@@ -177,8 +163,7 @@ union UGeckoInstruction {
   };
 
   // rlwinmx
-  struct
-  {
+  struct {
     u32 Rc_3 : 1;
     // Mask end
     u32 ME : 5;
@@ -190,8 +175,7 @@ union UGeckoInstruction {
   };
 
   // crxor
-  struct
-  {
+  struct {
     u32 : 11;
     // Source bit in the CR
     u32 CRBB : 5;
@@ -203,16 +187,14 @@ union UGeckoInstruction {
   };
 
   // mftb
-  struct
-  {
+  struct {
     u32 : 11;
     // Time base register
     u32 TBR : 10;
     u32 : 11;
   };
 
-  struct
-  {
+  struct {
     u32 : 11;
     // Upper time base register
     u32 TBRU : 5;
@@ -221,8 +203,7 @@ union UGeckoInstruction {
     u32 : 11;
   };
 
-  struct
-  {
+  struct {
     u32 : 18;
     // Source field in the CR or FPSCR
     u32 CRFS : 3;
@@ -231,8 +212,7 @@ union UGeckoInstruction {
     u32 : 6;
   };
 
-  struct
-  {
+  struct {
     u32 : 12;
     // Field mask, identifies the CR fields to be updated by mtcrf
     u32 CRM : 8;
@@ -241,8 +221,7 @@ union UGeckoInstruction {
     u32 FD : 5;
     u32 : 6;
   };
-  struct
-  {
+  struct {
     u32 : 6;
     // Source FPR
     u32 FC : 5;
@@ -254,8 +233,7 @@ union UGeckoInstruction {
     u32 FS : 5;
     u32 : 6;
   };
-  struct
-  {
+  struct {
     u32 : 17;
     // Field mask, identifies the FPSCR fields to be updated by mtfsf
     u32 FM : 8;
@@ -263,8 +241,7 @@ union UGeckoInstruction {
   };
 
   // paired single quantized load/store
-  struct
-  {
+  struct {
     u32 : 1;
     u32 SUBOP6 : 6;
     // Graphics quantization register to use
@@ -279,14 +256,12 @@ union UGeckoInstruction {
     u32 : 16;
   };
 
-  struct
-  {
+  struct {
     signed SIMM_12 : 12;
     u32 : 20;
   };
 
-  struct
-  {
+  struct {
     u32 : 11;
     // Number of bytes to use in lswi/stswi (0 means 32 bytes)
     u32 NB : 5;
@@ -298,8 +273,7 @@ union UGeckoInstruction {
 //
 
 // quantize types
-enum EQuantizeType : u32
-{
+enum EQuantizeType : u32 {
   QUANTIZE_FLOAT = 0,
   QUANTIZE_INVALID1 = 1,
   QUANTIZE_INVALID2 = 2,
@@ -340,8 +314,7 @@ union UFPR {
 #define XER_SO_MASK 2
 // XER
 union UReg_XER {
-  struct
-  {
+  struct {
     u32 BYTE_COUNT : 7;
     u32 : 1;
     u32 BYTE_CMP : 8;
@@ -358,16 +331,15 @@ union UReg_XER {
 
 // Machine State Register
 union UReg_MSR {
-  struct
-  {
+  struct {
     u32 LE : 1;
     u32 RI : 1;
     u32 PM : 1;
-    u32 : 1;  // res28
+    u32 : 1; // res28
     u32 DR : 1;
     u32 IR : 1;
     u32 IP : 1;
-    u32 : 1;  // res24
+    u32 : 1; // res24
     u32 FE1 : 1;
     u32 BE : 1;
     u32 SE : 1;
@@ -377,7 +349,7 @@ union UReg_MSR {
     u32 PR : 1;
     u32 EE : 1;
     u32 ILE : 1;
-    u32 : 1;  // res14
+    u32 : 1; // res14
     u32 POW : 1;
     u32 res : 13;
   };
@@ -391,8 +363,7 @@ union UReg_MSR {
 #define FPRF_MASK (0x1F << FPRF_SHIFT)
 
 // FPSCR exception flags
-enum FPSCRExceptionFlag : u32
-{
+enum FPSCRExceptionFlag : u32 {
   FPSCR_FX = 1U << (31 - 0),
   FPSCR_FEX = 1U << (31 - 1),
   FPSCR_VX = 1U << (31 - 2),
@@ -411,16 +382,16 @@ enum FPSCRExceptionFlag : u32
   FPSCR_VXCVI = 1U << (31 - 23),
   FPSCR_VE = 1U << (31 - 24),
 
-  FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ | FPSCR_VXIMZ | FPSCR_VXVC |
-                 FPSCR_VXSOFT | FPSCR_VXSQRT | FPSCR_VXCVI,
+  FPSCR_VX_ANY = FPSCR_VXSNAN | FPSCR_VXISI | FPSCR_VXIDI | FPSCR_VXZDZ |
+                 FPSCR_VXIMZ | FPSCR_VXVC | FPSCR_VXSOFT | FPSCR_VXSQRT |
+                 FPSCR_VXCVI,
 
   FPSCR_ANY_X = FPSCR_OX | FPSCR_UX | FPSCR_ZX | FPSCR_XX | FPSCR_VX_ANY,
 };
 
 // Floating Point Status and Control Register
 union UReg_FPSCR {
-  struct
-  {
+  struct {
     // Rounding mode (towards: nearest, zero, +inf, -inf)
     u32 RN : 2;
     // Non-IEEE mode enable (aka flush-to-zero)
@@ -485,8 +456,7 @@ union UReg_FPSCR {
 
 // Hardware Implementation-Dependent Register 0
 union UReg_HID0 {
-  struct
-  {
+  struct {
     u32 NOOPTI : 1;
     u32 : 1;
     u32 BHT : 1;
@@ -523,8 +493,7 @@ union UReg_HID0 {
 
 // Hardware Implementation-Dependent Register 2
 union UReg_HID2 {
-  struct
-  {
+  struct {
     u32 : 16;
     u32 DQOEE : 1;
     u32 DCMEE : 1;
@@ -548,8 +517,7 @@ union UReg_HID2 {
 
 // Hardware Implementation-Dependent Register 4
 union UReg_HID4 {
-  struct
-  {
+  struct {
     u32 : 20;
     u32 L2CFI : 1;
     u32 L2MUM : 1;
@@ -571,8 +539,7 @@ union UReg_HID4 {
 // SPR1 - Page Table format
 union UReg_SPR1 {
   u32 Hex;
-  struct
-  {
+  struct {
     u32 htaborg : 16;
     u32 : 7;
     u32 htabmask : 9;
@@ -582,8 +549,7 @@ union UReg_SPR1 {
 // MMCR0 - Monitor Mode Control Register 0 format
 union UReg_MMCR0 {
   u32 Hex;
-  struct
-  {
+  struct {
     u32 PMC2SELECT : 6;
     u32 PMC1SELECT : 7;
     u32 PMCTRIGGER : 1;
@@ -605,8 +571,7 @@ union UReg_MMCR0 {
 // MMCR1 - Monitor Mode Control Register 1 format
 union UReg_MMCR1 {
   u32 Hex;
-  struct
-  {
+  struct {
     u32 : 22;
     u32 PMC4SELECT : 5;
     u32 PMC3SELECT : 5;
@@ -615,8 +580,7 @@ union UReg_MMCR1 {
 
 // Write Pipe Address Register
 union UReg_WPAR {
-  struct
-  {
+  struct {
     u32 BNE : 1;
     u32 : 4;
     u32 GB_ADDR : 27;
@@ -629,8 +593,7 @@ union UReg_WPAR {
 
 // Direct Memory Access Upper register
 union UReg_DMAU {
-  struct
-  {
+  struct {
     u32 DMA_LEN_U : 5;
     u32 MEM_ADDR : 27;
   };
@@ -642,8 +605,7 @@ union UReg_DMAU {
 
 // Direct Memory Access Lower (DMAL) register
 union UReg_DMAL {
-  struct
-  {
+  struct {
     u32 DMA_F : 1;
     u32 DMA_T : 1;
     u32 DMA_LEN_L : 2;
@@ -657,11 +619,10 @@ union UReg_DMAL {
 };
 
 union UReg_BAT_Up {
-  struct
-  {
+  struct {
     u32 VP : 1;
     u32 VS : 1;
-    u32 BL : 11;  // Block length (aka block size mask)
+    u32 BL : 11; // Block length (aka block size mask)
     u32 : 4;
     u32 BEPI : 15;
   };
@@ -672,13 +633,12 @@ union UReg_BAT_Up {
 };
 
 union UReg_BAT_Lo {
-  struct
-  {
+  struct {
     u32 PP : 2;
     u32 : 1;
     u32 WIMG : 4;
     u32 : 10;
-    u32 BRPN : 15;  // Physical Block Number
+    u32 BRPN : 15; // Physical Block Number
   };
   u32 Hex;
 
@@ -687,8 +647,7 @@ union UReg_BAT_Lo {
 };
 
 union UReg_PTE {
-  struct
-  {
+  struct {
     u64 API : 6;
     u64 H : 1;
     u64 VSID : 24;
@@ -711,17 +670,15 @@ union UReg_PTE {
 //
 
 // branches
-enum
-{
-  BO_BRANCH_IF_CTR_0 = 2,        // 3
-  BO_DONT_DECREMENT_FLAG = 4,    // 2
-  BO_BRANCH_IF_TRUE = 8,         // 1
-  BO_DONT_CHECK_CONDITION = 16,  // 0
+enum {
+  BO_BRANCH_IF_CTR_0 = 2,       // 3
+  BO_DONT_DECREMENT_FLAG = 4,   // 2
+  BO_BRANCH_IF_TRUE = 8,        // 1
+  BO_DONT_CHECK_CONDITION = 16, // 0
 };
 
 // Special purpose register indices
-enum
-{
+enum {
   SPR_XER = 1,
   SPR_LR = 8,
   SPR_CTR = 9,
@@ -798,8 +755,7 @@ enum
 };
 
 // Exceptions
-enum
-{
+enum {
   EXCEPTION_DECREMENTER = 0x00000001,
   EXCEPTION_SYSCALL = 0x00000002,
   EXCEPTION_EXTERNAL_INT = 0x00000004,
@@ -813,11 +769,7 @@ enum
   EXCEPTION_FAKE_MEMCHECK_HIT = 0x00000200,
 };
 
-constexpr s32 SignExt16(s16 x)
-{
-  return (s32)x;
-}
-constexpr s32 SignExt26(u32 x)
-{
+constexpr s32 SignExt16(s16 x) { return (s32)x; }
+constexpr s32 SignExt26(u32 x) {
   return x & 0x2000000 ? (s32)(x | 0xFC000000) : (s32)(x);
 }

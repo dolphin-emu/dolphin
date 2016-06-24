@@ -7,8 +7,7 @@
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 
-class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
-{
+class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock {
 protected:
   void GenQuantizedLoads();
   void GenQuantizedStores();

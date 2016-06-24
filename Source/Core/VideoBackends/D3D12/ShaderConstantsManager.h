@@ -6,10 +6,8 @@
 
 #include "ShaderCache.h"
 
-namespace DX12
-{
-class ShaderConstantsManager final
-{
+namespace DX12 {
+class ShaderConstantsManager final {
 public:
   static void Init();
   static void Shutdown();

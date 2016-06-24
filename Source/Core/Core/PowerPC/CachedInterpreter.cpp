@@ -2,19 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/CachedInterpreter.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
+#include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
-void CachedInterpreter::Init()
-{
+void CachedInterpreter::Init() {
   m_code.reserve(CODE_SIZE / sizeof(Instruction));
 
   jo.enableBlocklink = false;
@@ -26,30 +25,21 @@ void CachedInterpreter::Init()
   code_block.m_fpa = &js.fpa;
 }
 
-void CachedInterpreter::Shutdown()
-{
-  JitBaseBlockCache::Shutdown();
-}
+void CachedInterpreter::Shutdown() { JitBaseBlockCache::Shutdown(); }
 
-void CachedInterpreter::Run()
-{
-  while (!CPU::GetState())
-  {
+void CachedInterpreter::Run() {
+  while (!CPU::GetState()) {
     SingleStep();
   }
 }
 
-void CachedInterpreter::SingleStep()
-{
+void CachedInterpreter::SingleStep() {
   int block = GetBlockNumberFromStartAddress(PC);
-  if (block >= 0)
-  {
-    Instruction* code = (Instruction*)GetCompiledCodeFromBlock(block);
+  if (block >= 0) {
+    Instruction *code = (Instruction *)GetCompiledCodeFromBlock(block);
 
-    while (true)
-    {
-      switch (code->type)
-      {
+    while (true) {
+      switch (code->type) {
       case Instruction::INSTRUCTION_ABORT:
         return;
 
@@ -71,27 +61,22 @@ void CachedInterpreter::SingleStep()
   Jit(PC);
 }
 
-static void EndBlock(UGeckoInstruction data)
-{
+static void EndBlock(UGeckoInstruction data) {
   PC = NPC;
   PowerPC::ppcState.downcount -= data.hex;
-  if (PowerPC::ppcState.downcount <= 0)
-  {
+  if (PowerPC::ppcState.downcount <= 0) {
     CoreTiming::Advance();
   }
 }
 
-static void WritePC(UGeckoInstruction data)
-{
+static void WritePC(UGeckoInstruction data) {
   PC = data.hex;
   NPC = data.hex + 4;
 }
 
-static bool CheckFPU(u32 data)
-{
-  UReg_MSR& msr = (UReg_MSR&)MSR;
-  if (!msr.FP)
-  {
+static bool CheckFPU(u32 data) {
+  UReg_MSR &msr = (UReg_MSR &)MSR;
+  if (!msr.FP) {
     PC = NPC = data;
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();
@@ -100,17 +85,15 @@ static bool CheckFPU(u32 data)
   return false;
 }
 
-void CachedInterpreter::Jit(u32 address)
-{
+void CachedInterpreter::Jit(u32 address) {
   if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 || IsFull() ||
-      SConfig::GetInstance().bJITNoBlockCache)
-  {
+      SConfig::GetInstance().bJITNoBlockCache) {
     ClearCache();
   }
 
-  u32 nextPC = analyzer.Analyze(PC, &code_block, &code_buffer, code_buffer.GetSize());
-  if (code_block.m_memory_exception)
-  {
+  u32 nextPC =
+      analyzer.Analyze(PC, &code_block, &code_buffer, code_buffer.GetSize());
+  if (code_block.m_memory_exception) {
     // Address of instruction could not be translated
     NPC = nextPC;
     PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
@@ -120,7 +103,7 @@ void CachedInterpreter::Jit(u32 address)
   }
 
   int block_num = AllocateBlock(PC);
-  JitBlock* b = GetBlock(block_num);
+  JitBlock *b = GetBlock(block_num);
 
   js.blockStart = PC;
   js.firstFPInstructionFound = false;
@@ -128,29 +111,24 @@ void CachedInterpreter::Jit(u32 address)
   js.downcountAmount = 0;
   js.curBlock = b;
 
-  PPCAnalyst::CodeOp* ops = code_buffer.codebuffer;
+  PPCAnalyst::CodeOp *ops = code_buffer.codebuffer;
 
   b->checkedEntry = GetCodePtr();
   b->normalEntry = GetCodePtr();
   b->runCount = 0;
 
-  for (u32 i = 0; i < code_block.m_num_instructions; i++)
-  {
+  for (u32 i = 0; i < code_block.m_num_instructions; i++) {
     js.downcountAmount += ops[i].opinfo->numCycles;
 
     u32 function = HLE::GetFunctionIndex(ops[i].address);
-    if (function != 0)
-    {
+    if (function != 0) {
       int type = HLE::GetFunctionTypeByIndex(function);
-      if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE)
-      {
+      if (type == HLE::HLE_HOOK_START || type == HLE::HLE_HOOK_REPLACE) {
         int flags = HLE::GetFunctionFlagsByIndex(function);
-        if (HLE::IsEnabled(flags))
-        {
+        if (HLE::IsEnabled(flags)) {
           m_code.emplace_back(WritePC, ops[i].address);
           m_code.emplace_back(Interpreter::HLEFunction, ops[i].inst);
-          if (type == HLE::HLE_HOOK_REPLACE)
-          {
+          if (type == HLE::HLE_HOOK_REPLACE) {
             m_code.emplace_back(EndBlock, js.downcountAmount);
             m_code.emplace_back();
             break;
@@ -159,10 +137,8 @@ void CachedInterpreter::Jit(u32 address)
       }
     }
 
-    if (!ops[i].skip)
-    {
-      if ((ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
-      {
+    if (!ops[i].skip) {
+      if ((ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound) {
         m_code.emplace_back(CheckFPU, ops[i].address);
         js.firstFPInstructionFound = true;
       }
@@ -174,8 +150,7 @@ void CachedInterpreter::Jit(u32 address)
         m_code.emplace_back(EndBlock, js.downcountAmount);
     }
   }
-  if (code_block.m_broken)
-  {
+  if (code_block.m_broken) {
     m_code.emplace_back(WritePC, nextPC);
     m_code.emplace_back(EndBlock, js.downcountAmount);
   }
@@ -187,16 +162,11 @@ void CachedInterpreter::Jit(u32 address)
   FinalizeBlock(block_num, jo.enableBlocklink, b->checkedEntry);
 }
 
-void CachedInterpreter::ClearCache()
-{
+void CachedInterpreter::ClearCache() {
   m_code.clear();
   JitBaseBlockCache::Clear();
 }
 
-void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
-{
-}
+void CachedInterpreter::WriteDestroyBlock(const u8 *location, u32 address) {}
 
-void CachedInterpreter::WriteLinkBlock(u8* location, const JitBlock& block)
-{
-}
+void CachedInterpreter::WriteLinkBlock(u8 *location, const JitBlock &block) {}

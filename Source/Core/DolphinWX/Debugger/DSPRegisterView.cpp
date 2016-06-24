@@ -11,12 +11,10 @@
 #include "DolphinWX/Debugger/DSPRegisterView.h"
 #include "DolphinWX/WxUtils.h"
 
-wxString CDSPRegTable::GetValue(int row, int col)
-{
-  if (row < 32)  // 32 "normal" regs
+wxString CDSPRegTable::GetValue(int row, int col) {
+  if (row < 32) // 32 "normal" regs
   {
-    switch (col)
-    {
+    switch (col) {
     case 0:
       return StrToWxStr(pdregname(row));
     case 1:
@@ -28,34 +26,28 @@ wxString CDSPRegTable::GetValue(int row, int col)
   return wxEmptyString;
 }
 
-void CDSPRegTable::SetValue(int, int, const wxString&)
-{
-}
+void CDSPRegTable::SetValue(int, int, const wxString &) {}
 
-void CDSPRegTable::UpdateCachedRegs()
-{
-  if (m_CachedCounter == g_dsp.step_counter)
-  {
+void CDSPRegTable::UpdateCachedRegs() {
+  if (m_CachedCounter == g_dsp.step_counter) {
     return;
   }
 
   m_CachedCounter = g_dsp.step_counter;
 
-  for (int i = 0; i < 32; ++i)
-  {
+  for (int i = 0; i < 32; ++i) {
     m_CachedRegHasChanged[i] = (m_CachedRegs[i] != DSPCore_ReadRegister(i));
     m_CachedRegs[i] = DSPCore_ReadRegister(i);
   }
 }
 
-wxGridCellAttr* CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
-{
-  wxGridCellAttr* attr = new wxGridCellAttr();
+wxGridCellAttr *CDSPRegTable::GetAttr(int row, int col,
+                                      wxGridCellAttr::wxAttrKind) {
+  wxGridCellAttr *attr = new wxGridCellAttr();
 
   attr->SetBackgroundColour(*wxWHITE);
 
-  switch (col)
-  {
+  switch (col) {
   case 1:
     attr->SetAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
     break;
@@ -70,9 +62,8 @@ wxGridCellAttr* CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
   return attr;
 }
 
-DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
-    : wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
-{
+DSPRegisterView::DSPRegisterView(wxWindow *parent, wxWindowID id)
+    : wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120)) {
   m_register_table = new CDSPRegTable();
 
   SetTable(m_register_table, true);
@@ -83,8 +74,7 @@ DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
   AutoSizeColumns();
 }
 
-void DSPRegisterView::Update()
-{
+void DSPRegisterView::Update() {
   m_register_table->UpdateCachedRegs();
   ForceRefresh();
 }

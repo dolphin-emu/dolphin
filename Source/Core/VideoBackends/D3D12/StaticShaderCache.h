@@ -6,10 +6,8 @@
 
 #include "VideoBackends/D3D12/D3DBase.h"
 
-namespace DX12
-{
-class StaticShaderCache final
-{
+namespace DX12 {
+class StaticShaderCache final {
 public:
   static void Init();
   static void InvalidateMSAAShaders();
@@ -22,8 +20,10 @@ public:
   static D3D12_SHADER_BYTECODE GetDepthResolveToColorPixelShader();
   static D3D12_SHADER_BYTECODE GetClearPixelShader();
   static D3D12_SHADER_BYTECODE GetAnaglyphPixelShader();
-  static D3D12_SHADER_BYTECODE GetReinterpRGBA6ToRGB8PixelShader(bool multisampled);
-  static D3D12_SHADER_BYTECODE GetReinterpRGB8ToRGBA6PixelShader(bool multisampled);
+  static D3D12_SHADER_BYTECODE
+  GetReinterpRGBA6ToRGB8PixelShader(bool multisampled);
+  static D3D12_SHADER_BYTECODE
+  GetReinterpRGB8ToRGBA6PixelShader(bool multisampled);
   static D3D12_SHADER_BYTECODE GetXFBEncodePixelShader();
   static D3D12_SHADER_BYTECODE GetXFBDecodePixelShader();
 

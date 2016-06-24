@@ -12,14 +12,12 @@
 #include "Common/FileUtil.h"
 #include "DiscIO/Blob.h"
 
-namespace DiscIO
-{
-class WbfsFileReader : public IBlobReader
-{
+namespace DiscIO {
+class WbfsFileReader : public IBlobReader {
 public:
   ~WbfsFileReader();
 
-  static std::unique_ptr<WbfsFileReader> Create(const std::string& filename);
+  static std::unique_ptr<WbfsFileReader> Create(const std::string &filename);
 
   BlobType GetBlobType() const override { return BlobType::WBFS; }
   // The WBFS format does not save the original file size.
@@ -28,18 +26,17 @@ public:
   u64 GetDataSize() const override;
 
   u64 GetRawSize() const override { return m_size; }
-  bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
+  bool Read(u64 offset, u64 nbytes, u8 *out_ptr) override;
 
 private:
-  WbfsFileReader(const std::string& filename);
+  WbfsFileReader(const std::string &filename);
 
-  bool OpenFiles(const std::string& filename);
+  bool OpenFiles(const std::string &filename);
   bool ReadHeader();
 
-  File::IOFile& SeekToCluster(u64 offset, u64* available);
+  File::IOFile &SeekToCluster(u64 offset, u64 *available);
   bool IsGood() { return m_good; }
-  struct file_entry
-  {
+  struct file_entry {
     File::IOFile file;
     u64 base_address;
     u64 size;
@@ -56,8 +53,7 @@ private:
   u64 m_disc_info_size;
 
 #pragma pack(1)
-  struct WbfsHeader
-  {
+  struct WbfsHeader {
     char magic[4];
     u32 hd_sector_count;
     u8 hd_sector_shift;
@@ -73,6 +69,6 @@ private:
   bool m_good;
 };
 
-bool IsWbfsBlob(const std::string& filename);
+bool IsWbfsBlob(const std::string &filename);
 
-}  // namespace
+} // namespace

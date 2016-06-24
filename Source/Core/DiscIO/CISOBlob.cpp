@@ -10,12 +10,10 @@
 #include "Common/FileUtil.h"
 #include "DiscIO/CISOBlob.h"
 
-namespace DiscIO
-{
+namespace DiscIO {
 static const char CISO_MAGIC[] = "CISO";
 
-CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
-{
+CISOFileReader::CISOFileReader(std::FILE *file) : m_file(file) {
   m_size = m_file.GetSize();
 
   CISOHeader header;
@@ -28,48 +26,38 @@ CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
     m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-std::unique_ptr<CISOFileReader> CISOFileReader::Create(const std::string& filename)
-{
-  if (IsCISOBlob(filename))
-  {
+std::unique_ptr<CISOFileReader>
+CISOFileReader::Create(const std::string &filename) {
+  if (IsCISOBlob(filename)) {
     File::IOFile f(filename, "rb");
-    return std::unique_ptr<CISOFileReader>(new CISOFileReader(f.ReleaseHandle()));
+    return std::unique_ptr<CISOFileReader>(
+        new CISOFileReader(f.ReleaseHandle()));
   }
 
   return nullptr;
 }
 
-u64 CISOFileReader::GetDataSize() const
-{
-  return CISO_MAP_SIZE * m_block_size;
-}
+u64 CISOFileReader::GetDataSize() const { return CISO_MAP_SIZE * m_block_size; }
 
-u64 CISOFileReader::GetRawSize() const
-{
-  return m_size;
-}
+u64 CISOFileReader::GetRawSize() const { return m_size; }
 
-bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
-{
-  while (nbytes != 0)
-  {
+bool CISOFileReader::Read(u64 offset, u64 nbytes, u8 *out_ptr) {
+  while (nbytes != 0) {
     u64 const block = offset / m_block_size;
     u64 const data_offset = offset % m_block_size;
     u64 const bytes_to_read = std::min(m_block_size - data_offset, nbytes);
 
-    if (block < CISO_MAP_SIZE && UNUSED_BLOCK_ID != m_ciso_map[block])
-    {
+    if (block < CISO_MAP_SIZE && UNUSED_BLOCK_ID != m_ciso_map[block]) {
       // calculate the base address
-      u64 const file_off = CISO_HEADER_SIZE + m_ciso_map[block] * (u64)m_block_size + data_offset;
+      u64 const file_off = CISO_HEADER_SIZE +
+                           m_ciso_map[block] * (u64)m_block_size + data_offset;
 
-      if (!(m_file.Seek(file_off, SEEK_SET) && m_file.ReadArray(out_ptr, bytes_to_read)))
-      {
+      if (!(m_file.Seek(file_off, SEEK_SET) &&
+            m_file.ReadArray(out_ptr, bytes_to_read))) {
         m_file.Clear();
         return false;
       }
-    }
-    else
-    {
+    } else {
       std::fill_n(out_ptr, bytes_to_read, 0);
     }
 
@@ -81,13 +69,13 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   return true;
 }
 
-bool IsCISOBlob(const std::string& filename)
-{
+bool IsCISOBlob(const std::string &filename) {
   File::IOFile f(filename, "rb");
 
   CISOHeader header;
   return (f.ReadArray(&header, 1) &&
-          std::equal(header.magic, header.magic + sizeof(header.magic), CISO_MAGIC));
+          std::equal(header.magic, header.magic + sizeof(header.magic),
+                     CISO_MAGIC));
 }
 
-}  // namespace
+} // namespace

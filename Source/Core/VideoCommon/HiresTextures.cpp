@@ -30,9 +30,10 @@
 #include "VideoCommon/VideoConfig.h"
 
 static std::unordered_map<std::string, std::string> s_textureMap;
-static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
+static std::unordered_map<std::string, std::shared_ptr<HiresTexture>>
+    s_textureCache;
 static std::mutex s_textureCacheMutex;
-static std::mutex s_textureCacheAquireMutex;  // for high priority access
+static std::mutex s_textureCacheAquireMutex; // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
 static bool s_check_native_format;
 static bool s_check_new_format;
@@ -41,22 +42,17 @@ static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
 
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
-{
-}
+HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data) {}
 
-void HiresTexture::Init()
-{
+void HiresTexture::Init() {
   s_check_native_format = false;
   s_check_new_format = false;
 
   Update();
 }
 
-void HiresTexture::Shutdown()
-{
-  if (s_prefetcher.joinable())
-  {
+void HiresTexture::Shutdown() {
+  if (s_prefetcher.joinable()) {
     s_textureCacheAbortLoading.Set();
     s_prefetcher.join();
   }
@@ -65,31 +61,27 @@ void HiresTexture::Shutdown()
   s_textureCache.clear();
 }
 
-void HiresTexture::Update()
-{
-  if (s_prefetcher.joinable())
-  {
+void HiresTexture::Update() {
+  if (s_prefetcher.joinable()) {
     s_textureCacheAbortLoading.Set();
     s_prefetcher.join();
   }
 
-  if (!g_ActiveConfig.bHiresTextures)
-  {
+  if (!g_ActiveConfig.bHiresTextures) {
     s_textureMap.clear();
     s_textureCache.clear();
     return;
   }
 
-  if (!g_ActiveConfig.bCacheHiresTextures)
-  {
+  if (!g_ActiveConfig.bCacheHiresTextures) {
     s_textureCache.clear();
   }
 
-  const std::string& game_id = SConfig::GetInstance().m_strUniqueID;
+  const std::string &game_id = SConfig::GetInstance().m_strUniqueID;
   const std::string texture_directory = GetTextureDirectory(game_id);
   std::vector<std::string> extensions{
       ".png", ".bmp", ".tga", ".dds",
-      ".jpg"  // Why not? Could be useful for large photo-like textures
+      ".jpg" // Why not? Could be useful for large photo-like textures
   };
 
   std::vector<std::string> filenames =
@@ -97,36 +89,28 @@ void HiresTexture::Update()
 
   const std::string code = game_id + "_";
 
-  for (auto& rFilename : filenames)
-  {
+  for (auto &rFilename : filenames) {
     std::string FileName;
     SplitPath(rFilename, nullptr, &FileName, nullptr);
 
-    if (FileName.substr(0, code.length()) == code)
-    {
+    if (FileName.substr(0, code.length()) == code) {
       s_textureMap[FileName] = rFilename;
       s_check_native_format = true;
     }
 
-    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix)
-    {
+    if (FileName.substr(0, s_format_prefix.length()) == s_format_prefix) {
       s_textureMap[FileName] = rFilename;
       s_check_new_format = true;
     }
   }
 
-  if (g_ActiveConfig.bCacheHiresTextures)
-  {
+  if (g_ActiveConfig.bCacheHiresTextures) {
     // remove cached but deleted textures
     auto iter = s_textureCache.begin();
-    while (iter != s_textureCache.end())
-    {
-      if (s_textureMap.find(iter->first) == s_textureMap.end())
-      {
+    while (iter != s_textureCache.end()) {
+      if (s_textureMap.find(iter->first) == s_textureMap.end()) {
         iter = s_textureCache.erase(iter);
-      }
-      else
-      {
+      } else {
         iter++;
       }
     }
@@ -136,98 +120,99 @@ void HiresTexture::Update()
   }
 }
 
-void HiresTexture::Prefetch()
-{
+void HiresTexture::Prefetch() {
   Common::SetCurrentThreadName("Prefetcher");
 
   size_t size_sum = 0;
   size_t sys_mem = MemPhysical();
   size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
-  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
-  size_t max_mem =
-      (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
+  // keep 2GB memory for system stability if system RAM is 4GB+ - use half of
+  // memory in other cases
+  size_t max_mem = (sys_mem / 2 < recommended_min_mem)
+                       ? (sys_mem / 2)
+                       : (sys_mem - recommended_min_mem);
   u32 starttime = Common::Timer::GetTimeMs();
-  for (const auto& entry : s_textureMap)
-  {
-    const std::string& base_filename = entry.first;
+  for (const auto &entry : s_textureMap) {
+    const std::string &base_filename = entry.first;
 
-    if (base_filename.find("_mip") == std::string::npos)
-    {
+    if (base_filename.find("_mip") == std::string::npos) {
       {
-        // try to get this mutex first, so the video thread is allow to get the real mutex faster
+        // try to get this mutex first, so the video thread is allow to get the
+        // real mutex faster
         std::unique_lock<std::mutex> lk(s_textureCacheAquireMutex);
       }
       std::unique_lock<std::mutex> lk(s_textureCacheMutex);
 
       auto iter = s_textureCache.find(base_filename);
-      if (iter == s_textureCache.end())
-      {
-        // unlock while loading a texture. This may result in a race condition where we'll load a
+      if (iter == s_textureCache.end()) {
+        // unlock while loading a texture. This may result in a race condition
+        // where we'll load a
         // texture twice,
-        // but it reduces the stuttering a lot. Notice: The loading library _must_ be thread safe
+        // but it reduces the stuttering a lot. Notice: The loading library
+        // _must_ be thread safe
         // now.
-        // But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
-        // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main
+        // But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use
+        // libpng directly
+        // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be
+        // needed as the main
         // mutex will be locked rarely
         // lk.unlock();
         std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
         // lk.lock();
-        if (texture)
-        {
+        if (texture) {
           std::shared_ptr<HiresTexture> ptr(std::move(texture));
-          iter = s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
+          iter =
+              s_textureCache.insert(iter, std::make_pair(base_filename, ptr));
         }
       }
-      if (iter != s_textureCache.end())
-      {
-        for (const Level& l : iter->second->m_levels)
-        {
+      if (iter != s_textureCache.end()) {
+        for (const Level &l : iter->second->m_levels) {
           size_sum += l.data_size;
         }
       }
     }
 
-    if (s_textureCacheAbortLoading.IsSet())
-    {
+    if (s_textureCacheAbortLoading.IsSet()) {
       return;
     }
 
-    if (size_sum > max_mem)
-    {
+    if (size_sum > max_mem) {
       g_Config.bCacheHiresTextures = false;
 
-      OSD::AddMessage(
-          StringFromFormat(
-              "Custom Textures prefetching after %.1f MB aborted, not enough RAM available",
-              size_sum / (1024.0 * 1024.0)),
-          10000);
+      OSD::AddMessage(StringFromFormat("Custom Textures prefetching after %.1f "
+                                       "MB aborted, not enough RAM available",
+                                       size_sum / (1024.0 * 1024.0)),
+                      10000);
       return;
     }
   }
   u32 stoptime = Common::Timer::GetTimeMs();
   OSD::AddMessage(StringFromFormat("Custom Textures loaded, %.1f MB in %.1f s",
-                                   size_sum / (1024.0 * 1024.0), (stoptime - starttime) / 1000.0),
+                                   size_sum / (1024.0 * 1024.0),
+                                   (stoptime - starttime) / 1000.0),
                   10000);
 }
 
-std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, const u8* tlut,
-                                      size_t tlut_size, u32 width, u32 height, int format,
-                                      bool has_mipmaps, bool dump)
-{
+std::string HiresTexture::GenBaseName(const u8 *texture, size_t texture_size,
+                                      const u8 *tlut, size_t tlut_size,
+                                      u32 width, u32 height, int format,
+                                      bool has_mipmaps, bool dump) {
   std::string name = "";
   bool convert = false;
-  if (!dump && s_check_native_format)
-  {
+  if (!dump && s_check_native_format) {
     // try to load the old format first
-    u64 tex_hash = GetHashHiresTexture(texture, (int)texture_size,
-                                       g_ActiveConfig.iSafeTextureCache_ColorSamples);
-    u64 tlut_hash = tlut_size ? GetHashHiresTexture(tlut, (int)tlut_size,
-                                                    g_ActiveConfig.iSafeTextureCache_ColorSamples) :
-                                0;
-    name = StringFromFormat("%s_%08x_%i", SConfig::GetInstance().m_strUniqueID.c_str(),
+    u64 tex_hash =
+        GetHashHiresTexture(texture, (int)texture_size,
+                            g_ActiveConfig.iSafeTextureCache_ColorSamples);
+    u64 tlut_hash =
+        tlut_size
+            ? GetHashHiresTexture(tlut, (int)tlut_size,
+                                  g_ActiveConfig.iSafeTextureCache_ColorSamples)
+            : 0;
+    name = StringFromFormat("%s_%08x_%i",
+                            SConfig::GetInstance().m_strUniqueID.c_str(),
                             (u32)(tex_hash ^ tlut_hash), (u16)format);
-    if (s_textureMap.find(name) != s_textureMap.end())
-    {
+    if (s_textureMap.find(name) != s_textureMap.end()) {
       if (g_ActiveConfig.bConvertHiresTextures)
         convert = true;
       else
@@ -235,18 +220,15 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     }
   }
 
-  if (dump || s_check_new_format || convert)
-  {
+  if (dump || s_check_new_format || convert) {
     // checking for min/max on paletted textures
     u32 min = 0xffff;
     u32 max = 0;
-    switch (tlut_size)
-    {
+    switch (tlut_size) {
     case 0:
       break;
     case 16 * 2:
-      for (size_t i = 0; i < texture_size; i++)
-      {
+      for (size_t i = 0; i < texture_size; i++) {
         min = std::min<u32>(min, texture[i] & 0xf);
         min = std::min<u32>(min, texture[i] >> 4);
         max = std::max<u32>(max, texture[i] & 0xf);
@@ -254,22 +236,19 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
       }
       break;
     case 256 * 2:
-      for (size_t i = 0; i < texture_size; i++)
-      {
+      for (size_t i = 0; i < texture_size; i++) {
         min = std::min<u32>(min, texture[i]);
         max = std::max<u32>(max, texture[i]);
       }
       break;
     case 16384 * 2:
-      for (size_t i = 0; i < texture_size / 2; i++)
-      {
-        min = std::min<u32>(min, Common::swap16(((u16*)texture)[i]) & 0x3fff);
-        max = std::max<u32>(max, Common::swap16(((u16*)texture)[i]) & 0x3fff);
+      for (size_t i = 0; i < texture_size / 2; i++) {
+        min = std::min<u32>(min, Common::swap16(((u16 *)texture)[i]) & 0x3fff);
+        max = std::max<u32>(max, Common::swap16(((u16 *)texture)[i]) & 0x3fff);
       }
       break;
     }
-    if (tlut_size > 0)
-    {
+    if (tlut_size > 0) {
       tlut_size = 2 * (max + 1 - min);
       tlut += 2 * min;
     }
@@ -277,14 +256,15 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     u64 tex_hash = XXH64(texture, texture_size, 0);
     u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-    std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
-                                                              has_mipmaps ? "_m" : "", tex_hash);
-    std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
+    std::string basename =
+        s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
+                                           has_mipmaps ? "_m" : "", tex_hash);
+    std::string tlutname =
+        tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
     std::string formatname = StringFromFormat("_%d", format);
     std::string fullname = basename + tlutname + formatname;
 
-    for (int level = 0; level < 10 && convert; level++)
-    {
+    for (int level = 0; level < 10 && convert; level++) {
       std::string oldname = name;
       if (level)
         oldname += StringFromFormat("_mip%d", level);
@@ -293,8 +273,7 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
       if (s_textureMap.find(oldname) == s_textureMap.end())
         continue;
 
-      for (int i = 0;; i++)
-      {
+      for (int i = 0;; i++) {
         // for hash collisions, padd with an integer
         std::string newname = fullname;
         if (level)
@@ -303,45 +282,38 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
           newname += StringFromFormat(".%d", i);
 
         // new texture
-        if (s_textureMap.find(newname) == s_textureMap.end())
-        {
+        if (s_textureMap.find(newname) == s_textureMap.end()) {
           std::string src = s_textureMap[oldname];
           size_t postfix = src.find_last_of('.');
-          std::string dst = src.substr(0, postfix - oldname.length()) + newname +
+          std::string dst = src.substr(0, postfix - oldname.length()) +
+                            newname +
                             src.substr(postfix, src.length() - postfix);
-          if (File::Rename(src, dst))
-          {
+          if (File::Rename(src, dst)) {
             s_textureMap.erase(oldname);
             s_textureMap[newname] = dst;
             s_check_new_format = true;
-            OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s", oldname.c_str(),
-                                             newname.c_str()),
+            OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s",
+                                             oldname.c_str(), newname.c_str()),
                             5000);
-          }
-          else
-          {
+          } else {
             ERROR_LOG(VIDEO, "rename failed");
           }
           break;
-        }
-        else
-        {
+        } else {
           // dst fail already exist, compare content
           std::string a, b;
           File::ReadFileToString(s_textureMap[oldname], a);
           File::ReadFileToString(s_textureMap[newname], b);
 
-          if (a == b && a != "")
-          {
+          if (a == b && a != "") {
             // equal, so remove
-            if (File::Delete(s_textureMap[oldname]))
-            {
+            if (File::Delete(s_textureMap[oldname])) {
               s_textureMap.erase(oldname);
               OSD::AddMessage(
-                  StringFromFormat("Delete double old custom texture %s", oldname.c_str()), 5000);
-            }
-            else
-            {
+                  StringFromFormat("Delete double old custom texture %s",
+                                   oldname.c_str()),
+                  5000);
+            } else {
               ERROR_LOG(VIDEO, "delete failed");
             }
             break;
@@ -353,7 +325,8 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     }
 
     // try to match a wildcard template
-    if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
+    if (!dump &&
+        s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
       return basename + "_*" + formatname;
 
     // else generate the complete texture
@@ -364,46 +337,41 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
   return name;
 }
 
-std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t texture_size,
-                                                   const u8* tlut, size_t tlut_size, u32 width,
-                                                   u32 height, int format, bool has_mipmaps)
-{
+std::shared_ptr<HiresTexture>
+HiresTexture::Search(const u8 *texture, size_t texture_size, const u8 *tlut,
+                     size_t tlut_size, u32 width, u32 height, int format,
+                     bool has_mipmaps) {
   std::string base_filename =
-      GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
+      GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format,
+                  has_mipmaps);
 
   std::lock_guard<std::mutex> lk2(s_textureCacheAquireMutex);
   std::lock_guard<std::mutex> lk(s_textureCacheMutex);
 
   auto iter = s_textureCache.find(base_filename);
-  if (iter != s_textureCache.end())
-  {
+  if (iter != s_textureCache.end()) {
     return iter->second;
   }
 
   std::shared_ptr<HiresTexture> ptr(Load(base_filename, width, height));
 
-  if (ptr && g_ActiveConfig.bCacheHiresTextures)
-  {
+  if (ptr && g_ActiveConfig.bCacheHiresTextures) {
     s_textureCache[base_filename] = ptr;
   }
 
   return ptr;
 }
 
-std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filename, u32 width,
-                                                 u32 height)
-{
+std::unique_ptr<HiresTexture>
+HiresTexture::Load(const std::string &base_filename, u32 width, u32 height) {
   std::unique_ptr<HiresTexture> ret;
-  for (int level = 0;; level++)
-  {
+  for (int level = 0;; level++) {
     std::string filename = base_filename;
-    if (level)
-    {
+    if (level) {
       filename += StringFromFormat("_mip%u", level);
     }
 
-    if (s_textureMap.find(filename) != s_textureMap.end())
-    {
+    if (s_textureMap.find(filename) != s_textureMap.end()) {
       Level l;
 
       File::IOFile file;
@@ -413,36 +381,34 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
       int channels;
       l.data =
-          SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                                  (int*)&l.height, &channels, SOIL_LOAD_RGBA),
+          SOILPointer(SOIL_load_image_from_memory(
+                          buffer.data(), (int)buffer.size(), (int *)&l.width,
+                          (int *)&l.height, &channels, SOIL_LOAD_RGBA),
                       SOIL_free_image_data);
       l.data_size = (size_t)l.width * l.height * 4;
 
-      if (l.data == nullptr)
-      {
+      if (l.data == nullptr) {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
       }
 
-      if (!level)
-      {
+      if (!level) {
         if (l.width * height != l.height * width)
-          ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. The aspect differs "
+          ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. "
+                           "The aspect differs "
                            "from the native size %dx%d.",
                     l.width, l.height, filename.c_str(), width, height);
         if (width && height && (l.width % width || l.height % height))
-          WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. Please use an integer "
+          WARN_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. "
+                          "Please use an integer "
                           "upscaling factor based on the native size %dx%d.",
                    l.width, l.height, filename.c_str(), width, height);
         width = l.width;
         height = l.height;
-      }
-      else if (width != l.width || height != l.height)
-      {
-        ERROR_LOG(
-            VIDEO,
-            "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
-            l.width, l.height, filename.c_str(), width, height);
+      } else if (width != l.width || height != l.height) {
+        ERROR_LOG(VIDEO, "Invalid custom texture size %dx%d for texture %s. "
+                         "This mipmap layer _must_ be %dx%d.",
+                  l.width, l.height, filename.c_str(), width, height);
         l.data.reset();
         break;
       }
@@ -458,9 +424,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       // calculate the size of the next mipmap
       width = std::max(1u, width >> 1);
       height = std::max(1u, height >> 1);
-    }
-    else
-    {
+    } else {
       break;
     }
   }
@@ -468,17 +432,16 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   return ret;
 }
 
-std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
-{
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+std::string HiresTexture::GetTextureDirectory(const std::string &game_id) {
+  const std::string texture_directory =
+      File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
 
-  // If there's no directory with the region-specific ID, look for a 3-character region-free one
+  // If there's no directory with the region-specific ID, look for a 3-character
+  // region-free one
   if (!File::Exists(texture_directory))
     return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
 
   return texture_directory;
 }
 
-HiresTexture::~HiresTexture()
-{
-}
+HiresTexture::~HiresTexture() {}

@@ -4,10 +4,8 @@
 
 #pragma once
 
-namespace OGL
-{
-class BoundingBox
-{
+namespace OGL {
+class BoundingBox {
 public:
   static void Init();
   static void Shutdown();

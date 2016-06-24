@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -25,8 +25,7 @@
 
 using namespace Gen;
 
-void Jit64::sc(UGeckoInstruction inst)
-{
+void Jit64::sc(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
@@ -38,8 +37,7 @@ void Jit64::sc(UGeckoInstruction inst)
   WriteExceptionExit();
 }
 
-void Jit64::rfi(UGeckoInstruction inst)
-{
+void Jit64::rfi(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
@@ -47,7 +45,7 @@ void Jit64::rfi(UGeckoInstruction inst)
   fpr.Flush();
   // See Interpreter rfi for details
   const u32 mask = 0x87C0FFFF;
-  const u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
+  const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
   // MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
   AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
   MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
@@ -58,8 +56,7 @@ void Jit64::rfi(UGeckoInstruction inst)
   WriteRfiExitDestInRSCRATCH();
 }
 
-void Jit64::bx(UGeckoInstruction inst)
-{
+void Jit64::bx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
@@ -71,8 +68,7 @@ void Jit64::bx(UGeckoInstruction inst)
   // If this is not the last instruction of a block,
   // we will skip the rest process.
   // Because PPCAnalyst::Flatten() merged the blocks.
-  if (!js.isLastInstruction)
-  {
+  if (!js.isLastInstruction) {
     return;
   }
 
@@ -88,8 +84,7 @@ void Jit64::bx(UGeckoInstruction inst)
   if (inst.LK)
     AND(32, PPCSTATE(cr), Imm32(~(0xFF000000)));
 #endif
-  if (destination == js.compilerPC)
-  {
+  if (destination == js.compilerPC) {
     // PanicAlert("Idle loop detected at %08x", destination);
     // CALL(ProtectFunction(&CoreTiming::Idle, 0));
     // JMP(Asm::testExceptions, true);
@@ -102,15 +97,14 @@ void Jit64::bx(UGeckoInstruction inst)
 // TODO - optimize to hell and beyond
 // TODO - make nice easy to optimize special cases for the most common
 // variants of this instruction.
-void Jit64::bcx(UGeckoInstruction inst)
-{
+void Jit64::bcx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
   // USES_CR
 
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0) // Decrement and test CTR
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
     if (inst.BO & BO_BRANCH_IF_CTR_0)
@@ -120,10 +114,10 @@ void Jit64::bcx(UGeckoInstruction inst)
   }
 
   FixupBranch pConditionDontBranch;
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0) // Test a CR bit
   {
-    pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+    pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+                                            !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
   if (inst.LK)
@@ -144,16 +138,15 @@ void Jit64::bcx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-  {
+  if (!analyzer.HasOption(
+          PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE)) {
     gpr.Flush();
     fpr.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }
 
-void Jit64::bcctrx(UGeckoInstruction inst)
-{
+void Jit64::bcctrx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
@@ -161,8 +154,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   _dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG,
                    "bcctrx with decrement and test CTR option is invalid!");
 
-  if (inst.BO_2 & BO_DONT_CHECK_CONDITION)
-  {
+  if (inst.BO_2 & BO_DONT_CHECK_CONDITION) {
     // BO_2 == 1z1zz -> b always
 
     // NPC = CTR & 0xfffffffc;
@@ -171,24 +163,23 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     if (inst.LK_3)
-      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
+      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
-  }
-  else
-  {
+  } else {
     // Rare condition seen in (just some versions of?) Nintendo's NES Emulator
 
     // BO_2 == 001zy -> b if false
     // BO_2 == 011zy -> b if true
 
-    FixupBranch b =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+    FixupBranch b = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+                                     !(inst.BO_2 & BO_BRANCH_IF_TRUE));
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
-    // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
+    // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in
+    // WriteExitDestInRSCRATCH()
     if (inst.LK_3)
-      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
+      MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4)); // LR = PC + 4;
 
     gpr.Flush(FLUSH_MAINTAIN_STATE);
     fpr.Flush(FLUSH_MAINTAIN_STATE);
@@ -196,8 +187,8 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     // Would really like to continue the block here, but it ends. TODO.
     SetJumpTarget(b);
 
-    if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-    {
+    if (!analyzer.HasOption(
+            PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE)) {
       gpr.Flush();
       fpr.Flush();
       WriteExit(js.compilerPC + 4);
@@ -205,13 +196,12 @@ void Jit64::bcctrx(UGeckoInstruction inst)
   }
 }
 
-void Jit64::bclrx(UGeckoInstruction inst)
-{
+void Jit64::bclrx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
   FixupBranch pCTRDontBranch;
-  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+  if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0) // Decrement and test CTR
   {
     SUB(32, PPCSTATE_CTR, Imm8(1));
     if (inst.BO & BO_BRANCH_IF_CTR_0)
@@ -221,10 +211,10 @@ void Jit64::bclrx(UGeckoInstruction inst)
   }
 
   FixupBranch pConditionDontBranch;
-  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+  if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0) // Test a CR bit
   {
-    pConditionDontBranch =
-        JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+    pConditionDontBranch = JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3),
+                                            !(inst.BO_2 & BO_BRANCH_IF_TRUE));
   }
 
 // This below line can be used to prove that blr "eats flags" in practice.
@@ -234,9 +224,11 @@ void Jit64::bclrx(UGeckoInstruction inst)
 #endif
 
   MOV(32, R(RSCRATCH), PPCSTATE_LR);
-  // We don't have to do this because WriteBLRExit handles it for us. Specifically, since we only
+  // We don't have to do this because WriteBLRExit handles it for us.
+  // Specifically, since we only
   // ever push
-  // divisible-by-four instruction addresses onto the stack, if the return address matches, we're
+  // divisible-by-four instruction addresses onto the stack, if the return
+  // address matches, we're
   // already
   // good. If it doesn't match, the mispredicted-BLR code handles the fixup.
   if (!m_enable_blr_optimization)
@@ -253,8 +245,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
     SetJumpTarget(pCTRDontBranch);
 
-  if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
-  {
+  if (!analyzer.HasOption(
+          PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE)) {
     gpr.Flush();
     fpr.Flush();
     WriteExit(js.compilerPC + 4);

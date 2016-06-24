@@ -16,8 +16,7 @@
 
 using namespace Arm64Gen;
 
-void JitArm64::fp_arith(UGeckoInstruction inst)
-{
+void JitArm64::fp_arith(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -29,19 +28,20 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   bool single = inst.OPCD == 59;
   bool packed = inst.OPCD == 4;
 
-  bool use_c = op5 >= 25;  // fmul and all kind of fmaddXX
-  bool use_b = op5 != 25;  // fmul uses no B
+  bool use_c = op5 >= 25; // fmul and all kind of fmaddXX
+  bool use_b = op5 != 25; // fmul uses no B
 
-  bool inputs_are_singles = fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
+  bool inputs_are_singles = fpr.IsSingle(a, !packed) &&
+                            (!use_b || fpr.IsSingle(b, !packed)) &&
                             (!use_c || fpr.IsSingle(c, !packed));
 
   ARM64Reg VA, VB, VC, VD;
 
-  if (packed)
-  {
+  if (packed) {
     RegType type = inputs_are_singles ? REG_REG_SINGLE : REG_REG;
     u8 size = inputs_are_singles ? 32 : 64;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = inputs_are_singles ? EncodeRegToDouble : EncodeRegToQuad;
+    ARM64Reg (*reg_encoder)(ARM64Reg) =
+        inputs_are_singles ? EncodeRegToDouble : EncodeRegToQuad;
 
     VA = reg_encoder(fpr.R(a, type));
     if (use_b)
@@ -50,8 +50,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       VC = reg_encoder(fpr.R(c, type));
     VD = reg_encoder(fpr.RW(d, type));
 
-    switch (op5)
-    {
+    switch (op5) {
     case 18:
       m_float_emit.FDIV(size, VD, VA, VB);
       break;
@@ -68,11 +67,11 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       _assert_msg_(DYNA_REC, 0, "fp_arith");
       break;
     }
-  }
-  else
-  {
-    RegType type = (inputs_are_singles && single) ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-    RegType type_out = single ? (inputs_are_singles ? REG_DUP_SINGLE : REG_DUP) : REG_LOWER_PAIR;
+  } else {
+    RegType type =
+        (inputs_are_singles && single) ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
+    RegType type_out = single ? (inputs_are_singles ? REG_DUP_SINGLE : REG_DUP)
+                              : REG_LOWER_PAIR;
     ARM64Reg (*reg_encoder)(ARM64Reg) =
         (inputs_are_singles && single) ? EncodeRegToSingle : EncodeRegToDouble;
 
@@ -83,8 +82,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       VC = reg_encoder(fpr.R(c, type));
     VD = reg_encoder(fpr.RW(d, type_out));
 
-    switch (op5)
-    {
+    switch (op5) {
     case 18:
       m_float_emit.FDIV(VD, VA, VB);
       break;
@@ -99,16 +97,16 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
       break;
     case 28:
       m_float_emit.FNMSUB(VD, VA, VC, VB);
-      break;  // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
+      break; // fmsub: "D = A*C - B" vs "Vd = (-Va) + Vn*Vm"
     case 29:
       m_float_emit.FMADD(VD, VA, VC, VB);
-      break;  // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
+      break; // fmadd: "D = A*C + B" vs "Vd = Va + Vn*Vm"
     case 30:
       m_float_emit.FMSUB(VD, VA, VC, VB);
-      break;  // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
+      break; // fnmsub: "D = -(A*C - B)" vs "Vd = Va + (-Vn)*Vm"
     case 31:
       m_float_emit.FNMADD(VD, VA, VC, VB);
-      break;  // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
+      break; // fnmadd: "D = -(A*C + B)" vs "Vd = (-Va) + (-Vn)*Vm"
     default:
       _assert_msg_(DYNA_REC, 0, "fp_arith");
       break;
@@ -119,8 +117,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
     fpr.FixSinglePrecision(d);
 }
 
-void JitArm64::fp_logic(UGeckoInstruction inst)
-{
+void JitArm64::fp_logic(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -137,16 +134,15 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   bool single = fpr.IsSingle(b, !packed);
   u8 size = single ? 32 : 64;
 
-  if (packed)
-  {
+  if (packed) {
     RegType type = single ? REG_REG_SINGLE : REG_REG;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToDouble : EncodeRegToQuad;
+    ARM64Reg (*reg_encoder)(ARM64Reg) =
+        single ? EncodeRegToDouble : EncodeRegToQuad;
 
     ARM64Reg VB = reg_encoder(fpr.R(b, type));
     ARM64Reg VD = reg_encoder(fpr.RW(d, type));
 
-    switch (op10)
-    {
+    switch (op10) {
     case 40:
       m_float_emit.FNEG(size, VD, VB);
       break;
@@ -164,17 +160,15 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
       _assert_msg_(DYNA_REC, 0, "fp_logic");
       break;
     }
-  }
-  else
-  {
+  } else {
     RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-    ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
+    ARM64Reg (*reg_encoder)(ARM64Reg) =
+        single ? EncodeRegToSingle : EncodeRegToDouble;
 
     ARM64Reg VB = fpr.R(b, type);
     ARM64Reg VD = fpr.RW(d, type);
 
-    switch (op10)
-    {
+    switch (op10) {
     case 40:
       m_float_emit.FNEG(reg_encoder(VD), reg_encoder(VB));
       break;
@@ -195,28 +189,25 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::fselx(UGeckoInstruction inst)
-{
+void JitArm64::fselx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
 
   u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
 
-  if (fpr.IsSingle(a, true))
-  {
+  if (fpr.IsSingle(a, true)) {
     ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR_SINGLE);
     m_float_emit.FCMPE(EncodeRegToSingle(VA));
-  }
-  else
-  {
+  } else {
     ARM64Reg VA = fpr.R(a, REG_LOWER_PAIR);
     m_float_emit.FCMPE(EncodeRegToDouble(VA));
   }
 
   bool single = fpr.IsSingle(b, true) && fpr.IsSingle(c, true);
   RegType type = single ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-  ARM64Reg (*reg_encoder)(ARM64Reg) = single ? EncodeRegToSingle : EncodeRegToDouble;
+  ARM64Reg (*reg_encoder)(ARM64Reg) =
+      single ? EncodeRegToSingle : EncodeRegToDouble;
 
   ARM64Reg VB = fpr.R(b, type);
   ARM64Reg VC = fpr.R(c, type);
@@ -225,8 +216,7 @@ void JitArm64::fselx(UGeckoInstruction inst)
   m_float_emit.FCSEL(reg_encoder(VD), reg_encoder(VC), reg_encoder(VB), CC_GE);
 }
 
-void JitArm64::frspx(UGeckoInstruction inst)
-{
+void JitArm64::frspx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -234,17 +224,15 @@ void JitArm64::frspx(UGeckoInstruction inst)
 
   u32 b = inst.FB, d = inst.FD;
 
-  if (fpr.IsSingle(b, true))
-  {
-    // Source is already in single precision, so no need to do anything but to copy to PSR1.
+  if (fpr.IsSingle(b, true)) {
+    // Source is already in single precision, so no need to do anything but to
+    // copy to PSR1.
     ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR_SINGLE);
     ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
 
     if (b != d)
       m_float_emit.FMOV(EncodeRegToSingle(VD), EncodeRegToSingle(VB));
-  }
-  else
-  {
+  } else {
     ARM64Reg VB = fpr.R(b, REG_LOWER_PAIR);
     ARM64Reg VD = fpr.RW(d, REG_DUP_SINGLE);
 
@@ -252,8 +240,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::fcmpX(UGeckoInstruction inst)
-{
+void JitArm64::fcmpX(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
@@ -263,7 +250,8 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   bool singles = fpr.IsSingle(a, true) && fpr.IsSingle(b, true);
   RegType type = singles ? REG_LOWER_PAIR_SINGLE : REG_LOWER_PAIR;
-  ARM64Reg (*reg_encoder)(ARM64Reg) = singles ? EncodeRegToSingle : EncodeRegToDouble;
+  ARM64Reg (*reg_encoder)(ARM64Reg) =
+      singles ? EncodeRegToSingle : EncodeRegToDouble;
 
   ARM64Reg VA = reg_encoder(fpr.R(a, type));
   ARM64Reg VB = reg_encoder(fpr.R(b, type));
@@ -277,8 +265,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   m_float_emit.FCMP(VA, VB);
 
-  if (a != b)
-  {
+  if (a != b) {
     // if B > A goto Greater's jump target
     pGreater = B(CC_GT);
     // if B < A, goto Lesser's jump target
@@ -295,8 +282,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   MOVI2R(XA, PPCCRToInternal(CR_SO));
 
-  if (a != b)
-  {
+  if (a != b) {
     continue2 = B();
 
     SetJumpTarget(pGreater);
@@ -319,8 +305,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
   gpr.Unlock(WA);
 }
 
-void JitArm64::fctiwzx(UGeckoInstruction inst)
-{
+void JitArm64::fctiwzx(UGeckoInstruction inst) {
   INSTRUCTION_START
   JITDISABLE(bJITFloatingPointOff);
   FALLBACK_IF(inst.Rc);
@@ -338,15 +323,13 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   m_float_emit.MOVI(64, EncodeRegToDouble(V0), 0xFFFF000000000000ULL);
   m_float_emit.BIC(16, EncodeRegToDouble(V0), 0x7);
 
-  if (single)
-  {
+  if (single) {
     m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VB), ROUND_Z);
-  }
-  else
-  {
+  } else {
     m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
     m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
   }
-  m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
+  m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD),
+                   EncodeRegToDouble(V0));
   fpr.Unlock(V0);
 }

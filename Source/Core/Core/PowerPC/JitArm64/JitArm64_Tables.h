@@ -7,8 +7,7 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCTables.h"
 
-namespace JitArm64Tables
-{
-void CompileInstruction(PPCAnalyst::CodeOp& op);
+namespace JitArm64Tables {
+void CompileInstruction(PPCAnalyst::CodeOp &op);
 void InitTables();
 }

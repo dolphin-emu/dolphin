@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_XINPUT
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
@@ -35,8 +35,7 @@
 
 using namespace ciface::ExpressionParser;
 
-namespace
-{
+namespace {
 const ControlState INPUT_DETECT_THRESHOLD = 0.55;
 }
 
@@ -47,8 +46,7 @@ ControllerInterface g_controller_interface;
 //
 // Detect devices and inputs outputs / will make refresh function later
 //
-void ControllerInterface::Initialize(void* const hwnd)
-{
+void ControllerInterface::Initialize(void *const hwnd) {
   if (m_is_init)
     return;
 
@@ -85,8 +83,7 @@ void ControllerInterface::Initialize(void* const hwnd)
   m_is_init = true;
 }
 
-void ControllerInterface::Reinitialize()
-{
+void ControllerInterface::Reinitialize() {
   if (!m_is_init)
     return;
 
@@ -99,15 +96,13 @@ void ControllerInterface::Reinitialize()
 //
 // Remove all devices/ call library cleanup functions
 //
-void ControllerInterface::Shutdown()
-{
+void ControllerInterface::Shutdown() {
   if (!m_is_init)
     return;
 
-  for (ciface::Core::Device* d : m_devices)
-  {
+  for (ciface::Core::Device *d : m_devices) {
     // Set outputs to ZERO before destroying device
-    for (ciface::Core::Device::Output* o : d->Outputs())
+    for (ciface::Core::Device::Output *o : d->Outputs())
       o->SetState(0);
 
     // Delete device
@@ -129,7 +124,8 @@ void ControllerInterface::Shutdown()
   ciface::OSX::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
-  // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
+  // TODO: there seems to be some sort of memory leak with SDL, quit isn't
+  // freeing everything up
   SDL_Quit();
 #endif
 #ifdef CIFACE_USE_ANDROID
@@ -144,9 +140,8 @@ void ControllerInterface::Shutdown()
 //
 // Update input for all devices
 //
-void ControllerInterface::UpdateInput()
-{
-  for (ciface::Core::Device* d : m_devices)
+void ControllerInterface::UpdateInput() {
+  for (ciface::Core::Device *d : m_devices)
     d->UpdateInput();
 }
 
@@ -156,8 +151,8 @@ void ControllerInterface::UpdateInput()
 // Gets the state of an input reference
 // override function for ControlReference::State ...
 //
-ControlState ControllerInterface::InputReference::State(const ControlState ignore)
-{
+ControlState
+ControllerInterface::InputReference::State(const ControlState ignore) {
   if (parsed_expression)
     return parsed_expression->GetValue() * range;
   else
@@ -168,12 +163,13 @@ ControlState ControllerInterface::InputReference::State(const ControlState ignor
 // OutputReference :: State
 //
 // Set the state of all binded outputs
-// overrides ControlReference::State .. combined them so I could make the GUI simple / inputs ==
+// overrides ControlReference::State .. combined them so I could make the GUI
+// simple / inputs ==
 // same as outputs one list
 // I was lazy and it works so watever
 //
-ControlState ControllerInterface::OutputReference::State(const ControlState state)
-{
+ControlState
+ControllerInterface::OutputReference::State(const ControlState state) {
   if (parsed_expression)
     parsed_expression->SetValue(state);
   return 0.0;
@@ -183,32 +179,34 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 // UpdateReference
 //
 // Updates a controlreference's binded devices/controls
-// need to call this to re-parse a control reference's expression after changing it
+// need to call this to re-parse a control reference's expression after changing
+// it
 //
-void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref,
-                                          const ciface::Core::DeviceQualifier& default_device) const
-{
+void ControllerInterface::UpdateReference(
+    ControllerInterface::ControlReference *ref,
+    const ciface::Core::DeviceQualifier &default_device) const {
   delete ref->parsed_expression;
   ref->parsed_expression = nullptr;
 
   ControlFinder finder(*this, default_device, ref->is_input);
-  ref->parse_error = ParseExpression(ref->expression, finder, &ref->parsed_expression);
+  ref->parse_error =
+      ParseExpression(ref->expression, finder, &ref->parsed_expression);
 }
 
 //
 // InputReference :: Detect
 //
 // Wait for input on all binded devices
-// supports not detecting inputs that were held down at the time of Detect start,
-// which is useful for those crazy flightsticks that have certain buttons that are always held down
+// supports not detecting inputs that were held down at the time of Detect
+// start,
+// which is useful for those crazy flightsticks that have certain buttons that
+// are always held down
 // or some crazy axes or something
 // upon input, return pointer to detected Control
 // else return nullptr
 //
-ciface::Core::Device::Control*
-ControllerInterface::InputReference::Detect(const unsigned int ms,
-                                            ciface::Core::Device* const device)
-{
+ciface::Core::Device::Control *ControllerInterface::InputReference::Detect(
+    const unsigned int ms, ciface::Core::Device *const device) {
   unsigned int time = 0;
   std::vector<bool> states(device->Inputs().size());
 
@@ -217,27 +215,24 @@ ControllerInterface::InputReference::Detect(const unsigned int ms,
 
   // get starting state of all inputs,
   // so we can ignore those that were activated at time of Detect start
-  std::vector<ciface::Core::Device::Input *>::const_iterator i = device->Inputs().begin(),
-                                                             e = device->Inputs().end();
+  std::vector<ciface::Core::Device::Input *>::const_iterator
+      i = device->Inputs().begin(),
+      e = device->Inputs().end();
   for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
     *state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
 
-  while (time < ms)
-  {
+  while (time < ms) {
     device->UpdateInput();
     i = device->Inputs().begin();
-    for (std::vector<bool>::iterator state = states.begin(); i != e; ++i, ++state)
-    {
+    for (std::vector<bool>::iterator state = states.begin(); i != e;
+         ++i, ++state) {
       // detected an input
-      if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
-      {
+      if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD) {
         // input was released at some point during Detect call
         // return the detected input
         if (false == *state)
           return *i;
-      }
-      else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
-      {
+      } else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD)) {
         *state = false;
       }
     }
@@ -252,22 +247,21 @@ ControllerInterface::InputReference::Detect(const unsigned int ms,
 //
 // OutputReference :: Detect
 //
-// Totally different from the inputReference detect / I have them combined so it was simpler to make
+// Totally different from the inputReference detect / I have them combined so it
+// was simpler to make
 // the GUI.
-// The GUI doesn't know the difference between an input and an output / it's odd but I was lazy and
+// The GUI doesn't know the difference between an input and an output / it's odd
+// but I was lazy and
 // it was easy
 //
 // set all binded outputs to <range> power for x milliseconds return false
 //
-ciface::Core::Device::Control*
-ControllerInterface::OutputReference::Detect(const unsigned int ms,
-                                             ciface::Core::Device* const device)
-{
+ciface::Core::Device::Control *ControllerInterface::OutputReference::Detect(
+    const unsigned int ms, ciface::Core::Device *const device) {
   // ignore device
 
   // don't hang if we don't even have any controls mapped
-  if (BoundCount() > 0)
-  {
+  if (BoundCount() > 0) {
     State(1);
     unsigned int slept = 0;
 

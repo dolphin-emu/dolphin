@@ -20,10 +20,9 @@
 #include "InputCommon/GCPadStatus.h"
 
 // Global java_vm class
-extern JavaVM* g_java_vm;
+extern JavaVM *g_java_vm;
 
-namespace GCAdapter
-{
+namespace GCAdapter {
 static void Setup();
 static void Reset();
 
@@ -60,18 +59,17 @@ static Common::Flag s_adapter_detect_thread_running;
 
 static u64 s_last_init = 0;
 
-static void ScanThreadFunc()
-{
+static void ScanThreadFunc() {
   Common::SetCurrentThreadName("GC Adapter Scanning Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
-  JNIEnv* env;
+  JNIEnv *env;
   g_java_vm->AttachCurrentThread(&env, NULL);
 
-  jmethodID queryadapter_func = env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
+  jmethodID queryadapter_func =
+      env->GetStaticMethodID(s_adapter_class, "QueryAdapter", "()Z");
 
-  while (s_adapter_detect_thread_running.IsSet())
-  {
+  while (s_adapter_detect_thread_running.IsSet()) {
     if (!s_detected && UseAdapter() &&
         env->CallStaticBooleanMethod(s_adapter_class, queryadapter_func))
       Setup();
@@ -82,23 +80,21 @@ static void ScanThreadFunc()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
 
-static void Write()
-{
+static void Write() {
   Common::SetCurrentThreadName("GC Adapter Write Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread started");
 
-  JNIEnv* env;
+  JNIEnv *env;
   g_java_vm->AttachCurrentThread(&env, NULL);
-  jmethodID output_func = env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
+  jmethodID output_func =
+      env->GetStaticMethodID(s_adapter_class, "Output", "([B)I");
 
-  while (s_write_adapter_thread_running.IsSet())
-  {
+  while (s_write_adapter_thread_running.IsSet()) {
     s_write_happened.Wait();
     int write_size = s_controller_write_payload_size.load();
-    if (write_size)
-    {
+    if (write_size) {
       jbyteArray jrumble_array = env->NewByteArray(5);
-      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, NULL);
+      jbyte *jrumble = env->GetByteArrayElements(jrumble_array, NULL);
 
       {
         std::lock_guard<std::mutex> lk(s_write_mutex);
@@ -106,10 +102,10 @@ static void Write()
       }
 
       env->ReleaseByteArrayElements(jrumble_array, jrumble, 0);
-      int size = env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
+      int size =
+          env->CallStaticIntMethod(s_adapter_class, output_func, jrumble_array);
       // Netplay sends invalid data which results in size = 0x00.  Ignore it.
-      if (size != write_size && size != 0x00)
-      {
+      if (size != write_size && size != 0x00) {
         ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
         Reset();
       }
@@ -123,39 +119,44 @@ static void Write()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter write thread stopped");
 }
 
-static void Read()
-{
+static void Read() {
   Common::SetCurrentThreadName("GC Adapter Read Thread");
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread started");
 
   bool first_read = true;
-  JNIEnv* env;
+  JNIEnv *env;
   g_java_vm->AttachCurrentThread(&env, NULL);
 
-  jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
-  jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
-  jbyteArray* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
+  jfieldID payload_field =
+      env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
+  jobject payload_object =
+      env->GetStaticObjectField(s_adapter_class, payload_field);
+  jbyteArray *java_controller_payload =
+      reinterpret_cast<jbyteArray *>(&payload_object);
 
   // Get function pointers
-  jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
-  jmethodID input_func = env->GetStaticMethodID(s_adapter_class, "Input", "()I");
-  jmethodID openadapter_func = env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
+  jmethodID getfd_func =
+      env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
+  jmethodID input_func =
+      env->GetStaticMethodID(s_adapter_class, "Input", "()I");
+  jmethodID openadapter_func =
+      env->GetStaticMethodID(s_adapter_class, "OpenAdapter", "()Z");
 
-  bool connected = env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
+  bool connected =
+      env->CallStaticBooleanMethod(s_adapter_class, openadapter_func);
 
-  if (connected)
-  {
+  if (connected) {
     s_write_adapter_thread_running.Set(true);
     std::thread write_adapter_thread(Write);
 
     // Reset rumble once on initial reading
     ResetRumble();
 
-    while (s_read_adapter_thread_running.IsSet())
-    {
+    while (s_read_adapter_thread_running.IsSet()) {
       int read_size = env->CallStaticIntMethod(s_adapter_class, input_func);
 
-      jbyte* java_data = env->GetByteArrayElements(*java_controller_payload, nullptr);
+      jbyte *java_data =
+          env->GetByteArrayElements(*java_controller_payload, nullptr);
       {
         std::lock_guard<std::mutex> lk(s_read_mutex);
         memcpy(s_controller_payload, java_data, 0x37);
@@ -163,8 +164,7 @@ static void Read()
       }
       env->ReleaseByteArrayElements(*java_controller_payload, java_data, 0);
 
-      if (first_read)
-      {
+      if (first_read) {
         first_read = false;
         s_fd = env->CallStaticIntMethod(s_adapter_class, getfd_func);
       }
@@ -173,10 +173,9 @@ static void Read()
     }
 
     // Terminate the write thread on leaving
-    if (s_write_adapter_thread_running.TestAndClear())
-    {
+    if (s_write_adapter_thread_running.TestAndClear()) {
       s_controller_write_payload_size.store(0);
-      s_write_happened.Set();  // Kick the waiting event
+      s_write_happened.Set(); // Kick the waiting event
       write_adapter_thread.join();
     }
   }
@@ -189,35 +188,35 @@ static void Read()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter read thread stopped");
 }
 
-void Init()
-{
+void Init() {
   if (s_fd)
     return;
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
-  {
-    if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
+  if (Core::GetState() != Core::CORE_UNINITIALIZED) {
+    if ((CoreTiming::GetTicks() - s_last_init) <
+        SystemTimers::GetTicksPerSecond())
       return;
 
     s_last_init = CoreTiming::GetTicks();
   }
 
-  JNIEnv* env;
+  JNIEnv *env;
   g_java_vm->AttachCurrentThread(&env, NULL);
 
-  jclass adapter_class = env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
+  jclass adapter_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/Java_GCAdapter");
   s_adapter_class = reinterpret_cast<jclass>(env->NewGlobalRef(adapter_class));
 
   if (UseAdapter())
     StartScanThread();
 }
 
-static void Setup()
-{
+static void Setup() {
   s_fd = 0;
   s_detected = true;
 
-  // Make sure the thread isn't in the middle of shutting down while starting a new one
+  // Make sure the thread isn't in the middle of shutting down while starting a
+  // new one
   if (s_read_adapter_thread_running.TestAndClear())
     s_read_adapter_thread.join();
 
@@ -225,8 +224,7 @@ static void Setup()
   s_read_adapter_thread = std::thread(Read);
 }
 
-static void Reset()
-{
+static void Reset() {
   if (!s_detected)
     return;
 
@@ -241,14 +239,12 @@ static void Reset()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter detached");
 }
 
-void Shutdown()
-{
+void Shutdown() {
   StopScanThread();
   Reset();
 }
 
-void StartScanThread()
-{
+void StartScanThread() {
   if (s_adapter_detect_thread_running.IsSet())
     return;
 
@@ -256,14 +252,12 @@ void StartScanThread()
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
 
-void StopScanThread()
-{
+void StopScanThread() {
   if (s_adapter_detect_thread_running.TestAndClear())
     s_adapter_detect_thread.join();
 }
 
-void Input(int chan, GCPadStatus* pad)
-{
+void Input(int chan, GCPadStatus *pad) {
   if (!UseAdapter() || !s_detected || !s_fd)
     return;
 
@@ -277,20 +271,17 @@ void Input(int chan, GCPadStatus* pad)
     payload_size = s_controller_payload_size.load();
   }
 
-  if (payload_size != sizeof(controller_payload_copy))
-  {
-    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
-              controller_payload_copy[0]);
+  if (payload_size != sizeof(controller_payload_copy)) {
+    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)",
+              payload_size, controller_payload_copy[0]);
     Reset();
-  }
-  else
-  {
+  } else {
     bool get_origin = false;
     u8 type = controller_payload_copy[1 + (9 * chan)] >> 4;
     if (type != ControllerTypes::CONTROLLER_NONE &&
-        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE)
-    {
-      ERROR_LOG(SERIALINTERFACE, "New device connected to Port %d of Type: %02x", chan + 1,
+        s_controller_type[chan] == ControllerTypes::CONTROLLER_NONE) {
+      ERROR_LOG(SERIALINTERFACE,
+                "New device connected to Port %d of Type: %02x", chan + 1,
                 controller_payload_copy[1 + (9 * chan)]);
       get_origin = true;
     }
@@ -298,8 +289,7 @@ void Input(int chan, GCPadStatus* pad)
     s_controller_type[chan] = type;
 
     memset(pad, 0, sizeof(*pad));
-    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
-    {
+    if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE) {
       u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
       u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
@@ -339,26 +329,24 @@ void Input(int chan, GCPadStatus* pad)
       pad->substickY = controller_payload_copy[1 + (9 * chan) + 6];
       pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
       pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
-    }
-    else
-    {
+    } else {
       pad->button = PAD_ERR_STATUS;
     }
   }
 }
 
-void Output(int chan, u8 rumble_command)
-{
+void Output(int chan, u8 rumble_command) {
   if (!UseAdapter() || !s_detected || !s_fd)
     return;
 
-  // Skip over rumble commands if it has not changed or the controller is wireless
+  // Skip over rumble commands if it has not changed or the controller is
+  // wireless
   if (rumble_command != s_controller_rumble[chan] &&
-      s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS)
-  {
+      s_controller_type[chan] != ControllerTypes::CONTROLLER_WIRELESS) {
     s_controller_rumble[chan] = rumble_command;
-    unsigned char rumble[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1],
-                               s_controller_rumble[2], s_controller_rumble[3]};
+    unsigned char rumble[5] = {0x11, s_controller_rumble[0],
+                               s_controller_rumble[1], s_controller_rumble[2],
+                               s_controller_rumble[3]};
     {
       std::lock_guard<std::mutex> lk(s_write_mutex);
       memcpy(s_controller_write_payload, rumble, 5);
@@ -368,29 +356,20 @@ void Output(int chan, u8 rumble_command)
   }
 }
 
-bool IsDetected()
-{
-  return s_detected;
-}
-bool IsDriverDetected()
-{
-  return true;
-}
-bool DeviceConnected(int chan)
-{
+bool IsDetected() { return s_detected; }
+bool IsDriverDetected() { return true; }
+bool DeviceConnected(int chan) {
   return s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE;
 }
 
-bool UseAdapter()
-{
+bool UseAdapter() {
   return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
          SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
 }
 
-void ResetRumble()
-{
+void ResetRumble() {
   unsigned char rumble[5] = {0x11, 0, 0, 0, 0};
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);
@@ -400,8 +379,6 @@ void ResetRumble()
   s_write_happened.Set();
 }
 
-void SetAdapterCallback(std::function<void(void)> func)
-{
-}
+void SetAdapterCallback(std::function<void(void)> func) {}
 
-}  // end of namespace GCAdapter
+} // end of namespace GCAdapter

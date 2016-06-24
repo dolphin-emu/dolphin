@@ -16,23 +16,23 @@
 
 // --- this volume type is used for encrypted Wii images ---
 
-namespace DiscIO
-{
-class CVolumeWiiCrypted : public IVolume
-{
+namespace DiscIO {
+class CVolumeWiiCrypted : public IVolume {
 public:
   CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
-                    const unsigned char* _pVolumeKey);
+                    const unsigned char *_pVolumeKey);
   ~CVolumeWiiCrypted();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
-  bool GetTitleID(u64* buffer) const override;
+  bool Read(u64 _Offset, u64 _Length, u8 *_pBuffer,
+            bool decrypt) const override;
+  bool GetTitleID(u64 *buffer) const override;
   std::vector<u8> GetTMD() const override;
   std::string GetUniqueID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override;
-  std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
-  std::vector<u32> GetBanner(int* width, int* height) const override;
+  std::map<IVolume::ELanguage, std::string>
+  GetNames(bool prefer_long) const override;
+  std::vector<u32> GetBanner(int *width, int *height) const override;
   u64 GetFSTSize() const override;
   std::string GetApploaderDate() const override;
   u8 GetDiscNumber() const override;
@@ -50,7 +50,8 @@ public:
 private:
   static const unsigned int s_block_header_size = 0x0400;
   static const unsigned int s_block_data_size = 0x7C00;
-  static const unsigned int s_block_total_size = s_block_header_size + s_block_data_size;
+  static const unsigned int s_block_total_size =
+      s_block_header_size + s_block_data_size;
 
   std::unique_ptr<IBlobReader> m_pReader;
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
@@ -62,4 +63,4 @@ private:
   mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
 };
 
-}  // namespace
+} // namespace

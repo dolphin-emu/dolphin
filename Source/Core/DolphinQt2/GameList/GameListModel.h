@@ -10,24 +10,23 @@
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameTracker.h"
 
-class GameListModel final : public QAbstractTableModel
-{
+class GameListModel final : public QAbstractTableModel {
   Q_OBJECT
 
 public:
-  explicit GameListModel(QObject* parent = nullptr);
+  explicit GameListModel(QObject *parent = nullptr);
 
   // Qt's Model/View stuff uses these overrides.
-  QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+  QVariant data(const QModelIndex &index,
+                int role = Qt::DisplayRole) const override;
   QVariant headerData(int section, Qt::Orientation orientation,
                       int role = Qt::DisplayRole) const override;
-  int rowCount(const QModelIndex& parent) const override;
-  int columnCount(const QModelIndex& parent) const override;
+  int rowCount(const QModelIndex &parent) const override;
+  int columnCount(const QModelIndex &parent) const override;
 
   // Path of the Game at the specified index.
   QString GetPath(int index) const { return m_games[index]->GetPath(); }
-  enum
-  {
+  enum {
     COL_PLATFORM = 0,
     COL_ID,
     COL_BANNER,
@@ -42,15 +41,15 @@ public:
 
 public slots:
   void UpdateGame(QSharedPointer<GameFile> game);
-  void RemoveGame(const QString& path);
+  void RemoveGame(const QString &path);
 
 signals:
-  void DirectoryAdded(const QString& dir);
-  void DirectoryRemoved(const QString& dir);
+  void DirectoryAdded(const QString &dir);
+  void DirectoryRemoved(const QString &dir);
 
 private:
   // Index in m_games, or -1 if it isn't found
-  int FindGame(const QString& path) const;
+  int FindGame(const QString &path) const;
 
   GameTracker m_tracker;
   QList<QSharedPointer<GameFile>> m_games;

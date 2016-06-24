@@ -17,15 +17,14 @@
 class PPCSymbolDB;
 struct Symbol;
 
-namespace PPCAnalyst
-{
-struct CodeOp  // 16B
+namespace PPCAnalyst {
+struct CodeOp // 16B
 {
   UGeckoInstruction inst;
-  GekkoOPInfo* opinfo;
+  GekkoOPInfo *opinfo;
   u32 address;
-  u32 branchTo;       // if 0, not a branch
-  int branchToIndex;  // index of target block
+  u32 branchTo;      // if 0, not a branch
+  int branchToIndex; // index of target block
   BitSet32 regsOut;
   BitSet32 regsIn;
   BitSet32 fregsIn;
@@ -41,35 +40,38 @@ struct CodeOp  // 16B
   bool outputFPRF;
   bool outputCA;
   bool canEndBlock;
-  bool skip;  // followed BL-s for example
+  bool skip; // followed BL-s for example
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
   BitSet32 gprInUse;
-  // just because a register is in use doesn't mean we actually need or want it in an x86 register.
+  // just because a register is in use doesn't mean we actually need or want it
+  // in an x86 register.
   BitSet32 gprInReg;
-  // we do double stores from GPRs, so we don't want to load a PowerPC floating point register into
+  // we do double stores from GPRs, so we don't want to load a PowerPC floating
+  // point register into
   // an XMM only to move it again to a GPR afterwards.
   BitSet32 fprInXmm;
-  // whether an fpr is known to be an actual single-precision value at this point in the block.
+  // whether an fpr is known to be an actual single-precision value at this
+  // point in the block.
   BitSet32 fprIsSingle;
-  // whether an fpr is known to have identical top and bottom halves (e.g. due to a single
+  // whether an fpr is known to have identical top and bottom halves (e.g. due
+  // to a single
   // instruction)
   BitSet32 fprIsDuplicated;
-  // whether an fpr is the output of a single-precision arithmetic instruction, i.e. whether we can
+  // whether an fpr is the output of a single-precision arithmetic instruction,
+  // i.e. whether we can
   // safely
   // skip PPC_FP.
   BitSet32 fprIsStoreSafe;
 };
 
-struct BlockStats
-{
+struct BlockStats {
   bool isFirstBlockOfFunction;
   bool isLastBlockOfFunction;
   int numCycles;
 };
 
-struct BlockRegStats
-{
+struct BlockRegStats {
   short firstRead[32];
   short firstWrite[32];
   short lastRead[32];
@@ -80,33 +82,31 @@ struct BlockRegStats
   bool any;
   bool anyTimer;
 
-  int GetTotalNumAccesses(int reg) const { return numReads[reg] + numWrites[reg]; }
-  int GetUseRange(int reg) const
-  {
-    return std::max(lastRead[reg], lastWrite[reg]) - std::min(firstRead[reg], firstWrite[reg]);
+  int GetTotalNumAccesses(int reg) const {
+    return numReads[reg] + numWrites[reg];
+  }
+  int GetUseRange(int reg) const {
+    return std::max(lastRead[reg], lastWrite[reg]) -
+           std::min(firstRead[reg], firstWrite[reg]);
   }
 
   bool IsUsed(int reg) const { return (numReads[reg] + numWrites[reg]) > 0; }
-  void SetInputRegister(int reg, short opindex)
-  {
+  void SetInputRegister(int reg, short opindex) {
     if (firstRead[reg] == -1)
       firstRead[reg] = opindex;
     lastRead[reg] = opindex;
     numReads[reg]++;
   }
 
-  void SetOutputRegister(int reg, short opindex)
-  {
+  void SetOutputRegister(int reg, short opindex) {
     if (firstWrite[reg] == -1)
       firstWrite[reg] = opindex;
     lastWrite[reg] = opindex;
     numWrites[reg]++;
   }
 
-  void Clear()
-  {
-    for (int i = 0; i < 32; ++i)
-    {
+  void Clear() {
+    for (int i = 0; i < 32; ++i) {
       firstRead[i] = -1;
       firstWrite[i] = -1;
       numReads[i] = 0;
@@ -115,21 +115,19 @@ struct BlockRegStats
   }
 };
 
-class CodeBuffer
-{
+class CodeBuffer {
 public:
   CodeBuffer(int size);
   ~CodeBuffer();
 
   int GetSize() const { return size_; }
-  PPCAnalyst::CodeOp* codebuffer;
+  PPCAnalyst::CodeOp *codebuffer;
 
 private:
   int size_;
 };
 
-struct CodeBlock
-{
+struct CodeBlock {
   // Beginning PPC address.
   u32 m_address;
 
@@ -138,7 +136,7 @@ struct CodeBlock
   u32 m_num_instructions;
 
   // Some basic statistics about the block.
-  BlockStats* m_stats;
+  BlockStats *m_stats;
 
   // Register statistics about the block.
   BlockRegStats *m_gpa, *m_fpa;
@@ -156,33 +154,30 @@ struct CodeBlock
   BitSet8 m_gqr_modified;
 };
 
-class PPCAnalyzer
-{
+class PPCAnalyzer {
 private:
-  enum ReorderType
-  {
-    REORDER_CARRY,
-    REORDER_CMP,
-    REORDER_CROR
-  };
+  enum ReorderType { REORDER_CARRY, REORDER_CMP, REORDER_CROR };
 
-  void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
-  void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInfo* opinfo, u32 index);
+  void ReorderInstructionsCore(u32 instructions, CodeOp *code, bool reverse,
+                               ReorderType type);
+  void ReorderInstructions(u32 instructions, CodeOp *code);
+  void SetInstructionStats(CodeBlock *block, CodeOp *code, GekkoOPInfo *opinfo,
+                           u32 index);
 
   // Options
   u32 m_options;
 
 public:
-  enum AnalystOption
-  {
+  enum AnalystOption {
     // Conditional branch continuing
     // If the JIT core supports conditional branches within the blocks
-    // Block will end on unconditional branch or other ENDBLOCK flagged instruction.
+    // Block will end on unconditional branch or other ENDBLOCK flagged
+    // instruction.
     // Requires JIT support to be enabled.
     OPTION_CONDITIONAL_CONTINUE = (1 << 0),
 
-    // If there is a unconditional branch that jumps to a leaf function then inline it.
+    // If there is a unconditional branch that jumps to a leaf function then
+    // inline it.
     // Might require JIT intervention to support it correctly.
     // Requires JITBLock support for inlined code
     // XXX: NOT COMPLETE
@@ -217,11 +212,11 @@ public:
   void SetOption(AnalystOption option) { m_options |= option; }
   void ClearOption(AnalystOption option) { m_options &= ~(option); }
   bool HasOption(AnalystOption option) const { return !!(m_options & option); }
-  u32 Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 blockSize);
+  u32 Analyze(u32 address, CodeBlock *block, CodeBuffer *buffer, u32 blockSize);
 };
 
 void LogFunctionCall(u32 addr);
-void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db);
-bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size = 0);
+void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB *func_db);
+bool AnalyzeFunction(u32 startAddr, Symbol &func, int max_size = 0);
 
-}  // namespace
+} // namespace

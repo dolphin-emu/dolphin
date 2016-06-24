@@ -11,12 +11,10 @@
 
 #include "VideoCommon/PerfQueryBase.h"
 
-namespace OGL
-{
+namespace OGL {
 std::unique_ptr<PerfQueryBase> GetPerfQuery();
 
-class PerfQuery : public PerfQueryBase
-{
+class PerfQuery : public PerfQueryBase {
 public:
   PerfQuery();
   ~PerfQuery() {}
@@ -28,8 +26,7 @@ public:
   bool IsFlushed() const override;
 
 protected:
-  struct ActiveQuery
-  {
+  struct ActiveQuery {
     GLuint query_id;
     PerfQueryGroup query_type;
   };
@@ -47,8 +44,7 @@ private:
 };
 
 // Implementations
-class PerfQueryGL : public PerfQuery
-{
+class PerfQueryGL : public PerfQuery {
 public:
   PerfQueryGL(GLenum query_type);
   ~PerfQueryGL();
@@ -65,8 +61,7 @@ private:
   GLenum m_query_type;
 };
 
-class PerfQueryGLESNV : public PerfQuery
-{
+class PerfQueryGLESNV : public PerfQuery {
 public:
   PerfQueryGLESNV();
   ~PerfQueryGLESNV();
@@ -81,4 +76,4 @@ private:
   void FlushOne();
 };
 
-}  // namespace
+} // namespace

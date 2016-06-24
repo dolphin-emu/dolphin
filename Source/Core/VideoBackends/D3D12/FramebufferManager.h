@@ -7,8 +7,7 @@
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
-namespace DX12
-{
+namespace DX12 {
 // On the GameCube, the game sends a request for the graphics processor to
 // transfer its internal EFB (Embedded Framebuffer) to an area in GameCube RAM
 // called the XFB (External Framebuffer). The size and location of the XFB is
@@ -41,29 +40,27 @@ namespace DX12
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
 
-struct XFBSource final : public XFBSourceBase
-{
-  XFBSource(D3DTexture2D* tex, int slices) : m_tex(tex), m_slices(slices) {}
+struct XFBSource final : public XFBSourceBase {
+  XFBSource(D3DTexture2D *tex, int slices) : m_tex(tex), m_slices(slices) {}
   ~XFBSource() { m_tex->Release(); }
   void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
   void CopyEFB(float gamma) override;
 
-  D3DTexture2D* m_tex;
+  D3DTexture2D *m_tex;
   const int m_slices;
 };
 
-class FramebufferManager final : public FramebufferManagerBase
-{
+class FramebufferManager final : public FramebufferManagerBase {
 public:
   FramebufferManager();
   ~FramebufferManager();
 
-  static D3DTexture2D*& GetEFBColorTexture();
-  static D3DTexture2D*& GetEFBDepthTexture();
-  static D3DTexture2D*& GetResolvedEFBColorTexture();
-  static D3DTexture2D*& GetResolvedEFBDepthTexture();
+  static D3DTexture2D *&GetEFBColorTexture();
+  static D3DTexture2D *&GetEFBDepthTexture();
+  static D3DTexture2D *&GetResolvedEFBColorTexture();
+  static D3DTexture2D *&GetResolvedEFBDepthTexture();
 
-  static D3DTexture2D*& GetEFBColorTempTexture();
+  static D3DTexture2D *&GetEFBColorTempTexture();
   static void SwapReinterpretTexture();
 
   static void ResolveDepthTexture();
@@ -85,30 +82,29 @@ private:
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
                                                  unsigned int layers) override;
-  void GetTargetSize(unsigned int* width, unsigned int* height) override;
+  void GetTargetSize(unsigned int *width, unsigned int *height) override;
 
-  void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
-                     float gamma) override;
+  void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
+                     const EFBRectangle &sourceRc, float gamma) override;
 
-  static struct Efb
-  {
-    D3DTexture2D* color_tex;
+  static struct Efb {
+    D3DTexture2D *color_tex;
 
-    D3DTexture2D* depth_tex;
+    D3DTexture2D *depth_tex;
 
-    D3DTexture2D* color_temp_tex;
+    D3DTexture2D *color_temp_tex;
 
-    D3DTexture2D* resolved_color_tex;
-    D3DTexture2D* resolved_depth_tex;
+    D3DTexture2D *resolved_color_tex;
+    D3DTexture2D *resolved_depth_tex;
 
-    D3DTexture2D* color_access_resize_tex;
-    ID3D12Resource* color_access_readback_buffer;
-    u8* color_access_readback_map;
+    D3DTexture2D *color_access_resize_tex;
+    ID3D12Resource *color_access_readback_buffer;
+    u8 *color_access_readback_map;
     u32 color_access_readback_pitch;
 
-    D3DTexture2D* depth_access_resize_tex;
-    ID3D12Resource* depth_access_readback_buffer;
-    u8* depth_access_readback_map;
+    D3DTexture2D *depth_access_resize_tex;
+    ID3D12Resource *depth_access_readback_buffer;
+    u8 *depth_access_readback_map;
     u32 depth_access_readback_pitch;
 
     int slices;
@@ -118,4 +114,4 @@ private:
   static unsigned int m_target_height;
 };
 
-}  // namespace DX12
+} // namespace DX12

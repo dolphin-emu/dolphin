@@ -9,10 +9,8 @@
 
 #include "VideoCommon/PerfQueryBase.h"
 
-namespace DX11
-{
-class PerfQuery : public PerfQueryBase
-{
+namespace DX11 {
+class PerfQuery : public PerfQueryBase {
 public:
   PerfQuery();
   ~PerfQuery();
@@ -25,9 +23,8 @@ public:
   bool IsFlushed() const override;
 
 private:
-  struct ActiveQuery
-  {
-    ID3D11Query* query;
+  struct ActiveQuery {
+    ID3D11Query *query;
     PerfQueryGroup query_type;
   };
 
@@ -43,4 +40,4 @@ private:
   int m_query_read_pos;
 };
 
-}  // namespace
+} // namespace

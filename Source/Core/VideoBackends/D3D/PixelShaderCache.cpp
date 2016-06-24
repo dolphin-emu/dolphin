@@ -198,8 +198,8 @@ const char depth_matrix_program_msaa[] = {
     // Apply color matrix
     "	ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot("
-    "texcol,cColMatrix[2]),dot("
-    "texcol,cColMatrix[3])) + cColMatrix[4];\n"
+    "texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + "
+    "cColMatrix[4];\n"
     "}\n"};
 
 const char depth_resolve_program[] = {

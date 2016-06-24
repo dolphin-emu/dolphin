@@ -16,18 +16,16 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-class SoftwareVideoConfigDialog : public wxDialog
-{
+class SoftwareVideoConfigDialog : public wxDialog {
 public:
-  SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& ininame);
+  SoftwareVideoConfigDialog(wxWindow *parent, const std::string &title,
+                            const std::string &ininame);
   ~SoftwareVideoConfigDialog();
 
-  void Event_Backend(wxCommandEvent& ev)
-  {
-    auto& new_backend = g_available_video_backends[ev.GetInt()];
+  void Event_Backend(wxCommandEvent &ev) {
+    auto &new_backend = g_available_video_backends[ev.GetInt()];
 
-    if (g_video_backend != new_backend.get())
-    {
+    if (g_video_backend != new_backend.get()) {
       Close();
 
       g_video_backend = new_backend.get();

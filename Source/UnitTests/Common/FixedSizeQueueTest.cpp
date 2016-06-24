@@ -6,8 +6,7 @@
 
 #include "Common/FixedSizeQueue.h"
 
-TEST(FixedSizeQueue, Simple)
-{
+TEST(FixedSizeQueue, Simple) {
   FixedSizeQueue<int, 5> q;
 
   EXPECT_EQ(0u, q.size());
@@ -17,8 +16,7 @@ TEST(FixedSizeQueue, Simple)
   q.push(2);
   q.push(3);
   q.push(4);
-  for (int i = 0; i < 1000; ++i)
-  {
+  for (int i = 0; i < 1000; ++i) {
     EXPECT_EQ(i, q.front());
     EXPECT_EQ(i, q.pop_front());
     q.push(i + 5);

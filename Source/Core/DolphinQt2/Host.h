@@ -13,33 +13,32 @@
 // the Host class communicates with it via signals/slots only.
 
 // Many of the Host_* functions are ignored, and some shouldn't exist.
-class Host final : public QObject
-{
+class Host final : public QObject {
   Q_OBJECT
 
 public:
-  static Host* GetInstance();
+  static Host *GetInstance();
 
-  void* GetRenderHandle();
+  void *GetRenderHandle();
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
 public slots:
-  void SetRenderHandle(void* handle);
+  void SetRenderHandle(void *handle);
   void SetRenderFocus(bool focus);
   void SetRenderFullscreen(bool fullscreen);
 
 signals:
-  void RequestTitle(const QString& title);
+  void RequestTitle(const QString &title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
 
 private:
   Host() {}
-  static Host* m_instance;
+  static Host *m_instance;
   QMutex m_lock;
 
-  void* m_render_handle;
+  void *m_render_handle;
   bool m_render_focus;
   bool m_render_fullscreen;
 };

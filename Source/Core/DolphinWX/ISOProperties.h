@@ -33,42 +33,37 @@ class wxStaticBitmap;
 class wxTextCtrl;
 class wxTreeCtrl;
 
-namespace DiscIO
-{
+namespace DiscIO {
 struct SFileInfo;
 }
-namespace Gecko
-{
+namespace Gecko {
 class CodeConfigPanel;
 }
 
-class WiiPartition final : public wxTreeItemData
-{
+class WiiPartition final : public wxTreeItemData {
 public:
   WiiPartition(std::unique_ptr<DiscIO::IVolume> partition,
                std::unique_ptr<DiscIO::IFileSystem> file_system)
-      : Partition(std::move(partition)), FileSystem(std::move(file_system))
-  {
-  }
+      : Partition(std::move(partition)), FileSystem(std::move(file_system)) {}
 
   std::unique_ptr<DiscIO::IVolume> Partition;
   std::unique_ptr<DiscIO::IFileSystem> FileSystem;
 };
 
-struct PHackData
-{
+struct PHackData {
   bool PHackSZNear;
   bool PHackSZFar;
   std::string PHZNear;
   std::string PHZFar;
 };
 
-class CISOProperties : public wxDialog
-{
+class CISOProperties : public wxDialog {
 public:
-  CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id = wxID_ANY,
-                 const wxString& title = _("Properties"), const wxPoint& pos = wxDefaultPosition,
-                 const wxSize& size = wxDefaultSize,
+  CISOProperties(const GameListItem &game_list_item, wxWindow *parent,
+                 wxWindowID id = wxID_ANY,
+                 const wxString &title = _("Properties"),
+                 const wxPoint &pos = wxDefaultPosition,
+                 const wxSize &size = wxDefaultSize,
                  long style = wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
   virtual ~CISOProperties();
 
@@ -87,50 +82,49 @@ private:
   wxCheckBox *SyncGPU, *FastDiscSpeed, *DSPHLE;
 
   wxArrayString arrayStringFor_GPUDeterminism;
-  wxChoice* GPUDeterminism;
+  wxChoice *GPUDeterminism;
   // Wii
-  wxCheckBox* EnableWideScreen;
+  wxCheckBox *EnableWideScreen;
 
   // Stereoscopy
-  wxSlider* DepthPercentage;
-  wxSpinCtrl* Convergence;
-  wxCheckBox* MonoDepth;
+  wxSlider *DepthPercentage;
+  wxSpinCtrl *Convergence;
+  wxCheckBox *MonoDepth;
 
   wxArrayString arrayStringFor_EmuState;
-  wxChoice* EmuState;
-  wxTextCtrl* EmuIssues;
+  wxChoice *EmuState;
+  wxTextCtrl *EmuIssues;
 
-  wxCheckListBox* Patches;
-  wxButton* EditPatch;
-  wxButton* RemovePatch;
+  wxCheckListBox *Patches;
+  wxButton *EditPatch;
+  wxButton *RemovePatch;
 
-  wxCheckListBox* Cheats;
-  wxButton* EditCheat;
-  wxButton* RemoveCheat;
+  wxCheckListBox *Cheats;
+  wxButton *EditCheat;
+  wxButton *RemoveCheat;
 
-  wxTextCtrl* m_InternalName;
-  wxTextCtrl* m_GameID;
-  wxTextCtrl* m_Country;
-  wxTextCtrl* m_MakerID;
-  wxTextCtrl* m_Revision;
-  wxTextCtrl* m_Date;
-  wxTextCtrl* m_FST;
-  wxTextCtrl* m_MD5Sum;
-  wxButton* m_MD5SumCompute;
+  wxTextCtrl *m_InternalName;
+  wxTextCtrl *m_GameID;
+  wxTextCtrl *m_Country;
+  wxTextCtrl *m_MakerID;
+  wxTextCtrl *m_Revision;
+  wxTextCtrl *m_Date;
+  wxTextCtrl *m_FST;
+  wxTextCtrl *m_MD5Sum;
+  wxButton *m_MD5SumCompute;
   wxArrayString arrayStringFor_Lang;
-  wxChoice* m_Lang;
-  wxTextCtrl* m_Name;
-  wxTextCtrl* m_Maker;
-  wxTextCtrl* m_Comment;
-  wxStaticBitmap* m_Banner;
+  wxChoice *m_Lang;
+  wxTextCtrl *m_Name;
+  wxTextCtrl *m_Maker;
+  wxTextCtrl *m_Comment;
+  wxStaticBitmap *m_Banner;
 
-  wxTreeCtrl* m_Treectrl;
+  wxTreeCtrl *m_Treectrl;
   wxTreeItemId RootId;
 
-  Gecko::CodeConfigPanel* m_geckocode_panel;
+  Gecko::CodeConfigPanel *m_geckocode_panel;
 
-  enum
-  {
+  enum {
     ID_TREECTRL = 1000,
 
     ID_NOTEBOOK,
@@ -194,37 +188,41 @@ private:
     IDM_BNRSAVEAS
   };
 
-  void LaunchExternalEditor(const std::string& filename, bool wait_until_closed);
+  void LaunchExternalEditor(const std::string &filename,
+                            bool wait_until_closed);
 
   void CreateGUIControls();
-  void OnClose(wxCloseEvent& event);
-  void OnCloseClick(wxCommandEvent& event);
-  void OnEditConfig(wxCommandEvent& event);
-  void OnComputeMD5Sum(wxCommandEvent& event);
-  void OnShowDefaultConfig(wxCommandEvent& event);
-  void ListSelectionChanged(wxCommandEvent& event);
-  void OnActionReplayCodeChecked(wxCommandEvent& event);
-  void PatchButtonClicked(wxCommandEvent& event);
-  void ActionReplayButtonClicked(wxCommandEvent& event);
-  void RightClickOnBanner(wxMouseEvent& event);
-  void OnBannerImageSave(wxCommandEvent& event);
-  void OnRightClickOnTree(wxTreeEvent& event);
-  void OnExtractFile(wxCommandEvent& event);
-  void OnExtractDir(wxCommandEvent& event);
-  void OnExtractDataFromHeader(wxCommandEvent& event);
-  void CheckPartitionIntegrity(wxCommandEvent& event);
-  void OnEmustateChanged(wxCommandEvent& event);
-  void OnChangeBannerLang(wxCommandEvent& event);
+  void OnClose(wxCloseEvent &event);
+  void OnCloseClick(wxCommandEvent &event);
+  void OnEditConfig(wxCommandEvent &event);
+  void OnComputeMD5Sum(wxCommandEvent &event);
+  void OnShowDefaultConfig(wxCommandEvent &event);
+  void ListSelectionChanged(wxCommandEvent &event);
+  void OnActionReplayCodeChecked(wxCommandEvent &event);
+  void PatchButtonClicked(wxCommandEvent &event);
+  void ActionReplayButtonClicked(wxCommandEvent &event);
+  void RightClickOnBanner(wxMouseEvent &event);
+  void OnBannerImageSave(wxCommandEvent &event);
+  void OnRightClickOnTree(wxTreeEvent &event);
+  void OnExtractFile(wxCommandEvent &event);
+  void OnExtractDir(wxCommandEvent &event);
+  void OnExtractDataFromHeader(wxCommandEvent &event);
+  void CheckPartitionIntegrity(wxCommandEvent &event);
+  void OnEmustateChanged(wxCommandEvent &event);
+  void OnChangeBannerLang(wxCommandEvent &event);
 
   const GameListItem OpenGameListItem;
 
-  typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
+  typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos);
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos,
+  size_t CreateDirectoryTree(wxTreeItemId &parent,
+                             const std::vector<DiscIO::SFileInfo> &fileInfos);
+  size_t CreateDirectoryTree(wxTreeItemId &parent,
+                             const std::vector<DiscIO::SFileInfo> &fileInfos,
                              const size_t _FirstIndex, const size_t _LastIndex);
-  void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
-                 const WiiPartition* partition = nullptr);
+  void ExportDir(const std::string &_rFullPath,
+                 const std::string &_rExportFilename,
+                 const WiiPartition *partition = nullptr);
 
   IniFile GameIniDefault;
   IniFile GameIniLocal;
@@ -236,7 +234,7 @@ private:
 
   void LoadGameConfig();
   bool SaveGameConfig();
-  void OnLocalIniModified(wxCommandEvent& ev);
+  void OnLocalIniModified(wxCommandEvent &ev);
   void GenerateLocalIniModified();
   void PatchList_Load();
   void PatchList_Save();
@@ -244,8 +242,9 @@ private:
   void ActionReplayList_Save();
   void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
-  long GetElementStyle(const char* section, const char* key);
-  void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
-  void SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key,
-                                          wxCheckBox* checkbox);
+  long GetElementStyle(const char *section, const char *key);
+  void SetCheckboxValueFromGameini(const char *section, const char *key,
+                                   wxCheckBox *checkbox);
+  void SaveGameIniValueFrom3StateCheckbox(const char *section, const char *key,
+                                          wxCheckBox *checkbox);
 };

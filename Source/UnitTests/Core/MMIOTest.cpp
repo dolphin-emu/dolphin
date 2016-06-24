@@ -10,25 +10,21 @@
 
 // Tests that the UniqueID function returns a "unique enough" identifier
 // number: that is, it is unique in the address ranges we care about.
-TEST(UniqueID, UniqueEnough)
-{
+TEST(UniqueID, UniqueEnough) {
   std::unordered_set<u32> ids;
-  for (u32 i = 0x0C000000; i < 0x0C010000; ++i)
-  {
+  for (u32 i = 0x0C000000; i < 0x0C010000; ++i) {
     u32 unique_id = MMIO::UniqueID(i);
     EXPECT_EQ(ids.end(), ids.find(unique_id));
     ids.insert(unique_id);
   }
-  for (u32 i = 0x0D000000; i < 0x0D010000; ++i)
-  {
+  for (u32 i = 0x0D000000; i < 0x0D010000; ++i) {
     u32 unique_id = MMIO::UniqueID(i);
     EXPECT_EQ(ids.end(), ids.find(unique_id));
     ids.insert(unique_id);
   }
 }
 
-TEST(IsMMIOAddress, SpecialAddresses)
-{
+TEST(IsMMIOAddress, SpecialAddresses) {
   SConfig::Init();
   SConfig::GetInstance().bWii = true;
 
@@ -46,26 +42,26 @@ TEST(IsMMIOAddress, SpecialAddresses)
   EXPECT_FALSE(MMIO::IsMMIOAddress(0xCC0000E0));
 
   // And lets check some valid addresses too
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0));  // Gamecube MMIOs
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C));  // Wii MMIOs
-  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10));  // Mirror of Wii MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0C0000E0)); // Gamecube MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D00008C)); // Wii MMIOs
+  EXPECT_TRUE(MMIO::IsMMIOAddress(0x0D800F10)); // Mirror of Wii MMIOs
 
   SConfig::Shutdown();
 }
 
-class MappingTest : public testing::Test
-{
+class MappingTest : public testing::Test {
 protected:
   virtual void SetUp() override { m_mapping = new MMIO::Mapping(); }
   virtual void TearDown() override { delete m_mapping; }
-  MMIO::Mapping* m_mapping;
+  MMIO::Mapping *m_mapping;
 };
 
-TEST_F(MappingTest, ReadConstant)
-{
+TEST_F(MappingTest, ReadConstant) {
   m_mapping->Register(0x0C001234, MMIO::Constant<u8>(0x42), MMIO::Nop<u8>());
-  m_mapping->Register(0x0C001234, MMIO::Constant<u16>(0x1234), MMIO::Nop<u16>());
-  m_mapping->Register(0x0C001234, MMIO::Constant<u32>(0xdeadbeef), MMIO::Nop<u32>());
+  m_mapping->Register(0x0C001234, MMIO::Constant<u16>(0x1234),
+                      MMIO::Nop<u16>());
+  m_mapping->Register(0x0C001234, MMIO::Constant<u32>(0xdeadbeef),
+                      MMIO::Nop<u32>());
 
   u8 val8 = m_mapping->Read<u8>(0x0C001234);
   u16 val16 = m_mapping->Read<u16>(0x0C001234);
@@ -76,8 +72,7 @@ TEST_F(MappingTest, ReadConstant)
   EXPECT_EQ(0xdeadbeef, val32);
 }
 
-TEST_F(MappingTest, ReadWriteDirect)
-{
+TEST_F(MappingTest, ReadWriteDirect) {
   u8 target_8 = 0;
   u16 target_16 = 0;
   u32 target_32 = 0;
@@ -89,8 +84,7 @@ TEST_F(MappingTest, ReadWriteDirect)
   m_mapping->Register(0x0C001234, MMIO::DirectRead<u32>(&target_32),
                       MMIO::DirectWrite<u32>(&target_32));
 
-  for (u32 i = 0; i < 100; ++i)
-  {
+  for (u32 i = 0; i < 100; ++i) {
     u8 val8 = m_mapping->Read<u8>(0x0C001234);
     EXPECT_EQ(i, val8);
     u16 val16 = m_mapping->Read<u16>(0x0C001234);
@@ -107,11 +101,11 @@ TEST_F(MappingTest, ReadWriteDirect)
   }
 }
 
-TEST_F(MappingTest, ReadWriteComplex)
-{
+TEST_F(MappingTest, ReadWriteComplex) {
   bool read_called = false, write_called = false;
 
-  m_mapping->Register(0x0C001234, MMIO::ComplexRead<u8>([&read_called](u32 addr) {
+  m_mapping->Register(0x0C001234,
+                      MMIO::ComplexRead<u8>([&read_called](u32 addr) {
                         EXPECT_EQ(0x0C001234u, addr);
                         read_called = true;
                         return 0x12;

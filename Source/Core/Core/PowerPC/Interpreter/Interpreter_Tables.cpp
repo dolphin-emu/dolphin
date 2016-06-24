@@ -2,14 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Common/MsgHandler.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 #include "Core/PowerPC/PPCTables.h"
 
-struct GekkoOPTemplate
-{
+struct GekkoOPTemplate {
   int opcode;
   Interpreter::Instruction Inst;
   GekkoOPInfo opinfo;
@@ -355,30 +354,25 @@ static GekkoOPTemplate table63_2[] =
 };
 // clang-format on
 
-namespace InterpreterTables
-{
-void InitTables()
-{
+namespace InterpreterTables {
+void InitTables() {
   // once initialized, tables are read-only
   static bool initialized = false;
   if (initialized)
     return;
 
   // clear
-  for (int i = 0; i < 64; i++)
-  {
+  for (int i = 0; i < 64; i++) {
     Interpreter::m_opTable[i] = Interpreter::unknown_instruction;
     m_infoTable[i] = &unknownopinfo;
   }
 
-  for (int i = 0; i < 32; i++)
-  {
+  for (int i = 0; i < 32; i++) {
     Interpreter::m_opTable59[i] = Interpreter::unknown_instruction;
     m_infoTable59[i] = &unknownopinfo;
   }
 
-  for (int i = 0; i < 1024; i++)
-  {
+  for (int i = 0; i < 1024; i++) {
     Interpreter::m_opTable4[i] = Interpreter::unknown_instruction;
     Interpreter::m_opTable19[i] = Interpreter::unknown_instruction;
     Interpreter::m_opTable31[i] = Interpreter::unknown_instruction;
@@ -389,74 +383,62 @@ void InitTables()
     m_infoTable63[i] = &unknownopinfo;
   }
 
-  for (auto& tpl : primarytable)
-  {
+  for (auto &tpl : primarytable) {
     Interpreter::m_opTable[tpl.opcode] = tpl.Inst;
     m_infoTable[tpl.opcode] = &tpl.opinfo;
   }
 
-  for (int i = 0; i < 32; i++)
-  {
+  for (int i = 0; i < 32; i++) {
     int fill = i << 5;
-    for (auto& tpl : table4_2)
-    {
+    for (auto &tpl : table4_2) {
       int op = fill + tpl.opcode;
       Interpreter::m_opTable4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
 
-  for (int i = 0; i < 16; i++)
-  {
+  for (int i = 0; i < 16; i++) {
     int fill = i << 6;
-    for (auto& tpl : table4_3)
-    {
+    for (auto &tpl : table4_3) {
       int op = fill + tpl.opcode;
       Interpreter::m_opTable4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
 
-  for (auto& tpl : table4)
-  {
+  for (auto &tpl : table4) {
     int op = tpl.opcode;
     Interpreter::m_opTable4[op] = tpl.Inst;
     m_infoTable4[op] = &tpl.opinfo;
   }
 
-  for (auto& tpl : table31)
-  {
+  for (auto &tpl : table31) {
     int op = tpl.opcode;
     Interpreter::m_opTable31[op] = tpl.Inst;
     m_infoTable31[op] = &tpl.opinfo;
   }
 
-  for (auto& tpl : table19)
-  {
+  for (auto &tpl : table19) {
     int op = tpl.opcode;
     Interpreter::m_opTable19[op] = tpl.Inst;
     m_infoTable19[op] = &tpl.opinfo;
   }
 
-  for (auto& tpl : table59)
-  {
+  for (auto &tpl : table59) {
     int op = tpl.opcode;
     Interpreter::m_opTable59[op] = tpl.Inst;
     m_infoTable59[op] = &tpl.opinfo;
   }
 
-  for (auto& tpl : table63)
-  {
+  for (auto &tpl : table63) {
     int op = tpl.opcode;
     Interpreter::m_opTable63[op] = tpl.Inst;
     m_infoTable63[op] = &tpl.opinfo;
   }
 
-  for (int i = 0; i < 32; i++)
-  {
+  for (int i = 0; i < 32; i++) {
     int fill = i << 5;
-    for (auto& tpl : table63_2)
-    {
+    for (auto &tpl : table63_2) {
       int op = fill + tpl.opcode;
       Interpreter::m_opTable63[op] = tpl.Inst;
       m_infoTable63[op] = &tpl.opinfo;
@@ -464,27 +446,26 @@ void InitTables()
   }
 
   m_numInstructions = 0;
-  for (auto& tpl : primarytable)
+  for (auto &tpl : primarytable)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table4_2)
+  for (auto &tpl : table4_2)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table4_3)
+  for (auto &tpl : table4_3)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table4)
+  for (auto &tpl : table4)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table31)
+  for (auto &tpl : table31)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table19)
+  for (auto &tpl : table19)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table59)
+  for (auto &tpl : table59)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table63)
+  for (auto &tpl : table63)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-  for (auto& tpl : table63_2)
+  for (auto &tpl : table63_2)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
 
-  if (m_numInstructions >= 512)
-  {
+  if (m_numInstructions >= 512) {
     PanicAlert("m_allInstructions underdimensioned");
   }
 

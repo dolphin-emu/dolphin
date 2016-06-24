@@ -13,34 +13,32 @@
 
 // Removed Wiimote UI elements due to Wiimotes being flat out broken in netplay.
 
-PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
-    : wxDialog(parent, wxID_ANY, _("Controller Ports")), m_pad_mapping(server->GetPadMapping()),
-      m_player_list(client->GetPlayers())
-{
-  wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
+PadMapDialog::PadMapDialog(wxWindow *parent, NetPlayServer *server,
+                           NetPlayClient *client)
+    : wxDialog(parent, wxID_ANY, _("Controller Ports")),
+      m_pad_mapping(server->GetPadMapping()),
+      m_player_list(client->GetPlayers()) {
+  wxBoxSizer *const h_szr = new wxBoxSizer(wxHORIZONTAL);
   h_szr->AddSpacer(10);
 
   wxArrayString player_names;
   player_names.Add(_("None"));
-  for (auto& player : m_player_list)
+  for (auto &player : m_player_list)
     player_names.Add(player->name);
 
-  for (unsigned int i = 0; i < 4; ++i)
-  {
-    wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
-    v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("GC Port ")) + (wxChar)('1' + i))), 1,
-               wxALIGN_CENTER_HORIZONTAL);
+  for (unsigned int i = 0; i < 4; ++i) {
+    wxBoxSizer *const v_szr = new wxBoxSizer(wxVERTICAL);
+    v_szr->Add(new wxStaticText(this, wxID_ANY,
+                                (wxString(_("GC Port ")) + (wxChar)('1' + i))),
+               1, wxALIGN_CENTER_HORIZONTAL);
 
-    m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
+    m_map_cbox[i] = new wxChoice(this, wxID_ANY, wxDefaultPosition,
+                                 wxDefaultSize, player_names);
     m_map_cbox[i]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
-    if (m_pad_mapping[i] == -1)
-    {
+    if (m_pad_mapping[i] == -1) {
       m_map_cbox[i]->Select(0);
-    }
-    else
-    {
-      for (unsigned int j = 0; j < m_player_list.size(); j++)
-      {
+    } else {
+      for (unsigned int j = 0; j < m_player_list.size(); j++) {
         if (m_pad_mapping[i] == m_player_list[j]->pid)
           m_map_cbox[i]->Select(j + 1);
       }
@@ -52,7 +50,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     h_szr->AddSpacer(10);
   }
 
-  wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
+  wxBoxSizer *const main_szr = new wxBoxSizer(wxVERTICAL);
   main_szr->Add(h_szr);
   main_szr->AddSpacer(5);
   main_szr->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT, 20);
@@ -61,15 +59,12 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
   SetFocus();
 }
 
-PadMappingArray PadMapDialog::GetModifiedPadMappings() const
-{
+PadMappingArray PadMapDialog::GetModifiedPadMappings() const {
   return m_pad_mapping;
 }
 
-void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
-{
-  for (unsigned int i = 0; i < 4; i++)
-  {
+void PadMapDialog::OnAdjust(wxCommandEvent &WXUNUSED(event)) {
+  for (unsigned int i = 0; i < 4; i++) {
     int player_idx = m_map_cbox[i]->GetSelection();
     if (player_idx > 0)
       m_pad_mapping[i] = m_player_list[player_idx - 1]->pid;

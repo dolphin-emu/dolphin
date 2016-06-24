@@ -8,18 +8,16 @@
 #include "VideoCommon/VideoBackendBase.h"
 
 class PointerWrap;
-namespace MMIO
-{
+namespace MMIO {
 class Mapping;
 }
 
-namespace CommandProcessor
-{
-extern SCPFifoStruct fifo;  // This one is shared between gfx thread and emulator thread.
+namespace CommandProcessor {
+extern SCPFifoStruct
+    fifo; // This one is shared between gfx thread and emulator thread.
 
 // internal hardware addresses
-enum
-{
+enum {
   STATUS_REGISTER = 0x00,
   CTRL_REGISTER = 0x02,
   CLEAR_REGISTER = 0x04,
@@ -64,16 +62,11 @@ enum
   CLKS_PER_VTX_OUT = 0x64,
 };
 
-enum
-{
-  GATHER_PIPE_SIZE = 32,
-  INT_CAUSE_CP = 0x800
-};
+enum { GATHER_PIPE_SIZE = 32, INT_CAUSE_CP = 0x800 };
 
 // Fifo Status Register
 union UCPStatusReg {
-  struct
-  {
+  struct {
     u16 OverflowHiWatermark : 1;
     u16 UnderflowLoWatermark : 1;
     u16 ReadIdle : 1;
@@ -88,8 +81,7 @@ union UCPStatusReg {
 
 // Fifo Control Register
 union UCPCtrlReg {
-  struct
-  {
+  struct {
     u16 GPReadEnable : 1;
     u16 BPEnable : 1;
     u16 FifoOverflowIntEnable : 1;
@@ -105,8 +97,7 @@ union UCPCtrlReg {
 
 // Fifo Clear Register
 union UCPClearReg {
-  struct
-  {
+  struct {
     u16 ClearFifoOverflow : 1;
     u16 ClearFifoUnderflow : 1;
     u16 ClearMetrices : 1;
@@ -120,9 +111,9 @@ union UCPClearReg {
 // Init
 void Init();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(PointerWrap &p);
 
-void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+void RegisterMMIO(MMIO::Mapping *mmio, u32 base);
 
 void SetCPStatusFromGPU();
 void SetCPStatusFromCPU();
@@ -139,4 +130,4 @@ void SetCpControlRegister();
 void SetCpStatusRegister();
 void ProcessFifoEvents();
 
-}  // namespace CommandProcessor
+} // namespace CommandProcessor

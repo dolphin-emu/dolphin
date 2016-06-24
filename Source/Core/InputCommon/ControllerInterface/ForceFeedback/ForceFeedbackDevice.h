@@ -10,24 +10,19 @@
 #include "InputCommon/ControllerInterface/Device.h"
 
 #ifdef _WIN32
-#include <Windows.h>
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
+#include <Windows.h>
 #elif __APPLE__
 #include "InputCommon/ControllerInterface/ForceFeedback/OSX/DirectInputAdapter.h"
 #endif
 
-namespace ciface
-{
-namespace ForceFeedback
-{
-class ForceFeedbackDevice : public Core::Device
-{
+namespace ciface {
+namespace ForceFeedback {
+class ForceFeedbackDevice : public Core::Device {
 private:
-  template <typename P>
-  class Force : public Output
-  {
+  template <typename P> class Force : public Output {
   public:
-    Force(const std::string& name, LPDIRECTINPUTEFFECT iface);
+    Force(const std::string &name, LPDIRECTINPUTEFFECT iface);
     ~Force();
 
     std::string GetName() const override;

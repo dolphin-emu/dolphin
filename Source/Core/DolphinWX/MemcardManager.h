@@ -17,10 +17,9 @@ class wxFileDirPickerEvent;
 class wxFilePickerCtrl;
 class wxStaticText;
 
-class CMemcardManager final : public wxDialog
-{
+class CMemcardManager final : public wxDialog {
 public:
-  CMemcardManager(wxWindow* parent);
+  CMemcardManager(wxWindow *parent);
   ~CMemcardManager();
 
 private:
@@ -32,22 +31,21 @@ private:
   std::string DefaultMemcard[2];
   std::string DefaultIOPath;
   IniFile MemcardManagerIni;
-  IniFile::Section* iniMemcardSection;
+  IniFile::Section *iniMemcardSection;
 
-  wxButton* m_CopyFrom[2];
-  wxButton* m_SaveImport[2];
-  wxButton* m_SaveExport[2];
-  wxButton* m_Delete[2];
-  wxButton* m_NextPage[2];
-  wxButton* m_PrevPage[2];
-  wxButton* m_ConvertToGci;
-  wxFilePickerCtrl* m_MemcardPath[2];
-  wxStaticText* t_Status[2];
+  wxButton *m_CopyFrom[2];
+  wxButton *m_SaveImport[2];
+  wxButton *m_SaveExport[2];
+  wxButton *m_Delete[2];
+  wxButton *m_NextPage[2];
+  wxButton *m_PrevPage[2];
+  wxButton *m_ConvertToGci;
+  wxFilePickerCtrl *m_MemcardPath[2];
+  wxStaticText *t_Status[2];
 
-  enum
-  {
-    ID_COPYFROM_A = 1000,  // Do not rearrange these items,
-    ID_COPYFROM_B,         // ID_..._B must be 1 more than ID_..._A
+  enum {
+    ID_COPYFROM_A = 1000, // Do not rearrange these items,
+    ID_COPYFROM_B,        // ID_..._B must be 1 more than ID_..._A
     ID_FIXCHECKSUM_A,
     ID_FIXCHECKSUM_B,
     ID_DELETE_A,
@@ -68,11 +66,10 @@ private:
     ID_MEMCARDPATH_A,
     ID_MEMCARDPATH_B,
     ID_USEPAGES,
-    ID_DUMMY_VALUE_  // don't remove this value unless you have other enum values
+    ID_DUMMY_VALUE_ // don't remove this value unless you have other enum values
   };
 
-  enum
-  {
+  enum {
     COLUMN_BANNER = 0,
     COLUMN_TITLE,
     COLUMN_COMMENT,
@@ -93,43 +90,42 @@ private:
     NUMBER_OF_COLUMN
   };
 
-  GCMemcard* memoryCard[2];
+  GCMemcard *memoryCard[2];
 
   void CreateGUIControls();
-  void CopyDeleteClick(wxCommandEvent& event);
-  bool ReloadMemcard(const std::string& fileName, int card);
-  void OnMenuChange(wxCommandEvent& event);
-  void OnPageChange(wxCommandEvent& event);
-  void OnPathChange(wxFileDirPickerEvent& event);
+  void CopyDeleteClick(wxCommandEvent &event);
+  bool ReloadMemcard(const std::string &fileName, int card);
+  void OnMenuChange(wxCommandEvent &event);
+  void OnPageChange(wxCommandEvent &event);
+  void OnPathChange(wxFileDirPickerEvent &event);
   void ChangePath(int id);
   bool CopyDeleteSwitch(u32 error, int slot);
   bool LoadSettings();
   bool SaveSettings();
 
-  struct _mcmSettings
-  {
+  struct _mcmSettings {
     bool twoCardsLoaded;
     bool usePages;
     bool column[NUMBER_OF_COLUMN + 1];
   } mcmSettings;
 
-  class CMemcardListCtrl : public wxListCtrl
-  {
+  class CMemcardListCtrl : public wxListCtrl {
   public:
-    CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                     long style, _mcmSettings& _mcmSetngs)
-        : wxListCtrl(parent, id, pos, size, style), __mcmSettings(_mcmSetngs)
-    {
+    CMemcardListCtrl(wxWindow *parent, const wxWindowID id, const wxPoint &pos,
+                     const wxSize &size, long style, _mcmSettings &_mcmSetngs)
+        : wxListCtrl(parent, id, pos, size, style), __mcmSettings(_mcmSetngs) {
       Bind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
     }
-    ~CMemcardListCtrl() { Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this); }
-    _mcmSettings& __mcmSettings;
+    ~CMemcardListCtrl() {
+      Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
+    }
+    _mcmSettings &__mcmSettings;
     bool prevPage;
     bool nextPage;
 
   private:
-    void OnRightClick(wxMouseEvent& event);
+    void OnRightClick(wxMouseEvent &event);
   };
 
-  CMemcardListCtrl* m_MemcardList[2];
+  CMemcardListCtrl *m_MemcardList[2];
 };

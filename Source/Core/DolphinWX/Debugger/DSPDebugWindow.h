@@ -17,17 +17,15 @@ class wxAuiNotebook;
 class wxAuiToolBar;
 class wxListBox;
 
-class DSPDebuggerLLE : public wxPanel
-{
+class DSPDebuggerLLE : public wxPanel {
 public:
-  DSPDebuggerLLE(wxWindow* parent, wxWindowID id = wxID_ANY);
+  DSPDebuggerLLE(wxWindow *parent, wxWindowID id = wxID_ANY);
   virtual ~DSPDebuggerLLE();
 
   void Update() override;
 
 private:
-  enum
-  {
+  enum {
     ID_TOOLBAR = 1000,
     ID_RUNTOOL,
     ID_STEPTOOL,
@@ -45,20 +43,20 @@ private:
 
   // GUI items
   wxAuiManager m_mgr;
-  wxAuiToolBar* m_Toolbar;
-  CCodeView* m_CodeView;
-  CMemoryView* m_MemView;
-  DSPRegisterView* m_Regs;
-  wxListBox* m_SymbolList;
-  wxTextCtrl* m_addr_txtctrl;
-  wxAuiNotebook* m_MainNotebook;
+  wxAuiToolBar *m_Toolbar;
+  CCodeView *m_CodeView;
+  CMemoryView *m_MemView;
+  DSPRegisterView *m_Regs;
+  wxListBox *m_SymbolList;
+  wxTextCtrl *m_addr_txtctrl;
+  wxAuiNotebook *m_MainNotebook;
 
-  void OnClose(wxCloseEvent& event);
-  void OnChangeState(wxCommandEvent& event);
+  void OnClose(wxCloseEvent &event);
+  void OnChangeState(wxCommandEvent &event);
   // void OnRightClick(wxListEvent& event);
   // void OnDoubleClick(wxListEvent& event);
-  void OnAddrBoxChange(wxCommandEvent& event);
-  void OnSymbolListChange(wxCommandEvent& event);
+  void OnAddrBoxChange(wxCommandEvent &event);
+  void OnSymbolListChange(wxCommandEvent &event);
 
   bool JumpToAddress(u16 addr);
 

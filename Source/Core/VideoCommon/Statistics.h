@@ -6,8 +6,7 @@
 
 #include <string>
 
-struct Statistics
-{
+struct Statistics {
   int numPixelShadersCreated;
   int numPixelShadersAlive;
   int numVertexShadersCreated;
@@ -21,15 +20,14 @@ struct Statistics
 
   float proj_0, proj_1, proj_2, proj_3, proj_4, proj_5;
   float gproj_0, gproj_1, gproj_2, gproj_3, gproj_4, gproj_5;
-  float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12, gproj_13, gproj_14,
-      gproj_15;
+  float gproj_6, gproj_7, gproj_8, gproj_9, gproj_10, gproj_11, gproj_12,
+      gproj_13, gproj_14, gproj_15;
 
   float g2proj_0, g2proj_1, g2proj_2, g2proj_3, g2proj_4, g2proj_5;
-  float g2proj_6, g2proj_7, g2proj_8, g2proj_9, g2proj_10, g2proj_11, g2proj_12, g2proj_13,
-      g2proj_14, g2proj_15;
+  float g2proj_6, g2proj_7, g2proj_8, g2proj_9, g2proj_10, g2proj_11, g2proj_12,
+      g2proj_13, g2proj_14, g2proj_15;
 
-  struct ThisFrame
-  {
+  struct ThisFrame {
     int numBPLoads;
     int numCPLoads;
     int numXFLoads;

@@ -24,18 +24,18 @@
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWiiCrypted.h"
 
-namespace DiscIO
-{
-CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
-                                     const unsigned char* _pVolumeKey)
-    : m_pReader(std::move(reader)), m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
-      m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_LastDecryptedBlockOffset(-1)
-{
+namespace DiscIO {
+CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader,
+                                     u64 _VolumeOffset,
+                                     const unsigned char *_pVolumeKey)
+    : m_pReader(std::move(reader)),
+      m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
+      m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000),
+      m_LastDecryptedBlockOffset(-1) {
   mbedtls_aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
 }
 
-bool CVolumeWiiCrypted::ChangePartition(u64 offset)
-{
+bool CVolumeWiiCrypted::ChangePartition(u64 offset) {
   m_VolumeOffset = offset;
   m_LastDecryptedBlockOffset = -1;
 
@@ -45,12 +45,10 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
   return true;
 }
 
-CVolumeWiiCrypted::~CVolumeWiiCrypted()
-{
-}
+CVolumeWiiCrypted::~CVolumeWiiCrypted() {}
 
-bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
-{
+bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8 *_pBuffer,
+                             bool decrypt) const {
   if (m_pReader == nullptr)
     return false;
 
@@ -60,16 +58,15 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
   FileMon::FindFilename(_ReadOffset);
 
   std::vector<u8> read_buffer(s_block_total_size);
-  while (_Length > 0)
-  {
+  while (_Length > 0) {
     // Calculate block offset
     u64 Block = _ReadOffset / s_block_data_size;
     u64 Offset = _ReadOffset % s_block_data_size;
 
-    if (m_LastDecryptedBlockOffset != Block)
-    {
+    if (m_LastDecryptedBlockOffset != Block) {
       // Read the current block
-      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset + Block * s_block_total_size,
+      if (!m_pReader->Read(m_VolumeOffset + m_dataOffset +
+                               Block * s_block_total_size,
                            s_block_total_size, read_buffer.data()))
         return false;
 
@@ -77,8 +74,9 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
       // 0x3D0 - 0x3DF in m_pBuffer will be overwritten,
       // but that won't affect anything, because we won't
       // use the content of m_pBuffer anymore after this
-      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, s_block_data_size,
-                            &read_buffer[0x3D0], &read_buffer[s_block_header_size],
+      mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT,
+                            s_block_data_size, &read_buffer[0x3D0],
+                            &read_buffer[s_block_header_size],
                             m_LastDecryptedBlock);
       m_LastDecryptedBlockOffset = Block;
 
@@ -102,29 +100,27 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
   return true;
 }
 
-bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
-{
+bool CVolumeWiiCrypted::GetTitleID(u64 *buffer) const {
   // Tik is at m_VolumeOffset size 0x2A4
   // TitleID offset in tik is 0x1DC
-  if (!Read(m_VolumeOffset + 0x1DC, sizeof(u64), reinterpret_cast<u8*>(buffer), false))
+  if (!Read(m_VolumeOffset + 0x1DC, sizeof(u64), reinterpret_cast<u8 *>(buffer),
+            false))
     return false;
 
   *buffer = Common::swap64(*buffer);
   return true;
 }
 
-std::vector<u8> CVolumeWiiCrypted::GetTMD() const
-{
+std::vector<u8> CVolumeWiiCrypted::GetTMD() const {
   u32 tmd_size;
   u32 tmd_address;
 
-  Read(m_VolumeOffset + 0x2a4, sizeof(u32), (u8*)&tmd_size, false);
-  Read(m_VolumeOffset + 0x2a8, sizeof(u32), (u8*)&tmd_address, false);
+  Read(m_VolumeOffset + 0x2a4, sizeof(u32), (u8 *)&tmd_size, false);
+  Read(m_VolumeOffset + 0x2a8, sizeof(u32), (u8 *)&tmd_address, false);
   tmd_size = Common::swap32(tmd_size);
   tmd_address = Common::swap32(tmd_address) << 2;
 
-  if (tmd_size > 1024 * 1024 * 4)
-  {
+  if (tmd_size > 1024 * 1024 * 4) {
     // The size is checked so that a malicious or corrupt ISO
     // can't force Dolphin to allocate up to 4 GiB of memory.
     // 4 MiB should be much bigger than the size of TMDs and much smaller
@@ -139,43 +135,37 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
   return buffer;
 }
 
-std::string CVolumeWiiCrypted::GetUniqueID() const
-{
+std::string CVolumeWiiCrypted::GetUniqueID() const {
   if (m_pReader == nullptr)
     return std::string();
 
   char ID[6];
 
-  if (!Read(0, 6, (u8*)ID, false))
+  if (!Read(0, 6, (u8 *)ID, false))
     return std::string();
 
   return DecodeString(ID);
 }
 
-IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
-{
+IVolume::ECountry CVolumeWiiCrypted::GetCountry() const {
   if (!m_pReader)
     return COUNTRY_UNKNOWN;
 
   u8 country_byte;
-  if (!m_pReader->Read(3, 1, &country_byte))
-  {
+  if (!m_pReader->Read(3, 1, &country_byte)) {
     return COUNTRY_UNKNOWN;
   }
 
   IVolume::ECountry country_value = CountrySwitch(country_byte);
 
   u32 region_code;
-  if (!ReadSwapped(0x4E000, &region_code, false))
-  {
+  if (!ReadSwapped(0x4E000, &region_code, false)) {
     return country_value;
   }
 
-  switch (region_code)
-  {
+  switch (region_code) {
   case 0:
-    switch (country_value)
-    {
+    switch (country_value) {
     case IVolume::COUNTRY_TAIWAN:
       return IVolume::COUNTRY_TAIWAN;
     default:
@@ -184,8 +174,7 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
   case 1:
     return IVolume::COUNTRY_USA;
   case 2:
-    switch (country_value)
-    {
+    switch (country_value) {
     case IVolume::COUNTRY_FRANCE:
     case IVolume::COUNTRY_GERMANY:
     case IVolume::COUNTRY_ITALY:
@@ -204,21 +193,19 @@ IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
   }
 }
 
-std::string CVolumeWiiCrypted::GetMakerID() const
-{
+std::string CVolumeWiiCrypted::GetMakerID() const {
   if (m_pReader == nullptr)
     return std::string();
 
   char makerID[2];
 
-  if (!Read(0x4, 0x2, (u8*)&makerID, false))
+  if (!Read(0x4, 0x2, (u8 *)&makerID, false))
     return std::string();
 
   return DecodeString(makerID);
 }
 
-u16 CVolumeWiiCrypted::GetRevision() const
-{
+u16 CVolumeWiiCrypted::GetRevision() const {
   if (!m_pReader)
     return 0;
 
@@ -229,26 +216,24 @@ u16 CVolumeWiiCrypted::GetRevision() const
   return revision;
 }
 
-std::string CVolumeWiiCrypted::GetInternalName() const
-{
+std::string CVolumeWiiCrypted::GetInternalName() const {
   char name_buffer[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+  if (m_pReader != nullptr && Read(0x20, 0x60, (u8 *)&name_buffer, false))
     return DecodeString(name_buffer);
 
   return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames(bool prefer_long) const
-{
+std::map<IVolume::ELanguage, std::string>
+CVolumeWiiCrypted::GetNames(bool prefer_long) const {
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
-  opening_bnr.resize(
-      file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
+  opening_bnr.resize(file_system->ReadFile("opening.bnr", opening_bnr.data(),
+                                           opening_bnr.size(), 0x5C));
   return ReadWiiNames(opening_bnr);
 }
 
-std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
-{
+std::vector<u32> CVolumeWiiCrypted::GetBanner(int *width, int *height) const {
   *width = 0;
   *height = 0;
 
@@ -259,88 +244,78 @@ std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
   return GetWiiBanner(width, height, title_id);
 }
 
-u64 CVolumeWiiCrypted::GetFSTSize() const
-{
+u64 CVolumeWiiCrypted::GetFSTSize() const {
   if (m_pReader == nullptr)
     return 0;
 
   u32 size;
 
-  if (!Read(0x428, 0x4, (u8*)&size, true))
+  if (!Read(0x428, 0x4, (u8 *)&size, true))
     return 0;
 
   return (u64)Common::swap32(size) << 2;
 }
 
-std::string CVolumeWiiCrypted::GetApploaderDate() const
-{
+std::string CVolumeWiiCrypted::GetApploaderDate() const {
   if (m_pReader == nullptr)
     return std::string();
 
   char date[16];
 
-  if (!Read(0x2440, 0x10, (u8*)&date, true))
+  if (!Read(0x2440, 0x10, (u8 *)&date, true))
     return std::string();
 
   return DecodeString(date);
 }
 
-IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const
-{
-  return WII_DISC;
-}
+IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const { return WII_DISC; }
 
-u8 CVolumeWiiCrypted::GetDiscNumber() const
-{
+u8 CVolumeWiiCrypted::GetDiscNumber() const {
   u8 disc_number;
   m_pReader->Read(6, 1, &disc_number);
   return disc_number;
 }
 
-BlobType CVolumeWiiCrypted::GetBlobType() const
-{
+BlobType CVolumeWiiCrypted::GetBlobType() const {
   return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
 }
 
-u64 CVolumeWiiCrypted::GetSize() const
-{
+u64 CVolumeWiiCrypted::GetSize() const {
   if (m_pReader)
     return m_pReader->GetDataSize();
   else
     return 0;
 }
 
-u64 CVolumeWiiCrypted::GetRawSize() const
-{
+u64 CVolumeWiiCrypted::GetRawSize() const {
   if (m_pReader)
     return m_pReader->GetRawSize();
   else
     return 0;
 }
 
-bool CVolumeWiiCrypted::CheckIntegrity() const
-{
+bool CVolumeWiiCrypted::CheckIntegrity() const {
   // Get partition data size
   u32 partSizeDiv4;
-  Read(m_VolumeOffset + 0x2BC, 4, (u8*)&partSizeDiv4, false);
+  Read(m_VolumeOffset + 0x2BC, 4, (u8 *)&partSizeDiv4, false);
   u64 partDataSize = (u64)Common::swap32(partSizeDiv4) * 4;
 
   u32 nClusters = (u32)(partDataSize / 0x8000);
-  for (u32 clusterID = 0; clusterID < nClusters; ++clusterID)
-  {
+  for (u32 clusterID = 0; clusterID < nClusters; ++clusterID) {
     u64 clusterOff = m_VolumeOffset + m_dataOffset + (u64)clusterID * 0x8000;
 
     // Read and decrypt the cluster metadata
     u8 clusterMDCrypted[0x400];
     u8 clusterMD[0x400];
     u8 IV[16] = {0};
-    if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted))
-    {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
+    if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted)) {
+      NOTICE_LOG(DISCIO,
+                 "Integrity Check: fail at cluster %d: could not read metadata",
+                 clusterID);
       return false;
     }
-    mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, 0x400, IV, clusterMDCrypted,
-                          clusterMD);
+    mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, 0x400, IV,
+                          clusterMDCrypted, clusterMD);
 
     // Some clusters have invalid data and metadata because they aren't
     // meant to be read by the game (for example, holes between files). To
@@ -359,23 +334,23 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
       continue;
 
     u8 clusterData[0x7C00];
-    if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData, true))
-    {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
+    if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData, true)) {
+      NOTICE_LOG(DISCIO,
+                 "Integrity Check: fail at cluster %d: could not read data",
+                 clusterID);
       return false;
     }
 
-    for (u32 hashID = 0; hashID < 31; ++hashID)
-    {
+    for (u32 hashID = 0; hashID < 31; ++hashID) {
       u8 hash[20];
 
       mbedtls_sha1(clusterData + hashID * 0x400, 0x400, hash);
 
       // Note that we do not use strncmp here
-      if (memcmp(hash, clusterMD + hashID * 20, 20))
-      {
-        NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID,
-                   hashID);
+      if (memcmp(hash, clusterMD + hashID * 20, 20)) {
+        NOTICE_LOG(DISCIO,
+                   "Integrity Check: fail at cluster %d: hash %d is invalid",
+                   clusterID, hashID);
         return false;
       }
     }
@@ -384,4 +359,4 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
   return true;
 }
 
-}  // namespace
+} // namespace

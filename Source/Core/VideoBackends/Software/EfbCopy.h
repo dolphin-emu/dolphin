@@ -6,8 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-namespace EfbCopy
-{
+namespace EfbCopy {
 // Copy the EFB to RAM as a texture format or XFB
 void CopyEfb();
 

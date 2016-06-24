@@ -41,8 +41,7 @@ static u32 sig = 0;
 static u32 send_signal = 0;
 static u32 step_break = 0;
 
-typedef struct
-{
+typedef struct {
   u32 active;
   u32 addr;
   u32 len;
@@ -54,8 +53,7 @@ static gdb_bp_t bp_w[GDB_MAX_BP];
 static gdb_bp_t bp_a[GDB_MAX_BP];
 
 // private helpers
-static u8 hex2char(u8 hex)
-{
+static u8 hex2char(u8 hex) {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
   else if (hex >= 'a' && hex <= 'f')
@@ -67,8 +65,7 @@ static u8 hex2char(u8 hex)
   return 0;
 }
 
-static u8 nibble2hex(u8 n)
-{
+static u8 nibble2hex(u8 n) {
   n &= 0xf;
   if (n < 0xa)
     return '0' + n;
@@ -76,35 +73,29 @@ static u8 nibble2hex(u8 n)
     return 'A' + n - 0xa;
 }
 
-static void mem2hex(u8* dst, u8* src, u32 len)
-{
+static void mem2hex(u8 *dst, u8 *src, u32 len) {
   u8 tmp;
 
-  while (len-- > 0)
-  {
+  while (len-- > 0) {
     tmp = *src++;
     *dst++ = nibble2hex(tmp >> 4);
     *dst++ = nibble2hex(tmp);
   }
 }
 
-static void hex2mem(u8* dst, u8* src, u32 len)
-{
-  while (len-- > 0)
-  {
+static void hex2mem(u8 *dst, u8 *src, u32 len) {
+  while (len-- > 0) {
     *dst++ = (hex2char(*src) << 4) | hex2char(*(src + 1));
     src += 2;
   }
 }
 
-static u8 gdb_read_byte()
-{
+static u8 gdb_read_byte() {
   ssize_t res;
   u8 c = '+';
 
   res = recv(sock, &c, 1, MSG_WAITALL);
-  if (res != 1)
-  {
+  if (res != 1) {
     ERROR_LOG(GDB_STUB, "recv failed : %ld", res);
     gdb_deinit();
   }
@@ -112,10 +103,9 @@ static u8 gdb_read_byte()
   return c;
 }
 
-static u8 gdb_calc_chksum()
-{
+static u8 gdb_calc_chksum() {
   u32 len = cmd_len;
-  u8* ptr = cmd_bfr;
+  u8 *ptr = cmd_bfr;
   u8 c = 0;
 
   while (len-- > 0)
@@ -124,10 +114,8 @@ static u8 gdb_calc_chksum()
   return c;
 }
 
-static gdb_bp_t* gdb_bp_ptr(u32 type)
-{
-  switch (type)
-  {
+static gdb_bp_t *gdb_bp_ptr(u32 type) {
+  switch (type) {
   case GDB_BP_TYPE_X:
     return bp_x;
   case GDB_BP_TYPE_R:
@@ -141,17 +129,15 @@ static gdb_bp_t* gdb_bp_ptr(u32 type)
   }
 }
 
-static gdb_bp_t* gdb_bp_empty_slot(u32 type)
-{
-  gdb_bp_t* p;
+static gdb_bp_t *gdb_bp_empty_slot(u32 type) {
+  gdb_bp_t *p;
   u32 i;
 
   p = gdb_bp_ptr(type);
   if (p == nullptr)
     return nullptr;
 
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
+  for (i = 0; i < GDB_MAX_BP; i++) {
     if (p[i].active == 0)
       return &p[i];
   }
@@ -159,17 +145,15 @@ static gdb_bp_t* gdb_bp_empty_slot(u32 type)
   return nullptr;
 }
 
-static gdb_bp_t* gdb_bp_find(u32 type, u32 addr, u32 len)
-{
-  gdb_bp_t* p;
+static gdb_bp_t *gdb_bp_find(u32 type, u32 addr, u32 len) {
+  gdb_bp_t *p;
   u32 i;
 
   p = gdb_bp_ptr(type);
   if (p == nullptr)
     return nullptr;
 
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
+  for (i = 0; i < GDB_MAX_BP; i++) {
     if (p[i].active == 1 && p[i].addr == addr && p[i].len == len)
       return &p[i];
   }
@@ -177,33 +161,29 @@ static gdb_bp_t* gdb_bp_find(u32 type, u32 addr, u32 len)
   return nullptr;
 }
 
-static void gdb_bp_remove(u32 type, u32 addr, u32 len)
-{
-  gdb_bp_t* p;
+static void gdb_bp_remove(u32 type, u32 addr, u32 len) {
+  gdb_bp_t *p;
 
-  do
-  {
+  do {
     p = gdb_bp_find(type, addr, len);
-    if (p != nullptr)
-    {
-      DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x\n", len, addr);
+    if (p != nullptr) {
+      DEBUG_LOG(GDB_STUB, "gdb: removed a breakpoint: %08x bytes at %08x\n",
+                len, addr);
       p->active = 0;
       memset(p, 0, sizeof(gdb_bp_t));
     }
   } while (p != nullptr);
 }
 
-static int gdb_bp_check(u32 addr, u32 type)
-{
-  gdb_bp_t* p;
+static int gdb_bp_check(u32 addr, u32 type) {
+  gdb_bp_t *p;
   u32 i;
 
   p = gdb_bp_ptr(type);
   if (p == nullptr)
     return 0;
 
-  for (i = 0; i < GDB_MAX_BP; i++)
-  {
+  for (i = 0; i < GDB_MAX_BP; i++) {
     if (p[i].active == 1 && (addr >= p[i].addr && addr < p[i].addr + p[i].len))
       return 1;
   }
@@ -211,8 +191,7 @@ static int gdb_bp_check(u32 addr, u32 type)
   return 0;
 }
 
-static void gdb_nak()
-{
+static void gdb_nak() {
   const char nak = GDB_STUB_NAK;
   ssize_t res;
 
@@ -221,8 +200,7 @@ static void gdb_nak()
     ERROR_LOG(GDB_STUB, "send failed");
 }
 
-static void gdb_ack()
-{
+static void gdb_ack() {
   const char ack = GDB_STUB_ACK;
   ssize_t res;
 
@@ -231,8 +209,7 @@ static void gdb_ack()
     ERROR_LOG(GDB_STUB, "send failed");
 }
 
-static void gdb_read_command()
-{
+static void gdb_read_command() {
   u8 c;
   u8 chk_read, chk_calc;
 
@@ -240,28 +217,21 @@ static void gdb_read_command()
   memset(cmd_bfr, 0, sizeof cmd_bfr);
 
   c = gdb_read_byte();
-  if (c == '+')
-  {
+  if (c == '+') {
     // ignore ack
     return;
-  }
-  else if (c == 0x03)
-  {
+  } else if (c == 0x03) {
     CPU::Break();
     gdb_signal(SIGTRAP);
     return;
-  }
-  else if (c != GDB_STUB_START)
-  {
+  } else if (c != GDB_STUB_START) {
     DEBUG_LOG(GDB_STUB, "gdb: read invalid byte %02x\n", c);
     return;
   }
 
-  while ((c = gdb_read_byte()) != GDB_STUB_END)
-  {
+  while ((c = gdb_read_byte()) != GDB_STUB_END) {
     cmd_bfr[cmd_len++] = c;
-    if (cmd_len == sizeof cmd_bfr)
-    {
+    if (cmd_len == sizeof cmd_bfr) {
       ERROR_LOG(GDB_STUB, "gdb: cmd_bfr overflow\n");
       gdb_nak();
       return;
@@ -273,10 +243,9 @@ static void gdb_read_command()
 
   chk_calc = gdb_calc_chksum();
 
-  if (chk_calc != chk_read)
-  {
-    ERROR_LOG(GDB_STUB,
-              "gdb: invalid checksum: calculated %02x and read %02x for $%s# (length: %d)\n",
+  if (chk_calc != chk_read) {
+    ERROR_LOG(GDB_STUB, "gdb: invalid checksum: calculated %02x and read %02x "
+                        "for $%s# (length: %d)\n",
               chk_calc, chk_read, cmd_bfr, cmd_len);
     cmd_len = 0;
 
@@ -284,13 +253,12 @@ static void gdb_read_command()
     return;
   }
 
-  DEBUG_LOG(GDB_STUB, "gdb: read command %c with a length of %d: %s\n", cmd_bfr[0], cmd_len,
-            cmd_bfr);
+  DEBUG_LOG(GDB_STUB, "gdb: read command %c with a length of %d: %s\n",
+            cmd_bfr[0], cmd_len, cmd_bfr);
   gdb_ack();
 }
 
-static int gdb_data_available()
-{
+static int gdb_data_available() {
   struct timeval t;
   fd_set _fds, *fds = &_fds;
 
@@ -300,8 +268,7 @@ static int gdb_data_available()
   t.tv_sec = 0;
   t.tv_usec = 20;
 
-  if (select(sock + 1, fds, nullptr, nullptr, &t) < 0)
-  {
+  if (select(sock + 1, fds, nullptr, nullptr, &t) < 0) {
     ERROR_LOG(GDB_STUB, "select failed");
     return 0;
   }
@@ -311,11 +278,10 @@ static int gdb_data_available()
   return 0;
 }
 
-static void gdb_reply(const char* reply)
-{
+static void gdb_reply(const char *reply) {
   u8 chk;
   u32 left;
-  u8* ptr;
+  u8 *ptr;
   int n;
 
   if (!gdb_active())
@@ -341,11 +307,9 @@ static void gdb_reply(const char* reply)
 
   ptr = cmd_bfr;
   left = cmd_len + 4;
-  while (left > 0)
-  {
+  while (left > 0) {
     n = send(sock, ptr, left, 0);
-    if (n < 0)
-    {
+    if (n < 0) {
       ERROR_LOG(GDB_STUB, "gdb: send failed");
       return gdb_deinit();
     }
@@ -354,50 +318,43 @@ static void gdb_reply(const char* reply)
   }
 }
 
-static void gdb_handle_query()
-{
+static void gdb_handle_query() {
   DEBUG_LOG(GDB_STUB, "gdb: query '%s'\n", cmd_bfr + 1);
 
-  if (!strcmp((const char*)(cmd_bfr + 1), "TStatus"))
-  {
+  if (!strcmp((const char *)(cmd_bfr + 1), "TStatus")) {
     return gdb_reply("T0");
   }
 
   gdb_reply("");
 }
 
-static void gdb_handle_set_thread()
-{
+static void gdb_handle_set_thread() {
   if (memcmp(cmd_bfr, "Hg0", 3) == 0 || memcmp(cmd_bfr, "Hc-1", 4) == 0 ||
       memcmp(cmd_bfr, "Hc0", 4) == 0 || memcmp(cmd_bfr, "Hc1", 4) == 0)
     return gdb_reply("OK");
   gdb_reply("E01");
 }
 
-static void gdb_handle_signal()
-{
+static void gdb_handle_signal() {
   char bfr[128];
   memset(bfr, 0, sizeof bfr);
   sprintf(bfr, "T%02x%02x:%08x;%02x:%08x;", sig, 64, PC, 1, GPR(1));
   gdb_reply(bfr);
 }
 
-static void wbe32hex(u8* p, u32 v)
-{
+static void wbe32hex(u8 *p, u32 v) {
   u32 i;
   for (i = 0; i < 8; i++)
     p[i] = nibble2hex(v >> (28 - 4 * i));
 }
 
-static void wbe64hex(u8* p, u64 v)
-{
+static void wbe64hex(u8 *p, u64 v) {
   u32 i;
   for (i = 0; i < 16; i++)
     p[i] = nibble2hex(v >> (60 - 4 * i));
 }
 
-static u32 re32hex(u8* p)
-{
+static u32 re32hex(u8 *p) {
   u32 i;
   u32 res = 0;
 
@@ -407,8 +364,7 @@ static u32 re32hex(u8* p)
   return res;
 }
 
-static u64 re64hex(u8* p)
-{
+static u64 re64hex(u8 *p) {
   u32 i;
   u64 res = 0;
 
@@ -418,21 +374,18 @@ static u64 re64hex(u8* p)
   return res;
 }
 
-static void gdb_read_register()
-{
+static void gdb_read_register() {
   static u8 reply[64];
   u32 id;
 
   memset(reply, 0, sizeof reply);
   id = hex2char(cmd_bfr[1]);
-  if (cmd_bfr[2] != '\0')
-  {
+  if (cmd_bfr[2] != '\0') {
     id <<= 4;
     id |= hex2char(cmd_bfr[2]);
   }
 
-  switch (id)
-  {
+  switch (id) {
   case 0 ... 31:
     wbe32hex(reply, GPR(id));
     break;
@@ -468,19 +421,17 @@ static void gdb_read_register()
     break;
   }
 
-  gdb_reply((char*)reply);
+  gdb_reply((char *)reply);
 }
 
-static void gdb_read_registers()
-{
+static void gdb_read_registers() {
   static u8 bfr[GDB_BFR_MAX - 4];
-  u8* bufptr = bfr;
+  u8 *bufptr = bfr;
   u32 i;
 
   memset(bfr, 0, sizeof bfr);
 
-  for (i = 0; i < 32; i++)
-  {
+  for (i = 0; i < 32; i++) {
     wbe32hex(bufptr + i * 8, GPR(i));
   }
   bufptr += 32 * 8;
@@ -503,16 +454,14 @@ static void gdb_read_registers()
   wbe32hex(bufptr, 0x0BADC0DE); bufptr += 4;
   */
 
-  gdb_reply((char*)bfr);
+  gdb_reply((char *)bfr);
 }
 
-static void gdb_write_registers()
-{
+static void gdb_write_registers() {
   u32 i;
-  u8* bufptr = cmd_bfr;
+  u8 *bufptr = cmd_bfr;
 
-  for (i = 0; i < 32; i++)
-  {
+  for (i = 0; i < 32; i++) {
     GPR(i) = re32hex(bufptr + i * 8);
   }
   bufptr += 32 * 8;
@@ -520,22 +469,19 @@ static void gdb_write_registers()
   gdb_reply("OK");
 }
 
-static void gdb_write_register()
-{
+static void gdb_write_register() {
   u32 id;
 
-  u8* bufptr = cmd_bfr + 3;
+  u8 *bufptr = cmd_bfr + 3;
 
   id = hex2char(cmd_bfr[1]);
-  if (cmd_bfr[2] != '=')
-  {
+  if (cmd_bfr[2] != '=') {
     ++bufptr;
     id <<= 4;
     id |= hex2char(cmd_bfr[2]);
   }
 
-  switch (id)
-  {
+  switch (id) {
   case 0 ... 31:
     GPR(id) = re32hex(bufptr);
     break;
@@ -574,8 +520,7 @@ static void gdb_write_register()
   gdb_reply("OK");
 }
 
-static void gdb_read_mem()
-{
+static void gdb_read_mem() {
   static u8 reply[GDB_BFR_MAX - 4];
   u32 addr, len;
   u32 i;
@@ -593,16 +538,15 @@ static void gdb_read_mem()
 
   if (len * 2 > sizeof reply)
     gdb_reply("E01");
-  u8* data = Memory::GetPointer(addr);
+  u8 *data = Memory::GetPointer(addr);
   if (!data)
     return gdb_reply("E0");
   mem2hex(reply, data, len);
   reply[len * 2] = '\0';
-  gdb_reply((char*)reply);
+  gdb_reply((char *)reply);
 }
 
-static void gdb_write_mem()
-{
+static void gdb_write_mem() {
   u32 addr, len;
   u32 i;
 
@@ -617,7 +561,7 @@ static void gdb_write_mem()
     len = (len << 4) | hex2char(cmd_bfr[i++]);
   DEBUG_LOG(GDB_STUB, "gdb: write memory: %08x bytes to %08x\n", len, addr);
 
-  u8* dst = Memory::GetPointer(addr);
+  u8 *dst = Memory::GetPointer(addr);
   if (!dst)
     return gdb_reply("E00");
   hex2mem(dst, cmd_bfr + i + 1, len);
@@ -625,25 +569,17 @@ static void gdb_write_mem()
 }
 
 // forces a break on next instruction check
-void gdb_break()
-{
+void gdb_break() {
   step_break = 1;
   send_signal = 1;
 }
 
-static void gdb_step()
-{
-  gdb_break();
-}
+static void gdb_step() { gdb_break(); }
 
-static void gdb_continue()
-{
-  send_signal = 1;
-}
+static void gdb_continue() { send_signal = 1; }
 
-bool gdb_add_bp(u32 type, u32 addr, u32 len)
-{
-  gdb_bp_t* bp;
+bool gdb_add_bp(u32 type, u32 addr, u32 len) {
+  gdb_bp_t *bp;
   bp = gdb_bp_empty_slot(type);
   if (bp == nullptr)
     return false;
@@ -652,18 +588,17 @@ bool gdb_add_bp(u32 type, u32 addr, u32 len)
   bp->addr = addr;
   bp->len = len;
 
-  DEBUG_LOG(GDB_STUB, "gdb: added %d breakpoint: %08x bytes at %08x\n", type, bp->len, bp->addr);
+  DEBUG_LOG(GDB_STUB, "gdb: added %d breakpoint: %08x bytes at %08x\n", type,
+            bp->len, bp->addr);
   return true;
 }
 
-static void _gdb_add_bp()
-{
+static void _gdb_add_bp() {
   u32 type;
   u32 i, addr = 0, len = 0;
 
   type = hex2char(cmd_bfr[1]);
-  switch (type)
-  {
+  switch (type) {
   case 0:
   case 1:
     type = GDB_BP_TYPE_X;
@@ -694,13 +629,11 @@ static void _gdb_add_bp()
   gdb_reply("OK");
 }
 
-static void gdb_remove_bp()
-{
+static void gdb_remove_bp() {
   u32 type, addr, len, i;
 
   type = hex2char(cmd_bfr[1]);
-  switch (type)
-  {
+  switch (type) {
   case 0:
   case 1:
     type = GDB_BP_TYPE_X;
@@ -733,18 +666,15 @@ static void gdb_remove_bp()
   gdb_reply("OK");
 }
 
-void gdb_handle_exception()
-{
-  while (gdb_active())
-  {
+void gdb_handle_exception() {
+  while (gdb_active()) {
     if (!gdb_data_available())
       continue;
     gdb_read_command();
     if (cmd_len == 0)
       continue;
 
-    switch (cmd_bfr[0])
-    {
+    switch (cmd_bfr[0]) {
     case 'q':
       gdb_handle_query();
       break;
@@ -804,24 +734,23 @@ WSADATA InitData;
 
 // exported functions
 
-static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
-                             sockaddr* client_addr, socklen_t* client_addrlen);
+static void gdb_init_generic(int domain, const sockaddr *server_addr,
+                             socklen_t server_addrlen, sockaddr *client_addr,
+                             socklen_t *client_addrlen);
 
 #ifndef _WIN32
-void gdb_init_local(const char* socket)
-{
+void gdb_init_local(const char *socket) {
   unlink(socket);
 
   sockaddr_un addr = {};
   addr.sun_family = AF_UNIX;
   strcpy(addr.sun_path, socket);
 
-  gdb_init_generic(PF_LOCAL, (const sockaddr*)&addr, sizeof(addr), NULL, NULL);
+  gdb_init_generic(PF_LOCAL, (const sockaddr *)&addr, sizeof(addr), NULL, NULL);
 }
 #endif
 
-void gdb_init(u32 port)
-{
+void gdb_init(u32 port) {
   sockaddr_in saddr_server = {};
   sockaddr_in saddr_client;
 
@@ -831,8 +760,9 @@ void gdb_init(u32 port)
 
   socklen_t client_addrlen = sizeof(saddr_client);
 
-  gdb_init_generic(PF_INET, (const sockaddr*)&saddr_server, sizeof(saddr_server),
-                   (sockaddr*)&saddr_client, &client_addrlen);
+  gdb_init_generic(PF_INET, (const sockaddr *)&saddr_server,
+                   sizeof(saddr_server), (sockaddr *)&saddr_client,
+                   &client_addrlen);
 
   saddr_client.sin_addr.s_addr = ntohl(saddr_client.sin_addr.s_addr);
   /*if (((saddr_client.sin_addr.s_addr >> 24) & 0xff) != 127 ||
@@ -843,9 +773,9 @@ void gdb_init(u32 port)
   */
 }
 
-static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t server_addrlen,
-                             sockaddr* client_addr, socklen_t* client_addrlen)
-{
+static void gdb_init_generic(int domain, const sockaddr *server_addr,
+                             socklen_t server_addrlen, sockaddr *client_addr,
+                             socklen_t *client_addrlen) {
   int on;
 #ifdef _WIN32
   WSAStartup(MAKEWORD(2, 2), &InitData);
@@ -881,15 +811,12 @@ static void gdb_init_generic(int domain, const sockaddr* server_addr, socklen_t 
   tmpsock = -1;
 }
 
-void gdb_deinit()
-{
-  if (tmpsock != -1)
-  {
+void gdb_deinit() {
+  if (tmpsock != -1) {
     shutdown(tmpsock, SHUT_RDWR);
     tmpsock = -1;
   }
-  if (sock != -1)
-  {
+  if (sock != -1) {
     shutdown(sock, SHUT_RDWR);
     sock = -1;
   }
@@ -899,20 +826,15 @@ void gdb_deinit()
 #endif
 }
 
-bool gdb_active()
-{
-  return tmpsock != -1 || sock != -1;
-}
+bool gdb_active() { return tmpsock != -1 || sock != -1; }
 
-int gdb_signal(u32 s)
-{
+int gdb_signal(u32 s) {
   if (sock == -1)
     return 1;
 
   sig = s;
 
-  if (send_signal)
-  {
+  if (send_signal) {
     gdb_handle_signal();
     send_signal = 0;
   }
@@ -920,13 +842,11 @@ int gdb_signal(u32 s)
   return 0;
 }
 
-int gdb_bp_x(u32 addr)
-{
+int gdb_bp_x(u32 addr) {
   if (sock == -1)
     return 0;
 
-  if (step_break)
-  {
+  if (step_break) {
     step_break = 0;
 
     DEBUG_LOG(GDB_STUB, "Step was successful.");
@@ -936,24 +856,21 @@ int gdb_bp_x(u32 addr)
   return gdb_bp_check(addr, GDB_BP_TYPE_X);
 }
 
-int gdb_bp_r(u32 addr)
-{
+int gdb_bp_r(u32 addr) {
   if (sock == -1)
     return 0;
 
   return gdb_bp_check(addr, GDB_BP_TYPE_R);
 }
 
-int gdb_bp_w(u32 addr)
-{
+int gdb_bp_w(u32 addr) {
   if (sock == -1)
     return 0;
 
   return gdb_bp_check(addr, GDB_BP_TYPE_W);
 }
 
-int gdb_bp_a(u32 addr)
-{
+int gdb_bp_a(u32 addr) {
   if (sock == -1)
     return 0;
 

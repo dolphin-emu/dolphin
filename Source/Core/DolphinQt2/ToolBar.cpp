@@ -9,8 +9,7 @@
 
 static QSize ICON_SIZE(32, 32);
 
-ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
-{
+ToolBar::ToolBar(QWidget *parent) : QToolBar(parent) {
   setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
   setMovable(false);
   setFloatable(false);
@@ -22,8 +21,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   EmulationStopped();
 }
 
-void ToolBar::EmulationStarted()
-{
+void ToolBar::EmulationStarted() {
   m_play_action->setEnabled(false);
   m_play_action->setVisible(false);
   m_pause_action->setEnabled(true);
@@ -32,16 +30,14 @@ void ToolBar::EmulationStarted()
   m_screenshot_action->setEnabled(true);
 }
 
-void ToolBar::EmulationPaused()
-{
+void ToolBar::EmulationPaused() {
   m_play_action->setEnabled(true);
   m_play_action->setVisible(true);
   m_pause_action->setEnabled(false);
   m_pause_action->setVisible(false);
 }
 
-void ToolBar::EmulationStopped()
-{
+void ToolBar::EmulationStopped() {
   m_play_action->setEnabled(true);
   m_play_action->setVisible(true);
   m_pause_action->setEnabled(false);
@@ -51,14 +47,15 @@ void ToolBar::EmulationStopped()
   m_screenshot_action->setEnabled(false);
 }
 
-void ToolBar::MakeActions()
-{
+void ToolBar::MakeActions() {
   m_open_action = addAction(tr("Open"), this, SIGNAL(OpenPressed()));
   m_play_action = addAction(tr("Play"), this, SIGNAL(PlayPressed()));
   m_pause_action = addAction(tr("Pause"), this, SIGNAL(PausePressed()));
   m_stop_action = addAction(tr("Stop"), this, SIGNAL(StopPressed()));
-  m_fullscreen_action = addAction(tr("Full Screen"), this, SIGNAL(FullScreenPressed()));
-  m_screenshot_action = addAction(tr("Screen Shot"), this, SIGNAL(ScreenShotPressed()));
+  m_fullscreen_action =
+      addAction(tr("Full Screen"), this, SIGNAL(FullScreenPressed()));
+  m_screenshot_action =
+      addAction(tr("Screen Shot"), this, SIGNAL(ScreenShotPressed()));
 
   addSeparator();
 
@@ -68,8 +65,7 @@ void ToolBar::MakeActions()
   m_controllers_action->setEnabled(false);
 }
 
-void ToolBar::UpdateIcons()
-{
+void ToolBar::UpdateIcons() {
   QString dir = Settings().GetThemeDir();
 
   m_open_action->setIcon(QIcon(QStringLiteral("open.png").prepend(dir)));
@@ -77,8 +73,11 @@ void ToolBar::UpdateIcons()
   m_play_action->setIcon(QIcon(QStringLiteral("play.png").prepend(dir)));
   m_pause_action->setIcon(QIcon(QStringLiteral("pause.png").prepend(dir)));
   m_stop_action->setIcon(QIcon(QStringLiteral("stop.png").prepend(dir)));
-  m_fullscreen_action->setIcon(QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
-  m_screenshot_action->setIcon(QIcon(QStringLiteral("screenshot.png").prepend(dir)));
+  m_fullscreen_action->setIcon(
+      QIcon(QStringLiteral("fullscreen.png").prepend(dir)));
+  m_screenshot_action->setIcon(
+      QIcon(QStringLiteral("screenshot.png").prepend(dir)));
   m_config_action->setIcon(QIcon(QStringLiteral("config.png").prepend(dir)));
-  m_controllers_action->setIcon(QIcon(QStringLiteral("classic.png").prepend(dir)));
+  m_controllers_action->setIcon(
+      QIcon(QStringLiteral("classic.png").prepend(dir)));
 }

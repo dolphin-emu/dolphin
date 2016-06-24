@@ -9,15 +9,13 @@
 
 #include "Common/BlockingLoop.h"
 
-TEST(BlockingLoop, MultiThreaded)
-{
+TEST(BlockingLoop, MultiThreaded) {
   Common::BlockingLoop loop;
   std::atomic<int> signaled_a(0);
   std::atomic<int> received_a(0);
   std::atomic<int> signaled_b(0);
   std::atomic<int> received_b(0);
-  for (int i = 0; i < 100; i++)
-  {
+  for (int i = 0; i < 100; i++) {
     // Invalidate the current state.
     received_a.store(signaled_a.load() + 1);
     received_b.store(signaled_b.load() + 123);
@@ -41,10 +39,8 @@ TEST(BlockingLoop, MultiThreaded)
     EXPECT_EQ(signaled_b.load(), received_b.load());
 
     std::thread run_a_thread([&]() {
-      for (int j = 0; j < 100; j++)
-      {
-        for (int k = 0; k < 100; k++)
-        {
+      for (int j = 0; j < 100; j++) {
+        for (int k = 0; k < 100; k++) {
           signaled_a++;
           loop.Wakeup();
         }
@@ -54,10 +50,8 @@ TEST(BlockingLoop, MultiThreaded)
       }
     });
     std::thread run_b_thread([&]() {
-      for (int j = 0; j < 100; j++)
-      {
-        for (int k = 0; k < 100; k++)
-        {
+      for (int j = 0; j < 100; j++) {
+        for (int k = 0; k < 100; k++) {
           signaled_b++;
           loop.Wakeup();
         }

@@ -10,13 +10,12 @@
 class PointerWrap;
 
 // The non-API dependent parts.
-class GeometryShaderManager
-{
+class GeometryShaderManager {
 public:
   static void Init();
   static void Dirty();
   static void Shutdown();
-  static void DoState(PointerWrap& p);
+  static void DoState(PointerWrap &p);
 
   static void SetConstants();
   static void SetViewportChanged();

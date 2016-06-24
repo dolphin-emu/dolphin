@@ -6,14 +6,15 @@
 
 #include "Common/CommonTypes.h"
 
-class VertexLoader_TextCoord
-{
+class VertexLoader_TextCoord {
 public:
   // GetSize
-  static unsigned int GetSize(u64 _type, unsigned int _format, unsigned int _elements);
+  static unsigned int GetSize(u64 _type, unsigned int _format,
+                              unsigned int _elements);
 
   // GetFunction
-  static TPipelineFunction GetFunction(u64 _type, unsigned int _format, unsigned int _elements);
+  static TPipelineFunction GetFunction(u64 _type, unsigned int _format,
+                                       unsigned int _elements);
 
   // GetDummyFunction
   // It is important to synchronize tcIndex.

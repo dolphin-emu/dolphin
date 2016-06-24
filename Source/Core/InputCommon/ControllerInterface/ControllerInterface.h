@@ -45,27 +45,27 @@
 // Some crazy shit I made to control different device inputs and outputs
 // from lots of different sources, hopefully more easily.
 //
-class ControllerInterface : public ciface::Core::DeviceContainer
-{
+class ControllerInterface : public ciface::Core::DeviceContainer {
 public:
   //
   // ControlReference
   //
-  // These are what you create to actually use the inputs, InputReference or OutputReference.
+  // These are what you create to actually use the inputs, InputReference or
+  // OutputReference.
   //
-  // After being bound to devices and controls with ControllerInterface::UpdateReference,
+  // After being bound to devices and controls with
+  // ControllerInterface::UpdateReference,
   // each one can link to multiple devices and controls
   // when you change a ControlReference's expression,
   // you must use ControllerInterface::UpdateReference on it to rebind controls
   //
-  class ControlReference
-  {
+  class ControlReference {
     friend class ControllerInterface;
 
   public:
     virtual ControlState State(const ControlState state = 0) = 0;
-    virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                                  ciface::Core::Device* const device) = 0;
+    virtual ciface::Core::Device::Control *
+    Detect(const unsigned int ms, ciface::Core::Device *const device) = 0;
 
     ControlState range;
     std::string expression;
@@ -73,8 +73,7 @@ public:
     ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
     virtual ~ControlReference() { delete parsed_expression; }
-    int BoundCount()
-    {
+    int BoundCount() {
       if (parsed_expression)
         return parsed_expression->num_controls;
       else
@@ -83,10 +82,8 @@ public:
 
   protected:
     ControlReference(const bool _is_input)
-        : range(1), is_input(_is_input), parsed_expression(nullptr)
-    {
-    }
-    ciface::ExpressionParser::Expression* parsed_expression;
+        : range(1), is_input(_is_input), parsed_expression(nullptr) {}
+    ciface::ExpressionParser::Expression *parsed_expression;
   };
 
   //
@@ -94,13 +91,12 @@ public:
   //
   // Control reference for inputs
   //
-  class InputReference : public ControlReference
-  {
+  class InputReference : public ControlReference {
   public:
     InputReference() : ControlReference(true) {}
     ControlState State(const ControlState state) override;
-    ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                          ciface::Core::Device* const device) override;
+    ciface::Core::Device::Control *
+    Detect(const unsigned int ms, ciface::Core::Device *const device) override;
   };
 
   //
@@ -108,27 +104,27 @@ public:
   //
   // Control reference for outputs
   //
-  class OutputReference : public ControlReference
-  {
+  class OutputReference : public ControlReference {
   public:
     OutputReference() : ControlReference(false) {}
     ControlState State(const ControlState state) override;
-    ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                          ciface::Core::Device* const device) override;
+    ciface::Core::Device::Control *
+    Detect(const unsigned int ms, ciface::Core::Device *const device) override;
   };
 
   ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
-  void Initialize(void* const hwnd);
+  void Initialize(void *const hwnd);
   void Reinitialize();
   void Shutdown();
   bool IsInit() const { return m_is_init; }
-  void UpdateReference(ControlReference* control,
-                       const ciface::Core::DeviceQualifier& default_device) const;
+  void
+  UpdateReference(ControlReference *control,
+                  const ciface::Core::DeviceQualifier &default_device) const;
   void UpdateInput();
 
 private:
   bool m_is_init;
-  void* m_hwnd;
+  void *m_hwnd;
 };
 
 extern ControllerInterface g_controller_interface;

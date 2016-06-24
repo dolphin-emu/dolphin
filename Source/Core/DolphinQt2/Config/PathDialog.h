@@ -10,11 +10,10 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 
-class PathDialog final : public QDialog
-{
+class PathDialog final : public QDialog {
   Q_OBJECT
 public:
-  explicit PathDialog(QWidget* parent = nullptr);
+  explicit PathDialog(QWidget *parent = nullptr);
 
 public slots:
   void Browse();
@@ -28,13 +27,13 @@ signals:
   void PathRemoved(QString path);
 
 private:
-  QGroupBox* MakeGameFolderBox();
-  QGridLayout* MakePathsLayout();
+  QGroupBox *MakeGameFolderBox();
+  QGridLayout *MakePathsLayout();
   void RemovePath();
 
-  QListWidget* m_path_list;
-  QLineEdit* m_game_edit;
-  QLineEdit* m_dvd_edit;
-  QLineEdit* m_app_edit;
-  QLineEdit* m_nand_edit;
+  QListWidget *m_path_list;
+  QLineEdit *m_game_edit;
+  QLineEdit *m_dvd_edit;
+  QLineEdit *m_app_edit;
+  QLineEdit *m_nand_edit;
 };

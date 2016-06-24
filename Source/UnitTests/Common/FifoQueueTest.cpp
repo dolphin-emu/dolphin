@@ -7,8 +7,7 @@
 
 #include "Common/FifoQueue.h"
 
-TEST(FifoQueue, Simple)
-{
+TEST(FifoQueue, Simple) {
   Common::FifoQueue<u32> q;
 
   EXPECT_EQ(0u, q.Size());
@@ -28,8 +27,7 @@ TEST(FifoQueue, Simple)
   for (u32 i = 0; i < 1000; ++i)
     q.Push(i);
   EXPECT_EQ(1000u, q.Size());
-  for (u32 i = 0; i < 1000; ++i)
-  {
+  for (u32 i = 0; i < 1000; ++i) {
     u32 v2;
     q.Pop(v2);
     EXPECT_EQ(i, v2);
@@ -43,8 +41,7 @@ TEST(FifoQueue, Simple)
   EXPECT_TRUE(q.Empty());
 }
 
-TEST(FifoQueue, MultiThreaded)
-{
+TEST(FifoQueue, MultiThreaded) {
   Common::FifoQueue<u32> q;
 
   auto inserter = [&q]() {
@@ -53,8 +50,7 @@ TEST(FifoQueue, MultiThreaded)
   };
 
   auto popper = [&q]() {
-    for (u32 i = 0; i < 100000; ++i)
-    {
+    for (u32 i = 0; i < 100000; ++i) {
       while (q.Empty())
         ;
       u32 v;

@@ -12,10 +12,9 @@
 #include "DiscIO/Volume.h"
 
 // TODO cache
-class GameFile final
-{
+class GameFile final {
 public:
-  explicit GameFile(const QString& path);
+  explicit GameFile(const QString &path);
 
   bool IsValid() const { return m_valid; }
   // These will be properly initialized before we try to load the file.
@@ -39,18 +38,26 @@ public:
   DiscIO::IVolume::ECountry GetCountry() const { return m_country; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
   QString GetShortName() const { return GetLanguageString(m_short_names); }
-  QString GetShortName(DiscIO::IVolume::ELanguage lang) const { return m_short_names[lang]; }
+  QString GetShortName(DiscIO::IVolume::ELanguage lang) const {
+    return m_short_names[lang];
+  }
   QString GetLongName() const { return GetLanguageString(m_long_names); }
-  QString GetLongName(DiscIO::IVolume::ELanguage lang) const { return m_long_names[lang]; }
+  QString GetLongName(DiscIO::IVolume::ELanguage lang) const {
+    return m_long_names[lang];
+  }
   QString GetDescription() const { return GetLanguageString(m_descriptions); }
-  QString GetDescription(DiscIO::IVolume::ELanguage lang) const { return m_descriptions[lang]; }
+  QString GetDescription(DiscIO::IVolume::ELanguage lang) const {
+    return m_descriptions[lang];
+  }
+
 private:
   DiscIO::IVolume::ELanguage GetDefaultLanguage() const;
-  QString GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const;
+  QString
+  GetLanguageString(const QMap<DiscIO::IVolume::ELanguage, QString> &m) const;
 
   QString GetCacheFileName() const;
-  void ReadBanner(const DiscIO::IVolume& volume);
-  bool LoadFileInfo(const QString& path);
+  void ReadBanner(const DiscIO::IVolume &volume);
+  bool LoadFileInfo(const QString &path);
   void LoadState();
   bool IsElfOrDol();
   bool TryLoadElfDol();

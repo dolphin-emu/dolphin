@@ -10,17 +10,16 @@
 
 #include "Common/CommonTypes.h"
 
-class SWOGLWindow
-{
+class SWOGLWindow {
 public:
-  static void Init(void* window_handle);
+  static void Init(void *window_handle);
   static void Shutdown();
 
   // Will be printed on the *next* image
-  void PrintText(const std::string& text, int x, int y, u32 color);
+  void PrintText(const std::string &text, int x, int y, u32 color);
 
   // Image to show, will be swapped immediately
-  void ShowImage(u8* data, int stride, int width, int height, float aspect);
+  void ShowImage(u8 *data, int stride, int width, int height, float aspect);
 
   int PeekMessages();
 
@@ -30,8 +29,7 @@ private:
   SWOGLWindow() {}
   void Prepare();
 
-  struct TextData
-  {
+  struct TextData {
     std::string text;
     int x, y;
     u32 color;

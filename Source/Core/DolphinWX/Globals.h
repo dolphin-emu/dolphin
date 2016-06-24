@@ -9,8 +9,7 @@
 #include <cstddef>
 #include <wx/event.h>
 
-enum
-{
+enum {
   Toolbar_Step,
   Toolbar_StepOver,
   Toolbar_StepOut,
@@ -20,8 +19,7 @@ enum
   Toolbar_Debug_Bitmap_Max
 };
 
-enum
-{
+enum {
   // Emulation menu
   IDM_LOAD_STATE = 200,
   IDM_SAVE_STATE,
@@ -106,7 +104,7 @@ enum
   // File menu
   IDM_DRIVES,
   IDM_DRIVE1,
-  IDM_DRIVE24 = IDM_DRIVE1 + 23,  // 248,
+  IDM_DRIVE24 = IDM_DRIVE1 + 23, // 248,
 
   // Tools menu
   IDM_MEMCARD,
@@ -213,7 +211,7 @@ enum
   IDM_AUTOMATIC_START,
   IDM_BOOT_TO_PAUSE,
   IDM_JIT_NO_BLOCK_CACHE,
-  IDM_JIT_NO_BLOCK_LINKING,  // JIT
+  IDM_JIT_NO_BLOCK_LINKING, // JIT
   IDM_JIT_OFF,
   IDM_JIT_LS_OFF,
   IDM_JIT_LSLXZ_OFF,
@@ -281,7 +279,7 @@ enum
   IDM_PERSPECTIVES_100 = IDM_PERSPECTIVES_0 + 100,
   // --------------------------------------------------------------
 
-  IDM_TOGGLE_DUAL_CORE,  // Other
+  IDM_TOGGLE_DUAL_CORE, // Other
   IDM_TOGGLE_SKIP_IDLE,
   IDM_TOGGLE_TOOLBAR,
   IDM_TOGGLE_STATUSBAR,

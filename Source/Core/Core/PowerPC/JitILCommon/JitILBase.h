@@ -10,8 +10,7 @@
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-class JitILBase : public Jitx86Base
-{
+class JitILBase : public Jitx86Base {
 protected:
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
@@ -24,7 +23,7 @@ public:
 
   virtual void Jit(u32 em_address) = 0;
 
-  virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
+  virtual const CommonAsmRoutinesBase *GetAsmRoutines() = 0;
 
   // OPCODES
   virtual void FallBackToInterpreter(UGeckoInstruction inst) = 0;
@@ -52,7 +51,7 @@ public:
   void stXx(UGeckoInstruction inst);
   void lmw(UGeckoInstruction inst);
   void stmw(UGeckoInstruction inst);
-  void stX(UGeckoInstruction inst);  // stw sth stb
+  void stX(UGeckoInstruction inst); // stw sth stb
   void lXz(UGeckoInstruction inst);
   void lbzu(UGeckoInstruction inst);
   void lha(UGeckoInstruction inst);
@@ -89,7 +88,7 @@ public:
 
   void reg_imm(UGeckoInstruction inst);
 
-  void ps_arith(UGeckoInstruction inst);  // aggregate
+  void ps_arith(UGeckoInstruction inst); // aggregate
   void ps_mergeXX(UGeckoInstruction inst);
   void ps_maddXX(UGeckoInstruction inst);
   void ps_sum(UGeckoInstruction inst);
