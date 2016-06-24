@@ -185,7 +185,7 @@ private:
 		{
 			// Null-terminator is intentionally not copied.
 			std::memcpy(&id, "DCAC", sizeof(u32));
-			std::memcpy(ver, scm_rev_git_str.c_str(), std::min(scm_rev_git_str.size(), sizeof(ver)));
+			std::memcpy(ver, scm_video_rev_git_str.c_str(), std::min(scm_video_rev_git_str.size(), sizeof(ver)));
 		}
 
 		u32 id;

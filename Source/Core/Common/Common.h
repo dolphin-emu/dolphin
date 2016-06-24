@@ -14,6 +14,7 @@ extern const std::string scm_desc_str;
 extern const std::string scm_branch_str;
 extern const std::string scm_rev_str;
 extern const std::string scm_rev_git_str;
+extern const std::string scm_video_rev_git_str;
 extern const std::string netplay_dolphin_ver;
 extern const std::string scm_distributor_str;
 

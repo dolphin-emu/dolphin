@@ -3,6 +3,7 @@ var oFS				= new ActiveXObject("Scripting.FileSystemObject");
 
 var outfile			= "./scmrev.h";
 var cmd_revision	= " rev-parse HEAD";
+var cmd_video_revision = " log -n 1 --format=%H -- Source/Core/VideoCommon/ Source/Core/VideoBackends/";
 var cmd_describe	= " describe --always --long --dirty";
 var cmd_branch		= " rev-parse --abbrev-ref HEAD";
 
@@ -74,6 +75,7 @@ function GetFileContents(f)
 // get info from git
 var gitexe = GetGitExe();
 var revision	= GetFirstStdOutLine(gitexe + cmd_revision);
+var video_revision	= GetFirstStdOutLine(gitexe + cmd_video_revision);
 var describe	= GetFirstStdOutLine(gitexe + cmd_describe);
 var branch		= GetFirstStdOutLine(gitexe + cmd_branch);
 var isStable = +("master" == branch || "stable" == branch);
@@ -87,6 +89,7 @@ describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
+	"#define SCM_VIDEO_REV_STR \"" + video_revision + "\"\n" +
 	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + branch + "\"\n" +
 	"#define SCM_IS_MASTER " + isStable + "\n" +
