@@ -153,7 +153,11 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
 
 	if (gs_uid != m_gs_uid)
 	{
-		m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, gx_primitive_type, dstalpha_mode);
+		if (gs_uid.GetUidData()->IsPassthrough())
+			m_pipeline_state.gs = VK_NULL_HANDLE;
+		else
+			m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, gx_primitive_type, dstalpha_mode);
+
 		m_gs_uid = gs_uid;
 		changed = true;
 	}
