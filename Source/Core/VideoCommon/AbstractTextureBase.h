@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
