@@ -160,6 +160,10 @@ void NetPlayServer::ThreadFunc()
 			break;
 			case ENET_EVENT_TYPE_RECEIVE:
 			{
+#ifdef QUICK_RESEND_DEBUG
+				if (netEvent.packet->flags & ENET_PACKET_FLAG_INCOMING_QUICK_RESENT)
+					ERROR_LOG(NETPLAY, "Saved by quick resend!");
+#endif
 				sf::Packet rpac;
 				rpac.append(netEvent.packet->data, netEvent.packet->dataLength);
 
@@ -759,6 +763,8 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 void NetPlayServer::Send(ENetPeer* socket, sf::Packet& packet)
 {
 	ENetPacket* epac = enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
+	epac->quickResendCount = 5;
+	epac->quickResendSpacing = 14;
 	enet_peer_send(socket, 0, epac);
 }
 

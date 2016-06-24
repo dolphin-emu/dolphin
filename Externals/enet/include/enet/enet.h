@@ -5,6 +5,8 @@
 #ifndef __ENET_ENET_H__
 #define __ENET_ENET_H__
 
+#define QUICK_RESEND_DEBUG
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -116,6 +118,10 @@ typedef enum _ENetPacketFlag
      * if it exceeds the MTU */
    ENET_PACKET_FLAG_UNRELIABLE_FRAGMENT = (1 << 3),
 
+#ifdef QUICK_RESEND_DEBUG
+   ENET_PACKET_FLAG_INCOMING_QUICK_RESENT = (1 << 4),
+#endif
+
    /** whether the packet has been sent from all queues it has been entered into */
    ENET_PACKET_FLAG_SENT = (1<<8)
 } ENetPacketFlag;
@@ -143,12 +149,14 @@ typedef void (ENET_CALLBACK * ENetPacketFreeCallback) (struct _ENetPacket *);
  */
 typedef struct _ENetPacket
 {
-   size_t                   referenceCount;  /**< internal use only */
-   enet_uint32              flags;           /**< bitwise-or of ENetPacketFlag constants */
-   enet_uint8 *             data;            /**< allocated data for packet */
-   size_t                   dataLength;      /**< length of data */
-   ENetPacketFreeCallback   freeCallback;    /**< function to be called when the packet is no longer in use */
-   void *                   userData;        /**< application private data, may be freely modified */
+   size_t                   referenceCount;     /**< internal use only */
+   enet_uint32              flags;              /**< bitwise-or of ENetPacketFlag constants */
+   enet_uint8 *             data;               /**< allocated data for packet */
+   size_t                   dataLength;         /**< length of data */
+   ENetPacketFreeCallback   freeCallback;       /**< function to be called when the packet is no longer in use */
+   void *                   userData;           /**< application private data, may be freely modified */
+   enet_uint16              quickResendCount;   /**< how many times to opportunistically resend (default 0) */
+   enet_uint32              quickResendSpacing; /**< how long to wait between resends in ms (i.e. a "timeout") */
 } ENetPacket;
 
 typedef struct _ENetAcknowledgement

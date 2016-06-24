@@ -933,6 +933,12 @@ enet_peer_queue_incoming_command (ENetPeer * peer, const ENetProtocol * command,
     if (peer -> totalWaitingData >= peer -> host -> maximumWaitingData)
       goto notifyError;
 
+#ifdef QUICK_RESEND_DEBUG
+    /* doesn't handle fragments, but good enough */
+    if (command -> header.command & ENET_PROTOCOL_COMMAND_FLAG_QUICK_RESENT)
+      flags |= ENET_PACKET_FLAG_INCOMING_QUICK_RESENT;
+#endif
+
     packet = enet_packet_create (data, dataLength, flags);
     if (packet == NULL)
       goto notifyError;
