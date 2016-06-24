@@ -309,9 +309,9 @@ void SetFinish()
 	CommandProcessor::SetInterruptFinishWaiting(true);
 
 	if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-		CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
+		CoreTiming::ScheduleEvent(250000, et_SetFinishOnMainThread, 0);
 	else
-		CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+		CoreTiming::ScheduleEvent_Threadsafe(250000, et_SetFinishOnMainThread, 0);
 
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
