@@ -132,7 +132,13 @@ void Settings::SetStateSlot(int slot)
 
 bool Settings::GetRenderToMain() const
 {
-	return value(QStringLiteral("Graphics/RenderToMain"), false).toBool();
+	return SConfig::GetInstance().bRenderToMain;
+}
+
+void Settings::SetRenderToMain(const bool render)
+{
+	SConfig::GetInstance().bRenderToMain = render;
+	SConfig::GetInstance().SaveSettings();
 }
 
 bool Settings::GetFullScreen() const

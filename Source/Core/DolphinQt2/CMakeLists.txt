@@ -15,6 +15,7 @@ set(SRCS
 	ToolBar.cpp
 	Config/PathDialog.cpp
 	Config/SettingsWindow.cpp
+	Config/Pages/InterfacePage.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp
 	GameList/GameListModel.cpp
