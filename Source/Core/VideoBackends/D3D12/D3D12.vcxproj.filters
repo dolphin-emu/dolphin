@@ -73,6 +73,9 @@
     <ClCompile Include="D3DStreamBuffer.cpp">
       <Filter>D3D12</Filter>
     </ClCompile>
+    <ClCompile Include="AbstractTexture.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="D3DBase.h">
@@ -145,5 +148,8 @@
     <ClInclude Include="AbstractTexture.h">
       <Filter>Render</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
