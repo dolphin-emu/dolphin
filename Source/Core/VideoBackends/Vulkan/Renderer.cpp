@@ -38,7 +38,7 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 
 	// Various initialization routines will have executed commands on the command buffer (which is currently the last one).
 	// Execute what we have done before moving to the first buffer for the first frame.
-	m_command_buffer_mgr->ExecuteCommandBuffer(true);
+	m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
 	BeginFrame();
 }
 
