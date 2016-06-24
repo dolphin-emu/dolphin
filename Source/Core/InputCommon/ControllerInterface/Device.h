@@ -164,12 +164,13 @@ public:
   Device::Input* FindInput(const std::string& name, const Device* def_dev) const;
   Device::Output* FindOutput(const std::string& name, const Device* def_dev) const;
 
-  const std::vector<Device*>& Devices() const { return m_devices; }
+  std::vector<std::string> GetAllDeviceStrings() const;
+  std::string GetDefaultDeviceString() const;
   Device* FindDevice(const DeviceQualifier& devq) const;
 
 protected:
-  std::mutex m_devices_mutex;
-  std::vector<Device*> m_devices;
+  mutable std::mutex m_devices_mutex;
+  std::vector<std::unique_ptr<Device>> m_devices;
 };
 }
 }

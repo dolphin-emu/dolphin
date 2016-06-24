@@ -724,16 +724,12 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 void InputConfigDialog::UpdateDeviceComboBox()
 {
-  ciface::Core::DeviceQualifier dq;
   for (GamepadPage* page : m_padpages)
   {
     page->device_cbox->Clear();
 
-    for (ciface::Core::Device* d : g_controller_interface.Devices())
-    {
-      dq.FromDevice(d);
-      page->device_cbox->Append(StrToWxStr(dq.ToString()));
-    }
+    for (const std::string& device_string : g_controller_interface.GetAllDeviceStrings())
+      page->device_cbox->Append(StrToWxStr(device_string));
 
     page->device_cbox->SetValue(StrToWxStr(page->controller->default_device.ToString()));
   }

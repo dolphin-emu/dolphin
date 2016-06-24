@@ -51,7 +51,7 @@ void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
       SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)) &&
       SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
   {
-    g_controller_interface.AddDevice(new KeyboardMouse(kb_device, mo_device));
+    g_controller_interface.AddDevice(std::make_unique<KeyboardMouse>(kb_device, mo_device));
     return;
   }
 

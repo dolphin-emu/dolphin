@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/Android/Android.h"
 #include <sstream>
+#include "InputCommon/ControllerInterface/Android/Android.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface
@@ -13,7 +13,7 @@ namespace Android
 void Init()
 {
   for (int i = 0; i < 8; ++i)
-    g_controller_interface.AddDevice(new Touchscreen(i));
+    g_controller_interface.AddDevice(std::make_unique<Touchscreen>(i));
 }
 
 // Touchscreens and stuff

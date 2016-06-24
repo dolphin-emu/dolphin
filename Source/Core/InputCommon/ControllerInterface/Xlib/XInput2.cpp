@@ -76,10 +76,12 @@ void Init(void* const hwnd)
   {
     current_master = &all_masters[i];
     if (current_master->use == XIMasterPointer)
+    {
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      g_controller_interface.AddDevice(new KeyboardMouse(
+      g_controller_interface.AddDevice(std::make_unique<KeyboardMouse>(
           (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment));
+    }
   }
 
   XCloseDisplay(dpy);

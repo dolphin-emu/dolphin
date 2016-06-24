@@ -146,13 +146,41 @@ bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 
 Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 {
-  for (Device* d : m_devices)
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
   {
-    if (devq == d)
-      return d;
+    if (devq == d.get())
+      return d.get();
   }
 
   return nullptr;
+}
+
+std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+  std::vector<std::string> device_strings;
+  DeviceQualifier device_qualifier;
+
+  for (const auto& d : m_devices)
+  {
+    device_qualifier.FromDevice(d.get());
+    device_strings.emplace_back(device_qualifier.ToString());
+  }
+
+  return device_strings;
+}
+
+std::string DeviceContainer::GetDefaultDeviceString() const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  if (m_devices.empty())
+    return "";
+
+  DeviceQualifier device_qualifier;
+  device_qualifier.FromDevice(m_devices[0].get());
+  return device_qualifier.ToString();
 }
 
 Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
@@ -164,7 +192,8 @@ Device::Input* DeviceContainer::FindInput(const std::string& name, const Device*
       return inp;
   }
 
-  for (Device* d : m_devices)
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
   {
     Device::Input* const i = d->FindInput(name);
 
