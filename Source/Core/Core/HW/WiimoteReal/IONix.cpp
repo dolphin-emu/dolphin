@@ -10,9 +10,7 @@
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
 
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
+#include "Common/Common.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
@@ -23,6 +21,7 @@ class WiimoteLinux final : public Wiimote
 public:
 	WiimoteLinux(bdaddr_t bdaddr);
 	~WiimoteLinux() override;
+	const bdaddr_t& Address() const;
 
 protected:
 	bool ConnectInternal() override;
@@ -84,9 +83,15 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 	inquiry_info scan_infos[max_infos] = {};
 	auto* scan_infos_ptr = scan_infos;
 	found_board = nullptr;
+	// query in limited IAC - liac - using code from hcitool
+	// utils/tools/hcitool.c
+	const int liac_value = 0x9e8b00; // LIAC (https://www.bluetooth.org/en-us/specification/assigned-numbers/baseband)
+	uint8_t lap[3] = { (liac_value & 0xff),
+			   (liac_value >> 8) & 0xff,
+			   (liac_value >> 16) & 0xff };
 
 	// Scan for Bluetooth devices
-	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, nullptr, &scan_infos_ptr, IREQ_CACHE_FLUSH);
+	int const found_devices = hci_inquiry(device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
 	if (found_devices < 0)
 	{
 		ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
@@ -113,14 +118,16 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimot
 		{
 			bool new_wiimote = true;
 
-			// TODO: do this
-
 			// Determine if this Wiimote has already been found.
-			//for (int j = 0; j < MAX_WIIMOTES && new_wiimote; ++j)
-			//{
-			//	if (wm[j] && bacmp(&scan_infos[i].bdaddr,&wm[j]->bdaddr) == 0)
-			//		new_wiimote = false;
-			//}
+			for (int j = 0; j < MAX_BBMOTES && new_wiimote; ++j)
+			{
+				// compare this address with the stored addresses in our global array
+				// static_cast is OK here, since we're only ever going to have this subclass in g_wiimotes
+				// on Linux (and likewise, only WiimoteWindows on Windows, etc)
+				auto connected_wiimote = static_cast<WiimoteLinux*>(g_wiimotes[j]);
+				if (connected_wiimote && bacmp(&scan_infos[i].bdaddr,&connected_wiimote->Address()) == 0)
+					new_wiimote = false;
+			}
 
 			if (new_wiimote)
 			{
@@ -165,6 +172,11 @@ WiimoteLinux::~WiimoteLinux()
 	Shutdown();
 	close(m_wakeup_pipe_w);
 	close(m_wakeup_pipe_r);
+}
+
+const bdaddr_t& WiimoteLinux::Address() const
+{
+	return m_bdaddr;
 }
 
 // Connect to a Wiimote with a known address.
@@ -280,4 +292,5 @@ int WiimoteLinux::IOWrite(u8 const* buf, size_t len)
 	return write(m_int_sock, buf, (int)len);
 }
 
-}; // WiimoteReal
+};
+ // WiimoteReal
