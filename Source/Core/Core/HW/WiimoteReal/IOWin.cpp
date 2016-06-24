@@ -9,15 +9,18 @@
 #include <hidsdi.h>
 #include <unordered_map>
 #include <unordered_set>
+
+// clang-format off
 #include <windows.h>
 // The following Windows headers must be included AFTER windows.h.
-#include <BluetoothAPIs.h>  //NOLINT
-#include <Cfgmgr32.h>       //NOLINT
+#include <BluetoothAPIs.h>
+#include <Cfgmgr32.h>
+#include <initguid.h>
 // initguid.h must be included before Devpkey.h
-#include <Devpkey.h>   //NOLINT
-#include <dbt.h>       //NOLINT
-#include <initguid.h>  //NOLINT
-#include <setupapi.h>  //NOLINT
+#include <Devpkey.h>
+#include <dbt.h>
+#include <setupapi.h>
+// clang-format on
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
