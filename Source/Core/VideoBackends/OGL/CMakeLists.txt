@@ -1,4 +1,5 @@
 set(SRCS
+	   AbstractTexture.cpp
 	   BoundingBox.cpp
 	   FramebufferManager.cpp
 	   main.cpp

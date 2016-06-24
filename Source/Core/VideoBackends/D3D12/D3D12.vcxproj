@@ -72,6 +72,7 @@
     <ClCompile Include="XFBEncoder.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractTexture.h" />
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
     <ClInclude Include="D3DCommandListManager.h" />

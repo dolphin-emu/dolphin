@@ -127,5 +127,8 @@
     <ClInclude Include="BoundingBox.h">
       <Filter>Render</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
