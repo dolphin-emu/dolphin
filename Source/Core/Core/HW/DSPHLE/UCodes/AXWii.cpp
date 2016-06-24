@@ -629,10 +629,7 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume,
 	}
 
 	memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof (buffer));
-
-	// There should be a DSP_SYNC message sent here. However, it looks like not
-	// sending it does not cause any issue, and sending it actually causes some
-	// sounds to go at half speed. I have no idea why.
+	m_mail_handler.PushMail(DSP_SYNC, true);
 }
 
 void AXWiiUCode::OutputWMSamples(u32* addresses)
