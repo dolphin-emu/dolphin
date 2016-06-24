@@ -151,6 +151,10 @@ void CommandBufferManager::DestroyCommandBuffers()
 {
 	for (size_t i = 0; i < m_command_buffers.size(); i++)
 	{
+		for (const auto& it : m_pending_destructions[m_current_command_buffer_index])
+			it.destroy_callback(m_device, it.object);
+		m_pending_destructions[m_current_command_buffer_index].clear();
+
 		if (m_fences[i])
 		{
 			vkDestroyFence(m_device, m_fences[i], nullptr);
@@ -249,6 +253,12 @@ void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
 	if (res != VK_SUCCESS)
 		LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
 
+	// Clean up all objects pending destruction on this command buffer
+	for (const auto& it : m_pending_destructions[m_current_command_buffer_index])
+		it.destroy_callback(m_device, it.object);
+	m_pending_destructions[m_current_command_buffer_index].clear();
+
+	// Reset command buffer to beginning since we can re-use the memory now
 	res = vkResetCommandBuffer(m_command_buffers[m_current_command_buffer_index], 0);
 	if (res != VK_SUCCESS)
 		LOG_VULKAN_ERROR(res, "vkResetCommandBuffer failed: ");
