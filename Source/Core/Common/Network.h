@@ -10,13 +10,13 @@
 
 enum MACConsumer
 {
-	BBA = 0,
-	IOS = 1
+  BBA = 0,
+  IOS = 1
 };
 
 enum
 {
-	MAC_ADDRESS_SIZE = 6
+  MAC_ADDRESS_SIZE = 6
 };
 
 void GenerateMacAddress(const MACConsumer type, u8* mac);

@@ -22,54 +22,53 @@
 
 #include "Common/Flag.h"
 
-namespace Common {
-
+namespace Common
+{
 class Event final
 {
 public:
-	void Set()
-	{
-		if (m_flag.TestAndSet())
-		{
-			std::lock_guard<std::mutex> lk(m_mutex);
-			m_condvar.notify_one();
-		}
-	}
+  void Set()
+  {
+    if (m_flag.TestAndSet())
+    {
+      std::lock_guard<std::mutex> lk(m_mutex);
+      m_condvar.notify_one();
+    }
+  }
 
-	void Wait()
-	{
-		if (m_flag.TestAndClear())
-			return;
+  void Wait()
+  {
+    if (m_flag.TestAndClear())
+      return;
 
-		std::unique_lock<std::mutex> lk(m_mutex);
-		m_condvar.wait(lk, [&]{ return m_flag.TestAndClear(); });
-	}
+    std::unique_lock<std::mutex> lk(m_mutex);
+    m_condvar.wait(lk, [&] { return m_flag.TestAndClear(); });
+  }
 
-	template<class Rep, class Period>
-	bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
-	{
-		if (m_flag.TestAndClear())
-			return true;
+  template <class Rep, class Period>
+  bool WaitFor(const std::chrono::duration<Rep, Period>& rel_time)
+  {
+    if (m_flag.TestAndClear())
+      return true;
 
-		std::unique_lock<std::mutex> lk(m_mutex);
-		bool signaled = m_condvar.wait_for(lk, rel_time,
-			[&]{ return m_flag.TestAndClear(); });
+    std::unique_lock<std::mutex> lk(m_mutex);
+    bool signaled = m_condvar.wait_for(lk, rel_time, [&] { return m_flag.TestAndClear(); });
 
-		return signaled;
-	}
+    return signaled;
+  }
 
-	void Reset()
-	{
-		// no other action required, since wait loops on
-		// the predicate and any lingering signal will get
-		// cleared on the first iteration
-		m_flag.Clear();
-	}
+  void Reset()
+  {
+    // no other action required, since wait loops on
+    // the predicate and any lingering signal will get
+    // cleared on the first iteration
+    m_flag.Clear();
+  }
 
 private:
-	Flag m_flag;
-	std::condition_variable m_condvar;
-	std::mutex m_mutex;
+  Flag m_flag;
+  std::condition_variable m_condvar;
+  std::mutex m_mutex;
 };
 
 }  // namespace Common

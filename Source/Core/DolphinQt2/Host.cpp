@@ -15,92 +15,116 @@ Host* Host::m_instance = nullptr;
 
 Host* Host::GetInstance()
 {
-	if (m_instance == nullptr)
-		m_instance = new Host();
-	return m_instance;
+  if (m_instance == nullptr)
+    m_instance = new Host();
+  return m_instance;
 }
 
 void* Host::GetRenderHandle()
 {
-	QMutexLocker locker(&m_lock);
-	return m_render_handle;
+  QMutexLocker locker(&m_lock);
+  return m_render_handle;
 }
 
 void Host::SetRenderHandle(void* handle)
 {
-	QMutexLocker locker(&m_lock);
-	m_render_handle = handle;
+  QMutexLocker locker(&m_lock);
+  m_render_handle = handle;
 }
 
 bool Host::GetRenderFocus()
 {
-	QMutexLocker locker(&m_lock);
-	return m_render_focus;
+  QMutexLocker locker(&m_lock);
+  return m_render_focus;
 }
 
 void Host::SetRenderFocus(bool focus)
 {
-	QMutexLocker locker(&m_lock);
-	m_render_focus = focus;
+  QMutexLocker locker(&m_lock);
+  m_render_focus = focus;
 }
 
 bool Host::GetRenderFullscreen()
 {
-	QMutexLocker locker(&m_lock);
-	return m_render_fullscreen;
+  QMutexLocker locker(&m_lock);
+  return m_render_fullscreen;
 }
 
 void Host::SetRenderFullscreen(bool fullscreen)
 {
-	QMutexLocker locker(&m_lock);
-	m_render_fullscreen = fullscreen;
+  QMutexLocker locker(&m_lock);
+  m_render_fullscreen = fullscreen;
 }
 
 void Host_Message(int id)
 {
-	if (id == WM_USER_STOP)
-	{
-		emit Host::GetInstance()->RequestStop();
-	}
-	else if (id == WM_USER_JOB_DISPATCH)
-	{
-		// Just poke the main thread to get it to wake up, job dispatch
-		// will happen automatically before it goes back to sleep again.
-		QAbstractEventDispatcher::instance(qApp->thread())->wakeUp();
-	}
+  if (id == WM_USER_STOP)
+  {
+    emit Host::GetInstance()->RequestStop();
+  }
+  else if (id == WM_USER_JOB_DISPATCH)
+  {
+    // Just poke the main thread to get it to wake up, job dispatch
+    // will happen automatically before it goes back to sleep again.
+    QAbstractEventDispatcher::instance(qApp->thread())->wakeUp();
+  }
 }
 
 void Host_UpdateTitle(const std::string& title)
 {
-	emit Host::GetInstance()->RequestTitle(QString::fromStdString(title));
+  emit Host::GetInstance()->RequestTitle(QString::fromStdString(title));
 }
 
 void* Host_GetRenderHandle()
 {
-	return Host::GetInstance()->GetRenderHandle();
+  return Host::GetInstance()->GetRenderHandle();
 }
 
 bool Host_RendererHasFocus()
 {
-	return Host::GetInstance()->GetRenderFocus();
+  return Host::GetInstance()->GetRenderFocus();
 }
 
-bool Host_RendererIsFullscreen() {
-	return Host::GetInstance()->GetRenderFullscreen();
+bool Host_RendererIsFullscreen()
+{
+  return Host::GetInstance()->GetRenderFullscreen();
 }
 
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and
 // UpdateMainFrame should almost certainly be removed.
-void Host_UpdateMainFrame() {}
-void Host_RequestFullscreen(bool enable) {}
-void Host_RequestRenderWindowSize(int w, int h) {}
-bool Host_UIHasFocus() { return false; }
-void Host_NotifyMapLoaded() {}
-void Host_UpdateDisasmDialog() {}
-void Host_SetStartupDebuggingParameters() {}
-void Host_SetWiiMoteConnectionState(int state) {}
-void Host_ConnectWiimote(int wm_idx, bool connect) {}
+void Host_UpdateMainFrame()
+{
+}
+void Host_RequestFullscreen(bool enable)
+{
+}
+void Host_RequestRenderWindowSize(int w, int h)
+{
+}
+bool Host_UIHasFocus()
+{
+  return false;
+}
+void Host_NotifyMapLoaded()
+{
+}
+void Host_UpdateDisasmDialog()
+{
+}
+void Host_SetStartupDebuggingParameters()
+{
+}
+void Host_SetWiiMoteConnectionState(int state)
+{
+}
+void Host_ConnectWiimote(int wm_idx, bool connect)
+{
+}
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
-                          const std::string& config_name) {}
-void Host_RefreshDSPDebuggerWindow() {}
+                          const std::string& config_name)
+{
+}
+void Host_RefreshDSPDebuggerWindow()
+{
+}

@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
 // NOTE:
 // These functions are primarily used by the interpreter versions of the LoadStore instructions.
 // However, if a JITed instruction (for example lwz) wants to access a bad memory area that call
@@ -14,22 +13,22 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/MemArena.h"
 #include "Common/Logging/Log.h"
+#include "Common/MemArena.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI.h"
+#include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
-#include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
-#include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
 
@@ -50,7 +49,7 @@ static MemArena g_arena;
 // ==============
 
 // STATE_TO_SAVE
-static bool m_IsInitialized = false; // Save the Init(), Shutdown() state
+static bool m_IsInitialized = false;  // Save the Init(), Shutdown() state
 // END STATE_TO_SAVE
 
 u8* m_pRAM;
@@ -63,40 +62,39 @@ std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
 static std::unique_ptr<MMIO::Mapping> InitMMIO()
 {
-	auto mmio = std::make_unique<MMIO::Mapping>();
+  auto mmio = std::make_unique<MMIO::Mapping>();
 
-	CommandProcessor  ::RegisterMMIO(mmio.get(), 0x0C000000);
-	PixelEngine       ::RegisterMMIO(mmio.get(), 0x0C001000);
-	VideoInterface    ::RegisterMMIO(mmio.get(), 0x0C002000);
-	ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
-	MemoryInterface   ::RegisterMMIO(mmio.get(), 0x0C004000);
-	DSP               ::RegisterMMIO(mmio.get(), 0x0C005000);
-	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0C006000);
-	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0C006400);
-	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
-	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0C006C00);
+  CommandProcessor::RegisterMMIO(mmio.get(), 0x0C000000);
+  PixelEngine::RegisterMMIO(mmio.get(), 0x0C001000);
+  VideoInterface::RegisterMMIO(mmio.get(), 0x0C002000);
+  ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
+  MemoryInterface::RegisterMMIO(mmio.get(), 0x0C004000);
+  DSP::RegisterMMIO(mmio.get(), 0x0C005000);
+  DVDInterface::RegisterMMIO(mmio.get(), 0x0C006000);
+  SerialInterface::RegisterMMIO(mmio.get(), 0x0C006400);
+  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
+  AudioInterface::RegisterMMIO(mmio.get(), 0x0C006C00);
 
-	return mmio;
+  return mmio;
 }
 
 static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
 {
-	auto mmio = InitMMIO();
+  auto mmio = InitMMIO();
 
-	WII_IPCInterface  ::RegisterMMIO(mmio.get(), 0x0D000000);
-	DVDInterface      ::RegisterMMIO(mmio.get(), 0x0D006000);
-	SerialInterface   ::RegisterMMIO(mmio.get(), 0x0D006400);
-	ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
-	AudioInterface    ::RegisterMMIO(mmio.get(), 0x0D006C00);
+  WII_IPCInterface::RegisterMMIO(mmio.get(), 0x0D000000);
+  DVDInterface::RegisterMMIO(mmio.get(), 0x0D006000);
+  SerialInterface::RegisterMMIO(mmio.get(), 0x0D006400);
+  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
+  AudioInterface::RegisterMMIO(mmio.get(), 0x0D006C00);
 
-	return mmio;
+  return mmio;
 }
 
 bool IsInitialized()
 {
-	return m_IsInitialized;
+  return m_IsInitialized;
 }
-
 
 // Dolphin allocates memory to represent four regions:
 // - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
@@ -154,242 +152,243 @@ bool IsInitialized()
 //
 // TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
 // be backed by actual memory.
-static MemoryView views[] =
-{
-	{&m_pRAM,      0x00000000, RAM_SIZE,      0},
-	{nullptr,      0x200000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{nullptr,      0x280000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{nullptr,      0x2C0000000, RAM_SIZE,     MV_MIRROR_PREVIOUS},
-	{&m_pL1Cache,  0x2E0000000, L1_CACHE_SIZE, 0},
-	{&m_pFakeVMEM, 0x27E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
-	{&m_pEXRAM,    0x10000000, EXRAM_SIZE,    MV_WII_ONLY},
-	{nullptr,      0x290000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
-	{nullptr,      0x2D0000000, EXRAM_SIZE,   MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+static MemoryView views[] = {
+    {&m_pRAM, 0x00000000, RAM_SIZE, 0},
+    {nullptr, 0x200000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+    {nullptr, 0x280000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+    {nullptr, 0x2C0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+    {&m_pL1Cache, 0x2E0000000, L1_CACHE_SIZE, 0},
+    {&m_pFakeVMEM, 0x27E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
+    {&m_pEXRAM, 0x10000000, EXRAM_SIZE, MV_WII_ONLY},
+    {nullptr, 0x290000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+    {nullptr, 0x2D0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
 };
 static const int num_views = sizeof(views) / sizeof(MemoryView);
 
 void Init()
 {
-	bool wii = SConfig::GetInstance().bWii;
-	bool bMMU = SConfig::GetInstance().bMMU;
+  bool wii = SConfig::GetInstance().bWii;
+  bool bMMU = SConfig::GetInstance().bMMU;
 #ifndef _ARCH_32
-	// If MMU is turned off in GameCube mode, turn on fake VMEM hack.
-	// The fake VMEM hack's address space is above the memory space that we
-	// allocate on 32bit targets, so disable it there.
-	bFakeVMEM = !wii && !bMMU;
+  // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
+  // The fake VMEM hack's address space is above the memory space that we
+  // allocate on 32bit targets, so disable it there.
+  bFakeVMEM = !wii && !bMMU;
 #endif
 
-	u32 flags = 0;
-	if (wii)
-		flags |= MV_WII_ONLY;
-	if (bFakeVMEM)
-		flags |= MV_FAKE_VMEM;
-	physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
+  u32 flags = 0;
+  if (wii)
+    flags |= MV_WII_ONLY;
+  if (bFakeVMEM)
+    flags |= MV_FAKE_VMEM;
+  physical_base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 #ifndef _ARCH_32
-	logical_base = physical_base + 0x200000000;
+  logical_base = physical_base + 0x200000000;
 #endif
 
-	if (wii)
-		mmio_mapping = InitMMIOWii();
-	else
-		mmio_mapping = InitMMIO();
+  if (wii)
+    mmio_mapping = InitMMIOWii();
+  else
+    mmio_mapping = InitMMIO();
 
-	Clear();
+  Clear();
 
-	INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
-	m_IsInitialized = true;
+  INFO_LOG(MEMMAP, "Memory system initialized. RAM at %p", m_pRAM);
+  m_IsInitialized = true;
 }
 
-void DoState(PointerWrap &p)
+void DoState(PointerWrap& p)
 {
-	bool wii = SConfig::GetInstance().bWii;
-	p.DoArray(m_pRAM, RAM_SIZE);
-	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
-	p.DoMarker("Memory RAM");
-	if (bFakeVMEM)
-		p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
-	p.DoMarker("Memory FakeVMEM");
-	if (wii)
-		p.DoArray(m_pEXRAM, EXRAM_SIZE);
-	p.DoMarker("Memory EXRAM");
+  bool wii = SConfig::GetInstance().bWii;
+  p.DoArray(m_pRAM, RAM_SIZE);
+  p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
+  p.DoMarker("Memory RAM");
+  if (bFakeVMEM)
+    p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
+  p.DoMarker("Memory FakeVMEM");
+  if (wii)
+    p.DoArray(m_pEXRAM, EXRAM_SIZE);
+  p.DoMarker("Memory EXRAM");
 }
 
 void Shutdown()
 {
-	m_IsInitialized = false;
-	u32 flags = 0;
-	if (SConfig::GetInstance().bWii) flags |= MV_WII_ONLY;
-	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
-	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
-	g_arena.ReleaseSHMSegment();
-	physical_base = nullptr;
-	logical_base = nullptr;
-	mmio_mapping.reset();
-	INFO_LOG(MEMMAP, "Memory system shut down.");
+  m_IsInitialized = false;
+  u32 flags = 0;
+  if (SConfig::GetInstance().bWii)
+    flags |= MV_WII_ONLY;
+  if (bFakeVMEM)
+    flags |= MV_FAKE_VMEM;
+  MemoryMap_Shutdown(views, num_views, flags, &g_arena);
+  g_arena.ReleaseSHMSegment();
+  physical_base = nullptr;
+  logical_base = nullptr;
+  mmio_mapping.reset();
+  INFO_LOG(MEMMAP, "Memory system shut down.");
 }
 
 void Clear()
 {
-	if (m_pRAM)
-		memset(m_pRAM, 0, RAM_SIZE);
-	if (m_pL1Cache)
-		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (SConfig::GetInstance().bWii && m_pEXRAM)
-		memset(m_pEXRAM, 0, EXRAM_SIZE);
+  if (m_pRAM)
+    memset(m_pRAM, 0, RAM_SIZE);
+  if (m_pL1Cache)
+    memset(m_pL1Cache, 0, L1_CACHE_SIZE);
+  if (SConfig::GetInstance().bWii && m_pEXRAM)
+    memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
 bool AreMemoryBreakpointsActivated()
 {
 #ifdef ENABLE_MEM_CHECK
-	return true;
+  return true;
 #else
-	return false;
+  return false;
 #endif
 }
 
 static inline u8* GetPointerForRange(u32 address, size_t size)
 {
-	// Make sure we don't have a range spanning 2 separate banks
-	if (size >= EXRAM_SIZE)
-		return nullptr;
+  // Make sure we don't have a range spanning 2 separate banks
+  if (size >= EXRAM_SIZE)
+    return nullptr;
 
-	// Check that the beginning and end of the range are valid
-	u8* pointer = GetPointer(address);
-	if (!pointer || !GetPointer(address + u32(size) - 1))
-		return nullptr;
+  // Check that the beginning and end of the range are valid
+  u8* pointer = GetPointer(address);
+  if (!pointer || !GetPointer(address + u32(size) - 1))
+    return nullptr;
 
-	return pointer;
+  return pointer;
 }
 
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
-	if (size == 0)
-		return;
+  if (size == 0)
+    return;
 
-	void* pointer = GetPointerForRange(address, size);
-	if (!pointer)
-	{
-		PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
-		return;
-	}
-	memcpy(data, pointer, size);
+  void* pointer = GetPointerForRange(address, size);
+  if (!pointer)
+  {
+    PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
+    return;
+  }
+  memcpy(data, pointer, size);
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
 {
-	if (size == 0)
-		return;
+  if (size == 0)
+    return;
 
-	void* pointer = GetPointerForRange(address, size);
-	if (!pointer)
-	{
-		PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
-		return;
-	}
-	memcpy(pointer, data, size);
+  void* pointer = GetPointerForRange(address, size);
+  if (!pointer)
+  {
+    PanicAlert("Invalid range in CopyToEmu. %zx bytes to 0x%08x", size, address);
+    return;
+  }
+  memcpy(pointer, data, size);
 }
 
 void Memset(u32 address, u8 value, size_t size)
 {
-	if (size == 0)
-		return;
+  if (size == 0)
+    return;
 
-	void* pointer = GetPointerForRange(address, size);
-	if (!pointer)
-	{
-		PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", size, address);
-		return;
-	}
-	memset(pointer, value, size);
+  void* pointer = GetPointerForRange(address, size);
+  if (!pointer)
+  {
+    PanicAlert("Invalid range in Memset. %zx bytes at 0x%08x", size, address);
+    return;
+  }
+  memset(pointer, value, size);
 }
 
 std::string GetString(u32 em_address, size_t size)
 {
-	const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
-	if (ptr == nullptr)
-		return "";
+  const char* ptr = reinterpret_cast<const char*>(GetPointer(em_address));
+  if (ptr == nullptr)
+    return "";
 
-	if (size == 0) // Null terminated string.
-	{
-		return std::string(ptr);
-	}
-	else // Fixed size string, potentially null terminated or null padded.
-	{
-		size_t length = strnlen(ptr, size);
-		return std::string(ptr, length);
-	}
+  if (size == 0)  // Null terminated string.
+  {
+    return std::string(ptr);
+  }
+  else  // Fixed size string, potentially null terminated or null padded.
+  {
+    size_t length = strnlen(ptr, size);
+    return std::string(ptr, length);
+  }
 }
 
 u8* GetPointer(u32 address)
 {
-	// TODO: Should we be masking off more bits here?  Can all devices access
-	// EXRAM?
-	address &= 0x3FFFFFFF;
-	if (address < REALRAM_SIZE)
-		return m_pRAM + address;
+  // TODO: Should we be masking off more bits here?  Can all devices access
+  // EXRAM?
+  address &= 0x3FFFFFFF;
+  if (address < REALRAM_SIZE)
+    return m_pRAM + address;
 
-	if (SConfig::GetInstance().bWii)
-	{
-		if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
-			return m_pEXRAM + (address & EXRAM_MASK);
-	}
+  if (SConfig::GetInstance().bWii)
+  {
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
+      return m_pEXRAM + (address & EXRAM_MASK);
+  }
 
-	PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+  PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
 
-	return nullptr;
+  return nullptr;
 }
 
 u8 Read_U8(u32 address)
 {
-	return *GetPointer(address);
+  return *GetPointer(address);
 }
 
 u16 Read_U16(u32 address)
 {
-	return Common::swap16(GetPointer(address));
+  return Common::swap16(GetPointer(address));
 }
 
 u32 Read_U32(u32 address)
 {
-	return Common::swap32(GetPointer(address));
+  return Common::swap32(GetPointer(address));
 }
 
 u64 Read_U64(u32 address)
 {
-	return Common::swap64(GetPointer(address));
+  return Common::swap64(GetPointer(address));
 }
 
 void Write_U8(u8 value, u32 address)
 {
-	*GetPointer(address) = value;
+  *GetPointer(address) = value;
 }
 
 void Write_U16(u16 value, u32 address)
 {
-	u16 swapped_value = Common::swap16(value);
-	std::memcpy(GetPointer(address), &swapped_value, sizeof(u16));
+  u16 swapped_value = Common::swap16(value);
+  std::memcpy(GetPointer(address), &swapped_value, sizeof(u16));
 }
 
 void Write_U32(u32 value, u32 address)
 {
-	u32 swapped_value = Common::swap32(value);
-	std::memcpy(GetPointer(address), &swapped_value, sizeof(u32));
+  u32 swapped_value = Common::swap32(value);
+  std::memcpy(GetPointer(address), &swapped_value, sizeof(u32));
 }
 
 void Write_U64(u64 value, u32 address)
 {
-	u64 swapped_value = Common::swap64(value);
-	std::memcpy(GetPointer(address), &swapped_value, sizeof(u64));
+  u64 swapped_value = Common::swap64(value);
+  std::memcpy(GetPointer(address), &swapped_value, sizeof(u64));
 }
 
 void Write_U32_Swap(u32 value, u32 address)
 {
-	std::memcpy(GetPointer(address), &value, sizeof(u32));
+  std::memcpy(GetPointer(address), &value, sizeof(u32));
 }
 
 void Write_U64_Swap(u64 value, u32 address)
 {
-	std::memcpy(GetPointer(address), &value, sizeof(u64));
+  std::memcpy(GetPointer(address), &value, sizeof(u64));
 }
 
 }  // namespace

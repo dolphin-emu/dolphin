@@ -4,5 +4,5 @@
 
 #pragma once
 
-void DPL2Decode(float *samples, int numsamples, float *out);
+void DPL2Decode(float* samples, int numsamples, float* out);
 void DPL2Reset();

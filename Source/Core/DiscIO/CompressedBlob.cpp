@@ -19,47 +19,46 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
 
-
 namespace DiscIO
 {
-
 CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file_name(filename)
 {
-	m_file.Open(filename, "rb");
-	m_file_size = File::GetSize(filename);
-	m_file.ReadArray(&m_header, 1);
+  m_file.Open(filename, "rb");
+  m_file_size = File::GetSize(filename);
+  m_file.ReadArray(&m_header, 1);
 
-	SetSectorSize(m_header.block_size);
+  SetSectorSize(m_header.block_size);
 
-	// cache block pointers and hashes
-	m_block_pointers.resize(m_header.num_blocks);
-	m_file.ReadArray(m_block_pointers.data(), m_header.num_blocks);
-	m_hashes.resize(m_header.num_blocks);
-	m_file.ReadArray(m_hashes.data(), m_header.num_blocks);
+  // cache block pointers and hashes
+  m_block_pointers.resize(m_header.num_blocks);
+  m_file.ReadArray(m_block_pointers.data(), m_header.num_blocks);
+  m_hashes.resize(m_header.num_blocks);
+  m_file.ReadArray(m_hashes.data(), m_header.num_blocks);
 
-	m_data_offset = (sizeof(CompressedBlobHeader))
-	              + (sizeof(u64)) * m_header.num_blocks  // skip block pointers
-	              + (sizeof(u32)) * m_header.num_blocks; // skip hashes
+  m_data_offset = (sizeof(CompressedBlobHeader)) +
+                  (sizeof(u64)) * m_header.num_blocks     // skip block pointers
+                  + (sizeof(u32)) * m_header.num_blocks;  // skip hashes
 
-	// A compressed block is never ever longer than a decompressed block, so just header.block_size should be fine.
-	// I still add some safety margin.
-	const u32 zlib_buffer_size = m_header.block_size + 64;
-	m_zlib_buffer.resize(zlib_buffer_size);
+  // A compressed block is never ever longer than a decompressed block, so just header.block_size
+  // should be fine.
+  // I still add some safety margin.
+  const u32 zlib_buffer_size = m_header.block_size + 64;
+  m_zlib_buffer.resize(zlib_buffer_size);
 }
 
 std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(const std::string& filename)
 {
-	if (IsGCZBlob(filename))
-		return std::unique_ptr<CompressedBlobReader>(new CompressedBlobReader(filename));
+  if (IsGCZBlob(filename))
+    return std::unique_ptr<CompressedBlobReader>(new CompressedBlobReader(filename));
 
-	return nullptr;
+  return nullptr;
 }
 
 CompressedBlobReader::~CompressedBlobReader()
@@ -69,343 +68,343 @@ CompressedBlobReader::~CompressedBlobReader()
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
 {
-	u64 start = m_block_pointers[block_num];
-	if (block_num < m_header.num_blocks - 1)
-		return m_block_pointers[block_num + 1] - start;
-	else if (block_num == m_header.num_blocks - 1)
-		return m_header.compressed_data_size - start;
-	else
-		PanicAlert("GetBlockCompressedSize - illegal block number %i", (int)block_num);
-	return 0;
+  u64 start = m_block_pointers[block_num];
+  if (block_num < m_header.num_blocks - 1)
+    return m_block_pointers[block_num + 1] - start;
+  else if (block_num == m_header.num_blocks - 1)
+    return m_header.compressed_data_size - start;
+  else
+    PanicAlert("GetBlockCompressedSize - illegal block number %i", (int)block_num);
+  return 0;
 }
 
-bool CompressedBlobReader::GetBlock(u64 block_num, u8 *out_ptr)
+bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
 {
-	bool uncompressed = false;
-	u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
-	u64 offset = m_block_pointers[block_num] + m_data_offset;
+  bool uncompressed = false;
+  u32 comp_block_size = (u32)GetBlockCompressedSize(block_num);
+  u64 offset = m_block_pointers[block_num] + m_data_offset;
 
-	if (offset & (1ULL << 63))
-	{
-		if (comp_block_size != m_header.block_size)
-			PanicAlert("Uncompressed block with wrong size");
-		uncompressed = true;
-		offset &= ~(1ULL << 63);
-	}
+  if (offset & (1ULL << 63))
+  {
+    if (comp_block_size != m_header.block_size)
+      PanicAlert("Uncompressed block with wrong size");
+    uncompressed = true;
+    offset &= ~(1ULL << 63);
+  }
 
-	// clear unused part of zlib buffer. maybe this can be deleted when it works fully.
-	memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
+  // clear unused part of zlib buffer. maybe this can be deleted when it works fully.
+  memset(&m_zlib_buffer[comp_block_size], 0, m_zlib_buffer.size() - comp_block_size);
 
-	m_file.Seek(offset, SEEK_SET);
-	if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
-	{
-		PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
-		            m_file_name.c_str());
-		m_file.Clear();
-		return false;
-	}
+  m_file.Seek(offset, SEEK_SET);
+  if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
+  {
+    PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
+                m_file_name.c_str());
+    m_file.Clear();
+    return false;
+  }
 
-	// First, check hash.
-	u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
-	if (block_hash != m_hashes[block_num])
-		PanicAlertT("The disc image \"%s\" is corrupt.\n"
-		            "Hash of block %" PRIu64 " is %08x instead of %08x.",
-		            m_file_name.c_str(),
-		            block_num, block_hash, m_hashes[block_num]);
+  // First, check hash.
+  u32 block_hash = HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  if (block_hash != m_hashes[block_num])
+    PanicAlertT("The disc image \"%s\" is corrupt.\n"
+                "Hash of block %" PRIu64 " is %08x instead of %08x.",
+                m_file_name.c_str(), block_num, block_hash, m_hashes[block_num]);
 
-	if (uncompressed)
-	{
-		std::copy(m_zlib_buffer.begin(), m_zlib_buffer.begin() + comp_block_size, out_ptr);
-	}
-	else
-	{
-		z_stream z = {};
-		z.next_in  = m_zlib_buffer.data();
-		z.avail_in = comp_block_size;
-		if (z.avail_in > m_header.block_size)
-		{
-			PanicAlert("We have a problem");
-		}
-		z.next_out  = out_ptr;
-		z.avail_out = m_header.block_size;
-		inflateInit(&z);
-		int status = inflate(&z, Z_FULL_FLUSH);
-		u32 uncomp_size = m_header.block_size - z.avail_out;
-		if (status != Z_STREAM_END)
-		{
-			// this seem to fire wrongly from time to time
-			// to be sure, don't use compressed isos :P
-			PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
-		}
-		inflateEnd(&z);
-		if (uncomp_size != m_header.block_size)
-		{
-			PanicAlert("Wrong block size");
-			return false;
-		}
-	}
-	return true;
+  if (uncompressed)
+  {
+    std::copy(m_zlib_buffer.begin(), m_zlib_buffer.begin() + comp_block_size, out_ptr);
+  }
+  else
+  {
+    z_stream z = {};
+    z.next_in = m_zlib_buffer.data();
+    z.avail_in = comp_block_size;
+    if (z.avail_in > m_header.block_size)
+    {
+      PanicAlert("We have a problem");
+    }
+    z.next_out = out_ptr;
+    z.avail_out = m_header.block_size;
+    inflateInit(&z);
+    int status = inflate(&z, Z_FULL_FLUSH);
+    u32 uncomp_size = m_header.block_size - z.avail_out;
+    if (status != Z_STREAM_END)
+    {
+      // this seem to fire wrongly from time to time
+      // to be sure, don't use compressed isos :P
+      PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
+    }
+    inflateEnd(&z);
+    if (uncomp_size != m_header.block_size)
+    {
+      PanicAlert("Wrong block size");
+      return false;
+    }
+  }
+  return true;
 }
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type,
-						int block_size, CompressCB callback, void* arg)
+                        int block_size, CompressCB callback, void* arg)
 {
-	bool scrubbing = false;
+  bool scrubbing = false;
 
-	if (IsGCZBlob(infile))
-	{
-		PanicAlertT("\"%s\" is already compressed! Cannot compress it further.", infile.c_str());
-		return false;
-	}
+  if (IsGCZBlob(infile))
+  {
+    PanicAlertT("\"%s\" is already compressed! Cannot compress it further.", infile.c_str());
+    return false;
+  }
 
-	File::IOFile inf(infile, "rb");
-	if (!inf)
-	{
-		PanicAlertT("Failed to open the input file \"%s\".", infile.c_str());
-		return false;
-	}
+  File::IOFile inf(infile, "rb");
+  if (!inf)
+  {
+    PanicAlertT("Failed to open the input file \"%s\".", infile.c_str());
+    return false;
+  }
 
-	File::IOFile f(outfile, "wb");
-	if (!f)
-	{
-		PanicAlertT("Failed to open the output file \"%s\".\n"
-		            "Check that you have permissions to write the target folder and that the media can be written.",
-		            outfile.c_str());
-		return false;
-	}
+  File::IOFile f(outfile, "wb");
+  if (!f)
+  {
+    PanicAlertT("Failed to open the output file \"%s\".\n"
+                "Check that you have permissions to write the target folder and that the media can "
+                "be written.",
+                outfile.c_str());
+    return false;
+  }
 
-	if (sub_type == 1)
-	{
-		if (!DiscScrubber::SetupScrub(infile, block_size))
-		{
-			PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.", infile.c_str());
-			return false;
-		}
+  if (sub_type == 1)
+  {
+    if (!DiscScrubber::SetupScrub(infile, block_size))
+    {
+      PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.", infile.c_str());
+      return false;
+    }
 
-		scrubbing = true;
-	}
+    scrubbing = true;
+  }
 
-	z_stream z = {};
-	if (deflateInit(&z, 9) != Z_OK)
-	{
-		DiscScrubber::Cleanup();
-		return false;
-	}
+  z_stream z = {};
+  if (deflateInit(&z, 9) != Z_OK)
+  {
+    DiscScrubber::Cleanup();
+    return false;
+  }
 
-	callback(GetStringT("Files opened, ready to compress."), 0, arg);
+  callback(GetStringT("Files opened, ready to compress."), 0, arg);
 
-	CompressedBlobHeader header;
-	header.magic_cookie = kBlobCookie;
-	header.sub_type   = sub_type;
-	header.block_size = block_size;
-	header.data_size  = File::GetSize(infile);
+  CompressedBlobHeader header;
+  header.magic_cookie = kBlobCookie;
+  header.sub_type = sub_type;
+  header.block_size = block_size;
+  header.data_size = File::GetSize(infile);
 
-	// round upwards!
-	header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
+  // round upwards!
+  header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
 
-	std::vector<u64> offsets(header.num_blocks);
-	std::vector<u32> hashes(header.num_blocks);
-	std::vector<u8> out_buf(block_size);
-	std::vector<u8> in_buf(block_size);
+  std::vector<u64> offsets(header.num_blocks);
+  std::vector<u32> hashes(header.num_blocks);
+  std::vector<u8> out_buf(block_size);
+  std::vector<u8> in_buf(block_size);
 
-	// seek past the header (we will write it at the end)
-	f.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
-	// seek past the offset and hash tables (we will write them at the end)
-	f.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
+  // seek past the header (we will write it at the end)
+  f.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
+  // seek past the offset and hash tables (we will write them at the end)
+  f.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
 
-	// Now we are ready to write compressed data!
-	u64 position = 0;
-	int num_compressed = 0;
-	int num_stored = 0;
-	int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
-	bool success = true;
+  // Now we are ready to write compressed data!
+  u64 position = 0;
+  int num_compressed = 0;
+  int num_stored = 0;
+  int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
+  bool success = true;
 
-	for (u32 i = 0; i < header.num_blocks; i++)
-	{
-		if (i % progress_monitor == 0)
-		{
-			const u64 inpos = inf.Tell();
-			int ratio = 0;
-			if (inpos != 0)
-				ratio = (int)(100 * position / inpos);
+  for (u32 i = 0; i < header.num_blocks; i++)
+  {
+    if (i % progress_monitor == 0)
+    {
+      const u64 inpos = inf.Tell();
+      int ratio = 0;
+      if (inpos != 0)
+        ratio = (int)(100 * position / inpos);
 
-			std::string temp = StringFromFormat(GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
-			                                    i, header.num_blocks, ratio);
-			bool was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
-			if (was_cancelled)
-			{
-				success = false;
-				break;
-			}
-		}
+      std::string temp =
+          StringFromFormat(GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(), i,
+                           header.num_blocks, ratio);
+      bool was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
+      if (was_cancelled)
+      {
+        success = false;
+        break;
+      }
+    }
 
-		offsets[i] = position;
+    offsets[i] = position;
 
-		size_t read_bytes;
-		if (scrubbing)
-			read_bytes = DiscScrubber::GetNextBlock(inf, in_buf.data());
-		else
-			inf.ReadArray(in_buf.data(), header.block_size, &read_bytes);
-		if (read_bytes < header.block_size)
-			std::fill(in_buf.begin() + read_bytes, in_buf.begin() + header.block_size, 0);
+    size_t read_bytes;
+    if (scrubbing)
+      read_bytes = DiscScrubber::GetNextBlock(inf, in_buf.data());
+    else
+      inf.ReadArray(in_buf.data(), header.block_size, &read_bytes);
+    if (read_bytes < header.block_size)
+      std::fill(in_buf.begin() + read_bytes, in_buf.begin() + header.block_size, 0);
 
-		int retval = deflateReset(&z);
-		z.next_in   = in_buf.data();
-		z.avail_in  = header.block_size;
-		z.next_out  = out_buf.data();
-		z.avail_out = block_size;
+    int retval = deflateReset(&z);
+    z.next_in = in_buf.data();
+    z.avail_in = header.block_size;
+    z.next_out = out_buf.data();
+    z.avail_out = block_size;
 
-		if (retval != Z_OK)
-		{
-			ERROR_LOG(DISCIO, "Deflate failed");
-			success = false;
-			break;
-		}
+    if (retval != Z_OK)
+    {
+      ERROR_LOG(DISCIO, "Deflate failed");
+      success = false;
+      break;
+    }
 
-		int status = deflate(&z, Z_FINISH);
-		int comp_size = block_size - z.avail_out;
+    int status = deflate(&z, Z_FINISH);
+    int comp_size = block_size - z.avail_out;
 
-		u8* write_buf;
-		int write_size;
-		if ((status != Z_STREAM_END) || (z.avail_out < 10))
-		{
-			//PanicAlert("%i %i Store %i", i*block_size, position, comp_size);
-			// let's store uncompressed
-			write_buf = in_buf.data();
-			offsets[i] |= 0x8000000000000000ULL;
-			write_size = block_size;
-			num_stored++;
-		}
-		else
-		{
-			// let's store compressed
-			//PanicAlert("Comp %i to %i", block_size, comp_size);
-			write_buf = out_buf.data();
-			write_size = comp_size;
-			num_compressed++;
-		}
+    u8* write_buf;
+    int write_size;
+    if ((status != Z_STREAM_END) || (z.avail_out < 10))
+    {
+      // PanicAlert("%i %i Store %i", i*block_size, position, comp_size);
+      // let's store uncompressed
+      write_buf = in_buf.data();
+      offsets[i] |= 0x8000000000000000ULL;
+      write_size = block_size;
+      num_stored++;
+    }
+    else
+    {
+      // let's store compressed
+      // PanicAlert("Comp %i to %i", block_size, comp_size);
+      write_buf = out_buf.data();
+      write_size = comp_size;
+      num_compressed++;
+    }
 
-		if (!f.WriteBytes(write_buf, write_size))
-		{
-			PanicAlertT(
-				"Failed to write the output file \"%s\".\n"
-				"Check that you have enough space available on the target drive.",
-				outfile.c_str());
-			success = false;
-			break;
-		}
+    if (!f.WriteBytes(write_buf, write_size))
+    {
+      PanicAlertT("Failed to write the output file \"%s\".\n"
+                  "Check that you have enough space available on the target drive.",
+                  outfile.c_str());
+      success = false;
+      break;
+    }
 
-		position += write_size;
+    position += write_size;
 
-		hashes[i] = HashAdler32(write_buf, write_size);
-	}
+    hashes[i] = HashAdler32(write_buf, write_size);
+  }
 
-	header.compressed_data_size = position;
+  header.compressed_data_size = position;
 
-	if (!success)
-	{
-		// Remove the incomplete output file.
-		f.Close();
-		File::Delete(outfile);
-	}
-	else
-	{
-		// Okay, go back and fill in headers
-		f.Seek(0, SEEK_SET);
-		f.WriteArray(&header, 1);
-		f.WriteArray(offsets.data(), header.num_blocks);
-		f.WriteArray(hashes.data(), header.num_blocks);
-	}
+  if (!success)
+  {
+    // Remove the incomplete output file.
+    f.Close();
+    File::Delete(outfile);
+  }
+  else
+  {
+    // Okay, go back and fill in headers
+    f.Seek(0, SEEK_SET);
+    f.WriteArray(&header, 1);
+    f.WriteArray(offsets.data(), header.num_blocks);
+    f.WriteArray(hashes.data(), header.num_blocks);
+  }
 
-	// Cleanup
-	deflateEnd(&z);
-	DiscScrubber::Cleanup();
+  // Cleanup
+  deflateEnd(&z);
+  DiscScrubber::Cleanup();
 
-	if (success)
-	{
-		callback(GetStringT("Done compressing disc image."), 1.0f, arg);
-	}
-	return success;
+  if (success)
+  {
+    callback(GetStringT("Done compressing disc image."), 1.0f, arg);
+  }
+  return success;
 }
 
-bool DecompressBlobToFile(const std::string& infile, const std::string& outfile, CompressCB callback, void* arg)
+bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
+                          CompressCB callback, void* arg)
 {
-	if (!IsGCZBlob(infile))
-	{
-		PanicAlertT("File not compressed");
-		return false;
-	}
+  if (!IsGCZBlob(infile))
+  {
+    PanicAlertT("File not compressed");
+    return false;
+  }
 
-	std::unique_ptr<CompressedBlobReader> reader(CompressedBlobReader::Create(infile));
-	if (!reader)
-	{
-		PanicAlertT("Failed to open the input file \"%s\".", infile.c_str());
-		return false;
-	}
+  std::unique_ptr<CompressedBlobReader> reader(CompressedBlobReader::Create(infile));
+  if (!reader)
+  {
+    PanicAlertT("Failed to open the input file \"%s\".", infile.c_str());
+    return false;
+  }
 
-	File::IOFile f(outfile, "wb");
-	if (!f)
-	{
-		PanicAlertT(
-			"Failed to open the output file \"%s\".\n"
-			"Check that you have permissions to write the target folder and that the media can be written.",
-			outfile.c_str());
-		return false;
-	}
+  File::IOFile f(outfile, "wb");
+  if (!f)
+  {
+    PanicAlertT("Failed to open the output file \"%s\".\n"
+                "Check that you have permissions to write the target folder and that the media can "
+                "be written.",
+                outfile.c_str());
+    return false;
+  }
 
-	const CompressedBlobHeader &header = reader->GetHeader();
-	static const size_t BUFFER_BLOCKS = 32;
-	size_t buffer_size = header.block_size * BUFFER_BLOCKS;
-	size_t last_buffer_size = header.block_size * (header.num_blocks % BUFFER_BLOCKS);
-	std::vector<u8> buffer(buffer_size);
-	u32 num_buffers = (header.num_blocks + BUFFER_BLOCKS - 1) / BUFFER_BLOCKS;
-	int progress_monitor = std::max<int>(1, num_buffers / 100);
-	bool success = true;
+  const CompressedBlobHeader& header = reader->GetHeader();
+  static const size_t BUFFER_BLOCKS = 32;
+  size_t buffer_size = header.block_size * BUFFER_BLOCKS;
+  size_t last_buffer_size = header.block_size * (header.num_blocks % BUFFER_BLOCKS);
+  std::vector<u8> buffer(buffer_size);
+  u32 num_buffers = (header.num_blocks + BUFFER_BLOCKS - 1) / BUFFER_BLOCKS;
+  int progress_monitor = std::max<int>(1, num_buffers / 100);
+  bool success = true;
 
-	for (u64 i = 0; i < num_buffers; i++)
-	{
-		if (i % progress_monitor == 0)
-		{
-			bool was_cancelled = !callback(GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
-			if (was_cancelled)
-			{
-				success = false;
-				break;
-			}
-		}
-		const size_t sz = i == num_buffers - 1 ? last_buffer_size : buffer_size;
-		reader->Read(i * buffer_size, sz, buffer.data());
-		if (!f.WriteBytes(buffer.data(), sz))
-		{
-			PanicAlertT(
-				"Failed to write the output file \"%s\".\n"
-				"Check that you have enough space available on the target drive.",
-				outfile.c_str());
-			success = false;
-			break;
-		}
-	}
+  for (u64 i = 0; i < num_buffers; i++)
+  {
+    if (i % progress_monitor == 0)
+    {
+      bool was_cancelled = !callback(GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
+      if (was_cancelled)
+      {
+        success = false;
+        break;
+      }
+    }
+    const size_t sz = i == num_buffers - 1 ? last_buffer_size : buffer_size;
+    reader->Read(i * buffer_size, sz, buffer.data());
+    if (!f.WriteBytes(buffer.data(), sz))
+    {
+      PanicAlertT("Failed to write the output file \"%s\".\n"
+                  "Check that you have enough space available on the target drive.",
+                  outfile.c_str());
+      success = false;
+      break;
+    }
+  }
 
-	if (!success)
-	{
-		// Remove the incomplete output file.
-		f.Close();
-		File::Delete(outfile);
-	}
-	else
-	{
-		f.Resize(header.data_size);
-	}
+  if (!success)
+  {
+    // Remove the incomplete output file.
+    f.Close();
+    File::Delete(outfile);
+  }
+  else
+  {
+    f.Resize(header.data_size);
+  }
 
-	return true;
+  return true;
 }
 
 bool IsGCZBlob(const std::string& filename)
 {
-	File::IOFile f(filename, "rb");
+  File::IOFile f(filename, "rb");
 
-	CompressedBlobHeader header;
-	return f.ReadArray(&header, 1) && (header.magic_cookie == kBlobCookie);
+  CompressedBlobHeader header;
+  return f.ReadArray(&header, 1) && (header.magic_cookie == kBlobCookie);
 }
 
 }  // namespace

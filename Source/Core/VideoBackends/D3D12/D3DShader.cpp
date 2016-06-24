@@ -6,82 +6,84 @@
 #include <string>
 
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
 {
-
 namespace D3D
 {
-
-bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines, const std::string& shader_version_string)
+bool CompileShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines,
+                   const std::string& shader_version_string)
 {
-	ID3D10Blob* shader_buffer = nullptr;
-	ID3D10Blob* error_buffer = nullptr;
+  ID3D10Blob* shader_buffer = nullptr;
+  ID3D10Blob* error_buffer = nullptr;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_DEBUG;
+  UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_DEBUG;
 #else
-	UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_OPTIMIZATION_LEVEL3 | D3DCOMPILE_SKIP_VALIDATION;
+  UINT flags = D3DCOMPILE_ENABLE_BACKWARDS_COMPATIBILITY | D3DCOMPILE_OPTIMIZATION_LEVEL3 |
+               D3DCOMPILE_SKIP_VALIDATION;
 #endif
-	HRESULT hr = d3d_compile(code.c_str(), code.length(), nullptr, defines, nullptr, "main", shader_version_string.data(),
-		flags, 0, &shader_buffer, &error_buffer);
+  HRESULT hr = d3d_compile(code.c_str(), code.length(), nullptr, defines, nullptr, "main",
+                           shader_version_string.data(), flags, 0, &shader_buffer, &error_buffer);
 
-	if (error_buffer)
-	{
-		WARN_LOG(VIDEO, "Warning generated when compiling %s shader:\n%s\n",
-			shader_version_string.c_str(),
-			static_cast<const char*>(error_buffer->GetBufferPointer()));
-	}
+  if (error_buffer)
+  {
+    WARN_LOG(VIDEO, "Warning generated when compiling %s shader:\n%s\n",
+             shader_version_string.c_str(),
+             static_cast<const char*>(error_buffer->GetBufferPointer()));
+  }
 
-	if (FAILED(hr))
-	{
-		static int num_failures = 0;
-		std::string filename = StringFromFormat("%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), shader_version_string.c_str(), num_failures++);
-		std::ofstream file;
-		OpenFStream(file, filename, std::ios_base::out);
-		file << code;
-		file << std::endl << "Errors:" << std::endl;
-		file << static_cast<const char*>(error_buffer->GetBufferPointer());
-		file.close();
+  if (FAILED(hr))
+  {
+    static int num_failures = 0;
+    std::string filename =
+        StringFromFormat("%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
+                         shader_version_string.c_str(), num_failures++);
+    std::ofstream file;
+    OpenFStream(file, filename, std::ios_base::out);
+    file << code;
+    file << std::endl << "Errors:" << std::endl;
+    file << static_cast<const char*>(error_buffer->GetBufferPointer());
+    file.close();
 
-		PanicAlert("Failed to compile shader: %s\nDebug info (%s):\n%s",
-			filename.c_str(),
-			shader_version_string.c_str(),
-			static_cast<const char*>(error_buffer->GetBufferPointer()));
+    PanicAlert("Failed to compile shader: %s\nDebug info (%s):\n%s", filename.c_str(),
+               shader_version_string.c_str(),
+               static_cast<const char*>(error_buffer->GetBufferPointer()));
 
-		*blob = nullptr;
-		error_buffer->Release();
-	}
-	else
-	{
-		*blob = shader_buffer;
-	}
+    *blob = nullptr;
+    error_buffer->Release();
+  }
+  else
+  {
+    *blob = shader_buffer;
+  }
 
-	return SUCCEEDED(hr);
+  return SUCCEEDED(hr);
 }
 
 // code->bytecode
 bool CompileVertexShader(const std::string& code, ID3DBlob** blob)
 {
-	return CompileShader(code, blob, nullptr, D3D::VertexShaderVersionString());
+  return CompileShader(code, blob, nullptr, D3D::VertexShaderVersionString());
 }
 
 // code->bytecode
-bool CompileGeometryShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines)
+bool CompileGeometryShader(const std::string& code, ID3DBlob** blob,
+                           const D3D_SHADER_MACRO* defines)
 {
-	return CompileShader(code, blob, defines, D3D::GeometryShaderVersionString());
+  return CompileShader(code, blob, defines, D3D::GeometryShaderVersionString());
 }
 
 // code->bytecode
 bool CompilePixelShader(const std::string& code, ID3DBlob** blob, const D3D_SHADER_MACRO* defines)
 {
-	return CompileShader(code, blob, defines, D3D::PixelShaderVersionString());
+  return CompileShader(code, blob, defines, D3D::PixelShaderVersionString());
 }
 
 }  // namespace

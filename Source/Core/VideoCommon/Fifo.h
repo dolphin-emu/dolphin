@@ -11,11 +11,10 @@ class PointerWrap;
 
 namespace Fifo
 {
-
 void Init();
 void Shutdown();
-void Prepare(); // Must be called from the CPU thread.
-void DoState(PointerWrap &f);
+void Prepare();  // Must be called from the CPU thread.
+void DoState(PointerWrap& f);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void UpdateWantDeterminism(bool want);
 bool UseDeterministicGPUThread();
@@ -23,13 +22,13 @@ bool UseDeterministicGPUThread();
 // Used for diagnostics.
 enum SyncGPUReason
 {
-	SYNC_GPU_OTHER,
-	SYNC_GPU_WRAPAROUND,
-	SYNC_GPU_EFB_POKE,
-	SYNC_GPU_PERFQUERY,
-	SYNC_GPU_BBOX,
-	SYNC_GPU_SWAP,
-	SYNC_GPU_AUX_SPACE,
+  SYNC_GPU_OTHER,
+  SYNC_GPU_WRAPAROUND,
+  SYNC_GPU_EFB_POKE,
+  SYNC_GPU_PERFQUERY,
+  SYNC_GPU_BBOX,
+  SYNC_GPU_SWAP,
+  SYNC_GPU_AUX_SPACE,
 };
 // In deterministic GPU thread mode this waits for the GPU to be done with pending work.
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);
@@ -48,4 +47,4 @@ void ResetVideoBuffer();
 void SetRendering(bool bEnabled);
 bool WillSkipCurrentFrame();
 
-} // namespace Fifo
+}  // namespace Fifo

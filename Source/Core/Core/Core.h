@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
 // Core
 
 // The external interface to the emulator core. Plus some extras.
@@ -19,7 +18,6 @@
 
 namespace Core
 {
-
 // TODO: ugly, remove
 extern bool g_aspect_wide;
 
@@ -32,10 +30,10 @@ void Callback_VideoCopiedToXFB(bool video_update);
 
 enum EState
 {
-	CORE_UNINITIALIZED,
-	CORE_PAUSE,
-	CORE_RUN,
-	CORE_STOPPING
+  CORE_UNINITIALIZED,
+  CORE_PAUSE,
+  CORE_RUN,
+  CORE_STOPPING
 };
 
 bool Init();
@@ -48,9 +46,9 @@ void UndeclareAsCPUThread();
 std::string StopMessage(bool, const std::string&);
 
 bool IsRunning();
-bool IsRunningAndStarted(); // is running and the CPU loop has been entered
-bool IsRunningInCurrentThread(); // this tells us whether we are running in the CPU thread.
-bool IsCPUThread(); // this tells us whether we are the CPU thread.
+bool IsRunningAndStarted();       // is running and the CPU loop has been entered
+bool IsRunningInCurrentThread();  // this tells us whether we are running in the CPU thread.
+bool IsCPUThread();               // this tells us whether we are the CPU thread.
 bool IsGPUThread();
 
 // [NOT THREADSAFE] For use by Host only
@@ -86,7 +84,7 @@ void UpdateTitle();
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 
 // for calling back into UI code without introducing a dependency on it in core
-typedef void(*StoppedCallbackFunc)(void);
+typedef void (*StoppedCallbackFunc)(void);
 void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]

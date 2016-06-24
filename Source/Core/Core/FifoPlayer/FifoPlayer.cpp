@@ -11,7 +11,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/Host.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/CPU.h"
@@ -20,6 +19,7 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
@@ -28,524 +28,508 @@ bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 FifoPlayer::~FifoPlayer()
 {
-	delete m_File;
+  delete m_File;
 }
 
 bool FifoPlayer::Open(const std::string& filename)
 {
-	Close();
+  Close();
 
-	m_File = FifoDataFile::Load(filename, false);
+  m_File = FifoDataFile::Load(filename, false);
 
-	if (m_File)
-	{
-		FifoAnalyzer::Init();
-		FifoPlaybackAnalyzer::AnalyzeFrames(m_File, m_FrameInfo);
+  if (m_File)
+  {
+    FifoAnalyzer::Init();
+    FifoPlaybackAnalyzer::AnalyzeFrames(m_File, m_FrameInfo);
 
-		m_FrameRangeEnd = m_File->GetFrameCount();
-	}
+    m_FrameRangeEnd = m_File->GetFrameCount();
+  }
 
-	if (m_FileLoadedCb)
-		m_FileLoadedCb();
+  if (m_FileLoadedCb)
+    m_FileLoadedCb();
 
-	return (m_File != nullptr);
+  return (m_File != nullptr);
 }
 
 void FifoPlayer::Close()
 {
-	delete m_File;
-	m_File = nullptr;
+  delete m_File;
+  m_File = nullptr;
 
-	m_FrameRangeStart = 0;
-	m_FrameRangeEnd = 0;
+  m_FrameRangeStart = 0;
+  m_FrameRangeEnd = 0;
 }
 
 class FifoPlayer::CPUCore final : public CPUCoreBase
 {
 public:
-	explicit CPUCore(FifoPlayer* parent)
-		: m_parent(parent)
-	{
-	}
-	CPUCore(const CPUCore&) = delete;
-	~CPUCore()
-	{
-	}
-	CPUCore& operator=(const CPUCore&) = delete;
+  explicit CPUCore(FifoPlayer* parent) : m_parent(parent) {}
+  CPUCore(const CPUCore&) = delete;
+  ~CPUCore() {}
+  CPUCore& operator=(const CPUCore&) = delete;
 
-	void Init() override
-	{
-		IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
+  void Init() override
+  {
+    IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
 
-		m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
-		m_parent->LoadMemory();
-	}
+    m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
+    m_parent->LoadMemory();
+  }
 
-	void Shutdown() override
-	{
-		IsPlayingBackFifologWithBrokenEFBCopies = false;
-	}
+  void Shutdown() override { IsPlayingBackFifologWithBrokenEFBCopies = false; }
+  void ClearCache() override
+  {
+    // Nothing to clear.
+  }
 
-	void ClearCache() override
-	{
-		// Nothing to clear.
-	}
+  void SingleStep() override
+  {
+    // NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
+    //   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
+    PanicAlert("Cannot SingleStep the FIFO. Use Frame Advance instead.");
+  }
 
-	void SingleStep() override
-	{
-		// NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
-		//   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
-		PanicAlert("Cannot SingleStep the FIFO. Use Frame Advance instead.");
-	}
+  const char* GetName() override { return "FifoPlayer"; }
+  void Run() override
+  {
+    while (CPU::GetState() == CPU::CPU_RUNNING)
+    {
+      switch (m_parent->AdvanceFrame())
+      {
+      case CPU::CPU_POWERDOWN:
+        CPU::Break();
+        Host_Message(WM_USER_STOP);
+        break;
 
-	const char* GetName() override
-	{
-		return "FifoPlayer";
-	}
-
-	void Run() override
-	{
-		while (CPU::GetState() == CPU::CPU_RUNNING)
-		{
-			switch (m_parent->AdvanceFrame())
-			{
-			case CPU::CPU_POWERDOWN:
-				CPU::Break();
-				Host_Message(WM_USER_STOP);
-				break;
-
-			case CPU::CPU_STEPPING:
-				CPU::Break();
-				Host_UpdateMainFrame();
-				break;
-			}
-		}
-	}
+      case CPU::CPU_STEPPING:
+        CPU::Break();
+        Host_UpdateMainFrame();
+        break;
+      }
+    }
+  }
 
 private:
-	FifoPlayer* m_parent;
+  FifoPlayer* m_parent;
 };
 
 int FifoPlayer::AdvanceFrame()
 {
-	if (m_CurrentFrame >= m_FrameRangeEnd)
-	{
-		if (!m_Loop)
-			return CPU::CPU_POWERDOWN;
-		// If there are zero frames in the range then sleep instead of busy spinning
-		if (m_FrameRangeStart >= m_FrameRangeEnd)
-			return CPU::CPU_STEPPING;
+  if (m_CurrentFrame >= m_FrameRangeEnd)
+  {
+    if (!m_Loop)
+      return CPU::CPU_POWERDOWN;
+    // If there are zero frames in the range then sleep instead of busy spinning
+    if (m_FrameRangeStart >= m_FrameRangeEnd)
+      return CPU::CPU_STEPPING;
 
-		m_CurrentFrame = m_FrameRangeStart;
-	}
+    m_CurrentFrame = m_FrameRangeStart;
+  }
 
-	if (m_FrameWrittenCb)
-		m_FrameWrittenCb();
+  if (m_FrameWrittenCb)
+    m_FrameWrittenCb();
 
-	if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
-		WriteAllMemoryUpdates();
+  if (m_EarlyMemoryUpdates && m_CurrentFrame == m_FrameRangeStart)
+    WriteAllMemoryUpdates();
 
-	WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
+  WriteFrame(m_File->GetFrame(m_CurrentFrame), m_FrameInfo[m_CurrentFrame]);
 
-	++m_CurrentFrame;
-	return CPU::CPU_RUNNING;
+  ++m_CurrentFrame;
+  return CPU::CPU_RUNNING;
 }
 
 std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
 {
-	if (!m_File || m_File->GetFrameCount() == 0)
-		return nullptr;
+  if (!m_File || m_File->GetFrameCount() == 0)
+    return nullptr;
 
-	return std::make_unique<CPUCore>(this);
+  return std::make_unique<CPUCore>(this);
 }
 
 u32 FifoPlayer::GetFrameObjectCount()
 {
-	if (m_CurrentFrame < m_FrameInfo.size())
-	{
-		return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
-	}
+  if (m_CurrentFrame < m_FrameInfo.size())
+  {
+    return (u32)(m_FrameInfo[m_CurrentFrame].objectStarts.size());
+  }
 
-	return 0;
+  return 0;
 }
 
 void FifoPlayer::SetFrameRangeStart(u32 start)
 {
-	if (m_File)
-	{
-		u32 frameCount = m_File->GetFrameCount();
-		if (start > frameCount)
-			start = frameCount;
+  if (m_File)
+  {
+    u32 frameCount = m_File->GetFrameCount();
+    if (start > frameCount)
+      start = frameCount;
 
-		m_FrameRangeStart = start;
-		if (m_FrameRangeEnd < start)
-			m_FrameRangeEnd = start;
+    m_FrameRangeStart = start;
+    if (m_FrameRangeEnd < start)
+      m_FrameRangeEnd = start;
 
-		if (m_CurrentFrame < m_FrameRangeStart)
-			m_CurrentFrame = m_FrameRangeStart;
-	}
+    if (m_CurrentFrame < m_FrameRangeStart)
+      m_CurrentFrame = m_FrameRangeStart;
+  }
 }
 
 void FifoPlayer::SetFrameRangeEnd(u32 end)
 {
-	if (m_File)
-	{
-		u32 frameCount = m_File->GetFrameCount();
-		if (end > frameCount)
-			end = frameCount;
+  if (m_File)
+  {
+    u32 frameCount = m_File->GetFrameCount();
+    if (end > frameCount)
+      end = frameCount;
 
-		m_FrameRangeEnd = end;
-		if (m_FrameRangeStart > end)
-			m_FrameRangeStart = end;
+    m_FrameRangeEnd = end;
+    if (m_FrameRangeStart > end)
+      m_FrameRangeStart = end;
 
-		if (m_CurrentFrame >= m_FrameRangeEnd)
-			m_CurrentFrame = m_FrameRangeStart;
-	}
+    if (m_CurrentFrame >= m_FrameRangeEnd)
+      m_CurrentFrame = m_FrameRangeStart;
+  }
 }
 
 FifoPlayer& FifoPlayer::GetInstance()
 {
-	static FifoPlayer instance;
-	return instance;
+  static FifoPlayer instance;
+  return instance;
 }
 
-FifoPlayer::FifoPlayer() :
-	m_CurrentFrame(0),
-	m_FrameRangeStart(0),
-	m_FrameRangeEnd(0),
-	m_ObjectRangeStart(0),
-	m_ObjectRangeEnd(10000),
-	m_EarlyMemoryUpdates(false),
-	m_FileLoadedCb(nullptr),
-	m_FrameWrittenCb(nullptr),
-	m_File(nullptr)
+FifoPlayer::FifoPlayer()
+    : m_CurrentFrame(0), m_FrameRangeStart(0), m_FrameRangeEnd(0), m_ObjectRangeStart(0),
+      m_ObjectRangeEnd(10000), m_EarlyMemoryUpdates(false), m_FileLoadedCb(nullptr),
+      m_FrameWrittenCb(nullptr), m_File(nullptr)
 {
-	m_Loop = SConfig::GetInstance().bLoopFifoReplay;
+  m_Loop = SConfig::GetInstance().bLoopFifoReplay;
 }
 
 void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
-	// Core timing information
-	m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
-	m_ElapsedCycles = 0;
-	m_FrameFifoSize = frame.fifoDataSize;
+  // Core timing information
+  m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
+  m_ElapsedCycles = 0;
+  m_FrameFifoSize = frame.fifoDataSize;
 
-	// Determine start and end objects
-	u32 numObjects = (u32)(info.objectStarts.size());
-	u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
-	u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
+  // Determine start and end objects
+  u32 numObjects = (u32)(info.objectStarts.size());
+  u32 drawStart = std::min(numObjects, m_ObjectRangeStart);
+  u32 drawEnd = std::min(numObjects - 1, m_ObjectRangeEnd);
 
-	u32 position = 0;
-	u32 memoryUpdate = 0;
+  u32 position = 0;
+  u32 memoryUpdate = 0;
 
-	// Skip memory updates during frame if true
-	if (m_EarlyMemoryUpdates)
-	{
-		memoryUpdate = (u32)(frame.memoryUpdates.size());
-	}
+  // Skip memory updates during frame if true
+  if (m_EarlyMemoryUpdates)
+  {
+    memoryUpdate = (u32)(frame.memoryUpdates.size());
+  }
 
-	if (numObjects > 0)
-	{
-		u32 objectNum = 0;
+  if (numObjects > 0)
+  {
+    u32 objectNum = 0;
 
-		// Write fifo data skipping objects before the draw range
-		while (objectNum < drawStart)
-		{
-			WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
+    // Write fifo data skipping objects before the draw range
+    while (objectNum < drawStart)
+    {
+      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
 
-			position = info.objectEnds[objectNum];
-			++objectNum;
-		}
+      position = info.objectEnds[objectNum];
+      ++objectNum;
+    }
 
-		// Write objects in draw range
-		if (objectNum < numObjects && drawStart <= drawEnd)
-		{
-			objectNum = drawEnd;
-			WriteFramePart(position, info.objectEnds[objectNum], memoryUpdate, frame, info);
-			position = info.objectEnds[objectNum];
-			++objectNum;
-		}
+    // Write objects in draw range
+    if (objectNum < numObjects && drawStart <= drawEnd)
+    {
+      objectNum = drawEnd;
+      WriteFramePart(position, info.objectEnds[objectNum], memoryUpdate, frame, info);
+      position = info.objectEnds[objectNum];
+      ++objectNum;
+    }
 
-		// Write fifo data skipping objects after the draw range
-		while (objectNum < numObjects)
-		{
-			WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
+    // Write fifo data skipping objects after the draw range
+    while (objectNum < numObjects)
+    {
+      WriteFramePart(position, info.objectStarts[objectNum], memoryUpdate, frame, info);
 
-			position = info.objectEnds[objectNum];
-			++objectNum;
-		}
-	}
+      position = info.objectEnds[objectNum];
+      ++objectNum;
+    }
+  }
 
-	// Write data after the last object
-	WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
+  // Write data after the last object
+  WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
 
-	FlushWGP();
+  FlushWGP();
 
-	// Sleep while the GPU is active
-	while (!IsIdleSet())
-	{
-		CoreTiming::Idle();
-		CoreTiming::Advance();
-	}
+  // Sleep while the GPU is active
+  while (!IsIdleSet())
+  {
+    CoreTiming::Idle();
+    CoreTiming::Advance();
+  }
 }
 
-void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
+void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
+                                const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
-	u8* data = frame.fifoData;
+  u8* data = frame.fifoData;
 
-	while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
-	{
-		const MemoryUpdate &memUpdate = info.memoryUpdates[nextMemUpdate];
+  while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
+  {
+    const MemoryUpdate& memUpdate = info.memoryUpdates[nextMemUpdate];
 
-		if (memUpdate.fifoPosition < dataEnd)
-		{
-			if (dataStart < memUpdate.fifoPosition)
-			{
-				WriteFifo(data, dataStart, memUpdate.fifoPosition);
-				dataStart = memUpdate.fifoPosition;
-			}
+    if (memUpdate.fifoPosition < dataEnd)
+    {
+      if (dataStart < memUpdate.fifoPosition)
+      {
+        WriteFifo(data, dataStart, memUpdate.fifoPosition);
+        dataStart = memUpdate.fifoPosition;
+      }
 
-			WriteMemory(memUpdate);
+      WriteMemory(memUpdate);
 
-			++nextMemUpdate;
-		}
-		else
-		{
-			WriteFifo(data, dataStart, dataEnd);
-			dataStart = dataEnd;
-		}
-	}
+      ++nextMemUpdate;
+    }
+    else
+    {
+      WriteFifo(data, dataStart, dataEnd);
+      dataStart = dataEnd;
+    }
+  }
 
-	if (dataStart < dataEnd)
-		WriteFifo(data, dataStart, dataEnd);
+  if (dataStart < dataEnd)
+    WriteFifo(data, dataStart, dataEnd);
 }
 
 void FifoPlayer::WriteAllMemoryUpdates()
 {
-	_assert_(m_File);
+  _assert_(m_File);
 
-	for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
-	{
-		const FifoFrameInfo &frame = m_File->GetFrame(frameNum);
-		for (auto& update : frame.memoryUpdates)
-		{
-			WriteMemory(update);
-		}
-	}
+  for (u32 frameNum = 0; frameNum < m_File->GetFrameCount(); ++frameNum)
+  {
+    const FifoFrameInfo& frame = m_File->GetFrame(frameNum);
+    for (auto& update : frame.memoryUpdates)
+    {
+      WriteMemory(update);
+    }
+  }
 }
 
 void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
 {
-	u8 *mem = nullptr;
+  u8* mem = nullptr;
 
-	if (memUpdate.address & 0x10000000)
-		mem = &Memory::m_pEXRAM[memUpdate.address & Memory::EXRAM_MASK];
-	else
-		mem = &Memory::m_pRAM[memUpdate.address & Memory::RAM_MASK];
+  if (memUpdate.address & 0x10000000)
+    mem = &Memory::m_pEXRAM[memUpdate.address & Memory::EXRAM_MASK];
+  else
+    mem = &Memory::m_pRAM[memUpdate.address & Memory::RAM_MASK];
 
-	memcpy(mem, memUpdate.data, memUpdate.size);
+  memcpy(mem, memUpdate.data, memUpdate.size);
 }
 
 void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
 {
-	u32 written = start;
-	u32 lastBurstEnd = end - 1;
+  u32 written = start;
+  u32 lastBurstEnd = end - 1;
 
-	// Write up to 256 bytes at a time
-	while (written < end)
-	{
-		while (IsHighWatermarkSet())
-		{
-			CoreTiming::Idle();
-			CoreTiming::Advance();
-		}
+  // Write up to 256 bytes at a time
+  while (written < end)
+  {
+    while (IsHighWatermarkSet())
+    {
+      CoreTiming::Idle();
+      CoreTiming::Advance();
+    }
 
-		u32 burstEnd = std::min(written + 255, lastBurstEnd);
+    u32 burstEnd = std::min(written + 255, lastBurstEnd);
 
-		while (written < burstEnd)
-			GPFifo::FastWrite8(data[written++]);
+    while (written < burstEnd)
+      GPFifo::FastWrite8(data[written++]);
 
-		GPFifo::Write8(data[written++]);
+    GPFifo::Write8(data[written++]);
 
-		// Advance core timing
-		u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
-		u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
-		m_ElapsedCycles = elapsedCycles;
+    // Advance core timing
+    u32 elapsedCycles = u32(((u64)written * m_CyclesPerFrame) / m_FrameFifoSize);
+    u32 cyclesUsed = elapsedCycles - m_ElapsedCycles;
+    m_ElapsedCycles = elapsedCycles;
 
-		PowerPC::ppcState.downcount -= cyclesUsed;
-		CoreTiming::Advance();
-	}
+    PowerPC::ppcState.downcount -= cyclesUsed;
+    CoreTiming::Advance();
+  }
 }
 
 void FifoPlayer::SetupFifo()
 {
-	WriteCP(CommandProcessor::CTRL_REGISTER, 0); // disable read, BP, interrupts
-	WriteCP(CommandProcessor::CLEAR_REGISTER, 7); // clear overflow, underflow, metrics
+  WriteCP(CommandProcessor::CTRL_REGISTER, 0);   // disable read, BP, interrupts
+  WriteCP(CommandProcessor::CLEAR_REGISTER, 7);  // clear overflow, underflow, metrics
 
-	const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
+  const FifoFrameInfo& frame = m_File->GetFrame(m_CurrentFrame);
 
-	// Set fifo bounds
-	WriteCP(CommandProcessor::FIFO_BASE_LO, frame.fifoStart);
-	WriteCP(CommandProcessor::FIFO_BASE_HI, frame.fifoStart >> 16);
-	WriteCP(CommandProcessor::FIFO_END_LO, frame.fifoEnd);
-	WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
+  // Set fifo bounds
+  WriteCP(CommandProcessor::FIFO_BASE_LO, frame.fifoStart);
+  WriteCP(CommandProcessor::FIFO_BASE_HI, frame.fifoStart >> 16);
+  WriteCP(CommandProcessor::FIFO_END_LO, frame.fifoEnd);
+  WriteCP(CommandProcessor::FIFO_END_HI, frame.fifoEnd >> 16);
 
-	// Set watermarks, high at 75%, low at 0%
-	u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
-	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
-	WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
-	WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
-	WriteCP(CommandProcessor::FIFO_LO_WATERMARK_HI, 0);
+  // Set watermarks, high at 75%, low at 0%
+  u32 hi_watermark = (frame.fifoEnd - frame.fifoStart) * 3 / 4;
+  WriteCP(CommandProcessor::FIFO_HI_WATERMARK_LO, hi_watermark);
+  WriteCP(CommandProcessor::FIFO_HI_WATERMARK_HI, hi_watermark >> 16);
+  WriteCP(CommandProcessor::FIFO_LO_WATERMARK_LO, 0);
+  WriteCP(CommandProcessor::FIFO_LO_WATERMARK_HI, 0);
 
-	// Set R/W pointers to fifo start
-	WriteCP(CommandProcessor::FIFO_RW_DISTANCE_LO, 0);
-	WriteCP(CommandProcessor::FIFO_RW_DISTANCE_HI, 0);
-	WriteCP(CommandProcessor::FIFO_WRITE_POINTER_LO, frame.fifoStart);
-	WriteCP(CommandProcessor::FIFO_WRITE_POINTER_HI, frame.fifoStart >> 16);
-	WriteCP(CommandProcessor::FIFO_READ_POINTER_LO, frame.fifoStart);
-	WriteCP(CommandProcessor::FIFO_READ_POINTER_HI, frame.fifoStart >> 16);
+  // Set R/W pointers to fifo start
+  WriteCP(CommandProcessor::FIFO_RW_DISTANCE_LO, 0);
+  WriteCP(CommandProcessor::FIFO_RW_DISTANCE_HI, 0);
+  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_LO, frame.fifoStart);
+  WriteCP(CommandProcessor::FIFO_WRITE_POINTER_HI, frame.fifoStart >> 16);
+  WriteCP(CommandProcessor::FIFO_READ_POINTER_LO, frame.fifoStart);
+  WriteCP(CommandProcessor::FIFO_READ_POINTER_HI, frame.fifoStart >> 16);
 
-	// Set fifo bounds
-	WritePI(ProcessorInterface::PI_FIFO_BASE, frame.fifoStart);
-	WritePI(ProcessorInterface::PI_FIFO_END, frame.fifoEnd);
+  // Set fifo bounds
+  WritePI(ProcessorInterface::PI_FIFO_BASE, frame.fifoStart);
+  WritePI(ProcessorInterface::PI_FIFO_END, frame.fifoEnd);
 
-	// Set write pointer
-	WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
-	FlushWGP();
-	WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
+  // Set write pointer
+  WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
+  FlushWGP();
+  WritePI(ProcessorInterface::PI_FIFO_WPTR, frame.fifoStart);
 
-	WriteCP(CommandProcessor::CTRL_REGISTER, 17); // enable read & GP link
+  WriteCP(CommandProcessor::CTRL_REGISTER, 17);  // enable read & GP link
 }
 
 void FifoPlayer::LoadMemory()
 {
-	UReg_MSR newMSR;
-	newMSR.DR = 1;
-	newMSR.IR = 1;
-	MSR = newMSR.Hex;
-	PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
-	PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
-	PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
-	PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
-	PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
-	PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
+  UReg_MSR newMSR;
+  newMSR.DR = 1;
+  newMSR.IR = 1;
+  MSR = newMSR.Hex;
+  PowerPC::ppcState.spr[SPR_IBAT0U] = 0x80001fff;
+  PowerPC::ppcState.spr[SPR_IBAT0L] = 0x00000002;
+  PowerPC::ppcState.spr[SPR_DBAT0U] = 0x80001fff;
+  PowerPC::ppcState.spr[SPR_DBAT0L] = 0x00000002;
+  PowerPC::ppcState.spr[SPR_DBAT1U] = 0xc0001fff;
+  PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
 
-	SetupFifo();
+  SetupFifo();
 
-	u32 *regs = m_File->GetBPMem();
-	for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
-	{
-		if (ShouldLoadBP(i))
-			LoadBPReg(i, regs[i]);
-	}
+  u32* regs = m_File->GetBPMem();
+  for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
+  {
+    if (ShouldLoadBP(i))
+      LoadBPReg(i, regs[i]);
+  }
 
-	regs = m_File->GetCPMem();
-	LoadCPReg(0x30, regs[0x30]);
-	LoadCPReg(0x40, regs[0x40]);
-	LoadCPReg(0x50, regs[0x50]);
-	LoadCPReg(0x60, regs[0x60]);
+  regs = m_File->GetCPMem();
+  LoadCPReg(0x30, regs[0x30]);
+  LoadCPReg(0x40, regs[0x40]);
+  LoadCPReg(0x50, regs[0x50]);
+  LoadCPReg(0x60, regs[0x60]);
 
-	for (int i = 0; i < 8; ++i)
-	{
-		LoadCPReg(0x70 + i, regs[0x70 + i]);
-		LoadCPReg(0x80 + i, regs[0x80 + i]);
-		LoadCPReg(0x90 + i, regs[0x90 + i]);
-	}
+  for (int i = 0; i < 8; ++i)
+  {
+    LoadCPReg(0x70 + i, regs[0x70 + i]);
+    LoadCPReg(0x80 + i, regs[0x80 + i]);
+    LoadCPReg(0x90 + i, regs[0x90 + i]);
+  }
 
-	for (int i = 0; i < 16; ++i)
-	{
-		LoadCPReg(0xa0 + i, regs[0xa0 + i]);
-		LoadCPReg(0xb0 + i, regs[0xb0 + i]);
-	}
+  for (int i = 0; i < 16; ++i)
+  {
+    LoadCPReg(0xa0 + i, regs[0xa0 + i]);
+    LoadCPReg(0xb0 + i, regs[0xb0 + i]);
+  }
 
-	regs = m_File->GetXFMem();
-	for (int i = 0; i < FifoDataFile::XF_MEM_SIZE; i += 16)
-		LoadXFMem16(i, &regs[i]);
+  regs = m_File->GetXFMem();
+  for (int i = 0; i < FifoDataFile::XF_MEM_SIZE; i += 16)
+    LoadXFMem16(i, &regs[i]);
 
-	regs = m_File->GetXFRegs();
-	for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
-		LoadXFReg(i, regs[i]);
+  regs = m_File->GetXFRegs();
+  for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
+    LoadXFReg(i, regs[i]);
 
-	FlushWGP();
+  FlushWGP();
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
 {
-	PowerPC::Write_U16(value, 0xCC000000 | address);
+  PowerPC::Write_U16(value, 0xCC000000 | address);
 }
 
 void FifoPlayer::WritePI(u32 address, u32 value)
 {
-	PowerPC::Write_U32(value, 0xCC003000 | address);
+  PowerPC::Write_U32(value, 0xCC003000 | address);
 }
 
 void FifoPlayer::FlushWGP()
 {
-	// Send 31 0s through the WGP
-	for (int i = 0; i < 7; ++i)
-		GPFifo::Write32(0);
-	GPFifo::Write16(0);
-	GPFifo::Write8(0);
+  // Send 31 0s through the WGP
+  for (int i = 0; i < 7; ++i)
+    GPFifo::Write32(0);
+  GPFifo::Write16(0);
+  GPFifo::Write8(0);
 
-	GPFifo::ResetGatherPipe();
+  GPFifo::ResetGatherPipe();
 }
 
 void FifoPlayer::LoadBPReg(u8 reg, u32 value)
 {
-	GPFifo::Write8(0x61); // load BP reg
+  GPFifo::Write8(0x61);  // load BP reg
 
-	u32 cmd = (reg << 24) & 0xff000000;
-	cmd |= (value & 0x00ffffff);
-	GPFifo::Write32(cmd);
+  u32 cmd = (reg << 24) & 0xff000000;
+  cmd |= (value & 0x00ffffff);
+  GPFifo::Write32(cmd);
 }
 
 void FifoPlayer::LoadCPReg(u8 reg, u32 value)
 {
-	GPFifo::Write8(0x08); // load CP reg
-	GPFifo::Write8(reg);
-	GPFifo::Write32(value);
+  GPFifo::Write8(0x08);  // load CP reg
+  GPFifo::Write8(reg);
+  GPFifo::Write32(value);
 }
 
 void FifoPlayer::LoadXFReg(u16 reg, u32 value)
 {
-	GPFifo::Write8(0x10); // load XF reg
-	GPFifo::Write32((reg & 0x0fff) | 0x1000); // load 4 bytes into reg
-	GPFifo::Write32(value);
+  GPFifo::Write8(0x10);                      // load XF reg
+  GPFifo::Write32((reg & 0x0fff) | 0x1000);  // load 4 bytes into reg
+  GPFifo::Write32(value);
 }
 
 void FifoPlayer::LoadXFMem16(u16 address, u32* data)
 {
-	// Loads 16 * 4 bytes in xf memory starting at address
-	GPFifo::Write8(0x10); // load XF reg
-	GPFifo::Write32(0x000f0000 | (address & 0xffff)); // load 16 * 4 bytes into address
-	for (int i = 0; i < 16; ++i)
-		GPFifo::Write32(data[i]);
+  // Loads 16 * 4 bytes in xf memory starting at address
+  GPFifo::Write8(0x10);                              // load XF reg
+  GPFifo::Write32(0x000f0000 | (address & 0xffff));  // load 16 * 4 bytes into address
+  for (int i = 0; i < 16; ++i)
+    GPFifo::Write32(data[i]);
 }
 
 bool FifoPlayer::ShouldLoadBP(u8 address)
 {
-	switch (address)
-	{
-	case BPMEM_SETDRAWDONE:
-	case BPMEM_PE_TOKEN_ID:
-	case BPMEM_PE_TOKEN_INT_ID:
-	case BPMEM_TRIGGER_EFB_COPY:
-	case BPMEM_LOADTLUT1:
-	case BPMEM_PERF1:
-		return false;
-	default:
-		return true;
-	}
+  switch (address)
+  {
+  case BPMEM_SETDRAWDONE:
+  case BPMEM_PE_TOKEN_ID:
+  case BPMEM_PE_TOKEN_INT_ID:
+  case BPMEM_TRIGGER_EFB_COPY:
+  case BPMEM_LOADTLUT1:
+  case BPMEM_PERF1:
+    return false;
+  default:
+    return true;
+  }
 }
 
 bool FifoPlayer::IsIdleSet()
 {
-	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-	return status.CommandIdle;
+  CommandProcessor::UCPStatusReg status =
+      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+  return status.CommandIdle;
 }
 
 bool FifoPlayer::IsHighWatermarkSet()
 {
-	CommandProcessor::UCPStatusReg status = PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
-	return status.OverflowHiWatermark;
+  CommandProcessor::UCPStatusReg status =
+      PowerPC::Read_U16(0xCC000000 | CommandProcessor::STATUS_REGISTER);
+  return status.OverflowHiWatermark;
 }

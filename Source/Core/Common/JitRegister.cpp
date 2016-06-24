@@ -37,71 +37,66 @@ static File::IOFile s_perf_map_file;
 
 namespace JitRegister
 {
-
 void Init(const std::string& perf_dir)
 {
 #if defined USE_OPROFILE && USE_OPROFILE
-	s_agent = op_open_agent();
+  s_agent = op_open_agent();
 #endif
 
-	if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
-	{
-		std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
-		std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
-		s_perf_map_file.Open(filename, "w");
-		// Disable buffering in order to avoid missing some mappings
-		// if the event of a crash:
-		std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
-	}
+  if (!perf_dir.empty() || getenv("PERF_BUILDID_DIR"))
+  {
+    std::string dir = perf_dir.empty() ? "/tmp" : perf_dir;
+    std::string filename = StringFromFormat("%s/perf-%d.map", dir.data(), getpid());
+    s_perf_map_file.Open(filename, "w");
+    // Disable buffering in order to avoid missing some mappings
+    // if the event of a crash:
+    std::setvbuf(s_perf_map_file.GetHandle(), nullptr, _IONBF, 0);
+  }
 }
 
 void Shutdown()
 {
 #if defined USE_OPROFILE && USE_OPROFILE
-	op_close_agent(s_agent);
-	s_agent = nullptr;
+  op_close_agent(s_agent);
+  s_agent = nullptr;
 #endif
 
 #ifdef USE_VTUNE
-	iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
+  iJIT_NotifyEvent(iJVM_EVENT_TYPE_SHUTDOWN, nullptr);
 #endif
 
-	if (s_perf_map_file.IsOpen())
-		s_perf_map_file.Close();
+  if (s_perf_map_file.IsOpen())
+    s_perf_map_file.Close();
 }
 
-void RegisterV(const void* base_address, u32 code_size,
-	const char* format, va_list args)
+void RegisterV(const void* base_address, u32 code_size, const char* format, va_list args)
 {
 #if !(defined USE_OPROFILE && USE_OPROFILE) && !defined(USE_VTUNE)
-	if (!s_perf_map_file.IsOpen())
-		return;
+  if (!s_perf_map_file.IsOpen())
+    return;
 #endif
 
-	std::string symbol_name = StringFromFormatV(format, args);
+  std::string symbol_name = StringFromFormatV(format, args);
 
 #if defined USE_OPROFILE && USE_OPROFILE
-	op_write_native_code(s_agent, symbol_name.data(), (u64)base_address,
-		base_address, code_size);
+  op_write_native_code(s_agent, symbol_name.data(), (u64)base_address, base_address, code_size);
 #endif
 
 #ifdef USE_VTUNE
-	iJIT_Method_Load jmethod = {0};
-	jmethod.method_id = iJIT_GetNewMethodID();
-	jmethod.method_load_address = const_cast<void*>(base_address);
-	jmethod.method_size = code_size;
-	jmethod.method_name = const_cast<char*>(symbol_name.data());
-	iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
+  iJIT_Method_Load jmethod = {0};
+  jmethod.method_id = iJIT_GetNewMethodID();
+  jmethod.method_load_address = const_cast<void*>(base_address);
+  jmethod.method_size = code_size;
+  jmethod.method_name = const_cast<char*>(symbol_name.data());
+  iJIT_NotifyEvent(iJVM_EVENT_TYPE_METHOD_LOAD_FINISHED, (void*)&jmethod);
 #endif
 
-	// Linux perf /tmp/perf-$pid.map:
-	if (s_perf_map_file.IsOpen())
-	{
-		std::string entry = StringFromFormat(
-			"%" PRIx64 " %x %s\n",
-			(u64)base_address, code_size, symbol_name.data());
-		s_perf_map_file.WriteBytes(entry.data(), entry.size());
-	}
+  // Linux perf /tmp/perf-$pid.map:
+  if (s_perf_map_file.IsOpen())
+  {
+    std::string entry =
+        StringFromFormat("%" PRIx64 " %x %s\n", (u64)base_address, code_size, symbol_name.data());
+    s_perf_map_file.WriteBytes(entry.data(), entry.size());
+  }
 }
-
 }

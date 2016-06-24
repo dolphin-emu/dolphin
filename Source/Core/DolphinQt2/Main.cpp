@@ -14,27 +14,26 @@
 
 int main(int argc, char* argv[])
 {
-	QApplication app(argc, argv);
+  QApplication app(argc, argv);
 
-	UICommon::SetUserDirectory("");
-	UICommon::CreateDirectories();
-	UICommon::Init();
-	Resources::Init();
+  UICommon::SetUserDirectory("");
+  UICommon::CreateDirectories();
+  UICommon::Init();
+  Resources::Init();
 
-	// Whenever the event loop is about to go to sleep, dispatch the jobs
-	// queued in the Core first.
-	QObject::connect(QAbstractEventDispatcher::instance(),
-	                 &QAbstractEventDispatcher::aboutToBlock,
-	                 &app, &Core::HostDispatchJobs);
+  // Whenever the event loop is about to go to sleep, dispatch the jobs
+  // queued in the Core first.
+  QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
+                   &app, &Core::HostDispatchJobs);
 
-	MainWindow win;
-	win.show();
-	int retval = app.exec();
+  MainWindow win;
+  win.show();
+  int retval = app.exec();
 
-	BootManager::Stop();
-	Core::Shutdown();
-	UICommon::Shutdown();
-	Host::GetInstance()->deleteLater();
+  BootManager::Stop();
+  Core::Shutdown();
+  UICommon::Shutdown();
+  Host::GetInstance()->deleteLater();
 
-	return retval;
+  return retval;
 }

@@ -8,5 +8,5 @@
 
 namespace TextureEncoder
 {
-	void Encode(u8 *dest_ptr);
+void Encode(u8* dest_ptr);
 }

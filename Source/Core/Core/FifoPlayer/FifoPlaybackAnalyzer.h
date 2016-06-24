@@ -12,12 +12,12 @@
 
 struct AnalyzedFrameInfo
 {
-	std::vector<u32> objectStarts;
-	std::vector<u32> objectEnds;
-	std::vector<MemoryUpdate> memoryUpdates;
+  std::vector<u32> objectStarts;
+  std::vector<u32> objectEnds;
+  std::vector<MemoryUpdate> memoryUpdates;
 };
 
 namespace FifoPlaybackAnalyzer
 {
-	void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
+void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
 };

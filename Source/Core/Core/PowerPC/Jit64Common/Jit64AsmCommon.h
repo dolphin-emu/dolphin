@@ -4,19 +4,19 @@
 
 #pragma once
 
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 class CommonAsmRoutines : public CommonAsmRoutinesBase, public EmuCodeBlock
 {
 protected:
-	void GenQuantizedLoads();
-	void GenQuantizedStores();
-	void GenQuantizedSingleStores();
+  void GenQuantizedLoads();
+  void GenQuantizedStores();
+  void GenQuantizedSingleStores();
 
 public:
-	void GenFifoWrite(int size);
-	void GenFrsqrte();
-	void GenFres();
-	void GenMfcr();
+  void GenFifoWrite(int size);
+  void GenFrsqrte();
+  void GenFres();
+  void GenMfcr();
 };

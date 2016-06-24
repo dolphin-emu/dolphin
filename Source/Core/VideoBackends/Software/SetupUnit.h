@@ -9,25 +9,25 @@
 
 class SetupUnit
 {
-	u8 m_PrimType;
-	int m_VertexCounter;
+  u8 m_PrimType;
+  int m_VertexCounter;
 
-	OutputVertexData m_Vertices[3];
-	OutputVertexData *m_VertPointer[3];
-	OutputVertexData *m_VertWritePointer;
+  OutputVertexData m_Vertices[3];
+  OutputVertexData* m_VertPointer[3];
+  OutputVertexData* m_VertWritePointer;
 
-	void SetupQuad();
-	void SetupTriangle();
-	void SetupTriStrip();
-	void SetupTriFan();
-	void SetupLine();
-	void SetupLineStrip();
-	void SetupPoint();
+  void SetupQuad();
+  void SetupTriangle();
+  void SetupTriStrip();
+  void SetupTriFan();
+  void SetupLine();
+  void SetupLineStrip();
+  void SetupPoint();
 
 public:
-	void Init(u8 primitiveType);
+  void Init(u8 primitiveType);
 
-	OutputVertexData* GetVertex();
+  OutputVertexData* GetVertex();
 
-	void SetupVertex();
+  void SetupVertex();
 };

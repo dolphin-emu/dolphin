@@ -6,12 +6,15 @@
 
 #include "Common/CommonTypes.h"
 
-namespace MMIO { class Mapping; }
+namespace MMIO
+{
+class Mapping;
+}
 class PointerWrap;
 
 namespace MemoryInterface
 {
-void DoState(PointerWrap &p);
+void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
-} // end of namespace MemoryInterface
+}  // end of namespace MemoryInterface

@@ -25,30 +25,29 @@
 
 namespace Common
 {
-
 inline void AtomicAdd(volatile u32& target, u32 value)
 {
-	__sync_add_and_fetch(&target, value);
+  __sync_add_and_fetch(&target, value);
 }
 
 inline void AtomicAnd(volatile u32& target, u32 value)
 {
-	__sync_and_and_fetch(&target, value);
+  __sync_and_and_fetch(&target, value);
 }
 
 inline void AtomicDecrement(volatile u32& target)
 {
-	__sync_add_and_fetch(&target, -1);
+  __sync_add_and_fetch(&target, -1);
 }
 
 inline void AtomicIncrement(volatile u32& target)
 {
-	__sync_add_and_fetch(&target, 1);
+  __sync_add_and_fetch(&target, 1);
 }
 
 inline void AtomicOr(volatile u32& target, u32 value)
 {
-	__sync_or_and_fetch(&target, value);
+  __sync_or_and_fetch(&target, value);
 }
 
 #ifndef __ATOMIC_RELAXED
@@ -58,31 +57,30 @@ inline void AtomicOr(volatile u32& target, u32 value)
 template <typename T>
 inline T AtomicLoad(volatile T& src)
 {
-	return __atomic_load_n(&src, __ATOMIC_RELAXED);
+  return __atomic_load_n(&src, __ATOMIC_RELAXED);
 }
 
 template <typename T>
 inline T AtomicLoadAcquire(volatile T& src)
 {
-	return __atomic_load_n(&src, __ATOMIC_ACQUIRE);
+  return __atomic_load_n(&src, __ATOMIC_ACQUIRE);
 }
 
 template <typename T, typename U>
 inline void AtomicStore(volatile T& dest, U value)
 {
-	__atomic_store_n(&dest, value, __ATOMIC_RELAXED);
+  __atomic_store_n(&dest, value, __ATOMIC_RELAXED);
 }
 
 template <typename T, typename U>
 inline void AtomicStoreRelease(volatile T& dest, U value)
 {
-	__atomic_store_n(&dest, value, __ATOMIC_RELEASE);
+  __atomic_store_n(&dest, value, __ATOMIC_RELEASE);
 }
 
 template <typename T, typename U>
 inline T* AtomicExchangeAcquire(T* volatile& loc, U newval)
 {
-	return __atomic_exchange_n(&loc, newval, __ATOMIC_ACQ_REL);
+  return __atomic_exchange_n(&loc, newval, __ATOMIC_ACQ_REL);
 }
-
 }

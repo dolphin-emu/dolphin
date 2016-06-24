@@ -4,18 +4,18 @@
 
 #pragma once
 
-namespace Common {
-	class Event;
+namespace Common
+{
+class Event;
 }
 
 namespace CPU
 {
-
 enum State
 {
-	CPU_RUNNING   = 0,
-	CPU_STEPPING  = 2,
-	CPU_POWERDOWN = 3
+  CPU_RUNNING = 0,
+  CPU_STEPPING = 2,
+  CPU_POWERDOWN = 3
 };
 
 // Init
@@ -69,5 +69,4 @@ const volatile State* GetStatePtr();
 // "control_adjacent" causes PauseAndLock to behave like EnableStepping by modifying the
 //   state of the Audio and FIFO subsystems as well.
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true, bool control_adjacent = false);
-
 }

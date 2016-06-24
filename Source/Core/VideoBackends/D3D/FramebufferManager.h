@@ -46,67 +46,69 @@ namespace DX11
 
 struct XFBSource : public XFBSourceBase
 {
-	XFBSource(D3DTexture2D *_tex, int slices) : tex(_tex), m_slices(slices) {}
-	~XFBSource() { tex->Release(); }
+  XFBSource(D3DTexture2D* _tex, int slices) : tex(_tex), m_slices(slices) {}
+  ~XFBSource() { tex->Release(); }
+  void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
+  void CopyEFB(float Gamma) override;
 
-	void DecodeToTexture(u32 xfbAddr, u32 fbWidth, u32 fbHeight) override;
-	void CopyEFB(float Gamma) override;
-
-	D3DTexture2D* const tex;
-	const int m_slices;
+  D3DTexture2D* const tex;
+  const int m_slices;
 };
 
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-	FramebufferManager();
-	~FramebufferManager();
+  FramebufferManager();
+  ~FramebufferManager();
 
-	static D3DTexture2D* &GetEFBColorTexture();
-	static D3DTexture2D* &GetEFBColorReadTexture();
-	static ID3D11Texture2D* &GetEFBColorStagingBuffer();
+  static D3DTexture2D*& GetEFBColorTexture();
+  static D3DTexture2D*& GetEFBColorReadTexture();
+  static ID3D11Texture2D*& GetEFBColorStagingBuffer();
 
-	static D3DTexture2D* &GetEFBDepthTexture();
-	static D3DTexture2D* &GetEFBDepthReadTexture();
-	static ID3D11Texture2D* &GetEFBDepthStagingBuffer();
+  static D3DTexture2D*& GetEFBDepthTexture();
+  static D3DTexture2D*& GetEFBDepthReadTexture();
+  static ID3D11Texture2D*& GetEFBDepthStagingBuffer();
 
-	static D3DTexture2D* &GetResolvedEFBColorTexture();
-	static D3DTexture2D* &GetResolvedEFBDepthTexture();
+  static D3DTexture2D*& GetResolvedEFBColorTexture();
+  static D3DTexture2D*& GetResolvedEFBDepthTexture();
 
-	static D3DTexture2D* &GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
-	static void SwapReinterpretTexture()
-	{
-		D3DTexture2D* swaptex = GetEFBColorTempTexture();
-		m_efb.color_temp_tex = GetEFBColorTexture();
-		m_efb.color_tex = swaptex;
-	}
+  static D3DTexture2D*& GetEFBColorTempTexture() { return m_efb.color_temp_tex; }
+  static void SwapReinterpretTexture()
+  {
+    D3DTexture2D* swaptex = GetEFBColorTempTexture();
+    m_efb.color_temp_tex = GetEFBColorTexture();
+    m_efb.color_tex = swaptex;
+  }
 
 private:
-	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override;
-	void GetTargetSize(unsigned int *width, unsigned int *height) override;
+  std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
+                                                 unsigned int target_height,
+                                                 unsigned int layers) override;
+  void GetTargetSize(unsigned int* width, unsigned int* height) override;
 
-	void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,float Gamma) override;
+  void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
+                     float Gamma) override;
 
-	static struct Efb
-	{
-		D3DTexture2D* color_tex;
-		ID3D11Texture2D* color_staging_buf;
-		D3DTexture2D* color_read_texture;
+  static struct Efb
+  {
+    D3DTexture2D* color_tex;
+    ID3D11Texture2D* color_staging_buf;
+    D3DTexture2D* color_read_texture;
 
-		D3DTexture2D* depth_tex;
-		ID3D11Texture2D* depth_staging_buf;
-		D3DTexture2D* depth_read_texture;
+    D3DTexture2D* depth_tex;
+    ID3D11Texture2D* depth_staging_buf;
+    D3DTexture2D* depth_read_texture;
 
-		D3DTexture2D* color_temp_tex;
+    D3DTexture2D* color_temp_tex;
 
-		D3DTexture2D* resolved_color_tex;
-		D3DTexture2D* resolved_depth_tex;
+    D3DTexture2D* resolved_color_tex;
+    D3DTexture2D* resolved_depth_tex;
 
-		int slices;
-	} m_efb;
+    int slices;
+  } m_efb;
 
-	static unsigned int m_target_width;
-	static unsigned int m_target_height;
+  static unsigned int m_target_width;
+  static unsigned int m_target_height;
 };
 
 }  // namespace DX11

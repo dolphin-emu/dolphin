@@ -18,23 +18,23 @@
 class GCAdapterConfigDiag : public wxDialog
 {
 public:
-	GCAdapterConfigDiag(wxWindow* const parent, const wxString& name, const int tab_num = 0);
-	~GCAdapterConfigDiag();
+  GCAdapterConfigDiag(wxWindow* const parent, const wxString& name, const int tab_num = 0);
+  ~GCAdapterConfigDiag();
 
-	void ScheduleAdapterUpdate();
-	void UpdateAdapter(wxCommandEvent& ev);
+  void ScheduleAdapterUpdate();
+  void UpdateAdapter(wxCommandEvent& ev);
 
 private:
-	wxStaticText* m_adapter_status;
-	int m_pad_id;
+  wxStaticText* m_adapter_status;
+  int m_pad_id;
 
-	void OnAdapterRumble(wxCommandEvent& event)
-	{
-		SConfig::GetInstance().m_AdapterRumble[m_pad_id] = event.IsChecked();
-	}
+  void OnAdapterRumble(wxCommandEvent& event)
+  {
+    SConfig::GetInstance().m_AdapterRumble[m_pad_id] = event.IsChecked();
+  }
 
-	void OnAdapterKonga(wxCommandEvent& event)
-	{
-		SConfig::GetInstance().m_AdapterKonga[m_pad_id] = event.IsChecked();
-	}
+  void OnAdapterKonga(wxCommandEvent& event)
+  {
+    SConfig::GetInstance().m_AdapterKonga[m_pad_id] = event.IsChecked();
+  }
 };

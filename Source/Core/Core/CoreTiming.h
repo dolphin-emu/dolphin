@@ -24,7 +24,6 @@ class PointerWrap;
 
 namespace CoreTiming
 {
-
 // These really shouldn't be global, but jit64 accesses them directly
 extern s64 g_globalTimer;
 extern u64 g_fakeTBStartValue;
@@ -37,13 +36,15 @@ void Shutdown();
 
 typedef void (*TimedCallback)(u64 userdata, s64 cyclesLate);
 
-// This should only be called from the CPU thread, if you are calling it any other thread, you are doing something evil
+// This should only be called from the CPU thread, if you are calling it any other thread, you are
+// doing something evil
 u64 GetTicks();
 u64 GetIdleTicks();
 
-void DoState(PointerWrap &p);
+void DoState(PointerWrap& p);
 
-// Returns the event_type identifier. if name is not unique, an existing event_type will be discarded.
+// Returns the event_type identifier. if name is not unique, an existing event_type will be
+// discarded.
 int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
@@ -82,6 +83,4 @@ void SetFakeTBStartTicks(u64 val);
 
 void ForceExceptionCheck(s64 cycles);
 
-
-
-} // end of namespace
+}  // end of namespace

@@ -23,20 +23,35 @@
 
 namespace DX12
 {
-
-#define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = nullptr; }
-#define CHECK(cond, Message, ...) if (!(cond)) { __debugbreak(); PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
+#define SAFE_RELEASE(x)                                                                            \
+  {                                                                                                \
+    if (x)                                                                                         \
+      (x)->Release();                                                                              \
+    (x) = nullptr;                                                                                 \
+  }
+#define CHECK(cond, Message, ...)                                                                  \
+  if (!(cond))                                                                                     \
+  {                                                                                                \
+    __debugbreak();                                                                                \
+    PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__,              \
+               __VA_ARGS__);                                                                       \
+  }
 
 // DEBUGCHECK is for high-frequency functions that we only want to check on debug builds.
 #if defined(_DEBUG) || defined(DEBUGFAST)
-#define DEBUGCHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
+#define DEBUGCHECK(cond, Message, ...)                                                             \
+  if (!(cond))                                                                                     \
+  {                                                                                                \
+    PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__,              \
+               __VA_ARGS__);                                                                       \
+  }
 #else
 #define DEBUGCHECK(cond, Message, ...)
 #endif
 
 inline void CheckHR(HRESULT hr)
 {
-	CHECK(SUCCEEDED(hr), "Failed HRESULT.");
+  CHECK(SUCCEEDED(hr), "Failed HRESULT.");
 }
 
 class D3DCommandListManager;
@@ -45,19 +60,18 @@ class D3DTexture2D;
 
 enum GRAPHICS_ROOT_PARAMETER : u32
 {
-	DESCRIPTOR_TABLE_PS_SRV,
-	DESCRIPTOR_TABLE_PS_SAMPLER,
-	DESCRIPTOR_TABLE_GS_CBV,
-	DESCRIPTOR_TABLE_VS_CBV,
-	DESCRIPTOR_TABLE_PS_CBVONE,
-	DESCRIPTOR_TABLE_PS_CBVTWO,
-	DESCRIPTOR_TABLE_PS_UAV,
-	NUM_GRAPHICS_ROOT_PARAMETERS
+  DESCRIPTOR_TABLE_PS_SRV,
+  DESCRIPTOR_TABLE_PS_SAMPLER,
+  DESCRIPTOR_TABLE_GS_CBV,
+  DESCRIPTOR_TABLE_VS_CBV,
+  DESCRIPTOR_TABLE_PS_CBVONE,
+  DESCRIPTOR_TABLE_PS_CBVTWO,
+  DESCRIPTOR_TABLE_PS_UAV,
+  NUM_GRAPHICS_ROOT_PARAMETERS
 };
 
 namespace D3D
 {
-
 HRESULT LoadDXGI();
 HRESULT LoadD3D();
 HRESULT LoadD3DCompiler();
@@ -84,7 +98,6 @@ extern std::unique_ptr<D3DDescriptorHeapManager> sampler_descriptor_heap_mgr;
 extern std::unique_ptr<D3DDescriptorHeapManager> dsv_descriptor_heap_mgr;
 extern std::unique_ptr<D3DDescriptorHeapManager> rtv_descriptor_heap_mgr;
 extern std::array<ID3D12DescriptorHeap*, 2> gpu_descriptor_heaps;
-
 
 extern D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu;
 extern D3D12_CPU_DESCRIPTOR_HANDLE null_srv_cpu_shadow;
@@ -118,26 +131,27 @@ HRESULT GetFullscreenState(bool* fullscreen_state);
 // e.g. when listing up all resources who have unreleased references.
 static void SetDebugObjectName12(ID3D12Resource* resource, LPCSTR name)
 {
-	HRESULT hr = resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
-	if (FAILED(hr))
-	{
-		throw std::exception("Failure setting name for D3D12 object");
-	}
+  HRESULT hr =
+      resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+  if (FAILED(hr))
+  {
+    throw std::exception("Failure setting name for D3D12 object");
+  }
 }
 
 static std::string GetDebugObjectName12(ID3D12Resource* resource)
 {
-	std::string name;
+  std::string name;
 
-	if (resource)
-	{
-		UINT size = 0;
-		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr); //get required size
-		name.resize(size);
-		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
-	}
+  if (resource)
+  {
+    UINT size = 0;
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
+    name.resize(size);
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+  }
 
-	return name;
+  return name;
 }
 
 }  // namespace D3D
@@ -148,7 +162,9 @@ extern CREATEDXGIFACTORY create_dxgi_factory;
 using D3D12CREATEDEVICE = HRESULT(WINAPI*)(IUnknown*, D3D_FEATURE_LEVEL, REFIID, void**);
 extern D3D12CREATEDEVICE d3d12_create_device;
 
-using D3D12SERIALIZEROOTSIGNATURE = HRESULT(WINAPI*)(const D3D12_ROOT_SIGNATURE_DESC* pRootSignature, D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob** ppBlob, ID3DBlob** ppErrorBlob);
+using D3D12SERIALIZEROOTSIGNATURE =
+    HRESULT(WINAPI*)(const D3D12_ROOT_SIGNATURE_DESC* pRootSignature,
+                     D3D_ROOT_SIGNATURE_VERSION Version, ID3DBlob** ppBlob, ID3DBlob** ppErrorBlob);
 using D3D12GETDEBUGINTERFACE = HRESULT(WINAPI*)(REFIID riid, void** ppvDebug);
 
 using D3DREFLECT = HRESULT(WINAPI*)(LPCVOID, SIZE_T, REFIID, void**);

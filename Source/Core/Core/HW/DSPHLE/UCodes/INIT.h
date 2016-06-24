@@ -9,10 +9,10 @@
 class INITUCode : public UCodeInterface
 {
 public:
-	INITUCode(DSPHLE *dsphle, u32 crc);
-	virtual ~INITUCode();
+  INITUCode(DSPHLE* dsphle, u32 crc);
+  virtual ~INITUCode();
 
-	void HandleMail(u32 mail) override;
-	void Update() override;
-	void Init();
+  void HandleMail(u32 mail) override;
+  void Update() override;
+  void Init();
 };

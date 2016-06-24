@@ -7,25 +7,26 @@
 
 namespace WiimoteReal
 {
-
 WiimoteScanner::WiimoteScanner()
-{}
+{
+}
 
 WiimoteScanner::~WiimoteScanner()
-{}
+{
+}
 
 void WiimoteScanner::Update()
-{}
-
-void WiimoteScanner::FindWiimotes(std::vector<Wiimote*> & found_wiimotes, Wiimote* & found_board)
 {
-	found_wiimotes.clear();
-	found_board = nullptr;
+}
+
+void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+{
+  found_wiimotes.clear();
+  found_board = nullptr;
 }
 
 bool WiimoteScanner::IsReady() const
 {
-	return false;
+  return false;
 }
-
 };

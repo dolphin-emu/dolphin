@@ -13,7 +13,6 @@ class wxToolBar;
 
 namespace WxUtils
 {
-
 // Launch a file according to its mime type
 void Launch(const std::string& filename);
 
@@ -30,7 +29,8 @@ wxBitmap LoadResourceBitmap(const std::string& name, const wxSize& padded_size =
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original);
 
 // Helper function to add a button to a toolbar
-void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, const wxBitmap& bitmap, const wxString& shortHelp);
+void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, const wxBitmap& bitmap,
+                      const wxString& shortHelp);
 
 }  // namespace
 

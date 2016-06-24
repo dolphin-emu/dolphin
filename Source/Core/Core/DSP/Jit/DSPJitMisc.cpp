@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPIntUtil.h"
+#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
 
 using namespace Gen;
@@ -14,12 +14,12 @@ using namespace Gen;
 // Move value from register $S to register $D.
 void DSPEmitter::mrr(const UDSPInstruction opc)
 {
-	u8 sreg = opc & 0x1f;
-	u8 dreg = (opc >> 5) & 0x1f;
+  u8 sreg = opc & 0x1f;
+  u8 dreg = (opc >> 5) & 0x1f;
 
-	dsp_op_read_reg(sreg, EDX);
-	dsp_op_write_reg(dreg, EDX);
-	dsp_conditional_extend_accum(dreg);
+  dsp_op_read_reg(sreg, EDX);
+  dsp_op_write_reg(dreg, EDX);
+  dsp_conditional_extend_accum(dreg);
 }
 
 // LRI $D, #I
@@ -33,10 +33,10 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 // S16 mode.
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
-	u8 reg  = opc & DSP_REG_MASK;
-	u16 imm = dsp_imem_read(compilePC+1);
-	dsp_op_write_reg_imm(reg, imm);
-	dsp_conditional_extend_accum_imm(reg, imm);
+  u8 reg = opc & DSP_REG_MASK;
+  u16 imm = dsp_imem_read(compilePC + 1);
+  dsp_op_write_reg_imm(reg, imm);
+  dsp_conditional_extend_accum_imm(reg, imm);
 }
 
 // LRIS $(0x18+D), #I
@@ -44,10 +44,10 @@ void DSPEmitter::lri(const UDSPInstruction opc)
 // Load immediate value I (8-bit sign extended) to accumulator register.
 void DSPEmitter::lris(const UDSPInstruction opc)
 {
-	u8 reg  = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
-	u16 imm = (s8)opc;
-	dsp_op_write_reg_imm(reg, imm);
-	dsp_conditional_extend_accum_imm(reg, imm);
+  u8 reg = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
+  u16 imm = (s8)opc;
+  dsp_op_write_reg_imm(reg, imm);
+  dsp_conditional_extend_accum_imm(reg, imm);
 }
 
 //----
@@ -68,9 +68,8 @@ void DSPEmitter::nx(const UDSPInstruction opc)
 // Decrement address register $arD.
 void DSPEmitter::dar(const UDSPInstruction opc)
 {
-	//	g_dsp.r[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
-	decrement_addr_reg(opc & 0x3);
-
+  //	g_dsp.r[opc & 0x3] = dsp_decrement_addr_reg(opc & 0x3);
+  decrement_addr_reg(opc & 0x3);
 }
 
 // IAR $arD
@@ -78,8 +77,8 @@ void DSPEmitter::dar(const UDSPInstruction opc)
 // Increment address register $arD.
 void DSPEmitter::iar(const UDSPInstruction opc)
 {
-	//	g_dsp.r[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
-	increment_addr_reg(opc & 0x3);
+  //	g_dsp.r[opc & 0x3] = dsp_increment_addr_reg(opc & 0x3);
+  increment_addr_reg(opc & 0x3);
 }
 
 // SUBARN $arD
@@ -88,9 +87,9 @@ void DSPEmitter::iar(const UDSPInstruction opc)
 // used only in IPL-NTSC ucode
 void DSPEmitter::subarn(const UDSPInstruction opc)
 {
-	//	u8 dreg = opc & 0x3;
-	//	g_dsp.r[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
-	decrease_addr_reg(opc & 0x3);
+  //	u8 dreg = opc & 0x3;
+  //	g_dsp.r[dreg] = dsp_decrease_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]);
+  decrease_addr_reg(opc & 0x3);
 }
 
 // ADDARN $arD, $ixS
@@ -99,39 +98,36 @@ void DSPEmitter::subarn(const UDSPInstruction opc)
 // It is critical for the Zelda ucode that this one wraps correctly.
 void DSPEmitter::addarn(const UDSPInstruction opc)
 {
-	//	u8 dreg = opc & 0x3;
-	//	u8 sreg = (opc >> 2) & 0x3;
-	//	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
+  //	u8 dreg = opc & 0x3;
+  //	u8 sreg = (opc >> 2) & 0x3;
+  //	g_dsp.r[dreg] = dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]);
 
-	// From looking around it is always called with the matching index register
-	increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
+  // From looking around it is always called with the matching index register
+  increase_addr_reg(opc & 0x3, (opc >> 2) & 0x3);
 }
 
 //----
 
-
 void DSPEmitter::setCompileSR(u16 bit)
 {
+  //	g_dsp.r[DSP_REG_SR] |= bit
+  OpArg sr_reg;
+  gpr.GetReg(DSP_REG_SR, sr_reg);
+  OR(16, sr_reg, Imm16(bit));
+  gpr.PutReg(DSP_REG_SR);
 
-	//	g_dsp.r[DSP_REG_SR] |= bit
-	OpArg sr_reg;
-	gpr.GetReg(DSP_REG_SR,sr_reg);
-	OR(16, sr_reg, Imm16(bit));
-	gpr.PutReg(DSP_REG_SR);
-
-	compileSR |= bit;
+  compileSR |= bit;
 }
 
 void DSPEmitter::clrCompileSR(u16 bit)
 {
+  //	g_dsp.r[DSP_REG_SR] &= bit
+  OpArg sr_reg;
+  gpr.GetReg(DSP_REG_SR, sr_reg);
+  AND(16, sr_reg, Imm16(~bit));
+  gpr.PutReg(DSP_REG_SR);
 
-	//	g_dsp.r[DSP_REG_SR] &= bit
-	OpArg sr_reg;
-	gpr.GetReg(DSP_REG_SR,sr_reg);
-	AND(16, sr_reg, Imm16(~bit));
-	gpr.PutReg(DSP_REG_SR);
-
-	compileSR  &= ~bit;
+  compileSR &= ~bit;
 }
 // SBCLR #I
 // 0001 0011 aaaa aiii
@@ -139,9 +135,9 @@ void DSPEmitter::clrCompileSR(u16 bit)
 // immediate value I.
 void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
-	u8 bit = (opc & 0x7) + 6;
+  u8 bit = (opc & 0x7) + 6;
 
-	clrCompileSR(1 << bit);
+  clrCompileSR(1 << bit);
 }
 
 // SBSET #I
@@ -150,9 +146,9 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 // immediate value I.
 void DSPEmitter::sbset(const UDSPInstruction opc)
 {
-	u8 bit = (opc & 0x7) + 6;
+  u8 bit = (opc & 0x7) + 6;
 
-	setCompileSR(1 << bit);
+  setCompileSR(1 << bit);
 }
 
 // 1000 1bbb xxxx xxxx, bbb >= 010
@@ -160,37 +156,36 @@ void DSPEmitter::sbset(const UDSPInstruction opc)
 // but it's harder to know exactly what effect they have.
 void DSPEmitter::srbith(const UDSPInstruction opc)
 {
-	switch ((opc >> 8) & 0xf)
-	{
-	// M0/M2 change the multiplier mode (it can multiply by 2 for free).
-	case 0xa:  // M2
-		clrCompileSR(SR_MUL_MODIFY);
-		break;
-	case 0xb:  // M0
-		setCompileSR(SR_MUL_MODIFY);
-		break;
+  switch ((opc >> 8) & 0xf)
+  {
+  // M0/M2 change the multiplier mode (it can multiply by 2 for free).
+  case 0xa:  // M2
+    clrCompileSR(SR_MUL_MODIFY);
+    break;
+  case 0xb:  // M0
+    setCompileSR(SR_MUL_MODIFY);
+    break;
 
-	// If set, treat multiplicands as unsigned.
-	// If clear, treat them as signed.
-	case 0xc:  // CLR15
-		clrCompileSR(SR_MUL_UNSIGNED);
-		break;
-	case 0xd:  // SET15
-		setCompileSR(SR_MUL_UNSIGNED);
-		break;
+  // If set, treat multiplicands as unsigned.
+  // If clear, treat them as signed.
+  case 0xc:  // CLR15
+    clrCompileSR(SR_MUL_UNSIGNED);
+    break;
+  case 0xd:  // SET15
+    setCompileSR(SR_MUL_UNSIGNED);
+    break;
 
-	// Automatic 40-bit sign extension when loading ACx.M.
-	// SET40 changes something very important: see the LRI instruction above.
-	case 0xe:  // SET16 (CLR40)
-		clrCompileSR(SR_40_MODE_BIT);
-		break;
+  // Automatic 40-bit sign extension when loading ACx.M.
+  // SET40 changes something very important: see the LRI instruction above.
+  case 0xe:  // SET16 (CLR40)
+    clrCompileSR(SR_40_MODE_BIT);
+    break;
 
-	case 0xf:  // SET40
-		setCompileSR(SR_40_MODE_BIT);
-		break;
+  case 0xf:  // SET40
+    setCompileSR(SR_40_MODE_BIT);
+    break;
 
-	default:
-		break;
-	}
+  default:
+    break;
+  }
 }
-

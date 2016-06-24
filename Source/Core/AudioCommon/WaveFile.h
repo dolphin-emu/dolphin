@@ -23,25 +23,23 @@
 class WaveFileWriter : NonCopyable
 {
 public:
-	WaveFileWriter();
-	~WaveFileWriter();
+  WaveFileWriter();
+  ~WaveFileWriter();
 
-	bool Start(const std::string& filename, unsigned int HLESampleRate);
-	void Stop();
+  bool Start(const std::string& filename, unsigned int HLESampleRate);
+  void Stop();
 
-	void SetSkipSilence(bool skip) { skip_silence = skip; }
-
-	void AddStereoSamples(const short *sample_data, u32 count);
-	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
-	u32 GetAudioSize() const { return audio_size; }
-
+  void SetSkipSilence(bool skip) { skip_silence = skip; }
+  void AddStereoSamples(const short* sample_data, u32 count);
+  void AddStereoSamplesBE(const short* sample_data, u32 count);  // big endian
+  u32 GetAudioSize() const { return audio_size; }
 private:
-	static constexpr size_t BUFFER_SIZE = 32 * 1024;
+  static constexpr size_t BUFFER_SIZE = 32 * 1024;
 
-	File::IOFile file;
-	bool skip_silence = false;
-	u32 audio_size = 0;
-	std::array<short, BUFFER_SIZE> conv_buffer{};
-	void Write(u32 value);
-	void Write4(const char* ptr);
+  File::IOFile file;
+  bool skip_silence = false;
+  u32 audio_size = 0;
+  std::array<short, BUFFER_SIZE> conv_buffer{};
+  void Write(u32 value);
+  void Write4(const char* ptr);
 };

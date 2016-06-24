@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
 // DiscScrubber removes the garbage data from discs (currently Wii only) which
 // is on the disc due to encryption
 
@@ -16,18 +15,19 @@
 #include <string>
 #include "Common/CommonTypes.h"
 
-namespace File { class IOFile; }
+namespace File
+{
+class IOFile;
+}
 
 namespace DiscIO
 {
-
 namespace DiscScrubber
 {
-
 bool SetupScrub(const std::string& filename, int block_size);
 size_t GetNextBlock(File::IOFile& in, u8* buffer);
 void Cleanup();
 
-} // namespace DiscScrubber
+}  // namespace DiscScrubber
 
-} // namespace DiscIO
+}  // namespace DiscIO

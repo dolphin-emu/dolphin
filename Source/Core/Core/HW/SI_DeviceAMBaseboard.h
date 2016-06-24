@@ -10,22 +10,22 @@
 class CSIDevice_AMBaseboard : public ISIDevice
 {
 private:
-	enum EBufferCommands
-	{
-		CMD_RESET = 0x00,
-		CMD_GCAM  = 0x70,
-	};
+  enum EBufferCommands
+  {
+    CMD_RESET = 0x00,
+    CMD_GCAM = 0x70,
+  };
 
 public:
-	// constructor
-	CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber);
+  // constructor
+  CSIDevice_AMBaseboard(SIDevices device, int _iDeviceNumber);
 
-	// run the SI Buffer
-	int RunBuffer(u8* _pBuffer, int _iLength) override;
+  // run the SI Buffer
+  int RunBuffer(u8* _pBuffer, int _iLength) override;
 
-	// return true on new data
-	bool GetData(u32& _Hi, u32& _Low) override;
+  // return true on new data
+  bool GetData(u32& _Hi, u32& _Low) override;
 
-	// send a command directly
-	void SendCommand(u32 _Cmd, u8 _Poll) override;
+  // send a command directly
+  void SendCommand(u32 _Cmd, u8 _Poll) override;
 };

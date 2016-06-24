@@ -10,27 +10,25 @@
 #include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 
-CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
-		const wxPoint& position, const wxSize& size,
-		long style, const wxString& name)
-	: wxPanel(parent, id, position, size, style, name)
-	, m_GPRGridView(nullptr)
+CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxPoint& position,
+                                 const wxSize& size, long style, const wxString& name)
+    : wxPanel(parent, id, position, size, style, name), m_GPRGridView(nullptr)
 {
-	CreateGUIControls();
+  CreateGUIControls();
 }
 
 void CRegisterWindow::CreateGUIControls()
 {
-	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
-	m_GPRGridView = new CRegisterView(this);
-	sGrid->Add(m_GPRGridView, 1, wxGROW);
-	SetSizer(sGrid);
+  wxBoxSizer* sGrid = new wxBoxSizer(wxVERTICAL);
+  m_GPRGridView = new CRegisterView(this);
+  sGrid->Add(m_GPRGridView, 1, wxGROW);
+  SetSizer(sGrid);
 
-	NotifyUpdate();
+  NotifyUpdate();
 }
 
 void CRegisterWindow::NotifyUpdate()
 {
-	if (m_GPRGridView != nullptr)
-		m_GPRGridView->Update();
+  if (m_GPRGridView != nullptr)
+    m_GPRGridView->Update();
 }
