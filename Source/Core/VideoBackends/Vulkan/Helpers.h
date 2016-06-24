@@ -21,4 +21,70 @@ VkSurfaceFormatKHR SelectVulkanSurfaceFormat(VkPhysicalDevice physical_device, V
 
 bool IsDepthFormat(VkFormat format);
 
+// Helper methods for cleaning up device objects, used by deferred destruction
+struct DeferredResourceDestruction
+{
+	union Object
+	{
+		VkCommandPool CommandPool;
+		VkDeviceMemory DeviceMemory;
+		VkBuffer Buffer;
+		VkBufferView BufferView;
+		VkImage Image;
+		VkImageView ImageView;
+	} object;
+
+	void(*destroy_callback)(VkDevice device, const Object& object);
+
+	template<typename T> static DeferredResourceDestruction Wrapper(T object);
+
+	template<> static DeferredResourceDestruction Wrapper<VkCommandPool>(VkCommandPool object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.CommandPool = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyCommandPool(device, obj.CommandPool, nullptr); };
+		return ret;
+	}
+
+	template<> static DeferredResourceDestruction Wrapper<VkDeviceMemory>(VkDeviceMemory object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.DeviceMemory = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkFreeMemory(device, obj.DeviceMemory, nullptr); };
+		return ret;
+	}
+
+	template<> static DeferredResourceDestruction Wrapper<VkBuffer>(VkBuffer object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.Buffer = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyBuffer(device, obj.Buffer, nullptr); };
+		return ret;
+	}
+
+	template<> static DeferredResourceDestruction Wrapper<VkBufferView>(VkBufferView object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.BufferView = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyBufferView(device, obj.BufferView, nullptr); };
+		return ret;
+	}
+
+	template<> static DeferredResourceDestruction Wrapper<VkImage>(VkImage object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.Image = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyImage(device, obj.Image, nullptr); };
+		return ret;
+	}
+
+	template<> static DeferredResourceDestruction Wrapper<VkImageView>(VkImageView object)
+	{
+		DeferredResourceDestruction ret;
+		ret.object.ImageView = object;
+		ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyImageView(device, obj.ImageView, nullptr); };
+		return ret;
+	}
+};
+
 }		// namespace Vulkan

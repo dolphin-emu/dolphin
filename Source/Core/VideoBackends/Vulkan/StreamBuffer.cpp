@@ -10,6 +10,17 @@
 
 namespace Vulkan {
 
+static size_t AlignBufferOffset(size_t offset, size_t alignment)
+{
+	// Assume an offset of zero is already aligned to a value larger than alignment.
+	if (offset == 0)
+		return 0;
+
+	// Have to use divide/multiply here in case alignment is not a power of two.
+	// TODO: Can we make this assumption?
+	return (offset + (alignment - 1)) / alignment * alignment;
+}
+
 StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkBufferUsageFlags usage, size_t max_size)
 	: m_object_cache(object_cache)
 	, m_command_buffer_mgr(command_buffer_mgr)
@@ -26,21 +37,20 @@ StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* comm
 
 StreamBuffer::~StreamBuffer()
 {
-	// TODO: Deferred destruction
-	vkDeviceWaitIdle(m_object_cache->GetDevice());
 	if (m_host_pointer)
 		vkUnmapMemory(m_object_cache->GetDevice(), m_memory);
+
 	if (m_buffer != VK_NULL_HANDLE)
-		vkDestroyBuffer(m_object_cache->GetDevice(), m_buffer, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(m_buffer);
 	if (m_memory != VK_NULL_HANDLE)
-		vkFreeMemory(m_object_cache->GetDevice(), m_memory, nullptr);		
+		m_command_buffer_mgr->DeferResourceDestruction(m_memory);
 }
 
 std::unique_ptr<StreamBuffer> StreamBuffer::Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkBufferUsageFlags usage, size_t initial_size, size_t max_size)
 {
 	std::unique_ptr<StreamBuffer> buffer = std::make_unique<StreamBuffer>(object_cache, command_buffer_mgr, usage, max_size);
 
-	// Temporary allocate maximum size, until deferred destruction is implemented
+	// TODO: Use maximum size until buffer growing/fences are implemented
 	if (!buffer->ResizeBuffer(max_size))
 		return nullptr;
 
@@ -114,17 +124,17 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 		return false;
 	}
 
-	// Free the old buffer (if present) and replace with the new one
-	// TODO: Wait for appropriate fences
-	// This is completely broken as the command list has not been executed yet.
-	vkDeviceWaitIdle(m_object_cache->GetDevice());
+	// Unmap current host pointer (if there was a previous buffer)
 	if (m_host_pointer)
 		vkUnmapMemory(m_object_cache->GetDevice(), m_memory);
-	if (m_buffer != VK_NULL_HANDLE)
-		vkDestroyBuffer(m_object_cache->GetDevice(), m_buffer, nullptr);
-	if (m_memory != VK_NULL_HANDLE)
-		vkFreeMemory(m_object_cache->GetDevice(), m_memory, nullptr);
 
+	// Destroy the backings for the buffer after the command buffer executes
+	if (m_buffer != VK_NULL_HANDLE)
+		m_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+	if (m_memory != VK_NULL_HANDLE)
+		m_command_buffer_mgr->DeferResourceDestruction(m_memory);
+
+	// Replace with the new buffer
 	m_buffer = buffer;
 	m_memory = memory;
 	m_host_pointer = reinterpret_cast<u8*>(mapped_ptr);
@@ -134,14 +144,17 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 	return true;
 }
 
-bool StreamBuffer::ReserveMemory(size_t num_bytes, VkBuffer* out_buffer, u8** out_allocation_ptr, size_t* out_allocation_offset)
+bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* out_buffer, u8** out_allocation_ptr, size_t* out_allocation_offset)
 {
+	size_t required_bytes = num_bytes + alignment;
+
 	// Check for space past the current gpu position
 	if (m_current_offset >= m_current_gpu_position)
 	{
 		size_t remaining_bytes = m_current_size - m_current_offset;
-		if (num_bytes <= remaining_bytes)
+		if (required_bytes <= remaining_bytes)
 		{
+			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
 			*out_buffer = m_buffer;
 			*out_allocation_ptr = m_host_pointer + m_current_offset;
 			*out_allocation_offset = m_current_offset;
@@ -149,13 +162,13 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, VkBuffer* out_buffer, u8** ou
 		}
 
 		// Check for space at the start of the buffer
-		if (num_bytes <= m_current_gpu_position)
+		if (required_bytes <= m_current_gpu_position)
 		{
 			// Reset offset to zero, since we're allocating behind the gpu now
 			m_current_offset = 0;
 			*out_buffer = m_buffer;
-			*out_allocation_ptr = m_host_pointer + m_current_offset;
-			*out_allocation_offset = m_current_offset;
+			*out_allocation_ptr = m_host_pointer;
+			*out_allocation_offset = 0;
 			return true;
 		}
 	}
@@ -164,9 +177,10 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, VkBuffer* out_buffer, u8** ou
 	if (m_current_offset < m_current_gpu_position)
 	{
 		size_t remaining_bytes = m_current_gpu_position - m_current_offset;
-		if (num_bytes <= remaining_bytes)
+		if (required_bytes <= remaining_bytes)
 		{
 			// Put after the current allocation but before the gpu
+			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
 			*out_buffer = m_buffer;
 			*out_allocation_ptr = m_host_pointer + m_current_offset;
 			*out_allocation_offset = m_current_offset;

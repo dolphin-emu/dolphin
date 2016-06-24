@@ -28,11 +28,10 @@ Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 he
 
 Texture2D::~Texture2D()
 {
-	// TODO: Deferred destruction
 	if (m_view)
-		vkDestroyImageView(m_command_buffer_mgr->GetDevice(), m_view, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(m_view);
 	if (m_image)
-		vkDestroyImage(m_command_buffer_mgr->GetDevice(), m_image, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(m_image);
 }
 
 std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
