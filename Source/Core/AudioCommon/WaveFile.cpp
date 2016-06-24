@@ -109,7 +109,7 @@ void WaveFileWriter::AddStereoSamples(const short *sample_data, u32 count)
 	audio_size += count * 4;
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
+void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count, int sample_rate)
 {
 	if (!file)
 		PanicAlertT("WaveFileWriter - file not open.");
@@ -129,6 +129,43 @@ void WaveFileWriter::AddStereoSamplesBE(const short *sample_data, u32 count)
 
 		if (all_zero)
 			return;
+	}
+
+	// resample to 48000hz
+	if (sample_rate == 32000)
+	{
+		static short *buff = NULL;
+
+		static short old[2] = { 0, 0 };
+
+		u32 count_resampled = count * 3 / 2; //Converted sample count from 32khz to 48khz (3/2 more samples than 32khz)
+
+		if (count % 2)
+			return;
+
+		// 2->3
+		if (count < count_resampled)
+		{
+			buff = (short *)realloc(buff, count_resampled * 4);
+		}
+		if (!buff)
+			return;
+
+		for (u32 i = 0; i < count / 2; i++)
+		{
+			buff[6 * i + 0] = static_cast<int>(sample_data[4 * i + 0]) * 2 / 3 + old[0] * 1 / 3;
+			buff[6 * i + 1] = static_cast<int>(sample_data[4 * i + 1]) * 2 / 3 + old[1] * 1 / 3;
+			buff[6 * i + 2] = static_cast<int>(sample_data[4 * i + 0]) * 2 / 3 + sample_data[4 * i + 2] * 1 / 3;
+			buff[6 * i + 3] = static_cast<int>(sample_data[4 * i + 1]) * 2 / 3 + sample_data[4 * i + 3] * 1 / 3;
+			buff[6 * i + 4] = sample_data[4 * i + 2];
+			buff[6 * i + 5] = sample_data[4 * i + 3];
+
+			old[0] = sample_data[4 * i + 2];
+			old[1] = sample_data[4 * i + 3];
+		}
+
+		count = count_resampled;
+		sample_data = buff;
 	}
 
 	for (u32 i = 0; i < count; i++)
