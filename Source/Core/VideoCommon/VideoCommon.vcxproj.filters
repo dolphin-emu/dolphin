@@ -308,6 +308,9 @@
     <ClInclude Include="SamplerCommon.h">
       <Filter>Util</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractTextureBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

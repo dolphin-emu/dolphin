@@ -61,7 +61,7 @@ class TextureCache : public TextureCacheBase
 public:
   void CompileShaders() override{};
   void DeleteShaders() override{};
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override{};
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
@@ -71,11 +71,14 @@ public:
   }
 
 private:
-  struct TCacheEntry : TCacheEntryBase
+  struct AbstractTexture : AbstractTextureBase
   {
-    TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
+    AbstractTexture(const AbstractTextureBase::TextureConfig& _config)
+        : AbstractTextureBase(_config)
+    {
+    }
+
+    void Load(u8* data, unsigned int width, unsigned int height, unsigned int expanded_width,
               unsigned int level) override
     {
     }
@@ -86,7 +89,7 @@ private:
       EfbCopy::CopyEfb();
     }
 
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
+    void CopyRectangleFromTexture(const AbstractTextureBase* source,
                                   const MathUtil::Rectangle<int>& srcrect,
                                   const MathUtil::Rectangle<int>& dstrect) override
     {
@@ -96,9 +99,10 @@ private:
     bool Save(const std::string& filename, unsigned int level) override { return false; }
   };
 
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
+  std::unique_ptr<AbstractTextureBase>
+  CreateTexture(const AbstractTextureBase::TextureConfig& config) override
   {
-    return new TCacheEntry(config);
+    return std::make_unique<AbstractTexture>(config);
   }
 };
 

@@ -53,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
+    <ClCompile Include="AbstractTexture.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VertexManager.h">
@@ -90,6 +93,9 @@
     </ClInclude>
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="AbstractTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

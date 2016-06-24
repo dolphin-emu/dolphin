@@ -230,7 +230,7 @@ void VertexManagerBase::Flush()
     TextureCacheBase::UnbindTextures();
     for (unsigned int i : usedtextures)
     {
-      const TextureCacheBase::TCacheEntryBase* tentry = TextureCacheBase::Load(i);
+      const TextureCacheBase::TCacheEntry* tentry = TextureCacheBase::Load(i);
 
       if (tentry)
       {

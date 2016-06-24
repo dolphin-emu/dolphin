@@ -683,6 +683,8 @@ Renderer::Renderer()
            g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
            g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ");
 
+  AbstractTexture::InitializeBindingStateTracking();
+
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
 
@@ -1356,21 +1358,21 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Get the current XFB from texture cache
   auto entry = TextureCache::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
-  TextureCache::TCacheEntry* opengl_entry = static_cast<TextureCache::TCacheEntry*>(entry);
+  AbstractTexture* xfb_texture = static_cast<AbstractTexture*>(entry->texture.get());
 
   // TODO: If the XFB texture cache entry hasn't changed since the last Swap, we can return early.
 
   TargetRectangle sourceRc = ConvertEFBRectangle(rc);
   sourceRc.left = 0;
-  sourceRc.right = opengl_entry->config.width;
-  sourceRc.top = opengl_entry->config.height;
+  sourceRc.right = xfb_texture->config.width;
+  sourceRc.top = xfb_texture->config.height;
   sourceRc.bottom = 0;
 
   ResetAPIState();
 
   // And blit it to the screen.
-  BlitScreen(sourceRc, flipped_trc, opengl_entry->texture, opengl_entry->config.width,
-             opengl_entry->config.height);
+  BlitScreen(sourceRc, flipped_trc, xfb_texture->texture, xfb_texture->config.width,
+             xfb_texture->config.height);
 
   // Tell the OSD Menu about the current internal resolution
   OSDInternalW = sourceRc.GetWidth();
@@ -1606,7 +1608,7 @@ void Renderer::RestoreAPIState()
   if (vm->m_last_vao)
     glBindVertexArray(vm->m_last_vao);
 
-  TextureCache::SetStage();
+  AbstractTexture::SetStage();
 }
 
 void Renderer::SetGenerationMode()

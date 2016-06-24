@@ -8,6 +8,33 @@
 
 namespace Null
 {
+class AbstractTexture : public AbstractTextureBase
+{
+public:
+  AbstractTexture(const AbstractTextureBase::TextureConfig& _config) : AbstractTextureBase(_config)
+  {
+  }
+  ~AbstractTexture() {}
+  void Load(u8* data, unsigned int width, unsigned int height, unsigned int expanded_width,
+            unsigned int level) override
+  {
+  }
+
+  void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
+                        bool scale_by_half, unsigned int cbufid, const float* colmat) override
+  {
+  }
+
+  void CopyRectangleFromTexture(const AbstractTextureBase* source,
+                                const MathUtil::Rectangle<int>& srcrect,
+                                const MathUtil::Rectangle<int>& dstrect) override
+  {
+  }
+
+  void Bind(unsigned int stage) override {}
+  bool Save(const std::string& filename, unsigned int level) override { return false; }
+};
+
 class TextureCache : public TextureCacheBase
 {
 public:
@@ -15,7 +42,7 @@ public:
   ~TextureCache() {}
   void CompileShaders() override {}
   void DeleteShaders() override {}
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override
   {
   }
@@ -26,34 +53,10 @@ public:
   {
   }
 
-private:
-  struct TCacheEntry : TCacheEntryBase
+  std::unique_ptr<AbstractTextureBase>
+  CreateTexture(const AbstractTextureBase::TextureConfig& config) override
   {
-    TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-              unsigned int level) override
-    {
-    }
-
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-                          bool scale_by_half, unsigned int cbufid, const float* colmat) override
-    {
-    }
-
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& srcrect,
-                                  const MathUtil::Rectangle<int>& dstrect) override
-    {
-    }
-
-    void Bind(unsigned int stage) override {}
-    bool Save(const std::string& filename, unsigned int level) override { return false; }
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override
-  {
-    return new TCacheEntry(config);
+    return std::make_unique<AbstractTexture>(config);
   }
 };
 

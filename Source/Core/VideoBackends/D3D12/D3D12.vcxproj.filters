@@ -142,5 +142,8 @@
     <ClInclude Include="D3DStreamBuffer.h">
       <Filter>D3D12</Filter>
     </ClInclude>
+    <ClInclude Include="AbstractTexture.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
