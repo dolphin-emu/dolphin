@@ -25,13 +25,6 @@ private:
   std::unique_ptr<AbstractTextureBase>
   CreateTexture(const AbstractTextureBase::TextureConfig& config) override;
 
-  u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 source_width, u32 source_height,
-                             bool is_from_z_buffer, bool is_intensity_format, u32 copy_format,
-                             int scale_by_half, const EFBRectangle& source)
-  {
-    return 0;
-  };
-
   void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override;
 

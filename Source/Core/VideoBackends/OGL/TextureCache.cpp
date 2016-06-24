@@ -341,7 +341,8 @@ void TextureCache::ConvertTexture(TCacheEntry* dest, TCacheEntry* source, void* 
   g_renderer->ResetAPIState();
 
   AbstractTexture* dest_tex = static_cast<AbstractTexture*>(dest->texture.get());
-  AbstractTexture* source_tex = static_cast<AbstractTexture*>(source->texture.get());
+  const AbstractTexture* source_tex = static_cast<AbstractTexture*>(source->texture.get());
+
 
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, source_tex->texture);
