@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/HW/GPFifo.h"
 
 using namespace Gen;
 
