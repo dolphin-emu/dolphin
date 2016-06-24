@@ -189,7 +189,7 @@ void Initialize(void* const hwnd)
 	g_controller_interface.Initialize(hwnd);
 
 	// load the saved controller config
-	s_config.LoadConfig(true);
+	s_config.LoadConfig(INPUT_TYPE_HOTKEY);
 
 	for (u32& key : s_hotkeyDown)
 		key = 0;
@@ -199,7 +199,7 @@ void Initialize(void* const hwnd)
 
 void LoadConfig()
 {
-	s_config.LoadConfig(true);
+	s_config.LoadConfig(INPUT_TYPE_HOTKEY);
 }
 
 void Shutdown()

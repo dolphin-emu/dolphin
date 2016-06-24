@@ -145,14 +145,14 @@ private:
 	bool GetExpressionForSelectedControl(wxString &expr);
 
 	GamepadPage* const m_parent;
-	wxComboBox*        device_cbox;
-	wxTextCtrl*        textctrl;
-	wxListBox*         control_lbox;
-	wxSlider*          range_slider;
+	wxComboBox*  device_cbox;
+	wxTextCtrl* textctrl;
+	wxListBox*  control_lbox;
+	wxSlider*   range_slider;
 	wxStaticText*      m_bound_label;
 	wxStaticText*      m_error_label;
 	InputEventFilter   m_event_filter;
-	ciface::Core::DeviceQualifier m_devq;
+	ciface::Core::DeviceQualifier    m_devq;
 };
 
 class ExtensionButton : public wxButton
@@ -208,7 +208,10 @@ public:
 
 	void LoadProfile(wxCommandEvent& event);
 	void SaveProfile(wxCommandEvent& event);
+	void SetProfile(wxCommandEvent& event);
 	void DeleteProfile(wxCommandEvent& event);
+
+	void SaveProfileToGameIni();
 
 	void ConfigControl(wxEvent& event);
 	void ClearControl(wxEvent& event);
@@ -226,9 +229,12 @@ public:
 	void AdjustSettingUI(wxCommandEvent& event);
 
 	void GetProfilePath(std::string& path);
+	void GetProfilePath(wxString name, std::string& path);
 
 	wxComboBox* profile_cbox;
 	wxComboBox* device_cbox;
+
+	wxButton* set_btn;
 
 	std::vector<ControlGroupBox*> control_groups;
 	std::vector<ControlButton*>   control_buttons;
@@ -241,9 +247,10 @@ private:
 
 	ControlDialog*           m_control_dialog;
 	InputConfigDialog* const m_config_dialog;
-	InputConfig&             m_config;
+	InputConfig& m_config;
 	InputEventFilter         m_event_filter;
 
+	int m_pad_num;
 	bool DetectButton(ControlButton* button);
 	bool m_iterate = false;
 };
