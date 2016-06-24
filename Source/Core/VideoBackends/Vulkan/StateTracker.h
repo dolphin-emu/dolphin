@@ -9,6 +9,7 @@
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
@@ -21,8 +22,13 @@ public:
 	StateTracker(ObjectCache* object_cache);
 	~StateTracker();
 
+	void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
+	void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
+
+	void SetRenderPass(VkRenderPass render_pass);
+
 	bool CheckForShaderChanges(u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
-	
+
 	void SetVSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
 	void SetGSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
 	void SetPSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
@@ -40,33 +46,38 @@ public:
 private:
 	ObjectCache* m_object_cache = nullptr;
 
-	// shader state
-	struct
+	enum DITRY_FLAG : u32
 	{
-		VertexShaderUid vs_uid = {};
-		GeometryShaderUid gs_uid = {};
-		PixelShaderUid ps_uid = {};
-		VkShaderModule vs_module = VK_NULL_HANDLE;
-		VkShaderModule gs_module = VK_NULL_HANDLE;
-		VkShaderModule ps_module = VK_NULL_HANDLE;
-		u32 primitive_type = 0;
-		DSTALPHA_MODE dstalpha_mode = DSTALPHA_NONE;
-		RasterizationState rasterization_state = {};
-		DepthStencilState depth_stencil_state = {};
-		BlendState blend_state = {};
-	} m_state;
-
-	VkPipeline m_pipeline = VK_NULL_HANDLE;
-	bool m_pipeline_changed = true;
-
-	enum DITRY_BINDING_FLAG : u32
-	{
-		DIRTY_BINDING_FLAG_VS_UBO = (1 << 0),
-		DIRTY_BINDING_FLAG_GS_UBO = (1 << 1),
-		DIRTY_BINDING_FLAG_PS_UBO = (1 << 2),
-		DIRTY_BINDING_FLAG_PS_SAMPLERS = (1 << 3),
-		DIRTY_BINDING_FLAG_PS_SSBO = (1 << 4)
+		DIRTY_FLAG_VS_UBO = (1 << 0),
+		DIRTY_FLAG_GS_UBO = (1 << 1),
+		DIRTY_FLAG_PS_UBO = (1 << 2),
+		DIRTY_FLAG_PS_SAMPLERS = (1 << 3),
+		DIRTY_FLAG_PS_SSBO = (1 << 4),
+		DIRTY_FLAG_VERTEX_BUFFER = (1 << 5),
+		DIRTY_FLAG_INDEX_BUFFER = (1 << 6),
+		DIRTY_FLAG_VIEWPORT = (1 << 7),
+		DIRTY_FLAG_SCISSOR = (1 << 8),
+		DIRTY_FLAG_PIPELINE = (1 << 9)
 	};
+	u32 m_dirty_flags = 0xFFFFFFFF;
+
+	// input assembly
+	VkBuffer m_vertex_buffer = VK_NULL_HANDLE;
+	VkDeviceSize m_vertex_buffer_offset = 0;
+	VkBuffer m_index_buffer = VK_NULL_HANDLE;
+	VkDeviceSize m_index_buffer_offset = 0;
+	VkIndexType m_index_type = VK_INDEX_TYPE_UINT16;
+
+	// shader state
+	VertexShaderUid m_vs_uid = {};
+	GeometryShaderUid m_gs_uid = {};
+	PixelShaderUid m_ps_uid = {};
+
+	// pipeline state
+	PipelineInfo m_pipeline_state = {};
+	u32 m_primitive_type = 0;
+	DSTALPHA_MODE m_dstalpha_mode = DSTALPHA_NONE;
+	VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
 	// shader bindings
 	struct
@@ -77,13 +88,10 @@ private:
 		VkDescriptorImageInfo ps_samplers[NUM_PIXEL_SHADER_SAMPLERS];
 		VkDescriptorBufferInfo ps_ssbo;
 	} m_bindings;
-	u32 m_dirty_binding_flags = 0;
 
 	// other stuff
 	VkViewport m_viewport = { 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
-	bool m_dirty_viewport = false;
 	VkRect2D m_scissor = { { 0, 0 }, { 1, 1 } };
-	bool m_dirty_scissor = false;
 };
 
 }

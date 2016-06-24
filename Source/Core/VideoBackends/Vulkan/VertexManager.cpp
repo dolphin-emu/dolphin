@@ -126,15 +126,20 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	// TODO: Get stride from vertex format
 	PrepareDrawBuffers(4);
 
-	// Update all pending state (this implies state tracker binding)
-	g_renderer->ApplyState(use_dst_alpha);
-
 	// Figure out the number of indices to draw
 	u32 index_count = IndexGenerator::GetIndexLen();
 
+	// Update all pending state (this implies state tracker binding)
+	g_renderer->ApplyState(use_dst_alpha);
+	if (!m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer()))
+	{
+		WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
+		return;
+	}
+
 	// Execute the draw
 	// TODO: Handle two-pass dst alpha
-	//vkCmdDrawIndexed(m_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1, m_current_draw_base_index, m_current_draw_base_vertex, 0);
+	vkCmdDrawIndexed(m_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1, m_current_draw_base_index, m_current_draw_base_vertex, 0);
 }
 
 

@@ -40,6 +40,9 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 	// Execute what we have done before moving to the first buffer for the first frame.
 	m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
 	BeginFrame();
+
+	// Apply the default/initial state
+	ApplyState(false);
 }
 
 Renderer::~Renderer()
@@ -173,11 +176,7 @@ void Renderer::OnSwapChainResized()
 void Renderer::ApplyState(bool bUseDstAlpha)
 {
 	m_state_tracker->CheckForShaderChanges(0, bUseDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
-}
-
-void Renderer::RestoreState()
-{
-	m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
+	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
 }
 
 void Renderer::ResetAPIState()
@@ -201,8 +200,8 @@ void Renderer::RestoreAPIState()
 
 	vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-	// TODO: Restore viewport
-	// TODO: Restore shaders
+	// Re-apply all game state, there may be some redundant calls in here, oh well
+	m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
 }
 
 } // namespace Vulkan
