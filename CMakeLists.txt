@@ -310,6 +310,11 @@ if(APPLE)
 	# Our JIT requires virtual memory space below 2GB, while the default zero
 	# page on x86_64 is 4GB in size.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
+	# Shut up "x has no symbols" from ranlib
+	set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	set(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")
+	set(CMAKE_C_ARCHIVE_FINISH   "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
+	set(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols -c <TARGET>")
 
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)

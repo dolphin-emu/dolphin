@@ -33,7 +33,12 @@
 
 #if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 #include <unistd.h>
+
+#if !defined(__APPLE__)
+// Apple already defines this macro
 #define PAGE_MASK     (getpagesize() - 1)
+#endif
+
 #define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
 #endif
 
