@@ -9,7 +9,9 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/StaticShaderCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
+#include "VideoBackends/Vulkan/Util.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/VideoConfig.h"
@@ -119,11 +121,12 @@ void Renderer::BeginFrame()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	// TODO: Use a shader for clearing colour/alpha, since alpha can be retained whilst clearing colour.
 	VkClearAttachment clear_attachments[2];
 	uint32_t num_clear_attachments = 0;
 
-	if (colorEnable)
+	// fast path: when both color and alpha are enabled, we can blow away the entire buffer
+	// TODO: Can we also do it when the buffer is not an RGBA format?
+	if (colorEnable && alphaEnable)
 	{
 		clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		clear_attachments[num_clear_attachments].colorAttachment = 0;
@@ -132,6 +135,27 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 		clear_attachments[num_clear_attachments].clearValue.color.float32[2] = float((color >> 0) & 0xFF) / 255.0f;
 		clear_attachments[num_clear_attachments].clearValue.color.float32[3] = float((color >> 24) & 0xFF) / 255.0f;
 		num_clear_attachments++;
+	}
+	else
+	{
+		// Mask away the appropriate colors and use a shader
+		BlendState blend_state = Util::GetNoBlendingBlendState();
+		if (colorEnable)
+			blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+		else
+			blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
+
+		// No need to start a new render pass, but we do need to restore viewport state
+		BackendShaderDraw draw(m_object_cache, m_command_buffer_mgr, m_framebuffer_mgr->GetEFBRenderPass(),
+			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
+			m_object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
+			m_object_cache->GetStaticShaderCache().GetClearFragmentShader());
+
+		draw.DrawColoredQuad(0, 0, m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
+			float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
+			float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
+
+		m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
 	}
 
 	if (zEnable)

@@ -27,10 +27,15 @@ public:
 	void DestroyShaders();
 
 	// Vertex Shaders
+	VkShaderModule GetPassthroughVertexShader() const { return m_vertex_shaders.passthrough; }
 	VkShaderModule GetScreenQuadVertexShader() const { return m_vertex_shaders.screen_quad; }
+
+	// Geometry Shaders
+	VkShaderModule GetPassthroughGeometryShader() const { return m_geometry_shaders.passthrough; }
 
 	// Fragment Shaders
 	VkShaderModule GetBlitFragmentShader() const { return m_fragment_shaders.blit; }
+	VkShaderModule GetClearFragmentShader() const { return m_fragment_shaders.clear; }
 
 private:
 	VkDevice m_device;
@@ -41,11 +46,18 @@ private:
 	struct
 	{
 		VkShaderModule screen_quad;
+		VkShaderModule passthrough;
 	} m_vertex_shaders;
 
 	struct
 	{
+		VkShaderModule passthrough;
+	} m_geometry_shaders;
+
+	struct
+	{
 		VkShaderModule blit;
+		VkShaderModule clear;
 	} m_fragment_shaders;
 };
 
