@@ -20,6 +20,9 @@ enum DESCRIPTOR_SET
 	NUM_DESCRIPTOR_SETS
 };
 
+// Maximum number of attributes per vertex (we don't have any more than this?)
+constexpr size_t MAX_VERTEX_ATTRIBUTES = 16;
+
 // Number of pixel shader texture slots
 constexpr size_t NUM_PIXEL_SHADER_SAMPLERS = 8;
 
