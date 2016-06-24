@@ -6,7 +6,7 @@
 # Jordi Coma, 2011
 # Jordi Coma <jordicoma22@gmail.com>, 2011
 # Katabi Oka, 2015
-# Puniasterus <puniasterus@gmail.com>, 2013-2015
+# Puniasterus <puniasterus@gmail.com>, 2013-2016
 # Puniasterus <puniasterus@gmail.com>, 2013
 # Puniasterus <puniasterus@gmail.com>, 2013
 msgid ""
@@ -14,8 +14,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 02:25+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2016-06-23 18:00+0000\n"
+"Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ca/)\n"
 "Language: ca\n"
@@ -87,12 +87,12 @@ msgstr ""
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:51
 #, c-format
 msgid "%i%%"
-msgstr ""
+msgstr "%i%%"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:49
 #, c-format
 msgid "%i%% (Normal Speed)"
-msgstr ""
+msgstr "%i%% (Velocitat normal)"
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:74
 #, c-format
@@ -210,12 +210,12 @@ msgstr "%u Blocs lliures; %u entrades de dir. lliures"
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:941
 #, c-format
 msgid "%u frames"
-msgstr ""
+msgstr "%u fotogrames"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:895
 #, c-format
 msgid "%u objects"
-msgstr ""
+msgstr "%u objectes"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:910
 #, c-format
@@ -385,7 +385,7 @@ msgstr "&Wiki"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:55
 msgid "(Error: Bad host)"
-msgstr ""
+msgstr "(Error: Amfitrió dolent)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:59
 msgid "(Error: Disconnected)"
@@ -393,7 +393,7 @@ msgstr "(Error: Desconnectat)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:57
 msgid "(Error: Dolphin too old)"
-msgstr ""
+msgstr "(Error: Dolphin massa antic)"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:61
 msgid "(Error: Socket)"
@@ -437,7 +437,7 @@ msgstr "2.5x Natiu (1600x1320)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "2x Native (1280x1056) for 720p"
-msgstr ""
+msgstr "2x Natiu (1280x1056) per 720p"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "32-bit"
@@ -445,23 +445,23 @@ msgstr "32-bits"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "3x Native (1920x1584) for 1080p"
-msgstr ""
+msgstr "3x Natiu (1920x1584) per 1080p"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "4x Native (2560x2112) for 1440p"
-msgstr ""
+msgstr "4x Natiu (2560x2112) per 1440p"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:352
 msgid "5x Native (3200x2640)"
-msgstr ""
+msgstr "5x Natiu (3200x2640)"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "6x Native (3840x3168) for 4K"
-msgstr ""
+msgstr "6x Natiu (3840x3168) per 4K"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "7x Native (4480x3696)"
-msgstr ""
+msgstr "7x Natiu (4480x3696)"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:51
 msgid "8-bit"
@@ -469,7 +469,7 @@ msgstr "8-bits"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:353
 msgid "8x Native (5120x4224) for 5K"
-msgstr ""
+msgstr "8x Natiu (5120x4224) per 5K"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:40
 msgid "<Insert name here>"
