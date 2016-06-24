@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <d3d11.h>
 
 #include "VideoCommon/PerfQueryBase.h"
 
