@@ -52,53 +52,93 @@ u32 ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags desired_propertie
 
 static VkPipelineRasterizationStateCreateInfo GetVulkanRasterizationState(const RasterizationState& state)
 {
-	return {
-		VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-		nullptr,
-		0,									// VkPipelineRasterizationStateCreateFlags    flags
-		VK_TRUE,							// VkBool32                                   depthClampEnable
-		VK_TRUE,							// VkBool32                                   rasterizerDiscardEnable;
-		VK_POLYGON_MODE_FILL,				// VkPolygonMode                              polygonMode
-		state.cull_mode,					// VkCullModeFlags                            cullMode
-		VK_FRONT_FACE_CLOCKWISE,			// VkFrontFace                                frontFace
-		VK_FALSE,							// VkBool32                                   depthBiasEnable
-		0.0f,                               // float                                      depthBiasConstantFactor
-		0.0f,                               // float                                      depthBiasClamp
-		0.0f,                               // float                                      depthBiasSlopeFactor
-		1.0f                                // float                                      lineWidth
+	return
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,			// VkStructureType                           sType
+		nullptr,															// const void*                               pNext
+		0,																	// VkPipelineRasterizationStateCreateFlags   flags
+		VK_TRUE,															// VkBool32                                  depthClampEnable
+		VK_TRUE,															// VkBool32                                  rasterizerDiscardEnable;
+		VK_POLYGON_MODE_FILL,												// VkPolygonMode                             polygonMode
+		state.cull_mode,													// VkCullModeFlags                           cullMode
+		VK_FRONT_FACE_CLOCKWISE,											// VkFrontFace                               frontFace
+		VK_FALSE,															// VkBool32                                  depthBiasEnable
+		0.0f,																// float                                     depthBiasConstantFactor
+		0.0f,																// float                                     depthBiasClamp
+		0.0f,																// float                                     depthBiasSlopeFactor
+		1.0f																// float                                     lineWidth
 	};
 }
 
 static VkPipelineDepthStencilStateCreateInfo GetVulkanDepthStencilState(const DepthStencilState& state)
 {
-	return {
-		VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-		nullptr,
-		0,									// VkPipelineDepthStencilStateCreateFlags    flags;
-		state.test_enable,					// VkBool32                                  depthTestEnable
-		state.write_enable,					// VkBool32                                  depthWriteEnable
-		state.compare_op,					// VkCompareOp                               depthCompareOp
-		VK_TRUE,							// VkBool32                                  depthBoundsTestEnable
-		VK_FALSE,							// VkBool32                                  stencilTestEnable
-		{},									// VkStencilOpState                          front
-		{},									// VkStencilOpState                          back
-		0.0f,								// float                                     minDepthBounds
-		1.0f								// float                                     maxDepthBounds
+	return
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,			// VkStructureType                           sType
+		nullptr,															// const void*                               pNext
+		0,																	// VkPipelineDepthStencilStateCreateFlags    flags
+		state.test_enable,													// VkBool32                                  depthTestEnable
+		state.write_enable,													// VkBool32                                  depthWriteEnable
+		state.compare_op,													// VkCompareOp                               depthCompareOp
+		VK_TRUE,															// VkBool32                                  depthBoundsTestEnable
+		VK_FALSE,															// VkBool32                                  stencilTestEnable
+		{},																	// VkStencilOpState                          front
+		{},																	// VkStencilOpState                          back
+		0.0f,																// float                                     minDepthBounds
+		1.0f																// float                                     maxDepthBounds
 	};
 }
 
 static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const BlendState& state)
 {
-	return {
-		state.blend_enable,
-		state.src_blend,
-		state.dst_blend,
-		state.blend_op,
-		state.src_blend,
-		state.dst_blend,
-		state.blend_op,
-		state.write_mask
+	VkPipelineColorBlendAttachmentState vk_state =
+	{
+		state.blend_enable,													// VkBool32                                  blendEnable
+		state.src_blend,													// VkBlendFactor                             srcColorBlendFactor
+		state.dst_blend,													// VkBlendFactor                             dstColorBlendFactor
+		state.blend_op,														// VkBlendOp                                 colorBlendOp
+		state.src_blend,													// VkBlendFactor                             srcAlphaBlendFactor
+		state.dst_blend,													// VkBlendFactor                             dstAlphaBlendFactor
+		state.blend_op,														// VkBlendOp                                 alphaBlendOp
+		state.write_mask													// VkColorComponentFlags                     colorWriteMask
 	};
+	
+	switch (vk_state.srcAlphaBlendFactor)
+	{
+	case VK_BLEND_FACTOR_SRC_COLOR:				vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;				break;
+	case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:	vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;		break;
+	case VK_BLEND_FACTOR_DST_COLOR:				vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;				break;
+	case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:	vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;		break;
+	}
+
+	switch (vk_state.dstAlphaBlendFactor)
+	{
+	case VK_BLEND_FACTOR_SRC_COLOR:				vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;				break;
+	case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:	vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;		break;
+	case VK_BLEND_FACTOR_DST_COLOR:				vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;				break;
+	case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:	vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;		break;
+	}
+
+	if (state.use_dst_alpha)
+	{
+		// Colors should blend against SRC1_ALPHA
+		if (vk_state.srcColorBlendFactor == VK_BLEND_FACTOR_SRC_ALPHA)
+			vk_state.srcColorBlendFactor = VK_BLEND_FACTOR_SRC1_ALPHA;
+		else if (vk_state.srcColorBlendFactor == VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+			vk_state.srcColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+
+		// Colors should blend against SRC1_ALPHA
+		if (vk_state.dstColorBlendFactor == VK_BLEND_FACTOR_SRC_ALPHA)
+			vk_state.dstColorBlendFactor = VK_BLEND_FACTOR_SRC1_ALPHA;
+		else if (vk_state.dstColorBlendFactor == VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA)
+			vk_state.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
+
+		vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+		vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+		vk_state.alphaBlendOp = VK_BLEND_OP_ADD;
+	}
+
+	return vk_state;
 }
 
 static VkPipelineColorBlendStateCreateInfo GetVulkanColorBlendState(const BlendState& state, const VkPipelineColorBlendAttachmentState* attachments, uint32_t num_attachments)

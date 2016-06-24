@@ -18,7 +18,17 @@ namespace Vulkan {
 StateTracker::StateTracker(ObjectCache* object_cache)
 	: m_object_cache(object_cache)
 {
-
+	// Set some sensible defaults
+	m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
+	m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
+	m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
+	m_pipeline_state.depth_stencil_state.compare_op = VK_COMPARE_OP_LESS;
+	m_pipeline_state.blend_state.blend_enable = VK_FALSE;
+	m_pipeline_state.blend_state.blend_op = VK_BLEND_OP_ADD;
+	m_pipeline_state.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	m_pipeline_state.blend_state.src_blend = VK_BLEND_FACTOR_ONE;
+	m_pipeline_state.blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
+	m_pipeline_state.blend_state.use_dst_alpha = VK_FALSE;
 }
 
 StateTracker::~StateTracker()
@@ -87,6 +97,42 @@ void StateTracker::DisableBackFaceCulling()
 		return;
 
 	m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetRasterizationState(const RasterizationState& state)
+{
+	if (m_pipeline_state.rasterization_state.hex == state.hex)
+		return;
+
+	m_pipeline_state.rasterization_state.hex = state.hex;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetDepthStencilState(const DepthStencilState& state)
+{
+	if (m_pipeline_state.depth_stencil_state.hex == state.hex)
+		return;
+
+	m_pipeline_state.depth_stencil_state.hex = state.hex;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetBlendState(const BlendState& state)
+{
+	if (m_pipeline_state.blend_state.hex == state.hex)
+		return;
+
+	m_pipeline_state.blend_state.hex = state.hex;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetColorMask(u32 mask)
+{
+	if (m_pipeline_state.blend_state.write_mask == mask)
+		return;
+
+	m_pipeline_state.blend_state.write_mask = mask;
 	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 

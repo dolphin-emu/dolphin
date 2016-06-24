@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/PixelShaderManager.h"
 
@@ -117,6 +118,16 @@ void Renderer::BeginFrame()
 	RestoreAPIState();
 }
 
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+{
+
+}
+
+void Renderer::ReinterpretPixelData(unsigned int convtype)
+{
+
+}
+
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc, float gamma)
 {
 	ResetAPIState();
@@ -202,6 +213,160 @@ void Renderer::RestoreAPIState()
 
 	// Re-apply all game state, there may be some redundant calls in here, oh well
 	m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
+}
+
+void Renderer::SetGenerationMode()
+{
+	RasterizationState new_rs_state;
+
+	switch (bpmem.genMode.cullmode)
+	{
+	case GenMode::CULL_NONE:	new_rs_state.cull_mode = VK_CULL_MODE_NONE;					break;
+	case GenMode::CULL_BACK:	new_rs_state.cull_mode = VK_CULL_MODE_BACK_BIT;				break;
+	case GenMode::CULL_FRONT:	new_rs_state.cull_mode = VK_CULL_MODE_FRONT_BIT;			break;
+	case GenMode::CULL_ALL:		new_rs_state.cull_mode = VK_CULL_MODE_FRONT_AND_BACK;		break;
+	default:					new_rs_state.cull_mode = VK_CULL_MODE_NONE;					break;
+	}
+
+	m_state_tracker->SetRasterizationState(new_rs_state);
+}
+
+void Renderer::SetDepthMode()
+{
+	DepthStencilState new_ds_state;
+	new_ds_state.test_enable = (bpmem.zmode.testenable) ? VK_TRUE : VK_FALSE;
+	new_ds_state.write_enable = (bpmem.zmode.updateenable) ? VK_TRUE : VK_FALSE;
+
+	// Inverted depth, hence these are swapped
+	switch (bpmem.zmode.func)
+	{
+	case ZMode::NEVER:			new_ds_state.compare_op = VK_COMPARE_OP_NEVER;				break;
+	case ZMode::LESS:			new_ds_state.compare_op = VK_COMPARE_OP_GREATER;			break;
+	case ZMode::EQUAL:			new_ds_state.compare_op = VK_COMPARE_OP_EQUAL;				break;
+	case ZMode::LEQUAL:			new_ds_state.compare_op = VK_COMPARE_OP_GREATER_OR_EQUAL;	break;
+	case ZMode::GREATER:		new_ds_state.compare_op = VK_COMPARE_OP_LESS;				break;
+	case ZMode::NEQUAL:			new_ds_state.compare_op = VK_COMPARE_OP_NOT_EQUAL;			break;
+	case ZMode::GEQUAL:			new_ds_state.compare_op = VK_COMPARE_OP_LESS_OR_EQUAL;		break;
+	case ZMode::ALWAYS:			new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;				break;
+	default:					new_ds_state.compare_op = VK_COMPARE_OP_ALWAYS;				break;
+	}
+
+	m_state_tracker->SetDepthStencilState(new_ds_state);
+}
+
+void Renderer::SetColorMask()
+{
+	u32 color_mask = 0;
+
+	if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
+	{
+		if (bpmem.blendmode.alphaupdate && bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
+			color_mask |= VK_COLOR_COMPONENT_A_BIT;
+		if (bpmem.blendmode.colorupdate)
+			color_mask |= VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+	}
+
+	m_state_tracker->SetColorMask(color_mask);
+}
+
+void Renderer::SetBlendMode(bool forceUpdate)
+{
+	BlendState new_blend_state;
+
+	// Keep saved color mask
+	new_blend_state.write_mask = m_state_tracker->GetColorWriteMask();
+
+	// Fast path for blending disabled
+	if (!bpmem.blendmode.blendenable)
+	{
+		new_blend_state.blend_enable = VK_FALSE;
+		new_blend_state.blend_op = VK_BLEND_OP_ADD;
+		new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
+		new_blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
+		new_blend_state.use_dst_alpha = VK_FALSE;
+		m_state_tracker->SetBlendState(new_blend_state);
+		return;
+	}
+	// Fast path for subtract blending
+	else if (bpmem.blendmode.subtract)
+	{
+		new_blend_state.blend_enable = VK_FALSE;
+		new_blend_state.blend_op = VK_BLEND_OP_REVERSE_SUBTRACT;
+		new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
+		new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;
+		new_blend_state.use_dst_alpha = VK_FALSE;
+		m_state_tracker->SetBlendState(new_blend_state);
+		return;
+	}
+
+	// Our render target always uses an alpha channel, so we need to override the blend functions to
+	// assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
+	// Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
+	// is assumed to always be 1.
+	bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
+	// TODO: Handle logic ops
+	new_blend_state.blend_enable = VK_TRUE;
+	new_blend_state.blend_op = VK_BLEND_OP_ADD;
+	new_blend_state.use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+
+	switch (bpmem.blendmode.srcfactor)
+	{
+	case BlendMode::ZERO:		new_blend_state.src_blend = VK_BLEND_FACTOR_ZERO;					break;
+	case BlendMode::ONE:		new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;					break;
+	case BlendMode::DSTCLR:		new_blend_state.src_blend = VK_BLEND_FACTOR_DST_COLOR;				break;
+	case BlendMode::INVDSTCLR:	new_blend_state.src_blend = VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;	break;
+	case BlendMode::SRCALPHA:	new_blend_state.src_blend = VK_BLEND_FACTOR_SRC_ALPHA;				break;
+	case BlendMode::INVSRCALPHA:new_blend_state.src_blend = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;	break;
+	case BlendMode::DSTALPHA:	new_blend_state.src_blend = (target_has_alpha) ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;				break;
+	case BlendMode::INVDSTALPHA:new_blend_state.src_blend = (target_has_alpha) ? VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA : VK_BLEND_FACTOR_ZERO;	break;
+	default:					new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;					break;
+	}
+
+	switch (bpmem.blendmode.dstfactor)
+	{
+	case BlendMode::ZERO:		new_blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;					break;
+	case BlendMode::ONE:		new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;					break;
+	case BlendMode::SRCCLR:		new_blend_state.dst_blend = VK_BLEND_FACTOR_SRC_COLOR;				break;
+	case BlendMode::INVSRCCLR:	new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;	break;
+	case BlendMode::SRCALPHA:	new_blend_state.dst_blend = VK_BLEND_FACTOR_SRC_ALPHA;				break;
+	case BlendMode::INVSRCALPHA:new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;	break;
+	case BlendMode::DSTALPHA:	new_blend_state.dst_blend = (target_has_alpha) ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;				break;
+	case BlendMode::INVDSTALPHA:new_blend_state.dst_blend = (target_has_alpha) ? VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA : VK_BLEND_FACTOR_ZERO;	break;
+	default:					new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;					break;
+	}
+
+	m_state_tracker->SetBlendState(new_blend_state);
+}
+
+void Renderer::SetLogicOpMode()
+{
+	// TODO: Implement me
+}
+
+void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
+{
+
+}
+
+void Renderer::SetDitherMode()
+{
+	// TODO: Implement me
+}
+
+void Renderer::SetInterlacingMode()
+{
+	// TODO: Implement me
+}
+
+void Renderer::SetScissorRect(const EFBRectangle& rc)
+{
+
+}
+
+void Renderer::SetViewport()
+{
+
 }
 
 } // namespace Vulkan
