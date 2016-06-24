@@ -28,9 +28,12 @@ public:
 	ShaderCache(VkDevice device);
 	~ShaderCache();
 
+	VkShaderModule CompileAndCreateShader(const std::string& shader_source, bool prepend_header = true);
+
 	VkShaderModule GetShaderForUid(const Uid& uid, u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
 
 private:
+	bool CompileShaderToSPV(const std::string& shader_source, std::vector<uint32_t>* spv);
 	void LoadShadersFromDisk();
 
 	VkDevice m_device;
@@ -42,6 +45,6 @@ private:
 
 using VertexShaderCache = ShaderCache<VertexShaderUid>;
 using GeometryShaderCache = ShaderCache<GeometryShaderUid>;
-using FragmentShaderCache = ShaderCache<PixelShaderUid>;
+using PixelShaderCache = ShaderCache<PixelShaderUid>;
 
 }  // namespace Vulkan

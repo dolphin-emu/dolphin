@@ -3,20 +3,24 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
+#include "VideoBackends/Vulkan/Util.h"
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
 
 namespace Vulkan {
 
-ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
+ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr)
 	: m_instance(instance)
 	, m_physical_device(physical_device)
 	, m_device(device)
+	, m_command_buffer_mgr(command_buffer_mgr)
 	, m_vs_cache(device)
 	, m_gs_cache(device)
-	, m_fs_cache(device)
+	, m_ps_cache(device)
+	, m_static_shader_cache(device, &m_vs_cache, &m_gs_cache, &m_ps_cache)
 {
 	// Read device physical memory properties, we need it for allocating buffers
 	vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
@@ -25,6 +29,15 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 ObjectCache::~ObjectCache()
 {
 	ClearPipelineCache();
+
+	if (m_pipeline_layout != VK_NULL_HANDLE)
+		vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+
+	for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
+	{
+		if (layout != VK_NULL_HANDLE)
+			vkDestroyDescriptorSetLayout(m_device, layout, nullptr);
+	}
 }
 
 bool ObjectCache::Initialize()
@@ -33,6 +46,17 @@ bool ObjectCache::Initialize()
 		return false;
 
 	if (!CreatePipelineLayout())
+		return false;
+
+	if (!CreateBackendShaderVertexFormat())
+		return false;
+
+	m_backend_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024, 256 * 1024);
+	m_backend_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 256 * 1024);
+	if (!m_backend_shader_vertex_buffer || !m_backend_shader_uniform_buffer)
+		return false;
+
+	if (!m_static_shader_cache.CompileShaders())
 		return false;
 
 	return true;
@@ -283,14 +307,26 @@ void ObjectCache::ClearPipelineCache()
 	m_pipeline_cache.clear();
 }
 
+bool ObjectCache::RecompileStaticShaders()
+{
+	m_static_shader_cache.DestroyShaders();
+	if (!m_static_shader_cache.CompileShaders())
+	{
+		PanicAlert("Failed to recompile static shaders.");
+		return false;
+	}
+
+	return true;
+}
+
 bool ObjectCache::CreateDescriptorSetLayouts()
 {
 	VkDescriptorSetLayoutBinding combined_set_bindings[] = {
-		{ 2,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT	},
-		{ 3,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_GEOMETRY_BIT								},
-		{ 1,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-		{ 0,	VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		16,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-		{ 4,	VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT	},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_GS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_GEOMETRY_BIT								},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,	VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		16,		VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SSBO,		VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
 	};
 
 	VkDescriptorSetLayoutCreateInfo combined_layout_info = {
@@ -330,6 +366,29 @@ bool ObjectCache::CreatePipelineLayout()
 		return false;
 	}
 
+	return true;
+}
+
+bool ObjectCache::CreateBackendShaderVertexFormat()
+{
+	PortableVertexDeclaration vtx_decl = {};
+	vtx_decl.position.enable = true;
+	vtx_decl.position.type = VAR_FLOAT;
+	vtx_decl.position.components = 4;
+	vtx_decl.position.integer = false;
+	vtx_decl.position.offset = offsetof(BackendShaderVertex, Position);
+	vtx_decl.texcoords[0].enable = true;
+	vtx_decl.texcoords[0].type = VAR_FLOAT;
+	vtx_decl.texcoords[0].components = 4;
+	vtx_decl.texcoords[0].integer = false;
+	vtx_decl.texcoords[0].offset = offsetof(BackendShaderVertex, TexCoord);
+	vtx_decl.colors[0].enable = true;
+	vtx_decl.colors[0].type = VAR_FLOAT;
+	vtx_decl.colors[0].components = 4;
+	vtx_decl.colors[0].integer = false;
+	vtx_decl.colors[0].offset = offsetof(BackendShaderVertex, Color);
+
+	m_backend_shader_vertex_format = std::make_unique<VertexFormat>(vtx_decl);
 	return true;
 }
 

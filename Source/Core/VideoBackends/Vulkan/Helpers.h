@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "VideoBackends/Vulkan/Globals.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {

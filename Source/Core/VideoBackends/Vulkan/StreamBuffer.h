@@ -33,7 +33,7 @@ public:
 	u8* GetCurrentHostPointer() const { return m_host_pointer + m_current_offset; }
 	size_t GetCurrentOffset() const { return m_current_offset; }
 
-	bool ReserveMemory(size_t num_bytes, size_t alignment);
+	bool ReserveMemory(size_t num_bytes, size_t alignment, bool reallocate_if_full = false);
 	void CommitMemory(size_t final_num_bytes);
 
 	static std::unique_ptr<StreamBuffer> Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkBufferUsageFlags usage, size_t initial_size, size_t max_size);
