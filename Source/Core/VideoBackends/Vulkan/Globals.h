@@ -57,7 +57,7 @@ union RasterizationState
 };
 
 // Depth state info
-struct DepthStencilState
+union DepthStencilState
 {
 	BitField<0, 1, u32> test_enable;
 	BitField<1, 1, u32> write_enable;
