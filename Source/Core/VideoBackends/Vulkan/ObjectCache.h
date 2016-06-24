@@ -52,6 +52,9 @@ public:
 
 	const VkPhysicalDeviceMemoryProperties& GetDeviceMemoryProperties() const { return m_device_memory_properties; }
 
+	// Support bits
+	bool SupportsGeometryShaders() const { return m_support_bits.geometry_shaders; }
+
 	VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
 	VkPipelineLayout GetPipelineLayout() const { return m_pipeline_layout; }
 
@@ -80,6 +83,12 @@ private:
 	VkDevice m_device = VK_NULL_HANDLE;
 
 	VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
+
+	struct
+	{
+		u32 geometry_shaders : 1;
+		u32 bits;
+	} m_support_bits;
 
 	std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
 

@@ -45,7 +45,6 @@ public:
 	bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override { return false; }
 
 	void ApplyState(bool bUseDstAlpha) override;
-	void RestoreState() override;
 
 	void ResetAPIState() override;
 	void RestoreAPIState() override;
