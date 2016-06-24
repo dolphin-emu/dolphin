@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <string>
 #include <wx/app.h>
 #include <wx/bitmap.h>
+#include <wx/dcclient.h>
 #include <wx/gdicmn.h>
 #include <wx/image.h>
 #include <wx/msgdlg.h>
@@ -104,6 +106,68 @@ void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, con
 	// Must explicitly set the disabled button bitmap because wxWidgets
 	// incorrectly desaturates it instead of lightening it.
 	toolbar->AddTool(toolID, label, bitmap, WxUtils::CreateDisabledButtonBitmap(bitmap), wxITEM_NORMAL, shortHelp);
+}
+
+// NOTE: In wxWidgets 3.1.0 there is a native function (wxWindowBase::FromDIP()) which
+//	is functionally similar and can be used instead.
+wxPoint FromDIP(wxPoint dip_pixels, const wxWindow* context)
+{
+	static constexpr int CSS_PPI = 96;
+
+	wxSize ppi;
+	{
+		wxClientDC dc(const_cast<wxWindow*>(context));
+		ppi = dc.GetPPI();
+	}
+
+	// Clamp PPI to >= 96. We only want to scale UP, never down.
+	// Scaling down will result in bad things happening (too small to read, etc).
+	// [Values less than 96 are possible on Linux, since Linux actually tries to
+	//  be accurate about this but monitors lie about their dimensions]
+	// NOTE: OS X may just return 72 as PPI always. On OS X,
+	//	wxWindow::GetContentScaleFactor() will return 2.0 for Retina mode which
+	//	can be used to scale raster images, but you can't actually get the DPI.
+	//	(Not that you would want to since native widgets scale themselves).
+	ppi.IncTo(wxSize(CSS_PPI, CSS_PPI));
+
+	// MulDiv rounds the result.
+	if (dip_pixels.x != wxDefaultCoord)
+		dip_pixels.x = wxMulDivInt32(dip_pixels.x, ppi.GetWidth(), CSS_PPI);
+	if (dip_pixels.y != wxDefaultCoord)
+		dip_pixels.y = wxMulDivInt32(dip_pixels.y, ppi.GetHeight(), CSS_PPI);
+	return dip_pixels;
+}
+
+int FromDIP(int value, const wxWindow* context, wxOrientation direction)
+{
+	if (value < 1)
+		return value;
+
+	wxPoint result = FromDIP(wxPoint(value, value), context);
+	if ((direction & wxBOTH) == wxBOTH)
+		return std::max(result.x, result.y);
+	else if (direction & wxVERTICAL)
+		return result.y;
+	return result.x;
+}
+
+void SetSizeRange(wxWindow* window, wxSize min_size, wxSize max_size)
+{
+	window->SetMinSize(wxDefaultSize);
+	window->SetMaxSize(wxDefaultSize);
+
+	wxSize best_size = window->GetBestSize();
+	best_size.DecToIfSpecified(max_size);
+	min_size.DecToIfSpecified(max_size);
+
+	if (min_size.GetWidth() == wxDefaultCoord)
+		best_size.SetWidth(wxDefaultCoord);
+	if (min_size.GetHeight() == wxDefaultCoord)
+		best_size.SetHeight(wxDefaultCoord);
+	min_size.IncTo(best_size);
+
+	window->SetMinSize(min_size);
+	window->SetMaxSize(max_size);
 }
 
 }  // namespace
