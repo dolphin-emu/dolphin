@@ -45,19 +45,19 @@ private:
 
 	struct
 	{
-		VkShaderModule screen_quad;
-		VkShaderModule passthrough;
+		VkShaderModule screen_quad = nullptr;
+		VkShaderModule passthrough = nullptr;
 	} m_vertex_shaders;
 
 	struct
 	{
-		VkShaderModule passthrough;
+		VkShaderModule passthrough = nullptr;
 	} m_geometry_shaders;
 
 	struct
 	{
-		VkShaderModule blit;
-		VkShaderModule clear;
+		VkShaderModule blit = nullptr;
+		VkShaderModule clear = nullptr;
 	} m_fragment_shaders;
 };
 

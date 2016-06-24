@@ -137,7 +137,8 @@ bool VideoBackend::Initialize(void* window_handle)
 	// Create vulkan device and grab queues
 	uint32_t graphics_queue_family_index, present_queue_family_index;
 	VkQueue graphics_queue, present_queue;
-	s_vkDevice = CreateVulkanDevice(s_vkPhysicalDevice, s_vkSurface, &graphics_queue_family_index, &graphics_queue, &present_queue_family_index, &present_queue);
+	SupportBits support_bits;
+	s_vkDevice = CreateVulkanDevice(s_vkPhysicalDevice, s_vkSurface, &graphics_queue_family_index, &graphics_queue, &present_queue_family_index, &present_queue, &support_bits);
 	if (!s_vkDevice)
 	{
 		PanicAlert("Failed to create vulkan device");
@@ -153,7 +154,7 @@ bool VideoBackend::Initialize(void* window_handle)
 	}
 
 	// create object cache
-	s_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice, s_command_buffer_mgr.get());
+	s_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice, s_command_buffer_mgr.get(), support_bits);
 	if (!s_object_cache->Initialize())
 	{
 		PanicAlert("Failed to create vulkan object cache");

@@ -17,7 +17,6 @@
 template <class T>
 static T GenerateVertexShader(API_TYPE api_type)
 {
-<<<<<<< HEAD
   T out;
   const u32 components = VertexLoaderManager::g_current_components;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)

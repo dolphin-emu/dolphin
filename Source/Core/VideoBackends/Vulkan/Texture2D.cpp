@@ -124,16 +124,16 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 		return;
 
 	VkImageMemoryBarrier barrier = {
-		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		nullptr,
-		0,
-		0,
-		m_layout,
-		new_layout,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		m_image,
-		{ static_cast<VkImageAspectFlags>(IsDepthFormat(m_format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT), 0, m_levels, 0, m_layers }
+		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType            sType
+		nullptr,											// const void*                pNext
+		0,													// VkAccessFlags              srcAccessMask
+		0,													// VkAccessFlags              dstAccessMask
+		m_layout,											// VkImageLayout              oldLayout
+		new_layout,											// VkImageLayout              newLayout
+		VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   srcQueueFamilyIndex
+		VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   dstQueueFamilyIndex
+		m_image,											// VkImage                    image
+		{ static_cast<VkImageAspectFlags>(IsDepthFormat(m_format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT), 0, m_levels, 0, m_layers }	// VkImageSubresourceRange    subresourceRange
 	};
 
 	switch (m_layout)
