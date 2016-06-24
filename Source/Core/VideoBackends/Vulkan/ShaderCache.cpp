@@ -103,6 +103,105 @@ void Vulkan::ShaderCache<Uid>::LoadShadersFromDisk()
 	m_disk_cache.OpenAndRead(disk_cache_filename, inserter);
 }
 
+
+template <typename Uid>
+bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_source, std::vector<uint32_t>* spv)
+{
+	// Call out to shaderc to do the heavy lifting
+	shaderc::Compiler& compiler = GetShaderCompiler();
+	shaderc::CompileOptions options;
+	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(
+		shader_source,
+		ShaderCacheFunctions<Uid>::GetShaderKind(),
+		"shader.glsl",
+		options);
+
+	// Check for failed compilation
+	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	{
+		// Compile failed, write the bad shader to a file
+		std::string filename = ShaderCacheFunctions<Uid>::GetDumpFileName("bad_");
+		std::ofstream stream;
+		OpenFStream(stream, filename, std::ios_base::out);
+		if (stream.good())
+		{
+			stream << shader_source << "\n"
+			       << result.GetNumErrors() << " errors, "
+			       << result.GetNumWarnings() << " warnings\n"
+			       << result.GetErrorMessage();
+
+			stream.close();
+		}
+
+		PanicAlert("Failed to compile shader (written to %s):\n%s", filename.c_str(), result.GetErrorMessage().c_str());
+		return false;
+
+	}
+
+	// Shader dumping
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
+	{
+		std::string filename = ShaderCacheFunctions<Uid>::GetDumpFileName("");
+		std::ofstream stream;
+		OpenFStream(stream, filename, std::ios_base::out);
+		if (stream.good())
+		{
+			shaderc::AssemblyCompilationResult resultasm = compiler.CompileGlslToSpvAssembly(
+				shader_source,
+				ShaderCacheFunctions<Uid>::GetShaderKind(),
+				"shader.glsl",
+				options);
+
+			stream << shader_source;
+
+			if (resultasm.GetCompilationStatus() == shaderc_compilation_status_success)
+				stream << "Compiled SPIR-V:\n" << resultasm.begin();
+
+			stream.close();
+		}
+	}
+
+	// Construct a vector of dwords containing the spir-v code
+	*spv = std::move(std::vector<uint32_t>(result.begin(), result.end()));
+	return true;
+}
+
+template <typename Uid>
+VkShaderModule ShaderCache<Uid>::CompileAndCreateShader(const std::string& shader_source, bool prepend_header)
+{
+	// Pass it the header and source through
+	std::vector<uint32_t> spv;
+	if (prepend_header)
+	{
+		if (!CompileShaderToSPV(GetShaderHeader() + shader_source, &spv))
+			return nullptr;
+	}
+	else
+	{
+		if (!CompileShaderToSPV(shader_source, &spv))
+			return nullptr;
+	}
+
+	// Create a shader module on the device
+	VkShaderModuleCreateInfo info = {
+		VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+		nullptr,
+		0,
+		static_cast<uint32_t>(spv.size() * sizeof(uint32_t)),
+		spv.data()
+	};
+
+	VkShaderModule module;
+	VkResult res = vkCreateShaderModule(m_device, &info, nullptr, &module);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkCreateShaderModule failed: ");
+		return nullptr;
+	}
+
+	return module;
+}
+
 template <typename Uid>
 VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_type, DSTALPHA_MODE dstalpha_mode)
 {
@@ -117,70 +216,22 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	// Append header to code
 	std::string full_code = GetShaderHeader() + code.GetBuffer();
 
-	// Call out to shaderc to do the heavy lifting
-	shaderc::Compiler& compiler = GetShaderCompiler();
-	shaderc::CompileOptions options;
-	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(
-		full_code,
-		ShaderCacheFunctions<Uid>::GetShaderKind(),
-		"shader.glsl",
-		options);
-	
-	// Check for failed compilation
-	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	// Actually compile the shader, this may not succeed if we did something bad
+	std::vector<uint32_t> spv;
+	if (!CompileShaderToSPV(full_code, &spv))
 	{
-		// Compile failed, write the bad shader to a file
-		std::string filename = ShaderCacheFunctions<Uid>::GetDumpFileName("bad_");
-		std::ofstream stream;
-		OpenFStream(stream, filename, std::ios_base::out);
-		if (stream.good())
-		{
-			stream << full_code << "\n"
-				   << result.GetNumErrors() << " errors, "
-				   << result.GetNumWarnings() << " warnings\n"
-				   << result.GetErrorMessage();
-
-			stream.close();
-		}
-
-		PanicAlert("Failed to compile shader (written to %s):\n%s", filename.c_str(), result.GetErrorMessage().c_str());
+		// Store a null pointer, no point re-attempting compilation multiple times
 		m_shaders.emplace(uid, nullptr);
 		return nullptr;
 	}
-
-	// Shader dumping
-	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
-	{
-		std::string filename = ShaderCacheFunctions<Uid>::GetDumpFileName("");
-		std::ofstream stream;
-		OpenFStream(stream, filename, std::ios_base::out);
-		if (stream.good())
-		{
-			shaderc::AssemblyCompilationResult resultasm = compiler.CompileGlslToSpvAssembly(
-				full_code,
-				ShaderCacheFunctions<Uid>::GetShaderKind(),
-				"shader.glsl",
-				options);
-
-			stream << full_code;
-			
-			if (resultasm.GetCompilationStatus() == shaderc_compilation_status_success)
-				stream << "Compiled SPIR-V:\n" << resultasm.begin();
-
-			stream.close();
-		}
-	}
-
-	// Construct a vector of dwords containing the spir-v code
-	std::vector<uint32_t> spirv(result.begin(), result.end());
-
+	
 	// Create a shader module on the device
 	VkShaderModuleCreateInfo info = {
 		VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
 		nullptr,
 		0,
-		static_cast<uint32_t>(spirv.size() * sizeof(uint32_t)),
-		spirv.data()
+		static_cast<uint32_t>(spv.size() * sizeof(uint32_t)),
+		spv.data()
 	};
 
 	VkShaderModule module;
@@ -192,10 +243,10 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 		return nullptr;
 	}
 
-	ShaderCacheFunctions<VertexShaderUid>::IncrementCounter();
+	ShaderCacheFunctions<Uid>::IncrementCounter();
 
 	// Store the shader bytecode to the disk cache
-	m_disk_cache.Append(uid, spirv.data(), static_cast<u32>(spirv.size()));
+	m_disk_cache.Append(uid, spv.data(), static_cast<u32>(spv.size()));
 	m_shaders.emplace(uid, module);
 	return module;
 }
@@ -211,6 +262,7 @@ std::string GetShaderHeader()
 	// TODO: Handle GLSL versions/extensions/mobile
 	return StringFromFormat(
 		"#version 440\n"
+		"#extension GL_KHR_vulkan_glsl : enable\n"
 		"#extension GL_ARB_uniform_buffer_object : enable\n" // ubo
 		"#define FORCE_EARLY_Z layout(early_fragment_tests) in\n" // early-z
 		"#extension GL_ARB_shader_image_load_store : enable\n" // early-z
@@ -244,6 +296,10 @@ std::string GetShaderHeader()
 		// hlsl to glsl function translation
 		"#define frac fract\n"
 		"#define lerp mix\n"
+
+		// OGL->Vulkan stupidity
+		"#define gl_VertexID gl_VertexIndex\n"
+		"#define gl_InstanceID gl_InstanceIndex\n"
 	);
 }
 
@@ -278,7 +334,7 @@ struct ShaderCacheFunctions<VertexShaderUid>
 			File::CreateDir(File::GetUserPath(D_DUMP_IDX));
 
 		static int counter = 0;
-		return StringFromFormat("%s%s_vs_%04i.txt",
+		return StringFromFormat("%s%svs_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
 			prefix,
 			counter++);
@@ -328,7 +384,7 @@ struct ShaderCacheFunctions<GeometryShaderUid>
 			File::CreateDir(File::GetUserPath(D_DUMP_IDX));
 
 		static int counter = 0;
-		return StringFromFormat("%s%s_gs_%04i.txt",
+		return StringFromFormat("%s%sgs_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
 			prefix,
 			counter++);
@@ -378,7 +434,7 @@ struct ShaderCacheFunctions<PixelShaderUid>
 			File::CreateDir(File::GetUserPath(D_DUMP_IDX));
 
 		static int counter = 0;
-		return StringFromFormat("%s%s_ps_%04i.txt",
+		return StringFromFormat("%s%sps_%04i.txt",
 			File::GetUserPath(D_DUMP_IDX).c_str(),
 			prefix,
 			counter++);
