@@ -15,8 +15,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/PixelShaderManager.h"
 
-namespace Vulkan
-{
+namespace Vulkan {
 
 // Init functions
 Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, SwapChain* swap_chain, StateTracker* state_tracker)
@@ -120,7 +119,45 @@ void Renderer::BeginFrame()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
+	// TODO: Use a shader for clearing colour/alpha, since alpha can be retained whilst clearing colour.
+	VkClearAttachment clear_attachments[2];
+	uint32_t num_clear_attachments = 0;
 
+	if (colorEnable)
+	{
+		clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		clear_attachments[num_clear_attachments].colorAttachment = 0;
+		clear_attachments[num_clear_attachments].clearValue.color.float32[0] = float((color >> 16) & 0xFF) / 255.0f;
+		clear_attachments[num_clear_attachments].clearValue.color.float32[1] = float((color >> 8) & 0xFF) / 255.0f;
+		clear_attachments[num_clear_attachments].clearValue.color.float32[2] = float((color >> 0) & 0xFF) / 255.0f;
+		clear_attachments[num_clear_attachments].clearValue.color.float32[3] = float((color >> 24) & 0xFF) / 255.0f;
+		num_clear_attachments++;
+	}
+
+	if (zEnable)
+	{
+		clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		clear_attachments[num_clear_attachments].colorAttachment = 0;
+		clear_attachments[num_clear_attachments].clearValue.depthStencil.depth = 1.0f - (float(z & 0xFFFFFF) / 16777216.0f);
+		clear_attachments[num_clear_attachments].clearValue.depthStencil.stencil = 0;
+		num_clear_attachments++;
+	}
+
+	if (num_clear_attachments > 0)
+	{
+		// Native -> EFB coordinates
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+		VkClearRect rect =
+		{
+			{																									// VkRect2D    rect
+				{ targetRc.left, targetRc.top },																// VkOffset2D  offset
+				{ static_cast<uint32_t>(targetRc.GetWidth()), static_cast<uint32_t>(targetRc.GetHeight()) }		// VkExtent2D  extent
+			},
+			0,																									// uint32_t    baseArrayLayer
+			m_framebuffer_mgr->GetEFBLayers()																	// uint32_t    layerCount
+		};
+		vkCmdClearAttachments(m_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments, clear_attachments, 1, &rect);
+	}
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
@@ -217,7 +254,7 @@ void Renderer::RestoreAPIState()
 
 void Renderer::SetGenerationMode()
 {
-	RasterizationState new_rs_state;
+	RasterizationState new_rs_state = {};
 
 	switch (bpmem.genMode.cullmode)
 	{
@@ -233,7 +270,7 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
-	DepthStencilState new_ds_state;
+	DepthStencilState new_ds_state = {};
 	new_ds_state.test_enable = (bpmem.zmode.testenable) ? VK_TRUE : VK_FALSE;
 	new_ds_state.write_enable = (bpmem.zmode.updateenable) ? VK_TRUE : VK_FALSE;
 
@@ -271,7 +308,7 @@ void Renderer::SetColorMask()
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-	BlendState new_blend_state;
+	BlendState new_blend_state = {};
 
 	// Keep saved color mask
 	new_blend_state.write_mask = m_state_tracker->GetColorWriteMask();
