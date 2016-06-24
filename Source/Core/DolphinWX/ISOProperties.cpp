@@ -1183,6 +1183,10 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 		}
 	}
 
+#ifdef _WIN32
+	wxString OpenCommand = StrToWxStr("cmd /c \"" + filename + "\"");
+	wxExecute(OpenCommand, wxEXEC_HIDE_CONSOLE);
+#else
 	wxString OpenCommand = filetype->GetOpenCommand(StrToWxStr(filename));
 	if (OpenCommand.IsEmpty())
 	{
@@ -1202,6 +1206,7 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
 		WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
 		return;
 	}
+#endif
 #endif
 }
 
