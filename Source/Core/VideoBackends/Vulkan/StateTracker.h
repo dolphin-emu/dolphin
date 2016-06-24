@@ -27,7 +27,13 @@ public:
 
 	void SetRenderPass(VkRenderPass render_pass);
 
-	bool CheckForShaderChanges(u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
+	void SetVertexFormat(const VertexFormat* vertex_format);
+
+	void SetPrimitiveTopology(VkPrimitiveTopology primitive_topology);
+
+	void DisableBackFaceCulling();
+
+	bool CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode);
 
 	void SetVSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
 	void SetGSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
@@ -75,7 +81,7 @@ private:
 
 	// pipeline state
 	PipelineInfo m_pipeline_state = {};
-	u32 m_primitive_type = 0;
+	u32 m_gx_primitive_type = 0;
 	DSTALPHA_MODE m_dstalpha_mode = DSTALPHA_NONE;
 	VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 

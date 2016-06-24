@@ -26,7 +26,7 @@ class VertexFormat;
 // Game shader state encompassed by pipelines
 struct PipelineInfo
 {
-	VertexFormat* vertex_format;
+	const VertexFormat* vertex_format;
 	VkShaderModule vs;
 	VkShaderModule gs;
 	VkShaderModule ps;

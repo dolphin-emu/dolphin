@@ -63,46 +63,64 @@ void StateTracker::SetRenderPass(VkRenderPass render_pass)
 	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-bool StateTracker::CheckForShaderChanges(u32 primitive_type, DSTALPHA_MODE dstalpha_mode)
+void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
+{
+	if (m_pipeline_state.vertex_format == vertex_format)
+		return;
+
+	m_pipeline_state.vertex_format = vertex_format;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetPrimitiveTopology(VkPrimitiveTopology primitive_topology)
+{
+	if (m_pipeline_state.primitive_topology == primitive_topology)
+		return;
+
+	m_pipeline_state.primitive_topology = primitive_topology;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::DisableBackFaceCulling()
+{
+	if (m_pipeline_state.rasterization_state.cull_mode == VK_CULL_MODE_NONE)
+		return;
+
+	m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
+	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode)
 {
 	VertexShaderUid vs_uid = GetVertexShaderUid(API_OPENGL);
-	GeometryShaderUid gs_uid = GetGeometryShaderUid(m_primitive_type, API_OPENGL);
+	GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type, API_OPENGL);
 	PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode, API_OPENGL);
 
 	bool changed = false;
 
 	if (vs_uid != m_vs_uid)
 	{
-		m_pipeline_state.vs = m_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, primitive_type, dstalpha_mode);
+		m_pipeline_state.vs = m_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, gx_primitive_type, dstalpha_mode);
 		m_vs_uid = vs_uid;
 		changed = true;
 	}
 
 	if (gs_uid != m_gs_uid)
 	{
-		m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, primitive_type, dstalpha_mode);
+		m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, gx_primitive_type, dstalpha_mode);
 		m_gs_uid = gs_uid;
 		changed = true;
 	}
 
 	if (ps_uid != m_ps_uid)
 	{
-		m_pipeline_state.ps = m_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, primitive_type, dstalpha_mode);
+		m_pipeline_state.ps = m_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, gx_primitive_type, dstalpha_mode);
 		m_ps_uid = ps_uid;
 		changed = true;
 	}
 
-	if (m_primitive_type != primitive_type)
-	{
-		m_primitive_type = primitive_type;
-		changed = true;
-	}
-
-	if (m_dstalpha_mode != dstalpha_mode)
-	{
-		m_dstalpha_mode = dstalpha_mode;
-		changed = true;
-	}
+	m_gx_primitive_type = gx_primitive_type;
+	m_dstalpha_mode = dstalpha_mode;
 
 	if (changed)
 		m_dirty_flags |= DIRTY_FLAG_PIPELINE;
