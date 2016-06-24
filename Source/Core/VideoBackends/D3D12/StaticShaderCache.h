@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "VideoBackends/D3D12/D3DBase.h"
+
 namespace DX12
 {
 class StaticShaderCache final

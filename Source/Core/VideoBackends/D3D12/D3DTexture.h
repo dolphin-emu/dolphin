@@ -6,6 +6,9 @@
 
 #include <atomic>
 
+#include "Common/CommonTypes.h"
+#include "VideoBackends/D3D12/D3DBase.h"
+
 namespace DX12
 {
 enum TEXTURE_BIND_FLAG : u32
