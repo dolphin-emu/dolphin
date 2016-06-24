@@ -847,7 +847,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     // used for maxcount (allocated mem?)
     // called with 1 inbuffer after deleting a titleid
     //_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETSTOREDTMD no out
-    //buffer");
+    // buffer");
 
     u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
     u32 MaxCount = 0;

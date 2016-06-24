@@ -669,9 +669,9 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
   //	u16 y = irData[1] | ((irData[2] >> 6 & 0x3) << 8);
 
   //	SetStickValue(&m_main_stick.x_cont.set_by_keyboard, &m_main_stick.x_cont.value,
-  //m_main_stick.x_cont.text, x, 561);
+  // m_main_stick.x_cont.text, x, 561);
   //	SetStickValue(&m_main_stick.y_cont.set_by_keyboard, &m_main_stick.y_cont.value,
-  //m_main_stick.y_cont.text, y, 486);
+  // m_main_stick.y_cont.text, y, 486);
   //}
 
   if (extData && ext == 1)

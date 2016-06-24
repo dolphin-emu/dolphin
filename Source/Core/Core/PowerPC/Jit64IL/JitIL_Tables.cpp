@@ -179,27 +179,27 @@ static GekkoOPTemplate table31[] = {
     {266, &JitIL::addx},  //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
     {778, &JitIL::addx},  //"addox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
     {10, &JitIL::FallBackToInterpreter},   //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                           //FL_SET_CA | FL_RC_BIT}},
+                                           // FL_SET_CA | FL_RC_BIT}},
     {522, &JitIL::FallBackToInterpreter},  //"addcox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                           //FL_SET_CA | FL_RC_BIT}},
+                                           // FL_SET_CA | FL_RC_BIT}},
     {138, &JitIL::addex},  //"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA
                            //| FL_RC_BIT}},
     {650, &JitIL::addex},  //"addeox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA
                            //| FL_RC_BIT}},
     {234, &JitIL::FallBackToInterpreter},  //"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                           //FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+                                           // FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
     {746, &JitIL::FallBackToInterpreter},  //"addmeox"
     {202, &JitIL::addzex},  //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA |
-                            //FL_SET_CA | FL_RC_BIT}},
+                            // FL_SET_CA | FL_RC_BIT}},
     {714, &JitIL::addzex},  //"addzeox"
     {491, &JitIL::FallBackToInterpreter},   //"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                            //FL_RC_BIT, 39}},
+                                            // FL_RC_BIT, 39}},
     {1003, &JitIL::FallBackToInterpreter},  //"divwox",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                            //FL_RC_BIT, 39}},
+                                            // FL_RC_BIT, 39}},
     {459, &JitIL::divwux},  //"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
     {971, &JitIL::divwux},  //"divwuox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
     {75, &JitIL::FallBackToInterpreter},  //"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                          //FL_RC_BIT, 4}},
+                                          // FL_RC_BIT, 4}},
     {11, &JitIL::mulhwux},  //"mulhwux", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
     {235, &JitIL::mullwx},  //"mullwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
     {747, &JitIL::mullwx},  //"mullwox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
@@ -212,13 +212,13 @@ static GekkoOPTemplate table31[] = {
     {520,
      &JitIL::subfcx},  //"subfcox", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
     {136, &JitIL::subfex},  //"subfex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA |
-                            //FL_SET_CA | FL_RC_BIT}},
+                            // FL_SET_CA | FL_RC_BIT}},
     {648, &JitIL::subfex},  //"subfeox"
     {232, &JitIL::FallBackToInterpreter},  //"subfmex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                           //FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+                                           // FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
     {744, &JitIL::FallBackToInterpreter},  //"subfmeox"
     {200, &JitIL::FallBackToInterpreter},  //"subfzex", OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
-                                           //FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
+                                           // FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
     {712, &JitIL::FallBackToInterpreter},  //"subfzeox"
 
     {28, &JitIL::boolX},    //"andx",   OPTYPE_INTEGER, FL_OUT_A | FL_IN_SB | FL_RC_BIT}},
@@ -270,7 +270,7 @@ static GekkoOPTemplate table31[] = {
     // Conditional load/store (Wii SMP)
     {150, &JitIL::FallBackToInterpreter},  //"stwcxd", OPTYPE_STORE, FL_EVIL | FL_SET_CR0}},
     {20, &JitIL::FallBackToInterpreter},   //"lwarx",  OPTYPE_LOAD, FL_EVIL | FL_OUT_D | FL_IN_A0B |
-                                           //FL_SET_CR0}},
+                                           // FL_SET_CR0}},
 
     // load string (interpret these)
     {533, &JitIL::FallBackToInterpreter},  //"lswx",  OPTYPE_LOAD, FL_EVIL | FL_IN_A | FL_OUT_D}},

@@ -178,7 +178,7 @@ void DSPEmitter::cmp(const UDSPInstruction opc)
     //		s64 res = dsp_convert_long_acc(acc0 - acc1);
     SUB(64, R(RAX), R(RDX));
     //		Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF ->
-    //influence on ABS/0xa100
+    // influence on ABS/0xa100
     NEG(64, R(RDX));
     Update_SR_Register64_Carry(EAX, tmp1, true);
     gpr.PutXReg(tmp1);
@@ -232,7 +232,7 @@ void DSPEmitter::cmpi(const UDSPInstruction opc)
     get_long_acc(reg, tmp1);
     MOV(64, R(RAX), R(tmp1));
     //		s64 imm = (s64)(s16)dsp_fetch_code() << 16; // Immediate is considered to be at M level in
-    //the 40-bit accumulator.
+    // the 40-bit accumulator.
     u16 imm = dsp_imem_read(compilePC + 1);
     MOV(64, R(RDX), Imm64((s64)(s16)imm << 16));
     //		s64 res = dsp_convert_long_acc(val - imm);
@@ -1172,7 +1172,7 @@ void DSPEmitter::lsr16(const UDSPInstruction opc)
   //	u64 acc = dsp_get_long_acc(areg);
   get_long_acc(areg);
   //	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum
-  //causes
+  // causes
   //	acc >>= 16;
   SHR(64, R(RAX), Imm8(16));
   AND(64, R(RAX), Imm32(0xffffff));
@@ -1252,7 +1252,7 @@ void DSPEmitter::lsr(const UDSPInstruction opc)
   if (shift)
   {
     //	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake
-    //accum causes
+    // accum causes
     SHL(64, R(RAX), Imm8(24));
     //	acc >>= shift;
     SHR(64, R(RAX), Imm8(shift + 24));

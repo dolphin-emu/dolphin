@@ -23,9 +23,9 @@
 #ifdef _WIN32
 #include <Windows.h>
 #else
+#include <errno.h>
 #include <iconv.h>
 #include <locale.h>
-#include <errno.h>
 #endif
 
 #if !defined(_WIN32) && !defined(ANDROID)

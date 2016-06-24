@@ -15,8 +15,8 @@
 #define NS_ENUM_AVAILABLE(...)
 // end hack
 #import <IOBluetooth/IOBluetooth.h>
-#include <IOKit/pwr_mgt/IOPMLib.h>
 #include <IOKit/hid/IOHIDManager.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #elif defined(__linux__) && HAVE_BLUEZ
 #include <bluetooth/bluetooth.h>
 #endif

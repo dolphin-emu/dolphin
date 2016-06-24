@@ -478,7 +478,7 @@ InstLoc IRBuilder::FoldAdd(InstLoc Op1, InstLoc Op2)
   // && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2)))
   //{
   //	return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) +
-  //GetImmValue(getOp2(Op2))));
+  // GetImmValue(getOp2(Op2))));
   //}
 
   // x + x * i0 => x * (i0 + 1)
@@ -616,7 +616,7 @@ InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2)
     // isImm(*getOp2(Op2)))
     //{
     //	return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) +
-    //GetImmValue(getOp2(Op2))));
+    // GetImmValue(getOp2(Op2))));
     //}
   }
 

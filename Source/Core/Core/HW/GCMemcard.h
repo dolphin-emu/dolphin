@@ -192,8 +192,8 @@ struct DEntry
   //      11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
   //
   u8 Filename[DENTRY_STRLEN];  // 0x08      0x20     Filename
-  u8 ModTime[4];  // 0x28      0x04    Time of file's last modification in seconds since 12am,
-                  // January 1st, 2000
+  u8 ModTime[4];      // 0x28      0x04    Time of file's last modification in seconds since 12am,
+                      // January 1st, 2000
   u8 ImageOffset[4];  // 0x2c      0x04    image data offset
   u8 IconFmt[2];      // 0x30      0x02    icon gfx format (2bits per icon)
   //      Bits    Description

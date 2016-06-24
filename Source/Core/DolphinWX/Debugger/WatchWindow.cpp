@@ -4,9 +4,11 @@
 
 #include <cstddef>
 
-#include <wx/aui/auibar.h>
+// clang-format off
 #include <wx/bitmap.h>
+#include <wx/aui/auibar.h>
 #include <wx/panel.h>
+// clang-format on
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"

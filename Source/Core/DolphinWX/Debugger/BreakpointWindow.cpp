@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+// clang-format off
+#include <wx/bitmap.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/framemanager.h>
-#include <wx/bitmap.h>
 #include <wx/image.h>
 #include <wx/listbase.h>
 #include <wx/panel.h>
+// clang-format on
 
 #include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
