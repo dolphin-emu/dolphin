@@ -4,6 +4,7 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VertexManager.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -16,18 +17,6 @@
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan {
-
-class VulkanNativeVertexFormat : public NativeVertexFormat
-{
-public:
-	VulkanNativeVertexFormat() {}
-	void SetupVertexPointers() override {}
-};
-
-NativeVertexFormat* VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
-{
-	return new VulkanNativeVertexFormat;
-}
 
 // TODO: Clean up this mess
 constexpr size_t INITIAL_VERTEX_BUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 2;
@@ -61,6 +50,11 @@ VertexManager::VertexManager(ObjectCache* object_cache, CommandBufferManager* co
 VertexManager::~VertexManager()
 {
 
+}
+
+NativeVertexFormat* VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
+{
+	return new VertexFormat(vtx_decl);
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)
