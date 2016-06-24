@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <vector>
 
@@ -10,6 +11,11 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
+
+
+#if APPLE_IOS
+	#include <libkern/OSCacheControl.h>
+#endif
 
 namespace Arm64Gen
 {
@@ -330,7 +336,7 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 	if (start == end)
 		return;
 
-#if defined(IOS)
+#if defined(APPLE_IOS)
 	// Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
 	sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #else

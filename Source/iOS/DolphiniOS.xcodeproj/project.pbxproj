@@ -1,0 +1,1033 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		4CD5E8C91D0B16E3003D33A2 /* gcpad_a.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */; };
+		4CD5E8CA1D0B16E3003D33A2 /* gcpad_a_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */; };
+		4CD5E8CB1D0B16E3003D33A2 /* gcpad_b.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */; };
+		4CD5E8CC1D0B16E3003D33A2 /* gcpad_b_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */; };
+		4CD5E8CD1D0B16E3003D33A2 /* gcpad_c.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */; };
+		4CD5E8CE1D0B16E3003D33A2 /* gcpad_c_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */; };
+		4CD5E8CF1D0B16E3003D33A2 /* gcpad_dpad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */; };
+		4CD5E8D01D0B16E3003D33A2 /* gcpad_joystick.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */; };
+		4CD5E8D11D0B16E3003D33A2 /* gcpad_joystick_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */; };
+		4CD5E8D21D0B16E3003D33A2 /* gcpad_joystick_range.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */; };
+		4CD5E8D31D0B16E3003D33A2 /* gcpad_l.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */; };
+		4CD5E8D41D0B16E3003D33A2 /* gcpad_l_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */; };
+		4CD5E8D51D0B16E3003D33A2 /* gcpad_r.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */; };
+		4CD5E8D61D0B16E3003D33A2 /* gcpad_r_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */; };
+		4CD5E8D71D0B16E3003D33A2 /* gcpad_start.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */; };
+		4CD5E8D81D0B16E3003D33A2 /* gcpad_start_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */; };
+		4CD5E8D91D0B16E3003D33A2 /* gcpad_x.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */; };
+		4CD5E8DA1D0B16E3003D33A2 /* gcpad_x_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */; };
+		4CD5E8DB1D0B16E3003D33A2 /* gcpad_y.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */; };
+		4CD5E8DC1D0B16E3003D33A2 /* gcpad_y_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */; };
+		4CD5E8DD1D0B16E3003D33A2 /* gcpad_z.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */; };
+		4CD5E8DE1D0B16E3003D33A2 /* gcpad_z_pressed.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */; };
+		4CD5E8DF1D0B16E3003D33A2 /* ic_add.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B31D0B16E3003D33A2 /* ic_add.png */; };
+		4CD5E8E01D0B16E3003D33A2 /* ic_cancel.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */; };
+		4CD5E8E11D0B16E3003D33A2 /* ic_company.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B51D0B16E3003D33A2 /* ic_company.png */; };
+		4CD5E8E21D0B16E3003D33A2 /* ic_country.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B61D0B16E3003D33A2 /* ic_country.png */; };
+		4CD5E8E31D0B16E3003D33A2 /* ic_date.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B71D0B16E3003D33A2 /* ic_date.png */; };
+		4CD5E8E41D0B16E3003D33A2 /* ic_drawer.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */; };
+		4CD5E8E51D0B16E3003D33A2 /* ic_folder.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */; };
+		4CD5E8E61D0B16E3003D33A2 /* ic_gamecube.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */; };
+		4CD5E8E71D0B16E3003D33A2 /* ic_launcher.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */; };
+		4CD5E8E81D0B16E3003D33A2 /* ic_menu_file.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */; };
+		4CD5E8E91D0B16E3003D33A2 /* ic_menu_folder.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */; };
+		4CD5E8EA1D0B16E3003D33A2 /* ic_play.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */; };
+		4CD5E8EB1D0B16E3003D33A2 /* ic_quickload.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */; };
+		4CD5E8EC1D0B16E3003D33A2 /* ic_quicksave.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */; };
+		4CD5E8ED1D0B16E3003D33A2 /* ic_refresh.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */; };
+		4CD5E8EE1D0B16E3003D33A2 /* ic_screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */; };
+		4CD5E8EF1D0B16E3003D33A2 /* ic_settings_core.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */; };
+		4CD5E8F01D0B16E3003D33A2 /* ic_settings_gcpad.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */; };
+		4CD5E8F11D0B16E3003D33A2 /* ic_settings_graphics.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */; };
+		4CD5E8F21D0B16E3003D33A2 /* ic_settings_wiimote.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */; };
+		4CD5E8F31D0B16E3003D33A2 /* ic_wii.png in Resources */ = {isa = PBXBuildFile; fileRef = 4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */; };
+		CA5B0CE91D08C4CC00FB8387 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CE81D08C4CC00FB8387 /* CoreMedia.framework */; };
+		CA5B0CEB1D08C4D100FB8387 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CEA1D08C4D100FB8387 /* GameController.framework */; };
+		CA5B0CED1D08C4D700FB8387 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CEC1D08C4D700FB8387 /* GLKit.framework */; };
+		CA5B0CEF1D08C4DB00FB8387 /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CEE1D08C4DB00FB8387 /* OpenAL.framework */; };
+		CA5B0CF11D08C4E200FB8387 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CF01D08C4E200FB8387 /* OpenGLES.framework */; };
+		CA5B0CF31D08C4E900FB8387 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CF21D08C4E900FB8387 /* UIKit.framework */; };
+		CA5B0CF51D08C4EE00FB8387 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CF41D08C4EE00FB8387 /* AudioToolbox.framework */; };
+		CA5B0CF71D08C4F300FB8387 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0CF61D08C4F300FB8387 /* CoreAudio.framework */; };
+		CA5B0D4B1D08C52200FB8387 /* GCAdapteriOS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0CF81D08C52200FB8387 /* GCAdapteriOS.cpp */; };
+		CA5B0D4C1D08C52200FB8387 /* GCControllerView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0CFA1D08C52200FB8387 /* GCControllerView.m */; };
+		CA5B0D4D1D08C52200FB8387 /* WCDirectionalControl.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0CFC1D08C52200FB8387 /* WCDirectionalControl.m */; };
+		CA5B0D4E1D08C52200FB8387 /* DolphinBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0CFF1D08C52200FB8387 /* DolphinBridge.mm */; };
+		CA5B0D4F1D08C52200FB8387 /* DolphinGame.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D011D08C52200FB8387 /* DolphinGame.m */; };
+		CA5B0D501D08C52200FB8387 /* EmulatorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D041D08C52200FB8387 /* EmulatorViewController.mm */; };
+		CA5B0D511D08C52200FB8387 /* GameTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D061D08C52200FB8387 /* GameTableView.m */; };
+		CA5B0D521D08C52200FB8387 /* RomTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D081D08C52200FB8387 /* RomTableViewController.m */; };
+		CA5B0D531D08C52200FB8387 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D0B1D08C52200FB8387 /* AppDelegate.m */; };
+		CA5B0D541D08C52200FB8387 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D0D1D08C52200FB8387 /* Main.storyboard */; };
+		CA5B0D551D08C52200FB8387 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D0E1D08C52200FB8387 /* Assets.xcassets */; };
+		CA5B0D561D08C52200FB8387 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D101D08C52200FB8387 /* LaunchScreen.storyboard */; };
+		CA5B0D571D08C52200FB8387 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D111D08C52200FB8387 /* Info.plist */; };
+		CA5B0D581D08C52200FB8387 /* MHWDirectoryWatcher.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D131D08C52200FB8387 /* MHWDirectoryWatcher.m */; };
+		CA5B0D591D08C52200FB8387 /* UIDevice+Private.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D171D08C52200FB8387 /* UIDevice+Private.m */; };
+		CA5B0D5A1D08C52200FB8387 /* RBVolumeButtons.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D191D08C52200FB8387 /* RBVolumeButtons.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		CA5B0D5B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D1B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m */; };
+		CA5B0D5C1D08C52200FB8387 /* NSString+CompareToVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D1D1D08C52200FB8387 /* NSString+CompareToVersion.m */; };
+		CA5B0D7E1D08C52200FB8387 /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D461D08C52200FB8387 /* Entitlements.plist */; };
+		CA5B0D7F1D08C52200FB8387 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = CA5B0D481D08C52200FB8387 /* main.m */; };
+		CA5B0D851D08C54100FB8387 /* Config in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D801D08C54100FB8387 /* Config */; };
+		CA5B0D861D08C54100FB8387 /* GC in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D811D08C54100FB8387 /* GC */; };
+		CA5B0D871D08C54100FB8387 /* Shaders in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D821D08C54100FB8387 /* Shaders */; };
+		CA5B0D881D08C54100FB8387 /* Roms in Resources */ = {isa = PBXBuildFile; fileRef = CA5B0D831D08C54100FB8387 /* Roms */; };
+		CA5B0D8C1D08C7B200FB8387 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D8B1D08C7B200FB8387 /* libz.tbd */; };
+		CA5B0D8E1D08C7BF00FB8387 /* libiconv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D8D1D08C7BF00FB8387 /* libiconv.tbd */; };
+		CA5B0DA51D08C80400FB8387 /* libaudiocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D8F1D08C80400FB8387 /* libaudiocommon.a */; };
+		CA5B0DA61D08C80400FB8387 /* libbdisasm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D901D08C80400FB8387 /* libbdisasm.a */; };
+		CA5B0DA71D08C80400FB8387 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D911D08C80400FB8387 /* libcommon.a */; };
+		CA5B0DA81D08C80400FB8387 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D921D08C80400FB8387 /* libcore.a */; };
+		CA5B0DA91D08C80400FB8387 /* libdiscio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D931D08C80400FB8387 /* libdiscio.a */; };
+		CA5B0DAA1D08C80400FB8387 /* libenet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D941D08C80400FB8387 /* libenet.a */; };
+		CA5B0DAB1D08C80400FB8387 /* libgtest.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D951D08C80400FB8387 /* libgtest.a */; };
+		CA5B0DAC1D08C80400FB8387 /* libinputcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D961D08C80400FB8387 /* libinputcommon.a */; };
+		CA5B0DAD1D08C80400FB8387 /* liblzo2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D971D08C80400FB8387 /* liblzo2.a */; };
+		CA5B0DAE1D08C80400FB8387 /* libmbedcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D981D08C80400FB8387 /* libmbedcrypto.a */; };
+		CA5B0DAF1D08C80400FB8387 /* libmbedtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D991D08C80400FB8387 /* libmbedtls.a */; };
+		CA5B0DB01D08C80400FB8387 /* libmbedx509.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9A1D08C80400FB8387 /* libmbedx509.a */; };
+		CA5B0DB11D08C80400FB8387 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9B1D08C80400FB8387 /* libpng.a */; };
+		CA5B0DB21D08C80400FB8387 /* libsfml-network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9C1D08C80400FB8387 /* libsfml-network.a */; };
+		CA5B0DB31D08C80400FB8387 /* libsfml-system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9D1D08C80400FB8387 /* libsfml-system.a */; };
+		CA5B0DB41D08C80400FB8387 /* libSOIL.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9E1D08C80400FB8387 /* libSOIL.a */; };
+		CA5B0DB51D08C80400FB8387 /* libSoundTouch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0D9F1D08C80400FB8387 /* libSoundTouch.a */; };
+		CA5B0DB61D08C80400FB8387 /* libuicommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0DA01D08C80400FB8387 /* libuicommon.a */; };
+		CA5B0DB71D08C80400FB8387 /* libvideocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0DA11D08C80400FB8387 /* libvideocommon.a */; };
+		CA5B0DB81D08C80400FB8387 /* libvideoogl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0DA21D08C80400FB8387 /* libvideoogl.a */; };
+		CA5B0DB91D08C80400FB8387 /* libvideosoftware.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0DA31D08C80400FB8387 /* libvideosoftware.a */; };
+		CA5B0DBA1D08C80400FB8387 /* libxxhash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CA5B0DA41D08C80400FB8387 /* libxxhash.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		CAD57CAF1D08C2E900DB6C34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CAD57C8D1D08C2E900DB6C34 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAD57C941D08C2E900DB6C34;
+			remoteInfo = DolphiniOS;
+		};
+		CAD57CBA1D08C2E900DB6C34 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CAD57C8D1D08C2E900DB6C34 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CAD57C941D08C2E900DB6C34;
+			remoteInfo = DolphiniOS;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_a.png; sourceTree = "<group>"; };
+		4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_a_pressed.png; sourceTree = "<group>"; };
+		4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_b.png; sourceTree = "<group>"; };
+		4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_b_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_c.png; sourceTree = "<group>"; };
+		4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_c_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_dpad.png; sourceTree = "<group>"; };
+		4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick.png; sourceTree = "<group>"; };
+		4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_joystick_range.png; sourceTree = "<group>"; };
+		4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_l.png; sourceTree = "<group>"; };
+		4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_l_pressed.png; sourceTree = "<group>"; };
+		4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_r.png; sourceTree = "<group>"; };
+		4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_r_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_start.png; sourceTree = "<group>"; };
+		4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_start_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_x.png; sourceTree = "<group>"; };
+		4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_x_pressed.png; sourceTree = "<group>"; };
+		4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_y.png; sourceTree = "<group>"; };
+		4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_y_pressed.png; sourceTree = "<group>"; };
+		4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_z.png; sourceTree = "<group>"; };
+		4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = gcpad_z_pressed.png; sourceTree = "<group>"; };
+		4CD5E8B31D0B16E3003D33A2 /* ic_add.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_add.png; sourceTree = "<group>"; };
+		4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_cancel.png; sourceTree = "<group>"; };
+		4CD5E8B51D0B16E3003D33A2 /* ic_company.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_company.png; sourceTree = "<group>"; };
+		4CD5E8B61D0B16E3003D33A2 /* ic_country.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_country.png; sourceTree = "<group>"; };
+		4CD5E8B71D0B16E3003D33A2 /* ic_date.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_date.png; sourceTree = "<group>"; };
+		4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_drawer.png; sourceTree = "<group>"; };
+		4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_folder.png; sourceTree = "<group>"; };
+		4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_gamecube.png; sourceTree = "<group>"; };
+		4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_launcher.png; sourceTree = "<group>"; };
+		4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_menu_file.png; sourceTree = "<group>"; };
+		4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_menu_folder.png; sourceTree = "<group>"; };
+		4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_play.png; sourceTree = "<group>"; };
+		4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_quickload.png; sourceTree = "<group>"; };
+		4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_quicksave.png; sourceTree = "<group>"; };
+		4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_refresh.png; sourceTree = "<group>"; };
+		4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_screenshot.png; sourceTree = "<group>"; };
+		4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_core.png; sourceTree = "<group>"; };
+		4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_gcpad.png; sourceTree = "<group>"; };
+		4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_graphics.png; sourceTree = "<group>"; };
+		4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_settings_wiimote.png; sourceTree = "<group>"; };
+		4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ic_wii.png; sourceTree = "<group>"; };
+		CA5B0CD81D08C46C00FB8387 /* Dolphin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dolphin.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA5B0CE81D08C4CC00FB8387 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		CA5B0CEA1D08C4D100FB8387 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
+		CA5B0CEC1D08C4D700FB8387 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
+		CA5B0CEE1D08C4DB00FB8387 /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
+		CA5B0CF01D08C4E200FB8387 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		CA5B0CF21D08C4E900FB8387 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		CA5B0CF41D08C4EE00FB8387 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		CA5B0CF61D08C4F300FB8387 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		CA5B0CF81D08C52200FB8387 /* GCAdapteriOS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GCAdapteriOS.cpp; sourceTree = "<group>"; };
+		CA5B0CF91D08C52200FB8387 /* GCControllerView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCControllerView.h; sourceTree = "<group>"; };
+		CA5B0CFA1D08C52200FB8387 /* GCControllerView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GCControllerView.m; sourceTree = "<group>"; };
+		CA5B0CFB1D08C52200FB8387 /* WCDirectionalControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WCDirectionalControl.h; sourceTree = "<group>"; };
+		CA5B0CFC1D08C52200FB8387 /* WCDirectionalControl.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WCDirectionalControl.m; sourceTree = "<group>"; };
+		CA5B0CFE1D08C52200FB8387 /* DolphinBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinBridge.h; sourceTree = "<group>"; };
+		CA5B0CFF1D08C52200FB8387 /* DolphinBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = DolphinBridge.mm; sourceTree = "<group>"; };
+		CA5B0D001D08C52200FB8387 /* DolphinGame.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DolphinGame.h; sourceTree = "<group>"; };
+		CA5B0D011D08C52200FB8387 /* DolphinGame.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DolphinGame.m; sourceTree = "<group>"; };
+		CA5B0D031D08C52200FB8387 /* EmulatorViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmulatorViewController.h; sourceTree = "<group>"; };
+		CA5B0D041D08C52200FB8387 /* EmulatorViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulatorViewController.mm; sourceTree = "<group>"; };
+		CA5B0D051D08C52200FB8387 /* GameTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GameTableView.h; sourceTree = "<group>"; };
+		CA5B0D061D08C52200FB8387 /* GameTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GameTableView.m; sourceTree = "<group>"; };
+		CA5B0D071D08C52200FB8387 /* RomTableViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RomTableViewController.h; sourceTree = "<group>"; };
+		CA5B0D081D08C52200FB8387 /* RomTableViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RomTableViewController.m; sourceTree = "<group>"; };
+		CA5B0D0A1D08C52200FB8387 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		CA5B0D0B1D08C52200FB8387 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		CA5B0D0C1D08C52200FB8387 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		CA5B0D0E1D08C52200FB8387 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		CA5B0D0F1D08C52200FB8387 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		CA5B0D111D08C52200FB8387 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CA5B0D121D08C52200FB8387 /* MHWDirectoryWatcher.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MHWDirectoryWatcher.h; sourceTree = "<group>"; };
+		CA5B0D131D08C52200FB8387 /* MHWDirectoryWatcher.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MHWDirectoryWatcher.m; sourceTree = "<group>"; };
+		CA5B0D151D08C52200FB8387 /* UITapticEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UITapticEngine.h; sourceTree = "<group>"; };
+		CA5B0D161D08C52200FB8387 /* UIDevice+Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIDevice+Private.h"; sourceTree = "<group>"; };
+		CA5B0D171D08C52200FB8387 /* UIDevice+Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIDevice+Private.m"; sourceTree = "<group>"; };
+		CA5B0D181D08C52200FB8387 /* RBVolumeButtons.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBVolumeButtons.h; sourceTree = "<group>"; };
+		CA5B0D191D08C52200FB8387 /* RBVolumeButtons.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RBVolumeButtons.m; sourceTree = "<group>"; };
+		CA5B0D1A1D08C52200FB8387 /* UIViewController+BackButtonHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIViewController+BackButtonHandler.h"; sourceTree = "<group>"; };
+		CA5B0D1B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+BackButtonHandler.m"; sourceTree = "<group>"; };
+		CA5B0D1C1D08C52200FB8387 /* NSString+CompareToVersion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+CompareToVersion.h"; sourceTree = "<group>"; };
+		CA5B0D1D1D08C52200FB8387 /* NSString+CompareToVersion.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+CompareToVersion.m"; sourceTree = "<group>"; };
+		CA5B0D201D08C52200FB8387 /* UnrarKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UnrarKit.framework; path = DolphiniOS/Frameworks/UnrarKit.framework; sourceTree = "<group>"; };
+		CA5B0D461D08C52200FB8387 /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
+		CA5B0D471D08C52200FB8387 /* Dolphin-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Dolphin-Prefix.pch"; sourceTree = "<group>"; };
+		CA5B0D481D08C52200FB8387 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		CA5B0D801D08C54100FB8387 /* Config */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Config; path = Source/iOS/DolphiniOS/Config; sourceTree = "<group>"; };
+		CA5B0D811D08C54100FB8387 /* GC */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GC; path = Data/Sys/GC; sourceTree = "<group>"; };
+		CA5B0D821D08C54100FB8387 /* Shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Shaders; path = Data/Sys/Shaders; sourceTree = "<group>"; };
+		CA5B0D831D08C54100FB8387 /* Roms */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Roms; path = Build/DolphiniOS/Roms; sourceTree = "<group>"; };
+		CA5B0D891D08C57300FB8387 /* DolphiniOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DolphiniOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA5B0D8A1D08C57300FB8387 /* DolphiniOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = DolphiniOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CA5B0D8B1D08C7B200FB8387 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
+		CA5B0D8D1D08C7BF00FB8387 /* libiconv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libiconv.tbd; path = usr/lib/libiconv.tbd; sourceTree = SDKROOT; };
+		CA5B0D8F1D08C80400FB8387 /* libaudiocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudiocommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libaudiocommon.a"; sourceTree = "<group>"; };
+		CA5B0D901D08C80400FB8387 /* libbdisasm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbdisasm.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libbdisasm.a"; sourceTree = "<group>"; };
+		CA5B0D911D08C80400FB8387 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libcommon.a"; sourceTree = "<group>"; };
+		CA5B0D921D08C80400FB8387 /* libcore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcore.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libcore.a"; sourceTree = "<group>"; };
+		CA5B0D931D08C80400FB8387 /* libdiscio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdiscio.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libdiscio.a"; sourceTree = "<group>"; };
+		CA5B0D941D08C80400FB8387 /* libenet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libenet.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libenet.a"; sourceTree = "<group>"; };
+		CA5B0D951D08C80400FB8387 /* libgtest.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgtest.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libgtest.a"; sourceTree = "<group>"; };
+		CA5B0D961D08C80400FB8387 /* libinputcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libinputcommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libinputcommon.a"; sourceTree = "<group>"; };
+		CA5B0D971D08C80400FB8387 /* liblzo2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzo2.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/liblzo2.a"; sourceTree = "<group>"; };
+		CA5B0D981D08C80400FB8387 /* libmbedcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedcrypto.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libmbedcrypto.a"; sourceTree = "<group>"; };
+		CA5B0D991D08C80400FB8387 /* libmbedtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedtls.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libmbedtls.a"; sourceTree = "<group>"; };
+		CA5B0D9A1D08C80400FB8387 /* libmbedx509.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedx509.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libmbedx509.a"; sourceTree = "<group>"; };
+		CA5B0D9B1D08C80400FB8387 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libpng.a"; sourceTree = "<group>"; };
+		CA5B0D9C1D08C80400FB8387 /* libsfml-network.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-network.a"; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libsfml-network.a"; sourceTree = "<group>"; };
+		CA5B0D9D1D08C80400FB8387 /* libsfml-system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-system.a"; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libsfml-system.a"; sourceTree = "<group>"; };
+		CA5B0D9E1D08C80400FB8387 /* libSOIL.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSOIL.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libSOIL.a"; sourceTree = "<group>"; };
+		CA5B0D9F1D08C80400FB8387 /* libSoundTouch.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSoundTouch.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libSoundTouch.a"; sourceTree = "<group>"; };
+		CA5B0DA01D08C80400FB8387 /* libuicommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuicommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libuicommon.a"; sourceTree = "<group>"; };
+		CA5B0DA11D08C80400FB8387 /* libvideocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideocommon.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libvideocommon.a"; sourceTree = "<group>"; };
+		CA5B0DA21D08C80400FB8387 /* libvideoogl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideoogl.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libvideoogl.a"; sourceTree = "<group>"; };
+		CA5B0DA31D08C80400FB8387 /* libvideosoftware.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideosoftware.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libvideosoftware.a"; sourceTree = "<group>"; };
+		CA5B0DA41D08C80400FB8387 /* libxxhash.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxxhash.a; path = "../../../Library/Developer/Xcode/DerivedData/DolphiniOS-fwzdkmdnrdhjswaxkqshkptfccqi/Build/Products/Debug-iphoneos/libxxhash.a"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CAD57C921D08C2E900DB6C34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA5B0DA51D08C80400FB8387 /* libaudiocommon.a in Frameworks */,
+				CA5B0DA61D08C80400FB8387 /* libbdisasm.a in Frameworks */,
+				CA5B0DA71D08C80400FB8387 /* libcommon.a in Frameworks */,
+				CA5B0DA81D08C80400FB8387 /* libcore.a in Frameworks */,
+				CA5B0DA91D08C80400FB8387 /* libdiscio.a in Frameworks */,
+				CA5B0DAA1D08C80400FB8387 /* libenet.a in Frameworks */,
+				CA5B0DAB1D08C80400FB8387 /* libgtest.a in Frameworks */,
+				CA5B0DAC1D08C80400FB8387 /* libinputcommon.a in Frameworks */,
+				CA5B0DAD1D08C80400FB8387 /* liblzo2.a in Frameworks */,
+				CA5B0DAE1D08C80400FB8387 /* libmbedcrypto.a in Frameworks */,
+				CA5B0DAF1D08C80400FB8387 /* libmbedtls.a in Frameworks */,
+				CA5B0DB01D08C80400FB8387 /* libmbedx509.a in Frameworks */,
+				CA5B0DB11D08C80400FB8387 /* libpng.a in Frameworks */,
+				CA5B0DB21D08C80400FB8387 /* libsfml-network.a in Frameworks */,
+				CA5B0DB31D08C80400FB8387 /* libsfml-system.a in Frameworks */,
+				CA5B0DB41D08C80400FB8387 /* libSOIL.a in Frameworks */,
+				CA5B0DB51D08C80400FB8387 /* libSoundTouch.a in Frameworks */,
+				CA5B0DB61D08C80400FB8387 /* libuicommon.a in Frameworks */,
+				CA5B0DB71D08C80400FB8387 /* libvideocommon.a in Frameworks */,
+				CA5B0DB81D08C80400FB8387 /* libvideoogl.a in Frameworks */,
+				CA5B0DB91D08C80400FB8387 /* libvideosoftware.a in Frameworks */,
+				CA5B0DBA1D08C80400FB8387 /* libxxhash.a in Frameworks */,
+				CA5B0D8E1D08C7BF00FB8387 /* libiconv.tbd in Frameworks */,
+				CA5B0D8C1D08C7B200FB8387 /* libz.tbd in Frameworks */,
+				CA5B0CF71D08C4F300FB8387 /* CoreAudio.framework in Frameworks */,
+				CA5B0CF51D08C4EE00FB8387 /* AudioToolbox.framework in Frameworks */,
+				CA5B0CF31D08C4E900FB8387 /* UIKit.framework in Frameworks */,
+				CA5B0CF11D08C4E200FB8387 /* OpenGLES.framework in Frameworks */,
+				CA5B0CEF1D08C4DB00FB8387 /* OpenAL.framework in Frameworks */,
+				CA5B0CED1D08C4D700FB8387 /* GLKit.framework in Frameworks */,
+				CA5B0CEB1D08C4D100FB8387 /* GameController.framework in Frameworks */,
+				CA5B0CE91D08C4CC00FB8387 /* CoreMedia.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CAB1D08C2E900DB6C34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CB61D08C2E900DB6C34 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4CD5E89B1D0B16E3003D33A2 /* Retina */ = {
+			isa = PBXGroup;
+			children = (
+				4CD5E89D1D0B16E3003D33A2 /* gcpad_a.png */,
+				4CD5E89E1D0B16E3003D33A2 /* gcpad_a_pressed.png */,
+				4CD5E89F1D0B16E3003D33A2 /* gcpad_b.png */,
+				4CD5E8A01D0B16E3003D33A2 /* gcpad_b_pressed.png */,
+				4CD5E8A11D0B16E3003D33A2 /* gcpad_c.png */,
+				4CD5E8A21D0B16E3003D33A2 /* gcpad_c_pressed.png */,
+				4CD5E8A31D0B16E3003D33A2 /* gcpad_dpad.png */,
+				4CD5E8A41D0B16E3003D33A2 /* gcpad_joystick.png */,
+				4CD5E8A51D0B16E3003D33A2 /* gcpad_joystick_pressed.png */,
+				4CD5E8A61D0B16E3003D33A2 /* gcpad_joystick_range.png */,
+				4CD5E8A71D0B16E3003D33A2 /* gcpad_l.png */,
+				4CD5E8A81D0B16E3003D33A2 /* gcpad_l_pressed.png */,
+				4CD5E8A91D0B16E3003D33A2 /* gcpad_r.png */,
+				4CD5E8AA1D0B16E3003D33A2 /* gcpad_r_pressed.png */,
+				4CD5E8AB1D0B16E3003D33A2 /* gcpad_start.png */,
+				4CD5E8AC1D0B16E3003D33A2 /* gcpad_start_pressed.png */,
+				4CD5E8AD1D0B16E3003D33A2 /* gcpad_x.png */,
+				4CD5E8AE1D0B16E3003D33A2 /* gcpad_x_pressed.png */,
+				4CD5E8AF1D0B16E3003D33A2 /* gcpad_y.png */,
+				4CD5E8B01D0B16E3003D33A2 /* gcpad_y_pressed.png */,
+				4CD5E8B11D0B16E3003D33A2 /* gcpad_z.png */,
+				4CD5E8B21D0B16E3003D33A2 /* gcpad_z_pressed.png */,
+				4CD5E8B31D0B16E3003D33A2 /* ic_add.png */,
+				4CD5E8B41D0B16E3003D33A2 /* ic_cancel.png */,
+				4CD5E8B51D0B16E3003D33A2 /* ic_company.png */,
+				4CD5E8B61D0B16E3003D33A2 /* ic_country.png */,
+				4CD5E8B71D0B16E3003D33A2 /* ic_date.png */,
+				4CD5E8B81D0B16E3003D33A2 /* ic_drawer.png */,
+				4CD5E8B91D0B16E3003D33A2 /* ic_folder.png */,
+				4CD5E8BA1D0B16E3003D33A2 /* ic_gamecube.png */,
+				4CD5E8BB1D0B16E3003D33A2 /* ic_launcher.png */,
+				4CD5E8BC1D0B16E3003D33A2 /* ic_menu_file.png */,
+				4CD5E8BD1D0B16E3003D33A2 /* ic_menu_folder.png */,
+				4CD5E8BE1D0B16E3003D33A2 /* ic_play.png */,
+				4CD5E8BF1D0B16E3003D33A2 /* ic_quickload.png */,
+				4CD5E8C01D0B16E3003D33A2 /* ic_quicksave.png */,
+				4CD5E8C11D0B16E3003D33A2 /* ic_refresh.png */,
+				4CD5E8C21D0B16E3003D33A2 /* ic_screenshot.png */,
+				4CD5E8C31D0B16E3003D33A2 /* ic_settings_core.png */,
+				4CD5E8C41D0B16E3003D33A2 /* ic_settings_gcpad.png */,
+				4CD5E8C51D0B16E3003D33A2 /* ic_settings_graphics.png */,
+				4CD5E8C61D0B16E3003D33A2 /* ic_settings_wiimote.png */,
+				4CD5E8C71D0B16E3003D33A2 /* ic_wii.png */,
+			);
+			path = Retina;
+			sourceTree = "<group>";
+		};
+		CA5B0CFD1D08C52200FB8387 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0CF81D08C52200FB8387 /* GCAdapteriOS.cpp */,
+				CA5B0CF91D08C52200FB8387 /* GCControllerView.h */,
+				CA5B0CFA1D08C52200FB8387 /* GCControllerView.m */,
+				CA5B0CFB1D08C52200FB8387 /* WCDirectionalControl.h */,
+				CA5B0CFC1D08C52200FB8387 /* WCDirectionalControl.m */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
+		CA5B0D021D08C52200FB8387 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0CFE1D08C52200FB8387 /* DolphinBridge.h */,
+				CA5B0CFF1D08C52200FB8387 /* DolphinBridge.mm */,
+				CA5B0D001D08C52200FB8387 /* DolphinGame.h */,
+				CA5B0D011D08C52200FB8387 /* DolphinGame.m */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		CA5B0D091D08C52200FB8387 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D031D08C52200FB8387 /* EmulatorViewController.h */,
+				CA5B0D041D08C52200FB8387 /* EmulatorViewController.mm */,
+				CA5B0D051D08C52200FB8387 /* GameTableView.h */,
+				CA5B0D061D08C52200FB8387 /* GameTableView.m */,
+				CA5B0D071D08C52200FB8387 /* RomTableViewController.h */,
+				CA5B0D081D08C52200FB8387 /* RomTableViewController.m */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		CA5B0D141D08C52200FB8387 /* DocWatchHelper */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D121D08C52200FB8387 /* MHWDirectoryWatcher.h */,
+				CA5B0D131D08C52200FB8387 /* MHWDirectoryWatcher.m */,
+			);
+			path = DocWatchHelper;
+			sourceTree = "<group>";
+		};
+		CA5B0D1E1D08C52200FB8387 /* Misc */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D151D08C52200FB8387 /* UITapticEngine.h */,
+				CA5B0D161D08C52200FB8387 /* UIDevice+Private.h */,
+				CA5B0D171D08C52200FB8387 /* UIDevice+Private.m */,
+				CA5B0D181D08C52200FB8387 /* RBVolumeButtons.h */,
+				CA5B0D191D08C52200FB8387 /* RBVolumeButtons.m */,
+				CA5B0D1A1D08C52200FB8387 /* UIViewController+BackButtonHandler.h */,
+				CA5B0D1B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m */,
+				CA5B0D1C1D08C52200FB8387 /* NSString+CompareToVersion.h */,
+				CA5B0D1D1D08C52200FB8387 /* NSString+CompareToVersion.m */,
+			);
+			path = Misc;
+			sourceTree = "<group>";
+		};
+		CA5B0D1F1D08C52200FB8387 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D141D08C52200FB8387 /* DocWatchHelper */,
+				CA5B0D1E1D08C52200FB8387 /* Misc */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		CA5B0D211D08C52200FB8387 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D201D08C52200FB8387 /* UnrarKit.framework */,
+			);
+			path = Frameworks;
+			sourceTree = "<group>";
+		};
+		CA5B0D431D08C52200FB8387 /* GameCube */ = {
+			isa = PBXGroup;
+			children = (
+				4CD5E89B1D0B16E3003D33A2 /* Retina */,
+			);
+			path = GameCube;
+			sourceTree = "<group>";
+		};
+		CA5B0D441D08C52200FB8387 /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D431D08C52200FB8387 /* GameCube */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		CA5B0D451D08C52200FB8387 /* Images */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D441D08C52200FB8387 /* Controllers */,
+			);
+			path = Images;
+			sourceTree = "<group>";
+		};
+		CA5B0D491D08C52200FB8387 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D461D08C52200FB8387 /* Entitlements.plist */,
+				CA5B0D471D08C52200FB8387 /* Dolphin-Prefix.pch */,
+				CA5B0D481D08C52200FB8387 /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		CA5B0D4A1D08C52200FB8387 /* DolphiniOS */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0CFD1D08C52200FB8387 /* Controller */,
+				CA5B0D021D08C52200FB8387 /* Bridge */,
+				CA5B0D091D08C52200FB8387 /* UI */,
+				CA5B0D0A1D08C52200FB8387 /* AppDelegate.h */,
+				CA5B0D0B1D08C52200FB8387 /* AppDelegate.m */,
+				CA5B0D0D1D08C52200FB8387 /* Main.storyboard */,
+				CA5B0D0E1D08C52200FB8387 /* Assets.xcassets */,
+				CA5B0D101D08C52200FB8387 /* LaunchScreen.storyboard */,
+				CA5B0D111D08C52200FB8387 /* Info.plist */,
+				CA5B0D1F1D08C52200FB8387 /* Utilities */,
+				CA5B0D211D08C52200FB8387 /* Frameworks */,
+				CA5B0D451D08C52200FB8387 /* Images */,
+				CA5B0D491D08C52200FB8387 /* Supporting Files */,
+			);
+			path = DolphiniOS;
+			sourceTree = "<group>";
+		};
+		CA5B0D841D08C54100FB8387 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D801D08C54100FB8387 /* Config */,
+				CA5B0D811D08C54100FB8387 /* GC */,
+				CA5B0D821D08C54100FB8387 /* Shaders */,
+				CA5B0D831D08C54100FB8387 /* Roms */,
+			);
+			name = Resources;
+			path = ..;
+			sourceTree = "<group>";
+		};
+		CA5B0DBB1D08C81100FB8387 /* libs */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0D8F1D08C80400FB8387 /* libaudiocommon.a */,
+				CA5B0D901D08C80400FB8387 /* libbdisasm.a */,
+				CA5B0D911D08C80400FB8387 /* libcommon.a */,
+				CA5B0D921D08C80400FB8387 /* libcore.a */,
+				CA5B0D931D08C80400FB8387 /* libdiscio.a */,
+				CA5B0D941D08C80400FB8387 /* libenet.a */,
+				CA5B0D951D08C80400FB8387 /* libgtest.a */,
+				CA5B0D961D08C80400FB8387 /* libinputcommon.a */,
+				CA5B0D971D08C80400FB8387 /* liblzo2.a */,
+				CA5B0D981D08C80400FB8387 /* libmbedcrypto.a */,
+				CA5B0D991D08C80400FB8387 /* libmbedtls.a */,
+				CA5B0D9A1D08C80400FB8387 /* libmbedx509.a */,
+				CA5B0D9B1D08C80400FB8387 /* libpng.a */,
+				CA5B0D9C1D08C80400FB8387 /* libsfml-network.a */,
+				CA5B0D9D1D08C80400FB8387 /* libsfml-system.a */,
+				CA5B0D9E1D08C80400FB8387 /* libSOIL.a */,
+				CA5B0D9F1D08C80400FB8387 /* libSoundTouch.a */,
+				CA5B0DA01D08C80400FB8387 /* libuicommon.a */,
+				CA5B0DA11D08C80400FB8387 /* libvideocommon.a */,
+				CA5B0DA21D08C80400FB8387 /* libvideoogl.a */,
+				CA5B0DA31D08C80400FB8387 /* libvideosoftware.a */,
+				CA5B0DA41D08C80400FB8387 /* libxxhash.a */,
+				CA5B0D8D1D08C7BF00FB8387 /* libiconv.tbd */,
+				CA5B0D8B1D08C7B200FB8387 /* libz.tbd */,
+			);
+			name = libs;
+			sourceTree = "<group>";
+		};
+		CA5B0DBC1D08C81D00FB8387 /* Framworks */ = {
+			isa = PBXGroup;
+			children = (
+				CA5B0CF61D08C4F300FB8387 /* CoreAudio.framework */,
+				CA5B0CF41D08C4EE00FB8387 /* AudioToolbox.framework */,
+				CA5B0CF21D08C4E900FB8387 /* UIKit.framework */,
+				CA5B0CF01D08C4E200FB8387 /* OpenGLES.framework */,
+				CA5B0CEE1D08C4DB00FB8387 /* OpenAL.framework */,
+				CA5B0CEC1D08C4D700FB8387 /* GLKit.framework */,
+				CA5B0CEA1D08C4D100FB8387 /* GameController.framework */,
+				CA5B0CE81D08C4CC00FB8387 /* CoreMedia.framework */,
+			);
+			name = Framworks;
+			sourceTree = "<group>";
+		};
+		CAD57C8C1D08C2E900DB6C34 = {
+			isa = PBXGroup;
+			children = (
+				CA5B0DBC1D08C81D00FB8387 /* Framworks */,
+				CA5B0DBB1D08C81100FB8387 /* libs */,
+				CA5B0D4A1D08C52200FB8387 /* DolphiniOS */,
+				CA5B0D841D08C54100FB8387 /* Resources */,
+				CA5B0CD81D08C46C00FB8387 /* Dolphin.app */,
+				CA5B0D891D08C57300FB8387 /* DolphiniOSTests.xctest */,
+				CA5B0D8A1D08C57300FB8387 /* DolphiniOSUITests.xctest */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CAD57C941D08C2E900DB6C34 /* Dolphin */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAD57CC21D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "Dolphin" */;
+			buildPhases = (
+				CAD57C911D08C2E900DB6C34 /* Sources */,
+				CAD57C921D08C2E900DB6C34 /* Frameworks */,
+				CAD57C931D08C2E900DB6C34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Dolphin;
+			productName = DolphiniOS;
+			productReference = CA5B0CD81D08C46C00FB8387 /* Dolphin.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CAD57CAD1D08C2E900DB6C34 /* DolphiniOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAD57CC51D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "DolphiniOSTests" */;
+			buildPhases = (
+				CAD57CAA1D08C2E900DB6C34 /* Sources */,
+				CAD57CAB1D08C2E900DB6C34 /* Frameworks */,
+				CAD57CAC1D08C2E900DB6C34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAD57CB01D08C2E900DB6C34 /* PBXTargetDependency */,
+			);
+			name = DolphiniOSTests;
+			productName = DolphiniOSTests;
+			productReference = CA5B0D891D08C57300FB8387 /* DolphiniOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		CAD57CB81D08C2E900DB6C34 /* DolphiniOSUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CAD57CC81D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "DolphiniOSUITests" */;
+			buildPhases = (
+				CAD57CB51D08C2E900DB6C34 /* Sources */,
+				CAD57CB61D08C2E900DB6C34 /* Frameworks */,
+				CAD57CB71D08C2E900DB6C34 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CAD57CBB1D08C2E900DB6C34 /* PBXTargetDependency */,
+			);
+			name = DolphiniOSUITests;
+			productName = DolphiniOSUITests;
+			productReference = CA5B0D8A1D08C57300FB8387 /* DolphiniOSUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CAD57C8D1D08C2E900DB6C34 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0730;
+				ORGANIZATIONNAME = Dolphin;
+				TargetAttributes = {
+					CAD57C941D08C2E900DB6C34 = {
+						CreatedOnToolsVersion = 7.3;
+					};
+					CAD57CAD1D08C2E900DB6C34 = {
+						CreatedOnToolsVersion = 7.3;
+						TestTargetID = CAD57C941D08C2E900DB6C34;
+					};
+					CAD57CB81D08C2E900DB6C34 = {
+						CreatedOnToolsVersion = 7.3;
+						TestTargetID = CAD57C941D08C2E900DB6C34;
+					};
+				};
+			};
+			buildConfigurationList = CAD57C901D08C2E900DB6C34 /* Build configuration list for PBXProject "DolphiniOS" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CAD57C8C1D08C2E900DB6C34;
+			productRefGroup = CAD57C8C1D08C2E900DB6C34;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CAD57C941D08C2E900DB6C34 /* Dolphin */,
+				CAD57CAD1D08C2E900DB6C34 /* DolphiniOSTests */,
+				CAD57CB81D08C2E900DB6C34 /* DolphiniOSUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CAD57C931D08C2E900DB6C34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4CD5E8EB1D0B16E3003D33A2 /* ic_quickload.png in Resources */,
+				4CD5E8CB1D0B16E3003D33A2 /* gcpad_b.png in Resources */,
+				CA5B0D871D08C54100FB8387 /* Shaders in Resources */,
+				CA5B0D881D08C54100FB8387 /* Roms in Resources */,
+				CA5B0D7E1D08C52200FB8387 /* Entitlements.plist in Resources */,
+				4CD5E8D21D0B16E3003D33A2 /* gcpad_joystick_range.png in Resources */,
+				4CD5E8D71D0B16E3003D33A2 /* gcpad_start.png in Resources */,
+				4CD5E8D81D0B16E3003D33A2 /* gcpad_start_pressed.png in Resources */,
+				4CD5E8CC1D0B16E3003D33A2 /* gcpad_b_pressed.png in Resources */,
+				4CD5E8E11D0B16E3003D33A2 /* ic_company.png in Resources */,
+				4CD5E8F11D0B16E3003D33A2 /* ic_settings_graphics.png in Resources */,
+				CA5B0D571D08C52200FB8387 /* Info.plist in Resources */,
+				4CD5E8F01D0B16E3003D33A2 /* ic_settings_gcpad.png in Resources */,
+				4CD5E8D91D0B16E3003D33A2 /* gcpad_x.png in Resources */,
+				4CD5E8E71D0B16E3003D33A2 /* ic_launcher.png in Resources */,
+				4CD5E8E21D0B16E3003D33A2 /* ic_country.png in Resources */,
+				4CD5E8D01D0B16E3003D33A2 /* gcpad_joystick.png in Resources */,
+				CA5B0D851D08C54100FB8387 /* Config in Resources */,
+				CA5B0D861D08C54100FB8387 /* GC in Resources */,
+				4CD5E8DC1D0B16E3003D33A2 /* gcpad_y_pressed.png in Resources */,
+				4CD5E8D61D0B16E3003D33A2 /* gcpad_r_pressed.png in Resources */,
+				4CD5E8E91D0B16E3003D33A2 /* ic_menu_folder.png in Resources */,
+				4CD5E8C91D0B16E3003D33A2 /* gcpad_a.png in Resources */,
+				4CD5E8DD1D0B16E3003D33A2 /* gcpad_z.png in Resources */,
+				CA5B0D561D08C52200FB8387 /* LaunchScreen.storyboard in Resources */,
+				4CD5E8DE1D0B16E3003D33A2 /* gcpad_z_pressed.png in Resources */,
+				CA5B0D551D08C52200FB8387 /* Assets.xcassets in Resources */,
+				4CD5E8E01D0B16E3003D33A2 /* ic_cancel.png in Resources */,
+				4CD5E8CF1D0B16E3003D33A2 /* gcpad_dpad.png in Resources */,
+				4CD5E8CE1D0B16E3003D33A2 /* gcpad_c_pressed.png in Resources */,
+				4CD5E8EE1D0B16E3003D33A2 /* ic_screenshot.png in Resources */,
+				4CD5E8D31D0B16E3003D33A2 /* gcpad_l.png in Resources */,
+				4CD5E8EF1D0B16E3003D33A2 /* ic_settings_core.png in Resources */,
+				4CD5E8DA1D0B16E3003D33A2 /* gcpad_x_pressed.png in Resources */,
+				4CD5E8ED1D0B16E3003D33A2 /* ic_refresh.png in Resources */,
+				4CD5E8D41D0B16E3003D33A2 /* gcpad_l_pressed.png in Resources */,
+				4CD5E8CA1D0B16E3003D33A2 /* gcpad_a_pressed.png in Resources */,
+				4CD5E8DB1D0B16E3003D33A2 /* gcpad_y.png in Resources */,
+				4CD5E8D11D0B16E3003D33A2 /* gcpad_joystick_pressed.png in Resources */,
+				4CD5E8E41D0B16E3003D33A2 /* ic_drawer.png in Resources */,
+				4CD5E8E81D0B16E3003D33A2 /* ic_menu_file.png in Resources */,
+				4CD5E8CD1D0B16E3003D33A2 /* gcpad_c.png in Resources */,
+				4CD5E8EC1D0B16E3003D33A2 /* ic_quicksave.png in Resources */,
+				4CD5E8E31D0B16E3003D33A2 /* ic_date.png in Resources */,
+				CA5B0D541D08C52200FB8387 /* Main.storyboard in Resources */,
+				4CD5E8EA1D0B16E3003D33A2 /* ic_play.png in Resources */,
+				4CD5E8DF1D0B16E3003D33A2 /* ic_add.png in Resources */,
+				4CD5E8E51D0B16E3003D33A2 /* ic_folder.png in Resources */,
+				4CD5E8E61D0B16E3003D33A2 /* ic_gamecube.png in Resources */,
+				4CD5E8D51D0B16E3003D33A2 /* gcpad_r.png in Resources */,
+				4CD5E8F21D0B16E3003D33A2 /* ic_settings_wiimote.png in Resources */,
+				4CD5E8F31D0B16E3003D33A2 /* ic_wii.png in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CAC1D08C2E900DB6C34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CB71D08C2E900DB6C34 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CAD57C911D08C2E900DB6C34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CA5B0D521D08C52200FB8387 /* RomTableViewController.m in Sources */,
+				CA5B0D581D08C52200FB8387 /* MHWDirectoryWatcher.m in Sources */,
+				CA5B0D4C1D08C52200FB8387 /* GCControllerView.m in Sources */,
+				CA5B0D5A1D08C52200FB8387 /* RBVolumeButtons.m in Sources */,
+				CA5B0D531D08C52200FB8387 /* AppDelegate.m in Sources */,
+				CA5B0D4D1D08C52200FB8387 /* WCDirectionalControl.m in Sources */,
+				CA5B0D511D08C52200FB8387 /* GameTableView.m in Sources */,
+				CA5B0D4B1D08C52200FB8387 /* GCAdapteriOS.cpp in Sources */,
+				CA5B0D4F1D08C52200FB8387 /* DolphinGame.m in Sources */,
+				CA5B0D5C1D08C52200FB8387 /* NSString+CompareToVersion.m in Sources */,
+				CA5B0D7F1D08C52200FB8387 /* main.m in Sources */,
+				CA5B0D4E1D08C52200FB8387 /* DolphinBridge.mm in Sources */,
+				CA5B0D591D08C52200FB8387 /* UIDevice+Private.m in Sources */,
+				CA5B0D501D08C52200FB8387 /* EmulatorViewController.mm in Sources */,
+				CA5B0D5B1D08C52200FB8387 /* UIViewController+BackButtonHandler.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CAA1D08C2E900DB6C34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAD57CB51D08C2E900DB6C34 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CAD57CB01D08C2E900DB6C34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAD57C941D08C2E900DB6C34 /* Dolphin */;
+			targetProxy = CAD57CAF1D08C2E900DB6C34 /* PBXContainerItemProxy */;
+		};
+		CAD57CBB1D08C2E900DB6C34 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CAD57C941D08C2E900DB6C34 /* Dolphin */;
+			targetProxy = CAD57CBA1D08C2E900DB6C34 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		CA5B0D0D1D08C52200FB8387 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA5B0D0C1D08C52200FB8387 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		CA5B0D101D08C52200FB8387 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				CA5B0D0F1D08C52200FB8387 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		CAD57CC01D08C2E900DB6C34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		CAD57CC11D08C2E900DB6C34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		CAD57CC31D08C2E900DB6C34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Source",
+					"$(PROJECT_DIR)/DolphiniOS/Frameworks",
+					"$(PROJECT_DIR)/DolphiniOS/Frameworks/DolphiniOS/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/Dolphin-prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../Source/Core",
+					"$(SRCROOT)/DolphiniOS",
+				);
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Source/Core/UICommon/Debug-iphoneos",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		CAD57CC41D08C2E900DB6C34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++14";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Source",
+					"$(PROJECT_DIR)/DolphiniOS/Frameworks",
+					"$(PROJECT_DIR)/DolphiniOS/Frameworks/DolphiniOS/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/Dolphin-prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../Source/Core",
+					"$(SRCROOT)/DolphiniOS",
+				);
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Externals/gtest/Debug-iphoneos",
+					"$(PROJECT_DIR)/Source/Core/UICommon/Debug-iphoneos",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOS;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		CAD57CC61D08C2E900DB6C34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+			};
+			name = Debug;
+		};
+		CAD57CC71D08C2E900DB6C34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				INFOPLIST_FILE = DolphiniOSTests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOSTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/DolphiniOS.app/DolphiniOS";
+			};
+			name = Release;
+		};
+		CAD57CC91D08C2E900DB6C34 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = DolphiniOS;
+			};
+			name = Debug;
+		};
+		CAD57CCA1D08C2E900DB6C34 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				INFOPLIST_FILE = DolphiniOSUITests/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = com.Dolphin.DolphiniOSUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = DolphiniOS;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CAD57C901D08C2E900DB6C34 /* Build configuration list for PBXProject "DolphiniOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAD57CC01D08C2E900DB6C34 /* Debug */,
+				CAD57CC11D08C2E900DB6C34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAD57CC21D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "Dolphin" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAD57CC31D08C2E900DB6C34 /* Debug */,
+				CAD57CC41D08C2E900DB6C34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAD57CC51D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "DolphiniOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAD57CC61D08C2E900DB6C34 /* Debug */,
+				CAD57CC71D08C2E900DB6C34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CAD57CC81D08C2E900DB6C34 /* Build configuration list for PBXNativeTarget "DolphiniOSUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAD57CC91D08C2E900DB6C34 /* Debug */,
+				CAD57CCA1D08C2E900DB6C34 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CAD57C8D1D08C2E900DB6C34 /* Project object */;
+}

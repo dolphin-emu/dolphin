@@ -81,6 +81,8 @@ endif()
 
 if(WIN32)
     set(SRCS ${SRCS} GL/GLInterface/WGL.cpp)
+elseif(APPLE_IOS)
+    set(SRCS ${SRCS} GL/GLInterface/EAGL.mm)
 elseif(APPLE)
     set(SRCS ${SRCS} GL/GLInterface/AGL.cpp)
 elseif(USE_X11)

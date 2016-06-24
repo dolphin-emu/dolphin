@@ -97,6 +97,7 @@ void SWOGLWindow::ShowImage(u8* data, int stride, int width, int height, float a
 	GLInterface->MakeCurrent();
 	GLInterface->Update();
 	Prepare();
+	GLInterface->Prepare();
 
 	GLsizei glWidth = (GLsizei)GLInterface->GetBackBufferWidth();
 	GLsizei glHeight = (GLsizei)GLInterface->GetBackBufferHeight();

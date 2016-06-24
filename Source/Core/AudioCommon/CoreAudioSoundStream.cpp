@@ -29,7 +29,11 @@ bool CoreAudioSound::Start()
 	AudioComponent component;
 
 	desc.componentType = kAudioUnitType_Output;
+#if APPLE_IOS
+	desc.componentSubType = kAudioUnitSubType_GenericOutput;
+#else
 	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+#endif
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;

@@ -1340,7 +1340,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 			}
 			// Tell the OSD Menu about the current internal resolution
 			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
-
 			BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
 		}
 	}
@@ -1353,7 +1352,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, co
 		BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
 	}
 
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	GLint defaultFBO = GLInterface->GetDefaultFramebuffer();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, defaultFBO);
 
 	// Save screenshot
 	if (s_bScreenshot)

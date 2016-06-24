@@ -1,0 +1,9 @@
+//
+// Prefix header for all source files of the 'Dolphin' target in the 'Dolphin' project
+//
+
+#ifdef __OBJC__
+	#define APPLE_IOS 1
+	#import <UIKit/UIKit.h>
+	#import <Foundation/Foundation.h>
+#endif

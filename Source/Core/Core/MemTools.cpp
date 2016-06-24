@@ -98,7 +98,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler() {}
 
-#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
+#elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE) && !APPLE_IOS
 
 static void CheckKR(const char* name, kern_return_t kr)
 {
@@ -218,7 +218,7 @@ void InstallExceptionHandler()
 
 void UninstallExceptionHandler() {}
 
-#elif defined(_POSIX_VERSION) && !defined(_M_GENERIC)
+#elif defined(_POSIX_VERSION) && !defined(_M_GENERIC) && !APPLE_IOS
 
 static void sigsegv_handler(int sig, siginfo_t *info, void *raw_context)
 {

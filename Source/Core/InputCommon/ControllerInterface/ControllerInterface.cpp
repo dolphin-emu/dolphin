@@ -17,6 +17,9 @@
 		#include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 	#endif
 #endif
+#ifdef CIFACE_USE_APPLE_IOS
+#include "InputCommon/ControllerInterface/iOS/iOS.h"
+#endif
 #ifdef CIFACE_USE_OSX
 	#include "InputCommon/ControllerInterface/OSX/OSX.h"
 #endif
@@ -65,6 +68,9 @@ void ControllerInterface::Initialize(void* const hwnd)
 	#ifdef CIFACE_USE_X11_XINPUT2
 	ciface::XInput2::Init(m_devices, hwnd);
 	#endif
+#endif
+#ifdef CIFACE_USE_APPLE_IOS
+	ciface::iOS::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::Init(m_devices, hwnd);
@@ -124,6 +130,9 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_XLIB
 	// nothing needed
+#endif
+#ifdef CIFACE_USE_APPLE_IOS
+    // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::DeInit();

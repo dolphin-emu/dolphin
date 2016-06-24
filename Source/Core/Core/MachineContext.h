@@ -62,6 +62,11 @@
 		#define CTX_R14 __r14
 		#define CTX_R15 __r15
 		#define CTX_RIP __rip
+	#elif _M_ARM_64
+		typedef _STRUCT_ARM_THREAD_STATE64 SContext;
+		#define CTX_REG(x) __x[x]
+		#define CTX_SP __sp
+		#define CTX_PC __pc
 	#else
 		#error No context definition for OS
 	#endif

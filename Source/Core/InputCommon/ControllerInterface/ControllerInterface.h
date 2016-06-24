@@ -26,7 +26,9 @@
 		#define CIFACE_USE_X11_XINPUT2
 	#endif
 #endif
-#if defined(__APPLE__)
+#if defined(APPLE_IOS)
+	#define CIFACE_USE_EAGL
+#elif defined(__APPLE__)
 	#define CIFACE_USE_OSX
 #endif
 #if defined(HAVE_SDL) && HAVE_SDL
