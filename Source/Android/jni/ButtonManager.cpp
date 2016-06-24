@@ -23,9 +23,7 @@ std::vector<std::string> configStrings = {
     "WiimoteUp", "WiimoteDown", "WiimoteLeft", "WiimoteRight", "IRUp", "IRDown", "IRLeft",
     "IRRight", "IRForward", "IRBackward", "IRHide", "SwingUp", "SwingDown", "SwingLeft",
     "SwingRight", "SwingForward", "SwingBackward", "TiltForward", "TiltBackward", "TiltLeft",
-    "TiltRight", "TiltModifier"
-                 "ShakeX",
-    "ShakeY", "ShakeZ",
+    "TiltRight", "TiltModifier", "ShakeX", "ShakeY", "ShakeZ",
     // Nunchuk
     "NunchukC", "NunchukZ", "NunchukUp", "NunchukDown", "NunchukLeft", "NunchukRight",
     "NunchukSwingUp", "NunchukSwingDown", "NunchukSwingLeft", "NunchukSwingRight",
