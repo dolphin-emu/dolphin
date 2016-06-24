@@ -140,7 +140,7 @@ bool VideoBackend::Initialize(void* window_handle)
 	}
 
 	// create object cache
-	s_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice);
+	s_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice, s_command_buffer_mgr.get());
 	if (!s_object_cache->Initialize())
 	{
 		PanicAlert("Failed to create vulkan object cache");

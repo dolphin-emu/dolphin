@@ -263,6 +263,11 @@ void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
 	if (res != VK_SUCCESS)
 		LOG_VULKAN_ERROR(res, "vkResetCommandBuffer failed: ");
 
+	// Also can do the same for the descriptor pools
+	res = vkResetDescriptorPool(m_device, m_descriptor_pools[m_current_command_buffer_index], 0);
+	if (res != VK_SUCCESS)
+		LOG_VULKAN_ERROR(res, "vkResetDescriptorPool failed: ");
+
 	VkCommandBufferBeginInfo begin_info = {
 		VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 		nullptr,

@@ -146,7 +146,7 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 	return true;
 }
 
-bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment)
+bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool reallocate_if_full)
 {
 	size_t required_bytes = num_bytes + alignment;
 
