@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include "AudioCommon/AlsaSoundStream.h"
+#include "AudioCommon/AudioDevice.h"
 #include "Common/CommonTypes.h"
 #include "Common/Thread.h"
 #include "Common/Logging/Log.h"
@@ -97,7 +98,10 @@ bool AlsaSound::AlsaInit()
 	snd_pcm_uframes_t buffer_size,buffer_size_max;
 	unsigned int periods;
 
-	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
+	AudioDevice audio_device = AudioDevice::GetSelectedDevice();
+	NOTICE_LOG(AUDIO, "Selected audio device: <%s> %s", audio_device.id.c_str(), audio_device.name.c_str());
+
+	err = snd_pcm_open(&handle, audio_device.id.c_str(), SND_PCM_STREAM_PLAYBACK, 0);
 	if (err < 0)
 	{
 		ERROR_LOG(AUDIO, "Audio open error: %s\n", snd_strerror(err));
