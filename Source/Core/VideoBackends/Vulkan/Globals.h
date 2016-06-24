@@ -57,7 +57,7 @@ union BlendState
 	BitField<4, 4, VkColorComponentFlags> write_mask;
 	BitField<8, 5, VkBlendFactor> src_blend;
 	BitField<13, 5, VkBlendFactor> dst_blend;
-	BitField<18, 3, u32> dstalpha_mode;
+	BitField<18, 1, u32> use_dst_alpha;
 
 	u32 hex;
 };
