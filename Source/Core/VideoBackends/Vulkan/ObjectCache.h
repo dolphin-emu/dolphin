@@ -72,6 +72,7 @@ public:
 	VertexShaderCache& GetVertexShaderCache() { return m_vs_cache; }
 	GeometryShaderCache& GetGeometryShaderCache() { return m_gs_cache; }
 	PixelShaderCache& GetPixelShaderCache() { return m_ps_cache; }
+	StaticShaderCache& GetStaticShaderCache() { return m_static_shader_cache; }
 
 	// Perform at startup, create descriptor layouts, compiles all static shaders.
 	bool Initialize();

@@ -217,9 +217,9 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	uint32_t num_shader_stages = 0;
 	if (info.vs != VK_NULL_HANDLE)
 		shader_stages[num_shader_stages++] = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, VK_SHADER_STAGE_VERTEX_BIT, info.vs, "main" };
-	if (info.vs != VK_NULL_HANDLE)
+	if (info.gs != VK_NULL_HANDLE)
 		shader_stages[num_shader_stages++] = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, VK_SHADER_STAGE_GEOMETRY_BIT, info.gs, "main" };
-	if (info.vs != VK_NULL_HANDLE)
+	if (info.ps != VK_NULL_HANDLE)
 		shader_stages[num_shader_stages++] = { VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, VK_SHADER_STAGE_FRAGMENT_BIT, info.ps, "main" };
 
 	// Fill in full descriptor structs
