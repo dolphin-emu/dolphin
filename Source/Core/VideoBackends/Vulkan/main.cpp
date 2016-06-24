@@ -61,6 +61,7 @@ static void InitBackendInfo()
 	g_Config.backend_info.bSupportsPaletteConversion = true;
 	g_Config.backend_info.bSupportsClipControl = false;
 	g_Config.backend_info.bSupportsBindingLayout = true;
+	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
 	// aamodes
 	g_Config.backend_info.AAModes = {1};

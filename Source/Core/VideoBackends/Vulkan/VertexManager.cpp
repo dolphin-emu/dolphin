@@ -68,8 +68,8 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 	ADDSTAT(stats.thisFrame.bytesVertexStreamed, static_cast<int>(vertex_data_size));
 	ADDSTAT(stats.thisFrame.bytesIndexStreamed, static_cast<int>(index_data_size));
 
-	//m_state_tracker->SetVertexBuffer();
-	//m_state_tracker->SetIndexBuffer();
+	m_state_tracker->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0);
+	m_state_tracker->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
 }
 
 void VertexManager::ResetBuffer(u32 stride)
@@ -117,14 +117,39 @@ void VertexManager::ResetBuffer(u32 stride)
 
 void VertexManager::vFlush(bool use_dst_alpha)
 {
-	// TODO: Get stride from vertex format
-	PrepareDrawBuffers(4);
+	const VertexFormat* vertex_format = static_cast<VertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
+	u32 vertex_stride = vertex_format->GetVertexStride();
+
+	// Commit memory to device
+	PrepareDrawBuffers(vertex_stride);
 
 	// Figure out the number of indices to draw
 	u32 index_count = IndexGenerator::GetIndexLen();
 
-	// Update all pending state (this implies state tracker binding)
-	g_renderer->ApplyState(use_dst_alpha);
+	// Update assembly state
+	m_state_tracker->SetVertexFormat(vertex_format);
+	switch (current_primitive_type)
+	{
+	case PRIMITIVE_POINTS:
+		m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
+		m_state_tracker->DisableBackFaceCulling();
+		break;
+
+	case PRIMITIVE_LINES:
+		m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+		m_state_tracker->DisableBackFaceCulling();
+		break;
+
+	case PRIMITIVE_TRIANGLES:
+		m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+		g_renderer->SetGenerationMode();
+		break;
+	}
+
+	// Check for any shader stage changes
+	m_state_tracker->CheckForShaderChanges(current_primitive_type, use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
+
+	// Bind all pending state to the command buffer
 	if (!m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer()))
 	{
 		WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
@@ -132,7 +157,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	}
 
 	// Execute the draw
-	// TODO: Handle two-pass dst alpha
+	// TODO: Handle two-pass dst alpha for devices that don't support dual-source blend
 	vkCmdDrawIndexed(m_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1, m_current_draw_base_index, m_current_draw_base_vertex, 0);
 }
 
