@@ -17,7 +17,10 @@ namespace Vulkan {
 
 // TODO: Get rid of this static
 // It's also not thread safe...
-static shaderc::Compiler s_compiler;
+static shaderc::Compiler& GetShaderCompiler();
+
+// Shader header prepended to all shaders
+std::string GetShaderHeader();
 
 // Utility methods that are uid-type-dependant
 template<typename Uid>
@@ -111,15 +114,18 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	// Have to compile the shader, so generate the source code for it (still using OGL for now)
 	ShaderCode code = ShaderCacheFunctions<Uid>::GenerateCode(dstalpha_mode, primitive_type);
 
+	// Append header to code
+	std::string full_code = GetShaderHeader() + code.GetBuffer();
+
 	// Call out to shaderc to do the heavy lifting
-	shaderc::Compiler compiler;
+	shaderc::Compiler& compiler = GetShaderCompiler();
 	shaderc::CompileOptions options;
-	shaderc::SpvCompilationResult result = s_compiler.CompileGlslToSpv(
-		code.GetBuffer(),
+	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(
+		full_code,
 		ShaderCacheFunctions<Uid>::GetShaderKind(),
 		"shader.glsl",
 		options);
-
+	
 	// Check for failed compilation
 	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
 	{
@@ -129,7 +135,7 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 		OpenFStream(stream, filename, std::ios_base::out);
 		if (stream.good())
 		{
-			stream << code.GetBuffer() << "\n"
+			stream << full_code << "\n"
 				   << result.GetNumErrors() << " errors, "
 				   << result.GetNumWarnings() << " warnings\n"
 				   << result.GetErrorMessage();
@@ -150,13 +156,13 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 		OpenFStream(stream, filename, std::ios_base::out);
 		if (stream.good())
 		{
-			shaderc::AssemblyCompilationResult resultasm = s_compiler.CompileGlslToSpvAssembly(
-				code.GetBuffer(),
+			shaderc::AssemblyCompilationResult resultasm = compiler.CompileGlslToSpvAssembly(
+				full_code,
 				ShaderCacheFunctions<Uid>::GetShaderKind(),
 				"shader.glsl",
 				options);
 
-			stream << code.GetBuffer();
+			stream << full_code;
 			
 			if (resultasm.GetCompilationStatus() == shaderc_compilation_status_success)
 				stream << "Compiled SPIR-V:\n" << resultasm.begin();
@@ -192,6 +198,53 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	m_disk_cache.Append(uid, spirv.data(), static_cast<u32>(spirv.size()));
 	m_shaders.emplace(uid, module);
 	return module;
+}
+
+shaderc::Compiler& GetShaderCompiler()
+{
+	static shaderc::Compiler lazy_initialized_compiler;
+	return lazy_initialized_compiler;
+}
+
+std::string GetShaderHeader()
+{
+	// TODO: Handle GLSL versions/extensions/mobile
+	return StringFromFormat(
+		"#version 440\n"
+		"#extension GL_ARB_uniform_buffer_object : enable\n" // ubo
+		"#define FORCE_EARLY_Z layout(early_fragment_tests) in\n" // early-z
+		"#extension GL_ARB_shader_image_load_store : enable\n" // early-z
+		"#extension GL_ARB_shading_language_420pack : enable\n" // 420pack
+		"#extension GL_ARB_texture_multisample : enable\n" // msaa
+		"#define SAMPLER_BINDING(x) layout(binding = x)\n" // Sampler binding
+		"#extension GL_ARB_shader_storage_buffer_object : enable\n" // storage buffer
+		"#extension GL_ARB_gpu_shader5 : enable\n" // shader5
+		"#extension GL_ARB_sample_shading : enable\n" // SSAA
+		"#extension GL_ARB_texture_buffer_object : enable\n" // texture buffer
+		"#extension GL_EXT_blend_func_extended : enable\n" // ES dual source blend
+
+		// Precision defines for GLSL ES
+		//"precision highp float;\n"
+		//"precision highp int;\n"
+		//"precision highp sampler2DArray;\n"
+		//"precision highp usamplerBuffer;\n"
+		//"precision highp sampler2DMS;\n"
+
+		// Silly differences
+		"#define float2 vec2\n"
+		"#define float3 vec3\n"
+		"#define float4 vec4\n"
+		"#define uint2 uvec2\n"
+		"#define uint3 uvec3\n"
+		"#define uint4 uvec4\n"
+		"#define int2 ivec2\n"
+		"#define int3 ivec3\n"
+		"#define int4 ivec4\n"
+
+		// hlsl to glsl function translation
+		"#define frac fract\n"
+		"#define lerp mix\n"
+	);
 }
 
 // Vertex shader functions

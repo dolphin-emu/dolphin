@@ -90,8 +90,8 @@ void VertexManager::ResetBuffer(u32 stride)
 	}
 
 	// Attempt to allocate from buffers
-	bool has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride, &m_current_draw_vertex_buffer, &s_pCurBufferPointer, &m_current_draw_vertex_buffer_offset);
-	bool has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride, &m_current_draw_vertex_buffer, &s_pCurBufferPointer, &m_current_draw_vertex_buffer_offset);
+	bool has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
+	bool has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
 	if (!has_vbuffer_allocation || !has_ibuffer_allocation)
 	{
 		// Flush any pending commands first, so that we can wait on the fences
@@ -101,18 +101,24 @@ void VertexManager::ResetBuffer(u32 stride)
 
 		// Attempt to allocate again, this may cause a fence wait
 		if (!has_vbuffer_allocation)
-			has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride, &m_current_draw_vertex_buffer, &s_pCurBufferPointer, &m_current_draw_vertex_buffer_offset);
+			has_vbuffer_allocation = m_vertex_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride);
 		if (!has_ibuffer_allocation)
-			has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXVBUFFERSIZE, stride, &m_current_draw_vertex_buffer, &s_pCurBufferPointer, &m_current_draw_vertex_buffer_offset);
+			has_ibuffer_allocation = m_index_stream_buffer->ReserveMemory(MAXIBUFFERSIZE, sizeof(u16));
 
 		// If we still failed, that means the allocation was too large and will never succeed, so panic
 		if (!has_vbuffer_allocation || !has_ibuffer_allocation)
 			PanicAlert("Failed to allocate space in streaming buffers for pending draw");
 	}
 
+	// Update pointers
+	s_pBaseBufferPointer = m_vertex_stream_buffer->GetHostPointer();
+	s_pEndBufferPointer = s_pBaseBufferPointer + MAXVBUFFERSIZE;
+	s_pCurBufferPointer = m_vertex_stream_buffer->GetCurrentHostPointer();
+	IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCurrentHostPointer()));
+
 	// Update base indices
-	m_current_draw_base_vertex = static_cast<u32>(m_current_draw_vertex_buffer_offset / stride);
-	m_current_draw_base_index = static_cast<u32>(m_current_draw_index_buffer_offset / sizeof(u16));
+	m_current_draw_base_vertex = static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / stride);
+	m_current_draw_base_index = static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / sizeof(u16));
 }
 
 void VertexManager::vFlush(bool use_dst_alpha)
