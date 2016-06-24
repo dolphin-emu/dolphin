@@ -4,7 +4,6 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
