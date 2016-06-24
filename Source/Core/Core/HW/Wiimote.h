@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/Common.h"
+#include "Common/CommonTypes.h"
 
 class InputConfig;
 class PointerWrap;
