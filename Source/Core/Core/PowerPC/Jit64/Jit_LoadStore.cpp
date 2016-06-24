@@ -14,6 +14,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -355,6 +356,22 @@ void Jit64::dcbx(UGeckoInstruction inst)
 		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 		SHL(32, R(addr), Imm8(5));
 		ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
+		ABI_CallFunctionR((void*)DVDInterface::FlushInstantDMA, addr);
+		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+		c = J(true);
+		SwitchToNearCode();
+		SetJumpTarget(c);
+	}
+	else if (inst.SUBOP10 == 86)
+	{
+		// Flush DVD DMA if DMA is set in progress
+		TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
+		c = J_CC(CC_NZ, true);
+		SwitchToFarCode();
+		SetJumpTarget(c);
+		ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+		SHL(32, R(addr), Imm8(5));
+		ABI_CallFunctionR((void*)DVDInterface::FlushInstantDMA, addr);
 		ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 		c = J(true);
 		SwitchToNearCode();

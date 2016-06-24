@@ -110,4 +110,5 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
                     u32 output_length, bool reply_to_ios);
 void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type);
 
+void FlushInstantDMA(u32 address);
 } // end of namespace DVDInterface
