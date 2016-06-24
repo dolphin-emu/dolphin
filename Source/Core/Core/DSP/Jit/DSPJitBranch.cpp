@@ -112,7 +112,7 @@ static void WriteBlockLink(DSPEmitter& emitter, u16 dest)
 		{
 			// The destination has not been compiled yet.  Add it to the list
 			// of blocks that this block is waiting on.
-			emitter.unresolvedJumps[emitter.startAddr].push_back(dest);
+			emitter.AddUnresolvedJumpAtStartAddress(dest);
 		}
 	}
 }

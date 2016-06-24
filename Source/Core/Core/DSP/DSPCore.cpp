@@ -322,11 +322,11 @@ void CompileCurrent()
 		retry = false;
 		for (u16 i = 0x0000; i < 0xffff; ++i)
 		{
-			if (!g_dsp_jit->unresolvedJumps[i].empty())
+			if (g_dsp_jit->AnyUnresolvedJumpsAtAddress(i))
 			{
-				u16 addrToCompile = g_dsp_jit->unresolvedJumps[i].front();
-				g_dsp_jit->Compile(addrToCompile);
-				if (!g_dsp_jit->unresolvedJumps[i].empty())
+				u16 address_to_compile = g_dsp_jit->FirstUnresolvedJumpAtAddress(i);
+				g_dsp_jit->Compile(address_to_compile);
+				if (g_dsp_jit->AnyUnresolvedJumpsAtAddress(i))
 					retry = true;
 			}
 		}

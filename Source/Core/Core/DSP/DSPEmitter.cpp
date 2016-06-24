@@ -8,18 +8,19 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
 
-#define MAX_BLOCK_SIZE 250
-#define DSP_IDLE_SKIP_CYCLES 0x1000
+namespace
+{
+constexpr int COMPILED_CODE_SIZE   = 2097152;
+constexpr u32 MAX_BLOCK_SIZE       = 250;
+constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
+}
 
 using namespace Gen;
 
 DSPEmitter::DSPEmitter() : gpr(*this), storeIndex(-1), storeIndex2(-1)
 {
-	m_compiledCode = nullptr;
-
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
 	blocks = new DSPCompiledCode[MAX_BLOCKS];
@@ -99,13 +100,10 @@ void DSPEmitter::checkExceptions(u32 retval)
 	SetJumpTarget(skipCheck);
 }
 
-bool DSPEmitter::FlagsNeeded()
+bool DSPEmitter::FlagsNeeded() const
 {
-	if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
-		(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
-		return true;
-	else
-		return false;
+	return !(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
+	        (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR);
 }
 
 void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
@@ -423,4 +421,19 @@ void DSPEmitter::CompileDispatcher()
 	//MOV(32, M(&cyclesLeft), Imm32(0));
 	ABI_PopRegistersAndAdjustStack(registers_used, 8);
 	RET();
+}
+
+bool DSPEmitter::AnyUnresolvedJumpsAtAddress(u16 address) const
+{
+	return !unresolvedJumps[address].empty();
+}
+
+u16 DSPEmitter::FirstUnresolvedJumpAtAddress(u16 address) const
+{
+	return unresolvedJumps[address].front();
+}
+
+void DSPEmitter::AddUnresolvedJumpAtStartAddress(u16 destination)
+{
+	unresolvedJumps[startAddr].push_back(destination);
 }
