@@ -39,20 +39,20 @@ struct SSysConfHeader
 
 struct SSysConfEntry
 {
-	u16 offset;
-	SysconfType type;
-	u8 nameLength;
-	char name[32];
-	u16 dataLength;
-	u8* data;
+	u16 offset = 0;
+	SysconfType type = Type_Unknown;
+	u8 nameLength = 0;
+	char name[32] = {};
+	u16 dataLength = 0;
+	std::vector<u8> data;
 
 	template<class T>
-	T GetData() { return *(T*)data; }
+	T GetData() { return *(T*)data.data(); }
 	bool GetArrayData(u8* dest, u16 destSize)
 	{
 		if (dest && destSize >= dataLength)
 		{
-			memcpy(dest, data, dataLength);
+			memcpy(dest, data.data(), dataLength);
 			return true;
 		}
 		return false;
@@ -61,7 +61,7 @@ struct SSysConfEntry
 	{
 		if (buffer)
 		{
-			memcpy(data, buffer, std::min<u16>(bufferSize, dataLength));
+			memcpy(data.data(), buffer, std::min<u16>(bufferSize, dataLength));
 			return true;
 		}
 		return false;
@@ -161,7 +161,7 @@ public:
 			return false;
 		}
 
-		*(T*)index->data = newValue;
+		*(T*)index->data.data() = newValue;
 		return true;
 	}
 
