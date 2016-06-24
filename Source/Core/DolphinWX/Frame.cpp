@@ -371,7 +371,8 @@ CFrame::CFrame(wxFrame* parent,
 	, m_LogWindow(nullptr), m_LogConfigWindow(nullptr)
 	, m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger)
 	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bGameLoading(false), m_bClosing(false), m_confirmStop(false), m_menubar_shadow(nullptr)
+	, m_bGameLoading(false), m_bClosing(false), m_bHasFocus(false), m_confirmStop(false)
+	, m_menubar_shadow(nullptr)
 {
 	for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
 		bFloatWindow[i] = false;
@@ -558,8 +559,14 @@ void CFrame::OnActive(wxActivateEvent& event)
 	{
 		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
 		{
+			// Gained focus
+			m_bHasFocus = true;
 			if (SConfig::GetInstance().bRenderToMain)
 				m_RenderParent->SetFocus();
+
+			if (SConfig::GetInstance().m_PauseOnFocusLost &&
+					Core::GetState() == Core::CORE_PAUSE)
+				Core::SetState(Core::CORE_RUN);
 
 			if (SConfig::GetInstance().bHideCursor &&
 					Core::GetState() == Core::CORE_RUN)
@@ -567,9 +574,16 @@ void CFrame::OnActive(wxActivateEvent& event)
 		}
 		else
 		{
+			// Lost focus
+			m_bHasFocus = false;
+			if (SConfig::GetInstance().m_PauseOnFocusLost &&
+					Core::GetState() == Core::CORE_RUN)
+				Core::SetState(Core::CORE_PAUSE);
+
 			if (SConfig::GetInstance().bHideCursor)
 				m_RenderParent->SetCursor(wxNullCursor);
 		}
+		UpdateGUI();
 	}
 	event.Skip();
 }
@@ -838,16 +852,7 @@ bool CFrame::RendererHasFocus()
 	if (m_RenderFrame->GetHWND() == window)
 		return true;
 #else
-	wxWindow *window = wxWindow::FindFocus();
-	if (window == nullptr)
-		return false;
-	// Why these different cases?
-	if (m_RenderParent == window ||
-	    m_RenderParent == window->GetParent() ||
-	    m_RenderParent->GetParent() == window->GetParent())
-	{
-		return true;
-	}
+	return m_bHasFocus;
 #endif
 	return false;
 }
@@ -861,8 +866,7 @@ bool CFrame::UIHasFocus()
 	// focus. If it's not one of our windows, then it will return
 	// null.
 
-	wxWindow *focusWindow = wxWindow::FindFocus();
-	return (focusWindow != nullptr);
+	return m_bHasFocus;
 }
 
 void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
@@ -1128,34 +1132,6 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	event.Skip();
 }
 
-void CFrame::OnFocusChange(wxFocusEvent& event)
-{
-	if (SConfig::GetInstance().m_PauseOnFocusLost && Core::IsRunningAndStarted())
-	{
-		if (RendererHasFocus())
-		{
-			if (Core::GetState() == Core::CORE_PAUSE)
-			{
-				Core::SetState(Core::CORE_RUN);
-				if (SConfig::GetInstance().bHideCursor)
-					m_RenderParent->SetCursor(wxCURSOR_BLANK);
-			}
-		}
-		else
-		{
-			if (Core::GetState() == Core::CORE_RUN)
-			{
-				Core::SetState(Core::CORE_PAUSE);
-				if (SConfig::GetInstance().bHideCursor)
-					m_RenderParent->SetCursor(wxNullCursor);
-				Core::UpdateTitle();
-			}
-		}
-		UpdateGUI();
-	}
-
-	event.Skip();
-}
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
