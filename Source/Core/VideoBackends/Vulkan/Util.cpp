@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -222,6 +224,19 @@ void BackendShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
 
 void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 {
+	// Check if we need to bind any descriptors at all.
+	size_t first_active_sampler = 0;
+	for (; first_active_sampler < NUM_PIXEL_SHADER_SAMPLERS; first_active_sampler++)
+	{
+		if (m_ps_textures[first_active_sampler] != VK_NULL_HANDLE)
+			break;
+	}
+	if (m_vs_uniform_buffer == VK_NULL_HANDLE && m_ps_uniform_buffer == VK_NULL_HANDLE && first_active_sampler == NUM_PIXEL_SHADER_SAMPLERS)
+	{
+		// SKip allocating and binding a descriptor set, since it won't be used
+		return;
+	}
+
 	// Grab a descriptor set
 	VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_COMBINED));
 	if (set == VK_NULL_HANDLE)
@@ -238,33 +253,42 @@ void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 	{
 		ps_samplers_info[i].imageLayout = (m_ps_textures[i] != VK_NULL_HANDLE) ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 		ps_samplers_info[i].imageView = m_ps_textures[i];
-		ps_samplers_info[i].sampler = m_ps_samplers[i];
+		ps_samplers_info[i].sampler = (m_ps_samplers[i] != VK_NULL_HANDLE) ? m_ps_samplers[i] : VK_NULL_HANDLE;
 	}
 
 	// Populate the whole thing pretty much
-	VkWriteDescriptorSet write_descriptors[] =
+	std::array<VkWriteDescriptorSet, 3> write_descriptors;
+	uint32_t num_write_descriptors = 0;
+	if (vs_ubo_info.buffer != VK_NULL_HANDLE)
 	{
-		{
+		write_descriptors[num_write_descriptors++] = {
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
 			COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,
 			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			nullptr, &vs_ubo_info, nullptr
-		},
-		{
+		};
+	}
+	if (ps_ubo_info.buffer != VK_NULL_HANDLE)
+	{
+		write_descriptors[num_write_descriptors++] = {
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
 			COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,
 			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 			nullptr, &ps_ubo_info, nullptr
-		},
-		{
+		};
+	}
+	if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
+	{
+		write_descriptors[num_write_descriptors++] = {
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
 			COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,
 			0, NUM_PIXEL_SHADER_SAMPLERS, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 			ps_samplers_info, nullptr, nullptr
-		}
-	};
+		};
+	}
 
-	vkUpdateDescriptorSets(m_object_cache->GetDevice(), ARRAYSIZE(write_descriptors), write_descriptors, 0, nullptr);
+	assert(num_write_descriptors > 0);
+	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_write_descriptors, write_descriptors.data(), 0, nullptr);
 }
 
 bool BackendShaderDraw::BindPipeline(VkCommandBuffer command_buffer)

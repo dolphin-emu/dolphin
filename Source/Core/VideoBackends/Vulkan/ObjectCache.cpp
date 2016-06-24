@@ -12,11 +12,12 @@
 
 namespace Vulkan {
 
-ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr)
+ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr, const SupportBits& support_bits)
 	: m_instance(instance)
 	, m_physical_device(physical_device)
 	, m_device(device)
 	, m_command_buffer_mgr(command_buffer_mgr)
+	, m_support_bits(support_bits)
 	, m_vs_cache(device)
 	, m_gs_cache(device)
 	, m_ps_cache(device)

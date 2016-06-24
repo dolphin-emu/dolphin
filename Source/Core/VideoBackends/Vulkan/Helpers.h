@@ -15,7 +15,8 @@ std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_
 VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd);
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
 	uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
-	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue);
+	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
+	SupportBits* out_features);
 
 VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface);
 VkSurfaceFormatKHR SelectVulkanSurfaceFormat(VkPhysicalDevice physical_device, VkSurfaceKHR surface);

@@ -260,6 +260,36 @@ std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_
 	return enabled_extensions;
 }
 
+bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features, SupportBits* out_features)
+{
+	VkPhysicalDeviceFeatures available_features;
+	vkGetPhysicalDeviceFeatures(device, &available_features);
+
+	*enable_features = {};
+	*out_features = {};
+
+	// Check for required stuff
+	if (!available_features.dualSrcBlend ||
+		!available_features.geometryShader ||
+		!available_features.samplerAnisotropy)
+	{
+		// TODO: Improved logging here
+		return false;
+	}
+
+	// Copy to enable struct
+	enable_features->dualSrcBlend = available_features.dualSrcBlend;
+	enable_features->geometryShader = available_features.geometryShader;
+	enable_features->samplerAnisotropy = available_features.samplerAnisotropy;
+	enable_features->shaderClipDistance = available_features.shaderClipDistance;		// Only here to shut up the debug layer, we don't actually use it
+	enable_features->shaderCullDistance = available_features.shaderCullDistance;		// Only here to shut up the debug layer, we don't actually use it
+
+	// Copy to our support struct
+	out_features->SupportsGeometryShaders = enable_features->geometryShader;
+	out_features->SupportsDualSourceBlend = enable_features->dualSrcBlend;
+	return true;
+}
+
 VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 {
 #if defined(WIN32)
@@ -287,7 +317,8 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
 	uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
-	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue)
+	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
+	SupportBits* out_features)
 {
 	uint32_t queue_family_count;
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
@@ -350,11 +381,15 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
 	if (enabled_extensions.empty())
 		return nullptr;
 
+	VkPhysicalDeviceFeatures enabled_features;
+	if (!CheckVulkanDeviceFeatures(physical_device, &enabled_features, out_features))
+		return nullptr;
+
 	device_info.enabledLayerCount = 0;
 	device_info.ppEnabledLayerNames = nullptr;
 	device_info.enabledExtensionCount = static_cast<uint32_t>(enabled_extensions.size());
 	device_info.ppEnabledExtensionNames = enabled_extensions.data();
-	device_info.pEnabledFeatures = nullptr;
+	device_info.pEnabledFeatures = &enabled_features;
 
 	// Enable debug layer on debug builds
 	if (ShouldEnableDebugLayer())
