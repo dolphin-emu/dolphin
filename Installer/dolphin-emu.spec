@@ -138,7 +138,8 @@ make %{?_smp_mflags} install DESTDIR="%{?buildroot}"
 %doc license.txt Readme.md
 %{_bindir}/%{name}
 %{_datadir}/%{name}
-%{_datadir}/pixmaps/dolphin-emu.xpm
+%{_datadir}/icons/hicolor/48x48/apps/%{name}.*
+%{_datadir}/icons/hicolor/scalable/apps/%{name}.*
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man6/%{name}.*
 

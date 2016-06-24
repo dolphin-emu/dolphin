@@ -64,7 +64,11 @@ void GeneralConfigPane::InitializeGUI()
 	m_cheats_checkbox      = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
 	m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
 	m_analytics_checkbox   = new wxCheckBox(this, wxID_ANY, _("Enable Usage Statistics Reporting"));
+#ifdef __APPLE__
+	m_analytics_new_id     = new wxButton(this, wxID_ANY, _("Generate a New Statistics Identity"), wxDefaultPosition, wxSize(350, 25));
+#else
 	m_analytics_new_id     = new wxButton(this, wxID_ANY, _("Generate a New Statistics Identity"));
+#endif
 	m_throttler_choice     = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_throttler_array_string);
 	m_cpu_engine_radiobox  = new wxRadioBox(this, wxID_ANY, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
 
