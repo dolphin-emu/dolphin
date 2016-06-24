@@ -34,8 +34,8 @@ public:
 	VkShaderModule GetPassthroughGeometryShader() const { return m_geometry_shaders.passthrough; }
 
 	// Fragment Shaders
-	VkShaderModule GetBlitFragmentShader() const { return m_fragment_shaders.blit; }
 	VkShaderModule GetClearFragmentShader() const { return m_fragment_shaders.clear; }
+	VkShaderModule GetCopyFragmentShader() const { return m_fragment_shaders.copy; }
 
 private:
 	VkDevice m_device;
@@ -56,8 +56,8 @@ private:
 
 	struct
 	{
-		VkShaderModule blit = nullptr;
 		VkShaderModule clear = nullptr;
+		VkShaderModule copy = nullptr;
 	} m_fragment_shaders;
 };
 

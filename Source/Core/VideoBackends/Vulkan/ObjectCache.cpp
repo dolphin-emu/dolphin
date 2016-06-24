@@ -59,6 +59,9 @@ bool ObjectCache::Initialize()
 	if (!CreateBackendShaderVertexFormat())
 		return false;
 
+	if (!CreateStaticSamplers())
+		return false;
+
 	m_backend_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024, 256 * 1024);
 	m_backend_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 256 * 1024);
 	if (!m_backend_shader_vertex_buffer || !m_backend_shader_uniform_buffer)
@@ -89,8 +92,8 @@ static VkPipelineRasterizationStateCreateInfo GetVulkanRasterizationState(const 
 		VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,			// VkStructureType                           sType
 		nullptr,															// const void*                               pNext
 		0,																	// VkPipelineRasterizationStateCreateFlags   flags
-		VK_TRUE,															// VkBool32                                  depthClampEnable
-		VK_TRUE,															// VkBool32                                  rasterizerDiscardEnable;
+		VK_FALSE,															// VkBool32                                  depthClampEnable
+		VK_FALSE,															// VkBool32                                  rasterizerDiscardEnable
 		VK_POLYGON_MODE_FILL,												// VkPolygonMode                             polygonMode
 		state.cull_mode,													// VkCullModeFlags                           cullMode
 		VK_FRONT_FACE_CLOCKWISE,											// VkFrontFace                               frontFace
@@ -243,7 +246,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 		0,									// VkPipelineMultisampleStateCreateFlags    flags
 		VK_SAMPLE_COUNT_1_BIT,				// VkSampleCountFlagBits                    rasterizationSamples
 		VK_FALSE,							// VkBool32                                 sampleShadingEnable
-		0.0f,								// float                                    minSampleShading
+		1.0f,								// float                                    minSampleShading
 		nullptr,							// const VkSampleMask*                      pSampleMask;
 		VK_FALSE,							// VkBool32                                 alphaToCoverageEnable
 		VK_FALSE							// VkBool32                                 alphaToOneEnable
@@ -343,7 +346,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 		{ COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT	},
 		{ COMBINED_DESCRIPTOR_SET_BINDING_GS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_GEOMETRY_BIT								},
 		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,	VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		16,		VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,	VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		8,		VK_SHADER_STAGE_FRAGMENT_BIT								},
 		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SSBO,		VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
 	};
 
@@ -405,6 +408,7 @@ bool ObjectCache::CreateBackendShaderVertexFormat()
 	vtx_decl.colors[0].components = 4;
 	vtx_decl.colors[0].integer = false;
 	vtx_decl.colors[0].offset = offsetof(BackendShaderVertex, Color);
+	vtx_decl.stride = sizeof(BackendShaderVertex);
 
 	m_backend_shader_vertex_format = std::make_unique<VertexFormat>(vtx_decl);
 	return true;

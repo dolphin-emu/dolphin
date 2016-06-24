@@ -146,6 +146,9 @@ void VertexManager::vFlush(bool use_dst_alpha)
 		break;
 	}
 
+	// Temporarily disabled
+	return;
+
 	// Check for any shader stage changes
 	m_state_tracker->CheckForShaderChanges(current_primitive_type, use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
 

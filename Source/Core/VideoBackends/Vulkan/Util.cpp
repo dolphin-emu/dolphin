@@ -37,7 +37,7 @@ BlendState GetNoBlendingBlendState()
 	return state;
 }
 
-void SetViewport(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth /*= 0.0f*/, float max_depth /*= 1.0f*/)
+void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth /*= 0.0f*/, float max_depth /*= 1.0f*/)
 {
 	VkViewport viewport =
 	{
@@ -49,7 +49,14 @@ void SetViewport(VkCommandBuffer command_buffer, int x, int y, int width, int he
 		max_depth
 	};
 
+	VkRect2D scissor =
+	{
+		{ x, y },
+		{ static_cast<uint32_t>(width), static_cast<uint32_t>(height) }
+	};
+
 	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 }
 
 }		// namespace Util
@@ -70,7 +77,7 @@ BackendShaderDraw::BackendShaderDraw(ObjectCache* object_cache, CommandBufferMan
 	m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
 
-BackendShaderVertex* BackendShaderDraw::AllocateVertices(VkPrimitiveTopology topology, size_t count)
+BackendShaderVertex* BackendShaderDraw::ReserveVertices(VkPrimitiveTopology topology, size_t count)
 {
 	m_pipeline_info.primitive_topology = topology;
 
@@ -83,11 +90,17 @@ BackendShaderVertex* BackendShaderDraw::AllocateVertices(VkPrimitiveTopology top
 	return reinterpret_cast<BackendShaderVertex*>(m_object_cache->GetBackendShaderVertexBuffer()->GetCurrentHostPointer());
 }
 
+void BackendShaderDraw::CommitVertices(size_t count)
+{
+	m_object_cache->GetBackendShaderVertexBuffer()->CommitMemory(sizeof(BackendShaderVertex) * count);
+	m_vertex_count = static_cast<uint32_t>(count);
+}
+
 void BackendShaderDraw::UploadVertices(VkPrimitiveTopology topology, BackendShaderVertex* vertices, size_t count)
 {
-	BackendShaderVertex* upload_vertices = AllocateVertices(topology, count);
+	BackendShaderVertex* upload_vertices = ReserveVertices(topology, count);
 	memcpy(upload_vertices, vertices, sizeof(BackendShaderVertex) * count);
-	m_vertex_count = static_cast<uint32_t>(count);
+	CommitVertices(count);
 }
 
 u8* BackendShaderDraw::AllocateVSUniforms(size_t size)
@@ -165,7 +178,7 @@ void BackendShaderDraw::DrawQuad(int x, int y, int width, int height)
 	vertices[3].SetTextureCoordinates(1.0f, 0.0f);
 	vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	Util::SetViewport(m_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
+	Util::SetViewportAndScissor(m_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
 	UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
 	Draw();
 }
@@ -191,7 +204,7 @@ void BackendShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_he
 	vertices[3].SetTextureCoordinates(u1, v0);
 	vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	Util::SetViewport(m_command_buffer_mgr->GetCurrentCommandBuffer(), dst_x, dst_y, dst_width, dst_height);
+	Util::SetViewportAndScissor(m_command_buffer_mgr->GetCurrentCommandBuffer(), dst_x, dst_y, dst_width, dst_height);
 	UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
 	Draw();
 }
@@ -212,7 +225,7 @@ void BackendShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
 	vertices[3].SetTextureCoordinates(1.0f, 0.0f);
 	vertices[3].SetColor(r, g, b, a);
 
-	Util::SetViewport(m_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
+	Util::SetViewportAndScissor(m_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
 	UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
 	Draw();
 }
@@ -247,17 +260,8 @@ void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 	VkDescriptorBufferInfo vs_ubo_info = { m_vs_uniform_buffer, m_vs_uniform_buffer_offset, m_vs_uniform_buffer_size };
 	VkDescriptorBufferInfo ps_ubo_info = { m_ps_uniform_buffer, m_ps_uniform_buffer_offset, m_ps_uniform_buffer_size };
 
-	// image descriptors
-	VkDescriptorImageInfo ps_samplers_info[NUM_PIXEL_SHADER_SAMPLERS];
-	for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
-	{
-		ps_samplers_info[i].imageLayout = (m_ps_textures[i] != VK_NULL_HANDLE) ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
-		ps_samplers_info[i].imageView = m_ps_textures[i];
-		ps_samplers_info[i].sampler = (m_ps_samplers[i] != VK_NULL_HANDLE) ? m_ps_samplers[i] : m_object_cache->GetPointSampler();
-	}
-
 	// Populate the whole thing pretty much
-	std::array<VkWriteDescriptorSet, 3> write_descriptors;
+	std::array<VkWriteDescriptorSet, 2 + NUM_PIXEL_SHADER_SAMPLERS> write_descriptors;
 	uint32_t num_write_descriptors = 0;
 	if (vs_ubo_info.buffer != VK_NULL_HANDLE)
 	{
@@ -279,16 +283,56 @@ void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 	}
 	if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
 	{
-		write_descriptors[num_write_descriptors++] = {
+		// Set up the template descriptor, so we don't have to write the whole thing each time
+		VkWriteDescriptorSet template_write =
+		{
 			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
 			COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,
-			0, NUM_PIXEL_SHADER_SAMPLERS, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			ps_samplers_info, nullptr, nullptr
+			0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+			nullptr, nullptr, nullptr
 		};
+
+		// Fill the first descriptor
+		VkDescriptorImageInfo ps_samplers_info[NUM_PIXEL_SHADER_SAMPLERS];
+		uint32_t num_image_info = 0;
+		write_descriptors[num_write_descriptors] = template_write;
+		write_descriptors[num_write_descriptors].pImageInfo = &ps_samplers_info[num_image_info];
+
+		// We can't bind any null images, apparently. So if the binding is non-contiguous, we need to create multiple update entries.
+		for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+		{
+			// This slot has an image?
+			if (m_ps_textures[i] != VK_NULL_HANDLE && m_ps_samplers[i] != VK_NULL_HANDLE)
+			{
+				// Add to the descriptors in this set
+				ps_samplers_info[num_image_info].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+				ps_samplers_info[num_image_info].imageView = m_ps_textures[i];
+				ps_samplers_info[num_image_info].sampler = m_ps_samplers[i];
+				num_image_info++;
+				write_descriptors[num_write_descriptors].descriptorCount++;
+			}
+			else
+			{
+				// Are there images currently listed?
+				if (write_descriptors[num_write_descriptors].descriptorCount > 0)
+				{
+					// Complete the descriptor, and allocate the next one
+					num_write_descriptors++;
+					write_descriptors[num_write_descriptors] = template_write;
+					write_descriptors[num_write_descriptors].pImageInfo = &ps_samplers_info[num_image_info];
+					write_descriptors[num_write_descriptors].dstArrayElement = static_cast<uint32_t>(i);
+				}
+			}
+		}
+
+		// Complete the last descriptor (if any)
+		if (write_descriptors[num_write_descriptors].descriptorCount > 0)
+			num_write_descriptors++;
 	}
 
 	assert(num_write_descriptors > 0);
 	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_write_descriptors, write_descriptors.data(), 0, nullptr);
+	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1, &set, 0, nullptr);
 }
 
 bool BackendShaderDraw::BindPipeline(VkCommandBuffer command_buffer)

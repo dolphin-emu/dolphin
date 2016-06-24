@@ -234,6 +234,8 @@ void VideoBackend::Shutdown()
 
 void VideoBackend::Video_Cleanup()
 {
+	vkDeviceWaitIdle(s_vkDevice);
+
 	g_texture_cache.reset();
 	g_perf_query.reset();
 	g_vertex_manager.reset();
@@ -242,8 +244,8 @@ void VideoBackend::Video_Cleanup()
 
 	s_state_tracker.reset();
 	s_swap_chain.reset();
-	s_command_buffer_mgr.reset();
 	s_object_cache.reset();
+	s_command_buffer_mgr.reset();
 
 	vkDestroyDevice(s_vkDevice, nullptr);
 	s_vkDevice = nullptr;

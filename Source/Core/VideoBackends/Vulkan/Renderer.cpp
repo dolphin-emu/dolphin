@@ -35,6 +35,9 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 	if (!CreateSemaphores())
 		PanicAlert("Failed to create Renderer semaphores");
 
+	// Initialize annoying statics
+	s_last_efb_scale = g_ActiveConfig.iEFBScale;
+
 	// Update backbuffer dimensions
 	OnSwapChainResized();
 
@@ -51,10 +54,6 @@ Renderer::~Renderer()
 {
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
-
-	// Submit command list before closing, but skip presenting
-	Renderer::ResetAPIState();
-	m_command_buffer_mgr->ExecuteCommandBuffer(true);
 	DestroySemaphores();
 }
 
@@ -123,6 +122,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	VkClearAttachment clear_attachments[2];
 	uint32_t num_clear_attachments = 0;
+
+	//color = 0xff992244;
 
 	// fast path: when both color and alpha are enabled, we can blow away the entire buffer
 	// TODO: Can we also do it when the buffer is not an RGBA format?
@@ -193,6 +194,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 {
 	ResetAPIState();
 
+	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+
 	// Blitting to the screen
 	{
 		// Transition from present to attachment so we can write to it
@@ -211,7 +214,23 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 		};
 		vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-		// Draw stuff
+		// Blit the EFB to the back buffer (Swap chain)
+		// TODO: XFB
+		BackendShaderDraw draw(
+			m_object_cache, m_command_buffer_mgr, m_swap_chain->GetRenderPass(),
+			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
+			nullptr,
+			m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
+
+		// Find the rect we want to draw into on the backbuffer
+		TargetRectangle target_rc = GetTargetRectangle();
+		TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
+
+		draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(), m_object_cache->GetLinearSampler());
+
+		draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
+		              m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
+		              target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
 		// End the present render pass
 		vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
