@@ -40,10 +40,6 @@ private:
 	std::unique_ptr<StreamBuffer> m_vertex_stream_buffer;
 	std::unique_ptr<StreamBuffer> m_index_stream_buffer;
 
-	VkBuffer m_current_draw_vertex_buffer = VK_NULL_HANDLE;
-	size_t m_current_draw_vertex_buffer_offset = 0;
-	VkBuffer m_current_draw_index_buffer = VK_NULL_HANDLE;
-	size_t m_current_draw_index_buffer_offset = 0;
 	u32 m_current_draw_base_vertex = 0;
 	u32 m_current_draw_base_index = 0;
 };

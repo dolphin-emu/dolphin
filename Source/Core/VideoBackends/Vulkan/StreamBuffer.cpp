@@ -28,6 +28,8 @@ StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* comm
 	, m_current_size(0)
 	, m_maximum_size(max_size)
 	, m_current_offset(0)
+	, m_current_gpu_position(0)
+	, m_last_allocation_size(0)
 	, m_buffer(VK_NULL_HANDLE)
 	, m_memory(VK_NULL_HANDLE)
 	, m_host_pointer(nullptr)
@@ -144,7 +146,7 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 	return true;
 }
 
-bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* out_buffer, u8** out_allocation_ptr, size_t* out_allocation_offset)
+bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment)
 {
 	size_t required_bytes = num_bytes + alignment;
 
@@ -155,9 +157,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* o
 		if (required_bytes <= remaining_bytes)
 		{
 			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
-			*out_buffer = m_buffer;
-			*out_allocation_ptr = m_host_pointer + m_current_offset;
-			*out_allocation_offset = m_current_offset;
+			m_last_allocation_size = num_bytes;
 			return true;
 		}
 
@@ -166,9 +166,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* o
 		{
 			// Reset offset to zero, since we're allocating behind the gpu now
 			m_current_offset = 0;
-			*out_buffer = m_buffer;
-			*out_allocation_ptr = m_host_pointer;
-			*out_allocation_offset = 0;
+			m_last_allocation_size = num_bytes;
 			return true;
 		}
 	}
@@ -181,9 +179,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* o
 		{
 			// Put after the current allocation but before the gpu
 			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
-			*out_buffer = m_buffer;
-			*out_allocation_ptr = m_host_pointer + m_current_offset;
-			*out_allocation_offset = m_current_offset;
+			m_last_allocation_size = num_bytes;
 			return true;
 		}
 	}
@@ -196,6 +192,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, VkBuffer* o
 void StreamBuffer::CommitMemory(size_t final_num_bytes)
 {
 	assert((m_current_offset + final_num_bytes) <= m_current_size);
+	assert(final_num_bytes <= m_last_allocation_size);
 	m_current_offset += final_num_bytes;
 
 	// TODO: For non-coherent mappings, flush the memory range
