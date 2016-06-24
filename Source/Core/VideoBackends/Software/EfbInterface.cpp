@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -475,12 +476,30 @@ namespace EfbInterface
 		GetPixelColor(offset, color);
 	}
 
-	// For internal used only, return a non-normalized value, which saves work later.
-	void GetColorYUV(u16 x, u16 y, yuv444 *out)
+	static void VerticalFilter(u8 colors[3][4], const std::array<u8, 7> &filterCoefficients, u8 *out)
 	{
-		u8 color[4];
-		GetColor(x, y, color);
+		// All Coefficients should sum to 64, otherwise the total brightness will change, which many games do
+		// on purpose to implement a brightness filter across the whole copy.
+		for (int i = BLU_C; i <= RED_C; i++)
+		{
+			// TODO: implement support for multisampling.
+			// In non-multisampling mode:
+			//   * Coefficients 2, 3 and 4 sample from the current pixel.
+			//   * Coefficients 0 and 1 sample from the pixel above this one
+			//   * Coefficients 5 and 6 sample from the pixel below this one
 
+			int sum = colors[0][i] * (filterCoefficients[0] + filterCoefficients[1]) +
+			          colors[1][i] * (filterCoefficients[2] + filterCoefficients[3] + filterCoefficients[4]) +
+			          colors[2][i] * (filterCoefficients[5] + filterCoefficients[6]);
+
+			// TODO: this clamping behavior appears to be correct, but isn't confirmed on hardware.
+			out[i] = std::min(255, sum >> 6); // clamp larger values to 255
+		}
+	}
+
+	// For internal used only, return a non-normalized value, which saves work later.
+	static void ConvertColorToYUV(u8 *color, yuv444 *out)
+	{
 		// GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
 		// http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
 		out->Y = (u8)( 0.257f * color[RED_C] +  0.504f * color[GRN_C] +  0.098f * color[BLU_C]);
@@ -501,7 +520,7 @@ namespace EfbInterface
 		return &efb[GetColorOffset(x, y)];
 	}
 
-	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
+	void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, bool clamp_top, bool clamp_bottom, float Gamma, const std::array<u8, 7> &filterCoefficients)
 	{
 		// FIXME: We should do Gamma correction
 
@@ -525,25 +544,40 @@ namespace EfbInterface
 		// Scanline buffer, leave room for borders
 		yuv444 scanline[EFB_WIDTH+2];
 
-		// our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-		yuv444 black;
-		black.Y = 0;
-		black.U = 0;
-		black.V = 0;
-
-		scanline[0] = black; // black border at start
-		scanline[right+1] = black; // black border at end
-
 		for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
 		{
-			// Get a scanline of YUV pixels in 4:4:4 format
+			// Clamping behavior
+			//   NOTE: when the clamp bits aren't set, the hardware will happily read beyond the EFB,
+			//         which returns random garbage from the empty bus (confirmed by hardware tests).
+			//
+			//         In our implementation, the garbage just so happens to be the top or bottom row.
+			//         Statistically, that could happen.
+			u16 y_prev = std::max<u16>(clamp_top ? sourceRc.top : 0, y - 1);
+			u16 y_next = std::min<u16>(clamp_bottom ? sourceRc.bottom : EFB_HEIGHT, y + 1);
 
+			// Get a scanline of YUV pixels in 4:4:4 format
 			for (int i = 1, x = left; x < right; i++, x++)
 			{
-				GetColorYUV(x, y, &scanline[i]);
+				// Get RGB colors
+				u8 colors[3][4];
+				GetColor(x, y_prev, colors[0]);
+				GetColor(x, y,      colors[1]);
+				GetColor(x, y_next, colors[2]);
+
+				// Vertical Filter (Multisampling resolve, deflicker, brightness)
+				u8 filtered[4];
+				VerticalFilter(colors, filterCoefficients, filtered);
+
+				// TODO: Gamma correction happens here.
+
+				ConvertColorToYUV(filtered, &scanline[i]);
 			}
 
-			// And Downsample them to 4:2:2
+			// Clamp the colors at the ends of the scanline
+			scanline[0] = scanline[1];
+			scanline[right + 1] = scanline[right];
+
+			// And downsample them to 4:2:2
 			for (int i = 1, x = left; x < right; i+=2, x+=2)
 			{
 				// YU pixel
@@ -555,8 +589,11 @@ namespace EfbInterface
 				// YV pixel
 				xfb_in_ram[x+1].Y = scanline[i+1].Y + 16;
 				// V[i] = 1/4 * V[i-1] + 1/2 * V[i] + 1/4 * V[i+1]
-				xfb_in_ram[x+1].UV = 128 + ((scanline[i].V + (scanline[i+1].V << 1) + scanline[i+2].V) >> 2);
+				xfb_in_ram[x+1].UV = 128 + ((scanline[i-1].V + (scanline[i].V << 1) + scanline[i+1].V) >> 2);
 			}
+
+			// TODO: Vertical scaling happens here (after downsampling, before writing to ram)
+
 			xfb_in_ram += fbWidth;
 		}
 	}
