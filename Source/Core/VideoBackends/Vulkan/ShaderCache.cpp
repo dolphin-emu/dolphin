@@ -314,7 +314,7 @@ struct ShaderCacheFunctions<VertexShaderUid>
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
-		return GenerateVertexShaderCode(API_OPENGL);
+		return GenerateVertexShaderCode(API_VULKAN);
 	}
 
 	static std::string GetDiskCacheFileName()
@@ -364,7 +364,7 @@ struct ShaderCacheFunctions<GeometryShaderUid>
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
-		return GenerateGeometryShaderCode(primitive_type, API_OPENGL);
+		return GenerateGeometryShaderCode(primitive_type, API_VULKAN);
 	}
 
 	static std::string GetDiskCacheFileName()
@@ -414,7 +414,7 @@ struct ShaderCacheFunctions<PixelShaderUid>
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
-		return GeneratePixelShaderCode(dst_alpha_mode, API_OPENGL);
+		return GeneratePixelShaderCode(dst_alpha_mode, API_VULKAN);
 	}
 
 	static std::string GetDiskCacheFileName()
