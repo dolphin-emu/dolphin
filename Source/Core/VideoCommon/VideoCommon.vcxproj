@@ -106,6 +106,7 @@
     <ClCompile Include="XFStructs.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbstractTextureBase.h" />
     <ClInclude Include="AsyncRequests.h" />
     <ClInclude Include="AVIDump.h" />
     <ClInclude Include="BoundingBox.h" />

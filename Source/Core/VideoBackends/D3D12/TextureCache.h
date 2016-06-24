@@ -22,34 +22,8 @@ public:
   virtual void BindTextures();
 
 private:
-  struct TCacheEntry : TCacheEntryBase
-  {
-    D3DTexture2D* const m_texture = nullptr;
-    D3D12_CPU_DESCRIPTOR_HANDLE m_texture_srv_cpu_handle = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE m_texture_srv_gpu_handle = {};
-    D3D12_CPU_DESCRIPTOR_HANDLE m_texture_srv_gpu_handle_cpu_shadow = {};
-
-    TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D* tex)
-        : TCacheEntryBase(config), m_texture(tex)
-    {
-    }
-    ~TCacheEntry();
-
-    void CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                  const MathUtil::Rectangle<int>& src_rect,
-                                  const MathUtil::Rectangle<int>& dst_rect) override;
-
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-              unsigned int levels) override;
-
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-                          bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
-
-    void Bind(unsigned int stage) override;
-    bool Save(const std::string& filename, unsigned int level) override;
-  };
-
-  TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
+  std::unique_ptr<AbstractTextureBase>
+  CreateTexture(const AbstractTextureBase::TextureConfig& config) override;
 
   u64 EncodeToRamFromTexture(u32 address, void* source_texture, u32 source_width, u32 source_height,
                              bool is_from_z_buffer, bool is_intensity_format, u32 copy_format,
@@ -58,7 +32,7 @@ private:
     return 0;
   };
 
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntry* entry, TCacheEntry* unconverted, void* palette,
                       TlutFormat format) override;
 
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,

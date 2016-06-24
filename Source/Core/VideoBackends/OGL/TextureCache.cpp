@@ -19,6 +19,7 @@
 
 #include "Core/HW/Memmap.h"
 
+#include "VideoBackends/OGL/AbstractTexture.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
@@ -36,19 +37,16 @@
 
 namespace OGL
 {
-static SHADER s_ColorCopyProgram;
-static SHADER s_ColorMatrixProgram;
-static SHADER s_DepthMatrixProgram;
-static GLuint s_ColorMatrixUniform;
-static GLuint s_DepthMatrixUniform;
-static GLuint s_ColorCopyPositionUniform;
-static GLuint s_ColorMatrixPositionUniform;
-static GLuint s_DepthCopyPositionUniform;
-static u32 s_ColorCbufid;
-static u32 s_DepthCbufid;
-
-static u32 s_Textures[8];
-static u32 s_ActiveTexture;
+SHADER s_ColorCopyProgram;
+SHADER s_ColorMatrixProgram;
+SHADER s_DepthMatrixProgram;
+GLuint s_ColorMatrixUniform;
+GLuint s_DepthMatrixUniform;
+GLuint s_ColorCopyPositionUniform;
+GLuint s_ColorMatrixPositionUniform;
+GLuint s_DepthCopyPositionUniform;
+u32 s_ColorCbufid;
+u32 s_DepthCbufid;
 
 static SHADER s_palette_pixel_shader[3];
 static std::unique_ptr<StreamBuffer> s_palette_stream_buffer;
@@ -56,205 +54,6 @@ static GLuint s_palette_resolv_texture;
 static GLuint s_palette_buffer_offset_uniform[3];
 static GLuint s_palette_multiplier_uniform[3];
 static GLuint s_palette_copy_position_uniform[3];
-
-bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
-                 int virtual_height, unsigned int level)
-{
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-    return false;
-  int width = std::max(virtual_width >> level, 1);
-  int height = std::max(virtual_height >> level, 1);
-  std::vector<u8> data(width * height * 4);
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(textarget, tex);
-  glGetTexImage(textarget, level, GL_RGBA, GL_UNSIGNED_BYTE, data.data());
-  TextureCache::SetStage();
-
-  return TextureToPng(data.data(), width * 4, filename, width, height, true);
-}
-
-TextureCache::TCacheEntry::~TCacheEntry()
-{
-  if (texture)
-  {
-    for (auto& gtex : s_Textures)
-      if (gtex == texture)
-        gtex = 0;
-    glDeleteTextures(1, &texture);
-    texture = 0;
-  }
-
-  if (framebuffer)
-  {
-    glDeleteFramebuffers(1, &framebuffer);
-    framebuffer = 0;
-  }
-}
-
-TextureCache::TCacheEntry::TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config)
-{
-  glGenTextures(1, &texture);
-
-  framebuffer = 0;
-}
-
-void TextureCache::TCacheEntry::Bind(unsigned int stage)
-{
-  if (s_Textures[stage] != texture)
-  {
-    if (s_ActiveTexture != stage)
-    {
-      glActiveTexture(GL_TEXTURE0 + stage);
-      s_ActiveTexture = stage;
-    }
-
-    glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-    s_Textures[stage] = texture;
-  }
-}
-
-bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
-{
-  return SaveTexture(filename, GL_TEXTURE_2D_ARRAY, texture, config.width, config.height, level);
-}
-
-TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
-{
-  TCacheEntry* entry = new TCacheEntry(config);
-
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);
-
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, config.levels - 1);
-
-  if (config.rendertarget)
-  {
-    for (u32 level = 0; level <= config.levels; level++)
-    {
-      glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, config.width, config.height, config.layers,
-                   0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    }
-    glGenFramebuffers(1, &entry->framebuffer);
-    FramebufferManager::SetFramebuffer(entry->framebuffer);
-    FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                           GL_TEXTURE_2D_ARRAY, entry->texture, 0);
-  }
-
-  TextureCache::SetStage();
-  return entry;
-}
-
-void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                                         const MathUtil::Rectangle<int>& srcrect,
-                                                         const MathUtil::Rectangle<int>& dstrect)
-{
-  TCacheEntry* srcentry = (TCacheEntry*)source;
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight() &&
-      g_ogl_config.bSupportsCopySubImage)
-  {
-    glCopyImageSubData(srcentry->texture, GL_TEXTURE_2D_ARRAY, 0, srcrect.left, srcrect.top, 0,
-                       texture, GL_TEXTURE_2D_ARRAY, 0, dstrect.left, dstrect.top, 0,
-                       dstrect.GetWidth(), dstrect.GetHeight(), srcentry->config.layers);
-    return;
-  }
-  else if (!framebuffer)
-  {
-    glGenFramebuffers(1, &framebuffer);
-    FramebufferManager::SetFramebuffer(framebuffer);
-    FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                           GL_TEXTURE_2D_ARRAY, texture, 0);
-  }
-  g_renderer->ResetAPIState();
-  FramebufferManager::SetFramebuffer(framebuffer);
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, srcentry->texture);
-  g_sampler_cache->BindLinearSampler(9);
-  glViewport(dstrect.left, dstrect.top, dstrect.GetWidth(), dstrect.GetHeight());
-  s_ColorCopyProgram.Bind();
-  glUniform4f(s_ColorCopyPositionUniform, float(srcrect.left), float(srcrect.top),
-              float(srcrect.GetWidth()), float(srcrect.GetHeight()));
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-  FramebufferManager::SetFramebuffer(0);
-  g_renderer->RestoreAPIState();
-}
-
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
-{
-  if (level >= config.levels)
-    PanicAlert("Texture only has %d levels, can't update level %d", config.levels, level);
-  if (width != std::max(1u, config.width >> level) ||
-      height != std::max(1u, config.height >> level))
-    PanicAlert("size of level %d must be %dx%d, but %dx%d requested", level,
-               std::max(1u, config.width >> level), std::max(1u, config.height >> level), width,
-               height);
-
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, texture);
-
-  if (expanded_width != width)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
-
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               temp);
-
-  if (expanded_width != width)
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-  TextureCache::SetStage();
-}
-
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, PEControl::PixelFormat srcFormat,
-                                                 const EFBRectangle& srcRect, bool scaleByHalf,
-                                                 unsigned int cbufid, const float* colmat)
-{
-  g_renderer->ResetAPIState();  // reset any game specific settings
-
-  // Make sure to resolve anything we need to read from.
-  const GLuint read_texture = (srcFormat == PEControl::Z24) ?
-                                  FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
-                                  FramebufferManager::ResolveAndGetRenderTarget(srcRect);
-
-  FramebufferManager::SetFramebuffer(framebuffer);
-
-  OpenGL_BindAttributelessVAO();
-
-  glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, read_texture);
-  if (scaleByHalf)
-    g_sampler_cache->BindLinearSampler(9);
-  else
-    g_sampler_cache->BindNearestSampler(9);
-
-  glViewport(0, 0, config.width, config.height);
-
-  GLuint uniform_location;
-  if (srcFormat == PEControl::Z24)
-  {
-    s_DepthMatrixProgram.Bind();
-    if (s_DepthCbufid != cbufid)
-      glUniform4fv(s_DepthMatrixUniform, 5, colmat);
-    s_DepthCbufid = cbufid;
-    uniform_location = s_DepthCopyPositionUniform;
-  }
-  else
-  {
-    s_ColorMatrixProgram.Bind();
-    if (s_ColorCbufid != cbufid)
-      glUniform4fv(s_ColorMatrixUniform, 7, colmat);
-    s_ColorCbufid = cbufid;
-    uniform_location = s_ColorMatrixPositionUniform;
-  }
-
-  TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
-  glUniform4f(uniform_location, static_cast<float>(R.left), static_cast<float>(R.top),
-              static_cast<float>(R.right), static_cast<float>(R.bottom));
-
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-  FramebufferManager::SetFramebuffer(0);
-  g_renderer->RestoreAPIState();
-}
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
                            u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
@@ -268,10 +67,6 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 TextureCache::TextureCache()
 {
   CompileShaders();
-
-  s_ActiveTexture = -1;
-  for (auto& gtex : s_Textures)
-    gtex = -1;
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
@@ -301,17 +96,6 @@ TextureCache::~TextureCache()
     s_palette_stream_buffer.reset();
     glDeleteTextures(1, &s_palette_resolv_texture);
   }
-}
-
-void TextureCache::DisableStage(unsigned int stage)
-{
-}
-
-void TextureCache::SetStage()
-{
-  // -1 is the initial value as we don't know which texture should be bound
-  if (s_ActiveTexture != (u32)-1)
-    glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
 void TextureCache::CompileShaders()
@@ -542,35 +326,40 @@ void TextureCache::DeleteShaders()
       shader.Destroy();
 }
 
-void TextureCache::ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unconverted,
-                                  void* palette, TlutFormat format)
+std::unique_ptr<AbstractTextureBase>
+TextureCache::CreateTexture(const AbstractTextureBase::TextureConfig& config)
+{
+  return std::make_unique<AbstractTexture>(config);
+}
+
+void TextureCache::ConvertTexture(TCacheEntry* dest, TCacheEntry* source, void* palette,
+                                  TlutFormat format)
 {
   if (!g_ActiveConfig.backend_info.bSupportsPaletteConversion)
     return;
 
   g_renderer->ResetAPIState();
 
-  TCacheEntry* entry = (TCacheEntry*)_entry;
-  TCacheEntry* unconverted = (TCacheEntry*)_unconverted;
+  AbstractTexture* dest_tex = static_cast<AbstractTexture*>(dest->texture.get());
+  AbstractTexture* source_tex = static_cast<AbstractTexture*>(source->texture.get());
 
   glActiveTexture(GL_TEXTURE9);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, unconverted->texture);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, source_tex->texture);
   g_sampler_cache->BindNearestSampler(9);
 
-  FramebufferManager::SetFramebuffer(entry->framebuffer);
-  glViewport(0, 0, entry->config.width, entry->config.height);
+  FramebufferManager::SetFramebuffer(dest_tex->framebuffer);
+  glViewport(0, 0, dest->width(), dest->height());
   s_palette_pixel_shader[format].Bind();
 
   // C14 textures are currently unsupported
-  int size = (unconverted->format & 0xf) == GX_TF_I4 ? 32 : 512;
+  int size = (source->format & 0xf) == GX_TF_I4 ? 32 : 512;
   auto buffer = s_palette_stream_buffer->Map(size);
   memcpy(buffer.first, palette, size);
   s_palette_stream_buffer->Unmap(size);
   glUniform1i(s_palette_buffer_offset_uniform[format], buffer.second / 2);
-  glUniform1f(s_palette_multiplier_uniform[format],
-              (unconverted->format & 0xf) == 0 ? 15.0f : 255.0f);
-  glUniform4f(s_palette_copy_position_uniform[format], 0.0f, 0.0f, (float)unconverted->config.width,
-              (float)unconverted->config.height);
+  glUniform1f(s_palette_multiplier_uniform[format], (source->format & 0xf) == 0 ? 15.0f : 255.0f);
+  glUniform4f(s_palette_copy_position_uniform[format], 0.0f, 0.0f, (float)source->width(),
+              (float)source->height());
 
   glActiveTexture(GL_TEXTURE10);
   glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
