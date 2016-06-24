@@ -44,6 +44,10 @@ bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator!=(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs);
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs);
+bool operator==(const SamplerState& lhs, const SamplerState& rhs);
+bool operator!=(const SamplerState& lhs, const SamplerState& rhs);
+bool operator>(const SamplerState& lhs, const SamplerState& rhs);
+bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 
 class ObjectCache
 {
@@ -75,6 +79,11 @@ public:
 	PixelShaderCache& GetPixelShaderCache() { return m_ps_cache; }
 	StaticShaderCache& GetStaticShaderCache() { return m_static_shader_cache; }
 
+	// Static samplers
+	VkSampler GetPointSampler() const { return m_point_sampler; }
+	VkSampler GetLinearSampler() const { return m_linear_sampler; }
+	VkSampler GetSampler(const SamplerState& info);
+
 	// Perform at startup, create descriptor layouts, compiles all static shaders.
 	bool Initialize();
 
@@ -91,10 +100,15 @@ public:
 	// Destroys the old shader modules, so assumes that the pipeline cache is clear first.
 	bool RecompileStaticShaders();
 
+	// Clear sampler cache, use when anisotropy mode changes
+	// WARNING: Ensure none of the objects from here are in use when calling
+	void ClearSamplerCache();
+
 private:
 	bool CreateDescriptorSetLayouts();
 	bool CreatePipelineLayout();
 	bool CreateBackendShaderVertexFormat();
+	bool CreateStaticSamplers();
 
 	VkInstance m_instance = VK_NULL_HANDLE;
 	VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
@@ -122,6 +136,11 @@ private:
 
 	// TODO: Replace with hash table
 	std::map<PipelineInfo, VkPipeline> m_pipeline_cache;
+
+	VkSampler m_point_sampler = VK_NULL_HANDLE;
+	VkSampler m_linear_sampler = VK_NULL_HANDLE;
+
+	std::map<SamplerState, VkSampler> m_sampler_cache;
 };
 
 }  // namespace Vulkan

@@ -253,7 +253,7 @@ void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 	{
 		ps_samplers_info[i].imageLayout = (m_ps_textures[i] != VK_NULL_HANDLE) ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 		ps_samplers_info[i].imageView = m_ps_textures[i];
-		ps_samplers_info[i].sampler = (m_ps_samplers[i] != VK_NULL_HANDLE) ? m_ps_samplers[i] : VK_NULL_HANDLE;
+		ps_samplers_info[i].sampler = (m_ps_samplers[i] != VK_NULL_HANDLE) ? m_ps_samplers[i] : m_object_cache->GetPointSampler();
 	}
 
 	// Populate the whole thing pretty much

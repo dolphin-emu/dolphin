@@ -30,6 +30,13 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 ObjectCache::~ObjectCache()
 {
 	ClearPipelineCache();
+	ClearSamplerCache();
+
+	if (m_point_sampler != VK_NULL_HANDLE)
+		vkDestroySampler(m_device, m_point_sampler, nullptr);
+
+	if (m_linear_sampler != VK_NULL_HANDLE)
+		vkDestroySampler(m_device, m_linear_sampler, nullptr);
 
 	if (m_pipeline_layout != VK_NULL_HANDLE)
 		vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
@@ -320,6 +327,16 @@ bool ObjectCache::RecompileStaticShaders()
 	return true;
 }
 
+void ObjectCache::ClearSamplerCache()
+{
+	for (const auto& it : m_sampler_cache)
+	{
+		if (it.second != VK_NULL_HANDLE)
+			vkDestroySampler(m_device, it.second, nullptr);
+	}
+	m_sampler_cache.clear();
+}
+
 bool ObjectCache::CreateDescriptorSetLayouts()
 {
 	VkDescriptorSetLayoutBinding combined_set_bindings[] = {
@@ -393,6 +410,91 @@ bool ObjectCache::CreateBackendShaderVertexFormat()
 	return true;
 }
 
+bool ObjectCache::CreateStaticSamplers()
+{
+	VkSamplerCreateInfo create_info =
+	{
+		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,		// VkStructureType         sType
+		nullptr,									// const void*             pNext
+		0,											// VkSamplerCreateFlags    flags
+		VK_FILTER_NEAREST,							// VkFilter                magFilter
+		VK_FILTER_NEAREST,							// VkFilter                minFilter
+		VK_SAMPLER_MIPMAP_MODE_NEAREST,				// VkSamplerMipmapMode     mipmapMode
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,	// VkSamplerAddressMode    addressModeU
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER,	// VkSamplerAddressMode    addressModeV
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,		// VkSamplerAddressMode    addressModeW
+		0.0f,										// float                   mipLodBias
+		VK_FALSE,									// VkBool32                anisotropyEnable
+		1.0f,										// float                   maxAnisotropy
+		VK_FALSE,									// VkBool32                compareEnable
+		VK_COMPARE_OP_ALWAYS,						// VkCompareOp             compareOp
+		std::numeric_limits<float>::min(),			// float                   minLod
+		std::numeric_limits<float>::max(),			// float                   maxLod
+		VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,	// VkBorderColor           borderColor
+		VK_FALSE									// VkBool32                unnormalizedCoordinates
+	};
+
+	VkResult res = vkCreateSampler(m_device, &create_info, nullptr, &m_point_sampler);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
+		return false;
+	}
+
+	// change for linear
+	create_info.minFilter = VK_FILTER_LINEAR;
+	create_info.magFilter = VK_FILTER_LINEAR;
+	create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	res = vkCreateSampler(m_device, &create_info, nullptr, &m_linear_sampler);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
+		return false;
+	}
+
+	return true;
+}
+
+VkSampler ObjectCache::GetSampler(const SamplerState& info)
+{
+	auto iter = m_sampler_cache.find(info);
+	if (iter != m_sampler_cache.end())
+		return iter->second;
+
+	VkSamplerCreateInfo create_info =
+	{
+		VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,		// VkStructureType         sType
+		nullptr,									// const void*             pNext
+		0,											// VkSamplerCreateFlags    flags
+		info.mag_filter,							// VkFilter                magFilter
+		info.min_filter,							// VkFilter                minFilter
+		info.mipmap_mode,							// VkSamplerMipmapMode     mipmapMode
+		info.wrap_u,								// VkSamplerAddressMode    addressModeU
+		info.wrap_v,								// VkSamplerAddressMode    addressModeV
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,		// VkSamplerAddressMode    addressModeW
+		static_cast<float>(info.lod_bias.Value()),	// float                   mipLodBias
+		VK_FALSE,									// VkBool32                anisotropyEnable
+		1.0f,										// float                   maxAnisotropy
+		VK_FALSE,									// VkBool32                compareEnable
+		VK_COMPARE_OP_ALWAYS,						// VkCompareOp             compareOp
+		static_cast<float>(info.min_lod.Value()),	// float                   minLod
+		static_cast<float>(info.max_lod.Value()),	// float                   maxLod
+		VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,	// VkBorderColor           borderColor
+		VK_FALSE									// VkBool32                unnormalizedCoordinates
+	};
+
+	// TODO: Anisotropy
+	
+	VkSampler sampler = VK_NULL_HANDLE;
+	VkResult res = vkCreateSampler(m_device, &create_info, nullptr, &sampler);
+	if (res != VK_SUCCESS)
+		LOG_VULKAN_ERROR(res, "vkCreateSampler failed: ");
+
+	// Store it even if it failed
+	m_sampler_cache.emplace(info, sampler);
+	return sampler;
+}
+
 // Comparison operators for PipelineInfos
 // since these all boil down to POD types, we can just memcmp the entire thing for speed
 
@@ -414,6 +516,26 @@ bool operator<(const PipelineInfo& lhs, const PipelineInfo& rhs)
 bool operator>(const PipelineInfo& lhs, const PipelineInfo& rhs)
 {
 	return memcmp(&lhs, &rhs, sizeof(lhs)) > 0;
+}
+
+bool operator==(const SamplerState& lhs, const SamplerState& rhs)
+{
+	return lhs.hex == rhs.hex;
+}
+
+bool operator!=(const SamplerState& lhs, const SamplerState& rhs)
+{
+	return lhs.hex != rhs.hex;
+}
+
+bool operator>(const SamplerState& lhs, const SamplerState& rhs)
+{
+	return lhs.hex > rhs.hex;
+}
+
+bool operator<(const SamplerState& lhs, const SamplerState& rhs)
+{
+	return lhs.hex < rhs.hex;
 }
 
 }
