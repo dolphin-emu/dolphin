@@ -244,7 +244,26 @@ bool SwapChain::SetupSwapChainImages(VkCommandBuffer setup_command_buffer)
 			return false;
 		}
 
-		// TODO: Transition this image from undefined to present src as expected		
+		// Transition this image from undefined to present src as expected
+		// TODO: Maybe we should just wrap these in our Texture2D class?
+		VkImageMemoryBarrier barrier =
+		{
+			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType            sType
+			nullptr,											// const void*                pNext
+			0,													// VkAccessFlags              srcAccessMask
+			VK_ACCESS_MEMORY_READ_BIT,							// VkAccessFlags              dstAccessMask
+			VK_IMAGE_LAYOUT_UNDEFINED,							// VkImageLayout              oldLayout
+			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,					// VkImageLayout              newLayout
+			VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   srcQueueFamilyIndex
+			VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   dstQueueFamilyIndex
+			image.Image,										// VkImage                    image
+			{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }			// VkImageSubresourceRange    subresourceRange
+		};
+
+		vkCmdPipelineBarrier(setup_command_buffer,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+			0, 0, nullptr, 0, nullptr, 1, &barrier);
 
 		m_swap_chain_images.push_back(image);
 	}

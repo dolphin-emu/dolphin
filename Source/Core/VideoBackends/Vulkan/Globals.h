@@ -40,6 +40,14 @@ constexpr VkFormat EFB_COLOR_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
 constexpr VkFormat EFB_DEPTH_TEXTURE_FORMAT = VK_FORMAT_D32_SFLOAT;
 constexpr VkFormat EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT = VK_FORMAT_R32_SFLOAT;
 
+// Vulkan device features
+struct SupportBits
+{
+	u32 SupportsGeometryShaders : 1;
+	u32 SupportsDualSourceBlend : 1;
+	u32 pad;
+};
+
 // Rasterization state info
 union RasterizationState
 {

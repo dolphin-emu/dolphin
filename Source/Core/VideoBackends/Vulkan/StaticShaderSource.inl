@@ -1,8 +1,8 @@
 static const char PASSTHROUGH_VERTEX_SHADER_SOURCE[] = R"(
 
-in float4 ipos;
-in float4 itex0;
-in float4 icol0;
+layout(location = 0) in float4 ipos;
+layout(location = 5) in float4 itex0;
+layout(location = 8) in float4 icol0;
 
 out float4 otex0;
 out float4 ocol0;
@@ -61,7 +61,7 @@ void main()
 
 static const char SCREEN_QUAD_VERTEX_SHADER_SOURCE[] = R"(
 
-out float2 uv0;
+layout(location = 0) out float2 uv0;
 
 #if EFB_LAYERS > 1
 	flat out int layer;
@@ -83,8 +83,9 @@ static const char BLIT_FRAGMENT_SHADER_SOURCE[] = R"(
 
 SAMPLER_BINDING(0) uniform sampler2DArray samp0;
 
-out float4 ocol0;
 in float2 uv0;
+
+layout(location = 0) out float4 ocol0;
 
 void main()
 {
@@ -96,7 +97,7 @@ void main()
 static const char CLEAR_FRAGMENT_SHADER_SOURCE[] = R"(
 
 in float4 icol0;
-out float4 ocol0;
+layout(location = 0) out float4 ocol0;
 
 void main()
 {
