@@ -61,6 +61,7 @@
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="VertexFormat.cpp" />
     <ClCompile Include="ObjectCache.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ShaderCache.cpp" />
@@ -77,6 +78,7 @@
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Helpers.h" />
+    <ClInclude Include="VertexFormat.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="ObjectCache.h" />
     <ClInclude Include="Renderer.h" />

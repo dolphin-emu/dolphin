@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/VertexFormat.h"
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
@@ -106,12 +107,12 @@ static VkPipelineColorBlendStateCreateInfo GetVulkanColorBlendState(const BlendS
 	return {
 		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
 		nullptr,
-		0,									// VkPipelineColorBlendStateCreateFlags          flags
-		VK_FALSE,							// VkBool32                                      logicOpEnable
-		VK_LOGIC_OP_CLEAR,					// VkLogicOp                                     logicOp
-		num_attachments,					// uint32_t                                      attachmentCount
-		attachments,						// const VkPipelineColorBlendAttachmentState*    pAttachments
-		{ 1.0f, 1.0f, 1.0f, 1.0f }			// float                                         blendConstants[4]
+		0,																	// VkPipelineColorBlendStateCreateFlags          flags
+		VK_FALSE,															// VkBool32                                      logicOpEnable
+		VK_LOGIC_OP_CLEAR,													// VkLogicOp                                     logicOp
+		num_attachments,													// uint32_t                                      attachmentCount
+		attachments,														// const VkPipelineColorBlendAttachmentState*    pAttachments
+		{ 1.0f, 1.0f, 1.0f, 1.0f }											// float                                         blendConstants[4]
 	};
 }
 
@@ -122,7 +123,30 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	if (iter != m_pipeline_cache.end())
 		return iter->second;
 
-	// TODO: Vertex inputs
+	// Declare descriptors for empty vertex buffers/attributes
+	static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = 
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,			// VkStructureType                             sType
+		nullptr,															// const void*                                pNext
+		0,																	// VkPipelineVertexInputStateCreateFlags       flags
+		0,																	// uint32_t                                    vertexBindingDescriptionCount
+		nullptr,															// const VkVertexInputBindingDescription*      pVertexBindingDescriptions
+		0,																	// uint32_t                                    vertexAttributeDescriptionCount
+		nullptr																// const VkVertexInputAttributeDescription*    pVertexAttributeDescriptions
+	};
+
+	// Vertex inputs
+	const VkPipelineVertexInputStateCreateInfo& vertex_input_state = (info.vertex_format) ? info.vertex_format->GetVertexInputStateInfo() : empty_vertex_input_state;
+
+	// Input assembly
+	VkPipelineInputAssemblyStateCreateInfo input_assembly_state =
+	{
+		VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,		// VkStructureType                            sType
+		nullptr,															// const void*                                pNext
+		0,																	// VkPipelineInputAssemblyStateCreateFlags    flags
+		info.primitive_topology,											// VkPrimitiveTopology                        topology
+		VK_TRUE																// VkBool32                                   primitiveRestartEnable
+	};
 
 	// Shaders to stages
 	VkPipelineShaderStageCreateInfo shader_stages[3];
@@ -141,7 +165,8 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	VkPipelineColorBlendStateCreateInfo blend_state = GetVulkanColorBlendState(info.blend_state, &blend_attachment_state, 1);
 
 	// TODO: multisampling
-	VkPipelineMultisampleStateCreateInfo multisample_state = {
+	VkPipelineMultisampleStateCreateInfo multisample_state =
+	{
 		VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO, nullptr,
 		0,									// VkPipelineMultisampleStateCreateFlags    flags
 		VK_SAMPLE_COUNT_1_BIT,				// VkSampleCountFlagBits                    rasterizationSamples
@@ -153,9 +178,10 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	};
 
 	// Viewport is used with dynamic state
-	static constexpr VkViewport viewport = { 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
-	static constexpr VkRect2D scissor = { { 0, 0 }, { 1, 1 } };
-	static constexpr VkPipelineViewportStateCreateInfo viewport_state = {
+	static const VkViewport viewport = { 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
+	static const VkRect2D scissor = { { 0, 0 }, { 1, 1 } };
+	static const VkPipelineViewportStateCreateInfo viewport_state =
+	{
 		VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO, nullptr,
 		0,									// VkPipelineViewportStateCreateFlags    flags;
 		1,									// uint32_t                              viewportCount
@@ -165,8 +191,9 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	};
 
 	// Set viewport and scissor dynamic state so we can change it elsewhere
-	static constexpr VkDynamicState dynamic_states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
-	static constexpr VkPipelineDynamicStateCreateInfo dynamic_state = {
+	static const VkDynamicState dynamic_states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+	static const VkPipelineDynamicStateCreateInfo dynamic_state =
+	{
 		VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
 		0,									// VkPipelineDynamicStateCreateFlags    flags
 		_countof(dynamic_states),			// uint32_t                             dynamicStateCount
@@ -174,13 +201,14 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	};
 
 	// Combine to pipeline info
-	VkGraphicsPipelineCreateInfo pipeline_info = {
+	VkGraphicsPipelineCreateInfo pipeline_info =
+	{
 		VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO, nullptr,
 		0,									// VkPipelineCreateFlags                            flags
 		num_shader_stages,					// uint32_t                                         stageCount
 		shader_stages,						// const VkPipelineShaderStageCreateInfo*           pStages
-		nullptr,							// const VkPipelineVertexInputStateCreateInfo*      pVertexInputState
-		nullptr,							// const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState
+		&vertex_input_state,				// const VkPipelineVertexInputStateCreateInfo*      pVertexInputState
+		&input_assembly_state,				// const VkPipelineInputAssemblyStateCreateInfo*    pInputAssemblyState
 		nullptr,							// const VkPipelineTessellationStateCreateInfo*     pTessellationState
 		&viewport_state,					// const VkPipelineViewportStateCreateInfo*         pViewportState
 		&rasterization_state,				// const VkPipelineRasterizationStateCreateInfo*    pRasterizationState

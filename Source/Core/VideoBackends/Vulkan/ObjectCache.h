@@ -21,10 +21,12 @@
 
 namespace Vulkan {
 
+class VertexFormat;
+
 // Game shader state encompassed by pipelines
 struct PipelineInfo
 {
-	// TODO: Vertex formats
+	VertexFormat* vertex_format;
 	VkShaderModule vs;
 	VkShaderModule gs;
 	VkShaderModule ps;
