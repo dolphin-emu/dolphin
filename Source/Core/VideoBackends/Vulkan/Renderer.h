@@ -38,9 +38,9 @@ public:
 
 	void SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc, float gamma) override;
 
-	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override {}
+	void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z) override;
 
-	void ReinterpretPixelData(unsigned int convtype) override {}
+	void ReinterpretPixelData(unsigned int convtype) override;
 
 	bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override { return false; }
 
@@ -49,7 +49,16 @@ public:
 	void ResetAPIState() override;
 	void RestoreAPIState() override;
 
-
+	void SetColorMask() override;
+	void SetBlendMode(bool forceUpdate) override;
+	void SetScissorRect(const EFBRectangle& rc) override;
+	void SetGenerationMode() override;
+	void SetDepthMode() override;
+	void SetLogicOpMode() override;
+	void SetDitherMode() override;
+	void SetSamplerState(int stage, int texindex, bool custom_tex) override;
+	void SetInterlacingMode() override;
+	void SetViewport() override;
 
 private:
 	bool CreateSemaphores();
@@ -58,8 +67,6 @@ private:
 	void BeginFrame();
 
 	void OnSwapChainResized();
-
-	bool CheckForShaderChanges(u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;

@@ -33,6 +33,13 @@ public:
 
 	void DisableBackFaceCulling();
 
+	void SetRasterizationState(const RasterizationState& state);
+	void SetDepthStencilState(const DepthStencilState& state);
+	void SetBlendState(const BlendState& state);
+
+	u32 GetColorWriteMask() const { return m_pipeline_state.blend_state.write_mask; }
+	void SetColorMask(u32 mask);
+
 	bool CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode);
 
 	void SetVSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
