@@ -109,7 +109,17 @@ void Init(std::vector<Core::Device*>& devices)
 	XINPUT_CAPABILITIES caps;
 	for (int i = 0; i != 4; ++i)
 		if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))
+		{
 			devices.push_back(new Device(caps, i));
+		}
+		else if (i == 0)
+		{
+			ZeroMemory(&caps, sizeof(caps));
+			caps.SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
+			FillMemory(&caps.Gamepad, sizeof(caps.Gamepad), 0xFF);
+			FillMemory(&caps.Vibration, sizeof(caps.Vibration), 0xFF);
+			devices.push_back(new Device(caps, i));
+		}
 }
 
 void DeInit()
