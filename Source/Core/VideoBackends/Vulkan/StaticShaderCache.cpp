@@ -47,8 +47,8 @@ bool StaticShaderCache::CompileShaders()
 	}
 
 	// Fragment Shaders
-	if ((m_fragment_shaders.blit = m_ps_cache->CompileAndCreateShader(header + BLIT_FRAGMENT_SHADER_SOURCE)) == nullptr ||
-		(m_fragment_shaders.clear = m_ps_cache->CompileAndCreateShader(header + CLEAR_FRAGMENT_SHADER_SOURCE)) == nullptr)
+	if ((m_fragment_shaders.clear = m_ps_cache->CompileAndCreateShader(header + CLEAR_FRAGMENT_SHADER_SOURCE)) == nullptr ||
+		(m_fragment_shaders.copy = m_ps_cache->CompileAndCreateShader(header + COPY_FRAGMENT_SHADER_SOURCE)) == nullptr)
 	{
 		return false;
 	}
@@ -68,7 +68,7 @@ void StaticShaderCache::DestroyShaders()
 	DestroyShader(m_geometry_shaders.passthrough);
 
 	// Fragment Shaders
-	DestroyShader(m_fragment_shaders.blit);
+	DestroyShader(m_fragment_shaders.copy);
 }
 
 }

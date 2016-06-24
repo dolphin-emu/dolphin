@@ -14,7 +14,7 @@ RasterizationState GetNoCullRasterizationState();
 DepthStencilState GetNoDepthTestingDepthStencilState();
 BlendState GetNoBlendingBlendState();
 
-void SetViewport(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth = 0.0f, float max_depth = 1.0f);
+void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth = 0.0f, float max_depth = 1.0f);
 
 }
 
@@ -41,7 +41,9 @@ class BackendShaderDraw
 public:
 	BackendShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader);
 
-	BackendShaderVertex* AllocateVertices(VkPrimitiveTopology topology, size_t count);
+	BackendShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
+	void CommitVertices(size_t count);
+
 	void UploadVertices(VkPrimitiveTopology topology, BackendShaderVertex* vertices, size_t count);
 
 	u8* AllocateVSUniforms(size_t size);
