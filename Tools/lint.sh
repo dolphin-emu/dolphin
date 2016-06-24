@@ -1,22 +1,23 @@
-#! /bin/sh
+#! /bin/bash
 #
 # Linter script that checks for common style issues in Dolphin's codebase.
 
-REPO_BASE=$(realpath $(dirname $0)/..)
-
 fail=0
 
-# Step 1: check for trailing whitespaces.
-echo "[.] Checking for trailing whitespaces."
-res=$(
-    find ${REPO_BASE}/Source/Core -name "*.cpp" -o -name "*.h" \
-        | xargs egrep -n "\s+$"
-)
-if [ -n "$res" ]; then
-  echo "FAIL: ${res}"
-  fail=1
-else
-  echo "OK"
-fi
+# Check for clang-format issues.
+git status --porcelain | awk '{print $2}' | while read f; do
+  if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
+    continue
+  fi
+  if ! echo "${f}" | egrep -q "^Source/Core"; then
+    continue
+  fi
+  d=$(diff -u "${f}" <(clang-format ${f}))
+  if ! [ -z "${d}" ]; then
+    echo "!!! ${f} not compliant to coding style, here is the fix:"
+    echo "${d}"
+    fail=1
+  fi
+done
 
 exit ${fail}
