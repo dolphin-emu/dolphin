@@ -138,9 +138,9 @@ void StateTracker::SetColorMask(u32 mask)
 
 bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode)
 {
-	VertexShaderUid vs_uid = GetVertexShaderUid(API_OPENGL);
-	GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type, API_OPENGL);
-	PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode, API_OPENGL);
+	VertexShaderUid vs_uid = GetVertexShaderUid(API_VULKAN);
+	GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type, API_VULKAN);
+	PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode, API_VULKAN);
 
 	bool changed = false;
 

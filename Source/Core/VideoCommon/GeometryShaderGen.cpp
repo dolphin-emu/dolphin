@@ -41,7 +41,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     vertex_out++;
 
   uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     // Insert layout parameters
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
@@ -63,7 +63,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
     out.Write("layout(std140%s) uniform GSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
   else
@@ -80,7 +80,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   GenerateVSOutputMembers<T>(out, ApiType, "");
   out.Write("};\n");
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
@@ -132,7 +132,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
   if (primitive_type == PRIMITIVE_LINES)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
       AssignVSOutputMembers(out, "start", "vs[0]");
@@ -163,7 +163,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   }
   else if (primitive_type == PRIMITIVE_POINTS)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
     {
       out.Write("\tVS_OUTPUT center;\n");
       AssignVSOutputMembers(out, "center", "vs[0]");
@@ -194,7 +194,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
   out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     out.Write("\tVS_OUTPUT f;\n");
     AssignVSOutputMembers(out, "f", "vs[i]");
@@ -208,7 +208,7 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
       out.Write("\tgl_Layer = eye;\n");
 
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
@@ -296,7 +296,7 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
   if (g_ActiveConfig.bWireFrame && first_vertex)
     out.Write("\tif (i == 0) first = %s;\n", vertex);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
     AssignVSOutputMembers(out, "ps", vertex);
@@ -306,7 +306,7 @@ static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_
     out.Write("\tps.o = %s;\n", vertex);
   }
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
     out.Write("\tEmitVertex();\n");
   else
     out.Write("\toutput.Append(ps);\n");
@@ -317,7 +317,7 @@ static void EndPrimitive(T& out, API_TYPE ApiType)
   if (g_ActiveConfig.bWireFrame)
     EmitVertex<T>(out, "first", ApiType);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
     out.Write("\tEndPrimitive();\n");
   else
     out.Write("\toutput.RestartStrip();\n");
