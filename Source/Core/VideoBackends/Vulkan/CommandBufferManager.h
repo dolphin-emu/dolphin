@@ -15,6 +15,7 @@
 #include "VideoCommon/VideoCommon.h"
 
 #include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Helpers.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
@@ -34,6 +35,15 @@ public:
 	VkDescriptorPool GetCurrentDescriptorPool() const { return m_descriptor_pools[m_current_command_buffer_index]; }
 
 	VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
+
+	// Schedule a vulkan resource for destruction later on. This will occur when the command buffer
+	// is next re-used, and the GPU has finished working with the specified resource.
+	template<typename T>
+	void DeferResourceDestruction(T object)
+	{
+		DeferredResourceDestruction wrapper = DeferredResourceDestruction::Wrapper<T>(object);
+		m_pending_destructions[m_current_command_buffer_index].push_back(wrapper);
+	}
 	
 	void SubmitCommandBuffer(VkSemaphore signal_semaphore);
 	void ActivateCommandBuffer(VkSemaphore wait_semaphore);
@@ -56,6 +66,7 @@ private:
 	std::array<VkCommandBuffer, NUM_COMMAND_BUFFERS> m_command_buffers = {};
 	std::array<VkFence, NUM_COMMAND_BUFFERS> m_fences = {};
 	std::array<VkDescriptorPool, NUM_COMMAND_BUFFERS> m_descriptor_pools = {};
+	std::array<std::vector<DeferredResourceDestruction>, NUM_COMMAND_BUFFERS> m_pending_destructions;
 	size_t m_current_command_buffer_index;
 
 	// wait semaphore provided with next submit
