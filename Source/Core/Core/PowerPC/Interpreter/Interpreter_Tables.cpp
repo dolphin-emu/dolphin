@@ -15,6 +15,7 @@ struct GekkoOPTemplate
 	GekkoOPInfo opinfo;
 };
 
+// clang-format off
 static GekkoOPInfo unknownopinfo = { "unknown_instruction", OPTYPE_UNKNOWN, FL_ENDBLOCK, 0, 0, 0, 0 };
 
 static GekkoOPTemplate primarytable[] =
@@ -352,6 +353,8 @@ static GekkoOPTemplate table63_2[] =
 	{30, Interpreter::fnmsubx,      {"fnmsubx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 	{31, Interpreter::fnmaddx,      {"fnmaddx",  OPTYPE_DOUBLEFP, FL_INOUT_FLOAT_D | FL_IN_FLOAT_ABC | FL_RC_BIT_F | FL_USE_FPU | FL_SET_FPRF, 1, 0, 0, 0}},
 };
+// clang-format on
+
 namespace InterpreterTables
 {
 
