@@ -35,6 +35,21 @@ BlendState GetNoBlendingBlendState()
 	return state;
 }
 
+void SetViewport(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth /*= 0.0f*/, float max_depth /*= 1.0f*/)
+{
+	VkViewport viewport =
+	{
+		static_cast<float>(x),
+		static_cast<float>(y),
+		static_cast<float>(width),
+		static_cast<float>(height),
+		min_depth,
+		max_depth
+	};
+
+	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
+}
+
 }		// namespace Util
 
 BackendShaderDraw::BackendShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader)

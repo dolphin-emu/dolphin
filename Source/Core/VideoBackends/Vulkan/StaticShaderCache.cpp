@@ -34,13 +34,21 @@ bool StaticShaderCache::CompileShaders()
 	header += StringFromFormat("#define EFB_LAYERS %u\n", efb_layers);
 
 	// Vertex Shaders
-	if ((m_vertex_shaders.screen_quad = m_vs_cache->CompileAndCreateShader(header + SCREEN_QUAD_VERTEX_SHADER_SOURCE)) == nullptr)
+	if ((m_vertex_shaders.screen_quad = m_vs_cache->CompileAndCreateShader(header + SCREEN_QUAD_VERTEX_SHADER_SOURCE)) == nullptr ||
+		(m_vertex_shaders.passthrough = m_vs_cache->CompileAndCreateShader(header + PASSTHROUGH_VERTEX_SHADER_SOURCE)) == nullptr)
+	{
+		return false;
+	}
+
+	// Geometry Shaders
+	if ((efb_layers > 1 && (m_vertex_shaders.passthrough = m_vs_cache->CompileAndCreateShader(header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr))
 	{
 		return false;
 	}
 
 	// Fragment Shaders
-	if ((m_fragment_shaders.blit = m_ps_cache->CompileAndCreateShader(header + BLIT_FRAGMENT_SHADER_SOURCE)) == nullptr)
+	if ((m_fragment_shaders.blit = m_ps_cache->CompileAndCreateShader(header + BLIT_FRAGMENT_SHADER_SOURCE)) == nullptr ||
+		(m_fragment_shaders.clear = m_ps_cache->CompileAndCreateShader(header + CLEAR_FRAGMENT_SHADER_SOURCE)) == nullptr)
 	{
 		return false;
 	}
@@ -54,6 +62,10 @@ void StaticShaderCache::DestroyShaders()
 
 	// Vertex Shaders
 	DestroyShader(m_vertex_shaders.screen_quad);
+	DestroyShader(m_vertex_shaders.passthrough);
+
+	// Geometry Shaders
+	DestroyShader(m_geometry_shaders.passthrough);
 
 	// Fragment Shaders
 	DestroyShader(m_fragment_shaders.blit);
