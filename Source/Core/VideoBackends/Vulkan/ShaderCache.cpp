@@ -5,7 +5,7 @@
 #include <fstream>
 
 #ifdef WIN32
-	#define HAS_SHADERC
+	//#define HAS_SHADERC
 #endif
 
 #ifdef HAS_SHADERC

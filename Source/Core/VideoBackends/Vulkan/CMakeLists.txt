@@ -23,5 +23,7 @@ set(LIBS
 	common
 )
 
+include_directories(../../../../Externals/Vulkan/Include)
+
 add_dolphin_library(videovulkan "${SRCS}" "${LIBS}")
 
