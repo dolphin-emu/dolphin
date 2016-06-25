@@ -444,7 +444,7 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
   wxMenu* pCoreMenu = new wxMenu;
 
   wxMenuItem* interpreter = pCoreMenu->Append(
-      IDM_INTERPRETER, _("&Interpreter core"),
+      IDM_INTERPRETER, _("&Interpreter Core"),
       _("This is necessary to get break points"
         " and stepping to work as explained in the Developer Documentation. But it can be very"
         " slow, perhaps slower than 1 fps."),
@@ -452,33 +452,33 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
   interpreter->Check(core_startup_parameter.iCPUCore == PowerPC::CORE_INTERPRETER);
   pCoreMenu->AppendSeparator();
 
-  pCoreMenu->Append(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking off"),
+  pCoreMenu->Append(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking Off"),
                     _("Provide safer execution by not linking the JIT blocks."), wxITEM_CHECK);
 
   pCoreMenu->Append(IDM_JIT_NO_BLOCK_CACHE, _("&Disable JIT Cache"),
                     _("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
                       "crashing.\n[This option must be selected before a game is started.]"),
                     wxITEM_CHECK);
-  pCoreMenu->Append(IDM_CLEAR_CODE_CACHE, _("&Clear JIT cache"));
+  pCoreMenu->Append(IDM_CLEAR_CODE_CACHE, _("&Clear JIT Cache"));
 
   pCoreMenu->AppendSeparator();
-  pCoreMenu->Append(IDM_LOG_INSTRUCTIONS, _("&Log JIT instruction coverage"));
-  pCoreMenu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an op"));
+  pCoreMenu->Append(IDM_LOG_INSTRUCTIONS, _("&Log JIT Instruction Coverage"));
+  pCoreMenu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an Op"));
 
   pCoreMenu->AppendSeparator();
-  pCoreMenu->Append(IDM_JIT_OFF, _("&JIT off (JIT core)"),
+  pCoreMenu->Append(IDM_JIT_OFF, _("&JIT Off (JIT Core)"),
                     _("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
                     wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LS_OFF, _("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LSLBZX_OFF, _("    &JIT LoadStore lbzx off"), wxEmptyString,
+  pCoreMenu->Append(IDM_JIT_LS_OFF, _("&JIT LoadStore Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_LSLBZX_OFF, _("    &JIT LoadStore lbzx Off"), wxEmptyString,
                     wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LSLXZ_OFF, _("    &JIT LoadStore lXz off"), wxEmptyString,
+  pCoreMenu->Append(IDM_JIT_LSLXZ_OFF, _("    &JIT LoadStore lXz Off"), wxEmptyString,
                     wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LSLWZ_OFF, _("&JIT LoadStore lwz off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LSF_OFF, _("&JIT LoadStore Floating off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_LSP_OFF, _("&JIT LoadStore Paired off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_FP_OFF, _("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_I_OFF, _("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_LSLWZ_OFF, _("&JIT LoadStore lwz Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_LSF_OFF, _("&JIT LoadStore Floating Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_LSP_OFF, _("&JIT LoadStore Paired Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_FP_OFF, _("&JIT FloatingPoint Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_I_OFF, _("&JIT Integer Off"), wxEmptyString, wxITEM_CHECK);
   pCoreMenu->Append(IDM_JIT_P_OFF, _("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
   pCoreMenu->Append(IDM_JIT_SR_OFF, _("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
 
@@ -496,24 +496,24 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
   wxMenu* pPerspectives = new wxMenu;
   Parent->m_SavedPerspectives = new wxMenu;
   pDebugMenu->AppendSubMenu(pPerspectives, _("Perspectives"), _("Edit Perspectives"));
-  pPerspectives->Append(IDM_SAVE_PERSPECTIVE, _("Save perspectives"),
+  pPerspectives->Append(IDM_SAVE_PERSPECTIVE, _("Save Perspectives"),
                         _("Save currently-toggled perspectives"));
-  pPerspectives->Append(IDM_EDIT_PERSPECTIVES, _("Edit perspectives"),
+  pPerspectives->Append(IDM_EDIT_PERSPECTIVES, _("Edit Perspectives"),
                         _("Toggle editing of perspectives"), wxITEM_CHECK);
   pPerspectives->AppendSeparator();
-  pPerspectives->Append(IDM_ADD_PERSPECTIVE, _("Create new perspective"));
-  pPerspectives->AppendSubMenu(Parent->m_SavedPerspectives, _("Saved perspectives"));
+  pPerspectives->Append(IDM_ADD_PERSPECTIVE, _("Create New Perspective"));
+  pPerspectives->AppendSubMenu(Parent->m_SavedPerspectives, _("Saved Perspectives"));
   Parent->PopulateSavedPerspectives();
   pPerspectives->AppendSeparator();
   wxMenu* pAddPane = new wxMenu;
-  pPerspectives->AppendSubMenu(pAddPane, _("Add new pane to"));
+  pPerspectives->AppendSubMenu(pAddPane, _("Add New Pane To"));
   pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_TOP, _("Top"));
   pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, _("Bottom"));
   pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_LEFT, _("Left"));
   pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_RIGHT, _("Right"));
   pAddPane->Append(IDM_PERSPECTIVES_ADD_PANE_CENTER, _("Center"));
-  pPerspectives->Append(IDM_TAB_SPLIT, _("Tab split"), "", wxITEM_CHECK);
-  pPerspectives->Append(IDM_NO_DOCKING, _("Disable docking"),
+  pPerspectives->Append(IDM_TAB_SPLIT, _("Tab Split"), "", wxITEM_CHECK);
+  pPerspectives->Append(IDM_NO_DOCKING, _("Disable Docking"),
                         "Disable docking of perspective panes to main window", wxITEM_CHECK);
 
   pMenuBar->Append(pDebugMenu, _("&Debug"));
@@ -524,12 +524,12 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
 void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 {
   wxMenuItem* boottopause =
-      pMenu->Append(IDM_BOOT_TO_PAUSE, _("Boot to pause"),
+      pMenu->Append(IDM_BOOT_TO_PAUSE, _("Boot to Pause"),
                     _("Start the game directly instead of booting to pause"), wxITEM_CHECK);
   boottopause->Check(bBootToPause);
 
   wxMenuItem* automaticstart = pMenu->Append(
-      IDM_AUTOMATIC_START, _("&Automatic start"),
+      IDM_AUTOMATIC_START, _("&Automatic Start"),
       _("Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
         " if you have not given it an elf file with the --elf command line. [This can be"
         " convenient if you are bug-testing with a certain game and want to rebuild"
