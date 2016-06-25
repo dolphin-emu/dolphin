@@ -17,10 +17,6 @@
 
 namespace Vulkan {
 
-// Textures that don't fit into this buffer will be uploaded with a separate buffer.
-constexpr size_t INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE = 4 * 1024 * 1024;
-constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
-
 TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker)
 	: m_object_cache(object_cache)
 	, m_command_buffer_mgr(command_buffer_mgr)
@@ -106,13 +102,13 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 
 	// TODO: What should the alignment be here?
 	// TODO: Handle cases where the texture does not fit into the streaming buffer, we need to allocate a temporary buffer.
-	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), false))
+	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
 	{
 		// Execute the command buffer first.
 		Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr);
 
 		// Try allocating again. This may cause a fence wait.
-		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), false))
+		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
 			PanicAlert("Failed to allocate space in texture upload buffer");
 	}
 	

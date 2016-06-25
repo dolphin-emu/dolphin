@@ -48,6 +48,14 @@ constexpr VkFormat EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT = VK_FORMAT_R32_SFLOAT;
 // Format of texturecache textures
 constexpr VkFormat TEXTURECACHE_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
 
+// Textures that don't fit into this buffer will be uploaded with a separate buffer.
+constexpr size_t INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE = 4 * 1024 * 1024;
+constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
+
+// Streaming uniform buffer size
+constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 4 * 1024 * 1024;
+constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
+
 // Rasterization state info
 union RasterizationState
 {
