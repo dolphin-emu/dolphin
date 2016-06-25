@@ -15,6 +15,7 @@
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan {
@@ -430,7 +431,59 @@ void Renderer::SetLogicOpMode()
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 {
+	const FourTexUnits& tex = bpmem.tex[texindex];
+	const TexMode0& tm0 = tex.texMode0[stage];
+	const TexMode1& tm1 = tex.texMode1[stage];
+	SamplerState new_state = {};
 
+	if (texindex)
+		stage += 4;
+
+	// TODO: Anisotropic filtering
+
+	if (g_ActiveConfig.bForceFiltering)
+	{
+		new_state.min_filter = VK_FILTER_LINEAR;
+		new_state.mag_filter = VK_FILTER_LINEAR;
+		new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
+	}
+	else
+	{
+		// Constants for these?
+		new_state.min_filter = ((tm0.min_filter & 4) != 0) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+		new_state.mipmap_mode = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? VK_SAMPLER_MIPMAP_MODE_LINEAR : VK_SAMPLER_MIPMAP_MODE_NEAREST;
+		new_state.mag_filter = (tm0.mag_filter != 0) ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+	}
+
+	// If mipmaps are disabled, clamp min/max lod
+	new_state.max_lod = (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0)) ? static_cast<u32>(MathUtil::Clamp(tm1.max_lod / 16.0f, 0.0f, 255.0f)) : 0;
+	new_state.min_lod = std::min(new_state.max_lod.Value(), static_cast<u32>(MathUtil::Clamp(tm1.min_lod / 16.0f, 0.0f, 255.0f)));
+	new_state.lod_bias = static_cast<s32>(tm0.lod_bias / 32.0f);
+
+	// Custom textures may have a greater number of mips
+	if (custom_tex)
+		new_state.max_lod = 255;
+
+	// Address modes
+	static const VkSamplerAddressMode address_modes[] =
+	{
+		VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT,
+		VK_SAMPLER_ADDRESS_MODE_REPEAT
+	};
+	new_state.wrap_u = address_modes[tm0.wrap_s];
+	new_state.wrap_v = address_modes[tm0.wrap_t];
+
+	// Create a sampler if one matching this description does not already exist
+	VkSampler sampler = m_object_cache->GetSampler(new_state);
+	if (sampler == VK_NULL_HANDLE)
+	{
+		ERROR_LOG(VIDEO, "Failed to create sampler");
+		sampler = m_object_cache->GetPointSampler();
+	}
+
+	m_state_tracker->SetPSSampler((texindex * 4) + stage, sampler);
 }
 
 void Renderer::SetDitherMode()
@@ -447,7 +500,11 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
 	TargetRectangle target_rc = ConvertEFBRectangle(rc);
 	
-	VkRect2D scissor = { { target_rc.left, target_rc.top }, { target_rc.GetWidth(), target_rc.GetHeight() } };
+	VkRect2D scissor = {
+		{ target_rc.left, target_rc.top },
+		{ static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight()) }
+	};
+
 	m_state_tracker->SetScissor(scissor);
 }
 
