@@ -73,12 +73,12 @@ void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_
 
 }		// namespace Util
 
-BackendShaderDraw::BackendShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader)
+UtilityShaderDraw::UtilityShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader)
 	: m_object_cache(object_cache)
 	, m_command_buffer_mgr(command_buffer_mgr)
 {
 	// Populate minimal pipeline state
-	m_pipeline_info.vertex_format = object_cache->GetBackendShaderVertexFormat();
+	m_pipeline_info.vertex_format = object_cache->GetUtilityShaderVertexFormat();
 	m_pipeline_info.render_pass = render_pass;
 	m_pipeline_info.vs = vertex_shader;
 	m_pipeline_info.gs = geometry_shader;
@@ -89,80 +89,80 @@ BackendShaderDraw::BackendShaderDraw(ObjectCache* object_cache, CommandBufferMan
 	m_pipeline_info.primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 }
 
-BackendShaderVertex* BackendShaderDraw::ReserveVertices(VkPrimitiveTopology topology, size_t count)
+UtilityShaderVertex* UtilityShaderDraw::ReserveVertices(VkPrimitiveTopology topology, size_t count)
 {
 	m_pipeline_info.primitive_topology = topology;
 
-	if (!m_object_cache->GetBackendShaderVertexBuffer()->ReserveMemory(sizeof(BackendShaderVertex) * count, sizeof(BackendShaderVertex), true))
+	if (!m_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true))
 		PanicAlert("Failed to allocate space for vertices in backend shader");
 
-	m_vertex_buffer = m_object_cache->GetBackendShaderVertexBuffer()->GetBuffer();
-	m_vertex_buffer_offset = m_object_cache->GetBackendShaderVertexBuffer()->GetCurrentOffset();
+	m_vertex_buffer = m_object_cache->GetUtilityShaderVertexBuffer()->GetBuffer();
+	m_vertex_buffer_offset = m_object_cache->GetUtilityShaderVertexBuffer()->GetCurrentOffset();
 
-	return reinterpret_cast<BackendShaderVertex*>(m_object_cache->GetBackendShaderVertexBuffer()->GetCurrentHostPointer());
+	return reinterpret_cast<UtilityShaderVertex*>(m_object_cache->GetUtilityShaderVertexBuffer()->GetCurrentHostPointer());
 }
 
-void BackendShaderDraw::CommitVertices(size_t count)
+void UtilityShaderDraw::CommitVertices(size_t count)
 {
-	m_object_cache->GetBackendShaderVertexBuffer()->CommitMemory(sizeof(BackendShaderVertex) * count);
+	m_object_cache->GetUtilityShaderVertexBuffer()->CommitMemory(sizeof(UtilityShaderVertex) * count);
 	m_vertex_count = static_cast<uint32_t>(count);
 }
 
-void BackendShaderDraw::UploadVertices(VkPrimitiveTopology topology, BackendShaderVertex* vertices, size_t count)
+void UtilityShaderDraw::UploadVertices(VkPrimitiveTopology topology, UtilityShaderVertex* vertices, size_t count)
 {
-	BackendShaderVertex* upload_vertices = ReserveVertices(topology, count);
-	memcpy(upload_vertices, vertices, sizeof(BackendShaderVertex) * count);
+	UtilityShaderVertex* upload_vertices = ReserveVertices(topology, count);
+	memcpy(upload_vertices, vertices, sizeof(UtilityShaderVertex) * count);
 	CommitVertices(count);
 }
 
-u8* BackendShaderDraw::AllocateVSUniforms(size_t size)
+u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 {
 	// UBO alignment???
-	if (!m_object_cache->GetBackendShaderUniformBuffer()->ReserveMemory(size, 65536, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, 65536, true))
 		PanicAlert("Failed to allocate util uniforms");
 
-	m_vs_uniform_buffer = m_object_cache->GetBackendShaderUniformBuffer()->GetBuffer();
-	m_vs_uniform_buffer_offset = m_object_cache->GetBackendShaderUniformBuffer()->GetCurrentOffset();
+	m_vs_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+	m_vs_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
 	m_vs_uniform_buffer_size = size;
 
-	return m_object_cache->GetBackendShaderUniformBuffer()->GetCurrentHostPointer();
+	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
 }
 
-u8* BackendShaderDraw::AllocatePSUniforms(size_t size)
+u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 {
 	// UBO alignment???
-	if (!m_object_cache->GetBackendShaderUniformBuffer()->ReserveMemory(size, 65536, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, 65536, true))
 		PanicAlert("Failed to allocate util uniforms");
 
-	m_ps_uniform_buffer = m_object_cache->GetBackendShaderUniformBuffer()->GetBuffer();
-	m_ps_uniform_buffer_offset = m_object_cache->GetBackendShaderUniformBuffer()->GetCurrentOffset();
+	m_ps_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+	m_ps_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
 	m_ps_uniform_buffer_size = size;
 
-	return m_object_cache->GetBackendShaderUniformBuffer()->GetCurrentHostPointer();
+	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
 }
 
-void BackendShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler sampler)
+void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler sampler)
 {
 	m_ps_textures[index] = view;
 	m_ps_samplers[index] = sampler;
 }
 
-void BackendShaderDraw::SetRasterizationState(const RasterizationState& state)
+void UtilityShaderDraw::SetRasterizationState(const RasterizationState& state)
 {
 	m_pipeline_info.rasterization_state.hex = state.hex;
 }
 
-void BackendShaderDraw::SetDepthStencilState(const DepthStencilState& state)
+void UtilityShaderDraw::SetDepthStencilState(const DepthStencilState& state)
 {
 	m_pipeline_info.depth_stencil_state.hex = state.hex;
 }
 
-void BackendShaderDraw::SetBlendState(const BlendState& state)
+void UtilityShaderDraw::SetBlendState(const BlendState& state)
 {
 	m_pipeline_info.blend_state.hex = state.hex;
 }
 
-void BackendShaderDraw::Draw()
+void UtilityShaderDraw::Draw()
 {
 	VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
 
@@ -174,9 +174,9 @@ void BackendShaderDraw::Draw()
 	vkCmdDraw(command_buffer, m_vertex_count, 1, 0, 0);
 }
 
-void BackendShaderDraw::DrawQuad(int x, int y, int width, int height)
+void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height)
 {
-	BackendShaderVertex vertices[4];
+	UtilityShaderVertex vertices[4];
 	vertices[0].SetPosition(-1.0f, 1.0f);
 	vertices[0].SetTextureCoordinates(0.0f, 1.0f);
 	vertices[0].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -195,14 +195,14 @@ void BackendShaderDraw::DrawQuad(int x, int y, int width, int height)
 	Draw();
 }
 
-void BackendShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_height, int src_full_width, int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height)
+void UtilityShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_height, int src_full_width, int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height)
 {
 	float u0 = float(src_x) / float(src_full_width);
 	float v0 = float(src_y) / float(src_full_height);
 	float u1 = float(src_x + src_width) / float(src_full_width);
 	float v1 = float(src_y + src_height) / float(src_full_height);
 
-	BackendShaderVertex vertices[4];
+	UtilityShaderVertex vertices[4];
 	vertices[0].SetPosition(-1.0f, 1.0f);
 	vertices[0].SetTextureCoordinates(u0, v1);
 	vertices[0].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -221,9 +221,9 @@ void BackendShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_he
 	Draw();
 }
 
-void BackendShaderDraw::DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a)
+void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a)
 {
-	BackendShaderVertex vertices[4];
+	UtilityShaderVertex vertices[4];
 	vertices[0].SetPosition(-1.0f, 1.0f);
 	vertices[0].SetTextureCoordinates(0.0f, 1.0f);
 	vertices[0].SetColor(r, g, b, a);
@@ -242,12 +242,12 @@ void BackendShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
 	Draw();
 }
 
-void BackendShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
+void UtilityShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
 {
 	vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
 }
 
-void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
+void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 {
 	// Check if we need to bind any descriptors at all.
 	size_t first_active_sampler = 0;
@@ -347,7 +347,7 @@ void BackendShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1, &set, 0, nullptr);
 }
 
-bool BackendShaderDraw::BindPipeline(VkCommandBuffer command_buffer)
+bool UtilityShaderDraw::BindPipeline(VkCommandBuffer command_buffer)
 {
 	VkPipeline pipeline = m_object_cache->GetPipeline(m_pipeline_info);
 	if (pipeline == VK_NULL_HANDLE)
