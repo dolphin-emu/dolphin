@@ -114,6 +114,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("NANDRootPath", m_NANDPath);
+  general->Set("DumpPath", m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
@@ -381,6 +382,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("NANDRootPath", &m_NANDPath);
   File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
+  general->Get("DumpPath", &m_DumpPath);
+  if (!m_DumpPath.empty())
+    File::SetUserPath(D_DUMP_IDX, m_DumpPath + '/');
   general->Get("WirelessMac", &m_WirelessMac);
 }
 

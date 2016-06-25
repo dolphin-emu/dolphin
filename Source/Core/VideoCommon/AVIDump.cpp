@@ -92,7 +92,9 @@ bool AVIDump::CreateFile()
   std::stringstream s_file_index_str;
   s_file_index_str << s_file_index;
   snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index_str.str() + ".avi")
+           ReplaceAll((File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index_str.str() +
+                       ".avi"),
+                      "\\", "/")
                .c_str());
   File::CreateFullPath(s_format_context->filename);
 

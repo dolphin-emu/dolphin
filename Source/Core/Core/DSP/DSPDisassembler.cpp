@@ -21,6 +21,11 @@ DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(
 
 DSPDisassembler::~DSPDisassembler()
 {
+  // Create directory if it does not exist
+  if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)) ||
+      !File::IsDirectory(File::GetUserPath(D_DUMPDSP_IDX)))
+    File::CreateDir(File::GetUserPath(D_DUMPDSP_IDX));
+
   // Some old code for logging unknown ops.
   std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "UnkOps.txt";
   std::ofstream uo(filename);

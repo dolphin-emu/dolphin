@@ -445,11 +445,11 @@ TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette
 
 void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
-  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().m_strUniqueID;
+  std::string szDir = ReplaceAll(File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().m_strUniqueID, "\\", "/");
 
-  // make sure that the directory exists
+  // make sure that the directories exists
   if (!File::Exists(szDir) || !File::IsDirectory(szDir))
-    File::CreateDir(szDir);
+    File::CreateFullPath(szDir);
 
   if (level > 0)
   {
@@ -1341,6 +1341,11 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
       if (g_ActiveConfig.bDumpEFBTarget)
       {
+        // Create directory if it does not exist
+        if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)) ||
+            !File::IsDirectory(File::GetUserPath(D_DUMPTEXTURES_IDX)))
+          File::CreateDir(File::GetUserPath(D_DUMPTEXTURES_IDX));
+
         static int count = 0;
         entry->Save(StringFromFormat("%sefb_frame_%i.png",
                                      File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(), count++),

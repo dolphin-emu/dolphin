@@ -148,6 +148,11 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
 
   if (SConfig::GetInstance().m_DSPCaptureLog)
   {
+    // Create directory if it does not exist
+    if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)) ||
+        !File::IsDirectory(File::GetUserPath(D_DUMPDSP_IDX)))
+      File::CreateDir(File::GetUserPath(D_DUMPDSP_IDX));
+
     const std::string pcap_path = File::GetUserPath(D_DUMPDSP_IDX) + "dsp.pcap";
     opts->capture_logger = new PCAPDSPCaptureLogger(pcap_path);
   }

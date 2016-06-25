@@ -96,6 +96,11 @@ void ROMUCode::BootUCode()
 
   if (SConfig::GetInstance().m_DumpUCode)
   {
+    // Create directory if it does not exist
+    if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)) ||
+        !File::IsDirectory(File::GetUserPath(D_DUMPDSP_IDX)))
+      File::CreateDir(File::GetUserPath(D_DUMPDSP_IDX));
+
     std::string ucode_dump_path =
         StringFromFormat("%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), ector_crc);
 

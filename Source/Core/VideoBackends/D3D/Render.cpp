@@ -900,9 +900,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       }
       else
       {
-        std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                           source_width, source_height);
+        std::string msg =
+            StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                             ReplaceAll(File::GetUserPath(D_DUMPFRAMES_IDX), "\\", "/").c_str(),
+                             source_width, source_height);
 
         OSD::AddMessage(msg, 2000);
       }

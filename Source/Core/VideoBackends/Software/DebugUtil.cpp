@@ -96,6 +96,11 @@ static s32 GetMaxTextureLod(u32 texmap)
 
 void DumpActiveTextures()
 {
+  // Create directory if it does not exist
+  if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)) ||
+      !File::IsDirectory(File::GetUserPath(D_DUMPTEXTURES_IDX)))
+    File::CreateDir(File::GetUserPath(D_DUMPTEXTURES_IDX));
+
   for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
   {
     u32 texmap = bpmem.tevindref.getTexMap(stageNum);

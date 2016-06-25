@@ -21,6 +21,11 @@
 
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 {
+  // Create directory if it does not exist
+  if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)) ||
+      !File::IsDirectory(File::GetUserPath(D_DUMPDSP_IDX)))
+    File::CreateDir(File::GetUserPath(D_DUMPDSP_IDX));
+
   const std::string binFile =
       StringFromFormat("%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX).c_str(), crc);
   const std::string txtFile =
@@ -61,6 +66,11 @@ bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 // TODO make this useful :p
 bool DumpCWCode(u32 _Address, u32 _Length)
 {
+  // Create directory if it does not exist
+  if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)) ||
+      !File::IsDirectory(File::GetUserPath(D_DUMPDSP_IDX)))
+    File::CreateDir(File::GetUserPath(D_DUMPDSP_IDX));
+
   std::string filename = File::GetUserPath(D_DUMPDSP_IDX) + "DSP_UCode.bin";
   File::IOFile pFile(filename, "wb");
 
