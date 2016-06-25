@@ -242,6 +242,8 @@ static wxString free_look_desc = wxTRANSLATE(
     "the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and "
     "SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the "
     "speed.\n\nIf unsure, leave this unchecked.");
+static wxString always_mouselook = wxTRANSLATE(
+	"Mouselook always on - for cardboard and other scenarios. ");
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or "
                                         "16:9.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE(
@@ -775,6 +777,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title,
                                       wxGetTranslation(dump_efb_desc), vconfig.bDumpEFBTarget));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), vconfig.bFreeLook));
+	  szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look Always On"),
+									  wxGetTranslation(always_mouselook), vconfig.bMouselookAlwaysOn));
 #if defined(HAVE_LIBAV) || defined(_WIN32)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps use FFV1"),
                                       wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
