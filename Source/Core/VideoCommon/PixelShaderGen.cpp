@@ -383,7 +383,7 @@ static T GeneratePixelShader(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType)
     uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("in VertexData {\n");
+      out.Write("%sin VertexData {\n", (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
       GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, true));
 
       if (g_ActiveConfig.iStereoMode > 0)

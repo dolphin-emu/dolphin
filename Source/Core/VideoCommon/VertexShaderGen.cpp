@@ -105,7 +105,7 @@ static T GenerateVertexShader(API_TYPE api_type)
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("out VertexData {\n");
+      out.Write("%sout VertexData {\n", (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
       GenerateVSOutputMembers<T>(out, api_type, GetInterpolationQualifier(true, false));
       out.Write("} vs;\n");
     }

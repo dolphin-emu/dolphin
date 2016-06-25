@@ -85,11 +85,11 @@ static T GenerateGeometryShader(u32 primitive_type, API_TYPE ApiType)
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
 
-    out.Write("in VertexData {\n");
+    out.Write("%sin VertexData {\n", (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
     GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, true));
     out.Write("} vs[%d];\n", vertex_in);
 
-    out.Write("out VertexData {\n");
+    out.Write("%sout VertexData {\n", (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
     GenerateVSOutputMembers<T>(out, ApiType, GetInterpolationQualifier(true, false));
 
     if (g_ActiveConfig.iStereoMode > 0)
