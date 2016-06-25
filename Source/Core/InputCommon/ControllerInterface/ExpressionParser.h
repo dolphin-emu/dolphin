@@ -39,7 +39,7 @@ public:
   Core::Device::Control* FindControl(ControlQualifier qualifier);
 
 private:
-  Core::Device* FindDevice(ControlQualifier qualifier);
+  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier);
   const Core::DeviceContainer& container;
   const Core::DeviceQualifier& default_device;
   bool is_input;

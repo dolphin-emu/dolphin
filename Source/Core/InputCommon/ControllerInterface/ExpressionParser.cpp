@@ -333,7 +333,7 @@ public:
   operator std::string() override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
 };
 
-Device* ControlFinder::FindDevice(ControlQualifier qualifier)
+std::shared_ptr<Device> ControlFinder::FindDevice(ControlQualifier qualifier)
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
@@ -343,7 +343,7 @@ Device* ControlFinder::FindDevice(ControlQualifier qualifier)
 
 Device::Control* ControlFinder::FindControl(ControlQualifier qualifier)
 {
-  Device* device = FindDevice(qualifier);
+  const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
     return nullptr;
 
