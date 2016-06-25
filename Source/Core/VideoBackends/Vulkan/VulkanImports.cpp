@@ -10,8 +10,10 @@
 
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
-#if defined(WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 	#include <Windows.h>
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+	#include <dlfcn.h>
 #endif
 
 #define VULKAN_ENTRY_POINT(type, name, required) type name;
@@ -27,7 +29,7 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_ENTRY_POINT
 }
 
-#if defined(WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 
 static HMODULE vulkan_module;
 static std::atomic_int vulkan_module_ref_count = { 0 };
@@ -85,7 +87,78 @@ void UnloadVulkanLibrary()
 	vulkan_module = nullptr;
 }
 
-#endif      // WIN32
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+
+static void* vulkan_module;
+static std::atomic_int vulkan_module_ref_count = { 0 };
+
+bool LoadVulkanLibrary()
+{
+	// Not thread safe if a second thread calls the loader whilst the first is still in-progress.
+	if (vulkan_module)
+	{
+		vulkan_module_ref_count++;
+		return true;
+	}
+
+	vulkan_module = dlopen("libvulkan.so", RTLD_NOW);
+	if (!vulkan_module)
+	{
+		ERROR_LOG(VIDEO, "Failed to load libvulkan.so");
+		return false;
+	}
+
+	bool required_functions_missing = false;
+	auto LoadFunction = [&](void** func_ptr, const char* name, bool is_required)
+	{
+		*func_ptr = dlsym(vulkan_module, name);
+		if (!(*func_ptr))
+		{
+			ERROR_LOG(VIDEO, "Vulkan: Failed to load required function %s", name);
+			required_functions_missing = true;
+		}
+	};
+
+#define VULKAN_ENTRY_POINT(type, name, required) LoadFunction(reinterpret_cast<void**>(&name), #name, required);
+#include "VideoBackends/Vulkan/VulkanImports.inl"
+#undef VULKAN_ENTRY_POINT
+
+	if (required_functions_missing)
+	{
+		ResetVulkanLibraryFunctionPointers();
+		dlclose(vulkan_module);
+		vulkan_module = nullptr;
+		return false;
+	}
+
+	vulkan_module_ref_count++;
+	return true;
+}
+
+void UnloadVulkanLibrary()
+{
+	if ((--vulkan_module_ref_count) > 0)
+		return;
+
+	ResetVulkanLibraryFunctionPointers();
+	dlclose(vulkan_module);
+	vulkan_module = nullptr;
+}
+#else
+
+#warning Unknown platform, not compiling loader.
+
+bool LoadVulkanLibrary()
+{
+	return false;
+}
+
+void UnloadVulkanLibrary()
+{
+	ResetVulkanLibraryFunctionPointers();
+}
+
+#endif
 
 const char* VkResultToString(VkResult res)
 {
