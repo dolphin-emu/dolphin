@@ -118,7 +118,7 @@ bool cInterfaceGLX::Create(void* window_handle, bool core)
   ctx = nullptr;
   if (core)
   {
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs);
+    ctx = glXCreateContextAttribs(dpy, fbconfig, nullptr, True, context_attribs);
     XSync(dpy, False);
   }
   if (core && (!ctx || s_glxError))
@@ -133,7 +133,7 @@ bool cInterfaceGLX::Create(void* window_handle, bool core)
                                 GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
                                 None};
     s_glxError = false;
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs_33);
+    ctx = glXCreateContextAttribs(dpy, fbconfig, nullptr, True, context_attribs_33);
     XSync(dpy, False);
   }
   if (!ctx || s_glxError)
@@ -141,7 +141,7 @@ bool cInterfaceGLX::Create(void* window_handle, bool core)
     int context_attribs_legacy[] = {GLX_CONTEXT_MAJOR_VERSION_ARB, 1, GLX_CONTEXT_MINOR_VERSION_ARB,
                                     0, None};
     s_glxError = false;
-    ctx = glXCreateContextAttribs(dpy, fbconfig, 0, True, context_attribs_legacy);
+    ctx = glXCreateContextAttribs(dpy, fbconfig, nullptr, True, context_attribs_legacy);
     XSync(dpy, False);
   }
   if (!ctx || s_glxError)

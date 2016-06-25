@@ -24,16 +24,14 @@ PPCSymbolDB::PPCSymbolDB()
   debugger = &PowerPC::debug_interface;
 }
 
-PPCSymbolDB::~PPCSymbolDB()
-{
-}
+PPCSymbolDB::~PPCSymbolDB() = default;
 
 // Adds the function to the list, unless it's already there
 Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
 {
   if (startAddr < 0x80000010)
     return nullptr;
-  XFuncMap::iterator iter = functions.find(startAddr);
+  auto iter = functions.find(startAddr);
   if (iter != functions.end())
   {
     // it's already in the list
@@ -55,7 +53,7 @@ Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
 
 void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& name, int type)
 {
-  XFuncMap::iterator iter = functions.find(startAddr);
+  auto iter = functions.find(startAddr);
   if (iter != functions.end())
   {
     // already got it, let's just update name, checksum & size to be sure.
@@ -87,7 +85,7 @@ Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   if (!PowerPC::HostIsRAMAddress(addr))
     return nullptr;
 
-  XFuncMap::iterator it = functions.find(addr);
+  auto it = functions.find(addr);
   if (it != functions.end())
   {
     return &it->second;
@@ -127,7 +125,7 @@ void PPCSymbolDB::FillInCallers()
       SCall NewCall(entry.first, call.callAddress);
       u32 FunctionAddress = call.function;
 
-      XFuncMap::iterator FuncIterator = functions.find(FunctionAddress);
+      auto FuncIterator = functions.find(FunctionAddress);
       if (FuncIterator != functions.end())
       {
         Symbol& rCalledFunction = FuncIterator->second;
@@ -145,14 +143,14 @@ void PPCSymbolDB::FillInCallers()
 
 void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 {
-  XFuncMap::const_iterator iter = functions.find(funcAddr);
+  auto iter = functions.find(funcAddr);
   if (iter != functions.end())
   {
     const Symbol& f = iter->second;
     INFO_LOG(OSHLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
     for (const SCall& call : f.calls)
     {
-      XFuncMap::const_iterator n = functions.find(call.function);
+      auto n = functions.find(call.function);
       if (n != functions.end())
       {
         INFO_LOG(CONSOLE, "* %08x : %s", call.callAddress, n->second.name.c_str());
@@ -167,14 +165,14 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 
 void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 {
-  XFuncMap::const_iterator iter = functions.find(funcAddr);
+  auto iter = functions.find(funcAddr);
   if (iter != functions.end())
   {
     const Symbol& f = iter->second;
     INFO_LOG(CONSOLE, "The function %s at %08x is called by:", f.name.c_str(), f.address);
     for (const SCall& caller : f.callers)
     {
-      XFuncMap::const_iterator n = functions.find(caller.function);
+      auto n = functions.find(caller.function);
       if (n != functions.end())
       {
         INFO_LOG(CONSOLE, "* %08x : %s", caller.callAddress, n->second.name.c_str());
@@ -186,7 +184,7 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 void PPCSymbolDB::LogFunctionCall(u32 addr)
 {
   // u32 from = PC;
-  XFuncMap::iterator iter = functions.find(addr);
+  auto iter = functions.find(addr);
   if (iter != functions.end())
   {
     Symbol& f = iter->second;
@@ -425,7 +423,7 @@ bool PPCSymbolDB::SaveMap(const std::string& filename, bool WithCodes) const
   // Walk through every code row
   // -------------------------
   fprintf(f.GetHandle(), ".text\n");  // Write ".text" at the top
-  XFuncMap::const_iterator itr = functions.begin();
+  auto itr = functions.begin();
   u32 LastAddress = 0x80004000;
   std::string LastSymbolName;
   while (itr != functions.end())

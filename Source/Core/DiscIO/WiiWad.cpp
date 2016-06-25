@@ -28,9 +28,7 @@ WiiWAD::WiiWAD(const std::string& name)
   m_valid = ParseWAD(*reader);
 }
 
-WiiWAD::~WiiWAD()
-{
-}
+WiiWAD::~WiiWAD() = default;
 
 std::vector<u8> WiiWAD::CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
 {

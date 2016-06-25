@@ -324,7 +324,7 @@ s32 ALDeviceList::GetFirstFilteredDevice()
 
   for (i = 0; i < GetNumDevices(); i++)
   {
-    if (vDeviceInfo[i].bSelected == true)
+    if (vDeviceInfo[i].bSelected)
     {
       break;
     }
@@ -343,7 +343,7 @@ s32 ALDeviceList::GetNextFilteredDevice()
 
   for (i = filterIndex; i < GetNumDevices(); i++)
   {
-    if (vDeviceInfo[i].bSelected == true)
+    if (vDeviceInfo[i].bSelected)
     {
       break;
     }

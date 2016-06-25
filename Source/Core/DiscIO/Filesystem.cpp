@@ -12,9 +12,7 @@ IFileSystem::IFileSystem(const IVolume* _rVolume) : m_rVolume(_rVolume)
 {
 }
 
-IFileSystem::~IFileSystem()
-{
-}
+IFileSystem::~IFileSystem() = default;
 
 std::unique_ptr<IFileSystem> CreateFileSystem(const IVolume* volume)
 {

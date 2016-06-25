@@ -35,7 +35,7 @@ public:
   u32 DSP_UpdateRate() override;
 
 private:
-  static void DSPThread(DSPLLE* lpParameter);
+  static void DSPThread(DSPLLE* dsp_lle);
 
   std::thread m_hDSPThread;
   std::mutex m_csDSPThreadActive;

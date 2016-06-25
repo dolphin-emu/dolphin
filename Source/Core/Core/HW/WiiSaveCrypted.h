@@ -18,7 +18,7 @@ public:
   void static ExportAllSaves();
 
 private:
-  CWiiSaveCrypted(const std::string& filename, u64 title_id = 0);
+  CWiiSaveCrypted(std::string filename, u64 title_id = 0);
   ~CWiiSaveCrypted();
   void ReadHDR();
   void ReadBKHDR();

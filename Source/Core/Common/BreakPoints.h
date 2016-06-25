@@ -41,7 +41,7 @@ struct TMemCheck
   u32 numHits;
 
   // returns whether to break
-  bool Action(DebugInterface* dbg_interface, u32 _iValue, u32 addr, bool write, int size, u32 pc);
+  bool Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bool write, int size, u32 pc);
 };
 
 struct TWatch
@@ -60,7 +60,7 @@ public:
 
   const TBreakPoints& GetBreakPoints() { return m_BreakPoints; }
   TBreakPointsStr GetStrings() const;
-  void AddFromStrings(const TBreakPointsStr& bps);
+  void AddFromStrings(const TBreakPointsStr& bpstrs);
 
   // is address breakpoint
   bool IsAddressBreakPoint(u32 address) const;
@@ -71,7 +71,7 @@ public:
   void Add(const TBreakPoint& bp);
 
   // Remove Breakpoint
-  void Remove(u32 _iAddress);
+  void Remove(u32 em_address);
   void Clear();
   void ClearAllTemporary();
 
@@ -90,7 +90,7 @@ public:
 
   const TMemChecks& GetMemChecks() { return m_MemChecks; }
   TMemChecksStr GetStrings() const;
-  void AddFromStrings(const TMemChecksStr& mcs);
+  void AddFromStrings(const TMemChecksStr& mcstrs);
 
   void Add(const TMemCheck& _rMemoryCheck);
 
@@ -110,7 +110,7 @@ public:
 
   const TWatches& GetWatches() { return m_Watches; }
   TWatchesStr GetStrings() const;
-  void AddFromStrings(const TWatchesStr& bps);
+  void AddFromStrings(const TWatchesStr& bpstrs);
 
   bool IsAddressWatch(u32 _iAddress) const;
 
@@ -122,7 +122,7 @@ public:
   void UpdateName(int count, const std::string name);
 
   // Remove Breakpoint
-  void Remove(u32 _iAddress);
+  void Remove(u32 em_address);
   void Clear();
 
 private:

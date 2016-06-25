@@ -32,7 +32,7 @@ private:
     // TexMode0 mode; // current filter and clamp modes that texture is set to
     // TexMode1 mode1; // current filter and clamp modes that texture is set to
 
-    TCacheEntry(const TCacheEntryConfig& config);
+    TCacheEntry(const TCacheEntryConfig& _config);
     ~TCacheEntry();
 
     void CopyRectangleFromTexture(const TCacheEntryBase* source,
@@ -50,7 +50,7 @@ private:
   };
 
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
-  void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
+  void ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unconverted, void* palette,
                       TlutFormat format) override;
 
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,

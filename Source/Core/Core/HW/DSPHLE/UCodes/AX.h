@@ -114,7 +114,7 @@ protected:
   void MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr);
   void UploadLRS(u32 dst_addr);
   void SetMainLR(u32 src_addr);
-  void OutputSamples(u32 out_addr, u32 surround_addr);
+  void OutputSamples(u32 lr_addr, u32 surround_addr);
   void MixAUXBLR(u32 ul_addr, u32 dl_addr);
   void SetOppositeLR(u32 src_addr);
   void SendAUXAndMix(u32 main_auxa_up, u32 auxb_s_up, u32 main_l_dl, u32 main_r_dl, u32 auxb_l_dl,

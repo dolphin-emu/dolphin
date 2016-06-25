@@ -53,9 +53,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::bound_textures[8];
 
 TextureCacheBase::BackupConfig TextureCacheBase::backup_config;
 
-TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
-{
-}
+TextureCacheBase::TCacheEntryBase::~TCacheEntryBase() = default;
 
 void TextureCacheBase::CheckTempSize(size_t required_size)
 {
@@ -148,8 +146,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
 
 void TextureCacheBase::Cleanup(int _frameCount)
 {
-  TexCache::iterator iter = textures_by_address.begin();
-  TexCache::iterator tcend = textures_by_address.end();
+  auto iter = textures_by_address.begin();
+  auto tcend = textures_by_address.end();
   while (iter != tcend)
   {
     if (iter->second->frameCount == FRAMECOUNT_INVALID)
@@ -186,8 +184,8 @@ void TextureCacheBase::Cleanup(int _frameCount)
     }
   }
 
-  TexPool::iterator iter2 = texture_pool.begin();
-  TexPool::iterator tcend2 = texture_pool.end();
+  auto iter2 = texture_pool.begin();
+  auto tcend2 = texture_pool.end();
   while (iter2 != tcend2)
   {
     if (iter2->second->frameCount == FRAMECOUNT_INVALID)
@@ -321,11 +319,10 @@ TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
-  TexCache::iterator iter =
-      textures_by_address.lower_bound(entry_to_update->addr > MAX_TEXTURE_BINARY_SIZE ?
-                                          entry_to_update->addr - MAX_TEXTURE_BINARY_SIZE :
-                                          0);
-  TexCache::iterator iterend =
+  auto iter = textures_by_address.lower_bound(entry_to_update->addr > MAX_TEXTURE_BINARY_SIZE ?
+                                                  entry_to_update->addr - MAX_TEXTURE_BINARY_SIZE :
+                                                  0);
+  auto iterend =
       textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
   while (iter != iterend)
   {
@@ -630,10 +627,10 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   // done in vain.
   std::pair<TexCache::iterator, TexCache::iterator> iter_range =
       textures_by_address.equal_range((u64)address);
-  TexCache::iterator iter = iter_range.first;
-  TexCache::iterator oldest_entry = iter;
+  auto iter = iter_range.first;
+  auto oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
-  TexCache::iterator unconverted_copy = textures_by_address.end();
+  auto unconverted_copy = textures_by_address.end();
 
   while (iter != iter_range.second)
   {
@@ -1223,7 +1220,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   {
     std::pair<TexCache::iterator, TexCache::iterator> iter_range =
         textures_by_address.equal_range((u64)dstAddr);
-    TexCache::iterator iter = iter_range.first;
+    auto iter = iter_range.first;
     while (iter != iter_range.second)
     {
       iter = InvalidateTexture(iter);
@@ -1303,7 +1300,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   //       of dealing with.
   if (dstStride == bytes_per_row || !copy_to_vram)
   {
-    TexCache::iterator iter = textures_by_address.begin();
+    auto iter = textures_by_address.begin();
     while (iter != textures_by_address.end())
     {
       if (iter->second->addr + iter->second->size_in_bytes <= dstAddr ||
@@ -1355,7 +1352,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 TextureCacheBase::TCacheEntryBase*
 TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
 {
-  TexPool::iterator iter = texture_pool.find(config);
+  auto iter = texture_pool.find(config);
   TextureCacheBase::TCacheEntryBase* entry;
   if (iter != texture_pool.end())
   {
@@ -1380,7 +1377,7 @@ TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntryBase* entry)
 {
   std::pair<TexCache::iterator, TexCache::iterator> iter_range =
       textures_by_address.equal_range(entry->addr);
-  TexCache::iterator iter = iter_range.first;
+  auto iter = iter_range.first;
   while (iter != iter_range.second)
   {
     if (iter->second == entry)

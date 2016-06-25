@@ -148,7 +148,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
   }
 }
 
-WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : Wiimote(), m_bdaddr(bdaddr)
+WiimoteLinux::WiimoteLinux(bdaddr_t bdaddr) : Wiimote(), m_bdaddr(std::move(bdaddr))
 {
   m_cmd_sock = -1;
   m_int_sock = -1;

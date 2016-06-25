@@ -18,7 +18,7 @@ private:
   Colormap colormap;
 
 public:
-  void Initialize(Display* dpy);
+  void Initialize(Display* _dpy);
   Window CreateXWindow(Window parent, XVisualInfo* vi);
   void DestroyXWindow();
 

@@ -54,7 +54,7 @@ class CSIDevice_Null : public ISIDevice
 {
 public:
   CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
-  virtual ~CSIDevice_Null() {}
+  ~CSIDevice_Null() override = default;
   int RunBuffer(u8* _pBuffer, int _iLength) override
   {
     reinterpret_cast<u32*>(_pBuffer)[0] = SI_ERROR_NO_RESPONSE;

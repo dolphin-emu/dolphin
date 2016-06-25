@@ -21,9 +21,7 @@ CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID,
 {
 }
 
-CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
-{
-}
+CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd() = default;
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {

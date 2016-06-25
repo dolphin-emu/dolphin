@@ -86,7 +86,7 @@ u64 GetSize(const int fd);
 u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
-bool CreateDir(const std::string& filename);
+bool CreateDir(const std::string& path);
 
 // Creates the full path of fullPath returns true on success
 bool CreateFullPath(const std::string& fullPath);

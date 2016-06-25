@@ -253,10 +253,10 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
-void SetLidOpen(bool _bOpen);
+void SetLidOpen(bool open);
 
 void UpdateInterrupts();
-void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
+void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios);
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
@@ -476,7 +476,7 @@ void ChangeDisc(const std::string& newFileName)
 {
   // WARNING: Can only run on Host Thread
   bool was_unpaused = Core::PauseAndLock(true);
-  std::string* _FileName = new std::string(newFileName);
+  auto _FileName = new std::string(newFileName);
   CoreTiming::ScheduleEvent(0, s_eject_disc);
   CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
   if (Movie::IsRecordingInput())

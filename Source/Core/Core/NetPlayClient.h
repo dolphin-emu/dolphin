@@ -50,9 +50,8 @@ public:
   void ThreadFunc();
   void SendAsync(std::unique_ptr<sf::Packet> packet);
 
-  NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                const std::string& name, bool traversal, const std::string& centralServer,
-                u16 centralPort);
+  NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog, std::string name,
+                bool traversal, const std::string& centralServer, u16 centralPort);
   ~NetPlayClient();
 
   void GetPlayerList(std::string& list, std::vector<int>& pid_list);
@@ -78,7 +77,7 @@ public:
   u8 NumLocalPads() const;
 
   u8 InGamePadToLocalPad(u8 ingame_pad);
-  u8 LocalPadToInGamePad(u8 localPad);
+  u8 LocalPadToInGamePad(u8 local_pad);
 
   u8 LocalWiimoteToInGameWiimote(u8 local_pad);
 
@@ -138,7 +137,7 @@ private:
   void SendStopGamePacket();
 
   void UpdateDevices();
-  void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
+  void SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad);
   void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
   unsigned int OnData(sf::Packet& packet);
   void Send(sf::Packet& packet);

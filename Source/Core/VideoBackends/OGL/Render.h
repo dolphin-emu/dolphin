@@ -87,7 +87,7 @@ public:
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
 
   u16 BBoxRead(int index) override;
-  void BBoxWrite(int index, u16 value) override;
+  void BBoxWrite(int index, u16 _value) override;
 
   void ResetAPIState() override;
   void RestoreAPIState() override;
@@ -102,7 +102,7 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override;
+  bool SaveScreenshot(const std::string& filename, const TargetRectangle& back_rc) override;
 
   int GetMaxTextureSize() override;
 

@@ -130,7 +130,7 @@ static void EFB_Write(u32 data, u32 addr)
   }
 }
 
-static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
+static void GenerateDSIException(u32 effectiveAddress, bool write);
 
 template <XCheckTLBFlag flag, typename T>
 __forceinline static T ReadFromHardware(const u32 em_address)
@@ -414,7 +414,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
    location through ReadFromHardware and WriteToHardware */
 // ----------------
 
-static void GenerateISIException(u32 effective_address);
+static void GenerateISIException(u32 _EffectiveAddress);
 
 u32 Read_Opcode(u32 address)
 {

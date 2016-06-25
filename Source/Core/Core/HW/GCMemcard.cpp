@@ -320,9 +320,9 @@ u8 GCMemcard::GetNumFiles() const
     return 0;
 
   u8 j = 0;
-  for (int i = 0; i < DIRLEN; i++)
+  for (auto& i : CurrentDir->Dir)
   {
-    if (BE32(CurrentDir->Dir[i].Gamecode) != 0xFFFFFFFF)
+    if (BE32(i.Gamecode) != 0xFFFFFFFF)
       j++;
   }
   return j;
@@ -664,13 +664,13 @@ u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
   Directory UpdatedDir = *CurrentDir;
 
   // find first free dir entry
-  for (int i = 0; i < DIRLEN; i++)
+  for (auto& i : UpdatedDir.Dir)
   {
-    if (BE32(UpdatedDir.Dir[i].Gamecode) == 0xFFFFFFFF)
+    if (BE32(i.Gamecode) == 0xFFFFFFFF)
     {
-      UpdatedDir.Dir[i] = direntry;
-      *(u16*)&UpdatedDir.Dir[i].FirstBlock = BE16(firstBlock);
-      UpdatedDir.Dir[i].CopyCounter = UpdatedDir.Dir[i].CopyCounter + 1;
+      i = direntry;
+      *(u16*)&i.FirstBlock = BE16(firstBlock);
+      i.CopyCounter = i.CopyCounter + 1;
       break;
     }
   }

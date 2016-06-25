@@ -17,14 +17,14 @@ void Host_NotifyMapLoaded()
 void Host_RefreshDSPDebuggerWindow()
 {
 }
-void Host_Message(int)
+void Host_Message(int /*unused*/)
 {
 }
 void* Host_GetRenderHandle()
 {
   return nullptr;
 }
-void Host_UpdateTitle(const std::string&)
+void Host_UpdateTitle(const std::string& /*unused*/)
 {
 }
 void Host_UpdateDisasmDialog()
@@ -33,10 +33,10 @@ void Host_UpdateDisasmDialog()
 void Host_UpdateMainFrame()
 {
 }
-void Host_RequestRenderWindowSize(int, int)
+void Host_RequestRenderWindowSize(int /*unused*/, int /*unused*/)
 {
 }
-void Host_RequestFullscreen(bool)
+void Host_RequestFullscreen(bool /*unused*/)
 {
 }
 void Host_SetStartupDebuggingParameters()
@@ -54,13 +54,14 @@ bool Host_RendererIsFullscreen()
 {
   return false;
 }
-void Host_ConnectWiimote(int, bool)
+void Host_ConnectWiimote(int /*unused*/, bool /*unused*/)
 {
 }
-void Host_SetWiiMoteConnectionState(int)
+void Host_SetWiiMoteConnectionState(int /*unused*/)
 {
 }
-void Host_ShowVideoConfig(void*, const std::string&, const std::string&)
+void Host_ShowVideoConfig(void* /*unused*/, const std::string& /*unused*/,
+                          const std::string& /*unused*/)
 {
 }
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()

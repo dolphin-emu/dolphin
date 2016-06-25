@@ -25,11 +25,11 @@ enum
 
 void PatchFunctions();
 
-void Patch(u32 pc, const char* func_name);
+void Patch(u32 addr, const char* hle_func_name);
 u32 UnPatch(const std::string& patchName);
 void Execute(u32 _CurrentPC, u32 _Instruction);
 
-u32 GetFunctionIndex(u32 em_address);
+u32 GetFunctionIndex(u32 addr);
 int GetFunctionTypeByIndex(u32 index);
 int GetFunctionFlagsByIndex(u32 index);
 

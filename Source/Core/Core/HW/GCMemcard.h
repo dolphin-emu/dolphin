@@ -254,7 +254,7 @@ struct BlockAlloc
   u16 Map[BAT_SIZE];  // 0x000a    0x1ff8  Map of allocated Blocks
   u16 GetNextBlock(u16 Block) const;
   u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
-  bool ClearBlocks(u16 StartingBlock, u16 Length);
+  bool ClearBlocks(u16 FirstBlock, u16 BlockCount);
   void fixChecksums() { calc_checksumsBE((u16*)&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
   BlockAlloc(u16 sizeMb = MemCard2043Mb)
   {
@@ -325,7 +325,7 @@ private:
   void InitDirBatPointers();
 
 public:
-  GCMemcard(const std::string& fileName, bool forceCreation = false, bool sjis = false);
+  GCMemcard(const std::string& filename, bool forceCreation = false, bool ascii = false);
   bool IsValid() const { return m_valid; }
   bool IsAsciiEncoding() const;
   bool Save();
@@ -371,7 +371,7 @@ public:
   // Copies a DEntry from u8 index to DEntry& data
   bool GetDEntry(u8 index, DEntry& dest) const;
 
-  u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
+  u32 GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const;
 
   // adds the file to the directory and copies its contents
   u32 ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks);

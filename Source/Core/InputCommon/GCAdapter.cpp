@@ -355,8 +355,8 @@ static void Reset()
     s_adapter_thread.join();
   }
 
-  for (int i = 0; i < MAX_SI_CHANNELS; i++)
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
+  for (unsigned char& i : s_controller_type)
+    i = ControllerTypes::CONTROLLER_NONE;
 
   s_detected = false;
 

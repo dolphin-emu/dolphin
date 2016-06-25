@@ -59,7 +59,7 @@ void andcf(const UDSPInstruction opc)
 
   u16 imm = dsp_fetch_code();
   u16 val = dsp_get_acc_m(reg);
-  Update_SR_LZ(((val & imm) == imm) ? true : false);
+  Update_SR_LZ((val & imm) == imm);
 }
 
 // ANDF $acD.m, #I
@@ -76,7 +76,7 @@ void andf(const UDSPInstruction opc)
 
   u16 imm = dsp_fetch_code();
   u16 val = dsp_get_acc_m(reg);
-  Update_SR_LZ(((val & imm) == 0) ? true : false);
+  Update_SR_LZ((val & imm) == 0);
 }
 
 //----

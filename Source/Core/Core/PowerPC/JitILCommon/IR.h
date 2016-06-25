@@ -230,8 +230,8 @@ class IRBuilder
 {
 private:
   InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+  InstLoc EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra = 0);
+  InstLoc EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
 
   InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
   InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
@@ -253,8 +253,8 @@ private:
   InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
 
   InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+  InstLoc FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra = 0);
+  InstLoc FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
 
   unsigned ComputeKnownZeroBits(InstLoc I) const;
 

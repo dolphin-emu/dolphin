@@ -13,7 +13,7 @@ namespace File
 class IOFile;
 }
 
-std::string HLE_IPC_BuildFilename(std::string _pFilename);
+std::string HLE_IPC_BuildFilename(std::string path_wii);
 void HLE_IPC_CreateVirtualFATFilesystem();
 
 class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device

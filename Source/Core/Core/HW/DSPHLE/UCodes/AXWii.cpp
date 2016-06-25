@@ -25,9 +25,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   m_old_axwii = (crc == 0xfa450138);
 }
 
-AXWiiUCode::~AXWiiUCode()
-{
-}
+AXWiiUCode::~AXWiiUCode() = default;
 
 void AXWiiUCode::HandleCommandList()
 {
@@ -459,8 +457,8 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
                      m_coeffs_available ? m_coeffs : nullptr);
 
         // Forward the buffers
-        for (size_t i = 0; i < ArraySize(buffers.ptrs); ++i)
-          buffers.ptrs[i] += 32;
+        for (auto& ptr : buffers.ptrs)
+          ptr += 32;
       }
       ReinjectUpdatesFields(pb, num_updates, updates_addr);
     }

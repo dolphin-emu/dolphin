@@ -30,9 +30,7 @@ CDolLoader::CDolLoader(const std::string& filename)
   m_is_valid = Initialize(temp_buffer);
 }
 
-CDolLoader::~CDolLoader()
-{
-}
+CDolLoader::~CDolLoader() = default;
 
 bool CDolLoader::Initialize(const std::vector<u8>& buffer)
 {

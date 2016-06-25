@@ -579,7 +579,7 @@ void EmuThread()
   Host_UpdateMainFrame();
 
   // Determine the CPU thread function
-  void (*cpuThreadFunc)(void);
+  void (*cpuThreadFunc)();
   if (core_parameter.m_BootType == SConfig::BOOT_DFF)
     cpuThreadFunc = FifoPlayerThread;
   else

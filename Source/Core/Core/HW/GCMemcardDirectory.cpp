@@ -145,11 +145,10 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
   return NO_INDEX;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb,
-                                       bool ascii, DiscIO::IVolume::ECountry card_region,
-                                       int gameId)
+GCMemcardDirectory::GCMemcardDirectory(std::string directory, int slot, u16 sizeMb, bool ascii,
+                                       DiscIO::IVolume::ECountry card_region, int gameId)
     : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1), m_hdr(slot, sizeMb, ascii),
-      m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory), m_exiting(false)
+      m_bat1(sizeMb), m_saves(0), m_SaveDirectory(std::move(directory)), m_exiting(false)
 {
   // Use existing header data if available
   if (File::Exists(m_SaveDirectory + MC_HDR))
@@ -555,14 +554,14 @@ void GCMemcardDirectory::FlushToFile()
   std::unique_lock<std::mutex> l(m_write_mutex);
   int errors = 0;
   DEntry invalid;
-  for (u16 i = 0; i < m_saves.size(); ++i)
+  for (auto& m_save : m_saves)
   {
-    if (m_saves[i].m_dirty)
+    if (m_save.m_dirty)
     {
-      if (BE32(m_saves[i].m_gci_header.Gamecode) != 0xFFFFFFFF)
+      if (BE32(m_save.m_gci_header.Gamecode) != 0xFFFFFFFF)
       {
-        m_saves[i].m_dirty = false;
-        if (m_saves[i].m_save_data.size() == 0)
+        m_save.m_dirty = false;
+        if (m_save.m_save_data.size() == 0)
         {
           // The save's header has been changed but the actual save blocks haven't been read/written
           // to
@@ -571,9 +570,9 @@ void GCMemcardDirectory::FlushToFile()
                     "GCI header modified without corresponding save data changes");
           continue;
         }
-        if (m_saves[i].m_filename.empty())
+        if (m_save.m_filename.empty())
         {
-          std::string defaultSaveName = m_SaveDirectory + m_saves[i].m_gci_header.GCI_FileName();
+          std::string defaultSaveName = m_SaveDirectory + m_save.m_gci_header.GCI_FileName();
 
           // Check to see if another file is using the same name
           // This seems unlikely except in the case of file corruption
@@ -585,41 +584,40 @@ void GCMemcardDirectory::FlushToFile()
           if (File::Exists(defaultSaveName))
             PanicAlertT("Failed to find new filename.\n%s\n will be overwritten",
                         defaultSaveName.c_str());
-          m_saves[i].m_filename = defaultSaveName;
+          m_save.m_filename = defaultSaveName;
         }
-        File::IOFile GCI(m_saves[i].m_filename, "wb");
+        File::IOFile GCI(m_save.m_filename, "wb");
         if (GCI)
         {
-          GCI.WriteBytes(&m_saves[i].m_gci_header, DENTRY_SIZE);
-          GCI.WriteBytes(m_saves[i].m_save_data.data(), BLOCK_SIZE * m_saves[i].m_save_data.size());
+          GCI.WriteBytes(&m_save.m_gci_header, DENTRY_SIZE);
+          GCI.WriteBytes(m_save.m_save_data.data(), BLOCK_SIZE * m_save.m_save_data.size());
 
           if (GCI.IsGood())
           {
             Core::DisplayMessage(
-                StringFromFormat("Wrote save contents to %s", m_saves[i].m_filename.c_str()), 4000);
+                StringFromFormat("Wrote save contents to %s", m_save.m_filename.c_str()), 4000);
           }
           else
           {
             ++errors;
-            Core::DisplayMessage(StringFromFormat("Failed to write save contents to %s",
-                                                  m_saves[i].m_filename.c_str()),
-                                 4000);
-            ERROR_LOG(EXPANSIONINTERFACE, "Failed to save data to %s",
-                      m_saves[i].m_filename.c_str());
+            Core::DisplayMessage(
+                StringFromFormat("Failed to write save contents to %s", m_save.m_filename.c_str()),
+                4000);
+            ERROR_LOG(EXPANSIONINTERFACE, "Failed to save data to %s", m_save.m_filename.c_str());
           }
         }
       }
-      else if (m_saves[i].m_filename.length() != 0)
+      else if (m_save.m_filename.length() != 0)
       {
-        m_saves[i].m_dirty = false;
-        std::string& oldname = m_saves[i].m_filename;
+        m_save.m_dirty = false;
+        std::string& oldname = m_save.m_filename;
         std::string deletedname = oldname + ".deleted";
         if (File::Exists(deletedname))
           File::Delete(deletedname);
         File::Rename(oldname, deletedname);
-        m_saves[i].m_filename.clear();
-        m_saves[i].m_save_data.clear();
-        m_saves[i].m_used_blocks.clear();
+        m_save.m_filename.clear();
+        m_save.m_save_data.clear();
+        m_save.m_used_blocks.clear();
       }
     }
 
@@ -628,12 +626,11 @@ void GCMemcardDirectory::FlushToFile()
     // simultaneously
     // this ensures that the save data for all of the current games gci files are stored in the
     // savestate
-    u32 gamecode = BE32(m_saves[i].m_gci_header.Gamecode);
-    if (gamecode != m_GameId && gamecode != 0xFFFFFFFF && m_saves[i].m_save_data.size())
+    u32 gamecode = BE32(m_save.m_gci_header.Gamecode);
+    if (gamecode != m_GameId && gamecode != 0xFFFFFFFF && m_save.m_save_data.size())
     {
-      INFO_LOG(EXPANSIONINTERFACE, "Flushing savedata to disk for %s",
-               m_saves[i].m_filename.c_str());
-      m_saves[i].m_save_data.clear();
+      INFO_LOG(EXPANSIONINTERFACE, "Flushing savedata to disk for %s", m_save.m_filename.c_str());
+      m_save.m_save_data.clear();
     }
   }
 #if _WRITE_MC_HEADER
@@ -658,9 +655,9 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   int numSaves = (int)m_saves.size();
   p.Do(numSaves);
   m_saves.resize(numSaves);
-  for (auto itr = m_saves.begin(); itr != m_saves.end(); ++itr)
+  for (auto& m_save : m_saves)
   {
-    itr->DoState(p);
+    m_save.DoState(p);
   }
 }
 
@@ -707,9 +704,9 @@ void GCIFile::DoState(PointerWrap& p)
   int numBlocks = (int)m_save_data.size();
   p.Do(numBlocks);
   m_save_data.resize(numBlocks);
-  for (auto itr = m_save_data.begin(); itr != m_save_data.end(); ++itr)
+  for (auto& itr : m_save_data)
   {
-    p.DoPOD<GCMBlock>(*itr);
+    p.DoPOD<GCMBlock>(itr);
   }
   p.Do(m_used_blocks);
 }

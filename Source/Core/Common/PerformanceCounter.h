@@ -12,6 +12,6 @@
 
 typedef u64 LARGE_INTEGER;
 bool QueryPerformanceCounter(u64* out);
-bool QueryPerformanceFrequency(u64* lpFrequency);
+bool QueryPerformanceFrequency(u64* out);
 
 #endif

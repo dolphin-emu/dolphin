@@ -1,0 +1,6 @@
+---
+Checks:          'clang-diagnostic-*,clang-analyzer-*,-clang-analyzer-alpha*,modernize-*,cert-*,readability-*,-cert-err58-cpp,-readability-implicit-bool-cast,-readability-braces-around-statements,-readability-else-after-return'
+CheckOptions:
+  - key:             modernize-loop-convert.NamingStyle
+    value:           lower_case
+...

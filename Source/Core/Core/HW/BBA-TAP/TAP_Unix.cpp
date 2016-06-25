@@ -94,7 +94,7 @@ void CEXIETHERNET::Deactivate()
 bool CEXIETHERNET::IsActivated()
 {
 #ifdef __linux__
-  return fd != -1 ? true : false;
+  return fd != -1;
 #else
   return false;
 #endif

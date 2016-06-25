@@ -757,9 +757,7 @@ Renderer::Renderer()
   ClearEFBCache();
 }
 
-Renderer::~Renderer()
-{
-}
+Renderer::~Renderer() = default;
 
 void Renderer::Shutdown()
 {

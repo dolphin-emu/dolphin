@@ -24,9 +24,7 @@ CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string&
   Common::ReadReplacements(replacements);
 }
 
-CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs()
-{
-}
+CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs() = default;
 
 IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {

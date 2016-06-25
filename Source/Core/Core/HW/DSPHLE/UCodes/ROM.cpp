@@ -26,9 +26,7 @@ ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
   m_mail_handler.PushMail(0x8071FEED);
 }
 
-ROMUCode::~ROMUCode()
-{
-}
+ROMUCode::~ROMUCode() = default;
 
 void ROMUCode::Update()
 {

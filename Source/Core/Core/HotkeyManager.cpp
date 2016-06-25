@@ -227,9 +227,7 @@ HotkeyManager::HotkeyManager()
   m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
 }
 
-HotkeyManager::~HotkeyManager()
-{
-}
+HotkeyManager::~HotkeyManager() = default;
 
 std::string HotkeyManager::GetName() const
 {

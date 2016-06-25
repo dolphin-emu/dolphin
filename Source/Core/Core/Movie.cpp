@@ -106,7 +106,7 @@ static void EnsureTmpInputSize(size_t bound)
   while (newAlloc < bound)
     newAlloc *= 2;
 
-  u8* newTmpInput = new u8[newAlloc];
+  auto newTmpInput = new u8[newAlloc];
   tmpInputAllocated = newAlloc;
   if (tmpInput != nullptr)
   {
@@ -320,7 +320,7 @@ void FrameSkipping()
     std::lock_guard<std::mutex> lk(cs_frameSkip);
 
     s_frameSkipCounter++;
-    if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
+    if (s_frameSkipCounter > s_framesToSkip || !Core::ShouldSkipFrame(s_frameSkipCounter))
       s_frameSkipCounter = 0;
 
     Fifo::SetRendering(!s_frameSkipCounter);
@@ -543,11 +543,8 @@ bool BeginRecordingInput(int controllers)
     // TODO: find a way to GetTitleDataPath() from Movie::Init()
     if (SConfig::GetInstance().bWii)
     {
-      if (File::Exists(Common::GetTitleDataPath(g_titleID, Common::FROM_SESSION_ROOT) +
-                       "banner.bin"))
-        Movie::g_bClearSave = false;
-      else
-        Movie::g_bClearSave = true;
+      Movie::g_bClearSave = !File::Exists(
+          Common::GetTitleDataPath(g_titleID, Common::FROM_SESSION_ROOT) + "banner.bin");
     }
     std::thread md5thread(GetMD5);
     md5thread.detach();
@@ -1044,7 +1041,7 @@ void LoadInput(const std::string& filename)
     {
       // verify identical from movie start to the save's current frame
       u32 len = (u32)s_currentByte;
-      u8* movInput = new u8[len];
+      auto movInput = new u8[len];
       t_record.ReadArray(movInput, (size_t)len);
       for (u32 i = 0; i < len; ++i)
       {
@@ -1218,9 +1215,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     CPU::Break();
     bool found = false;
     std::string path;
-    for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
+    for (auto& i : SConfig::GetInstance().m_ISOFolder)
     {
-      path = SConfig::GetInstance().m_ISOFolder[i];
+      path = i;
       if (File::Exists(path + '/' + g_discChange))
       {
         found = true;

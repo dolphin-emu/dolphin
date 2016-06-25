@@ -379,12 +379,7 @@ static bool batchdecrypt(u32* codes, u16 size)
 
   tmp = codes[0];
   codes[0] &= 0x0FFFFFFF;
-  if ((tmp >> 28) != verifycode(codes, size))
-  {
-    return false;
-  }
-
-  return true;
+  return (tmp >> 28) == verifycode(codes, size);
 
   // Unfinished (so says Parasyte :p )
 }

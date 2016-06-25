@@ -103,7 +103,7 @@ void DSPHLE::DoState(PointerWrap& p)
 {
   bool isHLE = true;
   p.Do(isHLE);
-  if (isHLE != true && p.GetMode() == PointerWrap::MODE_READ)
+  if (!isHLE && p.GetMode() == PointerWrap::MODE_READ)
   {
     Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
                          3000);

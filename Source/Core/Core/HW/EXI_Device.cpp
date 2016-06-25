@@ -73,8 +73,8 @@ class CEXIDummy : public IEXIDevice
 
   void TransferByte(u8& _byte) override {}
 public:
-  CEXIDummy(const std::string& _strName) : m_strName(_strName) {}
-  virtual ~CEXIDummy() {}
+  CEXIDummy(std::string _strName) : m_strName(std::move(_strName)) {}
+  ~CEXIDummy() override = default;
   void ImmWrite(u32 data, u32 size) override
   {
     INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);

@@ -508,7 +508,7 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInf
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 0)
     code->outputCR0 = true;
   else
-    code->outputCR0 = (opinfo->flags & FL_SET_CR0) ? true : false;
+    code->outputCR0 = static_cast<bool>((opinfo->flags & FL_SET_CR0));
 
   // Does the instruction output CR1?
   if (opinfo->flags & FL_RC_BIT_F)
@@ -516,14 +516,14 @@ void PPCAnalyzer::SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInf
   else if ((opinfo->flags & FL_SET_CRn) && code->inst.CRFD == 1)
     code->outputCR1 = true;
   else
-    code->outputCR1 = (opinfo->flags & FL_SET_CR1) ? true : false;
+    code->outputCR1 = static_cast<bool>((opinfo->flags & FL_SET_CR1));
 
-  code->wantsFPRF = (opinfo->flags & FL_READ_FPRF) ? true : false;
-  code->outputFPRF = (opinfo->flags & FL_SET_FPRF) ? true : false;
-  code->canEndBlock = (opinfo->flags & FL_ENDBLOCK) ? true : false;
+  code->wantsFPRF = static_cast<bool>((opinfo->flags & FL_READ_FPRF));
+  code->outputFPRF = static_cast<bool>((opinfo->flags & FL_SET_FPRF));
+  code->canEndBlock = static_cast<bool>((opinfo->flags & FL_ENDBLOCK));
 
-  code->wantsCA = (opinfo->flags & FL_READ_CA) ? true : false;
-  code->outputCA = (opinfo->flags & FL_SET_CA) ? true : false;
+  code->wantsCA = static_cast<bool>((opinfo->flags & FL_READ_CA));
+  code->outputCA = static_cast<bool>((opinfo->flags & FL_SET_CA));
 
   // We're going to try to avoid storing carry in XER if we can avoid it -- keep it in the x86 carry
   // flag!

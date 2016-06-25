@@ -20,14 +20,14 @@ template <typename T>
 class ReadHandlingMethod
 {
 public:
-  virtual ~ReadHandlingMethod() {}
+  virtual ~ReadHandlingMethod() = default;
   virtual void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const = 0;
 };
 template <typename T>
 class WriteHandlingMethod
 {
 public:
-  virtual ~WriteHandlingMethod() {}
+  virtual ~WriteHandlingMethod() = default;
   virtual void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const = 0;
 };
 
@@ -39,7 +39,7 @@ class ConstantHandlingMethod : public ReadHandlingMethod<T>
 {
 public:
   explicit ConstantHandlingMethod(T value) : value_(value) {}
-  virtual ~ConstantHandlingMethod() {}
+  ~ConstantHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitConstant(value_);
@@ -61,8 +61,8 @@ template <typename T>
 class NopHandlingMethod : public WriteHandlingMethod<T>
 {
 public:
-  NopHandlingMethod() {}
-  virtual ~NopHandlingMethod() {}
+  NopHandlingMethod() = default;
+  ~NopHandlingMethod() override = default;
   void AcceptWriteVisitor(WriteHandlingMethodVisitor<T>& v) const override { v.VisitNop(); }
 };
 template <typename T>
@@ -79,7 +79,7 @@ class DirectHandlingMethod : public ReadHandlingMethod<T>, public WriteHandlingM
 {
 public:
   DirectHandlingMethod(T* addr, u32 mask) : addr_(addr), mask_(mask) {}
-  virtual ~DirectHandlingMethod() {}
+  ~DirectHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitDirect(addr_, mask_);
@@ -123,16 +123,16 @@ class ComplexHandlingMethod : public ReadHandlingMethod<T>, public WriteHandling
 {
 public:
   explicit ComplexHandlingMethod(std::function<T(u32)> read_lambda)
-      : read_lambda_(read_lambda), write_lambda_(InvalidWriteLambda())
+      : read_lambda_(std::move(read_lambda)), write_lambda_(InvalidWriteLambda())
   {
   }
 
   explicit ComplexHandlingMethod(std::function<void(u32, T)> write_lambda)
-      : read_lambda_(InvalidReadLambda()), write_lambda_(write_lambda)
+      : read_lambda_(InvalidReadLambda()), write_lambda_(std::move(write_lambda))
   {
   }
 
-  virtual ~ComplexHandlingMethod() {}
+  ~ComplexHandlingMethod() override = default;
   void AcceptReadVisitor(ReadHandlingMethodVisitor<T>& v) const override
   {
     v.VisitComplex(&read_lambda_);
@@ -273,9 +273,7 @@ ReadHandlingMethod<T>* ReadToLarger(Mapping* mmio, u32 larger_addr, u32 shift)
 // redundant code between these two classes but trying to abstract it away
 // brings more trouble than it fixes.
 template <typename T>
-ReadHandler<T>::ReadHandler()
-{
-}
+ReadHandler<T>::ReadHandler() = default;
 
 template <typename T>
 ReadHandler<T>::ReadHandler(ReadHandlingMethod<T>* method) : m_Method(nullptr)
@@ -325,9 +323,7 @@ void ReadHandler<T>::ResetMethod(ReadHandlingMethod<T>* method)
 }
 
 template <typename T>
-WriteHandler<T>::WriteHandler()
-{
-}
+WriteHandler<T>::WriteHandler() = default;
 
 template <typename T>
 WriteHandler<T>::WriteHandler(WriteHandlingMethod<T>* method) : m_Method(nullptr)

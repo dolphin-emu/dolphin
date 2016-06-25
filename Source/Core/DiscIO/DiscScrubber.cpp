@@ -74,7 +74,7 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
 bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
 bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
-bool ParsePartitionData(SPartition& _rPartition);
+bool ParsePartitionData(SPartition& partition);
 
 bool SetupScrub(const std::string& filename, int block_size)
 {

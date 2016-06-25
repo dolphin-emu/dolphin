@@ -31,8 +31,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void UpdateDevices();
 
-void RemoveDevice(int _iDeviceNumber);
-void AddDevice(const SIDevices _device, int _iDeviceNumber);
+void RemoveDevice(int device_number);
+void AddDevice(const SIDevices device, int device_number);
 void AddDevice(std::unique_ptr<ISIDevice> device);
 
 void ChangeDevice(SIDevices device, int channel);

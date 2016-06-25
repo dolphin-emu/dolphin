@@ -81,9 +81,7 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID,
   Common::ReadReplacements(replacements);
 }
 
-CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
-{
-}
+CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO() = default;
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 {

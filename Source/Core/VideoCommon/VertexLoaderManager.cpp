@@ -138,7 +138,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
 
     VertexLoaderUID uid(state->vtx_desc, state->vtx_attr[vtx_attr_group]);
     std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
-    VertexLoaderMap::iterator iter = s_vertex_loader_map.find(uid);
+    auto iter = s_vertex_loader_map.find(uid);
     if (iter != s_vertex_loader_map.end())
     {
       loader = iter->second.get();

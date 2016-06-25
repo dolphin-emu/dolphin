@@ -47,9 +47,9 @@ void DoState(PointerWrap& p);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
 
-void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
-void Update(int _number, bool _connected);
+void ControlChannel(int number, u16 channel_id, const void* data, u32 size);
+void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);
+void Update(int number, bool connected);
 }
 
 namespace WiimoteReal

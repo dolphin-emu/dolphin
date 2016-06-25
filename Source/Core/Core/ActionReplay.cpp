@@ -743,7 +743,7 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
   }
 
   // if the comparison failed we need to skip some lines
-  if (false == result)
+  if (!result)
   {
     switch (addr.subtype)
     {
@@ -826,7 +826,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     {
       do_fill_and_slide = false;
       LogInfo("Doing Fill And Slide");
-      if (false == ZeroCode_FillAndSlide(val_last, addr, data))
+      if (!ZeroCode_FillAndSlide(val_last, addr, data))
         return false;
       continue;
     }
@@ -836,7 +836,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     {
       do_memory_copy = false;
       LogInfo("Doing Memory Copy");
-      if (false == ZeroCode_MemoryCopy(val_last, addr, data))
+      if (!ZeroCode_MemoryCopy(val_last, addr, data))
         return false;
       continue;
     }
@@ -915,13 +915,13 @@ static bool RunCodeLocked(const ARCode& arcode)
     switch (addr.type)
     {
     case 0x00:
-      if (false == NormalCode(addr, data))
+      if (!NormalCode(addr, data))
         return false;
       break;
 
     default:
       LogInfo("This Normal Code is a Conditional Code");
-      if (false == ConditionalCode(addr, data, &skip_count))
+      if (!ConditionalCode(addr, data, &skip_count))
         return false;
       break;
     }

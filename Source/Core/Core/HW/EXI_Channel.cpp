@@ -198,15 +198,8 @@ bool CEXIChannel::IsCausingInterrupt()
     if (GetDevice(m_Status.CHIP_SELECT)->IsInterruptSet())
       m_Status.EXIINT = 1;
 
-  if ((m_Status.EXIINT & m_Status.EXIINTMASK) || (m_Status.TCINT & m_Status.TCINTMASK) ||
-      (m_Status.EXTINT & m_Status.EXTINTMASK))
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+  return (m_Status.EXIINT & m_Status.EXIINTMASK) || (m_Status.TCINT & m_Status.TCINTMASK) ||
+         (m_Status.EXTINT & m_Status.EXTINTMASK);
 }
 
 IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)

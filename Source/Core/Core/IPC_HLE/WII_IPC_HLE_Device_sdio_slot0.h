@@ -123,7 +123,7 @@ private:
 
   File::IOFile m_Card;
 
-  u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 BufferIn2, u32 BufferInSize2,
+  u32 ExecuteCommand(u32 _BufferIn, u32 BufferInSize, u32 BufferIn2, u32 _rwBufferSize,
                      u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 };

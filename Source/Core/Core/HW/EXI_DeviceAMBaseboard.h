@@ -13,13 +13,13 @@ class CEXIAMBaseboard : public IEXIDevice
 public:
   CEXIAMBaseboard();
 
-  void SetCS(int _iCS) override;
+  void SetCS(int cs) override;
   bool IsPresent() const override;
   bool IsInterruptSet() override;
   void DoState(PointerWrap& p) override;
 
 private:
-  void TransferByte(u8& _uByte) override;
+  void TransferByte(u8& _byte) override;
   int m_position;
   bool m_have_irq;
   unsigned char m_command[4];

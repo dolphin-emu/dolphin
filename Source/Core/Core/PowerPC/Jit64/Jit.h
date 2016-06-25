@@ -116,7 +116,7 @@ public:
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
   void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
+  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm,
                   Gen::X64Reg clobber = Gen::XMM0);
 
   void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
@@ -134,7 +134,7 @@ public:
 
   // OPCODES
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
-  void FallBackToInterpreter(UGeckoInstruction _inst);
+  void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction _inst);
   void HLEFunction(UGeckoInstruction _inst);
 
@@ -157,12 +157,12 @@ public:
 
   void extsXx(UGeckoInstruction inst);
 
-  void sc(UGeckoInstruction _inst);
-  void rfi(UGeckoInstruction _inst);
+  void sc(UGeckoInstruction inst);
+  void rfi(UGeckoInstruction inst);
 
   void bx(UGeckoInstruction inst);
-  void bclrx(UGeckoInstruction _inst);
-  void bcctrx(UGeckoInstruction _inst);
+  void bclrx(UGeckoInstruction inst);
+  void bcctrx(UGeckoInstruction inst);
   void bcx(UGeckoInstruction inst);
 
   void mtspr(UGeckoInstruction inst);

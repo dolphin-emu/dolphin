@@ -15,7 +15,7 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
-DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(settings)
+DSPDisassembler::DSPDisassembler(AssemblerSettings settings) : settings_(std::move(settings))
 {
 }
 

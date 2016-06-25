@@ -61,9 +61,7 @@ std::unique_ptr<CompressedBlobReader> CompressedBlobReader::Create(const std::st
   return nullptr;
 }
 
-CompressedBlobReader::~CompressedBlobReader()
-{
-}
+CompressedBlobReader::~CompressedBlobReader() = default;
 
 // IMPORTANT: Calling this function invalidates all earlier pointers gotten from this function.
 u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const

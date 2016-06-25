@@ -162,7 +162,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
   bool software = false;
   p.Do(software);
 
-  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+  if (p.GetMode() == PointerWrap::MODE_READ && software)
   {
     // change mode to abort load of incompatible save state.
     p.SetMode(PointerWrap::MODE_VERIFY);

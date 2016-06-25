@@ -23,7 +23,7 @@ public:
   SWVertexLoader();
   ~SWVertexLoader();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
 
 protected:
   void ResetBuffer(u32 stride) override;

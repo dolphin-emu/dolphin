@@ -16,7 +16,7 @@ public:
   static void Init();
   static void Start(u16* Indexptr);
 
-  static void AddIndices(int primitive, u32 numVertices);
+  static void AddIndices(int primitive, u32 numVerts);
 
   // returns numprimitives
   static u32 GetNumVerts() { return base_index; }

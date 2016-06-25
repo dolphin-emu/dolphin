@@ -99,7 +99,7 @@ static u32 arm_irq_masks;
 static u32 sensorbar_power;  // do we need to care about this?
 
 static int updateInterrupts;
-static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
+static void UpdateInterrupts(u64 /*userdata*/ = 0, s64 cyclesLate = 0);
 
 void DoState(PointerWrap& p)
 {

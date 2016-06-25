@@ -28,7 +28,7 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
   // Keyboard Keys
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
-    Key* temp_key = new Key(m_display, i, m_state.keyboard);
+    auto temp_key = new Key(m_display, i, m_state.keyboard);
     if (temp_key->m_keyname.length())
       AddInput(temp_key);
     else

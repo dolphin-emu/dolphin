@@ -96,8 +96,7 @@ FramebufferManagerBase::GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeig
   u32 srcLower = xfbAddr;
   u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
 
-  VirtualXFBListType::reverse_iterator it = m_virtualXFBList.rbegin(),
-                                       vlend = m_virtualXFBList.rend();
+  auto it = m_virtualXFBList.rbegin(), vlend = m_virtualXFBList.rend();
   for (; it != vlend; ++it)
   {
     VirtualXFB* vxfb = &*it;
@@ -136,7 +135,7 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbH
   if (!g_framebuffer_manager)
     return;
 
-  VirtualXFBListType::iterator vxfb = FindVirtualXFB(xfbAddr, sourceRc.GetWidth(), fbHeight);
+  auto vxfb = FindVirtualXFB(xfbAddr, sourceRc.GetWidth(), fbHeight);
 
   if (m_virtualXFBList.end() == vxfb)
   {
@@ -207,7 +206,7 @@ FramebufferManagerBase::FindVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 
 void FramebufferManagerBase::ReplaceVirtualXFB()
 {
-  VirtualXFBListType::iterator it = m_virtualXFBList.begin();
+  auto it = m_virtualXFBList.begin();
 
   const s32 srcLower = it->xfbAddr;
   const s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;

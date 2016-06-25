@@ -32,7 +32,8 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
     : m_HIDControlChannel_Connected(false), m_HIDControlChannel_ConnectedWait(false),
       m_HIDControlChannel_Config(false), m_HIDControlChannel_ConfigWait(false),
       m_HIDInterruptChannel_Connected(false), m_HIDInterruptChannel_ConnectedWait(false),
-      m_HIDInterruptChannel_Config(false), m_HIDInterruptChannel_ConfigWait(false), m_BD(_BD),
+      m_HIDInterruptChannel_Config(false), m_HIDInterruptChannel_ConfigWait(false),
+      m_BD(std::move(_BD)),
       m_Name(_Number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01"),
       m_pHost(_pHost)
 {
@@ -203,10 +204,7 @@ void CWII_IPC_HLE_WiiMote::EventDisconnect()
 
 bool CWII_IPC_HLE_WiiMote::EventPagingChanged(u8 _pageMode)
 {
-  if ((m_ConnectionState == CONN_READY) && (_pageMode & HCI_PAGE_SCAN_ENABLE))
-    return true;
-
-  return false;
+  return (m_ConnectionState == CONN_READY) && (_pageMode & HCI_PAGE_SCAN_ENABLE);
 }
 
 void CWII_IPC_HLE_WiiMote::ResetChannels()
@@ -259,7 +257,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
   {
     _dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->dcid),
                      "L2CAP: SendACLPacket to unknown channel %i", pHeader->dcid);
-    CChannelMap::iterator itr = m_Channel.find(pHeader->dcid);
+    auto itr = m_Channel.find(pHeader->dcid);
 
     const int number = m_ConnectionHandle & 0xFF;
 

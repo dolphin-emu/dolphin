@@ -62,9 +62,9 @@ NetPlayClient::~NetPlayClient()
 
 // called from ---GUI--- thread
 NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
-                             const std::string& name, bool traversal,
-                             const std::string& centralServer, u16 centralPort)
-    : m_dialog(dialog), m_player_name(name)
+                             std::string name, bool traversal, const std::string& centralServer,
+                             u16 centralPort)
+    : m_dialog(dialog), m_player_name(std::move(name))
 {
   ClearBuffers();
 
@@ -460,9 +460,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   case NP_MSG_SYNC_GC_SRAM:
   {
     u8 sram[sizeof(g_SRAM.p_SRAM)];
-    for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+    for (unsigned char& i : sram)
     {
-      packet >> sram[i];
+      packet >> i;
     }
 
     {
@@ -730,7 +730,7 @@ bool NetPlayClient::StartGame(const std::string& path)
 }
 
 // called from ---GUI--- thread
-bool NetPlayClient::ChangeGame(const std::string&)
+bool NetPlayClient::ChangeGame(const std::string& /*unused*/)
 {
   return true;
 }

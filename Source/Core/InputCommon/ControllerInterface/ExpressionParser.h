@@ -50,10 +50,10 @@ class Expression
 {
 public:
   Expression() : node(nullptr) {}
-  Expression(ExpressionNode* node);
+  Expression(ExpressionNode* node_);
   ~Expression();
   ControlState GetValue();
-  void SetValue(ControlState state);
+  void SetValue(ControlState value);
   int num_controls;
   ExpressionNode* node;
 };
@@ -65,7 +65,7 @@ enum ExpressionParseStatus
   EXPRESSION_PARSE_NO_DEVICE,
 };
 
-ExpressionParseStatus ParseExpression(const std::string& expr, ControlFinder& finder,
+ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder& finder,
                                       Expression** expr_out);
 }
 }

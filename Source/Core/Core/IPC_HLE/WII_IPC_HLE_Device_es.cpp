@@ -88,9 +88,7 @@ u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
     key_empty,  // Unknown
 };
 
-CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
-{
-}
+CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es() = default;
 
 void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
 {
@@ -994,7 +992,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     {
       CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
       size_t size = s_Usb->m_WiiMotes.size();
-      bool* wiiMoteConnected = new bool[size];
+      auto wiiMoteConnected = new bool[size];
       for (unsigned int i = 0; i < size; i++)
         wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
 
@@ -1151,10 +1149,7 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
   if (Movie::IsRecordingInput())
   {
     // TODO: Check for the actual save data
-    if (File::Exists(save_path + "banner.bin"))
-      Movie::g_bClearSave = false;
-    else
-      Movie::g_bClearSave = true;
+    Movie::g_bClearSave = !File::Exists(save_path + "banner.bin");
   }
 
   // TODO: Force the game to save to another location, instead of moving the user's save.

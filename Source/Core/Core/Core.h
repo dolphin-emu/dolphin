@@ -81,7 +81,7 @@ void UpdateTitle();
 // calls must be balanced (once with doLock true, then once with doLock false) but may be recursive.
 // the return value of the first call should be passed in as the second argument of the second call.
 // [NOT THREADSAFE] Host only
-bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
+bool PauseAndLock(bool do_lock, bool unpause_on_unlock = true);
 
 // for calling back into UI code without introducing a dependency on it in core
 typedef void (*StoppedCallbackFunc)(void);

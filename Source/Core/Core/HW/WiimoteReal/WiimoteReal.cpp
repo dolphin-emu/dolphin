@@ -25,9 +25,9 @@ unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace WiimoteReal
 {
-void HandleFoundWiimotes(const std::vector<Wiimote*>&);
-void TryToConnectBalanceBoard(Wiimote*);
-void TryToConnectWiimote(Wiimote*);
+void HandleFoundWiimotes(const std::vector<Wiimote*>& /*wiimotes*/);
+void TryToConnectBalanceBoard(Wiimote* /*wm*/);
+void TryToConnectWiimote(Wiimote* /*wm*/);
 void HandleWiimoteDisconnect(int index);
 void DoneWithWiimote(int index);
 

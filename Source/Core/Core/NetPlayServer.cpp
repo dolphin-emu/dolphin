@@ -308,9 +308,9 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   }
   spac.clear();
   spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
-  for (size_t i = 0; i < sizeof(g_SRAM.p_SRAM); ++i)
+  for (unsigned char i : g_SRAM.p_SRAM)
   {
-    spac << g_SRAM.p_SRAM[i];
+    spac << i;
   }
   Send(player.socket, spac);
 
@@ -531,8 +531,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u8 size;
     packet >> map >> size;
     std::vector<u8> data(size);
-    for (size_t i = 0; i < data.size(); ++i)
-      packet >> data[i];
+    for (unsigned char& i : data)
+      packet >> i;
 
     // If the data is not from the correct player,
     // then disconnect them.

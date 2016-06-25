@@ -45,7 +45,7 @@ void Init()
   // naming scheme is ever updated in the future, this *should* be forwards compatable.
 
   struct udev* udev = udev_new();
-  _assert_msg_(PAD, udev != 0, "Couldn't initilize libudev.");
+  _assert_msg_(PAD, udev != nullptr, "Couldn't initilize libudev.");
 
   // List all input devices
   udev_enumerate* enumerate = udev_enumerate_new(udev);

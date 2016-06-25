@@ -12,7 +12,7 @@ void Init();
 
 void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2);
 
-void ProcessLine(OutputVertexData* v0, OutputVertexData* v1);
+void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1);
 
 bool CullTest(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2, bool& backface);
 

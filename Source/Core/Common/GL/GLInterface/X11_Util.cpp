@@ -40,7 +40,7 @@ Window cX11Window::CreateXWindow(Window parent, XVisualInfo* vi)
   return win;
 }
 
-void cX11Window::DestroyXWindow(void)
+void cX11Window::DestroyXWindow()
 {
   XUnmapWindow(dpy, win);
   win = 0;

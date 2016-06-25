@@ -37,7 +37,7 @@ public:
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 
   std::string GetUniqueID() const override;
-  void SetUniqueID(const std::string& _ID);
+  void SetUniqueID(const std::string& id);
 
   std::string GetMakerID() const override;
 
@@ -68,7 +68,7 @@ private:
 
   bool SetApploader(const std::string& _rApploader);
 
-  void SetDOL(const std::string& _rDOL);
+  void SetDOL(const std::string& rDOL);
 
   // writing to read buffer
   void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src, u64& _Address,

@@ -26,9 +26,7 @@ CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader) : m_pReader(std::move(
 {
 }
 
-CVolumeGC::~CVolumeGC()
-{
-}
+CVolumeGC::~CVolumeGC() = default;
 
 bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {

@@ -65,7 +65,7 @@ class FifoPlayer::CPUCore final : public CPUCoreBase
 public:
   explicit CPUCore(FifoPlayer* parent) : m_parent(parent) {}
   CPUCore(const CPUCore&) = delete;
-  ~CPUCore() {}
+  ~CPUCore() override = default;
   CPUCore& operator=(const CPUCore&) = delete;
 
   void Init() override

@@ -347,9 +347,7 @@ CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(
 {
 }
 
-CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage()
-{
-}
+CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage() = default;
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 {
@@ -446,9 +444,7 @@ CWII_IPC_HLE_Device_net_wd_command::CWII_IPC_HLE_Device_net_wd_command(
 {
 }
 
-CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command()
-{
-}
+CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command() = default;
 
 IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u32 Mode)
 {

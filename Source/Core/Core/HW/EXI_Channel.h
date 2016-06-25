@@ -86,7 +86,7 @@ private:
 
 public:
   // get device
-  IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
+  IEXIDevice* GetDevice(const u8 chip_select);
   IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
 
   CEXIChannel(u32 ChannelId);

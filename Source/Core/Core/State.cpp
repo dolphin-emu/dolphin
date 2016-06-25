@@ -680,7 +680,7 @@ void LoadLastSaved(int i)
     Core::DisplayMessage("State doesn't exist", 2000);
   else
   {
-    std::map<double, int>::iterator it = savedStates.begin();
+    auto it = savedStates.begin();
     std::advance(it, i - 1);
     Load(it->second);
   }
@@ -697,7 +697,7 @@ void SaveFirstSaved()
   // overwrite the oldest state
   else
   {
-    std::map<double, int>::iterator it = savedStates.begin();
+    auto it = savedStates.begin();
     std::advance(it, savedStates.size() - 1);
     Save(it->second, true);
   }

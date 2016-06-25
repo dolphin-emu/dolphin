@@ -39,9 +39,7 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader)
   m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
 }
 
-CVolumeWAD::~CVolumeWAD()
-{
-}
+CVolumeWAD::~CVolumeWAD() = default;
 
 bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {

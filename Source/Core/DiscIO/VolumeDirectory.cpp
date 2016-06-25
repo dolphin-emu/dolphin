@@ -49,9 +49,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
   BuildFST();
 }
 
-CVolumeDirectory::~CVolumeDirectory()
-{
-}
+CVolumeDirectory::~CVolumeDirectory() = default;
 
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
 {
@@ -106,7 +104,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
     return true;
 
   // Determine which file the offset refers to
-  std::map<u64, std::string>::const_iterator fileIter = m_virtualDisk.lower_bound(_Offset);
+  auto fileIter = m_virtualDisk.lower_bound(_Offset);
   if (fileIter->first > _Offset && fileIter != m_virtualDisk.begin())
     --fileIter;
 
@@ -477,9 +475,8 @@ static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 {
   u32 nameSize = 0;
   const std::vector<File::FSTEntry>& children = parentEntry.children;
-  for (auto it = children.cbegin(); it != children.cend(); ++it)
+  for (const auto& entry : children)
   {
-    const File::FSTEntry& entry = *it;
     if (entry.isDirectory)
     {
       nameSize += ComputeNameSize(entry);

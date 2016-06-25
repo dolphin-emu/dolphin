@@ -69,10 +69,10 @@ DSPEmulator* GetDSPEmulator();
 
 void DoState(PointerWrap& p);
 
-void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType);
+void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type);
 
 // Audio/DSP Helper
-u8 ReadARAM(const u32 _uAddress);
+u8 ReadARAM(const u32 _iAddress);
 void WriteARAM(u8 value, u32 _uAddress);
 
 // Debugger Helper

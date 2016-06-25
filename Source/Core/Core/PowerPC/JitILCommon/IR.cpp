@@ -1549,7 +1549,7 @@ struct Writer
     setvbuf(file.GetHandle(), nullptr, _IOFBF, 1024 * 1024);
   }
 
-  virtual ~Writer() {}
+  virtual ~Writer() = default;
 };
 
 static std::unique_ptr<Writer> writer;

@@ -98,7 +98,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 
 void Update_SR_LZ(bool value)
 {
-  if (value == true)
+  if (value)
     g_dsp.r.sr |= SR_LOGIC_ZERO;
   else
     g_dsp.r.sr &= ~SR_LOGIC_ZERO;

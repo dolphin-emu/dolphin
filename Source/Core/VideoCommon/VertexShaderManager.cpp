@@ -49,7 +49,7 @@ struct ProjectionHack
 {
   float sign;
   float value;
-  ProjectionHack() {}
+  ProjectionHack() = default;
   ProjectionHack(float new_sign, float new_value) : sign(new_sign), value(new_value) {}
 };
 
@@ -65,7 +65,7 @@ static float PHackValue(std::string sValue)
   float f = 0;
   bool fp = false;
   const char* cStr = sValue.c_str();
-  char* c = new char[strlen(cStr) + 1];
+  auto c = new char[strlen(cStr) + 1];
   std::istringstream sTof("");
 
   for (unsigned int i = 0; i <= strlen(cStr); ++i)

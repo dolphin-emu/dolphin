@@ -160,7 +160,7 @@ public:
       }
     }
   }
-  ~VertexLoaderTester() override {}
+  ~VertexLoaderTester() override = default;
   int RunVertices(DataReader src, DataReader dst, int count) override
   {
     buffer_a.resize(count * a->m_native_vtx_decl.stride + 4);

@@ -120,7 +120,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 
 TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
-  TCacheEntry* entry = new TCacheEntry(config);
+  auto entry = new TCacheEntry(config);
 
   glActiveTexture(GL_TEXTURE9);
   glBindTexture(GL_TEXTURE_2D_ARRAY, entry->texture);

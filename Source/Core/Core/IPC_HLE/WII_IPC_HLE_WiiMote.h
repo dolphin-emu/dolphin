@@ -113,9 +113,9 @@ private:
 
   void SignalChannel(u8* _pData, u32 _Size);
 
-  void SendConnectionRequest(u16 _SCID, u16 _PSM);
-  void SendConfigurationRequest(u16 _SCID, u16 _pMTU = 0, u16 _pFlushTimeOut = 0);
-  void SendDisconnectRequest(u16 _SCID);
+  void SendConnectionRequest(u16 scid, u16 psm);
+  void SendConfigurationRequest(u16 scid, u16 MTU = 0, u16 FlushTimeOut = 0);
+  void SendDisconnectRequest(u16 scid);
 
   void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
   void ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
@@ -125,11 +125,11 @@ private:
 
   // some new ugly stuff
   // should be inside the plugin
-  void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
-  void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern,
+  void HandleSDP(u16 cid, u8* _pData, u32 _Size);
+  void SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern,
                                     u16 _MaximumServiceRecordCount);
 
-  void SDPSendServiceAttributeResponse(u16 _SCID, u16 TransactionID, u32 _ServiceHandle,
+  void SDPSendServiceAttributeResponse(u16 cid, u16 TransactionID, u32 ServiceHandle,
                                        u16 _StartAttrID, u16 _EndAttrID,
-                                       u16 _MaximumAttributeByteCount, u8* _pContinuationState);
+                                       u16 _MaximumAttributeByteCount, u8* pContinuationState);
 };

@@ -427,8 +427,8 @@ void AXUCode::ProcessPBList(u32 pb_addr)
                    m_coeffs_available ? m_coeffs : nullptr);
 
       // Forward the buffers
-      for (size_t i = 0; i < ArraySize(buffers.ptrs); ++i)
-        buffers.ptrs[i] += spms;
+      for (auto& ptr : buffers.ptrs)
+        ptr += spms;
     }
 
     WritePB(pb_addr, pb);
