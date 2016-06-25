@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <deque>
 #include <memory>
+#include <utility>
 
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
@@ -33,6 +35,11 @@ public:
 
 private:
 	bool ResizeBuffer(size_t size);
+	void OnFencePointCreated(VkFence fence);
+	void OnFencePointReached(VkFence fence);
+
+	// Waits for as many fences as needed to allocate num_bytes bytes from the buffer.
+	bool WaitForClearSpace(size_t num_bytes);
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
@@ -49,6 +56,9 @@ private:
 
 	// TODO: Should we use char* here instead of u8*?
 	u8* m_host_pointer = nullptr;
+
+	// List of fences and the corresponding positions in the buffer
+	std::deque<std::pair<VkFence, size_t>> m_tracked_fences;
 };
 
 }		// namespace Vulkan
