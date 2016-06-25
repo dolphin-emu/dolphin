@@ -528,8 +528,11 @@ bool StateTracker::UpdateDescriptorSet()
 	size_t first_active_ps_sampler;
 	for (first_active_ps_sampler = 0; first_active_ps_sampler < NUM_PIXEL_SHADER_SAMPLERS; first_active_ps_sampler++)
 	{
-		if (m_bindings.ps_samplers[first_active_ps_sampler].imageView != VK_NULL_HANDLE)
+		if (m_bindings.ps_samplers[first_active_ps_sampler].imageView != VK_NULL_HANDLE &&
+			m_bindings.ps_samplers[first_active_ps_sampler].sampler != VK_NULL_HANDLE)
+		{
 			break;
+		}
 	}
 	if (first_active_ps_sampler != NUM_PIXEL_SHADER_SAMPLERS)
 	{
