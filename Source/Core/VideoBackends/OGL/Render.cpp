@@ -1478,9 +1478,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         }
         else
         {
-          OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                          2000);
+          OSD::AddMessage(
+              StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                               ReplaceAll(File::GetUserPath(D_DUMPFRAMES_IDX), "\\", "/").c_str(),
+                               w, h),
+              2000);
         }
       }
       if (bAVIDumping)

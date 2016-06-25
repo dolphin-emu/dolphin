@@ -82,7 +82,7 @@ bool AVIDump::CreateFile()
 
   s_format_context = avformat_alloc_context();
   snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
+           ReplaceAll((File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi"), "\\", "/").c_str());
   File::CreateFullPath(s_format_context->filename);
 
   // Ask to delete file
