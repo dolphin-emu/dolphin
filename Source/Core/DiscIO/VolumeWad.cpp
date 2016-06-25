@@ -89,8 +89,7 @@ std::string CVolumeWAD::GetUniqueID() const
 std::string CVolumeWAD::GetMakerID() const
 {
   char temp[2] = {1};
-  // Some weird channels use 0x0000 in place of the MakerID, so we need a check
-  // there
+  // Some weird channels use 0x0000 in place of the MakerID, so we need a check there
   if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
     return "00";
 

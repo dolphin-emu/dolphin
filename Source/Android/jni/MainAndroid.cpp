@@ -274,19 +274,17 @@ static std::string GetTitle(std::string filename)
       titles = pVolume->GetShortNames();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() !=
-    DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language =
-    SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = titles.find(language);
     if (it != end)
-      return it->second;*/
+      return it->second;
+    */
 
     auto end = titles.end();
 
-    // English tends to be a good fallback when the requested language isn't
-    // available
+    // English tends to be a good fallback when the requested language isn't available
     // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
     auto it = titles.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
@@ -318,19 +316,17 @@ static std::string GetDescription(std::string filename)
     std::map<DiscIO::IVolume::ELanguage, std::string> descriptions = volume->GetDescriptions();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() !=
-    DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language =
-    SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = descriptions.find(language);
     if (it != end)
-      return it->second;*/
+      return it->second;
 
     auto end = descriptions.end();
+    */
 
-    // English tends to be a good fallback when the requested language isn't
-    // available
+    // English tends to be a good fallback when the requested language isn't available
     // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
     auto it = descriptions.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)

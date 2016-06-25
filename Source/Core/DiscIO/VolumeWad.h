@@ -14,8 +14,7 @@
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
-// Some of this code might look redundant with the CNANDContentLoader class,
-// however,
+// Some of this code might look redundant with the CNANDContentLoader class, however,
 // We do not do any decryption here, we do raw read, so things are -Faster-
 
 namespace DiscIO
