@@ -147,7 +147,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
 
 		// No need to start a new render pass, but we do need to restore viewport state
-		BackendShaderDraw draw(m_object_cache, m_command_buffer_mgr, m_framebuffer_mgr->GetEFBRenderPass(),
+		UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr, m_framebuffer_mgr->GetEFBRenderPass(),
 			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
 			m_object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
 			m_object_cache->GetStaticShaderCache().GetClearFragmentShader());
@@ -216,7 +216,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 		// Blit the EFB to the back buffer (Swap chain)
 		// TODO: XFB
-		BackendShaderDraw draw(
+		UtilityShaderDraw draw(
 			m_object_cache, m_command_buffer_mgr, m_swap_chain->GetRenderPass(),
 			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
 			nullptr,

@@ -5,8 +5,8 @@
 
 namespace Vulkan {
 
-class ObjectCache;
 class CommandBufferManager;
+class ObjectCache;
 
 namespace Util {
 
@@ -23,9 +23,9 @@ void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_
 
 }
 
-// Backend vertex format
+// Utility shader vertex format
 #pragma pack(push, 1)
-struct BackendShaderVertex
+struct UtilityShaderVertex
 {
 	float Position[4];
 	float TexCoord[4];
@@ -41,15 +41,15 @@ struct BackendShaderVertex
 };
 #pragma pack(pop)
 
-class BackendShaderDraw
+class UtilityShaderDraw
 {
 public:
-	BackendShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader);
+	UtilityShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkRenderPass render_pass, VkShaderModule vertex_shader, VkShaderModule geometry_shader, VkShaderModule pixel_shader);
 
-	BackendShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
+	UtilityShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
 	void CommitVertices(size_t count);
 
-	void UploadVertices(VkPrimitiveTopology topology, BackendShaderVertex* vertices, size_t count);
+	void UploadVertices(VkPrimitiveTopology topology, UtilityShaderVertex* vertices, size_t count);
 
 	u8* AllocateVSUniforms(size_t size);
 	u8* AllocatePSUniforms(size_t size);
