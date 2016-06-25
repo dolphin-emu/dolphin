@@ -140,6 +140,10 @@ bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_sour
 
 	}
 
+	// Log warnings if any
+	if (result.GetNumWarnings() > 0)
+		WARN_LOG(VIDEO, "Shader compiler produced warnings: \n%s", result.GetErrorMessage().c_str());
+
 	// Shader dumping
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
 	{
@@ -263,28 +267,14 @@ std::string GetShaderHeader()
 {
 	// TODO: Handle GLSL versions/extensions/mobile
 	return StringFromFormat(
-		"#version 440\n"
-		"#extension GL_KHR_vulkan_glsl : enable\n"
-		"#extension GL_ARB_uniform_buffer_object : enable\n" // ubo
-		"#define FORCE_EARLY_Z layout(early_fragment_tests) in\n" // early-z
+		"#version 450 core\n"
+		//"#extension GL_KHR_vulkan_glsl : require\n"
+		"#extension GL_ARB_shading_language_420pack : require\n" // 420pack
 		"#extension GL_ARB_shader_image_load_store : enable\n" // early-z
-		"#extension GL_ARB_shading_language_420pack : enable\n" // 420pack
-		"#extension GL_ARB_texture_multisample : enable\n" // msaa
 		"#define SAMPLER_BINDING(x) layout(binding = x)\n" // Sampler binding
-		"#extension GL_ARB_shader_storage_buffer_object : enable\n" // storage buffer
-		"#extension GL_ARB_gpu_shader5 : enable\n" // shader5
-		"#extension GL_ARB_sample_shading : enable\n" // SSAA
-		"#extension GL_ARB_texture_buffer_object : enable\n" // texture buffer
-		"#extension GL_EXT_blend_func_extended : enable\n" // ES dual source blend
+		"#define FORCE_EARLY_Z layout(early_fragment_tests) in\n" // early-z
 
-		// Precision defines for GLSL ES
-		//"precision highp float;\n"
-		//"precision highp int;\n"
-		//"precision highp sampler2DArray;\n"
-		//"precision highp usamplerBuffer;\n"
-		//"precision highp sampler2DMS;\n"
-
-		// Silly differences
+		// hlsl to glsl function translation
 		"#define float2 vec2\n"
 		"#define float3 vec3\n"
 		"#define float4 vec4\n"
@@ -294,8 +284,6 @@ std::string GetShaderHeader()
 		"#define int2 ivec2\n"
 		"#define int3 ivec3\n"
 		"#define int4 ivec4\n"
-
-		// hlsl to glsl function translation
 		"#define frac fract\n"
 		"#define lerp mix\n"
 
