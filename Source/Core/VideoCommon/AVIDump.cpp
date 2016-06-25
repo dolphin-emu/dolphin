@@ -45,6 +45,10 @@ static int s_size;
 static u64 s_last_frame;
 static bool s_start_dumping = false;
 static u64 s_last_pts;
+static int s_current_width;
+static int s_current_height;
+static int s_file_index = 0;
+static AVIDump::DumpFormat s_current_format;
 
 static void InitAVCodec()
 {
@@ -63,8 +67,12 @@ bool AVIDump::Start(int w, int h, DumpFormat format)
   else
     s_pix_fmt = AV_PIX_FMT_RGBA;
 
+  s_current_format = format;
+
   s_width = w;
   s_height = h;
+  s_current_width = w;
+  s_current_height = h;
 
   s_last_frame = CoreTiming::GetTicks();
   s_last_pts = 0;
@@ -81,8 +89,11 @@ bool AVIDump::CreateFile()
   AVCodec* codec = nullptr;
 
   s_format_context = avformat_alloc_context();
+  std::stringstream s_file_index_str;
+  s_file_index_str << s_file_index;
   snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
+           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index_str.str() + ".avi")
+               .c_str());
   File::CreateFullPath(s_format_context->filename);
 
   // Ask to delete file
@@ -156,6 +167,7 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
+  CheckResolution(width, height);
   avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), s_pix_fmt, width, height);
 
   // Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
@@ -228,10 +240,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
 }
 
-void AVIDump::Stop()
+void AVIDump::Stop(bool resolution_changed)
 {
   av_write_trailer(s_format_context);
   CloseFile();
+  if (!resolution_changed)
+    s_file_index = 0;
   NOTICE_LOG(VIDEO, "Stopping frame dump");
 }
 
@@ -272,4 +286,16 @@ void AVIDump::CloseFile()
 void AVIDump::DoState()
 {
   s_last_frame = CoreTiming::GetTicks();
+}
+
+void AVIDump::CheckResolution(int width, int height)
+{
+  if (width != s_current_width || height != s_current_height)
+  {
+    Stop(true);
+    s_file_index++;
+    Start(width, height, s_current_format);
+    s_current_width = width;
+    s_current_height = height;
+  }
 }

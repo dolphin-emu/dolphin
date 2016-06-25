@@ -11,6 +11,7 @@ class AVIDump
 private:
   static bool CreateFile();
   static void CloseFile();
+  static void CheckResolution(int width, int height);
 
 public:
   enum class DumpFormat
@@ -21,6 +22,6 @@ public:
 
   static bool Start(int w, int h, DumpFormat format);
   static void AddFrame(const u8* data, int width, int height);
-  static void Stop();
+  static void Stop(bool resolution_changed);
   static void DoState();
 };
