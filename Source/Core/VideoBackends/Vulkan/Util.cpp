@@ -1,7 +1,12 @@
+// Copyright 2016 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <cassert>
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 
@@ -57,6 +62,13 @@ void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int wid
 
 	vkCmdSetViewport(command_buffer, 0, 1, &viewport);
 	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
+}
+
+void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr)
+{
+	g_renderer->ResetAPIState();
+	command_buffer_mgr->ExecuteCommandBuffer(false);
+	g_renderer->RestoreAPIState();
 }
 
 }		// namespace Util
