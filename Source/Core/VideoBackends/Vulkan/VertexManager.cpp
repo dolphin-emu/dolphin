@@ -111,7 +111,7 @@ void VertexManager::ResetBuffer(u32 stride)
 
 	// Update base indices
 	m_current_draw_base_vertex = static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / stride);
-	m_current_draw_base_index = static_cast<u32>(m_vertex_stream_buffer->GetCurrentOffset() / sizeof(u16));
+	m_current_draw_base_index = static_cast<u32>(m_index_stream_buffer->GetCurrentOffset() / sizeof(u16));
 }
 
 void VertexManager::vFlush(bool use_dst_alpha)
@@ -145,11 +145,13 @@ void VertexManager::vFlush(bool use_dst_alpha)
 		break;
 	}
 
-	// Temporarily disabled
-	return;
-
 	// Check for any shader stage changes
 	m_state_tracker->CheckForShaderChanges(current_primitive_type, use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
+
+	// Update any changed constants
+	m_state_tracker->UpdateVertexShaderConstants();
+	m_state_tracker->UpdateGeometryShaderConstants();
+	m_state_tracker->UpdatePixelShaderConstants();
 
 	// Bind all pending state to the command buffer
 	if (!m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer()))
