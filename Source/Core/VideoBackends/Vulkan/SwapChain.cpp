@@ -1,15 +1,14 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
 #include <cassert>
 
-#include "VideoBackends/Vulkan/SwapChain.h"
-#include "VideoBackends/Vulkan/Helpers.h"
+#include "Common/Logging/Log.h"
 
-#include "VideoCommon/Debugger.h"
-#include "VideoCommon/Statistics.h"
+#include "VideoBackends/Vulkan/Helpers.h"
+#include "VideoBackends/Vulkan/SwapChain.h"
 
 namespace Vulkan {
 

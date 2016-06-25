@@ -6,11 +6,8 @@
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
-#include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/Util.h"
-
-#include "VideoCommon/Debugger.h"
-#include "VideoCommon/Statistics.h"
+#include "VideoBackends/Vulkan/VertexFormat.h"
 
 namespace Vulkan {
 

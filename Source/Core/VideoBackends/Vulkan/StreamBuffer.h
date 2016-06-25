@@ -4,14 +4,7 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
-#include <vector>
-
-#include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/VideoCommon.h"
 
 #include "VideoBackends/Vulkan/VulkanImports.h"
 

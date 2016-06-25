@@ -4,14 +4,13 @@
 
 #include <cstdio>
 
-#include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/StateTracker.h"
 
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan {
 
