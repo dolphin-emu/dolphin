@@ -1,16 +1,14 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include <algorithm>
 #include <cassert>
 
+#include "Common/MsgHandler.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Helpers.h"
-#include "VideoBackends/Vulkan/ObjectCache.h"
-
-#include "VideoCommon/Debugger.h"
-#include "VideoCommon/Statistics.h"
 
 namespace Vulkan {
 

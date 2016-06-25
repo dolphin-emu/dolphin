@@ -1,3 +1,7 @@
+// Copyright 2016 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #include <algorithm>
 #include <cassert>
 
@@ -7,12 +11,9 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 
-#include "VideoCommon/Debugger.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/RenderBase.h"
 
 namespace Vulkan {
-
 
 FramebufferManager::FramebufferManager(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr)
 	: m_object_cache(object_cache)
