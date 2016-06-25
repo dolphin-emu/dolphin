@@ -162,7 +162,9 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool reallo
 		}
 
 		// Check for space at the start of the buffer
-		if (required_bytes <= m_current_gpu_position)
+		// We use < here because we don't want to have the case of m_current_offset == m_current_gpu_position.
+		// That would mean the code above would assume the GPU has caught up to us, which it hasn't.
+		if (required_bytes < m_current_gpu_position)
 		{
 			// Reset offset to zero, since we're allocating behind the gpu now
 			m_current_offset = 0;
@@ -175,7 +177,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool reallo
 	if (m_current_offset < m_current_gpu_position)
 	{
 		size_t remaining_bytes = m_current_gpu_position - m_current_offset;
-		if (required_bytes <= remaining_bytes)
+		if (required_bytes < remaining_bytes)
 		{
 			// Put after the current allocation but before the gpu
 			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
