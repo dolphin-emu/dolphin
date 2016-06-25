@@ -94,16 +94,10 @@ private:
 	VkDeviceSize m_vertex_buffer_offset = 0;
 	uint32_t m_vertex_count = 0;
 
-	VkBuffer m_vs_uniform_buffer = VK_NULL_HANDLE;
-	VkDeviceSize m_vs_uniform_buffer_offset = 0;
-	VkDeviceSize m_vs_uniform_buffer_size = 0;
+	VkDescriptorBufferInfo m_vs_uniform_buffer = {};
+	VkDescriptorBufferInfo m_ps_uniform_buffer = {};
 
-	VkBuffer m_ps_uniform_buffer = VK_NULL_HANDLE;
-	VkDeviceSize m_ps_uniform_buffer_offset = 0;
-	VkDeviceSize m_ps_uniform_buffer_size = 0;
-
-	std::array<VkImageView, NUM_PIXEL_SHADER_SAMPLERS> m_ps_textures = {};
-	std::array<VkSampler, NUM_PIXEL_SHADER_SAMPLERS> m_ps_samplers = {};
+	std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> m_ps_samplers = {};
 
 	PipelineInfo m_pipeline_info = {};
 };

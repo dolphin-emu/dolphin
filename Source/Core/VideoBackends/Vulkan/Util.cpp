@@ -141,9 +141,9 @@ u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 
 void UtilityShaderDraw::CommitVSUniforms(size_t size)
 {
-	m_vs_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-	m_vs_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
-	m_vs_uniform_buffer_size = size;
+	m_vs_uniform_buffer.buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+	m_vs_uniform_buffer.offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
+	m_vs_uniform_buffer.range = size;
 
 	m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
 }
@@ -158,17 +158,18 @@ u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 
 void UtilityShaderDraw::CommitPSUniforms(size_t size)
 {
-	m_ps_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-	m_ps_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
-	m_ps_uniform_buffer_size = size;
+	m_ps_uniform_buffer.buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+	m_ps_uniform_buffer.offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
+	m_ps_uniform_buffer.range = size;
 
 	m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
 }
 
 void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler sampler)
 {
-	m_ps_textures[index] = view;
-	m_ps_samplers[index] = sampler;
+	m_ps_samplers[index].sampler = sampler;
+	m_ps_samplers[index].imageView = view;
+	m_ps_samplers[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
 void UtilityShaderDraw::SetRasterizationState(const RasterizationState& state)
@@ -273,102 +274,106 @@ void UtilityShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
 
 void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 {
-	// Check if we need to bind any descriptors at all.
-	size_t first_active_sampler = 0;
-	for (; first_active_sampler < NUM_PIXEL_SHADER_SAMPLERS; first_active_sampler++)
+	size_t first_active_sampler;
+	for (first_active_sampler = 0; first_active_sampler < NUM_PIXEL_SHADER_SAMPLERS; first_active_sampler++)
 	{
-		if (m_ps_textures[first_active_sampler] != VK_NULL_HANDLE)
+		if (m_ps_samplers[first_active_sampler].imageView != VK_NULL_HANDLE &&
+			m_ps_samplers[first_active_sampler].sampler != VK_NULL_HANDLE)
+		{
 			break;
+		}
 	}
-	if (m_vs_uniform_buffer == VK_NULL_HANDLE && m_ps_uniform_buffer == VK_NULL_HANDLE && first_active_sampler == NUM_PIXEL_SHADER_SAMPLERS)
+
+	// Check if we need to bind any descriptors at all.
+	if (m_vs_uniform_buffer.buffer == VK_NULL_HANDLE && m_ps_uniform_buffer.buffer == VK_NULL_HANDLE && first_active_sampler == NUM_PIXEL_SHADER_SAMPLERS)
 	{
-		// SKip allocating and binding a descriptor set, since it won't be used
+		// Skip allocating and binding a descriptor set, since it won't be used
 		return;
 	}
 
-	// Grab a descriptor set
-	VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_COMBINED));
-	if (set == VK_NULL_HANDLE)
+	std::array<VkWriteDescriptorSet, NUM_COMBINED_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS - 1> descriptor_set_writes;
+	uint32_t num_descriptor_set_writes = 0;
+
+	// Allocate a new descriptor set
+	VkDescriptorSet new_descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_COMBINED));
+	if (new_descriptor_set == VK_NULL_HANDLE)
 		PanicAlert("Failed to allocate descriptor set for backend draw");
 
-	// ubo descriptors
-	// TODO: Should we just mirror these structs in the class?
-	VkDescriptorBufferInfo vs_ubo_info = { m_vs_uniform_buffer, m_vs_uniform_buffer_offset, m_vs_uniform_buffer_size };
-	VkDescriptorBufferInfo ps_ubo_info = { m_ps_uniform_buffer, m_ps_uniform_buffer_offset, m_ps_uniform_buffer_size };
-
-	// Populate the whole thing pretty much
-	std::array<VkWriteDescriptorSet, 2 + NUM_PIXEL_SHADER_SAMPLERS> write_descriptors;
-	uint32_t num_write_descriptors = 0;
-	if (vs_ubo_info.buffer != VK_NULL_HANDLE)
+	// VS uniform buffer
+	if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE)
 	{
-		write_descriptors[num_write_descriptors++] = {
-			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+		descriptor_set_writes[num_descriptor_set_writes++] = {
+			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
 			COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,
 			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			nullptr, &vs_ubo_info, nullptr
+			nullptr, &m_vs_uniform_buffer, nullptr
 		};
 	}
-	if (ps_ubo_info.buffer != VK_NULL_HANDLE)
+
+	// PS uniform buffer
+	if (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
 	{
-		write_descriptors[num_write_descriptors++] = {
-			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+		descriptor_set_writes[num_descriptor_set_writes++] = {
+			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
 			COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,
 			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			nullptr, &ps_ubo_info, nullptr
+			nullptr, &m_ps_uniform_buffer, nullptr
 		};
 	}
+
+	// PS samplers
+	// Check if we have any at all, skip the binding process entirely if we don't
 	if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
 	{
-		// Set up the template descriptor, so we don't have to write the whole thing each time
-		VkWriteDescriptorSet template_write =
-		{
-			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
-			COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,
-			0, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-			nullptr, nullptr, nullptr
-		};
+		// Initialize descriptor count to zero for the first image group.
+		// The remaining fields will be initialized in the "create new group" branch below.
+		descriptor_set_writes[num_descriptor_set_writes].descriptorCount = 0;
 
-		// Fill the first descriptor
-		VkDescriptorImageInfo ps_samplers_info[NUM_PIXEL_SHADER_SAMPLERS];
-		uint32_t num_image_info = 0;
-		write_descriptors[num_write_descriptors] = template_write;
-		write_descriptors[num_write_descriptors].pImageInfo = &ps_samplers_info[num_image_info];
-
-		// We can't bind any null images, apparently. So if the binding is non-contiguous, we need to create multiple update entries.
+		// See Vulkan spec regarding descriptor copies, we can pack multiple bindings together in one update.
 		for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
 		{
-			// This slot has an image?
-			if (m_ps_textures[i] != VK_NULL_HANDLE && m_ps_samplers[i] != VK_NULL_HANDLE)
+			// Still batching together textures without any gaps?
+			const VkDescriptorImageInfo& info = m_ps_samplers[i];
+			if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
 			{
-				// Add to the descriptors in this set
-				ps_samplers_info[num_image_info].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-				ps_samplers_info[num_image_info].imageView = m_ps_textures[i];
-				ps_samplers_info[num_image_info].sampler = m_ps_samplers[i];
-				num_image_info++;
-				write_descriptors[num_write_descriptors].descriptorCount++;
+				// Allocated a group yet?
+				if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
+				{
+					// Add to the group.
+					descriptor_set_writes[num_descriptor_set_writes].descriptorCount++;
+				}
+				else
+				{
+					// Create a new group.
+					descriptor_set_writes[num_descriptor_set_writes] = {
+						VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
+						COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS, static_cast<uint32_t>(i),
+						1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+						&info, nullptr, nullptr
+					};
+				}
 			}
 			else
 			{
-				// Are there images currently listed?
-				if (write_descriptors[num_write_descriptors].descriptorCount > 0)
+				// We've found an unbound sampler. If there is a non-zero number of images in the group,
+				// and remaining images will have to be split into a separate group.
+				if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
 				{
-					// Complete the descriptor, and allocate the next one
-					num_write_descriptors++;
-					write_descriptors[num_write_descriptors] = template_write;
-					write_descriptors[num_write_descriptors].pImageInfo = &ps_samplers_info[num_image_info];
-					write_descriptors[num_write_descriptors].dstArrayElement = static_cast<uint32_t>(i);
+					num_descriptor_set_writes++;
+					descriptor_set_writes[num_descriptor_set_writes].descriptorCount = 0;
 				}
 			}
 		}
 
-		// Complete the last descriptor (if any)
-		if (write_descriptors[num_write_descriptors].descriptorCount > 0)
-			num_write_descriptors++;
+		// Complete the image group if one has been started.
+		if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
+			num_descriptor_set_writes++;
 	}
-
-	assert(num_write_descriptors > 0);
-	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_write_descriptors, write_descriptors.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1, &set, 0, nullptr);
+		
+	// Upload descriptors
+	assert(num_descriptor_set_writes > 0);
+	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_descriptor_set_writes, descriptor_set_writes.data(), 0, nullptr);
+	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1, &new_descriptor_set, 0, nullptr);
 }
 
 bool UtilityShaderDraw::BindPipeline(VkCommandBuffer command_buffer)
