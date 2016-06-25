@@ -52,7 +52,7 @@ bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 class ObjectCache
 {
 public:
-	ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr, const SupportBits& features);
+	ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr);
 	~ObjectCache();
 
 	VkInstance GetVulkanInstance() const { return m_instance; }
@@ -62,10 +62,12 @@ public:
 	CommandBufferManager* GetCommandBufferManager() const { return m_command_buffer_mgr; }
 
 	const VkPhysicalDeviceMemoryProperties& GetDeviceMemoryProperties() const { return m_device_memory_properties; }
+	const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
+	const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_limits; }
 
 	// Support bits
-	bool SupportsGeometryShaders() const { return m_support_bits.SupportsGeometryShaders; }
-	bool SupportsDualSourceBlend() const { return m_support_bits.SupportsDualSourceBlend; }
+	bool SupportsGeometryShaders() const { return (m_device_features.geometryShader == VK_TRUE); }
+	bool SupportsDualSourceBlend() const { return (m_device_features.dualSrcBlend == VK_TRUE); }
 
 	VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
 	VkPipelineLayout GetPipelineLayout() const { return m_pipeline_layout; }
@@ -117,8 +119,8 @@ private:
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
 
 	VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
-
-	SupportBits m_support_bits;
+	VkPhysicalDeviceFeatures m_device_features = {};
+	VkPhysicalDeviceLimits m_device_limits = {};
 
 	std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
 

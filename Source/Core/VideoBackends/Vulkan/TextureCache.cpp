@@ -94,6 +94,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	height = std::min(height, m_texture->GetHeight());
 
 	// Determine optimal row pitch, since we're going to be copying anyway.
+	// TODO: We can use limits -> optimalBufferCopyRowPitchAlignment here
 	VkImageSubresource image_subresource = { VK_IMAGE_ASPECT_COLOR_BIT, level, 0 };
 	VkSubresourceLayout subresource_layout;
 	vkGetImageSubresourceLayout(command_buffer_mgr->GetDevice(), m_texture->GetImage(), &image_subresource, &subresource_layout);
