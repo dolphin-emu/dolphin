@@ -56,15 +56,15 @@ bool ObjectCache::Initialize()
 	if (!CreatePipelineLayout())
 		return false;
 
-	if (!CreateBackendShaderVertexFormat())
+	if (!CreateUtilityShaderVertexFormat())
 		return false;
 
 	if (!CreateStaticSamplers())
 		return false;
 
-	m_backend_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024, 256 * 1024);
-	m_backend_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 256 * 1024);
-	if (!m_backend_shader_vertex_buffer || !m_backend_shader_uniform_buffer)
+	m_utility_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024, 256 * 1024);
+	m_utility_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 256 * 1024);
+	if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
 		return false;
 
 	if (!m_static_shader_cache.CompileShaders())
@@ -390,27 +390,27 @@ bool ObjectCache::CreatePipelineLayout()
 	return true;
 }
 
-bool ObjectCache::CreateBackendShaderVertexFormat()
+bool ObjectCache::CreateUtilityShaderVertexFormat()
 {
 	PortableVertexDeclaration vtx_decl = {};
 	vtx_decl.position.enable = true;
 	vtx_decl.position.type = VAR_FLOAT;
 	vtx_decl.position.components = 4;
 	vtx_decl.position.integer = false;
-	vtx_decl.position.offset = offsetof(BackendShaderVertex, Position);
+	vtx_decl.position.offset = offsetof(UtilityShaderVertex, Position);
 	vtx_decl.texcoords[0].enable = true;
 	vtx_decl.texcoords[0].type = VAR_FLOAT;
 	vtx_decl.texcoords[0].components = 4;
 	vtx_decl.texcoords[0].integer = false;
-	vtx_decl.texcoords[0].offset = offsetof(BackendShaderVertex, TexCoord);
+	vtx_decl.texcoords[0].offset = offsetof(UtilityShaderVertex, TexCoord);
 	vtx_decl.colors[0].enable = true;
 	vtx_decl.colors[0].type = VAR_FLOAT;
 	vtx_decl.colors[0].components = 4;
 	vtx_decl.colors[0].integer = false;
-	vtx_decl.colors[0].offset = offsetof(BackendShaderVertex, Color);
-	vtx_decl.stride = sizeof(BackendShaderVertex);
+	vtx_decl.colors[0].offset = offsetof(UtilityShaderVertex, Color);
+	vtx_decl.stride = sizeof(UtilityShaderVertex);
 
-	m_backend_shader_vertex_format = std::make_unique<VertexFormat>(vtx_decl);
+	m_utility_shader_vertex_format = std::make_unique<VertexFormat>(vtx_decl);
 	return true;
 }
 

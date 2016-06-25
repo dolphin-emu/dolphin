@@ -16,9 +16,9 @@
 #include "VideoCommon/VideoCommon.h"
 
 #include "VideoBackends/Vulkan/Globals.h"
-#include "VideoBackends/Vulkan/VulkanImports.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/StaticShaderCache.h"
+#include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
 
@@ -69,9 +69,9 @@ public:
 
 	VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
 	VkPipelineLayout GetPipelineLayout() const { return m_pipeline_layout; }
-	VertexFormat* GetBackendShaderVertexFormat() const { return m_backend_shader_vertex_format.get(); }
-	StreamBuffer* GetBackendShaderVertexBuffer() const { return m_backend_shader_vertex_buffer.get(); }
-	StreamBuffer* GetBackendShaderUniformBuffer() const { return m_backend_shader_uniform_buffer.get(); }
+	VertexFormat* GetUtilityShaderVertexFormat() const { return m_utility_shader_vertex_format.get(); }
+	StreamBuffer* GetUtilityShaderVertexBuffer() const { return m_utility_shader_vertex_buffer.get(); }
+	StreamBuffer* GetUtilityShaderUniformBuffer() const { return m_utility_shader_uniform_buffer.get(); }
 
 	// Accesses shader module caches
 	VertexShaderCache& GetVertexShaderCache() { return m_vs_cache; }
@@ -107,7 +107,7 @@ public:
 private:
 	bool CreateDescriptorSetLayouts();
 	bool CreatePipelineLayout();
-	bool CreateBackendShaderVertexFormat();
+	bool CreateUtilityShaderVertexFormat();
 	bool CreateStaticSamplers();
 
 	VkInstance m_instance = VK_NULL_HANDLE;
@@ -124,9 +124,9 @@ private:
 
 	VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
 
-	std::unique_ptr<VertexFormat> m_backend_shader_vertex_format;
-	std::unique_ptr<StreamBuffer> m_backend_shader_vertex_buffer;
-	std::unique_ptr<StreamBuffer> m_backend_shader_uniform_buffer;
+	std::unique_ptr<VertexFormat> m_utility_shader_vertex_format;
+	std::unique_ptr<StreamBuffer> m_utility_shader_vertex_buffer;
+	std::unique_ptr<StreamBuffer> m_utility_shader_uniform_buffer;
 
 	VertexShaderCache m_vs_cache;
 	GeometryShaderCache m_gs_cache;
