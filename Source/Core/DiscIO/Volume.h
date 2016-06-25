@@ -19,8 +19,7 @@ namespace DiscIO
 class IVolume
 {
 public:
-  // Increment CACHE_REVISION if the enums below are modified (ISOFile.cpp &
-  // GameFile.cpp)
+  // Increment CACHE_REVISION if the enums below are modified (ISOFile.cpp & GameFile.cpp)
   enum EPlatform
   {
     GAMECUBE_DISC = 0,
