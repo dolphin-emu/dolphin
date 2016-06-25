@@ -41,12 +41,15 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
     if (ssl.active)
     {
       mbedtls_ssl_close_notify(&ssl.ctx);
-      mbedtls_ssl_session_free(&ssl.session);
-      mbedtls_ssl_free(&ssl.ctx);
-      mbedtls_ssl_config_free(&ssl.config);
 
       mbedtls_x509_crt_free(&ssl.cacert);
       mbedtls_x509_crt_free(&ssl.clicert);
+
+      mbedtls_ssl_session_free(&ssl.session);
+      mbedtls_ssl_free(&ssl.ctx);
+      mbedtls_ssl_config_free(&ssl.config);
+      mbedtls_ctr_drbg_free(&ssl.ctr_drbg);
+      mbedtls_entropy_free(&ssl.entropy);
 
       ssl.hostname.clear();
 
@@ -218,15 +221,17 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      mbedtls_ssl_close_notify(&ssl->ctx);
-      mbedtls_ssl_session_free(&ssl->session);
-      mbedtls_ssl_free(&ssl->ctx);
-      mbedtls_ssl_config_free(&ssl->config);
 
-      mbedtls_entropy_free(&ssl->entropy);
+      mbedtls_ssl_close_notify(&ssl->ctx);
 
       mbedtls_x509_crt_free(&ssl->cacert);
       mbedtls_x509_crt_free(&ssl->clicert);
+
+      mbedtls_ssl_session_free(&ssl->session);
+      mbedtls_ssl_free(&ssl->ctx);
+      mbedtls_ssl_config_free(&ssl->config);
+      mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
+      mbedtls_entropy_free(&ssl->entropy);
 
       ssl->hostname.clear();
 
