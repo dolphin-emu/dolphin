@@ -4,7 +4,13 @@
 
 #include <fstream>
 
+#ifdef WIN32
+	#define HAS_SHADERC
+#endif
+
+#ifdef HAS_SHADERC
 #include <shaderc/shaderc.hpp>
+#endif
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -17,9 +23,11 @@
 
 namespace Vulkan {
 
+#ifdef HAS_SHADERC
 // TODO: Get rid of this static
 // It's also not thread safe...
 static shaderc::Compiler& GetShaderCompiler();
+#endif
 
 // Shader header prepended to all shaders
 std::string GetShaderHeader();
@@ -28,7 +36,9 @@ std::string GetShaderHeader();
 template<typename Uid>
 struct ShaderCacheFunctions
 {
+#ifdef HAS_SHADERC
 	static shaderc_shader_kind GetShaderKind();
+#endif
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type);
 	static std::string GetDiskCacheFileName();
 	static std::string GetDumpFileName(const char* prefix);
@@ -109,6 +119,7 @@ void Vulkan::ShaderCache<Uid>::LoadShadersFromDisk()
 template <typename Uid>
 bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_source, std::vector<uint32_t>* spv)
 {
+#ifdef HAS_SHADERC
 	// Call out to shaderc to do the heavy lifting
 	shaderc::Compiler& compiler = GetShaderCompiler();
 	shaderc::CompileOptions options;
@@ -170,6 +181,9 @@ bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_sour
 	// Construct a vector of dwords containing the spir-v code
 	*spv = std::move(std::vector<uint32_t>(result.begin(), result.end()));
 	return true;
+#else
+	return false;
+#endif
 }
 
 template <typename Uid>
@@ -230,7 +244,7 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 		m_shaders.emplace(uid, nullptr);
 		return nullptr;
 	}
-	
+
 	// Create a shader module on the device
 	VkShaderModuleCreateInfo info = {
 		VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -257,11 +271,13 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	return module;
 }
 
+#ifdef HAS_SHADERC
 shaderc::Compiler& GetShaderCompiler()
 {
 	static shaderc::Compiler lazy_initialized_compiler;
 	return lazy_initialized_compiler;
 }
+#endif
 
 std::string GetShaderHeader()
 {
@@ -297,10 +313,12 @@ std::string GetShaderHeader()
 template<>
 struct ShaderCacheFunctions<VertexShaderUid>
 {
+#ifdef HAS_SHADERC
 	static shaderc_shader_kind GetShaderKind()
 	{
 		return shaderc_glsl_vertex_shader;
 	}
+#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
@@ -347,10 +365,12 @@ template class ShaderCache<VertexShaderUid>;
 template<>
 struct ShaderCacheFunctions<GeometryShaderUid>
 {
+#ifdef HAS_SHADERC
 	static shaderc_shader_kind GetShaderKind()
 	{
 		return shaderc_glsl_geometry_shader;
 	}
+#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
@@ -397,10 +417,12 @@ template class ShaderCache<GeometryShaderUid>;
 template<>
 struct ShaderCacheFunctions<PixelShaderUid>
 {
+#ifdef HAS_SHADERC
 	static shaderc_shader_kind GetShaderKind()
 	{
 		return shaderc_glsl_fragment_shader;
 	}
+#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{

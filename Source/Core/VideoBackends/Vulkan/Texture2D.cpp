@@ -67,7 +67,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 	// Allocate memory to back this texture, we want device local memory in this case
 	VkMemoryRequirements memory_requirements;
 	vkGetImageMemoryRequirements(object_cache->GetDevice(), image, &memory_requirements);
-	
+
 	VkMemoryAllocateInfo memory_info = {
 		VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
 		nullptr,
@@ -116,7 +116,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		return false;
 	}
 
-	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, image, device_memory, view);	
+	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, image, device_memory, view);
 }
 
 void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout)
@@ -145,6 +145,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;						break;
 	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:				barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;					break;
 	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;					break;
+	default:																														break;
 	}
 
 	switch (new_layout)
@@ -155,6 +156,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;						break;
 	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:				barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;					break;
 	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;					break;
+	default:																														break;
 	}
 
 	vkCmdPipelineBarrier(command_buffer,

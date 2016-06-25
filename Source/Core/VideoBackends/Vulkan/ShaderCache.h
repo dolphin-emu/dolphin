@@ -7,8 +7,6 @@
 #include <map>
 #include <vector>
 
-#include <shaderc/shaderc.hpp>
-
 #include "Common/LinearDiskCache.h"
 
 #include "VideoCommon/GeometryShaderGen.h"

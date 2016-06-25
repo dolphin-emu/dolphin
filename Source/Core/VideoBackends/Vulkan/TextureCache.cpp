@@ -108,7 +108,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
 			PanicAlert("Failed to allocate space in texture upload buffer");
 	}
-	
+
 	// Grab buffer pointers
 	VkBuffer image_upload_buffer = upload_buffer->GetBuffer();
 	VkDeviceSize image_upload_buffer_offset = upload_buffer->GetCurrentOffset();

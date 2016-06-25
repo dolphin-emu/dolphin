@@ -80,9 +80,9 @@ bool SwapChain::CreateRenderPass()
 		VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
 		nullptr,
 		0,
-		_countof(present_render_pass_attachments),
+		ARRAYSIZE(present_render_pass_attachments),
 		present_render_pass_attachments,
-		_countof(present_render_pass_subpass_descriptions),
+		ARRAYSIZE(present_render_pass_subpass_descriptions),
 		present_render_pass_subpass_descriptions,
 		0,
 		nullptr
@@ -128,12 +128,12 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
 	// Determine the dimensions of the swap chain. Values of -1 indicate the size we specify here determines window size?
 	m_size = surface_capabilities.currentExtent;
-	if (m_size.width == -1)
+	if (m_size.width == 0)
 	{
 		m_size.width = std::min(std::max(surface_capabilities.minImageExtent.width, 640u), surface_capabilities.maxImageExtent.width);
 		m_size.height = std::min(std::max(surface_capabilities.minImageExtent.height, 480u), surface_capabilities.maxImageExtent.height);
 	}
-	
+
 	// Prefer identity transform if possible
 	VkSurfaceTransformFlagBitsKHR transform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
 	if (!(surface_capabilities.supportedTransforms & VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR))

@@ -24,7 +24,7 @@ public:
 	VkBuffer GetBuffer() const { return m_buffer; }
 	VkDeviceMemory GetDeviceMemory() const { return m_memory; }
 	u8* GetHostPointer() const { return m_host_pointer; }
-	
+
 	u8* GetCurrentHostPointer() const { return m_host_pointer + m_current_offset; }
 	size_t GetCurrentOffset() const { return m_current_offset; }
 
@@ -43,7 +43,7 @@ private:
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
-	
+
 	VkBufferUsageFlags m_usage = 0;
 	size_t m_current_size = 0;
 	size_t m_maximum_size = 0;

@@ -110,7 +110,7 @@ bool CommandBufferManager::CreateCommandBuffers()
 			nullptr,
 			0,
 			1024,			// tweak this
-			_countof(pool_sizes),
+			ARRAYSIZE(pool_sizes),
 			pool_sizes
 		};
 		res = vkCreateDescriptorPool(m_device, &pool_create_info, nullptr, &m_descriptor_pools[i]);
@@ -229,7 +229,7 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
 		submit_info.signalSemaphoreCount = 1;
 		submit_info.pSignalSemaphores = &signal_semaphore;
 	}
-	
+
 	res = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_fences[m_current_command_buffer_index]);
 	if (res != VK_SUCCESS)
 	{
@@ -293,7 +293,7 @@ void CommandBufferManager::ExecuteCommandBuffer(bool wait_for_completion)
 	size_t current_command_buffer_index = m_current_command_buffer_index;
 	SubmitCommandBuffer(nullptr);
 	ActivateCommandBuffer(nullptr);
-	
+
 	if (wait_for_completion)
 	{
 		VkResult res = vkWaitForFences(m_device, 1, &m_fences[current_command_buffer_index], VK_TRUE, UINT64_MAX);

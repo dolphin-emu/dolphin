@@ -56,6 +56,13 @@ constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 4 * 1024 * 1024;
 constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 
+// Do we not have this anywhere else?
+#ifndef ARRAYSIZE
+	#define ARRAYSIZE(a) \
+		((sizeof(a) / sizeof(*(a))) / \
+		static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
+#endif
+
 // Rasterization state info
 union RasterizationState
 {
@@ -97,7 +104,7 @@ union SamplerState
 	BitField<5, 2, VkSamplerAddressMode> wrap_v;
 	BitField<7, 8, u32> min_lod;
 	BitField<15, 8, u32> max_lod;
-	BitField<23, 8, s32> lod_bias;	
+	BitField<23, 8, s32> lod_bias;
 
 	u32 hex;
 };

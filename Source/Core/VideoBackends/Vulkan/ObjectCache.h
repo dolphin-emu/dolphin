@@ -8,7 +8,7 @@
 #include <map>
 #include <memory>
 
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/StaticShaderCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"

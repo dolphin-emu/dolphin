@@ -12,7 +12,7 @@
 
 #include "VideoCommon/VideoCommon.h"
 
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/Helpers.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 

@@ -24,7 +24,7 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 	// Read device physical memory properties, we need it for allocating buffers
 	vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
 	vkGetPhysicalDeviceFeatures(physical_device, &m_device_features);
-	
+
 	// Read limits, useful for buffer alignment and such.
 	VkPhysicalDeviceProperties device_properties;
 	vkGetPhysicalDeviceProperties(physical_device, &device_properties);
@@ -146,13 +146,14 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
 		state.blend_op,														// VkBlendOp                                 alphaBlendOp
 		state.write_mask													// VkColorComponentFlags                     colorWriteMask
 	};
-	
+
 	switch (vk_state.srcAlphaBlendFactor)
 	{
 	case VK_BLEND_FACTOR_SRC_COLOR:				vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;				break;
 	case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:	vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;		break;
 	case VK_BLEND_FACTOR_DST_COLOR:				vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;				break;
 	case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:	vk_state.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;		break;
+	default:																											break;
 	}
 
 	switch (vk_state.dstAlphaBlendFactor)
@@ -161,6 +162,7 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
 	case VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR:	vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;		break;
 	case VK_BLEND_FACTOR_DST_COLOR:				vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_DST_ALPHA;				break;
 	case VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR:	vk_state.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;		break;
+	default:																											break;
 	}
 
 	if (state.use_dst_alpha)
@@ -208,7 +210,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 		return iter->second;
 
 	// Declare descriptors for empty vertex buffers/attributes
-	static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = 
+	static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state =
 	{
 		VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,			// VkStructureType                             sType
 		nullptr,															// const void*                                pNext
@@ -280,7 +282,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 	{
 		VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
 		0,									// VkPipelineDynamicStateCreateFlags    flags
-		_countof(dynamic_states),			// uint32_t                             dynamicStateCount
+		ARRAYSIZE(dynamic_states),			// uint32_t                             dynamicStateCount
 		dynamic_states						// const VkDynamicState*                pDynamicStates
 	};
 
@@ -306,7 +308,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 		VK_NULL_HANDLE,						// VkPipeline                                       basePipelineHandle
 		-1									// int32_t                                          basePipelineIndex
 	};
-	
+
 	VkPipeline pipeline = VK_NULL_HANDLE;
 	VkResult res = vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline);
 	if (res != VK_SUCCESS)
@@ -363,7 +365,7 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 		VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
 		nullptr,
 		0,
-		_countof(combined_set_bindings),
+		ARRAYSIZE(combined_set_bindings),
 		combined_set_bindings
 	};
 
@@ -497,7 +499,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 	};
 
 	// TODO: Anisotropy
-	
+
 	VkSampler sampler = VK_NULL_HANDLE;
 	VkResult res = vkCreateSampler(m_device, &create_info, nullptr, &sampler);
 	if (res != VK_SUCCESS)

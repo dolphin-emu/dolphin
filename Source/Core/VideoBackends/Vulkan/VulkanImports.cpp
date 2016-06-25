@@ -162,9 +162,10 @@ const char* VkResultToString(VkResult res)
 
 	case VK_ERROR_INVALID_SHADER_NV:
 		return "VK_ERROR_INVALID_SHADER_NV";
-	}
 
-	return "UNKNOWN_VK_RESULT";
+	default:
+		return "UNKNOWN_VK_RESULT";
+	}
 }
 
 void LogVulkanResult(int level, const char* func_name, VkResult res, const char* msg, ...)
@@ -174,9 +175,9 @@ void LogVulkanResult(int level, const char* func_name, VkResult res, const char*
 	std::string real_msg = StringFromFormatV(msg, ap);
 	va_end(ap);
 
-	real_msg = StringFromFormat("(%s) %s (%d)", func_name, real_msg.c_str(), VkResultToString(res), static_cast<int>(res));
-	
-	GENERIC_LOG(LogTypes::VIDEO, static_cast<LogTypes::LOG_LEVELS>(level), real_msg.c_str());
+	real_msg = StringFromFormat("(%s) %s (%d: %s)", func_name, real_msg.c_str(), static_cast<int>(res), VkResultToString(res));
+
+	GENERIC_LOG(LogTypes::VIDEO, static_cast<LogTypes::LOG_LEVELS>(level), "%s", real_msg.c_str());
 }
 
 }		// namespace Vulkan

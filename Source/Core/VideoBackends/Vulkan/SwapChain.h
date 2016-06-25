@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
@@ -37,7 +37,7 @@ public:
 
 private:
 	bool SelectFormats();
-	
+
 	bool CreateSwapChain(VkSwapchainKHR old_swap_chain);
 	void DestroySwapChain();
 
@@ -60,7 +60,7 @@ private:
 	VkSurfaceFormatKHR m_surface_format;
 
 	VkQueue m_present_queue = nullptr;
-	
+
 	VkSwapchainKHR m_swap_chain = nullptr;
 	std::vector<SwapChainImage> m_swap_chain_images;
 	uint32_t m_current_swap_chain_image_index = 0;
