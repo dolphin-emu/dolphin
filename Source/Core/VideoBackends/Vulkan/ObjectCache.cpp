@@ -12,12 +12,11 @@
 
 namespace Vulkan {
 
-ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr, const SupportBits& support_bits)
+ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device, CommandBufferManager* command_buffer_mgr)
 	: m_instance(instance)
 	, m_physical_device(physical_device)
 	, m_device(device)
 	, m_command_buffer_mgr(command_buffer_mgr)
-	, m_support_bits(support_bits)
 	, m_vs_cache(device)
 	, m_gs_cache(device)
 	, m_ps_cache(device)
@@ -25,6 +24,12 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 {
 	// Read device physical memory properties, we need it for allocating buffers
 	vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
+	vkGetPhysicalDeviceFeatures(physical_device, &m_device_features);
+	
+	// Read limits, useful for buffer alignment and such.
+	VkPhysicalDeviceProperties device_properties;
+	vkGetPhysicalDeviceProperties(physical_device, &device_properties);
+	m_device_limits = device_properties.limits;
 }
 
 ObjectCache::~ObjectCache()
