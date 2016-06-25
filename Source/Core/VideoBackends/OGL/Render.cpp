@@ -1502,7 +1502,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     {
       std::vector<u8>().swap(frame_data);
       w = h = 0;
-      AVIDump::Stop();
+      AVIDump::Stop(false);
       bAVIDumping = false;
       OSD::AddMessage("Stop dumping frames", 2000);
     }
