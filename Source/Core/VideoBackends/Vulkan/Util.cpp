@@ -369,7 +369,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 		if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
 			num_descriptor_set_writes++;
 	}
-		
+
 	// Upload descriptors
 	assert(num_descriptor_set_writes > 0);
 	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_descriptor_set_writes, descriptor_set_writes.data(), 0, nullptr);

@@ -8,7 +8,7 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {

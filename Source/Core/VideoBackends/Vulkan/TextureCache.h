@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include "VideoBackends/Vulkan/StreamBuffer.h"
+
 #include "VideoCommon/TextureCacheBase.h"
 
 namespace Vulkan {
@@ -13,7 +15,6 @@ namespace Vulkan {
 class CommandBufferManager;
 class ObjectCache;
 class StateTracker;
-class StreamBuffer;
 class Texture2D;
 
 class TextureCache : public TextureCacheBase
@@ -39,7 +40,7 @@ private:
 		void Load(unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level) override;
 		void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect, bool scale_by_half, unsigned int cbufid, const float* colmat) override;
 		void CopyRectangleFromTexture(const TCacheEntryBase* source, const MathUtil::Rectangle<int>& srcrect, const MathUtil::Rectangle<int>& dstrect) override;
-		
+
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
 
