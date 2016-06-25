@@ -86,6 +86,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level)
 {
+	ObjectCache* object_cache = m_parent->m_object_cache;
 	CommandBufferManager* command_buffer_mgr = m_parent->m_command_buffer_mgr;
 	StreamBuffer* upload_buffer = m_parent->m_texture_upload_buffer.get();
 
@@ -94,23 +95,23 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	height = std::min(height, m_texture->GetHeight());
 
 	// Determine optimal row pitch, since we're going to be copying anyway.
-	// TODO: We can use limits -> optimalBufferCopyRowPitchAlignment here
 	VkImageSubresource image_subresource = { VK_IMAGE_ASPECT_COLOR_BIT, level, 0 };
 	VkSubresourceLayout subresource_layout;
 	vkGetImageSubresourceLayout(command_buffer_mgr->GetDevice(), m_texture->GetImage(), &image_subresource, &subresource_layout);
 
 	// Allocate memory from the streaming buffer for the texture data.
-	VkDeviceSize subimage_size = subresource_layout.rowPitch * height;
+	VkDeviceSize upload_pitch = Util::AlignValue(subresource_layout.rowPitch, object_cache->GetTextureUploadPitchAlignment());
+	VkDeviceSize upload_size = upload_pitch * height;
 
 	// TODO: What should the alignment be here?
 	// TODO: Handle cases where the texture does not fit into the streaming buffer, we need to allocate a temporary buffer.
-	if (!m_parent->m_texture_upload_buffer->ReserveMemory(subimage_size, subresource_layout.rowPitch, false))
+	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), false))
 	{
 		// Execute the command buffer first.
 		Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr);
 
 		// Try allocating again. This may cause a fence wait.
-		if (!upload_buffer->ReserveMemory(subimage_size, subresource_layout.rowPitch, false))
+		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), false))
 			PanicAlert("Failed to allocate space in texture upload buffer");
 	}
 	
@@ -122,20 +123,20 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	// Copy to the buffer using the stride from the subresource layout
 	VkDeviceSize source_pitch = expanded_width * 4;
 	const u8* source_ptr = TextureCache::temp;
-	if (subresource_layout.rowPitch != source_pitch)
+	if (upload_pitch != source_pitch)
 	{
-		VkDeviceSize copy_pitch = std::min(source_pitch, subresource_layout.rowPitch);
+		VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
 		for (unsigned int row = 0; row < height; row++)
-			memcpy(image_upload_buffer_pointer + row * subresource_layout.rowPitch, source_ptr + row * source_pitch, copy_pitch);
+			memcpy(image_upload_buffer_pointer + row * upload_pitch, source_ptr + row * source_pitch, copy_pitch);
 	}
 	else
 	{
 		// Can copy the whole thing in one block, the pitch matches
-		memcpy(image_upload_buffer_pointer, source_ptr, subimage_size);
+		memcpy(image_upload_buffer_pointer, source_ptr, upload_size);
 	}
 
 	// Flush buffer memory if necessary
-	upload_buffer->CommitMemory(subimage_size);
+	upload_buffer->CommitMemory(upload_size);
 
 	// Copy from the streaming buffer to the actual image, tiling in the process.
 	VkBufferImageCopy image_copy =

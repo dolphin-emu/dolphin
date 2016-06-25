@@ -1,6 +1,8 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
+
+#include <algorithm>
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -30,6 +32,11 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 	VkPhysicalDeviceProperties device_properties;
 	vkGetPhysicalDeviceProperties(physical_device, &device_properties);
 	m_device_limits = device_properties.limits;
+
+	// Would any drivers be this silly? I hope not...
+	m_device_limits.minUniformBufferOffsetAlignment = std::max(m_device_limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(4));
+	m_device_limits.optimalBufferCopyOffsetAlignment = std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(4));
+	m_device_limits.optimalBufferCopyRowPitchAlignment = std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(4));
 }
 
 ObjectCache::~ObjectCache()
