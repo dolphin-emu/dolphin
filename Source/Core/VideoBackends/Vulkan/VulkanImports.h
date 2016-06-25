@@ -11,7 +11,7 @@
 #elif defined(HAVE_X11)
 	#define VK_USE_PLATFORM_XLIB_KHR
 #else
-	#warning Unknown platform
+	//#warning Unknown platform
 #endif
 
 #include <vulkan/vulkan.h>
