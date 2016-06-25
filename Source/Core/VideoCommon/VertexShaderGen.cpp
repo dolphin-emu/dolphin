@@ -151,7 +151,9 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("out VertexData {\n");
+      out.Write("%sout VertexData {\n",
+        (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
+
       GenerateVSOutputMembers(
           out, api_type, uid_data->numTexGens, uid_data->pixel_lighting,
           GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));

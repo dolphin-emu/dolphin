@@ -535,7 +535,9 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("in VertexData {\n");
+      out.Write("%sin VertexData {\n",
+        (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
+
       GenerateVSOutputMembers(
           out, ApiType, uid_data->genMode_numtexgens, uid_data->per_pixel_lighting,
           GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
