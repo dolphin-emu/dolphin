@@ -146,7 +146,7 @@ void UnloadVulkanLibrary()
 }
 #else
 
-#warning Unknown platform, not compiling loader.
+//#warning Unknown platform, not compiling loader.
 
 bool LoadVulkanLibrary()
 {

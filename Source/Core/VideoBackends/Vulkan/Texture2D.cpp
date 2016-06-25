@@ -61,7 +61,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
-		return false;
+		return nullptr;
 	}
 
 	// Allocate memory to back this texture, we want device local memory in this case
@@ -81,20 +81,18 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 	{
 		LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
 		vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-		return false;
+		return nullptr;
 	}
 
-	// Bind the allocated memory to the image
 	res = vkBindImageMemory(object_cache->GetDevice(), image, device_memory, 0);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
 		vkFreeMemory(object_cache->GetDevice(), device_memory, nullptr);
 		vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-		return false;
+		return nullptr;
 	}
 
-	// Create view of this image
 	VkImageViewCreateInfo view_info = {
 		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		nullptr,
@@ -113,7 +111,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
 		vkFreeMemory(object_cache->GetDevice(), device_memory, nullptr);
 		vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-		return false;
+		return nullptr;
 	}
 
 	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, image, device_memory, view);
