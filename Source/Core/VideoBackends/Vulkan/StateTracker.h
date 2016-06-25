@@ -50,6 +50,8 @@ public:
 	void SetPSTexture(size_t index, VkImageView view);
 	void SetPSSampler(size_t index, VkSampler sampler);
 
+	void UnbindTexture(VkImageView view);
+
 	//void SetPSBBoxBuffer()
 
 	// When executing a command buffer, we want to recreate the descriptor set, as it will
@@ -113,7 +115,7 @@ private:
 		VkDescriptorBufferInfo vs_ubo;
 		VkDescriptorBufferInfo gs_ubo;
 		VkDescriptorBufferInfo ps_ubo;
-		VkDescriptorImageInfo ps_samplers[NUM_PIXEL_SHADER_SAMPLERS];
+		std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> ps_samplers;
 		VkDescriptorBufferInfo ps_ssbo;
 	} m_bindings;
 
