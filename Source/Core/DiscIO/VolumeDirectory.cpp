@@ -63,14 +63,10 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
   if (!decrypt && (_Offset + _Length >= 0x400) && m_is_wii)
   {
     // Fully supporting this would require re-encrypting every file that's read.
-    // Only supporting the areas that IOS allows software to read could be more
-    // feasible.
-    // Currently, only the header (up to 0x400) is supported, though we're
-    // cheating a bit
-    // with it by reading the header inside the current partition instead.
-    // Supporting the
-    // header is enough for booting games, but not for running things like the
-    // Disc Channel.
+    // Only supporting the areas that IOS allows software to read could be more feasible.
+    // Currently, only the header (up to 0x400) is supported, though we're cheating a bit
+    // with it by reading the header inside the current partition instead. Supporting the
+    // header is enough for booting games, but not for running things like the Disc Channel.
     return false;
   }
 

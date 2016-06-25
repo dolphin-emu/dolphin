@@ -19,8 +19,7 @@ struct FSTEntry;
 }
 
 //
-// --- this volume type is used for reading files directly from the hard drive
-// ---
+// --- this volume type is used for reading files directly from the hard drive ---
 //
 
 namespace DiscIO

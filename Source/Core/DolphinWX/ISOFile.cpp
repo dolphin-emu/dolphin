@@ -47,8 +47,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
   if (it != end)
     return it->second;
 
-  // English tends to be a good fallback when the requested language isn't
-  // available
+  // English tends to be a good fallback when the requested language isn't available
   if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
   {
     it = strings.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
@@ -150,16 +149,14 @@ GameListItem::GameListItem(const std::string& _rFileName,
   std::string path, name;
   SplitPath(m_FileName, &path, &name, nullptr);
 
-  // A bit like the Homebrew Channel icon, except there can be multiple files in
-  // a folder with their
-  // own icons.
-  // Useful for those who don't want to have a Homebrew Channel-style folder
-  // structure.
+  // A bit like the Homebrew Channel icon, except there can be multiple files
+  // in a folder with their own icons. Useful for those who don't want to have
+  // a Homebrew Channel-style folder structure.
   if (ReadPNGBanner(path + name + ".png"))
     return;
 
-  // Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with
-  // volumes.
+  // Homebrew Channel icon. Typical for DOLs and ELFs,
+  // but can be also used with volumes.
   if (ReadPNGBanner(path + "icon.png"))
     return;
 
