@@ -480,7 +480,11 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
       out.Write("colors_1 = o.colors_1;\n");
     }
 
-    out.Write("gl_Position = o.pos;\n");
+    // Vulkan NDC space has Y pointing down (right-handed NDC space).
+    if (api_type == API_OPENGL)
+      out.Write("gl_Position = o.pos;\n");
+    else
+      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
   }
   else  // D3D
   {
