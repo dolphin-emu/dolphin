@@ -346,6 +346,21 @@ void StateTracker::InvalidateDescriptorSet()
 	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET;
 }
 
+void StateTracker::InvalidateAllBindings()
+{
+	m_dirty_flags |= DIRTY_FLAG_VS_UBO |
+	                 DIRTY_FLAG_GS_UBO |
+	                 DIRTY_FLAG_PS_UBO |
+	                 DIRTY_FLAG_PS_SAMPLERS |
+	                 DIRTY_FLAG_PS_SSBO |
+	                 DIRTY_FLAG_DESCRIPTOR_SET |
+	                 DIRTY_FLAG_VERTEX_BUFFER |
+	                 DIRTY_FLAG_INDEX_BUFFER |
+	                 DIRTY_FLAG_VIEWPORT |
+	                 DIRTY_FLAG_SCISSOR |
+	                 DIRTY_FLAG_PIPELINE;
+}
+
 void StateTracker::SetViewport(const VkViewport& viewport)
 {
 	if (memcmp(&m_viewport, &viewport, sizeof(viewport)) == 0)
@@ -374,7 +389,7 @@ bool StateTracker::Bind(VkCommandBuffer command_buffer, bool rebind_all /*= fals
 	}
 
 	// Get a new descriptor set if any parts have changed
-	if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SET)
+	if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SET && !UpdateDescriptorSet())
 	{
 		ERROR_LOG(VIDEO, "Failed to get descriptor set, skipping draw");
 		return false;

@@ -48,7 +48,7 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 	BeginFrame();
 
 	// Apply the default/initial state
-	ApplyState(false);
+	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
 }
 
 Renderer::~Renderer()
@@ -124,8 +124,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	VkClearAttachment clear_attachments[2];
 	uint32_t num_clear_attachments = 0;
 
-	//color = 0xff992244;
-
 	// fast path: when both color and alpha are enabled, we can blow away the entire buffer
 	// TODO: Can we also do it when the buffer is not an RGBA format?
 	if (colorEnable && alphaEnable)
@@ -157,7 +155,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
 			float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
 
-		m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
+		m_state_tracker->InvalidateAllBindings();
 	}
 
 	if (zEnable)
@@ -267,8 +265,7 @@ void Renderer::OnSwapChainResized()
 
 void Renderer::ApplyState(bool bUseDstAlpha)
 {
-	m_state_tracker->CheckForShaderChanges(0, bUseDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
-	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
+	
 }
 
 void Renderer::ResetAPIState()
@@ -296,8 +293,8 @@ void Renderer::RestoreAPIState()
 	// or not, so the current descriptor set may belong to another buffer.
 	m_state_tracker->InvalidateDescriptorSet();
 
-	// Re-apply all game state, there may be some redundant calls in here, oh well
-	m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
+	// Assume that everything needs to be re-bound.
+	m_state_tracker->InvalidateAllBindings();
 }
 
 void Renderer::SetGenerationMode()

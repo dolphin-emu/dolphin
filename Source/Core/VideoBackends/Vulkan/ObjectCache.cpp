@@ -31,9 +31,9 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 	m_device_limits = device_properties.limits;
 
 	// Would any drivers be this silly? I hope not...
-	m_device_limits.minUniformBufferOffsetAlignment = std::max(m_device_limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(4));
-	m_device_limits.optimalBufferCopyOffsetAlignment = std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(4));
-	m_device_limits.optimalBufferCopyRowPitchAlignment = std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(4));
+	m_device_limits.minUniformBufferOffsetAlignment = std::max(m_device_limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
+	m_device_limits.optimalBufferCopyOffsetAlignment = std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
+	m_device_limits.optimalBufferCopyRowPitchAlignment = std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
 }
 
 ObjectCache::~ObjectCache()

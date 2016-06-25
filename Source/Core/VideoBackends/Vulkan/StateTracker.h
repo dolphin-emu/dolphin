@@ -56,6 +56,9 @@ public:
 	// now be in a different pool for the new command buffer.
 	void InvalidateDescriptorSet();
 
+	// Invalidate all bindings, call when switching to a new command buffer
+	void InvalidateAllBindings();
+
 	void SetViewport(const VkViewport& viewport);
 	void SetScissor(const VkRect2D& scissor);
 
