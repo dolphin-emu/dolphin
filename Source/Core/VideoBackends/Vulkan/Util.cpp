@@ -109,7 +109,7 @@ UtilityShaderVertex* UtilityShaderDraw::ReserveVertices(VkPrimitiveTopology topo
 {
 	m_pipeline_info.primitive_topology = topology;
 
-	if (!m_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true))
+	if (!m_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true, true))
 		PanicAlert("Failed to allocate space for vertices in backend shader");
 
 	m_vertex_buffer = m_object_cache->GetUtilityShaderVertexBuffer()->GetBuffer();
@@ -133,7 +133,7 @@ void UtilityShaderDraw::UploadVertices(VkPrimitiveTopology topology, UtilityShad
 
 u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 {
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true))
 		PanicAlert("Failed to allocate util uniforms");
 
 	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
@@ -150,7 +150,7 @@ void UtilityShaderDraw::CommitVSUniforms(size_t size)
 
 u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 {
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true))
 		PanicAlert("Failed to allocate util uniforms");
 
 	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();

@@ -6,10 +6,16 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
+#include "VideoBackends/Vulkan/Globals.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/StreamBuffer.h"
+#include "VideoBackends/Vulkan/Util.h"
 
+#include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/Statistics.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan {
@@ -37,6 +43,18 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
 		m_bindings.ps_samplers[i].imageView = VK_NULL_HANDLE;
 		m_bindings.ps_samplers[i].sampler = object_cache->GetPointSampler();
 	}
+
+	// Create the streaming uniform buffer
+	m_uniform_stream_buffer = StreamBuffer::Create(object_cache, command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		INITIAL_UNIFORM_STREAM_BUFFER_SIZE, MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
+	if (!m_uniform_stream_buffer)
+		PanicAlert("Failed to create uniform stream buffer");
+
+	// Set default constants
+	m_bindings.vs_ubo.range = sizeof(VertexShaderConstants);
+	m_bindings.gs_ubo.range = sizeof(GeometryShaderConstants);
+	m_bindings.ps_ubo.range = sizeof(PixelShaderConstants);
+	UploadAllConstants();
 }
 
 StateTracker::~StateTracker()
@@ -186,49 +204,121 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
 	return changed;
 }
 
-void StateTracker::SetVSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+void StateTracker::UpdateVertexShaderConstants()
 {
-	if (m_bindings.vs_ubo.buffer != buffer ||
-		m_bindings.vs_ubo.offset != offset ||
-		m_bindings.vs_ubo.range != range)
+	if (!VertexShaderManager::dirty)
+		return;
+
+	// Since the other stages uniform buffers' may be still be using the earlier data,
+	// we can't reuse the earlier part of the buffer without re-uploading everything.
+	if (!m_uniform_stream_buffer->ReserveMemory(sizeof(VertexShaderConstants),
+		m_object_cache->GetUniformBufferAlignment(), false, false))
 	{
+		// Re-upload all constants to a new portion of the buffer.
+		UploadAllConstants();
 		return;
 	}
 
-	m_bindings.vs_ubo.buffer = buffer;
-	m_bindings.vs_ubo.offset = offset;
-	m_bindings.vs_ubo.range = range;
+	// Copy to uniform buffer, commit, and update the descriptor.
+	m_bindings.vs_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.vs_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset();
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &VertexShaderManager::constants, sizeof(VertexShaderConstants));
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(VertexShaderConstants));
+	m_uniform_stream_buffer->CommitMemory(sizeof(VertexShaderConstants));
 	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET | DIRTY_FLAG_VS_UBO;
 }
 
-void StateTracker::SetGSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+void StateTracker::UpdateGeometryShaderConstants()
 {
-	if (m_bindings.gs_ubo.buffer != buffer ||
-		m_bindings.gs_ubo.offset != offset ||
-		m_bindings.gs_ubo.range != range)
+	// Skip updating geometry shader constants if it's not in use.
+	if (m_pipeline_state.gs == VK_NULL_HANDLE || !GeometryShaderManager::dirty)
+		return;
+
+	// Since the other stages uniform buffers' may be still be using the earlier data,
+	// we can't reuse the earlier part of the buffer without re-uploading everything.
+	if (!m_uniform_stream_buffer->ReserveMemory(sizeof(GeometryShaderConstants),
+		m_object_cache->GetUniformBufferAlignment(), false, false))
 	{
+		// Re-upload all constants to a new portion of the buffer.
+		UploadAllConstants();
 		return;
 	}
 
-	m_bindings.gs_ubo.buffer = buffer;
-	m_bindings.gs_ubo.offset = offset;
-	m_bindings.gs_ubo.range = range;
+	// Copy to uniform buffer, commit, and update the descriptor.
+	m_bindings.gs_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.gs_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset();
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(GeometryShaderConstants));
+	m_uniform_stream_buffer->CommitMemory(sizeof(GeometryShaderConstants));
 	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET | DIRTY_FLAG_GS_UBO;
 }
 
-void StateTracker::SetPSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+void StateTracker::UpdatePixelShaderConstants()
 {
-	if (m_bindings.ps_ubo.buffer != buffer ||
-		m_bindings.ps_ubo.offset != offset ||
-		m_bindings.ps_ubo.range != range)
+	if (!PixelShaderManager::dirty)
+		return;
+
+	// Since the other stages uniform buffers' may be still be using the earlier data,
+	// we can't reuse the earlier part of the buffer without re-uploading everything.
+	if (!m_uniform_stream_buffer->ReserveMemory(sizeof(PixelShaderConstants),
+		m_object_cache->GetUniformBufferAlignment(), false, false))
 	{
+		// Re-upload all constants to a new portion of the buffer.
+		UploadAllConstants();
 		return;
 	}
 
-	m_bindings.ps_ubo.buffer = buffer;
-	m_bindings.ps_ubo.offset = offset;
-	m_bindings.ps_ubo.range = range;
+	// Copy to uniform buffer, commit, and update the descriptor.
+	m_bindings.ps_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.ps_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset();
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &PixelShaderManager::constants, sizeof(PixelShaderConstants));
+	ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+	m_uniform_stream_buffer->CommitMemory(sizeof(PixelShaderConstants));
 	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET | DIRTY_FLAG_PS_UBO;
+}
+
+void StateTracker::UploadAllConstants()
+{
+	// We are free to re-use parts of the buffer now since we're uploading all constants.
+	size_t vertex_constants_offset = 0;
+	size_t geometry_constants_offset = Util::AlignValue(vertex_constants_offset + sizeof(VertexShaderConstants), m_object_cache->GetUniformBufferAlignment());
+	size_t pixel_constants_offset = Util::AlignValue(geometry_constants_offset + sizeof(GeometryShaderConstants), m_object_cache->GetUniformBufferAlignment());
+	size_t total_allocation_size = pixel_constants_offset + sizeof(PixelShaderConstants);
+
+	// Allocate everything at once.
+	if (!m_uniform_stream_buffer->ReserveMemory(total_allocation_size,
+		m_object_cache->GetUniformBufferAlignment(), true, false))
+	{
+		// If this fails, wait until the GPU has caught up.
+		// The only places that call constant updates are safe to have state restored.
+		Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr);
+		if (!m_uniform_stream_buffer->ReserveMemory(total_allocation_size,
+			m_object_cache->GetUniformBufferAlignment(), true, false))
+		{
+			PanicAlert("Failed to allocate space for constants in streaming buffer");
+			return;
+		}
+	}
+
+	// Update bindings
+	m_bindings.vs_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.vs_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset() + vertex_constants_offset;
+	m_bindings.gs_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.gs_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset() + geometry_constants_offset;
+	m_bindings.ps_ubo.buffer = m_uniform_stream_buffer->GetBuffer();
+	m_bindings.ps_ubo.offset = m_uniform_stream_buffer->GetCurrentOffset() + pixel_constants_offset;
+	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET | DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_UBO;
+
+	// Copy the actual data in
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + vertex_constants_offset,
+		&VertexShaderManager::constants, sizeof(VertexShaderConstants));
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + geometry_constants_offset,
+		&GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
+	memcpy(m_uniform_stream_buffer->GetCurrentHostPointer() + pixel_constants_offset,
+		&PixelShaderManager::constants, sizeof(PixelShaderConstants));
+
+	// Finally, flush buffer memory after copying
+	m_uniform_stream_buffer->CommitMemory(total_allocation_size);
 }
 
 void StateTracker::SetPSTexture(size_t index, VkImageView view)

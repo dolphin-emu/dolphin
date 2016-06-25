@@ -14,6 +14,7 @@
 namespace Vulkan {
 
 class ObjectCache;
+class StreamBuffer;
 class VertexFormat;
 
 class StateTracker
@@ -42,9 +43,9 @@ public:
 
 	bool CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode);
 
-	void SetVSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
-	void SetGSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
-	void SetPSUniformBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
+	void UpdateVertexShaderConstants();
+	void UpdateGeometryShaderConstants();
+	void UpdatePixelShaderConstants();
 
 	void SetPSTexture(size_t index, VkImageView view);
 	void SetPSSampler(size_t index, VkSampler sampler);
@@ -63,6 +64,7 @@ public:
 private:
 	bool UpdatePipeline();
 	bool UpdateDescriptorSet();
+	void UploadAllConstants();
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
@@ -112,9 +114,12 @@ private:
 		VkDescriptorBufferInfo ps_ssbo;
 	} m_bindings;
 
-	// other stuff
+	// rasterization
 	VkViewport m_viewport = { 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f };
 	VkRect2D m_scissor = { { 0, 0 }, { 1, 1 } };
+
+	// uniform buffers
+	std::unique_ptr<StreamBuffer> m_uniform_stream_buffer;
 };
 
 }
