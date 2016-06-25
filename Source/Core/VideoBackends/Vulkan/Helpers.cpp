@@ -260,13 +260,12 @@ std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_
 	return enabled_extensions;
 }
 
-bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features, SupportBits* out_features)
+bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features)
 {
 	VkPhysicalDeviceFeatures available_features;
 	vkGetPhysicalDeviceFeatures(device, &available_features);
 
 	*enable_features = {};
-	*out_features = {};
 
 	// Check for required stuff
 	if (!available_features.dualSrcBlend ||
@@ -284,9 +283,6 @@ bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures
 	enable_features->shaderClipDistance = available_features.shaderClipDistance;		// Only here to shut up the debug layer, we don't actually use it
 	enable_features->shaderCullDistance = available_features.shaderCullDistance;		// Only here to shut up the debug layer, we don't actually use it
 
-	// Copy to our support struct
-	out_features->SupportsGeometryShaders = enable_features->geometryShader;
-	out_features->SupportsDualSourceBlend = enable_features->dualSrcBlend;
 	return true;
 }
 
@@ -317,8 +313,7 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
 	uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
-	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
-	SupportBits* out_features)
+	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue)
 {
 	uint32_t queue_family_count;
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
@@ -382,7 +377,7 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
 		return nullptr;
 
 	VkPhysicalDeviceFeatures enabled_features;
-	if (!CheckVulkanDeviceFeatures(physical_device, &enabled_features, out_features))
+	if (!CheckVulkanDeviceFeatures(physical_device, &enabled_features))
 		return nullptr;
 
 	device_info.enabledLayerCount = 0;
