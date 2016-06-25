@@ -92,15 +92,11 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	height = std::min(height, m_texture->GetHeight());
 
 	// Determine optimal row pitch, since we're going to be copying anyway.
-	VkImageSubresource image_subresource = { VK_IMAGE_ASPECT_COLOR_BIT, level, 0 };
-	VkSubresourceLayout subresource_layout;
-	vkGetImageSubresourceLayout(command_buffer_mgr->GetDevice(), m_texture->GetImage(), &image_subresource, &subresource_layout);
-
-	// Allocate memory from the streaming buffer for the texture data.
-	VkDeviceSize upload_pitch = Util::AlignValue(subresource_layout.rowPitch, object_cache->GetTextureUploadPitchAlignment());
+	VkDeviceSize upload_width = Util::AlignValue(width, object_cache->GetTextureUploadPitchAlignment());
+	VkDeviceSize upload_pitch = upload_width * sizeof(u32);
 	VkDeviceSize upload_size = upload_pitch * height;
 
-	// TODO: What should the alignment be here?
+	// Allocate memory from the streaming buffer for the texture data.
 	// TODO: Handle cases where the texture does not fit into the streaming buffer, we need to allocate a temporary buffer.
 	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
 	{
@@ -139,18 +135,24 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	VkBufferImageCopy image_copy =
 	{
 		image_upload_buffer_offset,								// VkDeviceSize                bufferOffset
-		static_cast<uint32_t>(subresource_layout.rowPitch),		// uint32_t                    bufferRowLength
+		static_cast<uint32_t>(upload_width),					// uint32_t                    bufferRowLength
 		height,													// uint32_t                    bufferImageHeight
 		{ VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1 },				// VkImageSubresourceLayers    imageSubresource
 		{ 0, 0, 0 },											// VkOffset3D                  imageOffset
 		{ width, height, 1 }									// VkExtent3D                  imageExtent
 	};
 
+	// We can't execute texture uploads inside a render pass.
+	// TODO: Start render pass at draw time rather than assuming it is always active.
+	g_renderer->ResetAPIState();
+
 	// Transition the texture to a transfer destination, invoke the transfer, then transition back.
 	// TODO: Only transition the layer we're copying to.
 	m_texture->TransitionToLayout(command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	vkCmdCopyBufferToImage(command_buffer_mgr->GetCurrentCommandBuffer(), image_upload_buffer, m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
 	m_texture->TransitionToLayout(command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+	g_renderer->RestoreAPIState();
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect, bool scale_by_half, unsigned int cbufid, const float* colmat)
