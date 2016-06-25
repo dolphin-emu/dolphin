@@ -69,6 +69,11 @@ public:
 	bool SupportsGeometryShaders() const { return (m_device_features.geometryShader == VK_TRUE); }
 	bool SupportsDualSourceBlend() const { return (m_device_features.dualSrcBlend == VK_TRUE); }
 
+	// Helpers for getting constants
+	VkDeviceSize GetUniformBufferAlignment() const { return m_device_limits.minUniformBufferOffsetAlignment; }
+	VkDeviceSize GetTextureUploadAlignment() const { return m_device_limits.optimalBufferCopyOffsetAlignment; }
+	VkDeviceSize GetTextureUploadPitchAlignment() const { return m_device_limits.optimalBufferCopyRowPitchAlignment; }
+
 	VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
 	VkPipelineLayout GetPipelineLayout() const { return m_pipeline_layout; }
 	VertexFormat* GetUtilityShaderVertexFormat() const { return m_utility_shader_vertex_format.get(); }

@@ -10,6 +10,9 @@ class ObjectCache;
 
 namespace Util {
 
+size_t AlignValue(size_t value, size_t alignment);
+size_t AlignBufferOffset(size_t offset, size_t alignment);
+
 RasterizationState GetNoCullRasterizationState();
 DepthStencilState GetNoDepthTestingDepthStencilState();
 BlendState GetNoBlendingBlendState();
@@ -52,7 +55,10 @@ public:
 	void UploadVertices(VkPrimitiveTopology topology, UtilityShaderVertex* vertices, size_t count);
 
 	u8* AllocateVSUniforms(size_t size);
+	void CommitVSUniforms(size_t size);
+
 	u8* AllocatePSUniforms(size_t size);
+	void CommitPSUniforms(size_t size);
 
 	void SetPSSampler(size_t index, VkImageView view, VkSampler sampler);
 
