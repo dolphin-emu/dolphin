@@ -78,7 +78,7 @@
   <ItemGroup>
     <ClInclude Include="CommandBufferManager.h" />
     <ClInclude Include="FramebufferManager.h" />
-    <ClInclude Include="Globals.h" />
+    <ClInclude Include="Constants.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="StaticShaderCache.h" />
     <ClInclude Include="Util.h" />

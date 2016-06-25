@@ -152,7 +152,7 @@ std::vector<const char*> SelectVulkanInstanceExtensions()
 	};
 
 	// Common extensions
-	if (!CheckForExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))	
+	if (!CheckForExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
 	{
 		return {};
 	}
@@ -343,7 +343,7 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
 			if (res != VK_SUCCESS)
 			{
 				LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceSupportKHR failed: ");
-				return false;
+				return nullptr;
 			}
 
 			if (presentSupported)
@@ -453,7 +453,14 @@ VkSurfaceFormatKHR SelectVulkanSurfaceFormat(VkPhysicalDevice physical_device, V
 
 	// If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA
 	if (surface_formats[0].format == VK_FORMAT_UNDEFINED)
+	{
+#ifdef WIN32
 		return { VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
+#else
+		// Error in an earlier SDK?
+		return { VK_FORMAT_R8G8B8A8_UNORM, VK_COLORSPACE_SRGB_NONLINEAR_KHR };
+#endif
+	}
 
 	// Return the first surface format, just use what it prefers
 	return surface_formats[0];
@@ -469,9 +476,57 @@ bool IsDepthFormat(VkFormat format)
 	case VK_FORMAT_D32_SFLOAT:
 	case VK_FORMAT_D32_SFLOAT_S8_UINT:
 		return true;
+	default:
+		return false;
 	}
+}
 
-	return false;
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkCommandPool>(VkCommandPool object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.CommandPool = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyCommandPool(device, obj.CommandPool, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkDeviceMemory>(VkDeviceMemory object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.DeviceMemory = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkFreeMemory(device, obj.DeviceMemory, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkBuffer>(VkBuffer object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.Buffer = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyBuffer(device, obj.Buffer, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkBufferView>(VkBufferView object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.BufferView = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyBufferView(device, obj.BufferView, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkImage>(VkImage object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.Image = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyImage(device, obj.Image, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkImageView>(VkImageView object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.ImageView = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyImageView(device, obj.ImageView, nullptr); };
+	return ret;
 }
 
 }		// namespace Vulkan

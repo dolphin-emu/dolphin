@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {

@@ -6,7 +6,7 @@
 
 #include "VideoCommon/FramebufferManagerBase.h"
 
-#include "VideoBackends/Vulkan/Globals.h"
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 

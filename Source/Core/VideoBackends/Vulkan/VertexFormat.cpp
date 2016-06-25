@@ -36,9 +36,9 @@ static VkFormat VarToVkFormat(VarType t, uint32_t components, bool integer)
 	return (integer) ? integer_type_lookup[t][components - 1] : float_type_lookup[t][components - 1];
 }
 
-VertexFormat::VertexFormat(const PortableVertexDeclaration& vtx_decl)
+VertexFormat::VertexFormat(const PortableVertexDeclaration& in_vtx_decl)
 {
-	this->vtx_decl = vtx_decl;
+	vtx_decl = in_vtx_decl;
 	MapAttributes();
 	SetupInputState();
 }
