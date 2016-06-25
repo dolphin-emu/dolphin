@@ -445,12 +445,40 @@ void Renderer::SetInterlacingMode()
 
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-
+	TargetRectangle target_rc = ConvertEFBRectangle(rc);
+	
+	VkRect2D scissor = { { target_rc.left, target_rc.top }, { target_rc.GetWidth(), target_rc.GetHeight() } };
+	m_state_tracker->SetScissor(scissor);
 }
 
 void Renderer::SetViewport()
 {
+	int scissor_x_offset = bpmem.scissorOffset.x * 2;
+	int scissor_y_offset = bpmem.scissorOffset.y * 2;
 
+	float x = Renderer::EFBToScaledXf(xfmem.viewport.xOrig - xfmem.viewport.wd - scissor_x_offset);
+	float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
+	float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
+	float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+	if (width < 0.0f)
+	{
+		x += width;
+		width = -width;
+	}
+	if (height < 0.0f)
+	{
+		y += height;
+		height = -height;
+	}
+
+	// Use reversed depth here
+	float min_depth = 1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
+	float max_depth = 1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777216.0f), 0.0f, 16777215.0f) / 16777216.0f;
+
+	VkViewport viewport = { x, y, width, height, min_depth, max_depth };
+	m_state_tracker->SetViewport(viewport);
 }
+
+
 
 } // namespace Vulkan
