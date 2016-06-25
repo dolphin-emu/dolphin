@@ -19,7 +19,7 @@ class ObjectCache;
 class StateTracker
 {
 public:
-	StateTracker(ObjectCache* object_cache);
+	StateTracker(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr);
 	~StateTracker();
 
 	void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
@@ -51,13 +51,21 @@ public:
 
 	//void SetPSBBoxBuffer()
 
+	// When executing a command buffer, we want to recreate the descriptor set, as it will
+	// now be in a different pool for the new command buffer.
+	void InvalidateDescriptorSet();
+
 	void SetViewport(const VkViewport& viewport);
 	void SetScissor(const VkRect2D& scissor);
 
 	bool Bind(VkCommandBuffer command_buffer, bool rebind_all = false);
 
 private:
+	bool UpdatePipeline();
+	bool UpdateDescriptorSet();
+
 	ObjectCache* m_object_cache = nullptr;
+	CommandBufferManager* m_command_buffer_mgr = nullptr;
 
 	enum DITRY_FLAG : u32
 	{
@@ -70,7 +78,8 @@ private:
 		DIRTY_FLAG_INDEX_BUFFER = (1 << 6),
 		DIRTY_FLAG_VIEWPORT = (1 << 7),
 		DIRTY_FLAG_SCISSOR = (1 << 8),
-		DIRTY_FLAG_PIPELINE = (1 << 9)
+		DIRTY_FLAG_PIPELINE = (1 << 9),
+		DIRTY_FLAG_DESCRIPTOR_SET = (1 << 10)
 	};
 	u32 m_dirty_flags = 0xFFFFFFFF;
 
@@ -93,6 +102,7 @@ private:
 	VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
 	// shader bindings
+	VkDescriptorSet m_descriptor_set = VK_NULL_HANDLE;
 	struct
 	{
 		VkDescriptorBufferInfo vs_ubo;

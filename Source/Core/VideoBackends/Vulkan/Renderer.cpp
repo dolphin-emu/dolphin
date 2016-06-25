@@ -291,6 +291,10 @@ void Renderer::RestoreAPIState()
 
 	vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
+	// Invalidate the descriptor set. We don't know if this RestoreAPIState call was a result of executing a command buffer
+	// or not, so the current descriptor set may belong to another buffer.
+	m_state_tracker->InvalidateDescriptorSet();
+
 	// Re-apply all game state, there may be some redundant calls in here, oh well
 	m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer(), true);
 }

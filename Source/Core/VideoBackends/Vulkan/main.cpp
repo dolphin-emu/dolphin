@@ -211,7 +211,7 @@ CLEANUP_LIBRARY:
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	s_state_tracker = std::make_unique<StateTracker>(s_object_cache.get());
+	s_state_tracker = std::make_unique<StateTracker>(s_object_cache.get(), s_command_buffer_mgr.get());
 	g_vertex_manager = std::make_unique<VertexManager>(s_object_cache.get(), s_command_buffer_mgr.get(), s_state_tracker.get());
 	g_perf_query = std::make_unique<PerfQuery>();
 	g_framebuffer_manager = std::make_unique<FramebufferManager>(s_object_cache.get(), s_command_buffer_mgr.get());
