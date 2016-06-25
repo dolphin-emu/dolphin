@@ -88,7 +88,7 @@ VideoConfig::VideoConfig()
 	bAutoPairViveControllers = false;
 	bShowHands = false;
 	bShowFeet = false;
-	bShowController = false;
+	bShowController = true;
 	bShowLaserPointer = false;
 	bShowAimRectangle = false;
 	bShowHudBox = false;
