@@ -87,6 +87,17 @@ void SConfig::SaveSettings()
   m_SYSCONF->Save();
 }
 
+static void CreateDumpPath(const std::string& path)
+{
+  if (path.empty())
+    return;
+  File::SetUserPath(D_DUMP_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+}
+
 void SConfig::SaveGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -114,6 +125,8 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("NANDRootPath", m_NANDPath);
+  general->Set("DumpPath", m_DumpPath);
+  CreateDumpPath(m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
@@ -381,6 +394,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("NANDRootPath", &m_NANDPath);
   File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
+  general->Get("DumpPath", &m_DumpPath);
+  CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
 }
 
@@ -653,6 +668,7 @@ void SConfig::LoadDefaults()
   m_strUniqueID = "00000000";
   m_revision = 0;
 }
+
 static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
 {
   switch (country)
