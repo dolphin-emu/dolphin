@@ -238,7 +238,7 @@ std::string CVolumeWiiCrypted::GetInternalName() const
   return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetNames(bool prefer_long) const
+std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetLongNames() const
 {
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);

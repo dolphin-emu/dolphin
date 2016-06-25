@@ -269,11 +269,15 @@ static std::string GetTitle(std::string filename)
 
   if (pVolume != nullptr)
   {
-    std::map<DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetNames(true);
+    std::map<DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetLongNames();
+    if (titles.empty())
+      titles = pVolume->GetShortNames();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() !=
+    DiscIO::IVolume::GAMECUBE_DISC;
+    DiscIO::IVolume::ELanguage language =
+    SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = titles.find(language);
     if (it != end)
@@ -281,7 +285,8 @@ static std::string GetTitle(std::string filename)
 
     auto end = titles.end();
 
-    // English tends to be a good fallback when the requested language isn't available
+    // English tends to be a good fallback when the requested language isn't
+    // available
     // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
     auto it = titles.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
@@ -313,8 +318,10 @@ static std::string GetDescription(std::string filename)
     std::map<DiscIO::IVolume::ELanguage, std::string> descriptions = volume->GetDescriptions();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() !=
+    DiscIO::IVolume::GAMECUBE_DISC;
+    DiscIO::IVolume::ELanguage language =
+    SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = descriptions.find(language);
     if (it != end)
@@ -322,7 +329,8 @@ static std::string GetDescription(std::string filename)
 
     auto end = descriptions.end();
 
-    // English tends to be a good fallback when the requested language isn't available
+    // English tends to be a good fallback when the requested language isn't
+    // available
     // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
     auto it = descriptions.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
@@ -745,7 +753,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
   if (surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+  // If GLInterface isn't a thing yet then we don't need to let it know that the
+  // surface has changed
   if (GLInterface)
   {
     GLInterface->UpdateHandle(surf);
@@ -764,7 +773,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     surf = nullptr;
   }
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+  // If GLInterface isn't a thing yet then we don't need to let it know that the
+  // surface has changed
   if (GLInterface)
   {
     GLInterface->UpdateHandle(nullptr);

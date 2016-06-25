@@ -13,7 +13,10 @@ set(SRCS
 	Resources.cpp
 	Settings.cpp
 	ToolBar.cpp
+	Config/FilesystemWidget.cpp
+	Config/InfoWidget.cpp
 	Config/PathDialog.cpp
+	Config/PropertiesDialog.cpp
 	Config/SettingsWindow.cpp
 	GameList/GameFile.cpp
 	GameList/GameList.cpp

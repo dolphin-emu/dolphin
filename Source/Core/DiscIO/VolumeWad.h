@@ -14,7 +14,8 @@
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
-// Some of this code might look redundant with the CNANDContentLoader class, however,
+// Some of this code might look redundant with the CNANDContentLoader class,
+// however,
 // We do not do any decryption here, we do raw read, so things are -Faster-
 
 namespace DiscIO
@@ -30,7 +31,7 @@ public:
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override { return ""; }
-  std::map<IVolume::ELanguage, std::string> GetNames(bool prefer_long) const override;
+  std::map<IVolume::ELanguage, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   u64 GetFSTSize() const override { return 0; }
   std::string GetApploaderDate() const override { return ""; }

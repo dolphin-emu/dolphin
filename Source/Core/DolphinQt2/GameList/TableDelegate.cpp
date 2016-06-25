@@ -4,27 +4,12 @@
 
 #include <QPainter>
 
+#include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/GameList/GameListModel.h"
 #include "DolphinQt2/GameList/TableDelegate.h"
 #include "DolphinQt2/Resources.h"
 
 static QSize NORMAL_BANNER_SIZE(96, 32);
-
-// Convert an integer size to a friendly string representation.
-static QString FormatSize(qint64 size)
-{
-  QStringList units{QStringLiteral("KB"), QStringLiteral("MB"), QStringLiteral("GB"),
-                    QStringLiteral("TB")};
-  QStringListIterator i(units);
-  QString unit = QStringLiteral("B");
-  double num = (double)size;
-  while (num > 1024.0 && i.hasNext())
-  {
-    unit = i.next();
-    num /= 1024.0;
-  }
-  return QStringLiteral("%1 %2").arg(QString::number(num, 'f', 1)).arg(unit);
-}
 
 TableDelegate::TableDelegate(QWidget* parent) : QStyledItemDelegate(parent)
 {
