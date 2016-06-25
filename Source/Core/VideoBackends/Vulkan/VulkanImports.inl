@@ -155,9 +155,14 @@ VULKAN_ENTRY_POINT(PFN_vkGetSwapchainImagesKHR, vkGetSwapchainImagesKHR, true)
 VULKAN_ENTRY_POINT(PFN_vkAcquireNextImageKHR, vkAcquireNextImageKHR, true)
 VULKAN_ENTRY_POINT(PFN_vkQueuePresentKHR, vkQueuePresentKHR, true)
 
-#if defined(WIN32)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 
 VULKAN_ENTRY_POINT(PFN_vkCreateWin32SurfaceKHR, vkCreateWin32SurfaceKHR, true)
 VULKAN_ENTRY_POINT(PFN_vkGetPhysicalDeviceWin32PresentationSupportKHR, vkGetPhysicalDeviceWin32PresentationSupportKHR, true)
+
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
+
+VULKAN_ENTRY_POINT(PFN_vkCreateXlibSurfaceKHR, vkCreateXlibSurfaceKHR, true)
+VULKAN_ENTRY_POINT(PFN_vkGetPhysicalDeviceXlibPresentationSupportKHR, vkGetPhysicalDeviceXlibPresentationSupportKHR, true)
 
 #endif
