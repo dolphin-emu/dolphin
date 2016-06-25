@@ -45,6 +45,10 @@ static int s_size;
 static u64 s_last_frame;
 static bool s_start_dumping = false;
 static u64 s_last_pts;
+static int current_width;
+static int current_height;
+static int file_index = 0;
+static AVIDump::DumpFormat current_format;
 
 static void InitAVCodec()
 {
@@ -63,8 +67,12 @@ bool AVIDump::Start(int w, int h, DumpFormat format)
   else
     s_pix_fmt = AV_PIX_FMT_RGBA;
 
+  current_format = format;
+
   s_width = w;
   s_height = h;
+  current_width = w;
+  current_height = h;
 
   s_last_frame = CoreTiming::GetTicks();
   s_last_pts = 0;
@@ -81,8 +89,11 @@ bool AVIDump::CreateFile()
   AVCodec* codec = nullptr;
 
   s_format_context = avformat_alloc_context();
-  snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump0.avi").c_str());
+  std::stringstream s_file_index;
+  s_file_index << file_index;
+  snprintf(
+      s_format_context->filename, sizeof(s_format_context->filename), "%s",
+      (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index.str() + ".avi").c_str());
   File::CreateFullPath(s_format_context->filename);
 
   // Ask to delete file
@@ -156,6 +167,14 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
+  if (width != current_width || height != current_height)
+  {
+    Stop(true);
+    file_index++;
+    Start(width, height, current_format);
+    current_width = width;
+    current_height = height;
+  }
   avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), s_pix_fmt, width, height);
 
   // Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
@@ -228,10 +247,12 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
 }
 
-void AVIDump::Stop()
+void AVIDump::Stop(bool resolution_changed)
 {
   av_write_trailer(s_format_context);
   CloseFile();
+  if (!resolution_changed)
+    file_index = 0;
   NOTICE_LOG(VIDEO, "Stopping frame dump");
 }
 

@@ -21,6 +21,6 @@ public:
 
   static bool Start(int w, int h, DumpFormat format);
   static void AddFrame(const u8* data, int width, int height);
-  static void Stop();
+  static void Stop(bool resolution_changed);
   static void DoState();
 };
