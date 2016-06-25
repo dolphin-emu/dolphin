@@ -190,6 +190,7 @@ struct SConfig : NonCopyable
   static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 
   std::string m_NANDPath;
+  std::string m_DumpPath;
 
   std::string m_strMemoryCardA;
   std::string m_strMemoryCardB;
@@ -310,6 +311,8 @@ private:
   void LoadMovieSettings(IniFile& ini);
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
+
+  void CreateDumpPath(std::string path);
 
   static SConfig* m_Instance;
 };
