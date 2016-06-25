@@ -95,13 +95,17 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
 
-    out.Write("in VertexData {\n");
+    out.Write("%sin VertexData {\n",
+      (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
+
     GenerateVSOutputMembers<ShaderCode>(
         out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
         GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
     out.Write("} vs[%d];\n", vertex_in);
 
-    out.Write("out VertexData {\n");
+    out.Write("%sout VertexData {\n",
+      (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
+
     GenerateVSOutputMembers<ShaderCode>(
         out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
         GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
