@@ -7,19 +7,10 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
+#include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
-
-static size_t AlignBufferOffset(size_t offset, size_t alignment)
-{
-	// Assume an offset of zero is already aligned to a value larger than alignment.
-	if (offset == 0)
-		return 0;
-
-	// Have to use divide/multiply here in case alignment is not a power of two.
-	// TODO: Can we make this assumption?
-	return (offset + (alignment - 1)) / alignment * alignment;
-}
 
 StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkBufferUsageFlags usage, size_t max_size)
 	: m_object_cache(object_cache)
@@ -156,7 +147,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool reallo
 		size_t remaining_bytes = m_current_size - m_current_offset;
 		if (required_bytes <= remaining_bytes)
 		{
-			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
+			m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
 			m_last_allocation_size = num_bytes;
 			return true;
 		}
@@ -180,7 +171,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool reallo
 		if (required_bytes < remaining_bytes)
 		{
 			// Put after the current allocation but before the gpu
-			m_current_offset = AlignBufferOffset(m_current_offset, alignment);
+			m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
 			m_last_allocation_size = num_bytes;
 			return true;
 		}

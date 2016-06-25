@@ -14,6 +14,22 @@ namespace Vulkan {
 
 namespace Util {
 
+size_t AlignValue(size_t value, size_t alignment)
+{
+	// Have to use divide/multiply here in case alignment is not a power of two.
+	// TODO: Can we make this assumption?
+	return (value + (alignment - 1)) / alignment * alignment;
+}
+
+size_t AlignBufferOffset(size_t offset, size_t alignment)
+{
+	// Assume an offset of zero is already aligned to a value larger than alignment.
+	if (offset == 0)
+		return 0;
+
+	return AlignValue(offset, alignment);
+}
+
 RasterizationState GetNoCullRasterizationState()
 {
 	RasterizationState state = {};
@@ -117,28 +133,36 @@ void UtilityShaderDraw::UploadVertices(VkPrimitiveTopology topology, UtilityShad
 
 u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 {
-	// UBO alignment???
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, 65536, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true))
 		PanicAlert("Failed to allocate util uniforms");
-
-	m_vs_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-	m_vs_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
-	m_vs_uniform_buffer_size = size;
 
 	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
 }
 
+void UtilityShaderDraw::CommitVSUniforms(size_t size)
+{
+	m_vs_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+	m_vs_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
+	m_vs_uniform_buffer_size = size;
+
+	m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
+}
+
 u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 {
-	// UBO alignment???
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, 65536, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true))
 		PanicAlert("Failed to allocate util uniforms");
 
+	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
+}
+
+void UtilityShaderDraw::CommitPSUniforms(size_t size)
+{
 	m_ps_uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
 	m_ps_uniform_buffer_offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
 	m_ps_uniform_buffer_size = size;
 
-	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
+	m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
 }
 
 void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler sampler)
