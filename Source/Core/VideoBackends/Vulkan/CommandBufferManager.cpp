@@ -238,6 +238,10 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
 	}
 
 	m_wait_semaphore = nullptr;
+
+	// Fire fence tracking callbacks.
+	for (const auto& iter : m_fence_point_callbacks)
+		iter.second.first(m_fences[m_current_command_buffer_index]);
 }
 
 void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
@@ -250,6 +254,10 @@ void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
 	res = vkResetFences(m_device, 1, &m_fences[m_current_command_buffer_index]);
 	if (res != VK_SUCCESS)
 		LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
+
+	// Fire fence tracking callbacks.
+	for (const auto& iter : m_fence_point_callbacks)
+		iter.second.second(m_fences[m_current_command_buffer_index]);
 
 	// Clean up all objects pending destruction on this command buffer
 	for (const auto& it : m_pending_destructions[m_current_command_buffer_index])
@@ -292,6 +300,20 @@ void CommandBufferManager::ExecuteCommandBuffer(bool wait_for_completion)
 		if (res != VK_SUCCESS)
 			LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 	}
+}
+
+void CommandBufferManager::AddFencePointCallback(const void* key, const FencePointCallback &created_callback, const FencePointCallback& reached_callback)
+{
+	// Shouldn't be adding twice.
+	assert(m_fence_point_callbacks.find(key) == m_fence_point_callbacks.end());
+	m_fence_point_callbacks.emplace(key, std::make_pair(created_callback, reached_callback));
+}
+
+void CommandBufferManager::RemoveFencePointCallback(const void* key)
+{
+	auto iter = m_fence_point_callbacks.find(key);
+	assert(iter != m_fence_point_callbacks.end());
+	m_fence_point_callbacks.erase(iter);
 }
 
 }

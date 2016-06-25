@@ -78,7 +78,8 @@ TextureCache::TCacheEntry::TCacheEntry(const TCacheEntryConfig& _config, Texture
 
 TextureCache::TCacheEntry::~TCacheEntry()
 {
-	// Texture is automatically cleaned up.
+	// Texture is automatically cleaned up, however, we don't want to leave it bound to the state tracker.
+	m_parent->m_state_tracker->UnbindTexture(m_texture->GetView());
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level)

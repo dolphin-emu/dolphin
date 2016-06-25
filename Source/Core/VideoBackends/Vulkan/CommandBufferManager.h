@@ -5,6 +5,9 @@
 #pragma once
 
 #include <array>
+#include <functional>
+#include <map>
+#include <utility>
 #include <vector>
 
 #include "VideoCommon/VideoCommon.h"
@@ -31,6 +34,11 @@ public:
 
 	VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
 
+	void SubmitCommandBuffer(VkSemaphore signal_semaphore);
+	void ActivateCommandBuffer(VkSemaphore wait_semaphore);
+
+	void ExecuteCommandBuffer(bool wait_for_completion);
+
 	// Schedule a vulkan resource for destruction later on. This will occur when the command buffer
 	// is next re-used, and the GPU has finished working with the specified resource.
 	template<typename T>
@@ -39,11 +47,13 @@ public:
 		DeferredResourceDestruction wrapper = DeferredResourceDestruction::Wrapper<T>(object);
 		m_pending_destructions[m_current_command_buffer_index].push_back(wrapper);
 	}
-	
-	void SubmitCommandBuffer(VkSemaphore signal_semaphore);
-	void ActivateCommandBuffer(VkSemaphore wait_semaphore);
 
-	void ExecuteCommandBuffer(bool wait_for_completion);
+	// Instruct the manager to fire the specified callback when a fence point is created.
+	// Fence points are created when command buffers are executed, and can be tested if signaled,
+	// which means that all commands up to the point when the callback was fired have completed.
+	using FencePointCallback = std::function<void(VkFence)>;
+	void AddFencePointCallback(const void* key, const FencePointCallback &created_callback, const FencePointCallback& reached_callback);
+	void RemoveFencePointCallback(const void* key);
 
 private:
 	bool CreateCommandPool();
@@ -66,6 +76,9 @@ private:
 
 	// wait semaphore provided with next submit
 	VkSemaphore m_wait_semaphore = nullptr;
+
+	// callbacks when a fence point is set
+	std::map<const void*, std::pair<FencePointCallback, FencePointCallback>> m_fence_point_callbacks;
 };
 
 }  // namespace Vulkan

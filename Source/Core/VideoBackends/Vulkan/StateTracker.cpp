@@ -340,6 +340,15 @@ void StateTracker::SetPSSampler(size_t index, VkSampler sampler)
 	m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET | DIRTY_FLAG_PS_SAMPLERS;
 }
 
+void StateTracker::UnbindTexture(VkImageView view)
+{
+	for (VkDescriptorImageInfo& it : m_bindings.ps_samplers)
+	{
+		if (it.imageView == view)
+			it.imageView = VK_NULL_HANDLE;
+	}
+}
+
 void StateTracker::InvalidateDescriptorSet()
 {
 	m_descriptor_set = VK_NULL_HANDLE;
