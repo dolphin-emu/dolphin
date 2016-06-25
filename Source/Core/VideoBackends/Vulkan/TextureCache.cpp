@@ -11,6 +11,7 @@
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
+#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
@@ -105,9 +106,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	if (!m_parent->m_texture_upload_buffer->ReserveMemory(subimage_size, subresource_layout.rowPitch, false))
 	{
 		// Execute the command buffer first.
-		g_renderer->ResetAPIState();
-		command_buffer_mgr->ExecuteCommandBuffer(false);
-		g_renderer->RestoreAPIState();
+		Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr);
 
 		// Try allocating again. This may cause a fence wait.
 		if (!upload_buffer->ReserveMemory(subimage_size, subresource_layout.rowPitch, false))

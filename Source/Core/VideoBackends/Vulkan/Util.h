@@ -14,7 +14,12 @@ RasterizationState GetNoCullRasterizationState();
 DepthStencilState GetNoDepthTestingDepthStencilState();
 BlendState GetNoBlendingBlendState();
 
+// Combines viewport and scissor updates
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth = 0.0f, float max_depth = 1.0f);
+
+// Completes the current render pass, executes the command buffer, and restores state ready for next render.
+// Use when you want to kick the current buffer to make room for new data.
+void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr);
 
 }
 
