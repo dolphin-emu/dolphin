@@ -1,9 +1,8 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/StaticShaderCache.h"
-#include "VideoBackends/Vulkan/ShaderCache.h"
 
 namespace Vulkan {
 

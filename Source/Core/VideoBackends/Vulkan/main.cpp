@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -6,20 +6,20 @@
 
 #include "Core/Host.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/Globals.h"
 #include "VideoBackends/Vulkan/Helpers.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PerfQuery.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
+#include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/VertexManager.h"
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
-#include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/SwapChain.h"
-#include "VideoBackends/Vulkan/StateTracker.h"
-#include "VideoBackends/Vulkan/ObjectCache.h"
 
 #include "VideoCommon/BPStructs.h"
 #include "VideoCommon/CommandProcessor.h"

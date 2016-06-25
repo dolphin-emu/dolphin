@@ -1,18 +1,10 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <array>
-#include <map>
-#include <memory>
 #include <vector>
-
-#include "VideoCommon/GeometryShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
-#include "VideoCommon/VertexShaderGen.h"
-#include "VideoCommon/VideoCommon.h"
 
 #include "VideoBackends/Vulkan/Globals.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"

@@ -1,4 +1,4 @@
-// Copyright 2015 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -9,12 +9,12 @@
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoBackends/Vulkan/Globals.h"
-#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
 
 class ObjectCache;
+class VertexFormat;
 
 class StateTracker
 {

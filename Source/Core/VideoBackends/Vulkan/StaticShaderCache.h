@@ -4,12 +4,6 @@
 
 #pragma once
 
-#include <array>
-#include <cstring>
-#include <map>
-#include <memory>
-#include <vector>
-
 #include "VideoBackends/Vulkan/Globals.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
