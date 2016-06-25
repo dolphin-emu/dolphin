@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
 
@@ -31,7 +32,7 @@ static const struct
 // lil silly
 static HWND m_hwnd;
 
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd)
+void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd)
 {
   m_hwnd = _hwnd;
 
@@ -43,26 +44,15 @@ void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& de
   LPDIRECTINPUTDEVICE8 kb_device = nullptr;
   LPDIRECTINPUTDEVICE8 mo_device = nullptr;
 
-  if (SUCCEEDED(idi8->CreateDevice(GUID_SysKeyboard, &kb_device, nullptr)))
+  if (SUCCEEDED(idi8->CreateDevice(GUID_SysKeyboard, &kb_device, nullptr)) &&
+      SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)) &&
+      SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)) &&
+      SUCCEEDED(idi8->CreateDevice(GUID_SysMouse, &mo_device, nullptr)) &&
+      SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)) &&
+      SUCCEEDED(mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
   {
-    if (SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)))
-    {
-      if (SUCCEEDED(kb_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
-      {
-        if (SUCCEEDED(idi8->CreateDevice(GUID_SysMouse, &mo_device, nullptr)))
-        {
-          if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
-          {
-            if (SUCCEEDED(
-                    mo_device->SetCooperativeLevel(nullptr, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
-            {
-              devices.push_back(new KeyboardMouse(kb_device, mo_device));
-              return;
-            }
-          }
-        }
-      }
-    }
+    g_controller_interface.AddDevice(new KeyboardMouse(kb_device, mo_device));
+    return;
   }
 
   if (kb_device)

@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <map>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -121,6 +122,7 @@ public:
   void Initialize(void* const hwnd);
   void Reinitialize();
   void Shutdown();
+  void AddDevice(ciface::Core::Device* device);
   bool IsInit() const { return m_is_init; }
   void UpdateReference(ControlReference* control,
                        const ciface::Core::DeviceQualifier& default_device) const;

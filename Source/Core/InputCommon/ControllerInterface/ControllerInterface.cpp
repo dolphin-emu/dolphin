@@ -55,31 +55,31 @@ void ControllerInterface::Initialize(void* const hwnd)
   m_hwnd = hwnd;
 
 #ifdef CIFACE_USE_DINPUT
-  ciface::DInput::Init(m_devices, (HWND)hwnd);
+  ciface::DInput::Init((HWND)hwnd);
 #endif
 #ifdef CIFACE_USE_XINPUT
-  ciface::XInput::Init(m_devices);
+  ciface::XInput::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::Xlib::Init(m_devices, hwnd);
+  ciface::Xlib::Init(hwnd);
 #ifdef CIFACE_USE_X11_XINPUT2
-  ciface::XInput2::Init(m_devices, hwnd);
+  ciface::XInput2::Init(hwnd);
 #endif
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::Init(m_devices, hwnd);
+  ciface::OSX::Init(hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
-  ciface::SDL::Init(m_devices);
+  ciface::SDL::Init();
 #endif
 #ifdef CIFACE_USE_ANDROID
-  ciface::Android::Init(m_devices);
+  ciface::Android::Init();
 #endif
 #ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Init(m_devices);
+  ciface::evdev::Init();
 #endif
 #ifdef CIFACE_USE_PIPES
-  ciface::Pipes::Init(m_devices);
+  ciface::Pipes::Init();
 #endif
 
   m_is_init = true;
@@ -103,6 +103,8 @@ void ControllerInterface::Shutdown()
 {
   if (!m_is_init)
     return;
+
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
 
   for (ciface::Core::Device* d : m_devices)
   {
@@ -139,6 +141,12 @@ void ControllerInterface::Shutdown()
   m_is_init = false;
 }
 
+void ControllerInterface::AddDevice(ciface::Core::Device* device)
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  m_devices.push_back(device);
+}
+
 //
 // UpdateInput
 //
@@ -146,6 +154,7 @@ void ControllerInterface::Shutdown()
 //
 void ControllerInterface::UpdateInput()
 {
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
   for (ciface::Core::Device* d : m_devices)
     d->UpdateInput();
 }

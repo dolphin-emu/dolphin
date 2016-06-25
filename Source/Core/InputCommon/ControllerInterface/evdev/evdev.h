@@ -8,13 +8,11 @@
 #include <string>
 #include <vector>
 
-#include "InputCommon/ControllerInterface/Device.h"
-
 namespace ciface
 {
 namespace evdev
 {
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 
 class evdevDevice : public Core::Device
 {

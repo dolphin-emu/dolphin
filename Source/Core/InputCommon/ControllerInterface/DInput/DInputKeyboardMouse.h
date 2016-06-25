@@ -13,7 +13,7 @@ namespace ciface
 {
 namespace DInput
 {
-void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND _hwnd);
+void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd);
 
 class KeyboardMouse : public Core::Device
 {
