@@ -9,7 +9,7 @@ namespace Vulkan {
 StaticShaderCache::StaticShaderCache(VkDevice device, VertexShaderCache* vs_cache, GeometryShaderCache* gs_cache, PixelShaderCache* ps_cache)
 	: m_device(device)
 	, m_vs_cache(vs_cache)
-	, m_gs_cache(gs_cache)
+	//, m_gs_cache(gs_cache)
 	, m_ps_cache(ps_cache)
 {
 

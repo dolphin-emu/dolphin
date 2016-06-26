@@ -34,7 +34,7 @@ public:
 private:
 	VkDevice m_device;
 	VertexShaderCache* m_vs_cache;
-	GeometryShaderCache* m_gs_cache;
+	//GeometryShaderCache* m_gs_cache;
 	PixelShaderCache* m_ps_cache;
 
 	struct

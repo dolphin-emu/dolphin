@@ -1,34 +1,57 @@
-cmake_minimum_required(VERSION 2.8.12)
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(SRCS
+	glslang/GenericCodeGen/CodeGen.cpp
+	glslang/GenericCodeGen/Link.cpp
+	glslang/MachineIndependent/Constant.cpp
+	glslang/MachineIndependent/glslang_tab.cpp
+	glslang/MachineIndependent/InfoSink.cpp
+	glslang/MachineIndependent/Initialize.cpp
+	glslang/MachineIndependent/Intermediate.cpp
+	glslang/MachineIndependent/intermOut.cpp
+	glslang/MachineIndependent/IntermTraverse.cpp
+	glslang/MachineIndependent/limits.cpp
+	glslang/MachineIndependent/linkValidate.cpp
+	glslang/MachineIndependent/parseConst.cpp
+	glslang/MachineIndependent/ParseHelper.cpp
+	glslang/MachineIndependent/PoolAlloc.cpp
+	glslang/MachineIndependent/preprocessor/Pp.cpp
+	glslang/MachineIndependent/preprocessor/PpAtom.cpp
+	glslang/MachineIndependent/preprocessor/PpContext.cpp
+	glslang/MachineIndependent/preprocessor/PpMemory.cpp
+	glslang/MachineIndependent/preprocessor/PpScanner.cpp
+	glslang/MachineIndependent/preprocessor/PpSymbols.cpp
+	glslang/MachineIndependent/preprocessor/PpTokens.cpp
+	glslang/MachineIndependent/propagateNoContraction.cpp
+	glslang/MachineIndependent/reflection.cpp
+	glslang/MachineIndependent/RemoveTree.cpp
+	glslang/MachineIndependent/Scan.cpp
+	glslang/MachineIndependent/ShaderLang.cpp
+	glslang/MachineIndependent/SymbolTable.cpp
+	glslang/MachineIndependent/Versions.cpp
+	glslang/OSDependent/Unix/ossource.cpp
+	hlsl/hlslGrammar.cpp
+	hlsl/hlslOpMap.cpp
+	hlsl/hlslParseHelper.cpp
+	hlsl/hlslScanContext.cpp
+	hlsl/hlslTokenStream.cpp
+	OGLCompilersDLL/InitializeDll.cpp
+	SPIRV/disassemble.cpp
+	SPIRV/doc.cpp
+	SPIRV/GlslangToSpv.cpp
+	SPIRV/InReadableOrder.cpp
+	SPIRV/Logger.cpp
+	SPIRV/SpvBuilder.cpp
+	SPIRV/SPVRemapper.cpp
+	StandAlone/DefaultResourceLimits.cpp
+)
 
-enable_testing()
+add_definitions(-std=c++11)
 
-set(CMAKE_INSTALL_PREFIX "install" CACHE STRING "prefix")
+# Silence some warnings so we don't spam our build logs
+add_definitions(-Wno-shadow)
+add_definitions(-Wno-reorder)
+add_definitions(-Wno-sign-compare)
+add_definitions(-Wno-parentheses)
+add_definitions(-Wno-unused-variable)
 
-project(glslang)
+add_library(glslang STATIC ${SRCS})
 
-if(WIN32)
-    include(ChooseMSVCCRT.cmake)
-    add_definitions(-DGLSLANG_OSINCLUDE_WIN32)
-elseif(UNIX)
-    add_definitions(-fPIC)
-    add_definitions(-DGLSLANG_OSINCLUDE_UNIX)
-else(WIN32)
-    message("unknown platform")
-endif(WIN32)
-
-if(CMAKE_COMPILER_IS_GNUCXX)
-    add_definitions(-std=c++11)
-elseif(${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
-    add_definitions(-std=c++11)
-endif()
-
-# We depend on these for later projects, so they should come first.
-add_subdirectory(External)
-
-add_subdirectory(glslang)
-add_subdirectory(OGLCompilersDLL)
-add_subdirectory(StandAlone)
-add_subdirectory(SPIRV)
-add_subdirectory(hlsl)
-add_subdirectory(gtests)
