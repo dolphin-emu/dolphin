@@ -182,7 +182,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
     }
     else
     {
-      out.Write("\tVS_OUTPUT center = o[0];\n", uid_data->numTexGens, uid_data->pixel_lighting);
+      out.Write("\tVS_OUTPUT center = o[0];\n");
     }
 
     // Offset from center to upper right vertex
