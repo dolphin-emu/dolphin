@@ -138,7 +138,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
           "If DSP LLE is used, DSP ROMs must be identical between players.\n"
           "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
           "\n"
-          "Wiimote support is broken in netplay and therefore disabled.\n"));
+          "Wiimote netplay is experimental and should not be expected to work.\n"));
 
     wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
 
