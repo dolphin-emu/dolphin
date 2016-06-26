@@ -33,8 +33,10 @@ public:
 	Texture2D* GetCurrentTexture() const { return m_swap_chain_images[m_current_swap_chain_image_index].Texture.get(); }
 	VkFramebuffer GetCurrentFramebuffer() const { return m_swap_chain_images[m_current_swap_chain_image_index].Framebuffer; }
 
-	bool AcquireNextImage(VkSemaphore available_semaphore);
-	bool Present(VkSemaphore rendering_complete_semaphore);
+	VkResult AcquireNextImage(VkSemaphore available_semaphore);
+	VkResult Present(VkSemaphore rendering_complete_semaphore);
+
+	bool ResizeSwapChain();
 
 private:
 	bool SelectFormats();

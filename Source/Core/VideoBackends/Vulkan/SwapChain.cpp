@@ -265,19 +265,16 @@ void SwapChain::DestroySwapChain()
 	m_swap_chain = nullptr;
 }
 
-bool SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
+VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
 {
 	VkResult res = vkAcquireNextImageKHR(m_object_cache->GetDevice(), m_swap_chain, UINT64_MAX, available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
-	if (res != VK_SUCCESS)
-	{
+	if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
 		LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
-		return false;
-	}
 
-	return true;
+	return res;
 }
 
-bool SwapChain::Present(VkSemaphore rendering_complete_semaphore)
+VkResult SwapChain::Present(VkSemaphore rendering_complete_semaphore)
 {
 	VkPresentInfoKHR present_info = {
 		VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -291,9 +288,21 @@ bool SwapChain::Present(VkSemaphore rendering_complete_semaphore)
 	};
 
 	VkResult res = vkQueuePresentKHR(m_present_queue, &present_info);
-	if (res != VK_SUCCESS)
-	{
+	if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
 		LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
+
+	return res;
+}
+
+bool SwapChain::ResizeSwapChain()
+{
+	if (!CreateSwapChain(m_swap_chain))
+		return false;
+
+	DestroySwapChainImages();
+	if (!SetupSwapChainImages())
+	{
+		PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
 		return false;
 	}
 

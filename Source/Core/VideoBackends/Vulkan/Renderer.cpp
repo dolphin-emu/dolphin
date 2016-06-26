@@ -101,17 +101,27 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = rc.left;
-	result.top    = rc.top;
-	result.right  = rc.right;
-	result.bottom = rc.bottom;
+	result.left = EFBToScaledX(rc.left);
+	result.top = EFBToScaledY(rc.top);
+	result.right = EFBToScaledX(rc.right);
+	result.bottom = EFBToScaledY(rc.bottom);
 	return result;
 }
 
 void Renderer::BeginFrame()
 {
 	// Grab the next image from the swap chain
-	if (!m_swap_chain->AcquireNextImage(m_image_available_semaphore))
+	VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		// Window has been resized. Update the swap chain and try again.
+		if (m_swap_chain->ResizeSwapChain())
+		{
+			res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+			OnSwapChainResized();
+		}
+	}
+	if (res != VK_SUCCESS)
 		PanicAlert("Failed to grab image from swap chain");
 
 	// Activate a new command list, and restore state ready for the next draw
@@ -249,12 +259,26 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	m_command_buffer_mgr->SubmitCommandBuffer(m_rendering_finished_semaphore);
 
 	// Queue a present of the swap chain
-	m_swap_chain->Present(m_rendering_finished_semaphore);
+	VkResult res = m_swap_chain->Present(m_rendering_finished_semaphore);
+	if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		// Window resized, resize swap chain
+		if (m_swap_chain->ResizeSwapChain())
+			OnSwapChainResized();
+	}
+
+	// Prep for the next frame (get command buffer ready) before doing anything else.
+	BeginFrame();
 
 	UpdateActiveConfig();
 
-	// Prep for the next frame
-	BeginFrame();
+	// Handle internal resolution changes
+	if (s_last_efb_scale != g_ActiveConfig.iEFBScale)
+	{
+		s_last_efb_scale = g_ActiveConfig.iEFBScale;
+		if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+			ResizeEFBTextures();
+	}
 }
 
 void Renderer::OnSwapChainResized()
@@ -273,6 +297,7 @@ void Renderer::OnSwapChainResized()
 void Renderer::ResizeEFBTextures()
 {
 	m_framebuffer_mgr->ResizeEFBTextures();
+	s_last_efb_scale = g_ActiveConfig.iEFBScale;
 
 	// Update framebuffer in state tracker
 	VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
