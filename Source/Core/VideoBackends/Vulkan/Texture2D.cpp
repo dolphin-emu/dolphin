@@ -12,7 +12,7 @@
 
 namespace Vulkan {
 
-Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImage image, VkDeviceMemory device_memory, VkImageView view)
+Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory, VkImageView view)
 	: m_command_buffer_mgr(command_buffer_mgr)
 	, m_width(width)
 	, m_height(height)
@@ -20,6 +20,7 @@ Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 he
 	, m_layers(layers)
 	, m_format(format)
 	, m_layout(VK_IMAGE_LAYOUT_UNDEFINED)
+	, m_view_type(view_type)
 	, m_image(image)
 	, m_device_memory(device_memory)
 	, m_view(view)
@@ -29,13 +30,17 @@ Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 he
 
 Texture2D::~Texture2D()
 {
-	if (m_view)
-		m_command_buffer_mgr->DeferResourceDestruction(m_view);
-	if (m_image)
+	m_command_buffer_mgr->DeferResourceDestruction(m_view);
+
+	// If we don't have device memory allocated, consider the image to be owned elsewhere (e.g. swapchain)
+	if (m_device_memory)
+	{
 		m_command_buffer_mgr->DeferResourceDestruction(m_image);
+		m_command_buffer_mgr->DeferResourceDestruction(m_device_memory);
+	}
 }
 
-std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage)
+std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImageTiling tiling, VkImageUsageFlags usage)
 {
 	// Create image descriptor
 	VkImageCreateInfo image_info = {
@@ -98,7 +103,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		nullptr,
 		0,
 		image,
-		VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+		view_type,
 		format,
 		{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
 		{ static_cast<VkImageAspectFlags>(IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT), 0, levels, 0, layers }
@@ -114,7 +119,37 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		return nullptr;
 	}
 
-	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, image, device_memory, view);
+	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, image, device_memory, view);
+}
+
+std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage existing_image)
+{
+	// Only need to create the image view
+	VkImageViewCreateInfo view_info = {
+		VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+		nullptr,
+		0,
+		existing_image,
+		view_type,
+		format,
+		{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
+		{ static_cast<VkImageAspectFlags>(IsDepthFormat(format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT), 0, levels, 0, layers }
+	};
+
+	VkImageView view = VK_NULL_HANDLE;
+	VkResult res = vkCreateImageView(object_cache->GetDevice(), &view_info, nullptr, &view);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
+		return nullptr;
+	}
+
+	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, existing_image, nullptr, view);
+}
+
+void Texture2D::OverrideImageLayout(VkImageLayout new_layout)
+{
+	m_layout = new_layout;
 }
 
 void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout new_layout)
@@ -157,6 +192,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 	default:																														break;
 	}
 
+	// TODO: Better selection of srcStageMask/dstStageMask
 	vkCmdPipelineBarrier(command_buffer,
 		VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
 		VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,

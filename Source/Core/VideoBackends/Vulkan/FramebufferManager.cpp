@@ -120,12 +120,12 @@ bool FramebufferManager::CreateEFBFramebuffer()
 
 	m_efb_color_texture = Texture2D::Create(m_object_cache, m_command_buffer_mgr,
 		m_efb_width, m_efb_height, 1, m_efb_layers,
-		EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_TILING_OPTIMAL,
+		EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
 	m_efb_depth_texture = Texture2D::Create(m_object_cache, m_command_buffer_mgr,
 		m_efb_width, m_efb_height, 1, m_efb_layers,
-		EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_TILING_OPTIMAL,
+		EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
 	if (!m_efb_color_texture || !m_efb_depth_texture)

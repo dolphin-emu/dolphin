@@ -59,7 +59,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 	// Allocate texture object
 	std::unique_ptr<Texture2D> texture = Texture2D::Create(m_object_cache, m_command_buffer_mgr,
 		config.width, config.height, config.levels, config.layers, TEXTURECACHE_TEXTURE_FORMAT,
-		VK_IMAGE_TILING_OPTIMAL,
+		VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
 	if (!texture)

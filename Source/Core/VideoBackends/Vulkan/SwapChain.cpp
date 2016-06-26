@@ -4,13 +4,25 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 
 #include "Common/Logging/Log.h"
 
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Helpers.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 
 namespace Vulkan {
+
+SwapChain::SwapChain(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkSurfaceKHR surface, VkQueue present_queue)
+	: m_object_cache(object_cache)
+	, m_command_buffer_mgr(command_buffer_mgr)
+	, m_surface(surface)
+	, m_present_queue(present_queue)
+{
+
+}
 
 SwapChain::~SwapChain()
 {
@@ -19,13 +31,8 @@ SwapChain::~SwapChain()
 	DestroyRenderPass();
 }
 
-bool SwapChain::Initialize(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, VkQueue present_queue, VkCommandBuffer setup_command_buffer)
+bool SwapChain::Initialize()
 {
-	m_physical_device = physical_device;
-	m_device = device;
-	m_surface = surface;
-	m_present_queue = present_queue;
-
 	if (!SelectFormats())
 		return false;
 
@@ -35,7 +42,7 @@ bool SwapChain::Initialize(VkPhysicalDevice physical_device, VkDevice device, Vk
 	if (!CreateSwapChain(nullptr))
 		return false;
 
-	if (!SetupSwapChainImages(setup_command_buffer))
+	if (!SetupSwapChainImages())
 		return false;
 
 	return true;
@@ -44,7 +51,7 @@ bool SwapChain::Initialize(VkPhysicalDevice physical_device, VkDevice device, Vk
 bool SwapChain::SelectFormats()
 {
 	// Select swap chain format
-	m_surface_format = SelectVulkanSurfaceFormat(m_physical_device, m_surface);
+	m_surface_format = SelectVulkanSurfaceFormat(m_object_cache->GetPhysicalDevice(), m_surface);
 	if (m_surface_format.format == VK_FORMAT_RANGE_SIZE)
 		return false;
 
@@ -64,7 +71,7 @@ bool SwapChain::CreateRenderPass()
 			VK_ATTACHMENT_LOAD_OP_DONT_CARE,
 			VK_ATTACHMENT_STORE_OP_DONT_CARE,
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 		}
 	};
 
@@ -88,7 +95,7 @@ bool SwapChain::CreateRenderPass()
 		nullptr
 	};
 
-	VkResult res = vkCreateRenderPass(m_device, &present_render_pass_info, nullptr, &m_render_pass);
+	VkResult res = vkCreateRenderPass(m_object_cache->GetDevice(), &present_render_pass_info, nullptr, &m_render_pass);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkCreateRenderPass (present) failed: ");
@@ -102,7 +109,7 @@ void SwapChain::DestroyRenderPass()
 {
 	if (m_render_pass)
 	{
-		vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(m_render_pass);
 		m_render_pass = nullptr;
 	}
 }
@@ -111,7 +118,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 {
 	// Look up surface properties to determine image count and dimensions
 	VkSurfaceCapabilitiesKHR surface_capabilities;
-	VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_physical_device, m_surface, &surface_capabilities);
+	VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_object_cache->GetPhysicalDevice(), m_surface, &surface_capabilities);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceCapabilitiesKHR failed: ");
@@ -119,7 +126,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 	}
 
 	// Select swap chain format and present mode
-	VkPresentModeKHR present_mode = SelectVulkanPresentMode(m_physical_device, m_surface);
+	VkPresentModeKHR present_mode = SelectVulkanPresentMode(m_object_cache->GetPhysicalDevice(), m_surface);
 	if (present_mode == VK_PRESENT_MODE_RANGE_SIZE_KHR)
 		return false;
 
@@ -128,7 +135,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
 	// Determine the dimensions of the swap chain. Values of -1 indicate the size we specify here determines window size?
 	m_size = surface_capabilities.currentExtent;
-	if (m_size.width == 0)
+	if (m_size.width == UINT32_MAX)
 	{
 		m_size.width = std::min(std::max(surface_capabilities.minImageExtent.width, 640u), surface_capabilities.maxImageExtent.width);
 		m_size.height = std::min(std::max(surface_capabilities.minImageExtent.height, 480u), surface_capabilities.maxImageExtent.height);
@@ -169,7 +176,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 		old_swap_chain
 	};
 
-	res = vkCreateSwapchainKHR(m_device, &swap_chain_info, nullptr, &m_swap_chain);
+	res = vkCreateSwapchainKHR(m_object_cache->GetDevice(), &swap_chain_info, nullptr, &m_swap_chain);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkCreateCommandPool failed: ");
@@ -178,17 +185,17 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
 	// now destroy the old swap chain, since it's been recreated
 	if (old_swap_chain)
-		vkDestroySwapchainKHR(m_device, old_swap_chain, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(old_swap_chain);
 
 	return true;
 }
 
-bool SwapChain::SetupSwapChainImages(VkCommandBuffer setup_command_buffer)
+bool SwapChain::SetupSwapChainImages()
 {
 	assert(m_swap_chain_images.empty());
 
 	uint32_t image_count;
-	VkResult res = vkGetSwapchainImagesKHR(m_device, m_swap_chain, &image_count, nullptr);
+	VkResult res = vkGetSwapchainImagesKHR(m_object_cache->GetDevice(), m_swap_chain, &image_count, nullptr);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkGetSwapchainImagesKHR failed: ");
@@ -196,7 +203,7 @@ bool SwapChain::SetupSwapChainImages(VkCommandBuffer setup_command_buffer)
 	}
 
 	std::vector<VkImage> images(image_count);
-	res = vkGetSwapchainImagesKHR(m_device, m_swap_chain, &image_count, images.data());
+	res = vkGetSwapchainImagesKHR(m_object_cache->GetDevice(), m_swap_chain, &image_count, images.data());
 	assert(res == VK_SUCCESS);
 
 	m_swap_chain_images.reserve(image_count);
@@ -205,66 +212,37 @@ bool SwapChain::SetupSwapChainImages(VkCommandBuffer setup_command_buffer)
 		SwapChainImage image;
 		image.Image = images[i];
 
-		VkImageViewCreateInfo view_info = {
-			VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			nullptr,
-			0,
-			images[i],
-			VK_IMAGE_VIEW_TYPE_2D,
+		// Create texture object, which creates a view of the backbuffer
+		image.Texture = Texture2D::CreateFromExistingImage(
+			m_object_cache,
+			m_command_buffer_mgr,
+			m_size.width, m_size.height,
+			1, 1,
 			m_surface_format.format,
-			{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
-			{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-		};
+			VK_IMAGE_VIEW_TYPE_2D,
+			image.Image);
 
-		res = vkCreateImageView(m_device, &view_info, nullptr, &image.View);
-		if (res != VK_SUCCESS)
-		{
-			LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
-			return false;
-		}
-
+		VkImageView view = image.Texture->GetView();
 		VkFramebufferCreateInfo framebuffer_info = {
 			VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
 			nullptr,
 			0,
 			m_render_pass,
 			1,
-			&image.View,
+			&view,
 			m_size.width,
 			m_size.height,
 			1
 		};
 
-		res = vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &image.Framebuffer);
+		res = vkCreateFramebuffer(m_object_cache->GetDevice(), &framebuffer_info, nullptr, &image.Framebuffer);
 		if (res != VK_SUCCESS)
 		{
 			LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
-			vkDestroyImageView(m_device, image.View, nullptr);
 			return false;
 		}
 
-		// Transition this image from undefined to present src as expected
-		// TODO: Maybe we should just wrap these in our Texture2D class?
-		VkImageMemoryBarrier barrier =
-		{
-			VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType            sType
-			nullptr,											// const void*                pNext
-			0,													// VkAccessFlags              srcAccessMask
-			VK_ACCESS_MEMORY_READ_BIT,							// VkAccessFlags              dstAccessMask
-			VK_IMAGE_LAYOUT_UNDEFINED,							// VkImageLayout              oldLayout
-			VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,					// VkImageLayout              newLayout
-			VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   srcQueueFamilyIndex
-			VK_QUEUE_FAMILY_IGNORED,							// uint32_t                   dstQueueFamilyIndex
-			image.Image,										// VkImage                    image
-			{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }			// VkImageSubresourceRange    subresourceRange
-		};
-
-		vkCmdPipelineBarrier(setup_command_buffer,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-			0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-		m_swap_chain_images.push_back(image);
+		m_swap_chain_images.emplace_back(std::move(image));
 	}
 
 	return true;
@@ -275,8 +253,7 @@ void SwapChain::DestroySwapChainImages()
 	for (auto& it : m_swap_chain_images)
 	{
 		// Images themselves are cleaned up by the swap chain object
-		vkDestroyFramebuffer(m_device, it.Framebuffer, nullptr);
-		vkDestroyImageView(m_device, it.View, nullptr);
+		m_command_buffer_mgr->DeferResourceDestruction(it.Framebuffer);
 	}
 	m_swap_chain_images.clear();
 }
@@ -284,13 +261,13 @@ void SwapChain::DestroySwapChainImages()
 void SwapChain::DestroySwapChain()
 {
 	DestroySwapChainImages();
-	vkDestroySwapchainKHR(m_device, m_swap_chain, nullptr);
+	vkDestroySwapchainKHR(m_object_cache->GetDevice(), m_swap_chain, nullptr);
 	m_swap_chain = nullptr;
 }
 
 bool SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
 {
-	VkResult res = vkAcquireNextImageKHR(m_device, m_swap_chain, UINT64_MAX, available_semaphore, nullptr, &m_current_swap_chain_image_index);
+	VkResult res = vkAcquireNextImageKHR(m_object_cache->GetDevice(), m_swap_chain, UINT64_MAX, available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
@@ -298,50 +275,6 @@ bool SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
 	}
 
 	return true;
-}
-
-void SwapChain::TransitionToAttachment(VkCommandBuffer command_buffer)
-{
-	// Transition from present to color attachment
-	VkImageMemoryBarrier barrier = {
-		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		nullptr,
-		VK_ACCESS_MEMORY_READ_BIT,
-		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		m_swap_chain_images[m_current_swap_chain_image_index].Image,
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-	};
-
-	vkCmdPipelineBarrier(command_buffer,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		0, 0, nullptr, 0, nullptr, 1, &barrier);
-}
-
-void SwapChain::TransitionToPresent(VkCommandBuffer command_buffer)
-{
-	// Transition from color attachment to present to color attachment
-	VkImageMemoryBarrier barrier = {
-		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		nullptr,
-		VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-		VK_ACCESS_MEMORY_READ_BIT,
-		VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-		VK_QUEUE_FAMILY_IGNORED,
-		VK_QUEUE_FAMILY_IGNORED,
-		m_swap_chain_images[m_current_swap_chain_image_index].Image,
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 }
-	};
-
-	vkCmdPipelineBarrier(command_buffer,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-		0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
 bool SwapChain::Present(VkSemaphore rendering_complete_semaphore)

@@ -198,8 +198,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	// Blitting to the screen
 	{
-		// Transition from present to attachment so we can write to it
-		m_swap_chain->TransitionToAttachment(m_command_buffer_mgr->GetCurrentCommandBuffer());
+		// Transition from undefined (or present src, but it can be substituted) to color attachment ready for writing.
+		m_swap_chain->GetCurrentTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+															  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 		// Begin the present render pass
 		VkClearValue clear_value = { { 0.0f, 0.0f, 0.0f, 1.0f } };
@@ -232,11 +234,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 		              m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
 		              target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
-		// End the present render pass
+		// End the present render pass. The render pass transitions the image to PRESENT_SRC.
 		vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
-
-		// Transition back to present source so we can display it
-		m_swap_chain->TransitionToPresent(m_command_buffer_mgr->GetCurrentCommandBuffer());
 	}
 
 	// Submit the current command buffer, signaling rendering finished semaphore when it's done
