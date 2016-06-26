@@ -102,6 +102,7 @@ struct VideoConfig final
   bool bFreeLook;
   bool bFreeLookAlwaysOn;
   bool bBorderlessFullscreen;
+  bool bMouselookAlwaysOn;
 
   // Hacks
   bool bEFBAccessEnable;
