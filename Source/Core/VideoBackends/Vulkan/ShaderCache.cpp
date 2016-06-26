@@ -34,7 +34,7 @@ template<typename Uid>
 struct ShaderCacheFunctions
 {
 	static EShLanguage GetStage();
-	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type);
+	static ShaderCode GenerateCode(const Uid& uid, DSTALPHA_MODE dstalpha_mode);
 	static std::string GetDiskCacheFileName();
 	static std::string GetDumpFileName(const char* prefix);
 	static void ResetCounters();
@@ -256,7 +256,7 @@ VkShaderModule ShaderCache<Uid>::CompileAndCreateShader(const std::string& shade
 }
 
 template <typename Uid>
-VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_type, DSTALPHA_MODE dstalpha_mode)
+VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, DSTALPHA_MODE dstalpha_mode)
 {
 	// Check if the shader is already in the cache
 	auto iter = m_shaders.find(uid);
@@ -264,7 +264,7 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 		return iter->second;
 
 	// Have to compile the shader, so generate the source code for it
-	ShaderCode code = ShaderCacheFunctions<Uid>::GenerateCode(dstalpha_mode, primitive_type);
+	ShaderCode code = ShaderCacheFunctions<Uid>::GenerateCode(uid, dstalpha_mode);
 	std::string full_code = GetShaderHeader() + code.GetBuffer();
 
 	// Actually compile the shader, this may not succeed if we did something bad
@@ -361,9 +361,9 @@ struct ShaderCacheFunctions<VertexShaderUid>
 		return EShLangVertex;
 	}
 
-	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
+	static ShaderCode GenerateCode(const VertexShaderUid& uid, DSTALPHA_MODE dstalpha_mode)
 	{
-		return GenerateVertexShaderCode(API_VULKAN);
+		return GenerateVertexShaderCode(API_VULKAN, uid.GetUidData());
 	}
 
 	static std::string GetDiskCacheFileName()
@@ -411,9 +411,9 @@ struct ShaderCacheFunctions<GeometryShaderUid>
 		return EShLangGeometry;
 	}
 
-	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
+	static ShaderCode GenerateCode(const GeometryShaderUid& uid, DSTALPHA_MODE dstalpha_mode)
 	{
-		return GenerateGeometryShaderCode(primitive_type, API_VULKAN);
+		return GenerateGeometryShaderCode(API_VULKAN, uid.GetUidData());
 	}
 
 	static std::string GetDiskCacheFileName()
@@ -461,9 +461,9 @@ struct ShaderCacheFunctions<PixelShaderUid>
 		return EShLangFragment;
 	}
 
-	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
+	static ShaderCode GenerateCode(const PixelShaderUid& uid, DSTALPHA_MODE dstalpha_mode)
 	{
-		return GeneratePixelShaderCode(dst_alpha_mode, API_VULKAN);
+		return GeneratePixelShaderCode(dstalpha_mode, API_VULKAN, uid.GetUidData());
 	}
 
 	static std::string GetDiskCacheFileName()

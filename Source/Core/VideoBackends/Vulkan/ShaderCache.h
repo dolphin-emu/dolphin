@@ -27,7 +27,7 @@ public:
 
 	VkShaderModule CompileAndCreateShader(const std::string& shader_source, bool prepend_header = true);
 
-	VkShaderModule GetShaderForUid(const Uid& uid, u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
+	VkShaderModule GetShaderForUid(const Uid& uid, DSTALPHA_MODE dstalpha_mode);
 
 private:
 	bool CompileShaderToSPV(const std::string& shader_source, std::vector<unsigned int>* spv);

@@ -172,15 +172,15 @@ void StateTracker::SetColorMask(u32 mask)
 
 bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode)
 {
-	VertexShaderUid vs_uid = GetVertexShaderUid(API_VULKAN);
-	GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type, API_VULKAN);
-	PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode, API_VULKAN);
+	VertexShaderUid vs_uid = GetVertexShaderUid();
+	GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type);
+	PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode);
 
 	bool changed = false;
 
 	if (vs_uid != m_vs_uid)
 	{
-		m_pipeline_state.vs = m_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, gx_primitive_type, dstalpha_mode);
+		m_pipeline_state.vs = m_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, dstalpha_mode);
 		m_vs_uid = vs_uid;
 		changed = true;
 	}
@@ -190,7 +190,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
 		if (gs_uid.GetUidData()->IsPassthrough())
 			m_pipeline_state.gs = VK_NULL_HANDLE;
 		else
-			m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, gx_primitive_type, dstalpha_mode);
+			m_pipeline_state.gs = m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, dstalpha_mode);
 
 		m_gs_uid = gs_uid;
 		changed = true;
@@ -198,7 +198,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
 
 	if (ps_uid != m_ps_uid)
 	{
-		m_pipeline_state.ps = m_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, gx_primitive_type, dstalpha_mode);
+		m_pipeline_state.ps = m_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, dstalpha_mode);
 		m_ps_uid = ps_uid;
 		changed = true;
 	}
