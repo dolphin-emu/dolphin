@@ -167,9 +167,15 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
 {
   int block_num = GetBlockNumberFromStartAddress(addr);
   if (block_num < 0 || blocks[block_num].msrBits != (MSR & 0x30))
+  {
     Jit(addr);
+  }
   else
+  {
     iCache[(addr >> 2) & iCache_Mask] = block_num;
+    JitBlock& b = blocks[block_num];
+    WriteUndestroyBlock(b.checkedEntry, b.effectiveAddress);
+  }
 }
 
 // Block linker
@@ -305,6 +311,23 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   }
 }
 
+void JitBaseBlockCache::EvictTLBEntry(u32 address)
+{
+  auto iter = start_block_map.lower_bound(address);
+  while (iter != start_block_map.end() && (iter->first & ~0xFFF) == address)
+  {
+    // Remove the block from the fast lookup map, so we re-verify the address
+    // before using it again.
+    iCache[(iter->first >> 2) & iCache_Mask] = 0;
+
+    // Unlink the block.
+    JitBlock& b = blocks[iter->second];
+    WriteDestroyBlock(b.checkedEntry, b.effectiveAddress);
+
+    ++iter;
+  }
+}
+
 void JitBlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 {
   const u8* address = block.checkedEntry;
@@ -331,4 +354,13 @@ void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)
   XEmitter emit((u8*)location);
   emit.MOV(32, PPCSTATE(pc), Imm32(address));
   emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
+}
+
+void JitBlockCache::WriteUndestroyBlock(const u8* location, u32 address)
+{
+  XEmitter emit((u8*)location);
+  FixupBranch skip = emit.J_CC(CC_NBE);
+  emit.MOV(32, PPCSTATE(pc), Imm32(address));
+  emit.JMP(jit->GetAsmRoutines()->doTiming, true);  // downcount hit zero - go doTiming.
+  emit.SetJumpTarget(skip);
 }

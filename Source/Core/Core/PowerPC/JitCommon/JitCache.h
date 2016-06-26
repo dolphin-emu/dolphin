@@ -91,6 +91,7 @@ class JitBaseBlockCache
   // Virtual for overloaded
   virtual void WriteLinkBlock(u8* location, const JitBlock& block) = 0;
   virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
+  virtual void WriteUndestroyBlock(const u8* location, u32 address) = 0;
 
 public:
   JitBaseBlockCache() : num_blocks(0) {}
@@ -121,6 +122,7 @@ public:
   void InvalidateICache(u32 address, const u32 length, bool forced);
 
   u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
+  void EvictTLBEntry(u32 address);
 };
 
 // x86 BlockCache
@@ -129,4 +131,5 @@ class JitBlockCache : public JitBaseBlockCache
 private:
   void WriteLinkBlock(u8* location, const JitBlock& block) override;
   void WriteDestroyBlock(const u8* location, u32 address) override;
+  void WriteUndestroyBlock(const u8* location, u32 address) override;
 };
