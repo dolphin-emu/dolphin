@@ -555,17 +555,16 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
   }
 }
 
-void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
-                          const std::string& config_name)
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
   if (backend_name == "Software Renderer")
   {
-    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name, config_name);
+    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name);
     diag.ShowModal();
   }
   else
   {
-    VideoConfigDiag diag((wxWindow*)parent, backend_name, config_name);
+    VideoConfigDiag diag((wxWindow*)parent, backend_name);
     diag.ShowModal();
   }
 }

@@ -163,7 +163,7 @@ void VideoBackendBase::ShowConfig(void* parent_handle)
   if (!m_initialized)
     InitBackendInfo();
 
-  Host_ShowVideoConfig(parent_handle, GetDisplayName(), GetConfigName());
+  Host_ShowVideoConfig(parent_handle, GetDisplayName());
 }
 
 void VideoBackendBase::InitializeShared()
@@ -194,10 +194,7 @@ void VideoBackendBase::InitializeShared()
   GeometryShaderManager::Init();
   PixelShaderManager::Init();
 
-  if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-  else
-    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + GetConfigName() + ".ini");
+  g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
   g_Config.GameIniLoad();
   g_Config.UpdateProjectionHack();
   g_Config.VerifyValidity();

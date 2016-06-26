@@ -134,11 +134,6 @@ std::string VideoSoftware::GetDisplayName() const
   return "Software Renderer";
 }
 
-std::string VideoSoftware::GetConfigName() const
-{
-  return "gfx_software";
-}
-
 void VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.APIType = API_NONE;

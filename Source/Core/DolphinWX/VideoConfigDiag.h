@@ -83,7 +83,7 @@ private:
 class VideoConfigDiag : public wxDialog
 {
 public:
-  VideoConfigDiag(wxWindow* parent, const std::string& title, const std::string& ininame);
+  VideoConfigDiag(wxWindow* parent, const std::string& title);
 
 protected:
   void Event_Backend(wxCommandEvent& ev)
