@@ -187,6 +187,37 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
   }
 }
 
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
+                                             BitSet32 registers_in_use)
+{
+  registers_in_use[reg_addr] = true;
+  if (reg_value.IsSimpleReg())
+    registers_in_use[reg_value.GetSimpleReg()] = true;
+
+  // Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
+  X64Reg scratch = RSCRATCH;
+  if (!registers_in_use[RSCRATCH])
+    scratch = RSCRATCH;
+  else if (!registers_in_use[RSCRATCH_EXTRA])
+    scratch = RSCRATCH_EXTRA;
+  else
+    scratch = reg_addr;
+
+  if (scratch == reg_addr)
+    PUSH(scratch);
+  else
+    MOV(32, R(scratch), R(reg_addr));
+
+  // Perform lookup to see if we can use fast path.
+  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  TEST(32, MScaled(scratch, SCALE_4, (u32)(u64)PowerPC::dbat_table), Imm32(2));
+
+  if (scratch == reg_addr)
+    POP(scratch);
+
+  return J_CC(CC_Z, farcode.Enabled());
+}
+
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
@@ -263,6 +294,19 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
   }
 
+  FixupBranch exit;
+  bool fast_check_address =
+      !jit->jo.alwaysUseMemFuncs && ((flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR);
+  if (fast_check_address)
+  {
+    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
+    UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
+    if (farcode.Enabled())
+      SwitchToFarCode();
+    else
+      exit = J(true);
+    SetJumpTarget(slow);
+  }
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
   switch (accessSize)
@@ -291,6 +335,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   else if (reg_value != ABI_RETURN)
   {
     MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
+  }
+
+  if (fast_check_address)
+  {
+    if (farcode.Enabled())
+    {
+      exit = J(true);
+      SwitchToNearCode();
+    }
+    SetJumpTarget(exit);
   }
 }
 
@@ -445,6 +499,21 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
 
+  FixupBranch exit;
+  bool fast_check_address =
+      !jit->jo.alwaysUseMemFuncs && ((flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR);
+  // FIXME: Skipping the DR check is a nasty hack... quantized stores suck.
+  if (fast_check_address)
+  {
+    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
+    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+    if (farcode.Enabled())
+      SwitchToFarCode();
+    else
+      exit = J(true);
+    SetJumpTarget(slow);
+  }
+
   // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
   MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
 
@@ -482,6 +551,16 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
+
+  if (fast_check_address)
+  {
+    if (farcode.Enabled())
+    {
+      exit = J(true);
+      SwitchToNearCode();
+    }
+    SetJumpTarget(exit);
+  }
 }
 
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)
