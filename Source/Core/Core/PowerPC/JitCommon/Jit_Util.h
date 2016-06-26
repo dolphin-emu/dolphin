@@ -81,6 +81,8 @@ public:
     SetCodePtr(nearcode);
   }
 
+  Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
+                                      BitSet32 registers_in_use);
   void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
                           s32 offset = 0, bool signExtend = false);
   void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
@@ -107,7 +109,8 @@ public:
     SAFE_LOADSTORE_NO_SWAP = 1,
     SAFE_LOADSTORE_NO_PROLOG = 2,
     SAFE_LOADSTORE_NO_FASTMEM = 4,
-    SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8
+    SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8,
+    SAFE_LOADSTORE_DR_ON = 16,
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
