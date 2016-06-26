@@ -9,7 +9,8 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI_Device.h"
 
-struct NetSettings {
+struct NetSettings
+{
   bool m_CPUthread;
   int m_CPUcore;
   int m_SelectedLanguage;
@@ -27,12 +28,14 @@ struct NetSettings {
 extern NetSettings g_NetPlaySettings;
 extern u64 g_netplay_initial_gctime;
 
-struct Rpt : public std::vector<u8> {
+struct Rpt : public std::vector<u8>
+{
   u16 channel;
 };
 
 // messages
-enum {
+enum
+{
   NP_MSG_PLAYER_JOIN = 0x10,
   NP_MSG_PLAYER_LEAVE = 0x11,
 
@@ -70,7 +73,8 @@ enum {
   NP_MSG_SYNC_GC_SRAM = 0xF0,
 };
 
-enum {
+enum
+{
   CON_ERR_SERVER_FULL = 1,
   CON_ERR_GAME_RUNNING = 2,
   CON_ERR_VERSION_MISMATCH = 3
@@ -83,6 +87,7 @@ using FrameNum = u32;
 using PadMapping = s8;
 using PadMappingArray = std::array<PadMapping, 4>;
 
-namespace NetPlay {
+namespace NetPlay
+{
 bool IsNetPlayRunning();
 }

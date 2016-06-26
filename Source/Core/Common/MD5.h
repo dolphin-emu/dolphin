@@ -4,12 +4,10 @@
 
 #pragma once
 
-#include <string>
 #include <functional>
+#include <string>
 
 namespace MD5
 {
-
-std::string MD5Sum(const std::string& file_name, std::function<bool (int)> progress);
-
+std::string MD5Sum(const std::string& file_name, std::function<bool(int)> progress);
 }
