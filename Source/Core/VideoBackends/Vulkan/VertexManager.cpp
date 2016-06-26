@@ -7,6 +7,7 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VertexManager.h"
 
@@ -88,9 +89,7 @@ void VertexManager::ResetBuffer(u32 stride)
 	if (!has_vbuffer_allocation || !has_ibuffer_allocation)
 	{
 		// Flush any pending commands first, so that we can wait on the fences
-		g_renderer->ResetAPIState();
-		m_command_buffer_mgr->ExecuteCommandBuffer(false);
-		g_renderer->RestoreAPIState();
+		Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker);
 
 		// Attempt to allocate again, this may cause a fence wait
 		if (!has_vbuffer_allocation)

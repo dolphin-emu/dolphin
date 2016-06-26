@@ -75,11 +75,19 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+  if (ApiType == API_OPENGL)
+  {
     out.Write("layout(std140%s) uniform GSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    out.Write("layout(std140, set = 0, binding = 1) uniform GSBlock {\n");
+  }
   else
+  {
     out.Write("cbuffer GSBlock {\n");
+  }
   out.Write("\tfloat4 " I_STEREOPARAMS ";\n"
             "\tfloat4 " I_LINEPTPARAMS ";\n"
             "\tint4 " I_TEXOFFSET ";\n"

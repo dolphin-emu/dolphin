@@ -26,9 +26,10 @@ public:
 	u8* GetHostPointer() const { return m_host_pointer; }
 
 	u8* GetCurrentHostPointer() const { return m_host_pointer + m_current_offset; }
+	size_t GetCurrentSize() const { return m_current_size; }
 	size_t GetCurrentOffset() const { return m_current_offset; }
 
-	bool ReserveMemory(size_t num_bytes, size_t alignment, bool allow_reuse = true, bool reallocate_if_full = false);
+	bool ReserveMemory(size_t num_bytes, size_t alignment, bool allow_reuse = true, bool allow_growth = true, bool reallocate_if_full = false);
 	void CommitMemory(size_t final_num_bytes);
 
 	static std::unique_ptr<StreamBuffer> Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkBufferUsageFlags usage, size_t initial_size, size_t max_size);

@@ -262,10 +262,8 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	if (iter != m_shaders.end())
 		return iter->second;
 
-	// Have to compile the shader, so generate the source code for it (still using OGL for now)
+	// Have to compile the shader, so generate the source code for it
 	ShaderCode code = ShaderCacheFunctions<Uid>::GenerateCode(dstalpha_mode, primitive_type);
-
-	// Append header to code
 	std::string full_code = GetShaderHeader() + code.GetBuffer();
 
 	// Actually compile the shader, this may not succeed if we did something bad
@@ -331,7 +329,7 @@ std::string GetShaderHeader()
 		//"#extension GL_KHR_vulkan_glsl : require\n"
 		"#extension GL_ARB_shading_language_420pack : require\n" // 420pack
 		"#extension GL_ARB_shader_image_load_store : enable\n" // early-z
-		"#define SAMPLER_BINDING(x) layout(binding = x)\n" // Sampler binding
+		"#define SAMPLER_BINDING(x) layout(set = 1, binding = x)\n" // Sampler binding
 		"#define FORCE_EARLY_Z layout(early_fragment_tests) in\n" // early-z
 
 		// hlsl to glsl function translation

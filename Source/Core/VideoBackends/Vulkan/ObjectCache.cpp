@@ -353,27 +353,55 @@ void ObjectCache::ClearSamplerCache()
 
 bool ObjectCache::CreateDescriptorSetLayouts()
 {
-	VkDescriptorSetLayoutBinding combined_set_bindings[] = {
-		{ COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT	},
-		{ COMBINED_DESCRIPTOR_SET_BINDING_GS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_GEOMETRY_BIT								},
-		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,		VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS,	VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,		8,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-		{ COMBINED_DESCRIPTOR_SET_BINDING_PS_SSBO,		VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,				1,		VK_SHADER_STAGE_FRAGMENT_BIT								},
-	};
-
-	VkDescriptorSetLayoutCreateInfo combined_layout_info = {
-		VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
-		nullptr,
-		0,
-		ARRAYSIZE(combined_set_bindings),
-		combined_set_bindings
-	};
-
-	VkResult res = vkCreateDescriptorSetLayout(m_device, &combined_layout_info, nullptr, &m_descriptor_set_layouts[DESCRIPTOR_SET_COMBINED]);
-	if (res != VK_SUCCESS)
+	static const VkDescriptorSetLayoutBinding ubo_set_bindings[] =
 	{
-		LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
-		return false;
+		{ UBO_DESCRIPTOR_SET_BINDING_VS,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	1,	VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT	},
+		{ UBO_DESCRIPTOR_SET_BINDING_GS,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	1,	VK_SHADER_STAGE_GEOMETRY_BIT								},
+		{ UBO_DESCRIPTOR_SET_BINDING_PS,	VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
+	};
+
+	// Annoying these have to be split, apparently we can't partially update an array without the debug layer crying.
+	static const VkDescriptorSetLayoutBinding sampler_set_bindings[] =
+	{
+		{ 0,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 1,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 2,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 3,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 4,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 5,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 6,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								},
+		{ 7,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
+	};
+
+	static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] =
+	{
+		{ 0,													VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,			1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
+	};
+
+	static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] =
+	{
+		{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr,
+			0, ARRAYSIZE(ubo_set_bindings), ubo_set_bindings
+		},
+		{
+			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr,
+			0, ARRAYSIZE(sampler_set_bindings), sampler_set_bindings
+		},
+// 		{
+// 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr,
+// 			0, ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings
+// 		}
+	};
+
+	for (size_t i = 0; i < NUM_DESCRIPTOR_SETS; i++)
+	{
+		VkResult res = vkCreateDescriptorSetLayout(m_device, &create_infos[i], nullptr, &m_descriptor_set_layouts[i]);
+		if (res != VK_SUCCESS)
+		{
+			LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
+			return false;
+		}
 	}
 
 	return true;

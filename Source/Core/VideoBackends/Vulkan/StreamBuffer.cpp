@@ -144,7 +144,7 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 	return true;
 }
 
-bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_reuse /* = true */, bool reallocate_if_full /* = false */)
+bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_reuse /* = true */, bool allow_growth /* = true */, bool reallocate_if_full /* = false */)
 {
 	size_t required_bytes = num_bytes + alignment;
 
@@ -195,7 +195,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
 
 	// Try to grow the buffer up to the maximum size before waiting.
 	// Double each time until the maximum size is reached.
-	if (m_current_size < m_maximum_size)
+	if (allow_growth && m_current_size < m_maximum_size)
 	{
 		size_t new_size = std::min(std::max(num_bytes, m_current_size * 2), m_maximum_size);
 		if (ResizeBuffer(new_size))
