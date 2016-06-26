@@ -16,6 +16,7 @@
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCAdapter.h"
@@ -710,6 +711,25 @@ bool NetPlayClient::StartGame(const std::string& path)
   // boot game
 
   m_dialog->BootGame(path);
+
+  if (SConfig::GetInstance().bWii)
+  {
+    for (unsigned int i = 0; i < 4; ++i)
+      WiimoteReal::ChangeWiimoteSource(i,
+        m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
+    // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
+    NetWiimote nw;
+    nw.resize(4, 0);
+
+    for (unsigned int w = 0; w < 4; ++w)
+    {
+      if (m_wiimote_map[w] != -1)
+        // probably overkill, but whatever
+        for (unsigned int i = 0; i < 7; ++i)
+          m_wiimote_buffer[w].Push(nw);
+    }
+  }
 
   UpdateDevices();
 

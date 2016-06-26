@@ -20,11 +20,13 @@ public:
   PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client);
 
   PadMappingArray GetModifiedPadMappings() const;
+  PadMappingArray GetModifiedWiimoteMappings() const;
 
 private:
   void OnAdjust(wxCommandEvent& event);
 
-  wxChoice* m_map_cbox[4];
+  wxChoice* m_map_cbox[8];
   PadMappingArray m_pad_mapping;
+  PadMappingArray m_wii_mapping;
   std::vector<const Player*> m_player_list;
 };
