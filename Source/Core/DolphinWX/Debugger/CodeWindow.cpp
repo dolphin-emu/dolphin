@@ -463,7 +463,7 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
 
   pCoreMenu->AppendSeparator();
   pCoreMenu->Append(IDM_LOG_INSTRUCTIONS, _("&Log JIT Instruction Coverage"));
-  pCoreMenu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an Op"));
+  pCoreMenu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an Instruction"));
 
   pCoreMenu->AppendSeparator();
   pCoreMenu->Append(IDM_JIT_OFF, _("&JIT Off (JIT Core)"),
