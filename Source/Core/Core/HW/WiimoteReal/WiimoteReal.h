@@ -79,6 +79,10 @@ protected:
   Report m_last_input_report;
   u16 m_channel;
   u8 m_last_connect_request_counter;
+  // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin,
+  // instead of just pausing data reporting.
+  // This is not enabled on all platforms as connecting a Wiimote can be a pain on some platforms.
+  bool m_really_disconnect = false;
 
 private:
   void ClearReadQueue();
