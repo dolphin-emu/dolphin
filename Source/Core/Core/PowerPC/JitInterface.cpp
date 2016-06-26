@@ -245,6 +245,12 @@ void InvalidateICache(u32 address, u32 size, bool forced)
     jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
+void EvictTLBEntry(u32 address)
+{
+  if (jit)
+    jit->GetBlockCache()->EvictTLBEntry(address);
+}
+
 void CompileExceptionCheck(ExceptionType type)
 {
   if (!jit)
