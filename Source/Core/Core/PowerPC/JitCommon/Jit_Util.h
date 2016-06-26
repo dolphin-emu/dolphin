@@ -122,6 +122,8 @@ public:
     SetCodePtr(nearcode);
   }
 
+  Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
+                                      BitSet32 registers_in_use);
   void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
                           s32 offset = 0, bool signExtend = false);
   void UnsafeLoadRegToRegNoSwap(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize,
@@ -152,6 +154,7 @@ public:
     SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR = 8,
     // Force slowmem (used when generating fallbacks in trampolines)
     SAFE_LOADSTORE_FORCE_SLOWMEM = 16,
+    SAFE_LOADSTORE_DR_ON = 32,
   };
 
   void SafeLoadToReg(Gen::X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize, s32 offset,
