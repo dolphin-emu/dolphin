@@ -137,6 +137,5 @@ void SetInterruptFinishWaiting(bool waiting);
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void ProcessFifoEvents();
 
 }  // namespace CommandProcessor
