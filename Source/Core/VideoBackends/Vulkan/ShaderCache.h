@@ -30,7 +30,7 @@ public:
 	VkShaderModule GetShaderForUid(const Uid& uid, u32 primitive_type, DSTALPHA_MODE dstalpha_mode);
 
 private:
-	bool CompileShaderToSPV(const std::string& shader_source, std::vector<uint32_t>* spv);
+	bool CompileShaderToSPV(const std::string& shader_source, std::vector<unsigned int>* spv);
 	void LoadShadersFromDisk();
 
 	VkDevice m_device;
