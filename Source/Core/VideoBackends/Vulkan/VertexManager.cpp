@@ -153,7 +153,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 	m_state_tracker->UpdatePixelShaderConstants();
 
 	// Bind all pending state to the command buffer
-	if (!m_state_tracker->Bind(m_command_buffer_mgr->GetCurrentCommandBuffer()))
+	if (!m_state_tracker->Bind())
 	{
 		WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
 		return;

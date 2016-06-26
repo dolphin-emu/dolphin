@@ -63,6 +63,7 @@ private:
 	void BeginFrame();
 
 	void OnSwapChainResized();
+	void ResizeEFBTextures();
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;

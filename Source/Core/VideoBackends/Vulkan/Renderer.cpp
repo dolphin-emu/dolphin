@@ -32,6 +32,9 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 
 	// Work around the stupid static crap
 	m_framebuffer_mgr = static_cast<FramebufferManager*>(g_framebuffer_manager.get());
+	VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
+	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
+	m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
 
 	if (!CreateSemaphores())
 		PanicAlert("Failed to create Renderer semaphores");
@@ -46,9 +49,6 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 	// Execute what we have done before moving to the first buffer for the first frame.
 	m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
 	BeginFrame();
-
-	// Apply the default/initial state
-	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
 }
 
 Renderer::~Renderer()
@@ -124,6 +124,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {
 	VkClearAttachment clear_attachments[2];
 	uint32_t num_clear_attachments = 0;
+
+	// Clearing must occur within a render pass.
+	m_state_tracker->BeginRenderPass();
 
 	// fast path: when both color and alpha are enabled, we can blow away the entire buffer
 	// TODO: Can we also do it when the buffer is not an RGBA format?
@@ -262,9 +265,19 @@ void Renderer::OnSwapChainResized()
 	FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 	if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
-		m_framebuffer_mgr->ResizeEFBTextures();
+		ResizeEFBTextures();
 
 	PixelShaderManager::SetEfbScaleChanged();
+}
+
+void Renderer::ResizeEFBTextures()
+{
+	m_framebuffer_mgr->ResizeEFBTextures();
+
+	// Update framebuffer in state tracker
+	VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
+	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
+	m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)
@@ -274,25 +287,13 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 
 void Renderer::ResetAPIState()
 {
-	// End the EFB render pass
-	vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
+	// End the EFB render pass if active
+	m_state_tracker->EndRenderPass();
 }
 
 void Renderer::RestoreAPIState()
 {
-	// Restart EFB render pass
-	VkRenderPassBeginInfo begin_info = {
-		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-		nullptr,
-		m_framebuffer_mgr->GetEFBRenderPass(),
-		m_framebuffer_mgr->GetEFBFramebuffer(),
-		{ { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } },
-		0,
-		nullptr
-	};
-
-	vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
-
+	// Instruct the state tracker to re-bind everything before the next draw
 	m_state_tracker->SetPendingRebind();
 }
 

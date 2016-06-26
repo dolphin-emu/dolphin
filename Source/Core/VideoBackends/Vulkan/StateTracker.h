@@ -27,6 +27,7 @@ public:
 	void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
 	void SetRenderPass(VkRenderPass render_pass);
+	void SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area);
 
 	void SetVertexFormat(const VertexFormat* vertex_format);
 
@@ -61,10 +62,16 @@ public:
 	// Set dirty flags on everything to force re-bind at next draw time.
 	void SetPendingRebind();
 
+	// Ends a render pass if we're currently in one.
+	// When Bind() is next called, the pass will be restarted.
+	// Calling this function is allowed even if a pass has not begun.
+	void BeginRenderPass();
+	void EndRenderPass();
+
 	void SetViewport(const VkViewport& viewport);
 	void SetScissor(const VkRect2D& scissor);
 
-	bool Bind(VkCommandBuffer command_buffer, bool rebind_all = false);
+	bool Bind(bool rebind_all = false);
 
 private:
 	bool UpdatePipeline();
@@ -130,6 +137,10 @@ private:
 
 	// uniform buffers
 	std::unique_ptr<StreamBuffer> m_uniform_stream_buffer;
+
+	VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
+	VkRect2D m_framebuffer_render_area = {};
+	bool m_in_render_pass = false;
 };
 
 }

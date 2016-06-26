@@ -144,7 +144,6 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	};
 
 	// We can't execute texture uploads inside a render pass.
-	// TODO: Start render pass at draw time rather than assuming it is always active.
 	g_renderer->ResetAPIState();
 
 	// Transition the texture to a transfer destination, invoke the transfer, then transition back.
