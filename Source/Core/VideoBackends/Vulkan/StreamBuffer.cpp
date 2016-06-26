@@ -181,7 +181,7 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
 	}
 
 	// Are we behind the gpu?
-	if (allow_reuse && m_current_offset < m_current_gpu_position)
+	if (m_current_offset < m_current_gpu_position)
 	{
 		size_t remaining_bytes = m_current_gpu_position - m_current_offset;
 		if (required_bytes < remaining_bytes)
