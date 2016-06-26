@@ -1,0 +1,4 @@
+# Test looping constructs.
+# No tests yet for making sure break and continue from a nested loop
+# goes to the innermost target.
+hlsl.frag
