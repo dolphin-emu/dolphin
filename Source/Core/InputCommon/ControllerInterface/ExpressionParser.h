@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include "InputCommon/ControllerInterface/Device.h"
 
