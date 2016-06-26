@@ -4,6 +4,7 @@
 
 #include <X11/XKBlib.h>
 #include <cstring>
+#include <memory>
 
 #include "InputCommon/ControllerInterface/Xlib/Xlib.h"
 
@@ -28,23 +29,21 @@ KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
   // Keyboard Keys
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
-    Key* temp_key = new Key(m_display, i, m_state.keyboard);
+    auto temp_key = std::make_unique<Key>(m_display, i, m_state.keyboard);
     if (temp_key->m_keyname.length())
-      AddInput(temp_key);
-    else
-      delete temp_key;
+      AddInput(std::move(temp_key));
   }
 
   // Mouse Buttons
-  AddInput(new Button(Button1Mask, m_state.buttons));
-  AddInput(new Button(Button2Mask, m_state.buttons));
-  AddInput(new Button(Button3Mask, m_state.buttons));
-  AddInput(new Button(Button4Mask, m_state.buttons));
-  AddInput(new Button(Button5Mask, m_state.buttons));
+  AddInput(std::make_unique<Button>(Button1Mask, m_state.buttons));
+  AddInput(std::make_unique<Button>(Button2Mask, m_state.buttons));
+  AddInput(std::make_unique<Button>(Button3Mask, m_state.buttons));
+  AddInput(std::make_unique<Button>(Button4Mask, m_state.buttons));
+  AddInput(std::make_unique<Button>(Button5Mask, m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
-    AddInput(new Cursor(!!(i & 2), !!(i & 1), (&m_state.cursor.x)[!!(i & 2)]));
+    AddInput(std::make_unique<Cursor>(!!(i & 2), !!(i & 1), (&m_state.cursor.x)[!!(i & 2)]));
 }
 
 KeyboardMouse::~KeyboardMouse()

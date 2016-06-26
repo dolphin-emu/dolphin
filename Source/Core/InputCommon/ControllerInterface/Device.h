@@ -32,6 +32,9 @@ public:
   class Input;
   class Output;
 
+  using InputVector = std::vector<std::unique_ptr<Input>>;
+  using OutputVector = std::vector<std::unique_ptr<Output>>;
+
   //
   // Control
   //
@@ -97,14 +100,14 @@ public:
   virtual int GetId() const = 0;
   virtual std::string GetSource() const = 0;
   virtual void UpdateInput() {}
-  const std::vector<Input*>& Inputs() const { return m_inputs; }
-  const std::vector<Output*>& Outputs() const { return m_outputs; }
+  const InputVector& Inputs() const { return m_inputs; }
+  const OutputVector& Outputs() const { return m_outputs; }
   Input* FindInput(const std::string& name) const;
   Output* FindOutput(const std::string& name) const;
 
 protected:
-  void AddInput(Input* const i);
-  void AddOutput(Output* const o);
+  void AddInput(std::unique_ptr<Input> input);
+  void AddOutput(std::unique_ptr<Output> output);
 
   class FullAnalogSurface : public Input
   {
@@ -121,17 +124,21 @@ protected:
     Input& m_high;
   };
 
-  void AddAnalogInputs(Input* low, Input* high)
+  void AddAnalogInputs(std::unique_ptr<Input> low, std::unique_ptr<Input> high)
   {
-    AddInput(low);
-    AddInput(high);
-    AddInput(new FullAnalogSurface(low, high));
-    AddInput(new FullAnalogSurface(high, low));
+    Input* const low_ptr = low.get();
+    Input* const high_ptr = high.get();
+
+    AddInput(std::move(low));
+    AddInput(std::move(high));
+
+    AddInput(std::make_unique<FullAnalogSurface>(low_ptr, high_ptr));
+    AddInput(std::make_unique<FullAnalogSurface>(high_ptr, low_ptr));
   }
 
 private:
-  std::vector<Input*> m_inputs;
-  std::vector<Output*> m_outputs;
+  InputVector m_inputs;
+  OutputVector m_outputs;
 };
 
 //

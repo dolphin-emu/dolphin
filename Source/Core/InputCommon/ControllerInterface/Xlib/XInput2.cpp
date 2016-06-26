@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
@@ -162,24 +163,30 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   // Keyboard Keys
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
-    Key* temp_key = new Key(m_display, i, m_state.keyboard);
+    auto temp_key = std::make_unique<Key>(m_display, i, m_state.keyboard);
     if (temp_key->m_keyname.length())
-      AddInput(temp_key);
-    else
-      delete temp_key;
+      AddInput(std::move(temp_key));
   }
 
   // Mouse Buttons
   for (int i = 0; i < 5; i++)
-    AddInput(new Button(i, &m_state.buttons));
+    AddInput(std::make_unique<Button>(i, &m_state.buttons));
 
-  // Mouse Cursor, X-/+ and Y-/+
-  for (int i = 0; i != 4; ++i)
-    AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
+  // Mouse Cursor, X-/+
+  AddInput(std::make_unique<Cursor>(0, false, &m_state.cursor.x));
+  AddInput(std::make_unique<Cursor>(0, true, &m_state.cursor.x));
 
-  // Mouse Axis, X-/+ and Y-/+
-  for (int i = 0; i != 4; ++i)
-    AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
+  // Mouse Cursor, Y-/+
+  AddInput(std::make_unique<Cursor>(1, false, &m_state.cursor.y));
+  AddInput(std::make_unique<Cursor>(1, true, &m_state.cursor.y));
+
+  // Mouse Axis, X-/+
+  AddInput(std::make_unique<Axis>(0, false, &m_state.axis.x));
+  AddInput(std::make_unique<Axis>(0, true, &m_state.axis.x));
+
+  // Mouse Axis, Y-/+
+  AddInput(std::make_unique<Axis>(1, false, &m_state.axis.y));
+  AddInput(std::make_unique<Axis>(1, true, &m_state.axis.y));
 }
 
 KeyboardMouse::~KeyboardMouse()

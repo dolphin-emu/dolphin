@@ -8,6 +8,7 @@
 #include <iostream>
 #include <locale>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
@@ -69,9 +70,9 @@ PipeDevice::PipeDevice(int fd, const std::string& name, int id) : m_fd(fd), m_na
 {
   for (const auto& tok : s_button_tokens)
   {
-    PipeInput* btn = new PipeInput("Button " + tok);
-    AddInput(btn);
-    m_buttons[tok] = btn;
+    auto btn = std::make_unique<PipeInput>("Button " + tok);
+    m_buttons[tok] = btn.get();
+    AddInput(std::move(btn));
   }
   for (const auto& tok : s_shoulder_tokens)
   {
@@ -113,13 +114,16 @@ void PipeDevice::UpdateInput()
 void PipeDevice::AddAxis(const std::string& name, double value)
 {
   // Dolphin uses separate axes for left/right, which complicates things.
-  PipeInput* ax_hi = new PipeInput("Axis " + name + " +");
+  auto ax_hi = std::make_unique<PipeInput>("Axis " + name + " +");
+  auto ax_lo = std::make_unique<PipeInput>("Axis " + name + " -");
+
   ax_hi->SetState(value);
-  PipeInput* ax_lo = new PipeInput("Axis " + name + " -");
   ax_lo->SetState(value);
-  m_axes[name + " +"] = ax_hi;
-  m_axes[name + " -"] = ax_lo;
-  AddAnalogInputs(ax_lo, ax_hi);
+
+  m_axes[name + " +"] = ax_hi.get();
+  m_axes[name + " -"] = ax_lo.get();
+
+  AddAnalogInputs(std::move(ax_lo), std::move(ax_hi));
 }
 
 void PipeDevice::SetAxis(const std::string& entry, double value)

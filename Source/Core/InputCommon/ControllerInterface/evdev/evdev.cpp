@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <libudev.h>
 #include <map>
+#include <memory>
 #include <unistd.h>
 
 #include "Common/Assert.h"
@@ -102,15 +103,15 @@ evdevDevice::evdevDevice(const std::string& devnode, int id) : m_devfile(devnode
   int num_buttons = 0;
   for (int key = 0; key < KEY_MAX; key++)
     if (libevdev_has_event_code(m_dev, EV_KEY, key))
-      AddInput(new Button(num_buttons++, key, m_dev));
+      AddInput(std::make_unique<Button>(num_buttons++, key, m_dev));
 
   // Absolute axis (thumbsticks)
   int num_axis = 0;
   for (int axis = 0; axis < 0x100; axis++)
     if (libevdev_has_event_code(m_dev, EV_ABS, axis))
     {
-      AddAnalogInputs(new Axis(num_axis, axis, false, m_dev),
-                      new Axis(num_axis, axis, true, m_dev));
+      AddAnalogInputs(std::make_unique<Axis>(num_axis, axis, false, m_dev),
+                      std::make_unique<Axis>(num_axis, axis, true, m_dev));
       num_axis++;
     }
 
@@ -119,11 +120,11 @@ evdevDevice::evdevDevice(const std::string& devnode, int id) : m_devfile(devnode
   {
     for (auto type : {FF_SINE, FF_SQUARE, FF_TRIANGLE, FF_SAW_UP, FF_SAW_DOWN})
       if (libevdev_has_event_code(m_dev, EV_FF, type))
-        AddOutput(new ForceFeedback(type, m_dev));
+        AddOutput(std::make_unique<ForceFeedback>(type, m_dev));
   }
   if (libevdev_has_event_code(m_dev, EV_FF, FF_RUMBLE))
   {
-    AddOutput(new ForceFeedback(FF_RUMBLE, m_dev));
+    AddOutput(std::make_unique<ForceFeedback>(FF_RUMBLE, m_dev));
   }
 
   // TODO: Add leds as output devices

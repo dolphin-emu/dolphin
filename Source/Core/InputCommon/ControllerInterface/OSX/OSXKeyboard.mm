@@ -35,7 +35,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void* win
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
       // DeviceElementDebugPrint(e, nullptr);
 
-      AddInput(new Key(e, m_device));
+      AddInput(std::make_unique<Key>(e, m_device));
     }
     CFRelease(elements);
   }
@@ -44,10 +44,10 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void* win
 
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
-    AddInput(new Cursor(!!(i & 2), (&m_cursor.x)[i / 2], !!(i & 1)));
+    AddInput(std::make_unique<Cursor>(!!(i & 2), (&m_cursor.x)[i / 2], !!(i & 1)));
 
   for (u8 i = 0; i < sizeof(m_mousebuttons) / sizeof(m_mousebuttons[0]); ++i)
-    AddInput(new Button(i, m_mousebuttons[i]));
+    AddInput(std::make_unique<Button>(i, m_mousebuttons[i]));
 }
 
 void Keyboard::UpdateInput()

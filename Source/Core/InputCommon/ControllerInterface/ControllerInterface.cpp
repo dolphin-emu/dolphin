@@ -111,8 +111,8 @@ void ControllerInterface::Shutdown()
   for (const auto& d : m_devices)
   {
     // Set outputs to ZERO before destroying device
-    for (ciface::Core::Device::Output* o : d->Outputs())
-      o->SetState(0);
+    for (const auto& output : d->Outputs())
+      output->SetState(0);
   }
 
   m_devices.clear();
@@ -218,23 +218,27 @@ ControllerInterface::InputReference::Detect(const unsigned int ms,
                                             ciface::Core::Device* const device)
 {
   unsigned int time = 0;
-  std::vector<bool> states(device->Inputs().size());
+  const auto& inputs = device->Inputs();
+  std::vector<bool> states(inputs.size());
 
-  if (device->Inputs().size() == 0)
+  if (inputs.empty())
     return nullptr;
 
   // get starting state of all inputs,
   // so we can ignore those that were activated at time of Detect start
-  std::vector<ciface::Core::Device::Input *>::const_iterator i = device->Inputs().begin(),
-                                                             e = device->Inputs().end();
-  for (std::vector<bool>::iterator state = states.begin(); i != e; ++i)
-    *state++ = ((*i)->GetState() > (1 - INPUT_DETECT_THRESHOLD));
+  std::transform(inputs.cbegin(), inputs.cend(), states.begin(), [](const auto& input) {
+    return input->GetState() > (1 - INPUT_DETECT_THRESHOLD);
+  });
+
+  auto i = inputs.cbegin();
+  auto e = inputs.cend();
 
   while (time < ms)
   {
     device->UpdateInput();
-    i = device->Inputs().begin();
-    for (std::vector<bool>::iterator state = states.begin(); i != e; ++i, ++state)
+    i = inputs.cbegin();
+
+    for (auto state = states.begin(); i != e; ++i, ++state)
     {
       // detected an input
       if ((*i)->IsDetectable() && (*i)->GetState() > INPUT_DETECT_THRESHOLD)
@@ -242,13 +246,14 @@ ControllerInterface::InputReference::Detect(const unsigned int ms,
         // input was released at some point during Detect call
         // return the detected input
         if (false == *state)
-          return *i;
+          return i->get();
       }
       else if ((*i)->GetState() < (1 - INPUT_DETECT_THRESHOLD))
       {
         *state = false;
       }
     }
+
     Common::SleepCurrentThread(10);
     time += 10;
   }
