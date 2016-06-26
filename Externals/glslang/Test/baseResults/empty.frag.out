@@ -1,0 +1,28 @@
+empty.frag
+Shader version: 100
+0:? Sequence
+0:?   Linker Objects
+
+empty2.frag
+Shader version: 100
+0:? Sequence
+0:?   Linker Objects
+
+empty3.frag
+Shader version: 110
+0:? Sequence
+0:?   Linker Objects
+
+
+Linked fragment stage:
+
+ERROR: Linking fragment stage: Cannot mix ES profile with non-ES profile shaders
+
+ERROR: Linking fragment stage: Cannot mix ES profile with non-ES profile shaders
+
+ERROR: Linking fragment stage: Missing entry point: Each stage requires one "void main()" entry point
+
+Shader version: 110
+0:? Sequence
+0:?   Linker Objects
+
