@@ -19,7 +19,7 @@
 class SoftwareVideoConfigDialog : public wxDialog
 {
 public:
-  SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title, const std::string& ininame);
+  SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title);
   ~SoftwareVideoConfigDialog();
 
   void Event_Backend(wxCommandEvent& ev)

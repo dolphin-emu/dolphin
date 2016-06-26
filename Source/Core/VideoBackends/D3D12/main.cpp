@@ -62,11 +62,6 @@ std::string VideoBackend::GetDisplayName() const
   return "Direct3D 12 (experimental)";
 }
 
-std::string VideoBackend::GetConfigName() const
-{
-  return "gfx_dx12";
-}
-
 void VideoBackend::InitBackendInfo()
 {
   HRESULT hr = D3D::LoadDXGI();

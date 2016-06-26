@@ -73,8 +73,6 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  virtual std::string GetConfigName() const = 0;
-
   void ShowConfig(void*);
   virtual void InitBackendInfo() = 0;
 

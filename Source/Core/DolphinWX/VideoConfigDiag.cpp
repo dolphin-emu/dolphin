@@ -329,16 +329,12 @@ static wxArrayString GetListOfResolutions()
 }
 #endif
 
-VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title,
-                                 const std::string& ininame)
+VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY, wxString::Format(_("Dolphin %s Graphics Configuration"),
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-    vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-  else
-    vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
+  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 

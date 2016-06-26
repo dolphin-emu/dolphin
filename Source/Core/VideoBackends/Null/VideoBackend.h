@@ -15,7 +15,6 @@ class VideoBackend : public VideoBackendBase
 
   std::string GetName() const override { return "Null"; }
   std::string GetDisplayName() const override { return "Null"; }
-  std::string GetConfigName() const override { return "gfx_null"; }
   void Video_Prepare() override;
   void Video_Cleanup() override;
 

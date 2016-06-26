@@ -91,11 +91,6 @@ std::string VideoBackend::GetDisplayName() const
     return "OpenGL";
 }
 
-std::string VideoBackend::GetConfigName() const
-{
-  return "gfx_opengl";
-}
-
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =

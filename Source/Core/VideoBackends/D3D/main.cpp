@@ -61,11 +61,6 @@ std::string VideoBackend::GetDisplayName() const
   return "Direct3D 11";
 }
 
-std::string VideoBackend::GetConfigName() const
-{
-  return "gfx_dx11";
-}
-
 void VideoBackend::InitBackendInfo()
 {
   HRESULT hr = DX11::D3D::LoadDXGI();

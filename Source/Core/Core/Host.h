@@ -37,8 +37,7 @@ void Host_SetWiiMoteConnectionState(int _State);
 void Host_UpdateDisasmDialog();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
-void Host_ShowVideoConfig(void* parent, const std::string& backend_name,
-                          const std::string& config_name);
+void Host_ShowVideoConfig(void* parent, const std::string& backend_name);
 
 // TODO (neobrain): Remove this from host!
 void* Host_GetRenderHandle();
