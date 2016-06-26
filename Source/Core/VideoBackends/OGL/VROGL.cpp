@@ -639,7 +639,7 @@ void VR_ConfigureHMD()
 #endif
 		cfg.OGL.Header.Multisample = 0;
 #ifdef _WIN32
-		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface)->m_window_handle;
+		cfg.OGL.Window = (HWND)((cInterfaceWGL*)GLInterface.get())->m_window_handle;
 		cfg.OGL.DC = GetDC(cfg.OGL.Window);
 #ifndef OCULUSSDK042
 #if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5

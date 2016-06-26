@@ -1626,7 +1626,11 @@ bool VR_GetHMDGestures(u32 *gestures)
 #if defined(OVR_MAJOR_VERSION)
 	if (g_has_rift)
 	{
+#if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 8
 		ovrTrackingState t = ovr_GetTrackingState(hmd, 0, false);
+#else
+		ovrTrackingState t = ovrHmd_GetTrackingState(hmd, g_rift_frame_timing.ScanoutMidpointSeconds);
+#endif
 		if (WasItTapped(t.HeadPose.LinearAcceleration, t.HeadPose.TimeInSeconds))
 		{
 			*gestures |= OCULUS_BUTTON_A;
