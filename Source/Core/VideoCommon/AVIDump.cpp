@@ -37,11 +37,10 @@ static AVStream* s_stream = nullptr;
 static AVFrame* s_src_frame = nullptr;
 static AVFrame* s_scaled_frame = nullptr;
 static AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
-static uint8_t* s_yuv_buffer = nullptr;
+static int s_bytes_per_pixel;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;
 static int s_height;
-static int s_size;
 static u64 s_last_frame;
 static bool s_start_dumping = false;
 static u64 s_last_pts;
@@ -59,9 +58,15 @@ static void InitAVCodec()
 bool AVIDump::Start(int w, int h, DumpFormat format)
 {
   if (format == DumpFormat::FORMAT_BGR)
+  {
     s_pix_fmt = AV_PIX_FMT_BGR24;
+    s_bytes_per_pixel = 3;
+  }
   else
+  {
     s_pix_fmt = AV_PIX_FMT_RGBA;
+    s_bytes_per_pixel = 4;
+  }
 
   s_width = w;
   s_height = h;
@@ -129,20 +134,25 @@ bool AVIDump::CreateFile()
   s_src_frame = av_frame_alloc();
   s_scaled_frame = av_frame_alloc();
 
-  s_size = avpicture_get_size(s_stream->codec->pix_fmt, s_width, s_height);
+  s_scaled_frame->format = s_stream->codec->pix_fmt;
+  s_scaled_frame->width = s_width;
+  s_scaled_frame->height = s_height;
 
-  s_yuv_buffer = new uint8_t[s_size];
-  avpicture_fill((AVPicture*)s_scaled_frame, s_yuv_buffer, s_stream->codec->pix_fmt, s_width,
-                 s_height);
+#if LIBAVCODEC_VERSION_MAJOR >= 55
+  if (av_frame_get_buffer(s_scaled_frame, 1))
+    return false;
+#else
+  if (avcodec_default_get_buffer(s_stream->codec, s_scaled_frame))
+    return false;
+#endif
 
   NOTICE_LOG(VIDEO, "Opening file %s for dumping", s_format_context->filename);
-  if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0)
+  if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0 ||
+      avformat_write_header(s_format_context, nullptr))
   {
     WARN_LOG(VIDEO, "Could not open %s", s_format_context->filename);
     return false;
   }
-
-  avformat_write_header(s_format_context, nullptr);
 
   return true;
 }
@@ -156,7 +166,11 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
-  avpicture_fill((AVPicture*)s_src_frame, const_cast<u8*>(data), s_pix_fmt, width, height);
+  s_src_frame->data[0] = const_cast<u8*>(data);
+  s_src_frame->linesize[0] = width * s_bytes_per_pixel;
+  s_src_frame->format = s_pix_fmt;
+  s_src_frame->width = s_width;
+  s_src_frame->height = s_height;
 
   // Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
   // width and height
@@ -167,10 +181,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
     sws_scale(s_sws_context, s_src_frame->data, s_src_frame->linesize, 0, height,
               s_scaled_frame->data, s_scaled_frame->linesize);
   }
-
-  s_scaled_frame->format = s_stream->codec->pix_fmt;
-  s_scaled_frame->width = s_width;
-  s_scaled_frame->height = s_height;
 
   // Encode and write the image.
   AVPacket pkt;
@@ -240,15 +250,13 @@ void AVIDump::CloseFile()
   if (s_stream)
   {
     if (s_stream->codec)
+    {
+#if LIBAVCODEC_VERSION_MAJOR < 55
+      avcodec_default_release_buffer(s_stream->codec, s_src_frame);
+#endif
       avcodec_close(s_stream->codec);
-    av_free(s_stream);
-    s_stream = nullptr;
-  }
-
-  if (s_yuv_buffer)
-  {
-    delete[] s_yuv_buffer;
-    s_yuv_buffer = nullptr;
+    }
+    av_freep(&s_stream);
   }
 
   av_frame_free(&s_src_frame);
@@ -258,8 +266,7 @@ void AVIDump::CloseFile()
   {
     if (s_format_context->pb)
       avio_close(s_format_context->pb);
-    av_free(s_format_context);
-    s_format_context = nullptr;
+    av_freep(&s_format_context);
   }
 
   if (s_sws_context)
