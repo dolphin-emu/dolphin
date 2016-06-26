@@ -116,6 +116,7 @@ void Renderer::BeginFrame()
 
 	// Activate a new command list, and restore state ready for the next draw
 	m_command_buffer_mgr->ActivateCommandBuffer(m_image_available_semaphore);
+	m_state_tracker->InvalidateDescriptorSets();
 	RestoreAPIState();
 }
 
@@ -155,7 +156,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
 			float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
 
-		m_state_tracker->InvalidateAllBindings();
+		m_state_tracker->SetPendingRebind();
 	}
 
 	if (zEnable)
@@ -289,12 +290,7 @@ void Renderer::RestoreAPIState()
 
 	vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-	// Invalidate the descriptor set. We don't know if this RestoreAPIState call was a result of executing a command buffer
-	// or not, so the current descriptor set may belong to another buffer.
-	m_state_tracker->InvalidateDescriptorSet();
-
-	// Assume that everything needs to be re-bound.
-	m_state_tracker->InvalidateAllBindings();
+	m_state_tracker->SetPendingRebind();
 }
 
 void Renderer::SetGenerationMode()

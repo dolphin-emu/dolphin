@@ -56,10 +56,10 @@ public:
 
 	// When executing a command buffer, we want to recreate the descriptor set, as it will
 	// now be in a different pool for the new command buffer.
-	void InvalidateDescriptorSet();
+	void InvalidateDescriptorSets();
 
-	// Invalidate all bindings, call when switching to a new command buffer
-	void InvalidateAllBindings();
+	// Set dirty flags on everything to force re-bind at next draw time.
+	void SetPendingRebind();
 
 	void SetViewport(const VkViewport& viewport);
 	void SetScissor(const VkRect2D& scissor);
@@ -81,12 +81,16 @@ private:
 		DIRTY_FLAG_PS_UBO = (1 << 2),
 		DIRTY_FLAG_PS_SAMPLERS = (1 << 3),
 		DIRTY_FLAG_PS_SSBO = (1 << 4),
-		DIRTY_FLAG_VERTEX_BUFFER = (1 << 5),
-		DIRTY_FLAG_INDEX_BUFFER = (1 << 6),
-		DIRTY_FLAG_VIEWPORT = (1 << 7),
-		DIRTY_FLAG_SCISSOR = (1 << 8),
-		DIRTY_FLAG_PIPELINE = (1 << 9),
-		DIRTY_FLAG_DESCRIPTOR_SET = (1 << 10)
+		DIRTY_FLAG_DYNAMIC_OFFSETS = (1 << 5),
+		DIRTY_FLAG_VERTEX_BUFFER = (1 << 6),
+		DIRTY_FLAG_INDEX_BUFFER = (1 << 7),
+		DIRTY_FLAG_VIEWPORT = (1 << 8),
+		DIRTY_FLAG_SCISSOR = (1 << 9),
+		DIRTY_FLAG_PIPELINE = (1 << 10),
+		DIRTY_FLAG_DESCRIPTOR_SET_BINDING = (1 << 11),
+		DIRTY_FLAG_PIPELINE_BINDING = (1 << 12),
+
+		DIRTY_FLAG_ALL_DESCRIPTOR_SETS = DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_SAMPLERS | DIRTY_FLAG_PS_SSBO
 	};
 	u32 m_dirty_flags = 0xFFFFFFFF;
 
@@ -109,14 +113,15 @@ private:
 	VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
 	// shader bindings
-	VkDescriptorSet m_descriptor_set = VK_NULL_HANDLE;
+	std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> m_descriptor_sets = {};
 	struct
 	{
-		VkDescriptorBufferInfo vs_ubo;
-		VkDescriptorBufferInfo gs_ubo;
-		VkDescriptorBufferInfo ps_ubo;
-		std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> ps_samplers;
-		VkDescriptorBufferInfo ps_ssbo;
+		std::array<VkDescriptorBufferInfo, NUM_UBO_DESCRIPTOR_SET_BINDINGS> uniform_buffer_bindings = {};
+		std::array<uint32_t, NUM_UBO_DESCRIPTOR_SET_BINDINGS> uniform_buffer_offsets = {};
+
+		std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> ps_samplers = {};
+
+		VkDescriptorBufferInfo ssbo = {};
 	} m_bindings;
 
 	// rasterization

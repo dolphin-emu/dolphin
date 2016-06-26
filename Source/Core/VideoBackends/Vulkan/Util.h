@@ -11,6 +11,7 @@ namespace Vulkan {
 
 class CommandBufferManager;
 class ObjectCache;
+class StateTracker;
 
 namespace Util {
 
@@ -26,7 +27,7 @@ void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int wid
 
 // Completes the current render pass, executes the command buffer, and restores state ready for next render.
 // Use when you want to kick the current buffer to make room for new data.
-void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr);
+void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker);
 
 }
 

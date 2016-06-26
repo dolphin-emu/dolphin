@@ -7,6 +7,7 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 
@@ -80,10 +81,11 @@ void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int wid
 	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 }
 
-void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr)
+void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker)
 {
 	g_renderer->ResetAPIState();
 	command_buffer_mgr->ExecuteCommandBuffer(false);
+	state_tracker->InvalidateDescriptorSets();
 	g_renderer->RestoreAPIState();
 }
 
@@ -109,7 +111,7 @@ UtilityShaderVertex* UtilityShaderDraw::ReserveVertices(VkPrimitiveTopology topo
 {
 	m_pipeline_info.primitive_topology = topology;
 
-	if (!m_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true, true))
+	if (!m_object_cache->GetUtilityShaderVertexBuffer()->ReserveMemory(sizeof(UtilityShaderVertex) * count, sizeof(UtilityShaderVertex), true, true, true))
 		PanicAlert("Failed to allocate space for vertices in backend shader");
 
 	m_vertex_buffer = m_object_cache->GetUtilityShaderVertexBuffer()->GetBuffer();
@@ -133,7 +135,7 @@ void UtilityShaderDraw::UploadVertices(VkPrimitiveTopology topology, UtilityShad
 
 u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 {
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true, true))
 		PanicAlert("Failed to allocate util uniforms");
 
 	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
@@ -150,7 +152,7 @@ void UtilityShaderDraw::CommitVSUniforms(size_t size)
 
 u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 {
-	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true))
+	if (!m_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(size, m_object_cache->GetUniformBufferAlignment(), true, true, true))
 		PanicAlert("Failed to allocate util uniforms");
 
 	return m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
@@ -274,6 +276,51 @@ void UtilityShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
 
 void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 {
+	std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> bind_descriptor_sets = {};
+	std::array<uint32_t, NUM_UBO_DESCRIPTOR_SET_BINDINGS> dynamic_offsets = {};
+
+	// uniform buffers
+	{
+		VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
+		if (set == VK_NULL_HANDLE)
+			PanicAlert("Failed to allocate descriptor set for utility draw");
+
+		VkDescriptorBufferInfo unused_buffer = { m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer(), 0, 0 };
+
+		VkWriteDescriptorSet set_writes[NUM_UBO_DESCRIPTOR_SET_BINDINGS] =
+		{
+			{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+				UBO_DESCRIPTOR_SET_BINDING_VS,
+				0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+				nullptr,
+				(m_vs_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_vs_uniform_buffer : &unused_buffer,
+				nullptr
+			},
+			{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+				UBO_DESCRIPTOR_SET_BINDING_GS,
+				0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+				nullptr,
+				&unused_buffer,
+				nullptr
+			},
+			{
+				VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+				UBO_DESCRIPTOR_SET_BINDING_PS,
+				0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+				nullptr,
+				(m_ps_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_ps_uniform_buffer : &unused_buffer,
+				nullptr
+			}
+		};
+
+		// We use a slow path here and just bind dynamic offsets of zero, since we have to update the binding anyway.
+		vkUpdateDescriptorSets(m_object_cache->GetDevice(), NUM_UBO_DESCRIPTOR_SET_BINDINGS, set_writes, 0, nullptr);
+		bind_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
+	}
+
+	// PS samplers
 	size_t first_active_sampler;
 	for (first_active_sampler = 0; first_active_sampler < NUM_PIXEL_SHADER_SAMPLERS; first_active_sampler++)
 	{
@@ -284,50 +331,20 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 		}
 	}
 
-	// Check if we need to bind any descriptors at all.
-	if (m_vs_uniform_buffer.buffer == VK_NULL_HANDLE && m_ps_uniform_buffer.buffer == VK_NULL_HANDLE && first_active_sampler == NUM_PIXEL_SHADER_SAMPLERS)
-	{
-		// Skip allocating and binding a descriptor set, since it won't be used
-		return;
-	}
-
-	std::array<VkWriteDescriptorSet, NUM_COMBINED_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS - 1> descriptor_set_writes;
-	uint32_t num_descriptor_set_writes = 0;
-
-	// Allocate a new descriptor set
-	VkDescriptorSet new_descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_COMBINED));
-	if (new_descriptor_set == VK_NULL_HANDLE)
-		PanicAlert("Failed to allocate descriptor set for backend draw");
-
-	// VS uniform buffer
-	if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE)
-	{
-		descriptor_set_writes[num_descriptor_set_writes++] = {
-			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
-			COMBINED_DESCRIPTOR_SET_BINDING_VS_UBO,
-			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			nullptr, &m_vs_uniform_buffer, nullptr
-		};
-	}
-
-	// PS uniform buffer
-	if (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
-	{
-		descriptor_set_writes[num_descriptor_set_writes++] = {
-			VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
-			COMBINED_DESCRIPTOR_SET_BINDING_PS_UBO,
-			0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-			nullptr, &m_ps_uniform_buffer, nullptr
-		};
-	}
-
-	// PS samplers
 	// Check if we have any at all, skip the binding process entirely if we don't
-	if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
+	//if (first_active_sampler != NUM_PIXEL_SHADER_SAMPLERS)
 	{
+		std::array<VkWriteDescriptorSet, NUM_PIXEL_SHADER_SAMPLERS> set_writes;
+		uint32_t num_set_writes = 0;
+
+		// Allocate a new descriptor set
+		VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
+		if (set == VK_NULL_HANDLE)
+			PanicAlert("Failed to allocate descriptor set for utility draw");
+
 		// Initialize descriptor count to zero for the first image group.
 		// The remaining fields will be initialized in the "create new group" branch below.
-		descriptor_set_writes[num_descriptor_set_writes].descriptorCount = 0;
+		set_writes[num_set_writes].descriptorCount = 0;
 
 		// See Vulkan spec regarding descriptor copies, we can pack multiple bindings together in one update.
 		for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
@@ -337,17 +354,17 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 			if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
 			{
 				// Allocated a group yet?
-				if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
+				if (set_writes[num_set_writes].descriptorCount > 0)
 				{
 					// Add to the group.
-					descriptor_set_writes[num_descriptor_set_writes].descriptorCount++;
+					set_writes[num_set_writes].descriptorCount++;
 				}
 				else
 				{
 					// Create a new group.
-					descriptor_set_writes[num_descriptor_set_writes] = {
-						VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, new_descriptor_set,
-						COMBINED_DESCRIPTOR_SET_BINDING_PS_SAMPLERS, static_cast<uint32_t>(i),
+					set_writes[num_set_writes] = {
+						VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+						static_cast<uint32_t>(i), 0,
 						1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
 						&info, nullptr, nullptr
 					};
@@ -357,23 +374,30 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
 			{
 				// We've found an unbound sampler. If there is a non-zero number of images in the group,
 				// and remaining images will have to be split into a separate group.
-				if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
+				if (set_writes[num_set_writes].descriptorCount > 0)
 				{
-					num_descriptor_set_writes++;
-					descriptor_set_writes[num_descriptor_set_writes].descriptorCount = 0;
+					num_set_writes++;
+					set_writes[num_set_writes].descriptorCount = 0;
 				}
 			}
 		}
 
 		// Complete the image group if one has been started.
-		if (descriptor_set_writes[num_descriptor_set_writes].descriptorCount > 0)
-			num_descriptor_set_writes++;
+		if (set_writes[num_set_writes].descriptorCount > 0)
+			num_set_writes++;
+
+		vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_set_writes, set_writes.data(), 0, nullptr);
+		bind_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
 	}
 
-	// Upload descriptors
-	assert(num_descriptor_set_writes > 0);
-	vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_descriptor_set_writes, descriptor_set_writes.data(), 0, nullptr);
-	vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1, &new_descriptor_set, 0, nullptr);
+	vkCmdBindDescriptorSets(command_buffer,
+							VK_PIPELINE_BIND_POINT_GRAPHICS,
+							m_object_cache->GetPipelineLayout(),
+							0,
+							NUM_DESCRIPTOR_SETS,
+							bind_descriptor_sets.data(),
+							NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+							dynamic_offsets.data());
 }
 
 bool UtilityShaderDraw::BindPipeline(VkCommandBuffer command_buffer)

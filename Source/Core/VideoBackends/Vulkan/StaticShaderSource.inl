@@ -95,7 +95,7 @@ void main()
 
 static const char COPY_FRAGMENT_SHADER_SOURCE[] = R"(
 
-layout(binding = 0) uniform sampler2DArray samp0;
+layout(set = 1, binding = 0) uniform sampler2DArray samp0;
 
 layout(location = 0) in float2 uv0;
 layout(location = 1) in float4 col0;

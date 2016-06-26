@@ -99,13 +99,13 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 
 	// Allocate memory from the streaming buffer for the texture data.
 	// TODO: Handle cases where the texture does not fit into the streaming buffer, we need to allocate a temporary buffer.
-	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
+	if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment()))
 	{
 		// Execute the command buffer first.
-		Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr);
+		Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker);
 
 		// Try allocating again. This may cause a fence wait.
-		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment(), true, false))
+		if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment()))
 			PanicAlert("Failed to allocate space in texture upload buffer");
 	}
 

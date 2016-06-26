@@ -84,11 +84,19 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == API_OPENGL || api_type == API_VULKAN)
+  if (api_type == API_OPENGL)
+  {
     out.Write("layout(std140%s) uniform VSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+  }
+  else if (api_type == API_VULKAN)
+  {
+    out.Write("layout(std140, set = 0, binding = 0) uniform VSBlock {\n");
+  }
   else
+  {
     out.Write("cbuffer VSBlock {\n");
+  }
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 

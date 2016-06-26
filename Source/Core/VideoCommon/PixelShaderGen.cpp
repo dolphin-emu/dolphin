@@ -379,9 +379,20 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
             "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
             "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
 
-  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+  if (ApiType == API_OPENGL)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    out.Write("SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n");
+    out.Write("SAMPLER_BINDING(2) uniform sampler2DArray samp2;\n");
+    out.Write("SAMPLER_BINDING(3) uniform sampler2DArray samp3;\n");
+    out.Write("SAMPLER_BINDING(4) uniform sampler2DArray samp4;\n");
+    out.Write("SAMPLER_BINDING(5) uniform sampler2DArray samp5;\n");
+    out.Write("SAMPLER_BINDING(6) uniform sampler2DArray samp6;\n");
+    out.Write("SAMPLER_BINDING(7) uniform sampler2DArray samp7;\n");
   }
   else  // D3D
   {
@@ -392,10 +403,14 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
   }
   out.Write("\n");
 
-  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+  if (ApiType == API_OPENGL)
   {
     out.Write("layout(std140%s) uniform PSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    out.Write("layout(std140, set = 0, binding = 2) uniform PSBlock {\n");
   }
   else
   {
@@ -419,10 +434,14 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
   {
     out.Write("%s", s_lighting_struct);
 
-    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+    if (ApiType == API_OPENGL)
     {
       out.Write("layout(std140%s) uniform VSBlock {\n",
                 g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+    }
+    else if (ApiType == API_VULKAN)
+    {
+      out.Write("layout(std140, set = 0, binding = 0) uniform VSBlock {\n");
     }
     else
     {
@@ -434,11 +453,17 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
 
   if (uid_data->bounding_box)
   {
-    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+    if (ApiType == API_OPENGL)
     {
       out.Write("layout(std140, binding = 3) buffer BBox {\n"
                 "\tint4 bbox_data;\n"
                 "};\n");
+    }
+    else if (ApiType == API_VULKAN)
+    {
+      out.Write("layout(std140, set = 2, binding = 0) buffer BBox {\n"
+        "\tint4 bbox_data;\n"
+        "};\n");
     }
     else
     {
@@ -1164,12 +1189,21 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
   out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
 
   if (ApiType == API_D3D)
+  {
     out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
               texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
+              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
   else
+  {
     out.Write("iround(255.0 * texture(samp[%d], float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
               texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
 }
 
 static const char* tevAlphaFuncsTable[] = {
