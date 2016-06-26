@@ -523,7 +523,7 @@ void VertexShaderManager::SetConstants()
     PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1],
              rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
-    if ((g_ActiveConfig.bFreeLook|| g_ActiveConfig.bMouselookAlwaysOn) && xfmem.projection.type == GX_PERSPECTIVE)
+    if ((g_ActiveConfig.bFreeLook|| g_ActiveConfig.bFreeLookAlwaysOn) && xfmem.projection.type == GX_PERSPECTIVE)
     {
       Matrix44 mtxA;
       Matrix44 mtxB;
