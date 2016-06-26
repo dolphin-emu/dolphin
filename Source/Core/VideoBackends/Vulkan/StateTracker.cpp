@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstdio>
+#include <cassert>
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -89,11 +89,22 @@ void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexT
 
 void StateTracker::SetRenderPass(VkRenderPass render_pass)
 {
+	// Should not be changed within a render pass.
+	assert(!m_in_render_pass);
+
 	if (m_pipeline_state.render_pass == render_pass)
 		return;
 
 	m_pipeline_state.render_pass = render_pass;
 	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+}
+
+void StateTracker::SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area)
+{
+	// Should not be changed within a render pass.
+	assert(!m_in_render_pass);
+	m_framebuffer = framebuffer;
+	m_framebuffer_render_area = render_area;
 }
 
 void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
@@ -396,6 +407,39 @@ void StateTracker::SetPendingRebind()
 	                 DIRTY_FLAG_PIPELINE;
 }
 
+void StateTracker::BeginRenderPass()
+{
+	if (m_in_render_pass)
+		return;
+
+	VkRenderPassBeginInfo begin_info =
+	{
+		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		nullptr,
+		m_pipeline_state.render_pass,
+		m_framebuffer,
+		m_framebuffer_render_area,
+		0,
+		nullptr
+	};
+
+	vkCmdBeginRenderPass(
+		m_command_buffer_mgr->GetCurrentCommandBuffer(),
+		&begin_info,
+		VK_SUBPASS_CONTENTS_INLINE);
+
+	m_in_render_pass = true;
+}
+
+void StateTracker::EndRenderPass()
+{
+	if (!m_in_render_pass)
+		return;
+
+	vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
+	m_in_render_pass = false;
+}
+
 void StateTracker::SetViewport(const VkViewport& viewport)
 {
 	if (memcmp(&m_viewport, &viewport, sizeof(viewport)) == 0)
@@ -414,7 +458,7 @@ void StateTracker::SetScissor(const VkRect2D& scissor)
 	m_dirty_flags |= DIRTY_FLAG_SCISSOR;
 }
 
-bool StateTracker::Bind(VkCommandBuffer command_buffer, bool rebind_all /*= false*/)
+bool StateTracker::Bind(bool rebind_all /*= false*/)
 {
 	// Get new pipeline object if any parts have changed
 	if (m_dirty_flags & DIRTY_FLAG_PIPELINE && !UpdatePipeline())
@@ -430,8 +474,12 @@ bool StateTracker::Bind(VkCommandBuffer command_buffer, bool rebind_all /*= fals
 		return false;
 	}
 
-	// Re-bind parts of the pipeline
+	// Start render pass if not already started
+	if (!m_in_render_pass)
+		BeginRenderPass();
 
+	// Re-bind parts of the pipeline
+	VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
 	if (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER || rebind_all)
 		vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
 
