@@ -1755,7 +1755,7 @@ bool VR_GetRightControllerPos(float *pos, float *thumbpos, Matrix33 *m)
 					right_hand = i;
 			}
 		}
-		if (left_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[left_hand].bPoseIsValid) {
+		if (right_hand >= vr::k_unMaxTrackedDeviceCount || !m_rTrackedDevicePose[right_hand].bPoseIsValid) {
 			//NOTICE_LOG(VR, "invalid!");
 			pos[0] = pos[1] = pos[2] = 0;
 			return false;
