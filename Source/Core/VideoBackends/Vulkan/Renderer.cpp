@@ -429,9 +429,6 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 	const TexMode1& tm1 = tex.texMode1[stage];
 	SamplerState new_state = {};
 
-	if (texindex)
-		stage += 4;
-
 	// TODO: Anisotropic filtering
 
 	if (g_ActiveConfig.bForceFiltering)

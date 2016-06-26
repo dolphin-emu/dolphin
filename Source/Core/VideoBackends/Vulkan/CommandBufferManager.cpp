@@ -101,15 +101,15 @@ bool CommandBufferManager::CreateCommandBuffers()
 
 		// TODO: Sort this mess out
 		VkDescriptorPoolSize pool_sizes[] = {
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1024 },
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 * 16 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000 },
 			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16 }
 		};
 		VkDescriptorPoolCreateInfo pool_create_info = {
 			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
 			nullptr,
 			0,
-			1024,			// tweak this
+			100000,			// tweak this
 			ARRAYSIZE(pool_sizes),
 			pool_sizes
 		};
