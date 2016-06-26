@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+
+TARGETDIR=localResults
+BASEDIR=baseResults
+EXE=../build/install/bin/glslangValidator
+HASERROR=0
+mkdir -p localResults
+
+#
+# configuration file tests
+#
+echo running configuration file test
+$EXE -c > $TARGETDIR/test.conf
+diff -b $BASEDIR/test.conf $TARGETDIR/test.conf || HASERROR=1
+$EXE -i -l $TARGETDIR/test.conf specExamples.vert > $TARGETDIR/specExamples.vert.out
+diff -b $BASEDIR/specExamples.vert.out $TARGETDIR || HASERROR=1
+$EXE 100Limits.vert 100.conf >  $TARGETDIR/100LimitsConf.vert.out
+diff -b $BASEDIR/100LimitsConf.vert.out $TARGETDIR/100LimitsConf.vert.out || HASERROR=1
+
+#
+# isolated compilation tests
+#
+while read t; do
+    echo Running $t...
+    b=`basename $t`
+    $EXE -i -l $t > $TARGETDIR/$b.out
+    diff -b $BASEDIR/$b.out $TARGETDIR/$b.out || HASERROR=1
+done < testlist
+
+if [ -a localtestlist ]
+  then
+    while read t; do
+        echo Running $t...
+        b=`basename $t`
+        $EXE -i -l $t > $TARGETDIR/$b.out
+        diff -b $BASEDIR/$b.out $TARGETDIR/$b.out || HASERROR=1
+    done < localtestlist
+fi
+
+#
+# SPIR-V code generation tests
+#
+while read t; do
+  case $t in
+    \#*)
+      # Skip comment lines in the test list file.
+      ;;
+    *)
+      echo Running SPIR-V $t...
+      b=`basename $t`
+      $EXE -H $t > $TARGETDIR/$b.out
+      diff -b $BASEDIR/$b.out $TARGETDIR/$b.out || HASERROR=1
+      ;;
+  esac
+done < test-spirv-list
+rm -f comp.spv frag.spv geom.spv tesc.spv tese.spv vert.spv
+
+#
+# HLSL -> SPIR-V code generation tests
+#
+while read t; do
+  case $t in
+    \#*)
+      # Skip comment lines in the test list file.
+      ;;
+    *)
+      echo Running HLSL-to-SPIR-V $t...
+      b=`basename $t`
+      $EXE -D -e PixelShaderFunction -H -i $t > $TARGETDIR/$b.out
+      diff -b $BASEDIR/$b.out $TARGETDIR/$b.out || HASERROR=1
+      ;;
+  esac
+done < test-hlsl-spirv-list
+rm -f comp.spv frag.spv geom.spv tesc.spv tese.spv vert.spv
+
+#
+# Preprocessor tests
+#
+while read t; do
+    echo Running Preprocessor $t...
+    b=`basename $t`
+    $EXE -E $t > $TARGETDIR/$b.out 2> $TARGETDIR/$b.err
+    diff -b $BASEDIR/$b.out $TARGETDIR/$b.out || HASERROR=1
+    diff -b $BASEDIR/$b.err $TARGETDIR/$b.err || HASERROR=1
+done < test-preprocessor-list
+
+#
+# grouped shaders for bulk (faster) tests
+#
+function runBulkTest {
+    echo Running $*...
+    $EXE -i -l -t $* > $TARGETDIR/$1.out
+    diff -b $BASEDIR/$1.out $TARGETDIR/$1.out || HASERROR=1
+}
+
+runBulkTest mains1.frag mains2.frag noMain1.geom noMain2.geom
+runBulkTest noMain.vert mains.frag
+runBulkTest link1.frag link2.frag link3.frag
+runBulkTest recurse1.vert recurse1.frag recurse2.frag
+runBulkTest 300link.frag
+runBulkTest 300link2.frag
+runBulkTest 300link3.frag
+runBulkTest empty.frag empty2.frag empty3.frag
+runBulkTest 150.tesc 150.tese 400.tesc 400.tese 410.tesc 420.tesc 420.tese
+runBulkTest max_vertices_0.geom
+
+#
+# reflection tests
+#
+echo Running reflection...
+$EXE -l -q reflection.vert > $TARGETDIR/reflection.vert.out
+diff -b $BASEDIR/reflection.vert.out $TARGETDIR/reflection.vert.out || HASERROR=1
+
+#
+# multi-threaded test
+#
+echo Comparing single thread to multithread for all tests in current directory...
+$EXE -i *.vert *.geom *.frag *.tes* *.comp > singleThread.out
+$EXE -i *.vert *.geom *.frag *.tes* *.comp -t > multiThread.out
+diff singleThread.out multiThread.out || HASERROR=1
+
+if [ $HASERROR -eq 0 ]
+then
+    echo Tests Succeeded.
+else
+    echo Tests Failed.
+fi
+
+exit $HASERROR
