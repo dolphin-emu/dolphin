@@ -73,7 +73,8 @@ public:
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  virtual void ShowConfig(void*) = 0;
+  void ShowConfig(void*);
+  virtual void InitBackendInfo() = 0;
 
   virtual void Video_Prepare() = 0;
   void Video_ExitLoop();
@@ -98,6 +99,8 @@ public:
 
 protected:
   void InitializeShared();
+  void ShutdownShared();
+  void CleanupShared();
 
   bool m_initialized = false;
   bool m_invalid = false;

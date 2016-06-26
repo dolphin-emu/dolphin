@@ -60,7 +60,7 @@ void Host_ConnectWiimote(int, bool)
 void Host_SetWiiMoteConnectionState(int)
 {
 }
-void Host_ShowVideoConfig(void*, const std::string&, const std::string&)
+void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()

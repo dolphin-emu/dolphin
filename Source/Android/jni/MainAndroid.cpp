@@ -143,7 +143,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 {
 }
 
-void Host_ShowVideoConfig(void*, const std::string&, const std::string&)
+void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
 
