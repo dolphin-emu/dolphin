@@ -31,6 +31,7 @@ public:
   void WriteLinkBlock(u8* location, const JitBlock& block) override;
 
   void WriteDestroyBlock(const u8* location, u32 address) override;
+  void WriteUndestroyBlock(const u8* location, u32 address) override;
 
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; };
 private:
