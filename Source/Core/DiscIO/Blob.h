@@ -65,7 +65,7 @@ protected:
   // like CDROMs. Setting this to a higher value helps reduce seeking
   // and IO overhead by batching reads. Do not set it too high either
   // as large reads are slow and will take too long to resolve.
-  void SetChunkSize(int blocks);
+  void SetChunkSize(int block_cnt);
   int GetChunkSize() const { return m_chunk_blocks; }
   // Read a single block/sector.
   virtual bool GetBlock(u64 block_num, u8* out) = 0;
@@ -73,7 +73,7 @@ protected:
   // Read multiple contiguous blocks.
   // Default implementation just calls GetBlock in a loop, it should be
   // overridden in derived classes where possible.
-  virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* out_ptr);
+  virtual bool ReadMultipleAlignedBlocks(u64 block_num, u64 cnt_blocks, u8* out_ptr);
 
 private:
   struct Cache
@@ -159,8 +159,7 @@ std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename);
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
 bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u32 sub_type = 0,
-                        int sector_size = 16384, CompressCB callback = nullptr,
-                        void* arg = nullptr);
+                        int block_size = 16384, CompressCB callback = nullptr, void* arg = nullptr);
 bool DecompressBlobToFile(const std::string& infile, const std::string& outfile,
                           CompressCB callback = nullptr, void* arg = nullptr);
 

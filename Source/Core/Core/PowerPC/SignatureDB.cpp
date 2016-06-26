@@ -81,7 +81,7 @@ u32 SignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
   temp_dbfunc.size = size;
   temp_dbfunc.name = name;
 
-  FuncDB::iterator iter = database.find(hash);
+  auto iter = database.find(hash);
   if (iter == database.end())
     database[hash] = temp_dbfunc;
 

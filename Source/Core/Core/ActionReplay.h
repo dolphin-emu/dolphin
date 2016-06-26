@@ -31,7 +31,7 @@ struct ARCode
 void RunAllActive();
 
 void ApplyCodes(const std::vector<ARCode>& codes);
-void AddCode(ARCode new_code);
+void AddCode(ARCode code);
 void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
 
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);

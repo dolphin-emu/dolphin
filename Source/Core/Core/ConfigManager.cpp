@@ -360,9 +360,9 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
       std::string tmpPath;
       general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
       bool found = false;
-      for (size_t j = 0; j < m_ISOFolder.size(); ++j)
+      for (auto& j : m_ISOFolder)
       {
-        if (m_ISOFolder[j] == tmpPath)
+        if (j == tmpPath)
         {
           found = true;
           break;
@@ -748,7 +748,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // all GC homebrew to 50Hz.
       // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
       // the emulator config.
-      bNTSC = bWii ? false : true;
+      bNTSC = !bWii;
       set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
       m_BootType = BOOT_ELF;
     }
@@ -757,7 +757,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       CDolLoader dolfile(m_strFilename);
       bWii = dolfile.IsWii();
       // TODO: See the ELF code above.
-      bNTSC = bWii ? false : true;
+      bNTSC = !bWii;
       set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
       m_BootType = BOOT_DOL;
     }

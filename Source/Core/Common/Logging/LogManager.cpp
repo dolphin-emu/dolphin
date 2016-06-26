@@ -144,8 +144,9 @@ void LogManager::Shutdown()
   m_logManager = nullptr;
 }
 
-LogContainer::LogContainer(const std::string& shortName, const std::string& fullName, bool enable)
-    : m_fullName(fullName), m_shortName(shortName), m_enable(enable), m_level(LogTypes::LWARNING)
+LogContainer::LogContainer(std::string shortName, std::string fullName, bool enable)
+    : m_fullName(std::move(fullName)), m_shortName(std::move(shortName)), m_enable(enable),
+      m_level(LogTypes::LWARNING)
 {
 }
 
@@ -155,7 +156,7 @@ FileLogListener::FileLogListener(const std::string& filename)
   SetEnable(true);
 }
 
-void FileLogListener::Log(LogTypes::LOG_LEVELS, const char* msg)
+void FileLogListener::Log(LogTypes::LOG_LEVELS /*unused*/, const char* msg)
 {
   if (!IsEnabled() || !IsValid())
     return;

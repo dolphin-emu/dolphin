@@ -15,9 +15,9 @@ static void GetRandomishBytes(u8* buf, size_t size)
     buf[i] = u8_distribution(prng);
 }
 
-TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, const u16 port)
+TraversalClient::TraversalClient(ENetHost* netHost, std::string server, const u16 port)
     : m_NetHost(netHost), m_Client(nullptr), m_FailureReason(0), m_ConnectRequestId(0),
-      m_PendingConnect(false), m_Server(server), m_port(port), m_PingTime(0)
+      m_PendingConnect(false), m_Server(std::move(server)), m_port(port), m_PingTime(0)
 {
   netHost->intercept = TraversalClient::InterceptCallback;
 
@@ -26,9 +26,7 @@ TraversalClient::TraversalClient(ENetHost* netHost, const std::string& server, c
   ReconnectToServer();
 }
 
-TraversalClient::~TraversalClient()
-{
-}
+TraversalClient::~TraversalClient() = default;
 
 void TraversalClient::ReconnectToServer()
 {

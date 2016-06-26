@@ -17,12 +17,12 @@ class PointerWrap;
 class MemoryCard : public MemoryCardBase
 {
 public:
-  MemoryCard(const std::string& filename, int _card_index, u16 sizeMb = MemCard2043Mb);
+  MemoryCard(std::string filename, int _card_index, u16 sizeMb = MemCard2043Mb);
   ~MemoryCard();
   void FlushThread();
   void MakeDirty();
 
-  s32 Read(u32 address, s32 length, u8* destaddress) override;
+  s32 Read(u32 srcaddress, s32 length, u8* destaddress) override;
   s32 Write(u32 destaddress, s32 length, u8* srcaddress) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override;

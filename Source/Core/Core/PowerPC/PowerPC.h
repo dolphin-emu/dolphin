@@ -141,7 +141,7 @@ void DoState(PointerWrap& p);
 
 CoreMode GetMode();
 // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED
-void SetMode(CoreMode _coreType);
+void SetMode(CoreMode new_mode);
 const char* GetCPUName();
 
 // Set the current CPU Core to the given implementation until removed.
@@ -151,7 +151,7 @@ const char* GetCPUName();
 // [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
 //  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
 //  while it is CPU_RUNNING]
-void InjectExternalCPUCore(CPUCoreBase* core);
+void InjectExternalCPUCore(CPUCoreBase* new_cpu);
 
 // Stepping requires the CPU Execution lock (CPU::PauseAndLock or CPU Thread)
 // It's not threadsafe otherwise.
@@ -218,7 +218,7 @@ void HostWrite_U64(const u64 var, const u32 address);
 // access given the current CPU state.
 bool HostIsRAMAddress(const u32 address);
 
-std::string HostGetString(u32 em_address, size_t size = 0);
+std::string HostGetString(u32 address, size_t size = 0);
 
 // Routines for the CPU core to access memory.
 

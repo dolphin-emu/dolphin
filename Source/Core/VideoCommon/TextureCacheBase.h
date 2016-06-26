@@ -187,7 +187,7 @@ private:
   typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher>
       TexPool;
   static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
-  static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter, u8* palette,
+  static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette,
                                                   u32 tlutfmt);
   static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
   static void CheckTempSize(size_t required_size);
@@ -196,7 +196,7 @@ private:
   static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  static TexCache::iterator InvalidateTexture(TexCache::iterator t_iter);
+  static TexCache::iterator InvalidateTexture(TexCache::iterator iter);
 
   static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 

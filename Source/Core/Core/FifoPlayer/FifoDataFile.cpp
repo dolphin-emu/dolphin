@@ -124,10 +124,7 @@ bool FifoDataFile::Save(const std::string& filename)
     file.WriteBytes(&dstFrame, sizeof(FileFrameInfo));
   }
 
-  if (!file.Close())
-    return false;
-
-  return true;
+  return file.Close();
 }
 
 FifoDataFile* FifoDataFile::Load(const std::string& filename, bool flagsOnly)
@@ -146,7 +143,7 @@ FifoDataFile* FifoDataFile::Load(const std::string& filename, bool flagsOnly)
     return nullptr;
   }
 
-  FifoDataFile* dataFile = new FifoDataFile;
+  auto dataFile = new FifoDataFile;
 
   dataFile->m_Flags = header.flags;
   dataFile->m_Version = header.file_version;

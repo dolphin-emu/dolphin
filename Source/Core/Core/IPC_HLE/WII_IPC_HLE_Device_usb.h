@@ -190,7 +190,7 @@ private:
   bool SendEventLinkKeyNotification(const u8 num_to_send);
 
   // Execute HCI Message
-  void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
+  void ExecuteHCICommandMessage(const SHCICommandMessage& _rHCICommandMessage);
 
   // OGF 0x01 - Link control commands and return parameters
   void CommandWriteInquiryMode(const u8* input);

@@ -21,9 +21,7 @@ CMixer::CMixer(unsigned int BackendSampleRate) : m_sampleRate(BackendSampleRate)
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
 }
 
-CMixer::~CMixer()
-{
-}
+CMixer::~CMixer() = default;
 
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,

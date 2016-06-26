@@ -11,7 +11,7 @@
 
 class PointerWrap;
 
-void UpdateProjectionHack(int iParams[], std::string sParams[]);
+void UpdateProjectionHack(int iPhackvalue[], std::string sPhackvalue[]);
 
 // The non-API dependent parts.
 class VertexShaderManager
@@ -26,8 +26,8 @@ public:
   static void SetConstants();
 
   static void InvalidateXFRange(int start, int end);
-  static void SetTexMatrixChangedA(u32 value);
-  static void SetTexMatrixChangedB(u32 value);
+  static void SetTexMatrixChangedA(u32 Value);
+  static void SetTexMatrixChangedB(u32 Value);
   static void SetViewportChanged();
   static void SetProjectionChanged();
   static void SetMaterialColorChanged(int index);
@@ -40,7 +40,7 @@ public:
   // out:  4 floats which will be initialized with the corresponding clip space coordinates
   // NOTE: g_fProjectionMatrix must be up to date when this is called
   //       (i.e. VertexShaderManager::SetConstants needs to be called before using this!)
-  static void TransformToClipSpace(const float* data, float* out, u32 mtxIdx);
+  static void TransformToClipSpace(const float* data, float* out, u32 MtxIdx);
 
   static VertexShaderConstants constants;
   static bool dirty;

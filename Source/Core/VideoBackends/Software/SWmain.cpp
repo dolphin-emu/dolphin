@@ -44,7 +44,7 @@ class PerfQuery : public PerfQueryBase
 {
 public:
   PerfQuery() {}
-  ~PerfQuery() {}
+  ~PerfQuery() override = default;
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
   void ResetQuery() override
@@ -74,7 +74,7 @@ private:
   struct TCacheEntry : TCacheEntryBase
   {
     TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
-    ~TCacheEntry() {}
+    ~TCacheEntry() override = default;
     void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
               unsigned int level) override
     {

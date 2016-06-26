@@ -71,7 +71,7 @@ int TexDecoder_GetTexelSizeInNibbles(int format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, int format);
 int TexDecoder_GetBlockWidthInTexels(u32 format);
 int TexDecoder_GetBlockHeightInTexels(u32 format);
-int TexDecoder_GetPaletteSize(int fmt);
+int TexDecoder_GetPaletteSize(int format);
 int TexDecoder_GetEfbCopyBaseFormat(int format);
 
 void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, int texformat, const u8* tlut,
@@ -79,7 +79,7 @@ void TexDecoder_Decode(u8* dst, const u8* src, int width, int height, int texfor
 void TexDecoder_DecodeRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int width,
                                     int height);
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat,
-                            const u8* tlut, TlutFormat tlutfmt);
+                            const u8* tlut_, TlutFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
 

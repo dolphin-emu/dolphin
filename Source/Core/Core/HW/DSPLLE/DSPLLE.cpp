@@ -59,9 +59,9 @@ void DSPLLE::DoState(PointerWrap& p)
   p.Do(g_dsp.exceptions);
   p.Do(g_dsp.external_interrupt_waiting);
 
-  for (int i = 0; i < 4; i++)
+  for (auto& i : g_dsp.reg_stack)
   {
-    p.Do(g_dsp.reg_stack[i]);
+    p.Do(i);
   }
 
   p.Do(g_dsp.step_counter);

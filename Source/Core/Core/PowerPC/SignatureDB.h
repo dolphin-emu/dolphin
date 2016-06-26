@@ -37,8 +37,8 @@ public:
   void Clear();
   void List();
 
-  void Initialize(PPCSymbolDB* func_db, const std::string& prefix = "");
-  void Apply(PPCSymbolDB* func_db);
+  void Initialize(PPCSymbolDB* symbol_db, const std::string& prefix = "");
+  void Apply(PPCSymbolDB* symbol_db);
 
   static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 };

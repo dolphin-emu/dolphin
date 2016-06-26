@@ -45,9 +45,7 @@ WbfsFileReader::WbfsFileReader(const std::string& filename)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
 
-WbfsFileReader::~WbfsFileReader()
-{
-}
+WbfsFileReader::~WbfsFileReader() = default;
 
 u64 WbfsFileReader::GetDataSize() const
 {

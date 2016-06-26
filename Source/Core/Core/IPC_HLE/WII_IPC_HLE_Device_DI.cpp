@@ -21,9 +21,7 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
 {
 }
 
-CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
-{
-}
+CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di() = default;
 
 void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
 {

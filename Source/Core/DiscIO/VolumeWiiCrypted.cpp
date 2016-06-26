@@ -45,9 +45,7 @@ bool CVolumeWiiCrypted::ChangePartition(u64 offset)
   return true;
 }
 
-CVolumeWiiCrypted::~CVolumeWiiCrypted()
-{
-}
+CVolumeWiiCrypted::~CVolumeWiiCrypted() = default;
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {

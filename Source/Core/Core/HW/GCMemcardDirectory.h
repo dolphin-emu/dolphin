@@ -23,7 +23,7 @@ void MigrateFromMemcardFile(const std::string& strDirectoryName, int card_index)
 class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
-  GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
+  GCMemcardDirectory(std::string directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
                      bool ascii = true,
                      DiscIO::IVolume::ECountry card_region = DiscIO::IVolume::COUNTRY_EUROPE,
                      int gameId = 0);

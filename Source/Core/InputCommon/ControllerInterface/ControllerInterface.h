@@ -123,7 +123,7 @@ public:
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
   bool IsInit() const { return m_is_init; }
-  void UpdateReference(ControlReference* control,
+  void UpdateReference(ControlReference* ref,
                        const ciface::Core::DeviceQualifier& default_device) const;
   void UpdateInput();
 

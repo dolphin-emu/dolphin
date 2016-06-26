@@ -96,7 +96,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
   case WM_IR_PIXEL_CLOCK:  // 0x13
     // INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
     // m_ir_clock = sr->enable;
-    if (false == sr->ack)
+    if (!static_cast<bool>(sr->ack))
       return;
     break;
 
@@ -104,7 +104,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     // ERROR_LOG(WIIMOTE, "WM Speaker Enable: %02x", sr->enable);
     // PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
     m_status.speaker = sr->enable;
-    if (false == sr->ack)
+    if (!static_cast<bool>(sr->ack))
       return;
     break;
 
@@ -140,7 +140,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     // if (sr->data[0] & 0x04)
     //	memset(&m_channel_status, 0, sizeof(m_channel_status));
     m_speaker_mute = sr->enable;
-    if (false == sr->ack)
+    if (!static_cast<bool>(sr->ack))
       return;
     break;
 
@@ -150,7 +150,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     // so that WmRequestStatus() knows about it
     // INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
     m_status.ir = sr->enable;
-    if (false == sr->ack)
+    if (!static_cast<bool>(sr->ack))
       return;
     break;
 
@@ -317,7 +317,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
     // motion plus
     case 0xa6:
-      if (false == m_motion_plus_active)
+      if (!m_motion_plus_active)
       {
         region_ptr = &m_reg_motion_plus;
         region_size = WIIMOTE_REG_EXT_SIZE;
@@ -399,7 +399,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   }
 
   ReadRequest rr;
-  u8* const block = new u8[size];
+  auto const block = new u8[size];
 
   switch (rd->space)
   {
@@ -466,7 +466,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     // motion plus
     case 0xa6:
       // reading from 0xa6 returns error when mplus is activated
-      if (false == m_motion_plus_active)
+      if (!m_motion_plus_active)
       {
         region_ptr = &m_reg_motion_plus;
         region_size = WIIMOTE_REG_EXT_SIZE;

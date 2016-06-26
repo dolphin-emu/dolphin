@@ -226,9 +226,9 @@ struct OpArg
   void WriteREX(XEmitter* emit, int opBits, int bits, int customOp = -1) const;
   void WriteVEX(XEmitter* emit, X64Reg regOp1, X64Reg regOp2, int L, int pp, int mmmmm,
                 int W = 0) const;
-  void WriteRest(XEmitter* emit, int extraBytes = 0, X64Reg operandReg = INVALID_REG,
+  void WriteRest(XEmitter* emit, int extraBytes = 0, X64Reg _operandReg = INVALID_REG,
                  bool warn_64bit_offset = true) const;
-  void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg operandReg, int bits);
+  void WriteSingleByteOp(XEmitter* emit, u8 op, X64Reg _operandReg, int bits);
 
   u64 Imm64() const
   {
@@ -411,7 +411,7 @@ private:
   void CheckFlags();
 
   void Rex(int w, int r, int x, int b);
-  void WriteModRM(int mod, int rm, int reg);
+  void WriteModRM(int mod, int reg, int rm);
   void WriteSIB(int scale, int index, int base);
   void WriteSimple1Byte(int bits, u8 byte, X64Reg reg);
   void WriteSimple2Byte(int bits, u8 byte1, u8 byte2, X64Reg reg);
@@ -439,7 +439,7 @@ private:
                    int extrabytes = 0);
   void WriteBMI2Op(int size, u8 opPrefix, u16 op, X64Reg regOp1, X64Reg regOp2, const OpArg& arg,
                    int extrabytes = 0);
-  void WriteMOVBE(int bits, u8 op, X64Reg regOp, const OpArg& arg);
+  void WriteMOVBE(int bits, u8 op, X64Reg reg, const OpArg& arg);
   void WriteFloatLoadStore(int bits, FloatOp op, FloatOp op_80b, const OpArg& arg);
   void WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg& a2);
 
@@ -485,7 +485,7 @@ public:
   void INT3();
 
   // Do nothing
-  void NOP(size_t count = 1);
+  void NOP(size_t size = 1);
 
   // Save energy in wait-loops on P4 only. Probably not too useful.
   void PAUSE();
@@ -515,7 +515,7 @@ public:
   FixupBranch J(bool force5bytes = false);
 
   void JMP(const u8* addr, bool force5Bytes = false);
-  void JMPptr(const OpArg& arg);
+  void JMPptr(const OpArg& arg2);
   void JMPself();  // infinite loop!
 #ifdef CALL
 #undef CALL
@@ -558,8 +558,8 @@ public:
   // Multiplication / division
   void MUL(int bits, const OpArg& src);   // UNSIGNED
   void IMUL(int bits, const OpArg& src);  // SIGNED
-  void IMUL(int bits, X64Reg regOp, const OpArg& src);
-  void IMUL(int bits, X64Reg regOp, const OpArg& src, const OpArg& imm);
+  void IMUL(int bits, X64Reg regOp, const OpArg& a);
+  void IMUL(int bits, X64Reg regOp, const OpArg& a1, const OpArg& a2);
   void DIV(int bits, const OpArg& src);
   void IDIV(int bits, const OpArg& src);
 
@@ -731,10 +731,10 @@ public:
   void MOVDDUP(X64Reg regOp, const OpArg& arg);
 
   // SSE/SSE2: Useful alternative to shuffle in some cases.
-  void UNPCKLPS(X64Reg dest, const OpArg& src);
-  void UNPCKHPS(X64Reg dest, const OpArg& src);
-  void UNPCKLPD(X64Reg dest, const OpArg& src);
-  void UNPCKHPD(X64Reg dest, const OpArg& src);
+  void UNPCKLPS(X64Reg dest, const OpArg& arg);
+  void UNPCKHPS(X64Reg dest, const OpArg& arg);
+  void UNPCKLPD(X64Reg dest, const OpArg& arg);
+  void UNPCKHPD(X64Reg dest, const OpArg& arg);
 
   // SSE/SSE2: Compares.
   void COMISS(X64Reg regOp, const OpArg& arg);
@@ -794,15 +794,15 @@ public:
   // SSE2: Selective byte store, mask in src register. EDI/RDI specifies store address. This is a
   // weird one.
   void MASKMOVDQU(X64Reg dest, X64Reg src);
-  void LDDQU(X64Reg dest, const OpArg& src);
+  void LDDQU(X64Reg dest, const OpArg& arg);
 
   // SSE/SSE2: Data type conversions.
-  void CVTPS2PD(X64Reg dest, const OpArg& src);
-  void CVTPD2PS(X64Reg dest, const OpArg& src);
-  void CVTSS2SD(X64Reg dest, const OpArg& src);
-  void CVTSI2SS(X64Reg dest, const OpArg& src);
-  void CVTSD2SS(X64Reg dest, const OpArg& src);
-  void CVTSI2SD(X64Reg dest, const OpArg& src);
+  void CVTPS2PD(X64Reg regOp, const OpArg& arg);
+  void CVTPD2PS(X64Reg regOp, const OpArg& arg);
+  void CVTSS2SD(X64Reg regOp, const OpArg& arg);
+  void CVTSI2SS(X64Reg regOp, const OpArg& arg);
+  void CVTSD2SS(X64Reg regOp, const OpArg& arg);
+  void CVTSI2SD(X64Reg regOp, const OpArg& arg);
   void CVTDQ2PD(X64Reg regOp, const OpArg& arg);
   void CVTPD2DQ(X64Reg regOp, const OpArg& arg);
   void CVTDQ2PS(X64Reg regOp, const OpArg& arg);
@@ -812,10 +812,10 @@ public:
   void CVTTPD2DQ(X64Reg regOp, const OpArg& arg);
 
   // Destinations are X64 regs (rax, rbx, ...) for these instructions.
-  void CVTSS2SI(X64Reg xregdest, const OpArg& src);
-  void CVTSD2SI(X64Reg xregdest, const OpArg& src);
-  void CVTTSS2SI(X64Reg xregdest, const OpArg& arg);
-  void CVTTSD2SI(X64Reg xregdest, const OpArg& arg);
+  void CVTSS2SI(X64Reg regOp, const OpArg& arg);
+  void CVTSD2SI(X64Reg regOp, const OpArg& arg);
+  void CVTTSS2SI(X64Reg regOp, const OpArg& arg);
+  void CVTTSD2SI(X64Reg regOp, const OpArg& arg);
 
   // SSE2: Packed integer instructions
   void PACKSSDW(X64Reg dest, const OpArg& arg);
@@ -878,11 +878,11 @@ public:
   void PMINUB(X64Reg dest, const OpArg& arg);
 
   void PMOVMSKB(X64Reg dest, const OpArg& arg);
-  void PSHUFD(X64Reg dest, const OpArg& arg, u8 shuffle);
+  void PSHUFD(X64Reg regOp, const OpArg& arg, u8 shuffle);
   void PSHUFB(X64Reg dest, const OpArg& arg);
 
-  void PSHUFLW(X64Reg dest, const OpArg& arg, u8 shuffle);
-  void PSHUFHW(X64Reg dest, const OpArg& arg, u8 shuffle);
+  void PSHUFLW(X64Reg regOp, const OpArg& arg, u8 shuffle);
+  void PSHUFHW(X64Reg regOp, const OpArg& arg, u8 shuffle);
 
   void PSRLW(X64Reg reg, int shift);
   void PSRLD(X64Reg reg, int shift);
@@ -933,7 +933,7 @@ public:
   void VSHUFPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 shuffle);
   void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
-  void VBLENDVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, X64Reg mask);
+  void VBLENDVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, X64Reg regOp3);
 
   void VANDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VANDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
@@ -1080,7 +1080,7 @@ public:
   void ABI_CallFunctionRR(const void* func, X64Reg reg1, X64Reg reg2);
 
   // Helper method for the above, or can be used separately.
-  void MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset, X64Reg dst2, X64Reg src2);
+  void MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset1, X64Reg dst2, X64Reg src2);
 
   // Saves/restores the registers and adjusts the stack to be aligned as
   // required by the ABI, where the previous alignment was as specified.

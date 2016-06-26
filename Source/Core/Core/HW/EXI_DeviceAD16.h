@@ -12,7 +12,7 @@ class CEXIAD16 : public IEXIDevice
 {
 public:
   CEXIAD16();
-  void SetCS(int _iCS) override;
+  void SetCS(int cs) override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
 
@@ -34,5 +34,5 @@ private:
   u32 m_uCommand;
   UAD16Reg m_uAD16Register;
 
-  void TransferByte(u8& _uByte) override;
+  void TransferByte(u8& _byte) override;
 };

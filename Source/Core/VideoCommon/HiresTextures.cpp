@@ -479,6 +479,4 @@ std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
   return texture_directory;
 }
 
-HiresTexture::~HiresTexture()
-{
-}
+HiresTexture::~HiresTexture() = default;

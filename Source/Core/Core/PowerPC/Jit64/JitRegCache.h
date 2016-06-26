@@ -49,7 +49,7 @@ protected:
 
   Gen::XEmitter* emit;
 
-  float ScoreRegister(Gen::X64Reg xreg);
+  float ScoreRegister(Gen::X64Reg xr);
 
 public:
   RegCache();
@@ -85,8 +85,8 @@ public:
 
   // TODO - instead of doload, use "read", "write"
   // read only will not set dirty flag
-  void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
-  void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
+  void BindToRegister(size_t i, bool doLoad = true, bool makeDirty = true);
+  void StoreFromRegister(size_t i, FlushMode mode = FLUSH_ALL);
   virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
   virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 

@@ -24,7 +24,7 @@ public:
   CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _VolumeOffset,
                     const unsigned char* _pVolumeKey);
   ~CVolumeWiiCrypted();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
+  bool Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
   bool GetTitleID(u64* buffer) const override;
   std::vector<u8> GetTMD() const override;
   std::string GetUniqueID() const override;

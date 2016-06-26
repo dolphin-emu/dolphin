@@ -73,7 +73,7 @@ public:
     bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
     bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
     bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
-    bool Get(const std::string& key, std::vector<std::string>* values) const;
+    bool Get(const std::string& key, std::vector<std::string>* out) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
   protected:
@@ -133,7 +133,7 @@ public:
 
   void SortSections();
 
-  Section* GetOrCreateSection(const std::string& section);
+  Section* GetOrCreateSection(const std::string& sectionName);
 
   // This function is related to parsing data from lines of INI files
   // It's used outside of IniFile, which is why it is exposed publicly
@@ -143,8 +143,8 @@ public:
 private:
   std::list<Section> sections;
 
-  const Section* GetSection(const std::string& section) const;
-  Section* GetSection(const std::string& section);
+  const Section* GetSection(const std::string& sectionName) const;
+  Section* GetSection(const std::string& sectionName);
 
   static const std::string& NULL_STRING;
 };

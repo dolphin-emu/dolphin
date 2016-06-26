@@ -14,7 +14,7 @@ namespace Fifo
 void Init();
 void Shutdown();
 void Prepare();  // Must be called from the CPU thread.
-void DoState(PointerWrap& f);
+void DoState(PointerWrap& p);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void UpdateWantDeterminism(bool want);
 bool UseDeterministicGPUThread();
@@ -44,7 +44,7 @@ void ExitGpuLoop();
 void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
-void SetRendering(bool bEnabled);
+void SetRendering(bool enabled);
 bool WillSkipCurrentFrame();
 
 }  // namespace Fifo

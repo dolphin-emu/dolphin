@@ -66,13 +66,13 @@ struct ExtensionReg
   u8 constant_id[6];
 };
 
-void EmulateShake(AccelData* const accel_data, ControllerEmu::Buttons* const buttons_group,
+void EmulateShake(AccelData* const accel, ControllerEmu::Buttons* const buttons_group,
                   u8* const shake_step);
 
 void EmulateTilt(AccelData* const accel, ControllerEmu::Tilt* const tilt_group,
                  const bool sideways = false, const bool upright = false);
 
-void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const tilt_group,
+void EmulateSwing(AccelData* const accel, ControllerEmu::Force* const swing_group,
                   const bool sideways = false, const bool upright = false);
 
 enum

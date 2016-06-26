@@ -27,9 +27,9 @@ u64 Profiler::s_usecs_frame;
 std::string Profiler::s_lazy_result = "";
 int Profiler::s_lazy_delay = 0;
 
-Profiler::Profiler(const std::string& name)
-    : m_name(name), m_usecs(0), m_usecs_min(-1), m_usecs_max(0), m_usecs_quad(0), m_calls(0),
-      m_depth(0)
+Profiler::Profiler(std::string name)
+    : m_name(std::move(name)), m_usecs(0), m_usecs_min(-1), m_usecs_max(0), m_usecs_quad(0),
+      m_calls(0), m_depth(0)
 {
   m_time = Common::Timer::GetTimeUs();
   s_max_length = std::max<u32>(s_max_length, u32(m_name.length()));

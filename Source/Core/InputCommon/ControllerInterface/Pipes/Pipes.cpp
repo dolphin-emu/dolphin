@@ -65,7 +65,8 @@ void Init()
   }
 }
 
-PipeDevice::PipeDevice(int fd, const std::string& name, int id) : m_fd(fd), m_name(name), m_id(id)
+PipeDevice::PipeDevice(int fd, std::string name, int id)
+    : m_fd(fd), m_name(std::move(name)), m_id(id)
 {
   for (const auto& tok : s_button_tokens)
   {

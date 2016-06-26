@@ -56,9 +56,7 @@ VertexManagerBase::VertexManagerBase()
   s_cull_all = false;
 }
 
-VertexManagerBase::~VertexManagerBase()
-{
-}
+VertexManagerBase::~VertexManagerBase() = default;
 
 u32 VertexManagerBase::GetRemainingSize()
 {

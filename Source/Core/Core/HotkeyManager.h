@@ -142,7 +142,7 @@ public:
   HotkeyManager();
   ~HotkeyManager();
 
-  void GetInput(HotkeyStatus* const hk);
+  void GetInput(HotkeyStatus* const kb);
   std::string GetName() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
 

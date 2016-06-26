@@ -212,7 +212,5 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
 {
   std::string buffer;
   CodeToBinaryStringBE(code, buffer);
-  if (!File::WriteStringToFile(buffer, filename))
-    return false;
-  return true;
+  return File::WriteStringToFile(buffer, filename);
 }

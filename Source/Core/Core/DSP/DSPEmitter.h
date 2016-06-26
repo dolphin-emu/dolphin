@@ -52,13 +52,13 @@ public:
   // Memory helper functions
   void increment_addr_reg(int reg);
   void decrement_addr_reg(int reg);
-  void increase_addr_reg(int reg, int ix_reg);
+  void increase_addr_reg(int reg, int _ix_reg);
   void decrease_addr_reg(int reg);
   void imem_read(Gen::X64Reg address);
   void dmem_read(Gen::X64Reg address);
-  void dmem_read_imm(u16 addr);
+  void dmem_read_imm(u16 address);
   void dmem_write(Gen::X64Reg value);
-  void dmem_write_imm(u16 addr, Gen::X64Reg value);
+  void dmem_write_imm(u16 address, Gen::X64Reg value);
 
   // Ext command helpers
   void popExtValueToReg();
@@ -270,14 +270,14 @@ private:
   void set_long_prod();
   void round_long_acc(Gen::X64Reg long_acc = Gen::EAX);
   void set_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
-  void get_acc_h(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void get_acc_h(int _reg, Gen::X64Reg ach = Gen::EAX, bool sign = true);
   void set_acc_h(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
-  void get_acc_m(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void get_acc_m(int _reg, Gen::X64Reg acm = Gen::EAX, bool sign = true);
   void set_acc_m(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
-  void get_acc_l(int _reg, Gen::X64Reg acc = Gen::EAX, bool sign = true);
+  void get_acc_l(int _reg, Gen::X64Reg acl = Gen::EAX, bool sign = true);
   void set_acc_l(int _reg, const Gen::OpArg& arg = R(Gen::EAX));
   void get_long_acx(int _reg, Gen::X64Reg acx = Gen::EAX);
-  void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
-  void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
+  void get_ax_l(int _reg, Gen::X64Reg axl = Gen::EAX);
+  void get_ax_h(int _reg, Gen::X64Reg axh = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };

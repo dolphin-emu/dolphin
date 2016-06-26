@@ -57,7 +57,10 @@ public:
   ControlQualifier qualifier;
 
   Token(TokenType type_) : type(type_) {}
-  Token(TokenType type_, ControlQualifier qualifier_) : type(type_), qualifier(qualifier_) {}
+  Token(TokenType type_, ControlQualifier qualifier_)
+      : type(type_), qualifier(std::move(qualifier_))
+  {
+  }
   operator std::string()
   {
     switch (type)
@@ -94,7 +97,7 @@ public:
   std::string expr;
   std::string::iterator it;
 
-  Lexer(const std::string& expr_) : expr(expr_) { it = expr.begin(); }
+  Lexer(std::string expr_) : expr(std::move(expr_)) { it = expr.begin(); }
   bool FetchBacktickString(std::string& value, char otherDelim = 0)
   {
     value = "";
@@ -210,7 +213,7 @@ public:
 class ExpressionNode
 {
 public:
-  virtual ~ExpressionNode() {}
+  virtual ~ExpressionNode() = default;
   virtual ControlState GetValue() { return 0; }
   virtual void SetValue(ControlState state) {}
   virtual int CountNumControls() { return 0; }
@@ -222,7 +225,7 @@ class DummyExpression : public ExpressionNode
 public:
   std::string name;
 
-  DummyExpression(const std::string& name_) : name(name_) {}
+  DummyExpression(std::string name_) : name(std::move(name_)) {}
   ControlState GetValue() override { return 0.0; }
   void SetValue(ControlState value) override {}
   int CountNumControls() override { return 0; }
@@ -236,7 +239,7 @@ public:
   Device::Control* control;
 
   ControlExpression(ControlQualifier qualifier_, Device::Control* control_)
-      : qualifier(qualifier_), control(control_)
+      : qualifier(std::move(qualifier_)), control(control_)
   {
   }
 
@@ -257,7 +260,7 @@ public:
       : op(op_), lhs(lhs_), rhs(rhs_)
   {
   }
-  virtual ~BinaryExpression()
+  ~BinaryExpression() override
   {
     delete lhs;
     delete rhs;
@@ -303,7 +306,7 @@ public:
   ExpressionNode* inner;
 
   UnaryExpression(TokenType op_, ExpressionNode* inner_) : op(op_), inner(inner_) {}
-  virtual ~UnaryExpression() { delete inner; }
+  ~UnaryExpression() override { delete inner; }
   ControlState GetValue() override
   {
     ControlState value = inner->GetValue();
@@ -357,7 +360,8 @@ Device::Control* ControlFinder::FindControl(ControlQualifier qualifier)
 class Parser
 {
 public:
-  Parser(std::vector<Token> tokens_, ControlFinder& finder_) : tokens(tokens_), finder(finder_)
+  Parser(std::vector<Token> tokens_, ControlFinder& finder_)
+      : tokens(std::move(tokens_)), finder(finder_)
   {
     m_it = tokens.begin();
   }

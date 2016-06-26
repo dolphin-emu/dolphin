@@ -20,7 +20,7 @@ namespace OSD
 struct Message
 {
   Message() {}
-  Message(const std::string& s, u32 ts, u32 rgba) : m_str(s), m_timestamp(ts), m_rgba(rgba) {}
+  Message(std::string s, u32 ts, u32 rgba) : m_str(std::move(s)), m_timestamp(ts), m_rgba(rgba) {}
   std::string m_str;
   u32 m_timestamp;
   u32 m_rgba;

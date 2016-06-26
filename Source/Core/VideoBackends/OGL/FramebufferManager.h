@@ -86,12 +86,12 @@ public:
   // If not in MSAA mode, will just return the render target texture ID.
   // After calling this, before you render anything else, you MUST bind the framebuffer you want to
   // draw to.
-  static GLuint ResolveAndGetRenderTarget(const EFBRectangle& rect);
+  static GLuint ResolveAndGetRenderTarget(const EFBRectangle& source_rect);
 
   // Same as above but for the depth Target.
   // After calling this, before you render anything else, you MUST bind the framebuffer you want to
   // draw to.
-  static GLuint ResolveAndGetDepthTarget(const EFBRectangle& rect);
+  static GLuint ResolveAndGetDepthTarget(const EFBRectangle& source_rect);
 
   // Convert EFB content on pixel format change.
   // convtype=0 -> rgb8->rgba6, convtype=2 -> rgba6->rgb8

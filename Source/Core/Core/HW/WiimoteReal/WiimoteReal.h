@@ -31,7 +31,7 @@ public:
   void Shutdown();
 
   void ControlChannel(const u16 channel, const void* const data, const u32 size);
-  void InterruptChannel(const u16 channel, const void* const data, const u32 size);
+  void InterruptChannel(const u16 channel, const void* const _data, const u32 size);
   void Update();
   void ConnectOnInput();
 
@@ -69,7 +69,7 @@ public:
   void EnableDataReporting(u8 mode);
   void SetChannel(u16 channel);
 
-  void QueueReport(u8 rpt_id, const void* data, unsigned int size);
+  void QueueReport(u8 rpt_id, const void* _data, unsigned int size);
 
   int GetIndex() const;
 

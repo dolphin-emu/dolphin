@@ -89,12 +89,12 @@ u8 Read_U8(const u32 address);
 u16 Read_U16(const u32 address);
 u32 Read_U32(const u32 address);
 u64 Read_U64(const u32 address);
-void Write_U8(const u8 var, const u32 address);
-void Write_U16(const u16 var, const u32 address);
-void Write_U32(const u32 var, const u32 address);
-void Write_U64(const u64 var, const u32 address);
-void Write_U32_Swap(const u32 var, const u32 address);
-void Write_U64_Swap(const u64 var, const u32 address);
+void Write_U8(const u8 value, const u32 address);
+void Write_U16(const u16 value, const u32 address);
+void Write_U32(const u32 value, const u32 address);
+void Write_U64(const u64 value, const u32 address);
+void Write_U32_Swap(const u32 value, const u32 address);
+void Write_U64_Swap(const u64 value, const u32 address);
 
 // Templated functions for byteswapped copies.
 template <typename T>

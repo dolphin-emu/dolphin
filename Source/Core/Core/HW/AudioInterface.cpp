@@ -128,7 +128,7 @@ void DoState(PointerWrap& p)
 
 static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
-static void IncreaseSampleCount(const u32 _uAmount);
+static void IncreaseSampleCount(const u32 _iAmount);
 static int GetAIPeriod();
 static int et_AI;
 static void Update(u64 userdata, s64 cyclesLate);

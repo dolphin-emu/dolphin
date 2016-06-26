@@ -145,11 +145,8 @@ int GetFunctionFlagsByIndex(u32 index)
 
 bool IsEnabled(int flags)
 {
-  if (flags == HLE::HLE_TYPE_DEBUG && !SConfig::GetInstance().bEnableDebugging &&
-      PowerPC::GetMode() != MODE_INTERPRETER)
-    return false;
-
-  return true;
+  return !(flags == HLE::HLE_TYPE_DEBUG && !SConfig::GetInstance().bEnableDebugging &&
+           PowerPC::GetMode() != MODE_INTERPRETER);
 }
 
 u32 UnPatch(const std::string& patchName)

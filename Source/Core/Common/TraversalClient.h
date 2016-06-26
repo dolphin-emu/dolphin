@@ -36,7 +36,7 @@ public:
     SocketSendError,
     ResendTimeout,
   };
-  TraversalClient(ENetHost* netHost, const std::string& server, const u16 port);
+  TraversalClient(ENetHost* netHost, std::string server, const u16 port);
   ~TraversalClient();
   void Reset();
   void ConnectToClient(const std::string& host);

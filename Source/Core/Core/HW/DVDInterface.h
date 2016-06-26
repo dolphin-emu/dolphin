@@ -101,14 +101,14 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 // Direct disc access
 const DiscIO::IVolume& GetVolume();
 bool SetVolumeName(const std::string& disc_path);
-bool SetVolumeDirectory(const std::string& disc_path, bool is_wii,
+bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
                         const std::string& apploader_path = "", const std::string& DOL_path = "");
 bool VolumeIsValid();
 
 // Disc detection and swapping
-void SetDiscInside(bool _DiscInside);
+void SetDiscInside(bool disc_inside);
 bool IsDiscInside();
-void ChangeDisc(const std::string& fileName);  // [NOT THREADSAFE] Host only
+void ChangeDisc(const std::string& newFileName);  // [NOT THREADSAFE] Host only
 
 // DVD Access Functions
 bool ChangePartition(u64 offset);

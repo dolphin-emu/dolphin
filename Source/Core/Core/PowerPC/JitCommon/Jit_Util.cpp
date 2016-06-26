@@ -86,8 +86,8 @@ class MMIOReadCodeGenerator : public MMIO::ReadHandlingMethodVisitor<T>
 public:
   MMIOReadCodeGenerator(Gen::X64CodeBlock* code, BitSet32 registers_in_use, Gen::X64Reg dst_reg,
                         u32 address, bool sign_extend)
-      : m_code(code), m_registers_in_use(registers_in_use), m_dst_reg(dst_reg), m_address(address),
-        m_sign_extend(sign_extend)
+      : m_code(code), m_registers_in_use(std::move(registers_in_use)), m_dst_reg(dst_reg),
+        m_address(address), m_sign_extend(sign_extend)
   {
   }
 

@@ -37,7 +37,7 @@ void LabelMap::RegisterLabel(const std::string& label, u16 lval, LabelType type)
 
 void LabelMap::DeleteLabel(const std::string& label)
 {
-  for (std::vector<label_t>::iterator iter = labels.begin(); iter != labels.end(); ++iter)
+  for (auto iter = labels.begin(); iter != labels.end(); ++iter)
   {
     if (!label.compare(iter->name))
     {

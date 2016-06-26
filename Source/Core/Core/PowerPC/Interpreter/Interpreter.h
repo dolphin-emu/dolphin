@@ -52,7 +52,7 @@ public:
   static void fmrx(UGeckoInstruction _inst);
   static void fnabsx(UGeckoInstruction _inst);
   static void fnegx(UGeckoInstruction _inst);
-  static void frspx(UGeckoInstruction _inst);
+  static void frspx(UGeckoInstruction inst);
   static void faddx(UGeckoInstruction _inst);
   static void fdivx(UGeckoInstruction _inst);
   static void fmaddx(UGeckoInstruction _inst);
@@ -273,19 +273,19 @@ public:
   // singleton
   static Interpreter* getInstance();
 
-  static void RunTable4(UGeckoInstruction _instCode);
-  static void RunTable19(UGeckoInstruction _instCode);
-  static void RunTable31(UGeckoInstruction _instCode);
-  static void RunTable59(UGeckoInstruction _instCode);
-  static void RunTable63(UGeckoInstruction _instCode);
+  static void RunTable4(UGeckoInstruction _inst);
+  static void RunTable19(UGeckoInstruction _inst);
+  static void RunTable31(UGeckoInstruction _inst);
+  static void RunTable59(UGeckoInstruction _inst);
+  static void RunTable63(UGeckoInstruction _inst);
 
   static u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
 
 private:
   // flag helper
-  static void Helper_UpdateCR0(u32 _uValue);
+  static void Helper_UpdateCR0(u32 value);
   static void Helper_UpdateCR1();
-  static void Helper_UpdateCRx(int _x, u32 _uValue);
+  static void Helper_UpdateCRx(int idx, u32 value);
 
   // address helper
   static u32 Helper_Get_EA(const UGeckoInstruction _inst);
@@ -300,8 +300,8 @@ private:
   // other helper
   static u32 Helper_Mask(int mb, int me);
 
-  static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
-  static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
+  static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double fa, double fb);
+  static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double fa, double fb);
 
   // TODO: These should really be in the save state, although it's unlikely to matter much.
   // They are for lwarx and its friend stwcxd.

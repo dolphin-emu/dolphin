@@ -43,9 +43,9 @@ void Init()
 
 void Shutdown()
 {
-  for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
+  for (auto& i : ObjectBuffer)
   {
-    delete[] ObjectBuffer[i];
+    delete[] i;
   }
 }
 
@@ -59,7 +59,7 @@ static void SaveTexture(const std::string& filename, u32 texmap, s32 mip)
   u32 width = ti0.width + 1;
   u32 height = ti0.height + 1;
 
-  u8* data = new u8[width * height * 4];
+  auto data = new u8[width * height * 4];
 
   GetTextureRGBA(data, texmap, mip, width, height);
 
@@ -131,7 +131,7 @@ void DumpActiveTextures()
 
 static void DumpEfb(const std::string& filename)
 {
-  u8* data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
+  auto data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
   u8* writePtr = data;
   u8 sample[4];
 

@@ -38,7 +38,7 @@ inline void CharArrayFromFormat(char (&out)[Count], const char* format, ...)
 // Good
 std::string ArrayToString(const u8* data, u32 size, int line_len = 20, bool spaces = true);
 
-std::string StripSpaces(const std::string& s);
+std::string StripSpaces(const std::string& str);
 std::string StripQuotes(const std::string& s);
 
 // Thousand separator. Turns 12345678 into 12,345,678
@@ -115,9 +115,9 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
                            const std::string& _Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
 
-std::string CP1252ToUTF8(const std::string& str);
-std::string SHIFTJISToUTF8(const std::string& str);
-std::string UTF16ToUTF8(const std::wstring& str);
+std::string CP1252ToUTF8(const std::string& input);
+std::string SHIFTJISToUTF8(const std::string& input);
+std::string UTF16ToUTF8(const std::wstring& input);
 
 #ifdef _WIN32
 

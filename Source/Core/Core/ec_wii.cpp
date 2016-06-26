@@ -155,9 +155,7 @@ EcWii::EcWii()
     InitDefaults();
 }
 
-EcWii::~EcWii()
-{
-}
+EcWii::~EcWii() = default;
 
 void EcWii::InitDefaults()
 {

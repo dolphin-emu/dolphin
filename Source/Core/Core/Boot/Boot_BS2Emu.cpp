@@ -336,7 +336,7 @@ bool CBoot::EmulatedBS2_Wii()
   DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
   if (DVDInterface::VolumeIsValid())
     country_code = DVDInterface::GetVolume().GetCountry();
-  if (SetupWiiMemory(country_code) == false)
+  if (!SetupWiiMemory(country_code))
     return false;
 
   // Execute the apploader

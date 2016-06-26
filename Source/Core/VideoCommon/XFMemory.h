@@ -298,6 +298,6 @@ struct XFMemory
 
 extern XFMemory xfmem;
 
-void LoadXFReg(u32 transferSize, u32 address, DataReader src);
-void LoadIndexedXF(u32 val, int array);
+void LoadXFReg(u32 transferSize, u32 baseAddress, DataReader src);
+void LoadIndexedXF(u32 val, int refarray);
 void PreprocessIndexedXF(u32 val, int refarray);

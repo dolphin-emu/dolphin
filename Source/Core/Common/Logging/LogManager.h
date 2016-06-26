@@ -55,7 +55,7 @@ private:
 class LogContainer
 {
 public:
-  LogContainer(const std::string& shortName, const std::string& fullName, bool enable = false);
+  LogContainer(std::string shortName, std::string fullName, bool enable = false);
 
   std::string GetShortName() const { return m_shortName; }
   std::string GetFullName() const { return m_fullName; }
@@ -94,7 +94,7 @@ private:
 public:
   static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
   void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
-           const char* fmt, va_list args);
+           const char* format, va_list args);
 
   void SetLogLevel(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level)
   {

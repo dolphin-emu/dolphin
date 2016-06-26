@@ -99,8 +99,8 @@ void CWiiSaveCrypted::ExportAllSaves()
                 (File::GetUserPath(D_USER_IDX) + "private/wii/title/").c_str());
 }
 
-CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
-    : m_encrypted_save_path(filename), m_title_id(title_id)
+CWiiSaveCrypted::CWiiSaveCrypted(std::string filename, u64 title_id)
+    : m_encrypted_save_path(std::move(filename)), m_title_id(title_id)
 {
   Common::ReadReplacements(replacements);
   memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
@@ -655,6 +655,4 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
   *size_files = size;
 }
 
-CWiiSaveCrypted::~CWiiSaveCrypted()
-{
-}
+CWiiSaveCrypted::~CWiiSaveCrypted() = default;

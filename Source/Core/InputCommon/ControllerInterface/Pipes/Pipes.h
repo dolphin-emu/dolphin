@@ -27,7 +27,7 @@ void Init();
 class PipeDevice : public Core::Device
 {
 public:
-  PipeDevice(int fd, const std::string& name, int id);
+  PipeDevice(int fd, std::string name, int id);
   ~PipeDevice();
 
   void UpdateInput() override;

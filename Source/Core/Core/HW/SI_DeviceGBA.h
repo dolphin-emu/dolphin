@@ -45,7 +45,7 @@ private:
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
-  CSIDevice_GBA(SIDevices device, int _iDeviceNumber);
+  CSIDevice_GBA(SIDevices _device, int _iDeviceNumber);
   ~CSIDevice_GBA();
 
   int RunBuffer(u8* _pBuffer, int _iLength) override;

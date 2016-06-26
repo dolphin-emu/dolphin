@@ -12,7 +12,7 @@ namespace OGL
 class GLVertexFormat : public NativeVertexFormat
 {
 public:
-  GLVertexFormat(const PortableVertexDeclaration& vtx_decl);
+  GLVertexFormat(const PortableVertexDeclaration& _vtx_decl);
   ~GLVertexFormat();
 
   void SetupVertexPointers() override;

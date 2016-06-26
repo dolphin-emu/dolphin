@@ -42,8 +42,9 @@ static const char* err_string[] = {"",
                                    "Invalid register",
                                    "Number out of range"};
 
-DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
-    : gdg_buffer(nullptr), m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
+DSPAssembler::DSPAssembler(AssemblerSettings settings)
+    : gdg_buffer(nullptr), m_cur_addr(0), m_cur_pass(0), m_current_param(0),
+      settings_(std::move(settings))
 
 {
 }

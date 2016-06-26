@@ -190,7 +190,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   last_uid = uid;
 
   // Check if shader is already in cache
-  PCache::iterator iter = pshaders.find(uid);
+  auto iter = pshaders.find(uid);
   if (iter != pshaders.end())
   {
     PCacheEntry* entry = &iter->second;
@@ -292,7 +292,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
   {
     GLsizei charsWritten;
-    GLchar* infoLog = new GLchar[length];
+    auto infoLog = new GLchar[length];
     glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
     ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
 
@@ -347,7 +347,7 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
   if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
   {
     GLsizei charsWritten;
-    GLchar* infoLog = new GLchar[length];
+    auto infoLog = new GLchar[length];
     glGetShaderInfoLog(result, length, &charsWritten, infoLog);
     ERROR_LOG(VIDEO, "%s Shader info log:\n%s",
               type == GL_VERTEX_SHADER ? "VS" : type == GL_FRAGMENT_SHADER ? "PS" : "GS", infoLog);

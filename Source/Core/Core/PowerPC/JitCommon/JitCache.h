@@ -118,7 +118,7 @@ public:
   bool IsFull() const;
 
   // Code Cache
-  JitBlock* GetBlock(int block_num);
+  JitBlock* GetBlock(int no);
   int GetNumBlocks() const;
   const u8** GetCodePointers();
   std::array<u8, JIT_ICACHE_SIZE> iCache;
@@ -126,7 +126,7 @@ public:
   std::array<u8, JIT_ICACHE_SIZE> iCacheVMEM;
 
   // Fast way to get a block. Only works on the first ppc instruction of a block.
-  int GetBlockNumberFromStartAddress(u32 em_address);
+  int GetBlockNumberFromStartAddress(u32 addr);
 
   CompiledCode GetCompiledCodeFromBlock(int block_num);
 

@@ -50,9 +50,7 @@ void CSharedContent::UpdateLocation()
   }
 }
 
-CSharedContent::~CSharedContent()
-{
-}
+CSharedContent::~CSharedContent() = default;
 
 std::string CSharedContent::GetFilenameFromSHA1(const u8* hash)
 {
@@ -154,9 +152,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
   m_Valid = Initialize(content_name);
 }
 
-CNANDContentLoader::~CNANDContentLoader()
-{
-}
+CNANDContentLoader::~CNANDContentLoader() = default;
 
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
 {
@@ -311,9 +307,7 @@ DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
   return CountrySwitch(m_Country);
 }
 
-CNANDContentManager::~CNANDContentManager()
-{
-}
+CNANDContentManager::~CNANDContentManager() = default;
 
 const CNANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& content_path)
 {
@@ -399,9 +393,7 @@ void cUIDsys::UpdateLocation()
   }
 }
 
-cUIDsys::~cUIDsys()
-{
-}
+cUIDsys::~cUIDsys() = default;
 
 u32 cUIDsys::GetUIDFromTitle(u64 title_id)
 {
@@ -453,7 +445,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   if (filename.find(".wad") == std::string::npos)
     return 0;
   const CNANDContentLoader& content_loader = GetNANDLoader(filename);
-  if (content_loader.IsValid() == false)
+  if (!content_loader.IsValid())
     return 0;
 
   u64 title_id = content_loader.GetTitleID();

@@ -50,7 +50,7 @@ public:
   static void CopyToXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
                         float Gamma);
   static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                  u32* xfbCount);
+                                                  u32* xfbCountP);
 
   static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
   static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
@@ -93,9 +93,9 @@ private:
                                float Gamma = 1.0f);
 
   static const XFBSourceBase* const* GetRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                      u32* xfbCount);
+                                                      u32* xfbCountP);
   static const XFBSourceBase* const* GetVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
-                                                         u32* xfbCount);
+                                                         u32* xfbCountP);
 
   static std::unique_ptr<XFBSourceBase> m_realXFBSource;  // Only used in Real XFB mode
   static VirtualXFBListType m_virtualXFBList;             // Only used in Virtual XFB mode
