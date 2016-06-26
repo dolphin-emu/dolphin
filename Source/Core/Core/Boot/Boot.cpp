@@ -237,6 +237,8 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
   PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
   PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
+  PowerPC::DBATUpdated();
+  PowerPC::IBATUpdated();
   PC = 0x81200150;
   return true;
 }
@@ -377,6 +379,8 @@ bool CBoot::BootUp()
       PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
       PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
       PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+      PowerPC::DBATUpdated();
+      PowerPC::IBATUpdated();
 
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();

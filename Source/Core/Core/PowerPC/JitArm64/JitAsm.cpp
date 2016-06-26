@@ -48,6 +48,16 @@ void JitArm64::GenerateAsm()
 
   dispatcherNoCheck = GetCodePtr();
 
+  // Make sure MEM_REG is pointing at an appropriate register, based on MSR.DR.
+  LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(msr));
+  TST(W0, 28, 1);
+  FixupBranch physmem = B(CC_NEQ);
+  MOVI2R(MEM_REG, (u64)Memory::physical_base);
+  FixupBranch membaseend = B();
+  SetJumpTarget(physmem);
+  MOVI2R(MEM_REG, (u64)Memory::logical_base);
+  SetJumpTarget(membaseend);
+
   bool assembly_dispatcher = true;
 
   if (assembly_dispatcher)
