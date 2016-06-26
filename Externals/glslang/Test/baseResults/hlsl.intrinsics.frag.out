@@ -1,0 +1,3431 @@
+hlsl.intrinsics.frag
+Shader version: 450
+gl_FragCoord origin is upper left
+0:? Sequence
+0:87  Function Definition: PixelShaderFunction(f1;f1;f1;u1;u1; (temp float)
+0:17    Function Parameters: 
+0:17      'inF0' (in float)
+0:17      'inF1' (in float)
+0:17      'inF2' (in float)
+0:17      'inU0' (in uint)
+0:17      'inU1' (in uint)
+0:?     Sequence
+0:20      all (global bool)
+0:20        'inF0' (in float)
+0:21      Absolute value (global float)
+0:21        'inF0' (in float)
+0:22      arc cosine (global float)
+0:22        'inF0' (in float)
+0:23      any (global bool)
+0:23        'inF0' (in float)
+0:24      arc sine (global float)
+0:24        'inF0' (in float)
+0:25      floatBitsToInt (global int)
+0:25        'inF0' (in float)
+0:26      floatBitsToUint (global uint)
+0:26        'inF0' (in float)
+0:27      intBitsToFloat (global float)
+0:27        'inU0' (in uint)
+0:29      arc tangent (global float)
+0:29        'inF0' (in float)
+0:30      arc tangent (global float)
+0:30        'inF0' (in float)
+0:30        'inF1' (in float)
+0:31      Ceiling (global float)
+0:31        'inF0' (in float)
+0:32      clamp (global float)
+0:32        'inF0' (in float)
+0:32        'inF1' (in float)
+0:32        'inF2' (in float)
+0:33      Test condition and select (temp void)
+0:33        Condition
+0:33        Compare Less Than (temp bool)
+0:33          'inF0' (in float)
+0:33          Constant:
+0:33            0.000000
+0:33        true case
+0:33        Branch: Kill
+0:34      cosine (global float)
+0:34        'inF0' (in float)
+0:35      hyp. cosine (global float)
+0:35        'inF0' (in float)
+0:36      bitCount (global uint)
+0:36        Constant:
+0:36          7 (const uint)
+0:37      dPdx (global float)
+0:37        'inF0' (in float)
+0:38      dPdxCoarse (global float)
+0:38        'inF0' (in float)
+0:39      dPdxFine (global float)
+0:39        'inF0' (in float)
+0:40      dPdy (global float)
+0:40        'inF0' (in float)
+0:41      dPdyCoarse (global float)
+0:41        'inF0' (in float)
+0:42      dPdyFine (global float)
+0:42        'inF0' (in float)
+0:43      degrees (global float)
+0:43        'inF0' (in float)
+0:47      exp (global float)
+0:47        'inF0' (in float)
+0:48      exp2 (global float)
+0:48        'inF0' (in float)
+0:49      findMSB (global int)
+0:49        Constant:
+0:49          7 (const int)
+0:50      findLSB (global int)
+0:50        Constant:
+0:50          7 (const int)
+0:51      Floor (global float)
+0:51        'inF0' (in float)
+0:53      mod (global float)
+0:53        'inF0' (in float)
+0:53        'inF1' (in float)
+0:54      Fraction (global float)
+0:54        'inF0' (in float)
+0:55      frexp (global float)
+0:55        'inF0' (in float)
+0:55        'inF1' (in float)
+0:56      fwidth (global float)
+0:56        'inF0' (in float)
+0:57      isinf (global bool)
+0:57        'inF0' (in float)
+0:58      isnan (global bool)
+0:58        'inF0' (in float)
+0:59      ldexp (global float)
+0:59        'inF0' (in float)
+0:59        'inF1' (in float)
+0:60      log (global float)
+0:60        'inF0' (in float)
+0:61      component-wise multiply (temp float)
+0:61        log2 (temp float)
+0:61          'inF0' (in float)
+0:61        Constant:
+0:61          0.301030
+0:62      log2 (global float)
+0:62        'inF0' (in float)
+0:63      max (global float)
+0:63        'inF0' (in float)
+0:63        'inF1' (in float)
+0:64      min (global float)
+0:64        'inF0' (in float)
+0:64        'inF1' (in float)
+0:65      pow (global float)
+0:65        'inF0' (in float)
+0:65        'inF1' (in float)
+0:66      radians (global float)
+0:66        'inF0' (in float)
+0:67      divide (temp float)
+0:67        Constant:
+0:67          1.000000
+0:67        'inF0' (in float)
+0:68      bitFieldReverse (global uint)
+0:68        Constant:
+0:68          2 (const uint)
+0:69      roundEven (global float)
+0:69        'inF0' (in float)
+0:70      inverse sqrt (global float)
+0:70        'inF0' (in float)
+0:71      clamp (temp float)
+0:71        'inF0' (in float)
+0:71        Constant:
+0:71          0.000000
+0:71        Constant:
+0:71          1.000000
+0:72      Sign (global float)
+0:72        'inF0' (in float)
+0:73      sine (global float)
+0:73        'inF0' (in float)
+0:74      Sequence
+0:74        move second child to first child (temp float)
+0:74          'inF1' (in float)
+0:74          sine (temp float)
+0:74            'inF0' (in float)
+0:74        move second child to first child (temp float)
+0:74          'inF2' (in float)
+0:74          cosine (temp float)
+0:74            'inF0' (in float)
+0:75      hyp. sine (global float)
+0:75        'inF0' (in float)
+0:76      smoothstep (global float)
+0:76        'inF0' (in float)
+0:76        'inF1' (in float)
+0:76        'inF2' (in float)
+0:77      sqrt (global float)
+0:77        'inF0' (in float)
+0:78      step (global float)
+0:78        'inF0' (in float)
+0:78        'inF1' (in float)
+0:79      tangent (global float)
+0:79        'inF0' (in float)
+0:80      hyp. tangent (global float)
+0:80        'inF0' (in float)
+0:82      trunc (global float)
+0:82        'inF0' (in float)
+0:84      Branch: Return with expression
+0:84        Constant:
+0:84          0.000000
+0:93  Function Definition: PixelShaderFunction(vf1;vf1;vf1; (temp 1-component vector of float)
+0:88    Function Parameters: 
+0:88      'inF0' (in 1-component vector of float)
+0:88      'inF1' (in 1-component vector of float)
+0:88      'inF2' (in 1-component vector of float)
+0:?     Sequence
+0:90      Branch: Return with expression
+0:90        Constant:
+0:90          0.000000
+0:172  Function Definition: PixelShaderFunction(vf2;vf2;vf2;vu2;vu2; (temp 2-component vector of float)
+0:94    Function Parameters: 
+0:94      'inF0' (in 2-component vector of float)
+0:94      'inF1' (in 2-component vector of float)
+0:94      'inF2' (in 2-component vector of float)
+0:94      'inU0' (in 2-component vector of uint)
+0:94      'inU1' (in 2-component vector of uint)
+0:?     Sequence
+0:97      all (global bool)
+0:97        'inF0' (in 2-component vector of float)
+0:98      Absolute value (global 2-component vector of float)
+0:98        'inF0' (in 2-component vector of float)
+0:99      arc cosine (global 2-component vector of float)
+0:99        'inF0' (in 2-component vector of float)
+0:100      any (global bool)
+0:100        'inF0' (in 2-component vector of float)
+0:101      arc sine (global 2-component vector of float)
+0:101        'inF0' (in 2-component vector of float)
+0:102      floatBitsToInt (global 2-component vector of int)
+0:102        'inF0' (in 2-component vector of float)
+0:103      floatBitsToUint (global 2-component vector of uint)
+0:103        'inF0' (in 2-component vector of float)
+0:104      intBitsToFloat (global 2-component vector of float)
+0:104        'inU0' (in 2-component vector of uint)
+0:106      arc tangent (global 2-component vector of float)
+0:106        'inF0' (in 2-component vector of float)
+0:107      arc tangent (global 2-component vector of float)
+0:107        'inF0' (in 2-component vector of float)
+0:107        'inF1' (in 2-component vector of float)
+0:108      Ceiling (global 2-component vector of float)
+0:108        'inF0' (in 2-component vector of float)
+0:109      clamp (global 2-component vector of float)
+0:109        'inF0' (in 2-component vector of float)
+0:109        'inF1' (in 2-component vector of float)
+0:109        'inF2' (in 2-component vector of float)
+0:110      Test condition and select (temp void)
+0:110        Condition
+0:110        any (temp bool)
+0:110          Compare Less Than (temp 2-component vector of bool)
+0:110            'inF0' (in 2-component vector of float)
+0:110            Constant:
+0:110              0.000000
+0:110              0.000000
+0:110        true case
+0:110        Branch: Kill
+0:111      cosine (global 2-component vector of float)
+0:111        'inF0' (in 2-component vector of float)
+0:112      hyp. cosine (global 2-component vector of float)
+0:112        'inF0' (in 2-component vector of float)
+0:?       bitCount (global 2-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:114      dPdx (global 2-component vector of float)
+0:114        'inF0' (in 2-component vector of float)
+0:115      dPdxCoarse (global 2-component vector of float)
+0:115        'inF0' (in 2-component vector of float)
+0:116      dPdxFine (global 2-component vector of float)
+0:116        'inF0' (in 2-component vector of float)
+0:117      dPdy (global 2-component vector of float)
+0:117        'inF0' (in 2-component vector of float)
+0:118      dPdyCoarse (global 2-component vector of float)
+0:118        'inF0' (in 2-component vector of float)
+0:119      dPdyFine (global 2-component vector of float)
+0:119        'inF0' (in 2-component vector of float)
+0:120      degrees (global 2-component vector of float)
+0:120        'inF0' (in 2-component vector of float)
+0:121      distance (global float)
+0:121        'inF0' (in 2-component vector of float)
+0:121        'inF1' (in 2-component vector of float)
+0:122      dot-product (global float)
+0:122        'inF0' (in 2-component vector of float)
+0:122        'inF1' (in 2-component vector of float)
+0:126      exp (global 2-component vector of float)
+0:126        'inF0' (in 2-component vector of float)
+0:127      exp2 (global 2-component vector of float)
+0:127        'inF0' (in 2-component vector of float)
+0:128      face-forward (global 2-component vector of float)
+0:128        'inF0' (in 2-component vector of float)
+0:128        'inF1' (in 2-component vector of float)
+0:128        'inF2' (in 2-component vector of float)
+0:129      findMSB (global int)
+0:129        Constant:
+0:129          7 (const int)
+0:130      findLSB (global int)
+0:130        Constant:
+0:130          7 (const int)
+0:131      Floor (global 2-component vector of float)
+0:131        'inF0' (in 2-component vector of float)
+0:133      mod (global 2-component vector of float)
+0:133        'inF0' (in 2-component vector of float)
+0:133        'inF1' (in 2-component vector of float)
+0:134      Fraction (global 2-component vector of float)
+0:134        'inF0' (in 2-component vector of float)
+0:135      frexp (global 2-component vector of float)
+0:135        'inF0' (in 2-component vector of float)
+0:135        'inF1' (in 2-component vector of float)
+0:136      fwidth (global 2-component vector of float)
+0:136        'inF0' (in 2-component vector of float)
+0:137      isinf (global 2-component vector of bool)
+0:137        'inF0' (in 2-component vector of float)
+0:138      isnan (global 2-component vector of bool)
+0:138        'inF0' (in 2-component vector of float)
+0:139      ldexp (global 2-component vector of float)
+0:139        'inF0' (in 2-component vector of float)
+0:139        'inF1' (in 2-component vector of float)
+0:140      length (global float)
+0:140        'inF0' (in 2-component vector of float)
+0:141      log (global 2-component vector of float)
+0:141        'inF0' (in 2-component vector of float)
+0:142      vector-scale (temp 2-component vector of float)
+0:142        log2 (temp 2-component vector of float)
+0:142          'inF0' (in 2-component vector of float)
+0:142        Constant:
+0:142          0.301030
+0:143      log2 (global 2-component vector of float)
+0:143        'inF0' (in 2-component vector of float)
+0:144      max (global 2-component vector of float)
+0:144        'inF0' (in 2-component vector of float)
+0:144        'inF1' (in 2-component vector of float)
+0:145      min (global 2-component vector of float)
+0:145        'inF0' (in 2-component vector of float)
+0:145        'inF1' (in 2-component vector of float)
+0:146      normalize (global 2-component vector of float)
+0:146        'inF0' (in 2-component vector of float)
+0:147      pow (global 2-component vector of float)
+0:147        'inF0' (in 2-component vector of float)
+0:147        'inF1' (in 2-component vector of float)
+0:148      radians (global 2-component vector of float)
+0:148        'inF0' (in 2-component vector of float)
+0:149      divide (temp 2-component vector of float)
+0:149        Constant:
+0:149          1.000000
+0:149        'inF0' (in 2-component vector of float)
+0:150      reflect (global 2-component vector of float)
+0:150        'inF0' (in 2-component vector of float)
+0:150        'inF1' (in 2-component vector of float)
+0:151      refract (global 2-component vector of float)
+0:151        'inF0' (in 2-component vector of float)
+0:151        'inF1' (in 2-component vector of float)
+0:151        Constant:
+0:151          2.000000
+0:?       bitFieldReverse (global 2-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:153      roundEven (global 2-component vector of float)
+0:153        'inF0' (in 2-component vector of float)
+0:154      inverse sqrt (global 2-component vector of float)
+0:154        'inF0' (in 2-component vector of float)
+0:155      clamp (temp 2-component vector of float)
+0:155        'inF0' (in 2-component vector of float)
+0:155        Constant:
+0:155          0.000000
+0:155        Constant:
+0:155          1.000000
+0:156      Sign (global 2-component vector of float)
+0:156        'inF0' (in 2-component vector of float)
+0:157      sine (global 2-component vector of float)
+0:157        'inF0' (in 2-component vector of float)
+0:158      Sequence
+0:158        move second child to first child (temp 2-component vector of float)
+0:158          'inF1' (in 2-component vector of float)
+0:158          sine (temp 2-component vector of float)
+0:158            'inF0' (in 2-component vector of float)
+0:158        move second child to first child (temp 2-component vector of float)
+0:158          'inF2' (in 2-component vector of float)
+0:158          cosine (temp 2-component vector of float)
+0:158            'inF0' (in 2-component vector of float)
+0:159      hyp. sine (global 2-component vector of float)
+0:159        'inF0' (in 2-component vector of float)
+0:160      smoothstep (global 2-component vector of float)
+0:160        'inF0' (in 2-component vector of float)
+0:160        'inF1' (in 2-component vector of float)
+0:160        'inF2' (in 2-component vector of float)
+0:161      sqrt (global 2-component vector of float)
+0:161        'inF0' (in 2-component vector of float)
+0:162      step (global 2-component vector of float)
+0:162        'inF0' (in 2-component vector of float)
+0:162        'inF1' (in 2-component vector of float)
+0:163      tangent (global 2-component vector of float)
+0:163        'inF0' (in 2-component vector of float)
+0:164      hyp. tangent (global 2-component vector of float)
+0:164        'inF0' (in 2-component vector of float)
+0:166      trunc (global 2-component vector of float)
+0:166        'inF0' (in 2-component vector of float)
+0:169      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:252  Function Definition: PixelShaderFunction(vf3;vf3;vf3;vu3;vu3; (temp 3-component vector of float)
+0:173    Function Parameters: 
+0:173      'inF0' (in 3-component vector of float)
+0:173      'inF1' (in 3-component vector of float)
+0:173      'inF2' (in 3-component vector of float)
+0:173      'inU0' (in 3-component vector of uint)
+0:173      'inU1' (in 3-component vector of uint)
+0:?     Sequence
+0:176      all (global bool)
+0:176        'inF0' (in 3-component vector of float)
+0:177      Absolute value (global 3-component vector of float)
+0:177        'inF0' (in 3-component vector of float)
+0:178      arc cosine (global 3-component vector of float)
+0:178        'inF0' (in 3-component vector of float)
+0:179      any (global bool)
+0:179        'inF0' (in 3-component vector of float)
+0:180      arc sine (global 3-component vector of float)
+0:180        'inF0' (in 3-component vector of float)
+0:181      floatBitsToInt (global 3-component vector of int)
+0:181        'inF0' (in 3-component vector of float)
+0:182      floatBitsToUint (global 3-component vector of uint)
+0:182        'inF0' (in 3-component vector of float)
+0:183      intBitsToFloat (global 3-component vector of float)
+0:183        'inU0' (in 3-component vector of uint)
+0:185      arc tangent (global 3-component vector of float)
+0:185        'inF0' (in 3-component vector of float)
+0:186      arc tangent (global 3-component vector of float)
+0:186        'inF0' (in 3-component vector of float)
+0:186        'inF1' (in 3-component vector of float)
+0:187      Ceiling (global 3-component vector of float)
+0:187        'inF0' (in 3-component vector of float)
+0:188      clamp (global 3-component vector of float)
+0:188        'inF0' (in 3-component vector of float)
+0:188        'inF1' (in 3-component vector of float)
+0:188        'inF2' (in 3-component vector of float)
+0:189      Test condition and select (temp void)
+0:189        Condition
+0:189        any (temp bool)
+0:189          Compare Less Than (temp 3-component vector of bool)
+0:189            'inF0' (in 3-component vector of float)
+0:189            Constant:
+0:189              0.000000
+0:189              0.000000
+0:189              0.000000
+0:189        true case
+0:189        Branch: Kill
+0:190      cosine (global 3-component vector of float)
+0:190        'inF0' (in 3-component vector of float)
+0:191      hyp. cosine (global 3-component vector of float)
+0:191        'inF0' (in 3-component vector of float)
+0:?       bitCount (global 3-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:?           5 (const uint)
+0:193      cross-product (global 3-component vector of float)
+0:193        'inF0' (in 3-component vector of float)
+0:193        'inF1' (in 3-component vector of float)
+0:194      dPdx (global 3-component vector of float)
+0:194        'inF0' (in 3-component vector of float)
+0:195      dPdxCoarse (global 3-component vector of float)
+0:195        'inF0' (in 3-component vector of float)
+0:196      dPdxFine (global 3-component vector of float)
+0:196        'inF0' (in 3-component vector of float)
+0:197      dPdy (global 3-component vector of float)
+0:197        'inF0' (in 3-component vector of float)
+0:198      dPdyCoarse (global 3-component vector of float)
+0:198        'inF0' (in 3-component vector of float)
+0:199      dPdyFine (global 3-component vector of float)
+0:199        'inF0' (in 3-component vector of float)
+0:200      degrees (global 3-component vector of float)
+0:200        'inF0' (in 3-component vector of float)
+0:201      distance (global float)
+0:201        'inF0' (in 3-component vector of float)
+0:201        'inF1' (in 3-component vector of float)
+0:202      dot-product (global float)
+0:202        'inF0' (in 3-component vector of float)
+0:202        'inF1' (in 3-component vector of float)
+0:206      exp (global 3-component vector of float)
+0:206        'inF0' (in 3-component vector of float)
+0:207      exp2 (global 3-component vector of float)
+0:207        'inF0' (in 3-component vector of float)
+0:208      face-forward (global 3-component vector of float)
+0:208        'inF0' (in 3-component vector of float)
+0:208        'inF1' (in 3-component vector of float)
+0:208        'inF2' (in 3-component vector of float)
+0:209      findMSB (global int)
+0:209        Constant:
+0:209          7 (const int)
+0:210      findLSB (global int)
+0:210        Constant:
+0:210          7 (const int)
+0:211      Floor (global 3-component vector of float)
+0:211        'inF0' (in 3-component vector of float)
+0:213      mod (global 3-component vector of float)
+0:213        'inF0' (in 3-component vector of float)
+0:213        'inF1' (in 3-component vector of float)
+0:214      Fraction (global 3-component vector of float)
+0:214        'inF0' (in 3-component vector of float)
+0:215      frexp (global 3-component vector of float)
+0:215        'inF0' (in 3-component vector of float)
+0:215        'inF1' (in 3-component vector of float)
+0:216      fwidth (global 3-component vector of float)
+0:216        'inF0' (in 3-component vector of float)
+0:217      isinf (global 3-component vector of bool)
+0:217        'inF0' (in 3-component vector of float)
+0:218      isnan (global 3-component vector of bool)
+0:218        'inF0' (in 3-component vector of float)
+0:219      ldexp (global 3-component vector of float)
+0:219        'inF0' (in 3-component vector of float)
+0:219        'inF1' (in 3-component vector of float)
+0:220      length (global float)
+0:220        'inF0' (in 3-component vector of float)
+0:221      log (global 3-component vector of float)
+0:221        'inF0' (in 3-component vector of float)
+0:222      vector-scale (temp 3-component vector of float)
+0:222        log2 (temp 3-component vector of float)
+0:222          'inF0' (in 3-component vector of float)
+0:222        Constant:
+0:222          0.301030
+0:223      log2 (global 3-component vector of float)
+0:223        'inF0' (in 3-component vector of float)
+0:224      max (global 3-component vector of float)
+0:224        'inF0' (in 3-component vector of float)
+0:224        'inF1' (in 3-component vector of float)
+0:225      min (global 3-component vector of float)
+0:225        'inF0' (in 3-component vector of float)
+0:225        'inF1' (in 3-component vector of float)
+0:226      normalize (global 3-component vector of float)
+0:226        'inF0' (in 3-component vector of float)
+0:227      pow (global 3-component vector of float)
+0:227        'inF0' (in 3-component vector of float)
+0:227        'inF1' (in 3-component vector of float)
+0:228      radians (global 3-component vector of float)
+0:228        'inF0' (in 3-component vector of float)
+0:229      divide (temp 3-component vector of float)
+0:229        Constant:
+0:229          1.000000
+0:229        'inF0' (in 3-component vector of float)
+0:230      reflect (global 3-component vector of float)
+0:230        'inF0' (in 3-component vector of float)
+0:230        'inF1' (in 3-component vector of float)
+0:231      refract (global 3-component vector of float)
+0:231        'inF0' (in 3-component vector of float)
+0:231        'inF1' (in 3-component vector of float)
+0:231        Constant:
+0:231          2.000000
+0:?       bitFieldReverse (global 3-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:?           3 (const uint)
+0:233      roundEven (global 3-component vector of float)
+0:233        'inF0' (in 3-component vector of float)
+0:234      inverse sqrt (global 3-component vector of float)
+0:234        'inF0' (in 3-component vector of float)
+0:235      clamp (temp 3-component vector of float)
+0:235        'inF0' (in 3-component vector of float)
+0:235        Constant:
+0:235          0.000000
+0:235        Constant:
+0:235          1.000000
+0:236      Sign (global 3-component vector of float)
+0:236        'inF0' (in 3-component vector of float)
+0:237      sine (global 3-component vector of float)
+0:237        'inF0' (in 3-component vector of float)
+0:238      Sequence
+0:238        move second child to first child (temp 3-component vector of float)
+0:238          'inF1' (in 3-component vector of float)
+0:238          sine (temp 3-component vector of float)
+0:238            'inF0' (in 3-component vector of float)
+0:238        move second child to first child (temp 3-component vector of float)
+0:238          'inF2' (in 3-component vector of float)
+0:238          cosine (temp 3-component vector of float)
+0:238            'inF0' (in 3-component vector of float)
+0:239      hyp. sine (global 3-component vector of float)
+0:239        'inF0' (in 3-component vector of float)
+0:240      smoothstep (global 3-component vector of float)
+0:240        'inF0' (in 3-component vector of float)
+0:240        'inF1' (in 3-component vector of float)
+0:240        'inF2' (in 3-component vector of float)
+0:241      sqrt (global 3-component vector of float)
+0:241        'inF0' (in 3-component vector of float)
+0:242      step (global 3-component vector of float)
+0:242        'inF0' (in 3-component vector of float)
+0:242        'inF1' (in 3-component vector of float)
+0:243      tangent (global 3-component vector of float)
+0:243        'inF0' (in 3-component vector of float)
+0:244      hyp. tangent (global 3-component vector of float)
+0:244        'inF0' (in 3-component vector of float)
+0:246      trunc (global 3-component vector of float)
+0:246        'inF0' (in 3-component vector of float)
+0:249      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:393  Function Definition: PixelShaderFunction(vf4;vf4;vf4;vu4;vu4; (temp 4-component vector of float)
+0:253    Function Parameters: 
+0:253      'inF0' (in 4-component vector of float)
+0:253      'inF1' (in 4-component vector of float)
+0:253      'inF2' (in 4-component vector of float)
+0:253      'inU0' (in 4-component vector of uint)
+0:253      'inU1' (in 4-component vector of uint)
+0:?     Sequence
+0:256      all (global bool)
+0:256        'inF0' (in 4-component vector of float)
+0:257      Absolute value (global 4-component vector of float)
+0:257        'inF0' (in 4-component vector of float)
+0:258      arc cosine (global 4-component vector of float)
+0:258        'inF0' (in 4-component vector of float)
+0:259      any (global bool)
+0:259        'inF0' (in 4-component vector of float)
+0:260      arc sine (global 4-component vector of float)
+0:260        'inF0' (in 4-component vector of float)
+0:261      floatBitsToInt (global 4-component vector of int)
+0:261        'inF0' (in 4-component vector of float)
+0:262      floatBitsToUint (global 4-component vector of uint)
+0:262        'inF0' (in 4-component vector of float)
+0:263      intBitsToFloat (global 4-component vector of float)
+0:263        'inU0' (in 4-component vector of uint)
+0:265      arc tangent (global 4-component vector of float)
+0:265        'inF0' (in 4-component vector of float)
+0:266      arc tangent (global 4-component vector of float)
+0:266        'inF0' (in 4-component vector of float)
+0:266        'inF1' (in 4-component vector of float)
+0:267      Ceiling (global 4-component vector of float)
+0:267        'inF0' (in 4-component vector of float)
+0:268      clamp (global 4-component vector of float)
+0:268        'inF0' (in 4-component vector of float)
+0:268        'inF1' (in 4-component vector of float)
+0:268        'inF2' (in 4-component vector of float)
+0:269      Test condition and select (temp void)
+0:269        Condition
+0:269        any (temp bool)
+0:269          Compare Less Than (temp 4-component vector of bool)
+0:269            'inF0' (in 4-component vector of float)
+0:269            Constant:
+0:269              0.000000
+0:269              0.000000
+0:269              0.000000
+0:269              0.000000
+0:269        true case
+0:269        Branch: Kill
+0:270      cosine (global 4-component vector of float)
+0:270        'inF0' (in 4-component vector of float)
+0:271      hyp. cosine (global 4-component vector of float)
+0:271        'inF0' (in 4-component vector of float)
+0:?       bitCount (global 4-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:?           5 (const uint)
+0:?           2 (const uint)
+0:273      dPdx (global 4-component vector of float)
+0:273        'inF0' (in 4-component vector of float)
+0:274      dPdxCoarse (global 4-component vector of float)
+0:274        'inF0' (in 4-component vector of float)
+0:275      dPdxFine (global 4-component vector of float)
+0:275        'inF0' (in 4-component vector of float)
+0:276      dPdy (global 4-component vector of float)
+0:276        'inF0' (in 4-component vector of float)
+0:277      dPdyCoarse (global 4-component vector of float)
+0:277        'inF0' (in 4-component vector of float)
+0:278      dPdyFine (global 4-component vector of float)
+0:278        'inF0' (in 4-component vector of float)
+0:279      degrees (global 4-component vector of float)
+0:279        'inF0' (in 4-component vector of float)
+0:280      distance (global float)
+0:280        'inF0' (in 4-component vector of float)
+0:280        'inF1' (in 4-component vector of float)
+0:281      dot-product (global float)
+0:281        'inF0' (in 4-component vector of float)
+0:281        'inF1' (in 4-component vector of float)
+0:282      Construct vec4 (temp 4-component vector of float)
+0:282        Constant:
+0:282          1.000000
+0:282        component-wise multiply (temp float)
+0:282          direct index (temp float)
+0:282            'inF0' (in 4-component vector of float)
+0:282            Constant:
+0:282              1 (const int)
+0:282          direct index (temp float)
+0:282            'inF1' (in 4-component vector of float)
+0:282            Constant:
+0:282              1 (const int)
+0:282        direct index (temp float)
+0:282          'inF0' (in 4-component vector of float)
+0:282          Constant:
+0:282            2 (const int)
+0:282        direct index (temp float)
+0:282          'inF1' (in 4-component vector of float)
+0:282          Constant:
+0:282            3 (const int)
+0:286      exp (global 4-component vector of float)
+0:286        'inF0' (in 4-component vector of float)
+0:287      exp2 (global 4-component vector of float)
+0:287        'inF0' (in 4-component vector of float)
+0:288      face-forward (global 4-component vector of float)
+0:288        'inF0' (in 4-component vector of float)
+0:288        'inF1' (in 4-component vector of float)
+0:288        'inF2' (in 4-component vector of float)
+0:289      findMSB (global int)
+0:289        Constant:
+0:289          7 (const int)
+0:290      findLSB (global int)
+0:290        Constant:
+0:290          7 (const int)
+0:291      Floor (global 4-component vector of float)
+0:291        'inF0' (in 4-component vector of float)
+0:293      mod (global 4-component vector of float)
+0:293        'inF0' (in 4-component vector of float)
+0:293        'inF1' (in 4-component vector of float)
+0:294      Fraction (global 4-component vector of float)
+0:294        'inF0' (in 4-component vector of float)
+0:295      frexp (global 4-component vector of float)
+0:295        'inF0' (in 4-component vector of float)
+0:295        'inF1' (in 4-component vector of float)
+0:296      fwidth (global 4-component vector of float)
+0:296        'inF0' (in 4-component vector of float)
+0:297      isinf (global 4-component vector of bool)
+0:297        'inF0' (in 4-component vector of float)
+0:298      isnan (global 4-component vector of bool)
+0:298        'inF0' (in 4-component vector of float)
+0:299      ldexp (global 4-component vector of float)
+0:299        'inF0' (in 4-component vector of float)
+0:299        'inF1' (in 4-component vector of float)
+0:300      length (global float)
+0:300        'inF0' (in 4-component vector of float)
+0:301      log (global 4-component vector of float)
+0:301        'inF0' (in 4-component vector of float)
+0:302      vector-scale (temp 4-component vector of float)
+0:302        log2 (temp 4-component vector of float)
+0:302          'inF0' (in 4-component vector of float)
+0:302        Constant:
+0:302          0.301030
+0:303      log2 (global 4-component vector of float)
+0:303        'inF0' (in 4-component vector of float)
+0:304      max (global 4-component vector of float)
+0:304        'inF0' (in 4-component vector of float)
+0:304        'inF1' (in 4-component vector of float)
+0:305      min (global 4-component vector of float)
+0:305        'inF0' (in 4-component vector of float)
+0:305        'inF1' (in 4-component vector of float)
+0:306      normalize (global 4-component vector of float)
+0:306        'inF0' (in 4-component vector of float)
+0:307      pow (global 4-component vector of float)
+0:307        'inF0' (in 4-component vector of float)
+0:307        'inF1' (in 4-component vector of float)
+0:308      radians (global 4-component vector of float)
+0:308        'inF0' (in 4-component vector of float)
+0:309      divide (temp 4-component vector of float)
+0:309        Constant:
+0:309          1.000000
+0:309        'inF0' (in 4-component vector of float)
+0:310      reflect (global 4-component vector of float)
+0:310        'inF0' (in 4-component vector of float)
+0:310        'inF1' (in 4-component vector of float)
+0:311      refract (global 4-component vector of float)
+0:311        'inF0' (in 4-component vector of float)
+0:311        'inF1' (in 4-component vector of float)
+0:311        Constant:
+0:311          2.000000
+0:?       bitFieldReverse (global 4-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:?           3 (const uint)
+0:?           4 (const uint)
+0:313      roundEven (global 4-component vector of float)
+0:313        'inF0' (in 4-component vector of float)
+0:314      inverse sqrt (global 4-component vector of float)
+0:314        'inF0' (in 4-component vector of float)
+0:315      clamp (temp 4-component vector of float)
+0:315        'inF0' (in 4-component vector of float)
+0:315        Constant:
+0:315          0.000000
+0:315        Constant:
+0:315          1.000000
+0:316      Sign (global 4-component vector of float)
+0:316        'inF0' (in 4-component vector of float)
+0:317      sine (global 4-component vector of float)
+0:317        'inF0' (in 4-component vector of float)
+0:318      Sequence
+0:318        move second child to first child (temp 4-component vector of float)
+0:318          'inF1' (in 4-component vector of float)
+0:318          sine (temp 4-component vector of float)
+0:318            'inF0' (in 4-component vector of float)
+0:318        move second child to first child (temp 4-component vector of float)
+0:318          'inF2' (in 4-component vector of float)
+0:318          cosine (temp 4-component vector of float)
+0:318            'inF0' (in 4-component vector of float)
+0:319      hyp. sine (global 4-component vector of float)
+0:319        'inF0' (in 4-component vector of float)
+0:320      smoothstep (global 4-component vector of float)
+0:320        'inF0' (in 4-component vector of float)
+0:320        'inF1' (in 4-component vector of float)
+0:320        'inF2' (in 4-component vector of float)
+0:321      sqrt (global 4-component vector of float)
+0:321        'inF0' (in 4-component vector of float)
+0:322      step (global 4-component vector of float)
+0:322        'inF0' (in 4-component vector of float)
+0:322        'inF1' (in 4-component vector of float)
+0:323      tangent (global 4-component vector of float)
+0:323        'inF0' (in 4-component vector of float)
+0:324      hyp. tangent (global 4-component vector of float)
+0:324        'inF0' (in 4-component vector of float)
+0:326      trunc (global 4-component vector of float)
+0:326        'inF0' (in 4-component vector of float)
+0:329      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:?           4.000000
+0:402  Function Definition: PixelShaderFunction(mf22;mf22;mf22; (temp 2X2 matrix of float)
+0:394    Function Parameters: 
+0:394      'inF0' (in 2X2 matrix of float)
+0:394      'inF1' (in 2X2 matrix of float)
+0:394      'inF2' (in 2X2 matrix of float)
+0:?     Sequence
+0:396      all (global bool)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Absolute value (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      any (global bool)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      Ceiling (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Test condition and select (temp void)
+0:396        Condition
+0:396        any (temp bool)
+0:396          Compare Less Than (temp 2X2 matrix of bool)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396            Constant:
+0:396              0.000000
+0:396              0.000000
+0:396              0.000000
+0:396              0.000000
+0:396        true case
+0:396        Branch: Kill
+0:396      clamp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396        'inF2' (in 2X2 matrix of float)
+0:396      cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      hyp. cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdx (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdxCoarse (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdxFine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdy (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdyCoarse (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdyFine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      degrees (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      determinant (global float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      exp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      exp2 (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      findMSB (global int)
+0:396        Constant:
+0:396          7 (const int)
+0:396      findLSB (global int)
+0:396        Constant:
+0:396          7 (const int)
+0:396      Floor (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      mod (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      Fraction (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      frexp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      fwidth (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      ldexp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      log (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      matrix-scale (temp 2X2 matrix of float)
+0:396        log2 (temp 2X2 matrix of float)
+0:396          'inF0' (in 2X2 matrix of float)
+0:396        Constant:
+0:396          0.301030
+0:396      log2 (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      max (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      min (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      pow (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      radians (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      roundEven (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      inverse sqrt (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      clamp (temp 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        Constant:
+0:396          0.000000
+0:396        Constant:
+0:396          1.000000
+0:396      Sign (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Sequence
+0:396        move second child to first child (temp 2X2 matrix of float)
+0:396          'inF1' (in 2X2 matrix of float)
+0:396          sine (temp 2X2 matrix of float)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396        move second child to first child (temp 2X2 matrix of float)
+0:396          'inF2' (in 2X2 matrix of float)
+0:396          cosine (temp 2X2 matrix of float)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396      hyp. sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      smoothstep (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396        'inF2' (in 2X2 matrix of float)
+0:396      sqrt (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      step (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      hyp. tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      transpose (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      trunc (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:399      Branch: Return with expression
+0:?         Constant:
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:411  Function Definition: PixelShaderFunction(mf33;mf33;mf33; (temp 3X3 matrix of float)
+0:403    Function Parameters: 
+0:403      'inF0' (in 3X3 matrix of float)
+0:403      'inF1' (in 3X3 matrix of float)
+0:403      'inF2' (in 3X3 matrix of float)
+0:?     Sequence
+0:405      all (global bool)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Absolute value (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      any (global bool)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      Ceiling (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Test condition and select (temp void)
+0:405        Condition
+0:405        any (temp bool)
+0:405          Compare Less Than (temp 3X3 matrix of bool)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405            Constant:
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405        true case
+0:405        Branch: Kill
+0:405      clamp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405        'inF2' (in 3X3 matrix of float)
+0:405      cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      hyp. cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdx (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdxCoarse (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdxFine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdy (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdyCoarse (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdyFine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      degrees (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      determinant (global float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      exp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      exp2 (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      findMSB (global int)
+0:405        Constant:
+0:405          7 (const int)
+0:405      findLSB (global int)
+0:405        Constant:
+0:405          7 (const int)
+0:405      Floor (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      mod (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      Fraction (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      frexp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      fwidth (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      ldexp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      log (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      matrix-scale (temp 3X3 matrix of float)
+0:405        log2 (temp 3X3 matrix of float)
+0:405          'inF0' (in 3X3 matrix of float)
+0:405        Constant:
+0:405          0.301030
+0:405      log2 (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      max (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      min (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      pow (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      radians (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      roundEven (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      inverse sqrt (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      clamp (temp 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        Constant:
+0:405          0.000000
+0:405        Constant:
+0:405          1.000000
+0:405      Sign (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Sequence
+0:405        move second child to first child (temp 3X3 matrix of float)
+0:405          'inF1' (in 3X3 matrix of float)
+0:405          sine (temp 3X3 matrix of float)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405        move second child to first child (temp 3X3 matrix of float)
+0:405          'inF2' (in 3X3 matrix of float)
+0:405          cosine (temp 3X3 matrix of float)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405      hyp. sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      smoothstep (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405        'inF2' (in 3X3 matrix of float)
+0:405      sqrt (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      step (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      hyp. tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      transpose (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      trunc (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:408      Branch: Return with expression
+0:?         Constant:
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:432  Function Definition: PixelShaderFunction(mf44;mf44;mf44; (temp 4X4 matrix of float)
+0:412    Function Parameters: 
+0:412      'inF0' (in 4X4 matrix of float)
+0:412      'inF1' (in 4X4 matrix of float)
+0:412      'inF2' (in 4X4 matrix of float)
+0:?     Sequence
+0:414      all (global bool)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Absolute value (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      any (global bool)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      Ceiling (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Test condition and select (temp void)
+0:414        Condition
+0:414        any (temp bool)
+0:414          Compare Less Than (temp 4X4 matrix of bool)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414            Constant:
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414        true case
+0:414        Branch: Kill
+0:414      clamp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414        'inF2' (in 4X4 matrix of float)
+0:414      cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      hyp. cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdx (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdxCoarse (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdxFine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdy (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdyCoarse (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdyFine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      degrees (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      determinant (global float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      exp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      exp2 (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      findMSB (global int)
+0:414        Constant:
+0:414          7 (const int)
+0:414      findLSB (global int)
+0:414        Constant:
+0:414          7 (const int)
+0:414      Floor (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      mod (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      Fraction (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      frexp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      fwidth (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      ldexp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      log (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      matrix-scale (temp 4X4 matrix of float)
+0:414        log2 (temp 4X4 matrix of float)
+0:414          'inF0' (in 4X4 matrix of float)
+0:414        Constant:
+0:414          0.301030
+0:414      log2 (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      max (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      min (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      pow (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      radians (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      roundEven (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      inverse sqrt (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      clamp (temp 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        Constant:
+0:414          0.000000
+0:414        Constant:
+0:414          1.000000
+0:414      Sign (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Sequence
+0:414        move second child to first child (temp 4X4 matrix of float)
+0:414          'inF1' (in 4X4 matrix of float)
+0:414          sine (temp 4X4 matrix of float)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414        move second child to first child (temp 4X4 matrix of float)
+0:414          'inF2' (in 4X4 matrix of float)
+0:414          cosine (temp 4X4 matrix of float)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414      hyp. sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      smoothstep (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414        'inF2' (in 4X4 matrix of float)
+0:414      sqrt (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      step (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      hyp. tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      transpose (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      trunc (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:417      Branch: Return with expression
+0:?         Constant:
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:439  Function Definition: TestGenMul(f1;f1;vf2;vf2;mf22;mf22; (temp void)
+0:435    Function Parameters: 
+0:435      'inF0' (in float)
+0:435      'inF1' (in float)
+0:435      'inFV0' (in 2-component vector of float)
+0:435      'inFV1' (in 2-component vector of float)
+0:435      'inFM0' (in 2X2 matrix of float)
+0:435      'inFM1' (in 2X2 matrix of float)
+0:?     Sequence
+0:436      move second child to first child (temp float)
+0:436        'r0' (temp float)
+0:436        component-wise multiply (temp float)
+0:436          'inF0' (in float)
+0:436          'inF1' (in float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r1' (temp 2-component vector of float)
+0:436        vector-scale (temp 2-component vector of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inF0' (in float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r2' (temp 2-component vector of float)
+0:436        vector-scale (temp 2-component vector of float)
+0:436          'inF0' (in float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436      move second child to first child (temp float)
+0:436        'r3' (temp float)
+0:436        dot-product (global float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inFV1' (in 2-component vector of float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r4' (temp 2-component vector of float)
+0:436        matrix-times-vector (temp 2-component vector of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r5' (temp 2-component vector of float)
+0:436        vector-times-matrix (temp 2-component vector of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r6' (temp 2X2 matrix of float)
+0:436        matrix-scale (temp 2X2 matrix of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inF0' (in float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r7' (temp 2X2 matrix of float)
+0:436        matrix-scale (temp 2X2 matrix of float)
+0:436          'inF0' (in float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r8' (temp 2X2 matrix of float)
+0:436        matrix-multiply (temp 2X2 matrix of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inFM1' (in 2X2 matrix of float)
+0:446  Function Definition: TestGenMul(f1;f1;vf3;vf3;mf33;mf33; (temp void)
+0:442    Function Parameters: 
+0:442      'inF0' (in float)
+0:442      'inF1' (in float)
+0:442      'inFV0' (in 3-component vector of float)
+0:442      'inFV1' (in 3-component vector of float)
+0:442      'inFM0' (in 3X3 matrix of float)
+0:442      'inFM1' (in 3X3 matrix of float)
+0:?     Sequence
+0:443      move second child to first child (temp float)
+0:443        'r0' (temp float)
+0:443        component-wise multiply (temp float)
+0:443          'inF0' (in float)
+0:443          'inF1' (in float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r1' (temp 3-component vector of float)
+0:443        vector-scale (temp 3-component vector of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inF0' (in float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r2' (temp 3-component vector of float)
+0:443        vector-scale (temp 3-component vector of float)
+0:443          'inF0' (in float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443      move second child to first child (temp float)
+0:443        'r3' (temp float)
+0:443        dot-product (global float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inFV1' (in 3-component vector of float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r4' (temp 3-component vector of float)
+0:443        matrix-times-vector (temp 3-component vector of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r5' (temp 3-component vector of float)
+0:443        vector-times-matrix (temp 3-component vector of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r6' (temp 3X3 matrix of float)
+0:443        matrix-scale (temp 3X3 matrix of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inF0' (in float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r7' (temp 3X3 matrix of float)
+0:443        matrix-scale (temp 3X3 matrix of float)
+0:443          'inF0' (in float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r8' (temp 3X3 matrix of float)
+0:443        matrix-multiply (temp 3X3 matrix of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inFM1' (in 3X3 matrix of float)
+0:452  Function Definition: TestGenMul(f1;f1;vf4;vf4;mf44;mf44; (temp void)
+0:449    Function Parameters: 
+0:449      'inF0' (in float)
+0:449      'inF1' (in float)
+0:449      'inFV0' (in 4-component vector of float)
+0:449      'inFV1' (in 4-component vector of float)
+0:449      'inFM0' (in 4X4 matrix of float)
+0:449      'inFM1' (in 4X4 matrix of float)
+0:?     Sequence
+0:450      move second child to first child (temp float)
+0:450        'r0' (temp float)
+0:450        component-wise multiply (temp float)
+0:450          'inF0' (in float)
+0:450          'inF1' (in float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r1' (temp 4-component vector of float)
+0:450        vector-scale (temp 4-component vector of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inF0' (in float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r2' (temp 4-component vector of float)
+0:450        vector-scale (temp 4-component vector of float)
+0:450          'inF0' (in float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450      move second child to first child (temp float)
+0:450        'r3' (temp float)
+0:450        dot-product (global float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inFV1' (in 4-component vector of float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r4' (temp 4-component vector of float)
+0:450        matrix-times-vector (temp 4-component vector of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r5' (temp 4-component vector of float)
+0:450        vector-times-matrix (temp 4-component vector of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r6' (temp 4X4 matrix of float)
+0:450        matrix-scale (temp 4X4 matrix of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inF0' (in float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r7' (temp 4X4 matrix of float)
+0:450        matrix-scale (temp 4X4 matrix of float)
+0:450          'inF0' (in float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r8' (temp 4X4 matrix of float)
+0:450        matrix-multiply (temp 4X4 matrix of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inFM1' (in 4X4 matrix of float)
+0:?   Linker Objects
+0:?     'gs_ua' (temp uint)
+0:?     'gs_ub' (temp uint)
+0:?     'gs_uc' (temp uint)
+0:?     'gs_ua2' (temp 2-component vector of uint)
+0:?     'gs_ub2' (temp 2-component vector of uint)
+0:?     'gs_uc2' (temp 2-component vector of uint)
+0:?     'gs_ua3' (temp 3-component vector of uint)
+0:?     'gs_ub3' (temp 3-component vector of uint)
+0:?     'gs_uc3' (temp 3-component vector of uint)
+0:?     'gs_ua4' (temp 4-component vector of uint)
+0:?     'gs_ub4' (temp 4-component vector of uint)
+0:?     'gs_uc4' (temp 4-component vector of uint)
+
+
+Linked fragment stage:
+
+
+Shader version: 450
+gl_FragCoord origin is upper left
+0:? Sequence
+0:87  Function Definition: PixelShaderFunction(f1;f1;f1;u1;u1; (temp float)
+0:17    Function Parameters: 
+0:17      'inF0' (in float)
+0:17      'inF1' (in float)
+0:17      'inF2' (in float)
+0:17      'inU0' (in uint)
+0:17      'inU1' (in uint)
+0:?     Sequence
+0:20      all (global bool)
+0:20        'inF0' (in float)
+0:21      Absolute value (global float)
+0:21        'inF0' (in float)
+0:22      arc cosine (global float)
+0:22        'inF0' (in float)
+0:23      any (global bool)
+0:23        'inF0' (in float)
+0:24      arc sine (global float)
+0:24        'inF0' (in float)
+0:25      floatBitsToInt (global int)
+0:25        'inF0' (in float)
+0:26      floatBitsToUint (global uint)
+0:26        'inF0' (in float)
+0:27      intBitsToFloat (global float)
+0:27        'inU0' (in uint)
+0:29      arc tangent (global float)
+0:29        'inF0' (in float)
+0:30      arc tangent (global float)
+0:30        'inF0' (in float)
+0:30        'inF1' (in float)
+0:31      Ceiling (global float)
+0:31        'inF0' (in float)
+0:32      clamp (global float)
+0:32        'inF0' (in float)
+0:32        'inF1' (in float)
+0:32        'inF2' (in float)
+0:33      Test condition and select (temp void)
+0:33        Condition
+0:33        Compare Less Than (temp bool)
+0:33          'inF0' (in float)
+0:33          Constant:
+0:33            0.000000
+0:33        true case
+0:33        Branch: Kill
+0:34      cosine (global float)
+0:34        'inF0' (in float)
+0:35      hyp. cosine (global float)
+0:35        'inF0' (in float)
+0:36      bitCount (global uint)
+0:36        Constant:
+0:36          7 (const uint)
+0:37      dPdx (global float)
+0:37        'inF0' (in float)
+0:38      dPdxCoarse (global float)
+0:38        'inF0' (in float)
+0:39      dPdxFine (global float)
+0:39        'inF0' (in float)
+0:40      dPdy (global float)
+0:40        'inF0' (in float)
+0:41      dPdyCoarse (global float)
+0:41        'inF0' (in float)
+0:42      dPdyFine (global float)
+0:42        'inF0' (in float)
+0:43      degrees (global float)
+0:43        'inF0' (in float)
+0:47      exp (global float)
+0:47        'inF0' (in float)
+0:48      exp2 (global float)
+0:48        'inF0' (in float)
+0:49      findMSB (global int)
+0:49        Constant:
+0:49          7 (const int)
+0:50      findLSB (global int)
+0:50        Constant:
+0:50          7 (const int)
+0:51      Floor (global float)
+0:51        'inF0' (in float)
+0:53      mod (global float)
+0:53        'inF0' (in float)
+0:53        'inF1' (in float)
+0:54      Fraction (global float)
+0:54        'inF0' (in float)
+0:55      frexp (global float)
+0:55        'inF0' (in float)
+0:55        'inF1' (in float)
+0:56      fwidth (global float)
+0:56        'inF0' (in float)
+0:57      isinf (global bool)
+0:57        'inF0' (in float)
+0:58      isnan (global bool)
+0:58        'inF0' (in float)
+0:59      ldexp (global float)
+0:59        'inF0' (in float)
+0:59        'inF1' (in float)
+0:60      log (global float)
+0:60        'inF0' (in float)
+0:61      component-wise multiply (temp float)
+0:61        log2 (temp float)
+0:61          'inF0' (in float)
+0:61        Constant:
+0:61          0.301030
+0:62      log2 (global float)
+0:62        'inF0' (in float)
+0:63      max (global float)
+0:63        'inF0' (in float)
+0:63        'inF1' (in float)
+0:64      min (global float)
+0:64        'inF0' (in float)
+0:64        'inF1' (in float)
+0:65      pow (global float)
+0:65        'inF0' (in float)
+0:65        'inF1' (in float)
+0:66      radians (global float)
+0:66        'inF0' (in float)
+0:67      divide (temp float)
+0:67        Constant:
+0:67          1.000000
+0:67        'inF0' (in float)
+0:68      bitFieldReverse (global uint)
+0:68        Constant:
+0:68          2 (const uint)
+0:69      roundEven (global float)
+0:69        'inF0' (in float)
+0:70      inverse sqrt (global float)
+0:70        'inF0' (in float)
+0:71      clamp (temp float)
+0:71        'inF0' (in float)
+0:71        Constant:
+0:71          0.000000
+0:71        Constant:
+0:71          1.000000
+0:72      Sign (global float)
+0:72        'inF0' (in float)
+0:73      sine (global float)
+0:73        'inF0' (in float)
+0:74      Sequence
+0:74        move second child to first child (temp float)
+0:74          'inF1' (in float)
+0:74          sine (temp float)
+0:74            'inF0' (in float)
+0:74        move second child to first child (temp float)
+0:74          'inF2' (in float)
+0:74          cosine (temp float)
+0:74            'inF0' (in float)
+0:75      hyp. sine (global float)
+0:75        'inF0' (in float)
+0:76      smoothstep (global float)
+0:76        'inF0' (in float)
+0:76        'inF1' (in float)
+0:76        'inF2' (in float)
+0:77      sqrt (global float)
+0:77        'inF0' (in float)
+0:78      step (global float)
+0:78        'inF0' (in float)
+0:78        'inF1' (in float)
+0:79      tangent (global float)
+0:79        'inF0' (in float)
+0:80      hyp. tangent (global float)
+0:80        'inF0' (in float)
+0:82      trunc (global float)
+0:82        'inF0' (in float)
+0:84      Branch: Return with expression
+0:84        Constant:
+0:84          0.000000
+0:93  Function Definition: PixelShaderFunction(vf1;vf1;vf1; (temp 1-component vector of float)
+0:88    Function Parameters: 
+0:88      'inF0' (in 1-component vector of float)
+0:88      'inF1' (in 1-component vector of float)
+0:88      'inF2' (in 1-component vector of float)
+0:?     Sequence
+0:90      Branch: Return with expression
+0:90        Constant:
+0:90          0.000000
+0:172  Function Definition: PixelShaderFunction(vf2;vf2;vf2;vu2;vu2; (temp 2-component vector of float)
+0:94    Function Parameters: 
+0:94      'inF0' (in 2-component vector of float)
+0:94      'inF1' (in 2-component vector of float)
+0:94      'inF2' (in 2-component vector of float)
+0:94      'inU0' (in 2-component vector of uint)
+0:94      'inU1' (in 2-component vector of uint)
+0:?     Sequence
+0:97      all (global bool)
+0:97        'inF0' (in 2-component vector of float)
+0:98      Absolute value (global 2-component vector of float)
+0:98        'inF0' (in 2-component vector of float)
+0:99      arc cosine (global 2-component vector of float)
+0:99        'inF0' (in 2-component vector of float)
+0:100      any (global bool)
+0:100        'inF0' (in 2-component vector of float)
+0:101      arc sine (global 2-component vector of float)
+0:101        'inF0' (in 2-component vector of float)
+0:102      floatBitsToInt (global 2-component vector of int)
+0:102        'inF0' (in 2-component vector of float)
+0:103      floatBitsToUint (global 2-component vector of uint)
+0:103        'inF0' (in 2-component vector of float)
+0:104      intBitsToFloat (global 2-component vector of float)
+0:104        'inU0' (in 2-component vector of uint)
+0:106      arc tangent (global 2-component vector of float)
+0:106        'inF0' (in 2-component vector of float)
+0:107      arc tangent (global 2-component vector of float)
+0:107        'inF0' (in 2-component vector of float)
+0:107        'inF1' (in 2-component vector of float)
+0:108      Ceiling (global 2-component vector of float)
+0:108        'inF0' (in 2-component vector of float)
+0:109      clamp (global 2-component vector of float)
+0:109        'inF0' (in 2-component vector of float)
+0:109        'inF1' (in 2-component vector of float)
+0:109        'inF2' (in 2-component vector of float)
+0:110      Test condition and select (temp void)
+0:110        Condition
+0:110        any (temp bool)
+0:110          Compare Less Than (temp 2-component vector of bool)
+0:110            'inF0' (in 2-component vector of float)
+0:110            Constant:
+0:110              0.000000
+0:110              0.000000
+0:110        true case
+0:110        Branch: Kill
+0:111      cosine (global 2-component vector of float)
+0:111        'inF0' (in 2-component vector of float)
+0:112      hyp. cosine (global 2-component vector of float)
+0:112        'inF0' (in 2-component vector of float)
+0:?       bitCount (global 2-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:114      dPdx (global 2-component vector of float)
+0:114        'inF0' (in 2-component vector of float)
+0:115      dPdxCoarse (global 2-component vector of float)
+0:115        'inF0' (in 2-component vector of float)
+0:116      dPdxFine (global 2-component vector of float)
+0:116        'inF0' (in 2-component vector of float)
+0:117      dPdy (global 2-component vector of float)
+0:117        'inF0' (in 2-component vector of float)
+0:118      dPdyCoarse (global 2-component vector of float)
+0:118        'inF0' (in 2-component vector of float)
+0:119      dPdyFine (global 2-component vector of float)
+0:119        'inF0' (in 2-component vector of float)
+0:120      degrees (global 2-component vector of float)
+0:120        'inF0' (in 2-component vector of float)
+0:121      distance (global float)
+0:121        'inF0' (in 2-component vector of float)
+0:121        'inF1' (in 2-component vector of float)
+0:122      dot-product (global float)
+0:122        'inF0' (in 2-component vector of float)
+0:122        'inF1' (in 2-component vector of float)
+0:126      exp (global 2-component vector of float)
+0:126        'inF0' (in 2-component vector of float)
+0:127      exp2 (global 2-component vector of float)
+0:127        'inF0' (in 2-component vector of float)
+0:128      face-forward (global 2-component vector of float)
+0:128        'inF0' (in 2-component vector of float)
+0:128        'inF1' (in 2-component vector of float)
+0:128        'inF2' (in 2-component vector of float)
+0:129      findMSB (global int)
+0:129        Constant:
+0:129          7 (const int)
+0:130      findLSB (global int)
+0:130        Constant:
+0:130          7 (const int)
+0:131      Floor (global 2-component vector of float)
+0:131        'inF0' (in 2-component vector of float)
+0:133      mod (global 2-component vector of float)
+0:133        'inF0' (in 2-component vector of float)
+0:133        'inF1' (in 2-component vector of float)
+0:134      Fraction (global 2-component vector of float)
+0:134        'inF0' (in 2-component vector of float)
+0:135      frexp (global 2-component vector of float)
+0:135        'inF0' (in 2-component vector of float)
+0:135        'inF1' (in 2-component vector of float)
+0:136      fwidth (global 2-component vector of float)
+0:136        'inF0' (in 2-component vector of float)
+0:137      isinf (global 2-component vector of bool)
+0:137        'inF0' (in 2-component vector of float)
+0:138      isnan (global 2-component vector of bool)
+0:138        'inF0' (in 2-component vector of float)
+0:139      ldexp (global 2-component vector of float)
+0:139        'inF0' (in 2-component vector of float)
+0:139        'inF1' (in 2-component vector of float)
+0:140      length (global float)
+0:140        'inF0' (in 2-component vector of float)
+0:141      log (global 2-component vector of float)
+0:141        'inF0' (in 2-component vector of float)
+0:142      vector-scale (temp 2-component vector of float)
+0:142        log2 (temp 2-component vector of float)
+0:142          'inF0' (in 2-component vector of float)
+0:142        Constant:
+0:142          0.301030
+0:143      log2 (global 2-component vector of float)
+0:143        'inF0' (in 2-component vector of float)
+0:144      max (global 2-component vector of float)
+0:144        'inF0' (in 2-component vector of float)
+0:144        'inF1' (in 2-component vector of float)
+0:145      min (global 2-component vector of float)
+0:145        'inF0' (in 2-component vector of float)
+0:145        'inF1' (in 2-component vector of float)
+0:146      normalize (global 2-component vector of float)
+0:146        'inF0' (in 2-component vector of float)
+0:147      pow (global 2-component vector of float)
+0:147        'inF0' (in 2-component vector of float)
+0:147        'inF1' (in 2-component vector of float)
+0:148      radians (global 2-component vector of float)
+0:148        'inF0' (in 2-component vector of float)
+0:149      divide (temp 2-component vector of float)
+0:149        Constant:
+0:149          1.000000
+0:149        'inF0' (in 2-component vector of float)
+0:150      reflect (global 2-component vector of float)
+0:150        'inF0' (in 2-component vector of float)
+0:150        'inF1' (in 2-component vector of float)
+0:151      refract (global 2-component vector of float)
+0:151        'inF0' (in 2-component vector of float)
+0:151        'inF1' (in 2-component vector of float)
+0:151        Constant:
+0:151          2.000000
+0:?       bitFieldReverse (global 2-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:153      roundEven (global 2-component vector of float)
+0:153        'inF0' (in 2-component vector of float)
+0:154      inverse sqrt (global 2-component vector of float)
+0:154        'inF0' (in 2-component vector of float)
+0:155      clamp (temp 2-component vector of float)
+0:155        'inF0' (in 2-component vector of float)
+0:155        Constant:
+0:155          0.000000
+0:155        Constant:
+0:155          1.000000
+0:156      Sign (global 2-component vector of float)
+0:156        'inF0' (in 2-component vector of float)
+0:157      sine (global 2-component vector of float)
+0:157        'inF0' (in 2-component vector of float)
+0:158      Sequence
+0:158        move second child to first child (temp 2-component vector of float)
+0:158          'inF1' (in 2-component vector of float)
+0:158          sine (temp 2-component vector of float)
+0:158            'inF0' (in 2-component vector of float)
+0:158        move second child to first child (temp 2-component vector of float)
+0:158          'inF2' (in 2-component vector of float)
+0:158          cosine (temp 2-component vector of float)
+0:158            'inF0' (in 2-component vector of float)
+0:159      hyp. sine (global 2-component vector of float)
+0:159        'inF0' (in 2-component vector of float)
+0:160      smoothstep (global 2-component vector of float)
+0:160        'inF0' (in 2-component vector of float)
+0:160        'inF1' (in 2-component vector of float)
+0:160        'inF2' (in 2-component vector of float)
+0:161      sqrt (global 2-component vector of float)
+0:161        'inF0' (in 2-component vector of float)
+0:162      step (global 2-component vector of float)
+0:162        'inF0' (in 2-component vector of float)
+0:162        'inF1' (in 2-component vector of float)
+0:163      tangent (global 2-component vector of float)
+0:163        'inF0' (in 2-component vector of float)
+0:164      hyp. tangent (global 2-component vector of float)
+0:164        'inF0' (in 2-component vector of float)
+0:166      trunc (global 2-component vector of float)
+0:166        'inF0' (in 2-component vector of float)
+0:169      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:252  Function Definition: PixelShaderFunction(vf3;vf3;vf3;vu3;vu3; (temp 3-component vector of float)
+0:173    Function Parameters: 
+0:173      'inF0' (in 3-component vector of float)
+0:173      'inF1' (in 3-component vector of float)
+0:173      'inF2' (in 3-component vector of float)
+0:173      'inU0' (in 3-component vector of uint)
+0:173      'inU1' (in 3-component vector of uint)
+0:?     Sequence
+0:176      all (global bool)
+0:176        'inF0' (in 3-component vector of float)
+0:177      Absolute value (global 3-component vector of float)
+0:177        'inF0' (in 3-component vector of float)
+0:178      arc cosine (global 3-component vector of float)
+0:178        'inF0' (in 3-component vector of float)
+0:179      any (global bool)
+0:179        'inF0' (in 3-component vector of float)
+0:180      arc sine (global 3-component vector of float)
+0:180        'inF0' (in 3-component vector of float)
+0:181      floatBitsToInt (global 3-component vector of int)
+0:181        'inF0' (in 3-component vector of float)
+0:182      floatBitsToUint (global 3-component vector of uint)
+0:182        'inF0' (in 3-component vector of float)
+0:183      intBitsToFloat (global 3-component vector of float)
+0:183        'inU0' (in 3-component vector of uint)
+0:185      arc tangent (global 3-component vector of float)
+0:185        'inF0' (in 3-component vector of float)
+0:186      arc tangent (global 3-component vector of float)
+0:186        'inF0' (in 3-component vector of float)
+0:186        'inF1' (in 3-component vector of float)
+0:187      Ceiling (global 3-component vector of float)
+0:187        'inF0' (in 3-component vector of float)
+0:188      clamp (global 3-component vector of float)
+0:188        'inF0' (in 3-component vector of float)
+0:188        'inF1' (in 3-component vector of float)
+0:188        'inF2' (in 3-component vector of float)
+0:189      Test condition and select (temp void)
+0:189        Condition
+0:189        any (temp bool)
+0:189          Compare Less Than (temp 3-component vector of bool)
+0:189            'inF0' (in 3-component vector of float)
+0:189            Constant:
+0:189              0.000000
+0:189              0.000000
+0:189              0.000000
+0:189        true case
+0:189        Branch: Kill
+0:190      cosine (global 3-component vector of float)
+0:190        'inF0' (in 3-component vector of float)
+0:191      hyp. cosine (global 3-component vector of float)
+0:191        'inF0' (in 3-component vector of float)
+0:?       bitCount (global 3-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:?           5 (const uint)
+0:193      cross-product (global 3-component vector of float)
+0:193        'inF0' (in 3-component vector of float)
+0:193        'inF1' (in 3-component vector of float)
+0:194      dPdx (global 3-component vector of float)
+0:194        'inF0' (in 3-component vector of float)
+0:195      dPdxCoarse (global 3-component vector of float)
+0:195        'inF0' (in 3-component vector of float)
+0:196      dPdxFine (global 3-component vector of float)
+0:196        'inF0' (in 3-component vector of float)
+0:197      dPdy (global 3-component vector of float)
+0:197        'inF0' (in 3-component vector of float)
+0:198      dPdyCoarse (global 3-component vector of float)
+0:198        'inF0' (in 3-component vector of float)
+0:199      dPdyFine (global 3-component vector of float)
+0:199        'inF0' (in 3-component vector of float)
+0:200      degrees (global 3-component vector of float)
+0:200        'inF0' (in 3-component vector of float)
+0:201      distance (global float)
+0:201        'inF0' (in 3-component vector of float)
+0:201        'inF1' (in 3-component vector of float)
+0:202      dot-product (global float)
+0:202        'inF0' (in 3-component vector of float)
+0:202        'inF1' (in 3-component vector of float)
+0:206      exp (global 3-component vector of float)
+0:206        'inF0' (in 3-component vector of float)
+0:207      exp2 (global 3-component vector of float)
+0:207        'inF0' (in 3-component vector of float)
+0:208      face-forward (global 3-component vector of float)
+0:208        'inF0' (in 3-component vector of float)
+0:208        'inF1' (in 3-component vector of float)
+0:208        'inF2' (in 3-component vector of float)
+0:209      findMSB (global int)
+0:209        Constant:
+0:209          7 (const int)
+0:210      findLSB (global int)
+0:210        Constant:
+0:210          7 (const int)
+0:211      Floor (global 3-component vector of float)
+0:211        'inF0' (in 3-component vector of float)
+0:213      mod (global 3-component vector of float)
+0:213        'inF0' (in 3-component vector of float)
+0:213        'inF1' (in 3-component vector of float)
+0:214      Fraction (global 3-component vector of float)
+0:214        'inF0' (in 3-component vector of float)
+0:215      frexp (global 3-component vector of float)
+0:215        'inF0' (in 3-component vector of float)
+0:215        'inF1' (in 3-component vector of float)
+0:216      fwidth (global 3-component vector of float)
+0:216        'inF0' (in 3-component vector of float)
+0:217      isinf (global 3-component vector of bool)
+0:217        'inF0' (in 3-component vector of float)
+0:218      isnan (global 3-component vector of bool)
+0:218        'inF0' (in 3-component vector of float)
+0:219      ldexp (global 3-component vector of float)
+0:219        'inF0' (in 3-component vector of float)
+0:219        'inF1' (in 3-component vector of float)
+0:220      length (global float)
+0:220        'inF0' (in 3-component vector of float)
+0:221      log (global 3-component vector of float)
+0:221        'inF0' (in 3-component vector of float)
+0:222      vector-scale (temp 3-component vector of float)
+0:222        log2 (temp 3-component vector of float)
+0:222          'inF0' (in 3-component vector of float)
+0:222        Constant:
+0:222          0.301030
+0:223      log2 (global 3-component vector of float)
+0:223        'inF0' (in 3-component vector of float)
+0:224      max (global 3-component vector of float)
+0:224        'inF0' (in 3-component vector of float)
+0:224        'inF1' (in 3-component vector of float)
+0:225      min (global 3-component vector of float)
+0:225        'inF0' (in 3-component vector of float)
+0:225        'inF1' (in 3-component vector of float)
+0:226      normalize (global 3-component vector of float)
+0:226        'inF0' (in 3-component vector of float)
+0:227      pow (global 3-component vector of float)
+0:227        'inF0' (in 3-component vector of float)
+0:227        'inF1' (in 3-component vector of float)
+0:228      radians (global 3-component vector of float)
+0:228        'inF0' (in 3-component vector of float)
+0:229      divide (temp 3-component vector of float)
+0:229        Constant:
+0:229          1.000000
+0:229        'inF0' (in 3-component vector of float)
+0:230      reflect (global 3-component vector of float)
+0:230        'inF0' (in 3-component vector of float)
+0:230        'inF1' (in 3-component vector of float)
+0:231      refract (global 3-component vector of float)
+0:231        'inF0' (in 3-component vector of float)
+0:231        'inF1' (in 3-component vector of float)
+0:231        Constant:
+0:231          2.000000
+0:?       bitFieldReverse (global 3-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:?           3 (const uint)
+0:233      roundEven (global 3-component vector of float)
+0:233        'inF0' (in 3-component vector of float)
+0:234      inverse sqrt (global 3-component vector of float)
+0:234        'inF0' (in 3-component vector of float)
+0:235      clamp (temp 3-component vector of float)
+0:235        'inF0' (in 3-component vector of float)
+0:235        Constant:
+0:235          0.000000
+0:235        Constant:
+0:235          1.000000
+0:236      Sign (global 3-component vector of float)
+0:236        'inF0' (in 3-component vector of float)
+0:237      sine (global 3-component vector of float)
+0:237        'inF0' (in 3-component vector of float)
+0:238      Sequence
+0:238        move second child to first child (temp 3-component vector of float)
+0:238          'inF1' (in 3-component vector of float)
+0:238          sine (temp 3-component vector of float)
+0:238            'inF0' (in 3-component vector of float)
+0:238        move second child to first child (temp 3-component vector of float)
+0:238          'inF2' (in 3-component vector of float)
+0:238          cosine (temp 3-component vector of float)
+0:238            'inF0' (in 3-component vector of float)
+0:239      hyp. sine (global 3-component vector of float)
+0:239        'inF0' (in 3-component vector of float)
+0:240      smoothstep (global 3-component vector of float)
+0:240        'inF0' (in 3-component vector of float)
+0:240        'inF1' (in 3-component vector of float)
+0:240        'inF2' (in 3-component vector of float)
+0:241      sqrt (global 3-component vector of float)
+0:241        'inF0' (in 3-component vector of float)
+0:242      step (global 3-component vector of float)
+0:242        'inF0' (in 3-component vector of float)
+0:242        'inF1' (in 3-component vector of float)
+0:243      tangent (global 3-component vector of float)
+0:243        'inF0' (in 3-component vector of float)
+0:244      hyp. tangent (global 3-component vector of float)
+0:244        'inF0' (in 3-component vector of float)
+0:246      trunc (global 3-component vector of float)
+0:246        'inF0' (in 3-component vector of float)
+0:249      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:393  Function Definition: PixelShaderFunction(vf4;vf4;vf4;vu4;vu4; (temp 4-component vector of float)
+0:253    Function Parameters: 
+0:253      'inF0' (in 4-component vector of float)
+0:253      'inF1' (in 4-component vector of float)
+0:253      'inF2' (in 4-component vector of float)
+0:253      'inU0' (in 4-component vector of uint)
+0:253      'inU1' (in 4-component vector of uint)
+0:?     Sequence
+0:256      all (global bool)
+0:256        'inF0' (in 4-component vector of float)
+0:257      Absolute value (global 4-component vector of float)
+0:257        'inF0' (in 4-component vector of float)
+0:258      arc cosine (global 4-component vector of float)
+0:258        'inF0' (in 4-component vector of float)
+0:259      any (global bool)
+0:259        'inF0' (in 4-component vector of float)
+0:260      arc sine (global 4-component vector of float)
+0:260        'inF0' (in 4-component vector of float)
+0:261      floatBitsToInt (global 4-component vector of int)
+0:261        'inF0' (in 4-component vector of float)
+0:262      floatBitsToUint (global 4-component vector of uint)
+0:262        'inF0' (in 4-component vector of float)
+0:263      intBitsToFloat (global 4-component vector of float)
+0:263        'inU0' (in 4-component vector of uint)
+0:265      arc tangent (global 4-component vector of float)
+0:265        'inF0' (in 4-component vector of float)
+0:266      arc tangent (global 4-component vector of float)
+0:266        'inF0' (in 4-component vector of float)
+0:266        'inF1' (in 4-component vector of float)
+0:267      Ceiling (global 4-component vector of float)
+0:267        'inF0' (in 4-component vector of float)
+0:268      clamp (global 4-component vector of float)
+0:268        'inF0' (in 4-component vector of float)
+0:268        'inF1' (in 4-component vector of float)
+0:268        'inF2' (in 4-component vector of float)
+0:269      Test condition and select (temp void)
+0:269        Condition
+0:269        any (temp bool)
+0:269          Compare Less Than (temp 4-component vector of bool)
+0:269            'inF0' (in 4-component vector of float)
+0:269            Constant:
+0:269              0.000000
+0:269              0.000000
+0:269              0.000000
+0:269              0.000000
+0:269        true case
+0:269        Branch: Kill
+0:270      cosine (global 4-component vector of float)
+0:270        'inF0' (in 4-component vector of float)
+0:271      hyp. cosine (global 4-component vector of float)
+0:271        'inF0' (in 4-component vector of float)
+0:?       bitCount (global 4-component vector of uint)
+0:?         Constant:
+0:?           7 (const uint)
+0:?           3 (const uint)
+0:?           5 (const uint)
+0:?           2 (const uint)
+0:273      dPdx (global 4-component vector of float)
+0:273        'inF0' (in 4-component vector of float)
+0:274      dPdxCoarse (global 4-component vector of float)
+0:274        'inF0' (in 4-component vector of float)
+0:275      dPdxFine (global 4-component vector of float)
+0:275        'inF0' (in 4-component vector of float)
+0:276      dPdy (global 4-component vector of float)
+0:276        'inF0' (in 4-component vector of float)
+0:277      dPdyCoarse (global 4-component vector of float)
+0:277        'inF0' (in 4-component vector of float)
+0:278      dPdyFine (global 4-component vector of float)
+0:278        'inF0' (in 4-component vector of float)
+0:279      degrees (global 4-component vector of float)
+0:279        'inF0' (in 4-component vector of float)
+0:280      distance (global float)
+0:280        'inF0' (in 4-component vector of float)
+0:280        'inF1' (in 4-component vector of float)
+0:281      dot-product (global float)
+0:281        'inF0' (in 4-component vector of float)
+0:281        'inF1' (in 4-component vector of float)
+0:282      Construct vec4 (temp 4-component vector of float)
+0:282        Constant:
+0:282          1.000000
+0:282        component-wise multiply (temp float)
+0:282          direct index (temp float)
+0:282            'inF0' (in 4-component vector of float)
+0:282            Constant:
+0:282              1 (const int)
+0:282          direct index (temp float)
+0:282            'inF1' (in 4-component vector of float)
+0:282            Constant:
+0:282              1 (const int)
+0:282        direct index (temp float)
+0:282          'inF0' (in 4-component vector of float)
+0:282          Constant:
+0:282            2 (const int)
+0:282        direct index (temp float)
+0:282          'inF1' (in 4-component vector of float)
+0:282          Constant:
+0:282            3 (const int)
+0:286      exp (global 4-component vector of float)
+0:286        'inF0' (in 4-component vector of float)
+0:287      exp2 (global 4-component vector of float)
+0:287        'inF0' (in 4-component vector of float)
+0:288      face-forward (global 4-component vector of float)
+0:288        'inF0' (in 4-component vector of float)
+0:288        'inF1' (in 4-component vector of float)
+0:288        'inF2' (in 4-component vector of float)
+0:289      findMSB (global int)
+0:289        Constant:
+0:289          7 (const int)
+0:290      findLSB (global int)
+0:290        Constant:
+0:290          7 (const int)
+0:291      Floor (global 4-component vector of float)
+0:291        'inF0' (in 4-component vector of float)
+0:293      mod (global 4-component vector of float)
+0:293        'inF0' (in 4-component vector of float)
+0:293        'inF1' (in 4-component vector of float)
+0:294      Fraction (global 4-component vector of float)
+0:294        'inF0' (in 4-component vector of float)
+0:295      frexp (global 4-component vector of float)
+0:295        'inF0' (in 4-component vector of float)
+0:295        'inF1' (in 4-component vector of float)
+0:296      fwidth (global 4-component vector of float)
+0:296        'inF0' (in 4-component vector of float)
+0:297      isinf (global 4-component vector of bool)
+0:297        'inF0' (in 4-component vector of float)
+0:298      isnan (global 4-component vector of bool)
+0:298        'inF0' (in 4-component vector of float)
+0:299      ldexp (global 4-component vector of float)
+0:299        'inF0' (in 4-component vector of float)
+0:299        'inF1' (in 4-component vector of float)
+0:300      length (global float)
+0:300        'inF0' (in 4-component vector of float)
+0:301      log (global 4-component vector of float)
+0:301        'inF0' (in 4-component vector of float)
+0:302      vector-scale (temp 4-component vector of float)
+0:302        log2 (temp 4-component vector of float)
+0:302          'inF0' (in 4-component vector of float)
+0:302        Constant:
+0:302          0.301030
+0:303      log2 (global 4-component vector of float)
+0:303        'inF0' (in 4-component vector of float)
+0:304      max (global 4-component vector of float)
+0:304        'inF0' (in 4-component vector of float)
+0:304        'inF1' (in 4-component vector of float)
+0:305      min (global 4-component vector of float)
+0:305        'inF0' (in 4-component vector of float)
+0:305        'inF1' (in 4-component vector of float)
+0:306      normalize (global 4-component vector of float)
+0:306        'inF0' (in 4-component vector of float)
+0:307      pow (global 4-component vector of float)
+0:307        'inF0' (in 4-component vector of float)
+0:307        'inF1' (in 4-component vector of float)
+0:308      radians (global 4-component vector of float)
+0:308        'inF0' (in 4-component vector of float)
+0:309      divide (temp 4-component vector of float)
+0:309        Constant:
+0:309          1.000000
+0:309        'inF0' (in 4-component vector of float)
+0:310      reflect (global 4-component vector of float)
+0:310        'inF0' (in 4-component vector of float)
+0:310        'inF1' (in 4-component vector of float)
+0:311      refract (global 4-component vector of float)
+0:311        'inF0' (in 4-component vector of float)
+0:311        'inF1' (in 4-component vector of float)
+0:311        Constant:
+0:311          2.000000
+0:?       bitFieldReverse (global 4-component vector of uint)
+0:?         Constant:
+0:?           1 (const uint)
+0:?           2 (const uint)
+0:?           3 (const uint)
+0:?           4 (const uint)
+0:313      roundEven (global 4-component vector of float)
+0:313        'inF0' (in 4-component vector of float)
+0:314      inverse sqrt (global 4-component vector of float)
+0:314        'inF0' (in 4-component vector of float)
+0:315      clamp (temp 4-component vector of float)
+0:315        'inF0' (in 4-component vector of float)
+0:315        Constant:
+0:315          0.000000
+0:315        Constant:
+0:315          1.000000
+0:316      Sign (global 4-component vector of float)
+0:316        'inF0' (in 4-component vector of float)
+0:317      sine (global 4-component vector of float)
+0:317        'inF0' (in 4-component vector of float)
+0:318      Sequence
+0:318        move second child to first child (temp 4-component vector of float)
+0:318          'inF1' (in 4-component vector of float)
+0:318          sine (temp 4-component vector of float)
+0:318            'inF0' (in 4-component vector of float)
+0:318        move second child to first child (temp 4-component vector of float)
+0:318          'inF2' (in 4-component vector of float)
+0:318          cosine (temp 4-component vector of float)
+0:318            'inF0' (in 4-component vector of float)
+0:319      hyp. sine (global 4-component vector of float)
+0:319        'inF0' (in 4-component vector of float)
+0:320      smoothstep (global 4-component vector of float)
+0:320        'inF0' (in 4-component vector of float)
+0:320        'inF1' (in 4-component vector of float)
+0:320        'inF2' (in 4-component vector of float)
+0:321      sqrt (global 4-component vector of float)
+0:321        'inF0' (in 4-component vector of float)
+0:322      step (global 4-component vector of float)
+0:322        'inF0' (in 4-component vector of float)
+0:322        'inF1' (in 4-component vector of float)
+0:323      tangent (global 4-component vector of float)
+0:323        'inF0' (in 4-component vector of float)
+0:324      hyp. tangent (global 4-component vector of float)
+0:324        'inF0' (in 4-component vector of float)
+0:326      trunc (global 4-component vector of float)
+0:326        'inF0' (in 4-component vector of float)
+0:329      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:?           4.000000
+0:402  Function Definition: PixelShaderFunction(mf22;mf22;mf22; (temp 2X2 matrix of float)
+0:394    Function Parameters: 
+0:394      'inF0' (in 2X2 matrix of float)
+0:394      'inF1' (in 2X2 matrix of float)
+0:394      'inF2' (in 2X2 matrix of float)
+0:?     Sequence
+0:396      all (global bool)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Absolute value (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      any (global bool)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      arc tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      Ceiling (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Test condition and select (temp void)
+0:396        Condition
+0:396        any (temp bool)
+0:396          Compare Less Than (temp 2X2 matrix of bool)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396            Constant:
+0:396              0.000000
+0:396              0.000000
+0:396              0.000000
+0:396              0.000000
+0:396        true case
+0:396        Branch: Kill
+0:396      clamp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396        'inF2' (in 2X2 matrix of float)
+0:396      cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      hyp. cosine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdx (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdxCoarse (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdxFine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdy (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdyCoarse (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      dPdyFine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      degrees (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      determinant (global float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      exp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      exp2 (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      findMSB (global int)
+0:396        Constant:
+0:396          7 (const int)
+0:396      findLSB (global int)
+0:396        Constant:
+0:396          7 (const int)
+0:396      Floor (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      mod (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      Fraction (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      frexp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      fwidth (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      ldexp (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      log (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      matrix-scale (temp 2X2 matrix of float)
+0:396        log2 (temp 2X2 matrix of float)
+0:396          'inF0' (in 2X2 matrix of float)
+0:396        Constant:
+0:396          0.301030
+0:396      log2 (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      max (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      min (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      pow (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      radians (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      roundEven (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      inverse sqrt (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      clamp (temp 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        Constant:
+0:396          0.000000
+0:396        Constant:
+0:396          1.000000
+0:396      Sign (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      Sequence
+0:396        move second child to first child (temp 2X2 matrix of float)
+0:396          'inF1' (in 2X2 matrix of float)
+0:396          sine (temp 2X2 matrix of float)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396        move second child to first child (temp 2X2 matrix of float)
+0:396          'inF2' (in 2X2 matrix of float)
+0:396          cosine (temp 2X2 matrix of float)
+0:396            'inF0' (in 2X2 matrix of float)
+0:396      hyp. sine (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      smoothstep (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396        'inF2' (in 2X2 matrix of float)
+0:396      sqrt (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      step (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396        'inF1' (in 2X2 matrix of float)
+0:396      tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      hyp. tangent (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      transpose (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:396      trunc (global 2X2 matrix of float)
+0:396        'inF0' (in 2X2 matrix of float)
+0:399      Branch: Return with expression
+0:?         Constant:
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:411  Function Definition: PixelShaderFunction(mf33;mf33;mf33; (temp 3X3 matrix of float)
+0:403    Function Parameters: 
+0:403      'inF0' (in 3X3 matrix of float)
+0:403      'inF1' (in 3X3 matrix of float)
+0:403      'inF2' (in 3X3 matrix of float)
+0:?     Sequence
+0:405      all (global bool)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Absolute value (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      any (global bool)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      arc tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      Ceiling (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Test condition and select (temp void)
+0:405        Condition
+0:405        any (temp bool)
+0:405          Compare Less Than (temp 3X3 matrix of bool)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405            Constant:
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405              0.000000
+0:405        true case
+0:405        Branch: Kill
+0:405      clamp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405        'inF2' (in 3X3 matrix of float)
+0:405      cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      hyp. cosine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdx (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdxCoarse (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdxFine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdy (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdyCoarse (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      dPdyFine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      degrees (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      determinant (global float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      exp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      exp2 (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      findMSB (global int)
+0:405        Constant:
+0:405          7 (const int)
+0:405      findLSB (global int)
+0:405        Constant:
+0:405          7 (const int)
+0:405      Floor (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      mod (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      Fraction (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      frexp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      fwidth (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      ldexp (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      log (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      matrix-scale (temp 3X3 matrix of float)
+0:405        log2 (temp 3X3 matrix of float)
+0:405          'inF0' (in 3X3 matrix of float)
+0:405        Constant:
+0:405          0.301030
+0:405      log2 (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      max (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      min (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      pow (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      radians (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      roundEven (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      inverse sqrt (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      clamp (temp 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        Constant:
+0:405          0.000000
+0:405        Constant:
+0:405          1.000000
+0:405      Sign (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      Sequence
+0:405        move second child to first child (temp 3X3 matrix of float)
+0:405          'inF1' (in 3X3 matrix of float)
+0:405          sine (temp 3X3 matrix of float)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405        move second child to first child (temp 3X3 matrix of float)
+0:405          'inF2' (in 3X3 matrix of float)
+0:405          cosine (temp 3X3 matrix of float)
+0:405            'inF0' (in 3X3 matrix of float)
+0:405      hyp. sine (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      smoothstep (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405        'inF2' (in 3X3 matrix of float)
+0:405      sqrt (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      step (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405        'inF1' (in 3X3 matrix of float)
+0:405      tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      hyp. tangent (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      transpose (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:405      trunc (global 3X3 matrix of float)
+0:405        'inF0' (in 3X3 matrix of float)
+0:408      Branch: Return with expression
+0:?         Constant:
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:432  Function Definition: PixelShaderFunction(mf44;mf44;mf44; (temp 4X4 matrix of float)
+0:412    Function Parameters: 
+0:412      'inF0' (in 4X4 matrix of float)
+0:412      'inF1' (in 4X4 matrix of float)
+0:412      'inF2' (in 4X4 matrix of float)
+0:?     Sequence
+0:414      all (global bool)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Absolute value (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      any (global bool)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      arc tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      Ceiling (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Test condition and select (temp void)
+0:414        Condition
+0:414        any (temp bool)
+0:414          Compare Less Than (temp 4X4 matrix of bool)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414            Constant:
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414              0.000000
+0:414        true case
+0:414        Branch: Kill
+0:414      clamp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414        'inF2' (in 4X4 matrix of float)
+0:414      cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      hyp. cosine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdx (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdxCoarse (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdxFine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdy (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdyCoarse (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      dPdyFine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      degrees (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      determinant (global float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      exp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      exp2 (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      findMSB (global int)
+0:414        Constant:
+0:414          7 (const int)
+0:414      findLSB (global int)
+0:414        Constant:
+0:414          7 (const int)
+0:414      Floor (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      mod (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      Fraction (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      frexp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      fwidth (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      ldexp (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      log (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      matrix-scale (temp 4X4 matrix of float)
+0:414        log2 (temp 4X4 matrix of float)
+0:414          'inF0' (in 4X4 matrix of float)
+0:414        Constant:
+0:414          0.301030
+0:414      log2 (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      max (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      min (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      pow (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      radians (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      roundEven (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      inverse sqrt (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      clamp (temp 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        Constant:
+0:414          0.000000
+0:414        Constant:
+0:414          1.000000
+0:414      Sign (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      Sequence
+0:414        move second child to first child (temp 4X4 matrix of float)
+0:414          'inF1' (in 4X4 matrix of float)
+0:414          sine (temp 4X4 matrix of float)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414        move second child to first child (temp 4X4 matrix of float)
+0:414          'inF2' (in 4X4 matrix of float)
+0:414          cosine (temp 4X4 matrix of float)
+0:414            'inF0' (in 4X4 matrix of float)
+0:414      hyp. sine (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      smoothstep (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414        'inF2' (in 4X4 matrix of float)
+0:414      sqrt (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      step (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414        'inF1' (in 4X4 matrix of float)
+0:414      tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      hyp. tangent (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      transpose (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:414      trunc (global 4X4 matrix of float)
+0:414        'inF0' (in 4X4 matrix of float)
+0:417      Branch: Return with expression
+0:?         Constant:
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:439  Function Definition: TestGenMul(f1;f1;vf2;vf2;mf22;mf22; (temp void)
+0:435    Function Parameters: 
+0:435      'inF0' (in float)
+0:435      'inF1' (in float)
+0:435      'inFV0' (in 2-component vector of float)
+0:435      'inFV1' (in 2-component vector of float)
+0:435      'inFM0' (in 2X2 matrix of float)
+0:435      'inFM1' (in 2X2 matrix of float)
+0:?     Sequence
+0:436      move second child to first child (temp float)
+0:436        'r0' (temp float)
+0:436        component-wise multiply (temp float)
+0:436          'inF0' (in float)
+0:436          'inF1' (in float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r1' (temp 2-component vector of float)
+0:436        vector-scale (temp 2-component vector of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inF0' (in float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r2' (temp 2-component vector of float)
+0:436        vector-scale (temp 2-component vector of float)
+0:436          'inF0' (in float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436      move second child to first child (temp float)
+0:436        'r3' (temp float)
+0:436        dot-product (global float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inFV1' (in 2-component vector of float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r4' (temp 2-component vector of float)
+0:436        matrix-times-vector (temp 2-component vector of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436      move second child to first child (temp 2-component vector of float)
+0:436        'r5' (temp 2-component vector of float)
+0:436        vector-times-matrix (temp 2-component vector of float)
+0:436          'inFV0' (in 2-component vector of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r6' (temp 2X2 matrix of float)
+0:436        matrix-scale (temp 2X2 matrix of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inF0' (in float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r7' (temp 2X2 matrix of float)
+0:436        matrix-scale (temp 2X2 matrix of float)
+0:436          'inF0' (in float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436      move second child to first child (temp 2X2 matrix of float)
+0:436        'r8' (temp 2X2 matrix of float)
+0:436        matrix-multiply (temp 2X2 matrix of float)
+0:436          'inFM0' (in 2X2 matrix of float)
+0:436          'inFM1' (in 2X2 matrix of float)
+0:446  Function Definition: TestGenMul(f1;f1;vf3;vf3;mf33;mf33; (temp void)
+0:442    Function Parameters: 
+0:442      'inF0' (in float)
+0:442      'inF1' (in float)
+0:442      'inFV0' (in 3-component vector of float)
+0:442      'inFV1' (in 3-component vector of float)
+0:442      'inFM0' (in 3X3 matrix of float)
+0:442      'inFM1' (in 3X3 matrix of float)
+0:?     Sequence
+0:443      move second child to first child (temp float)
+0:443        'r0' (temp float)
+0:443        component-wise multiply (temp float)
+0:443          'inF0' (in float)
+0:443          'inF1' (in float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r1' (temp 3-component vector of float)
+0:443        vector-scale (temp 3-component vector of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inF0' (in float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r2' (temp 3-component vector of float)
+0:443        vector-scale (temp 3-component vector of float)
+0:443          'inF0' (in float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443      move second child to first child (temp float)
+0:443        'r3' (temp float)
+0:443        dot-product (global float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inFV1' (in 3-component vector of float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r4' (temp 3-component vector of float)
+0:443        matrix-times-vector (temp 3-component vector of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443      move second child to first child (temp 3-component vector of float)
+0:443        'r5' (temp 3-component vector of float)
+0:443        vector-times-matrix (temp 3-component vector of float)
+0:443          'inFV0' (in 3-component vector of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r6' (temp 3X3 matrix of float)
+0:443        matrix-scale (temp 3X3 matrix of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inF0' (in float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r7' (temp 3X3 matrix of float)
+0:443        matrix-scale (temp 3X3 matrix of float)
+0:443          'inF0' (in float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443      move second child to first child (temp 3X3 matrix of float)
+0:443        'r8' (temp 3X3 matrix of float)
+0:443        matrix-multiply (temp 3X3 matrix of float)
+0:443          'inFM0' (in 3X3 matrix of float)
+0:443          'inFM1' (in 3X3 matrix of float)
+0:452  Function Definition: TestGenMul(f1;f1;vf4;vf4;mf44;mf44; (temp void)
+0:449    Function Parameters: 
+0:449      'inF0' (in float)
+0:449      'inF1' (in float)
+0:449      'inFV0' (in 4-component vector of float)
+0:449      'inFV1' (in 4-component vector of float)
+0:449      'inFM0' (in 4X4 matrix of float)
+0:449      'inFM1' (in 4X4 matrix of float)
+0:?     Sequence
+0:450      move second child to first child (temp float)
+0:450        'r0' (temp float)
+0:450        component-wise multiply (temp float)
+0:450          'inF0' (in float)
+0:450          'inF1' (in float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r1' (temp 4-component vector of float)
+0:450        vector-scale (temp 4-component vector of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inF0' (in float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r2' (temp 4-component vector of float)
+0:450        vector-scale (temp 4-component vector of float)
+0:450          'inF0' (in float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450      move second child to first child (temp float)
+0:450        'r3' (temp float)
+0:450        dot-product (global float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inFV1' (in 4-component vector of float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r4' (temp 4-component vector of float)
+0:450        matrix-times-vector (temp 4-component vector of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450      move second child to first child (temp 4-component vector of float)
+0:450        'r5' (temp 4-component vector of float)
+0:450        vector-times-matrix (temp 4-component vector of float)
+0:450          'inFV0' (in 4-component vector of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r6' (temp 4X4 matrix of float)
+0:450        matrix-scale (temp 4X4 matrix of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inF0' (in float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r7' (temp 4X4 matrix of float)
+0:450        matrix-scale (temp 4X4 matrix of float)
+0:450          'inF0' (in float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450      move second child to first child (temp 4X4 matrix of float)
+0:450        'r8' (temp 4X4 matrix of float)
+0:450        matrix-multiply (temp 4X4 matrix of float)
+0:450          'inFM0' (in 4X4 matrix of float)
+0:450          'inFM1' (in 4X4 matrix of float)
+0:?   Linker Objects
+0:?     'gs_ua' (temp uint)
+0:?     'gs_ub' (temp uint)
+0:?     'gs_uc' (temp uint)
+0:?     'gs_ua2' (temp 2-component vector of uint)
+0:?     'gs_ub2' (temp 2-component vector of uint)
+0:?     'gs_uc2' (temp 2-component vector of uint)
+0:?     'gs_ua3' (temp 3-component vector of uint)
+0:?     'gs_ub3' (temp 3-component vector of uint)
+0:?     'gs_uc3' (temp 3-component vector of uint)
+0:?     'gs_ua4' (temp 4-component vector of uint)
+0:?     'gs_ub4' (temp 4-component vector of uint)
+0:?     'gs_uc4' (temp 4-component vector of uint)
+
+// Module Version 10000
+// Generated by (magic number): 80001
+// Id's are bound by 1265
+
+                              Capability Shader
+                              Capability DerivativeControl
+               1:             ExtInstImport  "GLSL.std.450"
+                              MemoryModel Logical GLSL450
+                              EntryPoint Fragment 4  "PixelShaderFunction" 48 67 73 80 195 213 219 226 366 384 390 397 539 557 563 570 719 733 748 857 871 886 998 1012 1027
+                              ExecutionMode 4 OriginUpperLeft
+                              Source HLSL 450
+                              Name 4  "PixelShaderFunction"
+                              Name 19  "TestGenMul(f1;f1;vf2;vf2;mf22;mf22;"
+                              Name 13  "inF0"
+                              Name 14  "inF1"
+                              Name 15  "inFV0"
+                              Name 16  "inFV1"
+                              Name 17  "inFM0"
+                              Name 18  "inFM1"
+                              Name 32  "TestGenMul(f1;f1;vf3;vf3;mf33;mf33;"
+                              Name 26  "inF0"
+                              Name 27  "inF1"
+                              Name 28  "inFV0"
+                              Name 29  "inFV1"
+                              Name 30  "inFM0"
+                              Name 31  "inFM1"
+                              Name 45  "TestGenMul(f1;f1;vf4;vf4;mf44;mf44;"
+                              Name 39  "inF0"
+                              Name 40  "inF1"
+                              Name 41  "inFV0"
+                              Name 42  "inFV1"
+                              Name 43  "inFM0"
+                              Name 44  "inFM1"
+                              Name 48  "inF0"
+                              Name 67  "inU0"
+                              Name 73  "inF1"
+                              Name 80  "inF2"
+                              Name 124  "ResType"
+                              Name 195  "inF0"
+                              Name 213  "inU0"
+                              Name 219  "inF1"
+                              Name 226  "inF2"
+                              Name 282  "ResType"
+                              Name 366  "inF0"
+                              Name 384  "inU0"
+                              Name 390  "inF1"
+                              Name 397  "inF2"
+                              Name 456  "ResType"
+                              Name 539  "inF0"
+                              Name 557  "inU0"
+                              Name 563  "inF1"
+                              Name 570  "inF2"
+                              Name 635  "ResType"
+                              Name 719  "inF0"
+                              Name 733  "inF1"
+                              Name 748  "inF2"
+                              Name 791  "ResType"
+                              Name 857  "inF0"
+                              Name 871  "inF1"
+                              Name 886  "inF2"
+                              Name 932  "ResType"
+                              Name 998  "inF0"
+                              Name 1012  "inF1"
+                              Name 1027  "inF2"
+                              Name 1076  "ResType"
+                              Name 1141  "r0"
+                              Name 1145  "r1"
+                              Name 1149  "r2"
+                              Name 1153  "r3"
+                              Name 1157  "r4"
+                              Name 1161  "r5"
+                              Name 1165  "r6"
+                              Name 1169  "r7"
+                              Name 1173  "r8"
+                              Name 1177  "r0"
+                              Name 1181  "r1"
+                              Name 1185  "r2"
+                              Name 1189  "r3"
+                              Name 1193  "r4"
+                              Name 1197  "r5"
+                              Name 1201  "r6"
+                              Name 1205  "r7"
+                              Name 1209  "r8"
+                              Name 1213  "r0"
+                              Name 1217  "r1"
+                              Name 1221  "r2"
+                              Name 1225  "r3"
+                              Name 1229  "r4"
+                              Name 1233  "r5"
+                              Name 1237  "r6"
+                              Name 1241  "r7"
+                              Name 1245  "r8"
+                              Name 1250  "gs_ua"
+                              Name 1251  "gs_ub"
+                              Name 1252  "gs_uc"
+                              Name 1254  "gs_ua2"
+                              Name 1255  "gs_ub2"
+                              Name 1256  "gs_uc2"
+                              Name 1258  "gs_ua3"
+                              Name 1259  "gs_ub3"
+                              Name 1260  "gs_uc3"
+                              Name 1262  "gs_ua4"
+                              Name 1263  "gs_ub4"
+                              Name 1264  "gs_uc4"
+               2:             TypeVoid
+               3:             TypeFunction 2
+               6:             TypeFloat 32
+               7:             TypePointer Function 6(float)
+               8:             TypeVector 6(float) 2
+               9:             TypePointer Function 8(fvec2)
+              10:             TypeMatrix 8(fvec2) 2
+              11:             TypePointer Function 10
+              12:             TypeFunction 2 7(ptr) 7(ptr) 9(ptr) 9(ptr) 11(ptr) 11(ptr)
+              21:             TypeVector 6(float) 3
+              22:             TypePointer Function 21(fvec3)
+              23:             TypeMatrix 21(fvec3) 3
+              24:             TypePointer Function 23
+              25:             TypeFunction 2 7(ptr) 7(ptr) 22(ptr) 22(ptr) 24(ptr) 24(ptr)
+              34:             TypeVector 6(float) 4
+              35:             TypePointer Function 34(fvec4)
+              36:             TypeMatrix 34(fvec4) 4
+              37:             TypePointer Function 36
+              38:             TypeFunction 2 7(ptr) 7(ptr) 35(ptr) 35(ptr) 37(ptr) 37(ptr)
+              47:             TypePointer Input 6(float)
+        48(inF0):     47(ptr) Variable Input
+              50:             TypeBool
+              61:             TypeInt 32 1
+              64:             TypeInt 32 0
+              66:             TypePointer Input 64(int)
+        67(inU0):     66(ptr) Variable Input
+        73(inF1):     47(ptr) Variable Input
+        80(inF2):     47(ptr) Variable Input
+              84:    6(float) Constant 0
+              93:     64(int) Constant 7
+             113:     61(int) Constant 7
+    124(ResType):             TypeStruct 6(float) 61(int)
+             141:    6(float) Constant 1050288283
+             156:    6(float) Constant 1065353216
+             159:     64(int) Constant 2
+             194:             TypePointer Input 8(fvec2)
+       195(inF0):    194(ptr) Variable Input
+             207:             TypeVector 61(int) 2
+             210:             TypeVector 64(int) 2
+             212:             TypePointer Input 210(ivec2)
+       213(inU0):    212(ptr) Variable Input
+       219(inF1):    194(ptr) Variable Input
+       226(inF2):    194(ptr) Variable Input
+             230:    8(fvec2) ConstantComposite 84 84
+             231:             TypeVector 50(bool) 2
+             241:     64(int) Constant 3
+             242:  210(ivec2) ConstantComposite 93 241
+    282(ResType):             TypeStruct 8(fvec2) 207(ivec2)
+             325:    6(float) Constant 1073741824
+             327:     64(int) Constant 1
+             328:  210(ivec2) ConstantComposite 327 159
+             363:    8(fvec2) ConstantComposite 156 325
+             365:             TypePointer Input 21(fvec3)
+       366(inF0):    365(ptr) Variable Input
+             378:             TypeVector 61(int) 3
+             381:             TypeVector 64(int) 3
+             383:             TypePointer Input 381(ivec3)
+       384(inU0):    383(ptr) Variable Input
+       390(inF1):    365(ptr) Variable Input
+       397(inF2):    365(ptr) Variable Input
+             401:   21(fvec3) ConstantComposite 84 84 84
+             402:             TypeVector 50(bool) 3
+             412:     64(int) Constant 5
+             413:  381(ivec3) ConstantComposite 93 241 412
+    456(ResType):             TypeStruct 21(fvec3) 378(ivec3)
+             500:  381(ivec3) ConstantComposite 327 159 241
+             535:    6(float) Constant 1077936128
+             536:   21(fvec3) ConstantComposite 156 325 535
+             538:             TypePointer Input 34(fvec4)
+       539(inF0):    538(ptr) Variable Input
+             551:             TypeVector 61(int) 4
+             554:             TypeVector 64(int) 4
+             556:             TypePointer Input 554(ivec4)
+       557(inU0):    556(ptr) Variable Input
+       563(inF1):    538(ptr) Variable Input
+       570(inF2):    538(ptr) Variable Input
+             574:   34(fvec4) ConstantComposite 84 84 84 84
+             575:             TypeVector 50(bool) 4
+             585:  554(ivec4) ConstantComposite 93 241 412 159
+    635(ResType):             TypeStruct 34(fvec4) 551(ivec4)
+             679:     64(int) Constant 4
+             680:  554(ivec4) ConstantComposite 327 159 241 679
+             715:    6(float) Constant 1082130432
+             716:   34(fvec4) ConstantComposite 156 325 535 715
+             718:             TypePointer Input 10
+       719(inF0):    718(ptr) Variable Input
+       733(inF1):    718(ptr) Variable Input
+             739:          10 ConstantComposite 230 230
+             740:             TypeMatrix 231(bvec2) 2
+       748(inF2):    718(ptr) Variable Input
+    791(ResType):             TypeStruct 10 207(ivec2)
+             853:    8(fvec2) ConstantComposite 325 325
+             854:          10 ConstantComposite 853 853
+             856:             TypePointer Input 23
+       857(inF0):    856(ptr) Variable Input
+       871(inF1):    856(ptr) Variable Input
+             877:          23 ConstantComposite 401 401 401
+             878:             TypeMatrix 402(bvec3) 3
+       886(inF2):    856(ptr) Variable Input
+    932(ResType):             TypeStruct 23 378(ivec3)
+             994:   21(fvec3) ConstantComposite 535 535 535
+             995:          23 ConstantComposite 994 994 994
+             997:             TypePointer Input 36
+       998(inF0):    997(ptr) Variable Input
+      1012(inF1):    997(ptr) Variable Input
+            1018:          36 ConstantComposite 574 574 574 574
+            1019:             TypeMatrix 575(bvec4) 4
+      1027(inF2):    997(ptr) Variable Input
+   1076(ResType):             TypeStruct 36 551(ivec4)
+            1138:   34(fvec4) ConstantComposite 715 715 715 715
+            1139:          36 ConstantComposite 1138 1138 1138 1138
+            1249:             TypePointer Function 64(int)
+            1253:             TypePointer Function 210(ivec2)
+            1257:             TypePointer Function 381(ivec3)
+            1261:             TypePointer Function 554(ivec4)
+4(PixelShaderFunction):           2 Function None 3
+               5:             Label
+              49:    6(float) Load 48(inF0)
+              51:    50(bool) All 49
+              52:    6(float) Load 48(inF0)
+              53:    6(float) ExtInst 1(GLSL.std.450) 4(FAbs) 52
+              54:    6(float) Load 48(inF0)
+              55:    6(float) ExtInst 1(GLSL.std.450) 17(Acos) 54
+              56:    6(float) Load 48(inF0)
+              57:    50(bool) Any 56
+              58:    6(float) Load 48(inF0)
+              59:    6(float) ExtInst 1(GLSL.std.450) 16(Asin) 58
+              60:    6(float) Load 48(inF0)
+              62:     61(int) Bitcast 60
+              63:    6(float) Load 48(inF0)
+              65:     64(int) Bitcast 63
+              68:     64(int) Load 67(inU0)
+              69:    6(float) Bitcast 68
+              70:    6(float) Load 48(inF0)
+              71:    6(float) ExtInst 1(GLSL.std.450) 18(Atan) 70
+              72:    6(float) Load 48(inF0)
+              74:    6(float) Load 73(inF1)
+              75:    6(float) ExtInst 1(GLSL.std.450) 25(Atan2) 72 74
+              76:    6(float) Load 48(inF0)
+              77:    6(float) ExtInst 1(GLSL.std.450) 9(Ceil) 76
+              78:    6(float) Load 48(inF0)
+              79:    6(float) Load 73(inF1)
+              81:    6(float) Load 80(inF2)
+              82:    6(float) ExtInst 1(GLSL.std.450) 43(FClamp) 78 79 81
+              83:    6(float) Load 48(inF0)
+              85:    50(bool) FOrdLessThan 83 84
+                              SelectionMerge 87 None
+                              BranchConditional 85 86 87
+              86:               Label
+                                Kill
+              87:             Label
+              89:    6(float) Load 48(inF0)
+              90:    6(float) ExtInst 1(GLSL.std.450) 14(Cos) 89
+              91:    6(float) Load 48(inF0)
+              92:    6(float) ExtInst 1(GLSL.std.450) 20(Cosh) 91
+              94:     64(int) BitCount 93
+              95:    6(float) Load 48(inF0)
+              96:    6(float) DPdx 95
+              97:    6(float) Load 48(inF0)
+              98:    6(float) DPdxCoarse 97
+              99:    6(float) Load 48(inF0)
+             100:    6(float) DPdxFine 99
+             101:    6(float) Load 48(inF0)
+             102:    6(float) DPdy 101
+             103:    6(float) Load 48(inF0)
+             104:    6(float) DPdyCoarse 103
+             105:    6(float) Load 48(inF0)
+             106:    6(float) DPdyFine 105
+             107:    6(float) Load 48(inF0)
+             108:    6(float) ExtInst 1(GLSL.std.450) 12(Degrees) 107
+             109:    6(float) Load 48(inF0)
+             110:    6(float) ExtInst 1(GLSL.std.450) 27(Exp) 109
+             111:    6(float) Load 48(inF0)
+             112:    6(float) ExtInst 1(GLSL.std.450) 29(Exp2) 111
+             114:     61(int) ExtInst 1(GLSL.std.450) 74(FindSMsb) 113
+             115:     61(int) ExtInst 1(GLSL.std.450) 73(FindILsb) 113
+             116:    6(float) Load 48(inF0)
+             117:    6(float) ExtInst 1(GLSL.std.450) 8(Floor) 116
+             118:    6(float) Load 48(inF0)
+             119:    6(float) Load 73(inF1)
+             120:    6(float) FMod 118 119
+             121:    6(float) Load 48(inF0)
+             122:    6(float) ExtInst 1(GLSL.std.450) 10(Fract) 121
+             123:    6(float) Load 48(inF0)
+             125:124(ResType) ExtInst 1(GLSL.std.450) 52(FrexpStruct) 123
+             126:     61(int) CompositeExtract 125 1
+                              Store 73(inF1) 126
+             127:    6(float) CompositeExtract 125 0
+             128:    6(float) Load 48(inF0)
+             129:    6(float) Fwidth 128
+             130:    6(float) Load 48(inF0)
+             131:    50(bool) IsInf 130
+             132:    6(float) Load 48(inF0)
+             133:    50(bool) IsNan 132
+             134:    6(float) Load 48(inF0)
+             135:    6(float) Load 73(inF1)
+             136:    6(float) ExtInst 1(GLSL.std.450) 53(Ldexp) 134 135
+             137:    6(float) Load 48(inF0)
+             138:    6(float) ExtInst 1(GLSL.std.450) 28(Log) 137
+             139:    6(float) Load 48(inF0)
+             140:    6(float) ExtInst 1(GLSL.std.450) 30(Log2) 139
+             142:    6(float) FMul 140 141
+             143:    6(float) Load 48(inF0)
+             144:    6(float) ExtInst 1(GLSL.std.450) 30(Log2) 143
+             145:    6(float) Load 48(inF0)
+             146:    6(float) Load 73(inF1)
+             147:    6(float) ExtInst 1(GLSL.std.450) 40(FMax) 145 146
+             148:    6(float) Load 48(inF0)
+             149:    6(float) Load 73(inF1)
+             150:    6(float) ExtInst 1(GLSL.std.450) 37(FMin) 148 149
+             151:    6(float) Load 48(inF0)
+             152:    6(float) Load 73(inF1)
+             153:    6(float) ExtInst 1(GLSL.std.450) 26(Pow) 151 152
+             154:    6(float) Load 48(inF0)
+             155:    6(float) ExtInst 1(GLSL.std.450) 11(Radians) 154
+             157:    6(float) Load 48(inF0)
+             158:    6(float) FDiv 156 157
+             160:     64(int) BitReverse 159
+             161:    6(float) Load 48(inF0)
+             162:    6(float) ExtInst 1(GLSL.std.450) 2(RoundEven) 161
+             163:    6(float) Load 48(inF0)
+             164:    6(float) ExtInst 1(GLSL.std.450) 32(InverseSqrt) 163
+             165:    6(float) Load 48(inF0)
+             166:    6(float) ExtInst 1(GLSL.std.450) 43(FClamp) 165 84 156
+             167:    6(float) Load 48(inF0)
+             168:    6(float) ExtInst 1(GLSL.std.450) 6(FSign) 167
+             169:    6(float) Load 48(inF0)
+             170:    6(float) ExtInst 1(GLSL.std.450) 13(Sin) 169
+             171:    6(float) Load 48(inF0)
+             172:    6(float) ExtInst 1(GLSL.std.450) 13(Sin) 171
+                              Store 73(inF1) 172
+             173:    6(float) Load 48(inF0)
+             174:    6(float) ExtInst 1(GLSL.std.450) 14(Cos) 173
+                              Store 80(inF2) 174
+             175:    6(float) Load 48(inF0)
+             176:    6(float) ExtInst 1(GLSL.std.450) 19(Sinh) 175
+             177:    6(float) Load 48(inF0)
+             178:    6(float) Load 73(inF1)
+             179:    6(float) Load 80(inF2)
+             180:    6(float) ExtInst 1(GLSL.std.450) 49(SmoothStep) 177 178 179
+             181:    6(float) Load 48(inF0)
+             182:    6(float) ExtInst 1(GLSL.std.450) 31(Sqrt) 181
+             183:    6(float) Load 48(inF0)
+             184:    6(float) Load 73(inF1)
+             185:    6(float) ExtInst 1(GLSL.std.450) 48(Step) 183 184
+             186:    6(float) Load 48(inF0)
+             187:    6(float) ExtInst 1(GLSL.std.450) 15(Tan) 186
+             188:    6(float) Load 48(inF0)
+             189:    6(float) ExtInst 1(GLSL.std.450) 21(Tanh) 188
+             190:    6(float) Load 48(inF0)
+             191:    6(float) ExtInst 1(GLSL.std.450) 3(Trunc) 190
+                              ReturnValue 84
+                              FunctionEnd
+19(TestGenMul(f1;f1;vf2;vf2;mf22;mf22;):           2 Function None 12
+        13(inF0):      7(ptr) FunctionParameter
+        14(inF1):      7(ptr) FunctionParameter
+       15(inFV0):      9(ptr) FunctionParameter
+       16(inFV1):      9(ptr) FunctionParameter
+       17(inFM0):     11(ptr) FunctionParameter
+       18(inFM1):     11(ptr) FunctionParameter
+              20:             Label
+        1141(r0):      7(ptr) Variable Function
+        1145(r1):      9(ptr) Variable Function
+        1149(r2):      9(ptr) Variable Function
+        1153(r3):      7(ptr) Variable Function
+        1157(r4):      9(ptr) Variable Function
+        1161(r5):      9(ptr) Variable Function
+        1165(r6):     11(ptr) Variable Function
+        1169(r7):     11(ptr) Variable Function
+        1173(r8):     11(ptr) Variable Function
+            1142:    6(float) Load 13(inF0)
+            1143:    6(float) Load 14(inF1)
+            1144:    6(float) FMul 1142 1143
+                              Store 1141(r0) 1144
+            1146:    8(fvec2) Load 15(inFV0)
+            1147:    6(float) Load 13(inF0)
+            1148:    8(fvec2) VectorTimesScalar 1146 1147
+                              Store 1145(r1) 1148
+            1150:    6(float) Load 13(inF0)
+            1151:    8(fvec2) Load 15(inFV0)
+            1152:    8(fvec2) VectorTimesScalar 1151 1150
+                              Store 1149(r2) 1152
+            1154:    8(fvec2) Load 15(inFV0)
+            1155:    8(fvec2) Load 16(inFV1)
+            1156:    6(float) Dot 1154 1155
+                              Store 1153(r3) 1156
+            1158:          10 Load 17(inFM0)
+            1159:    8(fvec2) Load 15(inFV0)
+            1160:    8(fvec2) MatrixTimesVector 1158 1159
+                              Store 1157(r4) 1160
+            1162:    8(fvec2) Load 15(inFV0)
+            1163:          10 Load 17(inFM0)
+            1164:    8(fvec2) VectorTimesMatrix 1162 1163
+                              Store 1161(r5) 1164
+            1166:          10 Load 17(inFM0)
+            1167:    6(float) Load 13(inF0)
+            1168:          10 MatrixTimesScalar 1166 1167
+                              Store 1165(r6) 1168
+            1170:    6(float) Load 13(inF0)
+            1171:          10 Load 17(inFM0)
+            1172:          10 MatrixTimesScalar 1171 1170
+                              Store 1169(r7) 1172
+            1174:          10 Load 17(inFM0)
+            1175:          10 Load 18(inFM1)
+            1176:          10 MatrixTimesMatrix 1174 1175
+                              Store 1173(r8) 1176
+                              Return
+                              FunctionEnd
+32(TestGenMul(f1;f1;vf3;vf3;mf33;mf33;):           2 Function None 25
+        26(inF0):      7(ptr) FunctionParameter
+        27(inF1):      7(ptr) FunctionParameter
+       28(inFV0):     22(ptr) FunctionParameter
+       29(inFV1):     22(ptr) FunctionParameter
+       30(inFM0):     24(ptr) FunctionParameter
+       31(inFM1):     24(ptr) FunctionParameter
+              33:             Label
+        1177(r0):      7(ptr) Variable Function
+        1181(r1):     22(ptr) Variable Function
+        1185(r2):     22(ptr) Variable Function
+        1189(r3):      7(ptr) Variable Function
+        1193(r4):     22(ptr) Variable Function
+        1197(r5):     22(ptr) Variable Function
+        1201(r6):     24(ptr) Variable Function
+        1205(r7):     24(ptr) Variable Function
+        1209(r8):     24(ptr) Variable Function
+            1178:    6(float) Load 26(inF0)
+            1179:    6(float) Load 27(inF1)
+            1180:    6(float) FMul 1178 1179
+                              Store 1177(r0) 1180
+            1182:   21(fvec3) Load 28(inFV0)
+            1183:    6(float) Load 26(inF0)
+            1184:   21(fvec3) VectorTimesScalar 1182 1183
+                              Store 1181(r1) 1184
+            1186:    6(float) Load 26(inF0)
+            1187:   21(fvec3) Load 28(inFV0)
+            1188:   21(fvec3) VectorTimesScalar 1187 1186
+                              Store 1185(r2) 1188
+            1190:   21(fvec3) Load 28(inFV0)
+            1191:   21(fvec3) Load 29(inFV1)
+            1192:    6(float) Dot 1190 1191
+                              Store 1189(r3) 1192
+            1194:          23 Load 30(inFM0)
+            1195:   21(fvec3) Load 28(inFV0)
+            1196:   21(fvec3) MatrixTimesVector 1194 1195
+                              Store 1193(r4) 1196
+            1198:   21(fvec3) Load 28(inFV0)
+            1199:          23 Load 30(inFM0)
+            1200:   21(fvec3) VectorTimesMatrix 1198 1199
+                              Store 1197(r5) 1200
+            1202:          23 Load 30(inFM0)
+            1203:    6(float) Load 26(inF0)
+            1204:          23 MatrixTimesScalar 1202 1203
+                              Store 1201(r6) 1204
+            1206:    6(float) Load 26(inF0)
+            1207:          23 Load 30(inFM0)
+            1208:          23 MatrixTimesScalar 1207 1206
+                              Store 1205(r7) 1208
+            1210:          23 Load 30(inFM0)
+            1211:          23 Load 31(inFM1)
+            1212:          23 MatrixTimesMatrix 1210 1211
+                              Store 1209(r8) 1212
+                              Return
+                              FunctionEnd
+45(TestGenMul(f1;f1;vf4;vf4;mf44;mf44;):           2 Function None 38
+        39(inF0):      7(ptr) FunctionParameter
+        40(inF1):      7(ptr) FunctionParameter
+       41(inFV0):     35(ptr) FunctionParameter
+       42(inFV1):     35(ptr) FunctionParameter
+       43(inFM0):     37(ptr) FunctionParameter
+       44(inFM1):     37(ptr) FunctionParameter
+              46:             Label
+        1213(r0):      7(ptr) Variable Function
+        1217(r1):     35(ptr) Variable Function
+        1221(r2):     35(ptr) Variable Function
+        1225(r3):      7(ptr) Variable Function
+        1229(r4):     35(ptr) Variable Function
+        1233(r5):     35(ptr) Variable Function
+        1237(r6):     37(ptr) Variable Function
+        1241(r7):     37(ptr) Variable Function
+        1245(r8):     37(ptr) Variable Function
+     1250(gs_ua):   1249(ptr) Variable Function
+     1251(gs_ub):   1249(ptr) Variable Function
+     1252(gs_uc):   1249(ptr) Variable Function
+    1254(gs_ua2):   1253(ptr) Variable Function
+    1255(gs_ub2):   1253(ptr) Variable Function
+    1256(gs_uc2):   1253(ptr) Variable Function
+    1258(gs_ua3):   1257(ptr) Variable Function
+    1259(gs_ub3):   1257(ptr) Variable Function
+    1260(gs_uc3):   1257(ptr) Variable Function
+    1262(gs_ua4):   1261(ptr) Variable Function
+    1263(gs_ub4):   1261(ptr) Variable Function
+    1264(gs_uc4):   1261(ptr) Variable Function
+            1214:    6(float) Load 39(inF0)
+            1215:    6(float) Load 40(inF1)
+            1216:    6(float) FMul 1214 1215
+                              Store 1213(r0) 1216
+            1218:   34(fvec4) Load 41(inFV0)
+            1219:    6(float) Load 39(inF0)
+            1220:   34(fvec4) VectorTimesScalar 1218 1219
+                              Store 1217(r1) 1220
+            1222:    6(float) Load 39(inF0)
+            1223:   34(fvec4) Load 41(inFV0)
+            1224:   34(fvec4) VectorTimesScalar 1223 1222
+                              Store 1221(r2) 1224
+            1226:   34(fvec4) Load 41(inFV0)
+            1227:   34(fvec4) Load 42(inFV1)
+            1228:    6(float) Dot 1226 1227
+                              Store 1225(r3) 1228
+            1230:          36 Load 43(inFM0)
+            1231:   34(fvec4) Load 41(inFV0)
+            1232:   34(fvec4) MatrixTimesVector 1230 1231
+                              Store 1229(r4) 1232
+            1234:   34(fvec4) Load 41(inFV0)
+            1235:          36 Load 43(inFM0)
+            1236:   34(fvec4) VectorTimesMatrix 1234 1235
+                              Store 1233(r5) 1236
+            1238:          36 Load 43(inFM0)
+            1239:    6(float) Load 39(inF0)
+            1240:          36 MatrixTimesScalar 1238 1239
+                              Store 1237(r6) 1240
+            1242:    6(float) Load 39(inF0)
+            1243:          36 Load 43(inFM0)
+            1244:          36 MatrixTimesScalar 1243 1242
+                              Store 1241(r7) 1244
+            1246:          36 Load 43(inFM0)
+            1247:          36 Load 44(inFM1)
+            1248:          36 MatrixTimesMatrix 1246 1247
+                              Store 1245(r8) 1248
+                              Return
+                              FunctionEnd

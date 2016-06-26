@@ -1,0 +1,702 @@
+hlsl.intrinsics.negative.frag
+ERROR: 0:5: 'asdouble' : no matching overloaded function found 
+ERROR: 0:6: 'CheckAccessFullyMapped' : no matching overloaded function found 
+ERROR: 0:7: 'countbits' : no matching overloaded function found 
+ERROR: 0:8: 'cross' : no matching overloaded function found 
+ERROR: 0:9: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:10: 'determinant' : no matching overloaded function found 
+ERROR: 0:12: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:13: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:14: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:15: 'fma' : no matching overloaded function found 
+ERROR: 0:23: 'length' : no matching overloaded function found 
+ERROR: 0:24: 'msad4' : no matching overloaded function found 
+ERROR: 0:25: 'normalize' : no matching overloaded function found 
+ERROR: 0:26: 'reflect' : no matching overloaded function found 
+ERROR: 0:27: 'refract' : no matching overloaded function found 
+ERROR: 0:28: 'refract' : no matching overloaded function found 
+ERROR: 0:29: 'reversebits' : no matching overloaded function found 
+ERROR: 0:30: 'transpose' : no matching overloaded function found 
+ERROR: 0:39: 'GetRenderTargetSamplePosition' : no matching overloaded function found 
+ERROR: 0:46: 'asdouble' : no matching overloaded function found 
+ERROR: 0:47: 'CheckAccessFullyMapped' : no matching overloaded function found 
+ERROR: 0:48: 'countbits' : no matching overloaded function found 
+ERROR: 0:49: 'cross' : no matching overloaded function found 
+ERROR: 0:50: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:51: 'determinant' : no matching overloaded function found 
+ERROR: 0:52: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:53: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:54: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:55: 'fma' : no matching overloaded function found 
+ERROR: 0:56: 'reversebits' : no matching overloaded function found 
+ERROR: 0:57: 'transpose' : no matching overloaded function found 
+ERROR: 0:64: 'CheckAccessFullyMapped' : no matching overloaded function found 
+ERROR: 0:65: 'countbits' : no matching overloaded function found 
+ERROR: 0:66: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:67: 'determinant' : no matching overloaded function found 
+ERROR: 0:68: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:69: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:70: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:71: 'fma' : no matching overloaded function found 
+ERROR: 0:72: 'reversebits' : no matching overloaded function found 
+ERROR: 0:73: 'transpose' : no matching overloaded function found 
+ERROR: 0:81: 'CheckAccessFullyMapped' : no matching overloaded function found 
+ERROR: 0:82: 'countbits' : no matching overloaded function found 
+ERROR: 0:83: 'cross' : no matching overloaded function found 
+ERROR: 0:84: 'determinant' : no matching overloaded function found 
+ERROR: 0:85: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:86: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:87: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:88: 'fma' : no matching overloaded function found 
+ERROR: 0:89: 'reversebits' : no matching overloaded function found 
+ERROR: 0:90: 'transpose' : no matching overloaded function found 
+ERROR: 0:118: 'countbits' : no matching overloaded function found 
+ERROR: 0:118: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:118: 'cross' : no matching overloaded function found 
+ERROR: 0:118: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:118: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:118: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:118: 'fma' : no matching overloaded function found 
+ERROR: 0:118: 'reversebits' : no matching overloaded function found 
+ERROR: 0:118: 'length' : no matching overloaded function found 
+ERROR: 0:118: 'noise' : no matching overloaded function found 
+ERROR: 0:118: 'normalize' : no matching overloaded function found 
+ERROR: 0:118: 'reflect' : no matching overloaded function found 
+ERROR: 0:118: 'refract' : no matching overloaded function found 
+ERROR: 0:118: 'reversebits' : no matching overloaded function found 
+ERROR: 0:126: 'countbits' : no matching overloaded function found 
+ERROR: 0:126: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:126: 'cross' : no matching overloaded function found 
+ERROR: 0:126: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:126: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:126: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:126: 'fma' : no matching overloaded function found 
+ERROR: 0:126: 'reversebits' : no matching overloaded function found 
+ERROR: 0:126: 'length' : no matching overloaded function found 
+ERROR: 0:126: 'noise' : no matching overloaded function found 
+ERROR: 0:126: 'normalize' : no matching overloaded function found 
+ERROR: 0:126: 'reflect' : no matching overloaded function found 
+ERROR: 0:126: 'refract' : no matching overloaded function found 
+ERROR: 0:126: 'reversebits' : no matching overloaded function found 
+ERROR: 0:134: 'countbits' : no matching overloaded function found 
+ERROR: 0:134: 'D3DCOLORtoUBYTE4' : no matching overloaded function found 
+ERROR: 0:134: 'cross' : no matching overloaded function found 
+ERROR: 0:134: 'f16tof32' : no matching overloaded function found 
+ERROR: 0:134: 'firstbithigh' : no matching overloaded function found 
+ERROR: 0:134: 'firstbitlow' : no matching overloaded function found 
+ERROR: 0:134: 'fma' : no matching overloaded function found 
+ERROR: 0:134: 'reversebits' : no matching overloaded function found 
+ERROR: 0:134: 'length' : no matching overloaded function found 
+ERROR: 0:134: 'noise' : no matching overloaded function found 
+ERROR: 0:134: 'normalize' : no matching overloaded function found 
+ERROR: 0:134: 'reflect' : no matching overloaded function found 
+ERROR: 0:134: 'refract' : no matching overloaded function found 
+ERROR: 0:134: 'reversebits' : no matching overloaded function found 
+ERROR: 93 compilation errors.  No code generated.
+
+
+Shader version: 450
+gl_FragCoord origin is upper left
+ERROR: node is still EOpNull!
+0:35  Function Definition: PixelShaderFunction(f1;f1;f1;i1; (temp float)
+0:2    Function Parameters: 
+0:2      'inF0' (in float)
+0:2      'inF1' (in float)
+0:2      'inF2' (in float)
+0:2      'inI0' (in int)
+0:?     Sequence
+0:5      Constant:
+0:5        0.000000
+0:6      Constant:
+0:6        0.000000
+0:7      Constant:
+0:7        0.000000
+0:8      Constant:
+0:8        0.000000
+0:9      Constant:
+0:9        0.000000
+0:10      Constant:
+0:10        0.000000
+0:12      Constant:
+0:12        0.000000
+0:13      Constant:
+0:13        0.000000
+0:14      Constant:
+0:14        0.000000
+0:15      Constant:
+0:15        0.000000
+0:23      Constant:
+0:23        0.000000
+0:24      Constant:
+0:24        0.000000
+0:25      Constant:
+0:25        0.000000
+0:26      Constant:
+0:26        0.000000
+0:27      Constant:
+0:27        0.000000
+0:28      Constant:
+0:28        0.000000
+0:29      Constant:
+0:29        0.000000
+0:30      Constant:
+0:30        0.000000
+0:32      Branch: Return with expression
+0:32        Constant:
+0:32          0.000000
+0:44  Function Definition: PixelShaderFunction(vf1;vf1;vf1;vi1; (temp 1-component vector of float)
+0:36    Function Parameters: 
+0:36      'inF0' (in 1-component vector of float)
+0:36      'inF1' (in 1-component vector of float)
+0:36      'inF2' (in 1-component vector of float)
+0:36      'inI0' (in 1-component vector of int)
+0:?     Sequence
+0:39      Constant:
+0:39        0.000000
+0:41      Branch: Return with expression
+0:41        Constant:
+0:41          0.000000
+0:62  Function Definition: PixelShaderFunction(vf2;vf2;vf2;vi2; (temp 2-component vector of float)
+0:45    Function Parameters: 
+0:45      'inF0' (in 2-component vector of float)
+0:45      'inF1' (in 2-component vector of float)
+0:45      'inF2' (in 2-component vector of float)
+0:45      'inI0' (in 2-component vector of int)
+0:?     Sequence
+0:46      Constant:
+0:46        0.000000
+0:47      Constant:
+0:47        0.000000
+0:48      Constant:
+0:48        0.000000
+0:49      Constant:
+0:49        0.000000
+0:50      Constant:
+0:50        0.000000
+0:51      Constant:
+0:51        0.000000
+0:52      Constant:
+0:52        0.000000
+0:53      Constant:
+0:53        0.000000
+0:54      Constant:
+0:54        0.000000
+0:55      Constant:
+0:55        0.000000
+0:56      Constant:
+0:56        0.000000
+0:57      Constant:
+0:57        0.000000
+0:59      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:79  Function Definition: PixelShaderFunction(vf3;vf3;vf3;vi3; (temp 3-component vector of float)
+0:63    Function Parameters: 
+0:63      'inF0' (in 3-component vector of float)
+0:63      'inF1' (in 3-component vector of float)
+0:63      'inF2' (in 3-component vector of float)
+0:63      'inI0' (in 3-component vector of int)
+0:?     Sequence
+0:64      Constant:
+0:64        0.000000
+0:65      Constant:
+0:65        0.000000
+0:66      Constant:
+0:66        0.000000
+0:67      Constant:
+0:67        0.000000
+0:68      Constant:
+0:68        0.000000
+0:69      Constant:
+0:69        0.000000
+0:70      Constant:
+0:70        0.000000
+0:71      Constant:
+0:71        0.000000
+0:72      Constant:
+0:72        0.000000
+0:73      Constant:
+0:73        0.000000
+0:76      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:115  Function Definition: PixelShaderFunction(vf4;vf4;vf4;vi4; (temp 4-component vector of float)
+0:80    Function Parameters: 
+0:80      'inF0' (in 4-component vector of float)
+0:80      'inF1' (in 4-component vector of float)
+0:80      'inF2' (in 4-component vector of float)
+0:80      'inI0' (in 4-component vector of int)
+0:?     Sequence
+0:81      Constant:
+0:81        0.000000
+0:82      Constant:
+0:82        0.000000
+0:83      Constant:
+0:83        0.000000
+0:84      Constant:
+0:84        0.000000
+0:85      Constant:
+0:85        0.000000
+0:86      Constant:
+0:86        0.000000
+0:87      Constant:
+0:87        0.000000
+0:88      Constant:
+0:88        0.000000
+0:89      Constant:
+0:89        0.000000
+0:90      Constant:
+0:90        0.000000
+0:92      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:?           4.000000
+0:123  Function Definition: PixelShaderFunction(mf22;mf22;mf22; (temp 2X2 matrix of float)
+0:116    Function Parameters: 
+0:116      'inF0' (in 2X2 matrix of float)
+0:116      'inF1' (in 2X2 matrix of float)
+0:116      'inF2' (in 2X2 matrix of float)
+0:?     Sequence
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:120      Branch: Return with expression
+0:?         Constant:
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:131  Function Definition: PixelShaderFunction(mf33;mf33;mf33; (temp 3X3 matrix of float)
+0:124    Function Parameters: 
+0:124      'inF0' (in 3X3 matrix of float)
+0:124      'inF1' (in 3X3 matrix of float)
+0:124      'inF2' (in 3X3 matrix of float)
+0:?     Sequence
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:128      Branch: Return with expression
+0:?         Constant:
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:138  Function Definition: PixelShaderFunction(mf44;mf44;mf44; (temp 4X4 matrix of float)
+0:132    Function Parameters: 
+0:132      'inF0' (in 4X4 matrix of float)
+0:132      'inF1' (in 4X4 matrix of float)
+0:132      'inF2' (in 4X4 matrix of float)
+0:?     Sequence
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:136      Branch: Return with expression
+0:?         Constant:
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?   Linker Objects
+
+
+Linked fragment stage:
+
+
+Shader version: 450
+gl_FragCoord origin is upper left
+ERROR: node is still EOpNull!
+0:35  Function Definition: PixelShaderFunction(f1;f1;f1;i1; (temp float)
+0:2    Function Parameters: 
+0:2      'inF0' (in float)
+0:2      'inF1' (in float)
+0:2      'inF2' (in float)
+0:2      'inI0' (in int)
+0:?     Sequence
+0:5      Constant:
+0:5        0.000000
+0:6      Constant:
+0:6        0.000000
+0:7      Constant:
+0:7        0.000000
+0:8      Constant:
+0:8        0.000000
+0:9      Constant:
+0:9        0.000000
+0:10      Constant:
+0:10        0.000000
+0:12      Constant:
+0:12        0.000000
+0:13      Constant:
+0:13        0.000000
+0:14      Constant:
+0:14        0.000000
+0:15      Constant:
+0:15        0.000000
+0:23      Constant:
+0:23        0.000000
+0:24      Constant:
+0:24        0.000000
+0:25      Constant:
+0:25        0.000000
+0:26      Constant:
+0:26        0.000000
+0:27      Constant:
+0:27        0.000000
+0:28      Constant:
+0:28        0.000000
+0:29      Constant:
+0:29        0.000000
+0:30      Constant:
+0:30        0.000000
+0:32      Branch: Return with expression
+0:32        Constant:
+0:32          0.000000
+0:44  Function Definition: PixelShaderFunction(vf1;vf1;vf1;vi1; (temp 1-component vector of float)
+0:36    Function Parameters: 
+0:36      'inF0' (in 1-component vector of float)
+0:36      'inF1' (in 1-component vector of float)
+0:36      'inF2' (in 1-component vector of float)
+0:36      'inI0' (in 1-component vector of int)
+0:?     Sequence
+0:39      Constant:
+0:39        0.000000
+0:41      Branch: Return with expression
+0:41        Constant:
+0:41          0.000000
+0:62  Function Definition: PixelShaderFunction(vf2;vf2;vf2;vi2; (temp 2-component vector of float)
+0:45    Function Parameters: 
+0:45      'inF0' (in 2-component vector of float)
+0:45      'inF1' (in 2-component vector of float)
+0:45      'inF2' (in 2-component vector of float)
+0:45      'inI0' (in 2-component vector of int)
+0:?     Sequence
+0:46      Constant:
+0:46        0.000000
+0:47      Constant:
+0:47        0.000000
+0:48      Constant:
+0:48        0.000000
+0:49      Constant:
+0:49        0.000000
+0:50      Constant:
+0:50        0.000000
+0:51      Constant:
+0:51        0.000000
+0:52      Constant:
+0:52        0.000000
+0:53      Constant:
+0:53        0.000000
+0:54      Constant:
+0:54        0.000000
+0:55      Constant:
+0:55        0.000000
+0:56      Constant:
+0:56        0.000000
+0:57      Constant:
+0:57        0.000000
+0:59      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:79  Function Definition: PixelShaderFunction(vf3;vf3;vf3;vi3; (temp 3-component vector of float)
+0:63    Function Parameters: 
+0:63      'inF0' (in 3-component vector of float)
+0:63      'inF1' (in 3-component vector of float)
+0:63      'inF2' (in 3-component vector of float)
+0:63      'inI0' (in 3-component vector of int)
+0:?     Sequence
+0:64      Constant:
+0:64        0.000000
+0:65      Constant:
+0:65        0.000000
+0:66      Constant:
+0:66        0.000000
+0:67      Constant:
+0:67        0.000000
+0:68      Constant:
+0:68        0.000000
+0:69      Constant:
+0:69        0.000000
+0:70      Constant:
+0:70        0.000000
+0:71      Constant:
+0:71        0.000000
+0:72      Constant:
+0:72        0.000000
+0:73      Constant:
+0:73        0.000000
+0:76      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:115  Function Definition: PixelShaderFunction(vf4;vf4;vf4;vi4; (temp 4-component vector of float)
+0:80    Function Parameters: 
+0:80      'inF0' (in 4-component vector of float)
+0:80      'inF1' (in 4-component vector of float)
+0:80      'inF2' (in 4-component vector of float)
+0:80      'inI0' (in 4-component vector of int)
+0:?     Sequence
+0:81      Constant:
+0:81        0.000000
+0:82      Constant:
+0:82        0.000000
+0:83      Constant:
+0:83        0.000000
+0:84      Constant:
+0:84        0.000000
+0:85      Constant:
+0:85        0.000000
+0:86      Constant:
+0:86        0.000000
+0:87      Constant:
+0:87        0.000000
+0:88      Constant:
+0:88        0.000000
+0:89      Constant:
+0:89        0.000000
+0:90      Constant:
+0:90        0.000000
+0:92      Branch: Return with expression
+0:?         Constant:
+0:?           1.000000
+0:?           2.000000
+0:?           3.000000
+0:?           4.000000
+0:123  Function Definition: PixelShaderFunction(mf22;mf22;mf22; (temp 2X2 matrix of float)
+0:116    Function Parameters: 
+0:116      'inF0' (in 2X2 matrix of float)
+0:116      'inF1' (in 2X2 matrix of float)
+0:116      'inF2' (in 2X2 matrix of float)
+0:?     Sequence
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:118      Constant:
+0:118        0.000000
+0:120      Branch: Return with expression
+0:?         Constant:
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:?           2.000000
+0:131  Function Definition: PixelShaderFunction(mf33;mf33;mf33; (temp 3X3 matrix of float)
+0:124    Function Parameters: 
+0:124      'inF0' (in 3X3 matrix of float)
+0:124      'inF1' (in 3X3 matrix of float)
+0:124      'inF2' (in 3X3 matrix of float)
+0:?     Sequence
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:126      Constant:
+0:126        0.000000
+0:128      Branch: Return with expression
+0:?         Constant:
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:?           3.000000
+0:138  Function Definition: PixelShaderFunction(mf44;mf44;mf44; (temp 4X4 matrix of float)
+0:132    Function Parameters: 
+0:132      'inF0' (in 4X4 matrix of float)
+0:132      'inF1' (in 4X4 matrix of float)
+0:132      'inF2' (in 4X4 matrix of float)
+0:?     Sequence
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:134      Constant:
+0:134        0.000000
+0:136      Branch: Return with expression
+0:?         Constant:
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?           4.000000
+0:?   Linker Objects
+
+SPIR-V is not generated for failed compile or link
