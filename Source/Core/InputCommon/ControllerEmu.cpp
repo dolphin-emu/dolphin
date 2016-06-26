@@ -242,9 +242,10 @@ void ControllerEmu::LoadDefaults(const ControllerInterface& ciface)
   IniFile::Section sec;
   LoadConfig(&sec);
 
-  if (ciface.Devices().size())
+  const std::string& default_device_string = g_controller_interface.GetDefaultDeviceString();
+  if (!default_device_string.empty())
   {
-    default_device.FromDevice(ciface.Devices()[0]);
+    default_device.FromString(default_device_string);
     UpdateDefaultDevice();
   }
 }
