@@ -717,7 +717,7 @@ bool NetPlayClient::StartGame(const std::string& path)
   {
     for (unsigned int i = 0; i < 4; ++i)
       WiimoteReal::ChangeWiimoteSource(i,
-        m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+                                       m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
 
     // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
     NetWiimote nw;
