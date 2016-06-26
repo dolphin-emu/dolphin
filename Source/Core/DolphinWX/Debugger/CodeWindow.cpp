@@ -479,8 +479,8 @@ void CCodeWindow::CreateMenu(const SConfig& core_startup_parameter, wxMenuBar* p
   pCoreMenu->Append(IDM_JIT_LSP_OFF, _("&JIT LoadStore Paired Off"), wxEmptyString, wxITEM_CHECK);
   pCoreMenu->Append(IDM_JIT_FP_OFF, _("&JIT FloatingPoint Off"), wxEmptyString, wxITEM_CHECK);
   pCoreMenu->Append(IDM_JIT_I_OFF, _("&JIT Integer Off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_P_OFF, _("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
-  pCoreMenu->Append(IDM_JIT_SR_OFF, _("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_P_OFF, _("&JIT Paired Off"), wxEmptyString, wxITEM_CHECK);
+  pCoreMenu->Append(IDM_JIT_SR_OFF, _("&JIT SystemRegisters Off"), wxEmptyString, wxITEM_CHECK);
 
   pMenuBar->Append(pCoreMenu, _("&JIT"));
 
