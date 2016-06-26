@@ -33,8 +33,6 @@
 #include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
 #endif
 
-static bool bFakeVMEM = false;
-
 namespace JitInterface
 {
 void DoState(PointerWrap& p)
@@ -44,8 +42,6 @@ void DoState(PointerWrap& p)
 }
 CPUCoreBase* InitJitCore(int core)
 {
-  bFakeVMEM = !SConfig::GetInstance().bMMU;
-
   CPUCoreBase* ptr = nullptr;
   switch (core)
   {

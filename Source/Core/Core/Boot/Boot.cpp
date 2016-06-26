@@ -375,6 +375,8 @@ bool CBoot::BootUp()
       PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
       PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
       PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+      PowerPC::DBATUpdated();
+      PowerPC::IBATUpdated();
 
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();
