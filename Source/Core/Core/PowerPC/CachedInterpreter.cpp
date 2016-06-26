@@ -41,10 +41,11 @@ void CachedInterpreter::Run()
 
 void CachedInterpreter::SingleStep()
 {
-  int block = GetBlockNumberFromStartAddress(PC);
-  if (block >= 0)
+  int block_num = GetBlockNumberFromStartAddress(PC);
+  if (block_num >= 0)
   {
-    Instruction* code = (Instruction*)GetCompiledCodeFromBlock(block);
+    JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+    const Instruction* code = reinterpret_cast<const Instruction*>(block->normalEntry);
 
     while (true)
     {
