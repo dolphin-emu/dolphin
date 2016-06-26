@@ -4,13 +4,12 @@
 
 #include <fstream>
 
-#ifdef WIN32
-	//#define HAS_SHADERC
-#endif
+// glslang includes
+#include "ShHandle.h"
+#include "GlslangToSpv.h"
+#include "disassemble.h"
 
-#ifdef HAS_SHADERC
-#include <shaderc/shaderc.hpp>
-#endif
+#include "Standalone/DefaultResourceLimits.h"
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -23,11 +22,8 @@
 
 namespace Vulkan {
 
-#ifdef HAS_SHADERC
-// TODO: Get rid of this static
-// It's also not thread safe...
-static shaderc::Compiler& GetShaderCompiler();
-#endif
+// Registers itself for cleanup via atexit
+bool InitializeGlslang();
 
 // Shader header prepended to all shaders
 std::string GetShaderHeader();
@@ -36,9 +32,7 @@ std::string GetShaderHeader();
 template<typename Uid>
 struct ShaderCacheFunctions
 {
-#ifdef HAS_SHADERC
-	static shaderc_shader_kind GetShaderKind();
-#endif
+	static EShLanguage GetStage();
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type);
 	static std::string GetDiskCacheFileName();
 	static std::string GetDumpFileName(const char* prefix);
@@ -117,43 +111,85 @@ void Vulkan::ShaderCache<Uid>::LoadShadersFromDisk()
 
 
 template <typename Uid>
-bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_source, std::vector<uint32_t>* spv)
+bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_source, std::vector<unsigned int>* spv)
 {
-#ifdef HAS_SHADERC
-	// Call out to shaderc to do the heavy lifting
-	shaderc::Compiler& compiler = GetShaderCompiler();
-	shaderc::CompileOptions options;
-	shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(
-		shader_source,
-		ShaderCacheFunctions<Uid>::GetShaderKind(),
-		"shader.glsl",
-		options);
+	if (!InitializeGlslang())
+		return false;
 
-	// Check for failed compilation
-	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+	// TODO: Handle ES profile
+	EShLanguage stage = ShaderCacheFunctions<Uid>::GetStage();
+	std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
+	std::unique_ptr<glslang::TProgram> program;
+	glslang::TShader::ForbidInclude includer;
+	EProfile profile = ECoreProfile;
+	EShMessages messages = static_cast<EShMessages>(EShMsgDefault | EShMsgSpvRules | EShMsgVulkanRules);
+	int default_version = 450;
+
+	int shader_source_length = static_cast<int>(shader_source.length());
+	const char* shader_source_ptr = shader_source.c_str();
+	shader->setStringsWithLengths(&shader_source_ptr, &shader_source_length, 1);
+
+	auto DumpBadShader = [&](const char* msg)
 	{
-		// Compile failed, write the bad shader to a file
 		std::string filename = ShaderCacheFunctions<Uid>::GetDumpFileName("bad_");
 		std::ofstream stream;
 		OpenFStream(stream, filename, std::ios_base::out);
 		if (stream.good())
 		{
-			stream << shader_source << "\n"
-			       << result.GetNumErrors() << " errors, "
-			       << result.GetNumWarnings() << " warnings\n"
-			       << result.GetErrorMessage();
-
+			stream << shader_source << std::endl;
+			stream << msg << std::endl;
+			stream << "Shader Info Log:" << std::endl;
+			stream << shader->getInfoLog() << std::endl;
+			stream << shader->getInfoDebugLog() << std::endl;
+			if (program)
+			{
+				stream << "Program Info Log:" << std::endl;
+				stream << program->getInfoLog() << std::endl;
+				stream << program->getInfoDebugLog() << std::endl;
+			}
 			stream.close();
 		}
 
-		PanicAlert("Failed to compile shader (written to %s):\n%s", filename.c_str(), result.GetErrorMessage().c_str());
-		return false;
+		PanicAlert("%s (written to %s)", msg, filename.c_str());
+	};
 
+	if (!shader->parse(&glslang::DefaultTBuiltInResource, default_version, profile, false, true, messages, includer))
+	{
+		DumpBadShader("Failed to parse shader");
+		return false;
 	}
 
-	// Log warnings if any
-	if (result.GetNumWarnings() > 0)
-		WARN_LOG(VIDEO, "Shader compiler produced warnings: \n%s", result.GetErrorMessage().c_str());
+	// Even though there's only a single shader, we still need to link it to generate SPV
+	program = std::make_unique<glslang::TProgram>();
+	program->addShader(shader.get());
+	if (!program->link(messages))
+	{
+		DumpBadShader("Failed to link program");
+		return false;
+	}
+
+	glslang::TIntermediate* intermediate = program->getIntermediate(stage);
+	if (!intermediate)
+	{
+		DumpBadShader("Failed to generate SPIR-V");
+		return false;
+	}
+
+	spv::SpvBuildLogger logger;
+	glslang::GlslangToSpv(*intermediate, *spv, &logger);
+
+	// Write out messages
+	if (strlen(shader->getInfoLog()) > 0)
+		WARN_LOG(VIDEO, "Shader info log: %s", shader->getInfoLog());
+	if (strlen(shader->getInfoDebugLog()) > 0)
+		WARN_LOG(VIDEO, "Shader debug info log: %s", shader->getInfoDebugLog());
+	if (strlen(program->getInfoLog()) > 0)
+		WARN_LOG(VIDEO, "Program info log: %s", program->getInfoLog());
+	if (strlen(program->getInfoDebugLog()) > 0)
+		WARN_LOG(VIDEO, "Program debug info log: %s", program->getInfoDebugLog());
+	std::string spv_messages = logger.getAllMessages();
+	if (!spv_messages.empty())
+		WARN_LOG(VIDEO, "SPIR-V conversion messages: %s", spv_messages.c_str());
 
 	// Shader dumping
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
@@ -163,34 +199,30 @@ bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_sour
 		OpenFStream(stream, filename, std::ios_base::out);
 		if (stream.good())
 		{
-			shaderc::AssemblyCompilationResult resultasm = compiler.CompileGlslToSpvAssembly(
-				shader_source,
-				ShaderCacheFunctions<Uid>::GetShaderKind(),
-				"shader.glsl",
-				options);
-
-			stream << shader_source;
-
-			if (resultasm.GetCompilationStatus() == shaderc_compilation_status_success)
-				stream << "Compiled SPIR-V:\n" << resultasm.begin();
+			stream << shader_source << std::endl;
+			stream << "Shader Info Log:" << std::endl;
+			stream << shader->getInfoLog() << std::endl;
+			stream << shader->getInfoDebugLog() << std::endl;
+			stream << "Program Info Log:" << std::endl;
+			stream << program->getInfoLog() << std::endl;
+			stream << program->getInfoDebugLog() << std::endl;
+			stream << "SPIR-V conversion messages: " << std::endl;
+			stream << spv_messages;
+			stream << "SPIR-V:" << std::endl;
+			spv::Disassemble(stream, *spv);
 
 			stream.close();
 		}
 	}
 
-	// Construct a vector of dwords containing the spir-v code
-	*spv = std::move(std::vector<uint32_t>(result.begin(), result.end()));
 	return true;
-#else
-	return false;
-#endif
 }
 
 template <typename Uid>
 VkShaderModule ShaderCache<Uid>::CompileAndCreateShader(const std::string& shader_source, bool prepend_header)
 {
 	// Pass it the header and source through
-	std::vector<uint32_t> spv;
+	std::vector<unsigned int> spv;
 	if (prepend_header)
 	{
 		if (!CompileShaderToSPV(GetShaderHeader() + shader_source, &spv))
@@ -237,7 +269,7 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	std::string full_code = GetShaderHeader() + code.GetBuffer();
 
 	// Actually compile the shader, this may not succeed if we did something bad
-	std::vector<uint32_t> spv;
+	std::vector<unsigned int> spv;
 	if (!CompileShaderToSPV(full_code, &spv))
 	{
 		// Store a null pointer, no point re-attempting compilation multiple times
@@ -271,13 +303,25 @@ VkShaderModule ShaderCache<Uid>::GetShaderForUid(const Uid& uid, u32 primitive_t
 	return module;
 }
 
-#ifdef HAS_SHADERC
-shaderc::Compiler& GetShaderCompiler()
+bool InitializeGlslang()
 {
-	static shaderc::Compiler lazy_initialized_compiler;
-	return lazy_initialized_compiler;
+	static bool glslang_initialized = false;
+	if (glslang_initialized)
+		return true;
+
+	if (!glslang::InitializeProcess())
+	{
+		PanicAlert("Failed to initialize glslang shader compiler");
+		return false;
+	}
+
+	std::atexit([]() {
+		glslang::FinalizeProcess();
+	});
+
+	glslang_initialized = true;
+	return true;
 }
-#endif
 
 std::string GetShaderHeader()
 {
@@ -313,12 +357,10 @@ std::string GetShaderHeader()
 template<>
 struct ShaderCacheFunctions<VertexShaderUid>
 {
-#ifdef HAS_SHADERC
-	static shaderc_shader_kind GetShaderKind()
+	static EShLanguage GetStage()
 	{
-		return shaderc_glsl_vertex_shader;
+		return EShLangVertex;
 	}
-#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
@@ -365,12 +407,10 @@ template class ShaderCache<VertexShaderUid>;
 template<>
 struct ShaderCacheFunctions<GeometryShaderUid>
 {
-#ifdef HAS_SHADERC
-	static shaderc_shader_kind GetShaderKind()
+	static EShLanguage GetStage()
 	{
-		return shaderc_glsl_geometry_shader;
+		return EShLangGeometry;
 	}
-#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
@@ -417,12 +457,10 @@ template class ShaderCache<GeometryShaderUid>;
 template<>
 struct ShaderCacheFunctions<PixelShaderUid>
 {
-#ifdef HAS_SHADERC
-	static shaderc_shader_kind GetShaderKind()
+	static EShLanguage GetStage()
 	{
-		return shaderc_glsl_fragment_shader;
+		return EShLangFragment;
 	}
-#endif
 
 	static ShaderCode GenerateCode(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 	{
