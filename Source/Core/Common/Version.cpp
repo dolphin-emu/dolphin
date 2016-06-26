@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/Common.h"
-#include "scmrev.h"
+#include "Common/scmrev.h"
 
 #ifdef _DEBUG
 #define BUILD_TYPE_STR "Debug "

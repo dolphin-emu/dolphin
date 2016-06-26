@@ -59,7 +59,7 @@ bool ShaderCache<Uid>::SetShader(DSTALPHA_MODE dst_alpha_mode, u32 primitive_typ
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateCode(dst_alpha_mode, primitive_type, API_OPENGL);
+  ShaderCode code = GenerateCode(dst_alpha_mode, API_OPENGL, uid);
   m_shaders.emplace(uid, code.GetBuffer());
 
   GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);

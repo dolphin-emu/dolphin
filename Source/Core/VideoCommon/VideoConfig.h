@@ -133,9 +133,6 @@ struct VideoConfig final
   // D3D only config, mostly to be merged into the above
   int iAdapter;
 
-  // Debugging
-  bool bEnableShaderDebugging;
-
   // VideoSW Debugging
   int drawStart;
   int drawEnd;

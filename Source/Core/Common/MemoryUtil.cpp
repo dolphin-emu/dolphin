@@ -31,10 +31,13 @@
 // Uncomment the following line to be able to run Dolphin in Valgrind.
 //#undef MAP_32BIT
 
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
+#if !defined(_WIN32)
 #include <unistd.h>
-#define PAGE_MASK (getpagesize() - 1)
-#define round_page(x) ((((unsigned long)(x)) + PAGE_MASK) & ~(PAGE_MASK))
+static uintptr_t RoundPage(uintptr_t addr)
+{
+  uintptr_t mask = getpagesize() - 1;
+  return (addr + mask) & ~mask;
+}
 #endif
 
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
@@ -54,7 +57,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
   // effect of discarding already mapped pages that happen to be in the
   // requested virtual memory range (such as the emulated RAM, sometimes).
   if (low && (!map_hint))
-    map_hint = (char*)round_page(512 * 1024 * 1024); /* 0.5 GB rounded up to the next page */
+    map_hint = (char*)RoundPage(512 * 1024 * 1024); /* 0.5 GB rounded up to the next page */
 #endif
   void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE
 #if defined(_M_X86_64) && defined(MAP_32BIT)
@@ -81,7 +84,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
     if (low)
     {
       map_hint += size;
-      map_hint = (char*)round_page(map_hint); /* round up to the next page */
+      map_hint = (char*)RoundPage((uintptr_t)map_hint); /* round up to the next page */
     }
   }
 #endif

@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 // For InputGateOn()
 // This is a really bad layering violation, but it's the cleanest
@@ -136,12 +138,7 @@ bool DeviceQualifier::operator==(const Device* const dev) const
 
 bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 {
-  if (cid == devq.cid)
-    if (name == devq.name)
-      if (source == devq.source)
-        return true;
-
-  return false;
+  return std::tie(cid, name, source) == std::tie(devq.cid, devq.name, devq.source);
 }
 
 std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq) const
