@@ -75,6 +75,18 @@
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="Config\PropertiesDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\InfoWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -104,6 +116,9 @@
     <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <QtMoc Include="Config\PropertiesDialog.h" />
+    <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\InfoWidget.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />

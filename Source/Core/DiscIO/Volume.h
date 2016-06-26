@@ -85,12 +85,26 @@ public:
   virtual std::string GetMakerID() const = 0;
   virtual u16 GetRevision() const = 0;
   virtual std::string GetInternalName() const = 0;
-  virtual std::map<ELanguage, std::string> GetNames(bool prefer_long) const = 0;
+  virtual std::map<ELanguage, std::string> GetShortNames() const
+  {
+    return std::map<ELanguage, std::string>();
+  }
+  virtual std::map<ELanguage, std::string> GetLongNames() const
+  {
+    return std::map<ELanguage, std::string>();
+  }
+  virtual std::map<ELanguage, std::string> GetShortMakers() const
+  {
+    return std::map<ELanguage, std::string>();
+  }
+  virtual std::map<ELanguage, std::string> GetLongMakers() const
+  {
+    return std::map<ELanguage, std::string>();
+  }
   virtual std::map<ELanguage, std::string> GetDescriptions() const
   {
     return std::map<ELanguage, std::string>();
   }
-  virtual std::string GetCompany() const { return std::string(); }
   virtual std::vector<u32> GetBanner(int* width, int* height) const = 0;
   virtual u64 GetFSTSize() const = 0;
   virtual std::string GetApploaderDate() const = 0;
@@ -116,7 +130,7 @@ protected:
     // strnlen to trim NULLs
     std::string string(data, strnlen(data, sizeof(data)));
 
-    // There don't seem to be any GC discs with the country set to Taiwan...
+    // There doesn't seem to be any GC discs with the country set to Taiwan...
     // But maybe they would use Shift_JIS if they existed? Not sure
     bool use_shift_jis = (COUNTRY_JAPAN == GetCountry() || COUNTRY_TAIWAN == GetCountry());
 
