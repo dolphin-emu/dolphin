@@ -16,7 +16,7 @@ class ObjectCache;
 class Texture2D
 {
 public:
-	Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory, VkImageView view);
+	Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory, VkImageView view, VkImageView depth_view);
 	~Texture2D();
 
 	static std::unique_ptr<Texture2D> Create(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImageTiling tiling, VkImageUsageFlags usage);
@@ -33,6 +33,7 @@ public:
 	VkImage GetImage() const { return m_image; }
 	VkDeviceMemory GetDeviceMemory() const { return m_device_memory; }
 	VkImageView GetView() const { return m_view; }
+	VkImageView GetDepthView() const { return m_depth_view; }
 
 	// Used when the render pass is changing the image layout, or to force it to VK_IMAGE_LAYOUT_UNDEFINED
 	// if the existing contents of the image is irrelevant and will not be loaded.
@@ -54,6 +55,7 @@ private:
 	VkImage m_image = nullptr;
 	VkDeviceMemory m_device_memory = nullptr;
 	VkImageView m_view = nullptr;
+	VkImageView m_depth_view = nullptr;
 };
 
 }

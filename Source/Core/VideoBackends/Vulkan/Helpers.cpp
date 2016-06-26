@@ -505,6 +505,30 @@ bool IsDepthFormat(VkFormat format)
 	}
 }
 
+VkFormat GetColorFormatForDepthFormat(VkFormat format)
+{
+	switch (format)
+	{
+	case VK_FORMAT_D16_UNORM:
+		return VK_FORMAT_R16_UNORM;
+
+	case VK_FORMAT_D16_UNORM_S8_UINT:
+		return VK_FORMAT_R16_UNORM;
+
+	case VK_FORMAT_D24_UNORM_S8_UINT:
+		return VK_FORMAT_R32_UINT;
+
+	case VK_FORMAT_D32_SFLOAT:
+		return VK_FORMAT_R32_SFLOAT;
+
+	case VK_FORMAT_D32_SFLOAT_S8_UINT:
+		return VK_FORMAT_R32_SFLOAT;
+
+	default:
+		return format;
+	}
+}
+
 template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkCommandPool>(VkCommandPool object)
 {
 	DeferredResourceDestruction ret;
