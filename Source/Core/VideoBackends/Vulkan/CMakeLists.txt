@@ -23,7 +23,11 @@ set(LIBS
 	common
 )
 
-include_directories(../../../../Externals/Vulkan/Include)
+# Flagged as a system include to silence warnings
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Include)
+include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV)
 
 add_dolphin_library(videovulkan "${SRCS}" "${LIBS}")
 
+target_link_libraries(videovulkan glslang)

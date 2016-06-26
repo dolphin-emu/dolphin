@@ -10,7 +10,7 @@
 #include "disassemble.h"
 
 // Required due to this filename being duplicated
-#include "../../Standalone/ResourceLimits.h"
+#include "../../StandAlone/ResourceLimits.h"
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"

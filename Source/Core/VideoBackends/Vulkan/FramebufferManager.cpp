@@ -161,7 +161,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
 
 	// Clear the contents of the buffers.
 	// TODO: On a resize, this should really be copying the old contents in.
-	static const VkClearColorValue clear_color = { 0.0f, 0.0f, 0.0f, 1.0f };
+	static const VkClearColorValue clear_color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
 	static const VkClearDepthStencilValue clear_depth = { 1.0f, 0 };
 	VkImageSubresourceRange clear_color_range = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, m_efb_layers };
 	VkImageSubresourceRange clear_depth_range = { VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, m_efb_layers };

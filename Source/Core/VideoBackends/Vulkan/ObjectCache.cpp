@@ -373,10 +373,10 @@ bool ObjectCache::CreateDescriptorSetLayouts()
 		{ 7,													VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,	1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
 	};
 
-	static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] =
-	{
-		{ 0,													VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,			1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
-	};
+//	static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] =
+//	{
+//		{ 0,													VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,			1,	VK_SHADER_STAGE_FRAGMENT_BIT								}
+//	};
 
 	static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] =
 	{

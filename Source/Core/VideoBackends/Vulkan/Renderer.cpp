@@ -207,7 +207,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 															  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 		// Begin the present render pass
-		VkClearValue clear_value = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+		VkClearValue clear_value = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
 		VkRenderPassBeginInfo begin_info = {
 			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
 			nullptr,

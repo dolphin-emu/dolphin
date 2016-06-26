@@ -32,13 +32,13 @@ VertexManager::VertexManager(ObjectCache* object_cache, CommandBufferManager* co
 	, m_cpu_index_buffer(MAXIBUFFERSIZE)
 {
 	m_vertex_stream_buffer = StreamBuffer::Create(
-		object_cache, command_buffer_mgr,
+		m_object_cache, m_command_buffer_mgr,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
 		INITIAL_VERTEX_BUFFER_SIZE,
 		MAX_VERTEX_BUFFER_SIZE);
 
 	m_index_stream_buffer = StreamBuffer::Create(
-		object_cache, command_buffer_mgr,
+		m_object_cache, m_command_buffer_mgr,
 		VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
 		INITIAL_INDEX_BUFFER_SIZE,
 		MAX_INDEX_BUFFER_SIZE);
