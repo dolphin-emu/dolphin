@@ -1016,10 +1016,10 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   if (cc.d == TEVCOLORARG_C2 || cc.d == TEVCOLORARG_A2 || ac.d == TEVALPHAARG_A2)
     out.SetConstantsUsed(C_COLORS + 3, C_COLORS + 3);
 
-  if (cc.dest >= GX_TEVREG0 && cc.dest <= GX_TEVREG2)
+  if (cc.dest >= GX_TEVREG0)
     out.SetConstantsUsed(C_COLORS + cc.dest, C_COLORS + cc.dest);
 
-  if (ac.dest >= GX_TEVREG0 && ac.dest <= GX_TEVREG2)
+  if (ac.dest >= GX_TEVREG0)
     out.SetConstantsUsed(C_COLORS + ac.dest, C_COLORS + ac.dest);
 
   out.Write("\ttevin_a = int4(%s, %s)&int4(255, 255, 255, 255);\n", tevCInputTable[cc.a],
