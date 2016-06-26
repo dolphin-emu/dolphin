@@ -17,40 +17,9 @@
 
 namespace Vulkan {
 
-static bool ShouldEnableDebugLayer()
+VkInstance CreateVulkanInstance(bool enable_debug_layer)
 {
-	// TODO: Config for this
-	// TODO: Use vkEnumerateInstanceLayerProperties to check for presence of the debug layer first
-	return false;
-	//return true;
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLayerReportCallback(
-	VkDebugReportFlagsEXT       flags,
-	VkDebugReportObjectTypeEXT  objectType,
-	uint64_t                    object,
-	size_t                      location,
-	int32_t                     messageCode,
-	const char*                 pLayerPrefix,
-	const char*                 pMessage,
-	void*                       pUserData)
-{
-	std::string log_message = StringFromFormat("Vulkan debug report: (%s) %s", pLayerPrefix ? pLayerPrefix : "", pMessage);
-	if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
-		GENERIC_LOG(LogTypes::VIDEO, LogTypes::LERROR, "%s", log_message.c_str())
-	else if (flags & (VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
-		GENERIC_LOG(LogTypes::VIDEO, LogTypes::LWARNING, "%s", log_message.c_str())
-	else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
-		GENERIC_LOG(LogTypes::VIDEO, LogTypes::LINFO, "%s", log_message.c_str())
-	else
-		GENERIC_LOG(LogTypes::VIDEO, LogTypes::LDEBUG, "%s", log_message.c_str())
-
-	return VK_FALSE;
-}
-
-VkInstance CreateVulkanInstance()
-{
-	std::vector<const char*> enabled_extensions = SelectVulkanInstanceExtensions();
+	std::vector<const char*> enabled_extensions = SelectVulkanInstanceExtensions(enable_debug_layer);
 	if (enabled_extensions.empty())
 		return nullptr;
 
@@ -74,7 +43,7 @@ VkInstance CreateVulkanInstance()
 	instance_create_info.ppEnabledLayerNames = nullptr;
 
 	// Enable debug layer on debug builds
-	if (ShouldEnableDebugLayer())
+	if (enable_debug_layer)
 	{
 		static const char* layer_names[] = { "VK_LAYER_LUNARG_standard_validation" };
 		instance_create_info.enabledLayerCount = 1;
@@ -89,32 +58,11 @@ VkInstance CreateVulkanInstance()
 		return nullptr;
 	}
 
-	if (ShouldEnableDebugLayer())
-	{
-		PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT"));
-		if (vkCreateDebugReportCallbackEXT)
-		{
-			// TODO: Unregister this callback before destroying the instance.
-			VkDebugReportCallbackCreateInfoEXT callback_info = {
-				VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
-				nullptr,
-				VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
-				DebugLayerReportCallback,
-				nullptr
-			};
-
-			VkDebugReportCallbackEXT callback;
-			res = vkCreateDebugReportCallbackEXT(instance, &callback_info, nullptr, &callback);
-			if (res != VK_SUCCESS)
-				LOG_VULKAN_ERROR(res, "vkCreateDebugReportCallbackEXT failed: ");
-		}
-	}
-
     return instance;
 }
 
 // At least one extension (surface) is required, so an empty vector returned by this function is an error case.
-std::vector<const char*> SelectVulkanInstanceExtensions()
+std::vector<const char*> SelectVulkanInstanceExtensions(bool enable_debug_layer)
 {
 	uint32_t extension_count;
 	VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -173,11 +121,49 @@ std::vector<const char*> SelectVulkanInstanceExtensions()
 #endif
 
 	// VK_EXT_debug_report
-	if (ShouldEnableDebugLayer() && !CheckForExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, true))
+	if (enable_debug_layer && !CheckForExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, true))
 		return {};
 
 	return enabled_extensions;
 }
+
+bool CheckDebugLayerAvailability()
+{
+	uint32_t extension_count;
+	VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkEnumerateInstanceExtensionProperties failed: ");
+		return false;
+	}
+
+	std::vector<VkExtensionProperties> extension_list(extension_count);
+	res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, extension_list.data());
+	assert(res == VK_SUCCESS);
+
+	uint32_t layer_count;
+	res = vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkEnumerateInstanceExtensionProperties failed: ");
+		return false;
+	}
+
+	std::vector<VkLayerProperties> layer_list(layer_count);
+	res = vkEnumerateInstanceLayerProperties(&layer_count, layer_list.data());
+	assert(res == VK_SUCCESS);
+
+	// Check for both VK_EXT_debug_report and VK_LAYER_LUNARG_standard_validation 
+	return (std::find_if(extension_list.begin(), extension_list.end(),
+					 [](const auto& it) { 
+						return (strcmp(it.extensionName, VK_EXT_DEBUG_REPORT_EXTENSION_NAME) == 0);
+					 }) != extension_list.end() &&
+		std::find_if(layer_list.begin(), layer_list.end(),
+					 [](const auto& it) {
+						 return (strcmp(it.layerName, "VK_LAYER_LUNARG_standard_validation") == 0);
+					 }) != layer_list.end());
+}
+
 
 std::vector<VkPhysicalDevice> EnumerateVulkanPhysicalDevices(VkInstance instance)
 {
@@ -353,8 +339,9 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 }
 
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
-	uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
-	uint32_t* out_present_queue_family_index, VkQueue* out_present_queue)
+							uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
+							uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
+							bool enable_debug_layer)
 {
 	uint32_t queue_family_count;
 	vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
@@ -428,7 +415,7 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
 	device_info.pEnabledFeatures = &enabled_features;
 
 	// Enable debug layer on debug builds
-	if (ShouldEnableDebugLayer())
+	if (enable_debug_layer)
 	{
 		static const char* layer_names[] = { "VK_LAYER_LUNARG_standard_validation" };
 		device_info.enabledLayerCount = 1;

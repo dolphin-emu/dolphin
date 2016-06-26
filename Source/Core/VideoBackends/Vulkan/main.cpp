@@ -37,6 +37,9 @@
 namespace Vulkan
 {
 
+// TODO: Move this to config.
+static bool ENABLE_DEBUG_LAYER = false;
+
 // Can we do anything about these globals?
 static VkInstance s_vkInstance;
 static VkPhysicalDevice s_vkPhysicalDevice;
@@ -46,6 +49,66 @@ static std::unique_ptr<CommandBufferManager> s_command_buffer_mgr;
 static std::unique_ptr<ObjectCache> s_object_cache;
 static std::unique_ptr<SwapChain> s_swap_chain;
 static std::unique_ptr<StateTracker> s_state_tracker;
+
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLayerReportCallback(
+	VkDebugReportFlagsEXT       flags,
+	VkDebugReportObjectTypeEXT  objectType,
+	uint64_t                    object,
+	size_t                      location,
+	int32_t                     messageCode,
+	const char*                 pLayerPrefix,
+	const char*                 pMessage,
+	void*                       pUserData)
+{
+	std::string log_message = StringFromFormat("Vulkan debug report: (%s) %s", pLayerPrefix ? pLayerPrefix : "", pMessage);
+	if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+		GENERIC_LOG(LogTypes::HOST_GPU, LogTypes::LERROR, "%s", log_message.c_str())
+	else if (flags & (VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
+		GENERIC_LOG(LogTypes::HOST_GPU, LogTypes::LWARNING, "%s", log_message.c_str())
+	else if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT)
+		GENERIC_LOG(LogTypes::HOST_GPU, LogTypes::LINFO, "%s", log_message.c_str())
+	else
+		GENERIC_LOG(LogTypes::HOST_GPU, LogTypes::LDEBUG, "%s", log_message.c_str())
+
+	return VK_FALSE;
+}
+
+static VkDebugReportCallbackEXT s_debug_report_callback;
+
+static bool EnableDebugLayerReportCallback(VkInstance instance)
+{
+	// Check for presence of the functions before calling
+	if (!vkCreateDebugReportCallbackEXT ||
+		!vkDestroyDebugReportCallbackEXT ||
+		!vkDebugReportMessageEXT)
+	{
+		return false;
+	}
+
+	// TODO: Unregister this callback before destroying the instance.
+	VkDebugReportCallbackCreateInfoEXT callback_info = {
+		VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT,
+		nullptr,
+		VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT,
+		DebugLayerReportCallback,
+		nullptr
+	};
+
+	VkResult res = vkCreateDebugReportCallbackEXT(instance, &callback_info, nullptr, &s_debug_report_callback);
+	if (res != VK_SUCCESS)
+	{
+		LOG_VULKAN_ERROR(res, "vkCreateDebugReportCallbackEXT failed: ");
+		return false;
+	}
+
+	return true;
+}
+
+static void DisableDebugLayerReportCallback(VkInstance instance)
+{
+	if (s_debug_report_callback != VK_NULL_HANDLE)
+		vkDestroyDebugReportCallbackEXT(instance, s_debug_report_callback, nullptr);
+}
 
 void VideoBackend::InitBackendInfo()
 {
@@ -73,15 +136,18 @@ void VideoBackend::InitBackendInfo()
 	// TODO: error handling
 	if (LoadVulkanLibrary())
 	{
-		VkInstance temp_instance = CreateVulkanInstance();
+		VkInstance temp_instance = CreateVulkanInstance(false);
 		if (temp_instance)
 		{
-			std::vector<VkPhysicalDevice> devices = EnumerateVulkanPhysicalDevices(temp_instance);
-			for (VkPhysicalDevice device : devices)
+			if (LoadVulkanInstanceFunctions(temp_instance))
 			{
-				VkPhysicalDeviceProperties properties;
-				vkGetPhysicalDeviceProperties(device, &properties);
-				g_Config.backend_info.Adapters.push_back(properties.deviceName);
+				std::vector<VkPhysicalDevice> devices = EnumerateVulkanPhysicalDevices(temp_instance);
+				for (VkPhysicalDevice device : devices)
+				{
+					VkPhysicalDeviceProperties properties;
+					vkGetPhysicalDeviceProperties(device, &properties);
+					g_Config.backend_info.Adapters.push_back(properties.deviceName);
+				}
 			}
 
 			vkDestroyInstance(temp_instance, nullptr);
@@ -101,13 +167,27 @@ bool VideoBackend::Initialize(void* window_handle)
 	InitBackendInfo();
 	InitializeShared();
 
+	// Check for presence of the debug layer before trying to enable it
+	bool enable_debug_layer = (ENABLE_DEBUG_LAYER && CheckDebugLayerAvailability());
+
 	// Create vulkan instance
-	s_vkInstance = CreateVulkanInstance();
+	s_vkInstance = CreateVulkanInstance(enable_debug_layer);
 	if (!s_vkInstance)
 	{
 		PanicAlert("Failed to create vulkan instance.");
 		goto CLEANUP_LIBRARY;
 	}
+
+	// Load instance function pointers
+	if (!LoadVulkanInstanceFunctions(s_vkInstance))
+	{
+		PanicAlert("Failed to load vulkan instance functions.");
+		goto CLEANUP_INSTANCE;
+	}
+
+	// Enable debug reports if debug layer is on
+	if (ENABLE_DEBUG_LAYER)
+		EnableDebugLayerReportCallback(s_vkInstance);
 
 	// Create vulkan surface
 	s_vkSurface = CreateVulkanSurface(s_vkInstance, window_handle);
@@ -127,11 +207,18 @@ bool VideoBackend::Initialize(void* window_handle)
 	// Create vulkan device and grab queues
 	uint32_t graphics_queue_family_index, present_queue_family_index;
 	VkQueue graphics_queue, present_queue;
-	s_vkDevice = CreateVulkanDevice(s_vkPhysicalDevice, s_vkSurface, &graphics_queue_family_index, &graphics_queue, &present_queue_family_index, &present_queue);
+	s_vkDevice = CreateVulkanDevice(s_vkPhysicalDevice, s_vkSurface, &graphics_queue_family_index, &graphics_queue, &present_queue_family_index, &present_queue, enable_debug_layer);
 	if (!s_vkDevice)
 	{
 		PanicAlert("Failed to create vulkan device");
 		goto CLEANUP_SURFACE;
+	}
+
+	// Load device function pointers
+	if (!LoadVulkanDeviceFunctions(s_vkDevice))
+	{
+		PanicAlert("Failed to load vulkan device functions.");
+		goto CLEANUP_DEVICE;
 	}
 
 	// create command buffers
@@ -173,6 +260,7 @@ CLEANUP_SURFACE:
 	s_vkSurface = nullptr;
 
 CLEANUP_INSTANCE:
+	DisableDebugLayerReportCallback(s_vkInstance);
 	vkDestroyInstance(s_vkInstance, nullptr);
 	s_vkInstance = nullptr;
 
@@ -205,6 +293,7 @@ void VideoBackend::Shutdown()
 	vkDestroySurfaceKHR(s_vkInstance, s_vkSurface, nullptr);
 	s_vkSurface = nullptr;
 
+	DisableDebugLayerReportCallback(s_vkInstance);
 	vkDestroyInstance(s_vkInstance, nullptr);
 	s_vkInstance = nullptr;
 

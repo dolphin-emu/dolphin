@@ -17,13 +17,19 @@
 #include <vulkan/vulkan.h>
 
 // We abuse the preprocessor here to only need to specify function names once.
-#define VULKAN_ENTRY_POINT(type, name, required) extern type name;
+#define VULKAN_MODULE_ENTRY_POINT(name, required) extern PFN_##name name;
+#define VULKAN_INSTANCE_ENTRY_POINT(name, required) extern PFN_##name name;
+#define VULKAN_DEVICE_ENTRY_POINT(name, required) extern PFN_##name name;
 #include "VideoBackends/Vulkan/VulkanImports.inl"
-#undef VULKAN_ENTRY_POINT
+#undef VULKAN_DEVICE_ENTRY_POINT
+#undef VULKAN_INSTANCE_ENTRY_POINT
+#undef VULKAN_MODULE_ENTRY_POINT
 
 namespace Vulkan {
 
 bool LoadVulkanLibrary();
+bool LoadVulkanInstanceFunctions(VkInstance instance);
+bool LoadVulkanDeviceFunctions(VkDevice device);
 void UnloadVulkanLibrary();
 
 const char* VkResultToString(VkResult res);
