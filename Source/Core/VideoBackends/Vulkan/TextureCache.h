@@ -34,12 +34,12 @@ public:
 private:
 	struct TCacheEntry : TCacheEntryBase
 	{
-		TCacheEntry(const TCacheEntryConfig& _config, TextureCache* parent, std::unique_ptr<Texture2D> texture);
+		TCacheEntry(const TCacheEntryConfig& _config, TextureCache* parent, std::unique_ptr<Texture2D> texture, VkFramebuffer framebuffer);
 		~TCacheEntry();
 
 		void Load(unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level) override;
 		void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect, bool scale_by_half, unsigned int cbufid, const float* colmat) override;
-		void CopyRectangleFromTexture(const TCacheEntryBase* source, const MathUtil::Rectangle<int>& srcrect, const MathUtil::Rectangle<int>& dstrect) override;
+		void CopyRectangleFromTexture(const TCacheEntryBase* source, const MathUtil::Rectangle<int>& src_rect, const MathUtil::Rectangle<int>& dst_rect) override;
 
 		void Bind(unsigned int stage) override;
 		bool Save(const std::string& filename, unsigned int level) override;
@@ -47,15 +47,29 @@ private:
 	private:
 		TextureCache* m_parent;
 		std::unique_ptr<Texture2D> m_texture;
+
+		// If we're an EFB copy, framebuffer for drawing into.
+		VkFramebuffer m_framebuffer;
 	};
 
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
+
+	bool CreateCopyRenderPass();
+
+	bool ResizeTextureDownloadBuffer(VkDeviceSize new_size);
 
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
 	StateTracker* m_state_tracker = nullptr;
 
+	VkRenderPass m_copy_render_pass = VK_NULL_HANDLE;
+
 	std::unique_ptr<StreamBuffer> m_texture_upload_buffer = nullptr;
+
+	// Download buffer. Resized when it is not large enough.
+	VkBuffer m_texture_download_buffer = VK_NULL_HANDLE;
+	VkDeviceMemory m_texture_download_buffer_memory = nullptr;
+	VkDeviceSize m_texture_download_buffer_size = 0;
 };
 
 } // namespace Vulkan

@@ -30,28 +30,32 @@ public:
 	// Fragment Shaders
 	VkShaderModule GetClearFragmentShader() const { return m_fragment_shaders.clear; }
 	VkShaderModule GetCopyFragmentShader() const { return m_fragment_shaders.copy; }
+	VkShaderModule GetColorMatrixFragmentShader() const { return m_fragment_shaders.color_matrix; }
+	VkShaderModule GetDepthMatrixFragmentShader() const { return m_fragment_shaders.depth_matrix; }
 
 private:
 	VkDevice m_device;
 	VertexShaderCache* m_vs_cache;
-	//GeometryShaderCache* m_gs_cache;
+	GeometryShaderCache* m_gs_cache;
 	PixelShaderCache* m_ps_cache;
 
 	struct
 	{
-		VkShaderModule screen_quad = nullptr;
-		VkShaderModule passthrough = nullptr;
+		VkShaderModule screen_quad = VK_NULL_HANDLE;
+		VkShaderModule passthrough = VK_NULL_HANDLE;
 	} m_vertex_shaders;
 
 	struct
 	{
-		VkShaderModule passthrough = nullptr;
+		VkShaderModule passthrough = VK_NULL_HANDLE;
 	} m_geometry_shaders;
 
 	struct
 	{
-		VkShaderModule clear = nullptr;
-		VkShaderModule copy = nullptr;
+		VkShaderModule clear = VK_NULL_HANDLE;
+		VkShaderModule copy = VK_NULL_HANDLE;
+		VkShaderModule color_matrix = VK_NULL_HANDLE;
+		VkShaderModule depth_matrix = VK_NULL_HANDLE;
 	} m_fragment_shaders;
 };
 

@@ -189,6 +189,30 @@ void UtilityShaderDraw::SetBlendState(const BlendState& state)
 	m_pipeline_info.blend_state.hex = state.hex;
 }
 
+void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region)
+{
+	VkRenderPassBeginInfo begin_info =
+	{
+		VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+		nullptr,
+		m_pipeline_info.render_pass,
+		framebuffer,
+		region,
+		0,
+		nullptr
+	};
+
+	vkCmdBeginRenderPass(
+		m_command_buffer_mgr->GetCurrentCommandBuffer(),
+		&begin_info,
+		VK_SUBPASS_CONTENTS_INLINE);
+}
+
+void UtilityShaderDraw::EndRenderPass()
+{
+	vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
+}
+
 void UtilityShaderDraw::Draw()
 {
 	VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();

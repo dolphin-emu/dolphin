@@ -71,6 +71,9 @@ public:
 	void SetDepthStencilState(const DepthStencilState& state);
 	void SetBlendState(const BlendState& state);
 
+	void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region);
+	void EndRenderPass();
+
 	void Draw();
 
 	// NOTE: These methods alter the viewport state of the command buffer.

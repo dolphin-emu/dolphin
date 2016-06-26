@@ -9,7 +9,7 @@ namespace Vulkan {
 StaticShaderCache::StaticShaderCache(VkDevice device, VertexShaderCache* vs_cache, GeometryShaderCache* gs_cache, PixelShaderCache* ps_cache)
 	: m_device(device)
 	, m_vs_cache(vs_cache)
-	//, m_gs_cache(gs_cache)
+	, m_gs_cache(gs_cache)
 	, m_ps_cache(ps_cache)
 {
 
@@ -40,14 +40,16 @@ bool StaticShaderCache::CompileShaders()
 	}
 
 	// Geometry Shaders
-	if ((efb_layers > 1 && (m_vertex_shaders.passthrough = m_vs_cache->CompileAndCreateShader(header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr))
+	if ((efb_layers > 1 && (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr))
 	{
 		return false;
 	}
 
 	// Fragment Shaders
 	if ((m_fragment_shaders.clear = m_ps_cache->CompileAndCreateShader(header + CLEAR_FRAGMENT_SHADER_SOURCE)) == nullptr ||
-		(m_fragment_shaders.copy = m_ps_cache->CompileAndCreateShader(header + COPY_FRAGMENT_SHADER_SOURCE)) == nullptr)
+		(m_fragment_shaders.copy = m_ps_cache->CompileAndCreateShader(header + COPY_FRAGMENT_SHADER_SOURCE)) == nullptr ||
+		(m_fragment_shaders.color_matrix = m_ps_cache->CompileAndCreateShader(header + COLOR_MATRIX_FRAGMENT_SHADER_SOURCE)) == nullptr ||
+		(m_fragment_shaders.depth_matrix = m_ps_cache->CompileAndCreateShader(header + DEPTH_MATRIX_FRAGMENT_SHADER_SOURCE)) == nullptr)
 	{
 		return false;
 	}
@@ -67,7 +69,10 @@ void StaticShaderCache::DestroyShaders()
 	DestroyShader(m_geometry_shaders.passthrough);
 
 	// Fragment Shaders
+	DestroyShader(m_fragment_shaders.clear);
 	DestroyShader(m_fragment_shaders.copy);
+	DestroyShader(m_fragment_shaders.color_matrix);
+	DestroyShader(m_fragment_shaders.depth_matrix);
 }
 
 }
