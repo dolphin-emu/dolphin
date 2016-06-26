@@ -32,8 +32,6 @@ private:
   {
     ID3D11GeometryShader* shader;
 
-    std::string code;
-
     GSCacheEntry() : shader(nullptr) {}
     void Destroy() { SAFE_RELEASE(shader); }
   };
@@ -44,8 +42,6 @@ private:
   static const GSCacheEntry* last_entry;
   static GeometryShaderUid last_uid;
   static const GSCacheEntry pass_entry;
-
-  static UidChecker<GeometryShaderUid, ShaderCode> geometry_uid_checker;
 };
 
 }  // namespace DX11

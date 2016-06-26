@@ -231,11 +231,15 @@ static void InitDriverInfo()
   case DriverDetails::VENDOR_ARM:
     // Currently the Mali-T line has two families in it.
     // Mali-T6xx and Mali-T7xx
-    // These two families are similar enough that they share bugs in their drivers.
+    // These two families are similar enough that they share bugs in their
+    // drivers.
     //
-    // Mali drivers provide no way to explicitly find out what video driver is running.
-    // This is similar to how we can't find the Nvidia driver version in Windows.
-    // Good thing is that ARM introduces a new video driver about once every two years so we can
+    // Mali drivers provide no way to explicitly find out what video driver is
+    // running.
+    // This is similar to how we can't find the Nvidia driver version in
+    // Windows.
+    // Good thing is that ARM introduces a new video driver about once every two
+    // years so we can
     // find the driver version by the features it exposes.
     // r2p0 - No OpenGL ES 3.0 support (We don't support this)
     // r3p0 - OpenGL ES 3.0 support
@@ -315,7 +319,8 @@ static void InitDriverInfo()
     int major = 0;
     int minor = 0;
     // TODO: this is known to be broken on Windows
-    // Nvidia seems to have removed their driver version from this string, so we can't get it.
+    // Nvidia seems to have removed their driver version from this string, so we
+    // can't get it.
     // hopefully we'll never have to workaround Nvidia bugs
     sscanf(g_ogl_config.gl_version, "%d.%d.%d NVIDIA %d.%d", &glmajor, &glminor, &glrelease, &major,
            &minor);
@@ -342,7 +347,8 @@ Renderer::Renderer()
   // Init extension support.
   if (!GLExtensions::Init())
   {
-    // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
+    // OpenGL 2.0 is required for all shader based drawings. There is no way to
+    // get this by
     // extensions
     PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
     bSuccess = false;
@@ -387,9 +393,11 @@ Renderer::Renderer()
   {
     if (!GLExtensions::Supports("GL_ARB_framebuffer_object"))
     {
-      // We want the ogl3 framebuffer instead of the ogl2 one for better blitting support.
+      // We want the ogl3 framebuffer instead of the ogl2 one for better
+      // blitting support.
       // It's also compatible with the gles3 one.
-      PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple render targets.\n"
+      PanicAlert("GPU: ERROR: Need GL_ARB_framebuffer_object for multiple "
+                 "render targets.\n"
                  "GPU: Does your video card support OpenGL 3.0?");
       bSuccess = false;
     }
@@ -422,15 +430,16 @@ Renderer::Renderer()
     }
     else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
     {
-      PanicAlert(
-          "Buggy GPU driver detected.\n"
-          "Please either install the closed-source GPU driver or update your Mesa 3D version.");
+      PanicAlert("Buggy GPU driver detected.\n"
+                 "Please either install the closed-source GPU driver or update "
+                 "your Mesa 3D version.");
       bSuccess = false;
     }
 
     if (!GLExtensions::Supports("GL_ARB_sampler_objects"))
     {
-      // Our sampler cache uses this extension. It could easyly be workaround and it's by far the
+      // Our sampler cache uses this extension. It could easyly be workaround
+      // and it's by far the
       // highest requirement, but it seems that no driver lacks support for it.
       PanicAlert("GPU: OGL ERROR: Need GL_ARB_sampler_objects.\n"
                  "GPU: Does your video card support OpenGL 3.3?");
@@ -438,8 +447,10 @@ Renderer::Renderer()
     }
 
     // OpenGL 3 doesn't provide GLES like float functions for depth.
-    // They are in core in OpenGL 4.1, so almost every driver should support them.
-    // But for the oldest ones, we provide fallbacks to the old double functions.
+    // They are in core in OpenGL 4.1, so almost every driver should support
+    // them.
+    // But for the oldest ones, we provide fallbacks to the old double
+    // functions.
     if (!GLExtensions::Supports("GL_ARB_ES2_compatibility"))
     {
       glDepthRangef = DepthRangef;
@@ -480,7 +491,17 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsBindingLayout =
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
-  g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
+  // Desktop OpenGL supports bitfield manulipation and dynamic sampler indexing
+  // if it supports
+  // shader5
+  // OpenGL ES 3.1 supports these implicitly without an extension
+  g_Config.backend_info.bSupportsBitfield = GLExtensions::Supports("GL_ARB_gpu_shader5");
+  g_Config.backend_info.bSupportsDynamicSamplerIndexing =
+      GLExtensions::Supports("GL_ARB_gpu_shader5");
+
+  // Tempoarally disable opengl's shader cache, so it stops messing me up.
+  // TODO: Remember to re-enable this.
+  g_ogl_config.bSupportsGLSLCache = false;  // GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
   g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex") ||
@@ -538,6 +559,8 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsBBox = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupports2DTextureStorage = true;
+      g_Config.backend_info.bSupportsBitfield = true;
+      g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
       if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 &&
           !g_ogl_config.bSupports3DTextureStorage)
       {
@@ -563,6 +586,8 @@ Renderer::Renderer()
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupports2DTextureStorage = true;
       g_ogl_config.bSupports3DTextureStorage = true;
+      g_Config.backend_info.bSupportsBitfield = true;
+      g_Config.backend_info.bSupportsDynamicSamplerIndexing = true;
     }
   }
   else
@@ -641,8 +666,10 @@ Renderer::Renderer()
   if (samples > 1)
   {
     // MSAA on default framebuffer isn't working because of glBlitFramebuffer.
-    // It also isn't useful as we don't render anything to the default framebuffer.
-    // We also try to get a non-msaa fb, so this only happens when forced by the driver.
+    // It also isn't useful as we don't render anything to the default
+    // framebuffer.
+    // We also try to get a non-msaa fb, so this only happens when forced by the
+    // driver.
     PanicAlert("MSAA on default framebuffer isn't supported.\n"
                "Please avoid forcing Dolphin to use MSAA by the driver.\n"
                "%d samples on default framebuffer found.",
@@ -814,7 +841,8 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // bpmem.scissorTL.x, y = 342x342
 // bpmem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
-// donkopunchstania - it appears scissorBR is the bottom right pixel inside the scissor box
+// donkopunchstania - it appears scissorBR is the bottom right pixel inside the
+// scissor box
 // therefore the width and height are (scissorBR + 1) - scissorTL
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
@@ -928,7 +956,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   u32 targetPixelRcWidth = targetPixelRc.right - targetPixelRc.left;
   u32 targetPixelRcHeight = targetPixelRc.top - targetPixelRc.bottom;
 
-  // TODO (FIX) : currently, AA path is broken/offset and doesn't return the correct pixel
+  // TODO (FIX) : currently, AA path is broken/offset and doesn't return the
+  // correct pixel
   switch (type)
   {
   case PEEK_Z:
@@ -967,11 +996,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   case PEEK_COLOR:  // GXPeekARGB
   {
-    // Although it may sound strange, this really is A8R8G8B8 and not RGBA or 24-bit...
+    // Although it may sound strange, this really is A8R8G8B8 and not RGBA or
+    // 24-bit...
 
-    // Tested in Killer 7, the first 8bits represent the alpha value which is used to
+    // Tested in Killer 7, the first 8bits represent the alpha value which is
+    // used to
     // determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70)
-    // Wind Waker is also using it for the pictograph to determine the color of each pixel
+    // Wind Waker is also using it for the pictograph to determine the color of
+    // each pixel
     if (!s_efbCacheValid[1][cacheRectIdx])
     {
       if (s_MSAASamples > 1)
@@ -1052,7 +1084,8 @@ u16 Renderer::BBoxRead(int index)
   if (index >= 2)
     swapped_index ^= 1;  // swap 2 and 3 for top/bottom
 
-  // Here we get the min/max value of the truncated position of the upscaled and swapped
+  // Here we get the min/max value of the truncated position of the upscaled and
+  // swapped
   // framebuffer.
   // So we have to correct them to the unscaled EFB sizes.
   int value = BoundingBox::Get(swapped_index);
@@ -1181,7 +1214,8 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
   {
     TargetRectangle leftRc, rightRc;
 
-    // Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
+    // Top-and-Bottom mode needs to compensate for inverted vertical screen
+    // coordinates.
     if (g_ActiveConfig.iStereoMode == STEREO_TAB)
       ConvertStereoRectangle(dst, rightRc, leftRc);
     else
@@ -1211,9 +1245,12 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
-  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
+  // Our render target always uses an alpha channel, so we need to override the
+  // blend functions to
+  // assume a destination alpha of 1 if the render target isn't supposed to have
+  // an alpha channel
+  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result
+  // without an alpha channel
   // is assumed to always be 1.
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
@@ -1292,14 +1329,16 @@ void Renderer::SetBlendMode(bool forceUpdate)
     }
     else
     {
-      // we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use
+      // we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha
+      // channel so use
       // their alpha equivalent instead
       if (srcidx == BlendMode::DSTCLR)
         srcidx = BlendMode::DSTALPHA;
       else if (srcidx == BlendMode::INVDSTCLR)
         srcidx = BlendMode::INVDSTALPHA;
 
-      // we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use
+      // we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in
+      // alpha channel so use
       // their alpha equivalent instead
       if (dstidx == BlendMode::SRCCLR)
         dstidx = BlendMode::SRCALPHA;
@@ -1385,9 +1424,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         drawRc = flipped_trc;
         sourceRc.right -= fbStride - fbWidth;
 
-        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a
+        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it
+        // is still assuming a
         // top-left origin.
-        // The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
+        // The top offset is always zero (see
+        // FramebufferManagerBase::GetRealXFBSource).
         sourceRc.top = sourceRc.bottom;
         sourceRc.bottom = 0;
       }
@@ -1513,7 +1554,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   SetWindowSize(fbStride, fbHeight);
 
-  GLInterface->Update();  // just updates the render window position and the backbuffer size
+  GLInterface->Update();  // just updates the render window position and the
+                          // backbuffer size
 
   bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -1563,9 +1605,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       if (s_MSAASamples > 1 && s_MSAASamples > g_ogl_config.max_samples)
       {
         s_MSAASamples = g_ogl_config.max_samples;
-        OSD::AddMessage(StringFromFormat(
-                            "%d Anti Aliasing samples selected, but only %d supported by your GPU.",
-                            s_last_multisamples, g_ogl_config.max_samples),
+        OSD::AddMessage(StringFromFormat("%d Anti Aliasing samples selected, "
+                                         "but only %d supported by your GPU.",
+                                         s_last_multisamples, g_ogl_config.max_samples),
                         10000);
       }
 
@@ -1611,7 +1653,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       GLInterface->SwapInterval(s_vsync);
   }
 
-  // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
+  // Clean out old stuff from caches. It's not worth it to clean out the shader
+  // caches.
   TextureCache::Cleanup(frameCount);
 
   // Render to the framebuffer.
@@ -1697,7 +1740,8 @@ void Renderer::SetDepthMode()
   else
   {
     // if the test is disabled write is disabled too
-    // TODO: When PE performance metrics are being emulated via occlusion queries, we should
+    // TODO: When PE performance metrics are being emulated via occlusion
+    // queries, we should
     // (probably?) enable depth test with depth function ALWAYS here
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
@@ -1767,7 +1811,8 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
 
 int Renderer::GetMaxTextureSize()
 {
-  // Right now nvidia seems to do something very weird if we try to cache GL_MAX_TEXTURE_SIZE in
+  // Right now nvidia seems to do something very weird if we try to cache
+  // GL_MAX_TEXTURE_SIZE in
   // init. This is a workaround that lets
   // us keep the perf improvement that caching it gives us.
   if (s_max_texture_size == 0)

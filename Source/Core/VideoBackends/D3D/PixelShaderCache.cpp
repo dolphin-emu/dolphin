@@ -19,16 +19,16 @@
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry* PixelShaderCache::last_entry;
-PixelShaderUid PixelShaderCache::last_uid;
-UidChecker<PixelShaderUid, ShaderCode> PixelShaderCache::pixel_uid_checker;
+UberShader::PixelShaderUid PixelShaderCache::last_uid;
 
-LinearDiskCache<PixelShaderUid, u8> g_ps_disk_cache;
+LinearDiskCache<UberShader::PixelShaderUid, u8> g_ps_disk_cache;
 
 ID3D11PixelShader* s_ColorMatrixProgram[2] = {nullptr};
 ID3D11PixelShader* s_ColorCopyProgram[2] = {nullptr};
@@ -39,6 +39,7 @@ ID3D11PixelShader* s_DepthResolveProgram = nullptr;
 ID3D11PixelShader* s_rgba6_to_rgb8[2] = {nullptr};
 ID3D11PixelShader* s_rgb8_to_rgba6[2] = {nullptr};
 ID3D11Buffer* pscbuf = nullptr;
+ID3D11Buffer* uber_bufffer = nullptr;
 
 const char clear_program_code[] = {"void main(\n"
                                    "out float4 ocol0 : SV_Target,\n"
@@ -128,7 +129,8 @@ const char color_matrix_program_code_msaa[] = {
     "texcol /= SAMPLES;\n"
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,"
+    "cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -174,7 +176,8 @@ const char depth_matrix_program_msaa[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	float4 texcol = 0;\n"
     "	for(int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
+    "		texcol += Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
     "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
@@ -192,7 +195,8 @@ const char depth_matrix_program_msaa[] = {
 
     // Apply color matrix
     "	ocol0 = "
-    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
+    "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot("
+    "texcol,cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
     "}\n"};
 
@@ -208,7 +212,8 @@ const char depth_resolve_program[] = {
     "	Tex0.GetDimensions(width, height, slices, samples);\n"
     "	ocol0 = Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), 0).x;\n"
     "	for(int i = 1; i < SAMPLES; ++i)\n"
-    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i).x);\n"
+    "		ocol0 = min(ocol0, Tex0.Load(int3(uv0.x*(width), "
+    "uv0.y*(height), uv0.z), i).x);\n"
     "}\n"};
 
 const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
@@ -227,29 +232,29 @@ const char reint_rgba6_to_rgb8[] = {"sampler samp0 : register(s0);\n"
                                     "	ocol0 = (float4)dst8 / 255.f;\n"
                                     "}"};
 
-const char reint_rgba6_to_rgb8_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "void main(\n"
-    "	out float4 ocol0 : SV_Target,\n"
-    "	in float4 pos : SV_Position,\n"
-    "	in float3 uv0 : TEXCOORD0)\n"
-    "{\n"
-    "	int width, height, slices, samples;\n"
-    "	Tex0.GetDimensions(width, height, slices, samples);\n"
-    "	float4 texcol = 0;\n"
-    "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "	texcol /= SAMPLES;\n"
-    "	int4 src6 = round(texcol * 63.f);\n"
-    "	int4 dst8;\n"
-    "	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
-    "	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
-    "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
-    "	dst8.a = 255;\n"
-    "	ocol0 = (float4)dst8 / 255.f;\n"
-    "}"};
+const char reint_rgba6_to_rgb8_msaa[] = {"#define SAMPLES %d\n"
+                                         "sampler samp0 : register(s0);\n"
+                                         "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+                                         "void main(\n"
+                                         "	out float4 ocol0 : SV_Target,\n"
+                                         "	in float4 pos : SV_Position,\n"
+                                         "	in float3 uv0 : TEXCOORD0)\n"
+                                         "{\n"
+                                         "	int width, height, slices, samples;\n"
+                                         "	Tex0.GetDimensions(width, height, slices, samples);\n"
+                                         "	float4 texcol = 0;\n"
+                                         "	for (int i = 0; i < SAMPLES; ++i)\n"
+                                         "		texcol += Tex0.Load(int3(uv0.x*(width), "
+                                         "uv0.y*(height), uv0.z), i);\n"
+                                         "	texcol /= SAMPLES;\n"
+                                         "	int4 src6 = round(texcol * 63.f);\n"
+                                         "	int4 dst8;\n"
+                                         "	dst8.r = (src6.r << 2) | (src6.g >> 4);\n"
+                                         "	dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);\n"
+                                         "	dst8.b = ((src6.b & 0x3) << 6) | src6.a;\n"
+                                         "	dst8.a = 255;\n"
+                                         "	ocol0 = (float4)dst8 / 255.f;\n"
+                                         "}"};
 
 const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
                                     "Texture2DArray Tex0 : register(t0);\n"
@@ -267,29 +272,29 @@ const char reint_rgb8_to_rgba6[] = {"sampler samp0 : register(s0);\n"
                                     "	ocol0 = (float4)dst6 / 63.f;\n"
                                     "}\n"};
 
-const char reint_rgb8_to_rgba6_msaa[] = {
-    "#define SAMPLES %d\n"
-    "sampler samp0 : register(s0);\n"
-    "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
-    "void main(\n"
-    "	out float4 ocol0 : SV_Target,\n"
-    "	in float4 pos : SV_Position,\n"
-    "	in float3 uv0 : TEXCOORD0)\n"
-    "{\n"
-    "	int width, height, slices, samples;\n"
-    "	Tex0.GetDimensions(width, height, slices, samples);\n"
-    "	float4 texcol = 0;\n"
-    "	for (int i = 0; i < SAMPLES; ++i)\n"
-    "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
-    "	texcol /= SAMPLES;\n"
-    "	int4 src8 = round(texcol * 255.f);\n"
-    "	int4 dst6;\n"
-    "	dst6.r = src8.r >> 2;\n"
-    "	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
-    "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
-    "	dst6.a = src8.b & 0x3F;\n"
-    "	ocol0 = (float4)dst6 / 63.f;\n"
-    "}\n"};
+const char reint_rgb8_to_rgba6_msaa[] = {"#define SAMPLES %d\n"
+                                         "sampler samp0 : register(s0);\n"
+                                         "Texture2DMSArray<float4, SAMPLES> Tex0 : register(t0);\n"
+                                         "void main(\n"
+                                         "	out float4 ocol0 : SV_Target,\n"
+                                         "	in float4 pos : SV_Position,\n"
+                                         "	in float3 uv0 : TEXCOORD0)\n"
+                                         "{\n"
+                                         "	int width, height, slices, samples;\n"
+                                         "	Tex0.GetDimensions(width, height, slices, samples);\n"
+                                         "	float4 texcol = 0;\n"
+                                         "	for (int i = 0; i < SAMPLES; ++i)\n"
+                                         "		texcol += Tex0.Load(int3(uv0.x*(width), "
+                                         "uv0.y*(height), uv0.z), i);\n"
+                                         "	texcol /= SAMPLES;\n"
+                                         "	int4 src8 = round(texcol * 255.f);\n"
+                                         "	int4 dst6;\n"
+                                         "	dst6.r = src8.r >> 2;\n"
+                                         "	dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);\n"
+                                         "	dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);\n"
+                                         "	dst6.a = src8.b & 0x3F;\n"
+                                         "	ocol0 = (float4)dst6 / 63.f;\n"
+                                         "}\n"};
 
 ID3D11PixelShader* PixelShaderCache::ReinterpRGBA6ToRGB8(bool multisampled)
 {
@@ -431,7 +436,8 @@ ID3D11PixelShader* PixelShaderCache::GetDepthResolveProgram()
 
 ID3D11Buffer*& PixelShaderCache::GetConstantBuffer()
 {
-  // TODO: divide the global variables of the generated shaders into about 5 constant buffers to
+  // TODO: divide the global variables of the generated shaders into about 5
+  // constant buffers to
   // speed this up
   if (PixelShaderManager::dirty)
   {
@@ -439,18 +445,24 @@ ID3D11Buffer*& PixelShaderCache::GetConstantBuffer()
     D3D::context->Map(pscbuf, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
     memcpy(map.pData, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
     D3D::context->Unmap(pscbuf, 0);
+
+    // Again, this is hacky.
+    D3D::context->Map(uber_bufffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
+    memcpy(map.pData, &PixelShaderManager::more_constants, sizeof(UberShaderConstants));
+    D3D::context->Unmap(uber_bufffer, 0);
     PixelShaderManager::dirty = false;
 
-    ADDSTAT(stats.thisFrame.bytesUniformStreamed, sizeof(PixelShaderConstants));
+    ADDSTAT(stats.thisFrame.bytesUniformStreamed,
+            sizeof(PixelShaderConstants) + sizeof(UberShaderConstants));
   }
   return pscbuf;
 }
 
 // this class will load the precompiled shaders into our cache
-class PixelShaderCacheInserter : public LinearDiskCacheReader<PixelShaderUid, u8>
+class PixelShaderCacheInserter : public LinearDiskCacheReader<UberShader::PixelShaderUid, u8>
 {
 public:
-  void Read(const PixelShaderUid& key, const u8* value, u32 value_size)
+  void Read(const UberShader::PixelShaderUid& key, const u8* value, u32 value_size)
   {
     PixelShaderCache::InsertByteCode(key, value, value_size);
   }
@@ -465,6 +477,15 @@ void PixelShaderCache::Init()
   CHECK(pscbuf != nullptr, "Create pixel shader constant buffer");
   D3D::SetDebugObjectName((ID3D11DeviceChild*)pscbuf,
                           "pixel shader constant buffer used to emulate the GX pipeline");
+
+  // Second constant buffer for ubershaders
+  unsigned int ubsize = ROUND_UP(sizeof(UberShaderConstants), 16);  // must be a multiple of 16
+  D3D11_BUFFER_DESC uber_desc = CD3D11_BUFFER_DESC(ubsize, D3D11_BIND_CONSTANT_BUFFER,
+                                                   D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
+  D3D::device->CreateBuffer(&uber_desc, nullptr, &uber_bufffer);
+  CHECK(uber_bufffer != nullptr, "Create ubershader constant buffer");
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)uber_bufffer,
+                          "pixel shader constant buffer used for Ubershader emulation of TEV.");
 
   // used when drawing clear quads
   s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code);
@@ -503,10 +524,11 @@ void PixelShaderCache::Init()
       StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
                        SConfig::GetInstance().m_strUniqueID.c_str());
   PixelShaderCacheInserter inserter;
-  g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
-  if (g_Config.bEnableShaderDebugging)
-    Clear();
+  // Temporally disable DirectX's Pixel Shader cache, so it stops messing me up
+  // while testing.
+  // TODO: Rembmer to add this back in before merging to master.
+  // g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
   last_entry = nullptr;
 }
@@ -517,7 +539,6 @@ void PixelShaderCache::Clear()
   for (auto& iter : PixelShaders)
     iter.second.Destroy();
   PixelShaders.clear();
-  pixel_uid_checker.Invalidate();
 
   last_entry = nullptr;
 }
@@ -556,12 +577,7 @@ void PixelShaderCache::Shutdown()
 
 bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
 {
-  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode, API_D3D);
-  if (g_ActiveConfig.bEnableShaderDebugging)
-  {
-    ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
-    pixel_uid_checker.AddToIndexAndCheck(code, uid, "Pixel", "p");
-  }
+  UberShader::PixelShaderUid uid = UberShader::GetPixelShaderUid(dstAlphaMode);
 
   // Check if the shader is already set
   if (last_entry)
@@ -588,7 +604,11 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D);
+  // ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, API_D3D,
+  // uid.GetUidData());
+  ShaderCode code =
+      UberShader::GenPixelShader(dstAlphaMode, API_D3D, false, g_ActiveConfig.iMultisamples > 1,
+                                 g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA);
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))
@@ -603,16 +623,11 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
   pbytecode->Release();
 
-  if (g_ActiveConfig.bEnableShaderDebugging && success)
-  {
-    PixelShaders[uid].code = code.GetBuffer();
-  }
-
   GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);
   return success;
 }
 
-bool PixelShaderCache::InsertByteCode(const PixelShaderUid& uid, const void* bytecode,
+bool PixelShaderCache::InsertByteCode(const UberShader::PixelShaderUid& uid, const void* bytecode,
                                       unsigned int bytecodelen)
 {
   ID3D11PixelShader* shader = D3D::CreatePixelShaderFromByteCode(bytecode, bytecodelen);

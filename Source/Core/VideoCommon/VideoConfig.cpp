@@ -79,7 +79,6 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
   settings->Get("WireFrame", &bWireFrame, 0);
   settings->Get("DisableFog", &bDisableFog, 0);
-  settings->Get("EnableShaderDebugging", &bEnableShaderDebugging, false);
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
   settings->Get("SWZComploc", &bZComploc, true);
@@ -119,18 +118,6 @@ void VideoConfig::Load(const std::string& ini_file)
   bool bTmp;
   interface->Get("UsePanicHandlers", &bTmp, true);
   SetEnableAlert(bTmp);
-
-  // Shader Debugging causes a huge slowdown and it's easy to forget about it
-  // since it's not exposed in the settings dialog. It's only used by
-  // developers, so displaying an obnoxious message avoids some confusion and
-  // is not too annoying/confusing for users.
-  //
-  // XXX(delroth): This is kind of a bad place to put this, but the current
-  // VideoCommon is a mess and we don't have a central initialization
-  // function to do these kind of checks. Instead, the init code is
-  // triplicated for each video backend.
-  if (bEnableShaderDebugging)
-    OSD::AddMessage("Warning: Shader Debugging is enabled, performance will suffer heavily", 15000);
 
   VerifyValidity();
 }
@@ -205,7 +192,8 @@ void VideoConfig::GameIniLoad()
                 iMaxAnisotropy);  // NOTE - this is x in (1 << x)
   CHECK_SETTING("Video_Enhancements", "PostProcessingShader", sPostProcessingShader);
 
-  // These are not overrides, they are per-game stereoscopy parameters, hence no warning
+  // These are not overrides, they are per-game stereoscopy parameters, hence no
+  // warning
   iniFile.GetIfExists("Video_Stereoscopy", "StereoConvergence", &iStereoConvergence, 20);
   iniFile.GetIfExists("Video_Stereoscopy", "StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
   iniFile.GetIfExists("Video_Stereoscopy", "StereoDepthPercentage", &iStereoDepthPercentage, 100);
@@ -229,9 +217,9 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video", "PerfQueriesEnable", bPerfQueriesEnable);
 
   if (gfx_override_exists)
-    OSD::AddMessage(
-        "Warning: Opening the graphics configuration will reset settings and might cause issues!",
-        10000);
+    OSD::AddMessage("Warning: Opening the graphics configuration will reset "
+                    "settings and might cause issues!",
+                    10000);
 }
 
 void VideoConfig::VerifyValidity()
@@ -248,15 +236,16 @@ void VideoConfig::VerifyValidity()
   {
     if (!backend_info.bSupportsGeometryShaders)
     {
-      OSD::AddMessage(
-          "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
-          10000);
+      OSD::AddMessage("Stereoscopic 3D isn't supported by your GPU, support "
+                      "for OpenGL 3.2 is required.",
+                      10000);
       iStereoMode = 0;
     }
 
     if (bUseXFB && bUseRealXFB)
     {
-      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning off stereoscopy.",
+      OSD::AddMessage("Stereoscopic 3D isn't supported with Real XFB, turning "
+                      "off stereoscopy.",
                       10000);
       iStereoMode = 0;
     }
@@ -299,7 +288,6 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("TexFmtOverlayCenter", bTexFmtOverlayCenter);
   settings->Set("Wireframe", bWireFrame);
   settings->Set("DisableFog", bDisableFog);
-  settings->Set("EnableShaderDebugging", bEnableShaderDebugging);
   settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
 
   settings->Set("SWZComploc", bZComploc);

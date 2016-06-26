@@ -13,6 +13,7 @@
 
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/UberShaderPixel.h"
 #include "VideoCommon/VertexShaderGen.h"
 
 namespace OGL
@@ -21,7 +22,7 @@ class SHADERUID
 {
 public:
   VertexShaderUid vuid;
-  PixelShaderUid puid;
+  UberShader::PixelShaderUid puid;
   GeometryShaderUid guid;
 
   bool operator<(const SHADERUID& r) const
@@ -87,10 +88,6 @@ private:
   static PCache pshaders;
   static PCacheEntry* last_entry;
   static SHADERUID last_uid;
-
-  static UidChecker<PixelShaderUid, ShaderCode> pixel_uid_checker;
-  static UidChecker<VertexShaderUid, ShaderCode> vertex_uid_checker;
-  static UidChecker<GeometryShaderUid, ShaderCode> geometry_uid_checker;
 
   static u32 s_ubo_buffer_size;
   static s32 s_ubo_align;

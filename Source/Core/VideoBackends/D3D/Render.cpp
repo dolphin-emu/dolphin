@@ -106,12 +106,12 @@ static void SetupDeviceObjects()
   CHECK(hr == S_OK, "Create depth state for Renderer::ClearScreen");
   D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0],
                           "depth state for Renderer::ClearScreen (depth buffer disabled)");
-  D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)cleardepthstates[1],
-      "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
-  D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)cleardepthstates[2],
-      "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1],
+                          "depth state for Renderer::ClearScreen (depth buffer "
+                          "enabled, writing enabled)");
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[2],
+                          "depth state for Renderer::ClearScreen (depth buffer "
+                          "enabled, writing disabled)");
 
   D3D11_BLEND_DESC blenddesc;
   blenddesc.AlphaToCoverageEnable = FALSE;
@@ -191,9 +191,11 @@ static void TeardownDeviceObjects()
 
 static void CreateScreenshotTexture()
 {
-  // We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the
+  // We can't render anything outside of the backbuffer anyway, so use the
+  // backbuffer size as the
   // screenshot buffer size.
-  // This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
+  // This texture is released to be recreated when the window is resized in
+  // Renderer::SwapImpl.
   D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(
       DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0,
       D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
@@ -204,10 +206,14 @@ static void CreateScreenshotTexture()
 
 static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
 {
-  // Since the screenshot buffer is copied back to the CPU via Map(), we can't access pixels that
-  // fall outside the backbuffer bounds. Therefore, when crop is enabled and the target rect is
-  // off-screen to the top/left, we clamp the origin at zero, as well as the bottom/right
-  // coordinates at the backbuffer dimensions. This will result in a rectangle that can be
+  // Since the screenshot buffer is copied back to the CPU via Map(), we can't
+  // access pixels that
+  // fall outside the backbuffer bounds. Therefore, when crop is enabled and the
+  // target rect is
+  // off-screen to the top/left, we clamp the origin at zero, as well as the
+  // bottom/right
+  // coordinates at the backbuffer dimensions. This will result in a rectangle
+  // that can be
   // smaller than the backbuffer, but never larger.
   return CD3D11_BOX(std::max(targetRc.left, 0), std::max(targetRc.top, 0), 0,
                     std::min(D3D::GetBackBufferWidth(), (unsigned int)targetRc.right),
@@ -216,8 +222,10 @@ static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
 
 static void Create3DVisionTexture(int width, int height)
 {
-  // Create a staging texture for 3D vision with signature information in the last row.
-  // Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
+  // Create a staging texture for 3D vision with signature information in the
+  // last row.
+  // Nvidia 3D Vision supports full SBS, so there is no loss in resolution
+  // during this process.
   D3D11_SUBRESOURCE_DATA sysData;
   sysData.SysMemPitch = 4 * width * 2;
   sysData.pSysMem = new u8[(height + 1) * sysData.SysMemPitch];
@@ -379,7 +387,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   efbPixelRc.bottom = y + 1;
   TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
-  // Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the
+  // Take the mean of the resulting dimensions; TODO: Don't use the center
+  // pixel, compute the
   // average color instead
   D3D11_RECT RectToLock;
   if (type == PEEK_COLOR || type == PEEK_Z)
@@ -403,7 +412,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   D3D::context->RSSetViewports(1, &vp);
   D3D::SetPointCopySampler();
 
-  // Select copy and read textures depending on if we are doing a color or depth read (since they
+  // Select copy and read textures depending on if we are doing a color or depth
+  // read (since they
   // are different formats).
   D3DTexture2D* source_tex;
   D3DTexture2D* read_tex;
@@ -421,7 +431,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     staging_tex = FramebufferManager::GetEFBDepthStagingBuffer();
   }
 
-  // Select pixel shader (we don't want to average depth samples, instead select the minimum).
+  // Select pixel shader (we don't want to average depth samples, instead select
+  // the minimum).
   ID3D11PixelShader* copy_pixel_shader;
   if (type == PEEK_Z && g_ActiveConfig.iMultisamples > 1)
     copy_pixel_shader = PixelShaderCache::GetDepthResolveProgram();
@@ -447,7 +458,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   CHECK(D3D::context->Map(staging_tex, 0, D3D11_MAP_READ, 0, &map) == S_OK,
         "Map staging buffer failed");
 
-  // Convert the framebuffer data to the format the game is expecting to receive.
+  // Convert the framebuffer data to the format the game is expecting to
+  // receive.
   u32 ret;
   if (type == PEEK_COLOR)
   {
@@ -669,27 +681,26 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
-  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
+  // Our render target always uses an alpha channel, so we need to override the
+  // blend functions to
+  // assume a destination alpha of 1 if the render target isn't supposed to have
+  // an alpha channel
+  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result
+  // without an alpha channel
   // is assumed to always be 1.
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
   const D3D11_BLEND d3dSrcFactors[8] = {
-      D3D11_BLEND_ZERO,
-      D3D11_BLEND_ONE,
-      D3D11_BLEND_DEST_COLOR,
-      D3D11_BLEND_INV_DEST_COLOR,
+      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
       D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is
+                                  // enabled!
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
   const D3D11_BLEND d3dDestFactors[8] = {
-      D3D11_BLEND_ZERO,
-      D3D11_BLEND_ONE,
-      D3D11_BLEND_SRC_COLOR,
-      D3D11_BLEND_INV_SRC_COLOR,
+      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
       D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is
+                                  // enabled!
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
 
@@ -862,7 +873,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
 
-    // TODO: Improve sampling algorithm for the pixel shader so that we can use the multisampled EFB
+    // TODO: Improve sampling algorithm for the pixel shader so that we can use
+    // the multisampled EFB
     // texture as source
     D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
     BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
@@ -1028,7 +1040,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
         D3D::SetFullscreenState(fullscreen);
 
-        // If fullscreen is disabled we can safely notify the UI to exit fullscreen.
+        // If fullscreen is disabled we can safely notify the UI to exit
+        // fullscreen.
         if (!g_ActiveConfig.bFullscreen)
           Host_RequestFullscreen(false);
       }
@@ -1108,8 +1121,11 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 
   ID3D11Buffer* vertexConstants = VertexShaderCache::GetConstantBuffer();
 
+  // Yeah, I'm just hacking this through. Need to think about resource managment
+  // at some point.
   D3D::stateman->SetPixelConstants(PixelShaderCache::GetConstantBuffer(),
-                                   g_ActiveConfig.bEnablePixelLighting ? vertexConstants : nullptr);
+                                   DX11::uber_bufffer);  // g_ActiveConfig.bEnablePixelLighting ?
+                                                         // vertexConstants : nullptr);
   D3D::stateman->SetVertexConstants(vertexConstants);
   D3D::stateman->SetGeometryConstants(GeometryShaderCache::GetConstantBuffer());
 
@@ -1294,7 +1310,8 @@ int Renderer::GetMaxTextureSize()
 
 u16 Renderer::BBoxRead(int index)
 {
-  // Here we get the min/max value of the truncated position of the upscaled framebuffer.
+  // Here we get the min/max value of the truncated position of the upscaled
+  // framebuffer.
   // So we have to correct them to the unscaled EFB sizes.
   int value = BBox::Get(index);
 
@@ -1381,7 +1398,8 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
 
-    // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it should
+    // Copy the left eye to the backbuffer, if Nvidia 3D Vision is enabled it
+    // should
     // recognize the signature and automatically include the right eye frame.
     D3D11_BOX box = CD3D11_BOX(0, 0, 0, s_backbuffer_width, s_backbuffer_height, 1);
     D3D::context->CopySubresourceRegion(D3D::GetBackBuffer()->GetTex(), 0, 0, 0, 0,

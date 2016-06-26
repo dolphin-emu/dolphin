@@ -82,6 +82,8 @@ void InitBackendInfo()
   g_Config.backend_info.bSupportsPostProcessing = false;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
+  g_Config.backend_info.bSupportsBitfield = false;
+  g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
 
   IDXGIFactory* factory;
   IDXGIAdapter* ad;
@@ -113,7 +115,8 @@ void InitBackendInfo()
 
       bool shader_model_5_supported = (DX11::D3D::GetFeatureLevel(ad) >= D3D_FEATURE_LEVEL_11_0);
 
-      // Requires the earlydepthstencil attribute (only available in shader model 5)
+      // Requires the earlydepthstencil attribute (only available in shader
+      // model 5)
       g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
 
       // Requires full UAV functionality (only available in shader model 5)

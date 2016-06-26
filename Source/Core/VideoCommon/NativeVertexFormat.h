@@ -31,6 +31,7 @@ enum
   VB_HAS_NRM2 = (1 << 12),
   VB_HAS_NRMALL = (7 << 10),
 
+  VB_COL_SHIFT = 13,
   VB_HAS_COL0 = (1 << 13),
   VB_HAS_COL1 = (1 << 14),
 
@@ -96,10 +97,12 @@ struct hash<PortableVertexDeclaration>
 };
 }
 
-// The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
+// The implementation of this class is specific for GL/DX, so
+// NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.
 
-// Note that this class can't just invent arbitrary vertex formats out of its input -
+// Note that this class can't just invent arbitrary vertex formats out of its
+// input -
 // all the data loading code must always be made compatible.
 class NativeVertexFormat : NonCopyable
 {

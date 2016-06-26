@@ -38,8 +38,6 @@ private:
     ID3D11VertexShader* shader;
     D3DBlob* bytecode;  // needed to initialize the input layout
 
-    std::string code;
-
     VSCacheEntry() : shader(nullptr), bytecode(nullptr) {}
     void SetByteCode(D3DBlob* blob)
     {
@@ -58,8 +56,6 @@ private:
   static VSCache vshaders;
   static const VSCacheEntry* last_entry;
   static VertexShaderUid last_uid;
-
-  static UidChecker<VertexShaderUid, ShaderCode> vertex_uid_checker;
 };
 
 }  // namespace DX11
