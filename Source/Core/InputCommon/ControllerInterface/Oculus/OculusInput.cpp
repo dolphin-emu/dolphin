@@ -44,7 +44,9 @@ namespace OculusInput
 		{ "TouchLThumb", OCULUS_BUTTON_LTHUMB },
 		{ "TouchRThumb", OCULUS_BUTTON_RTHUMB },
 		{ "TouchLTrigger", OCULUS_BUTTON_LTRIGGER },
-		{ "TouchRTrigger", OCULUS_BUTTON_RTRIGGER }
+		{ "TouchRTrigger", OCULUS_BUTTON_RTRIGGER },
+		{ "TouchLRest", OCULUS_BUTTON_LSHOULDER },
+		{ "TouchRRest", OCULUS_BUTTON_RSHOULDER }
 	}, hmd_gestures[] =
 	{
 		{ "Tap", OCULUS_BUTTON_A }
