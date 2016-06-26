@@ -104,7 +104,7 @@ void VertexManager::ResetBuffer(u32 stride)
 
 	// Update pointers
 	s_pBaseBufferPointer = m_vertex_stream_buffer->GetHostPointer();
-	s_pEndBufferPointer = s_pBaseBufferPointer + MAXVBUFFERSIZE;
+	s_pEndBufferPointer = m_vertex_stream_buffer->GetCurrentHostPointer() + MAXVBUFFERSIZE;
 	s_pCurBufferPointer = m_vertex_stream_buffer->GetCurrentHostPointer();
 	IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer->GetCurrentHostPointer()));
 
