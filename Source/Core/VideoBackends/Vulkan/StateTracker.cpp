@@ -578,45 +578,20 @@ bool StateTracker::UpdateDescriptorSet()
 
 		// Initialize descriptor count to zero for the first image group.
 		// The remaining fields will be initialized in the "create new group" branch below.
-		writes[num_writes].descriptorCount = 0;
 		for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
 		{
 			// Still batching together textures without any gaps?
 			const VkDescriptorImageInfo& info = m_bindings.ps_samplers[i];
 			if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
 			{
-				// Allocated a group yet?
-				if (writes[num_writes].descriptorCount > 0)
-				{
-					// Add to the group.
-					writes[num_writes].descriptorCount++;
-				}
-				else
-				{
-					// Create a new group.
-					writes[num_writes] = {
-						VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
-						static_cast<uint32_t>(i), 0,
-						1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-						&info, nullptr, nullptr
-					};
-				}
-			}
-			else
-			{
-				// We've found an unbound sampler. If there is a non-zero number of images in the group,
-				// and remaining images will have to be split into a separate group.
-				if (writes[num_writes].descriptorCount > 0)
-				{
-					num_writes++;
-					writes[num_writes].descriptorCount = 0;
-				}
+				writes[num_writes++] = {
+					VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set,
+					static_cast<uint32_t>(i), 0,
+					1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+					&info, nullptr, nullptr
+				};
 			}
 		}
-
-		// Complete the image group if one has been started.
-		if (writes[num_writes].descriptorCount > 0)
-			num_writes++;
 
 		vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
 		m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
