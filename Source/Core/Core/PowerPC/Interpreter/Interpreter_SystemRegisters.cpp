@@ -34,7 +34,7 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
   if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
   {
     // PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
-    //	fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
+    // fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
     // Pokemon Colosseum does this. Gah.
   }
 
@@ -413,7 +413,7 @@ void Interpreter::isync(UGeckoInstruction _inst)
 void Interpreter::mcrfs(UGeckoInstruction _inst)
 {
   // if (_inst.CRFS != 3 && _inst.CRFS != 4)
-  //	PanicAlert("msrfs at %x, CRFS = %d, CRFD = %d", PC, (int)_inst.CRFS, (int)_inst.CRFD);
+  //   PanicAlert("msrfs at %x, CRFS = %d, CRFD = %d", PC, (int)_inst.CRFS, (int)_inst.CRFD);
 
   UpdateFPSCR();
   u32 fpflags = ((FPSCR.Hex >> (4 * (7 - _inst.CRFS))) & 0xF);

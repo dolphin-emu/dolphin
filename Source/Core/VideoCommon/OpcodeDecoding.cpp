@@ -121,10 +121,6 @@ void Init()
   s_bFifoErrorSeen = false;
 }
 
-void Shutdown()
-{
-}
-
 template <bool is_preprocess>
 u8* Run(DataReader src, u32* cycles, bool in_display_list)
 {

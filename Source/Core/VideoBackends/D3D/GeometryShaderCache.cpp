@@ -26,7 +26,6 @@ namespace DX11
 GeometryShaderCache::GSCache GeometryShaderCache::GeometryShaders;
 const GeometryShaderCache::GSCacheEntry* GeometryShaderCache::last_entry;
 GeometryShaderUid GeometryShaderCache::last_uid;
-UidChecker<GeometryShaderUid, ShaderCode> GeometryShaderCache::geometry_uid_checker;
 const GeometryShaderCache::GSCacheEntry GeometryShaderCache::pass_entry;
 
 ID3D11GeometryShader* ClearGeometryShader = nullptr;
@@ -165,9 +164,6 @@ void GeometryShaderCache::Init()
   GeometryShaderCacheInserter inserter;
   g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
 
-  if (g_Config.bEnableShaderDebugging)
-    Clear();
-
   last_entry = nullptr;
 }
 
@@ -177,7 +173,6 @@ void GeometryShaderCache::Clear()
   for (auto& iter : GeometryShaders)
     iter.second.Destroy();
   GeometryShaders.clear();
-  geometry_uid_checker.Invalidate();
 
   last_entry = nullptr;
 }
@@ -196,12 +191,7 @@ void GeometryShaderCache::Shutdown()
 
 bool GeometryShaderCache::SetShader(u32 primitive_type)
 {
-  GeometryShaderUid uid = GetGeometryShaderUid(primitive_type, API_D3D);
-  if (g_ActiveConfig.bEnableShaderDebugging)
-  {
-    ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D);
-    geometry_uid_checker.AddToIndexAndCheck(code, uid, "Geometry", "g");
-  }
+  GeometryShaderUid uid = GetGeometryShaderUid(primitive_type);
 
   // Check if the shader is already set
   if (last_entry)
@@ -235,7 +225,7 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateGeometryShaderCode(primitive_type, API_D3D);
+  ShaderCode code = GenerateGeometryShaderCode(API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompileGeometryShader(code.GetBuffer(), &pbytecode))
@@ -249,11 +239,6 @@ bool GeometryShaderCache::SetShader(u32 primitive_type)
 
   bool success = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
   pbytecode->Release();
-
-  if (g_ActiveConfig.bEnableShaderDebugging && success)
-  {
-    GeometryShaders[uid].code = code.GetBuffer();
-  }
 
   return success;
 }

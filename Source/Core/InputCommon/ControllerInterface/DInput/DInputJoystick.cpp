@@ -58,12 +58,10 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
           }
         }
 
-        Joystick* js = new Joystick(/*&*i, */ js_device, name_counts[joystick.tszInstanceName]++);
+        auto js = std::make_shared<Joystick>(js_device, name_counts[joystick.tszInstanceName]++);
         // only add if it has some inputs/outputs
         if (js->Inputs().size() || js->Outputs().size())
-          g_controller_interface.AddDevice(js);
-        else
-          delete js;
+          g_controller_interface.AddDevice(std::move(js));
       }
       else
       {

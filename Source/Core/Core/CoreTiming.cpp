@@ -389,30 +389,6 @@ void ForceExceptionCheck(s64 cycles)
   }
 }
 
-// This raise only the events required while the fifo is processing data
-void ProcessFifoWaitEvents()
-{
-  MoveEvents();
-
-  if (!first)
-    return;
-
-  while (first)
-  {
-    if (first->time <= g_globalTimer)
-    {
-      Event* evt = first;
-      first = first->next;
-      event_types[evt->type].callback(evt->userdata, (int)(g_globalTimer - evt->time));
-      FreeEvent(evt);
-    }
-    else
-    {
-      break;
-    }
-  }
-}
-
 void MoveEvents()
 {
   BaseEvent sevt;
@@ -480,14 +456,11 @@ void LogPendingEvents()
 
 void Idle()
 {
-  // DEBUG_LOG(POWERPC, "Idle");
-
   if (SConfig::GetInstance().bSyncGPUOnSkipIdleHack)
   {
     // When the FIFO is processing data we must not advance because in this way
     // the VI will be desynchronized. So, We are waiting until the FIFO finish and
     // while we process only the events required by the FIFO.
-    ProcessFifoWaitEvents();
     Fifo::FlushGpu();
   }
 

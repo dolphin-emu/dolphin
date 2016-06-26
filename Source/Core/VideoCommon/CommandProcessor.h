@@ -119,7 +119,6 @@ union UCPClearReg {
 
 // Init
 void Init();
-void Shutdown();
 void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
@@ -137,6 +136,5 @@ void SetInterruptFinishWaiting(bool waiting);
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
-void ProcessFifoEvents();
 
 }  // namespace CommandProcessor

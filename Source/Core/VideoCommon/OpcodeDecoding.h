@@ -42,7 +42,6 @@ class DataReader;
 namespace OpcodeDecoder
 {
 void Init();
-void Shutdown();
 
 template <bool is_preprocess = false>
 u8* Run(DataReader src, u32* cycles, bool in_display_list);
