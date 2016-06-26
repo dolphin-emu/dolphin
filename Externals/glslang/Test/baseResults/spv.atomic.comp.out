@@ -1,0 +1,205 @@
+spv.atomic.comp
+Warning, version 310 is not yet complete; most version-specific features are present, but some are missing.
+
+Shader version: 310
+Requested GL_ARB_gl_spirv
+local_size = (1, 1, 1)
+0:? Sequence
+0:14  Function Definition: func(au1; (global highp uint)
+0:14    Function Parameters: 
+0:14      'c' (in highp atomic_uint)
+0:16    Sequence
+0:16      Branch: Return with expression
+0:16        AtomicCounterIncrement (global highp uint)
+0:16          'c' (in highp atomic_uint)
+0:19  Function Definition: main( (global void)
+0:19    Function Parameters: 
+0:21    Sequence
+0:21      MemoryBarrierAtomicCounter (global void)
+0:22      Function Call: func(au1; (global highp uint)
+0:22        'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:23      Sequence
+0:23        move second child to first child (temp highp uint)
+0:23          'val' (temp highp uint)
+0:23          AtomicCounter (global highp uint)
+0:23            direct index (layout(binding=0 offset=4 ) temp highp atomic_uint)
+0:23              'countArr' (layout(binding=0 offset=4 ) uniform 4-element array of highp atomic_uint)
+0:23              Constant:
+0:23                2 (const int)
+0:24      AtomicCounterDecrement (global highp uint)
+0:24        'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:36  Function Definition: atoms( (global void)
+0:36    Function Parameters: 
+0:38    Sequence
+0:38      Sequence
+0:38        move second child to first child (temp highp int)
+0:38          'origi' (temp highp int)
+0:38          AtomicAdd (global highp int)
+0:38            'atomi' (shared highp int)
+0:38            Constant:
+0:38              3 (const int)
+0:39      Sequence
+0:39        move second child to first child (temp highp uint)
+0:39          'origu' (temp highp uint)
+0:39          AtomicAnd (global highp uint)
+0:39            'atomu' (shared highp uint)
+0:39            'value' (shared highp uint)
+0:40      move second child to first child (temp highp uint)
+0:40        'origu' (temp highp uint)
+0:40        AtomicOr (global highp uint)
+0:40          'atomu' (shared highp uint)
+0:40          Constant:
+0:40            7 (const uint)
+0:41      move second child to first child (temp highp uint)
+0:41        'origu' (temp highp uint)
+0:41        AtomicXor (global highp uint)
+0:41          'atomu' (shared highp uint)
+0:41          Constant:
+0:41            7 (const uint)
+0:42      move second child to first child (temp highp uint)
+0:42        'origu' (temp highp uint)
+0:42        AtomicMin (global highp uint)
+0:42          'atomu' (shared highp uint)
+0:42          'value' (shared highp uint)
+0:43      move second child to first child (temp highp int)
+0:43        'origi' (temp highp int)
+0:43        AtomicMax (global highp int)
+0:43          'atomi' (shared highp int)
+0:43          Constant:
+0:43            7 (const int)
+0:44      move second child to first child (temp highp int)
+0:44        'origi' (temp highp int)
+0:44        AtomicExchange (global highp int)
+0:44          'atomi' (shared highp int)
+0:44          'origi' (temp highp int)
+0:45      move second child to first child (temp highp uint)
+0:45        'origu' (temp highp uint)
+0:45        AtomicCompSwap (global highp uint)
+0:45          'atomu' (shared highp uint)
+0:45          Constant:
+0:45            10 (const uint)
+0:45          'value' (shared highp uint)
+0:46      AtomicAdd (global highp int)
+0:46        direct index (temp highp int)
+0:46          n_frames_rendered: direct index for structure (layout(column_major std140 offset=16 ) buffer highp 4-component vector of int)
+0:46            'result' (layout(binding=0 column_major std140 ) restrict buffer block{layout(column_major std140 offset=0 ) buffer highp float f, layout(column_major std140 offset=16 ) buffer highp 4-component vector of int n_frames_rendered})
+0:46            Constant:
+0:46              1 (const int)
+0:46          Constant:
+0:46            2 (const int)
+0:46        Constant:
+0:46          1 (const int)
+0:?   Linker Objects
+0:?     'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:?     'countArr' (layout(binding=0 offset=4 ) uniform 4-element array of highp atomic_uint)
+0:?     'value' (shared highp uint)
+0:?     'arrX' (global 1-element array of highp int)
+0:?     'arrY' (global 1-element array of highp int)
+0:?     'arrZ' (global 1-element array of highp int)
+0:?     'atomi' (shared highp int)
+0:?     'atomu' (shared highp uint)
+0:?     'result' (layout(binding=0 column_major std140 ) restrict buffer block{layout(column_major std140 offset=0 ) buffer highp float f, layout(column_major std140 offset=16 ) buffer highp 4-component vector of int n_frames_rendered})
+
+
+Linked compute stage:
+
+
+Shader version: 310
+Requested GL_ARB_gl_spirv
+local_size = (1, 1, 1)
+0:? Sequence
+0:14  Function Definition: func(au1; (global highp uint)
+0:14    Function Parameters: 
+0:14      'c' (in highp atomic_uint)
+0:16    Sequence
+0:16      Branch: Return with expression
+0:16        AtomicCounterIncrement (global highp uint)
+0:16          'c' (in highp atomic_uint)
+0:19  Function Definition: main( (global void)
+0:19    Function Parameters: 
+0:21    Sequence
+0:21      MemoryBarrierAtomicCounter (global void)
+0:22      Function Call: func(au1; (global highp uint)
+0:22        'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:23      Sequence
+0:23        move second child to first child (temp highp uint)
+0:23          'val' (temp highp uint)
+0:23          AtomicCounter (global highp uint)
+0:23            direct index (layout(binding=0 offset=4 ) temp highp atomic_uint)
+0:23              'countArr' (layout(binding=0 offset=4 ) uniform 4-element array of highp atomic_uint)
+0:23              Constant:
+0:23                2 (const int)
+0:24      AtomicCounterDecrement (global highp uint)
+0:24        'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:36  Function Definition: atoms( (global void)
+0:36    Function Parameters: 
+0:38    Sequence
+0:38      Sequence
+0:38        move second child to first child (temp highp int)
+0:38          'origi' (temp highp int)
+0:38          AtomicAdd (global highp int)
+0:38            'atomi' (shared highp int)
+0:38            Constant:
+0:38              3 (const int)
+0:39      Sequence
+0:39        move second child to first child (temp highp uint)
+0:39          'origu' (temp highp uint)
+0:39          AtomicAnd (global highp uint)
+0:39            'atomu' (shared highp uint)
+0:39            'value' (shared highp uint)
+0:40      move second child to first child (temp highp uint)
+0:40        'origu' (temp highp uint)
+0:40        AtomicOr (global highp uint)
+0:40          'atomu' (shared highp uint)
+0:40          Constant:
+0:40            7 (const uint)
+0:41      move second child to first child (temp highp uint)
+0:41        'origu' (temp highp uint)
+0:41        AtomicXor (global highp uint)
+0:41          'atomu' (shared highp uint)
+0:41          Constant:
+0:41            7 (const uint)
+0:42      move second child to first child (temp highp uint)
+0:42        'origu' (temp highp uint)
+0:42        AtomicMin (global highp uint)
+0:42          'atomu' (shared highp uint)
+0:42          'value' (shared highp uint)
+0:43      move second child to first child (temp highp int)
+0:43        'origi' (temp highp int)
+0:43        AtomicMax (global highp int)
+0:43          'atomi' (shared highp int)
+0:43          Constant:
+0:43            7 (const int)
+0:44      move second child to first child (temp highp int)
+0:44        'origi' (temp highp int)
+0:44        AtomicExchange (global highp int)
+0:44          'atomi' (shared highp int)
+0:44          'origi' (temp highp int)
+0:45      move second child to first child (temp highp uint)
+0:45        'origu' (temp highp uint)
+0:45        AtomicCompSwap (global highp uint)
+0:45          'atomu' (shared highp uint)
+0:45          Constant:
+0:45            10 (const uint)
+0:45          'value' (shared highp uint)
+0:46      AtomicAdd (global highp int)
+0:46        direct index (temp highp int)
+0:46          n_frames_rendered: direct index for structure (layout(column_major std140 offset=16 ) buffer highp 4-component vector of int)
+0:46            'result' (layout(binding=0 column_major std140 ) restrict buffer block{layout(column_major std140 offset=0 ) buffer highp float f, layout(column_major std140 offset=16 ) buffer highp 4-component vector of int n_frames_rendered})
+0:46            Constant:
+0:46              1 (const int)
+0:46          Constant:
+0:46            2 (const int)
+0:46        Constant:
+0:46          1 (const int)
+0:?   Linker Objects
+0:?     'counter' (layout(binding=0 offset=0 ) uniform highp atomic_uint)
+0:?     'countArr' (layout(binding=0 offset=4 ) uniform 4-element array of highp atomic_uint)
+0:?     'value' (shared highp uint)
+0:?     'arrX' (global 1-element array of highp int)
+0:?     'arrY' (global 1-element array of highp int)
+0:?     'arrZ' (global 1-element array of highp int)
+0:?     'atomi' (shared highp int)
+0:?     'atomu' (shared highp uint)
+0:?     'result' (layout(binding=0 column_major std140 ) restrict buffer block{layout(column_major std140 offset=0 ) buffer highp float f, layout(column_major std140 offset=16 ) buffer highp 4-component vector of int n_frames_rendered})
+
