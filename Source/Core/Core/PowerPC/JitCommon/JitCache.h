@@ -12,23 +12,14 @@
 
 #include "Common/CommonTypes.h"
 
-static const u32 JIT_ICACHE_SIZE = 0x2000000;
-static const u32 JIT_ICACHE_MASK = 0x1ffffff;
-static const u32 JIT_ICACHEEX_SIZE = 0x4000000;
-static const u32 JIT_ICACHEEX_MASK = 0x3ffffff;
-static const u32 JIT_ICACHE_EXRAM_BIT = 0x10000000;
-static const u32 JIT_ICACHE_VMEM_BIT = 0x20000000;
-
-// This corresponds to opcode 5 which is invalid in PowerPC
-static const u32 JIT_ICACHE_INVALID_BYTE = 0x80;
-static const u32 JIT_ICACHE_INVALID_WORD = 0x80808080;
-
 struct JitBlock
 {
   const u8* checkedEntry;
   const u8* normalEntry;
 
-  u32 originalAddress;
+  u32 effectiveAddress;
+  u32 msrBits;
+  u32 physicalAddress;
   u32 codeSize;
   u32 originalSize;
   int runCount;  // for profiling.
@@ -37,7 +28,7 @@ struct JitBlock
 
   struct LinkData
   {
-    u8* exitPtrs;  // to be able to rewrite the exit jum
+    u8* exitPtrs;  // to be able to rewrite the exit jump
     u32 exitAddress;
     bool linkStatus;  // is it already linked?
   };
@@ -59,7 +50,7 @@ class ValidBlockBitSet final
 public:
   enum
   {
-    VALID_BLOCK_MASK_SIZE = 0x20000000 / 32,
+    VALID_BLOCK_MASK_SIZE = 0x100000000 / 32,
     VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
   };
   // Directly accessed by Jit64.
@@ -84,20 +75,17 @@ class JitBaseBlockCache
     MAX_NUM_BLOCKS = 65536 * 2,
   };
 
-  std::array<const u8*, MAX_NUM_BLOCKS> blockCodePointers;
   std::array<JitBlock, MAX_NUM_BLOCKS> blocks;
   int num_blocks;
   std::multimap<u32, int> links_to;
   std::map<std::pair<u32, u32>, u32> block_map;  // (end_addr, start_addr) -> number
+  std::map<u32, u32> start_block_map;            // start_addr -> number
   ValidBlockBitSet valid_block;
-
-  bool m_initialized;
 
   void LinkBlockExits(int i);
   void LinkBlock(int i);
   void UnlinkBlock(int i);
 
-  u8* GetICachePtr(u32 addr);
   void DestroyBlock(int block_num, bool invalidate);
 
   // Virtual for overloaded
@@ -105,7 +93,7 @@ class JitBaseBlockCache
   virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
 
 public:
-  JitBaseBlockCache() : num_blocks(0), m_initialized(false) {}
+  JitBaseBlockCache() : num_blocks(0) {}
   virtual ~JitBaseBlockCache() {}
   int AllocateBlock(u32 em_address);
   void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
@@ -119,18 +107,17 @@ public:
 
   // Code Cache
   JitBlock* GetBlock(int block_num);
+  JitBlock* GetBlocks() { return blocks.data(); }
   int GetNumBlocks() const;
-  const u8** GetCodePointers();
-  std::array<u8, JIT_ICACHE_SIZE> iCache;
-  std::array<u8, JIT_ICACHEEX_SIZE> iCacheEx;
-  std::array<u8, JIT_ICACHE_SIZE> iCacheVMEM;
+  static const u32 iCache_Num_Elements = 0x10000;
+  static const u32 iCache_Mask = iCache_Num_Elements - 1;
+  std::array<u32, iCache_Num_Elements> iCache;
 
   // Fast way to get a block. Only works on the first ppc instruction of a block.
   int GetBlockNumberFromStartAddress(u32 em_address);
 
-  CompiledCode GetCompiledCodeFromBlock(int block_num);
+  void MoveBlockIntoFastCache(u32 em_address);
 
-  // DOES NOT WORK CORRECTLY WITH INLINING
   void InvalidateICache(u32 address, const u32 length, bool forced);
 
   u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
