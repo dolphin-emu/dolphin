@@ -113,7 +113,8 @@ void gtk_assert_dialog_process_backtrace (GtkAssertDialog *dlg)
 {
     /* set busy cursor */
     GdkWindow *parent = gtk_widget_get_window(GTK_WIDGET(dlg));
-    GdkCursor *cur = gdk_cursor_new (GDK_WATCH);
+    GdkDisplay* display = gdk_window_get_display(parent);
+    GdkCursor* cur = gdk_cursor_new_for_display(display, GDK_WATCH);
     gdk_window_set_cursor (parent, cur);
     gdk_flush ();
 

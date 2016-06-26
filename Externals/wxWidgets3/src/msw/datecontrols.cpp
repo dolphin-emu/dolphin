@@ -54,13 +54,6 @@ bool wxMSWDateControls::CheckInitialization()
         // it's enough to give the error only once
         s_initResult = false;
 
-        if ( wxApp::GetComCtl32Version() < 470 )
-        {
-            wxLogError(_("This system doesn't support date controls, please upgrade your version of comctl32.dll"));
-
-            return false;
-        }
-
 #if wxUSE_DYNLIB_CLASS
         INITCOMMONCONTROLSEX icex;
         icex.dwSize = sizeof(icex);

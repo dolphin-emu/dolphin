@@ -58,7 +58,7 @@ public:
     static void CleanUpHandlers();
     static void InitStandardHandlers();
 
-    DECLARE_DYNAMIC_CLASS(wxAnimation)
+    wxDECLARE_DYNAMIC_CLASS(wxAnimation);
 };
 
 
@@ -95,23 +95,23 @@ public:
     ~wxAnimationCtrl();
 
 public:
-    virtual bool LoadFile(const wxString& filename, wxAnimationType type = wxANIMATION_TYPE_ANY);
-    virtual bool Load(wxInputStream& stream, wxAnimationType type = wxANIMATION_TYPE_ANY);
+    virtual bool LoadFile(const wxString& filename, wxAnimationType type = wxANIMATION_TYPE_ANY) wxOVERRIDE;
+    virtual bool Load(wxInputStream& stream, wxAnimationType type = wxANIMATION_TYPE_ANY) wxOVERRIDE;
 
-    virtual void Stop();
-    virtual bool Play()
+    virtual void Stop() wxOVERRIDE;
+    virtual bool Play() wxOVERRIDE
         { return Play(true /* looped */); }
-    virtual bool IsPlaying() const
+    virtual bool IsPlaying() const wxOVERRIDE
         { return m_isPlaying; }
 
-    void SetAnimation(const wxAnimation &animation);
-    wxAnimation GetAnimation() const
+    void SetAnimation(const wxAnimation &animation) wxOVERRIDE;
+    wxAnimation GetAnimation() const wxOVERRIDE
         { return m_animation; }
 
-    virtual void SetInactiveBitmap(const wxBitmap &bmp);
+    virtual void SetInactiveBitmap(const wxBitmap &bmp) wxOVERRIDE;
 
     // override base class method
-    virtual bool SetBackgroundColour(const wxColour& col);
+    virtual bool SetBackgroundColour(const wxColour& col) wxOVERRIDE;
 
 public:     // event handlers
 
@@ -153,8 +153,8 @@ protected:      // internal utilities
     bool RebuildBackingStoreUpToFrame(unsigned int);
     void DrawFrame(wxDC &dc, unsigned int);
 
-    virtual void DisplayStaticImage();
-    virtual wxSize DoGetBestSize() const;
+    virtual void DisplayStaticImage() wxOVERRIDE;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
 protected:
     unsigned int  m_currentFrame;     // Current frame
@@ -170,8 +170,8 @@ protected:
 
 private:
     typedef wxAnimationCtrlBase base_type;
-    DECLARE_DYNAMIC_CLASS(wxAnimationCtrl)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxAnimationCtrl);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_GENERIC_ANIMATEH__

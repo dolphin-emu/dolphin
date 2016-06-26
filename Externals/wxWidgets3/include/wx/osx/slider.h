@@ -11,19 +11,18 @@
 #ifndef _WX_SLIDER_H_
 #define _WX_SLIDER_H_
 
-#include "wx/control.h"
-#include "wx/slider.h"
+#include "wx/compositewin.h"
 #include "wx/stattext.h"
 
 // Slider
-class WXDLLIMPEXP_CORE wxSlider: public wxSliderBase
+class WXDLLIMPEXP_CORE wxSlider: public wxCompositeWindow<wxSliderBase>
 {
-    DECLARE_DYNAMIC_CLASS(wxSlider)
+    wxDECLARE_DYNAMIC_CLASS(wxSlider);
 
 public:
     wxSlider();
 
-    inline wxSlider(wxWindow *parent, wxWindowID id,
+    wxSlider(wxWindow *parent, wxWindowID id,
                     int value, int minValue, int maxValue,
                     const wxPoint& pos = wxDefaultPosition,
                     const wxSize& size = wxDefaultSize,
@@ -44,53 +43,53 @@ public:
                 const wxValidator& validator = wxDefaultValidator,
                 const wxString& name = wxSliderNameStr);
 
-    virtual int GetValue() const ;
-    virtual void SetValue(int);
+    virtual int GetValue() const wxOVERRIDE;
+    virtual void SetValue(int) wxOVERRIDE;
 
-    void SetRange(int minValue, int maxValue);
+    void SetRange(int minValue, int maxValue) wxOVERRIDE;
 
-    inline int GetMin() const { return m_rangeMin; }
-    inline int GetMax() const { return m_rangeMax; }
+    int GetMin() const wxOVERRIDE { return m_rangeMin; }
+    int GetMax() const wxOVERRIDE { return m_rangeMax; }
 
     void SetMin(int minValue) { SetRange(minValue, m_rangeMax); }
     void SetMax(int maxValue) { SetRange(m_rangeMin, maxValue); }
 
     // For trackbars only
-    inline int GetTickFreq() const { return m_tickFreq; }
-    void SetPageSize(int pageSize);
-    int GetPageSize() const ;
-    void ClearSel() ;
-    void ClearTicks() ;
-    void SetLineSize(int lineSize);
-    int GetLineSize() const ;
-    int GetSelEnd() const ;
-    int GetSelStart() const ;
-    void SetSelection(int minPos, int maxPos);
-    void SetThumbLength(int len) ;
-    int GetThumbLength() const ;
-    void SetTick(int tickPos) ;
+    int GetTickFreq() const wxOVERRIDE { return m_tickFreq; }
+    void SetPageSize(int pageSize) wxOVERRIDE;
+    int GetPageSize() const wxOVERRIDE;
+    void ClearSel() wxOVERRIDE;
+    void ClearTicks() wxOVERRIDE;
+    void SetLineSize(int lineSize) wxOVERRIDE;
+    int GetLineSize() const wxOVERRIDE;
+    int GetSelEnd() const wxOVERRIDE;
+    int GetSelStart() const wxOVERRIDE;
+    void SetSelection(int minPos, int maxPos) wxOVERRIDE;
+    void SetThumbLength(int len) wxOVERRIDE;
+    int GetThumbLength() const wxOVERRIDE;
+    void SetTick(int tickPos) wxOVERRIDE;
 
-    void Command(wxCommandEvent& event);
+    void Command(wxCommandEvent& event) wxOVERRIDE;
     // osx specific event handling common for all osx-ports
 
-    virtual bool OSXHandleClicked( double timestampsec );
-    virtual void TriggerScrollEvent( wxEventType scrollEvent ) ;
+    virtual bool OSXHandleClicked( double timestampsec ) wxOVERRIDE;
+    virtual void TriggerScrollEvent( wxEventType scrollEvent ) wxOVERRIDE;
 
 protected:
     // Platform-specific implementation of SetTickFreq
-    virtual void DoSetTickFreq(int freq);
+    virtual void DoSetTickFreq(int freq) wxOVERRIDE;
 
-    virtual wxSize DoGetBestSize() const;
-    virtual void   DoSetSize(int x, int y, int w, int h, int sizeFlags);
-    virtual void   DoMoveWindow(int x, int y, int w, int h);
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual void   DoSetSize(int x, int y, int w, int h, int sizeFlags) wxOVERRIDE;
+    virtual void   DoMoveWindow(int x, int y, int w, int h) wxOVERRIDE;
 
     // set min/max size of the slider
     virtual void DoSetSizeHints( int minW, int minH,
                                  int maxW, int maxH,
-                                 int incW, int incH);
+                                 int incW, int incH) wxOVERRIDE;
 
     // Common processing to invert slider values based on wxSL_INVERSE
-    virtual int ValueInvertOrNot(int value) const;
+    virtual int ValueInvertOrNot(int value) const wxOVERRIDE;
 
     wxStaticText*    m_macMinimumStatic ;
     wxStaticText*    m_macMaximumStatic ;
@@ -102,7 +101,16 @@ protected:
     int           m_lineSize;
     int           m_tickFreq;
 private :
-DECLARE_EVENT_TABLE()
+    virtual wxWindowList GetCompositeWindowParts() const wxOVERRIDE
+    {
+        wxWindowList parts;
+        parts.push_back(m_macMinimumStatic);
+        parts.push_back(m_macMaximumStatic);
+        parts.push_back(m_macValueStatic);
+        return parts;
+    }
+
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

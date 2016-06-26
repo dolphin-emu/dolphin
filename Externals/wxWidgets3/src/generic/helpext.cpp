@@ -14,7 +14,7 @@
     #pragma hdrstop
 #endif
 
-#if wxUSE_HELP && !defined(__WXWINCE__)
+#if wxUSE_HELP
 
 #ifndef WX_PRECOMP
     #include "wx/list.h"
@@ -34,12 +34,8 @@
 #include <ctype.h>
 #include <sys/stat.h>
 
-#if !defined(__WINDOWS__) && !defined(__OS2__)
+#if !defined(__WINDOWS__)
     #include   <unistd.h>
-#endif
-
-#ifdef __WINDOWS__
-#include "wx/msw/mslu.h"
 #endif
 
 #ifdef __WXMSW__
@@ -66,7 +62,7 @@
 // Is browser a netscape browser?
 #define WXEXTHELP_ENVVAR_BROWSERISNETSCAPE  wxT("WX_HELPBROWSER_NS")
 
-IMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase)
+wxIMPLEMENT_CLASS(wxExtHelpController, wxHelpControllerBase);
 
 wxExtHelpController::wxExtHelpController(wxWindow* parentWindow)
                    : wxHelpControllerBase(parentWindow)

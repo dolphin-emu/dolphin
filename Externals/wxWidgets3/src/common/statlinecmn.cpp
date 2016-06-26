@@ -65,7 +65,7 @@ wxBEGIN_FLAGS( wxStaticLineStyle )
     wxFLAGS_MEMBER(wxLI_VERTICAL)
 wxEND_FLAGS( wxStaticLineStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticLine, wxControl, "wx/statline.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticLine, wxControl, "wx/statline.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxStaticLine)
     wxPROPERTY_FLAGS( WindowStyle, wxStaticLineStyle, long, SetWindowStyleFlag, \

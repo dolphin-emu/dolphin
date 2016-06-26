@@ -638,7 +638,7 @@ wxString wxCFStringRef::AsStringWithNormalizationFormC( CFStringRef ref, wxFontE
 
     CFMutableStringRef cfMutableString = CFStringCreateMutableCopy(NULL, 0, ref);
     CFStringNormalize(cfMutableString,kCFStringNormalizationFormC);
-    wxString str = wxCFStringRef::AsString(ref,encoding);
+    wxString str = wxCFStringRef::AsString(cfMutableString,encoding);
     CFRelease(cfMutableString);
     return str;
 }
@@ -693,7 +693,8 @@ wxString wxCFStringRef::AsString(wxFontEncoding encoding) const
     return AsString( get(), encoding );
 }
 
-#if wxOSX_USE_COCOA_OR_IPHONE
+#ifdef __WXMAC__
+
 wxString wxCFStringRef::AsString( NSString* ref, wxFontEncoding encoding )
 {
     return AsString( (CFStringRef) ref, encoding );
@@ -703,8 +704,8 @@ wxString wxCFStringRef::AsStringWithNormalizationFormC( NSString* ref, wxFontEnc
 {
     return AsStringWithNormalizationFormC( (CFStringRef) ref, encoding );
 }
-#endif // wxOSX_USE_COCOA_OR_IPHONE
 
+#endif
 
 //
 // wxMacUniCharBuffer

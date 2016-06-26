@@ -40,24 +40,19 @@
     #define wxOSX_USE_CARBON 0
 #endif
 
+#ifdef __WXOSX_IPHONE__
+    #define wxOSX_USE_IPHONE 1
+#else
+    #define wxOSX_USE_IPHONE 0
+#endif
+
 /*
  * setting flags according to the platform
  */
 
 #ifdef __LP64__
-    #if wxOSX_USE_COCOA == 0
-        #undef wxOSX_USE_COCOA
-        #define wxOSX_USE_COCOA 1
-    #endif
     #if wxOSX_USE_CARBON
         #error "Carbon does not support 64bit"
-    #endif
-    #define wxOSX_USE_IPHONE 0
-#else
-    #ifdef __WXOSX_IPHONE__
-        #define wxOSX_USE_IPHONE 1
-    #else
-        #define wxOSX_USE_IPHONE 0
     #endif
 #endif
 
@@ -79,8 +74,6 @@
 
 #if wxOSX_USE_IPHONE
     #include "wx/osx/iphone/chkconf.h"
-#elif wxOSX_USE_CARBON
-    #include "wx/osx/carbon/chkconf.h"
 #elif wxOSX_USE_COCOA
     #include "wx/osx/cocoa/chkconf.h"
 #endif

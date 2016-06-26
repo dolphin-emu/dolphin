@@ -80,19 +80,19 @@ public:
 
 #if wxUSE_VALIDATORS
     // Override the base functions to allow a validator to be assigned to this page.
-    virtual bool TransferDataToWindow()
+    virtual bool TransferDataToWindow() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->TransferToWindow()
                               : wxPanel::TransferDataToWindow();
     }
 
-    virtual bool TransferDataFromWindow()
+    virtual bool TransferDataFromWindow() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->TransferFromWindow()
                               : wxPanel::TransferDataFromWindow();
     }
 
-    virtual bool Validate()
+    virtual bool Validate() wxOVERRIDE
     {
         return GetValidator() ? GetValidator()->Validate(this)
                               : wxPanel::Validate();
@@ -106,7 +106,7 @@ protected:
     wxBitmap m_bitmap;
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPage)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPage);
 };
 
 // ----------------------------------------------------------------------------
@@ -165,8 +165,8 @@ public:
     }
 
     // base class pure virtuals
-    virtual wxWizardPage *GetPrev() const;
-    virtual wxWizardPage *GetNext() const;
+    virtual wxWizardPage *GetPrev() const wxOVERRIDE;
+    virtual wxWizardPage *GetNext() const wxOVERRIDE;
 
 private:
     // common part of ctors:
@@ -180,7 +180,7 @@ private:
     wxWizardPage *m_prev,
                  *m_next;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPageSimple)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxWizardPageSimple);
 };
 
 // ----------------------------------------------------------------------------
@@ -246,9 +246,9 @@ public:
     /// Override these functions to stop InitDialog from calling TransferDataToWindow
     /// for _all_ pages when the wizard starts. Instead 'ShowPage' will call
     /// TransferDataToWindow for the first page only.
-    bool TransferDataToWindow() { return true; }
-    bool TransferDataFromWindow() { return true; }
-    bool Validate() { return true; }
+    bool TransferDataToWindow() wxOVERRIDE { return true; }
+    bool TransferDataFromWindow() wxOVERRIDE { return true; }
+    bool Validate() wxOVERRIDE { return true; }
 
 private:
     wxDECLARE_NO_COPY_CLASS(wxWizardBase);
@@ -279,13 +279,13 @@ public:
 
     wxWizardPage*   GetPage() const { return m_page; }
 
-    virtual wxEvent *Clone() const { return new wxWizardEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxWizardEvent(*this); }
 
 private:
     bool m_direction;
     wxWizardPage*    m_page;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWizardEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxWizardEvent);
 };
 
 // ----------------------------------------------------------------------------

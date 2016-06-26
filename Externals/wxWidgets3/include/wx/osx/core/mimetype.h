@@ -105,6 +105,9 @@ public:
     bool SetDefaultIcon(const wxString& strIcon = wxEmptyString, int index = 0);
     bool Unassociate(wxFileType *ft);
 
+    wxString
+    GetExpandedCommand(const wxString& verb,
+                       const wxFileType::MessageParameters& params) const;
 private:
 
     // All that is needed to query type info - UTI and pointer to the manager

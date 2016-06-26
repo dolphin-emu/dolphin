@@ -39,8 +39,8 @@ const char wxColourPickerWidgetNameStr[] = "colourpickerwidget";
 // ============================================================================
 
 wxDEFINE_EVENT(wxEVT_COLOURPICKER_CHANGED, wxColourPickerEvent);
-IMPLEMENT_DYNAMIC_CLASS(wxColourPickerCtrl, wxPickerBase)
-IMPLEMENT_DYNAMIC_CLASS(wxColourPickerEvent, wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourPickerCtrl, wxPickerBase);
+wxIMPLEMENT_DYNAMIC_CLASS(wxColourPickerEvent, wxEvent);
 
 // ----------------------------------------------------------------------------
 // wxColourPickerCtrl

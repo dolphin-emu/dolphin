@@ -128,6 +128,18 @@ public:
         }
     }
 
+    // add all windows to update region to force redraw
+    void Refresh()
+    {
+        for ( size_t n = 0; n < m_count; n++ )
+        {
+            if ( m_hwnds[n] )
+            {
+                ::InvalidateRect(m_hwnds[n], NULL, FALSE /* don't erase bg */);
+            }
+        }
+    }
+
     // find the bounding box for all windows
     wxRect GetBoundingBox() const
     {
@@ -152,6 +164,7 @@ private:
     {
         m_count = 0;
         m_hwnds = NULL;
+        m_ids = NULL;
     }
 
     // number of elements in m_hwnds array
@@ -211,7 +224,29 @@ private:
             subwins->SetFont(font);                                           \
                                                                               \
         return true;                                                          \
-    }
+    }                                                                         \
+                                                                              \
+    bool cname::SetForegroundColour(const wxColour& colour)                   \
+    {                                                                         \
+        if ( !base::SetForegroundColour(colour) )                             \
+            return false;                                                     \
+                                                                              \
+        if ( subwins )                                                        \
+            subwins->Refresh();                                               \
+                                                                              \
+        return true;                                                          \
+    }                                                                         \
+                                                                              \
+    bool cname::SetBackgroundColour(const wxColour& colour)                   \
+    {                                                                         \
+        if ( !base::SetBackgroundColour(colour) )                             \
+            return false;                                                     \
+                                                                              \
+        if ( subwins )                                                        \
+            subwins->Refresh();                                               \
+                                                                              \
+        return true;                                                          \
+    }                                                                         \
 
 
 #endif // _WX_MSW_SUBWIN_H_

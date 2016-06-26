@@ -40,7 +40,7 @@ protected:
     // initialize the newly created DC
     void InitDC();
 
-    DECLARE_CLASS(wxWindowDCImpl)
+    wxDECLARE_CLASS(wxWindowDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxWindowDCImpl);
 };
 
@@ -60,7 +60,7 @@ public:
 protected:
     void InitDC();
 
-    DECLARE_CLASS(wxClientDCImpl)
+    wxDECLARE_CLASS(wxClientDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxClientDCImpl);
 };
 
@@ -85,7 +85,7 @@ protected:
     // Find the DC for this window in the cache, return NULL if not found.
     static wxPaintDCInfo *FindInCache(wxWindow* win);
 
-    DECLARE_CLASS(wxPaintDCImpl)
+    wxDECLARE_CLASS(wxPaintDCImpl);
     wxDECLARE_NO_COPY_CLASS(wxPaintDCImpl);
 };
 
@@ -100,7 +100,7 @@ class WXDLLIMPEXP_CORE wxPaintDCEx : public wxPaintDC
 public:
     wxPaintDCEx(wxWindow *canvas, WXHDC dc);
 
-    DECLARE_CLASS(wxPaintDCEx)
+    wxDECLARE_CLASS(wxPaintDCEx);
     wxDECLARE_NO_COPY_CLASS(wxPaintDCEx);
 };
 

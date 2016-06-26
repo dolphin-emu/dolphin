@@ -216,6 +216,12 @@ public:
     void SetItemFont( long item, const wxFont &f);
     wxFont GetItemFont( long item ) const;
 
+    // Checkbox state of an item
+    virtual bool HasCheckboxes() const wxOVERRIDE;
+    virtual bool EnableCheckboxes(bool enable = true) wxOVERRIDE;
+    virtual bool IsItemChecked(long item) const wxOVERRIDE;
+    virtual void CheckItem(long item, bool check) wxOVERRIDE;
+
     // Gets the number of selected items in the list control
     int GetSelectedItemCount() const;
 
@@ -365,12 +371,6 @@ public:
     static wxVisualAttributes
     GetClassDefaultAttributes(wxWindowVariant variant = wxWINDOW_VARIANT_NORMAL);
 
-
-#if WXWIN_COMPATIBILITY_2_6
-    // obsolete stuff, for compatibility only -- don't use
-    wxDEPRECATED( int GetItemSpacing(bool isSmall) const);
-#endif // WXWIN_COMPATIBILITY_2_6
-
     // convert our styles to Windows
     virtual WXDWORD MSWGetStyle(long style, WXDWORD *exstyle) const;
 
@@ -415,8 +415,6 @@ protected:
 
     int               m_colCount;   // Windows doesn't have GetColumnCount so must
                                     // keep track of inserted/deleted columns
-    long              m_count;      // Keep track of item count to save calls to
-                                    // ListView_GetItemCount
 
     // all wxMSWListItemData objects we use
     wxVector<wxMSWListItemData *> m_internalData;
@@ -463,8 +461,8 @@ private:
     void OnCharHook(wxKeyEvent& event);
 
 
-    DECLARE_DYNAMIC_CLASS(wxListCtrl)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxListCtrl);
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxListCtrl);
 };
 

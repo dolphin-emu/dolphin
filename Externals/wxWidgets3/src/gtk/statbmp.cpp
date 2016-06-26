@@ -59,15 +59,15 @@ void wxStaticBitmap::SetBitmap( const wxBitmap &bitmap )
 {
     m_bitmap = bitmap;
 
+    // always use pixbuf, because pixmap mask does not
+    // work with disabled images in some themes
     if (m_bitmap.IsOk())
-    {
-        // always use pixbuf, because pixmap mask does not
-        // work with disabled images in some themes
         gtk_image_set_from_pixbuf(GTK_IMAGE(m_widget), m_bitmap.GetPixbuf());
+    else
+        gtk_image_set_from_pixbuf(GTK_IMAGE(m_widget), NULL);
 
-        InvalidateBestSize();
-        SetSize(GetBestSize());
-    }
+    InvalidateBestSize();
+    SetSize(GetBestSize());
 }
 
 // static

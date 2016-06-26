@@ -57,7 +57,7 @@ protected:
     virtual bool DoUnionWithRect(const wxRect& rect);
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxRegion)
+    wxDECLARE_DYNAMIC_CLASS(wxRegion);
     friend class WXDLLIMPEXP_FWD_CORE wxRegionIterator;
 };
 
@@ -96,7 +96,7 @@ private:
     wxRegion m_region;
     wxRect*  m_rects;
 
-    DECLARE_DYNAMIC_CLASS(wxRegionIterator)
+    wxDECLARE_DYNAMIC_CLASS(wxRegionIterator);
 };
 
 #endif // _WX_MAC_CARBON_REGION_H_

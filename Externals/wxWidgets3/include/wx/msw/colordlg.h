@@ -48,13 +48,11 @@ protected:
     // common part of all ctors
     void Init();
 
-#if !(defined(__SMARTPHONE__) && defined(__WXWINCE__))
     virtual void DoGetPosition( int *x, int *y ) const;
     virtual void DoGetSize(int *width, int *height) const;
     virtual void DoGetClientSize(int *width, int *height) const;
     virtual void DoMoveWindow(int x, int y, int width, int height);
     virtual void DoCentre(int dir);
-#endif // !(__SMARTPHONE__ && __WXWINCE__)
 
     wxColourData        m_colourData;
     wxString            m_title;
@@ -67,7 +65,7 @@ protected:
     bool m_movedWindow;
 
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxColourDialog)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxColourDialog);
 };
 
 #endif // _WX_COLORDLG_H_

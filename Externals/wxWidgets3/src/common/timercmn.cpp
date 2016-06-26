@@ -38,7 +38,7 @@
 // wxWin macros
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTimerEvent, wxEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTimerEvent, wxEvent);
 
 wxDEFINE_EVENT(wxEVT_TIMER, wxTimerEvent);
 

@@ -184,45 +184,13 @@ void wxMacWakeUp()
 
 #endif
 
-bool wxCFEventLoop::YieldFor(long eventsToProcess)
+void wxCFEventLoop::DoYieldFor(long eventsToProcess)
 {
-#if wxUSE_THREADS
-    // Yielding from a non-gui thread needs to bail out, otherwise we end up
-    // possibly sending events in the thread too.
-    if ( !wxThread::IsMain() )
-    {
-        return true;
-    }
-#endif // wxUSE_THREADS
-
-    m_isInsideYield = true;
-    m_eventsToProcessInsideYield = eventsToProcess;
-
-#if wxUSE_LOG
-    // disable log flushing from here because a call to wxYield() shouldn't
-    // normally result in message boxes popping up &c
-    wxLog::Suspend();
-#endif // wxUSE_LOG
-
     // process all pending events:
     while ( DoProcessEvents() == 1 )
         ;
 
-    // it's necessary to call ProcessIdle() to update the frames sizes which
-    // might have been changed (it also will update other things set from
-    // OnUpdateUI() which is a nice (and desired) side effect)
-    while ( ProcessIdle() ) {}
-
-    // if there are pending events, we must process them.
-    if (wxTheApp)
-        wxTheApp->ProcessPendingEvents();
-
-#if wxUSE_LOG
-    wxLog::Resume();
-#endif // wxUSE_LOG
-    m_isInsideYield = false;
-
-    return true;
+    wxEventLoopBase::DoYieldFor(eventsToProcess);
 }
 
 // implement/override base class pure virtual
@@ -243,7 +211,7 @@ int wxCFEventLoop::DoProcessEvents()
     }
     else
 #endif
-        return DispatchTimeout( 0 );
+        return DispatchTimeout( IsYielding() ? 0 : 1000 );
 }
 
 bool wxCFEventLoop::Dispatch()
@@ -299,6 +267,8 @@ void wxCFEventLoop::OSXDoRun()
 {
     for ( ;; )
     {
+        OnNextIteration();
+
         // generate and process idle events for as long as we don't
         // have anything else to do
         DoProcessEvents();

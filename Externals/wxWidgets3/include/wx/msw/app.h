@@ -29,7 +29,7 @@ public:
     virtual ~wxApp();
 
     // override base class (pure) virtuals
-    virtual bool Initialize(int& _argc, wxChar **_argv);
+    virtual bool Initialize(int& argc, wxChar **argv);
     virtual void CleanUp();
 
     virtual void WakeUpIdle();
@@ -74,6 +74,17 @@ public:
     // in the previous GetRegisteredClassName() calls
     static bool IsRegisteredClassName(const wxString& name);
 
+    // Return the layout direction to use for a window by default.
+    //
+    // If the parent is specified, use the same layout direction as it uses.
+    // Otherwise use the default global layout, either from wxTheApp, if it
+    // exists, or Windows itself.
+    //
+    // Notice that this normally should not be used for the child windows as
+    // they already inherit, just dialogs such as wxMessageDialog may want to
+    // use it.
+    static wxLayoutDirection MSWGetDefaultLayout(wxWindow* parent = NULL);
+
 protected:
     int    m_printMode; // wxPRINT_WINDOWS, wxPRINT_POSTSCRIPT
 
@@ -91,39 +102,15 @@ public:
     // wasn't found at all
     static int GetComCtl32Version();
 
-    // the same for shell32.dll: returns 400, 471, 500, 600, ... (4.70 not
-    // currently detected)
-    static int GetShell32Version();
-
     // the SW_XXX value to be used for the frames opened by the application
     // (currently seems unused which is a bug -- TODO)
     static int m_nCmdShow;
 
 protected:
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxApp);
-    DECLARE_DYNAMIC_CLASS(wxApp)
+    wxDECLARE_DYNAMIC_CLASS(wxApp);
 };
-
-#ifdef __WXWINCE__
-
-// under CE provide a dummy implementation of GetComCtl32Version() returning
-// the value passing all ">= 470" tests (which are the only ones used in our
-// code currently) as commctrl.dll under CE 2.0 and later support comctl32.dll
-// functionality
-inline int wxApp::GetComCtl32Version()
-{
-    return 471;
-}
-
-// this is not currently used at all under CE so it's not really clear what do
-// we need to return from here
-inline int wxApp::GetShell32Version()
-{
-    return 0;
-}
-
-#endif // __WXWINCE__
 
 #endif // _WX_APP_H_
 

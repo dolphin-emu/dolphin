@@ -44,7 +44,7 @@ public:
   }
 
 protected:
-  DECLARE_DYNAMIC_CLASS_NO_COPY(wxMiniFrame)
+  wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxMiniFrame);
 };
 
 #endif

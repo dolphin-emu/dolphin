@@ -2,7 +2,7 @@
 #                                                                            *
 # Make file for VMS                                                          *
 # Author : J.Jansen (joukj@hrem.nano.tudelft.nl)                             *
-# Date : 21 January 2013                                                     *
+# Date : 22 September 2015                                                   *
 #                                                                            *
 #*****************************************************************************
 .first
@@ -95,7 +95,7 @@ OBJECTS = \
 		editlbox.obj,datavgen.obj,dbgrptg.obj,dragimgg.obj,\
 		richmsgdlgg.obj,commandlinkbuttong.obj,spinctlg.obj,\
 		markuptext.obj,bannerwindow.obj,timectrlg.obj,richtooltipg.obj\
-		,statbmpg.obj,splash.obj
+		,statbmpg.obj,splash.obj,collheaderctrlg.obj
 
 SOURCES = \
 		aboutdlgg.cpp,\
@@ -168,7 +168,7 @@ SOURCES = \
 		datavgen.cpp,dbgrptg.cpp,dragimgg.cpp,richmsgdlgg.cpp,\
 		commandlinkbuttong.cpp,spinctlg.cpp markuptext.cpp \
 		bannerwindow.cpp timectrlg.cpp richtooltipg.cpp statbmpg.cpp \
-		textmeasure.cpp
+		textmeasure.cpp collheaderctrlg.cpp
 
 .ifdef __WXMOTIF__
 OBJECTS0=statusbr.obj,statline.obj,notebook.obj,spinctlg.obj,collpaneg.obj,\
@@ -311,3 +311,4 @@ richtooltipg.obj : richtooltipg.cpp
 statbmpg.obj : statbmpg.cpp
 textmeasure.obj : textmeasure.cpp
 editlbox.obj : editlbox.cpp
+collheaderctrlg.obj : collheaderctrlg.cpp
