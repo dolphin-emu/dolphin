@@ -17,7 +17,7 @@ void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
   {
     emit.B(CC_LE, block.normalEntry);
 
-    // We can't write DISPATCHER_PC here, as blink linking is only for 8bytes.
+    // We can't write DISPATCHER_PC here, as block linking may only use 8 bytes.
     // So we'll hit two jumps when calling Advance.
     emit.B(block.checkedEntry);
   }

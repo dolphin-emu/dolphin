@@ -791,11 +791,6 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB;
 
-  u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-  // The following masks the region used by the GC/Wii virtual memory lib
-  mem_mask |= Memory::ADDR_MASK_MEM1;
-
   gpr.Lock(W0);
 
   ARM64Reg addr_reg = W0;

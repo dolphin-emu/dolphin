@@ -373,19 +373,9 @@ void JitIL::WriteExit(u32 destination)
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
 
-  // Link opportunity!
-  int block;
-  if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
-  {
-    // It exists! Joy of joy!
-    JMP(blocks.GetBlock(block)->checkedEntry, true);
-    linkData.linkStatus = true;
-  }
-  else
-  {
-    MOV(32, PPCSTATE(pc), Imm32(destination));
-    JMP(asm_routines.dispatcher, true);
-  }
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  JMP(asm_routines.dispatcher, true);
+
   b->linkData.push_back(linkData);
 }
 
