@@ -47,8 +47,10 @@ void JitArm64::Init()
   gpr.Init(this);
   fpr.Init(this);
 
-  blocks.Init();
+  blocks.Init(this);
   GenerateAsm();
+  WriteProtect();
+  farcode.WriteProtect();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -68,7 +70,9 @@ void JitArm64::ClearCache()
   farcode.ClearCodeSpace();
   UpdateMemoryOptions();
 
+  UnWriteProtect();
   GenerateAsm();
+  WriteProtect();
 }
 
 void JitArm64::Shutdown()
@@ -345,12 +349,14 @@ void JitArm64::EndTimeProfile(JitBlock* b)
 
 void JitArm64::Run()
 {
+  fprintf(stderr, "running compiled code at %p; [region: %p, len %zx]\n", enterCode, region, region_size);
   CompiledCode pExecAddr = (CompiledCode)enterCode;
   pExecAddr();
 }
 
 void JitArm64::SingleStep()
 {
+  fprintf(stderr, "running single step\n");
   CompiledCode pExecAddr = (CompiledCode)enterCode;
   pExecAddr();
 }
@@ -390,11 +396,17 @@ void JitArm64::Jit(u32)
   int block_num = blocks.AllocateBlock(em_address);
   JitBlock* b = blocks.GetBlock(block_num);
   const u8* BlockPtr = DoJit(em_address, &code_buffer, b, nextPC);
+
+  UnWriteProtect();
   blocks.FinalizeBlock(block_num, jo.enableBlocklink, BlockPtr);
+  WriteProtect();
 }
 
 const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
 {
+  UnWriteProtect();
+  farcode.UnWriteProtect();
+
   if (em_address == 0)
   {
     Core::SetState(Core::CORE_PAUSE);
@@ -632,7 +644,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
   b->codeSize = (u32)(GetCodePtr() - start);
   b->originalSize = code_block.m_num_instructions;
 
+  WriteProtect();
   FlushIcache();
+  farcode.WriteProtect();
   farcode.FlushIcache();
   return start;
 }

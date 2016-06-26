@@ -151,7 +151,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
 
   if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
-    EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, jo.fastmem, false, dest_reg, XA, BitSet32(0), BitSet32(0));
   }
   else if (mmio_address)
   {
@@ -341,7 +341,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
   else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     MOVI2R(XA, imm_addr);
-    EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, jo.fastmem, false, RS, XA, BitSet32(0), BitSet32(0));
   }
   else if (mmio_address && !(flags & BackPatchInfo::FLAG_REVERSE))
   {
@@ -853,7 +853,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
   gprs_to_push[W0] = 0;
 
-  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, true, true, W0, EncodeRegTo64(addr_reg),
+  EmitBackpatchRoutine(BackPatchInfo::FLAG_ZERO_256, jo.fastmem, true, W0, EncodeRegTo64(addr_reg),
                        gprs_to_push, fprs_to_push);
 
   gpr.Unlock(W0);

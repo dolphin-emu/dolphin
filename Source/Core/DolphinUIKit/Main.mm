@@ -14,6 +14,11 @@
 #include "UICommon/UICommon.h"
 #include "VideoCommon/VideoBackendBase.h"
 
+extern "C" {
+#define PT_TRACE_ME 0
+int	ptrace(int, pid_t, caddr_t, int);
+}
+
 static CAEAGLLayer *windowContext = nil;
 
 void* Host_GetRenderHandle()
@@ -129,10 +134,21 @@ void Host_UpdateDisasmDialog()
 
     DolphinAnalytics::Instance()->ReportDolphinStart("uikit");
 
-    NSLog(@"setting interpreter");
-    bool interpreter = true; // TODO JIT
-    SConfig::GetInstance().iCPUCore = PowerPC::MODE_INTERPRETER;
-    //PowerPC::SetMode(interpreter ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
+    auto core = PowerPC::CORE_INTERPRETER;
+#if __arm64__
+    if (ptrace(PT_TRACE_ME, 0, 0, 0) == 0) {
+        core = PowerPC::CORE_JITARM64;
+    } else {
+        NSLog(@"ptrace error: %d - %s (will use interpreter)", errno, strerror(errno));
+    }
+#elif __x86_64__
+    core = PowerPC::CORE_JIT64;
+#endif
+    NSLog(@"using core: %d", core);
+    SConfig::GetInstance().iCPUCore = core;
+
+    NSLog(@"fastmem is %d, turning off\n", SConfig::GetInstance().bFastmem);
+    SConfig::GetInstance().bFastmem = false;
 
     NSLog(@"activating openGL");
     VideoBackendBase::ActivateBackend("OGL");

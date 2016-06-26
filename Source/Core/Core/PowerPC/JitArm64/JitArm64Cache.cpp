@@ -7,8 +7,15 @@
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitInterface.h"
 
+void JitArm64BlockCache::Init(Arm64Gen::ARM64CodeBlock *block)
+{
+  JitBaseBlockCache::Init();
+  m_block = block;
+}
+
 void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 {
+  m_block->UnWriteProtect();
   ARM64XEmitter emit(location);
 
   // Are we able to jump directly to the normal entry?
@@ -25,14 +32,20 @@ void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
   {
     emit.B(block.checkedEntry);
   }
+
+  m_block->WriteProtect();
   emit.FlushIcache();
 }
 
 void JitArm64BlockCache::WriteDestroyBlock(const u8* location, u32 address)
 {
+  m_block->UnWriteProtect();
+
   // must fit within the code generated in JitArm64::WriteExit
   ARM64XEmitter emit((u8*)location);
   emit.MOVI2R(DISPATCHER_PC, address);
   emit.B(jit->GetAsmRoutines()->dispatcher);
+
+  m_block->WriteProtect();
   emit.FlushIcache();
 }
