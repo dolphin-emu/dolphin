@@ -179,11 +179,12 @@ bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_sour
 	glslang::GlslangToSpv(*intermediate, *spv, &logger);
 
 	// Write out messages
-	if (strlen(shader->getInfoLog()) > 0)
+	// Temporary: skip if it contains "Warning, version 450 is not yet complete; most version-specific features are present, but some are missing."
+	if (strlen(shader->getInfoLog()) > 108)
 		WARN_LOG(VIDEO, "Shader info log: %s", shader->getInfoLog());
 	if (strlen(shader->getInfoDebugLog()) > 0)
 		WARN_LOG(VIDEO, "Shader debug info log: %s", shader->getInfoDebugLog());
-	if (strlen(program->getInfoLog()) > 0)
+	if (strlen(program->getInfoLog()) > 25)
 		WARN_LOG(VIDEO, "Program info log: %s", program->getInfoLog());
 	if (strlen(program->getInfoDebugLog()) > 0)
 		WARN_LOG(VIDEO, "Program debug info log: %s", program->getInfoDebugLog());
