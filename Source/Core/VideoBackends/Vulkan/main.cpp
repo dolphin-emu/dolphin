@@ -59,7 +59,7 @@ void VideoBackend::InitBackendInfo()
 	g_Config.backend_info.bSupports3DVision = false;
 	g_Config.backend_info.bSupportsPostProcessing = false;
 	g_Config.backend_info.bSupportsPaletteConversion = true;
-	g_Config.backend_info.bSupportsClipControl = false;
+	g_Config.backend_info.bSupportsClipControl = true;
 	g_Config.backend_info.bSupportsBindingLayout = true;
 	g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
