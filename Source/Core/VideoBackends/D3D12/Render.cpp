@@ -836,7 +836,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   }
 
   // Dump frames
-  static int w = 0, h = 0;
   if (SConfig::GetInstance().m_DumpFrames)
   {
     static unsigned int s_record_width;
@@ -894,11 +893,11 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     }
     if (bAVIDumping)
     {
-      if (frame_data.empty() || w != s_record_width || h != s_record_height)
+      if (frame_data.empty() || source_width != s_record_width || source_height != source_height)
       {
-        frame_data.resize(3 * s_record_width * s_record_height);
-        w = s_record_width;
-        h = s_record_height;
+        s_record_width = source_width;
+        source_height = source_height;
+        frame_data.resize(3 * s_record_width * source_height);
       }
 
       void* screenshot_texture_map;
@@ -910,7 +909,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       D3D12_RANGE write_range = {};
       s_screenshot_texture->Unmap(0, &write_range);
 
-      FlipImageData(&frame_data[0], w, h);
+      FlipImageData(&frame_data[0], s_record_width, source_height);
       AVIDump::AddFrame(&frame_data[0], source_width, source_height);
     }
     bLastFrameDumped = true;
@@ -920,7 +919,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     if (bLastFrameDumped && bAVIDumping)
     {
       std::vector<u8>().swap(frame_data);
-      w = h = 0;
 
       AVIDump::Stop();
       bAVIDumping = false;
