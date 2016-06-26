@@ -154,7 +154,7 @@ void GetProfileResults(ProfileStats* prof_stats)
     u64 timecost = block->ticCounter;
     // Todo: tweak.
     if (block->runCount >= 1)
-      prof_stats->block_stats.emplace_back(i, block->originalAddress, cost, timecost,
+      prof_stats->block_stats.emplace_back(i, block->effectiveAddress, cost, timecost,
                                            block->runCount, block->codeSize);
     prof_stats->cost_sum += cost;
     prof_stats->timecost_sum += timecost;
@@ -186,8 +186,8 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
     if (block_num >= 0)
     {
       JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
-      if (!(block->originalAddress <= *address &&
-            block->originalSize + block->originalAddress >= *address))
+      if (!(block->effectiveAddress <= *address &&
+            block->originalSize + block->effectiveAddress >= *address))
         block_num = -1;
     }
 
@@ -203,7 +203,7 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
 
   *code = block->checkedEntry;
   *code_size = block->codeSize;
-  *address = block->originalAddress;
+  *address = block->effectiveAddress;
   return 0;
 }
 
