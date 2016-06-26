@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include <mutex>
+
 #include "Common/Thread.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_XINPUT
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
@@ -106,14 +108,11 @@ void ControllerInterface::Shutdown()
 
   std::lock_guard<std::mutex> lk(m_devices_mutex);
 
-  for (ciface::Core::Device* d : m_devices)
+  for (const auto& d : m_devices)
   {
     // Set outputs to ZERO before destroying device
     for (ciface::Core::Device::Output* o : d->Outputs())
       o->SetState(0);
-
-    // Delete device
-    delete d;
   }
 
   m_devices.clear();
@@ -141,10 +140,10 @@ void ControllerInterface::Shutdown()
   m_is_init = false;
 }
 
-void ControllerInterface::AddDevice(ciface::Core::Device* device)
+void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
   std::lock_guard<std::mutex> lk(m_devices_mutex);
-  m_devices.push_back(device);
+  m_devices.emplace_back(std::move(device));
 }
 
 //
@@ -155,7 +154,7 @@ void ControllerInterface::AddDevice(ciface::Core::Device* device)
 void ControllerInterface::UpdateInput()
 {
   std::lock_guard<std::mutex> lk(m_devices_mutex);
-  for (ciface::Core::Device* d : m_devices)
+  for (const auto& d : m_devices)
     d->UpdateInput();
 }
 
