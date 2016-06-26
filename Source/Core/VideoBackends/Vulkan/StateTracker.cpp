@@ -355,7 +355,7 @@ void StateTracker::SetPSTexture(size_t index, VkImageView view)
 
 	m_bindings.ps_samplers[index].imageView = view;
 	m_bindings.ps_samplers[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS | DIRTY_FLAG_PS_SAMPLERS;
+	m_dirty_flags |= DIRTY_FLAG_PS_SAMPLERS;
 }
 
 void StateTracker::SetPSSampler(size_t index, VkSampler sampler)
@@ -364,7 +364,7 @@ void StateTracker::SetPSSampler(size_t index, VkSampler sampler)
 		return;
 
 	m_bindings.ps_samplers[index].sampler = sampler;
-	m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS | DIRTY_FLAG_PS_SAMPLERS;
+	m_dirty_flags |= DIRTY_FLAG_PS_SAMPLERS;
 }
 
 void StateTracker::UnbindTexture(VkImageView view)
@@ -516,6 +516,7 @@ bool StateTracker::UpdateDescriptorSet()
 							   nullptr);
 
 		m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
+		m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
 	}
 
 	if (m_dirty_flags & DIRTY_FLAG_PS_SAMPLERS || m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] == VK_NULL_HANDLE)
@@ -571,6 +572,7 @@ bool StateTracker::UpdateDescriptorSet()
 
 		vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
 		m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+		m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
 	}
 
 	return true;
