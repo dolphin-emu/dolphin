@@ -69,7 +69,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("CacheHiresTextures", &bCacheHiresTextures, 0);
   settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
   settings->Get("FreeLook", &bFreeLook, 0);
-  settings->Get("MouselookLook", &bMouselookAlwaysOn, 0);
+  settings->Get("FreeLookAlwaysOn", &bFreeLookAlwaysOn, 0);
   settings->Get("UseFFV1", &bUseFFV1, 0);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
@@ -277,7 +277,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("CacheHiresTextures", bCacheHiresTextures);
   settings->Set("DumpEFBTarget", bDumpEFBTarget);
   settings->Set("FreeLook", bFreeLook);
-  settings->Set("MouselookLook", bMouselookAlwaysOn);
+  settings->Set("FreeLookAlwaysOn", bFreeLookAlwaysOn);
 
   settings->Set("UseFFV1", bUseFFV1);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);

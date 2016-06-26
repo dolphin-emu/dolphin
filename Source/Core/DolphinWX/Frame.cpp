@@ -1136,7 +1136,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 void CFrame::OnMouse(wxMouseEvent& event)
 {
 	// next handlers are all for FreeLook, so we don't need to check them if disabled
-	if (!g_Config.bFreeLook && !g_Config.bMouselookAlwaysOn)
+	if (!g_Config.bFreeLook && !g_Config.bFreeLookAlwaysOn)
 	{
 		event.Skip();
 		return;
@@ -1147,7 +1147,7 @@ void CFrame::OnMouse(wxMouseEvent& event)
 	static bool mouseMoveEnabled = false;
 	static float lastMouse[2];
 
-	if (g_Config.bMouselookAlwaysOn)
+	if (g_Config.bFreeLookAlwaysOn)
 	{
 
 		VertexShaderManager::RotateView(
