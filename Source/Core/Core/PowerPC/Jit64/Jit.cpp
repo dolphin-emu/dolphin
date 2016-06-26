@@ -396,29 +396,12 @@ void Jit64::JustWriteExit(u32 destination, bool bl, u32 after)
   linkData.exitAddress = destination;
   linkData.linkStatus = false;
 
-  // Link opportunity!
-  int block;
-  if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
-  {
-    // It exists! Joy of joy!
-    JitBlock* jb = blocks.GetBlock(block);
-    const u8* addr = jb->checkedEntry;
-    linkData.exitPtrs = GetWritableCodePtr();
-    if (bl)
-      CALL(addr);
-    else
-      JMP(addr, true);
-    linkData.linkStatus = true;
-  }
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  linkData.exitPtrs = GetWritableCodePtr();
+  if (bl)
+    CALL(asm_routines.dispatcher);
   else
-  {
-    MOV(32, PPCSTATE(pc), Imm32(destination));
-    linkData.exitPtrs = GetWritableCodePtr();
-    if (bl)
-      CALL(asm_routines.dispatcher);
-    else
-      JMP(asm_routines.dispatcher, true);
-  }
+    JMP(asm_routines.dispatcher, true);
 
   b->linkData.push_back(linkData);
 

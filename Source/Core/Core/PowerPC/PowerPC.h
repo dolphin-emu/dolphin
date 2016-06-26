@@ -272,6 +272,13 @@ bool IsOptimizableRAMAddress(const u32 address);
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize);
 bool IsOptimizableGatherPipeWrite(u32 address);
 
+struct TranslateResult
+{
+  bool valid;
+  bool from_bat;
+  u32 address;
+};
+TranslateResult JitCache_TranslateAddress(u32 address);
 }  // namespace
 
 enum CRBits
