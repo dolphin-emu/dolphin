@@ -61,8 +61,8 @@ struct TextureBuffer
 			//OVR_ASSERT(sampleCount == 1); // ovrHmd_CreateSwapTextureSetD3D11 doesn't support MSAA.
 
 			int length = 0;
-			ovrResult res;
 #if OVR_PRODUCT_VERSION >= 1
+			ovrResult res;
 			ovrTextureSwapChainDesc desc = {};
 			desc.Type = ovrTexture_2D;
 			desc.ArraySize = 1;

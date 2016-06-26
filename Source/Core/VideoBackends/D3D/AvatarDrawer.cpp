@@ -261,22 +261,22 @@ namespace DX11
 				m_scale = 1;
 				if (left_img)
 				{
-					D3D11_SUBRESOURCE_DATA srd = { left_img, width * 4, width * height * 4 };
+					D3D11_SUBRESOURCE_DATA srd = { left_img, (UINT)width * 4, (UINT)width * (UINT)height * 4 };
 					m_left_texture = DX11::D3DTexture2D::Create(width, height, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
 				}
 				else
 				{
-					D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, pTexture->unWidth * 4, pTexture->unWidth * pTexture->unHeight * 4 };
+					D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, (UINT)pTexture->unWidth * 4, (UINT)pTexture->unWidth * (UINT)pTexture->unHeight * 4 };
 					m_left_texture = DX11::D3DTexture2D::Create(pTexture->unWidth, pTexture->unHeight, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
 				}
 				if (right_img)
 				{
-					D3D11_SUBRESOURCE_DATA srd = { right_img, width2 * 4, width2 * height2 * 4 };
+					D3D11_SUBRESOURCE_DATA srd = { right_img, (UINT)width2 * 4, (UINT)width2 * (UINT)height2 * 4 };
 					m_right_texture = DX11::D3DTexture2D::Create(width2, height2, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
 				}
 				else
 				{
-					D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, pTexture->unWidth * 4, pTexture->unWidth * pTexture->unHeight * 4 };
+					D3D11_SUBRESOURCE_DATA srd = { pTexture->rubTextureMapData, (UINT)pTexture->unWidth * 4, (UINT)pTexture->unWidth * (UINT)pTexture->unHeight * 4 };
 					m_right_texture = DX11::D3DTexture2D::Create(pTexture->unWidth, pTexture->unHeight, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC, DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &srd);
 				}
 			}
