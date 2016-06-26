@@ -151,8 +151,8 @@ bool VideoBackend::Initialize(void* window_handle)
 	}
 
 	// create swap chain and buffers
-	s_swap_chain = std::make_unique<SwapChain>();
-	if (!s_swap_chain->Initialize(s_vkPhysicalDevice, s_vkDevice, s_vkSurface, present_queue, s_command_buffer_mgr->GetCurrentCommandBuffer()))
+	s_swap_chain = std::make_unique<SwapChain>(s_object_cache.get(),s_command_buffer_mgr.get(), s_vkSurface, present_queue);
+	if (!s_swap_chain->Initialize())
 	{
 		PanicAlert("Failed to create vulkan swap chain");
 		goto CLEANUP_DEVICE;

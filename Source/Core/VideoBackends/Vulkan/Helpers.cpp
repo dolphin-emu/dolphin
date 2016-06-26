@@ -21,7 +21,8 @@ static bool ShouldEnableDebugLayer()
 {
 	// TODO: Config for this
 	// TODO: Use vkEnumerateInstanceLayerProperties to check for presence of the debug layer first
-	return true;
+	return false;
+	//return true;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugLayerReportCallback(
@@ -562,6 +563,30 @@ template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkIm
 	DeferredResourceDestruction ret;
 	ret.object.ImageView = object;
 	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyImageView(device, obj.ImageView, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkRenderPass>(VkRenderPass object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.RenderPass = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyRenderPass(device, obj.RenderPass, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkFramebuffer>(VkFramebuffer object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.Framebuffer = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyFramebuffer(device, obj.Framebuffer, nullptr); };
+	return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkSwapchainKHR>(VkSwapchainKHR object)
+{
+	DeferredResourceDestruction ret;
+	ret.object.Swapchain = object;
+	ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroySwapchainKHR(device, obj.Swapchain, nullptr); };
 	return ret;
 }
 

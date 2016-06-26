@@ -46,6 +46,9 @@ struct DeferredResourceDestruction
 		VkBufferView BufferView;
 		VkImage Image;
 		VkImageView ImageView;
+		VkRenderPass RenderPass;
+		VkFramebuffer Framebuffer;
+		VkSwapchainKHR Swapchain;
 	} object;
 
 	void(*destroy_callback)(VkDevice device, const Object& object);

@@ -7,19 +7,21 @@
 #include <vector>
 
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan {
 
+class CommandBufferManager;
 class ObjectCache;
 
 class SwapChain
 {
 public:
-	SwapChain() = default;
+	SwapChain(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, VkSurfaceKHR surface, VkQueue present_queue);
 	~SwapChain();
 
-	bool Initialize(VkPhysicalDevice physical_device, VkDevice device, VkSurfaceKHR surface, VkQueue present_queue, VkCommandBuffer setup_command_buffer);
+	bool Initialize();
 
 	VkSurfaceKHR GetSurface() const { return m_surface; }
 	VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
@@ -28,11 +30,10 @@ public:
 	VkExtent2D GetSize() const { return m_size; }
 
 	VkImage GetCurrentImage() const { return m_swap_chain_images[m_current_swap_chain_image_index].Image; }
+	Texture2D* GetCurrentTexture() const { return m_swap_chain_images[m_current_swap_chain_image_index].Texture.get(); }
 	VkFramebuffer GetCurrentFramebuffer() const { return m_swap_chain_images[m_current_swap_chain_image_index].Framebuffer; }
 
 	bool AcquireNextImage(VkSemaphore available_semaphore);
-	void TransitionToAttachment(VkCommandBuffer command_buffer);
-	void TransitionToPresent(VkCommandBuffer command_buffer);
 	bool Present(VkSemaphore rendering_complete_semaphore);
 
 private:
@@ -44,18 +45,18 @@ private:
 	bool CreateRenderPass();
 	void DestroyRenderPass();
 
-	bool SetupSwapChainImages(VkCommandBuffer setup_command_buffer);
+	bool SetupSwapChainImages();
 	void DestroySwapChainImages();
 
 	struct SwapChainImage
 	{
 		VkImage Image;
-		VkImageView View;
+		std::unique_ptr<Texture2D> Texture;
 		VkFramebuffer Framebuffer;
 	};
 
-	VkPhysicalDevice m_physical_device = nullptr;
-	VkDevice m_device = nullptr;
+	ObjectCache* m_object_cache = nullptr;
+	CommandBufferManager* m_command_buffer_mgr = nullptr;
 	VkSurfaceKHR m_surface = nullptr;
 	VkSurfaceFormatKHR m_surface_format;
 
