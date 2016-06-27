@@ -36,3 +36,12 @@ void JitArm64BlockCache::WriteDestroyBlock(const u8* location, u32 address)
   emit.B(jit->GetAsmRoutines()->dispatcher);
   emit.FlushIcache();
 }
+
+void JitArm64BlockCache::WriteUndestroyBlock(const u8* location, u32 address)
+{
+  FixupBranch bail = B(CC_PL);
+  MOVI2R(DISPATCHER_PC, js.blockStart);
+  B(jit->GetAsmRoutines()->doTiming);
+  SetJumpTarget(bail);
+  emit.FlushIcache();
+}
