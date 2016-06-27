@@ -2,73 +2,71 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Thread.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
+#include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/Log.h"
+#include "Common/Thread.h"
 
-void cX11Window::Initialize(Display *_dpy)
+void cX11Window::Initialize(Display* _dpy)
 {
-	dpy = _dpy;
+  dpy = _dpy;
 }
 
-Window cX11Window::CreateXWindow(Window parent, XVisualInfo *vi)
+Window cX11Window::CreateXWindow(Window parent, XVisualInfo* vi)
 {
-	XSetWindowAttributes attr;
+  XSetWindowAttributes attr;
 
-	colormap = XCreateColormap(dpy, parent, vi->visual, AllocNone);
+  colormap = XCreateColormap(dpy, parent, vi->visual, AllocNone);
 
-	// Setup window attributes
-	attr.colormap = colormap;
+  // Setup window attributes
+  attr.colormap = colormap;
 
-	XWindowAttributes attribs;
-	if (!XGetWindowAttributes(dpy, parent, &attribs))
-	{
-		ERROR_LOG(VIDEO, "Window attribute retrieval failed");
-		return 0;
-	}
+  XWindowAttributes attribs;
+  if (!XGetWindowAttributes(dpy, parent, &attribs))
+  {
+    ERROR_LOG(VIDEO, "Window attribute retrieval failed");
+    return 0;
+  }
 
-	// Create the window
-	win = XCreateWindow(dpy, parent,
-			    0, 0, attribs.width, attribs.height, 0,
-			    vi->depth, InputOutput, vi->visual,
-			    CWColormap, &attr);
-	XSelectInput(dpy, parent, StructureNotifyMask);
-	XMapWindow(dpy, win);
-	XSync(dpy, True);
+  // Create the window
+  win = XCreateWindow(dpy, parent, 0, 0, attribs.width, attribs.height, 0, vi->depth, InputOutput,
+                      vi->visual, CWColormap, &attr);
+  XSelectInput(dpy, parent, StructureNotifyMask);
+  XMapWindow(dpy, win);
+  XSync(dpy, True);
 
-	xEventThread = std::thread(&cX11Window::XEventThread, this);
+  xEventThread = std::thread(&cX11Window::XEventThread, this);
 
-	return win;
+  return win;
 }
 
 void cX11Window::DestroyXWindow(void)
 {
-	XUnmapWindow(dpy, win);
-	win = 0;
-	if (xEventThread.joinable())
-		xEventThread.join();
-	XFreeColormap(dpy, colormap);
+  XUnmapWindow(dpy, win);
+  win = 0;
+  if (xEventThread.joinable())
+    xEventThread.join();
+  XFreeColormap(dpy, colormap);
 }
 
 void cX11Window::XEventThread()
 {
-	while (win)
-	{
-		XEvent event;
-		for (int num_events = XPending(dpy); num_events > 0; num_events--)
-		{
-			XNextEvent(dpy, &event);
-			switch (event.type)
-			{
-			case ConfigureNotify:
-				XResizeWindow(dpy, win, event.xconfigure.width, event.xconfigure.height);
-				GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
-				break;
-			default:
-				break;
-			}
-		}
-		Common::SleepCurrentThread(20);
-	}
+  while (win)
+  {
+    XEvent event;
+    for (int num_events = XPending(dpy); num_events > 0; num_events--)
+    {
+      XNextEvent(dpy, &event);
+      switch (event.type)
+      {
+      case ConfigureNotify:
+        XResizeWindow(dpy, win, event.xconfigure.width, event.xconfigure.height);
+        GLInterface->SetBackBufferDimensions(event.xconfigure.width, event.xconfigure.height);
+        break;
+      default:
+        break;
+      }
+    }
+    Common::SleepCurrentThread(20);
+  }
 }

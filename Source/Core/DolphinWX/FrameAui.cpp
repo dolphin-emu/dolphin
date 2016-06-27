@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+
+// clang-format off
+#include <wx/bitmap.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
@@ -18,6 +21,7 @@
 #include <wx/statusbr.h>
 #include <wx/textdlg.h>
 #include <wx/toplevel.h>
+// clang-format on
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"

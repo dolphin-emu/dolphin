@@ -23,102 +23,107 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-#define GL_BLEND_DST_RGB                  0x80C8
-#define GL_BLEND_SRC_RGB                  0x80C9
-#define GL_BLEND_DST_ALPHA                0x80CA
-#define GL_BLEND_SRC_ALPHA                0x80CB
-#define GL_POINT_FADE_THRESHOLD_SIZE      0x8128
-#define GL_DEPTH_COMPONENT16              0x81A5
-#define GL_DEPTH_COMPONENT24              0x81A6
-#define GL_DEPTH_COMPONENT32              0x81A7
-#define GL_MIRRORED_REPEAT                0x8370
-#define GL_MAX_TEXTURE_LOD_BIAS           0x84FD
-#define GL_TEXTURE_LOD_BIAS               0x8501
-#define GL_INCR_WRAP                      0x8507
-#define GL_DECR_WRAP                      0x8508
-#define GL_TEXTURE_DEPTH_SIZE             0x884A
-#define GL_TEXTURE_COMPARE_MODE           0x884C
-#define GL_TEXTURE_COMPARE_FUNC           0x884D
-#define GL_POINT_SIZE_MIN                 0x8126
-#define GL_POINT_SIZE_MAX                 0x8127
-#define GL_POINT_DISTANCE_ATTENUATION     0x8129
-#define GL_GENERATE_MIPMAP                0x8191
-#define GL_GENERATE_MIPMAP_HINT           0x8192
-#define GL_FOG_COORDINATE_SOURCE          0x8450
-#define GL_FOG_COORDINATE                 0x8451
-#define GL_FRAGMENT_DEPTH                 0x8452
-#define GL_CURRENT_FOG_COORDINATE         0x8453
-#define GL_FOG_COORDINATE_ARRAY_TYPE      0x8454
-#define GL_FOG_COORDINATE_ARRAY_STRIDE    0x8455
-#define GL_FOG_COORDINATE_ARRAY_POINTER   0x8456
-#define GL_FOG_COORDINATE_ARRAY           0x8457
-#define GL_COLOR_SUM                      0x8458
-#define GL_CURRENT_SECONDARY_COLOR        0x8459
-#define GL_SECONDARY_COLOR_ARRAY_SIZE     0x845A
-#define GL_SECONDARY_COLOR_ARRAY_TYPE     0x845B
-#define GL_SECONDARY_COLOR_ARRAY_STRIDE   0x845C
-#define GL_SECONDARY_COLOR_ARRAY_POINTER  0x845D
-#define GL_SECONDARY_COLOR_ARRAY          0x845E
-#define GL_TEXTURE_FILTER_CONTROL         0x8500
-#define GL_DEPTH_TEXTURE_MODE             0x884B
-#define GL_COMPARE_R_TO_TEXTURE           0x884E
-#define GL_FUNC_ADD                       0x8006
-#define GL_FUNC_SUBTRACT                  0x800A
-#define GL_FUNC_REVERSE_SUBTRACT          0x800B
-#define GL_MIN                            0x8007
-#define GL_MAX                            0x8008
-#define GL_CONSTANT_COLOR                 0x8001
-#define GL_ONE_MINUS_CONSTANT_COLOR       0x8002
-#define GL_CONSTANT_ALPHA                 0x8003
-#define GL_ONE_MINUS_CONSTANT_ALPHA       0x8004
+#define GL_BLEND_DST_RGB 0x80C8
+#define GL_BLEND_SRC_RGB 0x80C9
+#define GL_BLEND_DST_ALPHA 0x80CA
+#define GL_BLEND_SRC_ALPHA 0x80CB
+#define GL_POINT_FADE_THRESHOLD_SIZE 0x8128
+#define GL_DEPTH_COMPONENT16 0x81A5
+#define GL_DEPTH_COMPONENT24 0x81A6
+#define GL_DEPTH_COMPONENT32 0x81A7
+#define GL_MIRRORED_REPEAT 0x8370
+#define GL_MAX_TEXTURE_LOD_BIAS 0x84FD
+#define GL_TEXTURE_LOD_BIAS 0x8501
+#define GL_INCR_WRAP 0x8507
+#define GL_DECR_WRAP 0x8508
+#define GL_TEXTURE_DEPTH_SIZE 0x884A
+#define GL_TEXTURE_COMPARE_MODE 0x884C
+#define GL_TEXTURE_COMPARE_FUNC 0x884D
+#define GL_POINT_SIZE_MIN 0x8126
+#define GL_POINT_SIZE_MAX 0x8127
+#define GL_POINT_DISTANCE_ATTENUATION 0x8129
+#define GL_GENERATE_MIPMAP 0x8191
+#define GL_GENERATE_MIPMAP_HINT 0x8192
+#define GL_FOG_COORDINATE_SOURCE 0x8450
+#define GL_FOG_COORDINATE 0x8451
+#define GL_FRAGMENT_DEPTH 0x8452
+#define GL_CURRENT_FOG_COORDINATE 0x8453
+#define GL_FOG_COORDINATE_ARRAY_TYPE 0x8454
+#define GL_FOG_COORDINATE_ARRAY_STRIDE 0x8455
+#define GL_FOG_COORDINATE_ARRAY_POINTER 0x8456
+#define GL_FOG_COORDINATE_ARRAY 0x8457
+#define GL_COLOR_SUM 0x8458
+#define GL_CURRENT_SECONDARY_COLOR 0x8459
+#define GL_SECONDARY_COLOR_ARRAY_SIZE 0x845A
+#define GL_SECONDARY_COLOR_ARRAY_TYPE 0x845B
+#define GL_SECONDARY_COLOR_ARRAY_STRIDE 0x845C
+#define GL_SECONDARY_COLOR_ARRAY_POINTER 0x845D
+#define GL_SECONDARY_COLOR_ARRAY 0x845E
+#define GL_TEXTURE_FILTER_CONTROL 0x8500
+#define GL_DEPTH_TEXTURE_MODE 0x884B
+#define GL_COMPARE_R_TO_TEXTURE 0x884E
+#define GL_FUNC_ADD 0x8006
+#define GL_FUNC_SUBTRACT 0x800A
+#define GL_FUNC_REVERSE_SUBTRACT 0x800B
+#define GL_MIN 0x8007
+#define GL_MAX 0x8008
+#define GL_CONSTANT_COLOR 0x8001
+#define GL_ONE_MINUS_CONSTANT_COLOR 0x8002
+#define GL_CONSTANT_ALPHA 0x8003
+#define GL_ONE_MINUS_CONSTANT_ALPHA 0x8004
 
-typedef void (APIENTRYP PFNDOLBLENDFUNCSEPARATEPROC) (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha);
-typedef void (APIENTRYP PFNDOLMULTIDRAWARRAYSPROC) (GLenum mode, const GLint *first, const GLsizei *count, GLsizei drawcount);
-typedef void (APIENTRYP PFNDOLMULTIDRAWELEMENTSPROC) (GLenum mode, const GLsizei *count, GLenum type, const void *const*indices, GLsizei drawcount);
-typedef void (APIENTRYP PFNDOLPOINTPARAMETERFPROC) (GLenum pname, GLfloat param);
-typedef void (APIENTRYP PFNDOLPOINTPARAMETERFVPROC) (GLenum pname, const GLfloat *params);
-typedef void (APIENTRYP PFNDOLPOINTPARAMETERIPROC) (GLenum pname, GLint param);
-typedef void (APIENTRYP PFNDOLPOINTPARAMETERIVPROC) (GLenum pname, const GLint *params);
-typedef void (APIENTRYP PFNDOLFOGCOORDFPROC) (GLfloat coord);
-typedef void (APIENTRYP PFNDOLFOGCOORDFVPROC) (const GLfloat *coord);
-typedef void (APIENTRYP PFNDOLFOGCOORDDPROC) (GLdouble coord);
-typedef void (APIENTRYP PFNDOLFOGCOORDDVPROC) (const GLdouble *coord);
-typedef void (APIENTRYP PFNDOLFOGCOORDPOINTERPROC) (GLenum type, GLsizei stride, const void *pointer);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3BPROC) (GLbyte red, GLbyte green, GLbyte blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3BVPROC) (const GLbyte *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3DPROC) (GLdouble red, GLdouble green, GLdouble blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3DVPROC) (const GLdouble *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3FPROC) (GLfloat red, GLfloat green, GLfloat blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3FVPROC) (const GLfloat *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3IPROC) (GLint red, GLint green, GLint blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3IVPROC) (const GLint *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3SPROC) (GLshort red, GLshort green, GLshort blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3SVPROC) (const GLshort *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3UBPROC) (GLubyte red, GLubyte green, GLubyte blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3UBVPROC) (const GLubyte *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3UIPROC) (GLuint red, GLuint green, GLuint blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3UIVPROC) (const GLuint *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3USPROC) (GLushort red, GLushort green, GLushort blue);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLOR3USVPROC) (const GLushort *v);
-typedef void (APIENTRYP PFNDOLSECONDARYCOLORPOINTERPROC) (GLint size, GLenum type, GLsizei stride, const void *pointer);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2DPROC) (GLdouble x, GLdouble y);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2DVPROC) (const GLdouble *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2FPROC) (GLfloat x, GLfloat y);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2FVPROC) (const GLfloat *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2IPROC) (GLint x, GLint y);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2IVPROC) (const GLint *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2SPROC) (GLshort x, GLshort y);
-typedef void (APIENTRYP PFNDOLWINDOWPOS2SVPROC) (const GLshort *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3DPROC) (GLdouble x, GLdouble y, GLdouble z);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3DVPROC) (const GLdouble *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3FPROC) (GLfloat x, GLfloat y, GLfloat z);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3FVPROC) (const GLfloat *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3IPROC) (GLint x, GLint y, GLint z);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3IVPROC) (const GLint *v);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3SPROC) (GLshort x, GLshort y, GLshort z);
-typedef void (APIENTRYP PFNDOLWINDOWPOS3SVPROC) (const GLshort *v);
-typedef void (APIENTRYP PFNDOLBLENDCOLORPROC) (GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
-typedef void (APIENTRYP PFNDOLBLENDEQUATIONPROC) (GLenum mode);
+typedef void(APIENTRYP PFNDOLBLENDFUNCSEPARATEPROC)(GLenum sfactorRGB, GLenum dfactorRGB,
+                                                    GLenum sfactorAlpha, GLenum dfactorAlpha);
+typedef void(APIENTRYP PFNDOLMULTIDRAWARRAYSPROC)(GLenum mode, const GLint* first,
+                                                  const GLsizei* count, GLsizei drawcount);
+typedef void(APIENTRYP PFNDOLMULTIDRAWELEMENTSPROC)(GLenum mode, const GLsizei* count, GLenum type,
+                                                    const void* const* indices, GLsizei drawcount);
+typedef void(APIENTRYP PFNDOLPOINTPARAMETERFPROC)(GLenum pname, GLfloat param);
+typedef void(APIENTRYP PFNDOLPOINTPARAMETERFVPROC)(GLenum pname, const GLfloat* params);
+typedef void(APIENTRYP PFNDOLPOINTPARAMETERIPROC)(GLenum pname, GLint param);
+typedef void(APIENTRYP PFNDOLPOINTPARAMETERIVPROC)(GLenum pname, const GLint* params);
+typedef void(APIENTRYP PFNDOLFOGCOORDFPROC)(GLfloat coord);
+typedef void(APIENTRYP PFNDOLFOGCOORDFVPROC)(const GLfloat* coord);
+typedef void(APIENTRYP PFNDOLFOGCOORDDPROC)(GLdouble coord);
+typedef void(APIENTRYP PFNDOLFOGCOORDDVPROC)(const GLdouble* coord);
+typedef void(APIENTRYP PFNDOLFOGCOORDPOINTERPROC)(GLenum type, GLsizei stride, const void* pointer);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3BPROC)(GLbyte red, GLbyte green, GLbyte blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3BVPROC)(const GLbyte* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3DPROC)(GLdouble red, GLdouble green, GLdouble blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3DVPROC)(const GLdouble* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3FPROC)(GLfloat red, GLfloat green, GLfloat blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3FVPROC)(const GLfloat* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3IPROC)(GLint red, GLint green, GLint blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3IVPROC)(const GLint* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3SPROC)(GLshort red, GLshort green, GLshort blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3SVPROC)(const GLshort* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3UBPROC)(GLubyte red, GLubyte green, GLubyte blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3UBVPROC)(const GLubyte* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3UIPROC)(GLuint red, GLuint green, GLuint blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3UIVPROC)(const GLuint* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3USPROC)(GLushort red, GLushort green, GLushort blue);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLOR3USVPROC)(const GLushort* v);
+typedef void(APIENTRYP PFNDOLSECONDARYCOLORPOINTERPROC)(GLint size, GLenum type, GLsizei stride,
+                                                        const void* pointer);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2DPROC)(GLdouble x, GLdouble y);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2DVPROC)(const GLdouble* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2FPROC)(GLfloat x, GLfloat y);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2FVPROC)(const GLfloat* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2IPROC)(GLint x, GLint y);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2IVPROC)(const GLint* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2SPROC)(GLshort x, GLshort y);
+typedef void(APIENTRYP PFNDOLWINDOWPOS2SVPROC)(const GLshort* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3DPROC)(GLdouble x, GLdouble y, GLdouble z);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3DVPROC)(const GLdouble* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3FPROC)(GLfloat x, GLfloat y, GLfloat z);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3FVPROC)(const GLfloat* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3IPROC)(GLint x, GLint y, GLint z);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3IVPROC)(const GLint* v);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3SPROC)(GLshort x, GLshort y, GLshort z);
+typedef void(APIENTRYP PFNDOLWINDOWPOS3SVPROC)(const GLshort* v);
+typedef void(APIENTRYP PFNDOLBLENDCOLORPROC)(GLfloat red, GLfloat green, GLfloat blue,
+                                             GLfloat alpha);
+typedef void(APIENTRYP PFNDOLBLENDEQUATIONPROC)(GLenum mode);
 
 // These two are provided by ARB_imaging as well
 extern PFNDOLBLENDCOLORPROC dolBlendColor;

@@ -20,233 +20,223 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64 : public Jitx86Base
 {
 private:
-	void AllocStack();
-	void FreeStack();
+  void AllocStack();
+  void FreeStack();
 
-	GPRRegCache gpr;
-	FPURegCache fpr;
+  GPRRegCache gpr;
+  FPURegCache fpr;
 
-	// The default code buffer. We keep it around to not have to alloc/dealloc a
-	// large chunk of memory for each recompiled block.
-	PPCAnalyst::CodeBuffer code_buffer;
-	Jit64AsmRoutineManager asm_routines;
+  // The default code buffer. We keep it around to not have to alloc/dealloc a
+  // large chunk of memory for each recompiled block.
+  PPCAnalyst::CodeBuffer code_buffer;
+  Jit64AsmRoutineManager asm_routines;
 
-	bool m_enable_blr_optimization;
-	bool m_cleanup_after_stackfault;
-	u8* m_stack;
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault;
+  u8* m_stack;
 
 public:
-	Jit64() : code_buffer(32000) {}
-	~Jit64() {}
+  Jit64() : code_buffer(32000) {}
+  ~Jit64() {}
+  void Init() override;
 
-	void Init() override;
+  void EnableOptimization();
 
-	void EnableOptimization();
+  void EnableBlockLink();
 
-	void EnableBlockLink();
+  void Shutdown() override;
 
-	void Shutdown() override;
+  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
-	bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  bool HandleStackFault() override;
 
-	bool HandleStackFault() override;
+  // Jit!
 
-	// Jit!
+  void Jit(u32 em_address) override;
+  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
 
-	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
+  BitSet32 CallerSavedRegistersInUse();
 
-	BitSet32 CallerSavedRegistersInUse();
+  JitBlockCache* GetBlockCache() override { return &blocks; }
+  void Trace();
 
-	JitBlockCache *GetBlockCache() override { return &blocks; }
+  void ClearCache() override;
 
-	void Trace();
+  const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
+  const char* GetName() override { return "JIT64"; }
+  // Run!
+  void Run() override;
+  void SingleStep() override;
 
-	void ClearCache() override;
+  // Utilities for use by opcodes
 
-	const CommonAsmRoutines *GetAsmRoutines() override
-	{
-		return &asm_routines;
-	}
+  void WriteExit(u32 destination, bool bl = false, u32 after = 0);
+  void JustWriteExit(u32 destination, bool bl, u32 after);
+  void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
+  void WriteBLRExit();
+  void WriteExceptionExit();
+  void WriteExternalExceptionExit();
+  void WriteRfiExitDestInRSCRATCH();
+  bool Cleanup();
 
-	const char *GetName() override
-	{
-		return "JIT64";
-	}
+  void GenerateConstantOverflow(bool overflow);
+  void GenerateConstantOverflow(s64 val);
+  void GenerateOverflow();
+  void FinalizeCarryOverflow(bool oe, bool inv = false);
+  void FinalizeCarry(Gen::CCFlags cond);
+  void FinalizeCarry(bool ca);
+  void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
 
-	// Run!
-	void Run() override;
-	void SingleStep() override;
+  // Use to extract bytes from a register using the regcache. offset is in bytes.
+  Gen::OpArg ExtractFromReg(int reg, int offset);
+  void AndWithMask(Gen::X64Reg reg, u32 mask);
+  bool CheckMergedBranch(int crf);
+  void DoMergedBranch();
+  void DoMergedBranchCondition();
+  void DoMergedBranchImmediate(s64 val);
 
-	// Utilities for use by opcodes
+  // Reads a given bit of a given CR register part.
+  void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
+  // Clobbers RDX.
+  void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
+  void ClearCRFieldBit(int field, int bit);
+  void SetCRFieldBit(int field, int bit);
 
-	void WriteExit(u32 destination, bool bl = false, u32 after = 0);
-	void JustWriteExit(u32 destination, bool bl, u32 after);
-	void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
-	void WriteBLRExit();
-	void WriteExceptionExit();
-	void WriteExternalExceptionExit();
-	void WriteRfiExitDestInRSCRATCH();
-	bool Cleanup();
+  // Generates a branch that will check if a given bit of a CR register part
+  // is set or not.
+  Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
+  void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-	void GenerateConstantOverflow(bool overflow);
-	void GenerateConstantOverflow(s64 val);
-	void GenerateOverflow();
-	void FinalizeCarryOverflow(bool oe, bool inv = false);
-	void FinalizeCarry(Gen::CCFlags cond);
-	void FinalizeCarry(bool ca);
-	void ComputeRC(const Gen::OpArg & arg, bool needs_test = true, bool needs_sext = true);
+  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
+                  Gen::X64Reg clobber = Gen::XMM0);
 
-	// Use to extract bytes from a register using the regcache. offset is in bytes.
-	Gen::OpArg ExtractFromReg(int reg, int offset);
-	void AndWithMask(Gen::X64Reg reg, u32 mask);
-	bool CheckMergedBranch(int crf);
-	void DoMergedBranch();
-	void DoMergedBranchCondition();
-	void DoMergedBranchImmediate(s64 val);
+  void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
 
-	// Reads a given bit of a given CR register part.
-	void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
-	// Clobbers RDX.
-	void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
-	void ClearCRFieldBit(int field, int bit);
-	void SetCRFieldBit(int field, int bit);
+  typedef u32 (*Operation)(u32 a, u32 b);
+  void regimmop(int d, int a, bool binary, u32 value, Operation doop,
+                void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
+                bool Rc = false, bool carry = false);
+  Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
+                        void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
+                        void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), bool packed,
+                        bool preserve_inputs, bool roundRHS = false);
+  void FloatCompare(UGeckoInstruction inst, bool upper = false);
+  void UpdateMXCSR();
 
-	// Generates a branch that will check if a given bit of a CR register part
-	// is set or not.
-	Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
-	void SetFPRFIfNeeded(Gen::X64Reg xmm);
+  // OPCODES
+  using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
+  void FallBackToInterpreter(UGeckoInstruction _inst);
+  void DoNothing(UGeckoInstruction _inst);
+  void HLEFunction(UGeckoInstruction _inst);
 
-	void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-	                Gen::X64Reg clobber = Gen::XMM0);
+  void DynaRunTable4(UGeckoInstruction _inst);
+  void DynaRunTable19(UGeckoInstruction _inst);
+  void DynaRunTable31(UGeckoInstruction _inst);
+  void DynaRunTable59(UGeckoInstruction _inst);
+  void DynaRunTable63(UGeckoInstruction _inst);
 
-	void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
+  void addx(UGeckoInstruction inst);
+  void arithcx(UGeckoInstruction inst);
+  void mulli(UGeckoInstruction inst);
+  void mulhwXx(UGeckoInstruction inst);
+  void mullwx(UGeckoInstruction inst);
+  void divwux(UGeckoInstruction inst);
+  void divwx(UGeckoInstruction inst);
+  void srawix(UGeckoInstruction inst);
+  void srawx(UGeckoInstruction inst);
+  void arithXex(UGeckoInstruction inst);
 
-	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop,
-	              void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
-	              bool Rc = false, bool carry = false);
-	Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
-	                      void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-	                      void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&),
-	                      bool packed, bool preserve_inputs, bool roundRHS = false);
-	void FloatCompare(UGeckoInstruction inst, bool upper = false);
-	void UpdateMXCSR();
+  void extsXx(UGeckoInstruction inst);
 
-	// OPCODES
-	using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
-	void FallBackToInterpreter(UGeckoInstruction _inst);
-	void DoNothing(UGeckoInstruction _inst);
-	void HLEFunction(UGeckoInstruction _inst);
+  void sc(UGeckoInstruction _inst);
+  void rfi(UGeckoInstruction _inst);
 
-	void DynaRunTable4(UGeckoInstruction _inst);
-	void DynaRunTable19(UGeckoInstruction _inst);
-	void DynaRunTable31(UGeckoInstruction _inst);
-	void DynaRunTable59(UGeckoInstruction _inst);
-	void DynaRunTable63(UGeckoInstruction _inst);
+  void bx(UGeckoInstruction inst);
+  void bclrx(UGeckoInstruction _inst);
+  void bcctrx(UGeckoInstruction _inst);
+  void bcx(UGeckoInstruction inst);
 
-	void addx(UGeckoInstruction inst);
-	void arithcx(UGeckoInstruction inst);
-	void mulli(UGeckoInstruction inst);
-	void mulhwXx(UGeckoInstruction inst);
-	void mullwx(UGeckoInstruction inst);
-	void divwux(UGeckoInstruction inst);
-	void divwx(UGeckoInstruction inst);
-	void srawix(UGeckoInstruction inst);
-	void srawx(UGeckoInstruction inst);
-	void arithXex(UGeckoInstruction inst);
+  void mtspr(UGeckoInstruction inst);
+  void mfspr(UGeckoInstruction inst);
+  void mtmsr(UGeckoInstruction inst);
+  void mfmsr(UGeckoInstruction inst);
+  void mftb(UGeckoInstruction inst);
+  void mtcrf(UGeckoInstruction inst);
+  void mfcr(UGeckoInstruction inst);
+  void mcrf(UGeckoInstruction inst);
+  void mcrxr(UGeckoInstruction inst);
+  void mcrfs(UGeckoInstruction inst);
+  void mffsx(UGeckoInstruction inst);
+  void mtfsb0x(UGeckoInstruction inst);
+  void mtfsb1x(UGeckoInstruction inst);
+  void mtfsfix(UGeckoInstruction inst);
+  void mtfsfx(UGeckoInstruction inst);
 
-	void extsXx(UGeckoInstruction inst);
+  void boolX(UGeckoInstruction inst);
+  void crXXX(UGeckoInstruction inst);
 
-	void sc(UGeckoInstruction _inst);
-	void rfi(UGeckoInstruction _inst);
+  void reg_imm(UGeckoInstruction inst);
 
-	void bx(UGeckoInstruction inst);
-	void bclrx(UGeckoInstruction _inst);
-	void bcctrx(UGeckoInstruction _inst);
-	void bcx(UGeckoInstruction inst);
+  void ps_mr(UGeckoInstruction inst);
+  void ps_mergeXX(UGeckoInstruction inst);
+  void ps_res(UGeckoInstruction inst);
+  void ps_rsqrte(UGeckoInstruction inst);
+  void ps_sum(UGeckoInstruction inst);
+  void ps_muls(UGeckoInstruction inst);
+  void ps_cmpXX(UGeckoInstruction inst);
 
-	void mtspr(UGeckoInstruction inst);
-	void mfspr(UGeckoInstruction inst);
-	void mtmsr(UGeckoInstruction inst);
-	void mfmsr(UGeckoInstruction inst);
-	void mftb(UGeckoInstruction inst);
-	void mtcrf(UGeckoInstruction inst);
-	void mfcr(UGeckoInstruction inst);
-	void mcrf(UGeckoInstruction inst);
-	void mcrxr(UGeckoInstruction inst);
-	void mcrfs(UGeckoInstruction inst);
-	void mffsx(UGeckoInstruction inst);
-	void mtfsb0x(UGeckoInstruction inst);
-	void mtfsb1x(UGeckoInstruction inst);
-	void mtfsfix(UGeckoInstruction inst);
-	void mtfsfx(UGeckoInstruction inst);
+  void fp_arith(UGeckoInstruction inst);
 
-	void boolX(UGeckoInstruction inst);
-	void crXXX(UGeckoInstruction inst);
+  void fcmpX(UGeckoInstruction inst);
+  void fctiwx(UGeckoInstruction inst);
+  void fmrx(UGeckoInstruction inst);
+  void frspx(UGeckoInstruction inst);
+  void frsqrtex(UGeckoInstruction inst);
+  void fresx(UGeckoInstruction inst);
 
-	void reg_imm(UGeckoInstruction inst);
+  void cmpXX(UGeckoInstruction inst);
 
-	void ps_mr(UGeckoInstruction inst);
-	void ps_mergeXX(UGeckoInstruction inst);
-	void ps_res(UGeckoInstruction inst);
-	void ps_rsqrte(UGeckoInstruction inst);
-	void ps_sum(UGeckoInstruction inst);
-	void ps_muls(UGeckoInstruction inst);
-	void ps_cmpXX(UGeckoInstruction inst);
+  void cntlzwx(UGeckoInstruction inst);
 
-	void fp_arith(UGeckoInstruction inst);
+  void lfXXX(UGeckoInstruction inst);
+  void stfXXX(UGeckoInstruction inst);
+  void stfiwx(UGeckoInstruction inst);
+  void psq_lXX(UGeckoInstruction inst);
+  void psq_stXX(UGeckoInstruction inst);
 
-	void fcmpX(UGeckoInstruction inst);
-	void fctiwx(UGeckoInstruction inst);
-	void fmrx(UGeckoInstruction inst);
-	void frspx(UGeckoInstruction inst);
-	void frsqrtex(UGeckoInstruction inst);
-	void fresx(UGeckoInstruction inst);
+  void fmaddXX(UGeckoInstruction inst);
+  void fsign(UGeckoInstruction inst);
+  void fselx(UGeckoInstruction inst);
+  void stX(UGeckoInstruction inst);  // stw sth stb
+  void rlwinmx(UGeckoInstruction inst);
+  void rlwimix(UGeckoInstruction inst);
+  void rlwnmx(UGeckoInstruction inst);
+  void negx(UGeckoInstruction inst);
+  void slwx(UGeckoInstruction inst);
+  void srwx(UGeckoInstruction inst);
+  void dcbt(UGeckoInstruction inst);
+  void dcbz(UGeckoInstruction inst);
 
-	void cmpXX(UGeckoInstruction inst);
+  void subfic(UGeckoInstruction inst);
+  void subfx(UGeckoInstruction inst);
 
-	void cntlzwx(UGeckoInstruction inst);
+  void twX(UGeckoInstruction inst);
 
-	void lfXXX(UGeckoInstruction inst);
-	void stfXXX(UGeckoInstruction inst);
-	void stfiwx(UGeckoInstruction inst);
-	void psq_lXX(UGeckoInstruction inst);
-	void psq_stXX(UGeckoInstruction inst);
+  void lXXx(UGeckoInstruction inst);
 
-	void fmaddXX(UGeckoInstruction inst);
-	void fsign(UGeckoInstruction inst);
-	void fselx(UGeckoInstruction inst);
-	void stX(UGeckoInstruction inst); //stw sth stb
-	void rlwinmx(UGeckoInstruction inst);
-	void rlwimix(UGeckoInstruction inst);
-	void rlwnmx(UGeckoInstruction inst);
-	void negx(UGeckoInstruction inst);
-	void slwx(UGeckoInstruction inst);
-	void srwx(UGeckoInstruction inst);
-	void dcbt(UGeckoInstruction inst);
-	void dcbz(UGeckoInstruction inst);
+  void stXx(UGeckoInstruction inst);
 
-	void subfic(UGeckoInstruction inst);
-	void subfx(UGeckoInstruction inst);
+  void lmw(UGeckoInstruction inst);
+  void stmw(UGeckoInstruction inst);
 
-	void twX(UGeckoInstruction inst);
-
-	void lXXx(UGeckoInstruction inst);
-
-	void stXx(UGeckoInstruction inst);
-
-	void lmw(UGeckoInstruction inst);
-	void stmw(UGeckoInstruction inst);
-
-	void dcbx(UGeckoInstruction inst);
+  void dcbx(UGeckoInstruction inst);
 };

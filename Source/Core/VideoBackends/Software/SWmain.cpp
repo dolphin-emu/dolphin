@@ -263,7 +263,6 @@ void VideoSoftware::Video_PrepareOtherThread()
 {
   // GLInterface->MakeCurrent();
 }
-
 unsigned int VideoSoftware::PeekMessages()
 {
   return SWOGLWindow::s_instance->PeekMessages();

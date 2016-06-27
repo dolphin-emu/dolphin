@@ -6,7 +6,7 @@
 
 #include "Core/DSP/DSPCommon.h"
 
-#define DSP_REG_MASK    0x1f
+#define DSP_REG_MASK 0x1f
 
 namespace DSPInterpreter
 {
@@ -23,7 +23,7 @@ int RunCycles(int cycles);
 int RunCyclesDebug(int cycles);
 
 void WriteCR(u16 val);
-u16  ReadCR();
+u16 ReadCR();
 
 // All the opcode functions.
 void call(const UDSPInstruction opc);

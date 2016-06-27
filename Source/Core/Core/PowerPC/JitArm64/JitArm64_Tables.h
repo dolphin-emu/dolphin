@@ -9,6 +9,6 @@
 
 namespace JitArm64Tables
 {
-	void CompileInstruction(PPCAnalyst::CodeOp & op);
-	void InitTables();
+void CompileInstruction(PPCAnalyst::CodeOp& op);
+void InitTables();
 }

@@ -10,19 +10,21 @@ class CEXIChannel;
 class IEXIDevice;
 class PointerWrap;
 enum TEXIDevices : int;
-namespace MMIO { class Mapping; }
+namespace MMIO
+{
+class Mapping;
+}
 
 enum
 {
-	MAX_EXI_CHANNELS = 3
+  MAX_EXI_CHANNELS = 3
 };
 
 namespace ExpansionInterface
 {
-
 void Init();
 void Shutdown();
-void DoState(PointerWrap &p);
+void DoState(PointerWrap& p);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
@@ -35,6 +37,6 @@ void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 devi
 
 CEXIChannel* GetChannel(u32 index);
 
-IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex=-1);
+IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
 
-} // end of namespace ExpansionInterface
+}  // end of namespace ExpansionInterface

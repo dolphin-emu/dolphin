@@ -19,72 +19,62 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 class JitIL : public JitILBase
 {
 public:
-	Jit64AsmRoutineManager asm_routines;
+  Jit64AsmRoutineManager asm_routines;
 
-	JitIL() {}
-	~JitIL() {}
+  JitIL() {}
+  ~JitIL() {}
+  // Initialization, etc
 
-	// Initialization, etc
+  void Init() override;
 
-	void Init() override;
+  void EnableBlockLink();
 
-	void EnableBlockLink();
+  void Shutdown() override;
 
-	void Shutdown() override;
+  // Jit!
 
-	// Jit!
+  void Jit(u32 em_address) override;
+  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
 
-	void Jit(u32 em_address) override;
-	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b, u32 nextPC);
+  void Trace();
 
-	void Trace();
+  JitBlockCache* GetBlockCache() override { return &blocks; }
+  void ClearCache() override;
 
-	JitBlockCache *GetBlockCache() override { return &blocks; }
+  const CommonAsmRoutines* GetAsmRoutines() override { return &asm_routines; }
+  const char* GetName() override { return "JIT64IL"; }
+  // Run!
+  void Run() override;
+  void SingleStep() override;
 
-	void ClearCache() override;
+  // Utilities for use by opcodes
 
-	const CommonAsmRoutines *GetAsmRoutines() override
-	{
-		return &asm_routines;
-	}
+  void WriteExit(u32 destination);
+  void WriteExitDestInOpArg(const Gen::OpArg& arg);
+  void WriteExceptionExit();
+  void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
+  void Cleanup();
 
-	const char *GetName() override
-	{
-		return "JIT64IL";
-	}
+  void WriteCode(u32 exitAddress);
 
-	// Run!
-	void Run() override;
-	void SingleStep() override;
+  // OPCODES
+  using Instruction = void (JitIL::*)(UGeckoInstruction instCode);
+  void FallBackToInterpreter(UGeckoInstruction _inst) override;
+  void DoNothing(UGeckoInstruction _inst) override;
+  void HLEFunction(UGeckoInstruction _inst) override;
 
-	// Utilities for use by opcodes
-
-	void WriteExit(u32 destination);
-	void WriteExitDestInOpArg(const Gen::OpArg& arg);
-	void WriteExceptionExit();
-	void WriteRfiExitDestInOpArg(const Gen::OpArg& arg);
-	void Cleanup();
-
-	void WriteCode(u32 exitAddress);
-
-	// OPCODES
-	using Instruction = void (JitIL::*)(UGeckoInstruction instCode);
-	void FallBackToInterpreter(UGeckoInstruction _inst) override;
-	void DoNothing(UGeckoInstruction _inst) override;
-	void HLEFunction(UGeckoInstruction _inst) override;
-
-	void DynaRunTable4(UGeckoInstruction _inst) override;
-	void DynaRunTable19(UGeckoInstruction _inst) override;
-	void DynaRunTable31(UGeckoInstruction _inst) override;
-	void DynaRunTable59(UGeckoInstruction _inst) override;
-	void DynaRunTable63(UGeckoInstruction _inst) override;
+  void DynaRunTable4(UGeckoInstruction _inst) override;
+  void DynaRunTable19(UGeckoInstruction _inst) override;
+  void DynaRunTable31(UGeckoInstruction _inst) override;
+  void DynaRunTable59(UGeckoInstruction _inst) override;
+  void DynaRunTable63(UGeckoInstruction _inst) override;
 };

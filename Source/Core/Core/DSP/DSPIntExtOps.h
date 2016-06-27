@@ -41,5 +41,5 @@ void ir(const UDSPInstruction opc);
 void nr(const UDSPInstruction opc);
 void nop(const UDSPInstruction opc);
 
-} // end namespace Ext
-} // end namespace DSPinterpeter
+}  // end namespace Ext
+}  // end namespace DSPinterpeter

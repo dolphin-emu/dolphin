@@ -4,10 +4,13 @@
 
 #pragma once
 
-namespace PPCAnalyst { struct CodeOp; }
+namespace PPCAnalyst
+{
+struct CodeOp;
+}
 
 namespace JitILTables
 {
-	void CompileInstruction(PPCAnalyst::CodeOp& op);
-	void InitTables();
+void CompileInstruction(PPCAnalyst::CodeOp& op);
+void InitTables();
 }

@@ -23,26 +23,44 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void (APIENTRYP PFNDOLBINDFRAMEBUFFERPROC) (GLenum target, GLuint framebuffer);
-typedef void (APIENTRYP PFNDOLBINDRENDERBUFFERPROC) (GLenum target, GLuint renderbuffer);
-typedef void (APIENTRYP PFNDOLBLITFRAMEBUFFERPROC) (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-typedef GLenum (APIENTRYP PFNDOLCHECKFRAMEBUFFERSTATUSPROC) (GLenum target);
-typedef void (APIENTRYP PFNDOLDELETEFRAMEBUFFERSPROC) (GLsizei n, const GLuint *framebuffers);
-typedef void (APIENTRYP PFNDOLDELETERENDERBUFFERSPROC) (GLsizei n, const GLuint *renderbuffers);
-typedef void (APIENTRYP PFNDOLFRAMEBUFFERRENDERBUFFERPROC) (GLenum target, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
-typedef void (APIENTRYP PFNDOLFRAMEBUFFERTEXTURE1DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-typedef void (APIENTRYP PFNDOLFRAMEBUFFERTEXTURE2DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level);
-typedef void (APIENTRYP PFNDOLFRAMEBUFFERTEXTURE3DPROC) (GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset);
-typedef void (APIENTRYP PFNDOLFRAMEBUFFERTEXTURELAYERPROC) (GLenum target, GLenum attachment, GLuint texture, GLint level, GLint layer);
-typedef void (APIENTRYP PFNDOLGENFRAMEBUFFERSPROC) (GLsizei n, GLuint *framebuffers);
-typedef void (APIENTRYP PFNDOLGENRENDERBUFFERSPROC) (GLsizei n, GLuint *renderbuffers);
-typedef void (APIENTRYP PFNDOLGENERATEMIPMAPPROC) (GLenum target);
-typedef void (APIENTRYP PFNDOLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC) (GLenum target, GLenum attachment, GLenum pname, GLint *params);
-typedef void (APIENTRYP PFNDOLGETRENDERBUFFERPARAMETERIVPROC) (GLenum target, GLenum pname, GLint *params);
-typedef GLboolean (APIENTRYP PFNDOLISFRAMEBUFFERPROC) (GLuint framebuffer);
-typedef GLboolean (APIENTRYP PFNDOLISRENDERBUFFERPROC) (GLuint renderbuffer);
-typedef void (APIENTRYP PFNDOLRENDERBUFFERSTORAGEPROC) (GLenum target, GLenum internalformat, GLsizei width, GLsizei height);
-typedef void (APIENTRYP PFNDOLRENDERBUFFERSTORAGEMULTISAMPLEPROC) (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+typedef void(APIENTRYP PFNDOLBINDFRAMEBUFFERPROC)(GLenum target, GLuint framebuffer);
+typedef void(APIENTRYP PFNDOLBINDRENDERBUFFERPROC)(GLenum target, GLuint renderbuffer);
+typedef void(APIENTRYP PFNDOLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1,
+                                                  GLint srcY1, GLint dstX0, GLint dstY0,
+                                                  GLint dstX1, GLint dstY1, GLbitfield mask,
+                                                  GLenum filter);
+typedef GLenum(APIENTRYP PFNDOLCHECKFRAMEBUFFERSTATUSPROC)(GLenum target);
+typedef void(APIENTRYP PFNDOLDELETEFRAMEBUFFERSPROC)(GLsizei n, const GLuint* framebuffers);
+typedef void(APIENTRYP PFNDOLDELETERENDERBUFFERSPROC)(GLsizei n, const GLuint* renderbuffers);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERRENDERBUFFERPROC)(GLenum target, GLenum attachment,
+                                                          GLenum renderbuffertarget,
+                                                          GLuint renderbuffer);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTURE1DPROC)(GLenum target, GLenum attachment,
+                                                       GLenum textarget, GLuint texture,
+                                                       GLint level);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTURE2DPROC)(GLenum target, GLenum attachment,
+                                                       GLenum textarget, GLuint texture,
+                                                       GLint level);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTURE3DPROC)(GLenum target, GLenum attachment,
+                                                       GLenum textarget, GLuint texture,
+                                                       GLint level, GLint zoffset);
+typedef void(APIENTRYP PFNDOLFRAMEBUFFERTEXTURELAYERPROC)(GLenum target, GLenum attachment,
+                                                          GLuint texture, GLint level, GLint layer);
+typedef void(APIENTRYP PFNDOLGENFRAMEBUFFERSPROC)(GLsizei n, GLuint* framebuffers);
+typedef void(APIENTRYP PFNDOLGENRENDERBUFFERSPROC)(GLsizei n, GLuint* renderbuffers);
+typedef void(APIENTRYP PFNDOLGENERATEMIPMAPPROC)(GLenum target);
+typedef void(APIENTRYP PFNDOLGETFRAMEBUFFERATTACHMENTPARAMETERIVPROC)(GLenum target,
+                                                                      GLenum attachment,
+                                                                      GLenum pname, GLint* params);
+typedef void(APIENTRYP PFNDOLGETRENDERBUFFERPARAMETERIVPROC)(GLenum target, GLenum pname,
+                                                             GLint* params);
+typedef GLboolean(APIENTRYP PFNDOLISFRAMEBUFFERPROC)(GLuint framebuffer);
+typedef GLboolean(APIENTRYP PFNDOLISRENDERBUFFERPROC)(GLuint renderbuffer);
+typedef void(APIENTRYP PFNDOLRENDERBUFFERSTORAGEPROC)(GLenum target, GLenum internalformat,
+                                                      GLsizei width, GLsizei height);
+typedef void(APIENTRYP PFNDOLRENDERBUFFERSTORAGEMULTISAMPLEPROC)(GLenum target, GLsizei samples,
+                                                                 GLenum internalformat,
+                                                                 GLsizei width, GLsizei height);
 
 extern PFNDOLBINDFRAMEBUFFERPROC dolBindFramebuffer;
 extern PFNDOLBINDRENDERBUFFERPROC dolBindRenderbuffer;

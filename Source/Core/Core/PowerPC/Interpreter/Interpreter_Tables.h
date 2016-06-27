@@ -6,5 +6,5 @@
 
 namespace InterpreterTables
 {
-	void InitTables();
+void InitTables();
 }

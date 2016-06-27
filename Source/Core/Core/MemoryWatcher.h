@@ -5,9 +5,9 @@
 #pragma once
 
 #include <map>
-#include <vector>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <vector>
 
 // MemoryWatcher reads a file containing in-game memory addresses and outputs
 // changes to those memory addresses to a unix domain socket as the game runs.
@@ -20,28 +20,28 @@
 class MemoryWatcher final
 {
 public:
-	MemoryWatcher();
-	~MemoryWatcher();
-	void Step();
+  MemoryWatcher();
+  ~MemoryWatcher();
+  void Step();
 
-	static void Init();
-	static void Shutdown();
+  static void Init();
+  static void Shutdown();
 
 private:
-	bool LoadAddresses(const std::string& path);
-	bool OpenSocket(const std::string& path);
+  bool LoadAddresses(const std::string& path);
+  bool OpenSocket(const std::string& path);
 
-	void ParseLine(const std::string& line);
-	u32 ChasePointer(const std::string& line);
-	std::string ComposeMessage(const std::string& line, u32 value);
+  void ParseLine(const std::string& line);
+  u32 ChasePointer(const std::string& line);
+  std::string ComposeMessage(const std::string& line, u32 value);
 
-	bool m_running;
+  bool m_running;
 
-	int m_fd;
-	sockaddr_un m_addr;
+  int m_fd;
+  sockaddr_un m_addr;
 
-	// Address as stored in the file -> list of offsets to follow
-	std::map<std::string, std::vector<u32>> m_addresses;
-	// Address as stored in the file -> current value
-	std::map<std::string, u32> m_values;
+  // Address as stored in the file -> list of offsets to follow
+  std::map<std::string, std::vector<u32>> m_addresses;
+  // Address as stored in the file -> current value
+  std::map<std::string, u32> m_values;
 };

@@ -284,7 +284,6 @@ void VideoBackend::Video_Cleanup()
     GLInterface->ClearCurrent();
   VR_Shutdown();
 }
-
 void VideoBackend::Video_CleanupOtherThread()
 {
   g_vr_lock.unlock();

@@ -3034,16 +3034,15 @@ void XEmitter::VFMSUBADD231PD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 }
 
 #define FMA4(name, op)                                                                             \
-  \
-void XEmitter::name(X64Reg dest, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)              \
+  void XEmitter::name(X64Reg dest, X64Reg regOp1, X64Reg regOp2, const OpArg& arg)                 \
   {                                                                                                \
     WriteFMA4Op(op, dest, regOp1, regOp2, arg, 1);                                                 \
   }                                                                                                \
-  \
-void XEmitter::name(X64Reg dest, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)              \
+  void XEmitter::name(X64Reg dest, X64Reg regOp1, const OpArg& arg, X64Reg regOp2)                 \
   {                                                                                                \
     WriteFMA4Op(op, dest, regOp1, regOp2, arg, 0);                                                 \
   }
+
 
 FMA4(VFMADDSUBPS, 0x5C)
 FMA4(VFMADDSUBPD, 0x5D)

@@ -9,10 +9,9 @@
 class CARDUCode : public UCodeInterface
 {
 public:
-	CARDUCode(DSPHLE *dsphle, u32 crc);
-	virtual ~CARDUCode();
+  CARDUCode(DSPHLE* dsphle, u32 crc);
+  virtual ~CARDUCode();
 
-	void HandleMail(u32 mail) override;
-	void Update() override;
+  void HandleMail(u32 mail) override;
+  void Update() override;
 };
-

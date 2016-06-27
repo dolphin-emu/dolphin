@@ -23,10 +23,10 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void (APIENTRYP PFNDOLBINDVERTEXARRAYPROC) (GLuint array);
-typedef void (APIENTRYP PFNDOLDELETEVERTEXARRAYSPROC) (GLsizei n, const GLuint *arrays);
-typedef void (APIENTRYP PFNDOLGENVERTEXARRAYSPROC) (GLsizei n, GLuint *arrays);
-typedef GLboolean (APIENTRYP PFNDOLISVERTEXARRAYPROC) (GLuint array);
+typedef void(APIENTRYP PFNDOLBINDVERTEXARRAYPROC)(GLuint array);
+typedef void(APIENTRYP PFNDOLDELETEVERTEXARRAYSPROC)(GLsizei n, const GLuint* arrays);
+typedef void(APIENTRYP PFNDOLGENVERTEXARRAYSPROC)(GLsizei n, GLuint* arrays);
+typedef GLboolean(APIENTRYP PFNDOLISVERTEXARRAYPROC)(GLuint array);
 
 extern PFNDOLBINDVERTEXARRAYPROC dolBindVertexArray;
 extern PFNDOLDELETEVERTEXARRAYSPROC dolDeleteVertexArrays;

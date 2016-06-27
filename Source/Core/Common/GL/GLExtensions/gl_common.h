@@ -32,7 +32,7 @@
 #define APIENTRY
 #endif
 #ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
+#define APIENTRYP APIENTRY*
 #endif
 #ifndef GLAPI
 #define GLAPI extern
@@ -42,27 +42,27 @@
  * Datatypes
  */
 #include <stddef.h>
-typedef unsigned int	GLenum;
-typedef unsigned char	GLboolean;
-typedef unsigned int	GLbitfield;
-typedef void		GLvoid;
-typedef signed char	GLbyte;		/* 1-byte signed */
-typedef short		GLshort;	/* 2-byte signed */
-typedef int		GLint;		/* 4-byte signed */
-typedef unsigned char	GLubyte;	/* 1-byte unsigned */
-typedef unsigned short	GLushort;	/* 2-byte unsigned */
-typedef unsigned int	GLuint;		/* 4-byte unsigned */
-typedef int		GLsizei;	/* 4-byte signed */
-typedef float		GLfloat;	/* single precision float */
-typedef float		GLclampf;	/* single precision float in [0,1] */
-typedef double		GLdouble;	/* double precision float */
-typedef double		GLclampd;	/* double precision float in [0,1] */
+typedef unsigned int GLenum;
+typedef unsigned char GLboolean;
+typedef unsigned int GLbitfield;
+typedef void GLvoid;
+typedef signed char GLbyte;      /* 1-byte signed */
+typedef short GLshort;           /* 2-byte signed */
+typedef int GLint;               /* 4-byte signed */
+typedef unsigned char GLubyte;   /* 1-byte unsigned */
+typedef unsigned short GLushort; /* 2-byte unsigned */
+typedef unsigned int GLuint;     /* 4-byte unsigned */
+typedef int GLsizei;             /* 4-byte signed */
+typedef float GLfloat;           /* single precision float */
+typedef float GLclampf;          /* single precision float in [0,1] */
+typedef double GLdouble;         /* double precision float */
+typedef double GLclampd;         /* double precision float in [0,1] */
 typedef char GLchar;
 typedef unsigned short GLhalf;
 typedef ptrdiff_t GLsizeiptr;
 typedef ptrdiff_t GLintptr;
 
-typedef struct __GLsync *GLsync;
+typedef struct __GLsync* GLsync;
 #ifndef GLEXT_64_TYPES_DEFINED
 /* This code block is duplicated in glxext.h, so must be protected */
 #define GLEXT_64_TYPES_DEFINED
@@ -81,7 +81,7 @@ typedef long long int int64_t;
 typedef unsigned long long int uint64_t;
 #endif /* __arch64__ */
 #endif /* __STDC__ */
-#elif defined( __VMS ) || defined(__sgi)
+#elif defined(__VMS) || defined(__sgi)
 #include <inttypes.h>
 #elif defined(__SCO__) || defined(__USLC__)
 #include <stdint.h>

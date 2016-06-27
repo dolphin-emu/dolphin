@@ -465,7 +465,7 @@ int main(int argc, const char* argv[])
           return 1;
         }
 
-        codes = new std::vector<u16>[ lines ];
+        codes = new std::vector<u16>[lines];
 
         for (int i = 0; i < lines; i++)
         {

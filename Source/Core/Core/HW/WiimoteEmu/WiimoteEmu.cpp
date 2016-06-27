@@ -1012,7 +1012,6 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // set nunchuk defaults
   m_extension->attachments[1]->LoadDefaults(ciface);
 }
-
 // Switch between Wiimote, Sideways Wiimote, Wiimote+Nunchuk, Wiimote+Classic.
 void Wiimote::CycleThroughExtensions()
 {

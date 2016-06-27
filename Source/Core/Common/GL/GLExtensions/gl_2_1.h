@@ -47,12 +47,18 @@
 #define GL_COMPRESSED_SLUMINANCE 0x8C4A
 #define GL_COMPRESSED_SLUMINANCE_ALPHA 0x8C4B
 
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX2X3FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX2X4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX3X2FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX3X4FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX4X2FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void (APIENTRYP PFNDOLUNIFORMMATRIX4X3FVPROC) (GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX2X3FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX2X4FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX3X2FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX3X4FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX4X2FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
+typedef void(APIENTRYP PFNDOLUNIFORMMATRIX4X3FVPROC)(GLint location, GLsizei count,
+                                                     GLboolean transpose, const GLfloat* value);
 
 extern PFNDOLUNIFORMMATRIX2X3FVPROC dolUniformMatrix2x3fv;
 extern PFNDOLUNIFORMMATRIX2X4FVPROC dolUniformMatrix2x4fv;

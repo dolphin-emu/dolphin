@@ -262,7 +262,6 @@ void VideoBackend::ShutdownOtherThread()
 void VideoBackend::Video_Cleanup()
 {
 }
-
 void VideoBackend::Video_CleanupOtherThread()
 {
 }

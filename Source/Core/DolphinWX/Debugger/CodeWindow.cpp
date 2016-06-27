@@ -5,8 +5,10 @@
 #include <cstdio>
 #include <string>
 #include <vector>
-#include <wx/aui/auibar.h>
+
+// clang-format off
 #include <wx/bitmap.h>
+#include <wx/aui/auibar.h>
 #include <wx/image.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
@@ -17,6 +19,7 @@
 #include <wx/textdlg.h>
 #include <wx/thread.h>
 #include <wx/toolbar.h>
+// clang-format on
 
 #include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"

@@ -9,27 +9,27 @@
 class ROMUCode : public UCodeInterface
 {
 public:
-	ROMUCode(DSPHLE* dsphle, u32 crc);
-	virtual ~ROMUCode();
+  ROMUCode(DSPHLE* dsphle, u32 crc);
+  virtual ~ROMUCode();
 
-	void HandleMail(u32 mail) override;
-	void Update() override;
+  void HandleMail(u32 mail) override;
+  void Update() override;
 
-	void DoState(PointerWrap &p) override;
+  void DoState(PointerWrap& p) override;
 
 private:
-	struct UCodeBootInfo
-	{
-		u32 m_ram_address;
-		u32 m_length;
-		u32 m_imem_address;
-		u32 m_dmem_length;
-		u32 m_start_pc;
-	};
-	UCodeBootInfo m_current_ucode;
-	int m_boot_task_num_steps;
+  struct UCodeBootInfo
+  {
+    u32 m_ram_address;
+    u32 m_length;
+    u32 m_imem_address;
+    u32 m_dmem_length;
+    u32 m_start_pc;
+  };
+  UCodeBootInfo m_current_ucode;
+  int m_boot_task_num_steps;
 
-	u32 m_next_parameter;
+  u32 m_next_parameter;
 
-	void BootUCode();
+  void BootUCode();
 };

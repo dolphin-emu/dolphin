@@ -23,11 +23,14 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void (APIENTRYP PFNDOLRELEASESHADERCOMPILERPROC) (void);
-typedef void (APIENTRYP PFNDOLSHADERBINARYPROC) (GLsizei count, const GLuint *shaders, GLenum binaryformat, const void *binary, GLsizei length);
-typedef void (APIENTRYP PFNDOLGETSHADERPRECISIONFORMATPROC) (GLenum shadertype, GLenum precisiontype, GLint *range, GLint *precision);
-typedef void (APIENTRYP PFNDOLDEPTHRANGEFPROC) (GLfloat n, GLfloat f);
-typedef void (APIENTRYP PFNDOLCLEARDEPTHFPROC) (GLfloat d);
+typedef void(APIENTRYP PFNDOLRELEASESHADERCOMPILERPROC)(void);
+typedef void(APIENTRYP PFNDOLSHADERBINARYPROC)(GLsizei count, const GLuint* shaders,
+                                               GLenum binaryformat, const void* binary,
+                                               GLsizei length);
+typedef void(APIENTRYP PFNDOLGETSHADERPRECISIONFORMATPROC)(GLenum shadertype, GLenum precisiontype,
+                                                           GLint* range, GLint* precision);
+typedef void(APIENTRYP PFNDOLDEPTHRANGEFPROC)(GLfloat n, GLfloat f);
+typedef void(APIENTRYP PFNDOLCLEARDEPTHFPROC)(GLfloat d);
 
 extern PFNDOLCLEARDEPTHFPROC dolClearDepthf;
 extern PFNDOLDEPTHRANGEFPROC dolDepthRangef;

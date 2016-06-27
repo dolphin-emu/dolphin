@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include <string>
 #include <GL/glx.h>
+#include <string>
 
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLInterface/X11_Util.h"
+#include "Common/GL/GLInterfaceBase.h"
 
 class cInterfaceGLX : public cInterfaceBase
 {
