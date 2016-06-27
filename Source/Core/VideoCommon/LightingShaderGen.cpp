@@ -28,7 +28,7 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
                  LIGHT_DIR_PARAMS(index));
     object.Write("cosAttn = " LIGHT_COSATT ".xyz;\n", LIGHT_COSATT_PARAMS(index));
     object.Write("distAttn = %s(" LIGHT_DISTATT ".xyz);\n",
-      (diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
+                 (diffusefunc == LIGHTDIF_NONE) ? "" : "normalize", LIGHT_DISTATT_PARAMS(index));
     object.Write("attn = max(0.0f, dot(cosAttn, float3(1.0, attn, attn*attn))) / dot(distAttn, "
                  "float3(1.0, attn, attn*attn));\n");
     break;
@@ -71,8 +71,8 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // materials name is I_MATERIALS in vs and I_PMATERIALS in ps
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
-void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
-                                       int components, const char* inColorName, const char* dest)
+void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
+                                const char* inColorName, const char* dest)
 {
   for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
   {
