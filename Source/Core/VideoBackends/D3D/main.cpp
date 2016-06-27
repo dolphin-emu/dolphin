@@ -162,6 +162,7 @@ void VideoBackend::Video_Prepare()
   PixelShaderCache::Init();
   GeometryShaderCache::Init();
   D3D::InitUtils();
+  BBox::Init();
 }
 
 void VideoBackend::Shutdown()
