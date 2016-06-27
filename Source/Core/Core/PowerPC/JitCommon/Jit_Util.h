@@ -60,7 +60,8 @@ static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
 static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
 
 // Stores information we need to batch-patch a MOV with a call to the slow read/write path after
-// it faults. There will be 10s of thousands of these structs live, so be wary of making this too big.
+// it faults. There will be 10s of thousands of these structs live, so be wary of making this too
+// big.
 struct TrampolineInfo final
 {
   // The start of the store operation that failed -- we will patch a JMP here
@@ -87,16 +88,16 @@ struct TrampolineInfo final
   u8 flags;
 
   // Memory access size (in bytes)
-  u8 accessSize:4;
+  u8 accessSize : 4;
 
   // true if this is a read op vs a write
-  bool read:1;
+  bool read : 1;
 
   // for read operations, true if needs sign-extension after load
-  bool signExtend:1;
+  bool signExtend : 1;
 
   // Set to true if we added the offset to the address and need to undo it
-  bool offsetAddedToAddress:1;
+  bool offsetAddedToAddress : 1;
 };
 
 // Like XCodeBlock but has some utilities for memory access.

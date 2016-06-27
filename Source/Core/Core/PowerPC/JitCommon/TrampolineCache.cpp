@@ -75,8 +75,8 @@ const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
   // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
   MOV(32, PPCSTATE(pc), Imm32(info.pc));
 
-  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset, info.registersInUse,
-                    info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
+  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
+                    info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
 
   JMP(info.start + info.len, true);
 
