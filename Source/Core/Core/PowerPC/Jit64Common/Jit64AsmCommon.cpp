@@ -220,6 +220,10 @@ static const float GC_ALIGNED16(m_255) = 255.0f;
 static const float GC_ALIGNED16(m_127) = 127.0f;
 static const float GC_ALIGNED16(m_m128) = -128.0f;
 
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define constexpr const
+#endif
+
 // Sizes of the various quantized store types
 constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
 
@@ -572,8 +576,6 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
       MULPS(XMM0, R(XMM1));
     }
   }
-
-  return;
 }
 
 void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
