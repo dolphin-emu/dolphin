@@ -181,6 +181,7 @@ void VideoBackend::Video_Prepare()
   StaticShaderCache::Init();
   StateCache::Init();  // PSO cache is populated here, after constituent shaders are loaded.
   D3D::InitUtils();
+  BBox::Init();
 }
 
 void VideoBackend::Shutdown()
