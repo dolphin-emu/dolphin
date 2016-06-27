@@ -8,6 +8,7 @@
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
 
+#include <map>
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
@@ -88,6 +89,7 @@ protected:
     int revertFprLoad;
 
     bool assumeNoPairedQuantize;
+    std::map<u8, u32> constantGqr;
     bool firstFPInstructionFound;
     bool isLastInstruction;
     int skipInstructions;
@@ -130,7 +132,7 @@ public:
   virtual bool HandleStackFault() { return false; }
 };
 
-class Jitx86Base : public JitBase, public EmuCodeBlock
+class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
 protected:
   bool BackPatch(u32 emAddress, SContext* ctx);
