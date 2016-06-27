@@ -20,28 +20,27 @@ class SetupUnit;
 class SWVertexLoader : public VertexManagerBase
 {
 public:
-	SWVertexLoader();
-	~SWVertexLoader();
+  SWVertexLoader();
+  ~SWVertexLoader();
 
-	NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
 protected:
-	void ResetBuffer(u32 stride) override;
-	u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
+  void ResetBuffer(u32 stride) override;
+  u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 private:
-	void vFlush(bool useDstAlpha) override;
-	std::vector<u8> LocalVBuffer;
-	std::vector<u16> LocalIBuffer;
+  void vFlush(bool useDstAlpha) override;
+  std::vector<u8> LocalVBuffer;
+  std::vector<u16> LocalIBuffer;
 
-	InputVertexData m_Vertex;
+  InputVertexData m_Vertex;
 
-	void ParseVertex(const PortableVertexDeclaration& vdec, int index);
+  void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-	SetupUnit *m_SetupUnit;
+  SetupUnit* m_SetupUnit;
 
-	bool m_TexGenSpecialCase;
+  bool m_TexGenSpecialCase;
 
 public:
-
-	void SetFormat(u8 attributeIndex, u8 primitiveType);
+  void SetFormat(u8 attributeIndex, u8 primitiveType);
 };

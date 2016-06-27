@@ -23,33 +23,31 @@
 class WaveFileWriter : NonCopyable
 {
 public:
-	WaveFileWriter();
-	~WaveFileWriter();
+  WaveFileWriter();
+  ~WaveFileWriter();
 
-	bool Start(const std::string& filename, unsigned int HLESampleRate);
-	void Stop();
+  bool Start(const std::string& filename, unsigned int HLESampleRate);
+  void Stop();
 
-	void SetSkipSilence(bool skip) { skip_silence = skip; }
-
-	void AddStereoSamples(const short *sample_data, u32 count);
-	void AddStereoSamplesBE(const short *sample_data, u32 count);  // big endian
-	u32 GetAudioSize() const { return audio_size; }
-
+  void SetSkipSilence(bool skip) { skip_silence = skip; }
+  void AddStereoSamples(const short* sample_data, u32 count);
+  void AddStereoSamplesBE(const short* sample_data, u32 count);  // big endian
+  u32 GetAudioSize() const { return audio_size; }
 private:
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #define WAVE_WRITER_BUFFER_SIZE (32 * 1024)
 #else
-	static constexpr size_t BUFFER_SIZE = 32 * 1024;
+  static constexpr size_t BUFFER_SIZE = 32 * 1024;
 #endif
 
-	File::IOFile file;
-	bool skip_silence = false;
-	u32 audio_size = 0;
+  File::IOFile file;
+  bool skip_silence = false;
+  u32 audio_size = 0;
 #if defined(_MSC_VER) && _MSC_VER <= 1800
-	std::array<short, WAVE_WRITER_BUFFER_SIZE> conv_buffer{};
+  std::array<short, WAVE_WRITER_BUFFER_SIZE> conv_buffer{};
 #else
-	std::array<short, BUFFER_SIZE> conv_buffer{};
+  std::array<short, BUFFER_SIZE> conv_buffer{};
 #endif
-	void Write(u32 value);
-	void Write4(const char* ptr);
+  void Write(u32 value);
+  void Write4(const char* ptr);
 };

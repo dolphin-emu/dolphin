@@ -2,22 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/BoundingBox.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/BoundingBox.h"
 
 namespace BoundingBox
 {
-
 // External vars
 bool active = false;
-u16 coords[4] = { 0x80, 0xA0, 0x80, 0xA0 };
+u16 coords[4] = {0x80, 0xA0, 0x80, 0xA0};
 
 // Save state
 void DoState(PointerWrap& p)
 {
-	p.Do(active);
-	p.Do(coords);
+  p.Do(active);
+  p.Do(coords);
 }
 
-} // namespace BoundingBox
+}  // namespace BoundingBox

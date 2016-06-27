@@ -9,25 +9,26 @@
 //__declspec(dllimport) extern WORD		IWRGetProductID(void);
 //__declspec(dllimport) extern DWORD	IWRGetProductDetails(void);
 
-typedef struct {
-	WORD dll_v1;
-	WORD dll_v2;
-	WORD dll_v3;
-	WORD dll_v4;
-	BYTE usb_firmware_major;
-	BYTE usb_firmware_minor;
-	BYTE tracker_firmware_major;
-	BYTE tracker_firmware_minor;
-	BYTE video_firmware;
+typedef struct
+{
+  WORD dll_v1;
+  WORD dll_v2;
+  WORD dll_v3;
+  WORD dll_v4;
+  BYTE usb_firmware_major;
+  BYTE usb_firmware_minor;
+  BYTE tracker_firmware_major;
+  BYTE tracker_firmware_minor;
+  BYTE video_firmware;
 } TVUZIX_VERSION, *PVUZIX_VERSION;
 
 // tracker stuff
-typedef DWORD (__cdecl *PVUZIX_DWORD)(void);
-typedef WORD (__cdecl *PVUZIX_WORD)(void);
-typedef void (__cdecl *PVUZIX_VOID)(void);
-typedef DWORD (__cdecl *PVUZIX_LONG3)(LONG *, LONG *, LONG *);
-typedef void (__cdecl *PVUZIX_BOOL)(BOOL);
-typedef DWORD (__cdecl *PVUZIX_GETVERSION)(PVUZIX_VERSION ver);
+typedef DWORD(__cdecl* PVUZIX_DWORD)(void);
+typedef WORD(__cdecl* PVUZIX_WORD)(void);
+typedef void(__cdecl* PVUZIX_VOID)(void);
+typedef DWORD(__cdecl* PVUZIX_LONG3)(LONG*, LONG*, LONG*);
+typedef void(__cdecl* PVUZIX_BOOL)(BOOL);
+typedef DWORD(__cdecl* PVUZIX_GETVERSION)(PVUZIX_VERSION ver);
 
 extern PVUZIX_DWORD Vuzix_OpenTracker;
 extern PVUZIX_LONG3 Vuzix_GetTracking;
@@ -41,10 +42,10 @@ extern PVUZIX_DWORD Vuzix_GetProductDetails;
 extern PVUZIX_GETVERSION Vuzix_GetVersion;
 
 // VR920 freeze frame stereoscopic 3D stuff
-typedef HANDLE (__cdecl *PVUZIX_HANDLE)(void);
-typedef void (__cdecl *PVUZIX_CLOSEHANDLE)(HANDLE handle);
-typedef BOOL (__cdecl *PVUZIX_HANDLEBOOL)(HANDLE, BOOL);
-typedef BYTE (__cdecl *PVUZIX_BYTEHANDLE)(HANDLE, BOOL);
+typedef HANDLE(__cdecl* PVUZIX_HANDLE)(void);
+typedef void(__cdecl* PVUZIX_CLOSEHANDLE)(HANDLE handle);
+typedef BOOL(__cdecl* PVUZIX_HANDLEBOOL)(HANDLE, BOOL);
+typedef BYTE(__cdecl* PVUZIX_BYTEHANDLE)(HANDLE, BOOL);
 
 extern PVUZIX_HANDLE Vuzix_OpenStereo;
 extern PVUZIX_HANDLEBOOL Vuzix_SetStereo;

@@ -9,15 +9,14 @@ class NonCopyable
 {
 protected:
 #if defined(_MSC_VER) && _MSC_VER <= 1800
-	NonCopyable() {}
-	NonCopyable(const NonCopyable&&) {}
-	void operator=(const NonCopyable&&) {}
+  NonCopyable() {}
+  NonCopyable(const NonCopyable&&) {}
+  void operator=(const NonCopyable&&) {}
 #else
-	constexpr NonCopyable() = default;
+  constexpr NonCopyable() = default;
 #endif
-	~NonCopyable() = default;
+  ~NonCopyable() = default;
 
-	NonCopyable(const NonCopyable&) = delete;
-	NonCopyable& operator=(const NonCopyable&) = delete;
+  NonCopyable(const NonCopyable&) = delete;
+  NonCopyable& operator=(const NonCopyable&) = delete;
 };
-

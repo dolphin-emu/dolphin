@@ -18,7 +18,6 @@
 
 namespace OGL
 {
-
 void VR_ConfigureHMD();
 void VR_StartFramebuffer(int target_width, int target_height);
 void VR_StopFramebuffer();
@@ -27,5 +26,4 @@ void VR_BeginFrame();
 void VR_PresentHMDFrame();
 void VR_DrawTimewarpFrame();
 void VR_DrawAsyncTimewarpFrame();
-
 }

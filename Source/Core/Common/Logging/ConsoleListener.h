@@ -9,11 +9,11 @@
 class ConsoleListener : public LogListener
 {
 public:
-	ConsoleListener();
-	~ConsoleListener();
+  ConsoleListener();
+  ~ConsoleListener();
 
-	void Log(LogTypes::LOG_LEVELS, const char* text) override;
+  void Log(LogTypes::LOG_LEVELS, const char* text) override;
 
 private:
-	bool m_use_color;
+  bool m_use_color;
 };

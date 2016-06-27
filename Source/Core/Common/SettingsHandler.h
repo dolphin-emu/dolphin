@@ -13,28 +13,28 @@
 class SettingsHandler
 {
 public:
-	SettingsHandler();
+  SettingsHandler();
 
-	enum
-	{
-		SETTINGS_SIZE = 0x100,
-		// Key used to encrypt/decrypt setting.txt contents
-		INITIAL_SEED = 0x73B5DBFA
-	};
+  enum
+  {
+    SETTINGS_SIZE = 0x100,
+    // Key used to encrypt/decrypt setting.txt contents
+    INITIAL_SEED = 0x73B5DBFA
+  };
 
-	void AddSetting(const std::string& key, const std::string& value);
+  void AddSetting(const std::string& key, const std::string& value);
 
-	const u8* GetData() const;
-	const std::string GetValue(const std::string& key);
+  const u8* GetData() const;
+  const std::string GetValue(const std::string& key);
 
-	void Decrypt();
-	void Reset();
-	const std::string generateSerialNumber();
+  void Decrypt();
+  void Reset();
+  const std::string generateSerialNumber();
 
 private:
-	void WriteByte(u8 b);
+  void WriteByte(u8 b);
 
-	u8 m_buffer[SETTINGS_SIZE];
-	u32 m_position, m_key;
-	std::string decoded;
+  u8 m_buffer[SETTINGS_SIZE];
+  u32 m_position, m_key;
+  std::string decoded;
 };

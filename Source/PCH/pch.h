@@ -31,14 +31,14 @@
 #endif
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <limits.h>
+#include <limits>
 #include <list>
 #include <locale.h>
 #include <map>
 #include <math.h>
-#include <memory>
 #include <memory.h>
+#include <memory>
 #include <mutex>
 #include <numeric>
 #ifndef _WIN32

@@ -13,18 +13,18 @@ class PointerWrap;
 class GeometryShaderManager
 {
 public:
-	static void Init();
-	static void Dirty();
-	static void Shutdown();
-	static void DoState(PointerWrap &p);
+  static void Init();
+  static void Dirty();
+  static void Shutdown();
+  static void DoState(PointerWrap& p);
 
-	static void SetConstants();
-	static void SetViewportChanged();
-	static void SetProjectionChanged();
-	static void SetLinePtWidthChanged();
-	static void SetTexCoordChanged(u8 texmapid);
+  static void SetConstants();
+  static void SetViewportChanged();
+  static void SetProjectionChanged();
+  static void SetLinePtWidthChanged();
+  static void SetTexCoordChanged(u8 texmapid);
 
-	static GeometryShaderConstants constants;
-	static std::vector<GeometryShaderConstants> constants_replay;
-	static bool dirty;
+  static GeometryShaderConstants constants;
+  static std::vector<GeometryShaderConstants> constants_replay;
+  static bool dirty;
 };

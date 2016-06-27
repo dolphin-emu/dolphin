@@ -6,8 +6,6 @@
 
 namespace EMM
 {
-
 void InstallExceptionHandler();
 void UninstallExceptionHandler();
-
 }

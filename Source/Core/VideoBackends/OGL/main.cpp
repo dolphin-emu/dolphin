@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
-
 // OpenGL Backend Documentation
 /*
 
@@ -68,236 +66,233 @@ Make AA apply instantly during gameplay if possible
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/VR.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/VR.h"
 
 namespace OGL
 {
-
 // Draw messages on top of the screen
 unsigned int VideoBackend::PeekMessages()
 {
-	return GLInterface->PeekMessages();
+  return GLInterface->PeekMessages();
 }
 
 std::string VideoBackend::GetName() const
 {
-	return "OGL";
+  return "OGL";
 }
 
 std::string VideoBackend::GetDisplayName() const
 {
-	if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
-		return "OpenGLES";
-	else
-		return "OpenGL";
+  if (GLInterface != nullptr && GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+    return "OpenGLES";
+  else
+    return "OpenGL";
 }
 
-static std::vector<std::string> GetShaders(const std::string &sub_dir = "")
+static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
-	std::vector<std::string> paths = DoFileSearch({".glsl"}, {
-		File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-		File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir
-	});
-	std::vector<std::string> result;
-	for (std::string path : paths)
-	{
-		std::string name;
-		SplitPath(path, nullptr, &name, nullptr);
-		result.push_back(name);
-	}
-	return result;
+  std::vector<std::string> paths =
+      DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
+  std::vector<std::string> result;
+  for (std::string path : paths)
+  {
+    std::string name;
+    SplitPath(path, nullptr, &name, nullptr);
+    result.push_back(name);
+  }
+  return result;
 }
 
 static void InitBackendInfo()
 {
-	g_Config.backend_info.APIType = API_OPENGL;
-	g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-	g_Config.backend_info.bSupportsOversizedViewports = true;
-	g_Config.backend_info.bSupportsGeometryShaders = true;
-	g_Config.backend_info.bSupports3DVision = false;
-	g_Config.backend_info.bSupportsPostProcessing = true;
-	g_Config.backend_info.bSupportsSSAA = true;
+  g_Config.backend_info.APIType = API_OPENGL;
+  g_Config.backend_info.bSupportsExclusiveFullscreen = false;
+  g_Config.backend_info.bSupportsOversizedViewports = true;
+  g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupports3DVision = false;
+  g_Config.backend_info.bSupportsPostProcessing = true;
+  g_Config.backend_info.bSupportsSSAA = true;
 
-	g_Config.backend_info.Adapters.clear();
+  g_Config.backend_info.Adapters.clear();
 
-	// aamodes - 1 is to stay consistent with D3D (means no AA)
-	g_Config.backend_info.AAModes = { 1, 2, 4, 8 };
+  // aamodes - 1 is to stay consistent with D3D (means no AA)
+  g_Config.backend_info.AAModes = {1, 2, 4, 8};
 
-	// pp shaders
-	g_Config.backend_info.PPShaders = GetShaders("");
-	g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
+  // pp shaders
+  g_Config.backend_info.PPShaders = GetShaders("");
+  g_Config.backend_info.AnaglyphShaders = GetShaders(ANAGLYPH_DIR DIR_SEP);
 }
 
 void VideoBackend::ShowConfig(void* parent_handle)
 {
-	if (!m_initialized)
-		InitBackendInfo();
+  if (!m_initialized)
+    InitBackendInfo();
 
-	Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
+  Host_ShowVideoConfig(parent_handle, GetDisplayName(), "gfx_opengl");
 }
 
 bool VideoBackend::Initialize(void* window_handle)
 {
-	InitializeShared();
-	InitBackendInfo();
+  InitializeShared();
+  InitBackendInfo();
 
-	frameCount = 0;
+  frameCount = 0;
 
-	if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-	else
-		g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
-	g_Config.VerifyValidity();
-	UpdateActiveConfig();
+  if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
+    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  else
+    g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "gfx_opengl.ini");
+  g_Config.GameIniLoad();
+  g_Config.UpdateProjectionHack();
+  g_Config.VerifyValidity();
+  UpdateActiveConfig();
 
-	InitInterface();
-	GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
-	if (window_handle)
-	{
-		if (!GLInterface->Create(window_handle))
-		return false;
-	}
-	else
-	{
-		if (!GLInterface->CreateOffscreen())
-			return false;
-	}
+  InitInterface();
+  GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
+  if (window_handle)
+  {
+    if (!GLInterface->Create(window_handle))
+      return false;
+  }
+  else
+  {
+    if (!GLInterface->CreateOffscreen())
+      return false;
+  }
 
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Initialization);
+  // Do our OSD callbacks
+  OSD::DoCallbacks(OSD::CallbackType::Initialization);
 
-	m_initialized = true;
-	return true;
+  m_initialized = true;
+  return true;
 }
 
-bool VideoBackend::InitializeOtherThread(void *window_handle, std::thread *video_thread)
+bool VideoBackend::InitializeOtherThread(void* window_handle, std::thread* video_thread)
 {
-	m_video_thread = video_thread;
-	g_vr_lock.lock();
-	if (window_handle)
-	{
-		if (!GLInterface->Create(window_handle))
-			return false;
-	}
-	else
-	{
-		if (!GLInterface->CreateOffscreen())
-			return false;
-	}
-	return true;
+  m_video_thread = video_thread;
+  g_vr_lock.lock();
+  if (window_handle)
+  {
+    if (!GLInterface->Create(window_handle))
+      return false;
+  }
+  else
+  {
+    if (!GLInterface->CreateOffscreen())
+      return false;
+  }
+  return true;
 }
 
 // This is called after Initialize() from the Core
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-	if(g_ActiveConfig.bAsynchronousTimewarp)
-		GLInterface->MakeCurrentOffscreen();
-	else
-		GLInterface->MakeCurrent();
+  if (g_ActiveConfig.bAsynchronousTimewarp)
+    GLInterface->MakeCurrentOffscreen();
+  else
+    GLInterface->MakeCurrent();
 
-	g_renderer = std::make_unique<Renderer>();
+  g_renderer = std::make_unique<Renderer>();
 
-	CommandProcessor::Init();
-	PixelEngine::Init();
+  CommandProcessor::Init();
+  PixelEngine::Init();
 
-	BPInit();
-	g_vertex_manager = std::make_unique<VertexManager>();
-	g_perf_query = GetPerfQuery();
-	Fifo::Init(); // must be done before OpcodeDecoder::Init()
-	OpcodeDecoder::Init();
-	IndexGenerator::Init();
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
-	GeometryShaderManager::Init();
-	ProgramShaderCache::Init();
-	g_texture_cache = std::make_unique<TextureCache>();
-	g_sampler_cache = std::make_unique<SamplerCache>();
-	Renderer::Init();
-	VertexLoaderManager::Init();
-	TextureConverter::Init();
-	BoundingBox::Init();
-	
-	//This call is needed to ensure all OpenGL calls finish before
-	//entering the GPU thread.  Without this, AMD Drivers crash on
-	//first pass through the OculusSDK when doing a glDrawElements
-	//in CAPI_GL_DistortionRenderer.cpp when using Asynchronous Timewarp
-	glFinish();
+  BPInit();
+  g_vertex_manager = std::make_unique<VertexManager>();
+  g_perf_query = GetPerfQuery();
+  Fifo::Init();  // must be done before OpcodeDecoder::Init()
+  OpcodeDecoder::Init();
+  IndexGenerator::Init();
+  VertexShaderManager::Init();
+  PixelShaderManager::Init();
+  GeometryShaderManager::Init();
+  ProgramShaderCache::Init();
+  g_texture_cache = std::make_unique<TextureCache>();
+  g_sampler_cache = std::make_unique<SamplerCache>();
+  Renderer::Init();
+  VertexLoaderManager::Init();
+  TextureConverter::Init();
+  BoundingBox::Init();
 
-	// Notify the core that the video backend is ready
-	Host_Message(WM_USER_CREATE);
+  // This call is needed to ensure all OpenGL calls finish before
+  // entering the GPU thread.  Without this, AMD Drivers crash on
+  // first pass through the OculusSDK when doing a glDrawElements
+  // in CAPI_GL_DistortionRenderer.cpp when using Asynchronous Timewarp
+  glFinish();
+
+  // Notify the core that the video backend is ready
+  Host_Message(WM_USER_CREATE);
 }
 
 void VideoBackend::Video_PrepareOtherThread()
 {
-	GLInterface->MakeCurrent();
+  GLInterface->MakeCurrent();
 }
 
 void VideoBackend::Shutdown()
 {
-	m_initialized = false;
+  m_initialized = false;
 
-	// Do our OSD callbacks
-	OSD::DoCallbacks(OSD::CallbackType::Shutdown);
+  // Do our OSD callbacks
+  OSD::DoCallbacks(OSD::CallbackType::Shutdown);
 
-	if(g_ActiveConfig.bAsynchronousTimewarp)
-		GLInterface->ShutdownOffscreen();
-	else
-		GLInterface->Shutdown();
+  if (g_ActiveConfig.bAsynchronousTimewarp)
+    GLInterface->ShutdownOffscreen();
+  else
+    GLInterface->Shutdown();
 }
 
 void VideoBackend::ShutdownOtherThread()
 {
-	GLInterface->Shutdown();
-	GLInterface.reset();
+  GLInterface->Shutdown();
+  GLInterface.reset();
 }
 
 void VideoBackend::Video_Cleanup()
 {
-	if (!g_renderer)
-		return;
+  if (!g_renderer)
+    return;
 
-	Fifo::Shutdown();
+  Fifo::Shutdown();
 
-	// The following calls are NOT Thread Safe
-	// And need to be called from the video thread
-	Renderer::Shutdown();
-	BoundingBox::Shutdown();
-	TextureConverter::Shutdown();
-	VertexLoaderManager::Shutdown();
-	g_sampler_cache.reset();
-	g_texture_cache.reset();
-	ProgramShaderCache::Shutdown();
-	VertexShaderManager::Shutdown();
-	PixelShaderManager::Shutdown();
-	GeometryShaderManager::Shutdown();
+  // The following calls are NOT Thread Safe
+  // And need to be called from the video thread
+  Renderer::Shutdown();
+  BoundingBox::Shutdown();
+  TextureConverter::Shutdown();
+  VertexLoaderManager::Shutdown();
+  g_sampler_cache.reset();
+  g_texture_cache.reset();
+  ProgramShaderCache::Shutdown();
+  VertexShaderManager::Shutdown();
+  PixelShaderManager::Shutdown();
+  GeometryShaderManager::Shutdown();
 
-	g_perf_query.reset();
-	g_vertex_manager.reset();
+  g_perf_query.reset();
+  g_vertex_manager.reset();
 
-	OpcodeDecoder::Shutdown();
-	g_renderer.reset();
-	if(g_ActiveConfig.bAsynchronousTimewarp)
-		GLInterface->ClearCurrentOffscreen();
-	else
-		GLInterface->ClearCurrent();
-	VR_Shutdown();
+  OpcodeDecoder::Shutdown();
+  g_renderer.reset();
+  if (g_ActiveConfig.bAsynchronousTimewarp)
+    GLInterface->ClearCurrentOffscreen();
+  else
+    GLInterface->ClearCurrent();
+  VR_Shutdown();
 }
 
 void VideoBackend::Video_CleanupOtherThread()
 {
-	g_vr_lock.unlock();
-	GLInterface->ClearCurrent();
+  g_vr_lock.unlock();
+  GLInterface->ClearCurrent();
 }
 
 bool VideoBackend::Video_CanDoAsync()
 {
-	return g_has_rift;
+  return g_has_rift;
 }
-
 }

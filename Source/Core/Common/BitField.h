@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
 // Copyright 2014 Tony Wasserka
 // All rights reserved.
 //
@@ -29,7 +28,6 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 
 #pragma once
 
@@ -111,88 +109,83 @@
  * symptoms.
  */
 #pragma pack(1)
-template<std::size_t position, std::size_t bits, typename T>
+template <std::size_t position, std::size_t bits, typename T>
 struct BitField
 {
 private:
 #if !defined(_MSC_VER) || _MSC_VER > 1800
-	// This constructor might be considered ambiguous:
-	// Would it initialize the storage or just the bitfield?
-	// Hence, delete it. Use the assignment operator to set bitfield values!
-	// MSVC 2013 Intellisense complains that this declaration isn't allowed
-	// in a union member, so disable it on MSVC 2013.
-	BitField(T val) = delete;
+  // This constructor might be considered ambiguous:
+  // Would it initialize the storage or just the bitfield?
+  // Hence, delete it. Use the assignment operator to set bitfield values!
+  // MSVC 2013 Intellisense complains that this declaration isn't allowed
+  // in a union member, so disable it on MSVC 2013.
+  BitField(T val) = delete;
 #endif
 
 public:
-	// Force default constructor to be created
-	// so that we can use this within unions
-	BitField() = default;
+  // Force default constructor to be created
+  // so that we can use this within unions
+  BitField() = default;
 
 #if !defined(_MSC_VER) || _MSC_VER > 1800
-	// We explicitly delete the copy assignment operator here, because the
-	// default copy assignment would copy the full storage value, rather than
-	// just the bits relevant to this particular bit field.
-	// Ideally, we would just implement the copy assignment to copy only the
-	// relevant bits, but this requires compiler support for unrestricted
-	// unions.
-	// MSVC 2013 has no support for this, hence we disable this code on
-	// MSVC 2013 (so that the default copy assignment operator will be used).
-	// For any C++11 conformant compiler we delete the operator to make sure
-	// we never use this inappropriate operator to begin with.
-	// TODO: Implement this operator properly once all target compilers
-	// support unrestricted unions.
-	BitField& operator=(const BitField&) = delete;
+  // We explicitly delete the copy assignment operator here, because the
+  // default copy assignment would copy the full storage value, rather than
+  // just the bits relevant to this particular bit field.
+  // Ideally, we would just implement the copy assignment to copy only the
+  // relevant bits, but this requires compiler support for unrestricted
+  // unions.
+  // MSVC 2013 has no support for this, hence we disable this code on
+  // MSVC 2013 (so that the default copy assignment operator will be used).
+  // For any C++11 conformant compiler we delete the operator to make sure
+  // we never use this inappropriate operator to begin with.
+  // TODO: Implement this operator properly once all target compilers
+  // support unrestricted unions.
+  BitField& operator=(const BitField&) = delete;
 #endif
 
-	__forceinline BitField& operator=(T val)
-	{
-		storage = (storage & ~GetMask()) | ((val << position) & GetMask());
-		return *this;
-	}
+  __forceinline BitField& operator=(T val)
+  {
+    storage = (storage & ~GetMask()) | ((val << position) & GetMask());
+    return *this;
+  }
 
-	__forceinline T Value() const
-	{
-		if (std::numeric_limits<T>::is_signed)
-		{
-			std::size_t shift = 8 * sizeof(T) - bits;
-			return (T)((storage << (shift - position)) >> shift);
-		}
-		else
-		{
-			return (T)((storage & GetMask()) >> position);
-		}
-	}
+  __forceinline T Value() const
+  {
+    if (std::numeric_limits<T>::is_signed)
+    {
+      std::size_t shift = 8 * sizeof(T) - bits;
+      return (T)((storage << (shift - position)) >> shift);
+    }
+    else
+    {
+      return (T)((storage & GetMask()) >> position);
+    }
+  }
 
-	__forceinline operator T() const
-	{
-		return Value();
-	}
-
+  __forceinline operator T() const { return Value(); }
 private:
-	// StorageType is T for non-enum types and the underlying type of T if
-	// T is an enumeration. Note that T is wrapped within an enable_if in the
-	// former case to workaround compile errors which arise when using
-	// std::underlying_type<T>::type directly.
-	typedef typename std::conditional<std::is_enum<T>::value,
-	                                  std::underlying_type<T>,
-	                                  std::enable_if<true,T>>::type::type StorageType;
+  // StorageType is T for non-enum types and the underlying type of T if
+  // T is an enumeration. Note that T is wrapped within an enable_if in the
+  // former case to workaround compile errors which arise when using
+  // std::underlying_type<T>::type directly.
+  typedef typename std::conditional<std::is_enum<T>::value, std::underlying_type<T>,
+                                    std::enable_if<true, T>>::type::type StorageType;
 
-	// Unsigned version of StorageType
-	typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
+  // Unsigned version of StorageType
+  typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
 
-	__forceinline StorageType GetMask() const
-	{
-		return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
-	}
+  __forceinline StorageType GetMask() const
+  {
+    return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
+  }
 
-	StorageType storage;
+  StorageType storage;
 
-	static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
+  static_assert(bits + position <= 8 * sizeof(T), "Bitfield out of range");
 
-	// And, you know, just in case people specify something stupid like bits=position=0x80000000
-	static_assert(position < 8 * sizeof(T), "Invalid position");
-	static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
-	static_assert(bits > 0, "Invalid number of bits");
+  // And, you know, just in case people specify something stupid like bits=position=0x80000000
+  static_assert(position < 8 * sizeof(T), "Invalid position");
+  static_assert(bits <= 8 * sizeof(T), "Invalid number of bits");
+  static_assert(bits > 0, "Invalid number of bits");
 };
 #pragma pack()

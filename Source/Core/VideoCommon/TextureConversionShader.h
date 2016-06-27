@@ -11,6 +11,5 @@ namespace TextureConversionShader
 {
 u16 GetEncodedSampleCount(u32 format);
 
-const char *GenerateEncodingShader(u32 format, API_TYPE ApiType = API_OPENGL);
-
+const char* GenerateEncodingShader(u32 format, API_TYPE ApiType = API_OPENGL);
 }

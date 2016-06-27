@@ -8,8 +8,8 @@
 
 namespace EfbCopy
 {
-	// Copy the EFB to RAM as a texture format or XFB
-	void CopyEfb();
+// Copy the EFB to RAM as a texture format or XFB
+void CopyEfb();
 
-	void ClearEfb();
+void ClearEfb();
 }

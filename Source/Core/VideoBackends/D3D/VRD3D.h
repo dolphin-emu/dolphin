@@ -20,7 +20,6 @@
 
 namespace DX11
 {
-
 void VR_ConfigureHMD();
 void VR_StartFramebuffer();
 void VR_StopFramebuffer();
@@ -28,5 +27,4 @@ void VR_RenderToEyebuffer(int eye);
 void VR_BeginFrame();
 void VR_PresentHMDFrame();
 void VR_DrawTimewarpFrame();
-
 }

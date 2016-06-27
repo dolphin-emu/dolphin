@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-
 // Emulator state saving support.
 
 #pragma once
@@ -14,15 +13,14 @@
 
 namespace State
 {
-
 // number of states
 static const u32 NUM_STATES = 10;
 
 struct StateHeader
 {
-	char gameID[6];
-	u32 size;
-	double time;
+  char gameID[6];
+  u32 size;
+  double time;
 };
 
 void Init();
@@ -46,9 +44,9 @@ void Save(int slot, bool wait = false);
 void Load(int slot);
 void Verify(int slot);
 
-void SaveAs(const std::string &filename, bool wait = false);
-void LoadAs(const std::string &filename);
-void VerifyAt(const std::string &filename);
+void SaveAs(const std::string& filename, bool wait = false);
+void LoadAs(const std::string& filename);
+void VerifyAt(const std::string& filename);
 
 void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
@@ -63,7 +61,6 @@ void UndoLoadState();
 void Flush();
 
 // for calling back into UI code without introducing a dependency on it in core
-typedef void(*CallbackFunc)(void);
+typedef void (*CallbackFunc)(void);
 void SetOnAfterLoadCallback(CallbackFunc callback);
-
 }

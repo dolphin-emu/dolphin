@@ -32,41 +32,41 @@ class XAudio2_7 final : public SoundStream
 #ifdef _WIN32
 
 private:
-	static void ReleaseIXAudio2(IXAudio2 *ptr);
+  static void ReleaseIXAudio2(IXAudio2* ptr);
 
-	class Releaser
-	{
-	public:
-		template <typename R>
-		void operator()(R *ptr)
-		{
-			ReleaseIXAudio2(ptr);
-		}
-	};
+  class Releaser
+  {
+  public:
+    template <typename R>
+    void operator()(R* ptr)
+    {
+      ReleaseIXAudio2(ptr);
+    }
+  };
 
-	std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
-	std::unique_ptr<StreamingVoiceContext2_7> m_voice_context;
-	IXAudio2MasteringVoice *m_mastering_voice;
+  std::unique_ptr<IXAudio2, Releaser> m_xaudio2;
+  std::unique_ptr<StreamingVoiceContext2_7> m_voice_context;
+  IXAudio2MasteringVoice* m_mastering_voice;
 
-	Common::Event m_sound_sync_event;
-	float m_volume;
+  Common::Event m_sound_sync_event;
+  float m_volume;
 
-	const bool m_cleanup_com;
+  const bool m_cleanup_com;
 
-	static HMODULE m_xaudio2_dll;
+  static HMODULE m_xaudio2_dll;
 
-	static bool InitLibrary();
+  static bool InitLibrary();
 
 public:
-	XAudio2_7();
-	virtual ~XAudio2_7();
+  XAudio2_7();
+  virtual ~XAudio2_7();
 
-	bool Start() override;
-	void Stop() override;
+  bool Start() override;
+  void Stop() override;
 
-	void Clear(bool mute) override;
-	void SetVolume(int volume) override;
+  void Clear(bool mute) override;
+  void SetVolume(int volume) override;
 
-	static bool isValid() { return InitLibrary(); }
+  static bool isValid() { return InitLibrary(); }
 #endif
 };

@@ -10,22 +10,21 @@
 class NullSound final : public SoundStream
 {
 public:
-	bool Start() override;
-	void SoundLoop() override;
-	void SetVolume(int volume) override;
-	void Stop() override;
-	void Clear(bool mute) override;
-	void Update() override;
+  bool Start() override;
+  void SoundLoop() override;
+  void SetVolume(int volume) override;
+  void Stop() override;
+  void Clear(bool mute) override;
+  void Update() override;
 
-	static bool isValid() { return true; }
-
+  static bool isValid() { return true; }
 private:
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #define BUFFER_SIZE (48000 * 4 / 32)
 #else
-	static constexpr size_t BUFFER_SIZE = 48000 * 4 / 32;
+  static constexpr size_t BUFFER_SIZE = 48000 * 4 / 32;
 #endif
 
-	// Playback position
-	std::array<short, BUFFER_SIZE / sizeof(short)> m_realtime_buffer;
+  // Playback position
+  std::array<short, BUFFER_SIZE / sizeof(short)> m_realtime_buffer;
 };

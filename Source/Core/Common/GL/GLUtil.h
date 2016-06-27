@@ -26,7 +26,8 @@ void OpenGL_DeleteAttributelessVAO();
 // Binds the VAO suitable for attributeless rendering.
 void OpenGL_BindAttributelessVAO();
 
-// this should be removed in future, but as long as glsl is unstable, we should really read this messages
+// this should be removed in future, but as long as glsl is unstable, we should really read this
+// messages
 #if defined(_DEBUG) || defined(DEBUGFAST)
 #define DEBUG_GLSL 1
 #else

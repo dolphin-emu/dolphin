@@ -41,132 +41,123 @@ typedef void CURL;
 
 namespace Common
 {
-
 // Generic interface for an analytics reporting backends. The main
 // implementation used in Dolphin can be found in Core/Analytics.h.
 class AnalyticsReportingBackend
 {
 public:
-	virtual ~AnalyticsReportingBackend() {}
-
-	// Called from the AnalyticsReporter backend thread.
-	virtual void Send(std::string report) = 0;
+  virtual ~AnalyticsReportingBackend() {}
+  // Called from the AnalyticsReporter backend thread.
+  virtual void Send(std::string report) = 0;
 };
 
 // Builder object for an analytics report.
 class AnalyticsReportBuilder
 {
 public:
-	AnalyticsReportBuilder();
-	~AnalyticsReportBuilder() = default;
+  AnalyticsReportBuilder();
+  ~AnalyticsReportBuilder() = default;
 
-	AnalyticsReportBuilder(const AnalyticsReportBuilder& other)
-	{
-		*this = other;
-	}
+  AnalyticsReportBuilder(const AnalyticsReportBuilder& other) { *this = other; }
+  AnalyticsReportBuilder(AnalyticsReportBuilder&& other)
+  {
+    std::lock_guard<std::mutex> lk(other.m_lock);
+    m_report = std::move(other.m_report);
+  }
 
-	AnalyticsReportBuilder(AnalyticsReportBuilder&& other)
-	{
-		std::lock_guard<std::mutex> lk(other.m_lock);
-		m_report = std::move(other.m_report);
-	}
+  const AnalyticsReportBuilder& operator=(const AnalyticsReportBuilder& other)
+  {
+    if (this != &other)
+    {
+      std::lock_guard<std::mutex> lk(m_lock);
+      std::lock_guard<std::mutex> lk2(other.m_lock);
+      m_report = other.m_report;
+    }
+    return *this;
+  }
 
-	const AnalyticsReportBuilder& operator=(const AnalyticsReportBuilder& other)
-	{
-		if (this != &other)
-		{
-			std::lock_guard<std::mutex> lk(m_lock);
-			std::lock_guard<std::mutex> lk2(other.m_lock);
-			m_report = other.m_report;
-		}
-		return *this;
-	}
+  // Append another builder to this one.
+  AnalyticsReportBuilder& AddBuilder(const AnalyticsReportBuilder& other)
+  {
+    // Get before locking the object to avoid deadlocks with this += this.
+    std::string other_report = other.Get();
+    std::lock_guard<std::mutex> lk(m_lock);
+    m_report += other_report;
+    return *this;
+  }
 
-	// Append another builder to this one.
-	AnalyticsReportBuilder& AddBuilder(const AnalyticsReportBuilder& other)
-	{
-		// Get before locking the object to avoid deadlocks with this += this.
-		std::string other_report = other.Get();
-		std::lock_guard<std::mutex> lk(m_lock);
-		m_report += other_report;
-		return *this;
-	}
+  template <typename T>
+  AnalyticsReportBuilder& AddData(const std::string& key, const T& value)
+  {
+    std::lock_guard<std::mutex> lk(m_lock);
+    AppendSerializedValue(&m_report, key);
+    AppendSerializedValue(&m_report, value);
+    return *this;
+  }
 
-	template <typename T>
-	AnalyticsReportBuilder& AddData(const std::string& key, const T& value)
-	{
-		std::lock_guard<std::mutex> lk(m_lock);
-		AppendSerializedValue(&m_report, key);
-		AppendSerializedValue(&m_report, value);
-		return *this;
-	}
+  std::string Get() const
+  {
+    std::lock_guard<std::mutex> lk(m_lock);
+    return m_report;
+  }
 
-	std::string Get() const
-	{
-		std::lock_guard<std::mutex> lk(m_lock);
-		return m_report;
-	}
-
-	// More efficient version of Get().
-	std::string Consume()
-	{
-		std::lock_guard<std::mutex> lk(m_lock);
-		return std::move(m_report);
-	}
+  // More efficient version of Get().
+  std::string Consume()
+  {
+    std::lock_guard<std::mutex> lk(m_lock);
+    return std::move(m_report);
+  }
 
 protected:
-	static void AppendSerializedValue(std::string* report, const std::string& v);
-	static void AppendSerializedValue(std::string* report, const char* v);
-	static void AppendSerializedValue(std::string* report, bool v);
-	static void AppendSerializedValue(std::string* report, u64 v);
-	static void AppendSerializedValue(std::string* report, s64 v);
-	static void AppendSerializedValue(std::string* report, u32 v);
-	static void AppendSerializedValue(std::string* report, s32 v);
-	static void AppendSerializedValue(std::string* report, float v);
+  static void AppendSerializedValue(std::string* report, const std::string& v);
+  static void AppendSerializedValue(std::string* report, const char* v);
+  static void AppendSerializedValue(std::string* report, bool v);
+  static void AppendSerializedValue(std::string* report, u64 v);
+  static void AppendSerializedValue(std::string* report, s64 v);
+  static void AppendSerializedValue(std::string* report, u32 v);
+  static void AppendSerializedValue(std::string* report, s32 v);
+  static void AppendSerializedValue(std::string* report, float v);
 
-	// Should really be a std::shared_mutex, unfortunately that's C++17 only.
-	mutable std::mutex m_lock;
-	std::string m_report;
+  // Should really be a std::shared_mutex, unfortunately that's C++17 only.
+  mutable std::mutex m_lock;
+  std::string m_report;
 };
 
 class AnalyticsReporter
 {
 public:
-	AnalyticsReporter();
-	~AnalyticsReporter();
+  AnalyticsReporter();
+  ~AnalyticsReporter();
 
-	// Sets a reporting backend and enables sending reports. Do not set a remote
-	// backend without user consent.
-	void SetBackend(std::unique_ptr<AnalyticsReportingBackend> backend)
-	{
-		m_backend = std::move(backend);
-		m_reporter_event.Set();  // In case reports are waiting queued.
-	}
+  // Sets a reporting backend and enables sending reports. Do not set a remote
+  // backend without user consent.
+  void SetBackend(std::unique_ptr<AnalyticsReportingBackend> backend)
+  {
+    m_backend = std::move(backend);
+    m_reporter_event.Set();  // In case reports are waiting queued.
+  }
 
-	// Gets the base report builder which is closed for each subsequent report
-	// being sent. DO NOT use this builder to send a report. Only use it to add
-	// new fields that should be globally available.
-	AnalyticsReportBuilder& BaseBuilder() { return m_base_builder; }
+  // Gets the base report builder which is closed for each subsequent report
+  // being sent. DO NOT use this builder to send a report. Only use it to add
+  // new fields that should be globally available.
+  AnalyticsReportBuilder& BaseBuilder() { return m_base_builder; }
+  // Gets a cloned builder that can be used to send a report.
+  AnalyticsReportBuilder Builder() const { return m_base_builder; }
+  // Enqueues a report for sending. Consumes the report builder.
+  void Send(AnalyticsReportBuilder&& report);
 
-	// Gets a cloned builder that can be used to send a report.
-	AnalyticsReportBuilder Builder() const { return m_base_builder; }
-
-	// Enqueues a report for sending. Consumes the report builder.
-	void Send(AnalyticsReportBuilder&& report);
-
-	// For convenience.
-	void Send(AnalyticsReportBuilder& report) { Send(std::move(report)); }
-
+  // For convenience.
+  void Send(AnalyticsReportBuilder& report) { Send(std::move(report)); }
 protected:
-	void ThreadProc();
+  void ThreadProc();
 
-	std::shared_ptr<AnalyticsReportingBackend> m_backend;
-	AnalyticsReportBuilder m_base_builder;
+  std::shared_ptr<AnalyticsReportingBackend> m_backend;
+  AnalyticsReportBuilder m_base_builder;
 
-	std::thread m_reporter_thread;
-	Common::Event m_reporter_event, m_reporter_finished_event;
-	Common::Flag m_reporter_stop_request;
-	FifoQueue<std::string> m_reports_queue;
+  std::thread m_reporter_thread;
+  Common::Event m_reporter_event, m_reporter_finished_event;
+  Common::Flag m_reporter_stop_request;
+  FifoQueue<std::string> m_reports_queue;
 };
 
 // Analytics backend to be used for debugging purpose, which dumps reports to
@@ -174,7 +165,7 @@ protected:
 class StdoutAnalyticsBackend : public AnalyticsReportingBackend
 {
 public:
-	void Send(std::string report) override;
+  void Send(std::string report) override;
 };
 
 // Analytics backend that POSTs data to a remote HTTP(s) endpoint. WARNING:
@@ -182,13 +173,13 @@ public:
 class HttpAnalyticsBackend : public AnalyticsReportingBackend
 {
 public:
-	HttpAnalyticsBackend(const std::string& endpoint);
-	~HttpAnalyticsBackend() override;
+  HttpAnalyticsBackend(const std::string& endpoint);
+  ~HttpAnalyticsBackend() override;
 
-	void Send(std::string report) override;
+  void Send(std::string report) override;
 
 protected:
-	CURL* m_curl = nullptr;
+  CURL* m_curl = nullptr;
 };
 
 }  // namespace Common
