@@ -198,7 +198,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
     packed = false;
 
   // lazy single optimization for "add" and "sub"
-  if (single && fpr.IsLazySingle(a) && fpr.IsLazySingle(arg2) && cpu_info.bAVX &&
+  if (single && fpr.IsLazySingle(a) && fpr.IsLazySingle(arg2) &&
       !SConfig::GetInstance().bAccurateNaNs && !(SConfig::GetInstance().bFPRF && js.op->wantsFPRF))
   {
     // this assumes that lazy singles are always in dirty registers
@@ -223,20 +223,19 @@ void Jit64::fp_arith(UGeckoInstruction inst)
       dest = fpr.RX_lazy_single(d);
     }
 
-    // TODO: SSE2 support
     switch (inst.SUBOP5)
     {
     case 18:
-      VDIVSS(dest, opa, fpr.R_lazy_single(arg2));
+      avx_op(&XEmitter::VDIVSS, &XEmitter::DIVSS, dest, R(opa), R(opb), false, false);
       break;
     case 20:
-      VSUBSS(dest, opa, fpr.R_lazy_single(arg2));
+      avx_op(&XEmitter::VSUBSS, &XEmitter::SUBSS, dest, R(opa), R(opb), false, false);
       break;
     case 21:
-      VADDSS(dest, opa, fpr.R_lazy_single(arg2));
+      avx_op(&XEmitter::VADDSS, &XEmitter::ADDSS, dest, R(opa), R(opb), false, true);
       break;
     case 25:
-      VMULSS(dest, opa, fpr.R_lazy_single(arg2));
+      avx_op(&XEmitter::VMULSS, &XEmitter::MULSS, dest, R(opa), R(opb), false, true);
       break;
     default:
       _assert_msg_(DYNA_REC, 0, "fp_arith lazy WTF!!!");

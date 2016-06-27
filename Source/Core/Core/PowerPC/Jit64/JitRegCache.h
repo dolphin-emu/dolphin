@@ -16,15 +16,48 @@ enum FlushMode
   FLUSH_MAINTAIN_STATE,
 };
 
-// "FPR shape" is an optimization to allow defering conversions.
-// SHAPE_DEFAULT is the "paired-doubles" form, while
-// "SHAPE_LAZY_SINGLE" means the register contains an unpaired,
-// single-precision value.
+// FPR shape is an optimization to allow deferring conversions (and thereby
+// allowing them to be omitted entirely in many cases).
+//
+// This optimization introduces a number of implicit float-to-double
+// conversions, but no implicit double-to-float conversions and so is correct
+// even if flush-to-zero is modified (as all denormal floats are normal
+// doubles).
 enum FPRShape
 {
+  // The default shape, a pair of doubles. This is the only shape which
+  // can exist in PowerPC::ppcState (other shapes only exist in registers).
+  // It is also the only shape which can always be converted to safely.
   SHAPE_DEFAULT,
+
+  // A single 32-bit floating point value, loaded from memory. This may
+  // contain any pattern of bits, and must be converted to double losslessly,
+  // safely checking for NaN.
   SHAPE_LAZY_SINGLE,
+
+  // A single 32-bit floating point value which is the result of a floating
+  // point operation. It is "safe" because the NaN results will not contain
+  // arbitrary bits, so it may be converted to double without preserving NaN
+  // values.
   SHAPE_SAFE_LAZY_SINGLE,
+
+  // Potential future shapes:
+  //
+  //  SHAPE_PAIRED_SINGLES
+  //    A pair of 32-bit floats. Seems like a good idea - could improve paired
+  //    singles code by avoiding repeated CVTPD2PS, CVTPS2PD rounding.
+  //
+  //  SHAPE_LAZY_DOUBLE
+  //    The value has been promoted to double, but not duplicated. This
+  //    might avoid MOVDDUP in places, although there's already a similar
+  //    optimization implemented, so I doubt this would impact performance
+  //    much.
+  //
+  //  SHAPE_DOUBLE_PRESERVED
+  //    Value has been promoted to double, but the high part hasn't been
+  //    loaded yet. Could spill by only writing the low 64-bits and never
+  //    loading the full register. I suspect this wouldn't be great for
+  //    performance, but it might be worth trying.
 };
 
 struct PPCCachedReg
