@@ -266,13 +266,13 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
     TrampolineInfo& info = backPatchInfo[mov.address];
     info.pc = jit->js.compilerPC;
-    info.mov = mov;
+    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = true;
     info.op_reg = reg_value;
     info.op_arg = opAddress;
     info.offsetAddedToAddress = offsetAddedToAddress;
-    info.accessSize = accessSize;
+    info.accessSize = accessSize >> 3;
     info.offset = offset;
     info.registersInUse = registersInUse;
     info.flags = flags;
@@ -282,7 +282,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     {
       NOP(padding);
     }
-    info.end = GetCodePtr();
+    info.len = GetCodePtr() - info.start;
 
     jit->js.fastmemLoadStore = mov.address;
     return;
@@ -540,13 +540,13 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
     TrampolineInfo& info = backPatchInfo[mov.address];
     info.pc = jit->js.compilerPC;
-    info.mov = mov;
+    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = false;
     info.op_arg = reg_value;
     info.op_reg = reg_addr;
     info.offsetAddedToAddress = false;
-    info.accessSize = accessSize;
+    info.accessSize = accessSize >> 3;
     info.offset = offset;
     info.registersInUse = registersInUse;
     info.flags = flags;
@@ -555,7 +555,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     {
       NOP(padding);
     }
-    info.end = GetCodePtr();
+    info.len = GetCodePtr() - info.start;
 
     jit->js.fastmemLoadStore = mov.address;
 

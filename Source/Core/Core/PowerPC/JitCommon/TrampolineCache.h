@@ -16,11 +16,12 @@ const int BACKPATCH_SIZE = 5;
 
 class TrampolineCache : public EmuCodeBlock
 {
+  const u8* GenerateReadTrampoline(const TrampolineInfo& info);
+  const u8* GenerateWriteTrampoline(const TrampolineInfo& info);
+
 public:
   void Init(int size);
   void Shutdown();
-
-  const u8* GenerateReadTrampoline(const TrampolineInfo& info);
-  const u8* GenerateWriteTrampoline(const TrampolineInfo& info);
+  const u8* GenerateTrampoline(const TrampolineInfo& info);
   void ClearCodeSpace();
 };

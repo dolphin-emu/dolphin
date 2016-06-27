@@ -69,16 +69,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   jit->js.trampolineExceptionHandler = exceptionHandler;
 
   // Generate the trampoline.
-  const u8* trampoline;
-  if (info.read)
-  {
-    trampoline = trampolines.GenerateReadTrampoline(info);
-  }
-  else
-  {
-    trampoline = trampolines.GenerateWriteTrampoline(info);
-  }
-
+  const u8* trampoline = trampolines.GenerateTrampoline(info);
   jit->js.generatingTrampoline = false;
   jit->js.trampolineExceptionHandler = nullptr;
 
@@ -88,18 +79,18 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   XEmitter emitter(start);
   emitter.JMP(trampoline, true);
   // NOPs become dead code
-  for (const u8* i = emitter.GetCodePtr(); i < info.end; ++i)
+  const u8* end = info.start + info.len;
+  for (const u8* i = emitter.GetCodePtr(); i < end; ++i)
     emitter.INT3();
 
   // Rewind time to just before the start of the write block. If we swapped memory
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
   // swap it back so that the swap can happen again (this double swap isn't ideal but
   // only happens the first time we fault).
-  if (info.mov.nonAtomicSwapStore)
+  if (info.nonAtomicSwapStoreSrc != INVALID_REG)
   {
-    X64Reg reg = info.mov.nonAtomicSwapStoreSrc;
-    u64* ptr = ContextRN(ctx, reg);
-    switch (info.accessSize)
+    u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
+    switch (info.accessSize << 3)
     {
     case 8:
       // No need to swap a byte
@@ -112,6 +103,9 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
       break;
     case 64:
       *ptr = Common::swap64(static_cast<u64>(*ptr));
+      break;
+    default:
+      _dbg_assert_(DYNA_REC, 0);
       break;
     }
   }
