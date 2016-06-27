@@ -85,7 +85,7 @@ class x64EmitterTest : public testing::Test
 protected:
   void SetUp() override
   {
-    memset(&cpu_info, 0xFF, sizeof(cpu_info));
+    memset(&cpu_info, 0x01, sizeof(cpu_info));
 
     emitter.reset(new X64CodeBlock());
     emitter->AllocCodeSpace(4096);
