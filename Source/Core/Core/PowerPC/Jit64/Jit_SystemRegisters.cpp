@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -237,14 +237,15 @@ void Jit64::mtspr(UGeckoInstruction inst)
 
   case SPR_HID0:
   {
+    gpr.Lock(d);
     gpr.BindToRegister(d, true, false);
     BTR(32, gpr.R(d), Imm8(31 - 20));  // ICFI
     MOV(32, PPCSTATE(spr[iIndex]), gpr.R(d));
     FixupBranch dont_reset_icache = J_CC(CC_NC);
-    BitSet32 regs = CallerSavedRegistersInUse();
-    ABI_PushRegistersAndAdjustStack(regs, 0);
+    BitSet32 r = CallerSavedRegistersInUse();
+    ABI_PushRegistersAndAdjustStack(r, 0);
     ABI_CallFunction((void*)DoICacheReset);
-    ABI_PopRegistersAndAdjustStack(regs, 0);
+    ABI_PopRegistersAndAdjustStack(r, 0);
     SetJumpTarget(dont_reset_icache);
     break;
   }

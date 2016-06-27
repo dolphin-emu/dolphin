@@ -503,6 +503,7 @@ public:
   const u8* GetCodePtr() const;
   u8* GetWritableCodePtr();
 
+  bool FlagsLocked() const { return flags_locked; }
   void LockFlags() { flags_locked = true; }
   void UnlockFlags() { flags_locked = false; }
   // Looking for one of these? It's BANNED!! Some instructions are slow on modern CPU
