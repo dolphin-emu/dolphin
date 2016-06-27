@@ -96,6 +96,9 @@ protected:
     bool carryFlagSet;
     bool carryFlagInverted;
 
+    bool generatingTrampoline;
+    u8* trampolineExceptionHandler;
+
     int fifoBytesThisBlock;
 
     PPCAnalyst::BlockStats st;
