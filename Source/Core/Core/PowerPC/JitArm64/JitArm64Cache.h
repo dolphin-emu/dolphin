@@ -13,4 +13,5 @@ class JitArm64BlockCache : public JitBaseBlockCache
 private:
   void WriteLinkBlock(u8* location, const JitBlock& block);
   void WriteDestroyBlock(const u8* location, u32 address);
+  void WriteUndestroyBlock(const u8* location, u32 address);
 };

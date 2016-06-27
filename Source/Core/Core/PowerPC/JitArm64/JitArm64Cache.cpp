@@ -30,9 +30,18 @@ void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 
 void JitArm64BlockCache::WriteDestroyBlock(const u8* location, u32 address)
 {
-  // must fit within the code generated in JitArm64::WriteExit
   ARM64XEmitter emit((u8*)location);
   emit.MOVI2R(DISPATCHER_PC, address);
   emit.B(jit->GetAsmRoutines()->dispatcher);
+  emit.FlushIcache();
+}
+
+void JitArm64BlockCache::WriteUndestroyBlock(const u8* location, u32 address)
+{
+  ARM64XEmitter emit((u8*)location);
+  FixupBranch bail = emit.B(CC_PL);
+  emit.MOVI2R(DISPATCHER_PC, address);
+  emit.B(jit->GetAsmRoutines()->doTiming);
+  emit.SetJumpTarget(bail);
   emit.FlushIcache();
 }
