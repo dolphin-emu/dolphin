@@ -29,7 +29,7 @@ FifoRecorder::~FifoRecorder()
 
 void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 {
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lk(sMutex);
 
   delete m_File;
 
@@ -50,8 +50,6 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
   m_RequestedRecordingEnd = false;
   m_FinishedCb = finishedCb;
-
-  sMutex.unlock();
 }
 
 void FifoRecorder::StopRecording()
@@ -85,16 +83,16 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
     m_CurrentFrame.fifoData = new u8[dataSize];
     memcpy(m_CurrentFrame.fifoData, m_FifoData.data(), dataSize);
 
-    sMutex.lock();
+    {
+      std::lock_guard<std::recursive_mutex> lk(sMutex);
 
-    // Copy frame to file
-    // The file will be responsible for freeing the memory allocated for each frame's fifoData
-    m_File->AddFrame(m_CurrentFrame);
+      // Copy frame to file
+      // The file will be responsible for freeing the memory allocated for each frame's fifoData
+      m_File->AddFrame(m_CurrentFrame);
 
-    if (m_FinishedCb && m_RequestedRecordingEnd)
-      m_FinishedCb();
-
-    sMutex.unlock();
+      if (m_FinishedCb && m_RequestedRecordingEnd)
+        m_FinishedCb();
+    }
 
     m_CurrentFrame.memoryUpdates.clear();
     m_FifoData.clear();
@@ -145,8 +143,7 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
 void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 {
   // m_IsRecording is assumed to be true at this point, otherwise this function would not be called
-
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lk(sMutex);
 
   m_FrameEnded = true;
 
@@ -184,13 +181,11 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
     // Signal video backend that it should not call this function when the next frame ends
     m_IsRecording = false;
   }
-
-  sMutex.unlock();
 }
 
 void FifoRecorder::SetVideoMemory(u32* bpMem, u32* cpMem, u32* xfMem, u32* xfRegs, u32 xfRegsSize)
 {
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lk(sMutex);
 
   if (m_File)
   {
@@ -203,8 +198,6 @@ void FifoRecorder::SetVideoMemory(u32* bpMem, u32* cpMem, u32* xfMem, u32* xfReg
   }
 
   FifoRecordAnalyzer::Initialize(cpMem);
-
-  sMutex.unlock();
 }
 
 FifoRecorder& FifoRecorder::GetInstance()
