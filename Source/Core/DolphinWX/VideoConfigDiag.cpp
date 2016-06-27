@@ -242,6 +242,7 @@ static wxString free_look_desc = wxTRANSLATE(
     "the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and "
     "SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the "
     "speed.\n\nIf unsure, leave this unchecked.");
+
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or "
                                         "16:9.\n\nIf unsure, leave this unchecked.");
 static wxString ppshader_desc = wxTRANSLATE(
@@ -265,7 +266,12 @@ static wxString stereo_convergence_desc =
 static wxString stereo_swap_desc =
     wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
-
+static wxString stereo_always_freelook_desc = 
+	wxTRANSLATE("This features allows the game's camera to continuously track with the mouse."
+				" This is usefull if you are Using software such as Trinus, Intugame, or KinoVR"
+				" to stream Dolphin to a Google Cardboard capable device. Most Cardboard"
+				" streaming software can use a phone's accelerometer to simulate mouse input."
+				"\n\nIf unsure, leave this unchecked.");
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
 static wxArrayString GetListOfResolutions()
@@ -622,13 +628,17 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                       wxALIGN_CENTER_VERTICAL, 0);
       szr_stereo->Add(conv_slider, 0, wxEXPAND | wxRIGHT);
 
-      szr_stereo->Add(CreateCheckBox(page_enh, _("Swap Eyes"), wxGetTranslation(stereo_swap_desc),
+	  szr_stereo->Add(CreateCheckBox(page_enh, _("Swap Eyes"), wxGetTranslation(stereo_swap_desc),
                                      vconfig.bStereoSwapEyes));
+
+	  szr_stereo->Add(CreateCheckBox(page_enh, _("Free Look Always On"),
+		  wxGetTranslation(stereo_always_freelook_desc), vconfig.bFreeLookAlwaysOn));
 
       wxStaticBoxSizer* const group_stereo =
           new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Stereoscopy"));
       group_stereo->Add(szr_stereo, 1, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
       szr_enh_main->Add(group_stereo, 0, wxEXPAND | wxALL, 5);
+	  
     }
 
     szr_enh_main->AddStretchSpacer();
