@@ -21,11 +21,22 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/Jit64_RegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+// Selective import from Jit64Reg
+using Jit64Reg::GPRNative;
+using Jit64Reg::GPRRegister;
+using Jit64Reg::FPUNative;
+using Jit64Reg::FPURegister;
+using Jit64Reg::BindMode;
+
+// #undef INSTRUCTION_START
+// #define INSTRUCTION_START EMIT_MSG(INSTRUCTION_START);
 
 class Jit64 : public Jitx86Base
 {
@@ -33,8 +44,9 @@ private:
   void AllocStack();
   void FreeStack();
 
-  GPRRegCache gpr;
-  FPURegCache fpr;
+  Jit64Reg::Registers regs{this, this};
+  GPRRegCache gpr{regs.gpr};
+  FPURegCache fpr{regs.fpu};
 
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
