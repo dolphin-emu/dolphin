@@ -14,7 +14,7 @@ TEST(BusyLoopTest, MultiThreaded)
 {
   Common::BlockingLoop loop;
   Common::Event e;
-  for (int i = 0; i < 100; i++)
+  for (int i = 0; i < 10; i++)
   {
     loop.Prepare();
     std::thread loop_thread([&]() { loop.Run([&]() { e.Set(); }); });
