@@ -21,6 +21,6 @@ void OSD_AddMessage(const std::string& str, u32 ms);
 bool OnThread();
 bool IsWiiHost();
 void InterruptRequest();
-void CodeLoaded(const u8 *ptr, int size);
+void CodeLoaded(const u8* ptr, int size);
 void UpdateDebugger();
 }

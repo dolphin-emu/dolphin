@@ -11,7 +11,6 @@ struct KeyboardStatus;
 
 namespace Keyboard
 {
-
 void Shutdown();
 void Initialize(void* const hwnd);
 void LoadConfig();
@@ -19,5 +18,4 @@ void LoadConfig();
 InputConfig* GetConfig();
 
 void GetStatus(u8 port, KeyboardStatus* keyboard_status);
-
 }

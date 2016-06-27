@@ -12,21 +12,20 @@ class IniFile;
 
 namespace ActionReplay
 {
-
 struct AREntry
 {
-	AREntry() {}
-	AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
-	u32 cmd_addr;
-	u32 value;
+  AREntry() {}
+  AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
+  u32 cmd_addr;
+  u32 value;
 };
 
 struct ARCode
 {
-	std::string name;
-	std::vector<AREntry> ops;
-	bool active;
-	bool user_defined;
+  std::string name;
+  std::vector<AREntry> ops;
+  bool active;
+  bool user_defined;
 };
 
 void RunAllActive();

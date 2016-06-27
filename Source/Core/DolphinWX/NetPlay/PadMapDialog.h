@@ -17,14 +17,14 @@ class wxChoice;
 class PadMapDialog final : public wxDialog
 {
 public:
-	PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client);
+  PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client);
 
-	PadMappingArray GetModifiedPadMappings() const;
+  PadMappingArray GetModifiedPadMappings() const;
 
 private:
-	void OnAdjust(wxCommandEvent& event);
+  void OnAdjust(wxCommandEvent& event);
 
-	wxChoice* m_map_cbox[4];
-	PadMappingArray m_pad_mapping;
-	std::vector<const Player*> m_player_list;
+  wxChoice* m_map_cbox[4];
+  PadMappingArray m_pad_mapping;
+  std::vector<const Player*> m_player_list;
 };

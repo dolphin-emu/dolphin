@@ -8,39 +8,36 @@
 
 namespace WiimoteEmu
 {
-
 struct ExtensionReg;
 
 class Attachment : public ControllerEmu
 {
 public:
-	Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
+  Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
 
-	virtual void GetState(u8* const data) {}
-	virtual bool IsButtonPressed() const { return false; }
-	void Reset();
-	std::string GetName() const override;
+  virtual void GetState(u8* const data) {}
+  virtual bool IsButtonPressed() const { return false; }
+  void Reset();
+  std::string GetName() const override;
 
-	const char* const         name;
-	WiimoteEmu::ExtensionReg& reg;
+  const char* const name;
+  WiimoteEmu::ExtensionReg& reg;
 
-	u8 id[6];
-	u8 calibration[0x10];
+  u8 id[6];
+  u8 calibration[0x10];
 
 protected:
-
-	// Default radius for attachment analog sticks.
+// Default radius for attachment analog sticks.
 #if defined(_MSC_VER) && _MSC_VER <= 1800
-	static const ControlState DEFAULT_ATTACHMENT_STICK_RADIUS;
+  static const ControlState DEFAULT_ATTACHMENT_STICK_RADIUS;
 #else
-	static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
+  static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
 #endif
 };
 
 class None : public Attachment
 {
 public:
-	None(WiimoteEmu::ExtensionReg& _reg);
+  None(WiimoteEmu::ExtensionReg& _reg);
 };
-
 }

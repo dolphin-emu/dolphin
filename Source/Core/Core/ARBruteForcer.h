@@ -6,7 +6,6 @@
 
 namespace ARBruteForcer
 {
-
 // take photo
 extern int ch_take_screenshot;
 // current code
@@ -36,6 +35,7 @@ void SaveLastPosition(int position);
 int LoadLastPosition();
 void PostProcessCSVFile();
 void FindModeOfCSV(std::string filename, std::string* thing1_mode, std::string* thing2_mode);
-void StripModesFromCSV(std::string infilename, std::string outfilename, std::string thing1_mode, std::string thing2_mode);
+void StripModesFromCSV(std::string infilename, std::string outfilename, std::string thing1_mode,
+                       std::string thing2_mode);
 
 }  // namespace
