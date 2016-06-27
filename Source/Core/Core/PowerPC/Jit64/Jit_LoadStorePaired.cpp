@@ -37,6 +37,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   int w = indexed ? inst.Wx : inst.W;
   FALLBACK_IF(!a);
 
+  fpr.EnsureDefaultShape(s);
+
   auto it = js.constantGqr.find(i);
   bool gqrIsConstant = it != js.constantGqr.end();
   u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
