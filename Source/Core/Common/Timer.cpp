@@ -23,7 +23,7 @@ namespace Common
 u32 Timer::GetTimeMs()
 {
 #ifdef _WIN32
-  return timeGetTime();
+  return static_cast<u32>(Timer::GetTimeUs() / 1000);
 #elif defined __APPLE__
   struct timeval t;
   (void)gettimeofday(&t, nullptr);
