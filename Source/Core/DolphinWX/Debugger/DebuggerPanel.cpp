@@ -48,8 +48,7 @@ void GFXDebuggerPanel::OnClose(wxCloseEvent& event)
 
 void GFXDebuggerPanel::SaveSettings() const
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
 
   // TODO: make this work when we close the entire program too, currently on
   // total close we get
@@ -59,8 +58,8 @@ void GFXDebuggerPanel::SaveSettings() const
   if (GetPosition().x < 1000 && GetPosition().y < 1000 && GetSize().GetWidth() < 1000 &&
       GetSize().GetHeight() < 1000)
   {
-    OnionConfig::OnionPetal* video_window =
-        base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "VideoWindow");
+    OnionConfig::Section* video_window =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "VideoWindow");
 
     video_window->Set("x", GetPosition().x);
     video_window->Set("y", GetPosition().y);
@@ -78,8 +77,8 @@ void GFXDebuggerPanel::LoadSettings()
   int w = 100;
   int h = 100;
 
-  OnionConfig::OnionPetal* video_window =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "VideoWindow");
+  OnionConfig::Section* video_window =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "VideoWindow");
 
   video_window->Get("x", &x, GetPosition().x);
   video_window->Get("y", &y, GetPosition().y);

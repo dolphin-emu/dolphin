@@ -10,18 +10,18 @@
 
 namespace OnionConfig
 {
-const std::string& OnionPetal::NULL_STRING = "";
+const std::string& Section::NULL_STRING = "";
 OnionBloom m_layers;
 std::list<std::pair<CallbackFunction, void*>> m_callbacks;
 
 void CallbackSystems();
 
 // Only to be used with the meta-layer
-class RecursiveOnionPetal final : public OnionPetal
+class RecursiveSection final : public Section
 {
 public:
-  RecursiveOnionPetal(OnionLayerType layer, OnionSystem system, const std::string& name)
-      : OnionPetal(layer, system, name)
+  RecursiveSection(LayerType layer, System system, const std::string& name)
+      : Section(layer, system, name)
   {
   }
 
@@ -33,12 +33,12 @@ public:
   void Set(const std::string& key, const std::string& value) override;
 };
 
-bool RecursiveOnionPetal::Exists(const std::string& key) const
+bool RecursiveSection::Exists(const std::string& key) const
 {
-  auto layers_it = m_layers.find(OnionLayerType::LAYER_META);
+  auto layers_it = m_layers.find(LayerType::LAYER_META);
   do
   {
-    OnionPetal* layer_petal = layers_it->second->GetPetal(m_system, m_name);
+    Section* layer_petal = layers_it->second->GetSection(m_system, m_name);
     if (layer_petal && layer_petal->Exists(key))
     {
       return true;
@@ -48,15 +48,14 @@ bool RecursiveOnionPetal::Exists(const std::string& key) const
   return false;
 }
 
-bool RecursiveOnionPetal::Get(const std::string& key, std::string* value,
-                              const std::string& default_value) const
+bool RecursiveSection::Get(const std::string& key, std::string* value,
+                           const std::string& default_value) const
 {
-  std::array<OnionLayerType, 7> search_order = {
+  std::array<LayerType, 7> search_order = {
       // Skip the meta layer
-      OnionLayerType::LAYER_CURRENTRUN, OnionLayerType::LAYER_COMMANDLINE,
-      OnionLayerType::LAYER_MOVIE,      OnionLayerType::LAYER_NETPLAY,
-      OnionLayerType::LAYER_LOCALGAME,  OnionLayerType::LAYER_GLOBALGAME,
-      OnionLayerType::LAYER_BASE,
+      LayerType::LAYER_CURRENTRUN, LayerType::LAYER_COMMANDLINE, LayerType::LAYER_MOVIE,
+      LayerType::LAYER_NETPLAY,    LayerType::LAYER_LOCALGAME,   LayerType::LAYER_GLOBALGAME,
+      LayerType::LAYER_BASE,
   };
 
   for (auto layer_id : search_order)
@@ -65,55 +64,57 @@ bool RecursiveOnionPetal::Get(const std::string& key, std::string* value,
     if (layers_it == m_layers.end())
       continue;
 
-    OnionPetal* layer_petal = layers_it->second->GetPetal(m_system, m_name);
+    Section* layer_petal = layers_it->second->GetSection(m_system, m_name);
     if (layer_petal && layer_petal->Exists(key))
     {
       return layer_petal->Get(key, value, default_value);
     }
   }
 
-  return OnionPetal::Get(key, value, default_value);
+  return Section::Get(key, value, default_value);
 }
 
-void RecursiveOnionPetal::Set(const std::string& key, const std::string& value)
+void RecursiveSection::Set(const std::string& key, const std::string& value)
 {
-  // The RecursiveOnionPetal can't set since it is used to recursively get values from the layer
-  // map.
-  // It is only a part of the meta layer, and the meta layer isn't allowed to set any values.
+  // The RecursiveSection can't set since it is used to recursively get values
+  // from the layer map.
+  // It is only a part of the meta layer, and the meta layer isn't allowed to
+  // set any values.
   _assert_msg_(COMMON, false, "Don't try to set values here!");
 }
 
-class RecursiveBloomLayer final : public BloomLayer
+class RecursiveLayer final : public Layer
 {
 public:
-  RecursiveBloomLayer() : BloomLayer(OnionLayerType::LAYER_META) {}
-  OnionPetal* GetPetal(OnionSystem system, const std::string& petal_name) override;
-  OnionPetal* GetOrCreatePetal(OnionSystem system, const std::string& petal_name) override;
+  RecursiveLayer() : Layer(LayerType::LAYER_META) {}
+  Section* GetSection(System system, const std::string& petal_name) override;
+  Section* GetOrCreateSection(System system, const std::string& petal_name) override;
 };
 
-OnionPetal* RecursiveBloomLayer::GetPetal(OnionSystem system, const std::string& petal_name)
+Section* RecursiveLayer::GetSection(System system, const std::string& petal_name)
 {
-  // Always queries backwards recursively, so it doesn't matter if it exists or not on this layer
-  return GetOrCreatePetal(system, petal_name);
+  // Always queries backwards recursively, so it doesn't matter if it exists or
+  // not on this layer
+  return GetOrCreateSection(system, petal_name);
 }
 
-OnionPetal* RecursiveBloomLayer::GetOrCreatePetal(OnionSystem system, const std::string& petal_name)
+Section* RecursiveLayer::GetOrCreateSection(System system, const std::string& petal_name)
 {
-  OnionPetal* petal = BloomLayer::GetPetal(system, petal_name);
+  Section* petal = Layer::GetSection(system, petal_name);
   if (!petal)
   {
-    m_petals[system].emplace_back(new RecursiveOnionPetal(m_layer, system, petal_name));
+    m_petals[system].emplace_back(new RecursiveSection(m_layer, system, petal_name));
     petal = m_petals[system].back();
   }
   return petal;
 }
 
-bool OnionPetal::Exists(const std::string& key) const
+bool Section::Exists(const std::string& key) const
 {
   return m_values.find(key) != m_values.end();
 }
 
-bool OnionPetal::Delete(const std::string& key)
+bool Section::Delete(const std::string& key)
 {
   auto it = m_values.find(key);
   if (it == m_values.end())
@@ -123,7 +124,7 @@ bool OnionPetal::Delete(const std::string& key)
   return true;
 }
 
-void OnionPetal::Set(const std::string& key, const std::string& value)
+void Section::Set(const std::string& key, const std::string& value)
 {
   auto it = m_values.find(key);
   if (it != m_values.end())
@@ -132,33 +133,33 @@ void OnionPetal::Set(const std::string& key, const std::string& value)
     m_values[key] = value;
 }
 
-void OnionPetal::Set(const std::string& key, u32 newValue)
+void Section::Set(const std::string& key, u32 newValue)
 {
-  OnionPetal::Set(key, StringFromFormat("0x%08x", newValue));
+  Section::Set(key, StringFromFormat("0x%08x", newValue));
 }
 
-void OnionPetal::Set(const std::string& key, float newValue)
+void Section::Set(const std::string& key, float newValue)
 {
-  OnionPetal::Set(key, StringFromFormat("%#.9g", newValue));
+  Section::Set(key, StringFromFormat("%#.9g", newValue));
 }
 
-void OnionPetal::Set(const std::string& key, double newValue)
+void Section::Set(const std::string& key, double newValue)
 {
-  OnionPetal::Set(key, StringFromFormat("%#.17g", newValue));
+  Section::Set(key, StringFromFormat("%#.17g", newValue));
 }
 
-void OnionPetal::Set(const std::string& key, int newValue)
+void Section::Set(const std::string& key, int newValue)
 {
-  OnionPetal::Set(key, StringFromInt(newValue));
+  Section::Set(key, StringFromInt(newValue));
 }
 
-void OnionPetal::Set(const std::string& key, bool newValue)
+void Section::Set(const std::string& key, bool newValue)
 {
-  OnionPetal::Set(key, StringFromBool(newValue));
+  Section::Set(key, StringFromBool(newValue));
 }
 
-void OnionPetal::Set(const std::string& key, const std::string& newValue,
-                     const std::string& defaultValue)
+void Section::Set(const std::string& key, const std::string& newValue,
+                  const std::string& defaultValue)
 {
   if (newValue != defaultValue)
     Set(key, newValue);
@@ -166,8 +167,8 @@ void OnionPetal::Set(const std::string& key, const std::string& newValue,
     Delete(key);
 }
 
-bool OnionPetal::Get(const std::string& key, std::string* value,
-                     const std::string& default_value) const
+bool Section::Get(const std::string& key, std::string* value,
+                  const std::string& default_value) const
 {
   const auto& it = m_values.find(key);
   if (it != m_values.end())
@@ -184,7 +185,7 @@ bool OnionPetal::Get(const std::string& key, std::string* value,
   return false;
 }
 
-bool OnionPetal::Get(const std::string& key, int* value, int defaultValue) const
+bool Section::Get(const std::string& key, int* value, int defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
@@ -196,7 +197,7 @@ bool OnionPetal::Get(const std::string& key, int* value, int defaultValue) const
   return false;
 }
 
-bool OnionPetal::Get(const std::string& key, u32* value, u32 defaultValue) const
+bool Section::Get(const std::string& key, u32* value, u32 defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
@@ -208,7 +209,7 @@ bool OnionPetal::Get(const std::string& key, u32* value, u32 defaultValue) const
   return false;
 }
 
-bool OnionPetal::Get(const std::string& key, bool* value, bool defaultValue) const
+bool Section::Get(const std::string& key, bool* value, bool defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
@@ -220,7 +221,7 @@ bool OnionPetal::Get(const std::string& key, bool* value, bool defaultValue) con
   return false;
 }
 
-bool OnionPetal::Get(const std::string& key, float* value, float defaultValue) const
+bool Section::Get(const std::string& key, float* value, float defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
@@ -232,7 +233,7 @@ bool OnionPetal::Get(const std::string& key, float* value, float defaultValue) c
   return false;
 }
 
-bool OnionPetal::Get(const std::string& key, double* value, double defaultValue) const
+bool Section::Get(const std::string& key, double* value, double defaultValue) const
 {
   std::string temp;
   bool retval = Get(key, &temp);
@@ -245,7 +246,7 @@ bool OnionPetal::Get(const std::string& key, double* value, double defaultValue)
 }
 
 // Return a list of all lines in a petal
-bool OnionPetal::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
+bool Section::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
 {
   lines->clear();
 
@@ -274,72 +275,71 @@ bool OnionPetal::GetLines(std::vector<std::string>* lines, const bool remove_com
 }
 
 // Onion layers
-BloomLayer::BloomLayer(std::unique_ptr<ConfigLayerLoader> loader)
+Layer::Layer(std::unique_ptr<ConfigLayerLoader> loader)
     : m_layer(loader->GetLayer()), m_loader(std::move(loader))
 {
   Load();
 }
 
-BloomLayer::~BloomLayer()
+Layer::~Layer()
 {
   Save();
 }
 
-bool BloomLayer::Exists(OnionSystem system, const std::string& petal_name, const std::string& key)
+bool Layer::Exists(System system, const std::string& petal_name, const std::string& key)
 {
-  OnionPetal* petal = GetPetal(system, petal_name);
+  Section* petal = GetSection(system, petal_name);
   if (!petal)
     return false;
   return petal->Exists(key);
 }
 
-bool BloomLayer::DeleteKey(OnionSystem system, const std::string& petal_name,
-                           const std::string& key)
+bool Layer::DeleteKey(System system, const std::string& petal_name, const std::string& key)
 {
-  OnionPetal* petal = GetPetal(system, petal_name);
+  Section* petal = GetSection(system, petal_name);
   if (!petal)
     return false;
   return petal->Delete(key);
 }
 
-OnionPetal* BloomLayer::GetPetal(OnionSystem system, const std::string& petal_name)
+Section* Layer::GetSection(System system, const std::string& petal_name)
 {
-  for (OnionPetal* petal : m_petals[system])
+  for (Section* petal : m_petals[system])
     if (!strcasecmp(petal->m_name.c_str(), petal_name.c_str()))
       return petal;
   return nullptr;
 }
 
-OnionPetal* BloomLayer::GetOrCreatePetal(OnionSystem system, const std::string& petal_name)
+Section* Layer::GetOrCreateSection(System system, const std::string& petal_name)
 {
-  OnionPetal* petal = GetPetal(system, petal_name);
+  Section* petal = GetSection(system, petal_name);
   if (!petal)
   {
-    if (m_layer == OnionLayerType::LAYER_META)
-      m_petals[system].emplace_back(new RecursiveOnionPetal(m_layer, system, petal_name));
+    if (m_layer == LayerType::LAYER_META)
+      m_petals[system].emplace_back(new RecursiveSection(m_layer, system, petal_name));
     else
-      m_petals[system].emplace_back(new OnionPetal(m_layer, system, petal_name));
+      m_petals[system].emplace_back(new Section(m_layer, system, petal_name));
     petal = m_petals[system].back();
   }
   return petal;
 }
 
-void BloomLayer::Load()
+void Layer::Load()
 {
   if (m_loader)
     m_loader->Load(this);
   CallbackSystems();
 }
 
-void BloomLayer::Save()
+void Layer::Save()
 {
   if (m_loader)
     m_loader->Save(this);
 }
 
-OnionPetal* GetOrCreatePetal(OnionSystem system, const std::string& petal_name)
+Section* GetOrCreateSection(System system, const std::string& petal_name)
 {
-  return m_layers[OnionLayerType::LAYER_META]->GetOrCreatePetal(system, petal_name);
+  return m_layers[LayerType::LAYER_META]->GetOrCreateSection(system, petal_name);
 }
 
 OnionBloom* GetFullBloom()
@@ -347,7 +347,7 @@ OnionBloom* GetFullBloom()
   return &m_layers;
 }
 
-void AddLayer(BloomLayer* layer)
+void AddLayer(Layer* layer)
 {
   m_layers[layer->GetLayer()] = layer;
   CallbackSystems();
@@ -355,11 +355,11 @@ void AddLayer(BloomLayer* layer)
 
 void AddLayer(ConfigLayerLoader* loader)
 {
-  BloomLayer* layer = new BloomLayer(std::unique_ptr<ConfigLayerLoader>(loader));
+  Layer* layer = new Layer(std::unique_ptr<ConfigLayerLoader>(loader));
   AddLayer(layer);
 }
 
-void AddLoadLayer(BloomLayer* layer)
+void AddLoadLayer(Layer* layer)
 {
   layer->Load();
   AddLayer(layer);
@@ -367,24 +367,24 @@ void AddLoadLayer(BloomLayer* layer)
 
 void AddLoadLayer(ConfigLayerLoader* loader)
 {
-  BloomLayer* layer = new BloomLayer(std::unique_ptr<ConfigLayerLoader>(loader));
+  Layer* layer = new Layer(std::unique_ptr<ConfigLayerLoader>(loader));
   layer->Load();
   AddLayer(loader);
 }
 
-BloomLayer* GetLayer(OnionLayerType layer)
+Layer* GetLayer(LayerType layer)
 {
   if (!LayerExists(layer))
     return nullptr;
   return m_layers[layer];
 }
 
-void RemoveLayer(OnionLayerType layer)
+void RemoveLayer(LayerType layer)
 {
   m_layers.erase(layer);
   CallbackSystems();
 }
-bool LayerExists(OnionLayerType layer)
+bool LayerExists(LayerType layer)
 {
   return m_layers.find(layer) != m_layers.end();
 }
@@ -418,7 +418,7 @@ void Save()
 void Init()
 {
   // This layer always has to exist
-  m_layers[OnionLayerType::LAYER_META] = new RecursiveBloomLayer();
+  m_layers[LayerType::LAYER_META] = new RecursiveLayer();
 }
 
 void Shutdown()
@@ -433,19 +433,19 @@ void Shutdown()
   m_callbacks.clear();
 }
 
-static std::map<OnionSystem, std::string> system_to_name = {
-    {OnionSystem::SYSTEM_MAIN, "Dolphin"},      {OnionSystem::SYSTEM_GCPAD, "GCPad"},
-    {OnionSystem::SYSTEM_WIIPAD, "Wiimote"},    {OnionSystem::SYSTEM_GCKEYBOARD, "GCKeyboard"},
-    {OnionSystem::SYSTEM_GFX, "Graphics"},      {OnionSystem::SYSTEM_LOGGER, "Logger"},
-    {OnionSystem::SYSTEM_DEBUGGER, "Debugger"}, {OnionSystem::SYSTEM_UI, "UI"},
+static std::map<System, std::string> system_to_name = {
+    {System::SYSTEM_MAIN, "Dolphin"},      {System::SYSTEM_GCPAD, "GCPad"},
+    {System::SYSTEM_WIIPAD, "Wiimote"},    {System::SYSTEM_GCKEYBOARD, "GCKeyboard"},
+    {System::SYSTEM_GFX, "Graphics"},      {System::SYSTEM_LOGGER, "Logger"},
+    {System::SYSTEM_DEBUGGER, "Debugger"}, {System::SYSTEM_UI, "UI"},
 };
 
-const std::string& GetSystemName(OnionSystem system)
+const std::string& GetSystemName(System system)
 {
   return system_to_name[system];
 }
 
-OnionSystem GetSystemFromName(const std::string& system)
+System GetSystemFromName(const std::string& system)
 {
   for (auto& val : system_to_name)
     if (val.second == system)
@@ -453,20 +453,20 @@ OnionSystem GetSystemFromName(const std::string& system)
 
   _assert_msg_(COMMON, false, "Programming error! Couldn't convert '%s' to system!",
                system.c_str());
-  return OnionSystem::SYSTEM_MAIN;
+  return System::SYSTEM_MAIN;
 }
 
-const std::string& GetLayerName(OnionLayerType layer)
+const std::string& GetLayerName(LayerType layer)
 {
-  static std::map<OnionLayerType, std::string> layer_to_name = {
-      {OnionLayerType::LAYER_BASE, "Base"},
-      {OnionLayerType::LAYER_GLOBALGAME, "Global GameINI"},
-      {OnionLayerType::LAYER_LOCALGAME, "Local GameINI"},
-      {OnionLayerType::LAYER_NETPLAY, "Netplay"},
-      {OnionLayerType::LAYER_MOVIE, "Movie"},
-      {OnionLayerType::LAYER_COMMANDLINE, "Command Line"},
-      {OnionLayerType::LAYER_CURRENTRUN, "Current Run"},
-      {OnionLayerType::LAYER_META, "Top"},
+  static std::map<LayerType, std::string> layer_to_name = {
+      {LayerType::LAYER_BASE, "Base"},
+      {LayerType::LAYER_GLOBALGAME, "Global GameINI"},
+      {LayerType::LAYER_LOCALGAME, "Local GameINI"},
+      {LayerType::LAYER_NETPLAY, "Netplay"},
+      {LayerType::LAYER_MOVIE, "Movie"},
+      {LayerType::LAYER_COMMANDLINE, "Command Line"},
+      {LayerType::LAYER_CURRENTRUN, "Current Run"},
+      {LayerType::LAYER_META, "Top"},
   };
   return layer_to_name[layer];
 }

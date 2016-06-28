@@ -14,8 +14,7 @@
 
 namespace Keyboard
 {
-static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_GCKEYBOARD, _trans("Keyboard"),
-                            "GCKey");
+static InputConfig s_config(OnionConfig::System::SYSTEM_GCKEYBOARD, _trans("Keyboard"), "GCKey");
 InputConfig* GetConfig()
 {
   return &s_config;

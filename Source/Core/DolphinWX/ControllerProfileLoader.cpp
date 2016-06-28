@@ -11,11 +11,11 @@ class INIProfileConfigLoader : public OnionConfig::ConfigLayerLoader
 {
 public:
   INIProfileConfigLoader(const std::string& filename)
-      : ConfigLayerLoader(OnionConfig::OnionLayerType::LAYER_BASE), m_filename(filename)
+      : ConfigLayerLoader(OnionConfig::LayerType::LAYER_BASE), m_filename(filename)
   {
   }
 
-  void Load(OnionConfig::BloomLayer* config_layer) override
+  void Load(OnionConfig::Layer* config_layer) override
   {
     IniFile ini;
     ini.Load(m_filename);
@@ -27,8 +27,8 @@ public:
     for (auto section : system_sections)
     {
       const std::string section_name = section.GetName();
-      OnionConfig::OnionPetal* petal =
-          config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, section_name);
+      OnionConfig::Section* petal =
+          config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section_name);
       const IniFile::Section::SectionMap& section_map = section.GetValues();
 
       for (auto& value : section_map)
@@ -36,17 +36,17 @@ public:
     }
   }
 
-  void Save(OnionConfig::BloomLayer* config_layer) override
+  void Save(OnionConfig::Layer* config_layer) override
   {
     IniFile ini;
-    const OnionConfig::BloomLayerMap& petals = config_layer->GetBloomLayerMap();
+    const OnionConfig::LayerMap& petals = config_layer->GetLayerMap();
     // We will only ever have SYSTEM_MAIN here
     for (const auto& system : petals)
     {
       for (const auto& petal : system.second)
       {
         const std::string petal_name = petal->GetName();
-        const OnionConfig::PetalValueMap& petal_values = petal->GetValues();
+        const OnionConfig::SectionValueMap& petal_values = petal->GetValues();
 
         IniFile::Section* section = ini.GetOrCreateSection(petal_name);
 

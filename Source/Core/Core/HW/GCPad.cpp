@@ -13,7 +13,7 @@
 
 namespace Pad
 {
-static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_GCPAD, _trans("Pad"), "GCPad");
+static InputConfig s_config(OnionConfig::System::SYSTEM_GCPAD, _trans("Pad"), "GCPad");
 InputConfig* GetConfig()
 {
   return &s_config;

@@ -16,7 +16,7 @@ class ControllerEmu;
 class InputConfig
 {
 public:
-  InputConfig(const OnionConfig::OnionSystem system, const std::string& gui_name,
+  InputConfig(const OnionConfig::System system, const std::string& gui_name,
               const std::string& profile_name)
       : m_system(system), m_gui_name(gui_name), m_profile_name(profile_name)
   {
@@ -40,7 +40,7 @@ public:
   std::string GetProfileName() const { return m_profile_name; }
 private:
   std::vector<std::unique_ptr<ControllerEmu>> m_controllers;
-  const OnionConfig::OnionSystem m_system;
+  const OnionConfig::System m_system;
   const std::string m_gui_name;
   const std::string m_profile_name;
 };

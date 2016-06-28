@@ -112,8 +112,8 @@ void SConfig::LoadSettings()
 
 void SConfig::LoadGeneralSettings()
 {
-  OnionConfig::OnionPetal* general =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "General");
+  OnionConfig::Section* general =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "General");
 
   general->Get("LastFilename", &m_LastFilename);
   general->Get("ShowLag", &m_ShowLag, false);
@@ -172,8 +172,8 @@ void SConfig::LoadGeneralSettings()
 
 void SConfig::LoadInterfaceSettings()
 {
-  OnionConfig::OnionPetal* interface =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Interface");
+  OnionConfig::Section* interface =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
@@ -196,8 +196,8 @@ void SConfig::LoadInterfaceSettings()
 
 void SConfig::LoadDisplaySettings()
 {
-  OnionConfig::OnionPetal* display =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display");
+  OnionConfig::Section* display =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Display");
 
   display->Get("Fullscreen", &bFullscreen, false);
   display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
@@ -216,8 +216,8 @@ void SConfig::LoadDisplaySettings()
 
 void SConfig::LoadGameListSettings()
 {
-  OnionConfig::OnionPetal* gamelist =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "GameList");
+  OnionConfig::Section* gamelist =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "GameList");
 
   gamelist->Get("ListDrives", &m_ListDrives, false);
   gamelist->Get("ListWad", &m_ListWad, true);
@@ -258,8 +258,8 @@ void SConfig::LoadGameListSettings()
 
 void SConfig::LoadCoreSettings()
 {
-  OnionConfig::OnionPetal* core =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+  OnionConfig::Section* core =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
 
   core->Get("HLE_BS2", &bHLE_BS2, false);
 #ifdef _M_X86
@@ -330,8 +330,8 @@ void SConfig::LoadCoreSettings()
 
 void SConfig::LoadMovieSettings()
 {
-  OnionConfig::OnionPetal* movie =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Movie");
+  OnionConfig::Section* movie =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Movie");
 
   movie->Get("PauseMovie", &m_PauseMovie, false);
   movie->Get("Author", &m_strMovieAuthor, "");
@@ -342,8 +342,8 @@ void SConfig::LoadMovieSettings()
 
 void SConfig::LoadDSPSettings()
 {
-  OnionConfig::OnionPetal* dsp =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "DSP");
+  OnionConfig::Section* dsp =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "DSP");
 
   dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
   dsp->Get("DumpAudio", &m_DumpAudio, false);
@@ -367,24 +367,24 @@ void SConfig::LoadDSPSettings()
 
 void SConfig::LoadInputSettings()
 {
-  OnionConfig::OnionPetal* input =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Input");
+  OnionConfig::Section* input =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Input");
 
   input->Get("BackgroundInput", &m_BackgroundInput, false);
 }
 
 void SConfig::LoadFifoPlayerSettings()
 {
-  OnionConfig::OnionPetal* fifoplayer =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "FifoPlayer");
+  OnionConfig::Section* fifoplayer =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "FifoPlayer");
 
   fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
 }
 
 void SConfig::LoadAnalyticsSettings()
 {
-  OnionConfig::OnionPetal* analytics =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Analytics");
+  OnionConfig::Section* analytics =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Analytics");
 
   analytics->Get("ID", &m_analytics_id, "");
   analytics->Get("Enabled", &m_analytics_enabled, false);

@@ -15,7 +15,7 @@ class CommandLineConfigLayerLoader : public OnionConfig::ConfigLayerLoader
 public:
   CommandLineConfigLayerLoader(const std::list<std::string>& args, const std::string& video_backend,
                                const std::string& audio_backend)
-      : ConfigLayerLoader(OnionConfig::OnionLayerType::LAYER_COMMANDLINE)
+      : ConfigLayerLoader(OnionConfig::LayerType::LAYER_COMMANDLINE)
   {
     if (video_backend.size())
       m_values.emplace_back(std::make_tuple("Dolphin", "Core", "GFXBackend", video_backend));
@@ -24,7 +24,7 @@ public:
       m_values.emplace_back(
           std::make_tuple("Dolphin", "Core", "DSPHLE", audio_backend == "HLE" ? "True" : "False"));
 
-    // Arguments are in the format of <System>.<Petal>.<Key>=Value
+    // Arguments are in the format of <System>.<Section>.<Key>=Value
     for (const auto& arg : args)
     {
       std::istringstream buffer(arg);
@@ -37,17 +37,17 @@ public:
     }
   }
 
-  void Load(OnionConfig::BloomLayer* config_layer) override
+  void Load(OnionConfig::Layer* config_layer) override
   {
     for (auto& value : m_values)
     {
-      OnionConfig::OnionPetal* petal = config_layer->GetOrCreatePetal(
+      OnionConfig::Section* petal = config_layer->GetOrCreateSection(
           OnionConfig::GetSystemFromName(std::get<0>(value)), std::get<1>(value));
       petal->Set(std::get<2>(value), std::get<3>(value));
     }
   }
 
-  void Save(OnionConfig::BloomLayer* config_layer) override
+  void Save(OnionConfig::Layer* config_layer) override
   {
     // Save Nothing
   }
@@ -72,7 +72,7 @@ std::unique_ptr<optparse::OptionParser> CreateParser(bool gui)
       .help("Load the specified file");
   parser->add_option("-C", "--config")
       .action("append")
-      .metavar("<System>.<Petal>.<Key>=<Value>")
+      .metavar("<System>.<Section>.<Key>=<Value>")
       .type("string")
       .help("Set a configuration option");
 

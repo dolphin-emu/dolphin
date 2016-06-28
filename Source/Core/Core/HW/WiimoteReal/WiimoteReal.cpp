@@ -603,13 +603,13 @@ void LoadSettings()
 {
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    OnionConfig::OnionPetal* wiimote = OnionConfig::GetOrCreatePetal(
-        OnionConfig::OnionSystem::SYSTEM_WIIPAD, StringFromFormat("Wiimote%d", i + 1));
+    OnionConfig::Section* wiimote = OnionConfig::GetOrCreateSection(
+        OnionConfig::System::SYSTEM_WIIPAD, StringFromFormat("Wiimote%d", i + 1));
     wiimote->Get("Source", &g_wiimote_sources[i], i ? WIIMOTE_SRC_NONE : WIIMOTE_SRC_EMU);
   }
 
-  OnionConfig::OnionPetal* balanceboard =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, "BalanceBoard");
+  OnionConfig::Section* balanceboard =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_WIIPAD, "BalanceBoard");
   balanceboard->Get("Source", &g_wiimote_sources[WIIMOTE_BALANCE_BOARD], WIIMOTE_SRC_NONE);
 }
 

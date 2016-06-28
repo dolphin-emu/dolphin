@@ -20,7 +20,7 @@ bool InputConfig::LoadConfig()
 
   for (auto& controller : m_controllers)
   {
-    controller->LoadConfig(OnionConfig::GetOrCreatePetal(m_system, controller->GetName()));
+    controller->LoadConfig(OnionConfig::GetOrCreateSection(m_system, controller->GetName()));
 
     // Update refs
     controller->UpdateReferences(g_controller_interface);
@@ -31,7 +31,7 @@ bool InputConfig::LoadConfig()
 void InputConfig::SaveConfig()
 {
   for (auto& controller : m_controllers)
-    controller->SaveConfig(OnionConfig::GetOrCreatePetal(m_system, controller->GetName()));
+    controller->SaveConfig(OnionConfig::GetOrCreateSection(m_system, controller->GetName()));
   OnionConfig::Save();
 }
 

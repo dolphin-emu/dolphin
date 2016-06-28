@@ -29,8 +29,8 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
-  OnionConfig::OnionPetal* keyboard =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "USB Keyboard");
+  OnionConfig::Section* keyboard =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "USB Keyboard");
   keyboard->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
   for (bool& pressed : m_OldKeyBuffer)

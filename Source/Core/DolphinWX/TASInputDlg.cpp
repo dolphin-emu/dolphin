@@ -170,8 +170,8 @@ void TASInputDlg::CreateWiiLayout(int num)
   else
   {
     std::string extension;
-    OnionConfig::OnionPetal* wiimote = OnionConfig::GetOrCreatePetal(
-        OnionConfig::OnionSystem::SYSTEM_WIIPAD, "Wiimote" + std::to_string(num + 1));
+    OnionConfig::Section* wiimote = OnionConfig::GetOrCreateSection(
+        OnionConfig::System::SYSTEM_WIIPAD, "Wiimote" + std::to_string(num + 1));
     wiimote->Get("Extension", &extension);
 
     if (extension == "Nunchuk")

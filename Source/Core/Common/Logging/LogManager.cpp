@@ -83,10 +83,10 @@ LogManager::LogManager()
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
 
-  OnionConfig::OnionPetal* logs =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
-  OnionConfig::OnionPetal* options =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
+  OnionConfig::Section* logs =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Logs");
+  OnionConfig::Section* options =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Options");
   bool write_file;
   bool write_console;
   options->Get("WriteToFile", &write_file, false);

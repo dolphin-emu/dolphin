@@ -62,8 +62,8 @@ private:
   wxStaticBox* m_groupbox_info;
 
   Gecko::CodeConfigPanel* m_geckocode_panel;
-  std::unique_ptr<OnionConfig::BloomLayer> m_global_config;
-  std::unique_ptr<OnionConfig::BloomLayer> m_local_config;
+  std::unique_ptr<OnionConfig::Layer> m_global_config;
+  std::unique_ptr<OnionConfig::Layer> m_local_config;
   std::string m_gameini_local_path;
   std::string m_game_id;
   u32 m_game_revision;

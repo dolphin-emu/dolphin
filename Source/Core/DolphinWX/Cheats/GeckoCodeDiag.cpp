@@ -92,9 +92,8 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
   UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(OnionConfig::BloomLayer* global_config,
-                                OnionConfig::BloomLayer* local_config, const std::string& gameid,
-                                bool checkRunning)
+void CodeConfigPanel::LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
+                                const std::string& gameid, bool checkRunning)
 {
   m_gameid = gameid;
 

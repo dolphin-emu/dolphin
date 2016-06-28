@@ -217,8 +217,8 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 {
   std::string section = m_current_shader + "-options";
-  OnionConfig::OnionPetal* petal =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, section);
+  OnionConfig::Section* petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section);
 
   for (auto& it : m_options)
   {
@@ -249,8 +249,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 
 void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
   std::string section = m_current_shader + "-options";
 
   for (auto& it : m_options)
@@ -259,7 +258,7 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
     {
     case ConfigurationOption::OptionType::OPTION_BOOL:
     {
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, section)
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
           ->Set(it.second.m_option_name, it.second.m_bool_value);
     }
     break;
@@ -269,7 +268,7 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
         value += StringFromFormat("%d%s", it.second.m_integer_values[i],
                                   i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, section)
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
           ->Set(it.second.m_option_name, value);
     }
     break;
@@ -284,7 +283,7 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
         if (i != (it.second.m_float_values.size() - 1))
           value << ", ";
       }
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, section)
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
           ->Set(it.second.m_option_name, value.str());
     }
     break;

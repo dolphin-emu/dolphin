@@ -1335,8 +1335,7 @@ void SaveRecording(const std::string& filename)
   header.recordingStartTime = s_recordingStartTime;
 
   header.bSaveConfig = true;
-  OnionConfig::BloomLayer* movie_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_MOVIE);
+  OnionConfig::Layer* movie_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_MOVIE);
   MovieConfigLayerLoader* movie_loader =
       static_cast<MovieConfigLayerLoader*>(movie_layer->GetLoader());
   movie_loader->ChangeDTMHeader(&header);

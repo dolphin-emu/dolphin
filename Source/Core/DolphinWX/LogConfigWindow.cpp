@@ -88,10 +88,10 @@ void LogConfigWindow::CreateGUIControls()
 
 void LogConfigWindow::LoadSettings()
 {
-  OnionConfig::OnionPetal* options =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
-  OnionConfig::OnionPetal* logs =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
+  OnionConfig::Section* options =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Options");
+  OnionConfig::Section* logs =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Logs");
 
   // Retrieve the verbosity value from the config ini file.
   int verbosity;
@@ -131,12 +131,11 @@ void LogConfigWindow::LoadSettings()
 
 void LogConfigWindow::SaveSettings()
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
-  OnionConfig::OnionPetal* options =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
-  OnionConfig::OnionPetal* logs =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* options =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Options");
+  OnionConfig::Section* logs =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Logs");
 
   options->Set("Verbosity", m_verbosity->GetSelection() + 1);
   options->Set("WriteToFile", m_writeFile);
