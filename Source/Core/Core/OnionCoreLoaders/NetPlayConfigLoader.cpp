@@ -14,18 +14,18 @@ class NetPlayConfigLayerLoader : public OnionConfig::ConfigLayerLoader
 {
 public:
   NetPlayConfigLayerLoader(const NetSettings& settings)
-      : ConfigLayerLoader(OnionConfig::OnionLayerType::LAYER_NETPLAY), m_settings(settings)
+      : ConfigLayerLoader(OnionConfig::LayerType::LAYER_NETPLAY), m_settings(settings)
   {
   }
 
-  void Load(OnionConfig::BloomLayer* config_layer) override
+  void Load(OnionConfig::Layer* config_layer) override
   {
-    OnionConfig::OnionPetal* core =
-        config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
-    OnionConfig::OnionPetal* dsp =
-        config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "DSP");
-    OnionConfig::OnionPetal* display =
-        config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display");
+    OnionConfig::Section* core =
+        config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
+    OnionConfig::Section* dsp =
+        config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "DSP");
+    OnionConfig::Section* display =
+        config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Display");
 
     core->Set("CPUThread", m_settings.m_CPUthread);
     core->Set("CPUCore", m_settings.m_CPUcore);
@@ -44,7 +44,7 @@ public:
     display->Set("PAL60", m_settings.m_PAL60);
   }
 
-  void Save(OnionConfig::BloomLayer* config_layer) override
+  void Save(OnionConfig::Layer* config_layer) override
   {
     // Do Nothing
   }

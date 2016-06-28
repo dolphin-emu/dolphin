@@ -12,7 +12,7 @@
 
 namespace Gecko
 {
-void LoadCodes(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+void LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
                std::vector<GeckoCode>& gcodes);
-void SaveCodes(OnionConfig::BloomLayer* config, const std::vector<GeckoCode>& gcodes);
+void SaveCodes(OnionConfig::Layer* config, const std::vector<GeckoCode>& gcodes);
 }

@@ -257,8 +257,8 @@ bool Init()
   g_aspect_wide = _CoreParameter.bWii;
   if (g_aspect_wide)
   {
-    OnionConfig::OnionPetal* core =
-        OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+    OnionConfig::Section* core =
+        OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
     core->Get("Widescreen", &g_aspect_wide,
               !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
   }

@@ -121,8 +121,8 @@ CMemcardManager::~CMemcardManager()
 
 void CMemcardManager::LoadSettings()
 {
-  OnionConfig::OnionPetal* memcard_section =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "MemcardManager");
+  OnionConfig::Section* memcard_section =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "MemcardManager");
   memcard_section->Get("Items per page", &itemsPerPage, 16);
   memcard_section->Get("DefaultMemcardA", &(DefaultMemcard[SLOT_A]), "");
   memcard_section->Get("DefaultMemcardB", &(DefaultMemcard[SLOT_B]), "");
@@ -146,10 +146,9 @@ void CMemcardManager::LoadSettings()
 
 void CMemcardManager::SaveSettings()
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
-  OnionConfig::OnionPetal* memcard_section =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "MemcardManager");
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* memcard_section =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "MemcardManager");
   memcard_section->Set("Items per page", itemsPerPage, 16);
   memcard_section->Set("DefaultMemcardA", DefaultMemcard[SLOT_A], "");
   memcard_section->Set("DefaultMemcardB", DefaultMemcard[SLOT_B], "");

@@ -138,22 +138,20 @@ void AddCode(ARCode code)
   }
 }
 
-void LoadAndApplyCodes(OnionConfig::BloomLayer* global_config,
-                       OnionConfig::BloomLayer* local_config)
+void LoadAndApplyCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config)
 {
   ApplyCodes(LoadCodes(global_config, local_config));
 }
 
 // Parses the Action Replay section of a game ini file.
-std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
-                              OnionConfig::BloomLayer* local_config)
+std::vector<ARCode> LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config)
 {
   std::vector<ARCode> codes;
 
   std::unordered_set<std::string> enabled_names;
   {
-    OnionConfig::OnionPetal* local_codes_enabled = local_config->GetOrCreatePetal(
-        OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+    OnionConfig::Section* local_codes_enabled =
+        local_config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "ActionReplay_Enabled");
     std::vector<std::string> enabled_lines;
     local_codes_enabled->GetLines(&enabled_lines);
     for (const std::string& line : enabled_lines)
@@ -166,11 +164,11 @@ std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
     }
   }
 
-  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  OnionConfig::Layer* configs[] = {global_config, local_config};
   for (auto config : configs)
   {
-    OnionConfig::OnionPetal* available_codes =
-        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
+    OnionConfig::Section* available_codes =
+        config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "ActionReplay");
     std::vector<std::string> lines;
     std::vector<std::string> encrypted_lines;
     ARCode current_code;
@@ -265,7 +263,7 @@ std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
   return codes;
 }
 
-void SaveCodes(OnionConfig::OnionPetal* ar, OnionConfig::OnionPetal* ar_enabled,
+void SaveCodes(OnionConfig::Section* ar, OnionConfig::Section* ar_enabled,
                const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;

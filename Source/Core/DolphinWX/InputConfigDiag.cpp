@@ -298,8 +298,8 @@ void GamepadPage::UpdateGUI()
 void GamepadPage::ClearAll(wxCommandEvent&)
 {
   // just load an empty ini section to clear everything :P
-  OnionConfig::OnionPetal petal(OnionConfig::OnionLayerType::LAYER_META,
-                                OnionConfig::OnionSystem::SYSTEM_GCPAD, "");
+  OnionConfig::Section petal(OnionConfig::LayerType::LAYER_META, OnionConfig::System::SYSTEM_GCPAD,
+                             "");
   controller->LoadConfig(&petal);
 
   // no point in using the real ControllerInterface i guess
@@ -690,12 +690,11 @@ void GamepadPage::LoadProfile(wxCommandEvent&)
   if (!File::Exists(fname))
     return;
 
-  std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(
+  std::unique_ptr<OnionConfig::Layer> profile(new OnionConfig::Layer(
       std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
   profile->Load();
 
-  controller->LoadConfig(
-      profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
+  controller->LoadConfig(profile->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Profile"));
   controller->UpdateReferences(g_controller_interface);
 
   UpdateGUI();
@@ -709,10 +708,10 @@ void GamepadPage::SaveProfile(wxCommandEvent&)
 
   if (!fname.empty())
   {
-    std::unique_ptr<OnionConfig::BloomLayer> profile(new OnionConfig::BloomLayer(
+    std::unique_ptr<OnionConfig::Layer> profile(new OnionConfig::Layer(
         std::unique_ptr<OnionConfig::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
     controller->SaveConfig(
-        profile->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Profile"));
+        profile->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Profile"));
     profile->Save();
 
     m_config_dialog->UpdateProfileComboBox();

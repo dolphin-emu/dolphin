@@ -39,7 +39,7 @@ struct Patch
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+void LoadPatchSection(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
                       std::vector<Patch>& patches);
 void LoadPatches();
 void ApplyFramePatches();

@@ -183,29 +183,29 @@ void GameListItem::ReloadINI()
   if (!IsValid())
     return;
 
-  std::unique_ptr<OnionConfig::BloomLayer> global_config(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> global_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateGlobalGameConfigLoader(m_UniqueID, m_Revision))));
-  std::unique_ptr<OnionConfig::BloomLayer> local_config(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> local_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateLocalGameConfigLoader(m_UniqueID, m_Revision))));
 
   global_config->Load();
   local_config->Load();
 
-  if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState",
-                                 "EmulationStateId", &m_emu_state))
-    global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId",
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
+                                 &m_emu_state))
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
                                &m_emu_state);
-  if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues",
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
                                  &m_issues))
-    global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues",
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
                                &m_issues);
 
   m_custom_name.clear();
-  if (!(m_has_custom_name = local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI,
-                                                      "EmuState", "Title", &m_custom_name)))
-    m_has_custom_name = global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState",
+  if (!(m_has_custom_name = local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState",
+                                                      "Title", &m_custom_name)))
+    m_has_custom_name = global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState",
                                                    "Title", &m_custom_name);
 
   if (!m_has_custom_name && !m_custom_name_titles_txt.empty())

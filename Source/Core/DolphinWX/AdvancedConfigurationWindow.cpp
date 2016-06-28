@@ -20,8 +20,8 @@ public:
   };
 
   TreeItemData() : m_type(ItemType::TYPE_ROOT) {}
-  TreeItemData(OnionConfig::OnionSystem system) : m_type(ItemType::TYPE_SYSTEM), m_system(system) {}
-  TreeItemData(OnionConfig::OnionSystem system, const std::string& name)
+  TreeItemData(OnionConfig::System system) : m_type(ItemType::TYPE_SYSTEM), m_system(system) {}
+  TreeItemData(OnionConfig::System system, const std::string& name)
       : m_type(ItemType::TYPE_PETAL), m_system(system), m_name(name)
   {
   }
@@ -34,30 +34,30 @@ public:
     return *this;
   }
 
-  bool ShouldFilter(OnionConfig::OnionSystem system)
+  bool ShouldFilter(OnionConfig::System system)
   {
     if (m_type == ItemType::TYPE_ROOT)
       return false;
     return m_type == ItemType::TYPE_SYSTEM && m_system != system;
   }
 
-  bool ShouldFilter(OnionConfig::OnionSystem system, const std::string& name)
+  bool ShouldFilter(OnionConfig::System system, const std::string& name)
   {
     return ShouldFilter(system) ||
            (m_type == ItemType::TYPE_PETAL && !(m_system == system && m_name == name));
   }
 
   ItemType GetType() { return m_type; }
-  OnionConfig::OnionSystem GetSystem() { return m_system; }
-  const std::string& GetPetal() { return m_name; }
+  OnionConfig::System GetSystem() { return m_system; }
+  const std::string& GetSection() { return m_name; }
 private:
-  TreeItemData(ItemType type, OnionConfig::OnionSystem system, const std::string& name)
+  TreeItemData(ItemType type, OnionConfig::System system, const std::string& name)
       : m_type(type), m_system(system), m_name(name)
   {
   }
 
   ItemType m_type;
-  OnionConfig::OnionSystem m_system;
+  OnionConfig::System m_system;
   std::string m_name;
 };
 
@@ -65,13 +65,13 @@ class SystemTreeCtrl : public wxTreeCtrl
 {
 public:
   SystemTreeCtrl(wxWindow* parent, wxWindowID id) : wxTreeCtrl(parent, id) { Clear(); }
-  void AddPetal(OnionConfig::OnionSystem system, const std::string& petal);
+  void AddSection(OnionConfig::System system, const std::string& petal);
   void Clear();
 
-  void Select(OnionConfig::OnionSystem system, const std::string& petal);
+  void Select(OnionConfig::System system, const std::string& petal);
 
 private:
-  std::map<OnionConfig::OnionSystem, std::pair<wxTreeItemId, std::list<wxTreeItemId>>> m_system_ids;
+  std::map<OnionConfig::System, std::pair<wxTreeItemId, std::list<wxTreeItemId>>> m_system_ids;
 };
 
 void SystemTreeCtrl::Clear()
@@ -79,15 +79,15 @@ void SystemTreeCtrl::Clear()
   m_system_ids.clear();
   DeleteAllItems();
 
-  static std::map<OnionConfig::OnionSystem, std::string> system_to_name = {
-      {OnionConfig::OnionSystem::SYSTEM_MAIN, "Dolphin"},
-      {OnionConfig::OnionSystem::SYSTEM_GCPAD, "GCPad"},
-      {OnionConfig::OnionSystem::SYSTEM_WIIPAD, "Wiimote"},
-      {OnionConfig::OnionSystem::SYSTEM_GCKEYBOARD, "GCKeyboard"},
-      {OnionConfig::OnionSystem::SYSTEM_GFX, "Graphics"},
-      {OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logger"},
-      {OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Debugger"},
-      {OnionConfig::OnionSystem::SYSTEM_UI, "UI"},
+  static std::map<OnionConfig::System, std::string> system_to_name = {
+      {OnionConfig::System::SYSTEM_MAIN, "Dolphin"},
+      {OnionConfig::System::SYSTEM_GCPAD, "GCPad"},
+      {OnionConfig::System::SYSTEM_WIIPAD, "Wiimote"},
+      {OnionConfig::System::SYSTEM_GCKEYBOARD, "GCKeyboard"},
+      {OnionConfig::System::SYSTEM_GFX, "Graphics"},
+      {OnionConfig::System::SYSTEM_LOGGER, "Logger"},
+      {OnionConfig::System::SYSTEM_DEBUGGER, "Debugger"},
+      {OnionConfig::System::SYSTEM_UI, "UI"},
   };
 
   wxTreeItemId root = AddRoot("System", -1, -1, new TreeItemData());
@@ -97,7 +97,7 @@ void SystemTreeCtrl::Clear()
   Expand(root);
 }
 
-void SystemTreeCtrl::AddPetal(OnionConfig::OnionSystem system, const std::string& petal)
+void SystemTreeCtrl::AddSection(OnionConfig::System system, const std::string& petal)
 {
   auto& system_pair = m_system_ids[system];
   wxTreeItemId system_id = system_pair.first;
@@ -106,7 +106,7 @@ void SystemTreeCtrl::AddPetal(OnionConfig::OnionSystem system, const std::string
   for (const auto& petal_id : system_pair.second)
   {
     TreeItemData* const data = reinterpret_cast<TreeItemData* const>(GetItemData(petal_id));
-    if (data->GetPetal() == petal)
+    if (data->GetSection() == petal)
       return;
   }
 
@@ -139,9 +139,9 @@ private:
   // Filtering
   TreeItemData m_filter;
 
-  std::vector<OnionConfig::OnionLayerType> m_layers;
+  std::vector<OnionConfig::LayerType> m_layers;
   std::map<const std::string, int> m_column_names;
-  std::map<OnionConfig::OnionLayerType, std::map<const std::string, std::string>> m_config;
+  std::map<OnionConfig::LayerType, std::map<const std::string, std::string>> m_config;
 
   SystemTreeCtrl* m_systems_ctrl;
 };
@@ -160,24 +160,24 @@ void ConfigTable::RefreshConfig()
   m_cols = full_bloom->size();
   for (auto layer : *full_bloom)
   {
-    OnionConfig::BloomLayerMap cur_layer_map = layer.second->GetBloomLayerMap();
+    OnionConfig::LayerMap cur_layer_map = layer.second->GetLayerMap();
     m_layers.emplace_back(layer.second->GetLayer());
     for (auto system : cur_layer_map)
     {
-      OnionConfig::OnionSystem system_type = system.first;
-      std::list<OnionConfig::OnionPetal*>& petals = system.second;
+      OnionConfig::System system_type = system.first;
+      std::list<OnionConfig::Section*>& petals = system.second;
 
       for (const auto& petal : petals)
       {
         // We always want to add all petals to the tree list
-        m_systems_ctrl->AddPetal(system.first, petal->GetName());
+        m_systems_ctrl->AddSection(system.first, petal->GetName());
 
         // If we are filtering by petal and not in the right petal
         // then skip this configuration setting.
         if (m_filter.ShouldFilter(system_type, petal->GetName()))
           continue;
 
-        const OnionConfig::PetalValueMap& petal_map = petal->GetValues();
+        const OnionConfig::SectionValueMap& petal_map = petal->GetValues();
         auto& config_layer = m_config[layer.second->GetLayer()];
         for (const auto& value : petal_map)
         {
@@ -225,12 +225,12 @@ wxString ConfigTable::GetValue(int row, int col)
   const std::string& col_name = std::next(m_column_names.begin(), row)->first;
   std::istringstream buffer(col_name);
 
-  OnionConfig::OnionSystem system;
+  OnionConfig::System system;
   std::string col_petal, col_key;
 
   if (m_filter.GetType() == TreeItemData::ItemType::TYPE_ROOT)
   {
-    // Column = System/Petal/Key
+    // Column = System/Section/Key
     std::string col_system;
     std::getline(buffer, col_system, '/');
     std::getline(buffer, col_petal, '/');
@@ -239,7 +239,7 @@ wxString ConfigTable::GetValue(int row, int col)
   }
   else if (m_filter.GetType() == TreeItemData::ItemType::TYPE_SYSTEM)
   {
-    // Column = Petal/Key
+    // Column = Section/Key
     system = m_filter.GetSystem();
     std::getline(buffer, col_petal, '/');
     std::getline(buffer, col_key, '/');
@@ -249,7 +249,7 @@ wxString ConfigTable::GetValue(int row, int col)
     // Column = Key
     // If we are filtered by petal than the key is always just a petal key
     system = m_filter.GetSystem();
-    col_petal = m_filter.GetPetal();
+    col_petal = m_filter.GetSection();
     col_key = col_name;
   }
   else
@@ -257,8 +257,8 @@ wxString ConfigTable::GetValue(int row, int col)
     return "#ERR";
   }
 
-  OnionConfig::BloomLayer* layer = OnionConfig::GetLayer(m_layers[col]);
-  OnionConfig::OnionPetal* petal = layer->GetPetal(system, col_petal);
+  OnionConfig::Layer* layer = OnionConfig::GetLayer(m_layers[col]);
+  OnionConfig::Section* petal = layer->GetSection(system, col_petal);
 
   std::string val = "";
   if (petal)
@@ -285,7 +285,8 @@ ConfigGrid::ConfigGrid(wxWindow* parent, SystemTreeCtrl* tree_ctrl, wxWindowID i
 
 ConfigGrid::~ConfigGrid()
 {
-  // If we don't set the table to nullptr then ~wxGrid will attempt to use the deleted pointer
+  // If we don't set the table to nullptr then ~wxGrid will attempt to use the
+  // deleted pointer
   SetTable(nullptr, false);
 }
 

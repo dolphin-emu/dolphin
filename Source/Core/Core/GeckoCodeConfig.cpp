@@ -12,16 +12,16 @@
 
 namespace Gecko
 {
-void LoadCodes(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+void LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
                std::vector<GeckoCode>& gcodes)
 {
-  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  OnionConfig::Layer* configs[] = {global_config, local_config};
   for (auto config : configs)
   {
-    OnionConfig::OnionPetal* codes =
-        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko");
-    OnionConfig::OnionPetal* codes_enabled =
-        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko_Enabled");
+    OnionConfig::Section* codes =
+        config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Gecko");
+    OnionConfig::Section* codes_enabled =
+        config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Gecko_Enabled");
 
     std::vector<std::string> lines;
     codes->GetLines(&lines, false);
@@ -140,7 +140,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
     lines.push_back(std::string("*") + note);
 }
 
-void SaveCodes(OnionConfig::BloomLayer* config, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(OnionConfig::Layer* config, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabledLines;
@@ -150,10 +150,10 @@ void SaveCodes(OnionConfig::BloomLayer* config, const std::vector<GeckoCode>& gc
     SaveGeckoCode(lines, enabledLines, geckoCode);
   }
 
-  OnionConfig::OnionPetal* gecko =
-      config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko");
-  OnionConfig::OnionPetal* gecko_enabled =
-      config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Gecko_Enabled");
+  OnionConfig::Section* gecko =
+      config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Gecko");
+  OnionConfig::Section* gecko_enabled =
+      config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Gecko_Enabled");
 
   gecko->SetLines(lines);
   gecko_enabled->SetLines(enabledLines);

@@ -93,12 +93,12 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CWatchWindow::SaveAll()
 {
-  std::unique_ptr<OnionConfig::BloomLayer> game_layer(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> game_layer(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateLocalGameConfigLoader(SConfig::GetInstance().GetUniqueID(), 0))));
 
-  OnionConfig::OnionPetal* watches =
-      game_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Watches");
+  OnionConfig::Section* watches =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Watches");
 
   watches->SetLines(PowerPC::watches.GetStrings());
   game_layer->Save();
@@ -112,8 +112,8 @@ void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 void CWatchWindow::LoadAll()
 {
   Watches::TWatchesStr watches;
-  OnionConfig::OnionPetal* watches_config =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Watches");
+  OnionConfig::Section* watches_config =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Watches");
 
   if (watches_config->GetLines(&watches, false))
   {

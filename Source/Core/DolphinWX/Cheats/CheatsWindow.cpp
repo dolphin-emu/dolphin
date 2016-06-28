@@ -173,9 +173,9 @@ void wxCheatsWindow::UpdateGUI()
 {
   // load code
   const SConfig& parameters = SConfig::GetInstance();
-  m_global_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  m_global_config.reset(new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
       GenerateGlobalGameConfigLoader(parameters.GetUniqueID(), 0))));
-  m_local_config.reset(new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  m_local_config.reset(new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
       GenerateLocalGameConfigLoader(parameters.GetUniqueID(), 0))));
 
   m_global_config->Load();
@@ -292,10 +292,10 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
   // Save gameini, with changed codes
   if (m_gameini_local_path.size())
   {
-    OnionConfig::OnionPetal* ar =
-        m_local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay");
-    OnionConfig::OnionPetal* ar_enabled = m_local_config->GetOrCreatePetal(
-        OnionConfig::OnionSystem::SYSTEM_MAIN, "ActionReplay_Enabled");
+    OnionConfig::Section* ar =
+        m_local_config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "ActionReplay");
+    OnionConfig::Section* ar_enabled = m_local_config->GetOrCreateSection(
+        OnionConfig::System::SYSTEM_MAIN, "ActionReplay_Enabled");
     ActionReplay::SaveCodes(ar, ar_enabled, code_vec);
     Gecko::SaveCodes(m_local_config.get(), m_geckocode_panel->GetCodes());
     m_local_config->Save();

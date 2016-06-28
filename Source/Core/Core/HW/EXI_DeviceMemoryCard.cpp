@@ -114,8 +114,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // Disney Sports : Soccer GDKEA4
   // Use a 16Mb (251 block) memory card for these games
   bool useMC251;
-  OnionConfig::OnionPetal* core =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
+  OnionConfig::Section* core =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
   core->Get("MemoryCard251", &useMC251, false);
   u16 sizeMb = useMC251 ? MemCard251Mb : MemCard2043Mb;
 

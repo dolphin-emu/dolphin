@@ -226,8 +226,8 @@ private:
   void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
                  const WiiPartition* partition = nullptr);
 
-  std::unique_ptr<OnionConfig::BloomLayer> m_global_config;
-  std::unique_ptr<OnionConfig::BloomLayer> m_local_config;
+  std::unique_ptr<OnionConfig::Layer> m_global_config;
+  std::unique_ptr<OnionConfig::Layer> m_local_config;
 
   std::string game_config_backing;
   std::string game_id;
@@ -245,9 +245,9 @@ private:
   void ActionReplayList_Save();
   void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
 
-  long GetElementStyle(OnionConfig::OnionSystem system, const char* section, const char* key);
-  void SetCheckboxValueFromGameini(OnionConfig::OnionSystem system, const char* section,
-                                   const char* key, wxCheckBox* checkbox);
-  void SaveGameIniValueFrom3StateCheckbox(OnionConfig::OnionSystem system, const char* section,
+  long GetElementStyle(OnionConfig::System system, const char* section, const char* key);
+  void SetCheckboxValueFromGameini(OnionConfig::System system, const char* section, const char* key,
+                                   wxCheckBox* checkbox);
+  void SaveGameIniValueFrom3StateCheckbox(OnionConfig::System system, const char* section,
                                           const char* key, wxCheckBox* checkbox);
 };

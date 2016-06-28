@@ -127,9 +127,9 @@ public:
     {
     }
     virtual ~ControlGroup() {}
-    virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "",
+    virtual void LoadConfig(OnionConfig::Section* petal, const std::string& defdev = "",
                             const std::string& base = "");
-    virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& defdev = "",
+    virtual void SaveConfig(OnionConfig::Section* petal, const std::string& defdev = "",
                             const std::string& base = "");
 
     void SetControlExpression(int index, const std::string& expression);
@@ -427,8 +427,8 @@ public:
 
   virtual void LoadDefaults(const ControllerInterface& ciface);
 
-  virtual void LoadConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
-  virtual void SaveConfig(OnionConfig::OnionPetal* petal, const std::string& base = "");
+  virtual void LoadConfig(OnionConfig::Section* petal, const std::string& base = "");
+  virtual void SaveConfig(OnionConfig::Section* petal, const std::string& base = "");
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
