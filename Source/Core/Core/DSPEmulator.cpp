@@ -10,8 +10,8 @@
 
 std::unique_ptr<DSPEmulator> CreateDSPEmulator(bool hle)
 {
-	if (hle)
-		return std::make_unique<DSPHLE>();
+  if (hle)
+    return std::make_unique<DSPHLE>();
 
-	return std::make_unique<DSPLLE>();
+  return std::make_unique<DSPLLE>();
 }

@@ -9,175 +9,77 @@
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
-#include "Common/x64Analyzer.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/TrampolineCache.h"
+#include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32
-	#include <windows.h>
+#include <windows.h>
 #endif
-
 
 using namespace Gen;
 
 void TrampolineCache::Init(int size)
 {
-	AllocCodeSpace(size);
+  AllocCodeSpace(size);
 }
 
 void TrampolineCache::ClearCodeSpace()
 {
-	X64CodeBlock::ClearCodeSpace();
+  X64CodeBlock::ClearCodeSpace();
 }
 
 void TrampolineCache::Shutdown()
 {
-	FreeCodeSpace();
+  FreeCodeSpace();
 }
 
-const u8* TrampolineCache::GenerateReadTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr)
+const u8* TrampolineCache::GenerateTrampoline(const TrampolineInfo& info)
 {
-	if (GetSpaceLeft() < 1024)
-		PanicAlert("Trampoline cache full");
+  if (info.read)
+  {
+    return GenerateReadTrampoline(info);
+  }
 
-	const u8* trampoline = GetCodePtr();
-	X64Reg addrReg = (X64Reg)info.scaledReg;
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	int stack_offset = 0;
-	bool push_param1 = registersInUse[ABI_PARAM1];
-
-	if (push_param1)
-	{
-		PUSH(ABI_PARAM1);
-		stack_offset = 8;
-		registersInUse[ABI_PARAM1] = 0;
-	}
-
-	int dataRegSize = info.operandSize == 8 ? 64 : 32;
-	if (addrReg != ABI_PARAM1 && info.displacement)
-		LEA(32, ABI_PARAM1, MDisp(addrReg, info.displacement));
-	else if (addrReg != ABI_PARAM1)
-		MOV(32, R(ABI_PARAM1), R(addrReg));
-	else if (info.displacement)
-		ADD(32, R(ABI_PARAM1), Imm32(info.displacement));
-
-	ABI_PushRegistersAndAdjustStack(registersInUse, stack_offset);
-
-	switch (info.operandSize)
-	{
-	case 8:
-		CALL((void*)&PowerPC::Read_U64);
-		break;
-	case 4:
-		CALL((void*)&PowerPC::Read_U32);
-		break;
-	case 2:
-		CALL((void*)&PowerPC::Read_U16);
-		break;
-	case 1:
-		CALL((void*)&PowerPC::Read_U8);
-		break;
-	}
-
-	ABI_PopRegistersAndAdjustStack(registersInUse, stack_offset);
-
-	if (push_param1)
-		POP(ABI_PARAM1);
-
-	if (exceptionHandler)
-	{
-		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-		J_CC(CC_NZ, exceptionHandler);
-	}
-
-	if (info.signExtend)
-		MOVSX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
-	else if (dataReg != ABI_RETURN || info.operandSize < 4)
-		MOVZX(dataRegSize, info.operandSize * 8, dataReg, R(ABI_RETURN));
-
-	JMP(returnPtr, true);
-
-	JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline");
-	return trampoline;
+  return GenerateWriteTrampoline(info);
 }
 
-const u8* TrampolineCache::GenerateWriteTrampoline(const InstructionInfo &info, BitSet32 registersInUse, u8* exceptionHandler, u8* returnPtr, u32 pc)
+const u8* TrampolineCache::GenerateReadTrampoline(const TrampolineInfo& info)
 {
-	if (GetSpaceLeft() < 1024)
-		PanicAlert("Trampoline cache full");
+  if (GetSpaceLeft() < 1024)
+    PanicAlert("Trampoline cache full");
 
-	const u8* trampoline = GetCodePtr();
+  const u8* trampoline = GetCodePtr();
 
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
-	X64Reg addrReg = (X64Reg)info.scaledReg;
+  SafeLoadToReg(info.op_reg, info.op_arg, info.accessSize << 3, info.offset, info.registersInUse,
+                info.signExtend, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
 
-	// Don't treat FIFO writes specially for now because they require a burst
-	// check anyway.
+  JMP(info.start + info.len, true);
 
-	// PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-	MOV(32, PPCSTATE(pc), Imm32(pc));
+  JitRegister::Register(trampoline, GetCodePtr(), "JIT_ReadTrampoline_%x", info.pc);
+  return trampoline;
+}
 
-	ABI_PushRegistersAndAdjustStack(registersInUse, 0);
+const u8* TrampolineCache::GenerateWriteTrampoline(const TrampolineInfo& info)
+{
+  if (GetSpaceLeft() < 1024)
+    PanicAlert("Trampoline cache full");
 
-	if (info.hasImmediate)
-	{
-		if (addrReg != ABI_PARAM2 && info.displacement)
-			LEA(32, ABI_PARAM2, MDisp(addrReg, info.displacement));
-		else if (addrReg != ABI_PARAM2)
-			MOV(32, R(ABI_PARAM2), R(addrReg));
-		else if (info.displacement)
-			ADD(32, R(ABI_PARAM2), Imm32(info.displacement));
+  const u8* trampoline = GetCodePtr();
 
-		// we have to swap back the immediate to pass it to the write functions
-		switch (info.operandSize)
-		{
-		case 8:
-			PanicAlert("Invalid 64-bit immediate!");
-			break;
-		case 4:
-			MOV(32, R(ABI_PARAM1), Imm32(Common::swap32((u32)info.immediate)));
-			break;
-		case 2:
-			MOV(16, R(ABI_PARAM1), Imm16(Common::swap16((u16)info.immediate)));
-			break;
-		case 1:
-			MOV(8, R(ABI_PARAM1), Imm8((u8)info.immediate));
-			break;
-		}
-	}
-	else
-	{
-		int dataRegSize = info.operandSize == 8 ? 64 : 32;
-		MOVTwo(dataRegSize, ABI_PARAM2, addrReg, info.displacement, ABI_PARAM1, dataReg);
-	}
+  // Don't treat FIFO writes specially for now because they require a burst
+  // check anyway.
 
-	switch (info.operandSize)
-	{
-	case 8:
-		CALL((void *)&PowerPC::Write_U64);
-		break;
-	case 4:
-		CALL((void *)&PowerPC::Write_U32);
-		break;
-	case 2:
-		CALL((void *)&PowerPC::Write_U16);
-		break;
-	case 1:
-		CALL((void *)&PowerPC::Write_U8);
-		break;
-	}
+  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+  MOV(32, PPCSTATE(pc), Imm32(info.pc));
 
-	ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-	if (exceptionHandler)
-	{
-		TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
-		J_CC(CC_NZ, exceptionHandler);
-	}
-	JMP(returnPtr, true);
+  SafeWriteRegToReg(info.op_arg, info.op_reg, info.accessSize << 3, info.offset,
+                    info.registersInUse, info.flags | SAFE_LOADSTORE_FORCE_SLOWMEM);
 
-	JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_%x", pc);
-	return trampoline;
+  JMP(info.start + info.len, true);
+
+  JitRegister::Register(trampoline, GetCodePtr(), "JIT_WriteTrampoline_%x", info.pc);
+  return trampoline;
 }

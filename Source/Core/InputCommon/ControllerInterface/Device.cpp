@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <sstream>
 #include <string>
+#include <tuple>
 
 // For InputGateOn()
 // This is a really bad layering violation, but it's the cleanest
@@ -17,7 +19,6 @@ namespace ciface
 {
 namespace Core
 {
-
 //
 // Device :: ~Device
 //
@@ -25,55 +26,55 @@ namespace Core
 //
 Device::~Device()
 {
-	// delete inputs
-	for (Device::Input* input : m_inputs)
-		delete input;
+  // delete inputs
+  for (Device::Input* input : m_inputs)
+    delete input;
 
-	// delete outputs
-	for (Device::Output* output: m_outputs)
-		delete output;
+  // delete outputs
+  for (Device::Output* output : m_outputs)
+    delete output;
 }
 
 void Device::AddInput(Device::Input* const i)
 {
-	m_inputs.push_back(i);
+  m_inputs.push_back(i);
 }
 
 void Device::AddOutput(Device::Output* const o)
 {
-	m_outputs.push_back(o);
+  m_outputs.push_back(o);
 }
 
-Device::Input* Device::FindInput(const std::string &name) const
+Device::Input* Device::FindInput(const std::string& name) const
 {
-	for (Input* input : m_inputs)
-	{
-		if (input->GetName() == name)
-			return input;
-	}
+  for (Input* input : m_inputs)
+  {
+    if (input->GetName() == name)
+      return input;
+  }
 
-	return nullptr;
+  return nullptr;
 }
 
-Device::Output* Device::FindOutput(const std::string &name) const
+Device::Output* Device::FindOutput(const std::string& name) const
 {
-	for (Output* output : m_outputs)
-	{
-		if (output->GetName() == name)
-			return output;
-	}
+  for (Output* output : m_outputs)
+  {
+    if (output->GetName() == name)
+      return output;
+  }
 
-	return nullptr;
+  return nullptr;
 }
 
 bool Device::Control::InputGateOn()
 {
-	if (SConfig::GetInstance().m_BackgroundInput)
-		return true;
-	else if (Host_RendererHasFocus() || Host_UIHasFocus())
-		return true;
-	else
-		return false;
+  if (SConfig::GetInstance().m_BackgroundInput)
+    return true;
+  else if (Host_RendererHasFocus() || Host_UIHasFocus())
+    return true;
+  else
+    return false;
 }
 
 //
@@ -83,16 +84,16 @@ bool Device::Control::InputGateOn()
 //
 std::string DeviceQualifier::ToString() const
 {
-	if (source.empty() && (cid < 0) && name.empty())
-		return "";
+  if (source.empty() && (cid < 0) && name.empty())
+    return "";
 
-	std::ostringstream ss;
-	ss << source << '/';
-	if (cid > -1)
-		ss << cid;
-	ss << '/' << name;
+  std::ostringstream ss;
+  ss << source << '/';
+  if (cid > -1)
+    ss << cid;
+  ss << '/' << name;
 
-	return ss.str();
+  return ss.str();
 }
 
 //
@@ -102,15 +103,15 @@ std::string DeviceQualifier::ToString() const
 //
 void DeviceQualifier::FromString(const std::string& str)
 {
-	std::istringstream ss(str);
+  std::istringstream ss(str);
 
-	std::getline(ss, source = "", '/');
+  std::getline(ss, source = "", '/');
 
-	// silly
-	std::getline(ss, name, '/');
-	std::istringstream(name) >> (cid = -1);
+  // silly
+  std::getline(ss, name, '/');
+  std::istringstream(name) >> (cid = -1);
 
-	std::getline(ss, name = "");
+  std::getline(ss, name = "");
 }
 
 //
@@ -120,66 +121,89 @@ void DeviceQualifier::FromString(const std::string& str)
 //
 void DeviceQualifier::FromDevice(const Device* const dev)
 {
-	name = dev->GetName();
-	cid = dev->GetId();
-	source= dev->GetSource();
+  name = dev->GetName();
+  cid = dev->GetId();
+  source = dev->GetSource();
 }
 
 bool DeviceQualifier::operator==(const Device* const dev) const
 {
-	if (dev->GetId() == cid)
-		if (dev->GetName() == name)
-			if (dev->GetSource() == source)
-				return true;
+  if (dev->GetId() == cid)
+    if (dev->GetName() == name)
+      if (dev->GetSource() == source)
+        return true;
 
-	return false;
+  return false;
 }
 
 bool DeviceQualifier::operator==(const DeviceQualifier& devq) const
 {
-	if (cid == devq.cid)
-		if (name == devq.name)
-			if (source == devq.source)
-				return true;
-
-	return false;
+  return std::tie(cid, name, source) == std::tie(devq.cid, devq.name, devq.source);
 }
 
-Device* DeviceContainer::FindDevice(const DeviceQualifier& devq) const
+std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 {
-	for (Device* d : m_devices)
-	{
-		if (devq == d)
-			return d;
-	}
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
+  {
+    if (devq == d.get())
+      return d;
+  }
 
-	return nullptr;
+  return nullptr;
+}
+
+std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+  std::vector<std::string> device_strings;
+  DeviceQualifier device_qualifier;
+
+  for (const auto& d : m_devices)
+  {
+    device_qualifier.FromDevice(d.get());
+    device_strings.emplace_back(device_qualifier.ToString());
+  }
+
+  return device_strings;
+}
+
+std::string DeviceContainer::GetDefaultDeviceString() const
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  if (m_devices.empty())
+    return "";
+
+  DeviceQualifier device_qualifier;
+  device_qualifier.FromDevice(m_devices[0].get());
+  return device_qualifier.ToString();
 }
 
 Device::Input* DeviceContainer::FindInput(const std::string& name, const Device* def_dev) const
 {
-	if (def_dev)
-	{
-		Device::Input* const inp = def_dev->FindInput(name);
-		if (inp)
-			return inp;
-	}
+  if (def_dev)
+  {
+    Device::Input* const inp = def_dev->FindInput(name);
+    if (inp)
+      return inp;
+  }
 
-	for (Device* d : m_devices)
-	{
-		Device::Input* const i = d->FindInput(name);
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
+  {
+    Device::Input* const i = d->FindInput(name);
 
-		if (i)
-			return i;
-	}
+    if (i)
+      return i;
+  }
 
-	return nullptr;
+  return nullptr;
 }
 
 Device::Output* DeviceContainer::FindOutput(const std::string& name, const Device* def_dev) const
 {
-	return def_dev->FindOutput(name);
+  return def_dev->FindOutput(name);
 }
-
 }
 }

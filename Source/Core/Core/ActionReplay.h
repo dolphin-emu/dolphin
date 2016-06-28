@@ -12,32 +12,33 @@ class IniFile;
 
 namespace ActionReplay
 {
-
 struct AREntry
 {
-	AREntry() {}
-	AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
-	u32 cmd_addr;
-	u32 value;
+  AREntry() {}
+  AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
+  u32 cmd_addr;
+  u32 value;
 };
 
 struct ARCode
 {
-	std::string name;
-	std::vector<AREntry> ops;
-	bool active;
-	bool user_defined;
+  std::string name;
+  std::vector<AREntry> ops;
+  bool active;
+  bool user_defined;
 };
 
 void RunAllActive();
-bool RunCode(const ARCode &arcode);
-void LoadCodes(const IniFile &globalini, const IniFile &localIni, bool forceLoad);
-void LoadCodes(std::vector<ARCode> &_arCodes, IniFile &globalini, IniFile &localIni);
-size_t GetCodeListSize();
-ARCode GetARCode(size_t index);
-void SetARCode_IsActive(bool active, size_t index);
-void UpdateActiveList();
+
+void ApplyCodes(const std::vector<ARCode>& codes);
+void AddCode(ARCode new_code);
+void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
+
+std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
+void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+
 void EnableSelfLogging(bool enable);
-const std::vector<std::string> &GetSelfLog();
+std::vector<std::string> GetSelfLog();
+void ClearSelfLog();
 bool IsSelfLogging();
 }  // namespace

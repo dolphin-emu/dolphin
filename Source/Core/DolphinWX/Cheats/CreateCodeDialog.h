@@ -12,22 +12,20 @@
 class wxCheckBox;
 class wxTextCtrl;
 
-wxDECLARE_EVENT(UPDATE_CHEAT_LIST_EVENT, wxCommandEvent);
-
 class CreateCodeDialog final : public wxDialog
 {
 public:
-	CreateCodeDialog(wxWindow* const parent, const u32 address);
+  CreateCodeDialog(wxWindow* const parent, const u32 address);
 
 private:
-	const u32 m_code_address;
+  const u32 m_code_address;
 
-	wxTextCtrl* m_textctrl_name;
-	wxTextCtrl* m_textctrl_code;
-	wxTextCtrl* m_textctrl_value;
-	wxCheckBox* m_checkbox_use_hex;
+  wxTextCtrl* m_textctrl_name;
+  wxTextCtrl* m_textctrl_code;
+  wxTextCtrl* m_textctrl_value;
+  wxCheckBox* m_checkbox_use_hex;
 
-	void PressOK(wxCommandEvent&);
-	void PressCancel(wxCommandEvent&);
-	void OnEvent_Close(wxCloseEvent& ev);
+  void PressOK(wxCommandEvent&);
+  void PressCancel(wxCommandEvent&);
+  void OnEvent_Close(wxCloseEvent& ev);
 };

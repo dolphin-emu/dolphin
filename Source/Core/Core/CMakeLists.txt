@@ -1,4 +1,5 @@
 set(SRCS	ActionReplay.cpp
+			Analytics.cpp
 			ARDecrypt.cpp
 			BootManager.cpp
 			ConfigManager.cpp
@@ -233,6 +234,7 @@ set(LIBS
 	${LZO}
 	sfml-network
 	sfml-system
+	videonull
 	videoogl
 	videosoftware
 	z

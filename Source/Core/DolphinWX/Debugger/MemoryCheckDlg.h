@@ -13,16 +13,16 @@ class wxTextCtrl;
 class MemoryCheckDlg : public wxDialog
 {
 public:
-	MemoryCheckDlg(CBreakPointWindow *parent);
+  MemoryCheckDlg(CBreakPointWindow* parent);
 
 private:
-	CBreakPointWindow *m_parent;
-	wxCheckBox* m_pReadFlag;
-	wxCheckBox* m_pWriteFlag;
-	wxCheckBox* m_log_flag;
-	wxCheckBox* m_break_flag;
-	wxTextCtrl* m_pEditEndAddress;
-	wxTextCtrl* m_pEditStartAddress;
+  CBreakPointWindow* m_parent;
+  wxCheckBox* m_pReadFlag;
+  wxCheckBox* m_pWriteFlag;
+  wxCheckBox* m_log_flag;
+  wxCheckBox* m_break_flag;
+  wxTextCtrl* m_pEditEndAddress;
+  wxTextCtrl* m_pEditStartAddress;
 
-	void OnOK(wxCommandEvent& event);
+  void OnOK(wxCommandEvent& event);
 };

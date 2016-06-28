@@ -230,6 +230,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
       <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
+      <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
@@ -243,7 +246,7 @@
   <!--Copy Exe, Data directory and DLLs which should be located in the executable directory-->
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
-    <DataTxtFiles Include="$(DolphinRootDir)Data\*.txt" />
+    <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
     <ExternalDlls Include="$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />

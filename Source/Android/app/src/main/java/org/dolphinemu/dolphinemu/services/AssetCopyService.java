@@ -37,50 +37,43 @@ public final class AssetCopyService extends IntentService
 	{
 		String BaseDir = NativeLibrary.GetUserDirectory();
 		String ConfigDir = BaseDir + File.separator + "Config";
-		String GCDir = BaseDir + File.separator + "GC";
 
 		// Copy assets if needed
-		File file = new File(GCDir + File.separator + "font_sjis.bin");
-		if(!file.exists())
-		{
-			NativeLibrary.CreateUserFolders();
-			copyAsset("dsp_coef.bin", GCDir + File.separator + "dsp_coef.bin");
-			copyAsset("dsp_rom.bin", GCDir + File.separator + "dsp_rom.bin");
-			copyAsset("font_ansi.bin", GCDir + File.separator + "font_ansi.bin");
-			copyAsset("font_sjis.bin", GCDir + File.separator + "font_sjis.bin");
-			copyAssetFolder("Shaders", BaseDir + File.separator + "Shaders");
-		}
-		else
-		{
-			Log.verbose("[AssetCopyService] Skipping asset copy operation.");
-		}
+		NativeLibrary.CreateUserFolders();
+		copyAssetFolder("GC", BaseDir + File.separator + "GC", false);
+		copyAssetFolder("Shaders", BaseDir + File.separator + "Shaders", false);
+		copyAssetFolder("Wii", BaseDir + File.separator + "Wii", false);
 
 		// Always copy over the GCPad config in case of change or corruption.
 		// Not a user configurable file.
-		copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini");
-		copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini");
+		copyAsset("GCPadNew.ini", ConfigDir + File.separator + "GCPadNew.ini", true);
+		copyAsset("WiimoteNew.ini", ConfigDir + File.separator + "WiimoteNew.ini", true);
 
 		// Record the fact that we've done this before, so we don't do it on every launch.
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		SharedPreferences.Editor editor = preferences.edit();
 
 		editor.putBoolean("assetsCopied", true);
-		editor.commit();
+		editor.apply();
 	}
 
-	private void copyAsset(String asset, String output)
+	private void copyAsset(String asset, String output, Boolean overwrite)
 	{
-		Log.verbose("[AssetCopyService] Copying " + asset + " to " + output);
-		InputStream in = null;
-		OutputStream out = null;
+		Log.verbose("[AssetCopyService] Copying File " + asset + " to " + output);
+		InputStream in;
+		OutputStream out;
 
 		try
 		{
-			in = getAssets().open(asset);
-			out = new FileOutputStream(output);
-			copyFile(in, out);
-			in.close();
-			out.close();
+			File file = new File(output);
+			if(!file.exists() || overwrite)
+			{
+				in = getAssets().open(asset);
+				out = new FileOutputStream(output);
+				copyFile(in, out);
+				in.close();
+				out.close();
+			}
 		}
 		catch (IOException e)
 		{
@@ -88,15 +81,16 @@ public final class AssetCopyService extends IntentService
 		}
 	}
 
-	private void copyAssetFolder(String assetFolder, String outputFolder)
+	private void copyAssetFolder(String assetFolder, String outputFolder, Boolean overwrite)
 	{
-		Log.verbose("[AssetCopyService] Copying " + assetFolder + " to " + outputFolder);
+		Log.verbose("[AssetCopyService] Copying Folder " + assetFolder + " to " + outputFolder);
 
 		try
 		{
 			for (String file : getAssets().list(assetFolder))
 			{
-				copyAsset(assetFolder + File.separator + file, outputFolder + File.separator + file);
+				copyAssetFolder(assetFolder + File.separator + file, outputFolder + File.separator + file, overwrite);
+				copyAsset(assetFolder + File.separator + file, outputFolder + File.separator + file, overwrite);
 			}
 		}
 		catch (IOException e)

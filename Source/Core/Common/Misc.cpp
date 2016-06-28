@@ -13,18 +13,17 @@
 // This function might change the error code.
 std::string GetLastErrorMsg()
 {
-	const size_t buff_size = 256;
-	char err_str[buff_size];
+  const size_t buff_size = 256;
+  char err_str[buff_size];
 
 #ifdef _WIN32
-	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		err_str, buff_size, nullptr);
+  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, nullptr, GetLastError(),
+                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), err_str, buff_size, nullptr);
 #else
-	// Thread safe (XSI-compliant)
-	if (strerror_r(errno, err_str, buff_size))
-		return "";
+  // Thread safe (XSI-compliant)
+  if (strerror_r(errno, err_str, buff_size))
+    return "";
 #endif
 
-	return std::string(err_str);
+  return std::string(err_str);
 }

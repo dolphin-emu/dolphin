@@ -10,10 +10,9 @@ class PointerWrap;
 
 namespace GPFifo
 {
-
 enum
 {
-	GATHER_PIPE_SIZE = 32
+  GATHER_PIPE_SIZE = 32
 };
 
 // More room for the fastmodes
@@ -24,7 +23,7 @@ extern u32 m_gatherPipeCount;
 
 // Init
 void Init();
-void DoState(PointerWrap &p);
+void DoState(PointerWrap& p);
 
 // ResetGatherPipe
 void ResetGatherPipe();

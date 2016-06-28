@@ -23,23 +23,19 @@
 class PCAP final : public NonCopyable
 {
 public:
-	// Takes ownership of the file object. Assumes the file object is already
-	// opened in write mode.
-	explicit PCAP(File::IOFile* fp) : m_fp(fp)
-	{
-		AddHeader();
-	}
+  // Takes ownership of the file object. Assumes the file object is already
+  // opened in write mode.
+  explicit PCAP(File::IOFile* fp) : m_fp(fp) { AddHeader(); }
+  template <typename T>
+  void AddPacket(const T& obj)
+  {
+    AddPacket(reinterpret_cast<const u8*>(&obj), sizeof(obj));
+  }
 
-	template <typename T>
-	void AddPacket(const T& obj)
-	{
-		AddPacket(reinterpret_cast<const u8*>(&obj), sizeof (obj));
-	}
-
-	void AddPacket(const u8* bytes, size_t size);
+  void AddPacket(const u8* bytes, size_t size);
 
 private:
-	void AddHeader();
+  void AddHeader();
 
-	std::unique_ptr<File::IOFile> m_fp;
+  std::unique_ptr<File::IOFile> m_fp;
 };

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <QAbstractEventDispatcher>
 #include <QApplication>
 
 #include "Core/BootManager.h"
@@ -13,21 +14,26 @@
 
 int main(int argc, char* argv[])
 {
-	QApplication app(argc, argv);
+  QApplication app(argc, argv);
 
-	UICommon::SetUserDirectory("");
-	UICommon::CreateDirectories();
-	UICommon::Init();
-	Resources::Init();
+  UICommon::SetUserDirectory("");
+  UICommon::CreateDirectories();
+  UICommon::Init();
+  Resources::Init();
 
-	MainWindow win;
-	win.show();
-	int retval = app.exec();
+  // Whenever the event loop is about to go to sleep, dispatch the jobs
+  // queued in the Core first.
+  QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
+                   &app, &Core::HostDispatchJobs);
 
-	BootManager::Stop();
-	Core::Shutdown();
-	UICommon::Shutdown();
-	Host::GetInstance()->deleteLater();
+  MainWindow win;
+  win.show();
+  int retval = app.exec();
 
-	return retval;
+  BootManager::Stop();
+  Core::Shutdown();
+  UICommon::Shutdown();
+  Host::GetInstance()->deleteLater();
+
+  return retval;
 }

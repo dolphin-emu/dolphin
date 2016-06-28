@@ -19,29 +19,25 @@
 class AOSound final : public SoundStream
 {
 #if defined(HAVE_AO) && HAVE_AO
-	std::thread thread;
-	std::atomic<bool> m_run_thread;
-	std::mutex soundCriticalSection;
-	Common::Event soundSyncEvent;
+  std::thread thread;
+  std::atomic<bool> m_run_thread;
+  std::mutex soundCriticalSection;
+  Common::Event soundSyncEvent;
 
-	int buf_size;
+  int buf_size;
 
-	ao_device *device;
-	ao_sample_format format;
-	int default_driver;
+  ao_device* device;
+  ao_sample_format format;
+  int default_driver;
 
-	short realtimeBuffer[1024 * 1024];
+  short realtimeBuffer[1024 * 1024];
 
 public:
-	bool Start() override;
-	void SoundLoop() override;
-	void Stop() override;
-	void Update() override;
+  bool Start() override;
+  void SoundLoop() override;
+  void Stop() override;
+  void Update() override;
 
-	static bool isValid()
-	{
-		return true;
-	}
-
+  static bool isValid() { return true; }
 #endif
 };

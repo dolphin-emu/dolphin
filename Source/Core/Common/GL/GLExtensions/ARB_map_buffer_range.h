@@ -23,8 +23,10 @@
 
 #include "Common/GL/GLExtensions/gl_common.h"
 
-typedef void *(APIENTRYP PFNDOLMAPBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access);
-typedef void (APIENTRYP PFNDOLFLUSHMAPPEDBUFFERRANGEPROC) (GLenum target, GLintptr offset, GLsizeiptr length);
+typedef void*(APIENTRYP PFNDOLMAPBUFFERRANGEPROC)(GLenum target, GLintptr offset, GLsizeiptr length,
+                                                  GLbitfield access);
+typedef void(APIENTRYP PFNDOLFLUSHMAPPEDBUFFERRANGEPROC)(GLenum target, GLintptr offset,
+                                                         GLsizeiptr length);
 
 extern PFNDOLFLUSHMAPPEDBUFFERRANGEPROC dolFlushMappedBufferRange;
 extern PFNDOLMAPBUFFERRANGEPROC dolMapBufferRange;

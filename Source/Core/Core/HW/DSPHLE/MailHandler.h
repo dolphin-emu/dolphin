@@ -14,19 +14,19 @@ class PointerWrap;
 class CMailHandler
 {
 public:
-	CMailHandler();
-	~CMailHandler();
+  CMailHandler();
+  ~CMailHandler();
 
-	void PushMail(u32 _Mail, bool interrupt = false);
-	void Clear();
-	void Halt(bool _Halt);
-	void DoState(PointerWrap &p);
-	bool IsEmpty() const;
+  void PushMail(u32 _Mail, bool interrupt = false);
+  void Clear();
+  void Halt(bool _Halt);
+  void DoState(PointerWrap& p);
+  bool IsEmpty() const;
 
-	u16 ReadDSPMailboxHigh();
-	u16 ReadDSPMailboxLow();
+  u16 ReadDSPMailboxHigh();
+  u16 ReadDSPMailboxLow();
 
 private:
-	// mail handler
-	std::queue<std::pair<u32, bool>> m_Mails;
+  // mail handler
+  std::queue<std::pair<u32, bool>> m_Mails;
 };

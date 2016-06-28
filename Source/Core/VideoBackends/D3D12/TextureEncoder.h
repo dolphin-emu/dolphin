@@ -19,14 +19,12 @@ static constexpr unsigned int MAX_BYTES_PER_ENCODE = MAX_BYTES_PER_BLOCK_ROW * (
 class TextureEncoder
 {
 public:
-	virtual ~TextureEncoder() { }
-
-	virtual void Init() = 0;
-	virtual void Shutdown() = 0;
-	// Returns size in bytes of encoded block of memory
-	virtual void Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-		PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-		bool is_intensity, bool scale_by_half) = 0;
+  virtual ~TextureEncoder() {}
+  virtual void Init() = 0;
+  virtual void Shutdown() = 0;
+  // Returns size in bytes of encoded block of memory
+  virtual void Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+                      u32 memory_stride, PEControl::PixelFormat src_format,
+                      const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half) = 0;
 };
-
 }

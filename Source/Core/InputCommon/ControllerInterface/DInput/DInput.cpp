@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/StringUtil.h"
-
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
+#include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/DInputKeyboardMouse.h"
@@ -16,50 +16,47 @@ namespace ciface
 {
 namespace DInput
 {
-
 BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef)
 {
-	((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);
-	return DIENUM_CONTINUE;
+  ((std::list<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back(*lpddoi);
+  return DIENUM_CONTINUE;
 }
 
 BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
-	((std::list<DIDEVICEINSTANCE>*)pvRef)->push_back(*lpddi);
-	return DIENUM_CONTINUE;
+  ((std::list<DIDEVICEINSTANCE>*)pvRef)->push_back(*lpddi);
+  return DIENUM_CONTINUE;
 }
 
 std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 {
-	DIPROPSTRING str = {};
-	str.diph.dwSize = sizeof(str);
-	str.diph.dwHeaderSize = sizeof(str.diph);
-	str.diph.dwHow = DIPH_DEVICE;
+  DIPROPSTRING str = {};
+  str.diph.dwSize = sizeof(str);
+  str.diph.dwHeaderSize = sizeof(str.diph);
+  str.diph.dwHow = DIPH_DEVICE;
 
-	std::string result;
-	if (SUCCEEDED(device->GetProperty(DIPROP_PRODUCTNAME, &str.diph)))
-	{
-		result = StripSpaces(UTF16ToUTF8(str.wsz));
-	}
+  std::string result;
+  if (SUCCEEDED(device->GetProperty(DIPROP_PRODUCTNAME, &str.diph)))
+  {
+    result = StripSpaces(UTF16ToUTF8(str.wsz));
+  }
 
-	return result;
+  return result;
 }
 
-void Init(std::vector<Core::Device*>& devices, HWND hwnd)
+void Init(HWND hwnd)
 {
-	IDirectInput8* idi8;
-	if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION,
-		IID_IDirectInput8, (LPVOID*)&idi8, nullptr)))
-	{
-		return;
-	}
+  IDirectInput8* idi8;
+  if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,
+                                (LPVOID*)&idi8, nullptr)))
+  {
+    return;
+  }
 
-	InitKeyboardMouse(idi8, devices, hwnd);
-	InitJoystick(idi8, devices, hwnd);
+  InitKeyboardMouse(idi8, hwnd);
+  InitJoystick(idi8, hwnd);
 
-	idi8->Release();
-
+  idi8->Release();
 }
-
 }
 }

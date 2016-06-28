@@ -19,33 +19,31 @@ class wxTextCtrl;
 class JitBlockList : public wxListCtrl
 {
 public:
-	JitBlockList(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
-	void Init();
-	void Update() override;
+  JitBlockList(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
+               long style);
+  void Init();
+  void Update() override;
 };
 
 class CJitWindow : public wxPanel
 {
 public:
-	CJitWindow(wxWindow* parent,
-		wxWindowID id = wxID_ANY,
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
-		const wxString& name = _("JIT Block Viewer"));
+  CJitWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
+             const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+             const wxString& name = _("JIT Block Viewer"));
 
-	void ViewAddr(u32 em_address);
-	void Update() override;
+  void ViewAddr(u32 em_address);
+  void Update() override;
 
 private:
-	void OnRefresh(wxCommandEvent& /*event*/);
-	void Compare(u32 em_address);
+  void OnRefresh(wxCommandEvent& /*event*/);
+  void Compare(u32 em_address);
 
-	JitBlockList* block_list;
-	std::unique_ptr<HostDisassembler> m_disassembler;
-	wxButton* button_refresh;
-	wxTextCtrl* ppc_box;
-	wxTextCtrl* x86_box;
+  JitBlockList* block_list;
+  std::unique_ptr<HostDisassembler> m_disassembler;
+  wxButton* button_refresh;
+  wxTextCtrl* ppc_box;
+  wxTextCtrl* x86_box;
 
-	void OnHostMessage(wxCommandEvent& event);
+  void OnHostMessage(wxCommandEvent& event);
 };

@@ -8,15 +8,15 @@
 
 namespace TextureSampler
 {
-	void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8 *sample);
+void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8* sample);
 
-	void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample);
+void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8* sample);
 
-	enum
-	{
-		RED_SMP,
-		GRN_SMP,
-		BLU_SMP,
-		ALP_SMP
-	};
+enum
+{
+  RED_SMP,
+  GRN_SMP,
+  BLU_SMP,
+  ALP_SMP
+};
 }

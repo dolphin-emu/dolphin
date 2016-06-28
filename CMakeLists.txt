@@ -16,6 +16,19 @@ option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 
+# Maintainers: if you consider blanket disabling this for your users, please
+# consider the following points:
+#  * No data is being sent without explicit user approval (pop up box at first
+#    launch).
+#  * The Dolphin team relies on the data in order to understand the behavior
+#    of our software in the wild.
+option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
+
+# Name of the Dolphin distributor. If you redistribute Dolphin builds (forks,
+# unofficial builds) please consider identifying your distribution with a
+# unique name here.
+set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
+
 # Enable SDL for default on operating systems that aren't OSX, Android, Linux or Windows.
 if(NOT APPLE AND NOT ANDROID AND NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT MSVC)
 	option(ENABLE_SDL "Enables SDL as a generic controller backend" ON)
@@ -135,12 +148,20 @@ if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
 endif()
 
 # version number
-set(DOLPHIN_VERSION_MAJOR "4")
+set(DOLPHIN_VERSION_MAJOR "5")
 set(DOLPHIN_VERSION_MINOR "0")
 if(DOLPHIN_WC_BRANCH STREQUAL "stable")
 	set(DOLPHIN_VERSION_PATCH "0")
 else()
 	set(DOLPHIN_VERSION_PATCH ${DOLPHIN_WC_REVISION})
+endif()
+
+# If Dolphin is not built from a Git repository, default the version info to
+# reasonable values.
+if(NOT DOLPHIN_WC_REVISION)
+	set(DOLPHIN_WC_DESCRIBE "${DOLPHIN_VERSION_MAJOR}.${DOLPHIN_VERSION_MINOR}")
+	set(DOLPHIN_WC_REVISION "${DOLPHIN_WC_DESCRIBE} (no further info)")
+	set(DOLPHIN_WC_BRANCH "master")
 endif()
 
 # Architecture detection and arch specific settings
@@ -167,6 +188,7 @@ if(NOT ENABLE_GENERIC)
 			set(_M_X86 1)
 			set(_M_X86_64 1)
 			add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
 		else()
 			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 		endif()
@@ -200,7 +222,7 @@ endmacro()
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
 	add_definitions(-Wall)
-
+	add_definitions(-D_DEFAULT_SOURCE)
 	# TODO: would like these but they produce overwhelming amounts of warnings
 	#check_and_add_flag(EXTRA -Wextra)
 	#check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
@@ -578,6 +600,11 @@ if(UNIX)
 	add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
+if(ENABLE_ANALYTICS)
+	message("Enabling analytics collection (subject to end-user opt-in)")
+	add_definitions(-DUSE_ANALYTICS=1)
+endif()
+
 ########################################
 # Setup include directories (and make sure they are preferred over the Externals)
 #
@@ -756,6 +783,17 @@ else()
 	include_directories(Externals/mbedtls/include)
 endif()
 
+include(FindCURL OPTIONAL)
+if(CURL_FOUND)
+	message("Using shared libcurl")
+	include_directories(${CURL_INCLUDE_DIRS})
+else()
+	message("Using static libcurl from Externals")
+	add_subdirectory(Externals/curl)
+	set(CURL_LIBRARIES curl)
+	include_directories(BEFORE Externals/curl/include)
+endif()
+
 if(NOT APPLE)
 	check_lib(SOIL "(no .pc for SOIL)" SOIL SOIL/SOIL.h QUIET)
 endif()
@@ -902,8 +940,9 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
 	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
 	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_STABLE} "\n"
+	"#define SCM_DISTRIBUTOR_STR \"" ${DISTRIBUTOR} "\"\n"
 	)
-include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
+include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 
 ########################################
 # Unit testing.

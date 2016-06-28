@@ -8,8 +8,7 @@
 
 class AboutDialog final : public QDialog
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
-	explicit AboutDialog(QWidget* parent = nullptr);
+  explicit AboutDialog(QWidget* parent = nullptr);
 };
-

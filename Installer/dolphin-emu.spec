@@ -18,7 +18,7 @@
 
 Name:       dolphin-emu
 Summary:    Dolphin Emulator
-Version:    4.0.2
+Version:    5.0
 Release:    0%{?dist}
 Group:      System/Emulators/Other
 License:    GPL-2.0
@@ -26,7 +26,7 @@ URL:        https://dolphin-emu.org/
 BuildArch:  x86_64 armv7l aarch64
 
 # For this spec file to work, the Dolphin Emulator sources must be located
-# in a directory named dolphin-emu-4.0 (with "4.0" being the version
+# in a directory named dolphin-emu-5.0 (with "5.0" being the version
 # number defined above).
 # If the sources are compressed in another format than .tar.xz, change the
 # file extension accordingly.
@@ -138,7 +138,8 @@ make %{?_smp_mflags} install DESTDIR="%{?buildroot}"
 %doc license.txt Readme.md
 %{_bindir}/%{name}
 %{_datadir}/%{name}
-%{_datadir}/pixmaps/dolphin-emu.xpm
+%{_datadir}/icons/hicolor/48x48/apps/%{name}.*
+%{_datadir}/icons/hicolor/scalable/apps/%{name}.*
 %{_datadir}/applications/%{name}.desktop
 %{_mandir}/man6/%{name}.*
 

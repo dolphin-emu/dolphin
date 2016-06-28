@@ -12,29 +12,29 @@
 
 class PathDialog final : public QDialog
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
-	explicit PathDialog(QWidget* parent = nullptr);
+  explicit PathDialog(QWidget* parent = nullptr);
 
 public slots:
-	void Browse();
-	void BrowseDefaultGame();
-	void BrowseDVDRoot();
-	void BrowseApploader();
-	void BrowseWiiNAND();
+  void Browse();
+  void BrowseDefaultGame();
+  void BrowseDVDRoot();
+  void BrowseApploader();
+  void BrowseWiiNAND();
 
 signals:
-	void PathAdded(QString path);
-	void PathRemoved(QString path);
+  void PathAdded(QString path);
+  void PathRemoved(QString path);
 
 private:
-	QGroupBox* MakeGameFolderBox();
-	QGridLayout* MakePathsLayout();
-	void RemovePath();
+  QGroupBox* MakeGameFolderBox();
+  QGridLayout* MakePathsLayout();
+  void RemovePath();
 
-	QListWidget* m_path_list;
-	QLineEdit* m_game_edit;
-	QLineEdit* m_dvd_edit;
-	QLineEdit* m_app_edit;
-	QLineEdit* m_nand_edit;
+  QListWidget* m_path_list;
+  QLineEdit* m_game_edit;
+  QLineEdit* m_dvd_edit;
+  QLineEdit* m_app_edit;
+  QLineEdit* m_nand_edit;
 };

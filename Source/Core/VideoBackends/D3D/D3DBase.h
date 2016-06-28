@@ -13,17 +13,33 @@
 
 namespace DX11
 {
-
-#define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = nullptr; }
-#define SAFE_DELETE(x) { delete (x); (x) = nullptr; }
-#define SAFE_DELETE_ARRAY(x) { delete[] (x); (x) = nullptr; }
-#define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
+#define SAFE_RELEASE(x)                                                                            \
+  {                                                                                                \
+    if (x)                                                                                         \
+      (x)->Release();                                                                              \
+    (x) = nullptr;                                                                                 \
+  }
+#define SAFE_DELETE(x)                                                                             \
+  {                                                                                                \
+    delete (x);                                                                                    \
+    (x) = nullptr;                                                                                 \
+  }
+#define SAFE_DELETE_ARRAY(x)                                                                       \
+  {                                                                                                \
+    delete[](x);                                                                                   \
+    (x) = nullptr;                                                                                 \
+  }
+#define CHECK(cond, Message, ...)                                                                  \
+  if (!(cond))                                                                                     \
+  {                                                                                                \
+    PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__,              \
+               __VA_ARGS__);                                                                       \
+  }
 
 class D3DTexture2D;
 
 namespace D3D
 {
-
 HRESULT LoadDXGI();
 HRESULT LoadD3D();
 HRESULT LoadD3DCompiler();
@@ -49,7 +65,7 @@ void Present();
 
 unsigned int GetBackBufferWidth();
 unsigned int GetBackBufferHeight();
-D3DTexture2D* &GetBackBuffer();
+D3DTexture2D*& GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* GeometryShaderVersionString();
 const char* VertexShaderVersionString();
@@ -66,39 +82,41 @@ HRESULT GetFullscreenState(bool* fullscreen_state);
 template <typename T>
 void SetDebugObjectName(T resource, const char* name)
 {
-	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-		"resource must be convertible to ID3D11DeviceChild*");
+  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
+                "resource must be convertible to ID3D11DeviceChild*");
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (resource)
-		resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
+  if (resource)
+    resource->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)(name ? strlen(name) : 0), name);
 #endif
 }
 
 template <typename T>
 std::string GetDebugObjectName(T resource)
 {
-	static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
-		"resource must be convertible to ID3D11DeviceChild*");
-	std::string name;
+  static_assert(std::is_convertible<T, ID3D11DeviceChild*>::value,
+                "resource must be convertible to ID3D11DeviceChild*");
+  std::string name;
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (resource)
-	{
-		UINT size = 0;
-		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr); //get required size
-		name.resize(size);
-		resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
-	}
+  if (resource)
+  {
+    UINT size = 0;
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, nullptr);  // get required size
+    name.resize(size);
+    resource->GetPrivateData(WKPDID_D3DDebugObjectName, &size, const_cast<char*>(name.data()));
+  }
 #endif
-	return name;
+  return name;
 }
 
 }  // namespace D3D
 
-typedef HRESULT (WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
+typedef HRESULT(WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
 extern CREATEDXGIFACTORY PCreateDXGIFactory;
-typedef HRESULT (WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT, CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**, D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
+typedef HRESULT(WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
+                                           CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**,
+                                           D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
 
-typedef HRESULT (WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
+typedef HRESULT(WINAPI* D3DREFLECT)(LPCVOID, SIZE_T, REFIID, void**);
 extern D3DREFLECT PD3DReflect;
 extern pD3DCompile PD3DCompile;
 

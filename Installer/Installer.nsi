@@ -1,4 +1,7 @@
-!define PRODUCT_VERSION 4.0
+!define DOLPHIN_ARCH x64
+!define BASE_INSTALL_DIR "$PROGRAMFILES64"
+!define PRODUCT_NAME "Dolphin"
+!define PRODUCT_VERSION 5.0
 
 !define BASE_DIR "..\Binary\${DOLPHIN_ARCH}"
 
@@ -10,6 +13,8 @@
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 
 SetCompressor /SOLID lzma
+
+!include "FileFunc.nsh"
 
 ; MUI 1.67 compatible ------
 !include "MUI.nsh"
@@ -102,7 +107,7 @@ SetCompressor /SOLID lzma
 
 ; MUI end ------
 
-Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+Name "${PRODUCT_NAME}"
 !define UN_NAME "Uninstall $(^Name)"
 OutFile "dolphin-${DOLPHIN_ARCH}-${PRODUCT_VERSION}.exe"
 InstallDir "${BASE_INSTALL_DIR}\$(^Name)"
@@ -121,9 +126,17 @@ Section "Base" SEC01
   ; TODO: Make a nice subsection-ized display
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
-  ; Delete old install directory if it exists
-  IfFileExists "$INSTDIR\*.*" 0 +2
-  RMDir /r "$INSTDIR"
+  ; Only delete what we put there; all $INSTDIR\User is left as is
+  Delete "$INSTDIR\uninst.exe"
+  Delete "$INSTDIR\license.txt"
+  Delete "$INSTDIR\*.dll"
+  Delete "$INSTDIR\Dolphin.exe"
+  Delete "$INSTDIR\DSPTool.exe"
+  Delete "$INSTDIR\cpack_package_description.txt"
+  Delete "$INSTDIR\qt.conf"
+  RMDir /r "$INSTDIR\Sys"
+  RMDir /r "$INSTDIR\Languages"
+
   File "${BASE_DIR}\Dolphin.exe"
   File "${BASE_DIR}\license.txt"
   File "${BASE_DIR}\*.dll"
@@ -138,12 +151,19 @@ Section "Base" SEC01
   SetOutPath "$TEMP"
   SetOverwrite on
   File /r "dxredist"
+  File /r "vcredist"
 SectionEnd
 
 Section "DirectX Runtime" SEC02
    DetailPrint "Running DirectX runtime setup..."
    ExecWait '"$TEMP\dxredist\DXSETUP.exe" /silent'
    DetailPrint "Finished DirectX runtime setup"
+SectionEnd
+
+Section "Visual C++ 2015 Redistributable" SEC03
+   DetailPrint "Running Visual C++ 2015 Redistributable setup..."
+   ExecWait '"$TEMP\vcredist\vc_redist.x64.exe" /install /quiet /norestart'
+   DetailPrint "Finished Visual C++ 2015 Redistributable setup"
 SectionEnd
 
 Section -AdditionalIcons
@@ -159,12 +179,18 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "InstallLocation" "$INSTDIR"
+  ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
+  IntFmt $0 "0x%08X" $0
+  WriteRegDWORD ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "EstimatedSize" "$0"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Comments" "GameCube and Wii emulator"
 SectionEnd
 
 ; Section descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC01} "Installs all files required to run the Dolphin Emulator."
   !insertmacro MUI_DESCRIPTION_TEXT ${SEC02} "Installs the recommended DirectX runtime libraries that are needed by Dolphin."
+  !insertmacro MUI_DESCRIPTION_TEXT ${SEC03} "Installs the required Visual C++ 2015 Redistributable that is needed by Dolphin."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Section Uninstall

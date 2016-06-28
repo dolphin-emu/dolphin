@@ -735,6 +735,7 @@
     <ClCompile Include="DolphinWatch.cpp">
       <Filter>DolphinWatch</Filter>
     </ClCompile>
+    <ClCompile Include="Analytics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1253,12 +1254,16 @@
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="DolphinWatch.h">
       <Filter>DolphinWatch</Filter>
     </ClInclude>
     <ClInclude Include="RemoteListener.h">
       <Filter>DolphinWatch</Filter>
     </ClInclude>
+=======
+    <ClInclude Include="Analytics.h" />
+>>>>>>> upstream/master
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

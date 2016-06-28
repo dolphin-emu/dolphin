@@ -4,15 +4,13 @@
 
 #pragma once
 
-#include <vector>
 #include <Windows.h>
+#include <vector>
 
 namespace ciface
 {
 namespace DInput
 {
-
 void GetXInputGUIDS(std::vector<DWORD>* guids);
-
 }
 }
