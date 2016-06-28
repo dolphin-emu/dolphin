@@ -4,21 +4,16 @@
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #include <sstream>
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface
 {
 namespace Android
 {
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
-  devices.push_back(new Touchscreen(0));
-  devices.push_back(new Touchscreen(1));
-  devices.push_back(new Touchscreen(2));
-  devices.push_back(new Touchscreen(3));
-  devices.push_back(new Touchscreen(4));
-  devices.push_back(new Touchscreen(5));
-  devices.push_back(new Touchscreen(6));
-  devices.push_back(new Touchscreen(7));
+  for (int i = 0; i < 8; ++i)
+    g_controller_interface.AddDevice(std::make_shared<Touchscreen>(i));
 }
 
 // Touchscreens and stuff

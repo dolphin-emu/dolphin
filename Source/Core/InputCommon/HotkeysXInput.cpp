@@ -32,6 +32,7 @@ namespace HotkeysXInput
 {
 void Update()
 {
+#if 0
   ciface::Core::Device* xinput_dev = nullptr;
   ciface::Core::Device* dinput_dev = nullptr;
 
@@ -186,6 +187,7 @@ void Update()
       OnXInputPoll(&button_states, &dinput_hats_and_axis, true);
     }
   }
+#endif
 }
 
 void OnXInputPoll(u32* XInput_State, u32* DInput_State_Extra, bool DInput)

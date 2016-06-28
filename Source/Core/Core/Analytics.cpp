@@ -158,9 +158,15 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("os-type", "osx");
 
   SInt32 osxmajor, osxminor, osxbugfix;
+// Gestalt is deprecated, but the replacement (NSProcessInfo
+// operatingSystemVersion) is only available on OS X 10.10, so we need to use
+// it anyway.  Change this someday when Dolphin depends on 10.10+.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   Gestalt(gestaltSystemVersionMajor, &osxmajor);
   Gestalt(gestaltSystemVersionMinor, &osxminor);
   Gestalt(gestaltSystemVersionBugFix, &osxbugfix);
+#pragma GCC diagnostic pop
 
   builder.AddData("osx-ver-major", osxmajor);
   builder.AddData("osx-ver-minor", osxminor);

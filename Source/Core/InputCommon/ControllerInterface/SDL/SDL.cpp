@@ -7,6 +7,7 @@
 #include <sstream>
 
 #include "Common/StringUtil.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
 
 #ifdef _WIN32
@@ -32,7 +33,7 @@ static std::string GetJoystickName(int index)
 #endif
 }
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
   // this is used to number the joysticks
   // multiple joysticks with the same name shall get unique ids starting at 0
@@ -57,12 +58,10 @@ void Init(std::vector<Core::Device*>& devices)
     SDL_Joystick* dev = SDL_JoystickOpen(i);
     if (dev)
     {
-      Joystick* js = new Joystick(dev, i, name_counts[GetJoystickName(i)]++);
+      auto js = std::make_shared<Joystick>(dev, i, name_counts[GetJoystickName(i)]++);
       // only add if it has some inputs/outputs
       if (js->Inputs().size() || js->Outputs().size())
-        devices.push_back(js);
-      else
-        delete js;
+        g_controller_interface.AddDevice(std::move(js));
     }
   }
 }

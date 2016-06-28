@@ -2,9 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <mutex>
+
+#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "Common/Logging/Log.h"
-#include "Common/Thread.h"
 
 #ifdef CIFACE_USE_OSVR
 #include "InputCommon/ControllerInterface/OSVR/OSVR.h"
@@ -66,40 +68,40 @@ void ControllerInterface::Initialize(void* const hwnd)
   m_hwnd = hwnd;
 
 #ifdef CIFACE_USE_DINPUT
-  ciface::DInput::Init(m_devices, (HWND)hwnd);
+  ciface::DInput::Init((HWND)hwnd);
 #endif
 #ifdef CIFACE_USE_XINPUT
-  ciface::XInput::Init(m_devices);
+  ciface::XInput::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::Xlib::Init(m_devices, hwnd);
+  ciface::Xlib::Init(hwnd);
 #ifdef CIFACE_USE_X11_XINPUT2
-  ciface::XInput2::Init(m_devices, hwnd);
+  ciface::XInput2::Init(hwnd);
 #endif
 #endif
 #ifdef CIFACE_USE_OSX
-  ciface::OSX::Init(m_devices, hwnd);
+  ciface::OSX::Init(hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
-  ciface::SDL::Init(m_devices);
+  ciface::SDL::Init();
 #endif
 #ifdef CIFACE_USE_ANDROID
-  ciface::Android::Init(m_devices);
+  ciface::Android::Init();
 #endif
 #ifdef CIFACE_USE_EVDEV
-  ciface::evdev::Init(m_devices);
+  ciface::evdev::Init();
 #endif
 #ifdef CIFACE_USE_PIPES
-  ciface::Pipes::Init(m_devices);
+  ciface::Pipes::Init();
 #endif
 #ifdef _WIN32
-  ciface::OculusInput::Init(m_devices);
-  ciface::ViveInput::Init(m_devices);
+  ciface::OculusInput::Init();
+  ciface::ViveInput::Init();
   // VR Sixense Razer Hydra or STEM
   InitSixenseLib();
 #endif
 #ifdef CIFACE_USE_OSVR
-  ciface::OSVR::Init(m_devices);
+  ciface::OSVR::Init();
 #endif
 
   m_is_init = true;
@@ -124,14 +126,13 @@ void ControllerInterface::Shutdown()
   if (!m_is_init)
     return;
 
-  for (ciface::Core::Device* d : m_devices)
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+  for (const auto& d : m_devices)
   {
     // Set outputs to ZERO before destroying device
     for (ciface::Core::Device::Output* o : d->Outputs())
       o->SetState(0);
-
-    // Delete device
-    delete d;
   }
 
   m_devices.clear();
@@ -172,6 +173,12 @@ void ControllerInterface::Shutdown()
   m_is_init = false;
 }
 
+void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  m_devices.emplace_back(std::move(device));
+}
+
 //
 // UpdateInput
 //
@@ -179,7 +186,8 @@ void ControllerInterface::Shutdown()
 //
 void ControllerInterface::UpdateInput()
 {
-  for (ciface::Core::Device* d : m_devices)
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  for (const auto& d : m_devices)
     d->UpdateInput();
 }
 

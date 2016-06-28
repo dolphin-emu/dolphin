@@ -6,13 +6,14 @@
 
 #include <windows.h>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface
 {
 namespace ViveInput
 {
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 void DeInit();
 
 class ViveController : public Core::Device

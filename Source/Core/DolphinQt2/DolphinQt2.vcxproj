@@ -92,7 +92,10 @@
   <!--NOTE: When adding moc'd files, you must list the outputs in the following ItemGroup!-->
   <ItemGroup>
     <QtMoc Include="AboutDialog.h" />
+    <QtMoc Include="Config\FilesystemWidget.h" />
+    <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PathDialog.h" />
+    <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="GameList\GameFile.h" />
     <QtMoc Include="GameList\GameList.h" />
@@ -110,22 +113,28 @@
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameFile.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MenuBar.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)PropertiesDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)RenderWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Settings.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)SettingsWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)TableDelegate.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ToolBar.cpp" />
     <ClCompile Include="AboutDialog.cpp" />
+    <ClCompile Include="Config\FilesystemWidget.cpp" />
+    <ClCompile Include="Config\InfoWidget.cpp" />
     <ClCompile Include="Config\PathDialog.cpp" />
+    <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="GameList\GameFile.cpp" />
     <ClCompile Include="GameList\GameList.cpp" />

@@ -11,9 +11,9 @@ namespace ciface
 {
 namespace Xlib
 {
-void Init(std::vector<Core::Device*>& devices, void* const hwnd)
+void Init(void* const hwnd)
 {
-  devices.push_back(new KeyboardMouse((Window)hwnd));
+  g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>((Window)hwnd));
 }
 
 KeyboardMouse::KeyboardMouse(Window window) : m_window(window)

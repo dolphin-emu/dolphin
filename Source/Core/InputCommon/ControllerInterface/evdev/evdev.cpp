@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
 namespace ciface
@@ -31,7 +32,7 @@ static std::string GetName(const std::string& devnode)
   return res;
 }
 
-void Init(std::vector<Core::Device*>& controllerDevices)
+void Init()
 {
   // this is used to number the joysticks
   // multiple joysticks with the same name shall get unique ids starting at 0
@@ -67,17 +68,12 @@ void Init(std::vector<Core::Device*>& controllerDevices)
       // Unfortunately udev gives us no way to filter out the non event device interfaces.
       // So we open it and see if it works with evdev ioctls or not.
       std::string name = GetName(devnode);
-      evdevDevice* input = new evdevDevice(devnode, name_counts[name]++);
+      auto input = std::make_shared<evdevDevice>(devnode, name_counts[name]++);
 
       if (input->IsInteresting())
       {
-        controllerDevices.push_back(input);
+        g_controller_interface.AddDevice(std::move(input));
         num_controllers++;
-      }
-      else
-      {
-        // Either it wasn't a evdev device, or it didn't have at least 8 buttons or two axis.
-        delete input;
       }
     }
     udev_device_unref(dev);

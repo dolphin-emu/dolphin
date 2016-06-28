@@ -6,6 +6,7 @@
 #include <map>
 #include <sstream>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/DInput/DInputJoystick.h"
 #include "InputCommon/ControllerInterface/DInput/XInputFilter.h"
@@ -16,7 +17,7 @@ namespace DInput
 {
 #define DATA_BUFFER_SIZE 32
 
-void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices, HWND hwnd)
+void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
 {
   std::list<DIDEVICEINSTANCE> joysticks;
   idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
@@ -57,12 +58,10 @@ void InitJoystick(IDirectInput8* const idi8, std::vector<Core::Device*>& devices
           }
         }
 
-        Joystick* js = new Joystick(/*&*i, */ js_device, name_counts[joystick.tszInstanceName]++);
+        auto js = std::make_shared<Joystick>(js_device, name_counts[joystick.tszInstanceName]++);
         // only add if it has some inputs/outputs
         if (js->Inputs().size() || js->Outputs().size())
-          devices.push_back(js);
-        else
-          delete js;
+          g_controller_interface.AddDevice(std::move(js));
       }
       else
       {

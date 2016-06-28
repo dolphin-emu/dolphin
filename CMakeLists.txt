@@ -950,7 +950,7 @@ file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
 	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_STABLE} "\n"
 	"#define SCM_DISTRIBUTOR_STR \"" ${DISTRIBUTOR} "\"\n"
 	)
-include_directories("${PROJECT_BINARY_DIR}/Source/Core/Common")
+include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 
 ########################################
 # Unit testing.

@@ -46,7 +46,7 @@ namespace ciface
 namespace XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
-void Init(std::vector<Core::Device*>& devices, void* const hwnd)
+void Init(void* const hwnd)
 {
   Display* dpy = XOpenDisplay(nullptr);
 
@@ -76,10 +76,12 @@ void Init(std::vector<Core::Device*>& devices, void* const hwnd)
   {
     current_master = &all_masters[i];
     if (current_master->use == XIMasterPointer)
+    {
       // Since current_master is a master pointer, its attachment must
       // be a master keyboard.
-      devices.push_back(new KeyboardMouse((Window)hwnd, xi_opcode, current_master->deviceid,
-                                          current_master->attachment));
+      g_controller_interface.AddDevice(std::make_shared<KeyboardMouse>(
+          (Window)hwnd, xi_opcode, current_master->deviceid, current_master->attachment));
+    }
   }
 
   XCloseDisplay(dpy);

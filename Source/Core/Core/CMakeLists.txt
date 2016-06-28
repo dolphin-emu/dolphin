@@ -236,6 +236,7 @@ set(LIBS
 	${LZO}
 	sfml-network
 	sfml-system
+	videonull
 	videoogl
 	videosoftware
 	z

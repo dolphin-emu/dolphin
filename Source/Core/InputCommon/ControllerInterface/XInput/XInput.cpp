@@ -51,7 +51,7 @@ static XInputGetState_t PXInputGetState = nullptr;
 
 static bool haveGuideButton = false;
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
   if (!hXInput)
   {
@@ -91,7 +91,7 @@ void Init(std::vector<Core::Device*>& devices)
   for (int i = 0; i != 4; ++i)
     if (ERROR_SUCCESS == PXInputGetCapabilities(i, 0, &caps))
     {
-      devices.push_back(new Device(caps, i));
+      g_controller_interface.AddDevice(std::make_shared<Device>(caps, i));
     }
     else if (i == 0)
     {
@@ -99,7 +99,7 @@ void Init(std::vector<Core::Device*>& devices)
       caps.SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
       FillMemory(&caps.Gamepad, sizeof(caps.Gamepad), 0xFF);
       FillMemory(&caps.Vibration, sizeof(caps.Vibration), 0xFF);
-      devices.push_back(new Device(caps, i));
+      g_controller_interface.AddDevice(std::make_shared<Device>(caps, i));
     }
 }
 

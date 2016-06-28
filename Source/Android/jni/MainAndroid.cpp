@@ -269,7 +269,9 @@ static std::string GetTitle(std::string filename)
 
   if (pVolume != nullptr)
   {
-    std::map<DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetNames(true);
+    std::map<DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetLongNames();
+    if (titles.empty())
+      titles = pVolume->GetShortNames();
 
     /*
     bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
@@ -745,7 +747,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
   if (surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+  // If GLInterface isn't a thing yet then we don't need to let it know that the
+  // surface has changed
   if (GLInterface)
   {
     GLInterface->UpdateHandle(surf);
@@ -764,7 +767,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestr
     surf = nullptr;
   }
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the surface has changed
+  // If GLInterface isn't a thing yet then we don't need to let it know that the
+  // surface has changed
   if (GLInterface)
   {
     GLInterface->UpdateHandle(nullptr);

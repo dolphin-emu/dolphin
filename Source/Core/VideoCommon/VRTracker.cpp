@@ -33,6 +33,7 @@ void Shutdown()
 // if plugin isn't initialized, init and find a tracker
 void Initialize(void* const hwnd)
 {
+#if 0
   g_controller_interface.Initialize(hwnd);
 
   // find the OSVR head tracker inputs
@@ -53,6 +54,7 @@ void Initialize(void* const hwnd)
     s_orientation_inputs[i]->expression = named_orientations[i];
     g_controller_interface.UpdateReference(s_orientation_inputs[i], devq);
   }
+#endif
 }
 
 void ResetView()

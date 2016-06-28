@@ -12,13 +12,13 @@ extern "C" {
 #include <X11/keysym.h>
 }
 
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ciface
 {
 namespace XInput2
 {
-void Init(std::vector<Core::Device*>& devices, void* const hwnd);
+void Init(void* const hwnd);
 
 class KeyboardMouse : public Core::Device
 {

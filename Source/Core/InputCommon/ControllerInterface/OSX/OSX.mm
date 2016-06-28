@@ -6,6 +6,7 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 #include "InputCommon/ControllerInterface/OSX/OSXKeyboard.h"
@@ -140,22 +141,22 @@ static void DeviceMatching_callback(void* inContext, IOReturn inResult, void* in
 
   DeviceDebugPrint(inIOHIDDeviceRef);
 
-  std::vector<Core::Device*>* devices = (std::vector<Core::Device*>*)inContext;
-
-  // Add to the devices vector if it's of a type we want
+  // Add a device if it's of a type we want
   if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-    devices->push_back(new Keyboard(inIOHIDDeviceRef, name, kbd_name_counts[name]++, g_window));
+    g_controller_interface.AddDevice(
+        std::make_shared<Keyboard>(inIOHIDDeviceRef, name, kbd_name_counts[name]++, g_window));
 #if 0
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
 		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-		devices->push_back(new Mouse(inIOHIDDeviceRef,
+		g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef,
 			name, mouse_name_counts[name]++));
 #endif
   else
-    devices->push_back(new Joystick(inIOHIDDeviceRef, name, joy_name_counts[name]++));
+    g_controller_interface.AddDevice(
+        std::make_shared<Joystick>(inIOHIDDeviceRef, name, joy_name_counts[name]++));
 }
 
-void Init(std::vector<Core::Device*>& devices, void* window)
+void Init(void* window)
 {
   HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
   if (!HIDManager)
@@ -166,7 +167,7 @@ void Init(std::vector<Core::Device*>& devices, void* window)
   IOHIDManagerSetDeviceMatching(HIDManager, nullptr);
 
   // Callbacks for acquisition or loss of a matching device
-  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatching_callback, (void*)&devices);
+  IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatching_callback, nullptr);
 
   // Match devices that are plugged in right now
   IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);

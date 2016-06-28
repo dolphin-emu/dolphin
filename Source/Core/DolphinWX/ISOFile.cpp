@@ -92,9 +92,13 @@ GameListItem::GameListItem(const std::string& _rFileName,
     {
       m_Platform = volume->GetVolumeType();
 
-      m_names = volume->GetNames(true);
       m_descriptions = volume->GetDescriptions();
-      m_company = volume->GetCompany();
+      m_names = volume->GetLongNames();
+      if (m_names.empty())
+        m_names = volume->GetShortNames();
+      m_company = GetLanguageString(DiscIO::IVolume::LANGUAGE_ENGLISH, volume->GetLongMakers());
+      if (m_company.empty())
+        m_company = GetLanguageString(DiscIO::IVolume::LANGUAGE_ENGLISH, volume->GetShortMakers());
 
       m_Country = volume->GetCountry();
       m_blob_type = volume->GetBlobType();
@@ -230,13 +234,14 @@ GameListItem::GameListItem(const std::string& _rFileName,
   std::string path, name;
   SplitPath(m_FileName, &path, &name, nullptr);
 
-  // A bit like the Homebrew Channel icon, except there can be multiple files in a folder with their
-  // own icons.
-  // Useful for those who don't want to have a Homebrew Channel-style folder structure.
+  // A bit like the Homebrew Channel icon, except there can be multiple files
+  // in a folder with their own icons. Useful for those who don't want to have
+  // a Homebrew Channel-style folder structure.
   if (ReadPNGBanner(path + name + ".png"))
     return;
 
-  // Homebrew Channel icon. Typical for DOLs and ELFs, but can be also used with volumes.
+  // Homebrew Channel icon. Typical for DOLs and ELFs,
+  // but can be also used with volumes.
   if (ReadPNGBanner(path + "icon.png"))
     return;
 

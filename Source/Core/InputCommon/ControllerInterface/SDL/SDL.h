@@ -8,8 +8,6 @@
 
 #include <SDL.h>
 
-#include "InputCommon/ControllerInterface/Device.h"
-
 #if SDL_VERSION_ATLEAST(1, 3, 0)
 #define USE_SDL_HAPTIC
 #endif
@@ -22,7 +20,7 @@ namespace ciface
 {
 namespace SDL
 {
-void Init(std::vector<Core::Device*>& devices);
+void Init();
 
 class Joystick : public Core::Device
 {

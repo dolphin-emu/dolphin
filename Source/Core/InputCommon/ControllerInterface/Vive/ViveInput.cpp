@@ -103,9 +103,9 @@ static const char* const named_motors[] = {
     "LHaptic", "RHaptic",
 };
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
-  devices.push_back(new ViveController());
+  g_controller_interface.AddDevice(std::make_shared<ViveController>());
 }
 
 void DeInit()

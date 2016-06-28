@@ -270,8 +270,8 @@ void ControlDialog::UpdateListContents()
 {
   control_lbox->Clear();
 
-  ciface::Core::Device* const dev = g_controller_interface.FindDevice(m_devq);
-  if (dev)
+  const auto dev = g_controller_interface.FindDevice(m_devq);
+  if (dev != nullptr)
   {
     if (control_reference->is_input)
     {
@@ -608,8 +608,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
   wxButton* const btn = (wxButton*)event.GetEventObject();
   const wxString lbl = btn->GetLabel();
 
-  ciface::Core::Device* const dev = g_controller_interface.FindDevice(m_devq);
-  if (dev)
+  const auto dev = g_controller_interface.FindDevice(m_devq);
+  if (dev != nullptr)
   {
     m_event_filter.BlockEvents(true);
     btn->SetLabel(_("[ waiting ]"));
@@ -617,7 +617,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
     // This makes the "waiting" text work on Linux. true (only if needed) prevents crash on Windows
     wxTheApp->Yield(true);
 
-    ciface::Core::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
+    ciface::Core::Device::Control* const ctrl =
+        control_reference->Detect(DETECT_WAIT_TIME, dev.get());
 
     // if we got input, select it in the list
     if (ctrl)
@@ -652,8 +653,8 @@ bool GamepadPage::DetectButton(ControlButton* button)
 {
   bool success = false;
   // find device :/
-  ciface::Core::Device* const dev = g_controller_interface.FindDevice(controller->default_device);
-  if (dev)
+  const auto dev = g_controller_interface.FindDevice(controller->default_device);
+  if (dev != nullptr)
   {
     m_event_filter.BlockEvents(true);
     button->SetLabel(_("[ waiting ]"));
@@ -662,7 +663,7 @@ bool GamepadPage::DetectButton(ControlButton* button)
     wxTheApp->Yield(true);
 
     ciface::Core::Device::Control* const ctrl =
-        button->control_reference->Detect(DETECT_WAIT_TIME, dev);
+        button->control_reference->Detect(DETECT_WAIT_TIME, dev.get());
 
     // if we got input, update expression and reference
     if (ctrl)
@@ -861,16 +862,12 @@ void GamepadPage::DeleteProfile(wxCommandEvent&)
 
 void InputConfigDialog::UpdateDeviceComboBox()
 {
-  ciface::Core::DeviceQualifier dq;
   for (GamepadPage* page : m_padpages)
   {
     page->device_cbox->Clear();
 
-    for (ciface::Core::Device* d : g_controller_interface.Devices())
-    {
-      dq.FromDevice(d);
-      page->device_cbox->Append(StrToWxStr(dq.ToString()));
-    }
+    for (const std::string& device_string : g_controller_interface.GetAllDeviceStrings())
+      page->device_cbox->Append(StrToWxStr(device_string));
 
     page->device_cbox->SetValue(StrToWxStr(page->controller->default_device.ToString()));
   }

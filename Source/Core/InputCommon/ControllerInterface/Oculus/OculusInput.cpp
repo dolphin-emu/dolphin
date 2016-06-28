@@ -42,11 +42,11 @@ static const char* const named_motors[] = {
     "LRumble00", "LRumble05", "LRumble10", "RRumble00", "RRumble05", "RRumble10",
 };
 
-void Init(std::vector<Core::Device*>& devices)
+void Init()
 {
-  devices.push_back(new SIDRemote());
-  devices.push_back(new OculusTouch());
-  devices.push_back(new HMDDevice());
+  g_controller_interface.AddDevice(std::make_shared<SIDRemote>());
+  g_controller_interface.AddDevice(std::make_shared<OculusTouch>());
+  g_controller_interface.AddDevice(std::make_shared<HMDDevice>());
 }
 
 void DeInit()
