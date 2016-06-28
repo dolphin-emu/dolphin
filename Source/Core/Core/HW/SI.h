@@ -41,5 +41,6 @@ void ChangeDeviceDeterministic(SIDevices device, int channel);
 SIDevices GetDeviceType(int channel);
 
 u32 GetPollXLines();
+u32 GetPollXFrame();
 
 }  // end of namespace SerialInterface

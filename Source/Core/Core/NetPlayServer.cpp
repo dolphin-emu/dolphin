@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/NetPlayServer.h"
+#include <math.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -13,7 +14,9 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/SI.h"
 #include "Core/HW/Sram.h"
+#include "Core/HW/VideoInterface.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "InputCommon/GCPadStatus.h"
 #if !defined(_WIN32)
@@ -116,6 +119,9 @@ void NetPlayServer::ThreadFunc()
       m_ping_timer.Start();
       SendToClients(spac);
       m_update_pings = false;
+
+      if (m_auto_buffer)
+        UpdateBuffer();
     }
 
     ENetEvent netEvent;
@@ -448,14 +454,27 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
   std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
+  if (m_target_buffer_size != size)
+  {
+    // tell clients to change buffer size
+    auto spac = std::make_unique<sf::Packet>();
+    *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+    *spac << static_cast<u32>(size);
+
+    SendAsyncToClients(std::move(spac));
+  }
+
   m_target_buffer_size = size;
+}
 
-  // tell clients to change buffer size
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  *spac << static_cast<u32>(m_target_buffer_size);
+void NetPlayServer::SetAutoBufferEnabled(bool enabled)
+{
+  m_auto_buffer = enabled;
+}
 
-  SendAsyncToClients(std::move(spac));
+void NetPlayServer::SetAutoBufferSensibility(int value)
+{
+  m_auto_buffer_sensibility = 0.5 + value / (double)200;
 }
 
 void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
@@ -562,6 +581,10 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     if (m_ping_key == ping_key)
     {
       player.ping = ping;
+      player.last_pings.push_back(ping);
+
+      while (m_last_pings.size() > AUTO_BUFFER_PING_WINDOW_SEC)
+        player.last_pings.pop_front();
     }
 
     sf::Packet spac;
@@ -731,6 +754,57 @@ bool NetPlayServer::StartGame()
   m_is_running = true;
 
   return true;
+}
+
+void NetPlayServer::UpdateBuffer()
+{
+  std::map<PlayerId, u32> players_selected_pings;
+
+  for (auto& player : m_players)
+  {
+    if (player.second.last_pings.size() < AUTO_BUFFER_PING_WINDOW_SEC)
+    {
+      return;  // wait for window to fill
+    }
+
+    std::deque<u32> player_last_pings = player.second.last_pings;
+    sort(player_last_pings.begin(), player_last_pings.end());
+    size_t index =
+        static_cast<size_t>(round((player_last_pings.size() - 1) * m_auto_buffer_sensibility));
+    index = std::min(index, player_last_pings.size() - 1);
+
+    players_selected_pings[player.second.pid] = player_last_pings[index];
+  }
+
+  u32 max_player_pair_ping = 0;
+
+  // get the max player pair ping to account for client -> server -> client
+  // when they are more than two players
+  for (auto& p1 : m_players)
+  {
+    for (auto& p2 : m_players)
+    {
+      if (p1.second == p2.second)
+        continue;
+
+      u32 p1_ping = players_selected_pings[p1.second.pid];
+      u32 p2_ping = players_selected_pings[p2.second.pid];
+
+      max_player_pair_ping = std::max(max_player_pair_ping, p1_ping + p2_ping);
+    }
+  }
+
+  u32 poll_rate = SerialInterface::GetPollXFrame() > 0 ? SerialInterface::GetPollXFrame() :
+                                                         DEFAULT_PAD_POLL_RATE;
+
+  u32 refresh_rate = VideoInterface::GetTargetRefreshRate() > 0 ?
+                         VideoInterface::GetTargetRefreshRate() :
+                         DEFAULT_FPS;
+
+  u32 poll_interval_ms = 1000 / refresh_rate / poll_rate;
+  u32 buffer = max_player_pair_ping / poll_interval_ms;
+
+  AdjustPadBufferSize(buffer);
 }
 
 // called from multiple threads
