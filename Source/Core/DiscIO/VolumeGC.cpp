@@ -205,6 +205,8 @@ void CVolumeGC::LoadBannerFile() const
   if (m_banner_loaded)
     return;
 
+  m_banner_loaded = true;
+
   GCBanner banner_file;
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
   size_t file_size = (size_t)file_system->GetFileSize("opening.bnr");
@@ -235,7 +237,6 @@ void CVolumeGC::LoadBannerFile() const
   }
 
   ExtractBannerInformation(banner_file, is_bnr1);
-  m_banner_loaded = true;
 }
 
 void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const
