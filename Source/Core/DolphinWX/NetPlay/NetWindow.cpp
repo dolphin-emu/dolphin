@@ -210,12 +210,17 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
     bottom_szr->Add(m_start_btn);
 
     bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5);
-    wxSpinCtrl* const padbuf_spin =
+    m_padbuf_spin =
         new wxSpinCtrl(panel, wxID_ANY, std::to_string(INITIAL_PAD_BUFFER_SIZE), wxDefaultPosition,
                        wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
-    padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
+    m_padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
+
+    m_auto_buffer_chkbox = new wxCheckBox(panel, wxID_ANY, _("Auto buffer"));
+    m_auto_buffer_chkbox->Bind(wxEVT_CHECKBOX, &NetPlayDialog::OnAutoBufferChange, this);
+
     bottom_szr->AddSpacer(3);
-    bottom_szr->Add(padbuf_spin, 0, wxCENTER);
+    bottom_szr->Add(m_padbuf_spin, 0, wxCENTER);
+    bottom_szr->Add(m_auto_buffer_chkbox, 0, wxCENTER);
     bottom_szr->AddSpacer(5);
     m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write to memcards/SD"));
     bottom_szr->Add(m_memcard_write, 0, wxCENTER);
@@ -366,6 +371,7 @@ void NetPlayDialog::OnMsgStopGame()
   m_record_chkbox->Enable();
 }
 
+// from UI
 void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 {
   const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
@@ -373,8 +379,23 @@ void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 
   std::ostringstream ss;
   ss << "< Pad Buffer: " << val << " >";
-  netplay_client->SendChatMessage(ss.str());
   m_chat_text->AppendText(StrToWxStr(ss.str()).Append('\n'));
+}
+
+// from server
+void NetPlayDialog::OnAdjustBuffer(u32 buffer_size)
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_BUFFER);
+  evt.SetInt(buffer_size);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnAutoBufferChange(wxCommandEvent& event)
+{
+  bool checked = m_auto_buffer_chkbox->IsChecked();
+  netplay_server->SetAutoBufferEnabled(checked);
+
+  m_padbuf_spin->Enable(!checked);
 }
 
 void NetPlayDialog::OnQuit(wxCommandEvent&)
@@ -450,6 +471,19 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
       netplay_client->StopGame();
     }
     break;
+  case NP_GUI_EVT_CHANGE_BUFFER:
+  {
+    int buffer_size = event.GetInt();
+    if (m_is_hosting)
+    {
+      m_padbuf_spin->SetValue(buffer_size);
+    }
+
+    std::ostringstream stream;
+    stream << "< Pad Buffer: " << buffer_size << " >";
+    m_chat_text->AppendText(StrToWxStr(stream.str()).Append('\n'));
+  }
+  break;
   }
 
   // chat messages

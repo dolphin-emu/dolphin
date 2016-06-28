@@ -21,12 +21,14 @@ class wxListBox;
 class wxString;
 class wxStaticText;
 class wxTextCtrl;
+class wxSpinCtrl;
 
 enum
 {
   NP_GUI_EVT_CHANGE_GAME = 45,
   NP_GUI_EVT_START_GAME,
   NP_GUI_EVT_STOP_GAME,
+  NP_GUI_EVT_CHANGE_BUFFER
 };
 
 enum
@@ -55,6 +57,7 @@ public:
   void OnMsgChangeGame(const std::string& filename) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
+  void OnAdjustBuffer(u32 buffer_size) override;
 
   static NetPlayDialog*& GetInstance() { return npd; }
   static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
@@ -72,6 +75,7 @@ private:
   void OnAssignPads(wxCommandEvent& event);
   void OnKick(wxCommandEvent& event);
   void OnPlayerSelect(wxCommandEvent& event);
+  void OnAutoBufferChange(wxCommandEvent& event);
   void GetNetSettings(NetSettings& settings);
   std::string FindGame();
 
@@ -93,6 +97,8 @@ private:
   wxStaticText* m_host_label;
   wxChoice* m_host_type_choice;
   wxButton* m_host_copy_btn;
+  wxSpinCtrl* m_padbuf_spin;
+  wxCheckBox* m_auto_buffer_chkbox;
   bool m_host_copy_btn_is_retry;
   bool m_is_hosting;
 

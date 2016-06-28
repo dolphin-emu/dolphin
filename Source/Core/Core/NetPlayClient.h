@@ -32,6 +32,7 @@ public:
   virtual void OnMsgChangeGame(const std::string& filename) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
+  virtual void OnAdjustBuffer(u32 buffer_size) = 0;
   virtual bool IsRecording() = 0;
 };
 

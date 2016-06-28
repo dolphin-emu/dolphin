@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/NetPlayServer.h"
+#include <math.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -448,14 +449,22 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 {
   std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
+  if (m_target_buffer_size != size)
+  {
+    // tell clients to change buffer size
+    auto spac = std::make_unique<sf::Packet>();
+    *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+    *spac << static_cast<u32>(size);
+
+    SendAsyncToClients(std::move(spac));
+  }
+
   m_target_buffer_size = size;
+}
 
-  // tell clients to change buffer size
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  *spac << static_cast<u32>(m_target_buffer_size);
-
-  SendAsyncToClients(std::move(spac));
+void NetPlayServer::SetAutoBufferEnabled(bool enabled)
+{
+  m_auto_buffer = enabled;
 }
 
 void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
@@ -563,6 +572,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     {
       player.ping = ping;
     }
+
+    HandlePing(ping);
 
     sf::Packet spac;
     spac << (MessageId)NP_MSG_PLAYER_PING_DATA;
@@ -731,6 +742,36 @@ bool NetPlayServer::StartGame()
   m_is_running = true;
 
   return true;
+}
+
+void NetPlayServer::HandlePing(u32 ping)
+{
+  m_last_pings.push_back(ping);
+  u32 window = AUTO_BUFFER_PING_WINDOW * static_cast<u32>(m_players.size());
+
+  while (m_last_pings.size() > window)
+    m_last_pings.pop_front();
+
+  if (m_auto_buffer)
+    UpdateBuffer();
+}
+
+void NetPlayServer::UpdateBuffer()
+{
+  size_t size = m_last_pings.size();
+
+  u32 window = AUTO_BUFFER_PING_WINDOW * static_cast<u32>(m_players.size());
+  if (size < window)
+    return;
+
+  std::deque<u32> last_pings = m_last_pings;
+  sort(last_pings.begin(), last_pings.end());
+
+  float divisor = 1 / AUTO_BUFFER_SENSIBILITY;
+  size_t index = static_cast<size_t>(round(size / divisor));
+  u32 buffer = last_pings[index] / 8;
+
+  AdjustPadBufferSize(buffer);
 }
 
 // called from multiple threads

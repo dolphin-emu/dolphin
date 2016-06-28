@@ -5,6 +5,7 @@
 #pragma once
 
 #include <SFML/Network/Packet.hpp>
+#include <deque>
 #include <map>
 #include <mutex>
 #include <queue>
@@ -42,6 +43,7 @@ public:
   void SetWiimoteMapping(const PadMappingArray& mappings);
 
   void AdjustPadBufferSize(unsigned int size);
+  void SetAutoBufferEnabled(bool enabled);
 
   void KickPlayer(PlayerId player);
 
@@ -84,6 +86,11 @@ private:
   void UpdatePadMapping();
   void UpdateWiimoteMapping();
   std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
+  void HandlePing(u32 ping);
+  void UpdateBuffer();
+
+  static constexpr const u32 AUTO_BUFFER_PING_WINDOW = 3;
+  static constexpr const double AUTO_BUFFER_SENSIBILITY = 0.8;
 
   NetSettings m_settings;
 
@@ -93,7 +100,9 @@ private:
   u32 m_ping_key = 0;
   bool m_update_pings = false;
   u32 m_current_game = 0;
-  unsigned int m_target_buffer_size = 0;
+  unsigned int m_target_buffer_size = 5;
+  bool m_auto_buffer = false;
+  std::deque<u32> m_last_pings;
   PadMappingArray m_pad_map;
   PadMappingArray m_wiimote_map;
 
