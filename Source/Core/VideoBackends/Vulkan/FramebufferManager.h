@@ -37,8 +37,10 @@ public:
 	Texture2D* GetEFBDepthTexture() const { return m_efb_depth_texture.get(); }
 	VkFramebuffer GetEFBFramebuffer() const { return m_efb_framebuffer; }
 
-	std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override { return std::make_unique<XFBSource>(); }
-	void GetTargetSize(unsigned int* width, unsigned int* height) override {};
+    void GetTargetSize(unsigned int* width, unsigned int* height) override;
+
+    std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) override { return std::make_unique<XFBSource>(); }
+
 	void CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height, const EFBRectangle& source_rc, float gamma = 1.0f) override {}
 
 	void ResizeEFBTextures();

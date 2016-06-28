@@ -9,7 +9,8 @@
 #if defined(WIN32)
 	#define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(HAVE_X11)
-	#define VK_USE_PLATFORM_XLIB_KHR
+    //#define VK_USE_PLATFORM_XLIB_KHR
+    #define VK_USE_PLATFORM_XCB_KHR
 #else
 	//#warning Unknown platform
 #endif

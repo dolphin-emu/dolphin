@@ -13,6 +13,9 @@
 	#include <Windows.h>
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
 	#include <X11/Xlib.h>
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+    #include <X11/Xlib.h>
+    #include <X11/Xlib-xcb.h>
 #endif
 
 namespace Vulkan {
@@ -118,6 +121,9 @@ std::vector<const char*> SelectVulkanInstanceExtensions(bool enable_debug_layer)
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
 	if (!CheckForExtension(VK_KHR_XLIB_SURFACE_EXTENSION_NAME, true))
 		return {};
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+    if (!CheckForExtension(VK_KHR_XCB_SURFACE_EXTENSION_NAME, true))
+        return {};
 #endif
 
 	// VK_EXT_debug_report
@@ -269,8 +275,8 @@ bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures
 
 	// Check for required stuff
 	if (!available_features.dualSrcBlend ||
-		!available_features.geometryShader ||
-		!available_features.samplerAnisotropy)
+		!available_features.geometryShader/* ||
+		!available_features.samplerAnisotropy*/)
 	{
 		// TODO: Improved logging here
 		return false;
@@ -292,11 +298,11 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 
 	VkWin32SurfaceCreateInfoKHR surface_create_info =
 	{
-		VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,   // VkStructureType                sType
-		nullptr,                                           // const void                    *pNext
-		0,                                                 // VkWin32SurfaceCreateFlagsKHR   flags
-		nullptr,                                           // HINSTANCE                      hinstance
-        reinterpret_cast<HWND>(hwnd)                       // HWND                           hwnd
+        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,   // VkStructureType               sType
+        nullptr,                                           // const void*                   pNext
+        0,                                                 // VkWin32SurfaceCreateFlagsKHR  flags
+        nullptr,                                           // HINSTANCE                     hinstance
+        reinterpret_cast<HWND>(hwnd)                       // HWND                          hwnd
 	};
 
 	VkSurfaceKHR surface;
@@ -316,11 +322,11 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 
 	VkXlibSurfaceCreateInfoKHR surface_create_info =
 	{
-		VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,    // VkStructureType                sType
-		nullptr,                                           // const void                    *pNext
-		0,                                                 // VkXlibSurfaceCreateFlagsKHR    flags
-		display,                                           // Display                       *dpy
-		reinterpret_cast<Window>(hwnd)                     // Window                         window
+        VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR,    // VkStructureType               sType
+        nullptr,                                           // const void*                   pNext
+        0,                                                 // VkXlibSurfaceCreateFlagsKHR   flags
+        display,                                           // Display*                      dpy
+        reinterpret_cast<Window>(hwnd)                     // Window                        window
 	};
 
 	VkSurfaceKHR surface;
@@ -332,6 +338,31 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 	}
 
 	return surface;
+
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+
+    // This doesn't seem right, but matches what GLX does.
+    Display* display = XOpenDisplay(nullptr);
+    xcb_connection_t* connection = XGetXCBConnection(display);
+
+    VkXcbSurfaceCreateInfoKHR surface_create_info =
+    {
+        VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,     // VkStructureType               sType
+        nullptr,                                           // const void*                   pNext
+        0,                                                 // VkXlibSurfaceCreateFlagsKHR   flags
+        connection,                                        // xcb_connection_t*             connection
+        static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(hwnd))           // xcb_window_t                  window
+    };
+
+    VkSurfaceKHR surface;
+    VkResult res = vkCreateXcbSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+    if (res != VK_SUCCESS)
+    {
+        LOG_VULKAN_ERROR(res, "vkCreateXcbSurfaceKHR failed: ");
+        return nullptr;
+    }
+
+    return surface;
 
 #else
 	return nullptr;

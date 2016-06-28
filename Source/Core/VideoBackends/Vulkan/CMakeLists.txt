@@ -30,4 +30,4 @@ include_directories(SYSTEM ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV)
 
 add_dolphin_library(videovulkan "${SRCS}" "${LIBS}")
 
-target_link_libraries(videovulkan glslang)
+target_link_libraries(videovulkan glslang X11-xcb)

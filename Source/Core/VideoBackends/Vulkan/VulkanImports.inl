@@ -169,6 +169,11 @@ VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceWin32PresentationSupportKHR, true
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateXlibSurfaceKHR, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXlibPresentationSupportKHR, true)
 
+#elif defined(VK_USE_PLATFORM_XCB_KHR)
+
+VULKAN_INSTANCE_ENTRY_POINT(vkCreateXcbSurfaceKHR, true)
+VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXcbPresentationSupportKHR, true)
+
 #endif
 
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)

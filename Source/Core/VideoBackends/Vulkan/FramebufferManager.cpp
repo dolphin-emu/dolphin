@@ -31,9 +31,15 @@ FramebufferManager::~FramebufferManager()
 	DestroyEFBRenderPass();
 }
 
+void FramebufferManager::GetTargetSize(unsigned int *width, unsigned int *height)
+{
+    *width = m_efb_width;
+    *height = m_efb_height;
+}
+
 bool FramebufferManager::CreateEFBRenderPass()
 {
-	// render pass for rendering to the efb
+    // render pass for rendering to the efb
 	VkAttachmentDescription attachments[] = {
 		{
 			0,

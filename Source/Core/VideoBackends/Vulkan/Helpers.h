@@ -21,8 +21,7 @@ std::vector<VkPhysicalDevice> EnumerateVulkanPhysicalDevices(VkInstance instance
 
 VkPhysicalDevice SelectVulkanPhysicalDevice(VkInstance instance, int device_index);
 
-std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_device,
-													  bool enable_debug_layer);
+std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_device);
 
 bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features);
 
