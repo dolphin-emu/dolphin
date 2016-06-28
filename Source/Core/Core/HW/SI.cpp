@@ -614,4 +614,9 @@ u32 GetPollXLines()
   return g_Poll.X;
 }
 
+u32 GetPollXFrame()
+{
+  return g_Poll.Y;
+}
+
 }  // end of namespace SerialInterface
