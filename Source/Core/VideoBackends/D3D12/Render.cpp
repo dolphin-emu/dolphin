@@ -836,12 +836,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   }
 
   // Dump frames
-  static int w = 0, h = 0;
   if (SConfig::GetInstance().m_DumpFrames)
   {
-    static unsigned int s_record_width;
-    static unsigned int s_record_height;
-
     if (!s_screenshot_texture)
       CreateScreenshotTexture();
 
@@ -875,10 +871,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
     if (!bLastFrameDumped)
     {
-      s_record_width = source_width;
-      s_record_height = source_height;
-      bAVIDumping =
-          AVIDump::Start(s_record_width, s_record_height, AVIDump::DumpFormat::FORMAT_BGR);
+      bAVIDumping = AVIDump::Start(source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR);
       if (!bAVIDumping)
       {
         PanicAlert("Error dumping frames to AVI.");
@@ -887,19 +880,15 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       {
         std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
                                            File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                           s_record_width, s_record_height);
+                                           source_width, source_height);
 
         OSD::AddMessage(msg, 2000);
       }
     }
     if (bAVIDumping)
     {
-      if (frame_data.empty() || w != s_record_width || h != s_record_height)
-      {
-        frame_data.resize(3 * s_record_width * s_record_height);
-        w = s_record_width;
-        h = s_record_height;
-      }
+      if (frame_data.capacity() != 3 * source_width * source_height)
+        frame_data.resize(3 * source_width * source_height);
 
       void* screenshot_texture_map;
       D3D12_RANGE read_range = {0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height};
@@ -910,7 +899,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       D3D12_RANGE write_range = {};
       s_screenshot_texture->Unmap(0, &write_range);
 
-      FlipImageData(&frame_data[0], w, h);
+      FlipImageData(&frame_data[0], source_width, source_height);
       AVIDump::AddFrame(&frame_data[0], source_width, source_height);
     }
     bLastFrameDumped = true;
@@ -920,7 +909,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     if (bLastFrameDumped && bAVIDumping)
     {
       std::vector<u8>().swap(frame_data);
-      w = h = 0;
 
       AVIDump::Stop();
       bAVIDumping = false;
