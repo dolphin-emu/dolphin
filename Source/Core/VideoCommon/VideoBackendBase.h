@@ -81,7 +81,6 @@ public:
   virtual void Video_Cleanup() = 0;  // called from gl/d3d thread
 
   void Video_BeginField(u32, u32, u32, u32);
-  void Video_EndField();
 
   u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
   u32 Video_GetQueryResult(PerfQueryType type);
