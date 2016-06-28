@@ -81,6 +81,33 @@ void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int wid
 	vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 }
 
+void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer, VkAccessFlags src_access_mask, VkAccessFlags dst_access_mask, VkDeviceSize offset, VkDeviceSize size, VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask)
+{
+	VkBufferMemoryBarrier buffer_info =
+	{
+		VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,			// VkStructureType    sType
+		nullptr,											// const void*        pNext
+		src_access_mask,									// VkAccessFlags      srcAccessMask
+		dst_access_mask,									// VkAccessFlags      dstAccessMask
+		VK_QUEUE_FAMILY_IGNORED,							// uint32_t           srcQueueFamilyIndex
+		VK_QUEUE_FAMILY_IGNORED,							// uint32_t           dstQueueFamilyIndex
+		buffer,												// VkBuffer           buffer
+		offset,												// VkDeviceSize       offset
+		size												// VkDeviceSize       size
+	};
+
+	vkCmdPipelineBarrier(command_buffer,
+						 src_stage_mask,
+						 dst_stage_mask,
+						 0,
+						 0,
+						 nullptr,
+						 1,
+						 &buffer_info,
+						 0,
+						 nullptr);
+}
+
 void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker)
 {
 	g_renderer->ResetAPIState();
@@ -189,7 +216,7 @@ void UtilityShaderDraw::SetBlendState(const BlendState& state)
 	m_pipeline_info.blend_state.hex = state.hex;
 }
 
-void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region)
+void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region, const VkClearValue* clear_value)
 {
 	VkRenderPassBeginInfo begin_info =
 	{
@@ -198,8 +225,8 @@ void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2
 		m_pipeline_info.render_pass,
 		framebuffer,
 		region,
-		0,
-		nullptr
+        (clear_value) ? 1u : 0u,
+        clear_value
 	};
 
 	vkCmdBeginRenderPass(

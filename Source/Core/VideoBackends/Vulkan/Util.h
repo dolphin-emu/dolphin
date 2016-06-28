@@ -25,6 +25,16 @@ BlendState GetNoBlendingBlendState();
 // Combines viewport and scissor updates
 void SetViewportAndScissor(VkCommandBuffer command_buffer, int x, int y, int width, int height, float min_depth = 0.0f, float max_depth = 1.0f);
 
+// Wrapper for creating an barrier on a buffer
+void BufferMemoryBarrier(VkCommandBuffer command_buffer,
+						 VkBuffer buffer,
+						 VkAccessFlags src_access_mask,
+						 VkAccessFlags dst_access_mask,
+						 VkDeviceSize offset,
+						 VkDeviceSize size,
+						 VkPipelineStageFlags src_stage_mask,
+						 VkPipelineStageFlags dst_stage_mask);
+
 // Completes the current render pass, executes the command buffer, and restores state ready for next render.
 // Use when you want to kick the current buffer to make room for new data.
 void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker);
@@ -71,7 +81,7 @@ public:
 	void SetDepthStencilState(const DepthStencilState& state);
 	void SetBlendState(const BlendState& state);
 
-	void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region);
+    void BeginRenderPass(VkFramebuffer framebuffer, const VkRect2D& region, const VkClearValue* clear_value = nullptr);
 	void EndRenderPass();
 
 	void Draw();

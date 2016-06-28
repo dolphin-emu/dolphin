@@ -192,7 +192,8 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 	if (m_layout == new_layout)
 		return;
 
-	VkImageMemoryBarrier barrier = {
+	VkImageMemoryBarrier barrier =
+	{
 		VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,				// VkStructureType            sType
 		nullptr,											// const void*                pNext
 		0,													// VkAccessFlags              srcAccessMask
@@ -205,33 +206,95 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 		{ static_cast<VkImageAspectFlags>(IsDepthFormat(m_format) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT), 0, m_levels, 0, m_layers }	// VkImageSubresourceRange    subresourceRange
 	};
 
+    // Not sure if this is correct? Doesn't make sense.
+    VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
 	switch (m_layout)
 	{
-	case VK_IMAGE_LAYOUT_UNDEFINED:							barrier.srcAccessMask = 0;												break;
-	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;			break;
-	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:	barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;	break;
-	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:			barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;						break;
-	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:				barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;					break;
-	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:				barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;					break;
+	case VK_IMAGE_LAYOUT_UNDEFINED:
+		// Layout undefined therefore contents undefined, and we don't care what happens to it.
+		barrier.srcAccessMask = 0;
+		break;
+
+	case VK_IMAGE_LAYOUT_PREINITIALIZED:
+		// Image has been pre-initialized by the host, so ensure all writes have completed.
+		barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		// Image was being used as a color attachment, so ensure all writes have completed.
+		barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		// Image was being used as a depthstencil attachment, so ensure all writes have completed.
+		barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+		// Image was being used as a shader resource, make sure all reads have finished.
+		barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+		// Image was being used as a copy source, ensure all reads have finished.
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+		// Image was being used as a copy destination, ensure all writes have finished.
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		break;
+
 	default:																														break;
 	}
 
 	switch (new_layout)
 	{
-	case VK_IMAGE_LAYOUT_UNDEFINED:							barrier.dstAccessMask = 0;												break;
-	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;			break;
-	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:	barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;	break;
-	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;						break;
-	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:				barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;					break;
-	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:				barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;					break;
+	case VK_IMAGE_LAYOUT_UNDEFINED:
+		barrier.dstAccessMask = 0;
+		break;
+
+	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		break;
+
+	case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+		barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        srcStageMask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+        dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		break;
+
 	default:																														break;
 	}
 
-	// TODO: Better selection of srcStageMask/dstStageMask
-	vkCmdPipelineBarrier(command_buffer,
-		VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-		VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
-		0, 0, nullptr, 0, nullptr, 1, &barrier);
+    vkCmdPipelineBarrier(command_buffer,
+                         srcStageMask,
+                         dstStageMask,
+                         0,
+                         0,
+                         nullptr,
+                         0,
+                         nullptr,
+                         1,
+                         &barrier);
 }
 
 }		// namespace Vulkan

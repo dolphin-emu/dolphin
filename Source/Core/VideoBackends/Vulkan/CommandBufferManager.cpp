@@ -205,13 +205,13 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
 		PanicAlert("Failed to end command buffer");
 	}
 
-	uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    uint32_t wait_bits = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 	VkSubmitInfo submit_info = {
 		VK_STRUCTURE_TYPE_SUBMIT_INFO,
 		nullptr,
 		0,
 		nullptr,
-		nullptr,
+        &wait_bits,
 		1,
 		&m_command_buffers[m_current_command_buffer_index],
 		0,
@@ -220,7 +220,6 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
 
 	if (m_wait_semaphore)
 	{
-		submit_info.pWaitDstStageMask = &wait_bits;
 		submit_info.pWaitSemaphores = &m_wait_semaphore;
 		submit_info.waitSemaphoreCount = 1;
 	}

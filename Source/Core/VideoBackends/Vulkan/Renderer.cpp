@@ -126,8 +126,16 @@ void Renderer::BeginFrame()
 
 	// Activate a new command list, and restore state ready for the next draw
 	m_command_buffer_mgr->ActivateCommandBuffer(m_image_available_semaphore);
-	m_state_tracker->InvalidateDescriptorSets();
-	RestoreAPIState();
+
+    // Ensure our EFB framebuffer is in COLOR/DEPTH_ATTACMENT_OPTIMAL layout
+    m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    m_framebuffer_mgr->GetEFBDepthTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                                VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+    // Ensure that the state tracker rebinds everything, and allocates a new set of descriptors out of the next pool.
+    m_state_tracker->InvalidateDescriptorSets();
+    m_state_tracker->SetPendingRebind();
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
@@ -205,54 +213,50 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc, float gamma)
 {
-	ResetAPIState();
+    // End the current render pass.
+    m_state_tracker->EndRenderPass();
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
 	// Blitting to the screen
 	{
-		// Transition from undefined (or present src, but it can be substituted) to color attachment ready for writing.
+        // Transition the EFB render target to a shader resource.
+        m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        // Transition from undefined (or present src, but it can be substituted) to color attachment ready for writing.
+        // These transitions must occur outside a render pass, unless the render pass declares a self-dependancy.
 		m_swap_chain->GetCurrentTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
 		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
 															  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-		// Begin the present render pass
-		VkClearValue clear_value = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-		VkRenderPassBeginInfo begin_info = {
-			VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-			nullptr,
-			m_swap_chain->GetRenderPass(),
-			m_swap_chain->GetCurrentFramebuffer(),
-			{ { 0, 0 }, m_swap_chain->GetSize() },
-			1,
-			&clear_value
-		};
-		vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info, VK_SUBPASS_CONTENTS_INLINE);
-
 		// Blit the EFB to the back buffer (Swap chain)
-		// TODO: XFB
 		UtilityShaderDraw draw(
 			m_object_cache, m_command_buffer_mgr, m_swap_chain->GetRenderPass(),
 			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
 			nullptr,
 			m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
 
+        // Begin the present render pass
+        VkClearValue clear_value = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+        VkRect2D region = { { 0, 0 }, m_swap_chain->GetSize() };
+        draw.BeginRenderPass(m_swap_chain->GetCurrentFramebuffer(), region, &clear_value);
+
 		// Find the rect we want to draw into on the backbuffer
 		TargetRectangle target_rc = GetTargetRectangle();
 		TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
 
+        // Draw a quad that blits/scales the internal framebuffer to the swap chain.
 		draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(), m_object_cache->GetLinearSampler());
-
 		draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
 		              m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
 		              target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
-		// End the present render pass. The render pass expects the image to be in PRESENT_SRC at the end,
-		// do we have to explicitly invoke this transition?
-		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
-															  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+        draw.EndRenderPass();
 
-		vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
+		// Transition the backbuffer to PRESENT_SRC to ensure all commands drawing to it have finished before present.
+		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+															  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	// Submit the current command buffer, signaling rendering finished semaphore when it's done
