@@ -38,8 +38,8 @@ void ControllerEmu::UpdateDefaultDevice()
   }
 }
 
-void ControllerEmu::ControlGroup::LoadConfig(OnionConfig::OnionPetal* petal,
-                                             const std::string& defdev, const std::string& base)
+void ControllerEmu::ControlGroup::LoadConfig(OnionConfig::Section* petal, const std::string& defdev,
+                                             const std::string& base)
 {
   std::string group(base + name + "/");
 
@@ -87,7 +87,7 @@ void ControllerEmu::ControlGroup::LoadConfig(OnionConfig::OnionPetal* petal,
   }
 }
 
-void ControllerEmu::LoadConfig(OnionConfig::OnionPetal* petal, const std::string& base)
+void ControllerEmu::LoadConfig(OnionConfig::Section* petal, const std::string& base)
 {
   std::string defdev = default_device.ToString();
   if (base.empty())
@@ -100,8 +100,8 @@ void ControllerEmu::LoadConfig(OnionConfig::OnionPetal* petal, const std::string
     cg->LoadConfig(petal, defdev, base);
 }
 
-void ControllerEmu::ControlGroup::SaveConfig(OnionConfig::OnionPetal* petal,
-                                             const std::string& defdev, const std::string& base)
+void ControllerEmu::ControlGroup::SaveConfig(OnionConfig::Section* petal, const std::string& defdev,
+                                             const std::string& base)
 {
   std::string group(base + name + "/");
 
@@ -135,7 +135,7 @@ void ControllerEmu::ControlGroup::SaveConfig(OnionConfig::OnionPetal* petal,
   }
 }
 
-void ControllerEmu::SaveConfig(OnionConfig::OnionPetal* petal, const std::string& base)
+void ControllerEmu::SaveConfig(OnionConfig::Section* petal, const std::string& base)
 {
   const std::string defdev = default_device.ToString();
   if (base.empty())
@@ -239,8 +239,8 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
 void ControllerEmu::LoadDefaults(const ControllerInterface& ciface)
 {
   // load an empty inifile section, clears everything
-  OnionConfig::OnionPetal petal(OnionConfig::OnionLayerType::LAYER_META,
-                                OnionConfig::OnionSystem::SYSTEM_GCPAD, "");
+  OnionConfig::Section petal(OnionConfig::LayerType::LAYER_META, OnionConfig::System::SYSTEM_GCPAD,
+                             "");
   LoadConfig(&petal);
 
   const std::string& default_device_string = g_controller_interface.GetDefaultDeviceString();

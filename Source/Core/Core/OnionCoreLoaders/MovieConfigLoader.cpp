@@ -11,16 +11,16 @@
 
 // TODO: Future project, let this support all the configuration options.
 // This will require a large break to the DTM format
-void MovieConfigLayerLoader::Load(OnionConfig::BloomLayer* config_layer)
+void MovieConfigLayerLoader::Load(OnionConfig::Layer* config_layer)
 {
-  OnionConfig::OnionPetal* core =
-      config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
-  OnionConfig::OnionPetal* display =
-      config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display");
-  OnionConfig::OnionPetal* video_settings =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Settings");
-  OnionConfig::OnionPetal* video_hacks =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Hacks");
+  OnionConfig::Section* core =
+      config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
+  OnionConfig::Section* display =
+      config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Display");
+  OnionConfig::Section* video_settings =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Settings");
+  OnionConfig::Section* video_hacks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Hacks");
 
   core->Set("SkipIdle", m_header->bSkipIdle);
   core->Set("CPUThread", m_header->bDualCore);
@@ -39,16 +39,16 @@ void MovieConfigLayerLoader::Load(OnionConfig::BloomLayer* config_layer)
   video_hacks->Set("EFBEmulateFormatChanges", m_header->bEFBEmulateFormatChanges);
 }
 
-void MovieConfigLayerLoader::Save(OnionConfig::BloomLayer* config_layer)
+void MovieConfigLayerLoader::Save(OnionConfig::Layer* config_layer)
 {
-  OnionConfig::OnionPetal* core =
-      config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Core");
-  OnionConfig::OnionPetal* display =
-      config_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Display");
-  OnionConfig::OnionPetal* video_settings =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Settings");
-  OnionConfig::OnionPetal* video_hacks =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Hacks");
+  OnionConfig::Section* core =
+      config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
+  OnionConfig::Section* display =
+      config_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Display");
+  OnionConfig::Section* video_settings =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Settings");
+  OnionConfig::Section* video_hacks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Hacks");
 
   std::string video_backend;
   u32 cpu_core;

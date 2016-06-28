@@ -25,7 +25,7 @@ class CodeConfigPanel : public wxPanel
 public:
   CodeConfigPanel(wxWindow* const parent);
 
-  void LoadCodes(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+  void LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
                  const std::string& gameid = "", bool checkRunning = false);
   const std::vector<GeckoCode>& GetCodes() const { return m_gcodes; }
 protected:

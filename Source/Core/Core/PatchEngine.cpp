@@ -46,15 +46,15 @@ const char* PatchTypeStrings[] = {
 static std::vector<Patch> onFrame;
 static std::map<u32, int> speedHacks;
 
-void LoadPatchSection(OnionConfig::BloomLayer* global_config, OnionConfig::BloomLayer* local_config,
+void LoadPatchSection(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
                       std::vector<Patch>& patches)
 {
   // Load the name of all enabled patches
   std::vector<std::string> enabledLines;
   std::set<std::string> enabledNames;
 
-  OnionConfig::OnionPetal* local_codes_enabled =
-      local_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame_Enabled");
+  OnionConfig::Section* local_codes_enabled =
+      local_config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "OnFrame_Enabled");
 
   local_codes_enabled->GetLines(&enabledLines);
   for (const std::string& line : enabledLines)
@@ -66,11 +66,11 @@ void LoadPatchSection(OnionConfig::BloomLayer* global_config, OnionConfig::Bloom
     }
   }
 
-  OnionConfig::BloomLayer* configs[] = {global_config, local_config};
+  OnionConfig::Layer* configs[] = {global_config, local_config};
   for (auto config : configs)
   {
-    OnionConfig::OnionPetal* codes =
-        config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "OnFrame");
+    OnionConfig::Section* codes =
+        config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "OnFrame");
 
     std::vector<std::string> lines;
     Patch currentPatch;
@@ -135,8 +135,8 @@ void LoadPatchSection(OnionConfig::BloomLayer* global_config, OnionConfig::Bloom
 
 static void LoadSpeedhacks()
 {
-  OnionConfig::OnionPetal* speedhacks =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Speedhacks");
+  OnionConfig::Section* speedhacks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Speedhacks");
 
   const auto& values = speedhacks->GetValues();
   for (auto value : values)
@@ -164,10 +164,9 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  OnionConfig::BloomLayer* global_config =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_GLOBALGAME);
-  OnionConfig::BloomLayer* local_config =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_LOCALGAME);
+  OnionConfig::Layer* global_config =
+      OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_GLOBALGAME);
+  OnionConfig::Layer* local_config = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_LOCALGAME);
 
   LoadPatchSection(global_config, local_config, onFrame);
   ActionReplay::LoadAndApplyCodes(global_config, local_config);

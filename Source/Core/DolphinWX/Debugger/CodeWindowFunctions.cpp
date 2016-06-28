@@ -53,12 +53,12 @@ void CCodeWindow::Load()
   // The font to override DebuggerFont with
   std::string fontDesc;
 
-  OnionConfig::OnionPetal* general =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "General");
-  OnionConfig::OnionPetal* show_on_start =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "ShowOnStart");
-  OnionConfig::OnionPetal* float_windows =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Float");
+  OnionConfig::Section* general =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "General");
+  OnionConfig::Section* show_on_start =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "ShowOnStart");
+  OnionConfig::Section* float_windows =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Float");
 
   general->Get("DebuggerFont", &fontDesc);
   general->Get("AutomaticStart", &bAutomaticStart, false);
@@ -81,8 +81,8 @@ void CCodeWindow::Load()
 
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
   {
-    OnionConfig::OnionPetal* petal =
-        OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, section);
+    OnionConfig::Section* petal =
+        OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, section);
     petal->Get(SettingName[i], &iNbAffiliation[i], 0);
   }
 
@@ -93,14 +93,13 @@ void CCodeWindow::Load()
 
 void CCodeWindow::Save()
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
-  OnionConfig::OnionPetal* general =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "General");
-  OnionConfig::OnionPetal* show_on_start =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "ShowOnStart");
-  OnionConfig::OnionPetal* float_windows =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Float");
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* general =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "General");
+  OnionConfig::Section* show_on_start =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "ShowOnStart");
+  OnionConfig::Section* float_windows =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Float");
 
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
   general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
@@ -117,8 +116,8 @@ void CCodeWindow::Save()
   std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
   {
-    OnionConfig::OnionPetal* petal =
-        base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, section);
+    OnionConfig::Section* petal =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, section);
     petal->Set(SettingName[i], iNbAffiliation[i]);
   }
 

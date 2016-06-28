@@ -43,13 +43,13 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Load()
 {
-  OnionConfig::OnionPetal* hardware =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Hardware");
+  OnionConfig::Section* hardware =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Hardware");
   hardware->Get("VSync", &bVSync, 0);
   hardware->Get("Adapter", &iAdapter, 0);
 
-  OnionConfig::OnionPetal* settings =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Settings");
+  OnionConfig::Section* settings =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Settings");
   settings->Get("wideScreenHack", &bWidescreenHack, false);
   settings->Get("AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
   settings->Get("Crop", &bCrop, false);
@@ -86,21 +86,21 @@ void VideoConfig::Load()
   settings->Get("SWDrawStart", &drawStart, 0);
   settings->Get("SWDrawEnd", &drawEnd, 100000);
 
-  OnionConfig::OnionPetal* enhancements =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Enhancements");
+  OnionConfig::Section* enhancements =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Enhancements");
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
 
-  OnionConfig::OnionPetal* stereoscopy =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Stereoscopy");
+  OnionConfig::Section* stereoscopy =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Stereoscopy");
   stereoscopy->Get("StereoMode", &iStereoMode, 0);
   stereoscopy->Get("StereoDepth", &iStereoDepth, 20);
   stereoscopy->Get("StereoConvergencePercentage", &iStereoConvergencePercentage, 100);
   stereoscopy->Get("StereoSwapEyes", &bStereoSwapEyes, false);
 
-  OnionConfig::OnionPetal* hacks =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Hacks");
+  OnionConfig::Section* hacks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Hacks");
   hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
   hacks->Get("BBoxEnable", &bBBoxEnable, false);
   hacks->Get("ForceProgressive", &bForceProgressive, true);
@@ -108,15 +108,15 @@ void VideoConfig::Load()
   hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
   hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
-  OnionConfig::OnionPetal* stereo =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Stereoscopy");
+  OnionConfig::Section* stereo =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Stereoscopy");
   stereo->Get("StereoConvergence", &iStereoConvergence, 20);
   stereo->Get("StereoEFBMonoDepth", &bStereoEFBMonoDepth, false);
   stereo->Get("StereoDepthPercentage", &iStereoDepthPercentage, 100);
 
   // hacks which are disabled by default
-  OnionConfig::OnionPetal* video =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_GFX, "Video");
+  OnionConfig::Section* video =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_GFX, "Video");
   video->Get("ProjectionHack", &iPhackvalue[0], 0);
   video->Get("PH_SZNear", &iPhackvalue[1]);
   video->Get("PH_SZFar", &iPhackvalue[2]);
@@ -125,8 +125,8 @@ void VideoConfig::Load()
   video->Get("PerfQueriesEnable", &bPerfQueriesEnable, false);
 
   // Load common settings
-  OnionConfig::OnionPetal* interface =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Interface");
+  OnionConfig::Section* interface =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Interface");
   bool bTmp;
   interface->Get("UsePanicHandlers", &bTmp, true);
   SetEnableAlert(bTmp);

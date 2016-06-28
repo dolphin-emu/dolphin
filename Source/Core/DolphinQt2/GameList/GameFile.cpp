@@ -103,24 +103,24 @@ bool GameFile::LoadFileInfo(const QString& path)
 
 void GameFile::LoadState()
 {
-  std::unique_ptr<OnionConfig::BloomLayer> global_config(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> global_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateGlobalGameConfigLoader(m_unique_id.toStdString(), m_revision))));
-  std::unique_ptr<OnionConfig::BloomLayer> local_config(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> local_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateLocalGameConfigLoader(m_unique_id.toStdString(), m_revision))));
 
   global_config->Load();
   local_config->Load();
 
   std::string issues_temp;
-  if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState",
-                                 "EmulationStateId", &m_rating))
-    global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationStateId",
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
+                                 &m_rating))
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
                                &m_rating);
-  if (!local_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues",
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
                                  &issues_temp))
-    global_config->GetIfExists(OnionConfig::OnionSystem::SYSTEM_UI, "EmuState", "EmulationIssues",
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
                                &issues_temp);
 
   m_issues = QString::fromStdString(issues_temp);

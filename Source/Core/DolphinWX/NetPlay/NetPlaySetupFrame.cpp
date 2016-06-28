@@ -23,7 +23,7 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-static void GetTraversalPort(OnionConfig::OnionPetal* petal, std::string* port)
+static void GetTraversalPort(OnionConfig::Section* petal, std::string* port)
 {
   petal->Get("TraversalPort", port, "6262");
   port->erase(std::remove(port->begin(), port->end(), ' '), port->end());
@@ -31,7 +31,7 @@ static void GetTraversalPort(OnionConfig::OnionPetal* petal, std::string* port)
     *port = "6262";
 }
 
-static void GetTraversalServer(OnionConfig::OnionPetal* petal, std::string* server)
+static void GetTraversalServer(OnionConfig::Section* petal, std::string* server)
 {
   petal->Get("TraversalServer", server, "stun.dolphin-emu.org");
   server->erase(std::remove(server->begin(), server->end(), ' '), server->end());
@@ -42,8 +42,8 @@ static void GetTraversalServer(OnionConfig::OnionPetal* petal, std::string* serv
 NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
 {
-  OnionConfig::OnionPetal* netplay_petal =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Section* netplay_petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
 
   wxPanel* const panel = new wxPanel(this);
 
@@ -242,10 +242,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
 NetPlaySetupFrame::~NetPlaySetupFrame()
 {
-  OnionConfig::BloomLayer* netplay_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_NETPLAY);
-  OnionConfig::OnionPetal* netplay_petal =
-      netplay_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Layer* netplay_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_NETPLAY);
+  OnionConfig::Section* netplay_petal =
+      netplay_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
 
   std::string travChoice = "traversal";
   if (m_direct_traversal->GetSelection() == 1)
@@ -296,8 +295,8 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string& game, bool 
   else
     trav = false;
 
-  OnionConfig::OnionPetal* netplay_petal =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Section* netplay_petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
 
   std::string centralPortString;
   GetTraversalPort(netplay_petal, &centralPortString);
@@ -353,8 +352,8 @@ void NetPlaySetupFrame::OnHost(wxCommandEvent&)
     m_host_port_text->GetValue().ToULong(&listen_port);
   }
 
-  OnionConfig::OnionPetal* netplay_petal =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Section* netplay_petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
 
   std::string centralPortString;
   GetTraversalPort(netplay_petal, &centralPortString);
@@ -403,10 +402,9 @@ void NetPlaySetupFrame::OnJoin(wxCommandEvent&)
 
 void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
-  OnionConfig::OnionPetal* netplay_petal =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* netplay_petal =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
   netplay_petal->Set("TraversalServer", (std::string) "stun.dolphin-emu.org");
   netplay_petal->Set("TraversalPort", (std::string) "6262");
   base_layer->Save();
@@ -422,8 +420,8 @@ void NetPlaySetupFrame::OnTraversalListenPortChanged(wxCommandEvent& event)
 void NetPlaySetupFrame::OnChoice(wxCommandEvent& event)
 {
   int sel = m_direct_traversal->GetSelection();
-  OnionConfig::OnionPetal* netplay_petal =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "NetPlay");
+  OnionConfig::Section* netplay_petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "NetPlay");
 
   if (sel == 1)
   {

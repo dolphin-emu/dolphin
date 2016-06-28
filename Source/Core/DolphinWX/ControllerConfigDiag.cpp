@@ -418,22 +418,21 @@ void ControllerConfigDiag::RevertSource()
 
 void ControllerConfigDiag::Save(wxCommandEvent& event)
 {
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
 
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
     std::string secname("Wiimote");
     secname += (char)('1' + i);
-    OnionConfig::OnionPetal* petal =
-        base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, secname);
+    OnionConfig::Section* petal =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_WIIPAD, secname);
 
     petal->Set("Source", (int)g_wiimote_sources[i]);
   }
 
   std::string secname("BalanceBoard");
-  OnionConfig::OnionPetal* petal =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_WIIPAD, secname);
+  OnionConfig::Section* petal =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_WIIPAD, secname);
   petal->Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
 
   base_layer->Save();

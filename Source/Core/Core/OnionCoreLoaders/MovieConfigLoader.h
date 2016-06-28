@@ -11,12 +11,12 @@ class MovieConfigLayerLoader : public OnionConfig::ConfigLayerLoader
 {
 public:
   MovieConfigLayerLoader(Movie::DTMHeader* header)
-      : ConfigLayerLoader(OnionConfig::OnionLayerType::LAYER_MOVIE), m_header(header)
+      : ConfigLayerLoader(OnionConfig::LayerType::LAYER_MOVIE), m_header(header)
   {
   }
 
-  void Load(OnionConfig::BloomLayer* config_layer) override;
-  void Save(OnionConfig::BloomLayer* config_layer) override;
+  void Load(OnionConfig::Layer* config_layer) override;
+  void Save(OnionConfig::Layer* config_layer) override;
 
   void ChangeDTMHeader(Movie::DTMHeader* header) { m_header = header; }
 private:

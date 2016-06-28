@@ -171,14 +171,14 @@ void CBreakPointWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CBreakPointWindow::SaveAll()
 {
-  std::unique_ptr<OnionConfig::BloomLayer> game_layer(
-      new OnionConfig::BloomLayer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+  std::unique_ptr<OnionConfig::Layer> game_layer(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
           GenerateLocalGameConfigLoader(SConfig::GetInstance().GetUniqueID(), 0))));
 
-  OnionConfig::OnionPetal* breakpoints =
-      game_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "BreakPoints");
-  OnionConfig::OnionPetal* memory_checks =
-      game_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "MemoryChecks");
+  OnionConfig::Section* breakpoints =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "BreakPoints");
+  OnionConfig::Section* memory_checks =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "MemoryChecks");
 
   breakpoints->SetLines(PowerPC::breakpoints.GetStrings());
   memory_checks->SetLines(PowerPC::memchecks.GetStrings());
@@ -196,10 +196,10 @@ void CBreakPointWindow::LoadAll()
   BreakPoints::TBreakPointsStr newbps;
   MemChecks::TMemChecksStr newmcs;
 
-  OnionConfig::OnionPetal* breakpoints =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "BreakPoints");
-  OnionConfig::OnionPetal* memory_checks =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "MemoryChecks");
+  OnionConfig::Section* breakpoints =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "BreakPoints");
+  OnionConfig::Section* memory_checks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "MemoryChecks");
 
   if (breakpoints->GetLines(&newbps, false))
   {

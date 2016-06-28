@@ -136,7 +136,7 @@ static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
-static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_MAIN, _trans("Hotkeys"), "Hotkeys");
+static InputConfig s_config(OnionConfig::System::SYSTEM_MAIN, _trans("Hotkeys"), "Hotkeys");
 
 InputConfig* GetConfig()
 {

@@ -752,8 +752,8 @@ void CFrame::LoadIniPerspectives()
   std::vector<std::string> VPerspectives;
   std::string _Perspectives;
 
-  OnionConfig::OnionPetal* perspectives =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Perspectives");
+  OnionConfig::Section* perspectives =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Perspectives");
 
   perspectives->Get("Perspectives", &_Perspectives, "Perspective 1");
   perspectives->Get("Active", &ActivePerspective, 0);
@@ -774,8 +774,8 @@ void CFrame::LoadIniPerspectives()
 
     _Section = StringFromFormat("P - %s", Tmp.Name.c_str());
 
-    OnionConfig::OnionPetal* perspec_section =
-        OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, _Section);
+    OnionConfig::Section* perspec_section =
+        OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, _Section);
 
     perspec_section->Get("Perspective", &_Perspective,
                          "layout2|"
@@ -847,10 +847,9 @@ void CFrame::SaveIniPerspectives()
   }
   STmp = STmp.substr(0, STmp.length() - 1);
 
-  OnionConfig::BloomLayer* base_layer =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
-  OnionConfig::OnionPetal* perspectives =
-      base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, "Perspectives");
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* perspectives =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Perspectives");
 
   perspectives->Set("Perspectives", STmp);
   perspectives->Set("Active", ActivePerspective);
@@ -859,8 +858,8 @@ void CFrame::SaveIniPerspectives()
   for (auto& Perspective : Perspectives)
   {
     std::string _Section = "P - " + Perspective.Name;
-    OnionConfig::OnionPetal* perspec_section =
-        base_layer->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_DEBUGGER, _Section);
+    OnionConfig::Section* perspec_section =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, _Section);
 
     perspec_section->Set("Perspective", WxStrToStr(Perspective.Perspective));
 

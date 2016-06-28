@@ -12,7 +12,7 @@
 
 namespace Wiimote
 {
-static InputConfig s_config(OnionConfig::OnionSystem::SYSTEM_WIIPAD, _trans("Wiimote"), "Wiimote");
+static InputConfig s_config(OnionConfig::System::SYSTEM_WIIPAD, _trans("Wiimote"), "Wiimote");
 
 InputConfig* GetConfig()
 {

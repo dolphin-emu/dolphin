@@ -279,8 +279,8 @@ void DolphinApp::InitLanguageSupport()
 {
   unsigned int language = 0;
 
-  OnionConfig::OnionPetal* interface =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_MAIN, "Interface");
+  OnionConfig::Section* interface =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Interface");
   interface->Get("Language", &language, wxLANGUAGE_DEFAULT);
 
   // Load language if possible, fall back to system default otherwise

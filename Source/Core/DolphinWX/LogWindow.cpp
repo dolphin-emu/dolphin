@@ -53,12 +53,12 @@ CLogWindow::CLogWindow(CFrame* parent, wxWindowID id, const wxPoint& pos, const 
 
 void CLogWindow::CreateGUIControls()
 {
-  OnionConfig::OnionPetal* options =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
-  OnionConfig::OnionPetal* log_window =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "LogWindow");
-  OnionConfig::OnionPetal* logs =
-      OnionConfig::GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Logs");
+  OnionConfig::Section* options =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Options");
+  OnionConfig::Section* log_window =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "LogWindow");
+  OnionConfig::Section* logs =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Logs");
 
   log_window->Get("x", &x, Parent->GetSize().GetX() / 2);
   log_window->Get("y", &y, Parent->GetSize().GetY());
@@ -166,19 +166,18 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 
 void CLogWindow::SaveSettings()
 {
-  OnionConfig::BloomLayer* base_config =
-      OnionConfig::GetLayer(OnionConfig::OnionLayerType::LAYER_BASE);
+  OnionConfig::Layer* base_config = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
   if (!Parent->g_pCodeWindow)
   {
-    OnionConfig::OnionPetal* log_window =
-        base_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "LogWindow");
+    OnionConfig::Section* log_window =
+        base_config->GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "LogWindow");
     log_window->Set("x", x);
     log_window->Set("y", y);
     log_window->Set("pos", winpos);
   }
 
-  OnionConfig::OnionPetal* options =
-      base_config->GetOrCreatePetal(OnionConfig::OnionSystem::SYSTEM_LOGGER, "Options");
+  OnionConfig::Section* options =
+      base_config->GetOrCreateSection(OnionConfig::System::SYSTEM_LOGGER, "Options");
   options->Set("Font", m_FontChoice->GetSelection());
   options->Set("WrapLines", m_WrapLine->IsChecked());
 

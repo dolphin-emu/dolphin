@@ -32,12 +32,10 @@ void RunAllActive();
 
 void ApplyCodes(const std::vector<ARCode>& codes);
 void AddCode(ARCode new_code);
-void LoadAndApplyCodes(OnionConfig::BloomLayer* global_config,
-                       OnionConfig::BloomLayer* local_config);
+void LoadAndApplyCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config);
 
-std::vector<ARCode> LoadCodes(OnionConfig::BloomLayer* global_config,
-                              OnionConfig::BloomLayer* local_config);
-void SaveCodes(OnionConfig::OnionPetal* ar, OnionConfig::OnionPetal* ar_enabled,
+std::vector<ARCode> LoadCodes(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config);
+void SaveCodes(OnionConfig::Section* ar, OnionConfig::Section* ar_enabled,
                const std::vector<ARCode>& codes);
 
 void EnableSelfLogging(bool enable);
