@@ -18,10 +18,6 @@ FifoDataFile::FifoDataFile() : m_Flags(0)
 
 FifoDataFile::~FifoDataFile()
 {
-  for (auto& frame : m_Frames)
-  {
-    delete[] frame.fifoData;
-  }
 }
 
 bool FifoDataFile::HasBrokenEFBCopies() const
@@ -103,17 +99,17 @@ bool FifoDataFile::Save(const std::string& filename)
     // Write FIFO data
     file.Seek(0, SEEK_END);
     u64 dataOffset = file.Tell();
-    file.WriteBytes(srcFrame.fifoData, srcFrame.fifoDataSize);
+    file.WriteBytes(srcFrame.fifoData.data(), srcFrame.fifoData.size());
 
     u64 memoryUpdatesOffset = WriteMemoryUpdates(srcFrame.memoryUpdates, file);
 
     FileFrameInfo dstFrame;
-    dstFrame.fifoDataSize = srcFrame.fifoDataSize;
+    dstFrame.fifoDataSize = static_cast<u32>(srcFrame.fifoData.size());
     dstFrame.fifoDataOffset = dataOffset;
     dstFrame.fifoStart = srcFrame.fifoStart;
     dstFrame.fifoEnd = srcFrame.fifoEnd;
     dstFrame.memoryUpdatesOffset = memoryUpdatesOffset;
-    dstFrame.numMemoryUpdates = (u32)srcFrame.memoryUpdates.size();
+    dstFrame.numMemoryUpdates = static_cast<u32>(srcFrame.memoryUpdates.size());
 
     // Write frame info
     u64 frameOffset = frameListOffset + (i * sizeof(FileFrameInfo));
@@ -179,13 +175,12 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
     file.ReadBytes(&srcFrame, sizeof(FileFrameInfo));
 
     FifoFrameInfo dstFrame;
-    dstFrame.fifoData = new u8[srcFrame.fifoDataSize];
-    dstFrame.fifoDataSize = srcFrame.fifoDataSize;
+    dstFrame.fifoData.resize(srcFrame.fifoDataSize);
     dstFrame.fifoStart = srcFrame.fifoStart;
     dstFrame.fifoEnd = srcFrame.fifoEnd;
 
     file.Seek(srcFrame.fifoDataOffset, SEEK_SET);
-    file.ReadBytes(dstFrame.fifoData, srcFrame.fifoDataSize);
+    file.ReadBytes(dstFrame.fifoData.data(), srcFrame.fifoDataSize);
 
     ReadMemoryUpdates(srcFrame.memoryUpdatesOffset, srcFrame.numMemoryUpdates,
                       dstFrame.memoryUpdates, file);

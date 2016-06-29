@@ -928,7 +928,7 @@ wxString FifoPlayerDlg::CreateRecordingFifoSizeLabel() const
   {
     size_t fifoBytes = 0;
     for (size_t i = 0; i < file->GetFrameCount(); ++i)
-      fifoBytes += file->GetFrame(i).fifoDataSize;
+      fifoBytes += file->GetFrame(i).fifoData.size();
 
     return wxString::Format(_("%zu FIFO bytes"), fifoBytes);
   }

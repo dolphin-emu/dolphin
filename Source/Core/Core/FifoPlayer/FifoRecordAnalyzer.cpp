@@ -38,7 +38,7 @@ void FifoRecordAnalyzer::ProcessLoadIndexedXf(u32 val, int array)
   FifoRecorder::GetInstance().UseMemory(address, size * 4, MemoryUpdate::XF_DATA);
 }
 
-void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, u8* vertexData, int vertexSize,
+void FifoRecordAnalyzer::WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize,
                                           int numVertices)
 {
   // Skip if not indexed array

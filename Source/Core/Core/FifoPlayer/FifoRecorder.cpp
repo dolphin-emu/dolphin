@@ -78,10 +78,7 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 
   if (m_FrameEnded && m_FifoData.size() > 0)
   {
-    size_t dataSize = m_FifoData.size();
-    m_CurrentFrame.fifoDataSize = (u32)dataSize;
-    m_CurrentFrame.fifoData = new u8[dataSize];
-    memcpy(m_CurrentFrame.fifoData, m_FifoData.data(), dataSize);
+    m_CurrentFrame.fifoData = m_FifoData;
 
     {
       std::lock_guard<std::recursive_mutex> lk(sMutex);
