@@ -84,6 +84,7 @@ LogManager::LogManager()
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
   RegisterListener(LogListener::CONSOLE_LISTENER, new ConsoleListener());
+  RegisterListener(LogListener::DW_REMOTE_LISTENER, new DolphinWatch::RemoteListener());
 
   IniFile ini;
   ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
