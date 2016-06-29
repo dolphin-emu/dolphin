@@ -126,12 +126,11 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
     MemoryUpdate memUpdate;
     memUpdate.address = address;
     memUpdate.fifoPosition = (u32)(m_FifoData.size());
-    memUpdate.size = size;
     memUpdate.type = type;
-    memUpdate.data = new u8[size];
-    memcpy(memUpdate.data, newData, size);
+    memUpdate.data.resize(size);
+    std::copy(newData, newData + size, memUpdate.data.begin());
 
-    m_CurrentFrame.memoryUpdates.push_back(memUpdate);
+    m_CurrentFrame.memoryUpdates.push_back(std::move(memUpdate));
   }
   else if (dynamicUpdate)
   {

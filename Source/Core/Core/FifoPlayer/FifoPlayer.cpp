@@ -323,7 +323,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
   else
     mem = &Memory::m_pRAM[memUpdate.address & Memory::RAM_MASK];
 
-  memcpy(mem, memUpdate.data, memUpdate.size);
+  std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }
 
 void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)

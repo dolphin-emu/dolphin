@@ -27,8 +27,7 @@ struct MemoryUpdate
 
   u32 fifoPosition;
   u32 address;
-  u32 size;
-  u8* data;
+  std::vector<u8> data;
   Type type;
 };
 
