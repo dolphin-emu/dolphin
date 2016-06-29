@@ -28,7 +28,6 @@ bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 FifoPlayer::~FifoPlayer()
 {
-  delete m_File;
 }
 
 bool FifoPlayer::Open(const std::string& filename)
@@ -40,7 +39,7 @@ bool FifoPlayer::Open(const std::string& filename)
   if (m_File)
   {
     FifoAnalyzer::Init();
-    FifoPlaybackAnalyzer::AnalyzeFrames(m_File, m_FrameInfo);
+    FifoPlaybackAnalyzer::AnalyzeFrames(m_File.get(), m_FrameInfo);
 
     m_FrameRangeEnd = m_File->GetFrameCount();
   }
@@ -53,8 +52,7 @@ bool FifoPlayer::Open(const std::string& filename)
 
 void FifoPlayer::Close()
 {
-  delete m_File;
-  m_File = nullptr;
+  m_File.reset();
 
   m_FrameRangeStart = 0;
   m_FrameRangeEnd = 0;

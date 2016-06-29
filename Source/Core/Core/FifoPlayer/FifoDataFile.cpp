@@ -130,7 +130,7 @@ bool FifoDataFile::Save(const std::string& filename)
   return true;
 }
 
-FifoDataFile* FifoDataFile::Load(const std::string& filename, bool flagsOnly)
+std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bool flagsOnly)
 {
   File::IOFile file;
   file.Open(filename, "rb");
@@ -146,7 +146,7 @@ FifoDataFile* FifoDataFile::Load(const std::string& filename, bool flagsOnly)
     return nullptr;
   }
 
-  FifoDataFile* dataFile = new FifoDataFile;
+  auto dataFile = std::make_unique<FifoDataFile>();
 
   dataFile->m_Flags = header.flags;
   dataFile->m_Version = header.file_version;

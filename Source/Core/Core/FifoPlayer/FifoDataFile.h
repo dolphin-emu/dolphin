@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -70,7 +71,7 @@ public:
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
   bool Save(const std::string& filename);
 
-  static FifoDataFile* Load(const std::string& filename, bool flagsOnly);
+  static std::unique_ptr<FifoDataFile> Load(const std::string& filename, bool flagsOnly);
 
 private:
   enum

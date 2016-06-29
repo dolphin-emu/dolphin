@@ -64,7 +64,7 @@ public:
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
 
-  FifoDataFile* GetFile() { return m_File; }
+  FifoDataFile* GetFile() { return m_File.get(); }
   u32 GetFrameObjectCount();
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
@@ -143,7 +143,7 @@ private:
   CallbackFunc m_FileLoadedCb;
   CallbackFunc m_FrameWrittenCb;
 
-  FifoDataFile* m_File;
+  std::unique_ptr<FifoDataFile> m_File;
 
   std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };
