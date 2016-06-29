@@ -95,7 +95,7 @@ int JitBaseBlockCache::AllocateBlock(u32 em_address)
   b.invalid = false;
   b.effectiveAddress = em_address;
   b.physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
-  b.msrBits = MSR & 0x30;
+  b.msrBits = MSR & JitBlock::MSR_IR_OR_DR_MASK;
   b.linkData.clear();
   num_blocks++;  // commit the current block
   return num_blocks - 1;
@@ -166,7 +166,7 @@ int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
 {
   int block_num = GetBlockNumberFromStartAddress(addr);
-  if (block_num < 0 || blocks[block_num].msrBits != (MSR & 0x30))
+  if (block_num < 0 || blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
   {
     Jit(addr);
   }
@@ -176,6 +176,20 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
     JitBlock& b = blocks[block_num];
     WriteUndestroyBlock(b.checkedEntry, b.effectiveAddress);
   }
+}
+
+const u8* JitBaseBlockCache::Dispatch()
+{
+  u32 addr = PC;
+  int block_num = iCache[(addr >> 2) & iCache_Mask];
+  while (blocks[block_num].effectiveAddress != addr ||
+         blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
+  {
+    MoveBlockIntoFastCache(addr);
+    block_num = iCache[(addr >> 2) & iCache_Mask];
+  }
+
+  return blocks[block_num].normalEntry;
 }
 
 // Block linker
