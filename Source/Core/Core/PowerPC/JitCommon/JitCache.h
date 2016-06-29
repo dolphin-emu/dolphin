@@ -12,20 +12,52 @@
 
 #include "Common/CommonTypes.h"
 
+// A JitBlock is block of compiled code which corresponds to the PowerPC
+// code at a given address.
+//
+// The notion of the address of a block is a bit complicated because of the
+// way address translation works, but basically it's the combination of an
+// effective address, the address translation bits in MSR, and the physical
+// address.
 struct JitBlock
 {
+  enum
+  {
+    // Mask for the MSR bits which determine whether a compiled block
+    // is valid (MSR.IR and MSR.DR, the address translation bits).
+    MSR_IR_OR_DR_MASK = 0x30,
+  };
+
+  // A special entry point for block linking; usually used to check the
+  // downcount.
   const u8* checkedEntry;
+  // The normal entry point for the block, returned by Dispatch().
   const u8* normalEntry;
 
+  // The effective address (PC) for the beginning of the block.
   u32 effectiveAddress;
+  // The MSR bits expected for this block to be valid; see MSR_IR_OR_DR_MASK.
   u32 msrBits;
+  // The physical address of the code represented by this block.
+  // Various maps in the cache are indexed by this (start_block_map,
+  // block_map, and valid_block in particular).  This is useful because of
+  // of the way the instruction cache works on PowerPC.
   u32 physicalAddress;
+  // The number of bytes of JIT'ed code contained in this block. Mostly
+  // useful for logging.
   u32 codeSize;
+  // The number of PPC instructions represented by this block.  Mostly
+  // useful for logging.
   u32 originalSize;
   int runCount;  // for profiling.
 
+  // Whether this struct refers to a valid block.  This is mostly useful as
+  // a debugging aid.
+  // FIXME: Change current users of invalid bit to assertions?
   bool invalid;
 
+  // Information about exits to a known address from this block.
+  // This is used to implement block linking.
   struct LinkData
   {
     u8* exitPtrs;  // to be able to rewrite the exit jump
@@ -50,7 +82,12 @@ class ValidBlockBitSet final
 public:
   enum
   {
-    VALID_BLOCK_MASK_SIZE = 0x100000000 / 32,
+    // ValidBlockBitSet covers the whole 32-bit address-space in 32-byte
+    // chunks.
+    // FIXME: Maybe we can get away with less?  There isn't any actual
+    // RAM in most of this space.
+    VALID_BLOCK_MASK_SIZE = (1ULL << 32) / 32,
+    // The number of elements in the allocated array.  Each u32 contains 32 bits.
     VALID_BLOCK_ALLOC_ELEMENTS = VALID_BLOCK_MASK_SIZE / 32
   };
   // Directly accessed by Jit64.
@@ -118,6 +155,12 @@ public:
   int GetBlockNumberFromStartAddress(u32 em_address);
 
   void MoveBlockIntoFastCache(u32 em_address);
+
+  // Get the normal entry for the block associated with the current program
+  // counter. This will JIT code if necessary. (This is the reference
+  // implementation; high-performance JITs will want to use a custom
+  // assembly version.)
+  const u8* Dispatch();
 
   void InvalidateICache(u32 address, const u32 length, bool forced);
 

@@ -41,35 +41,29 @@ void CachedInterpreter::Run()
 
 void CachedInterpreter::SingleStep()
 {
-  int block_num = GetBlockNumberFromStartAddress(PC);
-  if (block_num >= 0)
+  const u8* normalEntry = jit->GetBlockCache()->Dispatch();
+  const Instruction* code = reinterpret_cast<const Instruction*>(normalEntry);
+
+  while (true)
   {
-    JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
-    const Instruction* code = reinterpret_cast<const Instruction*>(block->normalEntry);
-
-    while (true)
+    switch (code->type)
     {
-      switch (code->type)
-      {
-      case Instruction::INSTRUCTION_ABORT:
+    case Instruction::INSTRUCTION_ABORT:
+      return;
+
+    case Instruction::INSTRUCTION_TYPE_COMMON:
+      code->common_callback(UGeckoInstruction(code->data));
+      code++;
+      break;
+
+    case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
+      bool ret = code->conditional_callback(code->data);
+      code++;
+      if (ret)
         return;
-
-      case Instruction::INSTRUCTION_TYPE_COMMON:
-        code->common_callback(UGeckoInstruction(code->data));
-        code++;
-        break;
-
-      case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
-        bool ret = code->conditional_callback(code->data);
-        code++;
-        if (ret)
-          return;
-        break;
-      }
+      break;
     }
   }
-
-  Jit(PC);
 }
 
 static void EndBlock(UGeckoInstruction data)

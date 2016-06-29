@@ -107,7 +107,9 @@ void Jit64AsmRoutineManager::Generate()
   MOV(64, R(RMEM), Imm64((u64)Memory::logical_base));
   SetJumpTarget(membaseend);
 
-  // Translate PC.
+  // The following is an translation of JitBaseBlockCache::Dispatch into assembly.
+
+  // Fast block number lookup.
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   u64 icache = (u64)jit->GetBlockCache()->iCache.data();
   AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
@@ -121,6 +123,7 @@ void Jit64AsmRoutineManager::Generate()
     MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
   }
 
+  // Check whether the block we found matches the current state.
   u64 blocks = (u64)jit->GetBlockCache()->GetBlocks();
   IMUL(32, RSCRATCH, R(RSCRATCH), Imm32(sizeof(JitBlock)));
   if (blocks <= INT_MAX)
@@ -132,15 +135,21 @@ void Jit64AsmRoutineManager::Generate()
     MOV(64, R(RSCRATCH2), Imm64(blocks));
     ADD(32, R(RSCRATCH), R(RSCRATCH2));
   }
+  // Check both block.effectiveAddress and block.msrBits.
   MOV(32, R(RSCRATCH2), PPCSTATE(msr));
-  AND(32, R(RSCRATCH2), Imm32(0x30));
+  AND(32, R(RSCRATCH2), Imm32(JitBlock::MSR_IR_OR_DR_MASK));
   SHL(64, R(RSCRATCH2), Imm8(32));
   MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
   CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, (s32)offsetof(JitBlock, effectiveAddress)));
   FixupBranch notfound = J_CC(CC_NE);
+  // Success; branch to the block we found.
   JMPptr(MDisp(RSCRATCH, (s32)offsetof(JitBlock, normalEntry)));
   SetJumpTarget(notfound);
+
+  // Failure; call into the block cache to update the state, then try again.
+  // (We need to loop because Jit() might not actually generate a block
+  // if we hit an ISI.)
 
   // We reset the stack because Jit might clear the code cache.
   // Also if we are in the middle of disabling BLR optimization on windows
