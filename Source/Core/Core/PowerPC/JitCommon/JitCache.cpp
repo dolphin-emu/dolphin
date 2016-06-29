@@ -186,6 +186,7 @@ const u8* JitBaseBlockCache::Dispatch()
          blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
   {
     MoveBlockIntoFastCache(addr);
+    addr = PC;
     block_num = iCache[(addr >> 2) & iCache_Mask];
   }
 
