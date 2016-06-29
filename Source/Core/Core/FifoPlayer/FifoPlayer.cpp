@@ -207,7 +207,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   // Core timing information
   m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
   m_ElapsedCycles = 0;
-  m_FrameFifoSize = frame.fifoDataSize;
+  m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
   // Determine start and end objects
   u32 numObjects = (u32)(info.objectStarts.size());
@@ -256,7 +256,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   }
 
   // Write data after the last object
-  WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
+  WriteFramePart(position, static_cast<u32>(frame.fifoData.size()), memoryUpdate, frame, info);
 
   FlushWGP();
 
@@ -271,7 +271,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
                                 const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
-  u8* data = frame.fifoData;
+  const u8* const data = frame.fifoData.data();
 
   while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
   {
@@ -326,7 +326,7 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
   std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }
 
-void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
+void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
 {
   u32 written = start;
   u32 lastBurstEnd = end - 1;

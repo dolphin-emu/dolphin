@@ -33,8 +33,7 @@ struct MemoryUpdate
 
 struct FifoFrameInfo
 {
-  u8* fifoData;
-  u32 fifoDataSize;
+  std::vector<u8> fifoData;
 
   u32 fifoStart;
   u32 fifoEnd;
