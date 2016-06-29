@@ -128,12 +128,12 @@ void Jit64AsmRoutineManager::Generate()
   IMUL(32, RSCRATCH, R(RSCRATCH), Imm32(sizeof(JitBlock)));
   if (blocks <= INT_MAX)
   {
-    ADD(32, R(RSCRATCH), Imm32((s32)blocks));
+    ADD(64, R(RSCRATCH), Imm32((s32)blocks));
   }
   else
   {
     MOV(64, R(RSCRATCH2), Imm64(blocks));
-    ADD(32, R(RSCRATCH), R(RSCRATCH2));
+    ADD(64, R(RSCRATCH), R(RSCRATCH2));
   }
   // Check both block.effectiveAddress and block.msrBits.
   MOV(32, R(RSCRATCH2), PPCSTATE(msr));

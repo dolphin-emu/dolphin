@@ -295,8 +295,8 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   FixupBranch exit;
-  bool fast_check_address =
-      !jit->jo.alwaysUseMemFuncs && ((flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR);
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !jit->jo.alwaysUseMemFuncs && !slowmem && dr_set;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
@@ -563,9 +563,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   }
 
   FixupBranch exit;
-  bool fast_check_address =
-      !jit->jo.alwaysUseMemFuncs && ((flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR);
-  // FIXME: Skipping the DR check is a nasty hack... quantized stores suck.
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !jit->jo.alwaysUseMemFuncs && !slowmem && dr_set;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
@@ -614,6 +613,8 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
+
+  MemoryExceptionCheck();
 
   if (fast_check_address)
   {
