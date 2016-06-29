@@ -27,30 +27,30 @@ void Init()
   VertexLoader_Normal::Init();
 }
 
-u8 ReadFifo8(u8*& data)
+u8 ReadFifo8(const u8*& data)
 {
   u8 value = data[0];
   data += 1;
   return value;
 }
 
-u16 ReadFifo16(u8*& data)
+u16 ReadFifo16(const u8*& data)
 {
   u16 value = Common::swap16(data);
   data += 2;
   return value;
 }
 
-u32 ReadFifo32(u8*& data)
+u32 ReadFifo32(const u8*& data)
 {
   u32 value = Common::swap32(data);
   data += 4;
   return value;
 }
 
-u32 AnalyzeCommand(u8* data, DecodeMode mode)
+u32 AnalyzeCommand(const u8* data, DecodeMode mode)
 {
-  u8* dataStart = data;
+  const u8* dataStart = data;
 
   int cmd = ReadFifo8(data);
 

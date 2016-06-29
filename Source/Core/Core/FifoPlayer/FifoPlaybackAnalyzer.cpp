@@ -19,7 +19,7 @@ struct CmdData
 {
   u32 size;
   u32 offset;
-  u8* ptr;
+  const u8* ptr;
 };
 
 void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
@@ -51,10 +51,10 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
 
 #if LOG_FIFO_CMDS
     // Debugging
-    vector<CmdData> prevCmds;
+    std::vector<CmdData> prevCmds;
 #endif
 
-    while (cmdStart < frame.fifoDataSize)
+    while (cmdStart < frame.fifoData.size())
     {
       // Add memory updates that have occurred before this point in the frame
       while (nextMemUpdate < frame.memoryUpdates.size() &&

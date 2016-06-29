@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -26,15 +27,13 @@ struct MemoryUpdate
 
   u32 fifoPosition;
   u32 address;
-  u32 size;
-  u8* data;
+  std::vector<u8> data;
   Type type;
 };
 
 struct FifoFrameInfo
 {
-  u8* fifoData;
-  u32 fifoDataSize;
+  std::vector<u8> fifoData;
 
   u32 fifoStart;
   u32 fifoEnd;
@@ -70,7 +69,7 @@ public:
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
   bool Save(const std::string& filename);
 
-  static FifoDataFile* Load(const std::string& filename, bool flagsOnly);
+  static std::unique_ptr<FifoDataFile> Load(const std::string& filename, bool flagsOnly);
 
 private:
   enum

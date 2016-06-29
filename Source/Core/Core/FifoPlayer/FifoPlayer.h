@@ -64,7 +64,7 @@ public:
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
 
-  FifoDataFile* GetFile() { return m_File; }
+  FifoDataFile* GetFile() { return m_File.get(); }
   u32 GetFrameObjectCount();
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
@@ -104,7 +104,7 @@ private:
 
   // writes a range of data to the fifo
   // start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
-  void WriteFifo(u8* data, u32 start, u32 end);
+  void WriteFifo(const u8* data, u32 start, u32 end);
 
   void SetupFifo();
 
@@ -143,7 +143,7 @@ private:
   CallbackFunc m_FileLoadedCb;
   CallbackFunc m_FrameWrittenCb;
 
-  FifoDataFile* m_File;
+  std::unique_ptr<FifoDataFile> m_File;
 
   std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };
