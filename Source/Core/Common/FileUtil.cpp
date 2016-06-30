@@ -866,12 +866,16 @@ void SetUserPath(unsigned int dir_index, const std::string& path)
 std::string GetThemeDir(const std::string& theme_name)
 {
   std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
 
-  // If theme does not exist in user's dir load from shared directory
-  if (!File::Exists(dir))
-    dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  // If the theme doesn't exist in the user dir, load from shared directory
+  dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
 
-  return dir;
+  // If the theme doesn't exist at all, load the default theme
+  return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
 bool WriteStringToFile(const std::string& str, const std::string& filename)

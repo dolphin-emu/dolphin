@@ -78,6 +78,9 @@
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
 
+// The theme directory used by default
+#define DEFAULT_THEME_DIR "Clean"
+
 // Filenames
 // Files in the directory returned by GetUserPath(D_CONFIG_IDX)
 #define DOLPHIN_CONFIG "Dolphin.ini"
