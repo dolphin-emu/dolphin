@@ -16,6 +16,11 @@
 
 using namespace Arm64Gen;
 
+static const u8* DoDispatch()
+{
+  return jit->GetBlockCache()->Dispatch();
+}
+
 void JitArm64::GenerateAsm()
 {
   // This value is all of the callee saved registers that we are required to save.
@@ -48,34 +53,21 @@ void JitArm64::GenerateAsm()
 
   dispatcherNoCheck = GetCodePtr();
 
-  ARM64Reg pc_masked = W25;
-  ARM64Reg cache_base = X27;
+  // Make sure MEM_REG is pointing at an appropriate register, based on MSR.DR.
+  LDR(INDEX_UNSIGNED, W0, PPC_REG, PPCSTATE_OFF(msr));
+  TST(W0, 28, 1);
+  FixupBranch physmem = B(CC_NEQ);
+  MOVI2R(MEM_REG, (u64)Memory::physical_base);
+  FixupBranch membaseend = B();
+  SetJumpTarget(physmem);
+  MOVI2R(MEM_REG, (u64)Memory::logical_base);
+  SetJumpTarget(membaseend);
 
-  ANDI2R(pc_masked, DISPATCHER_PC, JitBaseBlockCache::iCache_Mask << 2);
-  MOVI2R(cache_base, (u64)jit->GetBlockCache()->iCache.data());
-
-  LDR(W27, cache_base, EncodeRegTo64(pc_masked));
-
-// FIXME: Adapt this to new dispatcher changes.
-#if 0
-  FixupBranch JitBlock = TBNZ(W27, 7);  // Test the 7th bit
-  // Success, it is our Jitblock.
-  MOVI2R(X30, (u64)jit->GetBlockCache()->GetCodePointers());
-  UBFM(X27, X27, 61, 60);  // Same as X27 << 3
-  LDR(X30, X30, X27);      // Load the block address in to R14
-  BR(X30);
-  // No need to jump anywhere after here, the block will go back to dispatcher start
-
-  SetJumpTarget(JitBlock);
-#endif
-
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  MOVI2R(X30, (u64) & ::Jit);
+  // Call C version of Dispatch().
+  // FIXME: Implement this in inline assembly.
+  MOVI2R(X30, (u64)&DoDispatch);
   BLR(X30);
-
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-  B(dispatcherNoCheck);
+  BR(X0);
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();
