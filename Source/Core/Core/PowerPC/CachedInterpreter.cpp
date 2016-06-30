@@ -87,9 +87,20 @@ static bool CheckFPU(u32 data)
   UReg_MSR& msr = (UReg_MSR&)MSR;
   if (!msr.FP)
   {
-    PC = NPC = data;
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
+    return true;
+  }
+  return false;
+}
+
+static bool CheckDSI(u32 data)
+{
+  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  {
+    PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
     return true;
   }
   return false;
@@ -158,13 +169,16 @@ void CachedInterpreter::Jit(u32 address)
     {
       if ((ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
       {
-        m_code.emplace_back(CheckFPU, ops[i].address);
+        m_code.emplace_back(WritePC, ops[i].address);
+        m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
       }
 
-      if (ops[i].opinfo->flags & FL_ENDBLOCK)
+      if (ops[i].opinfo->flags & (FL_ENDBLOCK | FL_LOADSTORE))
         m_code.emplace_back(WritePC, ops[i].address);
       m_code.emplace_back(GetInterpreterOp(ops[i].inst), ops[i].inst);
+      if (ops[i].opinfo->flags & FL_LOADSTORE)
+        m_code.emplace_back(CheckDSI, js.downcountAmount);
       if (ops[i].opinfo->flags & FL_ENDBLOCK)
         m_code.emplace_back(EndBlock, js.downcountAmount);
     }
