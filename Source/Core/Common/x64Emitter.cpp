@@ -1540,13 +1540,6 @@ void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
 }
 void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 {
-  // Shortcut to zero a register
-  if (a2.IsZero() && a1.IsSimpleReg() && !flags_locked)
-  {
-    XOR(bits, a1, a1);
-    return;
-  }
-
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
     ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
   WriteNormalOp(bits, nrmMOV, a1, a2);
@@ -1578,6 +1571,18 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
     WriteNormalOp(bits, nrmCMP, a1, a2);
   }
 }
+void XEmitter::MOV_or_XOR(int bits, const OpArg& a1, const OpArg& a2)
+{
+  if (a2.IsZero() && a1.IsSimpleReg() && !flags_locked)
+  {
+    // turn 'MOV reg, 0' into shorter 'XOR reg, reg'
+    XOR(bits, a1, a1);
+  }
+  else
+  {
+    MOV(bits, a1, a2);
+  }
+}
 
 void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
 {
@@ -1590,7 +1595,7 @@ void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
   {
     if (!a2.IsSimpleReg() || a2.GetSimpleReg() != dest)
     {
-      MOV(bits, R(dest), a2);
+      MOV_or_XOR(bits, R(dest), a2);
     }
     return;
   }
@@ -1598,7 +1603,7 @@ void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
   {
     if (!a1.IsSimpleReg() || a1.GetSimpleReg() != dest)
     {
-      MOV(bits, R(dest), a1);
+      MOV_or_XOR(bits, R(dest), a1);
     }
     return;
   }
@@ -1621,7 +1626,7 @@ void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
   {
     if (a1.IsImm() && a2.IsImm())
     {
-      MOV(32, R(dest), Imm32(a1.Imm32() + a2.Imm32()));
+      MOV_or_XOR(32, R(dest), Imm32(a1.Imm32() + a2.Imm32()));
       return;
     }
 
@@ -1645,7 +1650,7 @@ void XEmitter::MOV_sum(int bits, X64Reg dest, const OpArg& a1, const OpArg& a2)
   }
 
   // Fallback
-  MOV(bits, R(dest), a1);
+  MOV_or_XOR(bits, R(dest), a1);
   ADD(bits, R(dest), a2);
 }
 
