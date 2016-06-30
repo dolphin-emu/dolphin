@@ -32,7 +32,7 @@ public:
       : wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
                      wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
-    SetToolBitmapSize(wxSize(32, 32));
+    SetToolBitmapSize(wxSize(24, 24));
 
     m_Bitmaps[Toolbar_Delete] = WxUtils::LoadResourceBitmap("toolbar_debugger_delete");
     m_Bitmaps[Toolbar_Add_BP] = WxUtils::LoadResourceBitmap("toolbar_add_breakpoint");
