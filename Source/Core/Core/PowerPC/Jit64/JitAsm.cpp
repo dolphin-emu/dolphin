@@ -137,7 +137,7 @@ void Jit64AsmRoutineManager::Generate()
   }
   // Check both block.effectiveAddress and block.msrBits.
   MOV(32, R(RSCRATCH2), PPCSTATE(msr));
-  AND(32, R(RSCRATCH2), Imm32(JitBlock::MSR_IR_OR_DR_MASK));
+  AND(32, R(RSCRATCH2), Imm32(JitBlock::JIT_CACHE_MSR_MASK));
   SHL(64, R(RSCRATCH2), Imm8(32));
   MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));

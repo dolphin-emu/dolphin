@@ -25,7 +25,7 @@ struct JitBlock
   {
     // Mask for the MSR bits which determine whether a compiled block
     // is valid (MSR.IR and MSR.DR, the address translation bits).
-    MSR_IR_OR_DR_MASK = 0x30,
+    JIT_CACHE_MSR_MASK = 0x30,
   };
 
   // A special entry point for block linking; usually used to check the
@@ -36,7 +36,7 @@ struct JitBlock
 
   // The effective address (PC) for the beginning of the block.
   u32 effectiveAddress;
-  // The MSR bits expected for this block to be valid; see MSR_IR_OR_DR_MASK.
+  // The MSR bits expected for this block to be valid; see JIT_CACHE_MSR_MASK.
   u32 msrBits;
   // The physical address of the code represented by this block.
   // Various maps in the cache are indexed by this (start_block_map,

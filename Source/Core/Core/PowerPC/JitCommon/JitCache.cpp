@@ -95,7 +95,7 @@ int JitBaseBlockCache::AllocateBlock(u32 em_address)
   b.invalid = false;
   b.effectiveAddress = em_address;
   b.physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
-  b.msrBits = MSR & JitBlock::MSR_IR_OR_DR_MASK;
+  b.msrBits = MSR & JitBlock::JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   num_blocks++;  // commit the current block
   return num_blocks - 1;
@@ -166,7 +166,7 @@ int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
 {
   int block_num = GetBlockNumberFromStartAddress(addr);
-  if (block_num < 0 || blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
+  if (block_num < 0 || blocks[block_num].msrBits != (MSR & JitBlock::JIT_CACHE_MSR_MASK))
   {
     Jit(addr);
   }
@@ -183,7 +183,7 @@ const u8* JitBaseBlockCache::Dispatch()
   u32 addr = PC;
   int block_num = FastLookupEntryForAddress(addr);
   while (blocks[block_num].effectiveAddress != addr ||
-         blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
+         blocks[block_num].msrBits != (MSR & JitBlock::JIT_CACHE_MSR_MASK))
   {
     MoveBlockIntoFastCache(addr);
     addr = PC;
