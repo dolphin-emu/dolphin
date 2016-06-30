@@ -915,6 +915,7 @@ static void GenerateISIException(u32 _EffectiveAddress)
   NPC = _EffectiveAddress;
 
   PowerPC::ppcState.Exceptions |= EXCEPTION_ISI;
+  WARN_LOG(POWERPC, "ISI exception at 0x%08x", PC);
 }
 
 void SDRUpdated()
