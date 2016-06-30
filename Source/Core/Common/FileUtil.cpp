@@ -867,9 +867,13 @@ std::string GetThemeDir(const std::string& theme_name)
 {
   std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
 
-  // If theme does not exist in user's dir load from shared directory
+  // If the theme doesn't exist in the user dir, load from shared directory
   if (!File::Exists(dir))
     dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+
+  // If the theme doesn't exist at all, load the default theme
+  if (!File::Exists(dir))
+    dir = GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 
   return dir;
 }
