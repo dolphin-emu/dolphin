@@ -34,8 +34,11 @@ PSTextureEncoder::PSTextureEncoder()
 void PSTextureEncoder::Init()
 {
   // Create output texture RGBA format
+  // TODO: This Texture is overly large and parts of it are unused
+  //       EFB2RAM copies use max (EFB_WIDTH * 4) by (EFB_HEIGHT / 4)
+  //       XFB2RAM copies use max (EFB_WIDTH / 2) by (EFB_HEIGHT)
   D3D12_RESOURCE_DESC out_tex_desc =
-      CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_B8G8R8A8_UNORM, EFB_WIDTH * 4, EFB_HEIGHT / 4, 1, 0,
+      CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_B8G8R8A8_UNORM, EFB_WIDTH * 4, EFB_HEIGHT, 1, 0,
                                    1, 0, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
   D3D12_CLEAR_VALUE optimized_clear_value = {DXGI_FORMAT_B8G8R8A8_UNORM, {0.0f, 0.0f, 0.0f, 1.0f}};
@@ -173,7 +176,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
   dst_location.PlacedFootprint.Offset = 0;
   dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
   dst_location.PlacedFootprint.Footprint.Width = EFB_WIDTH * 4;
-  dst_location.PlacedFootprint.Footprint.Height = EFB_HEIGHT / 4;
+  dst_location.PlacedFootprint.Footprint.Height = EFB_HEIGHT;
   dst_location.PlacedFootprint.Footprint.Depth = 1;
   dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(
       dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
