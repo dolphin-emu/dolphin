@@ -1063,7 +1063,7 @@ static __forceinline TranslateAddressResult TranslatePageAddress(const u32 addre
   // TODO: Handle KS/KP segment register flags.
 
   // No-execute segment register flag.
-  if ((flag == FLAG_NO_EXCEPTION || flag == FLAG_OPCODE_NO_EXCEPTION) && (sr & 0x10000000))
+  if ((flag == FLAG_OPCODE || flag == FLAG_OPCODE_NO_EXCEPTION) && (sr & 0x10000000))
     return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
 
   u32 offset = EA_Offset(address);         // 12 bit
