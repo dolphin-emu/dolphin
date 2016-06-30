@@ -116,7 +116,7 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
     DestroyBlock(old_block_num, true);
   }
   start_block_map[b.physicalAddress] = block_num;
-  iCache[(b.effectiveAddress >> 2) & iCache_Mask] = block_num;
+  FastLookupEntryForAddress(b.effectiveAddress) = block_num;
 
   u32 pAddr = b.physicalAddress;
 
@@ -172,7 +172,7 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
   }
   else
   {
-    iCache[(addr >> 2) & iCache_Mask] = block_num;
+    FastLookupEntryForAddress(addr) = block_num;
     JitBlock& b = blocks[block_num];
     WriteUndestroyBlock(b.checkedEntry, b.effectiveAddress);
   }
@@ -181,13 +181,13 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr)
 const u8* JitBaseBlockCache::Dispatch()
 {
   u32 addr = PC;
-  int block_num = iCache[(addr >> 2) & iCache_Mask];
+  int block_num = FastLookupEntryForAddress(addr);
   while (blocks[block_num].effectiveAddress != addr ||
          blocks[block_num].msrBits != (MSR & JitBlock::MSR_IR_OR_DR_MASK))
   {
     MoveBlockIntoFastCache(addr);
     addr = PC;
-    block_num = iCache[(addr >> 2) & iCache_Mask];
+    block_num = FastLookupEntryForAddress(addr);
   }
 
   return blocks[block_num].normalEntry;
@@ -266,7 +266,7 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
   }
   b.invalid = true;
   start_block_map.erase(b.physicalAddress);
-  iCache[(b.effectiveAddress >> 2) & iCache_Mask] = 0;
+  FastLookupEntryForAddress(b.effectiveAddress) = 0;
 
   UnlinkBlock(block_num);
 
@@ -333,7 +333,7 @@ void JitBaseBlockCache::EvictTLBEntry(u32 address)
   {
     // Remove the block from the fast lookup map, so we re-verify the address
     // before using it again.
-    iCache[(iter->first >> 2) & iCache_Mask] = 0;
+    FastLookupEntryForAddress(iter->first) = 0;
 
     // Unlink the block.
     JitBlock& b = blocks[iter->second];
