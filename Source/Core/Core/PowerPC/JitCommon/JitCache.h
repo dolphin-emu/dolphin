@@ -151,7 +151,6 @@ public:
   static const u32 iCache_Mask = iCache_Num_Elements - 1;
   std::array<int, iCache_Num_Elements> iCache;
   int& FastLookupEntryForAddress(u32 address) { return iCache[(address >> 2) & iCache_Mask]; }
-
   // Fast way to get a block. Only works on the first ppc instruction of a block.
   int GetBlockNumberFromStartAddress(u32 em_address);
 
