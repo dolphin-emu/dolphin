@@ -961,6 +961,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
           if (pDolLoader->IsValid())
           {
             pDolLoader->Load();  // TODO: Check why sysmenu does not load the DOL correctly
+            MSR = 0;
             PC = pDolLoader->GetEntryPoint();
             bSuccess = true;
           }
