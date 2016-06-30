@@ -242,9 +242,6 @@ Renderer::Renderer(void*& window_handle)
   s_backbuffer_width = D3D::GetBackBufferWidth();
   s_backbuffer_height = D3D::GetBackBufferHeight();
 
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
@@ -765,9 +762,9 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+void Renderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float Gamma)
 {
+  /*
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fbWidth || !fbHeight)
   {
@@ -956,18 +953,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
                           !SConfig::GetInstance().bRenderToMain;
 
-  bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fbStride ||
-      FramebufferManagerBase::LastXfbHeight() != fbHeight)
-  {
-    xfbchanged = true;
-    unsigned int xfb_w = (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    unsigned int xfb_h = (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-    FramebufferManagerBase::SetLastXfbWidth(xfb_w);
-    FramebufferManagerBase::SetLastXfbHeight(xfb_h);
-  }
-
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();
 
@@ -996,7 +981,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || xfbchanged || windowResized ||
+  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || windowResized ||
       fullscreen_changed || s_last_efb_scale != g_ActiveConfig.iEFBScale ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
@@ -1046,7 +1031,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                         clear_col);
     D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(),
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
-  }
+  }*/
 
   // begin next frame
   RestoreAPIState();

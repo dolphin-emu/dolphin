@@ -22,8 +22,7 @@ public:
   int GetMaxTextureSize() override { return 16 * 1024; }
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
-  void SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc,
-                float gamma) override;
+  void SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override

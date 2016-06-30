@@ -700,10 +700,6 @@ Renderer::Renderer()
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
     GLInterface->SwapInterval(s_vsync);
 
-  // TODO: Move these somewhere else?
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -1330,8 +1326,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+void Renderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float Gamma)
 {
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1342,13 +1337,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   static int w = 0, h = 0;
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fbWidth || !fbHeight)
-  {
-    DumpFrame(frame_data, w, h);
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
+  // TODO:
+  //if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()))
+  //{
+  //  DumpFrame(frame_data, w, h);
+  //  Core::Callback_VideoCopiedToXFB(false);
+  //  return;
+  //}
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
   TargetRectangle flipped_trc = GetTargetRectangle();
@@ -1356,11 +1351,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
-  // Get the current XFB from texture cache
-  auto entry = TextureCache::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
-  AbstractTexture* xfb_texture = static_cast<AbstractTexture*>(entry->texture.get());
-
   // TODO: If the XFB texture cache entry hasn't changed since the last Swap, we can return early.
+  auto* xfb_texture = static_cast<AbstractTexture*>(texture);
 
   TargetRectangle sourceRc = ConvertEFBRectangle(rc);
   sourceRc.left = 0;
@@ -1454,23 +1446,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 #endif
   // Finish up the current frame, print some stats
 
-  SetWindowSize(fbStride, fbHeight);
+  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
 
   GLInterface->Update();  // just updates the render window position and the backbuffer size
-
-  bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fbStride ||
-      FramebufferManagerBase::LastXfbHeight() != fbHeight)
-  {
-    xfbchanged = true;
-    unsigned int const last_w =
-        (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    unsigned int const last_h =
-        (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-    FramebufferManagerBase::SetLastXfbWidth(last_w);
-    FramebufferManagerBase::SetLastXfbHeight(last_h);
-  }
 
   bool WindowResized = false;
   int W = (int)GLInterface->GetBackBufferWidth();
@@ -1488,7 +1466,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     TargetSizeChanged = true;
   }
-  if (TargetSizeChanged || xfbchanged || WindowResized ||
+  if (TargetSizeChanged || WindowResized ||
       (s_last_multisamples != g_ActiveConfig.iMultisamples) ||
       (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
   {

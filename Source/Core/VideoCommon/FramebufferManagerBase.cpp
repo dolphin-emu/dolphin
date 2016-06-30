@@ -18,9 +18,6 @@ FramebufferManagerBase::VirtualXFBListType
 std::array<const XFBSourceBase*, FramebufferManagerBase::MAX_VIRTUAL_XFB>
     FramebufferManagerBase::m_overlappingXFBArray;
 
-unsigned int FramebufferManagerBase::s_last_xfb_width = 1;
-unsigned int FramebufferManagerBase::s_last_xfb_height = 1;
-
 unsigned int FramebufferManagerBase::m_EFBLayers = 1;
 
 FramebufferManagerBase::FramebufferManagerBase()
@@ -243,22 +240,4 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
       }
     }
   }
-}
-
-int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x)
-{
-  if (g_ActiveConfig.RealXFBEnabled())
-    return x;
-
-  return x * (int)Renderer::GetTargetRectangle().GetWidth() /
-         (int)FramebufferManagerBase::LastXfbWidth();
-}
-
-int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y)
-{
-  if (g_ActiveConfig.RealXFBEnabled())
-    return y;
-
-  return y * (int)Renderer::GetTargetRectangle().GetHeight() /
-         (int)FramebufferManagerBase::LastXfbHeight();
 }

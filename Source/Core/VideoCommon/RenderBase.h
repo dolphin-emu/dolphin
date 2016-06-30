@@ -23,6 +23,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/AbstractTextureBase.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -124,8 +125,7 @@ public:
   // Finish up the current frame, print some stats
   static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                    float Gamma = 1.0f);
-  virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma = 1.0f) = 0;
+  virtual void SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float Gamma = 1.0f) = 0;
 
   virtual bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) = 0;
 

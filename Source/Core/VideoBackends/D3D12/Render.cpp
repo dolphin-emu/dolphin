@@ -17,6 +17,7 @@
 #include "Core/Core.h"
 #include "Core/Host.h"
 
+#include "VideoBackends/D3D12/AbstractTexture.h"
 #include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
@@ -220,9 +221,6 @@ Renderer::Renderer(void*& window_handle)
 
   s_backbuffer_width = D3D::GetBackBufferWidth();
   s_backbuffer_height = D3D::GetBackBufferHeight();
-
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
@@ -709,31 +707,8 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                        const EFBRectangle& rc, float gamma)
+void Renderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float gamma)
 {
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fb_width || !fb_height)
-  {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
-
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  u32 xfb_count = 0;
-  const XFBSourceBase* const* xfb_source_list =
-      FramebufferManager::GetXFBSource(xfb_addr, fb_stride, fb_height, &xfb_count);
-  if ((!xfb_source_list || xfb_count == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
-  {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
-
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
   // Invalidate EFB access copies. Not strictly necessary, but this avoids having the buffers mapped
   // when calling Present().
   FramebufferManager::InvalidateEFBAccessCopies();
@@ -755,74 +730,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
 
-  if (g_ActiveConfig.bUseXFB)
-  {
-    const XFBSource* xfb_source;
+  auto* xfb_texture = static_cast<AbstractTexture*>(texture);
 
-    // draw each xfb source
-    for (u32 i = 0; i < xfb_count; ++i)
-    {
-      xfb_source = static_cast<const XFBSource*>(xfb_source_list[i]);
+  TargetRectangle source_rc = xfb_texture->config.Rect();
 
-      TargetRectangle drawRc;
-      TargetRectangle source_rc;
-      source_rc.left = xfb_source->sourceRc.left;
-      source_rc.top = xfb_source->sourceRc.top;
-      source_rc.right = xfb_source->sourceRc.right;
-      source_rc.bottom = xfb_source->sourceRc.bottom;
-
-      // use virtual xfb with offset
-      int xfb_height = xfb_source->srcHeight;
-      int xfb_width = xfb_source->srcWidth;
-      int hOffset = (static_cast<s32>(xfb_source->srcAddr) - static_cast<s32>(xfb_addr)) /
-                    (static_cast<s32>(fb_stride) * 2);
-
-      if (g_ActiveConfig.bUseRealXFB)
-      {
-        drawRc = target_rc;
-        source_rc.right -= fb_stride - fb_width;
-      }
-      else
-      {
-        drawRc.top = target_rc.top + hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
-        drawRc.bottom =
-            target_rc.top +
-            (hOffset + xfb_height) * target_rc.GetHeight() / static_cast<s32>(fb_height);
-        drawRc.left = target_rc.left +
-                      (target_rc.GetWidth() -
-                       xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) /
-                          2;
-        drawRc.right = target_rc.left +
-                       (target_rc.GetWidth() +
-                        xfb_width * target_rc.GetWidth() / static_cast<s32>(fb_stride)) /
-                           2;
-
-        // The following code disables auto stretch.  Kept for reference.
-        // scale draw area for a 1 to 1 pixel mapping with the draw target
-        // float vScale = static_cast<float>(fbHeight) / static_cast<float>(s_backbuffer_height);
-        // float hScale = static_cast<float>(fbWidth) / static_cast<float>(s_backbuffer_width);
-        // drawRc.top *= vScale;
-        // drawRc.bottom *= vScale;
-        // drawRc.left *= hScale;
-        // drawRc.right *= hScale;
-
-        source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
-      }
-
-      BlitScreen(source_rc, drawRc, xfb_source->m_tex, xfb_source->texWidth, xfb_source->texHeight,
-                 gamma);
-    }
-  }
-  else
-  {
-    TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
-
-    // EXISTINGD3D11TODO: Improve sampling algorithm for the pixel shader so that we can use the
-    // multisampled EFB texture as source
-    D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
-
-    BlitScreen(source_rc, target_rc, read_texture, GetTargetWidth(), GetTargetHeight(), gamma);
-  }
+  BlitScreen(source_rc, target_rc, xfb_texture->m_texture, xfb_texture->config.width, xfb_texture->config.height,
+             gamma);
 
   // done with drawing the game stuff, good moment to save a screenshot
   if (s_bScreenshot)
@@ -931,23 +844,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   UpdateActiveConfig();
   TextureCacheBase::OnConfigChanged(g_ActiveConfig);
 
-  SetWindowSize(fb_stride, fb_height);
+  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
 
   const bool window_resized = CheckForResize();
   const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
                           !SConfig::GetInstance().bRenderToMain;
 
   bool xfb_changed = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fb_stride ||
-      FramebufferManagerBase::LastXfbHeight() != fb_height)
-  {
-    xfb_changed = true;
-    unsigned int xfb_w = (fb_stride < 1 || fb_stride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_stride;
-    unsigned int xfb_h = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
-    FramebufferManagerBase::SetLastXfbWidth(xfb_w);
-    FramebufferManagerBase::SetLastXfbHeight(xfb_h);
-  }
 
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();

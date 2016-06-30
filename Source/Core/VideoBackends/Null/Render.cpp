@@ -38,7 +38,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-void Renderer::SwapImpl(u32, u32, u32, u32, const EFBRectangle&, float)
+void Renderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle&, float)
 {
   UpdateActiveConfig();
 }

@@ -109,9 +109,9 @@ void SWRenderer::UpdateColorTexture(EfbInterface::yuv422_packed* xfb, u32 fbWidt
 }
 
 // Called on the GPU thread
-void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                          const EFBRectangle& rc, float Gamma)
+void SWRenderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float Gamma)
 {
+  /*
   if (!Fifo::WillSkipCurrentFrame())
   {
     if (g_ActiveConfig.bUseXFB)
@@ -154,7 +154,7 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   DrawDebugText();
 
-  SWOGLWindow::s_instance->ShowImage(GetCurrentColorTexture(), fbWidth * 4, fbWidth, fbHeight, 1.0);
+  SWOGLWindow::s_instance->ShowImage(GetCurrentColorTexture(), fbWidth * 4, fbWidth, fbHeight, 1.0);*/
 
   UpdateActiveConfig();
 
