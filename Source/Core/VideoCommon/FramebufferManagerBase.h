@@ -52,13 +52,6 @@ public:
   static const XFBSourceBase* const* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight,
                                                   u32* xfbCount);
 
-  static void SetLastXfbWidth(unsigned int width) { s_last_xfb_width = width; }
-  static void SetLastXfbHeight(unsigned int height) { s_last_xfb_height = height; }
-  static unsigned int LastXfbWidth() { return s_last_xfb_width; }
-  static unsigned int LastXfbHeight() { return s_last_xfb_height; }
-  static int ScaleToVirtualXfbWidth(int x);
-  static int ScaleToVirtualXfbHeight(int y);
-
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
 protected:
   struct VirtualXFB
@@ -101,9 +94,6 @@ private:
   static VirtualXFBListType m_virtualXFBList;             // Only used in Virtual XFB mode
 
   static std::array<const XFBSourceBase*, MAX_VIRTUAL_XFB> m_overlappingXFBArray;
-
-  static unsigned int s_last_xfb_width;
-  static unsigned int s_last_xfb_height;
 };
 
 extern std::unique_ptr<FramebufferManagerBase> g_framebuffer_manager;

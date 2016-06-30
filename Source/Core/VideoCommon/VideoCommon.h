@@ -55,6 +55,9 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
     return (RECT*)this;
   }
 #endif
+  // Copy constructor
+  TargetRectangle(MathUtil::Rectangle<int> &other) : MathUtil::Rectangle<int>(other) {}
+  TargetRectangle() = default;
 };
 
 #ifdef _WIN32
