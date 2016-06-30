@@ -20,6 +20,7 @@ void CachedInterpreter::Init()
   jo.enableBlocklink = false;
 
   JitBaseBlockCache::Init();
+  UpdateMemoryOptions();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -82,14 +83,30 @@ static void WritePC(UGeckoInstruction data)
   NPC = data.hex + 4;
 }
 
+static void WriteBrokenBlockNPC(UGeckoInstruction data)
+{
+  NPC = data.hex;
+}
+
 static bool CheckFPU(u32 data)
 {
   UReg_MSR& msr = (UReg_MSR&)MSR;
   if (!msr.FP)
   {
-    PC = NPC = data;
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
+    return true;
+  }
+  return false;
+}
+
+static bool CheckDSI(u32 data)
+{
+  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  {
+    PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
     return true;
   }
   return false;
@@ -156,22 +173,29 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!ops[i].skip)
     {
-      if ((ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      bool check_fpu = (ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
+      bool endblock = (ops[i].opinfo->flags & FL_ENDBLOCK) != 0;
+      bool memcheck = (ops[i].opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+
+      if (check_fpu)
       {
-        m_code.emplace_back(CheckFPU, ops[i].address);
+        m_code.emplace_back(WritePC, ops[i].address);
+        m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
       }
 
-      if (ops[i].opinfo->flags & FL_ENDBLOCK)
+      if (endblock || memcheck)
         m_code.emplace_back(WritePC, ops[i].address);
       m_code.emplace_back(GetInterpreterOp(ops[i].inst), ops[i].inst);
-      if (ops[i].opinfo->flags & FL_ENDBLOCK)
+      if (memcheck)
+        m_code.emplace_back(CheckDSI, js.downcountAmount);
+      if (endblock)
         m_code.emplace_back(EndBlock, js.downcountAmount);
     }
   }
   if (code_block.m_broken)
   {
-    m_code.emplace_back(WritePC, nextPC);
+    m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
     m_code.emplace_back(EndBlock, js.downcountAmount);
   }
   m_code.emplace_back();
@@ -186,6 +210,7 @@ void CachedInterpreter::ClearCache()
 {
   m_code.clear();
   JitBaseBlockCache::Clear();
+  UpdateMemoryOptions();
 }
 
 void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
