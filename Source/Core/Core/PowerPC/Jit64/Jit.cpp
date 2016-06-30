@@ -546,7 +546,7 @@ void Jit64::Jit(u32 em_address)
     ClearCache();
   }
 
-  int blockSize = code_buffer.GetSize();
+  int blockSize = 1;// code_buffer.GetSize();
 
   if (SConfig::GetInstance().bEnableDebugging)
   {

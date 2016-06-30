@@ -6,4 +6,7 @@
     <LocalDebuggerWorkingDirectory>$(BinaryOutputDir)</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>-d</LocalDebuggerCommandArguments>
+  </PropertyGroup>
 </Project>
