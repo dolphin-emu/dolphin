@@ -108,6 +108,10 @@ void VideoConfig::Load(const std::string& ini_file)
   hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
   hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
 
+  // Force Virtual xfb on for testing:
+  bUseXFB = true;
+  bUseRealXFB = false;
+
   // hacks which are disabled by default
   iPhackvalue[0] = 0;
   bPerfQueriesEnable = false;
