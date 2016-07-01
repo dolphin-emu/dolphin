@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
@@ -96,7 +97,7 @@ evdevDevice::evdevDevice(const std::string& devnode, int id) : m_devfile(devnode
     return;
   }
 
-  m_name = libevdev_get_name(m_dev);
+  m_name = StripSpaces(libevdev_get_name(m_dev));
 
   // Controller buttons (and keyboard keys)
   int num_buttons = 0;
@@ -164,7 +165,7 @@ std::string evdevDevice::Button::GetName() const
   {
     const char* name = libevdev_event_code_get_name(EV_KEY, m_code);
     if (name)
-      return std::string(name);
+      return StripSpaces(name);
   }
   // But controllers use codes above 0x100, and the standard label often doesn't match.
   // We are better off with Button 0 and so on.
@@ -222,7 +223,7 @@ std::string evdevDevice::ForceFeedback::GetName() const
   {
     const char* name = libevdev_event_code_get_name(EV_FF, m_type);
     if (name)
-      return std::string(name);
+      return StripSpaces(name);
     return "Unknown";
   }
   }
