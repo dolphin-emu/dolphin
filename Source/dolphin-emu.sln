@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dolphin", "Core\DolphinWX\DolphinWX.vcxproj", "{47411FDB-1BF2-48D0-AB4E-C7C41160F898}"
 EndProject
@@ -73,6 +73,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "curl", "..\Externals\curl\curl.vcxproj", "{BB00605C-125F-4A21-B33B-7BF418322DCB}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "D3D12", "Core\VideoBackends\D3D12\D3D12.vcxproj", "{570215B7-E32F-4438-95AE-C8D955F9FCA3}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinQt2", "Core\DolphinQt2\DolphinQt2.vcxproj", "{FA3FA62B-6F58-4B86-9453-4D149940A066}"
 EndProject
 Global
