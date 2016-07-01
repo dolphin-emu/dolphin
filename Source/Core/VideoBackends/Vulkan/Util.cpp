@@ -320,6 +320,19 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
 	Draw();
 }
 
+void UtilityShaderDraw::DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology, u32 vertex_count)
+{
+	VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
+
+	m_pipeline_info.primitive_topology = primitive_topology;
+
+	BindDescriptors(command_buffer);
+	if (!BindPipeline(command_buffer))
+		return;
+
+	vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
+}
+
 void UtilityShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
 {
 	vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);

@@ -14,6 +14,7 @@
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
+#include "VideoBackends/Vulkan/TextureEncoder.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
@@ -30,19 +31,15 @@ TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* comm
 
 	if (!CreateCopyRenderPass())
 		PanicAlert("Failed to create copy render pass");
+
+
+	m_texture_encoder = std::make_unique<TextureEncoder>(object_cache, command_buffer_mgr, state_tracker);
 }
 
 TextureCache::~TextureCache()
 {
 	if (m_copy_render_pass != VK_NULL_HANDLE)
 		m_command_buffer_mgr->DeferResourceDestruction(m_copy_render_pass);
-
-	// Free download buffer if it was ever allocated.
-	if (m_texture_download_buffer != VK_NULL_HANDLE)
-	{
-		vkDestroyBuffer(m_object_cache->GetDevice(), m_texture_download_buffer, nullptr);
-		vkFreeMemory(m_object_cache->GetDevice(), m_texture_download_buffer_memory, nullptr);
-	}
 }
 
 void TextureCache::CompileShaders()
@@ -64,7 +61,17 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 						   PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
 						   bool is_intensity, bool scale_by_half)
 {
-	ERROR_LOG(VIDEO, "TextureCache::CopyEFB not implemented");
+	// A better way of doing this would be nice.
+	FramebufferManager* framebuffer_mgr = static_cast<FramebufferManager*>(g_framebuffer_manager.get());
+
+	// TODO: MSAA case where we need to resolve first.
+	VkImageView src_view = (src_format == PEControl::Z24) ?
+								framebuffer_mgr->GetEFBDepthTexture()->GetView() :
+								framebuffer_mgr->GetEFBColorTexture()->GetView();
+
+	m_texture_encoder->EncodeTextureToRam(src_view, dst, format, native_width, bytes_per_row,
+										  num_blocks_y, memory_stride, src_format, is_intensity,
+										  scale_by_half, src_rect);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
@@ -109,7 +116,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
 bool TextureCache::CreateCopyRenderPass()
 {
-	// render pass for rendering to the efb
 	VkAttachmentDescription attachments[] = {
 		{
 			0,
@@ -161,66 +167,6 @@ bool TextureCache::CreateCopyRenderPass()
 		return false;
 	}
 
-	return true;
-}
-
-bool TextureCache::ResizeTextureDownloadBuffer(VkDeviceSize new_size)
-{
-	VkBufferCreateInfo buffer_create_info = {
-		VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,			// VkStructureType        sType
-		nullptr,										// const void*            pNext
-		0,												// VkBufferCreateFlags    flags
-		new_size,										// VkDeviceSize           size
-		VK_BUFFER_USAGE_TRANSFER_DST_BIT,				// VkBufferUsageFlags     usage
-		VK_SHARING_MODE_EXCLUSIVE,						// VkSharingMode          sharingMode
-		0,												// uint32_t               queueFamilyIndexCount
-		nullptr											// const uint32_t*        pQueueFamilyIndices
-	};
-	VkBuffer new_buffer = VK_NULL_HANDLE;
-	VkResult res = vkCreateBuffer(m_object_cache->GetDevice(),
-								  &buffer_create_info,
-								  nullptr,
-								  &new_buffer);
-	if (res != VK_SUCCESS)
-	{
-		LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-		return false;
-	}
-
-	VkMemoryRequirements memory_requirements;
-	vkGetBufferMemoryRequirements(m_object_cache->GetDevice(), new_buffer, &memory_requirements);
-
-	uint32_t memory_type_index = m_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-															   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
-	VkMemoryAllocateInfo memory_allocate_info =
-	{
-		VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,			// VkStructureType    sType
-		nullptr,										// const void*        pNext
-		memory_requirements.size,						// VkDeviceSize       allocationSize
-		memory_type_index								// uint32_t           memoryTypeIndex
-	};
-	VkDeviceMemory new_memory = VK_NULL_HANDLE;
-	res = vkAllocateMemory(m_object_cache->GetDevice(), &memory_allocate_info, nullptr, &new_memory);
-	if (res != VK_SUCCESS)
-	{
-		LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-		vkDestroyBuffer(m_object_cache->GetDevice(), new_buffer, nullptr);
-		return false;
-	}
-
-	// Destroy the old buffer/memory immediately, it won't be sitting in any command buffers
-	// since all accesses are blocking.
-	if (m_texture_download_buffer != VK_NULL_HANDLE)
-	{
-		vkDestroyBuffer(m_object_cache->GetDevice(), m_texture_download_buffer, nullptr);
-		vkFreeMemory(m_object_cache->GetDevice(), m_texture_download_buffer_memory, nullptr);
-	}
-
-	// TODO: Do we need to transition this buffer? Probably.
-	m_texture_download_buffer = new_buffer;
-	m_texture_download_buffer_memory = new_memory;
-	m_texture_download_buffer_size = new_size;
 	return true;
 }
 
@@ -292,7 +238,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height, un
 	// Flush buffer memory if necessary
 	upload_buffer->CommitMemory(upload_size);
 
-	// Copy from the streaming buffer to the actual image, tiling in the process.
+	// Copy from the streaming buffer to the actual image.
 	VkBufferImageCopy image_copy =
 	{
 		image_upload_buffer_offset,								// VkDeviceSize                bufferOffset

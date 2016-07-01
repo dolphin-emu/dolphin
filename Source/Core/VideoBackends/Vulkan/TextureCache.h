@@ -16,6 +16,7 @@ class CommandBufferManager;
 class ObjectCache;
 class StateTracker;
 class Texture2D;
+class TextureEncoder;
 
 class TextureCache : public TextureCacheBase
 {
@@ -55,21 +56,16 @@ private:
 	TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
 	bool CreateCopyRenderPass();
-
-	bool ResizeTextureDownloadBuffer(VkDeviceSize new_size);
-
+	
 	ObjectCache* m_object_cache = nullptr;
 	CommandBufferManager* m_command_buffer_mgr = nullptr;
 	StateTracker* m_state_tracker = nullptr;
 
 	VkRenderPass m_copy_render_pass = VK_NULL_HANDLE;
 
-	std::unique_ptr<StreamBuffer> m_texture_upload_buffer = nullptr;
+	std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
-	// Download buffer. Resized when it is not large enough.
-	VkBuffer m_texture_download_buffer = VK_NULL_HANDLE;
-	VkDeviceMemory m_texture_download_buffer_memory = nullptr;
-	VkDeviceSize m_texture_download_buffer_size = 0;
+	std::unique_ptr<TextureEncoder> m_texture_encoder;
 };
 
 } // namespace Vulkan

@@ -96,6 +96,9 @@ public:
 
 	void DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a);
 
+	// Draw without a vertex buffer. Assumes viewport has been initialized separately.
+	void DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology, u32 vertex_count);
+
 private:
 	void BindVertexBuffer(VkCommandBuffer command_buffer);
 	void BindDescriptors(VkCommandBuffer command_buffer);

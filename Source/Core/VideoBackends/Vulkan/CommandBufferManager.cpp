@@ -290,16 +290,16 @@ void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
 
 void CommandBufferManager::ExecuteCommandBuffer(bool wait_for_completion)
 {
-	size_t current_command_buffer_index = m_current_command_buffer_index;
 	SubmitCommandBuffer(nullptr);
-	ActivateCommandBuffer(nullptr);
 
 	if (wait_for_completion)
 	{
-		VkResult res = vkWaitForFences(m_device, 1, &m_fences[current_command_buffer_index], VK_TRUE, UINT64_MAX);
+		VkResult res = vkWaitForFences(m_device, 1, &m_fences[m_current_command_buffer_index], VK_TRUE, UINT64_MAX);
 		if (res != VK_SUCCESS)
 			LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 	}
+
+  ActivateCommandBuffer(nullptr);
 }
 
 void CommandBufferManager::AddFencePointCallback(const void* key, const FencePointCallback &created_callback, const FencePointCallback& reached_callback)

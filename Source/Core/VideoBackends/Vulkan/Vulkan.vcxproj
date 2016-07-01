@@ -54,6 +54,7 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="StaticShaderCache.cpp" />
+    <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="VertexFormat.cpp" />
     <ClCompile Include="ObjectCache.cpp" />
@@ -73,6 +74,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="StaticShaderCache.h" />
+    <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VertexFormat.h" />
     <ClInclude Include="PerfQuery.h" />

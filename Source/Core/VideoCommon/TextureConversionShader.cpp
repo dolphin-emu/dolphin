@@ -80,13 +80,16 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 {
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
-  WRITE(p, "uniform int4 position;\n");
+  if (ApiType == API_VULKAN)
+    WRITE(p, "layout(std140, set = 0, binding = 2) uniform PSBlock { int4 position; };\n");
+  else
+    WRITE(p, "uniform int4 position;\n");
 
   int blkW = TexDecoder_GetBlockWidthInTexels(format);
   int blkH = TexDecoder_GetBlockHeightInTexels(format);
   int samples = GetEncodedSampleCount(format);
 
-  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+  if (ApiType == API_OPENGL)
   {
     WRITE(p, "#define samp0 samp9\n");
     WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
@@ -96,6 +99,16 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n");
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    WRITE(p, "layout(location = 0) out vec4 ocol0;\n");
+
+    WRITE(p, "void main()\n");
+    WRITE(p, "{\n"
+          "  int2 sampleUv;\n"
+          "  int2 uv1 = int2(gl_FragCoord.xy);\n");
   }
   else  // D3D
   {
