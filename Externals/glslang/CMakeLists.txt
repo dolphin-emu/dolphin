@@ -46,6 +46,9 @@ set(SRCS
 
 add_definitions(-std=c++11)
 
+# annoying due to DefaultResourceLimits.cpp
+include_directories(${CMAKE_SOURCE_DIR}/Externals/glslang)
+
 # Silence some warnings so we don't spam our build logs
 add_definitions(-Wno-shadow)
 add_definitions(-Wno-reorder)

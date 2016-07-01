@@ -9,7 +9,7 @@
 #include "GlslangToSpv.h"
 #include "disassemble.h"
 
-#include "Standalone/DefaultResourceLimits.h"
+#include "StandAlone/DefaultResourceLimits.h"
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"

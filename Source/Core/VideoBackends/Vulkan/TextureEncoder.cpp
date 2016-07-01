@@ -274,7 +274,7 @@ bool TextureEncoder::CreateEncodingTexture()
 	if (res != VK_SUCCESS)
 	{
 		LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
-		return nullptr;
+		return false;
 	}
 
 	return true;
