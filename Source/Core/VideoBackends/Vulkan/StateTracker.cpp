@@ -25,6 +25,7 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
 	, m_command_buffer_mgr(command_buffer_mgr)
 {
 	// Set some sensible defaults
+  m_pipeline_state.pipeline_layout = object_cache->GetPipelineLayout();
 	m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
 	m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
 	m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
@@ -470,8 +471,19 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
 	// Get a new descriptor set if any parts have changed
 	if (m_dirty_flags & DIRTY_FLAG_ALL_DESCRIPTOR_SETS && !UpdateDescriptorSet())
 	{
-		ERROR_LOG(VIDEO, "Failed to get descriptor set, skipping draw");
-		return false;
+    // We can fail to allocate descriptors if we exhaust the pool for this command buffer.
+    WARN_LOG(VIDEO, "Failed to get a descriptor set, executing buffer");
+
+    // Try again after executing the current buffer.
+    m_command_buffer_mgr->ExecuteCommandBuffer(false);
+    InvalidateDescriptorSets();
+    SetPendingRebind();
+    if (!UpdateDescriptorSet())
+    {
+      // Something strange going on.
+      ERROR_LOG(VIDEO, "Failed to get descriptor set, skipping draw");
+      return false;
+    }
 	}
 
 	// Start render pass if not already started

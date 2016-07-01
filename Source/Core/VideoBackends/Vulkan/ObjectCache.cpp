@@ -32,8 +32,9 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 
 	// Would any drivers be this silly? I hope not...
 	m_device_limits.minUniformBufferOffsetAlignment = std::max(m_device_limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
-	m_device_limits.optimalBufferCopyOffsetAlignment = std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
-	m_device_limits.optimalBufferCopyRowPitchAlignment = std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
+  m_device_limits.minTexelBufferOffsetAlignment = std::max(m_device_limits.minTexelBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
+  m_device_limits.optimalBufferCopyOffsetAlignment = std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
+  m_device_limits.optimalBufferCopyRowPitchAlignment = std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
 }
 
 ObjectCache::~ObjectCache()
@@ -302,7 +303,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 		&depth_stencil_state,				// const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState
 		&blend_state,						// const VkPipelineColorBlendStateCreateInfo*       pColorBlendState
 		&dynamic_state,						// const VkPipelineDynamicStateCreateInfo*          pDynamicState
-		m_pipeline_layout,					// VkPipelineLayout                                 layout
+		info.pipeline_layout,					// VkPipelineLayout                                 layout
 		info.render_pass,					// VkRenderPass                                     renderPass
 		0,									// uint32_t                                         subpass
 		VK_NULL_HANDLE,						// VkPipeline                                       basePipelineHandle

@@ -23,6 +23,7 @@ class StreamBuffer;
 struct PipelineInfo
 {
 	const VertexFormat* vertex_format;
+  VkPipelineLayout pipeline_layout;
 	VkShaderModule vs;
 	VkShaderModule gs;
 	VkShaderModule ps;
@@ -63,7 +64,8 @@ public:
 	bool SupportsDualSourceBlend() const { return (m_device_features.dualSrcBlend == VK_TRUE); }
 
 	// Helpers for getting constants
-	VkDeviceSize GetUniformBufferAlignment() const { return m_device_limits.minUniformBufferOffsetAlignment; }
+  VkDeviceSize GetUniformBufferAlignment() const { return m_device_limits.minUniformBufferOffsetAlignment; }
+  VkDeviceSize GetTexelBufferAlignment() const { return m_device_limits.minUniformBufferOffsetAlignment; }
 	VkDeviceSize GetTextureUploadAlignment() const { return m_device_limits.optimalBufferCopyOffsetAlignment; }
 	VkDeviceSize GetTextureUploadPitchAlignment() const { return m_device_limits.optimalBufferCopyRowPitchAlignment; }
 

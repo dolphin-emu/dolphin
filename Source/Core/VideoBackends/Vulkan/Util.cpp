@@ -110,10 +110,10 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer, VkAcce
 
 void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr, StateTracker* state_tracker)
 {
-	g_renderer->ResetAPIState();
+  state_tracker->EndRenderPass();
 	command_buffer_mgr->ExecuteCommandBuffer(false);
 	state_tracker->InvalidateDescriptorSets();
-	g_renderer->RestoreAPIState();
+  state_tracker->SetPendingRebind();
 }
 
 }		// namespace Util
@@ -124,6 +124,7 @@ UtilityShaderDraw::UtilityShaderDraw(ObjectCache* object_cache, CommandBufferMan
 {
 	// Populate minimal pipeline state
 	m_pipeline_info.vertex_format = object_cache->GetUtilityShaderVertexFormat();
+  m_pipeline_info.pipeline_layout = object_cache->GetPipelineLayout();
 	m_pipeline_info.render_pass = render_pass;
 	m_pipeline_info.vs = vertex_shader;
 	m_pipeline_info.gs = geometry_shader;

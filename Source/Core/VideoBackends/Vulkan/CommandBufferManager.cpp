@@ -104,7 +104,8 @@ bool CommandBufferManager::CreateCommandBuffers()
 		VkDescriptorPoolSize pool_sizes[] = {
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000 },
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16 }
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16 },
+      { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1024 }
 		};
 		VkDescriptorPoolCreateInfo pool_create_info = {
 			VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -184,13 +185,13 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 		&set_layout
 	};
 
-	// TODO: Is upfront allocation better here?
 	VkDescriptorSet descriptor_set;
 	VkResult res = vkAllocateDescriptorSets(m_device, &allocate_info, &descriptor_set);
 	if (res != VK_SUCCESS)
 	{
-		LOG_VULKAN_ERROR(res, "vkAllocateDescriptorSets failed: ");
-		return nullptr;
+    // Failing to allocate a descriptor set is not a fatal error, we can
+    // recover by moving to the next command buffer.
+		return VK_NULL_HANDLE;
 	}
 
 	return descriptor_set;

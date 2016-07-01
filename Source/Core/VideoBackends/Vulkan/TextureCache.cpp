@@ -32,7 +32,6 @@ TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* comm
 	if (!CreateCopyRenderPass())
 		PanicAlert("Failed to create copy render pass");
 
-
 	m_texture_encoder = std::make_unique<TextureEncoder>(object_cache, command_buffer_mgr, state_tracker);
 }
 
