@@ -14,6 +14,7 @@ namespace Vulkan {
 
 class CommandBufferManager;
 class ObjectCache;
+class PaletteTextureConverter;
 class StateTracker;
 class Texture2D;
 class TextureEncoder;
@@ -26,7 +27,7 @@ public:
 
 	void CompileShaders() override;
 	void DeleteShaders() override;
-	void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format) override;
+	void ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette, TlutFormat format) override;
 
 	void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
 		PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
@@ -37,6 +38,9 @@ private:
 	{
 		TCacheEntry(const TCacheEntryConfig& _config, TextureCache* parent, std::unique_ptr<Texture2D> texture, VkFramebuffer framebuffer);
 		~TCacheEntry();
+
+    Texture2D* GetTexture() const { return m_texture.get(); }
+    VkFramebuffer GetFramebuffer() const { return m_framebuffer; }
 
 		void Load(unsigned int width, unsigned int height, unsigned int expanded_width, unsigned int level) override;
 		void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect, bool scale_by_half, unsigned int cbufid, const float* colmat) override;
@@ -66,6 +70,8 @@ private:
 	std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
 	std::unique_ptr<TextureEncoder> m_texture_encoder;
+
+  std::unique_ptr<PaletteTextureConverter> m_palette_texture_converter;
 };
 
 } // namespace Vulkan

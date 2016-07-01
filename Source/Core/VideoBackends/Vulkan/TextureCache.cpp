@@ -10,6 +10,7 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/PaletteTextureConverter.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
@@ -33,6 +34,10 @@ TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* comm
 		PanicAlert("Failed to create copy render pass");
 
 	m_texture_encoder = std::make_unique<TextureEncoder>(object_cache, command_buffer_mgr, state_tracker);
+
+  m_palette_texture_converter = std::make_unique<PaletteTextureConverter>(object_cache, command_buffer_mgr, state_tracker);
+  if (!m_palette_texture_converter->Initialize())
+    PanicAlert("Failed to initialize palette texture converter");
 }
 
 TextureCache::~TextureCache()
@@ -51,9 +56,20 @@ void TextureCache::DeleteShaders()
 
 }
 
-void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette, TlutFormat format)
+void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette, TlutFormat format)
 {
-	ERROR_LOG(VIDEO, "TextureCache::ConvertTexture not implemented");
+  TCacheEntry* entry = static_cast<TCacheEntry*>(base_entry);
+  TCacheEntry* unconverted = static_cast<TCacheEntry*>(base_unconverted);
+  assert(entry->config.rendertarget);
+
+  m_palette_texture_converter->ConvertTexture(entry->GetTexture(),
+                                              entry->GetFramebuffer(),
+                                              unconverted->GetTexture(),
+                                              entry->config.width,
+                                              entry->config.height,
+                                              palette,
+                                              format);
+
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
