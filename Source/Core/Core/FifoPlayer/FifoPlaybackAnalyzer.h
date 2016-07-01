@@ -19,4 +19,4 @@ struct AnalyzedFrameInfo
 namespace FifoPlaybackAnalyzer
 {
 void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
-};
+}  // namespace FifoPlaybackAnalyzer
