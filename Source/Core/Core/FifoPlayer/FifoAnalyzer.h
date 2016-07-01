@@ -6,7 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 
 namespace FifoAnalyzer

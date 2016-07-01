@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 
 struct AnalyzedFrameInfo

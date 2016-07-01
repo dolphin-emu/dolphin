@@ -5,10 +5,12 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Core/FifoPlayer/FifoRecorder.h"
+
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
 
 static FifoRecorder instance;

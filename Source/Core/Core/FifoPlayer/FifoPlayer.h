@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 

@@ -6,10 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-#include "Core/FifoPlayer/FifoAnalyzer.h"
-
-#include "VideoCommon/BPMemory.h"
-
 namespace FifoRecordAnalyzer
 {
 // Must call this before analyzing Fifo commands with FifoAnalyzer::AnalyzeCommand()

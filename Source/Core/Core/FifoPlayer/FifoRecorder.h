@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 
 class FifoRecorder
 {

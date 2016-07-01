@@ -4,14 +4,11 @@
 
 #include <algorithm>
 
-#include "Common/Assert.h"
-#include "Core/Core.h"
-#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
+
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/Memmap.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/TextureDecoder.h"
 
 using namespace FifoAnalyzer;
 
