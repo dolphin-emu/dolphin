@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 
 struct AnalyzedFrameInfo
@@ -20,4 +19,4 @@ struct AnalyzedFrameInfo
 namespace FifoPlaybackAnalyzer
 {
 void AnalyzeFrames(FifoDataFile* file, std::vector<AnalyzedFrameInfo>& frameInfo);
-};
+}  // namespace FifoPlaybackAnalyzer

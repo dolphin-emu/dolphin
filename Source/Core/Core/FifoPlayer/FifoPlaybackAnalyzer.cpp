@@ -3,13 +3,10 @@
 // Refer to the license.txt file included.
 
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
-#include "Common/Assert.h"
+
 #include "Common/CommonTypes.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/TextureDecoder.h"
-#include "VideoCommon/VertexLoader.h"
 
 using namespace FifoAnalyzer;
 

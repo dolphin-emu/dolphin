@@ -5,14 +5,15 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Core/FifoPlayer/FifoPlayer.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
