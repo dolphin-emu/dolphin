@@ -139,7 +139,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
 
 	VkImageView framebuffer_attachments[] = {
 		m_efb_color_texture->GetView(),
-		m_efb_depth_texture->GetDepthView(),
+		m_efb_depth_texture->GetView(),
 	};
 
 	VkFramebufferCreateInfo framebuffer_info = {

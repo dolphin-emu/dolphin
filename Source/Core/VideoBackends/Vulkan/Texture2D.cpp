@@ -12,7 +12,7 @@
 
 namespace Vulkan {
 
-Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory, VkImageView view, VkImageView depth_view)
+Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory, VkImageView view)
 	: m_command_buffer_mgr(command_buffer_mgr)
 	, m_width(width)
 	, m_height(height)
@@ -24,7 +24,6 @@ Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 he
 	, m_image(image)
 	, m_device_memory(device_memory)
 	, m_view(view)
-	, m_depth_view(depth_view)
 {
 
 }
@@ -32,8 +31,6 @@ Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 he
 Texture2D::~Texture2D()
 {
 	m_command_buffer_mgr->DeferResourceDestruction(m_view);
-	if (m_depth_view)
-		m_command_buffer_mgr->DeferResourceDestruction(m_depth_view);
 
 	// If we don't have device memory allocated, consider the image to be owned elsewhere (e.g. swapchain)
 	if (m_device_memory)
@@ -107,9 +104,9 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		0,
 		image,
 		view_type,
-		(IsDepthFormat(format)) ? GetColorFormatForDepthFormat(format) : format,
+		format,
 		{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, levels, 0, layers }
+    { (IsDepthFormat(format)) ? static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT) : static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_COLOR_BIT), 0, levels, 0, layers }
 	};
 
 	VkImageView view = VK_NULL_HANDLE;
@@ -122,24 +119,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache, CommandB
 		return nullptr;
 	}
 
-	// If it's a depth format, create the depth view as well
-	VkImageView depth_view = VK_NULL_HANDLE;
-	if (IsDepthFormat(format))
-	{
-		view_info.format = format;
-		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		res = vkCreateImageView(object_cache->GetDevice(), &view_info, nullptr, &depth_view);
-		if (res != VK_SUCCESS)
-		{
-			LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
-			vkDestroyImageView(object_cache->GetDevice(), view, nullptr);
-			vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-			vkFreeMemory(object_cache->GetDevice(), device_memory, nullptr);
-			return nullptr;
-		}
-	}
-
-	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, image, device_memory, view, depth_view);
+	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, image, device_memory, view);
 }
 
 std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage existing_image)
@@ -151,9 +131,9 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(ObjectCache* objec
 		0,
 		existing_image,
 		view_type,
-		(IsDepthFormat(format)) ? GetColorFormatForDepthFormat(format) : format,
+		format,
 		{ VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY },
-		{ VK_IMAGE_ASPECT_COLOR_BIT, 0, levels, 0, layers }
+    { (IsDepthFormat(format)) ? static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_DEPTH_BIT) : static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_COLOR_BIT), 0, levels, 0, layers }
 	};
 
 	VkImageView view = VK_NULL_HANDLE;
@@ -164,22 +144,7 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(ObjectCache* objec
 		return nullptr;
 	}
 
-	// If it's a depth format, create the depth view as well
-	VkImageView depth_view = VK_NULL_HANDLE;
-	if (IsDepthFormat(format))
-	{
-		view_info.format = format;
-		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-		res = vkCreateImageView(object_cache->GetDevice(), &view_info, nullptr, &depth_view);
-		if (res != VK_SUCCESS)
-		{
-			LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
-			vkDestroyImageView(object_cache->GetDevice(), view, nullptr);
-			return nullptr;
-		}
-	}
-
-	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, existing_image, nullptr, view, depth_view);
+	return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format, view_type, existing_image, nullptr, view);
 }
 
 void Texture2D::OverrideImageLayout(VkImageLayout new_layout)
