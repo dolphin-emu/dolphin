@@ -54,6 +54,7 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PaletteTextureConverter.cpp" />
+    <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="StaticShaderCache.cpp" />
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="Util.cpp" />
@@ -75,6 +76,7 @@
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="PaletteTextureConverter.h" />
+    <ClInclude Include="RasterFont.h" />
     <ClInclude Include="StaticShaderCache.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="Util.h" />

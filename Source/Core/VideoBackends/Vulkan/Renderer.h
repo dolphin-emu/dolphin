@@ -14,6 +14,7 @@ class CommandBufferManager;
 class FramebufferManager;
 class SwapChain;
 class StateTracker;
+class RasterFont;
 
 class Renderer : public ::Renderer
 {
@@ -74,6 +75,8 @@ private:
 
 	VkSemaphore m_image_available_semaphore = nullptr;
 	VkSemaphore m_rendering_finished_semaphore = nullptr;
+
+  std::unique_ptr<RasterFont> m_raster_font;
 };
 
 }

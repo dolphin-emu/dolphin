@@ -11,10 +11,12 @@
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StaticShaderCache.h"
+#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Util.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -38,6 +40,10 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 
 	if (!CreateSemaphores())
 		PanicAlert("Failed to create Renderer semaphores");
+
+  m_raster_font = std::make_unique<RasterFont>(m_object_cache, m_command_buffer_mgr);
+  if (!m_raster_font->Initialize())
+    PanicAlert("Failed to initialize raster font");
 
 	// Initialize annoying statics
 	s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -95,7 +101,14 @@ void Renderer::DestroySemaphores()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-	printf("RenderText: %s\n", text.c_str());
+  u32 backbuffer_width = m_swap_chain->GetSize().width;
+  u32 backbuffer_height = m_swap_chain->GetSize().height;
+
+  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(),
+                                    text, left * 2.0f / static_cast<float>(backbuffer_width) - 1,
+                                    1 - top * 2.0f / static_cast<float>(backbuffer_height),
+                                    backbuffer_width, backbuffer_height,
+                                    color);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -218,46 +231,55 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
 	UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
-	// Blitting to the screen
-	{
-        // Transition the EFB render target to a shader resource.
-        m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Transition the EFB render target to a shader resource.
+  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        // Transition from undefined (or present src, but it can be substituted) to color attachment ready for writing.
-        // These transitions must occur outside a render pass, unless the render pass declares a self-dependancy.
-		m_swap_chain->GetCurrentTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
-															  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  // Transition from undefined (or present src, but it can be substituted) to color attachment ready for writing.
+  // These transitions must occur outside a render pass, unless the render pass declares a self-dependancy.
+  m_swap_chain->GetCurrentTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+  m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-		// Blit the EFB to the back buffer (Swap chain)
-		UtilityShaderDraw draw(
-			m_object_cache, m_command_buffer_mgr, m_swap_chain->GetRenderPass(),
-			m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
-			nullptr,
-			m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
+  // Blit the EFB to the back buffer (Swap chain)
+  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
+                         m_swap_chain->GetRenderPass(),
+                         m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
+                         nullptr,
+                         m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
 
-        // Begin the present render pass
-        VkClearValue clear_value = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
-        VkRect2D region = { { 0, 0 }, m_swap_chain->GetSize() };
-        draw.BeginRenderPass(m_swap_chain->GetCurrentFramebuffer(), region, &clear_value);
+  // Begin the present render pass
+  VkClearValue clear_value = { { { 0.0f, 0.0f, 0.0f, 1.0f } } };
+  VkRect2D region = { { 0, 0 }, m_swap_chain->GetSize() };
+  draw.BeginRenderPass(m_swap_chain->GetCurrentFramebuffer(), region, &clear_value);
 
-		// Find the rect we want to draw into on the backbuffer
-		TargetRectangle target_rc = GetTargetRectangle();
-		TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
+  // Find the rect we want to draw into on the backbuffer
+  TargetRectangle target_rc = GetTargetRectangle();
+  TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
 
-        // Draw a quad that blits/scales the internal framebuffer to the swap chain.
-		draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(), m_object_cache->GetLinearSampler());
-		draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
-		              m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
-		              target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
+  // Draw a quad that blits/scales the internal framebuffer to the swap chain.
+  draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(), m_object_cache->GetLinearSampler());
+  draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
+                m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
+                target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
-        draw.EndRenderPass();
+  // OSD stuff
+  Util::SetViewportAndScissor(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                              0, 0,
+                              m_swap_chain->GetSize().width,
+                              m_swap_chain->GetSize().height);
+  DrawDebugText();
 
-		// Transition the backbuffer to PRESENT_SRC to ensure all commands drawing to it have finished before present.
-		m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
-															  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	}
+  // Do our OSD callbacks
+  OSD::DoCallbacks(OSD::CallbackType::OnFrame);
+  OSD::DrawMessages();
+
+  // End drawing to backbuffer
+  draw.EndRenderPass();
+
+  // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing to it have finished before present.
+  m_swap_chain->GetCurrentTexture()->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                        VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
 	// Submit the current command buffer, signaling rendering finished semaphore when it's done
 	m_command_buffer_mgr->SubmitCommandBuffer(m_rendering_finished_semaphore);

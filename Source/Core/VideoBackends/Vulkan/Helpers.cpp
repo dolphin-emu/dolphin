@@ -632,4 +632,20 @@ template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkSw
 	return ret;
 }
 
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkShaderModule>(VkShaderModule object)
+{
+  DeferredResourceDestruction ret;
+  ret.object.ShaderModule = object;
+  ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyShaderModule(device, obj.ShaderModule, nullptr); };
+  return ret;
+}
+
+template<> DeferredResourceDestruction DeferredResourceDestruction::Wrapper<VkPipeline>(VkPipeline object)
+{
+  DeferredResourceDestruction ret;
+  ret.object.Pipeline = object;
+  ret.destroy_callback = [](VkDevice device, const Object& obj) { vkDestroyPipeline(device, obj.Pipeline, nullptr); };
+  return ret;
+}
+
 }		// namespace Vulkan

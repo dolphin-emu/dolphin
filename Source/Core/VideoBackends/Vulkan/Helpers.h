@@ -53,6 +53,8 @@ struct DeferredResourceDestruction
 		VkRenderPass RenderPass;
 		VkFramebuffer Framebuffer;
 		VkSwapchainKHR Swapchain;
+    VkShaderModule ShaderModule;
+    VkPipeline Pipeline;
 	} object;
 
 	void(*destroy_callback)(VkDevice device, const Object& object);
