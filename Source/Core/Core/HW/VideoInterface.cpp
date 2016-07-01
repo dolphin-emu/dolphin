@@ -765,4 +765,40 @@ void Update()
   UpdateInterrupts();
 }
 
+// Create a fake VI mode for a fifolog
+void FakeVIUpdate(u32 xfbAddress, u32 fbWidth, u32 fbHeight)
+{
+  u32 fbStride = fbWidth;
+
+  bool interlaced = fbHeight > 480 / 2;
+  if (interlaced)
+  {
+    fbHeight = fbHeight / 2;
+    fbStride = fbStride * 2;
+  }
+
+  m_XFBInfoTop.POFF = 0;
+  m_VerticalTimingRegister.ACV = fbHeight;
+  m_VerticalTimingRegister.EQU = 6;
+  m_VBlankTimingOdd.PRB = 502 - fbHeight * 2;
+  m_VBlankTimingOdd.PSB = 5;
+  m_VBlankTimingEven.PRB = 503 - fbHeight * 2;
+  m_VBlankTimingEven.PSB = 4;
+  m_PictureConfiguration.WPL = fbWidth / 16;
+  m_PictureConfiguration.STD = fbStride / 16;
+
+  UpdateParameters();
+
+  u32 total_halflines = GetHalfLinesPerEvenField() + GetHalfLinesPerOddField();
+  if ((s_half_line_count - s_even_field_first_hl) % total_halflines <
+      (s_half_line_count - s_odd_field_first_hl) % total_halflines)
+  { // Even/Bottom field is next.
+    m_XFBInfoBottom.FBB = xfbAddress + (interlaced ? fbWidth * 2 : 0);
+  }
+  else
+  { // Odd/Top field is next
+    m_XFBInfoTop.FBB = xfbAddress;
+  }
+}
+
 }  // namespace
