@@ -46,6 +46,7 @@ struct AnalyzedFrameInfo;
 
 // Shitty global to fix a shitty problem
 extern bool IsPlayingBackFifologWithBrokenEFBCopies;
+extern bool IsPlayingBackFifologWithoutVIUpdates;
 
 class FifoPlayer
 {
