@@ -160,7 +160,7 @@ void CMixer::PushSamples(const short* samples, unsigned int num_samples)
   m_dma_mixer.PushSamples(samples, num_samples);
   int sample_rate = m_dma_mixer.GetInputSampleRate();
   if (m_log_dsp_audio)
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate);
+    m_wave_writer_dsp.AddStereoSamples(samples, num_samples, sample_rate);
 }
 
 void CMixer::PushStreamingSamples(const short* samples, unsigned int num_samples)
@@ -168,7 +168,7 @@ void CMixer::PushStreamingSamples(const short* samples, unsigned int num_samples
   m_streaming_mixer.PushSamples(samples, num_samples);
   int sample_rate = m_streaming_mixer.GetInputSampleRate();
   if (m_log_dtk_audio)
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate);
+    m_wave_writer_dtk.AddStereoSamples(samples, num_samples, sample_rate);
 }
 
 void CMixer::PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
