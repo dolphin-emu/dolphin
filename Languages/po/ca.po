@@ -14,7 +14,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-23 18:00+0000\n"
+"PO-Revision-Date: 2016-06-24 10:49+0000\n"
 "Last-Translator: Puniasterus <puniasterus@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ca/)\n"
@@ -405,7 +405,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:65
 msgid "(Error: Unknown)"
-msgstr ""
+msgstr "(Error: Desconegut)"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:33
 msgid ""
@@ -490,7 +490,7 @@ msgstr "<Idioma del sistema>"
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:320
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:384
 msgid "A NetPlay window is already open!"
-msgstr ""
+msgstr "Una finestra NetPlay ja està oberta!"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:121
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:151
@@ -660,7 +660,7 @@ msgstr "Afegir..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:316
 msgid "Address"
-msgstr ""
+msgstr "Adreça"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:850
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -1318,7 +1318,7 @@ msgstr "Connectant..."
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "Tipus de connexió:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
@@ -1958,7 +1958,7 @@ msgstr ""
 
 #: Source/Core/Core/State.cpp:466
 msgid "Empty"
-msgstr ""
+msgstr "Buit"
 
 #: Source/Core/Core/Core.cpp:233
 msgid "Emu Thread already running"
@@ -2357,7 +2357,7 @@ msgstr "Mida FST:"
 
 #: Source/Core/Core/NetPlayClient.cpp:159
 msgid "Failed To Connect!"
-msgstr ""
+msgstr "No s'ha pogut connectar"
 
 #: Source/Core/Core/NetPlayClient.cpp:103
 msgid "Failed to Connect!"
@@ -2501,7 +2501,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:267
 msgid "File"
-msgstr ""
+msgstr "Arxiu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:81
 msgid "File Info"
@@ -2509,7 +2509,7 @@ msgstr "informació del fitxer"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:349
 msgid "File Name"
-msgstr ""
+msgstr "Nom de l'arxiu"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:355
 msgid "File Size"
@@ -2657,12 +2657,12 @@ msgstr ""
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:885
 #, c-format
 msgid "Frame %u"
-msgstr ""
+msgstr "Fotograma %u"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:861
 #, c-format
 msgid "Frame %zu"
-msgstr ""
+msgstr "Fotograma %zu"
 
 #: Source/Core/Core/HotkeyManager.cpp:22
 msgid "Frame Advance"
@@ -2777,7 +2777,7 @@ msgstr "GBA"
 
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:32
 msgid "GC Port "
-msgstr ""
+msgstr "Port GC"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:542
 msgid "GCI File(*.gci)"
@@ -3376,7 +3376,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:192
 msgid "Kick Player"
-msgstr ""
+msgstr "Expulsar jugador"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:156
 msgid "Korea"
@@ -3751,7 +3751,7 @@ msgstr "Micròfon"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:33
 msgid "Microphone"
-msgstr ""
+msgstr "Micròfon"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:293
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:296
@@ -3927,7 +3927,7 @@ msgstr "Nom:"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:351
 msgid "Native (640x528)"
-msgstr ""
+msgstr "Natiu (640x528)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 #: Source/Core/DolphinWX/MemcardManager.cpp:573
@@ -4050,7 +4050,7 @@ msgstr ""
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:598
 #, c-format
 msgid "Object %zu"
-msgstr ""
+msgstr "Objecte %zu"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:117
 msgid "Object Range"
@@ -4273,7 +4273,7 @@ msgstr "Més-Menys"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:83
 #, c-format
 msgid "Port %i"
-msgstr ""
+msgstr "Port %i"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:119
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:157
@@ -4495,7 +4495,7 @@ msgstr "Resultats"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:571
 msgid "Retry"
-msgstr ""
+msgstr "Tornar a intentar"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:21
 msgid "Return"
@@ -5400,7 +5400,7 @@ msgstr "Capturar pantalla"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:549
 msgid "Take screenshot"
-msgstr ""
+msgstr "Fer captura de pantalla"
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:577
 msgid "Test"
@@ -5855,7 +5855,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:45
 msgid "Unlimited"
-msgstr ""
+msgstr "Il·limitat"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:369
 msgid "Unpacking"
@@ -5965,7 +5965,7 @@ msgstr "Volum"
 
 #: Source/Core/Core/HotkeyManager.cpp:42
 msgid "Volume Down"
-msgstr ""
+msgstr "Baixar el volum"
 
 #: Source/Core/Core/HotkeyManager.cpp:44
 msgid "Volume Toggle Mute"
@@ -5973,7 +5973,7 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:43
 msgid "Volume Up"
-msgstr ""
+msgstr "Pujar el volum"
 
 #: Source/Core/DiscIO/NANDContentLoader.cpp:462
 #: Source/Core/DiscIO/NANDContentLoader.cpp:486

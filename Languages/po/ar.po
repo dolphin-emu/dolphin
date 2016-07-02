@@ -11,8 +11,8 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-19 02:25+0000\n"
-"Last-Translator: Pierre Bourdon <delroth@gmail.com>\n"
+"PO-Revision-Date: 2016-06-24 09:16+0000\n"
+"Last-Translator: mansoor <asseryma@hotmail.com>\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
 "Language: ar\n"
@@ -30,9 +30,9 @@ msgid ""
 "This software should not be used to play games you do not legally own.\n"
 msgstr ""
 "\n"
-"Dolphin is a free and open-source GameCube and Wii emulator.\n"
+"محاكي الدولفين مفتوح المصدر لجهاز الجيم كيوب و الوي .\n"
 "\n"
-"This software should not be used to play games you do not legally own.\n"
+"لا ينبغي أن تستخدم هذا البرنامج للعب الألعاب المقرصنة.\n"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:538
 msgid " (internal IP)"
@@ -1372,7 +1372,7 @@ msgstr "توصيل"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:57
 msgid "Connection Type:"
-msgstr ""
+msgstr "نوع الاتصال:"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:266
 msgid "Continuous Scanning"
@@ -1745,7 +1745,7 @@ msgstr "تقوم بتعتيم الشاشة بعد خمس دقائق من الخ�
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:61
 msgid "Direct Connection"
-msgstr ""
+msgstr "اتصال مباشر"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:133
 msgid "Directory checksum and directory backup checksum failed"
@@ -1884,6 +1884,8 @@ msgid ""
 "Dolphin could not find any GameCube/Wii ISOs or WADs. Double-click here to "
 "set a games directory..."
 msgstr ""
+"دولفين لم يتم العثور على أي قرص جيم كيوب / الوي  . انقر نقرا مزدوجا فوق هنا "
+"لوضع دليل الألعاب ..."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:328
 msgid ""
@@ -2132,7 +2134,7 @@ msgstr "تمكين بيانات مكبر صوت"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:61
 msgid "Enable Usage Statistics Reporting"
-msgstr ""
+msgstr "تمكين تقارير إحصائيات الاستخدام "
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:347
 msgid "Enable WideScreen"
@@ -2243,6 +2245,9 @@ msgid ""
 "understand how our users interact with the system. No private data is ever "
 "collected."
 msgstr ""
+"تمكن جمع وتبادل البيانات الإحصائية استخدام مع فريق التطوير دولفين . وتستخدم "
+"هذه البيانات لتحسين المضاهاة و تساعدنا على فهم كيفية تفاعل المستخدمين مع "
+"النظام. لا توجد بيانات خاصه يتم جمعها ."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:68
 msgid "Enables the use of Action Replay and Gecko cheats."
@@ -3032,7 +3037,7 @@ msgstr "الإعدادات العامة"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:62
 msgid "Generate a New Statistics Identity"
-msgstr ""
+msgstr "إنشاء هوية جديد للحصائيات "
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
@@ -3227,7 +3232,7 @@ msgstr " أيقونة"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "Identity generation"
-msgstr ""
+msgstr "إنشاء هوية"
 
 #: Source/Core/DolphinWX/Main.cpp:273
 msgid ""
@@ -3243,6 +3248,16 @@ msgid ""
 "\n"
 "Do you authorize Dolphin to report this information to Dolphin's developers?"
 msgstr ""
+"إذا أذن ، يمكن دولفين جمع بيانات عن أدائها ، واستخدام ميزة ، و الاعدادات، "
+"فضلا عن بيانات عن نظام التشغيل الخاص بك .\n"
+"\n"
+"لا توجد بيانات خاصة يتم جمعها . هذه البيانات تساعدنا على فهم كيف يمكن للناس "
+"و ألعاب محاكاة استخدام دولفين و أولويات جهودنا . كما أنه يساعد لنا تحديد "
+"اعدادات نادرة التي تسبب قضايا الخلل والأداء و الاستقرار .\n"
+"هذا التفويض يمكن إلغاؤه في أي وقت من خلال إعدادات دولفين .\n"
+"\n"
+"\n"
+"هل توافق لدولفين أن يبلغ هذه المعلومات للمطورين دولفين ؟"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Ignore Format Changes"
@@ -4136,7 +4151,7 @@ msgstr "بحث جديد"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:193
 msgid "New identity generated."
-msgstr ""
+msgstr "تم إنشاء هوية جديدة ."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:211
 #: Source/Core/DolphinWX/MemcardManager.cpp:822
@@ -4149,7 +4164,7 @@ msgstr "البحث التالي"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:76
 msgid "Nickname:"
-msgstr ""
+msgstr "الاسم:"
 
 #: Source/Core/Core/ConfigManager.h:18
 msgid "No audio output"
@@ -4535,7 +4550,7 @@ msgstr "خروج"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:207
 msgid "Quit Netplay"
-msgstr ""
+msgstr "الخروج من لعب الشبكه"
 
 #. i18n:  Right
 #: Source/Core/Core/HW/GCPadEmu.cpp:48
@@ -4588,7 +4603,7 @@ msgstr "تسجيل"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:229
 msgid "Record inputs"
-msgstr ""
+msgstr "تسجيل المدخلات"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:156
 msgid "Recording Info"
@@ -4723,7 +4738,7 @@ msgstr "العصا الايمن"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:169
 msgid "Room ID:"
-msgstr ""
+msgstr "معرف الغرفة:"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:293
 #: Source/Core/Core/HW/GCPadEmu.cpp:74
@@ -5739,7 +5754,7 @@ msgstr ""
 #: Source/Core/DiscIO/CompressedBlob.cpp:102
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
-msgstr ""
+msgstr "The disc image \"%s\" is truncated, some of the data is missing."
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1204
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1232
@@ -6004,11 +6019,11 @@ msgstr "الصينية التقليدية"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:62
 msgid "Traversal Server"
-msgstr ""
+msgstr "اجتياز الخادم"
 
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:102
 msgid "Traversal Server:"
-msgstr ""
+msgstr "اجتياز الخادم:"
 
 #: Source/Core/Core/NetPlayClient.cpp:835
 msgid "Traversal server timed out connecting to the host"
@@ -6166,11 +6181,11 @@ msgstr "ويموت مستقيم"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:93
 msgid "Usage Statistics Reporting Settings"
-msgstr ""
+msgstr "إعدادات تقارير إحصائيات الاستخدام "
 
 #: Source/Core/DolphinWX/Main.cpp:284
 msgid "Usage statistics reporting"
-msgstr ""
+msgstr "الإبلاغ عن إحصائيات الاستخدام "
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:71
 msgid ""
@@ -6178,6 +6193,8 @@ msgid ""
 "distinguish users from one another. This button generates a new random "
 "identifier for this machine which is dissociated from the previous one."
 msgstr ""
+"يستخدم التقرير إحصائيات الاستخدام فريدة من نوعها عشوائي معرف لكل جهاز لتمييز "
+"المستخدمين من بعضها البعض . هذا الزر يولد معرف عشوائي جديد لهذا الجهاز ."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:304
 msgid "Use Fullscreen"
@@ -6521,7 +6538,7 @@ msgstr "الكتابة إلى نافذة"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:224
 msgid "Write to memcards/SD"
-msgstr ""
+msgstr "Write to memcards/SD"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:454
 msgid "X"
