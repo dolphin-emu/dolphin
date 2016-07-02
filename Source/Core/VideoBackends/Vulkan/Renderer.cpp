@@ -19,6 +19,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan {
@@ -305,6 +306,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 	// Prep for the next frame (get command buffer ready) before doing anything else.
 	BeginFrame();
 
+  TextureCacheBase::Cleanup(frameCount);
 	UpdateActiveConfig();
 
 	// Handle internal resolution changes

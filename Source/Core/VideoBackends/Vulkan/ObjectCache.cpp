@@ -72,8 +72,8 @@ bool ObjectCache::Initialize()
 	if (!CreateStaticSamplers())
 		return false;
 
-	m_utility_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024, 256 * 1024);
-	m_utility_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 256 * 1024);
+	m_utility_shader_vertex_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
+	m_utility_shader_uniform_buffer = StreamBuffer::Create(this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
 	if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
 		return false;
 
