@@ -162,14 +162,16 @@ void Renderer::BeginFrame()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	VkClearAttachment clear_attachments[2];
-	uint32_t num_clear_attachments = 0;
+  // Native -> EFB coordinates
+  TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
 
 	// Clearing must occur within a render pass.
 	m_state_tracker->BeginRenderPass();
 
 	// fast path: when both color and alpha are enabled, we can blow away the entire buffer
 	// TODO: Can we also do it when the buffer is not an RGBA format?
+  VkClearAttachment clear_attachments[2];
+  uint32_t num_clear_attachments = 0;
 	if (colorEnable && alphaEnable)
 	{
 		clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -196,7 +198,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			m_object_cache->GetStaticShaderCache().GetClearFragmentShader());
 
     draw.SetBlendState(blend_state);
-		draw.DrawColoredQuad(0, 0, m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
+		draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
 			float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
 			float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
 
@@ -214,18 +216,17 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	if (num_clear_attachments > 0)
 	{
-		// Native -> EFB coordinates
-		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-		VkClearRect rect =
-		{
-			{																									// VkRect2D    rect
-				{ targetRc.left, targetRc.top },																// VkOffset2D  offset
-				{ static_cast<uint32_t>(targetRc.GetWidth()), static_cast<uint32_t>(targetRc.GetHeight()) }		// VkExtent2D  extent
-			},
-			0,																									// uint32_t    baseArrayLayer
-			m_framebuffer_mgr->GetEFBLayers()																	// uint32_t    layerCount
-		};
-		vkCmdClearAttachments(m_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments, clear_attachments, 1, &rect);
+    VkClearRect rect;
+    rect.rect.offset = { target_rc.left, target_rc.top };
+    rect.rect.extent = {
+      static_cast<uint32_t>(target_rc.GetWidth()),
+      static_cast<uint32_t>(target_rc.GetHeight())
+    };
+
+    rect.baseArrayLayer = 0;
+    rect.layerCount = m_framebuffer_mgr->GetEFBLayers();
+
+    vkCmdClearAttachments(m_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments, clear_attachments, 1, &rect);
 	}
 }
 
