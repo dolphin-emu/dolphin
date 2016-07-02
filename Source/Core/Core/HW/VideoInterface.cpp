@@ -11,6 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
@@ -550,8 +551,8 @@ float GetAspectRatio()
 
   // 5. Calculate the final ratio and scale to 4:3
   float ratio = horizontal_active_ratio / vertical_active_ratio;
-  if (std::isnormal(
-          ratio))  // Check we have a sane ratio and haven't propagated any infs/nans/zeros
+  if (std::isnormal(ratio) && // Check we have a sane ratio without any infs/nans/zeros
+      !IsPlayingBackFifologWithoutVIUpdates) // we don't know the correct ratio for fifos
     return ratio * (4.0f / 3.0f);  // Scale to 4:3
   else
     return (4.0f / 3.0f);  // VI isn't initialized correctly, just return 4:3 instead
