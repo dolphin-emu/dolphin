@@ -279,6 +279,8 @@ void VideoBackend::Video_Prepare()
 	g_framebuffer_manager = std::make_unique<FramebufferManager>(s_object_cache.get(), s_command_buffer_mgr.get());
 	g_texture_cache = std::make_unique<TextureCache>(s_object_cache.get(), s_command_buffer_mgr.get(), s_state_tracker.get());
 	g_renderer = std::make_unique<Renderer>(s_object_cache.get(), s_command_buffer_mgr.get(), s_swap_chain.get(), s_state_tracker.get());
+  if (!static_cast<Renderer*>(g_renderer.get())->Initialize())
+    PanicAlert("Failed to initialize renderer");
 }
 
 void VideoBackend::Shutdown()

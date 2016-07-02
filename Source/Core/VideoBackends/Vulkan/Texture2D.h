@@ -28,6 +28,7 @@ public:
 	u32 GetLevels() const { return m_levels; }
 	u32 GetLayers() const { return m_layers; }
 	VkFormat GetFormat() const { return m_format; }
+  VkImageLayout GetLayout() const { return m_layout; }
 	VkImageViewType GetViewType() const { return m_view_type; }
 
 	VkImage GetImage() const { return m_image; }

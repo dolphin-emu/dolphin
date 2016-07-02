@@ -15,6 +15,7 @@
 #include "VideoBackends/Vulkan/Util.h"
 
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/SamplerCommon.h"
@@ -29,32 +30,7 @@ Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buff
 	, m_swap_chain(swap_chain)
 	, m_state_tracker(state_tracker)
 {
-	g_Config.bRunning = true;
-	UpdateActiveConfig();
-
-	// Work around the stupid static crap
-	m_framebuffer_mgr = static_cast<FramebufferManager*>(g_framebuffer_manager.get());
-	VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
-	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
-	m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
-
-	if (!CreateSemaphores())
-		PanicAlert("Failed to create Renderer semaphores");
-
-  m_raster_font = std::make_unique<RasterFont>(m_object_cache, m_command_buffer_mgr);
-  if (!m_raster_font->Initialize())
-    PanicAlert("Failed to initialize raster font");
-
-	// Initialize annoying statics
-	s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
-	// Update backbuffer dimensions
-	OnSwapChainResized();
-
-	// Various initialization routines will have executed commands on the command buffer (which is currently the last one).
-	// Execute what we have done before moving to the first buffer for the first frame.
-	m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
-	BeginFrame();
+	
 }
 
 Renderer::~Renderer()
@@ -62,6 +38,38 @@ Renderer::~Renderer()
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
 	DestroySemaphores();
+}
+
+bool Renderer::Initialize()
+{
+  g_Config.bRunning = true;
+  UpdateActiveConfig();
+
+  // Work around the stupid static crap
+  m_framebuffer_mgr = static_cast<FramebufferManager*>(g_framebuffer_manager.get());
+  VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
+  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
+  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+
+  if (!CreateSemaphores())
+    return false;
+
+  m_raster_font = std::make_unique<RasterFont>(m_object_cache, m_command_buffer_mgr);
+  if (!m_raster_font->Initialize())
+    return false;
+
+  // Initialize annoying statics
+  s_last_efb_scale = g_ActiveConfig.iEFBScale;
+
+  // Update backbuffer dimensions
+  OnSwapChainResized();
+
+  // Various initialization routines will have executed commands on the command buffer (which is currently the last one).
+  // Execute what we have done before moving to the first buffer for the first frame.
+  m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
+  BeginFrame();
+
+  return true;
 }
 
 bool Renderer::CreateSemaphores()
@@ -186,6 +194,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			m_object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
 			m_object_cache->GetStaticShaderCache().GetClearFragmentShader());
 
+    draw.SetBlendState(blend_state);
 		draw.DrawColoredQuad(0, 0, m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(),
 			float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
 			float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
@@ -329,6 +338,10 @@ void Renderer::ResizeEFBTextures()
 	VkRect2D framebuffer_render_area = { { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
 	m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
 	m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+
+  // Viewport and scissor rect have to be reset since they will be scaled differently.
+  SetViewport();
+  BPFunctions::SetScissor();
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)
@@ -423,7 +436,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// Fast path for subtract blending
 	else if (bpmem.blendmode.subtract)
 	{
-		new_blend_state.blend_enable = VK_FALSE;
+		new_blend_state.blend_enable = VK_TRUE;
 		new_blend_state.blend_op = VK_BLEND_OP_REVERSE_SUBTRACT;
 		new_blend_state.src_blend = VK_BLEND_FACTOR_ONE;
 		new_blend_state.dst_blend = VK_BLEND_FACTOR_ONE;
