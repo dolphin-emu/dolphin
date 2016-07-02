@@ -23,6 +23,10 @@ public:
 	StateTracker(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr);
 	~StateTracker();
 
+  const RasterizationState &GetRasterizationState() const { return m_pipeline_state.rasterization_state; }
+  const DepthStencilState &GetDepthStencilState() const { return m_pipeline_state.depth_stencil_state; }
+  const BlendState &GetBlendState() const { return m_pipeline_state.blend_state; }
+
 	void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
 	void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
@@ -38,9 +42,6 @@ public:
 	void SetRasterizationState(const RasterizationState& state);
 	void SetDepthStencilState(const DepthStencilState& state);
 	void SetBlendState(const BlendState& state);
-
-	u32 GetColorWriteMask() const { return m_pipeline_state.blend_state.write_mask; }
-	void SetColorMask(u32 mask);
 
 	bool CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode);
 

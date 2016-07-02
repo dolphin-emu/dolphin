@@ -56,6 +56,8 @@ BlendState GetNoBlendingBlendState()
 	state.src_blend = VK_BLEND_FACTOR_ONE;
 	state.dst_blend = VK_BLEND_FACTOR_ZERO;
 	state.use_dst_alpha = VK_FALSE;
+  state.logic_op_enable = VK_FALSE;
+  state.logic_op = VK_LOGIC_OP_NO_OP;
 	return state;
 }
 

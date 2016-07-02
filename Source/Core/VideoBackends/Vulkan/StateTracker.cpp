@@ -36,6 +36,8 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
 	m_pipeline_state.blend_state.src_blend = VK_BLEND_FACTOR_ONE;
 	m_pipeline_state.blend_state.dst_blend = VK_BLEND_FACTOR_ZERO;
 	m_pipeline_state.blend_state.use_dst_alpha = VK_FALSE;
+  m_pipeline_state.blend_state.logic_op_enable = VK_FALSE;
+  m_pipeline_state.blend_state.logic_op = VK_LOGIC_OP_NO_OP;
 
 	// Initialize all samplers to point by default
 	for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
@@ -159,15 +161,6 @@ void StateTracker::SetBlendState(const BlendState& state)
 		return;
 
 	m_pipeline_state.blend_state.hex = state.hex;
-	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
-}
-
-void StateTracker::SetColorMask(u32 mask)
-{
-	if (m_pipeline_state.blend_state.write_mask == mask)
-		return;
-
-	m_pipeline_state.blend_state.write_mask = mask;
 	m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 

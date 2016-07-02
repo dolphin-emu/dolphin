@@ -90,6 +90,8 @@ union BlendState
 	BitField<8, 5, VkBlendFactor> src_blend;
 	BitField<13, 5, VkBlendFactor> dst_blend;
 	BitField<18, 1, u32> use_dst_alpha;
+  BitField<19, 1, u32> logic_op_enable;
+  BitField<20, 4, VkLogicOp> logic_op;
 
 	u32 hex;
 };

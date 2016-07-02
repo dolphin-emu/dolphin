@@ -415,15 +415,17 @@ void Renderer::SetColorMask()
 			color_mask |= VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
 	}
 
-	m_state_tracker->SetColorMask(color_mask);
+  BlendState new_blend_state = {};
+  new_blend_state.hex = m_state_tracker->GetBlendState().hex;
+  new_blend_state.write_mask = color_mask;
+
+	m_state_tracker->SetBlendState(new_blend_state);
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
 	BlendState new_blend_state = {};
-
-	// Keep saved color mask
-	new_blend_state.write_mask = m_state_tracker->GetColorWriteMask();
+  new_blend_state.hex = m_state_tracker->GetBlendState().hex;
 
 	// Fast path for blending disabled
 	if (!bpmem.blendmode.blendenable)
@@ -490,7 +492,29 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::SetLogicOpMode()
 {
-	// TODO: Implement me
+  // TODO: Verify logic op support
+  BlendState new_blend_state = {};
+  new_blend_state.hex = m_state_tracker->GetBlendState().hex;
+
+  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
+  {
+    static const std::array<VkLogicOp, 16> logic_ops =
+    {
+      VK_LOGIC_OP_CLEAR,          VK_LOGIC_OP_AND,          VK_LOGIC_OP_AND_REVERSE,  VK_LOGIC_OP_COPY,       VK_LOGIC_OP_AND_INVERTED, VK_LOGIC_OP_NO_OP,
+      VK_LOGIC_OP_XOR,            VK_LOGIC_OP_OR,           VK_LOGIC_OP_NOR,          VK_LOGIC_OP_EQUIVALENT, VK_LOGIC_OP_INVERT,       VK_LOGIC_OP_OR_REVERSE,
+      VK_LOGIC_OP_COPY_INVERTED,  VK_LOGIC_OP_OR_INVERTED,  VK_LOGIC_OP_NAND,         VK_LOGIC_OP_SET
+    };
+
+    new_blend_state.logic_op_enable = VK_TRUE;
+    new_blend_state.logic_op = logic_ops[bpmem.blendmode.logicmode];
+  }
+  else
+  {
+    new_blend_state.logic_op_enable = VK_FALSE;
+    new_blend_state.logic_op = VK_LOGIC_OP_NO_OP;
+  }
+
+  m_state_tracker->SetBlendState(new_blend_state);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)

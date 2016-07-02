@@ -190,17 +190,19 @@ static VkPipelineColorBlendAttachmentState GetVulkanAttachmentBlendState(const B
 
 static VkPipelineColorBlendStateCreateInfo GetVulkanColorBlendState(const BlendState& state, const VkPipelineColorBlendAttachmentState* attachments, uint32_t num_attachments)
 {
-	// TODO: Logic ops
-	return {
-		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-		nullptr,
-		0,																	// VkPipelineColorBlendStateCreateFlags          flags
-		VK_FALSE,															// VkBool32                                      logicOpEnable
-		VK_LOGIC_OP_CLEAR,													// VkLogicOp                                     logicOp
-		num_attachments,													// uint32_t                                      attachmentCount
-		attachments,														// const VkPipelineColorBlendAttachmentState*    pAttachments
-		{ 1.0f, 1.0f, 1.0f, 1.0f }											// float                                         blendConstants[4]
+	VkPipelineColorBlendStateCreateInfo vk_state =
+  {
+		VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,   // VkStructureType                               sType
+		nullptr,                                                    // const void*                                   pNext
+		0,                                                          // VkPipelineColorBlendStateCreateFlags          flags
+		state.logic_op_enable,                                      // VkBool32                                      logicOpEnable
+		state.logic_op,                                             // VkLogicOp                                     logicOp
+		num_attachments,                                            // uint32_t                                      attachmentCount
+		attachments,                                                // const VkPipelineColorBlendAttachmentState*    pAttachments
+    { 1.0f, 1.0f, 1.0f, 1.0f }                                  // float                                         blendConstants[4]
 	};
+
+  return vk_state;
 }
 
 VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
