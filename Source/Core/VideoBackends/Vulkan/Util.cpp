@@ -173,8 +173,10 @@ u8* UtilityShaderDraw::AllocateVSUniforms(size_t size)
 void UtilityShaderDraw::CommitVSUniforms(size_t size)
 {
   m_vs_uniform_buffer.buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  m_vs_uniform_buffer.offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
+  m_vs_uniform_buffer.offset = 0;
   m_vs_uniform_buffer.range = size;
+  m_ubo_offsets[UBO_DESCRIPTOR_SET_BINDING_VS] =
+      static_cast<uint32_t>(m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset());
 
   m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
 }
@@ -191,8 +193,10 @@ u8* UtilityShaderDraw::AllocatePSUniforms(size_t size)
 void UtilityShaderDraw::CommitPSUniforms(size_t size)
 {
   m_ps_uniform_buffer.buffer = m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
-  m_ps_uniform_buffer.offset = m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset();
+  m_ps_uniform_buffer.offset = 0;
   m_ps_uniform_buffer.range = size;
+  m_ubo_offsets[UBO_DESCRIPTOR_SET_BINDING_PS] =
+      static_cast<uint32_t>(m_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset());
 
   m_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
 }
@@ -348,8 +352,10 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> bind_descriptor_sets = {};
   std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS>
       set_writes = {};
-  std::array<uint32_t, NUM_UBO_DESCRIPTOR_SET_BINDINGS> dynamic_offsets = {};
   uint32_t num_set_writes = 0;
+
+  VkDescriptorBufferInfo dummy_uniform_buffer = {
+      m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer(), 0, 1};
 
   // uniform buffers
   if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE || m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
@@ -359,36 +365,31 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
-    if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE)
-    {
-      set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                      nullptr,
-                                      set,
-                                      UBO_DESCRIPTOR_SET_BINDING_VS,
-                                      0,
-                                      1,
-                                      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                                      nullptr,
-                                      &m_vs_uniform_buffer,
-                                      nullptr};
-    }
+    set_writes[num_set_writes++] = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set, UBO_DESCRIPTOR_SET_BINDING_VS, 0, 1,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr,
+        (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_vs_uniform_buffer :
+                                                         &dummy_uniform_buffer,
+        nullptr};
 
-    if (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
-    {
-      set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                      nullptr,
-                                      set,
-                                      UBO_DESCRIPTOR_SET_BINDING_PS,
-                                      0,
-                                      1,
-                                      VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                                      nullptr,
-                                      &m_ps_uniform_buffer,
-                                      nullptr};
-    }
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    UBO_DESCRIPTOR_SET_BINDING_GS,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                    nullptr,
+                                    &dummy_uniform_buffer,
+                                    nullptr};
 
-    // We use a slow path here and just bind dynamic offsets of zero, since we have to update the
-    // binding anyway.
+    set_writes[num_set_writes++] = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, set, UBO_DESCRIPTOR_SET_BINDING_PS, 0, 1,
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr,
+        (m_ps_uniform_buffer.buffer != VK_NULL_HANDLE) ? &m_ps_uniform_buffer :
+                                                         &dummy_uniform_buffer,
+        nullptr};
+
     bind_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
   }
 
@@ -444,7 +445,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_object_cache->GetPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
                             &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            dynamic_offsets.data());
+                            m_ubo_offsets.data());
   }
   else if (bind_descriptor_sets[0] == VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
@@ -459,7 +460,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_object_cache->GetPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
                             bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            dynamic_offsets.data());
+                            m_ubo_offsets.data());
   }
 }
 
