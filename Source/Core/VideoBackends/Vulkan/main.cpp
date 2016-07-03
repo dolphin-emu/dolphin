@@ -38,6 +38,7 @@ namespace Vulkan
 {
 // TODO: Move this to config.
 static bool ENABLE_DEBUG_LAYER = false;
+static bool USE_THREADED_SUBMISSION = true;
 
 // Can we do anything about these globals?
 static VkInstance s_vkInstance;
@@ -219,7 +220,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // create command buffers
   s_command_buffer_mgr = std::make_unique<CommandBufferManager>(
-      s_vkDevice, graphics_queue_family_index, graphics_queue);
+      s_vkDevice, graphics_queue_family_index, graphics_queue, USE_THREADED_SUBMISSION);
   if (!s_command_buffer_mgr->Initialize())
   {
     PanicAlert("Failed to create vulkan command buffers");

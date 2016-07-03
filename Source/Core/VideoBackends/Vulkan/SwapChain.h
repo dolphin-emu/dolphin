@@ -29,6 +29,7 @@ public:
   VkSwapchainKHR GetSwapChain() const { return m_swap_chain; }
   VkRenderPass GetRenderPass() const { return m_render_pass; }
   VkExtent2D GetSize() const { return m_size; }
+  uint32_t GetCurrentImageIndex() const { return m_current_swap_chain_image_index; }
   VkImage GetCurrentImage() const
   {
     return m_swap_chain_images[m_current_swap_chain_image_index].Image;

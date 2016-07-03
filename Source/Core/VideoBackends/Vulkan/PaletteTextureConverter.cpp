@@ -97,7 +97,8 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
       (descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
           VK_NULL_HANDLE)
   {
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker);
+    WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
+    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker, false);
     if (!uniform_buffer->ReserveMemory(sizeof(PSUniformBlock),
                                        m_object_cache->GetUniformBufferAlignment()) ||
         !m_palette_stream_buffer->ReserveMemory(palette_size,

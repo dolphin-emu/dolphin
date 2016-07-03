@@ -84,7 +84,8 @@ void VertexManager::ResetBuffer(u32 stride)
   if (!has_vbuffer_allocation || !has_ibuffer_allocation)
   {
     // Flush any pending commands first, so that we can wait on the fences
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker);
+    WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
+    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker, false);
 
     // Attempt to allocate again, this may cause a fence wait
     if (!has_vbuffer_allocation)
