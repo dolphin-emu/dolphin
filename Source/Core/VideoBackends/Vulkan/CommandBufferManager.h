@@ -49,11 +49,9 @@ public:
   void PrepareToSubmitCommandBuffer();
 
   void SubmitCommandBuffer(bool submit_off_thread);
-  void SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore,
-                                     VkSemaphore signal_semaphore,
+  void SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,
                                      VkSwapchainKHR present_swap_chain,
-                                     uint32_t present_image_index,
-                                     bool submit_off_thread);
+                                     uint32_t present_image_index, bool submit_off_thread);
 
   void ActivateCommandBuffer();
 
@@ -87,11 +85,8 @@ private:
 
   bool CreateSubmitThread();
 
-  void SubmitCommandBuffer(size_t index,
-                           VkSemaphore wait_semaphore,
-                           VkSemaphore signal_semaphore,
-                           VkSwapchainKHR present_swap_chain,
-                           uint32_t present_image_index);
+  void SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,
+                           VkSwapchainKHR present_swap_chain, uint32_t present_image_index);
 
   VkDevice m_device = nullptr;
   uint32_t m_graphics_queue_family_index = 0;

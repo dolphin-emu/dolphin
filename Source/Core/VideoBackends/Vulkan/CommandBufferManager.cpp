@@ -195,10 +195,8 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
 bool CommandBufferManager::CreateSubmitThread()
 {
   m_submit_loop = std::make_unique<Common::BlockingLoop>();
-  m_submit_thread = std::thread([this]()
-  {
-    m_submit_loop->Run([this]()
-    {
+  m_submit_thread = std::thread([this]() {
+    m_submit_loop->Run([this]() {
       PendingCommandBufferSubmit submit;
       {
         std::lock_guard<std::mutex> guard(m_pending_submit_lock);
@@ -212,11 +210,8 @@ bool CommandBufferManager::CreateSubmitThread()
         m_pending_submits.pop_front();
       }
 
-      SubmitCommandBuffer(submit.index,
-                          submit.wait_semaphore,
-                          submit.signal_semaphore,
-                          submit.present_swap_chain,
-                          submit.present_image_index);
+      SubmitCommandBuffer(submit.index, submit.wait_semaphore, submit.signal_semaphore,
+                          submit.present_swap_chain, submit.present_image_index);
     });
   });
 
@@ -248,9 +243,8 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
     // Push to the pending submit queue.
     {
       std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_pending_submits.push_back({ m_current_command_buffer_index,
-                                    VK_NULL_HANDLE, VK_NULL_HANDLE,
-                                    VK_NULL_HANDLE, 0 });
+      m_pending_submits.push_back(
+          {m_current_command_buffer_index, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, 0});
     }
 
     // Wake up the worker thread for a single iteration.
@@ -259,8 +253,7 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
   else
   {
     // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_command_buffer_index,
-                        VK_NULL_HANDLE, VK_NULL_HANDLE,
+    SubmitCommandBuffer(m_current_command_buffer_index, VK_NULL_HANDLE, VK_NULL_HANDLE,
                         VK_NULL_HANDLE, 0);
   }
 
@@ -290,10 +283,8 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
     // Push to the pending submit queue.
     {
       std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_pending_submits.push_back({ m_current_command_buffer_index,
-                                    wait_semaphore, signal_semaphore,
-                                    present_swap_chain,
-                                    present_image_index });
+      m_pending_submits.push_back({m_current_command_buffer_index, wait_semaphore, signal_semaphore,
+                                   present_swap_chain, present_image_index});
     }
 
     // Wake up the worker thread for a single iteration.
@@ -302,10 +293,8 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
   else
   {
     // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_command_buffer_index,
-                        wait_semaphore, signal_semaphore,
-                        present_swap_chain,
-                        present_image_index);
+    SubmitCommandBuffer(m_current_command_buffer_index, wait_semaphore, signal_semaphore,
+                        present_swap_chain, present_image_index);
   }
 
   // Fire fence tracking callbacks. This can't happen on the worker thread.
@@ -313,23 +302,16 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
     iter.second.first(m_fences[m_current_command_buffer_index]);
 }
 
-void CommandBufferManager::SubmitCommandBuffer(size_t index,
-                                               VkSemaphore wait_semaphore,
+void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore,
                                                VkSemaphore signal_semaphore,
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
   // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-  VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                              nullptr,
-                              0,
-                              nullptr,
-                              &wait_bits,
-                              1,
-                              &m_command_buffers[index],
-                              0,
-                              nullptr};
+  VkSubmitInfo submit_info = {
+      VK_STRUCTURE_TYPE_SUBMIT_INFO, nullptr, 0,      nullptr, &wait_bits, 1,
+      &m_command_buffers[index],     0,       nullptr};
 
   if (wait_semaphore != VK_NULL_HANDLE)
   {
@@ -355,11 +337,16 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index,
   {
     // Should have a signal semaphore.
     assert(signal_semaphore != VK_NULL_HANDLE);
-    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, nullptr, 1,
-                                     &signal_semaphore,      1,       &present_swap_chain,
-                                     &present_image_index,  nullptr};
+    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+                                     nullptr,
+                                     1,
+                                     &signal_semaphore,
+                                     1,
+                                     &present_swap_chain,
+                                     &present_image_index,
+                                     nullptr};
 
-    VkResult res = vkQueuePresentKHR(m_graphics_queue, &present_info);
+    res = vkQueuePresentKHR(m_graphics_queue, &present_info);
     if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
       LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
   }
@@ -372,8 +359,8 @@ void CommandBufferManager::ActivateCommandBuffer()
 {
   // Move to the next command buffer.
   m_current_command_buffer_index = (m_current_command_buffer_index + 1) % NUM_COMMAND_BUFFERS;
-  VkResult res = vkWaitForFences(m_device, 1, &m_fences[m_current_command_buffer_index], true,
-                                 UINT64_MAX);
+  VkResult res =
+      vkWaitForFences(m_device, 1, &m_fences[m_current_command_buffer_index], true, UINT64_MAX);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 

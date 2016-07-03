@@ -25,10 +25,8 @@ StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* comm
 {
   // Add a callback that fires on fence point creation and signal
   command_buffer_mgr->AddFencePointCallback(
-      this,
-      [this](VkFence fence) { this->OnFencePointCreated(fence); },
-      [this](VkFence fence) { this->OnFencePointReached(fence); }
-  );
+      this, [this](VkFence fence) { this->OnFencePointCreated(fence); },
+      [this](VkFence fence) { this->OnFencePointReached(fence); });
 }
 
 StreamBuffer::~StreamBuffer()

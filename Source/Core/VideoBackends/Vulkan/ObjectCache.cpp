@@ -336,14 +336,14 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
   // Combine to pipeline info
   VkGraphicsPipelineCreateInfo pipeline_info = {
       VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      nullptr,               // VkStructureType sType
-      0,                     // VkPipelineCreateFlags                            flags
-      num_shader_stages,     // uint32_t                                         stageCount
-      shader_stages,         // const VkPipelineShaderStageCreateInfo*           pStages
-      &vertex_input_state,   // const VkPipelineVertexInputStateCreateInfo*      pVertexInputState
-      &input_assembly_state, // const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState
-      nullptr,               // const VkPipelineTessellationStateCreateInfo*     pTessellationState
-      &viewport_state,       // const VkPipelineViewportStateCreateInfo*         pViewportState
+      nullptr,                // VkStructureType sType
+      0,                      // VkPipelineCreateFlags                            flags
+      num_shader_stages,      // uint32_t                                         stageCount
+      shader_stages,          // const VkPipelineShaderStageCreateInfo*           pStages
+      &vertex_input_state,    // const VkPipelineVertexInputStateCreateInfo*      pVertexInputState
+      &input_assembly_state,  // const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState
+      nullptr,                // const VkPipelineTessellationStateCreateInfo*     pTessellationState
+      &viewport_state,        // const VkPipelineViewportStateCreateInfo*         pViewportState
       &rasterization_state,  // const VkPipelineRasterizationStateCreateInfo*    pRasterizationState
       &multisample_state,    // const VkPipelineMultisampleStateCreateInfo*      pMultisampleState
       &depth_stencil_state,  // const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState
@@ -586,9 +586,7 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 std::size_t PipelineInfoHash::operator()(const PipelineInfo& key) const
 {
   // TODO: Is this a good choice?
-  return static_cast<size_t>(GetMurmurHash3(reinterpret_cast<const u8*>(&key),
-                                            sizeof(key),
-                                            0));
+  return static_cast<size_t>(GetMurmurHash3(reinterpret_cast<const u8*>(&key), sizeof(key), 0));
 }
 
 bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs)
