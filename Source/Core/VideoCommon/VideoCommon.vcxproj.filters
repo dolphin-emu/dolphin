@@ -158,6 +158,9 @@
     <ClCompile Include="GeometryShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
+    <ClCompile Include="LightingShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
     <ClCompile Include="VRTracker.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -154,74 +154,6 @@ public:
 private:
   std::vector<bool> constant_usage;  // TODO: Is vector<bool> appropriate here?
 };
-/**
- * Checks if there has been
- */
-template <class UidT, class CodeT>
-class UidChecker
-{
-public:
-  void Invalidate()
-  {
-    m_shaders.clear();
-    m_uids.clear();
-  }
-
-  void AddToIndexAndCheck(CodeT& new_code, const UidT& new_uid, const char* shader_type,
-                          const char* dump_prefix)
-  {
-    bool uid_is_indexed = std::find(m_uids.begin(), m_uids.end(), new_uid) != m_uids.end();
-    if (!uid_is_indexed)
-    {
-      m_uids.push_back(new_uid);
-      m_shaders[new_uid] = new_code.GetBuffer();
-    }
-    else
-    {
-      // uid is already in the index => check if there's a shader with the same uid but different
-      // code
-      auto& old_code = m_shaders[new_uid];
-      if (old_code != new_code.GetBuffer())
-      {
-        static int num_failures = 0;
-
-        std::string temp =
-            StringFromFormat("%s%ssuid_mismatch_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-                             dump_prefix, ++num_failures);
-
-        // TODO: Should also dump uids
-        std::ofstream file;
-        OpenFStream(file, temp, std::ios_base::out);
-        file << "Old shader code:\n" << old_code;
-        file << "\n\nNew shader code:\n" << new_code.GetBuffer();
-        file << "\n\nShader uid:\n";
-        for (unsigned int i = 0; i < new_uid.GetUidDataSize(); ++i)
-        {
-          u8 value = new_uid.GetUidDataRaw()[i];
-          if ((i % 4) == 0)
-          {
-            auto last_value =
-                (i + 3 < new_uid.GetUidDataSize() - 1) ? i + 3 : new_uid.GetUidDataSize();
-            file << std::setfill(' ') << std::dec;
-            file << "Values " << std::setw(2) << i << " - " << last_value << ": ";
-          }
-
-          file << std::setw(2) << std::setfill('0') << std::hex << value << std::setw(1);
-          if ((i % 4) < 3)
-            file << ' ';
-          else
-            file << std::endl;
-        }
-
-        ERROR_LOG(VIDEO, "%s shader uid mismatch! See %s for details", shader_type, temp.c_str());
-      }
-    }
-  }
-
-private:
-  std::map<UidT, std::string> m_shaders;
-  std::vector<UidT> m_uids;
-};
 
 template <class T>
 inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier,
@@ -245,40 +177,41 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template <class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 numTexGens,
-                                    const char* qualifier)
+inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens,
+                                    bool per_pixel_lighting, const char* qualifier)
 {
   DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 0, "COLOR", 0);
   DefineOutputMember(object, api_type, qualifier, "float4", "colors_", 1, "COLOR", 1);
 
-  for (unsigned int i = 0; i < numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     DefineOutputMember(object, api_type, qualifier, "float3", "tex", i, "TEXCOORD", i);
 
-  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", numTexGens);
+  DefineOutputMember(object, api_type, qualifier, "float4", "clipPos", -1, "TEXCOORD", texgens);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
     DefineOutputMember(object, api_type, qualifier, "float3", "Normal", -1, "TEXCOORD",
-                       numTexGens + 1);
+                       texgens + 1);
     DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
-                       numTexGens + 2);
+                       texgens + 2);
   }
 }
 
 template <class T>
-inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
+inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 texgens,
+                                  bool per_pixel_lighting)
 {
   object.Write("\t%s.pos = %s.pos;\n", a, b);
   object.Write("\t%s.colors_0 = %s.colors_0;\n", a, b);
   object.Write("\t%s.colors_1 = %s.colors_1;\n", a, b);
 
-  for (unsigned int i = 0; i < xfmem.numTexGen.numTexGens; ++i)
+  for (unsigned int i = 0; i < texgens; ++i)
     object.Write("\t%s.tex%d = %s.tex%d;\n", a, i, b, i);
 
   object.Write("\t%s.clipPos = %s.clipPos;\n", a, b);
 
-  if (g_ActiveConfig.bEnablePixelLighting)
+  if (per_pixel_lighting)
   {
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
@@ -293,23 +226,24 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b)
 // As a workaround, we interpolate at the centroid of the coveraged pixel, which
 // is always inside the primitive.
 // Without MSAA, this flag is defined to have no effect.
-inline const char* GetInterpolationQualifier(bool in_glsl_interface_block = false, bool in = false)
+inline const char* GetInterpolationQualifier(bool msaa, bool ssaa,
+                                             bool in_glsl_interface_block = false, bool in = false)
 {
-  if (g_ActiveConfig.iMultisamples <= 1)
+  if (!msaa)
     return "";
 
   // Without GL_ARB_shading_language_420pack support, the interpolation qualifier must be
   // "centroid in" and not "centroid", even within an interface block.
   if (in_glsl_interface_block && !g_ActiveConfig.backend_info.bSupportsBindingLayout)
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return in ? "centroid in" : "centroid out";
     else
       return in ? "sample in" : "sample out";
   }
   else
   {
-    if (!g_ActiveConfig.bSSAA)
+    if (!ssaa)
       return "centroid";
     else
       return "sample";

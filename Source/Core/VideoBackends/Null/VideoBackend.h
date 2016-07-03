@@ -22,7 +22,7 @@ class VideoBackend : public VideoBackendBase
   void Video_Cleanup() override;
   void Video_CleanupOtherThread() override;
 
-  void ShowConfig(void* parent) override;
+  void InitBackendInfo() override;
 
   unsigned int PeekMessages() override { return 0; }
 };

@@ -83,6 +83,7 @@
     <ClCompile Include="PixelShaderManager.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="RenderBase.cpp" />
+    <ClCompile Include="LightingShaderGen.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
     <ClCompile Include="GeometryShaderManager.cpp" />

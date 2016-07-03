@@ -25,7 +25,7 @@ class VideoBackend : public VideoBackendBase
   void Video_CleanupOtherThread() override;
   bool Video_CanDoAsync() override;
 
-  void ShowConfig(void* parent) override;
+  void InitBackendInfo() override;
 
   unsigned int PeekMessages() override;
 };

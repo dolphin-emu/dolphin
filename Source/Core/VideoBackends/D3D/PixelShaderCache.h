@@ -43,8 +43,6 @@ private:
   {
     ID3D11PixelShader* shader;
 
-    std::string code;
-
     PSCacheEntry() : shader(nullptr) {}
     void Destroy() { SAFE_RELEASE(shader); }
   };
@@ -54,8 +52,6 @@ private:
   static PSCache PixelShaders;
   static const PSCacheEntry* last_entry;
   static PixelShaderUid last_uid;
-
-  static UidChecker<PixelShaderUid, ShaderCode> pixel_uid_checker;
 };
 
 }  // namespace DX11

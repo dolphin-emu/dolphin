@@ -20,17 +20,13 @@
 #include "DolphinWX/VideoConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
-SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title,
-                                                     const std::string& ininame)
+SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std::string& title)
     : wxDialog(parent, wxID_ANY,
                wxString(wxString::Format(_("Dolphin %s Graphics Configuration"), title)))
 {
   VideoConfig& vconfig = g_Config;
 
-  if (File::Exists(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini"))
-    vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
-  else
-    vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + ininame + ".ini");
+  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
 
   wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
 

@@ -25,7 +25,6 @@ namespace DX11
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry* VertexShaderCache::last_entry;
 VertexShaderUid VertexShaderCache::last_uid;
-UidChecker<VertexShaderUid, ShaderCode> VertexShaderCache::vertex_uid_checker;
 
 static ID3D11VertexShader* SimpleVertexShader = nullptr;
 static ID3D11VertexShader* ClearVertexShader = nullptr;
@@ -205,9 +204,6 @@ void VertexShaderCache::Init()
   VertexShaderCacheInserter inserter;
   g_vs_disk_cache.OpenAndRead(cache_filename, inserter);
 
-  if (g_Config.bEnableShaderDebugging)
-    Clear();
-
   last_entry = nullptr;
 }
 
@@ -216,7 +212,6 @@ void VertexShaderCache::Clear()
   for (auto& iter : vshaders)
     iter.second.Destroy();
   vshaders.clear();
-  vertex_uid_checker.Invalidate();
 
   last_entry = nullptr;
 }
@@ -240,12 +235,7 @@ void VertexShaderCache::Shutdown()
 
 bool VertexShaderCache::SetShader()
 {
-  VertexShaderUid uid = GetVertexShaderUid(API_D3D);
-  if (g_ActiveConfig.bEnableShaderDebugging)
-  {
-    ShaderCode code = GenerateVertexShaderCode(API_D3D);
-    vertex_uid_checker.AddToIndexAndCheck(code, uid, "Vertex", "v");
-  }
+  VertexShaderUid uid = GetVertexShaderUid();
 
   if (last_entry)
   {
@@ -268,7 +258,7 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(API_D3D);
+  ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);
@@ -282,11 +272,6 @@ bool VertexShaderCache::SetShader()
 
   bool success = InsertByteCode(uid, pbytecode);
   pbytecode->Release();
-
-  if (g_ActiveConfig.bEnableShaderDebugging && success)
-  {
-    vshaders[uid].code = code.GetBuffer();
-  }
 
   GFX_DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE, true);
   return success;

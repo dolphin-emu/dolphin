@@ -279,7 +279,6 @@ void GatherPipeBursted()
   if (IsOnThread())
     SetCPStatusFromCPU();
 
-  ProcessFifoEvents();
   // if we aren't linked, we don't care about gather pipe data
   if (!m_CPCtrlReg.GPLinkEnable)
   {
@@ -458,17 +457,6 @@ void SetCPStatusFromCPU()
       CommandProcessor::UpdateInterrupts(userdata);
     }
   }
-}
-
-void ProcessFifoEvents()
-{
-  if (IsOnThread() && (s_interrupt_waiting.load() || s_interrupt_finish_waiting.load() ||
-                       s_interrupt_token_waiting.load()))
-    CoreTiming::ProcessFifoWaitEvents();
-}
-
-void Shutdown()
-{
 }
 
 void SetCpStatusRegister()
