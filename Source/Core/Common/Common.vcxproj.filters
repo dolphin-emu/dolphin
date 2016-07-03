@@ -224,6 +224,7 @@
     <ClInclude Include="Assert.h" />
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
+    <ClInclude Include="Semaphore.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />

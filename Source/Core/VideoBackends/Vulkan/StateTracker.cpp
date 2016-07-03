@@ -331,7 +331,8 @@ void StateTracker::UploadAllConstants()
   {
     // If this fails, wait until the GPU has caught up.
     // The only places that call constant updates are safe to have state restored.
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, this);
+    WARN_LOG(VIDEO, "Executing command list while waiting for space in uniform buffer");
+    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, this, false);
     if (!m_uniform_stream_buffer->ReserveMemory(
             total_allocation_size, m_object_cache->GetUniformBufferAlignment(), true, true, false))
     {
@@ -489,7 +490,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
     WARN_LOG(VIDEO, "Failed to get a descriptor set, executing buffer");
 
     // Try again after executing the current buffer.
-    m_command_buffer_mgr->ExecuteCommandBuffer(false);
+    m_command_buffer_mgr->ExecuteCommandBuffer(false, false);
     InvalidateDescriptorSets();
     SetPendingRebind();
     if (!UpdateDescriptorSet())
