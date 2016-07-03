@@ -64,10 +64,10 @@ bool Renderer::Initialize()
   // Update backbuffer dimensions
   OnSwapChainResized();
 
-  // Various initialization routines will have executed commands on the command buffer (which is
-  // currently the last one).
-  // Execute what we have done before moving to the first buffer for the first frame.
-  m_command_buffer_mgr->SubmitCommandBuffer(nullptr);
+  // Various initialization routines will have executed commands on the command buffer.
+  // Execute what we have done before beginning the first frame.
+  m_command_buffer_mgr->PrepareToSubmitCommandBuffer();
+  m_command_buffer_mgr->SubmitCommandBuffer(false);
   BeginFrame();
 
   return true;
@@ -134,22 +134,8 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 void Renderer::BeginFrame()
 {
-  // Grab the next image from the swap chain
-  VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
-  if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
-  {
-    // Window has been resized. Update the swap chain and try again.
-    if (m_swap_chain->ResizeSwapChain())
-    {
-      res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
-      OnSwapChainResized();
-    }
-  }
-  if (res != VK_SUCCESS)
-    PanicAlert("Failed to grab image from swap chain");
-
   // Activate a new command list, and restore state ready for the next draw
-  m_command_buffer_mgr->ActivateCommandBuffer(m_image_available_semaphore);
+  m_command_buffer_mgr->ActivateCommandBuffer();
 
   // Ensure our EFB framebuffer is in COLOR/DEPTH_ATTACMENT_OPTIMAL layout
   m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
@@ -257,6 +243,23 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
       m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+  // Ensure the worker thread is not still submitting a previous command buffer.
+  m_command_buffer_mgr->PrepareToSubmitCommandBuffer();
+
+  // Grab the next image from the swap chain in preparation for drawing the window.
+  VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+  if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
+  {
+    // Window has been resized. Update the swap chain and try again.
+    if (m_swap_chain->ResizeSwapChain())
+    {
+      res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
+      OnSwapChainResized();
+    }
+  }
+  if (res != VK_SUCCESS)
+    PanicAlert("Failed to grab image from swap chain");
+
   // Transition from undefined (or present src, but it can be substituted) to
   // color attachment ready for writing.
   // These transitions must occur outside a render pass, unless the render pass
@@ -304,16 +307,14 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   // Submit the current command buffer, signaling rendering finished semaphore when it's done
-  m_command_buffer_mgr->SubmitCommandBuffer(m_rendering_finished_semaphore);
-
-  // Queue a present of the swap chain
-  VkResult res = m_swap_chain->Present(m_rendering_finished_semaphore);
-  if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
-  {
-    // Window resized, resize swap chain
-    if (m_swap_chain->ResizeSwapChain())
-      OnSwapChainResized();
-  }
+  // Because this final command buffer is rendering to the swap chain, we need to wait for
+  // the available semaphore to be signaled before executing the buffer. This final submission
+  // can happen off-thread in the background while we're preparing the next frame.
+  m_command_buffer_mgr->SubmitCommandBufferAndPresent(m_image_available_semaphore,
+                                                      m_rendering_finished_semaphore,
+                                                      m_swap_chain->GetSwapChain(),
+                                                      m_swap_chain->GetCurrentImageIndex(),
+                                                      true);
 
   // Prep for the next frame (get command buffer ready) before doing anything else.
   BeginFrame();

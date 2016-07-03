@@ -137,7 +137,7 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
 
   // Submit command buffer and wait until completion.
   // Also tell the state tracker to use new descriptor sets, since we're moving to a new cmdbuffer
-  m_command_buffer_mgr->ExecuteCommandBuffer(true);
+  m_command_buffer_mgr->ExecuteCommandBuffer(false, true);
   m_state_tracker->InvalidateDescriptorSets();
   m_state_tracker->SetPendingRebind();
 

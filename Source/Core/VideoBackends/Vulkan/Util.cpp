@@ -103,10 +103,11 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
 }
 
 void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr,
-                                           StateTracker* state_tracker)
+                                           StateTracker* state_tracker,
+                                           bool execute_off_thread)
 {
   state_tracker->EndRenderPass();
-  command_buffer_mgr->ExecuteCommandBuffer(false);
+  command_buffer_mgr->ExecuteCommandBuffer(execute_off_thread, false);
   state_tracker->InvalidateDescriptorSets();
   state_tracker->SetPendingRebind();
 }
