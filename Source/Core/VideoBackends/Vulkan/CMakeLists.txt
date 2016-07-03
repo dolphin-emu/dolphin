@@ -8,7 +8,7 @@ set(SRCS
 	Renderer.cpp
 	ShaderCache.cpp
 	StateTracker.cpp
-	StaticShaderCache.cpp
+	SharedShaderCache.cpp
 	StreamBuffer.cpp
 	SwapChain.cpp
 	Texture2D.cpp
