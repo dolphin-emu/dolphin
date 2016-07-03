@@ -310,11 +310,9 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Because this final command buffer is rendering to the swap chain, we need to wait for
   // the available semaphore to be signaled before executing the buffer. This final submission
   // can happen off-thread in the background while we're preparing the next frame.
-  m_command_buffer_mgr->SubmitCommandBufferAndPresent(m_image_available_semaphore,
-                                                      m_rendering_finished_semaphore,
-                                                      m_swap_chain->GetSwapChain(),
-                                                      m_swap_chain->GetCurrentImageIndex(),
-                                                      true);
+  m_command_buffer_mgr->SubmitCommandBufferAndPresent(
+      m_image_available_semaphore, m_rendering_finished_semaphore, m_swap_chain->GetSwapChain(),
+      m_swap_chain->GetCurrentImageIndex(), true);
 
   // Prep for the next frame (get command buffer ready) before doing anything else.
   BeginFrame();

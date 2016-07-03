@@ -217,7 +217,8 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   {
     // Execute the command buffer first.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker,
+                                                false);
 
     // Try allocating again. This may cause a fence wait.
     if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment()))
