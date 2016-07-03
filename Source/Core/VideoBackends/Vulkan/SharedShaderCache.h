@@ -24,16 +24,13 @@ public:
   // Vertex Shaders
   VkShaderModule GetPassthroughVertexShader() const { return m_vertex_shaders.passthrough; }
   VkShaderModule GetScreenQuadVertexShader() const { return m_vertex_shaders.screen_quad; }
-
   // Geometry Shaders
   VkShaderModule GetPassthroughGeometryShader() const { return m_geometry_shaders.passthrough; }
-
   // Fragment Shaders
   VkShaderModule GetClearFragmentShader() const { return m_fragment_shaders.clear; }
   VkShaderModule GetCopyFragmentShader() const { return m_fragment_shaders.copy; }
   VkShaderModule GetColorMatrixFragmentShader() const { return m_fragment_shaders.color_matrix; }
   VkShaderModule GetDepthMatrixFragmentShader() const { return m_fragment_shaders.depth_matrix; }
-
 private:
   VkDevice m_device;
   VertexShaderCache* m_vs_cache;

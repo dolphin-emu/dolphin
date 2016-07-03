@@ -217,7 +217,8 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   {
     // Execute the command buffer first.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker,
+                                                false);
 
     // Try allocating again. This may cause a fence wait.
     if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment()))
@@ -294,9 +295,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
   // Transition EFB to shader resource before binding
   Texture2D* src_texture =
-    is_depth_copy ? framebuffer_mgr->GetEFBDepthTexture() : framebuffer_mgr->GetEFBColorTexture();
+      is_depth_copy ? framebuffer_mgr->GetEFBDepthTexture() : framebuffer_mgr->GetEFBColorTexture();
   VkSampler src_sampler =
-    scale_by_half ? object_cache->GetLinearSampler() : object_cache->GetPointSampler();
+      scale_by_half ? object_cache->GetLinearSampler() : object_cache->GetPointSampler();
   VkImageLayout original_layout = src_texture->GetLayout();
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);

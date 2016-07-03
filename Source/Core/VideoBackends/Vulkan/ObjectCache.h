@@ -5,8 +5,8 @@
 #pragma once
 
 #include <array>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
