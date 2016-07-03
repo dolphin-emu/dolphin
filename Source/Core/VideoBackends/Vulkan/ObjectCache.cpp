@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "Common/Hash.h"
+
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
@@ -581,6 +583,13 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 
 // Comparison operators for PipelineInfos
 // since these all boil down to POD types, we can just memcmp the entire thing for speed
+std::size_t PipelineInfoHash::operator()(const PipelineInfo& key) const
+{
+  // TODO: Is this a good choice?
+  return static_cast<size_t>(GetMurmurHash3(reinterpret_cast<const u8*>(&key),
+                                            sizeof(key),
+                                            0));
+}
 
 bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs)
 {
