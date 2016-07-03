@@ -14,14 +14,24 @@
 namespace Vulkan
 {
 CommandBufferManager::CommandBufferManager(VkDevice device, uint32_t graphics_queue_family_index,
-                                           VkQueue graphics_queue)
+                                           VkQueue graphics_queue, bool use_threaded_submission)
     : m_device(device), m_graphics_queue_family_index(graphics_queue_family_index),
-      m_graphics_queue(graphics_queue)
+      m_graphics_queue(graphics_queue), m_submit_semaphore(1, 1),
+      m_use_threaded_submission(use_threaded_submission)
 {
 }
 
 CommandBufferManager::~CommandBufferManager()
 {
+  // If the worker thread is enabled, wait for it to exit.
+  if (m_use_threaded_submission)
+  {
+    // Wait for all command buffers to be consumed by the worker thread.
+    m_submit_semaphore.Wait();
+    m_submit_loop->Stop();
+    m_submit_thread.join();
+  }
+
   vkDeviceWaitIdle(m_device);
 
   DestroyCommandBuffers();
@@ -34,6 +44,9 @@ bool CommandBufferManager::Initialize()
     return false;
 
   if (!CreateCommandBuffers())
+    return false;
+
+  if (m_use_threaded_submission && !CreateSubmitThread())
     return false;
 
   return true;
@@ -179,8 +192,49 @@ VkDescriptorSet CommandBufferManager::AllocateDescriptorSet(VkDescriptorSetLayou
   return descriptor_set;
 }
 
-void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
+bool CommandBufferManager::CreateSubmitThread()
 {
+  m_submit_loop = std::make_unique<Common::BlockingLoop>();
+  m_submit_thread = std::thread([this]()
+  {
+    m_submit_loop->Run([this]()
+    {
+      PendingCommandBufferSubmit submit;
+      {
+        std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+        if (m_pending_submits.empty())
+        {
+          m_submit_loop->AllowSleep();
+          return;
+        }
+
+        submit = m_pending_submits.front();
+        m_pending_submits.pop_front();
+      }
+
+      SubmitCommandBuffer(submit.index,
+                          submit.wait_semaphore,
+                          submit.signal_semaphore,
+                          submit.present_swap_chain,
+                          submit.present_image_index);
+    });
+  });
+
+  return true;
+}
+
+void CommandBufferManager::PrepareToSubmitCommandBuffer()
+{
+  // Grab the semaphore before submitting command buffer either on-thread or off-thread.
+  // This prevents a race from occurring where a second command buffer is executed
+  // before the worker thread has woken and executed the first one yet.
+  m_submit_semaphore.Wait();
+}
+
+void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
+{
+  // End the current command buffer.
+  // TODO: Can we move this off-thread?
   VkResult res = vkEndCommandBuffer(m_command_buffers[m_current_command_buffer_index]);
   if (res != VK_SUCCESS)
   {
@@ -188,6 +242,84 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
     PanicAlert("Failed to end command buffer");
   }
 
+  // Submitting off-thread?
+  if (m_use_threaded_submission && submit_off_thread)
+  {
+    // Push to the pending submit queue.
+    {
+      std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+      m_pending_submits.push_back({ m_current_command_buffer_index,
+                                    VK_NULL_HANDLE, VK_NULL_HANDLE,
+                                    VK_NULL_HANDLE, 0 });
+    }
+
+    // Wake up the worker thread for a single iteration.
+    m_submit_loop->Wakeup();
+  }
+  else
+  {
+    // Pass through to normal submission path.
+    SubmitCommandBuffer(m_current_command_buffer_index,
+                        VK_NULL_HANDLE, VK_NULL_HANDLE,
+                        VK_NULL_HANDLE, 0);
+  }
+
+  // Fire fence tracking callbacks. This can't happen on the worker thread.
+  for (const auto& iter : m_fence_point_callbacks)
+    iter.second.first(m_fences[m_current_command_buffer_index]);
+}
+
+void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore,
+                                                         VkSemaphore signal_semaphore,
+                                                         VkSwapchainKHR present_swap_chain,
+                                                         uint32_t present_image_index,
+                                                         bool submit_off_thread)
+{
+  // End the current command buffer.
+  // TODO: Can we move this off-thread?
+  VkResult res = vkEndCommandBuffer(m_command_buffers[m_current_command_buffer_index]);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
+    PanicAlert("Failed to end command buffer");
+  }
+
+  // Submitting off-thread?
+  if (m_use_threaded_submission && submit_off_thread)
+  {
+    // Push to the pending submit queue.
+    {
+      std::lock_guard<std::mutex> guard(m_pending_submit_lock);
+      m_pending_submits.push_back({ m_current_command_buffer_index,
+                                    wait_semaphore, signal_semaphore,
+                                    present_swap_chain,
+                                    present_image_index });
+    }
+
+    // Wake up the worker thread for a single iteration.
+    m_submit_loop->Wakeup();
+  }
+  else
+  {
+    // Pass through to normal submission path.
+    SubmitCommandBuffer(m_current_command_buffer_index,
+                        wait_semaphore, signal_semaphore,
+                        present_swap_chain,
+                        present_image_index);
+  }
+
+  // Fire fence tracking callbacks. This can't happen on the worker thread.
+  for (const auto& iter : m_fence_point_callbacks)
+    iter.second.first(m_fences[m_current_command_buffer_index]);
+}
+
+void CommandBufferManager::SubmitCommandBuffer(size_t index,
+                                               VkSemaphore wait_semaphore,
+                                               VkSemaphore signal_semaphore,
+                                               VkSwapchainKHR present_swap_chain,
+                                               uint32_t present_image_index)
+{
+  // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
   VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
                               nullptr,
@@ -195,37 +327,48 @@ void CommandBufferManager::SubmitCommandBuffer(VkSemaphore signal_semaphore)
                               nullptr,
                               &wait_bits,
                               1,
-                              &m_command_buffers[m_current_command_buffer_index],
+                              &m_command_buffers[index],
                               0,
                               nullptr};
 
-  if (m_wait_semaphore)
+  if (wait_semaphore != VK_NULL_HANDLE)
   {
-    submit_info.pWaitSemaphores = &m_wait_semaphore;
+    submit_info.pWaitSemaphores = &wait_semaphore;
     submit_info.waitSemaphoreCount = 1;
   }
 
-  if (signal_semaphore)
+  if (signal_semaphore != VK_NULL_HANDLE)
   {
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &signal_semaphore;
   }
 
-  res = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_fences[m_current_command_buffer_index]);
+  VkResult res = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_fences[index]);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
     PanicAlert("Failed to submit command buffer.");
   }
 
-  m_wait_semaphore = nullptr;
+  // Do we have a swap chain to present?
+  if (present_swap_chain != VK_NULL_HANDLE)
+  {
+    // Should have a signal semaphore.
+    assert(signal_semaphore != VK_NULL_HANDLE);
+    VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, nullptr, 1,
+                                     &signal_semaphore,      1,       &present_swap_chain,
+                                     &present_image_index,  nullptr};
 
-  // Fire fence tracking callbacks.
-  for (const auto& iter : m_fence_point_callbacks)
-    iter.second.first(m_fences[m_current_command_buffer_index]);
+    VkResult res = vkQueuePresentKHR(m_graphics_queue, &present_info);
+    if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
+      LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
+  }
+
+  // Command buffer has been queued, so permit the next one.
+  m_submit_semaphore.Post();
 }
 
-void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
+void CommandBufferManager::ActivateCommandBuffer()
 {
   // Move to the next command buffer.
   m_current_command_buffer_index = (m_current_command_buffer_index + 1) % NUM_COMMAND_BUFFERS;
@@ -263,13 +406,14 @@ void CommandBufferManager::ActivateCommandBuffer(VkSemaphore wait_semaphore)
   res = vkBeginCommandBuffer(m_command_buffers[m_current_command_buffer_index], &begin_info);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkBeginCommandBuffer failed: ");
-
-  m_wait_semaphore = wait_semaphore;
 }
 
-void CommandBufferManager::ExecuteCommandBuffer(bool wait_for_completion)
+void CommandBufferManager::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
 {
-  SubmitCommandBuffer(nullptr);
+  PrepareToSubmitCommandBuffer();
+
+  // If we're waiting for completion, don't bother waking the worker thread.
+  SubmitCommandBuffer((submit_off_thread && wait_for_completion));
 
   if (wait_for_completion)
   {
@@ -279,7 +423,7 @@ void CommandBufferManager::ExecuteCommandBuffer(bool wait_for_completion)
       LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
   }
 
-  ActivateCommandBuffer(nullptr);
+  ActivateCommandBuffer();
 }
 
 void CommandBufferManager::AddFencePointCallback(const void* key,
