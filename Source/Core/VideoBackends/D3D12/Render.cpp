@@ -726,13 +726,9 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 {
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
+#if defined(HAVE_LIBAV)
     if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
       AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
-	if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
-	{
-#if defined(HAVE_LIBAV)
-		if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-			AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
 #endif
 
     Core::Callback_VideoCopiedToXFB(false);
