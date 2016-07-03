@@ -157,6 +157,7 @@ private:
 
   VkDescriptorBufferInfo m_vs_uniform_buffer = {};
   VkDescriptorBufferInfo m_ps_uniform_buffer = {};
+  std::array<uint32_t, NUM_UBO_DESCRIPTOR_SET_BINDINGS> m_ubo_offsets = {};
 
   std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> m_ps_samplers = {};
 
