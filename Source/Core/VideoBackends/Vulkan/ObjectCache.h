@@ -5,7 +5,7 @@
 #pragma once
 
 #include <array>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 #include "VideoBackends/Vulkan/Constants.h"
@@ -31,6 +31,11 @@ struct PipelineInfo
   DepthStencilState depth_stencil_state;
   BlendState blend_state;
   VkPrimitiveTopology primitive_topology;
+};
+
+struct PipelineInfoHash
+{
+  std::size_t operator()(const PipelineInfo& key) const;
 };
 
 bool operator==(const PipelineInfo& lhs, const PipelineInfo& rhs);
@@ -160,8 +165,7 @@ private:
 
   SharedShaderCache m_static_shader_cache;
 
-  // TODO: Replace with hash table
-  std::map<PipelineInfo, VkPipeline> m_pipeline_cache;
+  std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_cache;
 
   VkSampler m_point_sampler = VK_NULL_HANDLE;
   VkSampler m_linear_sampler = VK_NULL_HANDLE;
