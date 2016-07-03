@@ -46,7 +46,7 @@ OSVR
 *.psess
 *.diagsession
 # Ignore installer exe file
-/Installer/dolphin-vr-x64-4.0.exe
-/Installer/dolphin-vr-x64-5.0.exe
-/Installer/dolphin-x64-5.0.exe
+/Installer/*.exe
+# Ignore large binary files for textures, users must get them from an install package
+/Data/Sys/Resources/Textures/*.png
 # Ignore other files
