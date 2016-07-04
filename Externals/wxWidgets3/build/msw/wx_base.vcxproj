@@ -1331,10 +1331,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
-      <Project>{01573c36-ac6e-49f6-94ba-572517eb9740}</Project>
+      <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
-      <Project>{3e1339f5-9311-4122-9442-369702e8fcad}</Project>
+      <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
