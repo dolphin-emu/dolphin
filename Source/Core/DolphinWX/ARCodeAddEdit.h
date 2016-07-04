@@ -27,6 +27,7 @@ private:
   wxTextCtrl* EditCheatName;
   wxSpinButton* EntrySelection;
   wxTextCtrl* EditCheatCode;
+  wxTextCtrl* EditCheatMeaning;
 
   std::vector<ActionReplay::ARCode>* arCodes;
 

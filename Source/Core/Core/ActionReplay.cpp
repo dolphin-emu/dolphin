@@ -43,42 +43,6 @@
 
 namespace ActionReplay
 {
-enum
-{
-  // Zero Code Types
-  ZCODE_END = 0x00,
-  ZCODE_NORM = 0x02,
-  ZCODE_ROW = 0x03,
-  ZCODE_04 = 0x04,
-
-  // Conditional Codes
-  CONDTIONAL_EQUAL = 0x01,
-  CONDTIONAL_NOT_EQUAL = 0x02,
-  CONDTIONAL_LESS_THAN_SIGNED = 0x03,
-  CONDTIONAL_GREATER_THAN_SIGNED = 0x04,
-  CONDTIONAL_LESS_THAN_UNSIGNED = 0x05,
-  CONDTIONAL_GREATER_THAN_UNSIGNED = 0x06,
-  CONDTIONAL_AND = 0x07,  // bitwise AND
-
-  // Conditional Line Counts
-  CONDTIONAL_ONE_LINE = 0x00,
-  CONDTIONAL_TWO_LINES = 0x01,
-  CONDTIONAL_ALL_LINES_UNTIL = 0x02,
-  CONDTIONAL_ALL_LINES = 0x03,
-
-  // Data Types
-  DATATYPE_8BIT = 0x00,
-  DATATYPE_16BIT = 0x01,
-  DATATYPE_32BIT = 0x02,
-  DATATYPE_32BIT_FLOAT = 0x03,
-
-  // Normal Code 0 Subtypes
-  SUB_RAM_WRITE = 0x00,
-  SUB_WRITE_POINTER = 0x01,
-  SUB_ADD_CODE = 0x02,
-  SUB_MASTER_CODE = 0x03,
-};
-
 // General lock. Protects codes list and internal log.
 static std::mutex s_lock;
 static std::vector<ARCode> s_active_codes;
@@ -87,24 +51,6 @@ static std::atomic<bool> s_use_internal_log{false};
 // pointer to the code currently being run, (used by log messages that include the code name)
 static const ARCode* s_current_code = nullptr;
 static bool s_disable_logging = false;
-
-struct ARAddr
-{
-  union {
-    u32 address;
-    struct
-    {
-      u32 gcaddr : 25;
-      u32 size : 2;
-      u32 type : 3;
-      u32 subtype : 2;
-    };
-  };
-
-  ARAddr(const u32 addr) : address(addr) {}
-  u32 GCAddress() const { return gcaddr | 0x80000000; }
-  operator u32() const { return address; }
-};
 
 // ----------------------
 // AR Remote Functions

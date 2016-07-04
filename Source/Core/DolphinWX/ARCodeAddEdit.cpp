@@ -50,9 +50,10 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, std::vector<ActionReplay::ARCode>
 
   wxStaticText* EditCheatNameText = new wxStaticText(this, wxID_ANY, _("Name:"));
   wxStaticText* EditCheatCodeText = new wxStaticText(this, wxID_ANY, _("Code:"));
+  wxStaticText* EditCheatMeaningText = new wxStaticText(this, wxID_ANY, _("Meaning:"));
 
-  EditCheatName = new wxTextCtrl(this, wxID_ANY, wxEmptyString);
-  EditCheatName->SetValue(currentName);
+  EditCheatName =
+      new wxTextCtrl(this, wxID_ANY, currentName, wxDefaultPosition, wxSize(300, wxDefaultCoord));
 
   EntrySelection = new wxSpinButton(this);
   EntrySelection->SetRange(1, std::max((int)arCodes->size(), 1));
@@ -61,14 +62,18 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, std::vector<ActionReplay::ARCode>
 
   EditCheatCode = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, 100),
                                  wxTE_MULTILINE);
+  EditCheatMeaning = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                    wxSize(300, 100), wxTE_MULTILINE | wxTE_READONLY);
 
   UpdateTextCtrl(tempEntries);
 
   sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
   sgEntry->Add(EditCheatCodeText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
+  sgEntry->Add(EditCheatMeaningText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
   sgEntry->Add(EditCheatName, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND | wxALL, 5);
+  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND | wxALL, 5);
   sgEntry->Add(EditCheatCode, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+  sgEntry->Add(EditCheatMeaning, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
   sgEntry->AddGrowableCol(1);
   sgEntry->AddGrowableRow(1);
   sbEntry->Add(sgEntry, 1, wxEXPAND | wxALL);
@@ -179,10 +184,246 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED(event))
 void CARCodeAddEdit::UpdateTextCtrl(ActionReplay::ARCode arCode)
 {
   EditCheatCode->Clear();
+  EditCheatMeaning->Clear();
 
-  if (arCode.name != "")
+  if (arCode.name.empty())
   {
-    for (auto& op : arCode.ops)
-      EditCheatCode->AppendText(wxString::Format("%08X %08X\n", op.cmd_addr, op.value));
+    EditCheatMeaning->Disable();
+    return;
   }
+
+  bool do_fill_and_slide = false;
+  bool do_memory_copy = false;
+
+  // used for conditional codes
+  int skip_count = 0;
+
+  u32 val_last = 0;
+
+  for (auto& op : arCode.ops)
+  {
+    EditCheatCode->AppendText(wxString::Format("%08X %08X\n", op.cmd_addr, op.value));
+    {
+      const ActionReplay::ARAddr addr(op.cmd_addr);
+      const u32 data = op.value;
+      // Zero codes
+      if (0x0 == addr)  // Check if the code is a zero code
+      {
+        const u8 zcode = data >> 29;
+        switch (zcode)
+        {
+        case ActionReplay::ZCODE_END:  // END OF CODES
+          EditCheatMeaning->AppendText("ZCode: End Of Codes");
+          break;
+
+        // TODO: the "00000000 40000000"(end if) codes fall into this case, I don't think that is
+        // correct
+        case ActionReplay::ZCODE_NORM:  // Normal execution of codes
+                                        // Todo: Set register 1BB4 to 0
+          if (data == 0x40000000)
+            EditCheatMeaning->AppendText("}");
+          else
+            EditCheatMeaning->AppendText(
+                "ZCode: Normal execution of codes, set register 1BB4 to 0 (zcode not supported)");
+          break;
+
+        case ActionReplay::ZCODE_ROW:  // Executes all codes in the same row
+                                       // Todo: Set register 1BB4 to 1
+          EditCheatMeaning->AppendText("ZCode: Executes all codes in the same row, Set register "
+                                       "1BB4 to 1 (zcode not supported)");
+          break;
+
+        case ActionReplay::ZCODE_04:  // Fill & Slide or Memory Copy
+          if (0x3 == ((data >> 25) & 0x03))
+          {
+            do_memory_copy = true;
+            val_last = data;
+            EditCheatMeaning->AppendText(
+                wxString::Format("ZCode: Memory Copy, val_last=%8X", val_last));
+          }
+          else
+          {
+            do_fill_and_slide = true;
+            val_last = data;
+            EditCheatMeaning->AppendText(
+                wxString::Format("ZCode: Fill And Slide, val_last=%8X", val_last));
+          }
+          break;
+
+        default:
+          EditCheatMeaning->AppendText(wxString::Format("ZCode: Unknown: %02X", zcode));
+        }
+      }
+      else
+      {
+        const u32 new_addr = addr.GCAddress();
+        switch (addr.type)
+        {
+        case 0x00:
+          switch (addr.subtype)
+          {
+          case ActionReplay::SUB_RAM_WRITE:  // Ram write (and fill)
+            switch (addr.size)
+            {
+            case ActionReplay::DATATYPE_8BIT:
+              EditCheatMeaning->AppendText(wxString::Format("fill %d byte(s) at %8X with %02X (%d)",
+                                                            (data >> 8) + 1, new_addr, data & 0xFF,
+                                                            data & 0xFF));
+              break;
+            case ActionReplay::DATATYPE_16BIT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("fill %d two-byte number(s) at %8X with %04X (%d)",
+                                   (data >> 16) + 1, new_addr, data & 0xFFFF, data & 0xFFFF));
+              break;
+            case ActionReplay::DATATYPE_32BIT:
+              EditCheatMeaning->AppendText(wxString::Format("set %8X to %08X", new_addr, data));
+              if (data == 0x4E800020)
+                EditCheatMeaning->AppendText(" = blr (return)");
+              else if ((data & 0xFFFFFF00) == 0x38600000)
+                EditCheatMeaning->AppendText(
+                    wxString::Format(" = li r3, 0x%X (Result = %d)", data & 0xFF, data & 0xFF));
+              else
+                EditCheatMeaning->AppendText(wxString::Format(" (%d)", data));
+              break;
+            case ActionReplay::DATATYPE_32BIT_FLOAT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("set %s%8X to %f", new_addr, *(float*)&data));
+              break;
+            }
+            break;
+          case ActionReplay::SUB_WRITE_POINTER:
+            switch (addr.size)
+            {
+            case ActionReplay::DATATYPE_8BIT:
+              EditCheatMeaning->AppendText(wxString::Format("set pointer(%8X)+%06X to %02X (%d)",
+                                                            new_addr, data >> 8, data & 0xFF,
+                                                            data & 0xFF));
+              break;
+            case ActionReplay::DATATYPE_16BIT:
+              EditCheatMeaning->AppendText(wxString::Format("set pointer(%8X)+%04X to %04X (%d)",
+                                                            new_addr, data >> 16, data & 0xFFFF,
+                                                            data & 0xFFFF));
+              break;
+            case ActionReplay::DATATYPE_32BIT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("set pointer(%8X) to %08X (%d)", new_addr, data, data));
+              break;
+            case ActionReplay::DATATYPE_32BIT_FLOAT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("set pointer(%8X) to %f", new_addr, *(float*)&data));
+              break;
+            }
+            break;
+          case ActionReplay::SUB_ADD_CODE:  // Increment Value
+            switch (addr.size)
+            {
+            case ActionReplay::DATATYPE_8BIT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("add %02X (%d) to %8x", data & 0xFF, data & 0xFF, new_addr));
+              break;
+            case ActionReplay::DATATYPE_16BIT:
+              EditCheatMeaning->AppendText(wxString::Format("add %04X (%d) to %8x", data & 0xFFFF,
+                                                            (s16)(data & 0xFFFF), new_addr));
+              break;
+            case ActionReplay::DATATYPE_32BIT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("add %08X (%d) to %8x", data, (s32)data, new_addr));
+              break;
+            case ActionReplay::DATATYPE_32BIT_FLOAT:
+              EditCheatMeaning->AppendText(
+                  wxString::Format("add %f to %8x", *(float*)&data, new_addr));
+              break;
+            }
+            break;
+          case ActionReplay::SUB_MASTER_CODE:  // Master Code & Write to CCXXXXXX
+            EditCheatMeaning->AppendText(wxString::Format(
+                "Doing Master Code And Write to CCXXXXXX (ncode not supported) %8X, %8X",
+                addr.address, data));
+            break;
+          }
+          break;
+
+        default:
+          const u32 new_addr = addr.GCAddress();
+          const char *t, *comp, *s;
+          switch (addr.subtype)
+          {
+          case ActionReplay::CONDTIONAL_ALL_LINES:
+            s = "continue, else return";
+            break;
+          case ActionReplay::CONDTIONAL_ALL_LINES_UNTIL:
+            s = "{";
+            break;
+          case ActionReplay::CONDTIONAL_ONE_LINE:
+            s = "";
+            break;
+          case ActionReplay::CONDTIONAL_TWO_LINES:
+            s = "do next two lines";
+            break;
+          }
+          switch (addr.type)
+          {
+          case ActionReplay::CONDTIONAL_EQUAL:
+            comp = "==";
+            t = "";
+            break;
+          case ActionReplay::CONDTIONAL_NOT_EQUAL:
+            comp = "!=";
+            t = "";
+            break;
+          case ActionReplay::CONDTIONAL_LESS_THAN_SIGNED:
+            comp = "<";
+            t = "signed ";
+            break;
+          case ActionReplay::CONDTIONAL_LESS_THAN_UNSIGNED:
+            comp = "<";
+            t = "unsigned ";
+            break;
+          case ActionReplay::CONDTIONAL_GREATER_THAN_SIGNED:
+            comp = ">";
+            t = "signed ";
+            break;
+          case ActionReplay::CONDTIONAL_GREATER_THAN_UNSIGNED:
+            comp = ">";
+            t = "unsigned ";
+            break;
+          case ActionReplay::CONDTIONAL_AND:
+            comp = "AND";
+            t = "";
+            break;
+          }
+          switch (addr.size)
+          {
+          case ActionReplay::DATATYPE_8BIT:
+            EditCheatMeaning->AppendText(wxString::Format("if %sbyte at %8X %s %02X (%d) then %s",
+                                                          t, new_addr, comp, data & 0xFF,
+                                                          data & 0xFF, s));
+            break;
+
+          case ActionReplay::DATATYPE_16BIT:
+            EditCheatMeaning->AppendText(
+                wxString::Format("if %stwo bytes at %8X %s %04X (%d) then %s", t, new_addr, comp,
+                                 data & 0xFFFF, data & 0xFFFF, s));
+            break;
+
+          case ActionReplay::DATATYPE_32BIT:
+            EditCheatMeaning->AppendText(wxString::Format(
+                "if %sfour bytes at %8X %s %08X (%d) then %s", t, new_addr, comp, data, data, s));
+            break;
+          case ActionReplay::DATATYPE_32BIT_FLOAT:
+            EditCheatMeaning->AppendText(
+                wxString::Format("if %sfloating point number at %8X %s %f then %s", t, new_addr,
+                                 comp, *(float*)&data, s));
+            break;
+          }
+          break;
+        }
+      }
+    }
+    EditCheatMeaning->AppendText("\n");
+  }  // next
+  if (EditCheatMeaning->GetNumberOfLines() > 0)
+    EditCheatMeaning->Enable();
+  else
+    EditCheatMeaning->Disable();
 }
