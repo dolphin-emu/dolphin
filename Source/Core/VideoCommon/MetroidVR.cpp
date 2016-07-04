@@ -25,9 +25,9 @@ bool g_metroid_scan_visor = false, g_metroid_scan_visor_active = false,
      g_metroid_morphball_active = false, g_metroid_is_demo1 = false, g_metroid_cinematic = false,
      g_metroid_menu = false, g_metroid_after_cursor = false;
 int g_metroid_wide_count = 0, g_metroid_normal_count = 0, g_metroid_helmet_index = 4;
-int g_zelda_normal_count = 0, g_zelda_effect_count = 0;
+int g_zelda_world_count = 0, g_zelda_hud_count = 0;
 int g_metroid_vres = 448;
-bool g_zelda_hawkeye = false;
+bool g_zelda_hawkeye = false, g_zelda_had_unknown_effect = false;
 
 extern float vr_widest_3d_HFOV, vr_widest_3d_VFOV, vr_widest_3d_zNear, vr_widest_3d_zFar;
 
@@ -41,9 +41,10 @@ void NewMetroidFrame()
   g_metroid_has_thermal_effect = false;
   g_metroid_menu = false;
 
-  g_zelda_normal_count = 0;
-  g_zelda_effect_count = 0;
+  g_zelda_world_count = 0;
+  g_zelda_hud_count = 0;
   g_zelda_hawkeye = false;
+  g_zelda_had_unknown_effect = false;
 }
 
 int Round100(float x)
@@ -181,6 +182,9 @@ const char* MetroidLayerName(TMetroidLayer layer)
     return "Screen Overlay";
   case METROID_UNKNOWN_2D:
     return "Unknown 2D";
+
+  case ZELDA_BACKGROUND:
+    return "Zelda Background";
   case ZELDA_CREATE_MAP:
     return "Zelda Create Map";
   case ZELDA_CREATE_SHADOW:
@@ -205,6 +209,8 @@ const char* MetroidLayerName(TMetroidLayer layer)
     return "Zelda Unknown 2D";
   case ZELDA_UNKNOWN_EFFECT:
     return "Zelda Unknown Effect";
+  case ZELDA_LINK:
+    return "Zelda Link";
   case ZELDA_WORLD:
     return "Zelda World";
   case NES_RENDER_TO_TEXTURE:
@@ -1342,20 +1348,23 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
     }
     else if (l == 0 && n == -409600)
     {
-		if (g_metroid_cinematic) {
-			result = METROID_UNKNOWN_2D; // intro cinematic FMV
-			g_metroid_dark_visor = false;
-			g_metroid_scan_visor = false;
-			g_metroid_scan_visor_active = false;
-			g_metroid_morphball_active = false;
-		} else {
-			result = METROID_DARK_EFFECT;
-			g_metroid_dark_visor = true;
-			g_metroid_scan_visor = false;
-			g_metroid_scan_visor_active = false;
-			g_metroid_morphball_active = false;
-			g_metroid_cinematic = false;
-		}
+      if (g_metroid_cinematic)
+      {
+        result = METROID_UNKNOWN_2D;  // intro cinematic FMV
+        g_metroid_dark_visor = false;
+        g_metroid_scan_visor = false;
+        g_metroid_scan_visor_active = false;
+        g_metroid_morphball_active = false;
+      }
+      else
+      {
+        result = METROID_DARK_EFFECT;
+        g_metroid_dark_visor = true;
+        g_metroid_scan_visor = false;
+        g_metroid_scan_visor_active = false;
+        g_metroid_morphball_active = false;
+        g_metroid_cinematic = false;
+      }
     }
     else if (l == 0 && (t == 22400 || t == 26400) && r == 32000 && b == 0 && n == -100 && f == 100)
     {
@@ -1879,7 +1888,11 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
   int b = Round100(bottom);
   int n = Round100(znear);
   int f = Round100(zfar);
-  if (r == 400 && f == 1000)
+  if (l == 0 && r == 60800 && t == 0 && n == 0 && f == 100)
+  {
+    result = ZELDA_BACKGROUND;
+  }
+  else if (r == 400 && f == 1000)
   {
     // 5: 2D: **Screenspace effects** Unknown 2D (-0, 0) to (4, 4); z: -0 to 10  [-0.1, -1]
     result = ZELDA_DARK_EFFECT;
@@ -1890,13 +1903,15 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
   }
   else if (r == 60800 && f == 10000)
   {
-    // not sure what this was
+    // inside your house when game is looking at fire
     result = ZELDA_UNKNOWN_EFFECT;
+    g_zelda_had_unknown_effect = true;
+    //--g_zelda_world_count;
   }
-  else if (r == 60800 && n == 10000000 && g_zelda_normal_count)
+  else if (r == 60800 && n == 10000000 && g_zelda_world_count)
   {
-    ++g_zelda_effect_count;
-    switch (g_zelda_effect_count)
+    ++g_zelda_hud_count;
+    switch (g_zelda_hud_count)
     {
     case 1:
       // 6: 2D : **Map on HUD** Unknown 2D (-0, 0) to(608, 448); z: 100000 to - 100000[5e-006, -0.5]
@@ -1910,16 +1925,27 @@ TMetroidLayer GetZeldaTPGCLayer2D(int layer, float left, float right, float top,
       result = ZELDA_UNKNOWN_2D;
     }
   }
-  else if (r == 1562090)
+  else if (l == -r && r > 60000 && t == r && b == -t && n == 0 && f == 1000000)
   {
     // 1: 2D: **Render Map to texture** Unknown 2D (-15620.9, 15620.9) to (15620.9, -15620.9); z: -0
     // to 10000  [-0.0001, -1]
     result = ZELDA_CREATE_MAP;
   }
-  else if (l == -32000 && r == 32000 && t == 32000 && f == 1000000)
+  else if (l == -r && r > 60000 && t > 60000 && b == -t && n == 0 && f == 1000000)
+  {
+    // map screen map
+    // Viewport 1: Render to Texture(0, 0) 457x341; near = 0 (0), far = 1 (1.67772e+07)
+    // copyTexSrc(0, 0) 608x448
+    // 1: 2D : (create map map) Zelda Unknown 2D(-67369.3, 50269) to(67369.3, -50269); z: -0 to
+    // 10000[-0.0001, -1]
+    result = ZELDA_CREATE_MAP;
+  }
+  else if (l == -r && r < 60000 && t == r && b == -t && n == 100 && f == 1000000)
   {
     // 2: 2D : **Render Shadow to texture** Unknown 2D (-320, 320) to(320, -320); z: 1.00007 to
     // 10000[-0.00010001, -1.0001]
+    // if r==320 then it's Link's shadow, if r==400 then it's Epona's shadow, other values for other
+    // characters
     result = ZELDA_CREATE_SHADOW;
   }
   else
@@ -1935,9 +1961,10 @@ TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, 
   int h = Round100(hfov);
   int v = Round100(vfov);
   int n = Round100(znear);
+  int f = Round100(zfar);
 
-  ++g_zelda_normal_count;
-  switch (g_zelda_normal_count)
+  ++g_zelda_world_count;
+  switch (g_zelda_world_count)
   {
   case 1:
     // if (h == 2026 && v == 1500 && n == 500)
@@ -1945,7 +1972,12 @@ TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, 
     // far:30000.001953
     // This is probably wrong.
     // result = ZELDA_FISHING;
-    if (v <= 5000 && v >= 590 && n == 3000)
+    if (v == 4500 && n == 100 && f == 10000000)
+    {
+      result = ZELDA_LINK;
+      g_zelda_hawkeye = false;
+    }
+    else if (v <= 5000 && v >= 590 && n == 3000)
     {
       // 3: Zelda World HFOV: 64.60deg; VFOV: 49.95deg; Aspect Ratio: 16:11.8; near:30.000002,
       // far:30000.001953
@@ -1963,9 +1995,13 @@ TMetroidLayer GetZeldaTPGCLayer(int layer, float hfov, float vfov, float znear, 
   case 2:
     // 4: **WATER reflection** Unknown HFOV : 76.16deg; VFOV: 60.00deg; Aspect Ratio : 16 : 11.8;
     // near:5.000000, far : 30000.001953
-    result = ZELDA_REFLECTION;
+    if (g_zelda_had_unknown_effect)
+      result = ZELDA_WORLD;
+    else
+      result = ZELDA_REFLECTION;
     break;
   default:
+    // could be a yellow targetting triangle
     result = ZELDA_UNKNOWN;
     break;
   }
@@ -2288,6 +2324,7 @@ void GetMetroidPrimeValues(bool* bStuckToHead, bool* bFullscreenLayer, bool* bHi
     break;
   case ZELDA_UNKNOWN:
   case ZELDA_WORLD:
+  case ZELDA_LINK:
   case ZELDA_DIALOG:
   case ZELDA_NEXT:
   case ZELDA_UNKNOWN_2D:
