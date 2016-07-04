@@ -13,7 +13,7 @@ struct NetSettings
 {
   bool m_CPUthread;
   int m_CPUcore;
-  bool m_enableCheats;
+  bool m_EnableCheats;
   int m_SelectedLanguage;
   bool m_OverrideGCLanguage;
   bool m_ProgressiveScan;

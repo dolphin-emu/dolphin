@@ -712,7 +712,7 @@ bool NetPlayServer::StartGame()
   *spac << m_current_game;
   *spac << m_settings.m_CPUthread;
   *spac << m_settings.m_CPUcore;
-  *spac << m_settings.m_enableCheats;
+  *spac << m_settings.m_EnableCheats;
   *spac << m_settings.m_SelectedLanguage;
   *spac << m_settings.m_OverrideGCLanguage;
   *spac << m_settings.m_ProgressiveScan;

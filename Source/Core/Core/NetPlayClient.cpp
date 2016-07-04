@@ -367,7 +367,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_current_game;
       packet >> g_NetPlaySettings.m_CPUthread;
       packet >> g_NetPlaySettings.m_CPUcore;
-      packet >> g_NetPlaySettings.m_enableCheats;
+      packet >> g_NetPlaySettings.m_EnableCheats;
       packet >> g_NetPlaySettings.m_SelectedLanguage;
       packet >> g_NetPlaySettings.m_OverrideGCLanguage;
       packet >> g_NetPlaySettings.m_ProgressiveScan;
