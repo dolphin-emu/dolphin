@@ -396,7 +396,7 @@ TMetroidLayer GetMetroidPrime1GCLayer2D(int layer, float left, float right, floa
     if (g_metroid_map_screen)
       result = METROID_MAP_NORTH;
     else if (layer == 4 && !g_metroid_scan_visor)
-      result = METROID_BLACK_BARS;
+      result = METROID_BLACK_BARS;  // could also be METROID_VISOR_DIRT
     else
       result = METROID_SCAN_DARKEN;
   }
@@ -1273,7 +1273,15 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
   }
   else if (layer == 2)
   {
-    if (l == 0 && n == -409600)
+    if (g_metroid_cinematic && l == 0 && n == -409600)
+    {
+      result = METROID_UNKNOWN_2D;
+      g_metroid_dark_visor = false;
+      g_metroid_scan_visor = false;
+      g_metroid_scan_visor_active = false;
+      g_metroid_morphball_active = false;
+    }
+    else if (l == 0 && n == -409600)
     {
       result = METROID_DARK_EFFECT;
       g_metroid_dark_visor = true;
@@ -1334,12 +1342,20 @@ TMetroidLayer GetMetroidPrime2GCLayer2D(int layer, float left, float right, floa
     }
     else if (l == 0 && n == -409600)
     {
-      result = METROID_DARK_EFFECT;
-      g_metroid_dark_visor = true;
-      g_metroid_scan_visor = false;
-      g_metroid_scan_visor_active = false;
-      g_metroid_morphball_active = false;
-      g_metroid_cinematic = false;
+		if (g_metroid_cinematic) {
+			result = METROID_UNKNOWN_2D; // intro cinematic FMV
+			g_metroid_dark_visor = false;
+			g_metroid_scan_visor = false;
+			g_metroid_scan_visor_active = false;
+			g_metroid_morphball_active = false;
+		} else {
+			result = METROID_DARK_EFFECT;
+			g_metroid_dark_visor = true;
+			g_metroid_scan_visor = false;
+			g_metroid_scan_visor_active = false;
+			g_metroid_morphball_active = false;
+			g_metroid_cinematic = false;
+		}
     }
     else if (l == 0 && (t == 22400 || t == 26400) && r == 32000 && b == 0 && n == -100 && f == 100)
     {
@@ -2087,8 +2103,9 @@ void GetMetroidPrimeValues(bool* bStuckToHead, bool* bFullscreenLayer, bool* bHi
   case METROID_VISOR_DIRT:
     // todo: move to helmet depth (hard with a 2D layer)
     *bStuckToHead = true;
-    *bFullscreenLayer = false;
-    *fScaleHack = 2;
+    *bFullscreenLayer = true;
+    //*fScaleHack = 30;
+    //*fHeightHack = 2.0f;
     break;
   case METROID_VISOR_BOOTUP:
   case METROID_SCREEN_OVERLAY:
