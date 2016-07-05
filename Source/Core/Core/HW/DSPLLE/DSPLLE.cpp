@@ -166,11 +166,9 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
     return false;
 
   // needs to be after DSPCore_Init for the dspjit ptr
-  if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism ||
-      !g_dsp_jit)
-  {
+  if (Core::g_want_determinism || !g_dsp_jit)
     bDSPThread = false;
-  }
+
   m_bWii = bWii;
   m_bDSPThread = bDSPThread;
 
@@ -310,8 +308,7 @@ void DSPLLE::DSP_Update(int cycles)
   */
   if (m_bDSPThread)
   {
-    if (requestDisableThread || NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() ||
-        Core::g_want_determinism)
+    if (requestDisableThread || Core::g_want_determinism)
     {
       DSP_StopSoundStream();
       m_bDSPThread = false;
