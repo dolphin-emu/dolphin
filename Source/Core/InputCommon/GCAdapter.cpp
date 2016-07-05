@@ -453,9 +453,9 @@ void Input(int chan, GCPadStatus* pad)
       pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
       pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
     }
-    else if (!NetPlay::IsNetPlayRunning())
+    else if (!Core::g_want_determinism)
     {
-      // This is a hack to prevent a netplay desync due to SI devices
+      // This is a hack to prevent a desync due to SI devices
       // being different and returning different values.
       // The corresponding code in DeviceGCAdapter has the same check
       pad->button = PAD_ERR_STATUS;
