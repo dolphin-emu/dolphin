@@ -16,8 +16,9 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/SysConf.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -28,6 +29,7 @@
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
@@ -159,8 +161,10 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
     static const std::array<wxString, 4> src_choices = {
         {_("None"), _("Emulated Wiimote"), _("Real Wiimote"), _("Hybrid Wiimote")}};
 
-    // reserve four ids, so that we can calculate the index from the ids later on
-    // Stupid wx 2.8 doesn't support reserving sequential IDs, so we need to do that more
+    // reserve four ids, so that we can calculate the index from the ids later
+    // on
+    // Stupid wx 2.8 doesn't support reserving sequential IDs, so we need to do
+    // that more
     // complicated..
     int source_ctrl_id = wxWindow::NewControlId();
     m_wiimote_index_from_ctrl_id.emplace(source_ctrl_id, i);
@@ -302,7 +306,8 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGeneralWiimoteSettingsSizer()
   wxStaticText* const WiimoteSpkVolumeMinText = new wxStaticText(this, wxID_ANY, _("Min"));
   wxStaticText* const WiimoteSpkVolumeMaxText = new wxStaticText(this, wxID_ANY, _("Max"));
 
-  // With some GTK themes, no minimum size will be applied - so do this manually here
+  // With some GTK themes, no minimum size will be applied - so do this manually
+  // here
   WiiSensBarSens->SetMinSize(wxSize(100, -1));
   WiimoteSpkVolume->SetMinSize(wxSize(100, -1));
 
@@ -413,25 +418,24 @@ void ControllerConfigDiag::RevertSource()
 
 void ControllerConfigDiag::Save(wxCommandEvent& event)
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
 
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
     std::string secname("Wiimote");
     secname += (char)('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
+    OnionConfig::Section* petal =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_WIIPAD, secname);
 
-    sec.Set("Source", (int)g_wiimote_sources[i]);
+    petal->Set("Source", (int)g_wiimote_sources[i]);
   }
 
   std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+  OnionConfig::Section* petal =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_WIIPAD, secname);
+  petal->Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
 
-  inifile.Save(ini_filename);
+  base_layer->Save();
 
   event.Skip();
 }

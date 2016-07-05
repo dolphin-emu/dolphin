@@ -152,6 +152,10 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="OnionCoreLoaders\BaseConfigLoader.cpp" />
+    <ClCompile Include="OnionCoreLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="OnionCoreLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="OnionCoreLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="ActionReplay.cpp">
       <Filter>ActionReplay</Filter>
@@ -745,6 +749,10 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="OnionCoreLoaders\BaseConfigLoader.h" />
+    <ClInclude Include="OnionCoreLoaders\GameConfigLoader.h" />
+    <ClInclude Include="OnionCoreLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="OnionCoreLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="ActionReplay.h">
       <Filter>ActionReplay</Filter>

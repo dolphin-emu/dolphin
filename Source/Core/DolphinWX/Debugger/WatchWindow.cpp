@@ -11,9 +11,12 @@
 // clang-format on
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/WxUtils.h"
@@ -90,11 +93,15 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CWatchWindow::SaveAll()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini",
-           false);
-  ini.SetLines("Watches", PowerPC::watches.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
+  std::unique_ptr<OnionConfig::Layer> game_layer(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+          GenerateLocalGameConfigLoader(SConfig::GetInstance().GetUniqueID(), 0))));
+
+  OnionConfig::Section* watches =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Watches");
+
+  watches->SetLines(PowerPC::watches.GetStrings());
+  game_layer->Save();
 }
 
 void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -104,17 +111,11 @@ void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 
 void CWatchWindow::LoadAll()
 {
-  IniFile ini;
   Watches::TWatchesStr watches;
+  OnionConfig::Section* watches_config =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Watches");
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() +
-                    ".ini",
-                false))
-  {
-    return;
-  }
-
-  if (ini.GetLines("Watches", &watches, false))
+  if (watches_config->GetLines(&watches, false))
   {
     PowerPC::watches.Clear();
     PowerPC::watches.AddFromStrings(watches);

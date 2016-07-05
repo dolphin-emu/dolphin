@@ -14,7 +14,7 @@
 
 namespace Keyboard
 {
-static InputConfig s_config("GCKeyNew", _trans("Keyboard"), "GCKey");
+static InputConfig s_config(OnionConfig::System::SYSTEM_GCKEYBOARD, _trans("Keyboard"), "GCKey");
 InputConfig* GetConfig()
 {
   return &s_config;
@@ -38,12 +38,12 @@ void Initialize(void* const hwnd)
   g_controller_interface.Initialize(hwnd);
 
   // Load the saved controller config
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 }
 
 void GetStatus(u8 port, KeyboardStatus* keyboard_status)

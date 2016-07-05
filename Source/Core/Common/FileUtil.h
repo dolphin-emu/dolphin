@@ -22,10 +22,13 @@ enum
 {
   D_USER_IDX,
   D_GCUSER_IDX,
-  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured directory
-  D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for determinism
+  D_WIIROOT_IDX,          // always points to User/Wii or global user-configured
+                          // directory
+  D_SESSION_WIIROOT_IDX,  // may point to minimal temporary directory for
+                          // determinism
   D_CONFIG_IDX,           // global settings
-  D_GAMESETTINGS_IDX,     // user-specified settings which override both the global and the default
+  D_GAMESETTINGS_IDX,     // user-specified settings which override both the global
+                          // and the default
                           // settings (per game)
   D_MAPS_IDX,
   D_CACHE_IDX,
@@ -46,8 +49,13 @@ enum
   D_PIPES_IDX,
   D_MEMORYWATCHER_IDX,
   F_DOLPHINCONFIG_IDX,
+  F_GCPADCONFIG_IDX,
+  F_WIIPADCONFIG_IDX,
+  F_GCKEYBOARDCONFIG_IDX,
+  F_GFXCONFIG_IDX,
   F_DEBUGGERCONFIG_IDX,
   F_LOGGERCONFIG_IDX,
+  F_UICONFIG_IDX,
   F_MAINLOG_IDX,
   F_RAMDUMP_IDX,
   F_ARAMDUMP_IDX,
@@ -101,7 +109,8 @@ bool DeleteDir(const std::string& filename);
 // renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename);
 
-// ditto, but syncs the source file and, on Unix, syncs the directories after rename
+// ditto, but syncs the source file and, on Unix, syncs the directories after
+// rename
 bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
 
 // copies file srcFilename to destFilename, returns true on success

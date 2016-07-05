@@ -8,8 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
-class IniFile;
+#include "Common/OnionConfig.h"
 
 namespace PatchEngine
 {
@@ -40,8 +39,8 @@ struct Patch
 };
 
 int GetSpeedhackCycles(const u32 addr);
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni);
+void LoadPatchSection(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
+                      std::vector<Patch>& patches);
 void LoadPatches();
 void ApplyFramePatches();
 void Shutdown();

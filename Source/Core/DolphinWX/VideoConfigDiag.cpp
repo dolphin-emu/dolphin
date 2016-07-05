@@ -21,7 +21,9 @@
 
 #include "Common/Assert.h"
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/SysConf.h"
+
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
@@ -83,187 +85,267 @@ void VideoConfigDiag::Event_ClickClose(wxCommandEvent&)
 
 void VideoConfigDiag::Event_Close(wxCloseEvent& ev)
 {
-  g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  OnionConfig::Save();
 
   EndModal(wxID_OK);
 }
 
 #if defined(_WIN32)
 static wxString backend_desc =
-    wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely "
-                "slow and only useful for debugging, so you'll want to use either Direct3D or "
-                "OpenGL. Different games and different GPUs will behave differently on each "
-                "backend, so for the best emulation experience it's recommended to try both and "
+    wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is "
+                "extremely "
+                "slow and only useful for debugging, so you'll want to use either Direct3D "
+                "or "
+                "OpenGL. Different games and different GPUs will behave differently on "
+                "each "
+                "backend, so for the best emulation experience it's recommended to try "
+                "both and "
                 "choose the one that's less problematic.\n\nIf unsure, select OpenGL.");
 #else
 static wxString backend_desc =
-    wxTRANSLATE("Selects what graphics API to use internally.\nThe software renderer is extremely "
-                "slow and only useful for debugging, so unless you have a reason to use it you'll "
+    wxTRANSLATE("Selects what graphics API to use internally.\nThe software "
+                "renderer is extremely "
+                "slow and only useful for debugging, so unless you have a "
+                "reason to use it you'll "
                 "want to select OpenGL here.\n\nIf unsure, select OpenGL.");
 #endif
 static wxString adapter_desc =
     wxTRANSLATE("Selects a hardware adapter to use.\n\nIf unsure, use the first one.");
 static wxString display_res_desc =
-    wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should always be "
+    wxTRANSLATE("Selects the display resolution used in fullscreen mode.\nThis should "
+                "always be "
                 "bigger than or equal to the internal resolution. Performance impact is "
                 "negligible.\n\nIf unsure, select auto.");
-static wxString use_fullscreen_desc = wxTRANSLATE(
-    "Enable this if you want the whole screen to be used for rendering.\nIf this is disabled, a "
-    "render window will be created instead.\n\nIf unsure, leave this unchecked.");
+static wxString use_fullscreen_desc =
+    wxTRANSLATE("Enable this if you want the whole screen to be used for "
+                "rendering.\nIf this is disabled, a "
+                "render window will be created instead.\n\nIf unsure, leave "
+                "this unchecked.");
 static wxString auto_window_size_desc =
-    wxTRANSLATE("Automatically adjusts the window size to your internal resolution.\n\nIf unsure, "
+    wxTRANSLATE("Automatically adjusts the window size to your internal "
+                "resolution.\n\nIf unsure, "
                 "leave this unchecked.");
-static wxString keep_window_on_top_desc = wxTRANSLATE(
-    "Keep the game window on top of all other windows.\n\nIf unsure, leave this unchecked.");
+static wxString keep_window_on_top_desc =
+    wxTRANSLATE("Keep the game window on top of all other windows.\n\nIf "
+                "unsure, leave this unchecked.");
 static wxString hide_mouse_cursor_desc =
-    wxTRANSLATE("Hides the mouse cursor if it's on top of the emulation window.\n\nIf unsure, "
+    wxTRANSLATE("Hides the mouse cursor if it's on top of the emulation "
+                "window.\n\nIf unsure, "
                 "leave this unchecked.");
 static wxString render_to_main_win_desc =
-    wxTRANSLATE("Enable this if you want to use the main Dolphin window for rendering rather than "
+    wxTRANSLATE("Enable this if you want to use the main Dolphin window for rendering "
+                "rather than "
                 "a separate render window.\n\nIf unsure, leave this unchecked.");
 static wxString prog_scan_desc =
-    wxTRANSLATE("Enables progressive scan if supported by the emulated software.\nMost games don't "
+    wxTRANSLATE("Enables progressive scan if supported by the emulated "
+                "software.\nMost games don't "
                 "care about this.\n\nIf unsure, leave this unchecked.");
-static wxString ar_desc =
-    wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use the native aspect "
-                "ratio\nForce 16:9: Mimic an analog TV with a widescreen aspect ratio.\nForce 4:3: "
-                "Mimic a standard 4:3 analog TV.\nStretch to Window: Stretch the picture to the "
-                "window size.\n\nIf unsure, select Auto.");
-static wxString ws_hack_desc = wxTRANSLATE(
-    "Forces the game to output graphics for any aspect ratio.\nUse with \"Aspect Ratio\" set to "
-    "\"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces good results and "
-    "often partially breaks graphics and game UIs.\nUnnecessary (and detrimental) if using any "
-    "AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
+static wxString ar_desc = wxTRANSLATE("Select what aspect ratio to use when rendering:\nAuto: Use "
+                                      "the native aspect "
+                                      "ratio\nForce 16:9: Mimic an analog TV with a widescreen "
+                                      "aspect ratio.\nForce 4:3: "
+                                      "Mimic a standard 4:3 analog TV.\nStretch to Window: Stretch "
+                                      "the picture to the "
+                                      "window size.\n\nIf unsure, select Auto.");
+static wxString ws_hack_desc =
+    wxTRANSLATE("Forces the game to output graphics for any aspect ratio.\nUse with "
+                "\"Aspect Ratio\" set to "
+                "\"Force 16:9\" to force 4:3-only games to run at 16:9.\nRarely produces "
+                "good results and "
+                "often partially breaks graphics and game UIs.\nUnnecessary (and "
+                "detrimental) if using any "
+                "AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
 static wxString vsync_desc =
-    wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases performance if "
+    wxTRANSLATE("Wait for vertical blanks in order to reduce tearing.\nDecreases "
+                "performance if "
                 "emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");
-static wxString af_desc = wxTRANSLATE(
-    "Enable anisotropic filtering.\nEnhances visual quality of textures that are at oblique "
-    "viewing angles.\nMight cause issues in a small number of games.\n\nIf unsure, select 1x.");
+static wxString af_desc = wxTRANSLATE("Enable anisotropic filtering.\nEnhances visual quality of "
+                                      "textures that are at oblique "
+                                      "viewing angles.\nMight cause issues in a small number of "
+                                      "games.\n\nIf unsure, select 1x.");
 static wxString aa_desc =
-    wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics. This smooths "
-                "out jagged edges on objects.\nIncreases GPU load and sometimes causes graphical "
-                "issues. SSAA is significantly more demanding than MSAA, but provides top quality "
+    wxTRANSLATE("Reduces the amount of aliasing caused by rasterizing 3D graphics. This "
+                "smooths "
+                "out jagged edges on objects.\nIncreases GPU load and sometimes causes "
+                "graphical "
+                "issues. SSAA is significantly more demanding than MSAA, but provides top "
+                "quality "
                 "geometry anti-aliasing and also applies anti-aliasing to lighting, shader "
                 "effects, and textures.\n\nIf unsure, select None.");
-static wxString scaled_efb_copy_desc = wxTRANSLATE(
-    "Greatly increases quality of textures generated using render-to-texture effects.\nRaising the "
-    "internal resolution will improve the effect of this setting.\nSlightly increases GPU load and "
-    "causes relatively few graphical issues.\n\nIf unsure, leave this checked.");
-static wxString pixel_lighting_desc = wxTRANSLATE(
-    "Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the "
-    "appearance of lit polygons and making individual triangles less noticeable.\nRarely causes "
-    "slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
+static wxString scaled_efb_copy_desc =
+    wxTRANSLATE("Greatly increases quality of textures generated using "
+                "render-to-texture effects.\nRaising the "
+                "internal resolution will improve the effect of this "
+                "setting.\nSlightly increases GPU load and "
+                "causes relatively few graphical issues.\n\nIf unsure, leave "
+                "this checked.");
+static wxString pixel_lighting_desc =
+    wxTRANSLATE("Calculates lighting of 3D objects per-pixel rather than per-vertex, "
+                "smoothing out the "
+                "appearance of lit polygons and making individual triangles less "
+                "noticeable.\nRarely causes "
+                "slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
 static wxString fast_depth_calc_desc =
-    wxTRANSLATE("Use a less accurate algorithm to calculate depth values.\nCauses issues in a few "
-                "games, but can give a decent speedup depending on the game and/or your GPU.\n\nIf "
+    wxTRANSLATE("Use a less accurate algorithm to calculate depth "
+                "values.\nCauses issues in a few "
+                "games, but can give a decent speedup depending on the game "
+                "and/or your GPU.\n\nIf "
                 "unsure, leave this checked.");
 static wxString disable_bbox_desc =
-    wxTRANSLATE("Disable the bounding box emulation.\nThis may improve the GPU performance a lot, "
+    wxTRANSLATE("Disable the bounding box emulation.\nThis may improve the GPU "
+                "performance a lot, "
                 "but some games will break.\n\nIf unsure, leave this checked.");
 static wxString force_filtering_desc =
     wxTRANSLATE("Filter all textures, including any that the game explicitly set as "
-                "unfiltered.\nMay improve quality of certain textures in some games, but will "
+                "unfiltered.\nMay improve quality of certain textures in some games, but "
+                "will "
                 "cause issues in others.\n\nIf unsure, leave this unchecked.");
-static wxString borderless_fullscreen_desc = wxTRANSLATE(
-    "Implement fullscreen mode with a borderless window spanning the whole screen instead of using "
-    "exclusive mode.\nAllows for faster transitions between fullscreen and windowed mode, but "
-    "slightly increases input latency, makes movement less smooth and slightly decreases "
-    "performance.\nExclusive mode is required for Nvidia 3D Vision to work in the Direct3D "
-    "backend.\n\nIf unsure, leave this unchecked.");
+static wxString borderless_fullscreen_desc =
+    wxTRANSLATE("Implement fullscreen mode with a borderless window spanning "
+                "the whole screen instead of using "
+                "exclusive mode.\nAllows for faster transitions between "
+                "fullscreen and windowed mode, but "
+                "slightly increases input latency, makes movement less smooth "
+                "and slightly decreases "
+                "performance.\nExclusive mode is required for Nvidia 3D Vision "
+                "to work in the Direct3D "
+                "backend.\n\nIf unsure, leave this unchecked.");
 static wxString internal_res_desc =
-    wxTRANSLATE("Specifies the resolution used to render at. A high resolution greatly improves "
-                "visual quality, but also greatly increases GPU load and can cause issues in "
-                "certain games.\n\"Multiple of 640x528\" will result in a size slightly larger "
-                "than \"Window Size\" but yield fewer issues. Generally speaking, the lower the "
-                "internal resolution is, the better your performance will be. Auto (Window Size), "
-                "1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, select Native.");
+    wxTRANSLATE("Specifies the resolution used to render at. A high resolution "
+                "greatly improves "
+                "visual quality, but also greatly increases GPU load and can "
+                "cause issues in "
+                "certain games.\n\"Multiple of 640x528\" will result in a size "
+                "slightly larger "
+                "than \"Window Size\" but yield fewer issues. Generally "
+                "speaking, the lower the "
+                "internal resolution is, the better your performance will be. "
+                "Auto (Window Size), "
+                "1.5x, and 2.5x may cause issues in some games.\n\nIf unsure, "
+                "select Native.");
 static wxString efb_access_desc =
-    wxTRANSLATE("Ignore any requests from the CPU to read from or write to the EFB.\nImproves "
-                "performance in some games, but might disable some gameplay-related features or "
+    wxTRANSLATE("Ignore any requests from the CPU to read from or write to the "
+                "EFB.\nImproves "
+                "performance in some games, but might disable some "
+                "gameplay-related features or "
                 "graphical effects.\n\nIf unsure, leave this unchecked.");
 static wxString efb_emulate_format_changes_desc =
-    wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games without "
+    wxTRANSLATE("Ignore any changes to the EFB format.\nImproves performance in many games "
+                "without "
                 "any negative effect. Causes graphical defects in a small number of other "
                 "games.\n\nIf unsure, leave this checked.");
-static wxString skip_efb_copy_to_ram_desc = wxTRANSLATE(
-    "Stores EFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects "
-    "in a small number of games.\n\nEnabled = EFB Copies to Texture\nDisabled = EFB Copies to RAM "
-    "(and Texture)\n\nIf unsure, leave this checked.");
-static wxString stc_desc =
-    wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates "
-                "from RAM.\nLower accuracies cause in-game text to appear garbled in certain "
-                "games.\n\nIf unsure, use the rightmost value.");
+static wxString skip_efb_copy_to_ram_desc =
+    wxTRANSLATE("Stores EFB Copies exclusively on the GPU, bypassing system "
+                "memory. Causes graphical defects "
+                "in a small number of games.\n\nEnabled = EFB Copies to "
+                "Texture\nDisabled = EFB Copies to RAM "
+                "(and Texture)\n\nIf unsure, leave this checked.");
+static wxString stc_desc = wxTRANSLATE("The \"Safe\" setting eliminates the likelihood of the GPU "
+                                       "missing texture updates "
+                                       "from RAM.\nLower accuracies cause in-game text to appear "
+                                       "garbled in certain "
+                                       "games.\n\nIf unsure, use the rightmost value.");
 static wxString wireframe_desc =
     wxTRANSLATE("Render the scene as a wireframe.\n\nIf unsure, leave this unchecked.");
 static wxString disable_fog_desc =
-    wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the overall "
+    wxTRANSLATE("Makes distant objects more visible by removing fog, thus increasing the "
+                "overall "
                 "detail.\nDisabling fog will break some games which rely on proper fog "
                 "emulation.\n\nIf unsure, leave this unchecked.");
 static wxString show_fps_desc =
     wxTRANSLATE("Show the number of frames rendered per second as a measure of emulation "
                 "speed.\n\nIf unsure, leave this unchecked.");
-static wxString log_render_time_to_file_desc = wxTRANSLATE(
-    "Log the render time of every frame to User/Logs/render_time.txt. Use this feature when you "
-    "want to measure the performance of Dolphin.\n\nIf unsure, leave this unchecked.");
+static wxString log_render_time_to_file_desc =
+    wxTRANSLATE("Log the render time of every frame to "
+                "User/Logs/render_time.txt. Use this feature when you "
+                "want to measure the performance of Dolphin.\n\nIf unsure, "
+                "leave this unchecked.");
 static wxString show_stats_desc =
     wxTRANSLATE("Show various rendering statistics.\n\nIf unsure, leave this unchecked.");
 static wxString texfmt_desc =
-    wxTRANSLATE("Modify textures to show the format they're encoded in. Needs an emulation reset "
+    wxTRANSLATE("Modify textures to show the format they're encoded in. Needs "
+                "an emulation reset "
                 "in most cases.\n\nIf unsure, leave this unchecked.");
-static wxString xfb_desc = wxTRANSLATE(
-    "Disable any XFB emulation.\nSpeeds up emulation a lot but causes heavy glitches in many games "
-    "which rely on them (especially homebrew applications).\n\nIf unsure, leave this checked.");
-static wxString xfb_virtual_desc = wxTRANSLATE(
-    "Emulate XFBs using GPU texture objects.\nFixes many games which don't work without XFB "
-    "emulation while not being as slow as real XFB emulation. However, it may still fail for a lot "
-    "of other games (especially homebrew applications).\n\nIf unsure, leave this checked.");
+static wxString xfb_desc =
+    wxTRANSLATE("Disable any XFB emulation.\nSpeeds up emulation a lot but "
+                "causes heavy glitches in many games "
+                "which rely on them (especially homebrew applications).\n\nIf "
+                "unsure, leave this checked.");
+static wxString xfb_virtual_desc =
+    wxTRANSLATE("Emulate XFBs using GPU texture objects.\nFixes many games "
+                "which don't work without XFB "
+                "emulation while not being as slow as real XFB emulation. "
+                "However, it may still fail for a lot "
+                "of other games (especially homebrew applications).\n\nIf "
+                "unsure, leave this checked.");
 static wxString xfb_real_desc =
     wxTRANSLATE("Emulate XFBs accurately.\nSlows down emulation a lot and prohibits "
                 "high-resolution rendering but is necessary to emulate a number of games "
                 "properly.\n\nIf unsure, check virtual XFB emulation instead.");
 static wxString dump_textures_desc =
-    wxTRANSLATE("Dump decoded game textures to User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
+    wxTRANSLATE("Dump decoded game textures to "
+                "User/Dump/Textures/<game_id>/.\n\nIf unsure, leave "
                 "this unchecked.");
-static wxString load_hires_textures_desc = wxTRANSLATE(
-    "Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this unchecked.");
+static wxString load_hires_textures_desc =
+    wxTRANSLATE("Load custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, "
+                "leave this unchecked.");
 static wxString cache_hires_textures_desc =
-    wxTRANSLATE("Cache custom textures to system RAM on startup.\nThis can require exponentially "
-                "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
-static wxString dump_efb_desc = wxTRANSLATE(
-    "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+    wxTRANSLATE("Cache custom textures to system RAM on startup.\nThis can "
+                "require exponentially "
+                "more RAM but fixes possible stuttering.\n\nIf unsure, leave "
+                "this unchecked.");
+static wxString dump_efb_desc =
+    wxTRANSLATE("Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf "
+                "unsure, leave this unchecked.");
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 static wxString use_ffv1_desc =
-    wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
+    wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave "
+                "this unchecked.");
 #endif
-static wxString free_look_desc = wxTRANSLATE(
-    "This feature allows you to change the game's camera.\nMove the mouse while holding the right "
-    "mouse button to pan and while holding the middle button to move.\nHold SHIFT and press one of "
-    "the WASD keys to move the camera by a certain step distance (SHIFT+2 to move faster and "
-    "SHIFT+1 to move slower). Press SHIFT+R to reset the camera and SHIFT+F to reset the "
-    "speed.\n\nIf unsure, leave this unchecked.");
+static wxString free_look_desc =
+    wxTRANSLATE("This feature allows you to change the game's camera.\nMove "
+                "the mouse while holding the right "
+                "mouse button to pan and while holding the middle button to "
+                "move.\nHold SHIFT and press one of "
+                "the WASD keys to move the camera by a certain step distance "
+                "(SHIFT+2 to move faster and "
+                "SHIFT+1 to move slower). Press SHIFT+R to reset the camera "
+                "and SHIFT+F to reset the "
+                "speed.\n\nIf unsure, leave this unchecked.");
 static wxString crop_desc = wxTRANSLATE("Crop the picture from its native aspect ratio to 4:3 or "
                                         "16:9.\n\nIf unsure, leave this unchecked.");
-static wxString ppshader_desc = wxTRANSLATE(
-    "Apply a post-processing effect after finishing a frame.\n\nIf unsure, select (off).");
+static wxString ppshader_desc =
+    wxTRANSLATE("Apply a post-processing effect after finishing a frame.\n\nIf "
+                "unsure, select (off).");
 static wxString cache_efb_copies_desc =
-    wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation accuracy.\nIf "
-                "you're experiencing any issues, try raising texture cache accuracy or disable "
+    wxTRANSLATE("Slightly speeds up EFB to RAM copies by sacrificing emulation "
+                "accuracy.\nIf "
+                "you're experiencing any issues, try raising texture cache "
+                "accuracy or disable "
                 "this option.\n\nIf unsure, leave this unchecked.");
 static wxString stereo_3d_desc =
-    wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to get a better feeling "
-                "of depth if you have the necessary hardware.\nSide-by-Side and Top-and-Bottom are "
-                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored glasses.\nHeavily "
-                "decreases emulation speed and sometimes causes issues.\n\nIf unsure, select Off.");
+    wxTRANSLATE("Selects the stereoscopic 3D mode. Stereoscopy allows you to "
+                "get a better feeling "
+                "of depth if you have the necessary hardware.\nSide-by-Side "
+                "and Top-and-Bottom are "
+                "used by most 3D TVs.\nAnaglyph is used for Red-Cyan colored "
+                "glasses.\nHeavily "
+                "decreases emulation speed and sometimes causes issues.\n\nIf "
+                "unsure, select Off.");
 static wxString stereo_depth_desc =
-    wxTRANSLATE("Controls the separation distance between the virtual cameras.\nA higher value "
-                "creates a stronger feeling of depth while a lower value is more comfortable.");
+    wxTRANSLATE("Controls the separation distance between the virtual "
+                "cameras.\nA higher value "
+                "creates a stronger feeling of depth while a lower value is "
+                "more comfortable.");
 static wxString stereo_convergence_desc =
-    wxTRANSLATE("Controls the distance of the convergence plane. This is the distance at which "
-                "virtual objects will appear to be in front of the screen.\nA higher value creates "
+    wxTRANSLATE("Controls the distance of the convergence plane. This is the distance at "
+                "which "
+                "virtual objects will appear to be in front of the screen.\nA higher value "
+                "creates "
                 "stronger out-of-screen effects while a lower value is more comfortable.");
 static wxString stereo_swap_desc =
-    wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
+    wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to "
+                "view side-by-side "
                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
@@ -334,7 +416,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                                   wxGetTranslation(StrToWxStr(title)))),
       vconfig(g_Config)
 {
-  vconfig.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  vconfig.Load();
 
   Bind(wxEVT_UPDATE_UI, &VideoConfigDiag::OnUpdateUI, this);
 
@@ -678,7 +760,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       else if (vconfig.iSafeTextureCache_ColorSamples == 128)
         stc_slider->SetValue(2);
       else
-        stc_slider->Disable();  // Using custom number of samples; TODO: Inform the user why this is
+        stc_slider->Disable();  // Using custom number of samples; TODO: Inform
+                                // the user why this is
                                 // disabled..
 
       szr_safetex->Add(new wxStaticText(page_hacks, wxID_ANY, _("Accuracy:")), 0, wxALL, 5);
@@ -798,7 +881,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                         this);
 
         progressive_scan_checkbox->SetValue(SConfig::GetInstance().bProgressive);
-        // A bit strange behavior, but this needs to stay in sync with the main progressive boolean;
+        // A bit strange behavior, but this needs to stay in sync with the main
+        // progressive boolean;
         // TODO: Is this still necessary?
         SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", SConfig::GetInstance().bProgressive);
 
@@ -879,7 +963,8 @@ SettingRadioButton* VideoConfigDiag::CreateRadioButton(wxWindow* parent, const w
   return rb;
 }
 
-/* Use this to register descriptions for controls which have NOT been created using the Create*
+/* Use this to register descriptions for controls which have NOT been created
+ * using the Create*
  * functions from above */
 wxControl* VideoConfigDiag::RegisterControl(wxControl* const control, const wxString& description)
 {
@@ -898,13 +983,15 @@ void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
   if (!ctrl)
     return;
 
-  // look up description text object from the control's parent (which is the wxPanel of the current
+  // look up description text object from the control's parent (which is the
+  // wxPanel of the current
   // tab)
   wxStaticText* descr_text = desc_texts[ctrl->GetParent()];
   if (!descr_text)
     return;
 
-  // look up the description of the selected control and assign it to the current description text
+  // look up the description of the selected control and assign it to the
+  // current description text
   // object's label
   descr_text->SetLabel(ctrl_descs[ctrl]);
   descr_text->Wrap(descr_text->GetContainingSizer()->GetSize().x - 20);
@@ -914,7 +1001,8 @@ void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
 
 // TODO: Don't hardcode the size of the description area via line breaks
 #define DEFAULT_DESC_TEXT                                                                          \
-  _("Move the mouse pointer over an option to display a detailed description.\n\n\n\n\n\n\n")
+  _("Move the mouse pointer over an option to display a detailed "                                 \
+    "description.\n\n\n\n\n\n\n")
 void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
 {
   // look up description text control and reset its label
@@ -936,7 +1024,8 @@ void VideoConfigDiag::CreateDescriptionArea(wxPanel* const page, wxBoxSizer* con
   wxStaticBoxSizer* const desc_sizer = new wxStaticBoxSizer(wxVERTICAL, page, _("Description"));
   sizer->Add(desc_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
-  // Need to call SetSizerAndFit here, since we don't want the description texts to change the
+  // Need to call SetSizerAndFit here, since we don't want the description texts
+  // to change the
   // dialog width
   page->SetSizerAndFit(sizer);
 

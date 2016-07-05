@@ -19,7 +19,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/SymbolDB.h"
 
 #include "Core/Boot/Boot.h"
@@ -50,13 +50,16 @@
 // -----------------------------
 void CCodeWindow::Load()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
   // The font to override DebuggerFont with
   std::string fontDesc;
 
-  IniFile::Section* general = ini.GetOrCreateSection("General");
+  OnionConfig::Section* general =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "General");
+  OnionConfig::Section* show_on_start =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "ShowOnStart");
+  OnionConfig::Section* float_windows =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Float");
+
   general->Get("DebuggerFont", &fontDesc);
   general->Get("AutomaticStart", &bAutomaticStart, false);
   general->Get("BootToPause", &bBootToPause, true);
@@ -69,7 +72,7 @@ void CCodeWindow::Load()
 
   // Decide what windows to show
   for (int i = 0; i <= IDM_VIDEO_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
+    show_on_start->Get(SettingName[i], &bShowOnStart[i], false);
 
   // Get notebook affiliation
   std::string section = "P - " + ((Parent->ActivePerspective < Parent->Perspectives.size()) ?
@@ -77,19 +80,27 @@ void CCodeWindow::Load()
                                       "Perspective 1");
 
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
+  {
+    OnionConfig::Section* petal =
+        OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, section);
+    petal->Get(SettingName[i], &iNbAffiliation[i], 0);
+  }
 
   // Get floating setting
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
+    float_windows->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
+  OnionConfig::Section* general =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "General");
+  OnionConfig::Section* show_on_start =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "ShowOnStart");
+  OnionConfig::Section* float_windows =
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "Float");
 
-  IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
   general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
   general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
@@ -99,20 +110,21 @@ void CCodeWindow::Save()
 
   // Save windows settings
   for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
-    ini.GetOrCreateSection("ShowOnStart")
-        ->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
+    show_on_start->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
 
   // Save notebook affiliations
   std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
+  {
+    OnionConfig::Section* petal =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, section);
+    petal->Set(SettingName[i], iNbAffiliation[i]);
+  }
 
   // Save floating setting
   for (int i = IDM_LOG_WINDOW_PARENT; i <= IDM_CODE_WINDOW_PARENT; i++)
-    ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT],
-                                         !!FindWindowById(i));
-
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+    float_windows->Set(SettingName[i - IDM_LOG_WINDOW_PARENT], !!FindWindowById(i));
+  base_layer->Save();
 }
 
 // Symbols, JIT, Profiler
@@ -123,48 +135,53 @@ void CCodeWindow::CreateMenuSymbols(wxMenuBar* pMenuBar)
   pSymbolsMenu->Append(IDM_CLEAR_SYMBOLS, _("&Clear symbols"),
                        _("Remove names from all functions and variables."));
   pSymbolsMenu->Append(IDM_SCAN_FUNCTIONS, _("&Generate symbol map"),
-                       _("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
+                       _("Recognise standard functions from sys\\totaldb.dsy, "
+                         "and use generic zz_ "
                          "names for other functions."));
   pSymbolsMenu->AppendSeparator();
   pSymbolsMenu->Append(IDM_LOAD_MAP_FILE, _("&Load symbol map"),
-                       _("Try to load this game's function names automatically - but doesn't check "
+                       _("Try to load this game's function names automatically "
+                         "- but doesn't check "
                          ".map files stored on the disc image yet."));
   pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save symbol map"),
                        _("Save the function names for each address to a .map file in your user "
                          "settings map folder, named after the title id."));
   pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_LOAD_MAP_FILE_AS, _("Load &other map file..."),
-      _("Load any .map file containing the function names and addresses for this game."));
-  pSymbolsMenu->Append(
-      IDM_LOAD_BAD_MAP_FILE, _("Load &bad map file..."),
-      _("Try to load a .map file that might be from a slightly different version."));
+  pSymbolsMenu->Append(IDM_LOAD_MAP_FILE_AS, _("Load &other map file..."),
+                       _("Load any .map file containing the function names and "
+                         "addresses for this game."));
+  pSymbolsMenu->Append(IDM_LOAD_BAD_MAP_FILE, _("Load &bad map file..."),
+                       _("Try to load a .map file that might be from a "
+                         "slightly different version."));
   pSymbolsMenu->Append(IDM_SAVE_MAP_FILE_AS, _("Save symbol map &as..."),
-                       _("Save the function names and addresses for this game as a .map file. If "
+                       _("Save the function names and addresses for this game as a .map file. "
+                         "If "
                          "you want to open it in IDA pro, use the .idc script."));
   pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_SAVE_MAP_FILE_WITH_CODES, _("Save code"),
-      _("Save the entire disassembled code. This may take a several seconds"
-        " and may require between 50 and 100 MB of hard drive space. It will only save code"
-        " that are in the first 4 MB of memory, if you are debugging a game that load .rel"
-        " files with code to memory you may want to increase that to perhaps 8 MB, you can do"
-        " that from SymbolDB::SaveMap()."));
+  pSymbolsMenu->Append(IDM_SAVE_MAP_FILE_WITH_CODES, _("Save code"),
+                       _("Save the entire disassembled code. This may take a several seconds"
+                         " and may require between 50 and 100 MB of hard drive space. It will "
+                         "only save code"
+                         " that are in the first 4 MB of memory, if you are debugging a game "
+                         "that load .rel"
+                         " files with code to memory you may want to increase that to perhaps 8 "
+                         "MB, you can do"
+                         " that from SymbolDB::SaveMap()."));
 
   pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_CREATE_SIGNATURE_FILE, _("&Create signature file..."),
-      _("Create a .dsy file that can be used to recognise these same functions in other games."));
+  pSymbolsMenu->Append(IDM_CREATE_SIGNATURE_FILE, _("&Create signature file..."),
+                       _("Create a .dsy file that can be used to recognise "
+                         "these same functions in other games."));
   pSymbolsMenu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &existing signature file..."),
                        _("Add any named functions missing from a .dsy file, so it can also "
                          "recognise these additional functions in other games."));
   pSymbolsMenu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine two signature files..."),
                        _("Make a new .dsy file which can recognise more functions, by combining "
                          "two existing files. The first input file has priority."));
-  pSymbolsMenu->Append(
-      IDM_USE_SIGNATURE_FILE, _("Apply signat&ure file..."),
-      _("Must use Generate symbol map first! Recognise names of any standard library functions "
-        "used in multiple games, by loading them from a .dsy file."));
+  pSymbolsMenu->Append(IDM_USE_SIGNATURE_FILE, _("Apply signat&ure file..."),
+                       _("Must use Generate symbol map first! Recognise names of any standard "
+                         "library functions "
+                         "used in multiple games, by loading them from a .dsy file."));
   pSymbolsMenu->AppendSeparator();
   pSymbolsMenu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE functions"));
   pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename symbols from file..."));

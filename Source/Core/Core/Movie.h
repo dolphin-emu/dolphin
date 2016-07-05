@@ -67,20 +67,22 @@ struct DTMHeader
 
   u8 numControllers;  // The number of connected controllers (1-4)
 
-  bool
-      bFromSaveState;  // false indicates that the recording started from bootup, true for savestate
-  u64 frameCount;      // Number of frames in the recording
-  u64 inputCount;      // Number of input frames in recording
-  u64 lagCount;        // Number of lag frames in the recording
-  u64 uniqueID;        // (not implemented) A Unique ID comprised of: md5(time + Game ID)
-  u32 numRerecords;    // Number of rerecords/'cuts' of this TAS
-  u8 author[32];       // Author's name (encoded in UTF-8)
+  bool bFromSaveState;  // false indicates that the recording started from
+                        // bootup, true for savestate
+  u64 frameCount;       // Number of frames in the recording
+  u64 inputCount;       // Number of input frames in recording
+  u64 lagCount;         // Number of lag frames in the recording
+  u64 uniqueID;         // (not implemented) A Unique ID comprised of: md5(time + Game
+                        // ID)
+  u32 numRerecords;     // Number of rerecords/'cuts' of this TAS
+  u8 author[32];        // Author's name (encoded in UTF-8)
 
   u8 videoBackend[16];   // UTF-8 representation of the video backend
   u8 audioEmulator[16];  // UTF-8 representation of the audio emulator
   u8 md5[16];            // MD5 of game iso
 
-  u64 recordingStartTime;  // seconds since 1970 that recording started (used for RTC)
+  u64 recordingStartTime;  // seconds since 1970 that recording started (used for
+                           // RTC)
 
   bool bSaveConfig;  // Loads the settings below on startup if true
   bool bSkipIdle;
@@ -131,18 +133,8 @@ bool IsReadOnly();
 u64 GetRecordingStartTime();
 
 bool IsConfigSaved();
-bool IsDualCore();
-bool IsProgressive();
-bool IsPAL60();
-bool IsSkipIdle();
-bool IsDSPHLE();
-bool IsFastDiscSpeed();
-int GetCPUMode();
-u8 GetLanguage();
 bool IsStartingFromClearSave();
 bool IsUsingMemcard(int memcard);
-bool IsSyncGPU();
-void SetGraphicsConfig();
 void GetSettings();
 bool IsNetPlayRecording();
 

@@ -9,7 +9,11 @@
 #include <QSharedPointer>
 
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
+
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
@@ -99,10 +103,26 @@ bool GameFile::LoadFileInfo(const QString& path)
 
 void GameFile::LoadState()
 {
-  IniFile ini = SConfig::LoadGameIni(m_unique_id.toStdString(), m_revision);
+  std::unique_ptr<OnionConfig::Layer> global_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+          GenerateGlobalGameConfigLoader(m_unique_id.toStdString(), m_revision))));
+  std::unique_ptr<OnionConfig::Layer> local_config(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+          GenerateLocalGameConfigLoader(m_unique_id.toStdString(), m_revision))));
+
+  global_config->Load();
+  local_config->Load();
+
   std::string issues_temp;
-  ini.GetIfExists("EmuState", "EmulationStateId", &m_rating);
-  ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
+                                 &m_rating))
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationStateId",
+                               &m_rating);
+  if (!local_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
+                                 &issues_temp))
+    global_config->GetIfExists(OnionConfig::System::SYSTEM_UI, "EmuState", "EmulationIssues",
+                               &issues_temp);
+
   m_issues = QString::fromStdString(issues_temp);
 }
 

@@ -3,14 +3,16 @@
 // Refer to the license.txt file included.
 
 // PatchEngine
-// Supports simple memory patches, and has a partial Action Replay implementation
+// Supports simple memory patches, and has a partial Action Replay
+// implementation
 // in ActionReplay.cpp/h.
 
 // TODO: Still even needed?  Zelda WW now works with improved DSP code.
 // Zelda item hang fixes:
 // [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
 // [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version
-// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it (0x4E800020)
+// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it
+// (0x4E800020)
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
@@ -22,13 +24,14 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -43,14 +46,17 @@ const char* PatchTypeStrings[] = {
 static std::vector<Patch> onFrame;
 static std::map<u32, int> speedHacks;
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(OnionConfig::Layer* global_config, OnionConfig::Layer* local_config,
+                      std::vector<Patch>& patches)
 {
   // Load the name of all enabled patches
-  std::string enabledSectionName = section + "_Enabled";
   std::vector<std::string> enabledLines;
   std::set<std::string> enabledNames;
-  localIni.GetLines(enabledSectionName, &enabledLines);
+
+  OnionConfig::Section* local_codes_enabled =
+      local_config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "OnFrame_Enabled");
+
+  local_codes_enabled->GetLines(&enabledLines);
   for (const std::string& line : enabledLines)
   {
     if (line.size() != 0 && line[0] == '$')
@@ -60,13 +66,15 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
     }
   }
 
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  OnionConfig::Layer* configs[] = {global_config, local_config};
+  for (auto config : configs)
   {
+    OnionConfig::Section* codes =
+        config->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "OnFrame");
+
     std::vector<std::string> lines;
     Patch currentPatch;
-    ini->GetLines(section, &lines);
+    codes->GetLines(&lines);
 
     for (std::string& line : lines)
     {
@@ -85,7 +93,8 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         // Set active and name
         currentPatch.name = line.substr(1, line.size() - 1);
         currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
-        currentPatch.user_defined = (ini == &localIni);
+
+        currentPatch.user_defined = config == local_config;
       }
       else
       {
@@ -124,25 +133,22 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
   }
 }
 
-static void LoadSpeedhacks(const std::string& section, IniFile& ini)
+static void LoadSpeedhacks()
 {
-  std::vector<std::string> keys;
-  ini.GetKeys(section, &keys);
-  for (const std::string& key : keys)
+  OnionConfig::Section* speedhacks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Speedhacks");
+
+  const auto& values = speedhacks->GetValues();
+  for (auto value : values)
   {
-    std::string value;
-    ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-    if (value != "BOGUS")
+    u32 address;
+    u32 cycles;
+    bool success = true;
+    success &= TryParse(value.first, &address);
+    success &= TryParse(value.second, &cycles);
+    if (success)
     {
-      u32 address;
-      u32 cycles;
-      bool success = true;
-      success &= TryParse(key, &address);
-      success &= TryParse(value, &cycles);
-      if (success)
-      {
-        speedHacks[address] = (int)cycles;
-      }
+      speedHacks[address] = (int)cycles;
     }
   }
 }
@@ -158,19 +164,19 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+  OnionConfig::Layer* global_config =
+      OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_GLOBALGAME);
+  OnionConfig::Layer* local_config = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_LOCALGAME);
 
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  LoadPatchSection(global_config, local_config, onFrame);
+  ActionReplay::LoadAndApplyCodes(global_config, local_config);
 
   // lil silly
   std::vector<Gecko::GeckoCode> gcodes;
-  Gecko::LoadCodes(globalIni, localIni, gcodes);
+  Gecko::LoadCodes(global_config, local_config, gcodes);
   Gecko::SetActiveCodes(gcodes);
 
-  LoadSpeedhacks("Speedhacks", merged);
+  LoadSpeedhacks();
 }
 
 static void ApplyPatches(const std::vector<Patch>& patches)

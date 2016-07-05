@@ -135,7 +135,13 @@ void VideoBackend::InitBackendInfo()
 bool VideoBackend::Initialize(void* window_handle)
 {
   InitBackendInfo();
-  InitializeShared();
+
+  frameCount = 0;
+
+  g_Config.Load();
+  g_Config.UpdateProjectionHack();
+  g_Config.VerifyValidity();
+  UpdateActiveConfig();
 
   InitInterface();
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);

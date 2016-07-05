@@ -12,7 +12,7 @@
 #include <wx/textctrl.h>
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Debugger/DebuggerPanel.h"
 #include "DolphinWX/WxUtils.h"
@@ -48,37 +48,38 @@ void GFXDebuggerPanel::OnClose(wxCloseEvent& event)
 
 void GFXDebuggerPanel::SaveSettings() const
 {
-  IniFile file;
-  file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
 
-  // TODO: make this work when we close the entire program too, currently on total close we get
+  // TODO: make this work when we close the entire program too, currently on
+  // total close we get
   // weird values, perhaps because of some conflict with the rendering window
 
   // TODO: get the screen resolution and make limits from that
   if (GetPosition().x < 1000 && GetPosition().y < 1000 && GetSize().GetWidth() < 1000 &&
       GetSize().GetHeight() < 1000)
   {
-    IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+    OnionConfig::Section* video_window =
+        base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "VideoWindow");
+
     video_window->Set("x", GetPosition().x);
     video_window->Set("y", GetPosition().y);
     video_window->Set("w", GetSize().GetWidth());
     video_window->Set("h", GetSize().GetHeight());
   }
 
-  file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  base_layer->Save();
 }
 
 void GFXDebuggerPanel::LoadSettings()
 {
-  IniFile file;
-  file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
   int x = 100;
   int y = 100;
   int w = 100;
   int h = 100;
 
-  IniFile::Section* video_window = file.GetOrCreateSection("VideoWindow");
+  OnionConfig::Section* video_window =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "VideoWindow");
+
   video_window->Get("x", &x, GetPosition().x);
   video_window->Get("y", &y, GetPosition().y);
   video_window->Get("w", &w, GetSize().GetWidth());

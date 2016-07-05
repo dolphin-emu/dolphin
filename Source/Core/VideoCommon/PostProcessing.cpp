@@ -10,6 +10,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 
 #include "VideoCommon/PostProcessing.h"
@@ -215,22 +216,21 @@ void PostProcessingShaderConfiguration::LoadOptions(const std::string& code)
 
 void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   std::string section = m_current_shader + "-options";
+  OnionConfig::Section* petal =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section);
 
   for (auto& it : m_options)
   {
     switch (it.second.m_type)
     {
     case ConfigurationOption::OptionType::OPTION_BOOL:
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &it.second.m_bool_value,
-                                           it.second.m_bool_value);
+      petal->Get(it.second.m_option_name, &it.second.m_bool_value, it.second.m_bool_value);
       break;
     case ConfigurationOption::OptionType::OPTION_INTEGER:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
+      petal->Get(it.second.m_option_name, &value);
       if (value != "")
         TryParseVector(value, &it.second.m_integer_values);
     }
@@ -238,7 +238,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
     case ConfigurationOption::OptionType::OPTION_FLOAT:
     {
       std::string value;
-      ini.GetOrCreateSection(section)->Get(it.second.m_option_name, &value);
+      petal->Get(it.second.m_option_name, &value);
       if (value != "")
         TryParseVector(value, &it.second.m_float_values);
     }
@@ -249,8 +249,7 @@ void PostProcessingShaderConfiguration::LoadOptionsConfiguration()
 
 void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  OnionConfig::Layer* base_layer = OnionConfig::GetLayer(OnionConfig::LayerType::LAYER_BASE);
   std::string section = m_current_shader + "-options";
 
   for (auto& it : m_options)
@@ -259,7 +258,8 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
     {
     case ConfigurationOption::OptionType::OPTION_BOOL:
     {
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, it.second.m_bool_value);
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
+          ->Set(it.second.m_option_name, it.second.m_bool_value);
     }
     break;
     case ConfigurationOption::OptionType::OPTION_INTEGER:
@@ -268,7 +268,8 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
       for (size_t i = 0; i < it.second.m_integer_values.size(); ++i)
         value += StringFromFormat("%d%s", it.second.m_integer_values[i],
                                   i == (it.second.m_integer_values.size() - 1) ? "" : ", ");
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value);
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
+          ->Set(it.second.m_option_name, value);
     }
     break;
     case ConfigurationOption::OptionType::OPTION_FLOAT:
@@ -282,12 +283,13 @@ void PostProcessingShaderConfiguration::SaveOptionsConfiguration()
         if (i != (it.second.m_float_values.size() - 1))
           value << ", ";
       }
-      ini.GetOrCreateSection(section)->Set(it.second.m_option_name, value.str());
+      base_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, section)
+          ->Set(it.second.m_option_name, value.str());
     }
     break;
     }
   }
-  ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+  base_layer->Save();
 }
 
 void PostProcessingShaderConfiguration::ReloadShader()

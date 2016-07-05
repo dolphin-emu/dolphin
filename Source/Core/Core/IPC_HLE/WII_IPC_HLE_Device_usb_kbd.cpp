@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Common/FileUtil.h"
+#include "Common/OnionConfig.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
@@ -28,9 +29,9 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+  OnionConfig::Section* keyboard =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "USB Keyboard");
+  keyboard->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
   for (bool& pressed : m_OldKeyBuffer)
   {
@@ -151,8 +152,9 @@ u32 CWII_IPC_HLE_Device_usb_kbd::Update()
     Modifiers |= 0x10;
   if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
     Modifiers |= 0x20;
-  if (GetAsyncKeyState(VK_MENU) &
-      0x8000)  // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
+  if (GetAsyncKeyState(VK_MENU) & 0x8000)  // TODO: VK_MENU is for ALT, not for
+                                           // ALT GR (ALT GR seems to work
+                                           // though...)
     Modifiers |= 0x40;
   if (GetAsyncKeyState(VK_RWIN) & 0x8000)
     Modifiers |= 0x80;

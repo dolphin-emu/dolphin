@@ -21,6 +21,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/OnionConfig.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -256,9 +257,10 @@ bool Init()
   g_aspect_wide = _CoreParameter.bWii;
   if (g_aspect_wide)
   {
-    IniFile gameIni = _CoreParameter.LoadGameIni();
-    gameIni.GetOrCreateSection("Wii")->Get(
-        "Widescreen", &g_aspect_wide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+    OnionConfig::Section* core =
+        OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_MAIN, "Core");
+    core->Get("Widescreen", &g_aspect_wide,
+              !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
   }
 
   s_window_handle = Host_GetRenderHandle();
@@ -367,7 +369,8 @@ static void CpuThread()
   if (!s_state_filename.empty())
   {
     // Needs to PauseAndLock the Core
-    // NOTE: EmuThread should have left us in CPU_STEPPING so nothing will happen
+    // NOTE: EmuThread should have left us in CPU_STEPPING so nothing will
+    // happen
     //   until after the job is serviced.
     QueueHostJob([] {
       // Recheck in case Movie cleared it since.
@@ -557,7 +560,8 @@ void EmuThread()
 
   CBoot::BootUp();
 
-  // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance might block.
+  // This adds the SyncGPU handler to CoreTiming, so now CoreTiming::Advance
+  // might block.
   Fifo::Prepare();
 
   // Thread is no longer acting as CPU Thread
@@ -693,7 +697,8 @@ void SetState(EState state)
   switch (state)
   {
   case CORE_PAUSE:
-    // NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+    // NOTE: GetState() will return CORE_PAUSE immediately, even before anything
+    // has
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
@@ -790,12 +795,14 @@ void RequestRefreshInfo()
 
 bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
-  // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host Thread
+  // WARNING: PauseAndLock is not fully threadsafe so is only valid on the Host
+  // Thread
   if (!IsRunning())
     return true;
 
   // let's support recursive locking to simplify things on the caller's side,
-  // and let's do it at this outer level in case the individual systems don't support it.
+  // and let's do it at this outer level in case the individual systems don't
+  // support it.
   if (do_lock ? s_pause_and_lock_depth++ : --s_pause_and_lock_depth)
     return true;
 
@@ -810,7 +817,8 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 
   ExpansionInterface::PauseAndLock(do_lock, false);
 
-  // audio has to come after CPU, because CPU thread can wait for audio thread (m_throttle).
+  // audio has to come after CPU, because CPU thread can wait for audio thread
+  // (m_throttle).
   DSP::GetDSPEmulator()->PauseAndLock(do_lock, false);
 
   // video has to come after CPU, because CPU thread can wait for video thread
@@ -825,9 +833,12 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   // mechanism that prevents CPU::Break from racing.
   if (!do_lock)
   {
-    // The CPU is responsible for managing the Audio and FIFO state so we use its
-    // mechanism to unpause them. If we unpaused the systems above when releasing
-    // the locks then they could call CPU::Break which would require detecting it
+    // The CPU is responsible for managing the Audio and FIFO state so we use
+    // its
+    // mechanism to unpause them. If we unpaused the systems above when
+    // releasing
+    // the locks then they could call CPU::Break which would require detecting
+    // it
     // and re-pausing with CPU::EnableStepping.
     was_unpaused = CPU::PauseAndLock(false, unpause_on_unlock, true);
   }
@@ -914,8 +925,10 @@ void UpdateTitle()
     SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
     if (SConfig::GetInstance().m_InterfaceExtendedFPSInfo)
     {
-      // Use extended or summary information. The summary information does not print the ticks data,
-      // that's more of a debugging interest, it can always be optional of course if someone is
+      // Use extended or summary information. The summary information does not
+      // print the ticks data,
+      // that's more of a debugging interest, it can always be optional of
+      // course if someone is
       // interested.
       static u64 ticks = 0;
       static u64 idleTicks = 0;
@@ -987,7 +1000,8 @@ void UpdateWantDeterminism(bool initial)
     g_want_determinism = new_want_determinism;
     WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
-    // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
+    // We need to clear the cache because some parts of the JIT depend on
+    // want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
     Common::InitializeWiiRoot(g_want_determinism);

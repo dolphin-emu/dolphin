@@ -14,10 +14,13 @@
 #include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/OnionConfig.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
+#include "Core/OnionCoreLoaders/GameConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
@@ -168,13 +171,18 @@ void CBreakPointWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CBreakPointWindow::SaveAll()
 {
-  // simply dump all to bp/mc files in a way we can read again
-  IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini",
-           false);
-  ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
-  ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
+  std::unique_ptr<OnionConfig::Layer> game_layer(
+      new OnionConfig::Layer(std::unique_ptr<OnionConfig::ConfigLayerLoader>(
+          GenerateLocalGameConfigLoader(SConfig::GetInstance().GetUniqueID(), 0))));
+
+  OnionConfig::Section* breakpoints =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "BreakPoints");
+  OnionConfig::Section* memory_checks =
+      game_layer->GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "MemoryChecks");
+
+  breakpoints->SetLines(PowerPC::breakpoints.GetStrings());
+  memory_checks->SetLines(PowerPC::memchecks.GetStrings());
+  game_layer->Save();
 }
 
 void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -185,24 +193,21 @@ void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 
 void CBreakPointWindow::LoadAll()
 {
-  IniFile ini;
   BreakPoints::TBreakPointsStr newbps;
   MemChecks::TMemChecksStr newmcs;
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() +
-                    ".ini",
-                false))
-  {
-    return;
-  }
+  OnionConfig::Section* breakpoints =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "BreakPoints");
+  OnionConfig::Section* memory_checks =
+      OnionConfig::GetOrCreateSection(OnionConfig::System::SYSTEM_DEBUGGER, "MemoryChecks");
 
-  if (ini.GetLines("BreakPoints", &newbps, false))
+  if (breakpoints->GetLines(&newbps, false))
   {
     PowerPC::breakpoints.Clear();
     PowerPC::breakpoints.AddFromStrings(newbps);
   }
 
-  if (ini.GetLines("MemoryChecks", &newmcs, false))
+  if (memory_checks->GetLines(&newmcs, false))
   {
     PowerPC::memchecks.Clear();
     PowerPC::memchecks.AddFromStrings(newmcs);

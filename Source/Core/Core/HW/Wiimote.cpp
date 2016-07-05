@@ -12,7 +12,7 @@
 
 namespace Wiimote
 {
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wiimote"), "Wiimote");
+static InputConfig s_config(OnionConfig::System::SYSTEM_WIIPAD, _trans("Wiimote"), "Wiimote");
 
 InputConfig* GetConfig()
 {
@@ -38,7 +38,7 @@ void Initialize(void* const hwnd, bool wait)
 
   g_controller_interface.Initialize(hwnd);
 
-  s_config.LoadConfig(false);
+  s_config.LoadConfig();
 
   WiimoteReal::Initialize(wait);
 
@@ -55,7 +55,7 @@ void ResetAllWiimotes()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(false);
+  s_config.LoadConfig();
 }
 
 void Resume()
@@ -68,7 +68,8 @@ void Pause()
   WiimoteReal::Pause();
 }
 
-// An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
+// An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL
+// channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[number])
@@ -78,7 +79,8 @@ void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
         ->ControlChannel(channel_id, data, size);
 }
 
-// An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT channel.
+// An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT
+// channel.
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 {
   if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])

@@ -13,7 +13,7 @@
 
 namespace Pad
 {
-static InputConfig s_config("GCPadNew", _trans("Pad"), "GCPad");
+static InputConfig s_config(OnionConfig::System::SYSTEM_GCPAD, _trans("Pad"), "GCPad");
 InputConfig* GetConfig()
 {
   return &s_config;
@@ -37,12 +37,12 @@ void Initialize(void* const hwnd)
   g_controller_interface.Initialize(hwnd);
 
   // Load the saved controller config
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 }
 
 void LoadConfig()
 {
-  s_config.LoadConfig(true);
+  s_config.LoadConfig();
 }
 
 void GetStatus(u8 pad_num, GCPadStatus* pad_status)
