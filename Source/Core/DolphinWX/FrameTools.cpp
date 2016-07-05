@@ -691,7 +691,7 @@ void CFrame::DoOpen(bool Boot)
   }
   else
   {
-    DVDInterface::ChangeDisc(WxStrToStr(path));
+    DVDInterface::ChangeDiscAsHost(WxStrToStr(path));
   }
 }
 

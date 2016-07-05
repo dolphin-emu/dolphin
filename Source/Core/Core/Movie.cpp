@@ -1215,7 +1215,6 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     // that will cause
     // it to load the last disc every time. As far as i know though, there are no 3+ disc games, so
     // this should be fine.
-    CPU::Break();
     bool found = false;
     std::string path;
     for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
@@ -1230,17 +1229,11 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     if (found)
     {
       path += '/' + g_discChange;
-
-      Core::QueueHostJob([=] {
-        if (!Movie::IsPlayingInput())
-          return;
-
-        DVDInterface::ChangeDisc(path);
-        CPU::EnableStepping(false);
-      });
+      DVDInterface::ChangeDiscAsCPU(path);
     }
     else
     {
+      CPU::Break();
       PanicAlertT("Change the disc to %s", g_discChange.c_str());
     }
   }
