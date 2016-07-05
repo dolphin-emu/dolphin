@@ -5,10 +5,12 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Core/FifoPlayer/FifoRecorder.h"
+
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
-#include "Core/FifoPlayer/FifoRecorder.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
+#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
 
 static FifoRecorder instance;
@@ -78,10 +80,7 @@ void FifoRecorder::WriteGPCommand(u8* data, u32 size)
 
   if (m_FrameEnded && m_FifoData.size() > 0)
   {
-    size_t dataSize = m_FifoData.size();
-    m_CurrentFrame.fifoDataSize = (u32)dataSize;
-    m_CurrentFrame.fifoData = new u8[dataSize];
-    memcpy(m_CurrentFrame.fifoData, m_FifoData.data(), dataSize);
+    m_CurrentFrame.fifoData = m_FifoData;
 
     {
       std::lock_guard<std::recursive_mutex> lk(sMutex);
@@ -126,12 +125,11 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
     MemoryUpdate memUpdate;
     memUpdate.address = address;
     memUpdate.fifoPosition = (u32)(m_FifoData.size());
-    memUpdate.size = size;
     memUpdate.type = type;
-    memUpdate.data = new u8[size];
-    memcpy(memUpdate.data, newData, size);
+    memUpdate.data.resize(size);
+    std::copy(newData, newData + size, memUpdate.data.begin());
 
-    m_CurrentFrame.memoryUpdates.push_back(memUpdate);
+    m_CurrentFrame.memoryUpdates.push_back(std::move(memUpdate));
   }
   else if (dynamicUpdate)
   {

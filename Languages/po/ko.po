@@ -12,7 +12,7 @@ msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-19 04:24+0200\n"
-"PO-Revision-Date: 2016-06-24 02:44+0000\n"
+"PO-Revision-Date: 2016-06-29 04:11+0000\n"
 "Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -593,7 +593,7 @@ msgstr ""
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 코드 추가 (%s)에"
+"액션 리플레이 에러: 부적합 크기 (%08x : address = %08x) 코드 추가 (%s)에"
 
 #: Source/Core/Core/ActionReplay.cpp:584
 #, c-format
@@ -601,7 +601,7 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
 "(%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 채우기와 슬라이드(%s)"
+"액션 리플레이 에러: 부적합 크기 (%08x : address = %08x) 채우기와 슬라이드(%s)"
 "에"
 
 #: Source/Core/Core/ActionReplay.cpp:372
@@ -610,7 +610,7 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
 "Fill (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 램 쓰기와 채우기 (%s)"
+"액션 리플레이 에러: 부적합 크기 (%08x : address = %08x) 램 쓰기와 채우기 (%s)"
 "에"
 
 #: Source/Core/Core/ActionReplay.cpp:432
@@ -619,12 +619,12 @@ msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
 "Pointer (%s)"
 msgstr ""
-"액션 리플레이 에러: 비적합 크기 (%08x : address = %08x) 포인터 (%s)에 쓰기에"
+"액션 리플레이 에러: 부적합 크기 (%08x : address = %08x) 포인터 (%s)에 쓰기에"
 
 #: Source/Core/Core/ActionReplay.cpp:632
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
-msgstr "액션 리플레이 에러: 비적합 크기 (%08x), 메모리 복사 (%s)에"
+msgstr "액션 리플레이 에러: 부적합 크기 (%08x), 메모리 복사 (%s)에"
 
 #: Source/Core/Core/ActionReplay.cpp:509
 #, c-format
@@ -639,7 +639,7 @@ msgstr ""
 #: Source/Core/Core/ActionReplay.cpp:218
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
-msgstr "액션 리플레이 에러: 비적합 AR 코드 라인: %s"
+msgstr "액션 리플레이 에러: 부적합 AR 코드 라인: %s"
 
 #: Source/Core/Core/ActionReplay.cpp:742
 #, c-format
@@ -1221,7 +1221,7 @@ msgstr "클래식"
 #: Source/Core/DolphinWX/LogWindow.cpp:133
 #: Source/Core/DolphinWX/WXInputBase.cpp:35
 msgid "Clear"
-msgstr "지우기"
+msgstr "지움"
 
 #: Source/Core/Core/NetPlayServer.cpp:347
 msgid ""
@@ -1558,7 +1558,7 @@ msgid ""
 msgstr ""
 "원본 종횡비에서 그림을 4:3이나 16:9로 자릅니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:56
 msgid "Crossfade"
@@ -2154,7 +2154,7 @@ msgstr ""
 "비스듬한 보기 각도에 있는 텍스처들의 보이는 품질을 향상시킵니다.\n"
 "소수 게임에서 이슈들을 일으킬지도 모릅니다.\n"
 "\n"
-"모르겠으면, 1x를 선택하세요."
+"잘 모르겠으면, 1x를 선택하세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:333
 msgid ""
@@ -2926,9 +2926,7 @@ msgstr ""
 
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:368
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
-msgstr ""
-"GCMemcardDirector: 올바르지 않은 블록 주소로 인해 ClearBlock 이 호출되었습니"
-"다."
+msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블록"
 
 #: Source/Core/VideoCommon/OpcodeDecoding.cpp:81
 #, c-format
@@ -3122,7 +3120,7 @@ msgid ""
 msgstr ""
 "에뮬레이션 창 위에 마우스 커서가 있을 때 숨깁니다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:32
 msgid ""
@@ -3274,7 +3272,7 @@ msgstr ""
 "네거티브 효과 없는 많은 게임들에서 성능을 향상시킵니다. 소수 다른 게임들에서 "
 "그래픽 결함을 유발합니다.\n"
 "\n"
-"모르겠으면, 체크해 두세요."
+"잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:116
 msgid ""
@@ -3288,7 +3286,7 @@ msgstr ""
 "일부 게임들에서 성능을 향상시킵니다, 하지만 일부 게임플레이관련 특성들이나 그"
 "래픽 효과들이 비활성화 될지 모릅니다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:114
 msgid ""
@@ -3308,7 +3306,7 @@ msgstr ""
 "니다, 이동을 덜 부드럽게 만들고 약간 성능을 감소시킵니다.\n"
 "Nvidia 3D Vision이 Direct3D 백엔드에서 작동하려면 배타적 모드가 필요합니다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:812
 msgid "Import Save"
@@ -3459,7 +3457,7 @@ msgstr "소개화면"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:467
 msgid "Invalid bat.map or dir entry."
-msgstr "비적합 bat.map 혹은 디렉토리 엔트리."
+msgstr "부적합 bat.map 혹은 디렉토리 엔트리."
 
 #: Source/Core/Core/CoreTiming.cpp:496
 #, c-format
@@ -3547,7 +3545,7 @@ msgid ""
 msgstr ""
 "게임 창을 다른 모든 창들의 맨위로 유지합니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:18
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:51
@@ -3776,7 +3774,7 @@ msgid ""
 msgstr ""
 "User/Load/Textures/<game_id>/ 로부터 커스텀 텍스처를 로드합니다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Load from selected slot"
@@ -3822,7 +3820,7 @@ msgstr ""
 "모든 프레임의 렌더 타임을 User/Logs/render_time.txt 에 로그합니다. 돌핀의 성"
 "능을 측정하고 싶을 때 이 기능을 사용하세요.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:70
 msgid "Logger Outputs"
@@ -3880,7 +3878,7 @@ msgstr ""
 "안개 끄기는 적절한 안개 에뮬레이션과 관련된 일부 게임들을 망가뜨릴 것입니"
 "다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:294
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:297
@@ -3932,7 +3930,7 @@ msgstr "메모리 카드 파일 크기가 헤더 크기와 불일치합니다"
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:184
 #, c-format
 msgid "MemoryCard: ClearBlock called on invalid address (0x%x)"
-msgstr "메모리카드: 부적합 주소 (0x%x) 상에서 호출된 클리어블럭"
+msgstr "메모리카드: 부적합한 주소 (0x%x) 상에서 호출된 클리어블록"
 
 #: Source/Core/Core/HW/GCMemcardRaw.cpp:154
 #, c-format
@@ -3984,7 +3982,7 @@ msgstr ""
 "인코딩되고 있는 포맷을 보여주기 위해 텍스처들을 수정합니다. 대개의 경우 에뮬"
 "레이션 리셋이 요구됩니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:365
 msgid "Monoscopic Shadows"
@@ -4031,87 +4029,87 @@ msgstr "알림: 스트림 사이즈가 실제 데이터 길이와 매치되지 �
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:121
 msgid "NP Add"
-msgstr "NP 덧셈"
+msgstr "숫자패드 더하기"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:116
 msgid "NP Begin"
-msgstr "NP 시작"
+msgstr "숫자패드 시작"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:124
 msgid "NP Decimal"
-msgstr "NP 10진수"
+msgstr "숫자패드 소수점"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:118
 msgid "NP Delete"
-msgstr "NP 삭제"
+msgstr "숫자패드 삭제"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:125
 msgid "NP Divide"
-msgstr "NP 나누기"
+msgstr "숫자패드 나누기"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:112
 msgid "NP Down"
-msgstr "NP 아래"
+msgstr "숫자패드 아래"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:115
 msgid "NP End"
-msgstr "NP 끝"
+msgstr "숫자패드 끝"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:103
 msgid "NP Enter"
-msgstr "NP 엔터"
+msgstr "숫자패드 엔터"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:119
 msgid "NP Equal"
-msgstr "NP 같은"
+msgstr "숫자패드 등호"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:108
 msgid "NP Home"
-msgstr "NP 홈"
+msgstr "숫자패드 홈"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:117
 msgid "NP Insert"
-msgstr "NP 삽입"
+msgstr "숫자패드 삽입"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:109
 msgid "NP Left"
-msgstr "NP 왼쪽"
+msgstr "숫자패드 왼쪽"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:120
 msgid "NP Multiply"
-msgstr "NP 곱셈"
+msgstr "숫자패드 곱셈"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:114
 msgid "NP Page Down"
-msgstr "NP 페이지 다운"
+msgstr "숫자패드 페이지 다운"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:113
 msgid "NP Page Up"
-msgstr "NP 페이지 업"
+msgstr "숫자패드 페이지 업"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:111
 msgid "NP Right"
-msgstr "NP 오른쪽"
+msgstr "숫자패드 오른쪽"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:122
 msgid "NP Separator"
-msgstr "NP 분리기"
+msgstr "숫자패드 구분자"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:101
 msgid "NP Space"
-msgstr "NP 스페이스"
+msgstr "숫자패드 스페이스"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:123
 msgid "NP Subtract"
-msgstr "NP 뺄셈"
+msgstr "숫자패드 빼기"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:102
 msgid "NP Tab"
-msgstr "NP 탭"
+msgstr "숫자패드 탭"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:110
 msgid "NP Up"
-msgstr "NP 위"
+msgstr "숫자패드 위"
 
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:57
 #: Source/Core/DolphinWX/ARCodeAddEdit.cpp:51
@@ -4640,7 +4638,7 @@ msgstr ""
 "히 더 로드가 요구됩니다, 하지만 최고 품질의 기하학 안티-앨리어싱을 제공하고 "
 "또한 빛, 그림자 효과, 텍스처 안티-앨리어싱을 적용합니다.\n"
 "\n"
-"모르겠으면, 없음을 선택하세요."
+"잘 모르겠으면, 없음을 선택하세요."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:256
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1005
@@ -4675,7 +4673,7 @@ msgid ""
 msgstr ""
 "와이어프레임으로 장면을 렌더합니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:317
 msgid "Render to Main Window"
@@ -5010,7 +5008,7 @@ msgstr ""
 "강제 4:3: 표준 4:3 아날로그 TV를 흉내냅니다.\n"
 "창으로 늘림: 창 크기로 그림을 늘립니다.\n"
 "\n"
-"모르겠으면, 자동을 선택하세요."
+"잘 모르겠으면, 자동을 선택하세요."
 
 #: Source/Core/InputCommon/InputConfig.cpp:53
 msgid "Selected controller profile does not exist"
@@ -5028,7 +5026,7 @@ msgid ""
 msgstr ""
 "사용할 하드웨어 어댑터를 선택하세요.\n"
 "\n"
-"모르겠으면, 처음 것을 사용하세요."
+"잘 모르겠으면, 처음 것을 사용하세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:97
 msgid ""
@@ -5042,7 +5040,7 @@ msgstr ""
 "이것은 내부 해상도보다 크거나 같아야합니다. 성능 영향은 무시해도 될 정도입니"
 "다.\n"
 "\n"
-"모르겠으면, 자동을 선택하세요."
+"잘 모르겠으면, 자동을 선택하세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:140
 msgid ""
@@ -5060,7 +5058,7 @@ msgstr ""
 "여색 입체시는 빨강-청록색의 안경이 사용됩니다.\n"
 "심하게 에뮬레이션 스피드를 감소시키고 때로는 이슈를 유발합니다.\n"
 "\n"
-"모르겠으면, 끄기를 선택하세요."
+"잘 모르겠으면, 끄기를 선택하세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:94
 msgid ""
@@ -5074,7 +5072,7 @@ msgstr ""
 "소프트웨어 렌더러는 극히 느리고 디버깅에만 유용합니다, 그러니 사용할 이유가 "
 "없다면 OpenGL을 선택하는게 좋을 겁니다.\n"
 "\n"
-"모르겠으면, OpenGL을 선택하세요."
+"잘 모르겠으면, OpenGL을 선택하세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:92
 msgid ""
@@ -5093,7 +5091,7 @@ msgstr ""
 "르게 행동할 것입니다, 그러니 최고의 에뮬레이션 경험을 위해서 둘다 시도해보기"
 "를 권장합니다 그리고나서 문제가 더 적게 있는 것을 고르세요.\n"
 "\n"
-"모르겠으면, OpenGL을 선택하세요."
+"잘 모르겠으면, OpenGL을 선택하세요."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:148
 msgid "Send"
@@ -5335,7 +5333,7 @@ msgid ""
 msgstr ""
 "에뮬레이션 속도의 측정으로 초당 렌더되는 프레임 수치를 보여줍니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:124
 msgid ""
@@ -5345,7 +5343,7 @@ msgid ""
 msgstr ""
 "다양한 렌더링 통계를 보여줍니다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:431
 msgid "Side-by-Side"
@@ -5391,7 +5389,7 @@ msgstr ""
 "에뮬레이션 정확도를 만족시킴으로 EFB를 램에 복사를 조금 속도 향상시킵니다.\n"
 "어느 이슈를 겪고 있다면, 텍스처 캐시 정확도를 올려보거나 이 옵션을 끄세요.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinWX/FrameTools.cpp:458
 #: Source/Core/DolphinWX/FrameTools.cpp:473
@@ -5424,7 +5422,8 @@ msgid ""
 msgstr ""
 "소프트웨어 렌더링은 다른 백엔드들 보다 상당히 느립니다.\n"
 "디버깅 목적으로만 유용합니다.\n"
-"소프트웨어 렌더링을 활성을 정말 원합니까? 모르겠으면, '아니오'를 선택하세요."
+"소프트웨어 렌더링을 활성을 정말 원합니까? 잘 모르겠으면, '아니오'를 선택하세"
+"요."
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:58
 msgid "Sound Settings"
@@ -5477,7 +5476,7 @@ msgstr ""
 "입니다. 자동 (창 크기), 1.5x, 2.5x 는 일부 게임에서 이슈를 유발할지도 모릅니"
 "다.\n"
 "\n"
-"모르겠으면, 원본을 선택하세요."
+"잘 모르겠으면, 원본을 선택하세요."
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:84
 msgid "Speed Limit:"
@@ -5568,7 +5567,7 @@ msgstr ""
 "활성 = EFB 복사를 텍스처에\n"
 "비활성 = EFB 복사를 램(과 텍스처)에\n"
 "\n"
-"모르겠으면, 체크해 두세요."
+"잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:293
 msgid "Stretch to Window"
@@ -5614,7 +5613,7 @@ msgstr ""
 "왼쪽과 오른쪽 눈을 바꿉니다. 나란히 눈 교차로 보기를 원하면 대체로 유용합니"
 "다.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 msgid "Swing"
@@ -5704,7 +5703,7 @@ msgstr ""
 "\"안전\" 설정은 GPU가 램으로부터 텍스처 업데이트를 놓칠 가능성을 없앱니다.\n"
 "더 낮은 정확도는 특정게임에서 인게임 텍스트가 왜곡되게 나타나게 합니다.\n"
 "\n"
-"모르겠으면, 가장 오른쪽 값을 사용하세요."
+"잘 모르겠으면, 가장 오른쪽 값을 사용하세요."
 
 #: Source/Core/Core/ConfigManager.cpp:802
 msgid "The WAD has been installed successfully"
@@ -5712,7 +5711,7 @@ msgstr "WAD가 성공적으로 설치되었습니다"
 
 #: Source/Core/Core/ActionReplay.cpp:221
 msgid "The address is invalid"
-msgstr "주소가 부적합 합니다"
+msgstr "주소가 부적합합니다"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:514
 msgid "The checksum was successfully fixed."
@@ -5827,7 +5826,7 @@ msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
 
 #: Source/Core/Core/ActionReplay.cpp:224
 msgid "The value is invalid"
-msgstr "값이 부적합 합니다"
+msgstr "값이 부적합합니다"
 
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:131
 msgid "Theme:"
@@ -5890,7 +5889,7 @@ msgstr ""
 "를 누르세요 (SHIFT+2 는 더 빠르게 SHIFT+1은 더 느리게 이동). 카메라를 리셋하"
 "려면 SHIFT+R을 스피드를 리셋하려면 SHIFT+F를 누르세요.\n"
 "\n"
-"모르겠으면, 체크 해제해 두세요."
+"잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:94
 #, c-format
@@ -6226,7 +6225,7 @@ msgstr ""
 "소수 게임들에서 이슈를 일으킵니다, 하지만 게임 및 GPU에 따라 괜찮은 속도 증가"
 "를 얻을 수 있습니다.\n"
 "\n"
-"모르겠으면, 체크해 두세요."
+"잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:366
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
@@ -6310,7 +6309,7 @@ msgstr ""
 "갈라짐을 줄이기위해 수직 블랭크를 기다립니다. \n"
 "에뮬레이션 속도가 100% 이하라면 성능을 저하시킵니다.\n"
 "\n"
-"모르겠으면, 이것을 체크 해제해 두세요."
+"잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/Common/MsgHandler.cpp:63
 #: Source/Core/DolphinWX/MemcardManager.cpp:598

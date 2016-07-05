@@ -951,7 +951,7 @@ wxString FifoPlayerDlg::CreateRecordingFifoSizeLabel() const
   {
     size_t fifoBytes = 0;
     for (size_t i = 0; i < file->GetFrameCount(); ++i)
-      fifoBytes += file->GetFrame(i).fifoDataSize;
+      fifoBytes += file->GetFrame(i).fifoData.size();
 
     return wxString::Format(_("%zu FIFO bytes"), fifoBytes);
   }
@@ -969,8 +969,8 @@ wxString FifoPlayerDlg::CreateRecordingMemSizeLabel() const
     for (size_t frameNum = 0; frameNum < file->GetFrameCount(); ++frameNum)
     {
       const std::vector<MemoryUpdate>& memUpdates = file->GetFrame(frameNum).memoryUpdates;
-      for (auto& memUpdate : memUpdates)
-        memBytes += memUpdate.size;
+      for (const auto& memUpdate : memUpdates)
+        memBytes += memUpdate.data.size();
     }
 
     return wxString::Format(_("%zu memory bytes"), memBytes);

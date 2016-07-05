@@ -209,6 +209,7 @@ struct SConfig : NonCopyable
   static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 
   std::string m_NANDPath;
+  std::string m_DumpPath;
 
   std::string m_strMemoryCardA;
   std::string m_strMemoryCardB;

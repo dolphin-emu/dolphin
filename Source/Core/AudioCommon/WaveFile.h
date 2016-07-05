@@ -30,8 +30,7 @@ public:
   void Stop();
 
   void SetSkipSilence(bool skip) { skip_silence = skip; }
-  void AddStereoSamples(const short* sample_data, u32 count);
-  void AddStereoSamplesBE(const short* sample_data, u32 count);  // big endian
+  void AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate);  // big endian
   u32 GetAudioSize() const { return audio_size; }
 private:
 #if defined(_MSC_VER) && _MSC_VER <= 1800
@@ -50,4 +49,7 @@ private:
 #endif
   void Write(u32 value);
   void Write4(const char* ptr);
+  std::string basename;
+  int current_sample_rate;
+  int file_index = 0;
 };

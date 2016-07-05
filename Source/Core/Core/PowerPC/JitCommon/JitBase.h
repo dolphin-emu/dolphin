@@ -96,7 +96,7 @@ protected:
     bool carryFlagSet;
     bool carryFlagInverted;
 
-    bool generatingTrampoline;
+    bool generatingTrampoline = false;
     u8* trampolineExceptionHandler;
 
     int fifoBytesThisBlock;

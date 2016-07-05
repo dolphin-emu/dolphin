@@ -95,14 +95,14 @@ void CConfigMain::CreateGUIControls()
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
   EndModal((m_refresh_game_list_on_close) ? wxID_OK : wxID_CANCEL);
+
+  // Save the config. Dolphin crashes too often to only save the settings on closing
+  SConfig::GetInstance().SaveSettings();
 }
 
 void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
 {
   Close();
-
-  // Save the config. Dolphin crashes too often to only save the settings on closing
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CConfigMain::OnSetRefreshGameListOnClose(wxCommandEvent& WXUNUSED(event))
