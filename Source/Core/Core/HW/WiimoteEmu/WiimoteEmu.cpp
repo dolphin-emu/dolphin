@@ -23,6 +23,7 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace
 {
@@ -467,11 +468,23 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
   for (auto& vtx : v)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
-    if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+    if(!g_ActiveConfig.bMiddleSensorBar)
+    {
+      vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+	  if(m_sensor_bar_on_top)
+	  {
+	    vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+	  }
+	  else
+      {
+	    vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+	  }
+    }
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+    {
+	  vtx.x = -xx * 0.55;
+	  vtx.y = -yy * bnddown;
+    }
     vtx.z = 0;
   }
 
