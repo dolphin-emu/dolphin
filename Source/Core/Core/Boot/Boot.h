@@ -7,7 +7,10 @@
 #include <cstdlib>
 #include <string>
 
-#include "DiscIO/Volume.h"
+namespace DiscIO
+{
+enum class Country;
+}
 
 struct CountrySetting
 {
@@ -54,5 +57,5 @@ private:
   static bool Load_BS2(const std::string& _rBootROMFilename);
   static void Load_FST(bool _bIsWii);
 
-  static bool SetupWiiMemory(DiscIO::IVolume::ECountry country);
+  static bool SetupWiiMemory(DiscIO::Country country);
 };

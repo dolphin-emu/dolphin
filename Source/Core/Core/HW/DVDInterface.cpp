@@ -28,6 +28,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 #include "Core/Movie.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -1417,7 +1418,7 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
   // Note that the speed at a track (in bytes per second) is the same as
   // the radius of that track because of the length unit used.
   double speed;
-  if (s_inserted_volume->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+  if (s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
   {
     speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) / WII_BYTES_PER_AREA_UNIT +
                        WII_DISC_AREA_UP_TO_LOCATION_1) /

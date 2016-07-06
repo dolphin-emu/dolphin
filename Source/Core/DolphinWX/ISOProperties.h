@@ -17,7 +17,6 @@
 #include "Core/ActionReplay.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
@@ -35,7 +34,7 @@ class wxTreeCtrl;
 
 namespace DiscIO
 {
-struct SFileInfo;
+enum class Language;
 }
 namespace Gecko
 {
@@ -242,7 +241,7 @@ private:
   void PatchList_Save();
   void ActionReplayList_Load();
   void ActionReplayList_Save();
-  void ChangeBannerDetails(DiscIO::IVolume::ELanguage language);
+  void ChangeBannerDetails(DiscIO::Language language);
 
   long GetElementStyle(const char* section, const char* key);
   void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);

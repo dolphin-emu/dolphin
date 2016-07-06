@@ -8,6 +8,8 @@
 #include <QMenu>
 #include <QUrl>
 
+#include "DiscIO/Enums.h"
+
 #include "DolphinQt2/Config/PropertiesDialog.h"
 #include "DolphinQt2/GameList/GameList.h"
 #include "DolphinQt2/GameList/ListProxyModel.h"
@@ -104,8 +106,8 @@ void GameList::MakeListView()
 void GameList::ShowContextMenu(const QPoint&)
 {
   QMenu* menu = new QMenu(this);
-  DiscIO::IVolume::EPlatform platform = GameFile(GetSelectedGame()).GetPlatformID();
-  if (platform == DiscIO::IVolume::GAMECUBE_DISC || platform == DiscIO::IVolume::WII_DISC)
+  DiscIO::Platform platform = GameFile(GetSelectedGame()).GetPlatformID();
+  if (platform == DiscIO::Platform::GAMECUBE_DISC || platform == DiscIO::Platform::WII_DISC)
   {
     menu->addAction(tr("Properties"), this, SLOT(OpenProperties()));
     menu->addAction(tr("Open Wiki Page"), this, SLOT(OpenWiki()));
