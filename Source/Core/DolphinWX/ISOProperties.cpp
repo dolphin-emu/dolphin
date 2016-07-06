@@ -59,6 +59,7 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -123,46 +124,46 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   m_GameID->SetValue(StrToWxStr(m_open_iso->GetUniqueID()));
   switch (m_open_iso->GetCountry())
   {
-  case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+  case DiscIO::ECountry::COUNTRY_AUSTRALIA:
     m_Country->SetValue(_("Australia"));
     break;
-  case DiscIO::IVolume::COUNTRY_EUROPE:
+  case DiscIO::ECountry::COUNTRY_EUROPE:
     m_Country->SetValue(_("Europe"));
     break;
-  case DiscIO::IVolume::COUNTRY_FRANCE:
+  case DiscIO::ECountry::COUNTRY_FRANCE:
     m_Country->SetValue(_("France"));
     break;
-  case DiscIO::IVolume::COUNTRY_ITALY:
+  case DiscIO::ECountry::COUNTRY_ITALY:
     m_Country->SetValue(_("Italy"));
     break;
-  case DiscIO::IVolume::COUNTRY_GERMANY:
+  case DiscIO::ECountry::COUNTRY_GERMANY:
     m_Country->SetValue(_("Germany"));
     break;
-  case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+  case DiscIO::ECountry::COUNTRY_NETHERLANDS:
     m_Country->SetValue(_("Netherlands"));
     break;
-  case DiscIO::IVolume::COUNTRY_RUSSIA:
+  case DiscIO::ECountry::COUNTRY_RUSSIA:
     m_Country->SetValue(_("Russia"));
     break;
-  case DiscIO::IVolume::COUNTRY_SPAIN:
+  case DiscIO::ECountry::COUNTRY_SPAIN:
     m_Country->SetValue(_("Spain"));
     break;
-  case DiscIO::IVolume::COUNTRY_USA:
+  case DiscIO::ECountry::COUNTRY_USA:
     m_Country->SetValue(_("USA"));
     break;
-  case DiscIO::IVolume::COUNTRY_JAPAN:
+  case DiscIO::ECountry::COUNTRY_JAPAN:
     m_Country->SetValue(_("Japan"));
     break;
-  case DiscIO::IVolume::COUNTRY_KOREA:
+  case DiscIO::ECountry::COUNTRY_KOREA:
     m_Country->SetValue(_("Korea"));
     break;
-  case DiscIO::IVolume::COUNTRY_TAIWAN:
+  case DiscIO::ECountry::COUNTRY_TAIWAN:
     m_Country->SetValue(_("Taiwan"));
     break;
-  case DiscIO::IVolume::COUNTRY_WORLD:
+  case DiscIO::ECountry::COUNTRY_WORLD:
     m_Country->SetValue(_("World"));
     break;
-  case DiscIO::IVolume::COUNTRY_UNKNOWN:
+  case DiscIO::ECountry::COUNTRY_UNKNOWN:
   default:
     m_Country->SetValue(_("Unknown"));
     break;
@@ -175,7 +176,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   m_FST->SetValue(StrToWxStr(std::to_string(m_open_iso->GetFSTSize())));
 
   // Here we set all the info to be shown + we set the window title
-  bool wii = m_open_iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
+  bool wii = m_open_iso->GetVolumeType() != DiscIO::EPlatform::GAMECUBE_DISC;
   ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
 
   m_Banner->SetBitmap(OpenGameListItem.GetBitmap());
@@ -183,9 +184,9 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
   // Filesystem browser/dumper
   // TODO : Should we add a way to browse the wad file ?
-  if (m_open_iso->GetVolumeType() != DiscIO::IVolume::WII_WAD)
+  if (m_open_iso->GetVolumeType() != DiscIO::EPlatform::WII_WAD)
   {
-    if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+    if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC)
     {
       int partition_count = 0;
       for (int group = 0; group < 4; group++)
@@ -426,7 +427,7 @@ void CISOProperties::CreateGUIControls()
 
   wxStaticBoxSizer* const sbWiiOverrides =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
-  if (m_open_iso->GetVolumeType() == DiscIO::IVolume::GAMECUBE_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::GAMECUBE_DISC)
   {
     sbWiiOverrides->ShowItems(false);
     EnableWideScreen->Hide();
@@ -523,10 +524,10 @@ void CISOProperties::CreateGUIControls()
 
   wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
 
-  bool wii = m_open_iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-  DiscIO::IVolume::ELanguage preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
+  bool wii = m_open_iso->GetVolumeType() != DiscIO::EPlatform::GAMECUBE_DISC;
+  DiscIO::ELanguage preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
 
-  std::vector<DiscIO::IVolume::ELanguage> languages = OpenGameListItem.GetLanguages();
+  std::vector<DiscIO::ELanguage> languages = OpenGameListItem.GetLanguages();
   int preferred_language_index = 0;
   for (size_t i = 0; i < languages.size(); ++i)
   {
@@ -535,37 +536,37 @@ void CISOProperties::CreateGUIControls()
 
     switch (languages[i])
     {
-    case DiscIO::IVolume::LANGUAGE_JAPANESE:
+    case DiscIO::ELanguage::LANGUAGE_JAPANESE:
       arrayStringFor_Lang.Add(_("Japanese"));
       break;
-    case DiscIO::IVolume::LANGUAGE_ENGLISH:
+    case DiscIO::ELanguage::LANGUAGE_ENGLISH:
       arrayStringFor_Lang.Add(_("English"));
       break;
-    case DiscIO::IVolume::LANGUAGE_GERMAN:
+    case DiscIO::ELanguage::LANGUAGE_GERMAN:
       arrayStringFor_Lang.Add(_("German"));
       break;
-    case DiscIO::IVolume::LANGUAGE_FRENCH:
+    case DiscIO::ELanguage::LANGUAGE_FRENCH:
       arrayStringFor_Lang.Add(_("French"));
       break;
-    case DiscIO::IVolume::LANGUAGE_SPANISH:
+    case DiscIO::ELanguage::LANGUAGE_SPANISH:
       arrayStringFor_Lang.Add(_("Spanish"));
       break;
-    case DiscIO::IVolume::LANGUAGE_ITALIAN:
+    case DiscIO::ELanguage::LANGUAGE_ITALIAN:
       arrayStringFor_Lang.Add(_("Italian"));
       break;
-    case DiscIO::IVolume::LANGUAGE_DUTCH:
+    case DiscIO::ELanguage::LANGUAGE_DUTCH:
       arrayStringFor_Lang.Add(_("Dutch"));
       break;
-    case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+    case DiscIO::ELanguage::LANGUAGE_SIMPLIFIED_CHINESE:
       arrayStringFor_Lang.Add(_("Simplified Chinese"));
       break;
-    case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+    case DiscIO::ELanguage::LANGUAGE_TRADITIONAL_CHINESE:
       arrayStringFor_Lang.Add(_("Traditional Chinese"));
       break;
-    case DiscIO::IVolume::LANGUAGE_KOREAN:
+    case DiscIO::ELanguage::LANGUAGE_KOREAN:
       arrayStringFor_Lang.Add(_("Korean"));
       break;
-    case DiscIO::IVolume::LANGUAGE_UNKNOWN:
+    case DiscIO::ELanguage::LANGUAGE_UNKNOWN:
     default:
       arrayStringFor_Lang.Add(_("Unknown"));
       break;
@@ -650,7 +651,7 @@ void CISOProperties::CreateGUIControls()
   sInfoPage->Add(sbBannerDetails, 0, wxEXPAND | wxALL, 5);
   m_Information->SetSizer(sInfoPage);
 
-  if (m_open_iso->GetVolumeType() != DiscIO::IVolume::WII_WAD)
+  if (m_open_iso->GetVolumeType() != DiscIO::EPlatform::WII_WAD)
   {
     wxPanel* const filesystem_panel = new wxPanel(m_Notebook, ID_FILESYSTEM);
     m_Notebook->AddPage(filesystem_panel, _("Filesystem"));
@@ -758,7 +759,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
   popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files..."));
 
-  if (m_open_iso->GetVolumeType() != DiscIO::IVolume::WII_DISC ||
+  if (m_open_iso->GetVolumeType() != DiscIO::EPlatform::WII_DISC ||
       (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0 &&
        m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection()))
   {
@@ -797,7 +798,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
     m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
   }
 
-  if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC)
   {
     const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
     WiiPartition* partition =
@@ -815,7 +816,7 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED(event))
 void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string& _rExportFolder,
                                const WiiPartition* partition)
 {
-  DiscIO::IFileSystem* const fs = m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC ?
+  DiscIO::IFileSystem* const fs = m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC ?
                                       partition->FileSystem.get() :
                                       m_filesystem.get();
 
@@ -831,7 +832,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     size = (u32)fst.size();
 
     fs->ExportApploader(_rExportFolder);
-    if (m_open_iso->GetVolumeType() != DiscIO::IVolume::WII_DISC)
+    if (m_open_iso->GetVolumeType() != DiscIO::EPlatform::WII_DISC)
       fs->ExportDOL(_rExportFolder);
   }
   else
@@ -913,7 +914,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
   if (event.GetId() == IDM_EXTRACTALL)
   {
-    if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+    if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC)
     {
       wxTreeItemIdValue cookie;
       wxTreeItemId root = m_Treectrl->GetRootItem();
@@ -943,7 +944,7 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 
   Directory += DIR_SEP_CHR;
 
-  if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC)
   {
     const wxTreeItemId tree_selection = m_Treectrl->GetSelection();
     WiiPartition* partition =
@@ -967,7 +968,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
   if (Path.empty())
     return;
 
-  if (m_open_iso->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+  if (m_open_iso->GetVolumeType() == DiscIO::EPlatform::WII_DISC)
   {
     WiiPartition* partition =
         reinterpret_cast<WiiPartition*>(m_Treectrl->GetItemData(m_Treectrl->GetSelection()));
@@ -1011,7 +1012,7 @@ void CISOProperties::CheckPartitionIntegrity(wxCommandEvent& event)
 {
   // Normally we can't enter this function if we aren't analyzing a Wii disc
   // anyway, but let's still check to be sure.
-  if (m_open_iso->GetVolumeType() != DiscIO::IVolume::WII_DISC)
+  if (m_open_iso->GetVolumeType() != DiscIO::EPlatform::WII_DISC)
     return;
 
   wxProgressDialog dialog(_("Checking integrity..."), _("Working..."), 1000, this,
@@ -1546,7 +1547,7 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
   ChangeBannerDetails(OpenGameListItem.GetLanguages()[event.GetSelection()]);
 }
 
-void CISOProperties::ChangeBannerDetails(DiscIO::IVolume::ELanguage language)
+void CISOProperties::ChangeBannerDetails(DiscIO::ELanguage language)
 {
   wxString const name = StrToWxStr(OpenGameListItem.GetName(language));
   wxString const comment = StrToWxStr(OpenGameListItem.GetDescription(language));

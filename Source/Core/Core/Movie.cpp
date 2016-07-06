@@ -35,6 +35,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "DiscIO/Enums.h"
 #include "InputCommon/GCPadStatus.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -83,7 +84,7 @@ static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
 static u32 s_DSPiromHash = 0;
 static u32 s_DSPcoefHash = 0;
-static u8 s_language = 10;  // Set to unknown until language is known
+static u8 s_language = static_cast<u8>(DiscIO::ELanguage::LANGUAGE_UNKNOWN);
 
 static bool s_bRecordingFromSaveState = false;
 static bool s_bPolled = false;

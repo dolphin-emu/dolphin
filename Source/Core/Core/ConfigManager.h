@@ -12,7 +12,11 @@
 #include "Common/SysConf.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"
-#include "DiscIO/Volume.h"
+
+namespace DiscIO
+{
+enum class ELanguage;
+}
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No audio output")
@@ -177,7 +181,7 @@ struct SConfig : NonCopyable
   bool AutoSetup(EBootBS2 _BootBS2);
   const std::string& GetUniqueID() const { return m_strUniqueID; }
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
-  DiscIO::IVolume::ELanguage GetCurrentLanguage(bool wii) const;
+  DiscIO::ELanguage GetCurrentLanguage(bool wii) const;
 
   IniFile LoadDefaultGameIni() const;
   IniFile LoadLocalGameIni() const;

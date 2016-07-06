@@ -10,6 +10,8 @@
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "DiscIO/Enums.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinQt2/GameList/GameFile.h"
 #include "DolphinQt2/Resources.h"
@@ -18,15 +20,15 @@
 static const int CACHE_VERSION = 13;  // Last changed in PR #3261
 static const int DATASTREAM_VERSION = QDataStream::Qt_5_5;
 
-QList<DiscIO::IVolume::ELanguage> GameFile::GetAvailableLanguages() const
+QList<DiscIO::ELanguage> GameFile::GetAvailableLanguages() const
 {
   return m_long_names.keys();
 }
 
-static QMap<DiscIO::IVolume::ELanguage, QString>
-ConvertLanguageMap(const std::map<DiscIO::IVolume::ELanguage, std::string>& map)
+static QMap<DiscIO::ELanguage, QString>
+ConvertLanguageMap(const std::map<DiscIO::ELanguage, std::string>& map)
 {
-  QMap<DiscIO::IVolume::ELanguage, QString> result;
+  QMap<DiscIO::ELanguage, QString> result;
   for (auto entry : map)
     result.insert(entry.first, QString::fromStdString(entry.second).trimmed());
   return result;
@@ -169,9 +171,9 @@ bool GameFile::TryLoadElfDol()
     return false;
 
   m_revision = 0;
-  m_long_names[DiscIO::IVolume::LANGUAGE_ENGLISH] = m_file_name;
-  m_platform = DiscIO::IVolume::ELF_DOL;
-  m_country = DiscIO::IVolume::COUNTRY_UNKNOWN;
+  m_long_names[DiscIO::ELanguage::LANGUAGE_ENGLISH] = m_file_name;
+  m_platform = DiscIO::EPlatform::ELF_DOL;
+  m_country = DiscIO::ECountry::COUNTRY_UNKNOWN;
   m_blob_type = DiscIO::BlobType::DIRECTORY;
   m_raw_size = m_size;
   m_banner = Resources::GetMisc(Resources::BANNER_MISSING);
@@ -185,14 +187,14 @@ void GameFile::SaveCache()
   // TODO
 }
 
-QString GameFile::GetBannerString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const
+QString GameFile::GetBannerString(const QMap<DiscIO::ELanguage, QString>& m) const
 {
   // Try the settings language, then English, then just pick one.
   if (m.isEmpty())
     return QString();
 
-  bool wii = m_platform != DiscIO::IVolume::GAMECUBE_DISC;
-  DiscIO::IVolume::ELanguage current_lang;
+  bool wii = m_platform != DiscIO::EPlatform::GAMECUBE_DISC;
+  DiscIO::ELanguage current_lang;
   if (wii)
     current_lang = Settings().GetWiiSystemLanguage();
   else
@@ -200,8 +202,8 @@ QString GameFile::GetBannerString(const QMap<DiscIO::IVolume::ELanguage, QString
 
   if (m.contains(current_lang))
     return m[current_lang];
-  if (m.contains(DiscIO::IVolume::LANGUAGE_ENGLISH))
-    return m[DiscIO::IVolume::LANGUAGE_ENGLISH];
+  if (m.contains(DiscIO::ELanguage::LANGUAGE_ENGLISH))
+    return m[DiscIO::ELanguage::LANGUAGE_ENGLISH];
   return m.first();
 }
 
@@ -209,13 +211,13 @@ QString GameFile::GetPlatform() const
 {
   switch (m_platform)
   {
-  case DiscIO::IVolume::GAMECUBE_DISC:
+  case DiscIO::EPlatform::GAMECUBE_DISC:
     return QObject::tr("GameCube");
-  case DiscIO::IVolume::WII_DISC:
+  case DiscIO::EPlatform::WII_DISC:
     return QObject::tr("Wii");
-  case DiscIO::IVolume::WII_WAD:
+  case DiscIO::EPlatform::WII_WAD:
     return QObject::tr("Wii Channel");
-  case DiscIO::IVolume::ELF_DOL:
+  case DiscIO::EPlatform::ELF_DOL:
     return QObject::tr("ELF/DOL");
   default:
     return QObject::tr("Unknown");
@@ -226,60 +228,60 @@ QString GameFile::GetCountry() const
 {
   switch (m_country)
   {
-  case DiscIO::IVolume::COUNTRY_EUROPE:
+  case DiscIO::ECountry::COUNTRY_EUROPE:
     return QObject::tr("Europe");
-  case DiscIO::IVolume::COUNTRY_JAPAN:
+  case DiscIO::ECountry::COUNTRY_JAPAN:
     return QObject::tr("Japan");
-  case DiscIO::IVolume::COUNTRY_USA:
+  case DiscIO::ECountry::COUNTRY_USA:
     return QObject::tr("USA");
-  case DiscIO::IVolume::COUNTRY_AUSTRALIA:
+  case DiscIO::ECountry::COUNTRY_AUSTRALIA:
     return QObject::tr("Australia");
-  case DiscIO::IVolume::COUNTRY_FRANCE:
+  case DiscIO::ECountry::COUNTRY_FRANCE:
     return QObject::tr("France");
-  case DiscIO::IVolume::COUNTRY_GERMANY:
+  case DiscIO::ECountry::COUNTRY_GERMANY:
     return QObject::tr("Germany");
-  case DiscIO::IVolume::COUNTRY_ITALY:
+  case DiscIO::ECountry::COUNTRY_ITALY:
     return QObject::tr("Italy");
-  case DiscIO::IVolume::COUNTRY_KOREA:
+  case DiscIO::ECountry::COUNTRY_KOREA:
     return QObject::tr("Korea");
-  case DiscIO::IVolume::COUNTRY_NETHERLANDS:
+  case DiscIO::ECountry::COUNTRY_NETHERLANDS:
     return QObject::tr("Netherlands");
-  case DiscIO::IVolume::COUNTRY_RUSSIA:
+  case DiscIO::ECountry::COUNTRY_RUSSIA:
     return QObject::tr("Russia");
-  case DiscIO::IVolume::COUNTRY_SPAIN:
+  case DiscIO::ECountry::COUNTRY_SPAIN:
     return QObject::tr("Spain");
-  case DiscIO::IVolume::COUNTRY_TAIWAN:
+  case DiscIO::ECountry::COUNTRY_TAIWAN:
     return QObject::tr("Taiwan");
-  case DiscIO::IVolume::COUNTRY_WORLD:
+  case DiscIO::ECountry::COUNTRY_WORLD:
     return QObject::tr("World");
   default:
     return QObject::tr("Unknown");
   }
 }
 
-QString GameFile::GetLanguage(DiscIO::IVolume::ELanguage lang) const
+QString GameFile::GetLanguage(DiscIO::ELanguage lang) const
 {
   switch (lang)
   {
-  case DiscIO::IVolume::LANGUAGE_JAPANESE:
+  case DiscIO::ELanguage::LANGUAGE_JAPANESE:
     return QObject::tr("Japanese");
-  case DiscIO::IVolume::LANGUAGE_ENGLISH:
+  case DiscIO::ELanguage::LANGUAGE_ENGLISH:
     return QObject::tr("English");
-  case DiscIO::IVolume::LANGUAGE_GERMAN:
+  case DiscIO::ELanguage::LANGUAGE_GERMAN:
     return QObject::tr("German");
-  case DiscIO::IVolume::LANGUAGE_FRENCH:
+  case DiscIO::ELanguage::LANGUAGE_FRENCH:
     return QObject::tr("French");
-  case DiscIO::IVolume::LANGUAGE_SPANISH:
+  case DiscIO::ELanguage::LANGUAGE_SPANISH:
     return QObject::tr("Spanish");
-  case DiscIO::IVolume::LANGUAGE_ITALIAN:
+  case DiscIO::ELanguage::LANGUAGE_ITALIAN:
     return QObject::tr("Italian");
-  case DiscIO::IVolume::LANGUAGE_DUTCH:
+  case DiscIO::ELanguage::LANGUAGE_DUTCH:
     return QObject::tr("Dutch");
-  case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
+  case DiscIO::ELanguage::LANGUAGE_SIMPLIFIED_CHINESE:
     return QObject::tr("Simplified Chinese");
-  case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+  case DiscIO::ELanguage::LANGUAGE_TRADITIONAL_CHINESE:
     return QObject::tr("Traditional Chinese");
-  case DiscIO::IVolume::LANGUAGE_KOREAN:
+  case DiscIO::ELanguage::LANGUAGE_KOREAN:
     return QObject::tr("Korean");
   default:
     return QObject::tr("Unknown");

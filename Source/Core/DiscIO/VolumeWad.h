@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for Wad files ---
@@ -19,6 +18,11 @@
 
 namespace DiscIO
 {
+enum class BlobType;
+enum class ECountry;
+enum class ELanguage;
+enum class EPlatform;
+
 class CVolumeWAD : public IVolume
 {
 public:
@@ -30,7 +34,7 @@ public:
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override { return ""; }
-  std::map<IVolume::ELanguage, std::string> GetLongNames() const override;
+  std::map<ELanguage, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   u64 GetFSTSize() const override { return 0; }
   std::string GetApploaderDate() const override { return ""; }

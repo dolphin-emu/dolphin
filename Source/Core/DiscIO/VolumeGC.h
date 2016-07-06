@@ -10,13 +10,17 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
+enum class BlobType;
+enum class ECountry;
+enum class ELanguage;
+enum class EPlatform;
+
 class CVolumeGC : public IVolume
 {
 public:

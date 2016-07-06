@@ -4,12 +4,13 @@ set(SRCS	Blob.cpp
 			CompressedBlob.cpp
 			DiscScrubber.cpp
 			DriveBlob.cpp
+			Enums.cpp
 			FileBlob.cpp
 			FileMonitor.cpp
 			FileSystemGCWii.cpp
 			Filesystem.cpp
 			NANDContentLoader.cpp
-			VolumeCommon.cpp
+			Volume.cpp
 			VolumeCreator.cpp
 			VolumeDirectory.cpp
 			VolumeGC.cpp

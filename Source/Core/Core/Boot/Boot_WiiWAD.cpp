@@ -20,6 +20,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -92,7 +93,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (!SetupWiiMemory(ContentLoader.GetCountry()))
     return false;
   // this sets a bit that is used to detect NTSC-J
-  if (ContentLoader.GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN)
+  if (ContentLoader.GetCountry() == DiscIO::ECountry::COUNTRY_JAPAN)
   {
     VideoInterface::SetRegionReg('J');
   }

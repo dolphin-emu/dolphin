@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
@@ -163,7 +164,7 @@ void CVolumeDirectory::SetUniqueID(const std::string& id)
   memcpy(m_diskHeader.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
 }
 
-IVolume::ECountry CVolumeDirectory::GetCountry() const
+ECountry CVolumeDirectory::GetCountry() const
 {
   return CountrySwitch(m_diskHeader[3]);
 }
@@ -183,12 +184,12 @@ std::string CVolumeDirectory::GetInternalName() const
     return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeDirectory::GetLongNames() const
+std::map<ELanguage, std::string> CVolumeDirectory::GetLongNames() const
 {
   std::string name = GetInternalName();
   if (name.empty())
     return {{}};
-  return {{IVolume::LANGUAGE_UNKNOWN, name}};
+  return {{ELanguage::LANGUAGE_UNKNOWN, name}};
 }
 
 std::vector<u32> CVolumeDirectory::GetBanner(int* width, int* height) const
@@ -218,9 +219,9 @@ std::string CVolumeDirectory::GetApploaderDate() const
   return "VOID";
 }
 
-IVolume::EPlatform CVolumeDirectory::GetVolumeType() const
+EPlatform CVolumeDirectory::GetVolumeType() const
 {
-  return m_is_wii ? WII_DISC : GAMECUBE_DISC;
+  return m_is_wii ? EPlatform::WII_DISC : EPlatform::GAMECUBE_DISC;
 }
 
 BlobType CVolumeDirectory::GetBlobType() const

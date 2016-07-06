@@ -9,7 +9,16 @@
 #include <QPixmap>
 #include <QString>
 
-#include "DiscIO/Volume.h"
+#include "Common/CommonTypes.h"
+
+namespace DiscIO
+{
+enum class BlobType;
+enum class ECountry;
+enum class ELanguage;
+enum class EPlatform;
+class IVolume;
+}
 
 // TODO cache
 class GameFile final
@@ -36,26 +45,26 @@ public:
   QString GetIssues() const { return m_issues; }
   int GetRating() const { return m_rating; }
   QString GetApploaderDate() const { return m_apploader_date; }
-  DiscIO::IVolume::EPlatform GetPlatformID() const { return m_platform; }
+  DiscIO::EPlatform GetPlatformID() const { return m_platform; }
   QString GetPlatform() const;
-  DiscIO::IVolume::ECountry GetCountryID() const { return m_country; }
+  DiscIO::ECountry GetCountryID() const { return m_country; }
   QString GetCountry() const;
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
   // Banner details
-  QString GetLanguage(DiscIO::IVolume::ELanguage lang) const;
-  QList<DiscIO::IVolume::ELanguage> GetAvailableLanguages() const;
+  QString GetLanguage(DiscIO::ELanguage lang) const;
+  QList<DiscIO::ELanguage> GetAvailableLanguages() const;
   QString GetShortName() const { return GetBannerString(m_short_names); }
   QString GetShortMaker() const { return GetBannerString(m_short_makers); }
   QString GetLongName() const { return GetBannerString(m_long_names); }
   QString GetLongMaker() const { return GetBannerString(m_long_makers); }
   QString GetDescription() const { return GetBannerString(m_descriptions); }
-  QString GetShortName(DiscIO::IVolume::ELanguage lang) const { return m_short_names[lang]; }
-  QString GetShortMaker(DiscIO::IVolume::ELanguage lang) const { return m_short_makers[lang]; }
-  QString GetLongName(DiscIO::IVolume::ELanguage lang) const { return m_long_names[lang]; }
-  QString GetLongMaker(DiscIO::IVolume::ELanguage lang) const { return m_long_makers[lang]; }
-  QString GetDescription(DiscIO::IVolume::ELanguage lang) const { return m_descriptions[lang]; }
+  QString GetShortName(DiscIO::ELanguage lang) const { return m_short_names[lang]; }
+  QString GetShortMaker(DiscIO::ELanguage lang) const { return m_short_makers[lang]; }
+  QString GetLongName(DiscIO::ELanguage lang) const { return m_long_names[lang]; }
+  QString GetLongMaker(DiscIO::ELanguage lang) const { return m_long_makers[lang]; }
+  QString GetDescription(DiscIO::ELanguage lang) const { return m_descriptions[lang]; }
 private:
-  QString GetBannerString(const QMap<DiscIO::IVolume::ELanguage, QString>& m) const;
+  QString GetBannerString(const QMap<DiscIO::ELanguage, QString>& m) const;
 
   QString GetCacheFileName() const;
   void ReadBanner(const DiscIO::IVolume& volume);
@@ -80,15 +89,15 @@ private:
   QString m_maker_id;
   u16 m_revision = 0;
   QString m_internal_name;
-  QMap<DiscIO::IVolume::ELanguage, QString> m_short_names;
-  QMap<DiscIO::IVolume::ELanguage, QString> m_long_names;
-  QMap<DiscIO::IVolume::ELanguage, QString> m_short_makers;
-  QMap<DiscIO::IVolume::ELanguage, QString> m_long_makers;
-  QMap<DiscIO::IVolume::ELanguage, QString> m_descriptions;
+  QMap<DiscIO::ELanguage, QString> m_short_names;
+  QMap<DiscIO::ELanguage, QString> m_long_names;
+  QMap<DiscIO::ELanguage, QString> m_short_makers;
+  QMap<DiscIO::ELanguage, QString> m_long_makers;
+  QMap<DiscIO::ELanguage, QString> m_descriptions;
   QString m_company;
   u8 m_disc_number = 0;
-  DiscIO::IVolume::EPlatform m_platform;
-  DiscIO::IVolume::ECountry m_country;
+  DiscIO::EPlatform m_platform;
+  DiscIO::ECountry m_country;
   DiscIO::BlobType m_blob_type;
   u64 m_raw_size = 0;
   QPixmap m_banner;

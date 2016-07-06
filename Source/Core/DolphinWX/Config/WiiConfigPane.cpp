@@ -11,7 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Enums.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -139,8 +139,8 @@ void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
-  DiscIO::IVolume::ELanguage wii_system_lang =
-      (DiscIO::IVolume::ELanguage)m_system_language_choice->GetSelection();
+  DiscIO::ELanguage wii_system_lang =
+      static_cast<DiscIO::ELanguage>(m_system_language_choice->GetSelection());
   SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
   u8 country_code = GetSADRCountryCode(wii_system_lang);
 
@@ -155,30 +155,30 @@ void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 
 // Change from IPL.LNG value to IPL.SADR country code.
 // http://wiibrew.org/wiki/Country_Codes
-u8 WiiConfigPane::GetSADRCountryCode(DiscIO::IVolume::ELanguage language)
+u8 WiiConfigPane::GetSADRCountryCode(DiscIO::ELanguage language)
 {
   switch (language)
   {
-  case DiscIO::IVolume::LANGUAGE_JAPANESE:
+  case DiscIO::ELanguage::LANGUAGE_JAPANESE:
     return 1;  // Japan
-  case DiscIO::IVolume::LANGUAGE_ENGLISH:
+  case DiscIO::ELanguage::LANGUAGE_ENGLISH:
     return 49;  // USA
-  case DiscIO::IVolume::LANGUAGE_GERMAN:
+  case DiscIO::ELanguage::LANGUAGE_GERMAN:
     return 78;  // Germany
-  case DiscIO::IVolume::LANGUAGE_FRENCH:
+  case DiscIO::ELanguage::LANGUAGE_FRENCH:
     return 77;  // France
-  case DiscIO::IVolume::LANGUAGE_SPANISH:
+  case DiscIO::ELanguage::LANGUAGE_SPANISH:
     return 105;  // Spain
-  case DiscIO::IVolume::LANGUAGE_ITALIAN:
+  case DiscIO::ELanguage::LANGUAGE_ITALIAN:
     return 83;  // Italy
-  case DiscIO::IVolume::LANGUAGE_DUTCH:
+  case DiscIO::ELanguage::LANGUAGE_DUTCH:
     return 94;  // Netherlands
-  case DiscIO::IVolume::LANGUAGE_SIMPLIFIED_CHINESE:
-  case DiscIO::IVolume::LANGUAGE_TRADITIONAL_CHINESE:
+  case DiscIO::ELanguage::LANGUAGE_SIMPLIFIED_CHINESE:
+  case DiscIO::ELanguage::LANGUAGE_TRADITIONAL_CHINESE:
     return 157;  // China
-  case DiscIO::IVolume::LANGUAGE_KOREAN:
+  case DiscIO::ELanguage::LANGUAGE_KOREAN:
     return 136;  // Korea
-  case DiscIO::IVolume::LANGUAGE_UNKNOWN:
+  case DiscIO::ELanguage::LANGUAGE_UNKNOWN:
     break;
   }
 

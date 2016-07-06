@@ -24,7 +24,7 @@
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region,
+int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::ECountry card_region,
                                 bool currentGameOnly)
 {
   File::IOFile gcifile(fileName, "rb");
@@ -39,15 +39,15 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
       return NO_INDEX;
     }
 
-    DiscIO::IVolume::ECountry gci_region;
+    DiscIO::ECountry gci_region;
     // check region
     switch (gci.m_gci_header.Gamecode[3])
     {
     case 'J':
-      gci_region = DiscIO::IVolume::COUNTRY_JAPAN;
+      gci_region = DiscIO::ECountry::COUNTRY_JAPAN;
       break;
     case 'E':
-      gci_region = DiscIO::IVolume::COUNTRY_USA;
+      gci_region = DiscIO::ECountry::COUNTRY_USA;
       break;
     case 'C':
       // Used by Datel Action Replay Save
@@ -55,7 +55,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
       gci_region = card_region;
       break;
     default:
-      gci_region = DiscIO::IVolume::COUNTRY_EUROPE;
+      gci_region = DiscIO::ECountry::COUNTRY_EUROPE;
       break;
     }
 
@@ -146,8 +146,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb,
-                                       bool ascii, DiscIO::IVolume::ECountry card_region,
-                                       int gameId)
+                                       bool ascii, DiscIO::ECountry card_region, int gameId)
     : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1), m_hdr(slot, sizeMb, ascii),
       m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory), m_exiting(false)
 {

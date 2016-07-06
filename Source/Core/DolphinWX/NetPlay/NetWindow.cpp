@@ -34,6 +34,8 @@
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
 
+#include "DiscIO/Enums.h"
+
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
@@ -69,7 +71,7 @@ static wxString FailureReasonStringForHostLabel(int reason)
 static std::string BuildGameName(const GameListItem& game)
 {
   // Lang needs to be consistent
-  DiscIO::IVolume::ELanguage const lang = DiscIO::IVolume::LANGUAGE_ENGLISH;
+  const DiscIO::ELanguage lang = DiscIO::ELanguage::LANGUAGE_ENGLISH;
   std::vector<std::string> info;
   if (!game.GetUniqueID().empty())
     info.push_back(game.GetUniqueID());

@@ -20,6 +20,9 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Enums.h"
+#include "DiscIO/Volume.h"
+
 void CBoot::RunFunction(u32 _iAddr)
 {
   PC = _iAddr;
@@ -178,21 +181,21 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   return true;
 }
 
-bool CBoot::SetupWiiMemory(DiscIO::IVolume::ECountry country)
+bool CBoot::SetupWiiMemory(DiscIO::ECountry country)
 {
   static const CountrySetting SETTING_EUROPE = {"EUR", "PAL", "EU", "LE"};
   static const CountrySetting SETTING_USA = {"USA", "NTSC", "US", "LU"};
   static const CountrySetting SETTING_JAPAN = {"JPN", "NTSC", "JP", "LJ"};
   static const CountrySetting SETTING_KOREA = {"KOR", "NTSC", "KR", "LKH"};
-  static const std::map<DiscIO::IVolume::ECountry, const CountrySetting> country_settings = {
-      {DiscIO::IVolume::COUNTRY_EUROPE, SETTING_EUROPE},
-      {DiscIO::IVolume::COUNTRY_USA, SETTING_USA},
-      {DiscIO::IVolume::COUNTRY_JAPAN, SETTING_JAPAN},
-      {DiscIO::IVolume::COUNTRY_KOREA, SETTING_KOREA},
+  static const std::map<DiscIO::ECountry, const CountrySetting> country_settings = {
+      {DiscIO::ECountry::COUNTRY_EUROPE, SETTING_EUROPE},
+      {DiscIO::ECountry::COUNTRY_USA, SETTING_USA},
+      {DiscIO::ECountry::COUNTRY_JAPAN, SETTING_JAPAN},
+      {DiscIO::ECountry::COUNTRY_KOREA, SETTING_KOREA},
       // TODO: Determine if Taiwan have their own specific settings.
       //      Also determine if there are other specific settings
       //      for other countries.
-      {DiscIO::IVolume::COUNTRY_TAIWAN, SETTING_JAPAN}};
+      {DiscIO::ECountry::COUNTRY_TAIWAN, SETTING_JAPAN}};
   auto entryPos = country_settings.find(country);
   const CountrySetting& country_setting =
       (entryPos != country_settings.end()) ?
@@ -333,7 +336,7 @@ bool CBoot::EmulatedBS2_Wii()
   INFO_LOG(BOOT, "Faking Wii BS2...");
 
   // Setup Wii memory
-  DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
+  DiscIO::ECountry country_code = DiscIO::ECountry::COUNTRY_UNKNOWN;
   if (DVDInterface::VolumeIsValid())
     country_code = DVDInterface::GetVolume().GetCountry();
   if (SetupWiiMemory(country_code) == false)
@@ -342,7 +345,7 @@ bool CBoot::EmulatedBS2_Wii()
   // Execute the apploader
   bool apploaderRan = false;
   if (DVDInterface::VolumeIsValid() &&
-      DVDInterface::GetVolume().GetVolumeType() == DiscIO::IVolume::WII_DISC)
+      DVDInterface::GetVolume().GetVolumeType() == DiscIO::EPlatform::WII_DISC)
   {
     // This is some kind of consistency check that is compared to the 0x00
     // values as the game boots. This location keeps the 4 byte ID for as long

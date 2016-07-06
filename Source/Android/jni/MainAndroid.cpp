@@ -33,6 +33,7 @@
 #include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -226,15 +227,14 @@ static int GetCountry(std::string filename)
 
   if (pVolume != nullptr)
   {
-    DiscIO::IVolume::ECountry country = pVolume->GetCountry();
+    int country = static_cast<int>(pVolume->GetCountry());
 
     __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Country Code: %i", country);
 
     return country;
   }
 
-  // Return UNKNOWN
-  return 13;
+  return static_cast<int>(DiscIO::ECountry::COUNTRY_UNKNOWN);
 }
 
 static int GetPlatform(std::string filename)
@@ -245,13 +245,13 @@ static int GetPlatform(std::string filename)
   {
     switch (pVolume->GetVolumeType())
     {
-    case DiscIO::IVolume::GAMECUBE_DISC:
+    case DiscIO::EPlatform::GAMECUBE_DISC:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a GameCube disc.");
       return 0;
-    case DiscIO::IVolume::WII_DISC:
+    case DiscIO::EPlatform::WII_DISC:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii disc.");
       return 1;
-    case DiscIO::IVolume::WII_WAD:
+    case DiscIO::EPlatform::WII_WAD:
       __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Volume is a Wii WAD.");
       return 2;
     }
@@ -269,13 +269,13 @@ static std::string GetTitle(std::string filename)
 
   if (pVolume != nullptr)
   {
-    std::map<DiscIO::IVolume::ELanguage, std::string> titles = pVolume->GetLongNames();
+    std::map<DiscIO::ELanguage, std::string> titles = pVolume->GetLongNames();
     if (titles.empty())
       titles = pVolume->GetShortNames();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::EPlatform::GAMECUBE_DISC;
+    DiscIO::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = titles.find(language);
     if (it != end)
@@ -284,8 +284,8 @@ static std::string GetTitle(std::string filename)
     auto end = titles.end();
 
     // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
-    auto it = titles.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
+    // if (language != DiscIO::ELanguage::LANGUAGE_ENGLISH) {
+    auto it = titles.find(DiscIO::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
       return it->second;
     //}
@@ -312,11 +312,11 @@ static std::string GetDescription(std::string filename)
 
   if (volume != nullptr)
   {
-    std::map<DiscIO::IVolume::ELanguage, std::string> descriptions = volume->GetDescriptions();
+    std::map<DiscIO::ELanguage, std::string> descriptions = volume->GetDescriptions();
 
     /*
-    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC;
-    DiscIO::IVolume::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
+    bool is_wii_title = pVolume->GetVolumeType() != DiscIO::EPlatform::GAMECUBE_DISC;
+    DiscIO::ELanguage language = SConfig::GetInstance().GetCurrentLanguage(is_wii_title);
 
     auto it = descriptions.find(language);
     if (it != end)
@@ -325,8 +325,8 @@ static std::string GetDescription(std::string filename)
     auto end = descriptions.end();
 
     // English tends to be a good fallback when the requested language isn't available
-    // if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH) {
-    auto it = descriptions.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
+    // if (language != DiscIO::ELanguage::LANGUAGE_ENGLISH) {
+    auto it = descriptions.find(DiscIO::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
       return it->second;
     //}

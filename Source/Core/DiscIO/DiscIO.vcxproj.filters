@@ -54,9 +54,6 @@
     <ClCompile Include="FileMonitor.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
-    <ClCompile Include="VolumeCommon.cpp">
-      <Filter>Volume</Filter>
-    </ClCompile>
     <ClCompile Include="VolumeCreator.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
@@ -70,6 +67,12 @@
       <Filter>Volume</Filter>
     </ClCompile>
     <ClCompile Include="VolumeWiiCrypted.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Enums.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
+    <ClCompile Include="Volume.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
   </ItemGroup>
@@ -126,6 +129,9 @@
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="VolumeWiiCrypted.h">
+      <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
     </ClInclude>
   </ItemGroup>

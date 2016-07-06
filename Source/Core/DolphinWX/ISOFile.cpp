@@ -28,6 +28,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -39,8 +40,8 @@ static const u32 CACHE_REVISION = 0x127;  // Last changed in PR 3309
 #define DVD_BANNER_WIDTH 96
 #define DVD_BANNER_HEIGHT 32
 
-static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
-                                     std::map<DiscIO::IVolume::ELanguage, std::string> strings)
+static std::string GetLanguageString(DiscIO::ELanguage language,
+                                     std::map<DiscIO::ELanguage, std::string> strings)
 {
   auto end = strings.end();
   auto it = strings.find(language);
@@ -48,9 +49,9 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
     return it->second;
 
   // English tends to be a good fallback when the requested language isn't available
-  if (language != DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH)
+  if (language != DiscIO::ELanguage::LANGUAGE_ENGLISH)
   {
-    it = strings.find(DiscIO::IVolume::ELanguage::LANGUAGE_ENGLISH);
+    it = strings.find(DiscIO::ELanguage::LANGUAGE_ENGLISH);
     if (it != end)
       return it->second;
   }
@@ -65,7 +66,7 @@ static std::string GetLanguageString(DiscIO::IVolume::ELanguage language,
 GameListItem::GameListItem(const std::string& _rFileName,
                            const std::unordered_map<std::string, std::string>& custom_titles)
     : m_FileName(_rFileName), m_title_id(0), m_emu_state(0), m_FileSize(0),
-      m_Country(DiscIO::IVolume::COUNTRY_UNKNOWN), m_Revision(0), m_Valid(false), m_ImageWidth(0),
+      m_Country(DiscIO::ECountry::COUNTRY_UNKNOWN), m_Revision(0), m_Valid(false), m_ImageWidth(0),
       m_ImageHeight(0), m_disc_number(0), m_has_custom_name(false)
 {
   if (LoadFromCache())
@@ -96,9 +97,10 @@ GameListItem::GameListItem(const std::string& _rFileName,
       m_names = volume->GetLongNames();
       if (m_names.empty())
         m_names = volume->GetShortNames();
-      m_company = GetLanguageString(DiscIO::IVolume::LANGUAGE_ENGLISH, volume->GetLongMakers());
+      m_company = GetLanguageString(DiscIO::ELanguage::LANGUAGE_ENGLISH, volume->GetLongMakers());
       if (m_company.empty())
-        m_company = GetLanguageString(DiscIO::IVolume::LANGUAGE_ENGLISH, volume->GetShortMakers());
+        m_company =
+            GetLanguageString(DiscIO::ELanguage::LANGUAGE_ENGLISH, volume->GetShortMakers());
 
       m_Country = volume->GetCountry();
       m_blob_type = volume->GetBlobType();
@@ -126,7 +128,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
     std::string game_id = m_UniqueID;
 
     // Ignore publisher ID for WAD files
-    if (m_Platform == DiscIO::IVolume::WII_WAD && game_id.size() > 4)
+    if (m_Platform == DiscIO::EPlatform::WII_WAD && game_id.size() > 4)
       game_id.erase(4);
 
     auto it = custom_titles.find(game_id);
@@ -142,7 +144,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
   {
     m_Valid = true;
     m_FileSize = File::GetSize(_rFileName);
-    m_Platform = DiscIO::IVolume::ELF_DOL;
+    m_Platform = DiscIO::EPlatform::ELF_DOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
 
@@ -296,18 +298,18 @@ wxBitmap GameListItem::ScaleBanner(wxImage* image)
 #endif
 }
 
-std::string GameListItem::GetDescription(DiscIO::IVolume::ELanguage language) const
+std::string GameListItem::GetDescription(DiscIO::ELanguage language) const
 {
   return GetLanguageString(language, m_descriptions);
 }
 
 std::string GameListItem::GetDescription() const
 {
-  bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
+  bool wii = m_Platform != DiscIO::EPlatform::GAMECUBE_DISC;
   return GetDescription(SConfig::GetInstance().GetCurrentLanguage(wii));
 }
 
-std::string GameListItem::GetName(DiscIO::IVolume::ELanguage language) const
+std::string GameListItem::GetName(DiscIO::ELanguage language) const
 {
   return GetLanguageString(language, m_names);
 }
@@ -317,7 +319,7 @@ std::string GameListItem::GetName() const
   if (m_has_custom_name)
     return m_custom_name;
 
-  bool wii = m_Platform != DiscIO::IVolume::GAMECUBE_DISC;
+  bool wii = m_Platform != DiscIO::EPlatform::GAMECUBE_DISC;
   std::string name = GetName(SConfig::GetInstance().GetCurrentLanguage(wii));
   if (!name.empty())
     return name;
@@ -328,10 +330,10 @@ std::string GameListItem::GetName() const
   return name + ext;
 }
 
-std::vector<DiscIO::IVolume::ELanguage> GameListItem::GetLanguages() const
+std::vector<DiscIO::ELanguage> GameListItem::GetLanguages() const
 {
-  std::vector<DiscIO::IVolume::ELanguage> languages;
-  for (std::pair<DiscIO::IVolume::ELanguage, std::string> name : m_names)
+  std::vector<DiscIO::ELanguage> languages;
+  for (std::pair<DiscIO::ELanguage, std::string> name : m_names)
     languages.push_back(name.first);
   return languages;
 }
@@ -344,7 +346,7 @@ const std::string GameListItem::GetWiiFSPath() const
   if (iso == nullptr)
     return ret;
 
-  if (iso->GetVolumeType() != DiscIO::IVolume::GAMECUBE_DISC)
+  if (iso->GetVolumeType() != DiscIO::EPlatform::GAMECUBE_DISC)
   {
     u64 title_id = 0;
     iso->GetTitleID(&title_id);
@@ -363,4 +365,10 @@ const std::string GameListItem::GetWiiFSPath() const
   }
 
   return ret;
+}
+
+bool GameListItem::IsCompressed() const
+{
+  return m_blob_type == DiscIO::BlobType::GCZ || m_blob_type == DiscIO::BlobType::CISO ||
+         m_blob_type == DiscIO::BlobType::WBFS;
 }

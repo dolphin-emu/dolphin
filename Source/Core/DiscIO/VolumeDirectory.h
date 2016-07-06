@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 namespace File
@@ -24,6 +23,11 @@ struct FSTEntry;
 
 namespace DiscIO
 {
+enum class BlobType;
+enum class ECountry;
+enum class ELanguage;
+enum class EPlatform;
+
 class CVolumeDirectory : public IVolume
 {
 public:
@@ -43,7 +47,7 @@ public:
 
   u16 GetRevision() const override { return 0; }
   std::string GetInternalName() const override;
-  std::map<IVolume::ELanguage, std::string> GetLongNames() const override;
+  std::map<ELanguage, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   void SetName(const std::string&);
 

@@ -38,7 +38,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     case COL_SIZE:
       return game->GetFileSize();
     case COL_COUNTRY:
-      return game->GetCountryID();
+      return static_cast<int>(game->GetCountryID());
     case COL_RATING:
       return game->GetRating();
     }

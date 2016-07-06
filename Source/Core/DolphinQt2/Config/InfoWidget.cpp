@@ -13,6 +13,8 @@
 #include <QPushButton>
 #include <QTextEdit>
 
+#include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 #include "DolphinQt2/Config/InfoWidget.h"
 
 InfoWidget::InfoWidget(const GameFile& game) : m_game(game)
@@ -71,7 +73,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
   CreateLanguageSelector();
 
   layout->addRow(tr("Show Language:"), m_language_selector);
-  if (m_game.GetPlatformID() == DiscIO::IVolume::GAMECUBE_DISC)
+  if (m_game.GetPlatformID() == DiscIO::EPlatform::GAMECUBE_DISC)
   {
     layout->addRow(tr("Short Name:"), m_short_name);
     layout->addRow(tr("Short Maker:"), m_short_maker);
@@ -79,7 +81,7 @@ QGroupBox* InfoWidget::CreateBannerDetails()
     layout->addRow(tr("Long Maker:"), m_long_maker);
     layout->addRow(tr("Description:"), m_description);
   }
-  else if (m_game.GetPlatformID() == DiscIO::IVolume::WII_DISC)
+  else if (m_game.GetPlatformID() == DiscIO::EPlatform::WII_DISC)
   {
     layout->addRow(tr("Name:"), m_long_name);
   }
@@ -123,11 +125,11 @@ QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
 void InfoWidget::CreateLanguageSelector()
 {
   m_language_selector = new QComboBox();
-  QList<DiscIO::IVolume::ELanguage> languages = m_game.GetAvailableLanguages();
+  QList<DiscIO::ELanguage> languages = m_game.GetAvailableLanguages();
   for (int i = 0; i < languages.count(); i++)
   {
-    DiscIO::IVolume::ELanguage language = languages.at(i);
-    m_language_selector->addItem(m_game.GetLanguage(language), language);
+    DiscIO::ELanguage language = languages.at(i);
+    m_language_selector->addItem(m_game.GetLanguage(language), static_cast<int>(language));
   }
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
@@ -137,8 +139,8 @@ void InfoWidget::CreateLanguageSelector()
 
 void InfoWidget::ChangeLanguage()
 {
-  DiscIO::IVolume::ELanguage language =
-      static_cast<DiscIO::IVolume::ELanguage>(m_language_selector->currentData().toInt());
+  DiscIO::ELanguage language =
+      static_cast<DiscIO::ELanguage>(m_language_selector->currentData().toInt());
   m_short_name->setText(m_game.GetShortName(language));
   m_short_maker->setText(m_game.GetShortMaker(language));
   m_long_name->setText(m_game.GetLongName(language));
