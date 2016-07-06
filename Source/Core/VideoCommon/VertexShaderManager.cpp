@@ -439,7 +439,11 @@ void DoLogProj(int j, float p[], const char* s)
   {  // perspective projection
     float f = p[5] / p[4];
     float n = f * p[4] / (p[4] - 1);
-    if (p[1] != 0.0f || p[3] != 0.0f)
+    if (p[0] == 1.0f && p[1] == 1.0f && p[2] == 1.0f && p[3] == 1.0f)
+    {
+      HACK_LOG(VR, "%d: %s N64 pre-transformed perspective: n=%.5f f=%.5f", j, s, n, f);
+    }
+    else if (p[1] != 0.0f || p[3] != 0.0f)
     {
       HACK_LOG(VR, "%d: %s OFF-AXIS Perspective: 2n/w=%.2f A=%.2f; 2n/h=%.2f B=%.2f; n=%.2f f=%.2f",
                j, s, p[0], p[1], p[2], p[3], p[4], p[5]);
@@ -461,15 +465,23 @@ void DoLogProj(int j, float p[], const char* s)
 }
 
 void LogProj(float p[])
-{  // VR
+{
+  // VR
   if (p[6] == 0)
   {  // perspective projection
+    bool bN64 = p[0] == 1.0f && p[1] == 1.0f && p[2] == 1.0f && p[3] == 1.0f;
     // don't change this formula!
     // metroid layer detection depends on exact values
     float vfov = (2 * atan(1.0f / p[2]) * 180.0f / 3.1415926535f);
     float hfov = (2 * atan(1.0f / p[0]) * 180.0f / 3.1415926535f);
     float f = p[5] / p[4];
     float n = f * p[4] / (p[4] - 1);
+    if (bN64)
+    {
+      hfov = g_ActiveConfig.fN64FOV;
+      vfov = 2 * 180.0f / 3.1415926535f *
+             atanf(tanf((hfov * 3.1415926535f / 180.0f) / 2) * 3.0f / 4.0f);  // 4:3 aspect ratio
+    }
     switch (g_ActiveConfig.iMetroidPrime)
     {
     case 1:
@@ -494,8 +506,11 @@ void LogProj(float p[])
       break;
     }
 
+    // Square projections are usually render to texture, eg. shadows, and shouldn't affect widest 3D
+    // FOV
+    // but some N64 games use a strange square projection where p[0]=p[1]=p[2]=p[3]=1
     if (debug_newScene && fabs(hfov) > vr_widest_3d_HFOV && fabs(hfov) <= 125 &&
-        (fabs(p[2]) != fabs(p[0])))
+        (fabs(p[2]) != fabs(p[0]) || (p[0] == 1 && p[1] == 1)))
     {
       DEBUG_LOG(VR, "***** New Widest 3D *****");
 
@@ -1207,6 +1222,9 @@ void VertexShaderManager::SetProjectionConstants()
            rawProjection[3], rawProjection[4], rawProjection[5]);
   dirty = true;
   GeometryShaderManager::dirty = true;
+
+  bool bN64 = (xfmem.projection.type == GX_PERSPECTIVE && rawProjection[0] == 1.0f &&
+               rawProjection[1] == 1.0f && rawProjection[2] == 1.0f && rawProjection[3] == 1.0f);
 
   ///////////////////////////////////////////////////////
   // What happens last depends on what kind of rendering we are doing for this layer
@@ -1929,6 +1947,23 @@ void VertexShaderManager::SetProjectionConstants()
                     free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
     }
 
+    // N64 games give us coordinates that were already transformed into clip space
+    // we need to untransform them before we do anything else
+    if (bN64)
+    {
+      Matrix44 shift_matrix, scale_matrix;
+      shift_matrix.setIdentity();
+      shift_matrix.data[0 * 4 + 2] = 1.0f;
+      shift_matrix.data[1 * 4 + 2] = 1.0f;
+      float scale[3];
+      float w = tanf(DEGREES_TO_RADIANS(g_ActiveConfig.fN64FOV) * 0.5f);
+      scale[0] = w;
+      scale[1] = w * (3.0f / 4.0f);  // N64 aspect ratio is 4:3
+      scale[2] = 1.0f;               // the Z coordinates are already correct
+      scale_matrix.setScaling(scale);
+      look_matrix = shift_matrix * scale_matrix * look_matrix;
+    }
+
     Matrix44 eye_pos_matrix_left, eye_pos_matrix_right;
     float posLeft[3] = {0, 0, 0};
     float posRight[3] = {0, 0, 0};
@@ -2097,7 +2132,7 @@ void VertexShaderManager::CheckOrientationConstants()
       movement[i] = worldspacepos[i] - oldpos[i];
     float distance = sqrt(sqr(movement[0]) + sqr(movement[1]) + sqr(movement[2]));
 
-    HACK_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: "
+    INFO_LOG(VR, "WorldPos: %5.2fm, %5.2fm, %5.2fm; Move: %5.2fm, %5.2fm, %5.2fm; Distance: "
                  "%5.2fm; Scale: x%5.2f",
              pos[0] / g_ActiveConfig.fUnitsPerMetre, pos[1] / g_ActiveConfig.fUnitsPerMetre,
              pos[2] / g_ActiveConfig.fUnitsPerMetre, movement[0] / g_ActiveConfig.fUnitsPerMetre,
@@ -2114,7 +2149,7 @@ void VertexShaderManager::CheckOrientationConstants()
     {
       for (int i = 0; i < 3; ++i)
         totalpos[i] += movement[i];
-      HACK_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
+      INFO_LOG(VR, "Total Pos: %5.2f, %5.2f, %5.2f", totalpos[0], totalpos[1], totalpos[2]);
     }
     for (int i = 0; i < 3; ++i)
       oldpos[i] = worldspacepos[i];
@@ -2122,7 +2157,7 @@ void VertexShaderManager::CheckOrientationConstants()
     Matrix33::Multiply(rot, totalpos, g_game_camera_pos);
     for (int i = 0; i < 3; ++i)
       g_game_camera_pos[i] = g_game_camera_pos[i] / g_ActiveConfig.fUnitsPerMetre;
-    HACK_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0],
+    INFO_LOG(VR, "g_game_camera_pos: %5.2fm, %5.2fm, %5.2fm", g_game_camera_pos[0],
              g_game_camera_pos[1], g_game_camera_pos[2]);
 
     // add pitch to rotation matrix

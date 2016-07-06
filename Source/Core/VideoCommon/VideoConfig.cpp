@@ -135,6 +135,7 @@ VideoConfig::VideoConfig()
   iTelescopeEye = 0;
   fTelescopeMaxFOV = 0;
   fMinFOV = DEFAULT_VR_MIN_FOV;
+  fN64FOV = DEFAULT_VR_N64_FOV;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -430,6 +431,7 @@ void VideoConfig::GameIniLoad()
   fCameraPitch = DEFAULT_VR_CAMERA_PITCH;
   fAimDistance = DEFAULT_VR_AIM_DISTANCE;
   fMinFOV = DEFAULT_VR_MIN_FOV;
+  fN64FOV = DEFAULT_VR_N64_FOV;
   fScreenHeight = DEFAULT_VR_SCREEN_HEIGHT;
   fScreenDistance = DEFAULT_VR_SCREEN_DISTANCE;
   fScreenThickness = DEFAULT_VR_HUD_THICKNESS;
@@ -461,6 +463,7 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("VR", "CameraPitch", fCameraPitch);
   CHECK_SETTING("VR", "AimDistance", fAimDistance);
   CHECK_SETTING("VR", "MinFOV", fMinFOV);
+  CHECK_SETTING("VR", "N64FOV", fN64FOV);
   CHECK_SETTING("VR", "ScreenHeight", fScreenHeight);
   CHECK_SETTING("VR", "ScreenThickness", fScreenThickness);
   CHECK_SETTING("VR", "ScreenDistance", fScreenDistance);
@@ -522,6 +525,7 @@ void VideoConfig::GameIniSave()
   SAVE_IF_NOT_DEFAULT("VR", "CameraPitch", (float)fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
   SAVE_IF_NOT_DEFAULT("VR", "AimDistance", (float)fAimDistance, DEFAULT_VR_AIM_DISTANCE);
   SAVE_IF_NOT_DEFAULT("VR", "MinFOV", (float)fMinFOV, DEFAULT_VR_MIN_FOV);
+  SAVE_IF_NOT_DEFAULT("VR", "N64FOV", (float)fN64FOV, DEFAULT_VR_N64_FOV);
   SAVE_IF_NOT_DEFAULT("VR", "ScreenHeight", (float)fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
   SAVE_IF_NOT_DEFAULT("VR", "ScreenDistance", (float)fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
   SAVE_IF_NOT_DEFAULT("VR", "ScreenThickness", (float)fScreenThickness,
@@ -566,6 +570,7 @@ void VideoConfig::GameIniReset()
   LOAD_DEFAULT("VR", "CameraPitch", fCameraPitch, DEFAULT_VR_CAMERA_PITCH);
   LOAD_DEFAULT("VR", "AimDistance", fAimDistance, DEFAULT_VR_AIM_DISTANCE);
   LOAD_DEFAULT("VR", "MinFOV", fMinFOV, DEFAULT_VR_MIN_FOV);
+  LOAD_DEFAULT("VR", "N64FOV", fN64FOV, DEFAULT_VR_N64_FOV);
   LOAD_DEFAULT("VR", "ScreenHeight", fScreenHeight, DEFAULT_VR_SCREEN_HEIGHT);
   LOAD_DEFAULT("VR", "ScreenDistance", fScreenDistance, DEFAULT_VR_SCREEN_DISTANCE);
   LOAD_DEFAULT("VR", "ScreenThickness", fScreenThickness, DEFAULT_VR_SCREEN_THICKNESS);
@@ -784,7 +789,7 @@ bool VideoConfig::VRSettingsModified()
          fCameraForward != g_SavedConfig.fCameraForward ||
          fCameraPitch != g_SavedConfig.fCameraPitch || fAimDistance != g_SavedConfig.fAimDistance ||
          fMinFOV != g_SavedConfig.fMinFOV || fScreenHeight != g_SavedConfig.fScreenHeight ||
-         fScreenThickness != g_SavedConfig.fScreenThickness ||
+         fN64FOV != g_SavedConfig.fN64FOV || fScreenThickness != g_SavedConfig.fScreenThickness ||
          fScreenDistance != g_SavedConfig.fScreenDistance ||
          fScreenRight != g_SavedConfig.fScreenRight || fScreenUp != g_SavedConfig.fScreenUp ||
          fScreenPitch != g_SavedConfig.fScreenPitch ||

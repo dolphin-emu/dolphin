@@ -34,6 +34,9 @@ static wxString minfov_desc = wxTRANSLATE(
     "render from a distance with a zoom lens, this will move thhe camera closer instead. When the "
     "FOV is less than the minimum the camera will move forward until objects at Aim Distance fill "
     "the minimum FOV.\nIf unsure, leave this at 10 degrees.");
+static wxString n64fov_desc =
+    wxTRANSLATE("Horizontal FOV for N64 games that use pre-transformed vertices.\n"
+                "If unsure, or not an N64 game, leave this at 90 degrees.");
 static wxString scale_desc = wxTRANSLATE(
     "(Don't change this until the game's Units Per Metre setting is already lifesize!)\n\nScale "
     "multiplier for all VR worlds.\n1x = lifesize, 2x = Giant size\n0.5x = Child size, 0.17x = "
@@ -850,6 +853,15 @@ void CConfigVR::CreateGUIControls()
           CreateNumber(page_vr, vconfig.fMinFOV, wxGetTranslation(temp_desc), 0, 179, 1);
       wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Min HFOV:"));
       label->SetToolTip(wxGetTranslation(minfov_desc));
+      szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+      szr_vr->Add(spin);
+    }
+    // N64 FOV
+    {
+      SettingNumber* const spin =
+          CreateNumber(page_vr, vconfig.fN64FOV, wxGetTranslation(n64fov_desc), 1, 179, 1);
+      wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("N64 HFOV:"));
+      label->SetToolTip(wxGetTranslation(n64fov_desc));
       szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
       szr_vr->Add(spin);
     }

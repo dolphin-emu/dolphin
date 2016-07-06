@@ -237,6 +237,7 @@ struct VideoConfig final
   float fCameraPitch;
   float fAimDistance;
   float fMinFOV;
+  float fN64FOV;
   float fScreenHeight;
   float fScreenThickness;
   float fScreenDistance;
