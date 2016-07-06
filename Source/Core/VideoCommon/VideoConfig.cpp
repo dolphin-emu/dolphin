@@ -316,7 +316,6 @@ void VideoConfig::Save(const std::string& ini_file)
   hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
   hacks->Set("EFBScaledCopy", bCopyEFBScaled);
   hacks->Set("EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-  hacks->Set("MiddleSensorBar", bMiddleSensorBar);
 
   iniFile.Save(ini_file);
 }
