@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -67,7 +68,7 @@ void ReadFileSystem(const std::string& filename)
   if (!s_open_iso)
     return;
 
-  if (s_open_iso->GetVolumeType() != DiscIO::IVolume::WII_WAD)
+  if (s_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
   {
     s_filesystem = DiscIO::CreateFileSystem(s_open_iso.get());
 

@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"

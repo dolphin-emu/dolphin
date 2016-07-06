@@ -101,12 +101,12 @@ void Settings::SetWiiNAND(const QString& path)
   SConfig::GetInstance().SaveSettings();
 }
 
-DiscIO::IVolume::ELanguage Settings::GetWiiSystemLanguage() const
+DiscIO::Language Settings::GetWiiSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(true);
 }
 
-DiscIO::IVolume::ELanguage Settings::GetGCSystemLanguage() const
+DiscIO::Language Settings::GetGCSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(false);
 }
