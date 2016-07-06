@@ -298,6 +298,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
     break;
 
   case SPR_HID4:
+    WARN_LOG(POWERPC, "HID4 updated %x %x", oldValue, rSPR(iIndex));
     PowerPC::IBATUpdated();
     PowerPC::DBATUpdated();
     break;
@@ -376,6 +377,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
   case SPR_DBAT6U:
   case SPR_DBAT7L:
   case SPR_DBAT7U:
+    WARN_LOG(POWERPC, "DBAT updated %d %x %x", iIndex, oldValue, rSPR(iIndex));
     PowerPC::DBATUpdated();
     break;
 
@@ -395,6 +397,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
   case SPR_IBAT6U:
   case SPR_IBAT7L:
   case SPR_IBAT7U:
+    WARN_LOG(POWERPC, "IBAT updated %d %x %x", iIndex, oldValue, rSPR(iIndex));
     PowerPC::IBATUpdated();
     break;
   }
