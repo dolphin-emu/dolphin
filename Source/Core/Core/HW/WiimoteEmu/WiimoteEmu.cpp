@@ -468,22 +468,22 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
 
   for (auto& vtx : v)
   {
-    if(!g_ActiveConfig.bMiddleSensorBar)
+    if (!g_ActiveConfig.bMiddleSensorBar)
     {
       vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
-	  if(m_sensor_bar_on_top)
-	  {
-	    vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
-	  }
-	  else
+      if (m_sensor_bar_on_top)
       {
-	    vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
-	  }
+        vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      }
+      else
+      {
+        vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+      }
     }
     else
     {
-	  vtx.x = -xx * 0.55;
-	  vtx.y = -yy * bnddown;
+      vtx.x = -xx * 0.55;
+      vtx.y = -yy * bnddown;
     }
     vtx.z = 0;
   }

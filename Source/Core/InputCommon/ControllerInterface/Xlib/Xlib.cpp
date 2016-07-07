@@ -7,8 +7,8 @@
 #include <cstring>
 
 #include "Core/ConfigManager.h"
-#include "VideoCommon/VideoConfig.h"
 #include "InputCommon/ControllerInterface/Xlib/Xlib.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace ciface
 {
@@ -67,78 +67,80 @@ void KeyboardMouse::UpdateInput()
   // update mouse cursor
   XWindowAttributes win_attribs;
   XGetWindowAttributes(m_display, m_window, &win_attribs);
-  
+
   // the mouse position as a range from -1 to 1
-  static const int& root_xpos    = SConfig::GetInstance().iPosX;
-  static const int& root_ypos    = SConfig::GetInstance().iPosY;
-  static const int& root_width   = SConfig::GetInstance().iWidth;
-  static const int& root_height  = SConfig::GetInstance().iHeight;
-  
-  static const int& child_xpos   = SConfig::GetInstance().iRenderWindowXPos;
-  static const int& child_ypos   = SConfig::GetInstance().iRenderWindowYPos;
-  static const int& child_width  = SConfig::GetInstance().iRenderWindowWidth;
+  static const int& root_xpos = SConfig::GetInstance().iPosX;
+  static const int& root_ypos = SConfig::GetInstance().iPosY;
+  static const int& root_width = SConfig::GetInstance().iWidth;
+  static const int& root_height = SConfig::GetInstance().iHeight;
+
+  static const int& child_xpos = SConfig::GetInstance().iRenderWindowXPos;
+  static const int& child_ypos = SConfig::GetInstance().iRenderWindowYPos;
+  static const int& child_width = SConfig::GetInstance().iRenderWindowWidth;
   static const int& child_height = SConfig::GetInstance().iRenderWindowHeight;
-  
+
   static const bool& isfullscreen = !SConfig::GetInstance().bFullscreen;
   static const bool& rendertomain = !SConfig::GetInstance().bRenderToMain;
-  
-  static const int screen_number    = XScreenNumberOfScreen(win_attribs.screen);
-  static const int m_display_width  = XDisplayWidth(m_display,screen_number);
-  static const int m_display_height = XDisplayHeight(m_display,screen_number);
-  
-  static const double aspect = ASPECT_AUTO==2 ? 4.0/3.0: 16.0/9.0;
-  
-  double x_margin   = 0,   y_margin   = 0;
-  
-  int    x_offset   = 0,   y_offset   = 0,
-         x_offset2  = 0,   y_offset2  = 0,
-         win_width  = 640, win_height = 528,
-         suboffset1 = 0,   suboffset2 = 0;
-  
-  if(isfullscreen)
+
+  static const int screen_number = XScreenNumberOfScreen(win_attribs.screen);
+  static const int m_display_width = XDisplayWidth(m_display, screen_number);
+  static const int m_display_height = XDisplayHeight(m_display, screen_number);
+
+  static const double aspect = ASPECT_AUTO == 2 ? 4.0 / 3.0 : 16.0 / 9.0;
+
+  double x_margin = 0, y_margin = 0;
+
+  int x_offset = 0, y_offset = 0, x_offset2 = 0, y_offset2 = 0, win_width = 640, win_height = 528,
+      suboffset1 = 0, suboffset2 = 0;
+
+  if (isfullscreen)
   {
-    if(rendertomain)
+    if (rendertomain)
     {
-	  win_height = child_height;
-	  win_width  = child_width;
-      x_offset   = root_xpos-child_xpos + 6;
-      y_offset   = root_ypos-child_ypos - 5;
-      x_offset2  = 11;
-      y_offset2  = 10;
+      win_height = child_height;
+      win_width = child_width;
+      x_offset = root_xpos - child_xpos + 6;
+      y_offset = root_ypos - child_ypos - 5;
+      x_offset2 = 11;
+      y_offset2 = 10;
     }
-	else
-	{
+    else
+    {
       suboffset1 = 95;
       suboffset2 = 20;
-	  win_height = root_height - suboffset1 - suboffset2;
-	  win_width  = root_width;
-      x_offset   = -3;
-      y_offset   =  8;
-      x_offset2  = -18;
-      y_offset2  =  19;
+      win_height = root_height - suboffset1 - suboffset2;
+      win_width = root_width;
+      x_offset = -3;
+      y_offset = 8;
+      x_offset2 = -18;
+      y_offset2 = 19;
     }
   }
   else
   {
-	win_height = m_display_height;
-	win_width  = m_display_width;
-    x_offset   = root_xpos + 11;
-    y_offset   = root_ypos -  5;
-    x_offset2  = 11;
-    y_offset2  = 10;
+    win_height = m_display_height;
+    win_width = m_display_width;
+    x_offset = root_xpos + 11;
+    y_offset = root_ypos - 5;
+    x_offset2 = 11;
+    y_offset2 = 10;
   }
-  
-  if(win_width/win_height > aspect)
+
+  if (win_width / win_height > aspect)
   {
-    x_margin = win_width  - win_height*aspect;
+    x_margin = win_width - win_height * aspect;
   }
-  else if(win_width/win_height < aspect)
+  else if (win_width / win_height < aspect)
   {
-    y_margin = win_height - win_width/aspect;
+    y_margin = win_height - win_width / aspect;
   }
-  
-  m_state.cursor.x = (float)(win_x + x_offset              - x_margin/2.0) / (float)(win_width  - x_margin + x_offset2) * 2 - 1;
-  m_state.cursor.y = (float)(win_y + y_offset - suboffset1 - y_margin/2.0) / (float)(win_height - y_margin - y_offset2) * 2 - 1;
+
+  m_state.cursor.x =
+      (float)(win_x + x_offset - x_margin / 2.0) / (float)(win_width - x_margin + x_offset2) * 2 -
+      1;
+  m_state.cursor.y = (float)(win_y + y_offset - suboffset1 - y_margin / 2.0) /
+                         (float)(win_height - y_margin - y_offset2) * 2 -
+                     1;
 }
 
 std::string KeyboardMouse::GetName() const
