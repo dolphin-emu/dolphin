@@ -70,7 +70,7 @@ struct SPartitionGroup
 static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
+void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
 bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
 bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
@@ -171,23 +171,24 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
     CurrentOffset += CLUSTER_SIZE;
   }
 }
-// Compensate for 0x400(SHA-1) per 0x8000(cluster)
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
+
+// Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
+void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 {
-  u64 Offset;
-  u64 Size;
-
-  Offset = _Offset / 0x7c00;
-  Offset = Offset * CLUSTER_SIZE;
-  Offset += _PartitionDataOffset;
-
-  Size = _Size / 0x7c00;
-  Size = (Size + 1) * CLUSTER_SIZE;
-
-  // Add on the offset in the first block for the case where data straddles blocks
-  Size += _Offset % 0x7c00;
-
-  MarkAsUsed(Offset, Size);
+  u64 end_offset = offset + size;
+  // Calculate the start of the first cluster
+  offset = offset / 0x7c00 * CLUSTER_SIZE + partition_data_offset;
+  if (size == 0)
+  {
+    // Without this special case, a size of 0 can be rounded to 1 cluster instead of 0
+    end_offset = offset;
+  }
+  else
+  {
+    // Calculate the end of the last cluster
+    end_offset = ((end_offset - 1) / 0x7c00 + 1) * CLUSTER_SIZE + partition_data_offset;
+  }
+  MarkAsUsed(offset, end_offset - offset);
 }
 
 // Helper functions for reading the BE volume
