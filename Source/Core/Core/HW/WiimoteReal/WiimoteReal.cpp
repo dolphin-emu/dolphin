@@ -440,8 +440,10 @@ void WiimoteScanner::WantBB(bool do_want)
   m_want_bb.store(do_want);
 }
 
-void WiimoteScanner::StartScanning()
+void WiimoteScanner::StartScanning(bool scan_only_once)
 {
+  m_should_scan.store(true);
+  m_should_scan_only_once.store(scan_only_once);
   if (!m_run_thread.load())
   {
     m_run_thread.store(true);
@@ -449,8 +451,11 @@ void WiimoteScanner::StartScanning()
   }
 }
 
-void WiimoteScanner::StopScanning()
+void WiimoteScanner::StopScanning(bool stop_thread)
 {
+  m_should_scan.store(false);
+  if (!stop_thread)
+    return;
   m_run_thread.store(false);
   if (m_scan_thread.joinable())
   {
@@ -471,10 +476,17 @@ void WiimoteScanner::ThreadFunc()
 {
   Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning has started.");
+  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
 
   while (m_run_thread.load())
   {
+    if (!m_should_scan.load())
+    {
+      Common::SleepCurrentThread(500);
+      continue;
+    }
+    m_should_scan.store(!m_should_scan_only_once.load());
+
     std::vector<Wiimote*> found_wiimotes;
     Wiimote* found_board = nullptr;
 
@@ -505,7 +517,7 @@ void WiimoteScanner::ThreadFunc()
     Common::SleepCurrentThread(500);
   }
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped.");
+  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
 }
 
 bool Wiimote::Connect(int index)
@@ -621,11 +633,11 @@ void LoadSettings()
 }
 
 // config dialog calls this when some settings change
-void Initialize(bool wait)
+void Initialize(bool wait, bool scan_only_once)
 {
   if (SConfig::GetInstance().m_WiimoteContinuousScanning)
     g_wiimote_scanner.StartScanning();
-  else
+  else if (!scan_only_once)
     g_wiimote_scanner.StopScanning();
 
   std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
@@ -670,7 +682,7 @@ void Stop()
 // called when the Dolphin app exits
 void Shutdown()
 {
-  g_wiimote_scanner.StopScanning();
+  g_wiimote_scanner.StopScanning(true);
 
   std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
 
@@ -811,39 +823,8 @@ void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
 // This is called from the GUI thread
 void Refresh()
 {
-  g_wiimote_scanner.StopScanning();
-
-  {
-    std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-    std::vector<Wiimote*> found_wiimotes;
-    Wiimote* found_board = nullptr;
-
-    if (0 != CalculateWantedWiimotes() || 0 != CalculateWantedBB())
-    {
-      // Don't hang Dolphin when searching
-      lk.unlock();
-      g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
-      lk.lock();
-    }
-
-    CheckForDisconnectedWiimotes();
-
-    // Brief rumble for already connected Wiimotes.
-    // Don't do this for Balance Board as it doesn't have rumble anyway.
-    for (int i = 0; i < MAX_WIIMOTES; ++i)
-    {
-      if (g_wiimotes[i])
-      {
-        g_wiimotes[i]->Prepare();
-      }
-    }
-
-    HandleFoundWiimotes(found_wiimotes);
-    if (found_board)
-      TryToConnectBalanceBoard(found_board);
-  }
-
-  Initialize();
+  g_wiimote_scanner.StartScanning(true);
+  Initialize(false, true);
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)

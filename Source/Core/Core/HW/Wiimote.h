@@ -54,7 +54,7 @@ void Update(int _number, bool _connected);
 
 namespace WiimoteReal
 {
-void Initialize(bool wait = false);
+void Initialize(bool wait = false, bool scan_only_once = false);
 void Stop();
 void Shutdown();
 void Resume();

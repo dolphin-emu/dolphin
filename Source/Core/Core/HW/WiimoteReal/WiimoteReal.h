@@ -123,8 +123,8 @@ public:
   void WantWiimotes(bool do_want);
   void WantBB(bool do_want);
 
-  void StartScanning();
-  void StopScanning();
+  void StartScanning(bool scan_only_once = false);
+  void StopScanning(bool stop_thread = false);
 
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
 
@@ -137,6 +137,8 @@ private:
   std::thread m_scan_thread;
 
   std::atomic<bool> m_run_thread{false};
+  std::atomic<bool> m_should_scan{false};
+  std::atomic<bool> m_should_scan_only_once{false};  // for the Refresh button
   std::atomic<bool> m_want_wiimotes{false};
   std::atomic<bool> m_want_bb{false};
 
