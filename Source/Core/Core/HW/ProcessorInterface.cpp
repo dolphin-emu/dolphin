@@ -215,9 +215,9 @@ static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
 
 void ResetButton_Tap()
 {
-  CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
-  CoreTiming::ScheduleEvent_AnyThread(0, iosNotifyResetButton, 0);
-  CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
+  CoreTiming::ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(0, toggleResetButton, 0, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(243000000, toggleResetButton, false, CoreTiming::FromThread::ANY);
 }
 
 }  // namespace ProcessorInterface
