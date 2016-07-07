@@ -21,7 +21,7 @@ static const int MW_RATE = 600;  // Steps per second
 static void MWCallback(u64 userdata, s64 cyclesLate)
 {
   s_memory_watcher->Step();
-  CoreTiming::ScheduleEvent((SystemTimers::GetTicksPerSecond() / MW_RATE) - cyclesLate, s_event);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / MW_RATE - cyclesLate, s_event);
 }
 
 void MemoryWatcher::Init()

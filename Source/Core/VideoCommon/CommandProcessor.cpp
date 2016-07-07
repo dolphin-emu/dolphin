@@ -343,7 +343,7 @@ void UpdateInterrupts(u64 userdata)
 void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
   if (!Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
+    CoreTiming::ScheduleEvent(0, et_UpdateInterrupts, userdata, CoreTiming::FromThread::NON_CPU);
 }
 
 bool IsInterruptWaiting()

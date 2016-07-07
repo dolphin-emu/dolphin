@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/Memmap.h"
@@ -406,7 +407,7 @@ void CEXIETHERNET::SendComplete()
     mBbaMem[BBA_IR] |= INT_T;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(0);
+    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
   }
 
   mBbaMem[BBA_LTPS] = 0;
@@ -571,7 +572,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     mBbaMem[BBA_IR] |= INT_R;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
+    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
   }
   else
   {

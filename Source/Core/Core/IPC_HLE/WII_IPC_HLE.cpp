@@ -226,7 +226,7 @@ void SDIO_EventNotify()
   // TODO: Potential race condition: If IsRunning() becomes false after
   // it's checked, an event may be scheduled after CoreTiming shuts down.
   if (SConfig::GetInstance().bWii && Core::IsRunning())
-    CoreTiming::ScheduleEvent_Threadsafe(0, event_sdio_notify);
+    CoreTiming::ScheduleEvent(0, event_sdio_notify, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 int getFreeDeviceId()
@@ -555,14 +555,9 @@ void EnqueueRequest(u32 address)
 // NOTE: Only call this if you have correctly handled
 //       CommandAddress+0 and CommandAddress+8.
 //       Please search for examples of this being called elsewhere.
-void EnqueueReply(u32 address, int cycles_in_future)
+void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from)
 {
-  CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address);
-}
-
-void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
-{
-  CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
+  CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address, from);
 }
 
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)

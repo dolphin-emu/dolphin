@@ -48,10 +48,18 @@ void DoState(PointerWrap& p);
 int RegisterEvent(const std::string& name, TimedCallback callback);
 void UnregisterAllEvents();
 
+enum class FromThread
+{
+  CPU,
+  NON_CPU,
+  // Don't use ANY unless you're sure you need to call from
+  // both the CPU thread and at least one other thread
+  ANY
+};
+
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from savestates.
-void ScheduleEvent(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
-void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
-void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata = 0);
+void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata = 0,
+                   FromThread from = FromThread::CPU);
 
 // We only permit one event of each type in the queue at a time.
 void RemoveEvent(int event_type);
