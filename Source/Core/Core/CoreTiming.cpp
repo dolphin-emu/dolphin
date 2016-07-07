@@ -263,27 +263,6 @@ void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata
   tsQueue.Push(ne);
 }
 
-// Executes an event immediately, then returns.
-void ScheduleEvent_Immediate(int event_type, u64 userdata)
-{
-  _assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent_Immediate from wrong thread");
-  event_types[event_type].callback(userdata, 0);
-}
-
-// Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
-// in which case this is the same as ScheduleEvent_Immediate.
-void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
-{
-  if (Core::IsCPUThread())
-  {
-    event_types[event_type].callback(userdata, 0);
-  }
-  else
-  {
-    ScheduleEvent_Threadsafe(0, event_type, userdata);
-  }
-}
-
 // To be used from any thread, including the CPU thread
 void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata)
 {
