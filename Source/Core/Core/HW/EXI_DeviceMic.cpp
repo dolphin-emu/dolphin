@@ -179,7 +179,7 @@ void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = CoreTiming::GetTicks() + diff;
-  ExpansionInterface::ScheduleUpdateInterrupts(diff);
+  ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()

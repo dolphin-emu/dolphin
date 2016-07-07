@@ -9,6 +9,7 @@
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_Socket.h"  // No Wii socket support while using NetPlay or TAS

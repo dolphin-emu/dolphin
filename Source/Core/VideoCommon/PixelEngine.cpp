@@ -280,11 +280,11 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 
   CommandProcessor::SetInterruptTokenWaiting(true);
 
+  CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-  else
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread,
-                                         _token | (_bSetTokenAcknowledge << 16));
+    from = CoreTiming::FromThread::CPU;
+  u64 userdata = _token | (_bSetTokenAcknowledge << 16);
+  CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, userdata, from);
 }
 
 // SetFinish
@@ -293,10 +293,10 @@ void SetFinish()
 {
   CommandProcessor::SetInterruptFinishWaiting(true);
 
+  CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
-  else
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
+    from = CoreTiming::FromThread::CPU;
+  CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0, from);
 
   INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
