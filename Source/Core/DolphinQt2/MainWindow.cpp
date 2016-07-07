@@ -198,8 +198,14 @@ bool MainWindow::Stop()
   }
 
   if (stop)
+  {
     ForceStop();
 
+#ifdef Q_OS_WIN
+    // Allow windows to idle or turn off display again
+    SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+  }
   return stop;
 }
 
@@ -258,6 +264,11 @@ void MainWindow::StartGame(const QString& path)
   Settings().SetLastGame(path);
   ShowRenderWidget();
   emit EmulationStarted();
+
+#ifdef Q_OS_WIN
+  // Prevents Windows from sleeping, turning off the display, or idling
+  SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+#endif
 }
 
 void MainWindow::ShowRenderWidget()
