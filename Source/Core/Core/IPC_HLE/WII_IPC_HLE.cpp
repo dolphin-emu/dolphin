@@ -32,6 +32,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/CPU.h"
@@ -76,6 +77,7 @@ static ipc_msg_queue reply_queue;    // arm -> ppc
 static ipc_msg_queue ack_queue;      // arm -> ppc
 
 static int event_enqueue;
+static int event_sdio_notify;
 
 static u64 last_reply_time;
 
@@ -96,6 +98,14 @@ static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
     reply_queue.push_back((u32)userdata);
   }
   Update();
+}
+
+void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
+{
+  auto device =
+      static_cast<CWII_IPC_HLE_Device_sdio_slot0*>(GetDeviceByName("/dev/sdio/slot0").get());
+  if (device)
+    device->EventNotify();
 }
 
 static u32 num_devices;
@@ -148,6 +158,7 @@ void Init()
   AddDevice<IWII_IPC_HLE_Device>("_Unimplemented_Device_");
 
   event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
+  event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", SDIO_EventNotify_CPUThread);
 }
 
 void Reset(bool _bHard)
@@ -212,10 +223,11 @@ void ES_DIVerify(const std::vector<u8>& tmd)
 
 void SDIO_EventNotify()
 {
-  auto pDevice =
-      static_cast<CWII_IPC_HLE_Device_sdio_slot0*>(GetDeviceByName("/dev/sdio/slot0").get());
-  if (pDevice)
-    pDevice->EventNotify();
+  // TODO: Potential race conditions: If IsRunning() becomes false after
+  // it's checked, an event may be scheduled after CoreTiming shuts down.
+  // Also, as usual, other threads may be editing the SConfig instance.
+  if (SConfig::GetInstance().bWii && Core::IsRunning())
+    CoreTiming::ScheduleEvent_Threadsafe(0, event_sdio_notify);
 }
 
 int getFreeDeviceId()
