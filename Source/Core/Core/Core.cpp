@@ -533,7 +533,9 @@ void EmuThread()
   if (core_parameter.bWii)
   {
     if (init_controllers)
-      Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+      Wiimote::Initialize(s_window_handle, !s_state_filename.empty() ?
+                                               Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
+                                               Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     else
       Wiimote::LoadConfig();
 
