@@ -132,7 +132,7 @@ size_t GetNextBlock(File::IOFile& in, u8* buffer)
   if (m_isScrubbing && m_FreeTable[i])
   {
     DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
-    std::fill(buffer, buffer + m_BlockSize, 0xFF);
+    std::fill(buffer, buffer + m_BlockSize, 0x00);
     in.Seek(m_BlockSize, SEEK_CUR);
     ReadBytes = m_BlockSize;
   }
