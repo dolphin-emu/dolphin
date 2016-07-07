@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
@@ -136,6 +137,7 @@ private:
 
   std::thread m_scan_thread;
 
+  Common::Event m_scan_event;
   std::atomic<bool> m_run_thread{false};
   std::atomic<bool> m_should_scan{false};
   std::atomic<bool> m_should_scan_only_once{false};  // for the Refresh button

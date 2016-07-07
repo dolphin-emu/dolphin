@@ -449,6 +449,7 @@ void WiimoteScanner::StartScanning(bool scan_only_once)
     m_run_thread.store(true);
     m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
   }
+  m_scan_event.Set();
 }
 
 void WiimoteScanner::StopScanning(bool stop_thread)
@@ -457,6 +458,7 @@ void WiimoteScanner::StopScanning(bool stop_thread)
   if (!stop_thread)
     return;
   m_run_thread.store(false);
+  m_scan_event.Set();
   if (m_scan_thread.joinable())
   {
     m_scan_thread.join();
@@ -480,11 +482,9 @@ void WiimoteScanner::ThreadFunc()
 
   while (m_run_thread.load())
   {
+    m_scan_event.WaitFor(std::chrono::milliseconds(500));
     if (!m_should_scan.load())
-    {
-      Common::SleepCurrentThread(500);
       continue;
-    }
     m_should_scan.store(!m_should_scan_only_once.load());
 
     std::vector<Wiimote*> found_wiimotes;
@@ -512,9 +512,6 @@ void WiimoteScanner::ThreadFunc()
 
     if (m_want_bb.load() && found_board)
       TryToConnectBalanceBoard(found_board);
-
-    // std::this_thread::yield();
-    Common::SleepCurrentThread(500);
   }
 
   NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
