@@ -12,7 +12,9 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Event.h"
 #include "Common/FifoQueue.h"
+#include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
@@ -112,6 +114,13 @@ private:
   Common::FifoQueue<Report> m_write_reports;
 };
 
+enum class WiimoteScanMode
+{
+  DO_NOT_SCAN,
+  CONTINUOUSLY_SCAN,
+  SCAN_ONCE
+};
+
 class WiimoteScanner
 {
 public:
@@ -120,11 +129,9 @@ public:
 
   bool IsReady() const;
 
-  void WantWiimotes(bool do_want);
-  void WantBB(bool do_want);
-
-  void StartScanning();
-  void StopScanning();
+  void StartThread();
+  void StopThread();
+  void SetScanMode(WiimoteScanMode scan_mode);
 
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
 
@@ -136,9 +143,9 @@ private:
 
   std::thread m_scan_thread;
 
-  std::atomic<bool> m_run_thread{false};
-  std::atomic<bool> m_want_wiimotes{false};
-  std::atomic<bool> m_want_bb{false};
+  Common::Event m_scan_mode_changed_event;
+  Common::Flag m_scan_thread_running;
+  std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 
 #if defined(_WIN32)
   void CheckDeviceType(std::basic_string<TCHAR>& devicepath, WinWriteMethod& write_method,
