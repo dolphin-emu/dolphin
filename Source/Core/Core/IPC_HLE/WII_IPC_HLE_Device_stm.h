@@ -178,7 +178,7 @@ public:
     Memory::Write_U32(IPC_CMD_IOCTL, m_EventHookAddress + 8);
 
     // Generate a reply to the IPC command.
-    WII_IPC_HLE_Interface::EnqueueReply_Immediate(m_EventHookAddress);
+    WII_IPC_HLE_Interface::EnqueueReply(m_EventHookAddress);
   }
 
   // STATE_TO_SAVE
