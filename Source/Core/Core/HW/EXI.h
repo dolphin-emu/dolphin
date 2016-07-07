@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Core/CoreTiming.h"
 
 class CEXIChannel;
 class IEXIDevice;
@@ -30,8 +31,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 void UpdateInterrupts();
-void ScheduleUpdateInterrupts_Threadsafe(int cycles_late);
-void ScheduleUpdateInterrupts(int cycles_late);
+void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
 
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num);
 

@@ -417,7 +417,8 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // TODO: need hardware tests for the timing of this interrupt.
           // Sky Crawlers crashes at boot if this is scheduled less than 87 cycles in the future.
           // Other Namco games crash too, see issue 9509. For now we will just push it to 200 cycles
-          CoreTiming::ScheduleEvent(200, et_GenerateDSPInterrupt, INT_AID);
+          CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 200, et_GenerateDSPInterrupt,
+                                    INT_AID);
         }
       }));
 
@@ -465,7 +466,7 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
   // TODO: Maybe rethink this? The timing is unpredictable.
-  CoreTiming::ScheduleEvent_AnyThread(0, et_GenerateDSPInterrupt, type);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::ANY, 0, et_GenerateDSPInterrupt, type);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles
@@ -532,7 +533,7 @@ static void Do_ARAM_DMA()
   if (instant_dma)
     ticksToTransfer = std::min(ticksToTransfer, 100);
 
-  CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, ticksToTransfer, et_CompleteARAM);
 
   last_mmaddr = g_arDMA.MMAddr;
   last_aram_dma_count = g_arDMA.Cnt.count;

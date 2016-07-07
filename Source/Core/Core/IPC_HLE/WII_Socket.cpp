@@ -9,6 +9,7 @@
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_Socket.h"  // No Wii socket support while using NetPlay or TAS
@@ -631,7 +632,7 @@ void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandTyp
   // Return value
   Memory::Write_U32(ReturnValue, CommandAddress + 4);
 
-  WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+  WII_IPC_HLE_Interface::EnqueueReply(CoreTiming::FromThread::CPU, CommandAddress);
 }
 
 void WiiSockMan::Convert(WiiSockAddrIn const& from, sockaddr_in& to)

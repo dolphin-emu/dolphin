@@ -94,14 +94,15 @@ static void DSPCallback(u64 userdata, s64 cyclesLate)
   // splits up the cycle budget in case lle is used
   // for hle, just gives all of the slice to hle
   DSP::UpdateDSPSlice(static_cast<int>(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate));
-  CoreTiming::ScheduleEvent(DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            DSP::GetDSPEmulator()->DSP_UpdateRate() - cyclesLate, et_DSP);
 }
 
 static void AudioDMACallback(u64 userdata, s64 cyclesLate)
 {
   int period = s_cpu_core_clock / (AudioInterface::GetAIDSampleRate() * 4 / 32);
   DSP::UpdateAudioDMA();  // Push audio to speakers.
-  CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioDMA);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, period - cyclesLate, et_AudioDMA);
 }
 
 static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
@@ -109,14 +110,16 @@ static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
   if (SConfig::GetInstance().bWii)
   {
     WII_IPC_HLE_Interface::UpdateDevices();
-    CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, s_ipc_hle_period - cyclesLate,
+                              et_IPC_HLE);
   }
 }
 
 static void VICallback(u64 userdata, s64 cyclesLate)
 {
   VideoInterface::Update();
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            VideoInterface::GetTicksPerHalfLine() - cyclesLate, et_VI);
 }
 
 static void DecrementerCallback(u64 userdata, s64 cyclesLate)
@@ -135,7 +138,7 @@ void DecrementerSet()
     CoreTiming::SetFakeDecStartTicks(CoreTiming::GetTicks());
     CoreTiming::SetFakeDecStartValue(decValue);
 
-    CoreTiming::ScheduleEvent(decValue * TIMER_RATIO, et_Dec);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, decValue * TIMER_RATIO, et_Dec);
   }
 }
 
@@ -161,7 +164,8 @@ static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
 {
   // Patch mem and run the Action Replay
   PatchEngine::ApplyFramePatches();
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
 }
 
 static void ThrottleCallback(u64 last_time, s64 cyclesLate)
@@ -189,7 +193,8 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
     else if (diff > 0)
       Common::SleepCurrentThread(diff);
   }
-  CoreTiming::ScheduleEvent(next_event - cyclesLate, et_Throttle, last_time + 1);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, next_event - cyclesLate, et_Throttle,
+                            last_time + 1);
 }
 
 // split from Init to break a circular dependency between VideoInterface::Init and
@@ -235,15 +240,18 @@ void Init()
   et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
   et_Throttle = CoreTiming::RegisterEvent("Throttle", ThrottleCallback);
 
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerHalfLine(), et_VI);
-  CoreTiming::ScheduleEvent(0, et_DSP);
-  CoreTiming::ScheduleEvent(s_audio_dma_period, et_AudioDMA);
-  CoreTiming::ScheduleEvent(0, et_Throttle, Common::Timer::GetTimeMs());
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, VideoInterface::GetTicksPerHalfLine(),
+                            et_VI);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, et_DSP);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, s_audio_dma_period, et_AudioDMA);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, et_Throttle,
+                            Common::Timer::GetTimeMs());
 
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField(), et_PatchEngine);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, VideoInterface::GetTicksPerField(),
+                            et_PatchEngine);
 
   if (SConfig::GetInstance().bWii)
-    CoreTiming::ScheduleEvent(s_ipc_hle_period, et_IPC_HLE);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, s_ipc_hle_period, et_IPC_HLE);
 }
 
 void Shutdown()

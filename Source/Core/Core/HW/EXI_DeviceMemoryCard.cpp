@@ -279,7 +279,7 @@ void CEXIMemoryCard::TransferComplete()
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
   CoreTiming::RemoveEvent(et_cmd_done);
-  CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, (int)cycles, et_cmd_done, (u64)card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -545,7 +545,8 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
   }
 
   // Schedule transfer complete later based on read speed
-  CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            _uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
                             et_transfer_complete, (u64)card_index);
 }
 
@@ -561,6 +562,7 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
   }
 
   // Schedule transfer complete later based on write speed
-  CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            _uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
                             et_transfer_complete, (u64)card_index);
 }

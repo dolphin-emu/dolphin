@@ -200,7 +200,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           g_LastCPUTime = CoreTiming::GetTicks();
 
           CoreTiming::RemoveEvent(et_AI);
-          CoreTiming::ScheduleEvent(GetAIPeriod(), et_AI);
+          CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, GetAIPeriod(), et_AI);
         }
 
         // AI Interrupt
@@ -237,7 +237,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    m_SampleCounter = val;
                    g_LastCPUTime = CoreTiming::GetTicks();
                    CoreTiming::RemoveEvent(et_AI);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), et_AI);
+                   CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, GetAIPeriod(), et_AI);
                  }));
 
   mmio->Register(base | AI_INTERRUPT_TIMING, MMIO::DirectRead<u32>(&m_InterruptTiming),
@@ -246,7 +246,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                              PowerPC::ppcState.pc);
                    m_InterruptTiming = val;
                    CoreTiming::RemoveEvent(et_AI);
-                   CoreTiming::ScheduleEvent(GetAIPeriod(), et_AI);
+                   CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, GetAIPeriod(), et_AI);
                  }));
 }
 
@@ -304,7 +304,7 @@ static void Update(u64 userdata, s64 cyclesLate)
       g_LastCPUTime += Samples * g_CPUCyclesPerSample;
       IncreaseSampleCount(Samples);
     }
-    CoreTiming::ScheduleEvent(GetAIPeriod() - cyclesLate, et_AI);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, GetAIPeriod() - cyclesLate, et_AI);
   }
 }
 

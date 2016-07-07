@@ -530,38 +530,29 @@ void ExecuteCommand(u32 _Address)
     // IOS also seems to write back the command that was responded to in the FD field.
     Memory::Write_U32(Command, _Address + 8);
     // Generate a reply to the IPC command
-    EnqueueReply(_Address, (int)result.reply_delay_ticks);
+    EnqueueReply(CoreTiming::FromThread::CPU, _Address, (int)result.reply_delay_ticks);
   }
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
 void EnqueueRequest(u32 address)
 {
-  CoreTiming::ScheduleEvent(1000, event_enqueue, address | ENQUEUE_REQUEST_FLAG);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 1000, event_enqueue,
+                            address | ENQUEUE_REQUEST_FLAG);
 }
 
 // Called when IOS module has some reply
 // NOTE: Only call this if you have correctly handled
 //       CommandAddress+0 and CommandAddress+8.
 //       Please search for examples of this being called elsewhere.
-void EnqueueReply(u32 address, int cycles_in_future)
+void EnqueueReply(CoreTiming::FromThread from, u32 address, int cycles_in_future)
 {
-  CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue, address);
-}
-
-void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
-{
-  CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
-}
-
-void EnqueueReply_Immediate(u32 address)
-{
-  EnqueueEvent(address);
+  CoreTiming::ScheduleEvent(from, cycles_in_future, event_enqueue, address);
 }
 
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
 {
-  CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue,
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, cycles_in_future, event_enqueue,
                             address | ENQUEUE_ACKNOWLEDGEMENT_FLAG);
 }
 

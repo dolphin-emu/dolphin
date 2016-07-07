@@ -358,7 +358,7 @@ static void DTKStreamingCallback(u64 userdata, s64 cyclesLate)
   g_sound_stream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
 
   int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
-  CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, s_dtk);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, ticks_to_dtk - cyclesLate, s_dtk);
 }
 
 void Init()
@@ -398,7 +398,7 @@ void Init()
       CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
   s_dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
-  CoreTiming::ScheduleEvent(0, s_dtk);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, s_dtk);
 }
 
 void Shutdown()
@@ -477,8 +477,8 @@ void ChangeDisc(const std::string& newFileName)
   // WARNING: Can only run on Host Thread
   bool was_unpaused = Core::PauseAndLock(true);
   std::string* _FileName = new std::string(newFileName);
-  CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, s_eject_disc);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 500000000, s_insert_disc, (u64)_FileName);
   if (Movie::IsRecordingInput())
   {
     Movie::g_bDiscChange = true;
@@ -1262,7 +1262,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   if (!command_handled_by_thread)
   {
     u64 userdata = (static_cast<u64>(reply_to_ios) << 32) + static_cast<u32>(interrupt_type);
-    CoreTiming::ScheduleEvent((int)ticks_until_completion, s_finish_executing_command, userdata);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, (int)ticks_until_completion,
+                              s_finish_executing_command, userdata);
   }
 }
 

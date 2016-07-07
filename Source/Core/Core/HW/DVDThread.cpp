@@ -125,7 +125,7 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, boo
 
   s_dvd_thread_start_working.Set();
 
-  CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_read);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, ticks_until_completion, s_finish_read);
 }
 
 static void FinishRead(u64 userdata, s64 cycles_late)

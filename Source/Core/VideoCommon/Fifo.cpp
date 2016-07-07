@@ -562,7 +562,7 @@ static void SyncGPUCallback(u64 userdata, s64 cyclesLate)
   s_last_sync_gpu_tick = now;
 
   if (next > 0)
-    CoreTiming::ScheduleEvent(next, s_event_sync_gpu);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, next, s_event_sync_gpu);
 }
 
 // Initialize GPU - CPU thread syncing, this gives us a deterministic way to start the GPU thread.
@@ -571,7 +571,7 @@ void Prepare()
   if (SConfig::GetInstance().bCPUThread && SConfig::GetInstance().bSyncGPU)
   {
     s_event_sync_gpu = CoreTiming::RegisterEvent("SyncGPUCallback", SyncGPUCallback);
-    CoreTiming::ScheduleEvent(0, s_event_sync_gpu);
+    CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, s_event_sync_gpu);
     s_last_sync_gpu_tick = CoreTiming::GetTicks();
   }
 }

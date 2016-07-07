@@ -152,7 +152,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (ctrl.X1)
                      WII_IPC_HLE_Interface::EnqueueRequest(ppc_msg);
                    WII_IPC_HLE_Interface::Update();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | IPC_ARMMSG, MMIO::DirectRead<u32>(&arm_msg), MMIO::InvalidWrite<u32>());
@@ -161,7 +161,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    ppc_irq_flags &= ~val;
                    WII_IPC_HLE_Interface::Update();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | PPC_IRQMASK, MMIO::InvalidRead<u32>(),
@@ -170,7 +170,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY)  // wtf?
                      Reset();
                    WII_IPC_HLE_Interface::Update();
-                   CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
+                   CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, updateInterrupts, 0);
                  }));
 
   mmio->Register(base | GPIOB_OUT, MMIO::Constant<u32>(0),
@@ -209,7 +209,7 @@ void GenerateAck(u32 _Address)
   ctrl.Y2 = 1;
   INFO_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]", ppc_msg, _Address, ctrl.Y1,
            ctrl.Y2, ctrl.X1);
-  CoreTiming::ScheduleEvent(1000, updateInterrupts, 0);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 1000, updateInterrupts, 0);
 }
 
 void GenerateReply(u32 _Address)

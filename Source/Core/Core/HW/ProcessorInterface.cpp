@@ -197,8 +197,8 @@ static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)
 
 void ResetButton_Tap()
 {
-  CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
-  CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::ANY, 0, toggleResetButton, true);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::ANY, 243000000, toggleResetButton, false);
 }
 
 }  // namespace ProcessorInterface

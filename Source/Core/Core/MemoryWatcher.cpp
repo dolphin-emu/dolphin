@@ -21,14 +21,15 @@ static const int MW_RATE = 600;  // Steps per second
 static void MWCallback(u64 userdata, s64 cyclesLate)
 {
   s_memory_watcher->Step();
-  CoreTiming::ScheduleEvent((SystemTimers::GetTicksPerSecond() / MW_RATE) - cyclesLate, s_event);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU,
+                            SystemTimers::GetTicksPerSecond() / MW_RATE - cyclesLate, s_event);
 }
 
 void MemoryWatcher::Init()
 {
   s_memory_watcher = std::make_unique<MemoryWatcher>();
   s_event = CoreTiming::RegisterEvent("MemoryWatcher", MWCallback);
-  CoreTiming::ScheduleEvent(0, s_event);
+  CoreTiming::ScheduleEvent(CoreTiming::FromThread::CPU, 0, s_event);
 }
 
 void MemoryWatcher::Shutdown()
