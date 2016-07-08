@@ -186,6 +186,7 @@ private:
   };
 
   wxTimer m_poll_hotkey_timer;
+  wxTimer m_handle_signal_timer;
 
   wxBitmap m_Bitmaps[EToolbar_Max];
 
@@ -328,6 +329,7 @@ private:
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();
+  void HandleSignal(wxTimerEvent&);
 
   bool InitControllers();
 
