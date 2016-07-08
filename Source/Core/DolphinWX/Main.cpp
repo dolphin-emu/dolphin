@@ -7,6 +7,11 @@
 #include <mutex>
 #include <string>
 #include <utility>
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+
 #include <wx/app.h>
 #include <wx/buffer.h>
 #include <wx/cmdline.h>
@@ -156,6 +161,15 @@ bool DolphinApp::OnInit()
 
   SetTopWindow(main_frame);
   main_frame->SetMinSize(wxSize(400, 300));
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  // Shut down cleanly on SIGINT
+  struct sigaction sa;
+  sa.sa_handler = [](int unused) { main_frame->Close(); };
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+  sigaction(SIGINT, &sa, nullptr);
+#endif
 
   AfterInit();
 
