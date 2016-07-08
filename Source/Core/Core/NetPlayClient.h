@@ -99,6 +99,7 @@ protected:
 
   std::array<Common::FifoQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::FifoQueue<NetWiimote>, 4> m_wiimote_buffer;
+  std::array<u32, 4> m_wiimote_current_data_size;
 
   NetPlayUI* m_dialog = nullptr;
 
