@@ -186,6 +186,9 @@ private:
   };
 
   wxTimer m_poll_hotkey_timer;
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  wxTimer m_handle_signal_timer;
+#endif
 
   wxBitmap m_Bitmaps[EToolbar_Max];
 
@@ -328,6 +331,9 @@ private:
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  void HandleSignal(wxTimerEvent&);
+#endif
 
   bool InitControllers();
 

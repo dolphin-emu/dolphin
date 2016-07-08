@@ -6,11 +6,15 @@
 #include <Cocoa/Cocoa.h>
 #endif
 
+#include <atomic>
 #include <cstddef>
 #include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/filename.h>
@@ -353,6 +357,10 @@ bool CFrame::InitControllers()
   return false;
 }
 
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+static std::atomic_bool s_sigint_received;
+#endif
+
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
                const wxSize& size, bool _UseDebugger, bool _BatchMode, bool ShowLogWindow,
                long style)
@@ -498,8 +506,21 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   InitControllers();
 
   m_poll_hotkey_timer.SetOwner(this);
-  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
+  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this, m_poll_hotkey_timer.GetId());
   m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  // Shut down cleanly on SIGINT
+  m_handle_signal_timer.SetOwner(this);
+  Bind(wxEVT_TIMER, &CFrame::HandleSignal, this, m_handle_signal_timer.GetId());
+  m_handle_signal_timer.Start(100, wxTIMER_CONTINUOUS);
+
+  struct sigaction sa;
+  sa.sa_handler = [](int unused) { s_sigint_received.store(true); };
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &sa, nullptr);
+#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -1679,3 +1700,13 @@ void CFrame::HandleFrameSkipHotkeys()
     holdFrameStepDelayCount = 0;
   }
 }
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+void CFrame::HandleSignal(wxTimerEvent& event)
+{
+  if (!s_sigint_received.load())
+    return;
+  s_sigint_received.store(false);
+  Close();
+}
+#endif
