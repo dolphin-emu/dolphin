@@ -23,7 +23,6 @@
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-static std::array<int, 4> s_wiimote_sources_cache;
 NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
@@ -714,14 +713,22 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   m_dialog->BootGame(path);
 
-  // Disable wiimotes on game start
-  // TODO: remove this when re-implementing wiimote netplay
   if (SConfig::GetInstance().bWii)
   {
     for (unsigned int i = 0; i < 4; ++i)
+      WiimoteReal::ChangeWiimoteSource(i,
+                                       m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
+    // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
+    NetWiimote nw;
+    nw.resize(4, 0);
+
+    for (unsigned int w = 0; w < 4; ++w)
     {
-      s_wiimote_sources_cache[i] = g_wiimote_sources[i];
-      WiimoteReal::ChangeWiimoteSource(i, WIIMOTE_SRC_NONE);
+      if (m_wiimote_map[w] != -1)
+        // probably overkill, but whatever
+        for (unsigned int i = 0; i < 7; ++i)
+          m_wiimote_buffer[w].Push(nw);
     }
   }
 
@@ -1026,17 +1033,6 @@ bool NetPlayClient::StopGame()
 
   // stop game
   m_dialog->StopGame();
-
-  // Restore wiimote settings on game stop
-  // TODO: remove this when re-implementing wiimote netplay
-  if (SConfig::GetInstance().bWii)
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-      g_wiimote_sources[i] = s_wiimote_sources_cache[i];
-      WiimoteReal::ChangeWiimoteSource(i, s_wiimote_sources_cache[i]);
-    }
-  }
 
   return true;
 }
