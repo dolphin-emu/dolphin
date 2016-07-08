@@ -6,11 +6,18 @@
 #include <Cocoa/Cocoa.h>
 #endif
 
+#include <atomic>
 #include <cstddef>
 #include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/filename.h>
@@ -29,6 +36,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Flag.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Thread.h"
 
@@ -353,6 +361,27 @@ bool CFrame::InitControllers()
   return false;
 }
 
+static Common::Flag s_shutdown_signal_received;
+
+#ifdef _WIN32
+static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
+{
+  switch (fdwCtrlType)
+  {
+  case CTRL_C_EVENT:
+  case CTRL_BREAK_EVENT:
+  case CTRL_CLOSE_EVENT:
+  case CTRL_LOGOFF_EVENT:
+  case CTRL_SHUTDOWN_EVENT:
+    SetConsoleCtrlHandler(s_ctrl_handler, FALSE);
+    s_shutdown_signal_received.Set();
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+#endif
+
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
                const wxSize& size, bool _UseDebugger, bool _BatchMode, bool ShowLogWindow,
                long style)
@@ -498,8 +527,25 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   InitControllers();
 
   m_poll_hotkey_timer.SetOwner(this);
-  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
+  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this, m_poll_hotkey_timer.GetId());
   m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
+
+  // Shut down cleanly on SIGINT, SIGTERM (Unix) and on various signals on Windows
+  m_handle_signal_timer.SetOwner(this);
+  Bind(wxEVT_TIMER, &CFrame::HandleSignal, this, m_handle_signal_timer.GetId());
+  m_handle_signal_timer.Start(100, wxTIMER_CONTINUOUS);
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  struct sigaction sa;
+  sa.sa_handler = [](int unused) { s_shutdown_signal_received.Set(); };
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &sa, nullptr);
+  sigaction(SIGTERM, &sa, nullptr);
+#endif
+#ifdef _WIN32
+  SetConsoleCtrlHandler(s_ctrl_handler, TRUE);
+#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -1678,4 +1724,11 @@ void CFrame::HandleFrameSkipHotkeys()
     holdFrameStep = false;
     holdFrameStepDelayCount = 0;
   }
+}
+
+void CFrame::HandleSignal(wxTimerEvent& event)
+{
+  if (!s_shutdown_signal_received.TestAndClear())
+    return;
+  Close();
 }
