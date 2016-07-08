@@ -989,7 +989,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
   // until we reach a good input
   if (nw.size() != size)
   {
-    u8 tries = 0;
+    u32 tries = 0;
     // Clear the buffer and wait for new input, since we probably just changed reporting mode.
     while (nw.size() != size)
     {
