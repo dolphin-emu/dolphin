@@ -57,9 +57,10 @@ public:
   void SetPSTexture(size_t index, VkImageView view);
   void SetPSSampler(size_t index, VkSampler sampler);
 
-  void UnbindTexture(VkImageView view);
+  void SetBBoxEnable(bool enable);
+  void SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
 
-  // void SetPSBBoxBuffer()
+  void UnbindTexture(VkImageView view);
 
   // When executing a command buffer, we want to recreate the descriptor set, as it will
   // now be in a different pool for the new command buffer.
@@ -106,7 +107,7 @@ private:
     DIRTY_FLAG_ALL_DESCRIPTOR_SETS =
         DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_SAMPLERS | DIRTY_FLAG_PS_SSBO
   };
-  u32 m_dirty_flags = 0xFFFFFFFF;
+  u32 m_dirty_flags = 0;
 
   // input assembly
   VkBuffer m_vertex_buffer = VK_NULL_HANDLE;
@@ -136,8 +137,9 @@ private:
 
     std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> ps_samplers = {};
 
-    VkDescriptorBufferInfo ssbo = {};
+    VkDescriptorBufferInfo ps_ssbo = {};
   } m_bindings;
+  u32 m_num_active_descriptor_sets = 0;
 
   // rasterization
   VkViewport m_viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
@@ -149,5 +151,6 @@ private:
   VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
   VkRect2D m_framebuffer_render_area = {};
   bool m_in_render_pass = false;
+  bool m_bbox_enabled = false;
 };
 }

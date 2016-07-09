@@ -115,13 +115,16 @@ void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_
 
 UtilityShaderDraw::UtilityShaderDraw(ObjectCache* object_cache,
                                      CommandBufferManager* command_buffer_mgr,
-                                     VkRenderPass render_pass, VkShaderModule vertex_shader,
-                                     VkShaderModule geometry_shader, VkShaderModule pixel_shader)
+                                     VkPipelineLayout pipeline_layout,
+                                     VkRenderPass render_pass,
+                                     VkShaderModule vertex_shader,
+                                     VkShaderModule geometry_shader,
+                                     VkShaderModule pixel_shader)
     : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr)
 {
   // Populate minimal pipeline state
   m_pipeline_info.vertex_format = object_cache->GetUtilityShaderVertexFormat();
-  m_pipeline_info.pipeline_layout = object_cache->GetPipelineLayout();
+  m_pipeline_info.pipeline_layout = pipeline_layout;
   m_pipeline_info.render_pass = render_pass;
   m_pipeline_info.vs = vertex_shader;
   m_pipeline_info.gs = geometry_shader;
@@ -332,6 +335,7 @@ void UtilityShaderDraw::DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_to
 {
   VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
 
+  m_pipeline_info.vertex_format = nullptr;
   m_pipeline_info.primitive_topology = primitive_topology;
 
   BindDescriptors(command_buffer);
@@ -443,7 +447,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   {
     // UBO only
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_object_cache->GetPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
+                            m_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
                             &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
@@ -451,14 +455,14 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   {
     // Samplers only
     vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(),
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetStandardPipelineLayout(),
         DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS, 1, &bind_descriptor_sets[1], 0, nullptr);
   }
   else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Both
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_object_cache->GetPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
+                            m_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
                             bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
