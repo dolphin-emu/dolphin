@@ -174,7 +174,12 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   };
 
   // Not sure if this is correct? Doesn't make sense.
-  VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+  // Other examples seem to place the barrier at the top of the pipeline for both src and dst.
+  // From what I'm understanding we want to have all commands complete before the barrier,
+  // so srcStageMask should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, and dstStageMask
+  // set to VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, as the barrier should be completed before
+  // the next set of commands (after the barrier) can execute.
+  VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
   VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
   switch (m_layout)
