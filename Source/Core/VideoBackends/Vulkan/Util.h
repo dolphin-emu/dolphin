@@ -103,8 +103,11 @@ class UtilityShaderDraw
 {
 public:
   UtilityShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                    VkRenderPass render_pass, VkShaderModule vertex_shader,
-                    VkShaderModule geometry_shader, VkShaderModule pixel_shader);
+                    VkPipelineLayout pipeline_layout,
+                    VkRenderPass render_pass,
+                    VkShaderModule vertex_shader,
+                    VkShaderModule geometry_shader,
+                    VkShaderModule pixel_shader);
 
   UtilityShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
   void CommitVertices(size_t count);
