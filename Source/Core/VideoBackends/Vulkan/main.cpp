@@ -119,9 +119,6 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsBindingLayout = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
 
-  // TODO: Remove me
-  g_Config.iLog |= CONF_SAVESHADERS;
-
   // aamodes
   g_Config.backend_info.AAModes = {1};
   g_Config.backend_info.Adapters.clear();
