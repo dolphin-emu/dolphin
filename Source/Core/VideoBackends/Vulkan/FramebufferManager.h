@@ -47,11 +47,20 @@ public:
 
   void ResizeEFBTextures();
 
+  // Recompile shaders, use when MSAA mode changes.
+  bool RecompileShaders();
+
+  // Reinterpret pixel format of EFB color texture.
+  // Assumes no render pass is currently in progress.
+  // Swaps EFB framebuffers, so re-bind afterwards.
+  void ReinterpretPixelData(int convtype);
+
 private:
   bool CreateEFBRenderPass();
   void DestroyEFBRenderPass();
   bool CreateEFBFramebuffer();
   void DestroyEFBFramebuffer();
+  void DestroyShaders();
 
   VkRenderPass m_efb_render_pass = VK_NULL_HANDLE;
 
@@ -60,8 +69,14 @@ private:
   u32 m_efb_layers = 1;
 
   std::unique_ptr<Texture2D> m_efb_color_texture;
+  std::unique_ptr<Texture2D> m_efb_convert_color_texture;
   std::unique_ptr<Texture2D> m_efb_depth_texture;
   VkFramebuffer m_efb_framebuffer = VK_NULL_HANDLE;
+  VkFramebuffer m_efb_convert_framebuffer = VK_NULL_HANDLE;
+
+  // Format conversion shaders
+  VkShaderModule m_ps_rgb8_to_rgba6 = VK_NULL_HANDLE;
+  VkShaderModule m_ps_rgba6_to_rgb8 = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

@@ -26,6 +26,7 @@ public:
   VkShaderModule GetScreenQuadVertexShader() const { return m_vertex_shaders.screen_quad; }
   // Geometry Shaders
   VkShaderModule GetPassthroughGeometryShader() const { return m_geometry_shaders.passthrough; }
+  VkShaderModule GetScreenQuadGeometryShader() const { return m_geometry_shaders.screen_quad; }
   // Fragment Shaders
   VkShaderModule GetClearFragmentShader() const { return m_fragment_shaders.clear; }
   VkShaderModule GetCopyFragmentShader() const { return m_fragment_shaders.copy; }
@@ -45,6 +46,7 @@ private:
 
   struct
   {
+    VkShaderModule screen_quad = VK_NULL_HANDLE;
     VkShaderModule passthrough = VK_NULL_HANDLE;
   } m_geometry_shaders;
 
