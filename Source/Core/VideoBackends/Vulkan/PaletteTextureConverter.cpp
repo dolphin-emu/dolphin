@@ -19,11 +19,8 @@
 
 namespace Vulkan
 {
-PaletteTextureConverter::PaletteTextureConverter(ObjectCache* object_cache,
-                                                 CommandBufferManager* command_buffer_mgr,
-                                                 StateTracker* state_tracker)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr),
-      m_state_tracker(state_tracker)
+PaletteTextureConverter::PaletteTextureConverter(StateTracker* state_tracker)
+    : m_state_tracker(state_tracker)
 {
 }
 
@@ -32,23 +29,23 @@ PaletteTextureConverter::~PaletteTextureConverter()
   for (const auto& it : m_pipelines)
   {
     if (it != VK_NULL_HANDLE)
-      vkDestroyPipeline(m_object_cache->GetDevice(), it, nullptr);
+      vkDestroyPipeline(g_object_cache->GetDevice(), it, nullptr);
   }
 
   for (const auto& it : m_shaders)
   {
     if (it != VK_NULL_HANDLE)
-      vkDestroyShaderModule(m_object_cache->GetDevice(), it, nullptr);
+      vkDestroyShaderModule(g_object_cache->GetDevice(), it, nullptr);
   }
 
   if (m_palette_buffer_view != VK_NULL_HANDLE)
-    vkDestroyBufferView(m_object_cache->GetDevice(), m_palette_buffer_view, nullptr);
+    vkDestroyBufferView(g_object_cache->GetDevice(), m_palette_buffer_view, nullptr);
 
   if (m_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(m_object_cache->GetDevice(), m_render_pass, nullptr);
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_render_pass, nullptr);
 
   if (m_set_layout != VK_NULL_HANDLE)
-    vkDestroyDescriptorSetLayout(m_object_cache->GetDevice(), m_set_layout, nullptr);
+    vkDestroyDescriptorSetLayout(g_object_cache->GetDevice(), m_set_layout, nullptr);
 }
 
 bool PaletteTextureConverter::Initialize()
@@ -85,25 +82,25 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
   _assert_(static_cast<u32>(format) < NUM_PALETTE_CONVERSION_SHADERS);
 
   size_t palette_size = ((format & 0xF) == GX_TF_I4) ? 32 : 512;
-  StreamBuffer* uniform_buffer = m_object_cache->GetUtilityShaderUniformBuffer();
+  StreamBuffer* uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer();
   VkDescriptorSet descriptor_set;
 
   // Allocate memory for the palette, and descriptor sets for the buffer.
   // If any of these fail, execute a command buffer, and try again.
   if (!uniform_buffer->ReserveMemory(sizeof(PSUniformBlock),
-                                     m_object_cache->GetUniformBufferAlignment()) ||
+                                     g_object_cache->GetUniformBufferAlignment()) ||
       !m_palette_stream_buffer->ReserveMemory(palette_size,
-                                              m_object_cache->GetTexelBufferAlignment()) ||
-      (descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
+                                              g_object_cache->GetTexelBufferAlignment()) ||
+      (descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
           VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, false);
     if (!uniform_buffer->ReserveMemory(sizeof(PSUniformBlock),
-                                       m_object_cache->GetUniformBufferAlignment()) ||
+                                       g_object_cache->GetUniformBufferAlignment()) ||
         !m_palette_stream_buffer->ReserveMemory(palette_size,
-                                                m_object_cache->GetTexelBufferAlignment()) ||
-        (descriptor_set = m_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
+                                                g_object_cache->GetTexelBufferAlignment()) ||
+        (descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
             VK_NULL_HANDLE)
     {
       PanicAlert("Failed to allocate space for texture conversion");
@@ -113,8 +110,8 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
 
   // Update descriptor set
   VkDescriptorBufferInfo uniform_buffer_info = {
-      m_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer(), 0, sizeof(PSUniformBlock)};
-  VkDescriptorImageInfo sampler_info = {m_object_cache->GetPointSampler(), src_texture->GetView(),
+      g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer(), 0, sizeof(PSUniformBlock)};
+  VkDescriptorImageInfo sampler_info = {g_object_cache->GetPointSampler(), src_texture->GetView(),
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
   VkWriteDescriptorSet set_writes[] = {
       {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptor_set, 0, 0, 1,
@@ -123,7 +120,7 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
        VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &sampler_info, nullptr, nullptr},
       {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptor_set, 0, 1, 2,
        VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, nullptr, nullptr, &m_palette_buffer_view}};
-  vkUpdateDescriptorSets(m_object_cache->GetDevice(), ARRAYSIZE(set_writes), set_writes, 0,
+  vkUpdateDescriptorSets(g_object_cache->GetDevice(), ARRAYSIZE(set_writes), set_writes, 0,
                          nullptr);
 
   // Copy in uniforms
@@ -141,7 +138,7 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
   m_state_tracker->EndRenderPass();
   m_state_tracker->SetPendingRebind();
 
-  VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
 
   // Transition resource states
   dst_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
@@ -180,9 +177,9 @@ bool PaletteTextureConverter::CreateBuffers()
   // TODO: Check against maximum size
   static const size_t BUFFER_SIZE = 1024 * 1024;
 
-  m_palette_stream_buffer =
-      StreamBuffer::Create(m_object_cache, m_command_buffer_mgr,
-                           VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BUFFER_SIZE, BUFFER_SIZE);
+  m_palette_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
+                                                 BUFFER_SIZE,
+                                                 BUFFER_SIZE);
   if (!m_palette_stream_buffer)
     return false;
 
@@ -198,7 +195,7 @@ bool PaletteTextureConverter::CreateBuffers()
   };
 
   VkResult res =
-      vkCreateBufferView(m_object_cache->GetDevice(), &view_info, nullptr, &m_palette_buffer_view);
+      vkCreateBufferView(g_object_cache->GetDevice(), &view_info, nullptr, &m_palette_buffer_view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBufferView failed: ");
@@ -293,11 +290,11 @@ bool PaletteTextureConverter::CompileShaders()
       "%s\n%s", "#define DECODE DecodePixel_RGB565", PALETTE_CONVERSION_FRAGMENT_SHADER_SOURCE);
   std::string palette_rgb5a3_program = StringFromFormat(
       "%s\n%s", "#define DECODE DecodePixel_RGB5A3", PALETTE_CONVERSION_FRAGMENT_SHADER_SOURCE);
-  if ((m_shaders[GX_TL_IA8] = m_object_cache->GetPixelShaderCache().CompileAndCreateShader(
+  if ((m_shaders[GX_TL_IA8] = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(
            palette_ia8_program)) == nullptr ||
-      (m_shaders[GX_TL_RGB565] = m_object_cache->GetPixelShaderCache().CompileAndCreateShader(
+      (m_shaders[GX_TL_RGB565] = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(
            palette_rgb565_program)) == nullptr ||
-      (m_shaders[GX_TL_RGB5A3] = m_object_cache->GetPixelShaderCache().CompileAndCreateShader(
+      (m_shaders[GX_TL_RGB5A3] = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(
            palette_rgb5a3_program)) == nullptr)
   {
     return false;
@@ -332,7 +329,7 @@ bool PaletteTextureConverter::CreateRenderPass()
                                       nullptr};
 
   VkResult res =
-      vkCreateRenderPass(m_object_cache->GetDevice(), &pass_info, nullptr, &m_render_pass);
+      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_render_pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
@@ -354,7 +351,7 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
       set_bindings};
 
   VkResult res =
-      vkCreateDescriptorSetLayout(m_object_cache->GetDevice(), &set_info, nullptr, &m_set_layout);
+      vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr, &m_set_layout);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
@@ -364,7 +361,7 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
   VkPipelineLayoutCreateInfo pipeline_layout_info = {
       VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0, 1, &m_set_layout, 0, nullptr};
 
-  res = vkCreatePipelineLayout(m_object_cache->GetDevice(), &pipeline_layout_info, nullptr,
+  res = vkCreatePipelineLayout(g_object_cache->GetDevice(), &pipeline_layout_info, nullptr,
                                &m_pipeline_layout);
   if (res != VK_SUCCESS)
   {
@@ -493,7 +490,7 @@ bool PaletteTextureConverter::CreatePipelines()
             nullptr,                     // const void*                               pNext
             0,                           // VkPipelineShaderStageCreateFlags          flags
             VK_SHADER_STAGE_VERTEX_BIT,  // VkShaderStageFlagBits                     stage
-            m_object_cache->GetStaticShaderCache()
+            g_object_cache->GetSharedShaderCache()
                 .GetScreenQuadVertexShader(),  // VkShaderModule                  module
             "main",                            // const char*                               pName
             nullptr  // const VkSpecializationInfo*               pSpecializationInfo
@@ -530,7 +527,7 @@ bool PaletteTextureConverter::CreatePipelines()
         -1                    // int32_t                                          basePipelineIndex
     };
 
-    VkResult res = vkCreateGraphicsPipelines(m_object_cache->GetDevice(), VK_NULL_HANDLE, 1,
+    VkResult res = vkCreateGraphicsPipelines(g_object_cache->GetDevice(), VK_NULL_HANDLE, 1,
                                              &pipeline_info, nullptr, &m_pipelines[i]);
     if (res != VK_SUCCESS)
     {

@@ -15,9 +15,7 @@
 
 namespace Vulkan
 {
-FramebufferManager::FramebufferManager(ObjectCache* object_cache,
-                                       CommandBufferManager* command_buffer_mgr)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr)
+FramebufferManager::FramebufferManager()
 {
   if (!CreateEFBRenderPass())
     PanicAlert("Failed to create EFB render pass");
@@ -72,7 +70,7 @@ bool FramebufferManager::CreateEFBRenderPass()
                                       nullptr};
 
   VkResult res =
-      vkCreateRenderPass(m_object_cache->GetDevice(), &pass_info, nullptr, &m_efb_render_pass);
+      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_efb_render_pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass (EFB) failed: ");
@@ -86,7 +84,7 @@ void FramebufferManager::DestroyEFBRenderPass()
 {
   if (m_efb_render_pass != VK_NULL_HANDLE)
   {
-    vkDestroyRenderPass(m_object_cache->GetDevice(), m_efb_render_pass, nullptr);
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_efb_render_pass, nullptr);
     m_efb_render_pass = VK_NULL_HANDLE;
   }
 }
@@ -101,13 +99,13 @@ bool FramebufferManager::CreateEFBFramebuffer()
   // TODO: Stereo buffers
 
   m_efb_color_texture = Texture2D::Create(
-      m_object_cache, m_command_buffer_mgr, m_efb_width, m_efb_height, 1, m_efb_layers,
+      m_efb_width, m_efb_height, 1, m_efb_layers,
       EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
           VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
   m_efb_depth_texture = Texture2D::Create(
-      m_object_cache, m_command_buffer_mgr, m_efb_width, m_efb_height, 1, m_efb_layers,
+      m_efb_width, m_efb_height, 1, m_efb_layers,
       EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
@@ -129,7 +127,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
                                               m_efb_height,
                                               m_efb_layers};
 
-  VkResult res = vkCreateFramebuffer(m_object_cache->GetDevice(), &framebuffer_info, nullptr,
+  VkResult res = vkCreateFramebuffer(g_object_cache->GetDevice(), &framebuffer_info, nullptr,
                                      &m_efb_framebuffer);
   if (res != VK_SUCCESS)
   {
@@ -138,9 +136,9 @@ bool FramebufferManager::CreateEFBFramebuffer()
   }
 
   // Transition to state that can be used to clear
-  m_efb_color_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  m_efb_depth_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Clear the contents of the buffers.
@@ -149,10 +147,10 @@ bool FramebufferManager::CreateEFBFramebuffer()
   static const VkClearDepthStencilValue clear_depth = {1.0f, 0};
   VkImageSubresourceRange clear_color_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, m_efb_layers};
   VkImageSubresourceRange clear_depth_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, m_efb_layers};
-  vkCmdClearColorImage(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                        m_efb_color_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                        &clear_color, 1, &clear_color_range);
-  vkCmdClearDepthStencilImage(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                               m_efb_depth_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                               &clear_depth, 1, &clear_depth_range);
 
@@ -163,7 +161,7 @@ void FramebufferManager::DestroyEFBFramebuffer()
 {
   if (m_efb_framebuffer != VK_NULL_HANDLE)
   {
-    vkDestroyFramebuffer(m_object_cache->GetDevice(), m_efb_framebuffer, nullptr);
+    vkDestroyFramebuffer(g_object_cache->GetDevice(), m_efb_framebuffer, nullptr);
     m_efb_framebuffer = VK_NULL_HANDLE;
   }
 

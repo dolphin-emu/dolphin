@@ -9,8 +9,6 @@
 
 namespace Vulkan
 {
-class ObjectCache;
-class CommandBufferManager;
 class FramebufferManager;
 class SwapChain;
 class StateTracker;
@@ -19,8 +17,7 @@ class RasterFont;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-           SwapChain* swap_chain, StateTracker* state_tracker);
+  Renderer(SwapChain* swap_chain, StateTracker* state_tracker);
   ~Renderer();
 
   bool Initialize();
@@ -71,8 +68,6 @@ private:
   void OnSwapChainResized();
   void ResizeEFBTextures();
 
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
   SwapChain* m_swap_chain = nullptr;
   StateTracker* m_state_tracker = nullptr;
 

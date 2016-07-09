@@ -15,10 +15,8 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                     VkSurfaceKHR surface, VkQueue present_queue)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr), m_surface(surface),
-      m_present_queue(present_queue)
+SwapChain::SwapChain(VkSurfaceKHR surface, VkQueue present_queue)
+    : m_surface(surface), m_present_queue(present_queue)
 {
 }
 
@@ -49,7 +47,7 @@ bool SwapChain::Initialize()
 bool SwapChain::SelectFormats()
 {
   // Select swap chain format
-  m_surface_format = SelectVulkanSurfaceFormat(m_object_cache->GetPhysicalDevice(), m_surface);
+  m_surface_format = SelectVulkanSurfaceFormat(g_object_cache->GetPhysicalDevice(), m_surface);
   if (m_surface_format.format == VK_FORMAT_RANGE_SIZE)
     return false;
 
@@ -83,7 +81,7 @@ bool SwapChain::CreateRenderPass()
       0,
       nullptr};
 
-  VkResult res = vkCreateRenderPass(m_object_cache->GetDevice(), &present_render_pass_info, nullptr,
+  VkResult res = vkCreateRenderPass(g_object_cache->GetDevice(), &present_render_pass_info, nullptr,
                                     &m_render_pass);
   if (res != VK_SUCCESS)
   {
@@ -98,7 +96,7 @@ void SwapChain::DestroyRenderPass()
 {
   if (m_render_pass)
   {
-    m_command_buffer_mgr->DeferResourceDestruction(m_render_pass);
+    g_command_buffer_mgr->DeferResourceDestruction(m_render_pass);
     m_render_pass = nullptr;
   }
 }
@@ -107,7 +105,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 {
   // Look up surface properties to determine image count and dimensions
   VkSurfaceCapabilitiesKHR surface_capabilities;
-  VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_object_cache->GetPhysicalDevice(),
+  VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g_object_cache->GetPhysicalDevice(),
                                                            m_surface, &surface_capabilities);
   if (res != VK_SUCCESS)
   {
@@ -117,7 +115,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
   // Select swap chain format and present mode
   VkPresentModeKHR present_mode =
-      SelectVulkanPresentMode(m_object_cache->GetPhysicalDevice(), m_surface);
+      SelectVulkanPresentMode(g_object_cache->GetPhysicalDevice(), m_surface);
   if (present_mode == VK_PRESENT_MODE_RANGE_SIZE_KHR)
     return false;
 
@@ -157,7 +155,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
       0, nullptr, transform, VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR, present_mode, VK_TRUE,
       old_swap_chain};
 
-  res = vkCreateSwapchainKHR(m_object_cache->GetDevice(), &swap_chain_info, nullptr, &m_swap_chain);
+  res = vkCreateSwapchainKHR(g_object_cache->GetDevice(), &swap_chain_info, nullptr, &m_swap_chain);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateCommandPool failed: ");
@@ -166,7 +164,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
   // now destroy the old swap chain, since it's been recreated
   if (old_swap_chain)
-    m_command_buffer_mgr->DeferResourceDestruction(old_swap_chain);
+    g_command_buffer_mgr->DeferResourceDestruction(old_swap_chain);
 
   return true;
 }
@@ -177,7 +175,7 @@ bool SwapChain::SetupSwapChainImages()
 
   uint32_t image_count;
   VkResult res =
-      vkGetSwapchainImagesKHR(m_object_cache->GetDevice(), m_swap_chain, &image_count, nullptr);
+      vkGetSwapchainImagesKHR(g_object_cache->GetDevice(), m_swap_chain, &image_count, nullptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkGetSwapchainImagesKHR failed: ");
@@ -185,7 +183,7 @@ bool SwapChain::SetupSwapChainImages()
   }
 
   std::vector<VkImage> images(image_count);
-  res = vkGetSwapchainImagesKHR(m_object_cache->GetDevice(), m_swap_chain, &image_count,
+  res = vkGetSwapchainImagesKHR(g_object_cache->GetDevice(), m_swap_chain, &image_count,
                                 images.data());
   assert(res == VK_SUCCESS);
 
@@ -196,9 +194,10 @@ bool SwapChain::SetupSwapChainImages()
     image.Image = images[i];
 
     // Create texture object, which creates a view of the backbuffer
-    image.Texture = Texture2D::CreateFromExistingImage(
-        m_object_cache, m_command_buffer_mgr, m_size.width, m_size.height, 1, 1,
-        m_surface_format.format, VK_IMAGE_VIEW_TYPE_2D, image.Image);
+    image.Texture = Texture2D::CreateFromExistingImage(m_size.width, m_size.height, 1, 1,
+                                                       m_surface_format.format,
+                                                       VK_IMAGE_VIEW_TYPE_2D,
+                                                       image.Image);
 
     VkImageView view = image.Texture->GetView();
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -211,7 +210,7 @@ bool SwapChain::SetupSwapChainImages()
                                                 m_size.height,
                                                 1};
 
-    res = vkCreateFramebuffer(m_object_cache->GetDevice(), &framebuffer_info, nullptr,
+    res = vkCreateFramebuffer(g_object_cache->GetDevice(), &framebuffer_info, nullptr,
                               &image.Framebuffer);
     if (res != VK_SUCCESS)
     {
@@ -230,7 +229,7 @@ void SwapChain::DestroySwapChainImages()
   for (auto& it : m_swap_chain_images)
   {
     // Images themselves are cleaned up by the swap chain object
-    m_command_buffer_mgr->DeferResourceDestruction(it.Framebuffer);
+    g_command_buffer_mgr->DeferResourceDestruction(it.Framebuffer);
   }
   m_swap_chain_images.clear();
 }
@@ -238,30 +237,17 @@ void SwapChain::DestroySwapChainImages()
 void SwapChain::DestroySwapChain()
 {
   DestroySwapChainImages();
-  vkDestroySwapchainKHR(m_object_cache->GetDevice(), m_swap_chain, nullptr);
+  vkDestroySwapchainKHR(g_object_cache->GetDevice(), m_swap_chain, nullptr);
   m_swap_chain = nullptr;
 }
 
 VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
 {
   VkResult res =
-      vkAcquireNextImageKHR(m_object_cache->GetDevice(), m_swap_chain, UINT64_MAX,
+      vkAcquireNextImageKHR(g_object_cache->GetDevice(), m_swap_chain, UINT64_MAX,
                             available_semaphore, VK_NULL_HANDLE, &m_current_swap_chain_image_index);
   if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
     LOG_VULKAN_ERROR(res, "vkAcquireNextImageKHR failed: ");
-
-  return res;
-}
-
-VkResult SwapChain::Present(VkSemaphore rendering_complete_semaphore)
-{
-  VkPresentInfoKHR present_info = {VK_STRUCTURE_TYPE_PRESENT_INFO_KHR, nullptr, 1,
-                                   &rendering_complete_semaphore,      1,       &m_swap_chain,
-                                   &m_current_swap_chain_image_index,  nullptr};
-
-  VkResult res = vkQueuePresentKHR(m_present_queue, &present_info);
-  if (res != VK_SUCCESS && res != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR)
-    LOG_VULKAN_ERROR(res, "vkQueuePresentKHR failed: ");
 
   return res;
 }
