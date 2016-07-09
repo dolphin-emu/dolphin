@@ -811,7 +811,7 @@ void AvatarDrawer::DrawHydra(int hand, float* pos, Matrix33& m, ControllerStyle 
 
 void AvatarDrawer::Draw()
 {
-  if (!g_ActiveConfig.bShowController)
+  if (!g_ActiveConfig.bShowController || !g_has_steamvr)
     return;
 
   // Reset API
