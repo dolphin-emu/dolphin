@@ -20,13 +20,15 @@ class Texture2D;
 class PaletteTextureConverter
 {
 public:
-  PaletteTextureConverter(StateTracker* state_tracker);
+  PaletteTextureConverter();
   ~PaletteTextureConverter();
 
   bool Initialize();
 
-  void ConvertTexture(Texture2D* dst_texture, VkFramebuffer dst_framebuffer, Texture2D* src_texture,
-                      u32 width, u32 height, void* palette, TlutFormat format);
+  void ConvertTexture(StateTracker* state_tracker,
+                      Texture2D* dst_texture, VkFramebuffer dst_framebuffer,
+                      Texture2D* src_texture, u32 width, u32 height,
+                      void* palette, TlutFormat format);
 
 private:
   static const u32 NUM_PALETTE_CONVERSION_SHADERS = 3;
@@ -35,17 +37,13 @@ private:
   bool CompileShaders();
   bool CreateRenderPass();
   bool CreateDescriptorLayout();
-  bool CreatePipelines();
-
-  StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
-  VkDescriptorSetLayout m_set_layout = VK_NULL_HANDLE;
+  VkDescriptorSetLayout m_palette_set_layout = VK_NULL_HANDLE;
   VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
 
   std::array<VkShaderModule, NUM_PALETTE_CONVERSION_SHADERS> m_shaders = {};
-  std::array<VkPipeline, NUM_PALETTE_CONVERSION_SHADERS> m_pipelines = {};
 
   std::unique_ptr<StreamBuffer> m_palette_stream_buffer;
   VkBufferView m_palette_buffer_view = VK_NULL_HANDLE;
