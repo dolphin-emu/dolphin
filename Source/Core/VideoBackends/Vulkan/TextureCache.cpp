@@ -302,7 +302,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(object_cache, command_buffer_mgr, m_parent->m_copy_render_pass,
+  UtilityShaderDraw draw(object_cache, command_buffer_mgr,
+                         object_cache->GetStandardPipelineLayout(),
+                         m_parent->m_copy_render_pass,
                          object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
                          object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
                          is_depth_copy ?

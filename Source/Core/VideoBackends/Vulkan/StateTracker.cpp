@@ -24,7 +24,7 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
     : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr)
 {
   // Set some sensible defaults
-  m_pipeline_state.pipeline_layout = object_cache->GetPipelineLayout();
+  m_pipeline_state.pipeline_layout = object_cache->GetStandardPipelineLayout();
   m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
   m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
   m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
@@ -38,6 +38,11 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
   m_pipeline_state.blend_state.use_dst_alpha = VK_FALSE;
   m_pipeline_state.blend_state.logic_op_enable = VK_FALSE;
   m_pipeline_state.blend_state.logic_op = VK_LOGIC_OP_NO_OP;
+
+  // BBox is disabled by default.
+  m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
+  m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS - 1;
+  m_bbox_enabled = false;
 
   // Initialize all samplers to point by default
   for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
@@ -54,6 +59,10 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
   if (!m_uniform_stream_buffer)
     PanicAlert("Failed to create uniform stream buffer");
 
+  // Default dirty flags include all descriptors
+  InvalidateDescriptorSets();
+  SetPendingRebind();
+
   // Set default constants
   UploadAllConstants();
 }
@@ -65,9 +74,7 @@ StateTracker::~StateTracker()
 void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset)
 {
   if (m_vertex_buffer == buffer && m_vertex_buffer_offset == offset)
-  {
     return;
-  }
 
   m_vertex_buffer = buffer;
   m_vertex_buffer_offset = offset;
@@ -77,9 +84,7 @@ void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset)
 void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type)
 {
   if (m_index_buffer == buffer && m_index_buffer_offset == offset && m_index_type == type)
-  {
     return;
-  }
 
   m_index_buffer = buffer;
   m_index_buffer_offset = offset;
@@ -403,6 +408,49 @@ void StateTracker::SetPSSampler(size_t index, VkSampler sampler)
   m_dirty_flags |= DIRTY_FLAG_PS_SAMPLERS;
 }
 
+void StateTracker::SetBBoxEnable(bool enable)
+{
+  if (m_bbox_enabled == enable)
+    return;
+
+  // Change the number of active descriptor sets, as well as the pipeline layout
+  if (enable)
+  {
+    m_pipeline_state.pipeline_layout = m_object_cache->GetBBoxPipelineLayout();
+    m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS;
+
+    // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
+    if (m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE)
+      m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
+  }
+  else
+  {
+    m_pipeline_state.pipeline_layout = m_object_cache->GetStandardPipelineLayout();
+    m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS - 1;
+  }
+
+  m_dirty_flags |= DIRTY_FLAG_PIPELINE | DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
+  m_bbox_enabled = enable;
+}
+
+void StateTracker::SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
+{
+  if (m_bindings.ps_ssbo.buffer == buffer &&
+      m_bindings.ps_ssbo.offset == offset &&
+      m_bindings.ps_ssbo.range == range)
+  {
+    return;
+  }
+
+  m_bindings.ps_ssbo.buffer = buffer;
+  m_bindings.ps_ssbo.offset = offset;
+  m_bindings.ps_ssbo.range = range;
+
+  // Defer descriptor update until bbox is actually enabled.
+  if (m_bbox_enabled)
+    m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
+}
+
 void StateTracker::UnbindTexture(VkImageView view)
 {
   for (VkDescriptorImageInfo& it : m_bindings.ps_samplers)
@@ -418,6 +466,10 @@ void StateTracker::InvalidateDescriptorSets()
     m_descriptor_sets[i] = VK_NULL_HANDLE;
 
   m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS;
+
+  // Defer SSBO descriptor update until bbox is actually enabled.
+  if (!m_bbox_enabled)
+    m_dirty_flags &= ~DIRTY_FLAG_PS_SSBO;
 }
 
 void StateTracker::SetPendingRebind()
@@ -519,16 +571,20 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SET_BINDING || rebind_all)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_object_cache->GetPipelineLayout(), 0, NUM_DESCRIPTOR_SETS,
-                            m_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+                            m_object_cache->GetStandardPipelineLayout(), 0,
+                            m_num_active_descriptor_sets,
+                            m_descriptor_sets.data(),
+                            NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_bindings.uniform_buffer_offsets.data());
   }
   else if (m_dirty_flags & DIRTY_FLAG_DYNAMIC_OFFSETS)
   {
-    vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_object_cache->GetPipelineLayout(), 0, 1,
-        &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-        m_bindings.uniform_buffer_offsets.data());
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            m_object_cache->GetStandardPipelineLayout(),
+                            DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
+                            &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+                            NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+                            m_bindings.uniform_buffer_offsets.data());
   }
 
   if (m_dirty_flags & DIRTY_FLAG_VIEWPORT || rebind_all)
@@ -621,6 +677,24 @@ bool StateTracker::UpdateDescriptorSet()
     }
 
     vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
+    m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+    m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
+  }
+
+  if (m_bbox_enabled && (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
+      m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
+  {
+    VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(
+      m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
+    if (set == VK_NULL_HANDLE)
+      return false;
+
+    VkWriteDescriptorSet write = {
+      VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,
+      set, 0, 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+      nullptr, &m_bindings.ps_ssbo, nullptr };
+
+    vkUpdateDescriptorSets(m_object_cache->GetDevice(), 1, &write, 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }

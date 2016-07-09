@@ -189,6 +189,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
     // No need to start a new render pass, but we do need to restore viewport state
     UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
+                           m_object_cache->GetStandardPipelineLayout(),
                            m_framebuffer_mgr->GetEFBRenderPass(),
                            m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
                            m_object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
@@ -269,9 +270,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Blit the EFB to the back buffer (Swap chain)
-  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr, m_swap_chain->GetRenderPass(),
+  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
+                         m_object_cache->GetStandardPipelineLayout(),
+                         m_swap_chain->GetRenderPass(),
                          m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
-                         nullptr, m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
+                         VK_NULL_HANDLE,
+                         m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
 
   // Begin the present render pass
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
