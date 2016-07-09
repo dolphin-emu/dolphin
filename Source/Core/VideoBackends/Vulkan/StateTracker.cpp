@@ -49,6 +49,15 @@ StateTracker::StateTracker()
     m_bindings.ps_samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.ps_samplers[i].imageView = VK_NULL_HANDLE;
     m_bindings.ps_samplers[i].sampler = g_object_cache->GetPointSampler();
+
+    m_sampler_states[i].min_filter = VK_FILTER_NEAREST;
+    m_sampler_states[i].mag_filter = VK_FILTER_NEAREST;
+    m_sampler_states[i].mipmap_mode = VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    m_sampler_states[i].wrap_u = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    m_sampler_states[i].wrap_v = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    m_sampler_states[i].min_lod = 0;
+    m_sampler_states[i].max_lod = 255;
+    m_sampler_states[i].lod_bias = 0;
   }
 
   // Create the streaming uniform buffer
@@ -388,7 +397,7 @@ void StateTracker::UploadAllConstants()
   PixelShaderManager::dirty = false;
 }
 
-void StateTracker::SetPSTexture(size_t index, VkImageView view)
+void StateTracker::SetTexture(size_t index, VkImageView view)
 {
   if (m_bindings.ps_samplers[index].imageView == view)
     return;
@@ -398,12 +407,23 @@ void StateTracker::SetPSTexture(size_t index, VkImageView view)
   m_dirty_flags |= DIRTY_FLAG_PS_SAMPLERS;
 }
 
-void StateTracker::SetPSSampler(size_t index, VkSampler sampler)
+void StateTracker::SetSampler(size_t index, const SamplerState& sampler)
 {
-  if (m_bindings.ps_samplers[index].sampler == sampler)
+  if (m_sampler_states[index].hex == sampler.hex)
     return;
 
-  m_bindings.ps_samplers[index].sampler = sampler;
+  // Grab a new sampler from the sampler cache.
+  VkSampler vk_sampler = g_object_cache->GetSampler(sampler);
+  if (vk_sampler == VK_NULL_HANDLE)
+  {
+    ERROR_LOG(VIDEO, "Failed to create sampler");
+    vk_sampler = g_object_cache->GetPointSampler();
+  }
+
+  if (m_bindings.ps_samplers[index].sampler == vk_sampler)
+    return;
+
+  m_bindings.ps_samplers[index].sampler = vk_sampler;
   m_dirty_flags |= DIRTY_FLAG_PS_SAMPLERS;
 }
 
@@ -469,6 +489,22 @@ void StateTracker::InvalidateDescriptorSets()
   // Defer SSBO descriptor update until bbox is actually enabled.
   if (!m_bbox_enabled)
     m_dirty_flags &= ~DIRTY_FLAG_PS_SSBO;
+}
+
+void StateTracker::InvalidateSamplerObjects()
+{
+  for (size_t i = 0; i < NUM_PIXEL_SHADER_SAMPLERS; i++)
+  {
+    // Grab a new sampler from the sampler cache.
+    VkSampler vk_sampler = g_object_cache->GetSampler(m_sampler_states[i]);
+    if (vk_sampler == VK_NULL_HANDLE)
+    {
+      ERROR_LOG(VIDEO, "Failed to create sampler");
+      vk_sampler = g_object_cache->GetPointSampler();
+    }
+
+    m_bindings.ps_samplers[i].sampler = vk_sampler;
+  }
 }
 
 void StateTracker::SetPendingRebind()

@@ -65,8 +65,11 @@ private:
 
   void BeginFrame();
 
+  void CheckForConfigChanges();
+
   void OnSwapChainResized();
   void ResizeEFBTextures();
+  void ResizeSwapChain();
 
   SwapChain* m_swap_chain = nullptr;
   StateTracker* m_state_tracker = nullptr;
