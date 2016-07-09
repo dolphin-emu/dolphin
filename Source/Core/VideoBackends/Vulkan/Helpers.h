@@ -38,6 +38,7 @@ VkSurfaceFormatKHR SelectVulkanSurfaceFormat(VkPhysicalDevice physical_device,
                                              VkSurfaceKHR surface);
 
 bool IsDepthFormat(VkFormat format);
+VkFormat GetLinearFormat(VkFormat format);
 
 // Helper methods for cleaning up device objects, used by deferred destruction
 struct DeferredResourceDestruction
