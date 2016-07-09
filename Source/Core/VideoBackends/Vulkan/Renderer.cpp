@@ -224,6 +224,15 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
+  m_state_tracker->EndRenderPass();
+  m_state_tracker->SetPendingRebind();
+  m_framebuffer_mgr->ReinterpretPixelData(convtype);
+
+  // EFB framebuffer has now changed, so update accordingly.
+  VkRect2D framebuffer_render_area = {
+    { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
+  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(),
+                                  framebuffer_render_area);
 }
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
@@ -373,6 +382,9 @@ void Renderer::OnSwapChainResized()
 
 void Renderer::ResizeEFBTextures()
 {
+  // Ensure the GPU is finished with the current EFB textures.
+  g_command_buffer_mgr->WaitForGPUIdle();
+
   m_framebuffer_mgr->ResizeEFBTextures();
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
 

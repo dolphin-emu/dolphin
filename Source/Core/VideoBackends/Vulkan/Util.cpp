@@ -326,6 +326,12 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
   Draw();
 }
 
+void UtilityShaderDraw::SetViewportAndScissor(int x, int y, int width, int height)
+{
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  Util::SetViewportAndScissor(command_buffer, x, y, width, height, 0.0f, 1.0f);
+}
+
 void UtilityShaderDraw::DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology,
                                                 u32 vertex_count)
 {

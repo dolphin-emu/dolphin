@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "VideoBackends/Vulkan/Constants.h"
@@ -102,6 +103,7 @@ public:
   // (SSBO) is only required when using the BBox Enabled pipeline layout.
   //
   VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
+  VkDescriptorSetLayout GetInputAttachmentDescriptorSetLayout() const { return m_input_attachment_descriptor_set_layout; }
   VkPipelineLayout GetStandardPipelineLayout() const { return m_standard_pipeline_layout; }
   VkPipelineLayout GetBBoxPipelineLayout() const { return m_bbox_pipeline_layout; }
   VkPipelineLayout GetPushConstantPipelineLayout() const { return m_push_constant_pipeline_layout; }
@@ -120,6 +122,9 @@ public:
   {
     return m_utility_shader_uniform_buffer.get();
   }
+
+  // Get utility shader header based on current config.
+  std::string GetUtilityShaderHeader() const;
 
   // Accesses shader module caches
   VertexShaderCache& GetVertexShaderCache() { return m_vs_cache; }
