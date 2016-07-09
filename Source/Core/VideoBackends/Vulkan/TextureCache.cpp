@@ -21,25 +21,21 @@
 
 namespace Vulkan
 {
-TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                           StateTracker* state_tracker)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr),
-      m_state_tracker(state_tracker)
+TextureCache::TextureCache(StateTracker* state_tracker)
+    : m_state_tracker(state_tracker)
 {
-  m_texture_upload_buffer =
-      StreamBuffer::Create(object_cache, command_buffer_mgr, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                           INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE, MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
+  m_texture_upload_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                                 INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE,
+                                                 MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
     PanicAlert("Failed to create texture upload buffer");
 
   if (!CreateCopyRenderPass())
     PanicAlert("Failed to create copy render pass");
 
-  m_texture_encoder =
-      std::make_unique<TextureEncoder>(object_cache, command_buffer_mgr, state_tracker);
+  m_texture_encoder = std::make_unique<TextureEncoder>(state_tracker);
 
-  m_palette_texture_converter =
-      std::make_unique<PaletteTextureConverter>(object_cache, command_buffer_mgr, state_tracker);
+  m_palette_texture_converter = std::make_unique<PaletteTextureConverter>(state_tracker);
   if (!m_palette_texture_converter->Initialize())
     PanicAlert("Failed to initialize palette texture converter");
 }
@@ -47,7 +43,7 @@ TextureCache::TextureCache(ObjectCache* object_cache, CommandBufferManager* comm
 TextureCache::~TextureCache()
 {
   if (m_copy_render_pass != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_copy_render_pass);
+    g_command_buffer_mgr->DeferResourceDestruction(m_copy_render_pass);
 }
 
 void TextureCache::CompileShaders()
@@ -87,7 +83,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 
   // Transition to shader resource before reading.
   VkImageLayout original_layout = src_texture->GetLayout();
-  src_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   m_texture_encoder->EncodeTextureToRam(src_texture->GetView(), dst, format, native_width,
@@ -95,17 +91,20 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                                         is_intensity, scale_by_half, src_rect);
 
   // Transition back to original state
-  src_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
   // Allocate texture object
-  std::unique_ptr<Texture2D> texture = Texture2D::Create(
-      m_object_cache, m_command_buffer_mgr, config.width, config.height, config.levels,
-      config.layers, TEXTURECACHE_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                   VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+  std::unique_ptr<Texture2D> texture = Texture2D::Create(config.width, config.height,
+                                                         config.levels, config.layers,
+                                                         TEXTURECACHE_TEXTURE_FORMAT,
+                                                         VK_IMAGE_VIEW_TYPE_2D_ARRAY,
+                                                         VK_IMAGE_TILING_OPTIMAL,
+                                                         VK_IMAGE_USAGE_SAMPLED_BIT | 
+                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                                         VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
   if (!texture)
     return nullptr;
@@ -126,7 +125,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
                                                 texture->GetLayers()};
 
     VkResult res =
-        vkCreateFramebuffer(m_object_cache->GetDevice(), &framebuffer_info, nullptr, &framebuffer);
+        vkCreateFramebuffer(g_object_cache->GetDevice(), &framebuffer_info, nullptr, &framebuffer);
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
@@ -164,7 +163,7 @@ bool TextureCache::CreateCopyRenderPass()
                                       nullptr};
 
   VkResult res =
-      vkCreateRenderPass(m_object_cache->GetDevice(), &pass_info, nullptr, &m_copy_render_pass);
+      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_copy_render_pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass (Copy) failed: ");
@@ -189,14 +188,12 @@ TextureCache::TCacheEntry::~TCacheEntry()
   m_parent->m_state_tracker->UnbindTexture(m_texture->GetView());
 
   if (m_framebuffer != VK_NULL_HANDLE)
-    m_parent->m_command_buffer_mgr->DeferResourceDestruction(m_framebuffer);
+    g_command_buffer_mgr->DeferResourceDestruction(m_framebuffer);
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
                                      unsigned int expanded_width, unsigned int level)
 {
-  ObjectCache* object_cache = m_parent->m_object_cache;
-  CommandBufferManager* command_buffer_mgr = m_parent->m_command_buffer_mgr;
   StreamBuffer* upload_buffer = m_parent->m_texture_upload_buffer.get();
 
   // Can't copy data larger than the texture extents.
@@ -205,7 +202,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 
   // Determine optimal row pitch, since we're going to be copying anyway.
   VkDeviceSize upload_width =
-      Util::AlignValue(width, object_cache->GetTextureUploadPitchAlignment());
+      Util::AlignValue(width, g_object_cache->GetTextureUploadPitchAlignment());
   VkDeviceSize upload_pitch = upload_width * sizeof(u32);
   VkDeviceSize upload_size = upload_pitch * height;
 
@@ -213,15 +210,14 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   // TODO: Handle cases where the texture does not fit into the streaming buffer, we need to
   // allocate a temporary buffer.
   if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size,
-                                                        object_cache->GetTextureUploadAlignment()))
+                                                        g_object_cache->GetTextureUploadAlignment()))
   {
     // Execute the command buffer first.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(command_buffer_mgr, m_parent->m_state_tracker,
-                                                false);
+    Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
 
     // Try allocating again. This may cause a fence wait.
-    if (!upload_buffer->ReserveMemory(upload_size, object_cache->GetTextureUploadAlignment()))
+    if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetTextureUploadAlignment()))
       PanicAlert("Failed to allocate space in texture upload buffer");
   }
 
@@ -264,12 +260,12 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 
   // Transition the texture to a transfer destination, invoke the transfer, then transition back.
   // TODO: Only transition the layer we're copying to.
-  m_texture->TransitionToLayout(command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  vkCmdCopyBufferToImage(command_buffer_mgr->GetCurrentCommandBuffer(), image_upload_buffer,
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), image_upload_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                          &image_copy);
-  m_texture->TransitionToLayout(command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
@@ -289,27 +285,24 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   // Can't be done in a render pass, since we're doing our own render pass!
   m_parent->m_state_tracker->EndRenderPass();
 
-  ObjectCache* object_cache = m_parent->m_object_cache;
-  CommandBufferManager* command_buffer_mgr = m_parent->m_command_buffer_mgr;
-  VkCommandBuffer command_buffer = command_buffer_mgr->GetCurrentCommandBuffer();
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
 
   // Transition EFB to shader resource before binding
   Texture2D* src_texture =
       is_depth_copy ? framebuffer_mgr->GetEFBDepthTexture() : framebuffer_mgr->GetEFBColorTexture();
   VkSampler src_sampler =
-      scale_by_half ? object_cache->GetLinearSampler() : object_cache->GetPointSampler();
+      scale_by_half ? g_object_cache->GetLinearSampler() : g_object_cache->GetPointSampler();
   VkImageLayout original_layout = src_texture->GetLayout();
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(object_cache, command_buffer_mgr,
-                         object_cache->GetStandardPipelineLayout(),
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
                          m_parent->m_copy_render_pass,
-                         object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
-                         object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
                          is_depth_copy ?
-                             object_cache->GetStaticShaderCache().GetDepthMatrixFragmentShader() :
-                             object_cache->GetStaticShaderCache().GetColorMatrixFragmentShader());
+                             g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
+                             g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
 
   // TODO: Hmm. Push constants would be useful here.
   u8* uniform_buffer = draw.AllocatePSUniforms(sizeof(float) * 28);
@@ -341,7 +334,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
                                                          const MathUtil::Rectangle<int>& dst_rect)
 {
   const TCacheEntry* source_vk = static_cast<const TCacheEntry*>(source);
-  VkCommandBuffer command_buffer = m_parent->m_command_buffer_mgr->GetCurrentCommandBuffer();
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
 
   // Fast path when not scaling the image.
   if (src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight())

@@ -50,14 +50,12 @@ bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 class ObjectCache
 {
 public:
-  ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device,
-              CommandBufferManager* command_buffer_mgr);
+  ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device);
   ~ObjectCache();
 
   VkInstance GetVulkanInstance() const { return m_instance; }
   VkPhysicalDevice GetPhysicalDevice() const { return m_physical_device; }
   VkDevice GetDevice() const { return m_device; }
-  CommandBufferManager* GetCommandBufferManager() const { return m_command_buffer_mgr; }
   const VkPhysicalDeviceMemoryProperties& GetDeviceMemoryProperties() const
   {
     return m_device_memory_properties;
@@ -126,7 +124,8 @@ public:
   VertexShaderCache& GetVertexShaderCache() { return m_vs_cache; }
   GeometryShaderCache& GetGeometryShaderCache() { return m_gs_cache; }
   PixelShaderCache& GetPixelShaderCache() { return m_ps_cache; }
-  SharedShaderCache& GetStaticShaderCache() { return m_static_shader_cache; }
+  SharedShaderCache& GetSharedShaderCache() { return m_shared_shader_cache; }
+
   // Static samplers
   VkSampler GetPointSampler() const { return m_point_sampler; }
   VkSampler GetLinearSampler() const { return m_linear_sampler; }
@@ -134,6 +133,7 @@ public:
 
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
+  void Shutdown();
 
   // Finds a memory type index for the specified memory properties and the bits returned by
   // vkGetImageMemoryRequirements
@@ -147,7 +147,7 @@ public:
 
   // Recompile static shaders, call when MSAA mode changes, etc.
   // Destroys the old shader modules, so assumes that the pipeline cache is clear first.
-  bool RecompileStaticShaders();
+  bool RecompileSharedShaders();
 
   // Clear sampler cache, use when anisotropy mode changes
   // WARNING: Ensure none of the objects from here are in use when calling
@@ -162,8 +162,6 @@ private:
   VkInstance m_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
   VkDevice m_device = VK_NULL_HANDLE;
-
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
 
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
   VkPhysicalDeviceFeatures m_device_features = {};
@@ -185,7 +183,7 @@ private:
   GeometryShaderCache m_gs_cache;
   PixelShaderCache m_ps_cache;
 
-  SharedShaderCache m_static_shader_cache;
+  SharedShaderCache m_shared_shader_cache;
 
   std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_cache;
 
@@ -194,5 +192,7 @@ private:
 
   std::map<SamplerState, VkSampler> m_sampler_cache;
 };
+
+extern std::unique_ptr<ObjectCache> g_object_cache;
 
 }  // namespace Vulkan

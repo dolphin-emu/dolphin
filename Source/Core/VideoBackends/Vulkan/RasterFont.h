@@ -13,15 +13,12 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
-class StateTracker;
 class Texture2D;
 
 class RasterFont
 {
 public:
-  RasterFont(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr);
+  RasterFont();
   ~RasterFont();
 
   bool Initialize();
@@ -32,9 +29,6 @@ public:
 private:
   bool CreateTexture();
   bool CreateShaders();
-
-  ObjectCache* m_object_cache;
-  CommandBufferManager* m_command_buffer_mgr;
 
   std::unique_ptr<Texture2D> m_texture;
 

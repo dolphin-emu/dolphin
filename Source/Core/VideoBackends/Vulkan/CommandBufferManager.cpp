@@ -428,4 +428,7 @@ void CommandBufferManager::RemoveFencePointCallback(const void* key)
   assert(iter != m_fence_point_callbacks.end());
   m_fence_point_callbacks.erase(iter);
 }
+
+std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
+
 }
