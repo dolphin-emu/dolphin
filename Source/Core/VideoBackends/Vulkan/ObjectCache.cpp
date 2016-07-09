@@ -13,7 +13,6 @@
 
 namespace Vulkan
 {
-
 std::unique_ptr<ObjectCache> g_object_cache;
 
 ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
@@ -77,8 +76,10 @@ bool ObjectCache::Initialize()
   if (!CreateStaticSamplers())
     return false;
 
-  m_utility_shader_vertex_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
-  m_utility_shader_uniform_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
+  m_utility_shader_vertex_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
+  m_utility_shader_uniform_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
   if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
     return false;
 
@@ -434,17 +435,15 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
   static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] = {
-      {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}
-  };
+      {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] = {
-      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       ARRAYSIZE(ubo_set_bindings), ubo_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(ubo_set_bindings),
+       ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        ARRAYSIZE(sampler_set_bindings), sampler_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings}
-  };
+       ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings}};
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SETS; i++)
   {
@@ -466,32 +465,44 @@ bool ObjectCache::CreatePipelineLayout()
 
   // Descriptor sets for each pipeline layout
   VkDescriptorSetLayout standard_sets[] = {
-    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS]
-  };
+      m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS]};
   VkDescriptorSetLayout bbox_sets[] = {
-    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
-    m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]
-  };
+      m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]};
   VkPushConstantRange push_constant_range = {
-    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 128
-  };
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 128};
 
   // Info for each pipeline layout
-  VkPipelineLayoutCreateInfo standard_info = {
-    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-    ARRAYSIZE(standard_sets), standard_sets, 0, nullptr };
-  VkPipelineLayoutCreateInfo bbox_info = {
-    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-    ARRAYSIZE(bbox_sets), bbox_sets, 0, nullptr };
-  VkPipelineLayoutCreateInfo push_constant_info = {
-    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
-    ARRAYSIZE(standard_sets), standard_sets, 1, &push_constant_range };
+  VkPipelineLayoutCreateInfo standard_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                              nullptr,
+                                              0,
+                                              ARRAYSIZE(standard_sets),
+                                              standard_sets,
+                                              0,
+                                              nullptr};
+  VkPipelineLayoutCreateInfo bbox_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                          nullptr,
+                                          0,
+                                          ARRAYSIZE(bbox_sets),
+                                          bbox_sets,
+                                          0,
+                                          nullptr};
+  VkPipelineLayoutCreateInfo push_constant_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                                   nullptr,
+                                                   0,
+                                                   ARRAYSIZE(standard_sets),
+                                                   standard_sets,
+                                                   1,
+                                                   &push_constant_range};
 
-  if ((res = vkCreatePipelineLayout(m_device, &standard_info, nullptr, &m_standard_pipeline_layout)) != VK_SUCCESS ||
-      (res = vkCreatePipelineLayout(m_device, &bbox_info, nullptr, &m_bbox_pipeline_layout)) != VK_SUCCESS ||
-      (res = vkCreatePipelineLayout(m_device, &push_constant_info, nullptr, &m_push_constant_pipeline_layout)))
+  if ((res = vkCreatePipelineLayout(m_device, &standard_info, nullptr,
+                                    &m_standard_pipeline_layout)) != VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(m_device, &bbox_info, nullptr, &m_bbox_pipeline_layout)) !=
+          VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(m_device, &push_constant_info, nullptr,
+                                    &m_push_constant_pipeline_layout)))
   {
     LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
     return false;
@@ -576,8 +587,8 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 
   // Cap anisotropy to device limits.
   VkBool32 anisotropy_enable = (info.anisotropy != 0) ? VK_TRUE : VK_FALSE;
-  float max_anisotropy = std::min(static_cast<float>(1 << info.anisotropy),
-                                  m_device_limits.maxSamplerAnisotropy);
+  float max_anisotropy =
+      std::min(static_cast<float>(1 << info.anisotropy), m_device_limits.maxSamplerAnisotropy);
 
   VkSamplerCreateInfo create_info = {
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType
