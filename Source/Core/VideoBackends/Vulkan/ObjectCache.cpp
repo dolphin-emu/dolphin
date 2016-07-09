@@ -601,6 +601,11 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   if (iter != m_sampler_cache.end())
     return iter->second;
 
+  // Cap anisotropy to device limits.
+  VkBool32 anisotropy_enable = (info.anisotropy != 0) ? VK_TRUE : VK_FALSE;
+  float max_anisotropy = std::min(static_cast<float>(1 << info.anisotropy),
+                                  m_device_limits.maxSamplerAnisotropy);
+
   VkSamplerCreateInfo create_info = {
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType
       nullptr,                                    // const void*             pNext
@@ -612,8 +617,8 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       info.wrap_v,                                // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,      // VkSamplerAddressMode    addressModeW
       static_cast<float>(info.lod_bias.Value()),  // float                   mipLodBias
-      VK_FALSE,                                   // VkBool32                anisotropyEnable
-      1.0f,                                       // float                   maxAnisotropy
+      anisotropy_enable,                          // VkBool32                anisotropyEnable
+      max_anisotropy,                             // float                   maxAnisotropy
       VK_FALSE,                                   // VkBool32                compareEnable
       VK_COMPARE_OP_ALWAYS,                       // VkCompareOp             compareOp
       static_cast<float>(info.min_lod.Value()),   // float                   minLod
@@ -621,8 +626,6 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,    // VkBorderColor           borderColor
       VK_FALSE                                    // VkBool32                unnormalizedCoordinates
   };
-
-  // TODO: Anisotropy
 
   VkSampler sampler = VK_NULL_HANDLE;
   VkResult res = vkCreateSampler(m_device, &create_info, nullptr, &sampler);

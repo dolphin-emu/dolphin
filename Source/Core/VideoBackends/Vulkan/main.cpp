@@ -281,6 +281,8 @@ void VideoBackend::Video_Prepare()
 
 void VideoBackend::Shutdown()
 {
+  g_command_buffer_mgr->WaitForGPUIdle();
+
   s_swap_chain.reset();
   g_object_cache->Shutdown();
   g_object_cache.reset();

@@ -52,6 +52,9 @@ public:
 
   // Ensure that the worker thread has submitted any previous command buffers and is idle.
   void WaitForWorkerThreadIdle();
+
+  // Ensure that the worker thread has both submitted all commands, and the GPU has caught up.
+  // Use with caution, huge performance penalty.
   void WaitForGPUIdle();
 
   void SubmitCommandBuffer(bool submit_off_thread);
