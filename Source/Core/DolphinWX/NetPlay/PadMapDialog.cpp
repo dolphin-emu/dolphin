@@ -11,11 +11,9 @@
 #include "Core/NetPlayServer.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 
-// Removed Wiimote UI elements due to Wiimotes being flat out broken in netplay.
-
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
     : wxDialog(parent, wxID_ANY, _("Controller Ports")), m_pad_mapping(server->GetPadMapping()),
-      m_player_list(client->GetPlayers())
+      m_wii_mapping(server->GetWiimoteMapping()), m_player_list(client->GetPlayers())
 {
   wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
   h_szr->AddSpacer(10);
@@ -52,6 +50,34 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     h_szr->AddSpacer(10);
   }
 
+  for (unsigned int i = 0; i < 4; ++i)
+  {
+    wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
+    v_szr->Add(new wxStaticText(this, wxID_ANY, (wxString(_("Wiimote ")) + (wxChar)('1' + i))), 1,
+               wxALIGN_CENTER_HORIZONTAL);
+
+    m_map_cbox[i + 4] =
+        new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, player_names);
+    m_map_cbox[i + 4]->Bind(wxEVT_CHOICE, &PadMapDialog::OnAdjust, this);
+    if (m_wii_mapping[i] == -1)
+    {
+      m_map_cbox[i + 4]->Select(0);
+    }
+    else
+    {
+      for (unsigned int j = 0; j < m_player_list.size(); j++)
+      {
+        if (m_wii_mapping[i] == m_player_list[j]->pid)
+          m_map_cbox[i + 4]->Select(j + 1);
+      }
+    }
+
+    v_szr->Add(m_map_cbox[i + 4], 1);
+
+    h_szr->Add(v_szr, 1, wxTOP | wxEXPAND, 20);
+    h_szr->AddSpacer(10);
+  }
+
   wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
   main_szr->Add(h_szr);
   main_szr->AddSpacer(5);
@@ -66,6 +92,11 @@ PadMappingArray PadMapDialog::GetModifiedPadMappings() const
   return m_pad_mapping;
 }
 
+PadMappingArray PadMapDialog::GetModifiedWiimoteMappings() const
+{
+  return m_wii_mapping;
+}
+
 void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
 {
   for (unsigned int i = 0; i < 4; i++)
@@ -75,5 +106,11 @@ void PadMapDialog::OnAdjust(wxCommandEvent& WXUNUSED(event))
       m_pad_mapping[i] = m_player_list[player_idx - 1]->pid;
     else
       m_pad_mapping[i] = -1;
+
+    player_idx = m_map_cbox[i + 4]->GetSelection();
+    if (player_idx > 0)
+      m_wii_mapping[i] = m_player_list[player_idx - 1]->pid;
+    else
+      m_wii_mapping[i] = -1;
   }
 }

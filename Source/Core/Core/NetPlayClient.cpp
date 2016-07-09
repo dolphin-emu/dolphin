@@ -23,7 +23,6 @@
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;
-static std::array<int, 4> s_wiimote_sources_cache;
 NetSettings g_NetPlaySettings;
 
 // called from ---GUI--- thread
@@ -714,14 +713,23 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   m_dialog->BootGame(path);
 
-  // Disable wiimotes on game start
-  // TODO: remove this when re-implementing wiimote netplay
   if (SConfig::GetInstance().bWii)
   {
     for (unsigned int i = 0; i < 4; ++i)
+      WiimoteReal::ChangeWiimoteSource(i,
+                                       m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
+    // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
+    NetWiimote nw;
+    nw.resize(4, 0);
+    m_wiimote_current_data_size = {4, 4, 4, 4};
+
+    for (unsigned int w = 0; w < 4; ++w)
     {
-      s_wiimote_sources_cache[i] = g_wiimote_sources[i];
-      WiimoteReal::ChangeWiimoteSource(i, WIIMOTE_SRC_NONE);
+      if (m_wiimote_map[w] != -1)
+        // probably overkill, but whatever
+        for (unsigned int i = 0; i < 7; ++i)
+          m_wiimote_buffer[w].Push(nw);
     }
   }
 
@@ -916,7 +924,6 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 {
   NetWiimote nw;
-  static u8 previousSize[4] = {4, 4, 4, 4};
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
@@ -925,7 +932,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     // does this local Wiimote map in game?
     if (in_game_num < 4)
     {
-      if (previousSize[in_game_num] == size)
+      if (m_wiimote_current_data_size[in_game_num] == size)
       {
         nw.assign(data, data + size);
         do
@@ -953,13 +960,13 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
         m_wiimote_buffer[in_game_num].Push(nw);
         m_wiimote_buffer[in_game_num].Push(nw);
         m_wiimote_buffer[in_game_num].Push(nw);
-        previousSize[in_game_num] = size;
+        m_wiimote_current_data_size[in_game_num] = size;
       }
     }
 
   }  // unlock players
 
-  while (previousSize[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
+  while (m_wiimote_current_data_size[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
   {
     // wait for receiving thread to push some data
     Common::SleepCurrentThread(1);
@@ -968,7 +975,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
   }
 
   // Use a blank input, since we may not have any valid input.
-  if (previousSize[_number] != size)
+  if (m_wiimote_current_data_size[_number] != size)
   {
     nw.resize(size, 0);
     m_wiimote_buffer[_number].Push(nw);
@@ -982,7 +989,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
   // until we reach a good input
   if (nw.size() != size)
   {
-    u8 tries = 0;
+    u32 tries = 0;
     // Clear the buffer and wait for new input, since we probably just changed reporting mode.
     while (nw.size() != size)
     {
@@ -1005,7 +1012,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     }
   }
 
-  previousSize[_number] = size;
+  m_wiimote_current_data_size[_number] = size;
   memcpy(data, nw.data(), size);
   return true;
 }
@@ -1026,17 +1033,6 @@ bool NetPlayClient::StopGame()
 
   // stop game
   m_dialog->StopGame();
-
-  // Restore wiimote settings on game stop
-  // TODO: remove this when re-implementing wiimote netplay
-  if (SConfig::GetInstance().bWii)
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-      g_wiimote_sources[i] = s_wiimote_sources_cache[i];
-      WiimoteReal::ChangeWiimoteSource(i, s_wiimote_sources_cache[i]);
-    }
-  }
 
   return true;
 }
