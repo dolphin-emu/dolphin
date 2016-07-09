@@ -493,8 +493,8 @@ bool ObjectCache::CreatePipelineLayout()
     m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]
   };
   VkDescriptorSetLayout input_attachment_sets[] = {
-    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
+    //m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+    //m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
     m_input_attachment_descriptor_set_layout
   };
   VkPushConstantRange push_constant_range = {
@@ -635,6 +635,23 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   // Store it even if it failed
   m_sampler_cache.emplace(info, sampler);
   return sampler;
+}
+
+std::string ObjectCache::GetUtilityShaderHeader() const
+{
+  std::stringstream ss;
+  if (g_ActiveConfig.iMultisamples > 1)
+  {
+    ss << "#define MSAA_ENABLED 1" << std::endl;
+    ss << "#define MSAA_SAMPLES " << g_ActiveConfig.iMultisamples << std::endl;
+    if (g_ActiveConfig.bSSAA)
+      ss << "#define SSAA_ENABLED 1" << std::endl;
+  }
+
+  u32 efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
+  ss << "#define EFB_LAYERS " << efb_layers << std::endl;
+
+  return ss.str();
 }
 
 // Comparison operators for PipelineInfos
