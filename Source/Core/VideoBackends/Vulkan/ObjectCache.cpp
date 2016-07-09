@@ -50,8 +50,8 @@ ObjectCache::~ObjectCache()
   if (m_linear_sampler != VK_NULL_HANDLE)
     vkDestroySampler(m_device, m_linear_sampler, nullptr);
 
-  if (m_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+  if (m_standard_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(m_device, m_standard_pipeline_layout, nullptr);
 
   for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
@@ -421,21 +421,17 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {6, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
       {7, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
-  //	static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] =
-  //	{
-  //		{ 0,													VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,			1,
-  // VK_SHADER_STAGE_FRAGMENT_BIT								}
-  //	};
+  static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] = {
+      {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}
+  };
 
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] = {
-      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(ubo_set_bindings),
-       ubo_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       ARRAYSIZE(ubo_set_bindings), ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        ARRAYSIZE(sampler_set_bindings), sampler_set_bindings},
-      // 		{
-      // 			VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr,
-      // 			0, ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings
-      // 		}
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings}
   };
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SETS; i++)
@@ -449,23 +445,66 @@ bool ObjectCache::CreateDescriptorSetLayouts()
     }
   }
 
+  // Descriptor set layout for input attachment
+  static const VkDescriptorSetLayoutBinding input_attachment_binding = {
+    0, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1, VK_SHADER_STAGE_FRAGMENT_BIT
+  };
+  static const VkDescriptorSetLayoutCreateInfo input_attachment_info = {
+    VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+    1, &input_attachment_binding
+  };
+  VkResult res = vkCreateDescriptorSetLayout(m_device, &input_attachment_info, nullptr,
+                                             &m_input_attachment_descriptor_set_layout);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
+    return false;
+  }
+
   return true;
 }
 
 bool ObjectCache::CreatePipelineLayout()
 {
-  VkPipelineLayoutCreateInfo info = {
-      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,  // VkStructureType                 sType
-      nullptr,                                        // const void*                     pNext
-      0,                                              // VkPipelineLayoutCreateFlags     flags
-      static_cast<uint32_t>(m_descriptor_set_layouts.size()),  // uint32_t setLayoutCount
-      m_descriptor_set_layouts.data(),  // const VkDescriptorSetLayout*    pSetLayouts
-      0,                                // uint32_t                        pushConstantRangeCount
-      nullptr                           // const VkPushConstantRange*      pPushConstantRanges
+  VkResult res;
+
+  // Descriptor sets for each pipeline layout
+  VkDescriptorSetLayout standard_sets[] = {
+    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS]
+  };
+  VkDescriptorSetLayout bbox_sets[] = {
+    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
+    m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]
+  };
+  VkDescriptorSetLayout input_attachment_sets[] = {
+    m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+    m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
+    m_input_attachment_descriptor_set_layout
+  };
+  VkPushConstantRange push_constant_range = {
+    VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 128
   };
 
-  VkResult res = vkCreatePipelineLayout(m_device, &info, nullptr, &m_pipeline_layout);
-  if (res != VK_SUCCESS)
+  // Info for each pipeline layout
+  VkPipelineLayoutCreateInfo standard_info = {
+    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+    ARRAYSIZE(standard_sets), standard_sets, 0, nullptr };
+  VkPipelineLayoutCreateInfo bbox_info = {
+    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+    ARRAYSIZE(bbox_sets), bbox_sets, 0, nullptr };
+  VkPipelineLayoutCreateInfo push_constant_info = {
+    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+    ARRAYSIZE(standard_sets), standard_sets, 1, &push_constant_range };
+  VkPipelineLayoutCreateInfo input_attachment_info = {
+    VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+    ARRAYSIZE(input_attachment_sets), input_attachment_sets, 0, nullptr };
+
+  if ((res = vkCreatePipelineLayout(m_device, &standard_info, nullptr, &m_standard_pipeline_layout)) != VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(m_device, &bbox_info, nullptr, &m_bbox_pipeline_layout)) != VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(m_device, &push_constant_info, nullptr, &m_push_constant_pipeline_layout)) != VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(m_device, &input_attachment_info, nullptr, &m_input_attachment_pipeline_layout)) != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
     return false;

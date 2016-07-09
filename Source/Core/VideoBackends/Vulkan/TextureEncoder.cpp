@@ -69,9 +69,12 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
     return;
   }
 
-  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr, m_encoding_render_pass,
+  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
+                         m_object_cache->GetStandardPipelineLayout(),
+                         m_encoding_render_pass,
                          m_object_cache->GetStaticShaderCache().GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, m_texture_encoding_shaders[format]);
+                         VK_NULL_HANDLE,
+                         m_texture_encoding_shaders[format]);
 
   // Allocate uniform buffer - int4 of left,top,native_width,scale
   // TODO: Replace with push constants
