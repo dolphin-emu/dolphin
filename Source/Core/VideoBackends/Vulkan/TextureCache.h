@@ -12,8 +12,6 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
 class PaletteTextureConverter;
 class StateTracker;
 class Texture2D;
@@ -22,8 +20,7 @@ class TextureEncoder;
 class TextureCache : public TextureCacheBase
 {
 public:
-  TextureCache(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-               StateTracker* state_tracker);
+  TextureCache(StateTracker* state_tracker);
   ~TextureCache();
 
   void CompileShaders() override;
@@ -67,8 +64,6 @@ private:
 
   bool CreateCopyRenderPass();
 
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
   StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_copy_render_pass = VK_NULL_HANDLE;

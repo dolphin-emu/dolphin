@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 #include "VideoCommon/GeometryShaderGen.h"
@@ -13,14 +15,13 @@
 
 namespace Vulkan
 {
-class ObjectCache;
 class StreamBuffer;
 class VertexFormat;
 
 class StateTracker
 {
 public:
-  StateTracker(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr);
+  StateTracker();
   ~StateTracker();
 
   const RasterizationState& GetRasterizationState() const
@@ -84,9 +85,6 @@ private:
   bool UpdatePipeline();
   bool UpdateDescriptorSet();
   void UploadAllConstants();
-
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
 
   enum DITRY_FLAG : u32
   {
@@ -153,4 +151,5 @@ private:
   bool m_in_render_pass = false;
   bool m_bbox_enabled = false;
 };
+
 }

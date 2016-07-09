@@ -10,16 +10,13 @@
 
 namespace Vulkan
 {
-class ObjectCache;
-class CommandBufferManager;
-class StreamBuffer;
 class StateTracker;
+class StreamBuffer;
 
 class VertexManager : public VertexManagerBase
 {
 public:
-  VertexManager(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                StateTracker* state_tracker);
+  VertexManager(StateTracker* state_tracker);
   ~VertexManager();
 
   NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
@@ -31,8 +28,6 @@ protected:
 private:
   void vFlush(bool use_dst_alpha) override;
 
-  ObjectCache* m_object_cache;
-  CommandBufferManager* m_command_buffer_mgr;
   StateTracker* m_state_tracker;
 
   std::vector<u8> m_cpu_vertex_buffer;

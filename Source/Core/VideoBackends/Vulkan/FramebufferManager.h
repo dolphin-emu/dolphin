@@ -12,9 +12,6 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
-
 class XFBSource : public XFBSourceBase
 {
   void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override {}
@@ -24,7 +21,7 @@ class XFBSource : public XFBSourceBase
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-  FramebufferManager(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr);
+  FramebufferManager();
   ~FramebufferManager();
 
   VkRenderPass GetEFBRenderPass() const { return m_efb_render_pass; }
@@ -55,9 +52,6 @@ private:
   void DestroyEFBRenderPass();
   bool CreateEFBFramebuffer();
   void DestroyEFBFramebuffer();
-
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
 
   VkRenderPass m_efb_render_pass = VK_NULL_HANDLE;
 

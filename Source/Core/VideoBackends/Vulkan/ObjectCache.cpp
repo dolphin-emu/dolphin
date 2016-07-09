@@ -13,11 +13,13 @@
 
 namespace Vulkan
 {
-ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device,
-                         CommandBufferManager* command_buffer_mgr)
+
+std::unique_ptr<ObjectCache> g_object_cache;
+
+ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
     : m_instance(instance), m_physical_device(physical_device), m_device(device),
-      m_command_buffer_mgr(command_buffer_mgr), m_vs_cache(device), m_gs_cache(device),
-      m_ps_cache(device), m_static_shader_cache(device, &m_vs_cache, &m_gs_cache, &m_ps_cache)
+      m_vs_cache(device), m_gs_cache(device), m_ps_cache(device),
+      m_shared_shader_cache(device, &m_vs_cache, &m_gs_cache, &m_ps_cache)
 {
   // Read device physical memory properties, we need it for allocating buffers
   vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
@@ -41,9 +43,6 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
 
 ObjectCache::~ObjectCache()
 {
-  ClearPipelineCache();
-  ClearSamplerCache();
-
   if (m_point_sampler != VK_NULL_HANDLE)
     vkDestroySampler(m_device, m_point_sampler, nullptr);
 
@@ -52,6 +51,12 @@ ObjectCache::~ObjectCache()
 
   if (m_standard_pipeline_layout != VK_NULL_HANDLE)
     vkDestroyPipelineLayout(m_device, m_standard_pipeline_layout, nullptr);
+  if (m_bbox_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(m_device, m_bbox_pipeline_layout, nullptr);
+  if (m_push_constant_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(m_device, m_push_constant_pipeline_layout, nullptr);
+  if (m_input_attachment_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(m_device, m_input_attachment_pipeline_layout, nullptr);
 
   for (VkDescriptorSetLayout layout : m_descriptor_set_layouts)
   {
@@ -74,17 +79,26 @@ bool ObjectCache::Initialize()
   if (!CreateStaticSamplers())
     return false;
 
-  m_utility_shader_vertex_buffer = StreamBuffer::Create(
-      this, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
-  m_utility_shader_uniform_buffer = StreamBuffer::Create(
-      this, m_command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
+  m_utility_shader_vertex_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
+  m_utility_shader_uniform_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
   if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
     return false;
 
-  if (!m_static_shader_cache.CompileShaders())
+  if (!m_shared_shader_cache.CompileShaders())
     return false;
 
   return true;
+}
+
+void ObjectCache::Shutdown()
+{
+  // We have to destroy these objects here since their destructors access g_object_cache,
+  // which is null at the time ObjectCache::~ObjectCache is called.
+  m_utility_shader_uniform_buffer.reset();
+  m_utility_shader_vertex_buffer.reset();
+  m_utility_shader_vertex_format.reset();
+  ClearPipelineCache();
+  ClearSamplerCache();
 }
 
 u32 ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags desired_properties)
@@ -377,10 +391,10 @@ void ObjectCache::ClearPipelineCache()
   m_pipeline_cache.clear();
 }
 
-bool ObjectCache::RecompileStaticShaders()
+bool ObjectCache::RecompileSharedShaders()
 {
-  m_static_shader_cache.DestroyShaders();
-  if (!m_static_shader_cache.CompileShaders())
+  m_shared_shader_cache.DestroyShaders();
+  if (!m_shared_shader_cache.CompileShaders())
   {
     PanicAlert("Failed to recompile static shaders.");
     return false;
