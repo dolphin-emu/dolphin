@@ -230,7 +230,7 @@ void StateTracker::UpdateVertexShaderConstants()
   {
     m_bindings.uniform_buffer_bindings[UBO_DESCRIPTOR_SET_BINDING_VS].buffer =
         m_uniform_stream_buffer->GetBuffer();
-    m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS | DIRTY_FLAG_VS_UBO;
+    m_dirty_flags |= DIRTY_FLAG_VS_UBO;
   }
 
   m_bindings.uniform_buffer_offsets[UBO_DESCRIPTOR_SET_BINDING_VS] =
@@ -267,11 +267,12 @@ void StateTracker::UpdateGeometryShaderConstants()
   {
     m_bindings.uniform_buffer_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].buffer =
         m_uniform_stream_buffer->GetBuffer();
-    m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS | DIRTY_FLAG_GS_UBO;
+    m_dirty_flags |= DIRTY_FLAG_GS_UBO;
   }
 
   m_bindings.uniform_buffer_offsets[UBO_DESCRIPTOR_SET_BINDING_GS] =
       static_cast<uint32_t>(m_uniform_stream_buffer->GetCurrentOffset());
+  m_dirty_flags |= DIRTY_FLAG_DYNAMIC_OFFSETS;
 
   memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &GeometryShaderManager::constants,
          sizeof(GeometryShaderConstants));
@@ -302,11 +303,12 @@ void StateTracker::UpdatePixelShaderConstants()
   {
     m_bindings.uniform_buffer_bindings[UBO_DESCRIPTOR_SET_BINDING_PS].buffer =
         m_uniform_stream_buffer->GetBuffer();
-    m_dirty_flags |= DIRTY_FLAG_ALL_DESCRIPTOR_SETS | DIRTY_FLAG_PS_UBO;
+    m_dirty_flags |= DIRTY_FLAG_PS_UBO;
   }
 
   m_bindings.uniform_buffer_offsets[UBO_DESCRIPTOR_SET_BINDING_PS] =
       static_cast<uint32_t>(m_uniform_stream_buffer->GetCurrentOffset());
+  m_dirty_flags |= DIRTY_FLAG_DYNAMIC_OFFSETS;
 
   memcpy(m_uniform_stream_buffer->GetCurrentHostPointer(), &PixelShaderManager::constants,
          sizeof(PixelShaderConstants));
