@@ -303,8 +303,12 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   if (text.empty())
     return;
 
-  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr, render_pass, m_vertex_shader,
-                         VK_NULL_HANDLE, m_fragment_shader);
+  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
+                         m_object_cache->GetStandardPipelineLayout(),
+                         render_pass,
+                         m_vertex_shader,
+                         VK_NULL_HANDLE,
+                         m_fragment_shader);
 
   UtilityShaderVertex* vertices =
       draw.ReserveVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, text.length() * 6);
