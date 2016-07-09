@@ -19,19 +19,12 @@
 
 namespace Vulkan
 {
-PaletteTextureConverter::PaletteTextureConverter(StateTracker* state_tracker)
-    : m_state_tracker(state_tracker)
+PaletteTextureConverter::PaletteTextureConverter()
 {
 }
 
 PaletteTextureConverter::~PaletteTextureConverter()
 {
-  for (const auto& it : m_pipelines)
-  {
-    if (it != VK_NULL_HANDLE)
-      vkDestroyPipeline(g_object_cache->GetDevice(), it, nullptr);
-  }
-
   for (const auto& it : m_shaders)
   {
     if (it != VK_NULL_HANDLE)
@@ -44,8 +37,8 @@ PaletteTextureConverter::~PaletteTextureConverter()
   if (m_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_object_cache->GetDevice(), m_render_pass, nullptr);
 
-  if (m_set_layout != VK_NULL_HANDLE)
-    vkDestroyDescriptorSetLayout(g_object_cache->GetDevice(), m_set_layout, nullptr);
+  if (m_palette_set_layout != VK_NULL_HANDLE)
+    vkDestroyDescriptorSetLayout(g_object_cache->GetDevice(), m_palette_set_layout, nullptr);
 }
 
 bool PaletteTextureConverter::Initialize()
@@ -62,13 +55,11 @@ bool PaletteTextureConverter::Initialize()
   if (!CreateDescriptorLayout())
     return false;
 
-  if (!CreatePipelines())
-    return false;
-
   return true;
 }
 
-void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuffer dst_framebuffer,
+void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
+                                             Texture2D* dst_texture, VkFramebuffer dst_framebuffer,
                                              Texture2D* src_texture, u32 width, u32 height,
                                              void* palette, TlutFormat format)
 {
@@ -82,25 +73,21 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
   _assert_(static_cast<u32>(format) < NUM_PALETTE_CONVERSION_SHADERS);
 
   size_t palette_size = ((format & 0xF) == GX_TF_I4) ? 32 : 512;
-  StreamBuffer* uniform_buffer = g_object_cache->GetUtilityShaderUniformBuffer();
-  VkDescriptorSet descriptor_set;
+  VkDescriptorSet texel_buffer_descriptor_set;
 
   // Allocate memory for the palette, and descriptor sets for the buffer.
   // If any of these fail, execute a command buffer, and try again.
-  if (!uniform_buffer->ReserveMemory(sizeof(PSUniformBlock),
-                                     g_object_cache->GetUniformBufferAlignment()) ||
-      !m_palette_stream_buffer->ReserveMemory(palette_size,
+  if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                               g_object_cache->GetTexelBufferAlignment()) ||
-      (descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
+      (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) ==
           VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, false);
-    if (!uniform_buffer->ReserveMemory(sizeof(PSUniformBlock),
-                                       g_object_cache->GetUniformBufferAlignment()) ||
-        !m_palette_stream_buffer->ReserveMemory(palette_size,
+    Util::ExecuteCurrentCommandsAndRestoreState(state_tracker, false);
+
+    if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                                 g_object_cache->GetTexelBufferAlignment()) ||
-        (descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_set_layout)) ==
+        (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) ==
             VK_NULL_HANDLE)
     {
       PanicAlert("Failed to allocate space for texture conversion");
@@ -108,65 +95,67 @@ void PaletteTextureConverter::ConvertTexture(Texture2D* dst_texture, VkFramebuff
     }
   }
 
-  // Update descriptor set
-  VkDescriptorBufferInfo uniform_buffer_info = {
-      g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer(), 0, sizeof(PSUniformBlock)};
-  VkDescriptorImageInfo sampler_info = {g_object_cache->GetPointSampler(), src_texture->GetView(),
-                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
-  VkWriteDescriptorSet set_writes[] = {
-      {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptor_set, 0, 0, 1,
-       VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, nullptr, &uniform_buffer_info, nullptr},
-      {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptor_set, 0, 1, 1,
-       VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &sampler_info, nullptr, nullptr},
-      {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr, descriptor_set, 0, 1, 2,
-       VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, nullptr, nullptr, &m_palette_buffer_view}};
-  vkUpdateDescriptorSets(g_object_cache->GetDevice(), ARRAYSIZE(set_writes), set_writes, 0,
-                         nullptr);
+  // End current render pass, since we're rendering to a different texture.
+  state_tracker->EndRenderPass();
+  state_tracker->SetPendingRebind();
 
-  // Copy in uniforms
-  u32 uniforms_offset = static_cast<u32>(uniform_buffer->GetCurrentOffset());
+  // Fill descriptor set #2 (texel buffer)
   u32 palette_offset = static_cast<u32>(m_palette_stream_buffer->GetCurrentOffset());
-  PSUniformBlock uniforms = {};
-  uniforms.multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
-  uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
-  memcpy(uniform_buffer->GetCurrentHostPointer(), &uniforms, sizeof(uniforms));
-  memcpy(m_palette_stream_buffer->GetCurrentHostPointer(), palette, palette_size);
-  uniform_buffer->CommitMemory(sizeof(PSUniformBlock));
-  m_palette_stream_buffer->CommitMemory(palette_size);
-
-  // Make sure we're not in a render pass
-  m_state_tracker->EndRenderPass();
-  m_state_tracker->SetPendingRebind();
-
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  VkWriteDescriptorSet texel_set_write = {
+    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,
+    texel_buffer_descriptor_set, 0, 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+    nullptr, nullptr, &m_palette_buffer_view
+  };
+  vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &texel_set_write, 0, nullptr);
 
   // Transition resource states
   dst_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-  dst_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  Util::BufferMemoryBarrier(command_buffer, m_palette_stream_buffer->GetBuffer(),
+  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_palette_stream_buffer->GetBuffer(),
                             VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, palette_offset,
                             palette_size, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
-  // Invoke the shader
-  VkRenderPassBeginInfo render_pass_begin = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                             nullptr,
-                                             0,
-                                             dst_framebuffer,
-                                             {{0, 0}, {width, height}},
-                                             0,
-                                             nullptr};
-  vkCmdBeginRenderPass(command_buffer, &render_pass_begin, VK_SUBPASS_CONTENTS_INLINE);
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelines[format]);
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
-                          &descriptor_set, 1, &uniforms_offset);
-  Util::SetViewportAndScissor(command_buffer, 0, 0, width, height);
-  vkCmdDraw(command_buffer, 4, 1, 0, 0);
-  vkCmdEndRenderPass(command_buffer);
+  // Set up draw
+  UtilityShaderDraw draw(m_pipeline_layout,
+                         m_render_pass,
+                         g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
+                         VK_NULL_HANDLE,
+                         m_shaders[format]);
+
+  VkRect2D region = { { 0, 0 }, { width, height } };
+  draw.BeginRenderPass(dst_framebuffer, region);
+
+  // Copy in palette
+  memcpy(m_palette_stream_buffer->GetCurrentHostPointer(), palette, palette_size);
+  m_palette_stream_buffer->CommitMemory(palette_size);
+
+  // PS Uniforms/Samplers
+  PSUniformBlock* uniforms = reinterpret_cast<PSUniformBlock*>(draw.AllocatePSUniforms(sizeof(PSUniformBlock)));
+  uniforms->multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms->texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
+  draw.CommitPSUniforms(sizeof(PSUniformBlock));
+  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
+
+  // We have to bind the texel buffer descriptor set separately.
+  vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                          VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          m_pipeline_layout,
+                          2, 1, &texel_buffer_descriptor_set,
+                          0, nullptr);
+
+  // Draw
+  draw.SetViewportAndScissor(0, 0, width, height);
+  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.EndRenderPass();
 
   // Transition resources before re-use
-  dst_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  Util::BufferMemoryBarrier(command_buffer, m_palette_stream_buffer->GetBuffer(),
+  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                            m_palette_stream_buffer->GetBuffer(),
                             VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_HOST_WRITE_BIT, palette_offset,
                             palette_size, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
@@ -208,14 +197,14 @@ bool PaletteTextureConverter::CreateBuffers()
 bool PaletteTextureConverter::CompileShaders()
 {
   static const char PALETTE_CONVERSION_FRAGMENT_SHADER_SOURCE[] = R"(
-    layout(std140, set = 0, binding = 0) uniform PSBlock
+    layout(std140, set = 0, binding = 2) uniform PSBlock
     {
       float multiplier;
       int texture_buffer_offset;
     };
 
-    layout(set = 0, binding = 1) uniform sampler2DArray samp0;
-    layout(set = 0, binding = 2) uniform usamplerBuffer samp1;
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    layout(set = 2, binding = 0) uniform usamplerBuffer samp1;
 
     layout(location = 0) in vec3 f_uv0;
     layout(location = 0) out vec4 ocol0;
@@ -342,24 +331,28 @@ bool PaletteTextureConverter::CreateRenderPass()
 bool PaletteTextureConverter::CreateDescriptorLayout()
 {
   static const VkDescriptorSetLayoutBinding set_bindings[] = {
-      {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-      {2, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+      {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   };
   static const VkDescriptorSetLayoutCreateInfo set_info = {
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(set_bindings),
       set_bindings};
 
   VkResult res =
-      vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr, &m_set_layout);
+      vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr, &m_palette_set_layout);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
     return false;
   }
 
+  VkDescriptorSetLayout sets[] = {
+    g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS),
+    g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS),
+    m_palette_set_layout
+  };
+
   VkPipelineLayoutCreateInfo pipeline_layout_info = {
-      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0, 1, &m_set_layout, 0, nullptr};
+      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(sets), sets, 0, nullptr};
 
   res = vkCreatePipelineLayout(g_object_cache->GetDevice(), &pipeline_layout_info, nullptr,
                                &m_pipeline_layout);
@@ -367,173 +360,6 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
   {
     LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
     return false;
-  }
-
-  return true;
-}
-
-bool PaletteTextureConverter::CreatePipelines()
-{
-  static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,  // const void*                               pNext
-      0,        // VkPipelineVertexInputStateCreateFlags     flags
-      0,        // uint32_t                                  vertexBindingDescriptionCount
-      nullptr,  // const VkVertexInputBindingDescription*    pVertexBindingDescriptions
-      0,        // uint32_t                                  vertexAttributeDescriptionCount
-      nullptr   // const VkVertexInputAttributeDescription*  pVertexAttributeDescriptions
-  };
-
-  static const VkPipelineInputAssemblyStateCreateInfo input_assembly_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                               // const void*                               pNext
-      0,                                     // VkPipelineInputAssemblyStateCreateFlags   flags
-      VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP,  // VkPrimitiveTopology                       topology
-      VK_TRUE  // VkBool32                                  primitiveRestartEnable
-  };
-
-  static const VkPipelineRasterizationStateCreateInfo rasterization_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                  // const void*                               pNext
-      0,                        // VkPipelineRasterizationStateCreateFlags   flags
-      VK_FALSE,                 // VkBool32                                  depthClampEnable
-      VK_FALSE,                 // VkBool32                                  rasterizerDiscardEnable
-      VK_POLYGON_MODE_FILL,     // VkPolygonMode                             polygonMode
-      VK_CULL_MODE_NONE,        // VkCullModeFlags                           cullMode
-      VK_FRONT_FACE_CLOCKWISE,  // VkFrontFace                               frontFace
-      VK_FALSE,                 // VkBool32                                  depthBiasEnable
-      0.0f,                     // float                                     depthBiasConstantFactor
-      0.0f,                     // float                                     depthBiasClamp
-      0.0f,                     // float                                     depthBiasSlopeFactor
-      1.0f                      // float                                     lineWidth
-  };
-
-  static const VkPipelineDepthStencilStateCreateInfo depthstencil_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,               // const void*                               pNext
-      0,                     // VkPipelineDepthStencilStateCreateFlags    flags
-      VK_FALSE,              // VkBool32                                  depthTestEnable
-      VK_FALSE,              // VkBool32                                  depthWriteEnable
-      VK_COMPARE_OP_ALWAYS,  // VkCompareOp                               depthCompareOp
-      VK_TRUE,               // VkBool32                                  depthBoundsTestEnable
-      VK_FALSE,              // VkBool32                                  stencilTestEnable
-      {},                    // VkStencilOpState                          front
-      {},                    // VkStencilOpState                          back
-      0.0f,                  // float                                     minDepthBounds
-      1.0f                   // float                                     maxDepthBounds
-  };
-
-  static const VkPipelineColorBlendAttachmentState color_blend_attachment_state = {
-      VK_FALSE,              // VkBool32                                  blendEnable
-      VK_BLEND_FACTOR_ONE,   // VkBlendFactor                             srcColorBlendFactor
-      VK_BLEND_FACTOR_ZERO,  // VkBlendFactor                             dstColorBlendFactor
-      VK_BLEND_OP_ADD,       // VkBlendOp                                 colorBlendOp
-      VK_BLEND_FACTOR_ONE,   // VkBlendFactor                             srcAlphaBlendFactor
-      VK_BLEND_FACTOR_ZERO,  // VkBlendFactor                             dstAlphaBlendFactor
-      VK_BLEND_OP_ADD,       // VkBlendOp                                 alphaBlendOp
-      VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-          VK_COLOR_COMPONENT_A_BIT  // VkColorComponentFlags                     colorWriteMask
-  };
-
-  static const VkPipelineColorBlendStateCreateInfo color_blend_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                        // const void*                               pNext
-      0,                              // VkPipelineColorBlendStateCreateFlags      flags
-      VK_FALSE,                       // VkBool32                                  logicOpEnable
-      VK_LOGIC_OP_CLEAR,              // VkLogicOp                                 logicOp
-      1,                              // uint32_t                                  attachmentCount
-      &color_blend_attachment_state,  // const VkPipelineColorBlendAttachmentState*pAttachments
-      {1.0f, 1.0f, 1.0f, 1.0f}        // float                                     blendConstants[4]
-  };
-
-  VkPipelineMultisampleStateCreateInfo multisample_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                // const void*                               pNext
-      0,                      // VkPipelineMultisampleStateCreateFlags     flags
-      VK_SAMPLE_COUNT_1_BIT,  // VkSampleCountFlagBits                     rasterizationSamples
-      VK_FALSE,               // VkBool32                                  sampleShadingEnable
-      1.0f,                   // float                                     minSampleShading
-      nullptr,                // const VkSampleMask*                       pSampleMask;
-      VK_FALSE,               // VkBool32                                  alphaToCoverageEnable
-      VK_FALSE                // VkBool32                                  alphaToOneEnable
-  };
-
-  // Viewport is used with dynamic state
-  static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};
-  static const VkRect2D scissor = {{0, 0}, {1, 1}};
-  static const VkPipelineViewportStateCreateInfo viewport_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,    // const void*                               pNext
-      0,          // VkPipelineViewportStateCreateFlags        flags;
-      1,          // uint32_t                                  viewportCount
-      &viewport,  // const VkViewport*                         pViewports
-      1,          // uint32_t                                  scissorCount
-      &scissor    // const VkRect2D*                           pScissors
-  };
-
-  // Set viewport and scissor dynamic state so we can change it elsewhere
-  static const VkDynamicState dynamic_states[] = {VK_DYNAMIC_STATE_VIEWPORT,
-                                                  VK_DYNAMIC_STATE_SCISSOR};
-  static const VkPipelineDynamicStateCreateInfo dynamic_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,  // VkStructureType sType
-      nullptr,                    // const void*                               pNext
-      0,                          // VkPipelineDynamicStateCreateFlags         flags
-      ARRAYSIZE(dynamic_states),  // uint32_t                                  dynamicStateCount
-      dynamic_states              // const VkDynamicState*                     pDynamicStates
-  };
-
-  for (u32 i = 0; i < NUM_PALETTE_CONVERSION_SHADERS; i++)
-  {
-    VkPipelineShaderStageCreateInfo stage_create_info[] = {
-        {
-            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,  // VkStructureType sType
-            nullptr,                     // const void*                               pNext
-            0,                           // VkPipelineShaderStageCreateFlags          flags
-            VK_SHADER_STAGE_VERTEX_BIT,  // VkShaderStageFlagBits                     stage
-            g_object_cache->GetSharedShaderCache()
-                .GetScreenQuadVertexShader(),  // VkShaderModule                  module
-            "main",                            // const char*                               pName
-            nullptr  // const VkSpecializationInfo*               pSpecializationInfo
-        },
-        {
-            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,  // VkStructureType sType
-            nullptr,                       // const void*                               pNext
-            0,                             // VkPipelineShaderStageCreateFlags          flags
-            VK_SHADER_STAGE_FRAGMENT_BIT,  // VkShaderStageFlagBits                     stage
-            m_shaders[i],                  // VkShaderModule                            module
-            "main",                        // const char*                               pName
-            nullptr  // const VkSpecializationInfo*               pSpecializationInfo
-        }};
-
-    VkGraphicsPipelineCreateInfo pipeline_info = {
-        VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,  // VkStructureType sType
-        nullptr,                       // const void*                                      pNext
-        0,                             // VkPipelineCreateFlags                            flags
-        ARRAYSIZE(stage_create_info),  // uint32_t stageCount
-        stage_create_info,             // const VkPipelineShaderStageCreateInfo*           pStages
-        &empty_vertex_input_state,  // const VkPipelineVertexInputStateCreateInfo* pVertexInputState
-        &input_assembly_state,  // const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState
-        nullptr,          // const VkPipelineTessellationStateCreateInfo*     pTessellationState
-        &viewport_state,  // const VkPipelineViewportStateCreateInfo*         pViewportState
-        &rasterization_state,  // const VkPipelineRasterizationStateCreateInfo* pRasterizationState
-        &multisample_state,    // const VkPipelineMultisampleStateCreateInfo*      pMultisampleState
-        &depthstencil_state,  // const VkPipelineDepthStencilStateCreateInfo*     pDepthStencilState
-        &color_blend_state,   // const VkPipelineColorBlendStateCreateInfo*       pColorBlendState
-        &dynamic_state,       // const VkPipelineDynamicStateCreateInfo*          pDynamicState
-        m_pipeline_layout,    // VkPipelineLayout                                 layout
-        m_render_pass,        // VkRenderPass                                     renderPass
-        0,                    // uint32_t                                         subpass
-        VK_NULL_HANDLE,       // VkPipeline                                       basePipelineHandle
-        -1                    // int32_t                                          basePipelineIndex
-    };
-
-    VkResult res = vkCreateGraphicsPipelines(g_object_cache->GetDevice(), VK_NULL_HANDLE, 1,
-                                             &pipeline_info, nullptr, &m_pipelines[i]);
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
-      return false;
-    }
   }
 
   return true;
