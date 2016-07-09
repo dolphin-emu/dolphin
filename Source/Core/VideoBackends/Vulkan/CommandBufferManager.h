@@ -47,7 +47,12 @@ public:
 
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
 
+  // Ensure the worker thread has submitted the previous frame's command buffer.
   void PrepareToSubmitCommandBuffer();
+
+  // Ensure that the worker thread has submitted any previous command buffers and is idle.
+  void WaitForWorkerThreadIdle();
+  void WaitForGPUIdle();
 
   void SubmitCommandBuffer(bool submit_off_thread);
   void SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,

@@ -381,7 +381,7 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
 {
-  m_parent->m_state_tracker->SetPSTexture(stage, m_texture->GetView());
+  m_parent->m_state_tracker->SetTexture(stage, m_texture->GetView());
 }
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)

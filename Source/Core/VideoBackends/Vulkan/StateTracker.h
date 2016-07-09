@@ -55,8 +55,9 @@ public:
   void UpdateGeometryShaderConstants();
   void UpdatePixelShaderConstants();
 
-  void SetPSTexture(size_t index, VkImageView view);
-  void SetPSSampler(size_t index, VkSampler sampler);
+  void SetTexture(size_t index, VkImageView view);
+
+  void SetSampler(size_t index, const SamplerState& sampler);
 
   void SetBBoxEnable(bool enable);
   void SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range);
@@ -66,6 +67,10 @@ public:
   // When executing a command buffer, we want to recreate the descriptor set, as it will
   // now be in a different pool for the new command buffer.
   void InvalidateDescriptorSets();
+
+  // Recreate all sampler states. Use when the handles to sampler objects
+  // are no longer valid (anisotropy changed, for example).
+  void InvalidateSamplerObjects();
 
   // Set dirty flags on everything to force re-bind at next draw time.
   void SetPendingRebind();
@@ -124,6 +129,9 @@ private:
   u32 m_gx_primitive_type = 0;
   DSTALPHA_MODE m_dstalpha_mode = DSTALPHA_NONE;
   VkPipeline m_pipeline_object = VK_NULL_HANDLE;
+
+  // sampler states
+  std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
 
   // shader bindings
   std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> m_descriptor_sets = {};

@@ -154,6 +154,12 @@ bool FramebufferManager::CreateEFBFramebuffer()
                               m_efb_depth_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                               &clear_depth, 1, &clear_depth_range);
 
+  // Transition to color attachment state ready for rendering.
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
   return true;
 }
 
