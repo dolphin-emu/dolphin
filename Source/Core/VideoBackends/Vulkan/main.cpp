@@ -45,8 +45,6 @@ static VkInstance s_vkInstance;
 static VkPhysicalDevice s_vkPhysicalDevice;
 static VkDevice s_vkDevice;
 static VkSurfaceKHR s_vkSurface;
-static std::unique_ptr<CommandBufferManager> s_command_buffer_mgr;
-static std::unique_ptr<ObjectCache> s_object_cache;
 static std::unique_ptr<SwapChain> s_swap_chain;
 static std::unique_ptr<StateTracker> s_state_tracker;
 
@@ -219,26 +217,24 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // create command buffers
-  s_command_buffer_mgr = std::make_unique<CommandBufferManager>(
+  g_command_buffer_mgr = std::make_unique<CommandBufferManager>(
       s_vkDevice, graphics_queue_family_index, graphics_queue, USE_THREADED_SUBMISSION);
-  if (!s_command_buffer_mgr->Initialize())
+  if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlert("Failed to create vulkan command buffers");
     goto CLEANUP_DEVICE;
   }
 
   // create object cache
-  s_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice,
-                                                 s_command_buffer_mgr.get());
-  if (!s_object_cache->Initialize())
+  g_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice);
+  if (!g_object_cache->Initialize())
   {
     PanicAlert("Failed to create vulkan object cache");
     goto CLEANUP_DEVICE;
   }
 
   // create swap chain and buffers
-  s_swap_chain = std::make_unique<SwapChain>(s_object_cache.get(), s_command_buffer_mgr.get(),
-                                             s_vkSurface, present_queue);
+  s_swap_chain = std::make_unique<SwapChain>(s_vkSurface, present_queue);
   if (!s_swap_chain->Initialize())
   {
     PanicAlert("Failed to create vulkan swap chain");
@@ -248,9 +244,9 @@ bool VideoBackend::Initialize(void* window_handle)
   return true;
 
 CLEANUP_DEVICE:
-  s_command_buffer_mgr.reset();
-  s_object_cache.reset();
   s_swap_chain.reset();
+  g_object_cache.reset();
+  g_command_buffer_mgr.reset();
 
   vkDestroyDevice(s_vkDevice, nullptr);
   s_vkDevice = nullptr;
@@ -273,17 +269,12 @@ CLEANUP_LIBRARY:
 // Run from the graphics thread
 void VideoBackend::Video_Prepare()
 {
-  s_state_tracker =
-      std::make_unique<StateTracker>(s_object_cache.get(), s_command_buffer_mgr.get());
-  g_vertex_manager = std::make_unique<VertexManager>(
-      s_object_cache.get(), s_command_buffer_mgr.get(), s_state_tracker.get());
+  s_state_tracker = std::make_unique<StateTracker>();
+  g_vertex_manager = std::make_unique<VertexManager>(s_state_tracker.get());
   g_perf_query = std::make_unique<PerfQuery>();
-  g_framebuffer_manager =
-      std::make_unique<FramebufferManager>(s_object_cache.get(), s_command_buffer_mgr.get());
-  g_texture_cache = std::make_unique<TextureCache>(s_object_cache.get(), s_command_buffer_mgr.get(),
-                                                   s_state_tracker.get());
-  g_renderer = std::make_unique<Renderer>(s_object_cache.get(), s_command_buffer_mgr.get(),
-                                          s_swap_chain.get(), s_state_tracker.get());
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_texture_cache = std::make_unique<TextureCache>(s_state_tracker.get());
+  g_renderer = std::make_unique<Renderer>(s_swap_chain.get(), s_state_tracker.get());
   if (!static_cast<Renderer*>(g_renderer.get())->Initialize())
     PanicAlert("Failed to initialize renderer");
 }
@@ -291,8 +282,9 @@ void VideoBackend::Video_Prepare()
 void VideoBackend::Shutdown()
 {
   s_swap_chain.reset();
-  s_object_cache.reset();
-  s_command_buffer_mgr.reset();
+  g_object_cache->Shutdown();
+  g_object_cache.reset();
+  g_command_buffer_mgr.reset();
 
   vkDestroyDevice(s_vkDevice, nullptr);
   s_vkDevice = nullptr;

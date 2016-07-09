@@ -8,6 +8,7 @@
 #include <deque>
 #include <functional>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <utility>
@@ -119,5 +120,7 @@ private:
   std::mutex m_pending_submit_lock;
   bool m_use_threaded_submission = false;
 };
+
+extern std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
 
 }  // namespace Vulkan

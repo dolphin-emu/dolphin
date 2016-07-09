@@ -24,19 +24,17 @@ constexpr size_t MAX_VERTEX_BUFFER_SIZE = VertexManager::MAXVBUFFERSIZE * 16;
 constexpr size_t INITIAL_INDEX_BUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 2;
 constexpr size_t MAX_INDEX_BUFFER_SIZE = VertexManager::MAXIBUFFERSIZE * sizeof(u16) * 16;
 
-VertexManager::VertexManager(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                             StateTracker* state_tracker)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr),
-      m_state_tracker(state_tracker), m_cpu_vertex_buffer(MAXVBUFFERSIZE),
+VertexManager::VertexManager(StateTracker* state_tracker)
+    : m_state_tracker(state_tracker), m_cpu_vertex_buffer(MAXVBUFFERSIZE),
       m_cpu_index_buffer(MAXIBUFFERSIZE)
 {
-  m_vertex_stream_buffer =
-      StreamBuffer::Create(m_object_cache, m_command_buffer_mgr, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                           INITIAL_VERTEX_BUFFER_SIZE, MAX_VERTEX_BUFFER_SIZE);
+  m_vertex_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+                                                INITIAL_VERTEX_BUFFER_SIZE,
+                                                MAX_VERTEX_BUFFER_SIZE);
 
-  m_index_stream_buffer =
-      StreamBuffer::Create(m_object_cache, m_command_buffer_mgr, VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                           INITIAL_INDEX_BUFFER_SIZE, MAX_INDEX_BUFFER_SIZE);
+  m_index_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+                                               INITIAL_INDEX_BUFFER_SIZE,
+                                               MAX_INDEX_BUFFER_SIZE);
 
   if (!m_vertex_stream_buffer || !m_index_stream_buffer)
     PanicAlert("Failed to allocate streaming buffers");
@@ -85,7 +83,7 @@ void VertexManager::ResetBuffer(u32 stride)
   {
     // Flush any pending commands first, so that we can wait on the fences
     WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, m_state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, false);
 
     // Attempt to allocate again, this may cause a fence wait
     if (!has_vbuffer_allocation)
@@ -161,7 +159,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 
   // Execute the draw
   // TODO: Handle two-pass dst alpha for devices that don't support dual-source blend
-  vkCmdDrawIndexed(m_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
+  vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                    m_current_draw_base_index, m_current_draw_base_vertex, 0);
 }
 
