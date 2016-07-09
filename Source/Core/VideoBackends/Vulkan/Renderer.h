@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
+
+#include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 #include "VideoCommon/RenderBase.h"
 
@@ -67,6 +71,8 @@ private:
 
   void CheckForConfigChanges();
 
+  void ResetSamplerStates();
+
   void OnSwapChainResized();
   void ResizeEFBTextures();
   void ResizeSwapChain();
@@ -80,5 +86,8 @@ private:
   VkSemaphore m_rendering_finished_semaphore = nullptr;
 
   std::unique_ptr<RasterFont> m_raster_font;
+
+  // Keep a copy of sampler states to avoid cache lookups every draw
+  std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
 };
 }

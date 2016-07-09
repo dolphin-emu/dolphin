@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstdio>
+#include <limits>
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
@@ -28,6 +29,9 @@ namespace Vulkan
 Renderer::Renderer(SwapChain* swap_chain, StateTracker* state_tracker)
     : m_swap_chain(swap_chain), m_state_tracker(state_tracker)
 {
+  // Set to something invalid, forcing all states to be re-initialized.
+  for (size_t i = 0; i < m_sampler_states.size(); i++)
+    m_sampler_states[i].hex = std::numeric_limits<decltype(m_sampler_states[i].hex)>::max();
 }
 
 Renderer::~Renderer()
@@ -351,11 +355,7 @@ void Renderer::CheckForConfigChanges()
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
-  {
-    // Invalidate all sampler objects, and re-create them in the state tracker.
-    g_object_cache->ClearSamplerCache();
-    m_state_tracker->InvalidateSamplerObjects();
-  }
+    ResetSamplerStates();
 }
 
 void Renderer::OnSwapChainResized()
@@ -390,7 +390,6 @@ void Renderer::ResizeEFBTextures()
 void Renderer::ResizeSwapChain()
 {
   // The worker thread may still be submitting a present on this swap chain.
-  g_command_buffer_mgr->WaitForWorkerThreadIdle();
   g_command_buffer_mgr->WaitForGPUIdle();
 
   // It's now safe to resize the swap chain.
@@ -645,8 +644,6 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   const TexMode1& tm1 = tex.texMode1[stage];
   SamplerState new_state = {};
 
-  // TODO: Anisotropic filtering
-
   if (g_ActiveConfig.bForceFiltering)
   {
     new_state.min_filter = VK_FILTER_LINEAR;
@@ -685,7 +682,49 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   new_state.wrap_u = address_modes[tm0.wrap_s];
   new_state.wrap_v = address_modes[tm0.wrap_t];
 
-  m_state_tracker->SetSampler((texindex * 4) + stage, new_state);
+  // Only use anisotropic filtering for textures that would be linearly filtered.
+  if (g_object_cache->SupportsAnisotropicFiltering() &&
+      g_ActiveConfig.iMaxAnisotropy > 0 &&
+      !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
+  {
+    new_state.anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  }
+  else
+  {
+    new_state.anisotropy = 0;
+  }
+
+  // Skip lookup if the state hasn't changed.
+  size_t bind_index = (texindex * 4) + stage;
+  if (m_sampler_states[bind_index].hex == new_state.hex)
+    return;
+
+  // Look up new state and replace in state tracker.
+  VkSampler sampler = g_object_cache->GetSampler(new_state);
+  if (sampler == VK_NULL_HANDLE)
+  {
+    ERROR_LOG(VIDEO, "Failed to create sampler");
+    sampler = g_object_cache->GetPointSampler();
+  }
+
+  m_state_tracker->SetSampler(bind_index, sampler);
+  m_sampler_states[bind_index].hex = new_state.hex;
+}
+
+void Renderer::ResetSamplerStates()
+{
+  // Ensure none of the sampler objects are in use.
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // Invalidate all sampler states, next draw will re-initialize them.
+  for (size_t i = 0; i < m_sampler_states.size(); i++)
+  {
+    m_sampler_states[i].hex = std::numeric_limits<decltype(m_sampler_states[i].hex)>::max();
+    m_state_tracker->SetSampler(i, g_object_cache->GetPointSampler());
+  }
+
+  // Invalidate all sampler objects (some will be unused now).
+  g_object_cache->ClearSamplerCache();
 }
 
 void Renderer::SetDitherMode()

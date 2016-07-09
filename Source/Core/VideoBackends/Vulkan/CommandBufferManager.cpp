@@ -235,6 +235,7 @@ void CommandBufferManager::WaitForWorkerThreadIdle()
 
 void CommandBufferManager::WaitForGPUIdle()
 {
+  WaitForWorkerThreadIdle();
   vkDeviceWaitIdle(m_device);
 }
 
