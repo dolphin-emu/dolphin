@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/IniFile.h"
+#include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
@@ -406,12 +407,36 @@ public:
           yy += (numeric_settings[0]->GetValue() - 0.5);
         }
 
-        *x = xx;
-        *y = yy;
+        // relative input
+        if (boolean_settings[0]->GetValue())
+        {
+          const ControlState deadzone = numeric_settings[3]->GetValue();
+          // deadzone to avoid the cursor slowly drifting
+          if (std::abs(xx) > deadzone)
+            m_x = MathUtil::Clamp(m_x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
+          if (std::abs(yy) > deadzone)
+            m_y = MathUtil::Clamp(m_y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
+        }
+        else
+        {
+          m_x = xx;
+          m_y = yy;
+        }
+
+        *x = m_x;
+        *y = m_y;
       }
     }
 
     ControlState m_z;
+
+  private:
+    // This is used to reduce the cursor speed for relative input
+    // to something that makes sense with the default range.
+    static constexpr double SPEED_MULTIPLIER = 0.02;
+
+    ControlState m_x = 0.0;
+    ControlState m_y = 0.0;
   };
 
   class Extension : public ControlGroup
