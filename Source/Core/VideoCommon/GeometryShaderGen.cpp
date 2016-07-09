@@ -320,9 +320,15 @@ static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data
   if (uid_data->wireframe && first_vertex)
     out.Write("\tif (i == 0) first = %s;\n", vertex);
 
-  if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+  if (ApiType == API_OPENGL)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
+    AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
+  }
+  else if (ApiType == API_VULKAN)
+  {
+    out.Write("\tgl_Position = %s.pos;\n", vertex);
+    out.Write("\tgl_Position.y = -gl_Position.y;\n", vertex);
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else
