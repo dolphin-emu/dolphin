@@ -7,7 +7,10 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+
 #include "VideoBackends/Vulkan/Helpers.h"
+
+#include "VideoCommon/VideoConfig.h"
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 #include <Windows.h>
@@ -473,10 +476,10 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
 
 VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface)
 {
+  VkResult res;
   uint32_t mode_count;
-  VkResult res =
-      vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &mode_count, nullptr);
-  if (res != VK_SUCCESS)
+  res = vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &mode_count, nullptr);
+  if (res != VK_SUCCESS || mode_count == 0)
   {
     LOG_VULKAN_ERROR(res, "vkGetPhysicalDeviceSurfaceFormatsKHR failed: ");
     return VK_PRESENT_MODE_RANGE_SIZE_KHR;
@@ -487,14 +490,27 @@ VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSur
                                                   present_modes.data());
   assert(res == VK_SUCCESS);
 
-  // TODO: Hook up to config regarding vsync
-  VkPresentModeKHR preferred_present_mode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-  if (std::find_if(present_modes.begin(), present_modes.end(), [=](VkPresentModeKHR mode) {
-        return (mode == preferred_present_mode);
-      }) != present_modes.end())
-    return preferred_present_mode;
+  // Checks if a particular mode is supported, if it is, returns that mode.
+  auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
+    auto it = std::find_if(present_modes.begin(),
+                           present_modes.end(),
+                           [check_mode](VkPresentModeKHR mode) { return (check_mode == mode); });
+    return (it != present_modes.end());
+  };
 
-  // Preferred mode not available, use the first
+  // If vsync is enabled, prefer VK_PRESENT_MODE_FIFO_KHR.
+  if (g_ActiveConfig.IsVSync() && CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
+    return VK_PRESENT_MODE_FIFO_KHR;
+
+  // Prefer screen-tearing, if possible, for lowest latency.
+  if (CheckForMode(VK_PRESENT_MODE_IMMEDIATE_KHR))
+    return VK_PRESENT_MODE_IMMEDIATE_KHR;
+
+  // Use optimized-vsync above vsync.
+  if (CheckForMode(VK_PRESENT_MODE_MAILBOX_KHR))
+    return VK_PRESENT_MODE_MAILBOX_KHR;
+
+  // Fall back to whatever is available.
   return present_modes[0];
 }
 
