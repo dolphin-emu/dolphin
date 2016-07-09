@@ -40,9 +40,9 @@ bool SharedShaderCache::CompileShaders()
   if (efb_layers > 1)
   {
     if ((m_vertex_shaders.screen_quad = m_gs_cache->CompileAndCreateShader(
-            header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE)) == nullptr ||
+             header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE)) == nullptr ||
         (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(
-            header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr)
+             header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr)
     {
       return false;
     }

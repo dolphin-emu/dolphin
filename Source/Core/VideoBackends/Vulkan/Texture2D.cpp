@@ -70,7 +70,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, 
   VkMemoryAllocateInfo memory_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
       g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)};
+                                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)};
 
   VkDeviceMemory device_memory;
   res = vkAllocateMemory(g_object_cache->GetDevice(), &memory_info, nullptr, &device_memory);
@@ -113,8 +113,8 @@ std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, 
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(width, height, levels, layers, format,
-                                     view_type, image, device_memory, view);
+  return std::make_unique<Texture2D>(width, height, levels, layers, format, view_type, image,
+                                     device_memory, view);
 }
 
 std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 height, u32 levels,
@@ -144,8 +144,8 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 hei
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(width, height, levels, layers, format,
-                                     view_type, existing_image, nullptr, view);
+  return std::make_unique<Texture2D>(width, height, levels, layers, format, view_type,
+                                     existing_image, nullptr, view);
 }
 
 void Texture2D::OverrideImageLayout(VkImageLayout new_layout)

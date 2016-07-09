@@ -40,7 +40,6 @@ public:
   VkImage GetImage() const { return m_image; }
   VkDeviceMemory GetDeviceMemory() const { return m_device_memory; }
   VkImageView GetView() const { return m_view; }
-
   // Used when the render pass is changing the image layout, or to force it to
   // VK_IMAGE_LAYOUT_UNDEFINED, if the existing contents of the image is
   // irrelevant and will not be loaded.

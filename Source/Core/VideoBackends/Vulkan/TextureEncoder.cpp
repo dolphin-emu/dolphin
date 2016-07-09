@@ -22,8 +22,7 @@
 
 namespace Vulkan
 {
-TextureEncoder::TextureEncoder(StateTracker* state_tracker)
-    : m_state_tracker(state_tracker)
+TextureEncoder::TextureEncoder(StateTracker* state_tracker) : m_state_tracker(state_tracker)
 {
   if (!CompileShaders())
     PanicAlert("Failed to compile shaders");
@@ -67,11 +66,9 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
     return;
   }
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                         m_encoding_render_pass,
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_encoding_render_pass,
                          g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE,
-                         m_texture_encoding_shaders[format]);
+                         VK_NULL_HANDLE, m_texture_encoding_shaders[format]);
 
   // Allocate uniform buffer - int4 of left,top,native_width,scale
   // TODO: Replace with push constants
@@ -235,10 +232,10 @@ bool TextureEncoder::CreateEncodingRenderPass()
 bool TextureEncoder::CreateEncodingTexture()
 {
   // From OGL: Why do we create a 1024 height texture?
-  m_encoding_texture = Texture2D::Create(
-      ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
-      VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  m_encoding_texture =
+      Texture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
+                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
   if (!m_encoding_texture)
     return false;
 

@@ -29,12 +29,10 @@ VertexManager::VertexManager(StateTracker* state_tracker)
       m_cpu_index_buffer(MAXIBUFFERSIZE)
 {
   m_vertex_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                                                INITIAL_VERTEX_BUFFER_SIZE,
-                                                MAX_VERTEX_BUFFER_SIZE);
+                                                INITIAL_VERTEX_BUFFER_SIZE, MAX_VERTEX_BUFFER_SIZE);
 
   m_index_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                                               INITIAL_INDEX_BUFFER_SIZE,
-                                               MAX_INDEX_BUFFER_SIZE);
+                                               INITIAL_INDEX_BUFFER_SIZE, MAX_INDEX_BUFFER_SIZE);
 
   if (!m_vertex_stream_buffer || !m_index_stream_buffer)
     PanicAlert("Failed to allocate streaming buffers");

@@ -230,9 +230,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
   // EFB framebuffer has now changed, so update accordingly.
   VkRect2D framebuffer_render_area = {
-    { 0, 0 }, { m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight() } };
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(),
-                                  framebuffer_render_area);
+      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
 }
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
@@ -276,8 +275,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Blit the EFB to the back buffer (Swap chain)
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                         m_swap_chain->GetRenderPass(),
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_swap_chain->GetRenderPass(),
                          g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
                          VK_NULL_HANDLE,
                          g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
@@ -327,8 +325,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   BeginFrame();
 
   // Restore the EFB color texture to color attachment ready for rendering.
-  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Clean up stale textures
   TextureCacheBase::Cleanup(frameCount);
@@ -360,11 +358,12 @@ void Renderer::CheckForConfigChanges()
 {
   // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
   bool vsync_changed = (g_Config.bVSync != g_ActiveConfig.bVSync);
-  //bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
-  //bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
+  // bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
+  // bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
   bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
-  bool force_texture_filtering_changed = (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
-  //bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
+  bool force_texture_filtering_changed =
+      (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
+  // bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
 
   // Copy g_Config to g_ActiveConfig.
   UpdateActiveConfig();
@@ -714,8 +713,7 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   new_state.wrap_v = address_modes[tm0.wrap_t];
 
   // Only use anisotropic filtering for textures that would be linearly filtered.
-  if (g_object_cache->SupportsAnisotropicFiltering() &&
-      g_ActiveConfig.iMaxAnisotropy > 0 &&
+  if (g_object_cache->SupportsAnisotropicFiltering() && g_ActiveConfig.iMaxAnisotropy > 0 &&
       !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
   {
     new_state.anisotropy = g_ActiveConfig.iMaxAnisotropy;

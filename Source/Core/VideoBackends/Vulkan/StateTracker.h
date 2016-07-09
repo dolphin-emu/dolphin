@@ -151,5 +151,4 @@ private:
   bool m_in_render_pass = false;
   bool m_bbox_enabled = false;
 };
-
 }
