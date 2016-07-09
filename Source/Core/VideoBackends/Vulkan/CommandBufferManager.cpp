@@ -226,6 +226,18 @@ void CommandBufferManager::PrepareToSubmitCommandBuffer()
   m_submit_semaphore.Wait();
 }
 
+void CommandBufferManager::WaitForWorkerThreadIdle()
+{
+  // Drain the semaphore, then allow another request in the future.
+  m_submit_semaphore.Wait();
+  m_submit_semaphore.Post();
+}
+
+void CommandBufferManager::WaitForGPUIdle()
+{
+  vkDeviceWaitIdle(m_device);
+}
+
 void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
 {
   // End the current command buffer.

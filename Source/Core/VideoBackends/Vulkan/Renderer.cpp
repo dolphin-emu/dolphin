@@ -135,15 +135,8 @@ void Renderer::BeginFrame()
   // Activate a new command list, and restore state ready for the next draw
   g_command_buffer_mgr->ActivateCommandBuffer();
 
-  // Ensure our EFB framebuffer is in COLOR/DEPTH_ATTACMENT_OPTIMAL layout
-  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  m_framebuffer_mgr->GetEFBDepthTexture()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(),
-      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
-  // Ensure that the state tracker rebinds everything, and allocates a new set of descriptors out of
-  // the next pool.
+  // Ensure that the state tracker rebinds everything, and allocates a new set
+  // of descriptors out of the next pool.
   m_state_tracker->InvalidateDescriptorSets();
   m_state_tracker->SetPendingRebind();
 }
@@ -242,6 +235,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Ensure the worker thread is not still submitting a previous command buffer.
+  // In other words, the last frame has been submitted (otherwise the next call would
+  // be a race, as the image may not have been consumed yet).
   g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
 
   // Grab the next image from the swap chain in preparation for drawing the window.
@@ -249,6 +244,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
   {
     // Window has been resized. Update the swap chain and try again.
+    // The resize here is safe since the worker thread is guaranteed to be idle.
     if (m_swap_chain->ResizeSwapChain())
     {
       res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
@@ -317,15 +313,48 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Prep for the next frame (get command buffer ready) before doing anything else.
   BeginFrame();
 
+  // Restore the EFB color texture to color attachment ready for rendering.
+  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+  // Clean up stale textures
   TextureCacheBase::Cleanup(frameCount);
+
+  // Determine what has changed in the config.
+  CheckForConfigChanges();
+}
+
+void Renderer::CheckForConfigChanges()
+{
+  // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
+  bool vsync_changed = (g_Config.bVSync != g_ActiveConfig.bVSync);
+  //bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
+  //bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
+  bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
+  bool force_texture_filtering_changed = (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
+  //bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
+
+  // Copy g_Config to g_ActiveConfig.
   UpdateActiveConfig();
 
-  // Handle internal resolution changes
+  // Handle internal resolution changes.
   if (s_last_efb_scale != g_ActiveConfig.iEFBScale)
   {
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
     if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
       ResizeEFBTextures();
+  }
+
+  // For vsync, we need to change the present mode, which means recreating the swap chain.
+  if (vsync_changed)
+    ResizeSwapChain();
+
+  // Wipe sampler cache if force texture filtering or anisotropy changes.
+  if (anisotropy_changed || force_texture_filtering_changed)
+  {
+    // Invalidate all sampler objects, and re-create them in the state tracker.
+    g_object_cache->ClearSamplerCache();
+    m_state_tracker->InvalidateSamplerObjects();
   }
 }
 
@@ -356,6 +385,17 @@ void Renderer::ResizeEFBTextures()
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   SetViewport();
   BPFunctions::SetScissor();
+}
+
+void Renderer::ResizeSwapChain()
+{
+  // The worker thread may still be submitting a present on this swap chain.
+  g_command_buffer_mgr->WaitForWorkerThreadIdle();
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // It's now safe to resize the swap chain.
+  m_swap_chain->ResizeSwapChain();
+  OnSwapChainResized();
 }
 
 void Renderer::ApplyState(bool bUseDstAlpha)
@@ -645,15 +685,7 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   new_state.wrap_u = address_modes[tm0.wrap_s];
   new_state.wrap_v = address_modes[tm0.wrap_t];
 
-  // Create a sampler if one matching this description does not already exist
-  VkSampler sampler = g_object_cache->GetSampler(new_state);
-  if (sampler == VK_NULL_HANDLE)
-  {
-    ERROR_LOG(VIDEO, "Failed to create sampler");
-    sampler = g_object_cache->GetPointSampler();
-  }
-
-  m_state_tracker->SetPSSampler((texindex * 4) + stage, sampler);
+  m_state_tracker->SetSampler((texindex * 4) + stage, new_state);
 }
 
 void Renderer::SetDitherMode()
