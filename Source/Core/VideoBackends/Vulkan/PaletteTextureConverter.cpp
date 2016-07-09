@@ -58,10 +58,10 @@ bool PaletteTextureConverter::Initialize()
   return true;
 }
 
-void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
-                                             Texture2D* dst_texture, VkFramebuffer dst_framebuffer,
-                                             Texture2D* src_texture, u32 width, u32 height,
-                                             void* palette, TlutFormat format)
+void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Texture2D* dst_texture,
+                                             VkFramebuffer dst_framebuffer, Texture2D* src_texture,
+                                             u32 width, u32 height, void* palette,
+                                             TlutFormat format)
 {
   struct PSUniformBlock
   {
@@ -79,16 +79,16 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
   // If any of these fail, execute a command buffer, and try again.
   if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                               g_object_cache->GetTexelBufferAlignment()) ||
-      (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) ==
-          VK_NULL_HANDLE)
+      (texel_buffer_descriptor_set =
+           g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
     Util::ExecuteCurrentCommandsAndRestoreState(state_tracker, false);
 
     if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                                 g_object_cache->GetTexelBufferAlignment()) ||
-        (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) ==
-            VK_NULL_HANDLE)
+        (texel_buffer_descriptor_set =
+             g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) == VK_NULL_HANDLE)
     {
       PanicAlert("Failed to allocate space for texture conversion");
       return;
@@ -101,11 +101,16 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
 
   // Fill descriptor set #2 (texel buffer)
   u32 palette_offset = static_cast<u32>(m_palette_stream_buffer->GetCurrentOffset());
-  VkWriteDescriptorSet texel_set_write = {
-    VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,
-    texel_buffer_descriptor_set, 0, 0, 1, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
-    nullptr, nullptr, &m_palette_buffer_view
-  };
+  VkWriteDescriptorSet texel_set_write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                          nullptr,
+                                          texel_buffer_descriptor_set,
+                                          0,
+                                          0,
+                                          1,
+                                          VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+                                          nullptr,
+                                          nullptr,
+                                          &m_palette_buffer_view};
   vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &texel_set_write, 0, nullptr);
 
   // Transition resource states
@@ -113,19 +118,16 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
   dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            m_palette_stream_buffer->GetBuffer(),
-                            VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, palette_offset,
-                            palette_size, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+                            m_palette_stream_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
+                            VK_ACCESS_SHADER_READ_BIT, palette_offset, palette_size,
+                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
   // Set up draw
-  UtilityShaderDraw draw(m_pipeline_layout,
-                         m_render_pass,
+  UtilityShaderDraw draw(m_pipeline_layout, m_render_pass,
                          g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE,
-                         m_shaders[format]);
+                         VK_NULL_HANDLE, m_shaders[format]);
 
-  VkRect2D region = { { 0, 0 }, { width, height } };
+  VkRect2D region = {{0, 0}, {width, height}};
   draw.BeginRenderPass(dst_framebuffer, region);
 
   // Copy in palette
@@ -133,7 +135,8 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
   m_palette_stream_buffer->CommitMemory(palette_size);
 
   // PS Uniforms/Samplers
-  PSUniformBlock* uniforms = reinterpret_cast<PSUniformBlock*>(draw.AllocatePSUniforms(sizeof(PSUniformBlock)));
+  PSUniformBlock* uniforms =
+      reinterpret_cast<PSUniformBlock*>(draw.AllocatePSUniforms(sizeof(PSUniformBlock)));
   uniforms->multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
   uniforms->texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.CommitPSUniforms(sizeof(PSUniformBlock));
@@ -141,10 +144,8 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
 
   // We have to bind the texel buffer descriptor set separately.
   vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                          VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          m_pipeline_layout,
-                          2, 1, &texel_buffer_descriptor_set,
-                          0, nullptr);
+                          VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 2, 1,
+                          &texel_buffer_descriptor_set, 0, nullptr);
 
   // Draw
   draw.SetViewportAndScissor(0, 0, width, height);
@@ -155,10 +156,9 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
   dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            m_palette_stream_buffer->GetBuffer(),
-                            VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_HOST_WRITE_BIT, palette_offset,
-                            palette_size, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+                            m_palette_stream_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
+                            VK_ACCESS_HOST_WRITE_BIT, palette_offset, palette_size,
+                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 }
 
 bool PaletteTextureConverter::CreateBuffers()
@@ -166,9 +166,8 @@ bool PaletteTextureConverter::CreateBuffers()
   // TODO: Check against maximum size
   static const size_t BUFFER_SIZE = 1024 * 1024;
 
-  m_palette_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
-                                                 BUFFER_SIZE,
-                                                 BUFFER_SIZE);
+  m_palette_stream_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BUFFER_SIZE, BUFFER_SIZE);
   if (!m_palette_stream_buffer)
     return false;
 
@@ -337,8 +336,8 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
       VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(set_bindings),
       set_bindings};
 
-  VkResult res =
-      vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr, &m_palette_set_layout);
+  VkResult res = vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr,
+                                             &m_palette_set_layout);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
@@ -346,10 +345,9 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
   }
 
   VkDescriptorSetLayout sets[] = {
-    g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS),
-    g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS),
-    m_palette_set_layout
-  };
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS),
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS),
+      m_palette_set_layout};
 
   VkPipelineLayoutCreateInfo pipeline_layout_info = {
       VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(sets), sets, 0, nullptr};

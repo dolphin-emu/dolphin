@@ -328,7 +328,7 @@ static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data
   else if (ApiType == API_VULKAN)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
-    out.Write("\tgl_Position.y = -gl_Position.y;\n", vertex);
+    out.Write("\tgl_Position.y = -gl_Position.y;\n");
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else

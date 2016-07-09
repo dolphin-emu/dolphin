@@ -492,8 +492,7 @@ VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSur
 
   // Checks if a particular mode is supported, if it is, returns that mode.
   auto CheckForMode = [&present_modes](VkPresentModeKHR check_mode) {
-    auto it = std::find_if(present_modes.begin(),
-                           present_modes.end(),
+    auto it = std::find_if(present_modes.begin(), present_modes.end(),
                            [check_mode](VkPresentModeKHR mode) { return (check_mode == mode); });
     return (it != present_modes.end());
   };

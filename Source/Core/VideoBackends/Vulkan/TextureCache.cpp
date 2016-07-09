@@ -21,12 +21,11 @@
 
 namespace Vulkan
 {
-TextureCache::TextureCache(StateTracker* state_tracker)
-    : m_state_tracker(state_tracker)
+TextureCache::TextureCache(StateTracker* state_tracker) : m_state_tracker(state_tracker)
 {
-  m_texture_upload_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                                 INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE,
-                                                 MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
+  m_texture_upload_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_TRANSFER_SRC_BIT, INITIAL_TEXTURE_UPLOAD_BUFFER_SIZE,
+                           MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE);
   if (!m_texture_upload_buffer)
     PanicAlert("Failed to create texture upload buffer");
 
@@ -61,10 +60,9 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   TCacheEntry* unconverted = static_cast<TCacheEntry*>(base_unconverted);
   assert(entry->config.rendertarget);
 
-  m_palette_texture_converter->ConvertTexture(m_state_tracker,
-                                              entry->GetTexture(), entry->GetFramebuffer(),
-                                              unconverted->GetTexture(), entry->config.width,
-                                              entry->config.height, palette, format);
+  m_palette_texture_converter->ConvertTexture(
+      m_state_tracker, entry->GetTexture(), entry->GetFramebuffer(), unconverted->GetTexture(),
+      entry->config.width, entry->config.height, palette, format);
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
@@ -98,14 +96,11 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
   // Allocate texture object
-  std::unique_ptr<Texture2D> texture = Texture2D::Create(config.width, config.height,
-                                                         config.levels, config.layers,
-                                                         TEXTURECACHE_TEXTURE_FORMAT,
-                                                         VK_IMAGE_VIEW_TYPE_2D_ARRAY,
-                                                         VK_IMAGE_TILING_OPTIMAL,
-                                                         VK_IMAGE_USAGE_SAMPLED_BIT | 
-                                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-                                                         VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+  std::unique_ptr<Texture2D> texture = Texture2D::Create(
+      config.width, config.height, config.levels, config.layers, TEXTURECACHE_TEXTURE_FORMAT,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+          VK_IMAGE_USAGE_TRANSFER_DST_BIT);
 
   if (!texture)
     return nullptr;
@@ -210,8 +205,8 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   // Allocate memory from the streaming buffer for the texture data.
   // TODO: Handle cases where the texture does not fit into the streaming buffer, we need to
   // allocate a temporary buffer.
-  if (!m_parent->m_texture_upload_buffer->ReserveMemory(upload_size,
-                                                        g_object_cache->GetTextureUploadAlignment()))
+  if (!m_parent->m_texture_upload_buffer->ReserveMemory(
+          upload_size, g_object_cache->GetTextureUploadAlignment()))
   {
     // Execute the command buffer first.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
@@ -297,8 +292,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                         m_parent->m_copy_render_pass,
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_parent->m_copy_render_pass,
                          g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
                          g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
                          is_depth_copy ?
