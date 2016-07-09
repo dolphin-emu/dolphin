@@ -35,7 +35,7 @@ TextureCache::TextureCache(StateTracker* state_tracker)
 
   m_texture_encoder = std::make_unique<TextureEncoder>(state_tracker);
 
-  m_palette_texture_converter = std::make_unique<PaletteTextureConverter>(state_tracker);
+  m_palette_texture_converter = std::make_unique<PaletteTextureConverter>();
   if (!m_palette_texture_converter->Initialize())
     PanicAlert("Failed to initialize palette texture converter");
 }
@@ -61,7 +61,8 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   TCacheEntry* unconverted = static_cast<TCacheEntry*>(base_unconverted);
   assert(entry->config.rendertarget);
 
-  m_palette_texture_converter->ConvertTexture(entry->GetTexture(), entry->GetFramebuffer(),
+  m_palette_texture_converter->ConvertTexture(m_state_tracker,
+                                              entry->GetTexture(), entry->GetFramebuffer(),
                                               unconverted->GetTexture(), entry->config.width,
                                               entry->config.height, palette, format);
 }

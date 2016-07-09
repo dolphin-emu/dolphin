@@ -449,7 +449,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   {
     // UBO only
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            g_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
+                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
                             &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
@@ -457,14 +457,14 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   {
     // Samplers only
     vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, g_object_cache->GetStandardPipelineLayout(),
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_info.pipeline_layout,
         DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS, 1, &bind_descriptor_sets[1], 0, nullptr);
   }
   else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Both
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            g_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
+                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
                             bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
