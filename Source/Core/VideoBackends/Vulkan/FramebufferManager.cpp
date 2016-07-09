@@ -103,21 +103,21 @@ bool FramebufferManager::CreateEFBFramebuffer()
 
   // TODO: Stereo buffers
 
-  m_efb_color_texture = Texture2D::Create(
-      m_efb_width, m_efb_height, 1, m_efb_layers,
-      EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+  m_efb_color_texture =
+      Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
+                        VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
-  m_efb_convert_color_texture = Texture2D::Create(
-      m_efb_width, m_efb_height, 1, m_efb_layers,
-      EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-          VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+  m_efb_convert_color_texture =
+      Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
+                        VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
   m_efb_depth_texture = Texture2D::Create(
-      m_efb_width, m_efb_height, 1, m_efb_layers,
-      EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+      m_efb_width, m_efb_height, 1, m_efb_layers, EFB_DEPTH_TEXTURE_FORMAT,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
           VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
@@ -220,13 +220,12 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
   m_efb_convert_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                         m_efb_render_pass,
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_efb_render_pass,
                          g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
                          g_object_cache->GetSharedShaderCache().GetScreenQuadGeometryShader(),
                          pixel_shader);
 
-  VkRect2D region = { { 0, 0 }, { m_efb_width, m_efb_height } };
+  VkRect2D region = {{0, 0}, {m_efb_width, m_efb_height}};
   draw.BeginRenderPass(m_efb_convert_framebuffer, region);
   draw.SetPSSampler(0, m_efb_color_texture->GetView(), g_object_cache->GetPointSampler());
   draw.SetViewportAndScissor(0, 0, m_efb_width, m_efb_height);
@@ -303,8 +302,7 @@ bool FramebufferManager::RecompileShaders()
   m_ps_rgb8_to_rgba6 = ps_cache.CompileAndCreateShader(header + RGB8_TO_RGBA6_SHADER_SOURCE);
   m_ps_rgba6_to_rgb8 = ps_cache.CompileAndCreateShader(header + RGBA6_TO_RGB8_SHADER_SOURCE);
 
-  return (m_ps_rgba6_to_rgb8 != VK_NULL_HANDLE &&
-          m_ps_rgb8_to_rgba6 != VK_NULL_HANDLE);
+  return (m_ps_rgba6_to_rgb8 != VK_NULL_HANDLE && m_ps_rgb8_to_rgba6 != VK_NULL_HANDLE);
 }
 
 void FramebufferManager::DestroyShaders()

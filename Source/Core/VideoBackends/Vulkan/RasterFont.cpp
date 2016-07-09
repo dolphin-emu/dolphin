@@ -199,11 +199,9 @@ bool RasterFont::CreateTexture()
   }
 
   // create the actual texture object
-  m_texture = Texture2D::Create(CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1,
-                                VK_FORMAT_R8G8B8A8_UNORM,
-                                VK_IMAGE_VIEW_TYPE_2D,
-                                VK_IMAGE_TILING_OPTIMAL,
-                                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+  m_texture = Texture2D::Create(
+      CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D,
+      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
   if (!m_texture)
     return false;
 
@@ -303,11 +301,8 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   if (text.empty())
     return;
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                         render_pass,
-                         m_vertex_shader,
-                         VK_NULL_HANDLE,
-                         m_fragment_shader);
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), render_pass, m_vertex_shader,
+                         VK_NULL_HANDLE, m_fragment_shader);
 
   UtilityShaderVertex* vertices =
       draw.ReserveVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, text.length() * 6);

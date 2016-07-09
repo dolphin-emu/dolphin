@@ -101,10 +101,8 @@ struct UtilityShaderVertex
 class UtilityShaderDraw
 {
 public:
-  UtilityShaderDraw(VkPipelineLayout pipeline_layout,
-                    VkRenderPass render_pass,
-                    VkShaderModule vertex_shader,
-                    VkShaderModule geometry_shader,
+  UtilityShaderDraw(VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
+                    VkShaderModule vertex_shader, VkShaderModule geometry_shader,
                     VkShaderModule pixel_shader);
 
   UtilityShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
