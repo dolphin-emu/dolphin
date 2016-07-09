@@ -335,6 +335,25 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // Determine what has changed in the config.
   CheckForConfigChanges();
+
+#ifdef VK_USE_PLATFORM_WIN32_KHR
+  // For some reason, the windows WSI (at least on nVidia) doesn't return VK_ERROR_OUT_OF_DATE_KHR.
+  // Horrible work around for this, we should really catch WM_SIZE.
+  {
+    RECT client_rect;
+    if (GetClientRect(reinterpret_cast<HWND>(m_swap_chain->GetNativeHandle()), &client_rect))
+    {
+      LONG width = client_rect.right - client_rect.left;
+      LONG height = client_rect.bottom - client_rect.top;
+      if (width != static_cast<LONG>(m_swap_chain->GetSize().width) ||
+          height != static_cast<LONG>(m_swap_chain->GetSize().height))
+      {
+        WARN_LOG(VIDEO, "Detected client rect change, resizing swap chain");
+        ResizeSwapChain();
+      }
+    }
+  }
+#endif
 }
 
 void Renderer::CheckForConfigChanges()
