@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/SharedShaderCache.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 
 namespace Vulkan
 {
@@ -24,11 +25,7 @@ bool SharedShaderCache::CompileShaders()
   u32 efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
 
   // Header - will include information about MSAA modes, etc.
-  std::string header = "";
-  if (g_ActiveConfig.iMultisamples > 1)
-    header += StringFromFormat("#define MSAA_ENABLED 1\n#define MSAA_SAMPLES %d\n",
-                               g_ActiveConfig.iMultisamples);
-  header += StringFromFormat("#define EFB_LAYERS %u\n", efb_layers);
+  std::string header = g_object_cache->GetUtilityShaderHeader();
 
   // Vertex Shaders
   if ((m_vertex_shaders.screen_quad = m_vs_cache->CompileAndCreateShader(
@@ -40,11 +37,15 @@ bool SharedShaderCache::CompileShaders()
   }
 
   // Geometry Shaders
-  if ((efb_layers > 1 &&
-       (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(
-            header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr))
+  if (efb_layers > 1)
   {
-    return false;
+    if ((m_vertex_shaders.screen_quad = m_gs_cache->CompileAndCreateShader(
+            header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE)) == nullptr ||
+        (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(
+            header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr)
+    {
+      return false;
+    }
   }
 
   // Fragment Shaders

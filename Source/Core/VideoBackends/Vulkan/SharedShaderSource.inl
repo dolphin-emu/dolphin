@@ -7,19 +7,11 @@ layout(location = 8) in float3 itex0;
 layout(location = 0) out float3 uv0;
 layout(location = 1) out float4 col0;
 
-#if EFB_LAYERS > 1
-	flat out int layer;
-#endif
-
 void main()
 {
 	gl_Position = ipos;
 	uv0 = itex0;
 	col0 = icol0;
-	
-	#if EFB_LAYERS > 1
-		layer = 0;
-	#endif
 }
 
 )";
@@ -49,7 +41,7 @@ void main()
 		{
 			gl_Layer = j;
 			gl_Position = gl_in[i].gl_Position;
-			out_data.uv0 = in_data[i].uv0;
+			out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
 			out_data.col0 = in_data[i].col0;
 			EmitVertex();
 		}
@@ -63,20 +55,44 @@ static const char SCREEN_QUAD_VERTEX_SHADER_SOURCE[] = R"(
 
 layout(location = 0) out float3 uv0;
 
-#if EFB_LAYERS > 1
-	flat out int layer;
-#endif
-
 void main()
 {
 	vec2 rawpos = float2(float(gl_VertexID & 1), float(gl_VertexID & 2));
 	gl_Position = float4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
 	gl_Position.y = -gl_Position.y;
 	uv0 = float3(rawpos, 0.0f);
+}
 
-	#if EFB_LAYERS > 1
-		layer = 0;
-	#endif
+)";
+
+static const char SCREEN_QUAD_GEOMETRY_SHADER_SOURCE[] = R"(
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
+
+in VertexData
+{
+	float3 uv0;
+} in_data[];
+
+out VertexData
+{
+	float3 uv0;
+} out_data;
+
+void main()
+{
+	for (int j = 0; j < EFB_LAYERS; j++)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			gl_Layer = j;
+			gl_Position = gl_in[i].gl_Position;
+			out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
+			EmitVertex();
+		}
+		EndPrimitive();
+	}
 }
 
 )";
