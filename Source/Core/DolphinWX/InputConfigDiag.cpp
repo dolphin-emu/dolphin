@@ -835,6 +835,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
           new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->m_name))));
       szr->Add(setting->wxcontrol, 0, wxLEFT, 0);
     }
+    for (auto& groupSetting : group->boolean_settings)
+    {
+      auto* checkbox = new PadSettingCheckBox(parent, groupSetting.get());
+      checkbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+      options.push_back(checkbox);
+      Add(checkbox->wxcontrol, 0, wxALL | wxLEFT, 5);
+    }
 
     wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
     h_szr->Add(szr, 1, 0, 5);
