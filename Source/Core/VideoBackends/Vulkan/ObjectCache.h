@@ -96,18 +96,14 @@ public:
   //       - Same as standard, plus a single SSBO accessible from PS
   //   - Push Constant
   //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
-  //   - Input Attachment
-  //       - Same as standard, plus a single input attachment, accessible from PS.
   //
   // All three pipeline layouts use the same descriptor set layouts, but the final descriptor set
   // (SSBO) is only required when using the BBox Enabled pipeline layout.
   //
   VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
-  VkDescriptorSetLayout GetInputAttachmentDescriptorSetLayout() const { return m_input_attachment_descriptor_set_layout; }
   VkPipelineLayout GetStandardPipelineLayout() const { return m_standard_pipeline_layout; }
   VkPipelineLayout GetBBoxPipelineLayout() const { return m_bbox_pipeline_layout; }
   VkPipelineLayout GetPushConstantPipelineLayout() const { return m_push_constant_pipeline_layout; }
-  VkPipelineLayout GetInputAttachmentPipelineLayout() const { return m_input_attachment_pipeline_layout; }
 
   // Shared utility shader resources
   VertexFormat* GetUtilityShaderVertexFormat() const
@@ -174,12 +170,10 @@ private:
   VkPhysicalDeviceLimits m_device_limits = {};
 
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
-  VkDescriptorSetLayout m_input_attachment_descriptor_set_layout = VK_NULL_HANDLE;
 
   VkPipelineLayout m_standard_pipeline_layout = VK_NULL_HANDLE;
   VkPipelineLayout m_bbox_pipeline_layout = VK_NULL_HANDLE;
   VkPipelineLayout m_push_constant_pipeline_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_input_attachment_pipeline_layout = VK_NULL_HANDLE;
 
   std::unique_ptr<VertexFormat> m_utility_shader_vertex_format;
   std::unique_ptr<StreamBuffer> m_utility_shader_vertex_buffer;
