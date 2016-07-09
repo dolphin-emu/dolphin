@@ -443,5 +443,4 @@ void CommandBufferManager::RemoveFencePointCallback(const void* key)
 }
 
 std::unique_ptr<CommandBufferManager> g_command_buffer_mgr;
-
 }

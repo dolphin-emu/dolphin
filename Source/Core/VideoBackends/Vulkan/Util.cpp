@@ -112,10 +112,8 @@ void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool exe
 
 }  // namespace Util
 
-UtilityShaderDraw::UtilityShaderDraw(VkPipelineLayout pipeline_layout,
-                                     VkRenderPass render_pass,
-                                     VkShaderModule vertex_shader,
-                                     VkShaderModule geometry_shader,
+UtilityShaderDraw::UtilityShaderDraw(VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
+                                     VkShaderModule vertex_shader, VkShaderModule geometry_shader,
                                      VkShaderModule pixel_shader)
 {
   // Populate minimal pipeline state
@@ -456,9 +454,9 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   else if (bind_descriptor_sets[0] == VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Samplers only
-    vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_info.pipeline_layout,
-        DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS, 1, &bind_descriptor_sets[1], 0, nullptr);
+    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS,
+                            1, &bind_descriptor_sets[1], 0, nullptr);
   }
   else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {

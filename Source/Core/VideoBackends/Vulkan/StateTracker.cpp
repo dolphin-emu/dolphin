@@ -52,7 +52,9 @@ StateTracker::StateTracker()
   }
 
   // Create the streaming uniform buffer
-  m_uniform_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, INITIAL_UNIFORM_STREAM_BUFFER_SIZE, MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
+  m_uniform_stream_buffer =
+      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, INITIAL_UNIFORM_STREAM_BUFFER_SIZE,
+                           MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_uniform_stream_buffer)
     PanicAlert("Failed to create uniform stream buffer");
 
@@ -434,8 +436,7 @@ void StateTracker::SetBBoxEnable(bool enable)
 
 void StateTracker::SetBBoxBuffer(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize range)
 {
-  if (m_bindings.ps_ssbo.buffer == buffer &&
-      m_bindings.ps_ssbo.offset == offset &&
+  if (m_bindings.ps_ssbo.buffer == buffer && m_bindings.ps_ssbo.offset == offset &&
       m_bindings.ps_ssbo.range == range)
   {
     return;
@@ -571,19 +572,17 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             g_object_cache->GetStandardPipelineLayout(), 0,
-                            m_num_active_descriptor_sets,
-                            m_descriptor_sets.data(),
+                            m_num_active_descriptor_sets, m_descriptor_sets.data(),
                             NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_bindings.uniform_buffer_offsets.data());
   }
   else if (m_dirty_flags & DIRTY_FLAG_DYNAMIC_OFFSETS)
   {
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            g_object_cache->GetStandardPipelineLayout(),
-                            DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
-                            &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-                            NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            m_bindings.uniform_buffer_offsets.data());
+    vkCmdBindDescriptorSets(
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+        g_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
+        &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+        m_bindings.uniform_buffer_offsets.data());
   }
 
   if (m_dirty_flags & DIRTY_FLAG_VIEWPORT || rebind_all)
@@ -680,18 +679,25 @@ bool StateTracker::UpdateDescriptorSet()
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 
-  if (m_bbox_enabled && (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
-      m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
+  if (m_bbox_enabled &&
+      (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
+       m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
   {
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
     if (set == VK_NULL_HANDLE)
       return false;
 
-    VkWriteDescriptorSet write = {
-      VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,
-      set, 0, 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-      nullptr, &m_bindings.ps_ssbo, nullptr };
+    VkWriteDescriptorSet write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                  nullptr,
+                                  set,
+                                  0,
+                                  0,
+                                  1,
+                                  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                                  nullptr,
+                                  &m_bindings.ps_ssbo,
+                                  nullptr};
 
     vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &write, 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;

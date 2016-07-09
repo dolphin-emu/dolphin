@@ -25,9 +25,8 @@ public:
 
   bool Initialize();
 
-  void ConvertTexture(StateTracker* state_tracker,
-                      Texture2D* dst_texture, VkFramebuffer dst_framebuffer,
-                      Texture2D* src_texture, u32 width, u32 height,
+  void ConvertTexture(StateTracker* state_tracker, Texture2D* dst_texture,
+                      VkFramebuffer dst_framebuffer, Texture2D* src_texture, u32 width, u32 height,
                       void* palette, TlutFormat format);
 
 private:

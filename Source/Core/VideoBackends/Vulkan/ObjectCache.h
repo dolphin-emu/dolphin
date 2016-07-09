@@ -63,13 +63,14 @@ public:
   }
   const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
   const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_limits; }
-
   // Support bits
-  bool SupportsAnisotropicFiltering() const { return (m_device_features.samplerAnisotropy == VK_TRUE); }
+  bool SupportsAnisotropicFiltering() const
+  {
+    return (m_device_features.samplerAnisotropy == VK_TRUE);
+  }
   bool SupportsGeometryShaders() const { return (m_device_features.geometryShader == VK_TRUE); }
   bool SupportsDualSourceBlend() const { return (m_device_features.dualSrcBlend == VK_TRUE); }
   bool SupportsLogicOps() const { return (m_device_features.logicOp == VK_TRUE); }
-
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
   {
@@ -100,11 +101,13 @@ public:
   // All three pipeline layouts use the same descriptor set layouts, but the final descriptor set
   // (SSBO) is only required when using the BBox Enabled pipeline layout.
   //
-  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const { return m_descriptor_set_layouts[set]; }
+  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const
+  {
+    return m_descriptor_set_layouts[set];
+  }
   VkPipelineLayout GetStandardPipelineLayout() const { return m_standard_pipeline_layout; }
   VkPipelineLayout GetBBoxPipelineLayout() const { return m_bbox_pipeline_layout; }
   VkPipelineLayout GetPushConstantPipelineLayout() const { return m_push_constant_pipeline_layout; }
-
   // Shared utility shader resources
   VertexFormat* GetUtilityShaderVertexFormat() const
   {
@@ -127,7 +130,6 @@ public:
   GeometryShaderCache& GetGeometryShaderCache() { return m_gs_cache; }
   PixelShaderCache& GetPixelShaderCache() { return m_ps_cache; }
   SharedShaderCache& GetSharedShaderCache() { return m_shared_shader_cache; }
-
   // Static samplers
   VkSampler GetPointSampler() const { return m_point_sampler; }
   VkSampler GetLinearSampler() const { return m_linear_sampler; }

@@ -12,7 +12,6 @@
 
 namespace Vulkan
 {
-
 class StreamBuffer
 {
 public:
