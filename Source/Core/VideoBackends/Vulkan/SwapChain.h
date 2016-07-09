@@ -18,11 +18,12 @@ class ObjectCache;
 class SwapChain
 {
 public:
-  SwapChain(VkSurfaceKHR surface, VkQueue present_queue);
+  SwapChain(void* native_handle, VkSurfaceKHR surface, VkQueue present_queue);
   ~SwapChain();
 
   bool Initialize();
 
+  void* GetNativeHandle() const { return m_native_handle; }
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
   VkSwapchainKHR GetSwapChain() const { return m_swap_chain; }
@@ -65,6 +66,7 @@ private:
     VkFramebuffer Framebuffer;
   };
 
+  void* m_native_handle = nullptr;
   VkSurfaceKHR m_surface = nullptr;
   VkSurfaceFormatKHR m_surface_format;
 

@@ -15,8 +15,8 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(VkSurfaceKHR surface, VkQueue present_queue)
-    : m_surface(surface), m_present_queue(present_queue)
+SwapChain::SwapChain(void* native_handle, VkSurfaceKHR surface, VkQueue present_queue)
+    : m_native_handle(native_handle), m_surface(surface), m_present_queue(present_queue)
 {
 }
 

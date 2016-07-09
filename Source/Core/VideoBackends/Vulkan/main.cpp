@@ -234,7 +234,7 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // create swap chain and buffers
-  s_swap_chain = std::make_unique<SwapChain>(s_vkSurface, present_queue);
+  s_swap_chain = std::make_unique<SwapChain>(window_handle, s_vkSurface, present_queue);
   if (!s_swap_chain->Initialize())
   {
     PanicAlert("Failed to create vulkan swap chain");
