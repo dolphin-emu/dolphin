@@ -12,16 +12,13 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
 class StateTracker;
 class Texture2D;
 
 class TextureEncoder
 {
 public:
-  TextureEncoder(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                 StateTracker* state_tracker);
+  TextureEncoder(StateTracker* state_tracker);
   ~TextureEncoder();
 
   void EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format, u32 native_width,
@@ -40,8 +37,6 @@ private:
   bool CreateEncodingTexture();
   bool CreateEncodingDownloadBuffer();
 
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
   StateTracker* m_state_tracker = nullptr;
 
   std::array<VkShaderModule, NUM_TEXTURE_ENCODING_SHADERS> m_texture_encoding_shaders = {};

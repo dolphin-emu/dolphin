@@ -12,14 +12,11 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
 
 class StreamBuffer
 {
 public:
-  StreamBuffer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-               VkBufferUsageFlags usage, size_t max_size);
+  StreamBuffer(VkBufferUsageFlags usage, size_t max_size);
   ~StreamBuffer();
 
   VkBuffer GetBuffer() const { return m_buffer; }
@@ -32,9 +29,7 @@ public:
                      bool allow_growth = true, bool reallocate_if_full = false);
   void CommitMemory(size_t final_num_bytes);
 
-  static std::unique_ptr<StreamBuffer> Create(ObjectCache* object_cache,
-                                              CommandBufferManager* command_buffer_mgr,
-                                              VkBufferUsageFlags usage, size_t initial_size,
+  static std::unique_ptr<StreamBuffer> Create(VkBufferUsageFlags usage, size_t initial_size,
                                               size_t max_size);
 
 private:
@@ -44,9 +39,6 @@ private:
 
   // Waits for as many fences as needed to allocate num_bytes bytes from the buffer.
   bool WaitForClearSpace(size_t num_bytes);
-
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
 
   VkBufferUsageFlags m_usage = 0;
   size_t m_current_size = 0;

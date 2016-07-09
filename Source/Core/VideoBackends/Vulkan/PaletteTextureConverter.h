@@ -12,8 +12,6 @@
 
 namespace Vulkan
 {
-class CommandBufferManager;
-class ObjectCache;
 class StateTracker;
 class Texture2D;
 
@@ -22,8 +20,7 @@ class Texture2D;
 class PaletteTextureConverter
 {
 public:
-  PaletteTextureConverter(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                          StateTracker* state_tracker);
+  PaletteTextureConverter(StateTracker* state_tracker);
   ~PaletteTextureConverter();
 
   bool Initialize();
@@ -40,8 +37,6 @@ private:
   bool CreateDescriptorLayout();
   bool CreatePipelines();
 
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
   StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_render_pass = VK_NULL_HANDLE;

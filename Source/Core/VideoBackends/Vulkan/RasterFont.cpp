@@ -161,17 +161,16 @@ void main()
 
 )";
 
-RasterFont::RasterFont(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr)
+RasterFont::RasterFont()
 {
 }
 
 RasterFont::~RasterFont()
 {
   if (m_vertex_shader != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_vertex_shader);
+    g_command_buffer_mgr->DeferResourceDestruction(m_vertex_shader);
   if (m_fragment_shader != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_fragment_shader);
+    g_command_buffer_mgr->DeferResourceDestruction(m_fragment_shader);
 }
 
 bool RasterFont::Initialize()
@@ -200,8 +199,9 @@ bool RasterFont::CreateTexture()
   }
 
   // create the actual texture object
-  m_texture = Texture2D::Create(m_object_cache, m_command_buffer_mgr, CHAR_WIDTH * CHAR_COUNT,
-                                CHAR_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D,
+  m_texture = Texture2D::Create(CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1,
+                                VK_FORMAT_R8G8B8A8_UNORM,
+                                VK_IMAGE_VIEW_TYPE_2D,
                                 VK_IMAGE_TILING_OPTIMAL,
                                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
   if (!m_texture)
@@ -217,7 +217,7 @@ bool RasterFont::CreateTexture()
                                     0,
                                     nullptr};
   VkBuffer temp_buffer;
-  VkResult res = vkCreateBuffer(m_object_cache->GetDevice(), &buffer_info, nullptr, &temp_buffer);
+  VkResult res = vkCreateBuffer(g_object_cache->GetDevice(), &buffer_info, nullptr, &temp_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
@@ -225,70 +225,70 @@ bool RasterFont::CreateTexture()
   }
 
   VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(m_object_cache->GetDevice(), temp_buffer, &memory_requirements);
-  uint32_t memory_type_index = m_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
+  vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), temp_buffer, &memory_requirements);
+  uint32_t memory_type_index = g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
                                                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
   VkMemoryAllocateInfo memory_allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr,
                                                memory_requirements.size, memory_type_index};
   VkDeviceMemory temp_buffer_memory;
-  res = vkAllocateMemory(m_object_cache->GetDevice(), &memory_allocate_info, nullptr,
+  res = vkAllocateMemory(g_object_cache->GetDevice(), &memory_allocate_info, nullptr,
                          &temp_buffer_memory);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), temp_buffer, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), temp_buffer, nullptr);
     return false;
   }
 
   // Bind buffer to memory
-  res = vkBindBufferMemory(m_object_cache->GetDevice(), temp_buffer, temp_buffer_memory, 0);
+  res = vkBindBufferMemory(g_object_cache->GetDevice(), temp_buffer, temp_buffer_memory, 0);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), temp_buffer, nullptr);
-    vkFreeMemory(m_object_cache->GetDevice(), temp_buffer_memory, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), temp_buffer, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), temp_buffer_memory, nullptr);
     return false;
   }
 
   // Copy into buffer
   void* mapped_ptr;
-  res = vkMapMemory(m_object_cache->GetDevice(), temp_buffer_memory, 0, buffer_info.size, 0,
+  res = vkMapMemory(g_object_cache->GetDevice(), temp_buffer_memory, 0, buffer_info.size, 0,
                     &mapped_ptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkMapMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), temp_buffer, nullptr);
-    vkFreeMemory(m_object_cache->GetDevice(), temp_buffer_memory, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), temp_buffer, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), temp_buffer_memory, nullptr);
     return false;
   }
 
   // Copy texture data into staging buffer
   memcpy(mapped_ptr, texture_data.data(), texture_data.size() * sizeof(u32));
-  vkUnmapMemory(m_object_cache->GetDevice(), temp_buffer_memory);
+  vkUnmapMemory(g_object_cache->GetDevice(), temp_buffer_memory);
 
   // Copy from staging buffer to the final texture
   VkBufferImageCopy region = {0,           CHAR_WIDTH * CHAR_COUNT,
                               CHAR_HEIGHT, {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                               {0, 0, 0},   {CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1}};
-  m_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  vkCmdCopyBufferToImage(m_command_buffer_mgr->GetCurrentCommandBuffer(), temp_buffer,
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), temp_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
   // Free temp buffers after command buffer executes
-  m_texture->TransitionToLayout(m_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_command_buffer_mgr->DeferResourceDestruction(temp_buffer);
-  m_command_buffer_mgr->DeferResourceDestruction(temp_buffer_memory);
+  g_command_buffer_mgr->DeferResourceDestruction(temp_buffer);
+  g_command_buffer_mgr->DeferResourceDestruction(temp_buffer_memory);
   return true;
 }
 
 bool RasterFont::CreateShaders()
 {
   m_vertex_shader =
-      m_object_cache->GetVertexShaderCache().CompileAndCreateShader(VERTEX_SHADER_SOURCE);
+      g_object_cache->GetVertexShaderCache().CompileAndCreateShader(VERTEX_SHADER_SOURCE);
   m_fragment_shader =
-      m_object_cache->GetPixelShaderCache().CompileAndCreateShader(FRAGMENT_SHADER_SOURCE);
+      g_object_cache->GetPixelShaderCache().CompileAndCreateShader(FRAGMENT_SHADER_SOURCE);
   if (m_vertex_shader == VK_NULL_HANDLE || m_fragment_shader == VK_NULL_HANDLE)
     return false;
 
@@ -303,8 +303,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   if (text.empty())
     return;
 
-  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
-                         m_object_cache->GetStandardPipelineLayout(),
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
                          render_pass,
                          m_vertex_shader,
                          VK_NULL_HANDLE,
@@ -404,7 +403,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   memcpy(ps_uniforms_ptr, &ps_block, sizeof(ps_block));
   draw.CommitPSUniforms(sizeof(ps_block));
 
-  draw.SetPSSampler(0, m_texture->GetView(), m_object_cache->GetLinearSampler());
+  draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
   BlendState blend_state = Util::GetNoBlendingBlendState();

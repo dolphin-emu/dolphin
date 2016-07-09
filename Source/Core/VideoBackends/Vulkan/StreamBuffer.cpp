@@ -16,39 +16,34 @@
 
 namespace Vulkan
 {
-StreamBuffer::StreamBuffer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                           VkBufferUsageFlags usage, size_t max_size)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr), m_usage(usage),
-      m_current_size(0), m_maximum_size(max_size), m_current_offset(0), m_current_gpu_position(0),
-      m_last_allocation_size(0), m_buffer(VK_NULL_HANDLE), m_memory(VK_NULL_HANDLE),
-      m_host_pointer(nullptr)
+StreamBuffer::StreamBuffer(VkBufferUsageFlags usage, size_t max_size)
+    : m_usage(usage), m_current_size(0), m_maximum_size(max_size), m_current_offset(0),
+      m_current_gpu_position(0), m_last_allocation_size(0), m_buffer(VK_NULL_HANDLE),
+      m_memory(VK_NULL_HANDLE), m_host_pointer(nullptr)
 {
   // Add a callback that fires on fence point creation and signal
-  command_buffer_mgr->AddFencePointCallback(
+  g_command_buffer_mgr->AddFencePointCallback(
       this, [this](VkFence fence) { this->OnFencePointCreated(fence); },
       [this](VkFence fence) { this->OnFencePointReached(fence); });
 }
 
 StreamBuffer::~StreamBuffer()
 {
-  m_command_buffer_mgr->RemoveFencePointCallback(this);
+  g_command_buffer_mgr->RemoveFencePointCallback(this);
 
   if (m_host_pointer)
-    vkUnmapMemory(m_object_cache->GetDevice(), m_memory);
+    vkUnmapMemory(g_object_cache->GetDevice(), m_memory);
 
   if (m_buffer != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+    g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
   if (m_memory != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_memory);
+    g_command_buffer_mgr->DeferResourceDestruction(m_memory);
 }
 
-std::unique_ptr<StreamBuffer> StreamBuffer::Create(ObjectCache* object_cache,
-                                                   CommandBufferManager* command_buffer_mgr,
-                                                   VkBufferUsageFlags usage, size_t initial_size,
+std::unique_ptr<StreamBuffer> StreamBuffer::Create(VkBufferUsageFlags usage, size_t initial_size,
                                                    size_t max_size)
 {
-  std::unique_ptr<StreamBuffer> buffer =
-      std::make_unique<StreamBuffer>(object_cache, command_buffer_mgr, usage, max_size);
+  std::unique_ptr<StreamBuffer> buffer = std::make_unique<StreamBuffer>(usage, max_size);
   if (!buffer->ResizeBuffer(initial_size))
     return nullptr;
 
@@ -70,7 +65,7 @@ bool StreamBuffer::ResizeBuffer(size_t size)
   };
 
   VkBuffer buffer = VK_NULL_HANDLE;
-  VkResult res = vkCreateBuffer(m_object_cache->GetDevice(), &buffer_create_info, nullptr, &buffer);
+  VkResult res = vkCreateBuffer(g_object_cache->GetDevice(), &buffer_create_info, nullptr, &buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
@@ -79,10 +74,10 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 
   // Get memory requirements (types etc) for this buffer
   VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(m_object_cache->GetDevice(), buffer, &memory_requirements);
+  vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), buffer, &memory_requirements);
 
   // TODO: Support non-coherent mapping by use of vkFlushMappedMemoryRanges
-  uint32_t memory_type_index = m_object_cache->GetMemoryType(
+  uint32_t memory_type_index = g_object_cache->GetMemoryType(
       memory_requirements.memoryTypeBits,
       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
@@ -94,44 +89,44 @@ bool StreamBuffer::ResizeBuffer(size_t size)
       memory_type_index                        // uint32_t           memoryTypeIndex
   };
   VkDeviceMemory memory = VK_NULL_HANDLE;
-  res = vkAllocateMemory(m_object_cache->GetDevice(), &memory_allocate_info, nullptr, &memory);
+  res = vkAllocateMemory(g_object_cache->GetDevice(), &memory_allocate_info, nullptr, &memory);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), buffer, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), buffer, nullptr);
     return false;
   }
 
   // Bind memory to buffer
-  res = vkBindBufferMemory(m_object_cache->GetDevice(), buffer, memory, 0);
+  res = vkBindBufferMemory(g_object_cache->GetDevice(), buffer, memory, 0);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), buffer, nullptr);
-    vkFreeMemory(m_object_cache->GetDevice(), memory, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), buffer, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), memory, nullptr);
     return false;
   }
 
   // Map this buffer into user-space
   void* mapped_ptr = nullptr;
-  res = vkMapMemory(m_object_cache->GetDevice(), memory, 0, size, 0, &mapped_ptr);
+  res = vkMapMemory(g_object_cache->GetDevice(), memory, 0, size, 0, &mapped_ptr);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkMapMemory failed: ");
-    vkDestroyBuffer(m_object_cache->GetDevice(), buffer, nullptr);
-    vkFreeMemory(m_object_cache->GetDevice(), memory, nullptr);
+    vkDestroyBuffer(g_object_cache->GetDevice(), buffer, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), memory, nullptr);
     return false;
   }
 
   // Unmap current host pointer (if there was a previous buffer)
   if (m_host_pointer)
-    vkUnmapMemory(m_object_cache->GetDevice(), m_memory);
+    vkUnmapMemory(g_object_cache->GetDevice(), m_memory);
 
   // Destroy the backings for the buffer after the command buffer executes
   if (m_buffer != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+    g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
   if (m_memory != VK_NULL_HANDLE)
-    m_command_buffer_mgr->DeferResourceDestruction(m_memory);
+    g_command_buffer_mgr->DeferResourceDestruction(m_memory);
 
   // Replace with the new buffer
   m_buffer = buffer;
@@ -294,7 +289,7 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
     return false;
 
   // Wait until this fence is signaled.
-  VkResult res = vkWaitForFences(m_object_cache->GetDevice(), 1, &iter->first, VK_TRUE, UINT64_MAX);
+  VkResult res = vkWaitForFences(g_object_cache->GetDevice(), 1, &iter->first, VK_TRUE, UINT64_MAX);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 

@@ -12,33 +12,31 @@
 
 namespace Vulkan
 {
-Texture2D::Texture2D(CommandBufferManager* command_buffer_mgr, u32 width, u32 height, u32 levels,
-                     u32 layers, VkFormat format, VkImageViewType view_type, VkImage image,
-                     VkDeviceMemory device_memory, VkImageView view)
-    : m_command_buffer_mgr(command_buffer_mgr), m_width(width), m_height(height), m_levels(levels),
-      m_layers(layers), m_format(format), m_layout(VK_IMAGE_LAYOUT_UNDEFINED),
-      m_view_type(view_type), m_image(image), m_device_memory(device_memory), m_view(view)
+Texture2D::Texture2D(u32 width, u32 height, u32 levels, u32 layers, VkFormat format,
+                     VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory,
+                     VkImageView view)
+    : m_width(width), m_height(height), m_levels(levels), m_layers(layers), m_format(format),
+      m_layout(VK_IMAGE_LAYOUT_UNDEFINED), m_view_type(view_type), m_image(image),
+      m_device_memory(device_memory), m_view(view)
 {
 }
 
 Texture2D::~Texture2D()
 {
-  m_command_buffer_mgr->DeferResourceDestruction(m_view);
+  g_command_buffer_mgr->DeferResourceDestruction(m_view);
 
   // If we don't have device memory allocated, consider the image to be owned elsewhere (e.g.
   // swapchain)
   if (m_device_memory)
   {
-    m_command_buffer_mgr->DeferResourceDestruction(m_image);
-    m_command_buffer_mgr->DeferResourceDestruction(m_device_memory);
+    g_command_buffer_mgr->DeferResourceDestruction(m_image);
+    g_command_buffer_mgr->DeferResourceDestruction(m_device_memory);
   }
 }
 
-std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache,
-                                             CommandBufferManager* command_buffer_mgr, u32 width,
-                                             u32 height, u32 levels, u32 layers, VkFormat format,
-                                             VkImageViewType view_type, VkImageTiling tiling,
-                                             VkImageUsageFlags usage)
+std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, u32 layers,
+                                             VkFormat format, VkImageViewType view_type,
+                                             VkImageTiling tiling, VkImageUsageFlags usage)
 {
   // Create image descriptor
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -58,7 +56,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache,
                                   VK_IMAGE_LAYOUT_UNDEFINED};
 
   VkImage image = VK_NULL_HANDLE;
-  VkResult res = vkCreateImage(object_cache->GetDevice(), &image_info, nullptr, &image);
+  VkResult res = vkCreateImage(g_object_cache->GetDevice(), &image_info, nullptr, &image);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImage failed: ");
@@ -67,28 +65,28 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache,
 
   // Allocate memory to back this texture, we want device local memory in this case
   VkMemoryRequirements memory_requirements;
-  vkGetImageMemoryRequirements(object_cache->GetDevice(), image, &memory_requirements);
+  vkGetImageMemoryRequirements(g_object_cache->GetDevice(), image, &memory_requirements);
 
   VkMemoryAllocateInfo memory_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, nullptr, memory_requirements.size,
-      object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
+      g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
                                   VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT)};
 
   VkDeviceMemory device_memory;
-  res = vkAllocateMemory(object_cache->GetDevice(), &memory_info, nullptr, &device_memory);
+  res = vkAllocateMemory(g_object_cache->GetDevice(), &memory_info, nullptr, &device_memory);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyImage(object_cache->GetDevice(), image, nullptr);
+    vkDestroyImage(g_object_cache->GetDevice(), image, nullptr);
     return nullptr;
   }
 
-  res = vkBindImageMemory(object_cache->GetDevice(), image, device_memory, 0);
+  res = vkBindImageMemory(g_object_cache->GetDevice(), image, device_memory, 0);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkBindImageMemory failed: ");
-    vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-    vkFreeMemory(object_cache->GetDevice(), device_memory, nullptr);
+    vkDestroyImage(g_object_cache->GetDevice(), image, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), device_memory, nullptr);
     return nullptr;
   }
 
@@ -106,22 +104,23 @@ std::unique_ptr<Texture2D> Texture2D::Create(ObjectCache* object_cache,
        0, levels, 0, layers}};
 
   VkImageView view = VK_NULL_HANDLE;
-  res = vkCreateImageView(object_cache->GetDevice(), &view_info, nullptr, &view);
+  res = vkCreateImageView(g_object_cache->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
-    vkDestroyImage(object_cache->GetDevice(), image, nullptr);
-    vkFreeMemory(object_cache->GetDevice(), device_memory, nullptr);
+    vkDestroyImage(g_object_cache->GetDevice(), image, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), device_memory, nullptr);
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format,
+  return std::make_unique<Texture2D>(width, height, levels, layers, format,
                                      view_type, image, device_memory, view);
 }
 
-std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(
-    ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr, u32 width, u32 height,
-    u32 levels, u32 layers, VkFormat format, VkImageViewType view_type, VkImage existing_image)
+std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 height, u32 levels,
+                                                              u32 layers, VkFormat format,
+                                                              VkImageViewType view_type,
+                                                              VkImage existing_image)
 {
   // Only need to create the image view
   VkImageViewCreateInfo view_info = {
@@ -138,14 +137,14 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(
        0, levels, 0, layers}};
 
   VkImageView view = VK_NULL_HANDLE;
-  VkResult res = vkCreateImageView(object_cache->GetDevice(), &view_info, nullptr, &view);
+  VkResult res = vkCreateImageView(g_object_cache->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateImageView failed: ");
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(command_buffer_mgr, width, height, levels, layers, format,
+  return std::make_unique<Texture2D>(width, height, levels, layers, format,
                                      view_type, existing_image, nullptr, view);
 }
 

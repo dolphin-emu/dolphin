@@ -35,8 +35,7 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
 // Completes the current render pass, executes the command buffer, and restores state ready for next
 // render.
 // Use when you want to kick the current buffer to make room for new data.
-void ExecuteCurrentCommandsAndRestoreState(CommandBufferManager* command_buffer_mgr,
-                                           StateTracker* state_tracker, bool execute_off_thread);
+void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool execute_off_thread);
 }
 
 // Utility shader vertex format
@@ -102,8 +101,7 @@ struct UtilityShaderVertex
 class UtilityShaderDraw
 {
 public:
-  UtilityShaderDraw(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                    VkPipelineLayout pipeline_layout,
+  UtilityShaderDraw(VkPipelineLayout pipeline_layout,
                     VkRenderPass render_pass,
                     VkShaderModule vertex_shader,
                     VkShaderModule geometry_shader,
@@ -150,9 +148,6 @@ private:
   void BindVertexBuffer(VkCommandBuffer command_buffer);
   void BindDescriptors(VkCommandBuffer command_buffer);
   bool BindPipeline(VkCommandBuffer command_buffer);
-
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
 
   VkBuffer m_vertex_buffer = VK_NULL_HANDLE;
   VkDeviceSize m_vertex_buffer_offset = 0;

@@ -25,10 +25,8 @@
 namespace Vulkan
 {
 // Init functions
-Renderer::Renderer(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-                   SwapChain* swap_chain, StateTracker* state_tracker)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr),
-      m_swap_chain(swap_chain), m_state_tracker(state_tracker)
+Renderer::Renderer(SwapChain* swap_chain, StateTracker* state_tracker)
+    : m_swap_chain(swap_chain), m_state_tracker(state_tracker)
 {
 }
 
@@ -54,7 +52,7 @@ bool Renderer::Initialize()
   if (!CreateSemaphores())
     return false;
 
-  m_raster_font = std::make_unique<RasterFont>(m_object_cache, m_command_buffer_mgr);
+  m_raster_font = std::make_unique<RasterFont>();
   if (!m_raster_font->Initialize())
     return false;
 
@@ -66,8 +64,8 @@ bool Renderer::Initialize()
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
-  m_command_buffer_mgr->PrepareToSubmitCommandBuffer();
-  m_command_buffer_mgr->SubmitCommandBuffer(false);
+  g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
+  g_command_buffer_mgr->SubmitCommandBuffer(false);
   BeginFrame();
 
   return true;
@@ -84,9 +82,9 @@ bool Renderer::CreateSemaphores()
   };
 
   VkResult res;
-  if ((res = vkCreateSemaphore(m_object_cache->GetDevice(), &semaphore_info, nullptr,
+  if ((res = vkCreateSemaphore(g_object_cache->GetDevice(), &semaphore_info, nullptr,
                                &m_image_available_semaphore)) != VK_SUCCESS ||
-      (res = vkCreateSemaphore(m_object_cache->GetDevice(), &semaphore_info, nullptr,
+      (res = vkCreateSemaphore(g_object_cache->GetDevice(), &semaphore_info, nullptr,
                                &m_rendering_finished_semaphore)) != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateSemaphore failed: ");
@@ -100,13 +98,13 @@ void Renderer::DestroySemaphores()
 {
   if (m_image_available_semaphore)
   {
-    vkDestroySemaphore(m_object_cache->GetDevice(), m_image_available_semaphore, nullptr);
+    vkDestroySemaphore(g_object_cache->GetDevice(), m_image_available_semaphore, nullptr);
     m_image_available_semaphore = nullptr;
   }
 
   if (m_rendering_finished_semaphore)
   {
-    vkDestroySemaphore(m_object_cache->GetDevice(), m_rendering_finished_semaphore, nullptr);
+    vkDestroySemaphore(g_object_cache->GetDevice(), m_rendering_finished_semaphore, nullptr);
     m_rendering_finished_semaphore = nullptr;
   }
 }
@@ -135,13 +133,13 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 void Renderer::BeginFrame()
 {
   // Activate a new command list, and restore state ready for the next draw
-  m_command_buffer_mgr->ActivateCommandBuffer();
+  g_command_buffer_mgr->ActivateCommandBuffer();
 
   // Ensure our EFB framebuffer is in COLOR/DEPTH_ATTACMENT_OPTIMAL layout
   m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
-      m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   m_framebuffer_mgr->GetEFBDepthTexture()->TransitionToLayout(
-      m_command_buffer_mgr->GetCurrentCommandBuffer(),
+      g_command_buffer_mgr->GetCurrentCommandBuffer(),
       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
   // Ensure that the state tracker rebinds everything, and allocates a new set of descriptors out of
@@ -188,12 +186,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
       blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
 
     // No need to start a new render pass, but we do need to restore viewport state
-    UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
-                           m_object_cache->GetStandardPipelineLayout(),
+    UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
                            m_framebuffer_mgr->GetEFBRenderPass(),
-                           m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
-                           m_object_cache->GetStaticShaderCache().GetPassthroughGeometryShader(),
-                           m_object_cache->GetStaticShaderCache().GetClearFragmentShader());
+                           g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
+                           g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
+                           g_object_cache->GetSharedShaderCache().GetClearFragmentShader());
 
     draw.SetBlendState(blend_state);
     draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
@@ -223,7 +220,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
     rect.baseArrayLayer = 0;
     rect.layerCount = m_framebuffer_mgr->GetEFBLayers();
 
-    vkCmdClearAttachments(m_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
+    vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
                           clear_attachments, 1, &rect);
   }
 }
@@ -242,10 +239,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // Transition the EFB render target to a shader resource.
   m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
-      m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Ensure the worker thread is not still submitting a previous command buffer.
-  m_command_buffer_mgr->PrepareToSubmitCommandBuffer();
+  g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
 
   // Grab the next image from the swap chain in preparation for drawing the window.
   VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
@@ -267,15 +264,14 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // declares a self-dependency.
   m_swap_chain->GetCurrentTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
   m_swap_chain->GetCurrentTexture()->TransitionToLayout(
-      m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Blit the EFB to the back buffer (Swap chain)
-  UtilityShaderDraw draw(m_object_cache, m_command_buffer_mgr,
-                         m_object_cache->GetStandardPipelineLayout(),
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
                          m_swap_chain->GetRenderPass(),
-                         m_object_cache->GetStaticShaderCache().GetPassthroughVertexShader(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
                          VK_NULL_HANDLE,
-                         m_object_cache->GetStaticShaderCache().GetCopyFragmentShader());
+                         g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
 
   // Begin the present render pass
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -288,13 +284,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // Draw a quad that blits/scales the internal framebuffer to the swap chain.
   draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(),
-                    m_object_cache->GetLinearSampler());
+                    g_object_cache->GetLinearSampler());
   draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
                 m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(), target_rc.left,
                 target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
 
   // OSD stuff
-  Util::SetViewportAndScissor(m_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
+  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
                               m_swap_chain->GetSize().width, m_swap_chain->GetSize().height);
   DrawDebugText();
 
@@ -308,13 +304,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Transition the backbuffer to PRESENT_SRC to ensure all commands drawing to it have finished
   // before present.
   m_swap_chain->GetCurrentTexture()->TransitionToLayout(
-      m_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
   // Submit the current command buffer, signaling rendering finished semaphore when it's done
   // Because this final command buffer is rendering to the swap chain, we need to wait for
   // the available semaphore to be signaled before executing the buffer. This final submission
   // can happen off-thread in the background while we're preparing the next frame.
-  m_command_buffer_mgr->SubmitCommandBufferAndPresent(
+  g_command_buffer_mgr->SubmitCommandBufferAndPresent(
       m_image_available_semaphore, m_rendering_finished_semaphore, m_swap_chain->GetSwapChain(),
       m_swap_chain->GetCurrentImageIndex(), true);
 
@@ -650,11 +646,11 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   new_state.wrap_v = address_modes[tm0.wrap_t];
 
   // Create a sampler if one matching this description does not already exist
-  VkSampler sampler = m_object_cache->GetSampler(new_state);
+  VkSampler sampler = g_object_cache->GetSampler(new_state);
   if (sampler == VK_NULL_HANDLE)
   {
     ERROR_LOG(VIDEO, "Failed to create sampler");
-    sampler = m_object_cache->GetPointSampler();
+    sampler = g_object_cache->GetPointSampler();
   }
 
   m_state_tracker->SetPSSampler((texindex * 4) + stage, sampler);

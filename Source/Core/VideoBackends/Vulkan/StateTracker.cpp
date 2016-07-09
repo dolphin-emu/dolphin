@@ -20,11 +20,10 @@
 
 namespace Vulkan
 {
-StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr)
-    : m_object_cache(object_cache), m_command_buffer_mgr(command_buffer_mgr)
+StateTracker::StateTracker()
 {
   // Set some sensible defaults
-  m_pipeline_state.pipeline_layout = object_cache->GetStandardPipelineLayout();
+  m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
   m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
   m_pipeline_state.depth_stencil_state.test_enable = VK_TRUE;
   m_pipeline_state.depth_stencil_state.write_enable = VK_TRUE;
@@ -49,13 +48,11 @@ StateTracker::StateTracker(ObjectCache* object_cache, CommandBufferManager* comm
   {
     m_bindings.ps_samplers[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     m_bindings.ps_samplers[i].imageView = VK_NULL_HANDLE;
-    m_bindings.ps_samplers[i].sampler = object_cache->GetPointSampler();
+    m_bindings.ps_samplers[i].sampler = g_object_cache->GetPointSampler();
   }
 
   // Create the streaming uniform buffer
-  m_uniform_stream_buffer =
-      StreamBuffer::Create(object_cache, command_buffer_mgr, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-                           INITIAL_UNIFORM_STREAM_BUFFER_SIZE, MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
+  m_uniform_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, INITIAL_UNIFORM_STREAM_BUFFER_SIZE, MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_uniform_stream_buffer)
     PanicAlert("Failed to create uniform stream buffer");
 
@@ -177,7 +174,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
   if (vs_uid != m_vs_uid)
   {
     m_pipeline_state.vs =
-        m_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, dstalpha_mode);
+        g_object_cache->GetVertexShaderCache().GetShaderForUid(vs_uid, dstalpha_mode);
     m_vs_uid = vs_uid;
     changed = true;
   }
@@ -188,7 +185,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
       m_pipeline_state.gs = VK_NULL_HANDLE;
     else
       m_pipeline_state.gs =
-          m_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, dstalpha_mode);
+          g_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, dstalpha_mode);
 
     m_gs_uid = gs_uid;
     changed = true;
@@ -197,7 +194,7 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
   if (ps_uid != m_ps_uid)
   {
     m_pipeline_state.ps =
-        m_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, dstalpha_mode);
+        g_object_cache->GetPixelShaderCache().GetShaderForUid(ps_uid, dstalpha_mode);
     m_ps_uid = ps_uid;
     changed = true;
   }
@@ -219,7 +216,7 @@ void StateTracker::UpdateVertexShaderConstants()
   // Since the other stages uniform buffers' may be still be using the earlier data,
   // we can't reuse the earlier part of the buffer without re-uploading everything.
   if (!m_uniform_stream_buffer->ReserveMemory(sizeof(VertexShaderConstants),
-                                              m_object_cache->GetUniformBufferAlignment(), false,
+                                              g_object_cache->GetUniformBufferAlignment(), false,
                                               false, false))
   {
     // Re-upload all constants to a new portion of the buffer.
@@ -256,7 +253,7 @@ void StateTracker::UpdateGeometryShaderConstants()
   // Since the other stages uniform buffers' may be still be using the earlier data,
   // we can't reuse the earlier part of the buffer without re-uploading everything.
   if (!m_uniform_stream_buffer->ReserveMemory(sizeof(GeometryShaderConstants),
-                                              m_object_cache->GetUniformBufferAlignment(), false,
+                                              g_object_cache->GetUniformBufferAlignment(), false,
                                               false, false))
   {
     // Re-upload all constants to a new portion of the buffer.
@@ -291,7 +288,7 @@ void StateTracker::UpdatePixelShaderConstants()
   // Since the other stages uniform buffers' may be still be using the earlier data,
   // we can't reuse the earlier part of the buffer without re-uploading everything.
   if (!m_uniform_stream_buffer->ReserveMemory(sizeof(PixelShaderConstants),
-                                              m_object_cache->GetUniformBufferAlignment(), false,
+                                              g_object_cache->GetUniformBufferAlignment(), false,
                                               false, false))
   {
     // Re-upload all constants to a new portion of the buffer.
@@ -324,22 +321,22 @@ void StateTracker::UploadAllConstants()
   size_t vertex_constants_offset = 0;
   size_t geometry_constants_offset =
       Util::AlignValue(vertex_constants_offset + sizeof(VertexShaderConstants),
-                       m_object_cache->GetUniformBufferAlignment());
+                       g_object_cache->GetUniformBufferAlignment());
   size_t pixel_constants_offset =
       Util::AlignValue(geometry_constants_offset + sizeof(GeometryShaderConstants),
-                       m_object_cache->GetUniformBufferAlignment());
+                       g_object_cache->GetUniformBufferAlignment());
   size_t total_allocation_size = pixel_constants_offset + sizeof(PixelShaderConstants);
 
   // Allocate everything at once.
   if (!m_uniform_stream_buffer->ReserveMemory(
-          total_allocation_size, m_object_cache->GetUniformBufferAlignment(), true, true, false))
+          total_allocation_size, g_object_cache->GetUniformBufferAlignment(), true, true, false))
   {
     // If this fails, wait until the GPU has caught up.
     // The only places that call constant updates are safe to have state restored.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in uniform buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_command_buffer_mgr, this, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(this, false);
     if (!m_uniform_stream_buffer->ReserveMemory(
-            total_allocation_size, m_object_cache->GetUniformBufferAlignment(), true, true, false))
+            total_allocation_size, g_object_cache->GetUniformBufferAlignment(), true, true, false))
     {
       PanicAlert("Failed to allocate space for constants in streaming buffer");
       return;
@@ -416,7 +413,7 @@ void StateTracker::SetBBoxEnable(bool enable)
   // Change the number of active descriptor sets, as well as the pipeline layout
   if (enable)
   {
-    m_pipeline_state.pipeline_layout = m_object_cache->GetBBoxPipelineLayout();
+    m_pipeline_state.pipeline_layout = g_object_cache->GetBBoxPipelineLayout();
     m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS;
 
     // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
@@ -425,7 +422,7 @@ void StateTracker::SetBBoxEnable(bool enable)
   }
   else
   {
-    m_pipeline_state.pipeline_layout = m_object_cache->GetStandardPipelineLayout();
+    m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
     m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS - 1;
   }
 
@@ -493,7 +490,7 @@ void StateTracker::BeginRenderPass()
                                       0,
                                       nullptr};
 
-  vkCmdBeginRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
+  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
 
   m_in_render_pass = true;
@@ -504,7 +501,7 @@ void StateTracker::EndRenderPass()
   if (!m_in_render_pass)
     return;
 
-  vkCmdEndRenderPass(m_command_buffer_mgr->GetCurrentCommandBuffer());
+  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
   m_in_render_pass = false;
 }
 
@@ -542,7 +539,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
     WARN_LOG(VIDEO, "Failed to get a descriptor set, executing buffer");
 
     // Try again after executing the current buffer.
-    m_command_buffer_mgr->ExecuteCommandBuffer(false, false);
+    g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
     InvalidateDescriptorSets();
     SetPendingRebind();
     if (!UpdateDescriptorSet())
@@ -558,7 +555,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
     BeginRenderPass();
 
   // Re-bind parts of the pipeline
-  VkCommandBuffer command_buffer = m_command_buffer_mgr->GetCurrentCommandBuffer();
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
   if (m_dirty_flags & DIRTY_FLAG_VERTEX_BUFFER || rebind_all)
     vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
 
@@ -571,7 +568,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SET_BINDING || rebind_all)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_object_cache->GetStandardPipelineLayout(), 0,
+                            g_object_cache->GetStandardPipelineLayout(), 0,
                             m_num_active_descriptor_sets,
                             m_descriptor_sets.data(),
                             NUM_UBO_DESCRIPTOR_SET_BINDINGS,
@@ -580,7 +577,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   else if (m_dirty_flags & DIRTY_FLAG_DYNAMIC_OFFSETS)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_object_cache->GetStandardPipelineLayout(),
+                            g_object_cache->GetStandardPipelineLayout(),
                             DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
                             &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS],
                             NUM_UBO_DESCRIPTOR_SET_BINDINGS,
@@ -604,7 +601,7 @@ bool StateTracker::UpdatePipeline()
     return false;
 
   // Grab a new pipeline object, this can fail
-  m_pipeline_object = m_object_cache->GetPipeline(m_pipeline_state);
+  m_pipeline_object = g_object_cache->GetPipeline(m_pipeline_state);
   if (m_pipeline_object == VK_NULL_HANDLE)
     return false;
 
@@ -619,8 +616,8 @@ bool StateTracker::UpdateDescriptorSet()
   if (m_dirty_flags & (DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_UBO) ||
       m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] == VK_NULL_HANDLE)
   {
-    VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(
-        m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
     if (set == VK_NULL_HANDLE)
       return false;
 
@@ -640,7 +637,7 @@ bool StateTracker::UpdateDescriptorSet()
                        nullptr};
     }
 
-    vkUpdateDescriptorSets(m_object_cache->GetDevice(), static_cast<uint32_t>(set_writes.size()),
+    vkUpdateDescriptorSets(g_object_cache->GetDevice(), static_cast<uint32_t>(set_writes.size()),
                            set_writes.data(), 0, nullptr);
 
     m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
@@ -653,8 +650,8 @@ bool StateTracker::UpdateDescriptorSet()
     std::array<VkWriteDescriptorSet, NUM_PIXEL_SHADER_SAMPLERS> writes;
     uint32_t num_writes = 0;
 
-    VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(
-        m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
     if (set == VK_NULL_HANDLE)
       return false;
 
@@ -676,7 +673,7 @@ bool StateTracker::UpdateDescriptorSet()
       }
     }
 
-    vkUpdateDescriptorSets(m_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
+    vkUpdateDescriptorSets(g_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
@@ -684,8 +681,8 @@ bool StateTracker::UpdateDescriptorSet()
   if (m_bbox_enabled && (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
       m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
   {
-    VkDescriptorSet set = m_command_buffer_mgr->AllocateDescriptorSet(
-      m_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
     if (set == VK_NULL_HANDLE)
       return false;
 
@@ -694,7 +691,7 @@ bool StateTracker::UpdateDescriptorSet()
       set, 0, 0, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
       nullptr, &m_bindings.ps_ssbo, nullptr };
 
-    vkUpdateDescriptorSets(m_object_cache->GetDevice(), 1, &write, 0, nullptr);
+    vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &write, 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }

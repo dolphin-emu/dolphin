@@ -18,8 +18,7 @@ class ObjectCache;
 class SwapChain
 {
 public:
-  SwapChain(ObjectCache* object_cache, CommandBufferManager* command_buffer_mgr,
-            VkSurfaceKHR surface, VkQueue present_queue);
+  SwapChain(VkSurfaceKHR surface, VkQueue present_queue);
   ~SwapChain();
 
   bool Initialize();
@@ -44,7 +43,6 @@ public:
   }
 
   VkResult AcquireNextImage(VkSemaphore available_semaphore);
-  VkResult Present(VkSemaphore rendering_complete_semaphore);
 
   bool ResizeSwapChain();
 
@@ -67,8 +65,6 @@ private:
     VkFramebuffer Framebuffer;
   };
 
-  ObjectCache* m_object_cache = nullptr;
-  CommandBufferManager* m_command_buffer_mgr = nullptr;
   VkSurfaceKHR m_surface = nullptr;
   VkSurfaceFormatKHR m_surface_format;
 
