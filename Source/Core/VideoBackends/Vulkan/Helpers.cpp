@@ -531,17 +531,16 @@ VkSurfaceFormatKHR SelectVulkanSurfaceFormat(VkPhysicalDevice physical_device, V
 
   // If there is a single undefined surface format, the device doesn't care, so we'll just use RGBA
   if (surface_formats[0].format == VK_FORMAT_UNDEFINED)
-  {
-#ifdef WIN32
     return {VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-#else
-    // Error in an earlier SDK?
-    return {VK_FORMAT_R8G8B8A8_UNORM, VK_COLORSPACE_SRGB_NONLINEAR_KHR};
-#endif
-  }
 
-  // Return the first surface format, just use what it prefers
-  return surface_formats[0];
+  // Return the first surface format, just use what it prefers.
+  VkSurfaceFormatKHR result = surface_formats[0];
+
+  // Some drivers seem to return a SRGB format here (Intel Mesa).
+  // This results in gamma correction when presenting to the screen, which we don't want.
+  // Use a linear format instead, if this is the case.
+  result.format = GetLinearFormat(result.format);
+  return result;
 }
 
 bool IsDepthFormat(VkFormat format)
@@ -556,6 +555,27 @@ bool IsDepthFormat(VkFormat format)
     return true;
   default:
     return false;
+  }
+}
+
+VkFormat GetLinearFormat(VkFormat format)
+{
+  switch (format)
+  {
+  case VK_FORMAT_R8_SRGB:
+    return VK_FORMAT_R8_UNORM;
+  case VK_FORMAT_R8G8_SRGB:
+    return VK_FORMAT_R8G8_UNORM;
+  case VK_FORMAT_R8G8B8_SRGB:
+    return VK_FORMAT_R8G8B8_UNORM;
+  case VK_FORMAT_R8G8B8A8_SRGB:
+    return VK_FORMAT_R8G8B8A8_UNORM;
+  case VK_FORMAT_B8G8R8_SRGB:
+    return VK_FORMAT_B8G8R8_UNORM;
+  case VK_FORMAT_B8G8R8A8_SRGB:
+    return VK_FORMAT_B8G8R8A8_UNORM;
+  default:
+    return format;
   }
 }
 

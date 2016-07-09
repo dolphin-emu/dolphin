@@ -15,7 +15,7 @@
 //#warning Unknown platform
 #endif
 
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan.h"
 
 // We abuse the preprocessor here to only need to specify function names once.
 #define VULKAN_MODULE_ENTRY_POINT(name, required) extern PFN_##name name;
