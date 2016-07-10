@@ -187,7 +187,7 @@ private:
   void SendAck(const u8 _reportID, u8 err = 0);
   void RequestStatus(const wm_request_status* const rs = nullptr, int ext = -1);
   void ReadData(const wm_read_data* const rd);
-  void WriteData(const wm_write_data* const wd);
+  u8 WriteData(const wm_write_data* const wd);
   void SendReadDataReply(ReadRequest& _request);
   void SpeakerData(wm_speaker_data* sd);
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size);

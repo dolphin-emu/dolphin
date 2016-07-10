@@ -77,6 +77,8 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
   // In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
   m_rumble_on = sr->rumble;
 
+  u8 err = 0;
+
   switch (sr->wm)
   {
   case WM_RUMBLE:  // 0x10
@@ -115,8 +117,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
     break;
 
   case WM_WRITE_DATA:  // 0x16
-    WriteData((wm_write_data*)sr->data);
-    return;  // sends its own ack
+    err = WriteData((wm_write_data*)sr->data);
     break;
 
   case WM_READ_DATA:  // 0x17
@@ -163,7 +164,7 @@ void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 
   // send ack
   if (send_ack && WIIMOTE_SRC_EMU & g_wiimote_sources[m_index])
-    SendAck(sr->wm);
+    SendAck(sr->wm, err);
 }
 
 /* This will generate the 0x22 acknowledgement for most Input reports.
@@ -255,7 +256,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs, int ext)
 }
 
 /* Write data to Wiimote and Extensions registers. */
-void Wiimote::WriteData(const wm_write_data* const wd)
+u8 Wiimote::WriteData(const wm_write_data* const wd)
 {
   u32 address = Common::swap24(wd->address);
 
@@ -265,8 +266,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
   if (wd->size > 16)
   {
     PanicAlert("WriteData: size is > 16 bytes");
-    SendAck(0x16, 8);
-    return;
+    return 8;
   }
 
   switch (wd->space)
@@ -279,8 +279,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     {
       ERROR_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
       PanicAlert("WriteData: address + size out of bounds!");
-      SendAck(0x16, 8);
-      return;
+      return 8;
     }
     memcpy(m_eeprom + address, wd->data, wd->size);
 
@@ -351,8 +350,7 @@ void Wiimote::WriteData(const wm_write_data* const wd)
     else
     {
       // generate a writedata error reply
-      SendAck(0x16, 8);
-      return;
+      return 8;
     }
 
     /* TODO?
@@ -437,11 +435,10 @@ void Wiimote::WriteData(const wm_write_data* const wd)
 
   default:
     PanicAlert("WriteData: unimplemented parameters!");
-    SendAck(0x16, 8);
-    return;
+    return 8;
     break;
   }
-  SendAck(0x16);
+  return 0;
 }
 
 /* Read data from Wiimote and Extensions registers. */
