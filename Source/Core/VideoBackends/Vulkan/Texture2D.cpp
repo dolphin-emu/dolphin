@@ -179,7 +179,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   // so srcStageMask should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, and dstStageMask
   // set to VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, as the barrier should be completed before
   // the next set of commands (after the barrier) can execute.
-  VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+  VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
   VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
   switch (m_layout)
@@ -196,12 +196,14 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
 
   case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
     // Image was being used as a color attachment, so ensure all writes have completed.
-    barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.srcAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
     // Image was being used as a depthstencil attachment, so ensure all writes have completed.
-    barrier.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    barrier.srcAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
@@ -230,11 +232,13 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
     break;
 
   case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
-    barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
-    barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    barrier.dstAccessMask =
+        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
