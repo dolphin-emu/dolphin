@@ -1035,10 +1035,10 @@ void LoadInput(const std::string& filename)
     {
       afterEnd = true;
       PanicAlertT("Warning: You loaded a save that's after the end of the current movie. (byte %u "
-                  "> %u) (frame %u > %u). You should load another save before continuing, or load "
+                  "> %u) (input %u > %u). You should load another save before continuing, or load "
                   "this state with read-only mode off.",
-                  (u32)s_currentByte + 256, (u32)s_totalBytes + 256, (u32)g_currentFrame,
-                  (u32)g_totalFrames);
+                  (u32)s_currentByte + 256, (u32)s_totalBytes + 256, (u32)g_currentInputCount,
+                  (u32)g_totalInputCount);
     }
     else if (s_currentByte > 0 && s_totalBytes > 0)
     {
@@ -1134,7 +1134,7 @@ void LoadInput(const std::string& filename)
 // NOTE: CPU Thread
 static void CheckInputEnd()
 {
-  if (g_currentFrame > g_totalFrames || s_currentByte >= s_totalBytes ||
+  if (s_currentByte >= s_totalBytes ||
       (CoreTiming::GetTicks() > s_totalTickCount && !IsRecordingInputFromSaveState()))
   {
     EndPlayInput(!s_bReadOnly);

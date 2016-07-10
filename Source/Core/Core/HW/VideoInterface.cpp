@@ -710,13 +710,16 @@ static void BeginField(FieldType field)
   DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
             m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 
+  // This assumes the game isn't going to change the VI registers while a
+  // frame is scanning out.
+  // To correctly handle that case we would need to collate all changes
+  // to VI during scanout and delay outputting the frame till then.
   if (xfbAddr)
     g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight);
 }
 
 static void EndField()
 {
-  g_video_backend->Video_EndField();
   Core::VideoThrottle();
 }
 

@@ -88,7 +88,6 @@ public:
   virtual void Video_CleanupOtherThread() = 0;  // called from VR thread
 
   void Video_BeginField(u32, u32, u32, u32);
-  void Video_EndField();
 
   u32 Video_AccessEFB(EFBAccessType, u32, u32, u32);
   u32 Video_GetQueryResult(PerfQueryType type);
