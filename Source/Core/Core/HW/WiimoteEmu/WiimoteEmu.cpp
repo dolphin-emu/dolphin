@@ -23,6 +23,9 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+#include "VideoCommon/BPFunctions.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace
 {
@@ -465,14 +468,49 @@ void Wiimote::GetIRData(u8* const data, bool use_accel)
   static const double dist1 = 100.0 / camWidth;  // this seems the optimal distance for zelda
   static const double dist2 = 1.2 * dist1;
 
-  for (auto& vtx : v)
+  float aspect =
+      SConfig::GetInstance().m_SYSCONF->GetData<bool>("IPL.AR") ? 16.0 / 9.0 : 4.0 / 3.0;
+
+  float yScale = bpmem.triggerEFBCopy.scale_invert ? 256.0f / (float)bpmem.dispcopyyscale :
+                                                     (float)bpmem.dispcopyyscale / 256.0f;
+
+  u32 height = static_cast<u32>(1.0f + (float)bpmem.copyTexSrcWH.y * yScale);
+
+  // NOTICE_LOG(WIIMOTE, "aspect ratio : %f", aspect);
+  // NOTICE_LOG(WIIMOTE, "mouse pos /1 : %f-%f", xx, yy);
+
+  if (!g_ActiveConfig.bMiddleSensorBar)
   {
-    vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
-    if (m_sensor_bar_on_top)
-      vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+    for (auto& vtx : v)
+    {
+      vtx.x = xx * (bndright - bndleft) / 2 + (bndleft + bndright) / 2;
+      if (m_sensor_bar_on_top)
+        vtx.y = yy * (bndup - bnddown) / 2 + (bndup + bnddown) / 2;
+      else
+        vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
+      vtx.z = 0;
+    }
+  }
+  else
+  {
+    if (height != 456)
+    {
+      for (auto& vtx : v)
+      {
+        vtx.x = -xx * 1 / (16.0 / 9.0);
+        vtx.y = -yy * 2 / ((16.0 / 9.0) * (4.0 / 3.0));  // metroid
+        vtx.z = 0;
+      }
+    }
     else
-      vtx.y = yy * (bndup - bnddown) / 2 - (bndup + bnddown) / 2;
-    vtx.z = 0;
+    {
+      for (auto& vtx : v)
+      {
+        vtx.x = -xx * 1 / (16.0 / 9.0);
+        vtx.y = -yy * (1 / (16.0 / 9.0)) / (aspect / (4.0 / 3.0));  // zelda
+        vtx.z = 0;
+      }
+    }
   }
 
   v[0].x -= (zz * 0.5 + 1) * dist1;

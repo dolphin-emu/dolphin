@@ -107,6 +107,7 @@ void VideoConfig::Load(const std::string& ini_file)
   hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
   hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
   hacks->Get("EFBEmulateFormatChanges", &bEFBEmulateFormatChanges, false);
+  hacks->Get("MiddleSensorBar", &bMiddleSensorBar, false);
 
   // hacks which are disabled by default
   iPhackvalue[0] = 0;
@@ -207,7 +208,8 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Hacks", "EFBToTextureEnable", bSkipEFBCopyToRam);
   CHECK_SETTING("Video_Hacks", "EFBScaledCopy", bCopyEFBScaled);
   CHECK_SETTING("Video_Hacks", "EFBEmulateFormatChanges", bEFBEmulateFormatChanges);
-
+  iniFile.GetIfExists("Video_Hacks", "MiddleSensorBar", &bMiddleSensorBar, false);
+  
   CHECK_SETTING("Video", "ProjectionHack", iPhackvalue[0]);
   CHECK_SETTING("Video", "PH_SZNear", iPhackvalue[1]);
   CHECK_SETTING("Video", "PH_SZFar", iPhackvalue[2]);
