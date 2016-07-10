@@ -112,12 +112,10 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
   // Copy from the encoding texture to the download buffer
-  u32 aligned_width = static_cast<u32>(
-      Util::AlignValue(render_width, g_object_cache->GetTextureUploadPitchAlignment()));
   VkBufferImageCopy image_copy = {
       0,                                     // VkDeviceSize                bufferOffset
-      aligned_width,                         // uint32_t                    bufferRowLength
-      render_height,                         // uint32_t                    bufferImageHeight
+      0,                                     // uint32_t                    bufferRowLength
+      0,                                     // uint32_t                    bufferImageHeight
       {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},  // VkImageSubresourceLayers    imageSubresource
       {0, 0, 0},                             // VkOffset3D                  imageOffset
       {render_width, render_height, 1}       // VkExtent3D                  imageExtent
@@ -140,7 +138,7 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
 
   // Map buffer and copy to destination
   // TODO: With vulkan can we leave this mapped?
-  u32 source_stride = aligned_width * sizeof(u32);
+  u32 source_stride = render_width * sizeof(u32);
   void* source_ptr;
   VkResult res = vkMapMemory(g_object_cache->GetDevice(), m_texture_download_buffer_memory, 0,
                              source_stride * render_height, 0, &source_ptr);
@@ -263,10 +261,7 @@ bool TextureEncoder::CreateEncodingTexture()
 
 bool TextureEncoder::CreateEncodingDownloadBuffer()
 {
-  VkDeviceSize buffer_texture_width =
-      Util::AlignValue(ENCODING_TEXTURE_WIDTH, g_object_cache->GetTextureUploadPitchAlignment());
-  VkDeviceSize buffer_texture_height = ENCODING_TEXTURE_HEIGHT;
-  VkDeviceSize buffer_size = buffer_texture_width * buffer_texture_height * sizeof(u32);
+  VkDeviceSize buffer_size = ENCODING_TEXTURE_WIDTH * ENCODING_TEXTURE_HEIGHT * sizeof(u32);
   m_texture_download_buffer_size = buffer_size;
 
   VkBufferCreateInfo buffer_create_info = {
