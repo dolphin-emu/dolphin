@@ -41,10 +41,8 @@ TextureCache::TextureCache(StateTracker* state_tracker) : m_state_tracker(state_
 
 TextureCache::~TextureCache()
 {
-  if (m_copy_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_object_cache->GetDevice(), m_copy_render_pass, nullptr);
-  if (m_replace_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_object_cache->GetDevice(), m_replace_render_pass, nullptr);
+  if (m_overwrite_render_pass != VK_NULL_HANDLE)
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_overwrite_render_pass, nullptr);
 }
 
 void TextureCache::CompileShaders()
@@ -115,7 +113,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                                 nullptr,
                                                 0,
-                                                m_copy_render_pass,
+                                                m_overwrite_render_pass,
                                                 ARRAYSIZE(framebuffer_attachments),
                                                 framebuffer_attachments,
                                                 texture->GetWidth(),
@@ -139,9 +137,9 @@ bool TextureCache::CreateRenderPasses()
   VkAttachmentDescription attachments[] = {
       {0, TEXTURECACHE_TEXTURE_FORMAT,
        VK_SAMPLE_COUNT_1_BIT,  // TODO: MSAA
-       VK_ATTACHMENT_LOAD_OP_LOAD, VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
+       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -160,21 +158,11 @@ bool TextureCache::CreateRenderPasses()
                                       0,
                                       nullptr};
 
-  VkResult res =
-      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_copy_render_pass);
+  VkResult res = vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr,
+                                    &m_overwrite_render_pass);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (Copy) failed: ");
-    return false;
-  }
-
-  // Create a render pass that discards the existing contents of the framebuffer
-  attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-  res =
-      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_replace_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (Copy) failed: ");
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
     return false;
   }
 
@@ -309,21 +297,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  // Use replace render pass if overwriting the whole texture, otherwise copy.
-  VkRenderPass render_pass = m_parent->m_copy_render_pass;
-  if (scaled_src_rect.left == 0 && scaled_src_rect.top == 0 &&
-      static_cast<u32>(scaled_src_rect.GetWidth()) == config.width &&
-      static_cast<u32>(scaled_src_rect.GetHeight()) == config.height)
-  {
-    render_pass = m_parent->m_replace_render_pass;
-  }
-
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), render_pass,
-                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
-                         is_depth_copy ?
-                             g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
-                             g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
+  UtilityShaderDraw draw(
+      g_object_cache->GetStandardPipelineLayout(), m_parent->m_overwrite_render_pass,
+      g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
+      g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
+      is_depth_copy ? g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
+                      g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
 
   // TODO: Hmm. Push constants would be useful here.
   u8* uniform_buffer = draw.AllocatePSUniforms(sizeof(float) * 28);
@@ -405,23 +384,14 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   _assert_msg_(VIDEO, config.rendertarget,
                "Destination texture for partial copy is not a rendertarget");
 
-  // Use replace render pass if overwriting the whole texture, otherwise copy.
-  VkRenderPass render_pass = m_parent->m_copy_render_pass;
-  if (dst_rect.left == 0 && dst_rect.top == 0 &&
-      static_cast<u32>(dst_rect.GetWidth()) == config.width &&
-      static_cast<u32>(dst_rect.GetHeight()) == config.height)
-  {
-    render_pass = m_parent->m_replace_render_pass;
-  }
-
   // Transition resource states. Source should already be in shader resource layout.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), render_pass,
-                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                         VK_NULL_HANDLE,
-                         g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
+  UtilityShaderDraw draw(
+      g_object_cache->GetStandardPipelineLayout(), m_parent->m_overwrite_render_pass,
+      g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(), VK_NULL_HANDLE,
+      g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
 
   VkRect2D region = {
       {dst_rect.left, dst_rect.top},
