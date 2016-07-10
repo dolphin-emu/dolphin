@@ -28,7 +28,7 @@ void Shutdown()
   g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd, bool wait)
+void Initialize(void* const hwnd, InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -40,7 +40,7 @@ void Initialize(void* const hwnd, bool wait)
 
   s_config.LoadConfig(false);
 
-  WiimoteReal::Initialize(wait);
+  WiimoteReal::Initialize(init_mode);
 
   // Reload Wiimotes with our settings
   if (Movie::IsMovieActive())

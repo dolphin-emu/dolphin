@@ -25,15 +25,13 @@ unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace WiimoteReal
 {
-void HandleFoundWiimotes(const std::vector<Wiimote*>&);
 void TryToConnectBalanceBoard(Wiimote*);
 void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
-void DoneWithWiimote(int index);
 
 static bool g_real_wiimotes_initialized = false;
 
-std::recursive_mutex g_refresh_lock;
+std::mutex g_wiimotes_mutex;
 
 Wiimote* g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
@@ -402,6 +400,7 @@ void Wiimote::EmuPause()
 
 static unsigned int CalculateConnectedWiimotes()
 {
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   unsigned int connected_wiimotes = 0;
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
     if (g_wiimotes[i])
@@ -412,6 +411,7 @@ static unsigned int CalculateConnectedWiimotes()
 
 static unsigned int CalculateWantedWiimotes()
 {
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   // Figure out how many real Wiimotes are required
   unsigned int wanted_wiimotes = 0;
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
@@ -423,6 +423,7 @@ static unsigned int CalculateWantedWiimotes()
 
 static unsigned int CalculateWantedBB()
 {
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   unsigned int wanted_bb = 0;
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[WIIMOTE_BALANCE_BOARD] &&
       !g_wiimotes[WIIMOTE_BALANCE_BOARD])
@@ -430,38 +431,32 @@ static unsigned int CalculateWantedBB()
   return wanted_bb;
 }
 
-void WiimoteScanner::WantWiimotes(bool do_want)
+void WiimoteScanner::StartThread()
 {
-  m_want_wiimotes.store(do_want);
+  if (m_scan_thread_running.IsSet())
+    return;
+  m_scan_thread_running.Set();
+  m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
 }
 
-void WiimoteScanner::WantBB(bool do_want)
+void WiimoteScanner::StopThread()
 {
-  m_want_bb.store(do_want);
-}
-
-void WiimoteScanner::StartScanning()
-{
-  if (!m_run_thread.load())
+  if (m_scan_thread_running.TestAndClear())
   {
-    m_run_thread.store(true);
-    m_scan_thread = std::thread(&WiimoteScanner::ThreadFunc, this);
-  }
-}
-
-void WiimoteScanner::StopScanning()
-{
-  m_run_thread.store(false);
-  if (m_scan_thread.joinable())
-  {
+    SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
     m_scan_thread.join();
   }
 }
 
+void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
+{
+  m_scan_mode.store(scan_mode);
+  m_scan_mode_changed_event.Set();
+}
+
 static void CheckForDisconnectedWiimotes()
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
       HandleWiimoteDisconnect(i);
@@ -471,41 +466,36 @@ void WiimoteScanner::ThreadFunc()
 {
   Common::SetCurrentThreadName("Wiimote Scanning Thread");
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning has started.");
+  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has started.");
 
-  while (m_run_thread.load())
+  while (m_scan_thread_running.IsSet())
   {
-    std::vector<Wiimote*> found_wiimotes;
-    Wiimote* found_board = nullptr;
+    m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
 
-    // NOTICE_LOG(WIIMOTE, "In loop");
-
-    if (m_want_wiimotes.load() || m_want_bb.load())
-    {
-      FindWiimotes(found_wiimotes, found_board);
-    }
-    else
-    {
-      // Does stuff needed to detect disconnects on Windows
-      Update();
-    }
-
-    // NOTICE_LOG(WIIMOTE, "After update");
-
-    // TODO: this is a fairly lame place for this
+    Update();  // Does stuff needed to detect disconnects on Windows
     CheckForDisconnectedWiimotes();
 
-    if (m_want_wiimotes.load())
-      HandleFoundWiimotes(found_wiimotes);
+    if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
+      continue;
 
-    if (m_want_bb.load() && found_board)
-      TryToConnectBalanceBoard(found_board);
+    if (CalculateWantedWiimotes() != 0 || CalculateWantedBB() != 0)
+    {
+      std::vector<Wiimote*> found_wiimotes;
+      Wiimote* found_board = nullptr;
+      FindWiimotes(found_wiimotes, found_board);
+      {
+        std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
+        std::for_each(found_wiimotes.begin(), found_wiimotes.end(), TryToConnectWiimote);
+        if (found_board)
+          TryToConnectBalanceBoard(found_board);
+      }
+    }
 
-    // std::this_thread::yield();
-    Common::SleepCurrentThread(500);
+    if (m_scan_mode.load() == WiimoteScanMode::SCAN_ONCE)
+      m_scan_mode.store(WiimoteScanMode::DO_NOT_SCAN);
   }
 
-  NOTICE_LOG(WIIMOTE, "Wiimote scanning has stopped.");
+  NOTICE_LOG(WIIMOTE, "Wiimote scanning thread has stopped.");
 }
 
 bool Wiimote::Connect(int index)
@@ -621,33 +611,25 @@ void LoadSettings()
 }
 
 // config dialog calls this when some settings change
-void Initialize(bool wait)
+void Initialize(::Wiimote::InitializeMode init_mode)
 {
+  if (!g_real_wiimotes_initialized)
+    g_wiimote_scanner.StartThread();
+
   if (SConfig::GetInstance().m_WiimoteContinuousScanning)
-    g_wiimote_scanner.StartScanning();
+    g_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
-    g_wiimote_scanner.StopScanning();
-
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
-  g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-  g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
+    g_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
 
   // wait for connection because it should exist before state load
-  if (wait)
+  if (init_mode == ::Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES)
   {
     int timeout = 100;
-    std::vector<Wiimote*> found_wiimotes;
-    Wiimote* found_board = nullptr;
-    g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
-    if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+    g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
+    while (CalculateWantedWiimotes() > CalculateConnectedWiimotes() && timeout)
     {
-      while (CalculateWantedWiimotes() && CalculateConnectedWiimotes() < found_wiimotes.size() &&
-             timeout)
-      {
-        Common::SleepCurrentThread(100);
-        timeout--;
-      }
+      Common::SleepCurrentThread(100);
+      timeout--;
     }
   }
 
@@ -670,17 +652,11 @@ void Stop()
 // called when the Dolphin app exits
 void Shutdown()
 {
-  g_wiimote_scanner.StopScanning();
-
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
-  if (!g_real_wiimotes_initialized)
-    return;
+  g_wiimote_scanner.StopThread();
 
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
 
-  g_real_wiimotes_initialized = false;
-
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     HandleWiimoteDisconnect(i);
 }
@@ -701,13 +677,22 @@ void Pause()
 
 void ChangeWiimoteSource(unsigned int index, int source)
 {
+  g_wiimote_sources[index] = source;
   {
-    std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-    g_wiimote_sources[index] = source;
-    g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-    g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
     // kill real connection (or swap to different slot)
-    DoneWithWiimote(index);
+    std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
+
+    Wiimote* wm = g_wiimotes[index];
+
+    if (wm)
+    {
+      g_wiimotes[index] = nullptr;
+      // First see if we can use this real Wiimote in another slot.
+      TryToConnectWiimote(wm);
+    }
+
+    // else, just disconnect the Wiimote
+    HandleWiimoteDisconnect(index);
   }
 
   // reconnect to the emulator
@@ -716,7 +701,7 @@ void ChangeWiimoteSource(unsigned int index, int source)
     Host_ConnectWiimote(index, true);
 }
 
-static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
+static bool TryToConnectWiimoteToSlot(Wiimote* wm, unsigned int i)
 {
   if (WIIMOTE_SRC_REAL & g_wiimote_sources[i] && !g_wiimotes[i])
   {
@@ -733,69 +718,30 @@ static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 
 void TryToConnectWiimote(Wiimote* wm)
 {
-  std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    if (TryToConnectWiimoteN(wm, i))
+    if (TryToConnectWiimoteToSlot(wm, i))
     {
       wm = nullptr;
       break;
     }
   }
-
-  g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-
-  lk.unlock();
-
   delete wm;
 }
 
 void TryToConnectBalanceBoard(Wiimote* wm)
 {
-  std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-
-  if (TryToConnectWiimoteN(wm, WIIMOTE_BALANCE_BOARD))
+  if (TryToConnectWiimoteToSlot(wm, WIIMOTE_BALANCE_BOARD))
   {
     wm = nullptr;
   }
-
-  g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
-
-  lk.unlock();
-
   delete wm;
-}
-
-void DoneWithWiimote(int index)
-{
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
-  Wiimote* wm = g_wiimotes[index];
-
-  if (wm)
-  {
-    g_wiimotes[index] = nullptr;
-    // First see if we can use this real Wiimote in another slot.
-    TryToConnectWiimote(wm);
-  }
-
-  // else, just disconnect the Wiimote
-  HandleWiimoteDisconnect(index);
 }
 
 void HandleWiimoteDisconnect(int index)
 {
   Wiimote* wm = nullptr;
-
-  {
-    std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
-    std::swap(wm, g_wiimotes[index]);
-    g_wiimote_scanner.WantWiimotes(0 != CalculateWantedWiimotes());
-    g_wiimote_scanner.WantBB(0 != CalculateWantedBB());
-  }
-
+  std::swap(wm, g_wiimotes[index]);
   if (wm)
   {
     delete wm;
@@ -803,99 +749,60 @@ void HandleWiimoteDisconnect(int index)
   }
 }
 
-void HandleFoundWiimotes(const std::vector<Wiimote*>& wiimotes)
-{
-  std::for_each(wiimotes.begin(), wiimotes.end(), TryToConnectWiimote);
-}
-
 // This is called from the GUI thread
 void Refresh()
 {
-  g_wiimote_scanner.StopScanning();
-
-  {
-    std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-    std::vector<Wiimote*> found_wiimotes;
-    Wiimote* found_board = nullptr;
-
-    if (0 != CalculateWantedWiimotes() || 0 != CalculateWantedBB())
-    {
-      // Don't hang Dolphin when searching
-      lk.unlock();
-      g_wiimote_scanner.FindWiimotes(found_wiimotes, found_board);
-      lk.lock();
-    }
-
-    CheckForDisconnectedWiimotes();
-
-    // Brief rumble for already connected Wiimotes.
-    // Don't do this for Balance Board as it doesn't have rumble anyway.
-    for (int i = 0; i < MAX_WIIMOTES; ++i)
-    {
-      if (g_wiimotes[i])
-      {
-        g_wiimotes[i]->Prepare();
-      }
-    }
-
-    HandleFoundWiimotes(found_wiimotes);
-    if (found_board)
-      TryToConnectBalanceBoard(found_board);
-  }
-
-  Initialize();
+  if (!SConfig::GetInstance().m_WiimoteContinuousScanning)
+    g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
 }
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
+  std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
 }
 
 // Read the Wiimote once
-void Update(int _WiimoteNumber)
+void Update(int wiimote_number)
 {
   // Try to get a lock and return without doing anything if we fail
-  // This avoids deadlocks when adding a Wiimote during continuous scan
-  if (!g_refresh_lock.try_lock())
+  // This avoids blocking the CPU thread
+  if (!g_wiimotes_mutex.try_lock())
     return;
 
-  if (g_wiimotes[_WiimoteNumber])
-    g_wiimotes[_WiimoteNumber]->Update();
+  if (g_wiimotes[wiimote_number])
+    g_wiimotes[wiimote_number]->Update();
 
   // Wiimote::Update() may remove the Wiimote if it was disconnected.
-  if (!g_wiimotes[_WiimoteNumber])
+  if (!g_wiimotes[wiimote_number])
   {
-    Host_ConnectWiimote(_WiimoteNumber, false);
+    Host_ConnectWiimote(wiimote_number, false);
   }
-  g_refresh_lock.unlock();
+
+  g_wiimotes_mutex.unlock();
 }
 
-void ConnectOnInput(int _WiimoteNumber)
+void ConnectOnInput(int wiimote_number)
 {
-  // see Update() above
-  if (!g_refresh_lock.try_lock())
+  if (!g_wiimotes_mutex.try_lock())
     return;
 
-  if (g_wiimotes[_WiimoteNumber])
-    g_wiimotes[_WiimoteNumber]->ConnectOnInput();
+  if (g_wiimotes[wiimote_number])
+    g_wiimotes[wiimote_number]->ConnectOnInput();
 
-  g_refresh_lock.unlock();
+  g_wiimotes_mutex.unlock();
 }
 
 void StateChange(EMUSTATE_CHANGE newState)
 {
-  // std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   // TODO: disable/enable auto reporting, maybe
 }
 
