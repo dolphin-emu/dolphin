@@ -57,10 +57,16 @@ layout(location = 0) out float3 uv0;
 
 void main()
 {
-	vec2 rawpos = float2(float(gl_VertexID & 1), float(gl_VertexID & 2));
-	gl_Position = float4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
-	gl_Position.y = -gl_Position.y;
-	uv0 = float3(rawpos, 0.0f);
+    /*
+     * id	&1 &2	clamp	*2-1
+     * 0	0 0	0 0	-1 -1	TL
+     * 1	1 0	1 0	1 -1	TR
+     * 2	0 2	0 1	-1 1	BL
+     * 3	1 2	1 1	1 1	BR
+     */
+    vec2 rawpos = float2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0f, 1.0f));
+    gl_Position = float4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
+    uv0 = float3(rawpos, 0.0f);
 }
 
 )";
