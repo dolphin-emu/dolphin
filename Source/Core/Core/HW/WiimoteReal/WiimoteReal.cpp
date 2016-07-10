@@ -33,8 +33,6 @@ void DoneWithWiimote(int index);
 
 static bool g_real_wiimotes_initialized = false;
 
-std::recursive_mutex g_refresh_lock;
-
 Wiimote* g_wiimotes[MAX_BBMOTES];
 WiimoteScanner g_wiimote_scanner;
 
@@ -455,8 +453,6 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
 
 static void CheckForDisconnectedWiimotes()
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
     if (g_wiimotes[i] && !g_wiimotes[i]->IsConnected())
       HandleWiimoteDisconnect(i);
@@ -618,8 +614,6 @@ void Initialize(::Wiimote::InitializeMode init_mode)
   else
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
 
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   // wait for connection because it should exist before state load
   if (init_mode == ::Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES)
   {
@@ -653,8 +647,6 @@ void Shutdown()
 {
   g_wiimote_scanner.StopThread();
 
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
 
   for (unsigned int i = 0; i < MAX_BBMOTES; ++i)
@@ -677,12 +669,9 @@ void Pause()
 
 void ChangeWiimoteSource(unsigned int index, int source)
 {
-  {
-    std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-    g_wiimote_sources[index] = source;
-    // kill real connection (or swap to different slot)
-    DoneWithWiimote(index);
-  }
+  g_wiimote_sources[index] = source;
+  // kill real connection (or swap to different slot)
+  DoneWithWiimote(index);
 
   // reconnect to the emulator
   Host_ConnectWiimote(index, false);
@@ -707,8 +696,6 @@ static bool TryToConnectWiimoteN(Wiimote* wm, unsigned int i)
 
 void TryToConnectWiimote(Wiimote* wm)
 {
-  std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
     if (TryToConnectWiimoteN(wm, i))
@@ -717,30 +704,21 @@ void TryToConnectWiimote(Wiimote* wm)
       break;
     }
   }
-
-  lk.unlock();
-
   delete wm;
 }
 
 void TryToConnectBalanceBoard(Wiimote* wm)
 {
-  std::unique_lock<std::recursive_mutex> lk(g_refresh_lock);
-
   if (TryToConnectWiimoteN(wm, WIIMOTE_BALANCE_BOARD))
   {
     wm = nullptr;
   }
-
-  lk.unlock();
 
   delete wm;
 }
 
 void DoneWithWiimote(int index)
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   Wiimote* wm = g_wiimotes[index];
 
   if (wm)
@@ -757,11 +735,7 @@ void DoneWithWiimote(int index)
 void HandleWiimoteDisconnect(int index)
 {
   Wiimote* wm = nullptr;
-
-  {
-    std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-    std::swap(wm, g_wiimotes[index]);
-  }
+  std::swap(wm, g_wiimotes[index]);
 
   if (wm)
   {
@@ -784,15 +758,12 @@ void Refresh()
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
 }
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-  std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->ControlChannel(_channelID, _pData, _Size);
 }
@@ -800,11 +771,6 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 // Read the Wiimote once
 void Update(int _WiimoteNumber)
 {
-  // Try to get a lock and return without doing anything if we fail
-  // This avoids deadlocks when adding a Wiimote during continuous scan
-  if (!g_refresh_lock.try_lock())
-    return;
-
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->Update();
 
@@ -813,25 +779,16 @@ void Update(int _WiimoteNumber)
   {
     Host_ConnectWiimote(_WiimoteNumber, false);
   }
-  g_refresh_lock.unlock();
 }
 
 void ConnectOnInput(int _WiimoteNumber)
 {
-  // see Update() above
-  if (!g_refresh_lock.try_lock())
-    return;
-
   if (g_wiimotes[_WiimoteNumber])
     g_wiimotes[_WiimoteNumber]->ConnectOnInput();
-
-  g_refresh_lock.unlock();
 }
 
 void StateChange(EMUSTATE_CHANGE newState)
 {
-  // std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
-
   // TODO: disable/enable auto reporting, maybe
 }
 

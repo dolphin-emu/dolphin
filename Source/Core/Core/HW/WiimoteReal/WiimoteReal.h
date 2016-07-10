@@ -156,7 +156,6 @@ private:
 #endif
 };
 
-extern std::recursive_mutex g_refresh_lock;
 extern WiimoteScanner g_wiimote_scanner;
 extern Wiimote* g_wiimotes[MAX_BBMOTES];
 

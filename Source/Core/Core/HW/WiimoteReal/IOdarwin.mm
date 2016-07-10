@@ -500,8 +500,6 @@ void WiimoteDarwinHid::RemoveCallback(void* context, IOReturn result, void*)
   IOBluetoothDevice* device = [l2capChannel device];
   WiimoteReal::WiimoteDarwin* wm = nullptr;
 
-  std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
-
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {
     wm = static_cast<WiimoteReal::WiimoteDarwin*>(WiimoteReal::g_wiimotes[i]);
@@ -540,8 +538,6 @@ void WiimoteDarwinHid::RemoveCallback(void* context, IOReturn result, void*)
 {
   IOBluetoothDevice* device = [l2capChannel device];
   WiimoteReal::WiimoteDarwin* wm = nullptr;
-
-  std::lock_guard<std::recursive_mutex> lk(WiimoteReal::g_refresh_lock);
 
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {
