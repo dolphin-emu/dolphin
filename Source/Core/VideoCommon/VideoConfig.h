@@ -107,6 +107,7 @@ struct VideoConfig final
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
   bool bForceProgressive;
+  bool bMiddleSensorBar;
 
   bool bEFBEmulateFormatChanges;
   bool bSkipEFBCopyToRam;
