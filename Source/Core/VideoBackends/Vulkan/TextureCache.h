@@ -62,11 +62,12 @@ private:
 
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
-  bool CreateCopyRenderPass();
+  bool CreateRenderPasses();
 
   StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_copy_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_replace_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
