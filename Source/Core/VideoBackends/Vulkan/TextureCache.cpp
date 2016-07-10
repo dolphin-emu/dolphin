@@ -205,27 +205,26 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   StreamBuffer* upload_buffer = m_parent->m_texture_upload_buffer.get();
 
   // Can't copy data larger than the texture extents.
-  width = std::min(width, m_texture->GetWidth());
-  height = std::min(height, m_texture->GetHeight());
+  width = std::max(1u, std::min(width, m_texture->GetWidth() >> level));
+  height = std::max(1u, std::min(height, m_texture->GetHeight() >> level));
 
-  // Determine optimal row pitch, since we're going to be copying anyway.
-  VkDeviceSize upload_width =
-      Util::AlignValue(width, g_object_cache->GetTextureUploadPitchAlignment());
+  // Assume tightly packed rows, with no padding as the buffer source.
+  // Specifying larger sizes with bufferRowLength seems to cause issues on Mesa.
+  VkDeviceSize upload_width = width;
   VkDeviceSize upload_pitch = upload_width * sizeof(u32);
   VkDeviceSize upload_size = upload_pitch * height;
 
   // Allocate memory from the streaming buffer for the texture data.
   // TODO: Handle cases where the texture does not fit into the streaming buffer, we need to
   // allocate a temporary buffer.
-  if (!m_parent->m_texture_upload_buffer->ReserveMemory(
-          upload_size, g_object_cache->GetTextureUploadAlignment()))
+  if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
   {
     // Execute the command buffer first.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
     Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
 
     // Try allocating again. This may cause a fence wait.
-    if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetTextureUploadAlignment()))
+    if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
       PanicAlert("Failed to allocate space in texture upload buffer");
   }
 
@@ -241,8 +240,10 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   {
     VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
     for (unsigned int row = 0; row < height; row++)
+    {
       memcpy(image_upload_buffer_pointer + row * upload_pitch, source_ptr + row * source_pitch,
              copy_pitch);
+    }
   }
   else
   {
@@ -256,8 +257,8 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   // Copy from the streaming buffer to the actual image.
   VkBufferImageCopy image_copy = {
       image_upload_buffer_offset,                // VkDeviceSize                bufferOffset
-      static_cast<uint32_t>(upload_width),       // uint32_t                    bufferRowLength
-      height,                                    // uint32_t                    bufferImageHeight
+      0,                                         // uint32_t                    bufferRowLength
+      0,                                         // uint32_t                    bufferImageHeight
       {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
       {0, 0, 0},                                 // VkOffset3D                  imageOffset
       {width, height, 1}                         // VkExtent3D                  imageExtent
@@ -265,6 +266,10 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
 
   // We can't execute texture uploads inside a render pass.
   m_parent->m_state_tracker->EndRenderPass();
+
+  // Intel Mesa hangs with drawing commands plus buffer->image copies in the same command buffer.
+  // I suspect that the issue is elsewhere and this just prevents it from happening though.
+  // Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
 
   // Transition the texture to a transfer destination, invoke the transfer, then transition back.
   // TODO: Only transition the layer we're copying to.
