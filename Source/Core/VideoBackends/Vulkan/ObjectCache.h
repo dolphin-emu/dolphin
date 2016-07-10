@@ -80,15 +80,7 @@ public:
   {
     return m_device_limits.minUniformBufferOffsetAlignment;
   }
-  VkDeviceSize GetTextureUploadAlignment() const
-  {
-    return m_device_limits.optimalBufferCopyOffsetAlignment;
-  }
-  VkDeviceSize GetTextureUploadPitchAlignment() const
-  {
-    return m_device_limits.optimalBufferCopyRowPitchAlignment;
-  }
-
+  VkDeviceSize GetBufferImageGranularity() const { return m_device_limits.bufferImageGranularity; }
   // We have four shared pipeline layouts:
   //   - Standard
   //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
