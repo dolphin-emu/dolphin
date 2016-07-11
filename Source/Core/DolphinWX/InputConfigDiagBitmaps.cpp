@@ -228,7 +228,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
     {
       // deadzone circle
       dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-      dc.DrawCircle(32, 32, g->control_group->settings[SETTING_DEADZONE]->value * 32);
+      dc.DrawCircle(32, 32, g->control_group->numeric_settings[SETTING_DEADZONE]->GetValue() * 32);
     }
 
     // raw dot
@@ -259,7 +259,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
   {
     ControlState raw_dot[3];
     ControlState adj_dot[3];
-    const ControlState deadzone = g->control_group->settings[0]->value;
+    const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
     // adjusted
     ((ControllerEmu::Force*)g->control_group)->GetState(adj_dot);
@@ -358,7 +358,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
 
     // draw the shit
     dc.SetPen(*wxGREY_PEN);
-    ControlState deadzone = g->control_group->settings[0]->value;
+    ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
     ControlState* const trigs = new ControlState[trigger_count];
     ((ControllerEmu::Triggers*)g->control_group)->GetState(trigs);
@@ -398,7 +398,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
 
     // draw the shit
     dc.SetPen(*wxGREY_PEN);
-    ControlState thresh = g->control_group->settings[0]->value;
+    ControlState thresh = g->control_group->numeric_settings[0]->GetValue();
 
     for (unsigned int n = 0; n < trigger_count; ++n)
     {
@@ -428,7 +428,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
   break;
   case GROUP_TYPE_SLIDER:
   {
-    const ControlState deadzone = g->control_group->settings[0]->value;
+    const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
     ControlState state = g->control_group->controls[1]->control_ref->State() -
                          g->control_group->controls[0]->control_ref->State();
