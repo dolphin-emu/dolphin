@@ -722,7 +722,7 @@ bool NetPlayClient::StartGame(const std::string& path)
     // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
     NetWiimote nw;
     nw.resize(4, 0);
-    m_wiimote_current_data_size = {4, 4, 4, 4};
+    m_wiimote_current_data_size.fill(4);
 
     for (unsigned int w = 0; w < 4; ++w)
     {
