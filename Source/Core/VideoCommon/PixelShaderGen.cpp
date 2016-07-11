@@ -558,7 +558,8 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
     if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
+        g_ActiveConfig.backend_info.APIType == API_VULKAN)
     {
       out.Write("%sin VertexData {\n",
                 (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
@@ -598,7 +599,8 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
 
     out.Write("void main()\n{\n");
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
+        g_ActiveConfig.backend_info.APIType == API_VULKAN)
     {
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
         out.Write("\tfloat3 uv%d = tex%d;\n", i, i);

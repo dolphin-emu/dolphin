@@ -196,25 +196,6 @@ std::vector<VkPhysicalDevice> EnumerateVulkanPhysicalDevices(VkInstance instance
   return devices;
 }
 
-VkPhysicalDevice SelectVulkanPhysicalDevice(VkInstance instance, int device_index)
-{
-  std::vector<VkPhysicalDevice> physical_devices = EnumerateVulkanPhysicalDevices(instance);
-  if (physical_devices.empty())
-    return nullptr;
-
-  if (device_index < 0 || device_index >= static_cast<int>(physical_devices.size()))
-  {
-    WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
-    device_index = 0;
-  }
-
-  VkPhysicalDevice physical_device = physical_devices[device_index];
-  VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(physical_device, &properties);
-  INFO_LOG(VIDEO, "Vulkan: Using physical adapter %s", properties.deviceName);
-  return physical_device;
-}
-
 // At least one extension (swapchain) is required, so an empty vector returned by this function is
 // an error case.
 std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_device)
@@ -278,25 +259,116 @@ bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures
 
   *enable_features = {};
 
-  // Check for required stuff
-  if (!available_features.dualSrcBlend || !available_features.geometryShader /* ||
-		!available_features.samplerAnisotropy*/)
-  {
-    // TODO: Improved logging here
-    return false;
-  }
+  // Not having geometry shaders or wide lines will cause issues with rendering.
+  if (!available_features.geometryShader && !available_features.wideLines)
+    WARN_LOG(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
 
-  // Copy to enable struct
+  // Enable the features we use.
   enable_features->dualSrcBlend = available_features.dualSrcBlend;
   enable_features->geometryShader = available_features.geometryShader;
   enable_features->samplerAnisotropy = available_features.samplerAnisotropy;
   enable_features->logicOp = available_features.logicOp;
+  enable_features->fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
+  enable_features->sampleRateShading = available_features.sampleRateShading;
 
   // Only here to shut up the debug layer, we don't actually use it
   enable_features->shaderClipDistance = available_features.shaderClipDistance;
   enable_features->shaderCullDistance = available_features.shaderCullDistance;
 
   return true;
+}
+
+void PopulateBackendInfo(VideoConfig* config)
+{
+  config->backend_info.APIType = API_VULKAN;
+  config->backend_info.bSupportsExclusiveFullscreen = false;  // Does WSI even allow this?
+  config->backend_info.bSupports3DVision = false;             // Does WSI even allow this?
+  config->backend_info.bSupportsOversizedViewports = true;    // TODO: Check spec for this one.
+  config->backend_info.bSupportsEarlyZ = true;                // Assumed support?
+  config->backend_info.bSupportsPrimitiveRestart = true;      // Assumed support.
+  config->backend_info.bSupportsBindingLayout = false;        // Assumed support.
+  config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
+  config->backend_info.bSupportsClipControl = true;           // Assumed support.
+  config->backend_info.bSupportsMultithreading = true;        // Assumed support.
+  config->backend_info.bSupportsPostProcessing = false;       // No support yet.
+  config->backend_info.bSupportsDualSourceBlend = false;      // Dependant on features.
+  config->backend_info.bSupportsGeometryShaders = false;      // Dependant on features.
+  config->backend_info.bSupportsGSInstancing = false;         // Dependant on features.
+  config->backend_info.bSupportsBBox = false;                 // Dependant on features.
+  config->backend_info.bSupportsSSAA = false;                 // Dependant on features.
+}
+
+void PopulateBackendInfoAdapters(VideoConfig* config,
+                                 const std::vector<VkPhysicalDevice>& physical_device_list)
+{
+  for (VkPhysicalDevice physical_device : physical_device_list)
+  {
+    VkPhysicalDeviceProperties properties;
+    vkGetPhysicalDeviceProperties(physical_device, &properties);
+    config->backend_info.Adapters.push_back(properties.deviceName);
+  }
+}
+
+void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device)
+{
+  VkPhysicalDeviceFeatures features;
+  vkGetPhysicalDeviceFeatures(physical_device, &features);
+
+  config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
+  config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
+  config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
+  config->backend_info.bSupportsBBox = (features.fragmentStoresAndAtomics == VK_TRUE);
+  config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
+}
+
+void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device)
+{
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(physical_device, &properties);
+
+  // Query image support for the EFB texture formats.
+  VkImageFormatProperties efb_color_properties = {};
+  vkGetPhysicalDeviceImageFormatProperties(
+      physical_device, EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, 0, &efb_color_properties);
+  VkImageFormatProperties efb_depth_properties = {};
+  vkGetPhysicalDeviceImageFormatProperties(
+      physical_device, EFB_DEPTH_TEXTURE_FORMAT, VK_IMAGE_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, 0, &efb_depth_properties);
+
+  // We can only support MSAA if it's supported on our render target formats.
+  VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
+                                               properties.limits.framebufferDepthSampleCounts &
+                                               efb_color_properties.sampleCounts &
+                                               efb_color_properties.sampleCounts;
+
+  // No AA
+  config->backend_info.AAModes.clear();
+  config->backend_info.AAModes.emplace_back(1);
+
+  // 2xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_2_BIT)
+    config->backend_info.AAModes.emplace_back(2);
+
+  // 4xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_4_BIT)
+    config->backend_info.AAModes.emplace_back(4);
+
+  // 8xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_8_BIT)
+    config->backend_info.AAModes.emplace_back(8);
+
+  // 16xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_16_BIT)
+    config->backend_info.AAModes.emplace_back(16);
+
+  // 32xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_32_BIT)
+    config->backend_info.AAModes.emplace_back(32);
+
+  // 64xMSAA/SSAA
+  if (supported_sample_counts & VK_SAMPLE_COUNT_64_BIT)
+    config->backend_info.AAModes.emplace_back(64);
 }
 
 VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)

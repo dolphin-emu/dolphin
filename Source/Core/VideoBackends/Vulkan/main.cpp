@@ -105,25 +105,8 @@ static void DisableDebugLayerReportCallback(VkInstance instance)
 
 void VideoBackend::InitBackendInfo()
 {
-  g_Config.backend_info.APIType = API_VULKAN;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = false;
-  g_Config.backend_info.bSupportsDualSourceBlend = true;
-  g_Config.backend_info.bSupportsEarlyZ = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
-  g_Config.backend_info.bSupportsOversizedViewports = true;
-  g_Config.backend_info.bSupportsGeometryShaders = true;
-  g_Config.backend_info.bSupports3DVision = false;
-  g_Config.backend_info.bSupportsPostProcessing = false;
-  g_Config.backend_info.bSupportsPaletteConversion = true;
-  g_Config.backend_info.bSupportsClipControl = true;
-  g_Config.backend_info.bSupportsBindingLayout = true;
-  g_Config.backend_info.bSupportsPrimitiveRestart = true;
+  PopulateBackendInfo(&g_Config);
 
-  // aamodes
-  g_Config.backend_info.AAModes = {1};
-  g_Config.backend_info.Adapters.clear();
-
-  // TODO: error handling
   if (LoadVulkanLibrary())
   {
     VkInstance temp_instance = CreateVulkanInstance(false);
@@ -131,18 +114,34 @@ void VideoBackend::InitBackendInfo()
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
       {
-        std::vector<VkPhysicalDevice> devices = EnumerateVulkanPhysicalDevices(temp_instance);
-        for (VkPhysicalDevice device : devices)
+        std::vector<VkPhysicalDevice> physical_devices =
+            EnumerateVulkanPhysicalDevices(temp_instance);
+        PopulateBackendInfoAdapters(&g_Config, physical_devices);
+
+        if (!physical_devices.empty())
         {
-          VkPhysicalDeviceProperties properties;
-          vkGetPhysicalDeviceProperties(device, &properties);
-          g_Config.backend_info.Adapters.push_back(properties.deviceName);
+          // Use the selected adapter, or the first to fill features.
+          size_t device_index = static_cast<size_t>(g_Config.iAdapter);
+          if (device_index >= physical_devices.size())
+            device_index = 0;
+
+          VkPhysicalDevice physical_device = physical_devices[device_index];
+          PopulateBackendInfoFeatures(&g_Config, physical_device);
+          PopulateBackendInfoMultisampleModes(&g_Config, physical_device);
         }
       }
-
-      vkDestroyInstance(temp_instance, nullptr);
     }
+    else
+    {
+      PanicAlert("Failed to create Vulkan instance.");
+    }
+
+    vkDestroyInstance(temp_instance, nullptr);
     UnloadVulkanLibrary();
+  }
+  else
+  {
+    PanicAlert("Failed to load Vulkan library.");
   }
 }
 
@@ -154,8 +153,8 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
-  InitBackendInfo();
-  InitializeShared();
+  // Base fields
+  PopulateBackendInfo(&g_Config);
 
   // Check for presence of the debug layer before trying to enable it
   bool enable_debug_layer = (ENABLE_DEBUG_LAYER && CheckDebugLayerAvailability());
@@ -165,14 +164,16 @@ bool VideoBackend::Initialize(void* window_handle)
   if (!s_vkInstance)
   {
     PanicAlert("Failed to create vulkan instance.");
-    goto CLEANUP_LIBRARY;
+    UnloadVulkanLibrary();
+    return false;
   }
 
   // Load instance function pointers
   if (!LoadVulkanInstanceFunctions(s_vkInstance))
   {
     PanicAlert("Failed to load vulkan instance functions.");
-    goto CLEANUP_INSTANCE;
+    UnloadVulkanLibrary();
+    return false;
   }
 
   // Enable debug reports if debug layer is on
@@ -183,16 +184,48 @@ bool VideoBackend::Initialize(void* window_handle)
   s_vkSurface = CreateVulkanSurface(s_vkInstance, window_handle);
   if (!s_vkSurface)
   {
+    // TODO Move
     PanicAlert("Failed to create vulkan surface.");
-    goto CLEANUP_INSTANCE;
+    DisableDebugLayerReportCallback(s_vkInstance);
+    UnloadVulkanLibrary();
+    return false;
   }
 
-  s_vkPhysicalDevice = SelectVulkanPhysicalDevice(s_vkInstance, g_ActiveConfig.iAdapter);
-  if (!s_vkPhysicalDevice)
+  // Select physical device - only do this once
+  std::vector<VkPhysicalDevice> physical_device_list = EnumerateVulkanPhysicalDevices(s_vkInstance);
+  size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
+  if (physical_device_list.empty())
   {
-    PanicAlert("Failed to select an appropriate vulkan physical device");
-    goto CLEANUP_INSTANCE;
+    PanicAlert("No Vulkan physical devices available.");
+    DisableDebugLayerReportCallback(s_vkInstance);
+    UnloadVulkanLibrary();
+    return false;
   }
+
+  // Fill the adapter list, and check if the user has selected an invalid device
+  // For some reason nvidia's driver crashes randomly if you call vkEnumeratePhysicalDevices
+  // after creating a device..
+  PopulateBackendInfoAdapters(&g_Config, physical_device_list);
+  if (selected_adapter_index >= physical_device_list.size())
+  {
+    WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
+    selected_adapter_index = 0;
+  }
+
+  // With our physical device known we can populate the remaining backend info fields
+  s_vkPhysicalDevice = physical_device_list[selected_adapter_index];
+  PopulateBackendInfoFeatures(&g_Config, s_vkPhysicalDevice);
+  PopulateBackendInfoMultisampleModes(&g_Config, s_vkPhysicalDevice);
+
+  // With features known, we can init shared
+  InitializeShared();
+
+  // Display the name so the user knows which device was actually created
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(s_vkPhysicalDevice, &properties);
+  WARN_LOG(VIDEO, "Vulkan: Using physical adapter %s", properties.deviceName);
+  OSD::AddMessage(StringFromFormat("Using physical adapter %s", properties.deviceName).c_str(),
+                  5000);
 
   // Create vulkan device and grab queues
   uint32_t graphics_queue_family_index, present_queue_family_index;
@@ -246,18 +279,16 @@ CLEANUP_DEVICE:
   g_command_buffer_mgr.reset();
 
   vkDestroyDevice(s_vkDevice, nullptr);
-  s_vkDevice = nullptr;
+  s_vkDevice = VK_NULL_HANDLE;
 
 CLEANUP_SURFACE:
   vkDestroySurfaceKHR(s_vkInstance, s_vkSurface, nullptr);
   s_vkSurface = nullptr;
 
-CLEANUP_INSTANCE:
   DisableDebugLayerReportCallback(s_vkInstance);
   vkDestroyInstance(s_vkInstance, nullptr);
-  s_vkInstance = nullptr;
-
-CLEANUP_LIBRARY:
+  s_vkPhysicalDevice = VK_NULL_HANDLE;
+  s_vkInstance = VK_NULL_HANDLE;
   UnloadVulkanLibrary();
   return false;
 }

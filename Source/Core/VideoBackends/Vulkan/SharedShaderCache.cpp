@@ -37,14 +37,17 @@ bool SharedShaderCache::CompileShaders()
   }
 
   // Geometry Shaders
-  if (efb_layers > 1)
+  if (g_object_cache->SupportsGeometryShaders())
   {
-    if ((m_vertex_shaders.screen_quad = m_gs_cache->CompileAndCreateShader(
-             header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE)) == nullptr ||
-        (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(
-             header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr)
+    if (efb_layers > 1)
     {
-      return false;
+      if ((m_vertex_shaders.screen_quad = m_gs_cache->CompileAndCreateShader(
+               header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE)) == nullptr ||
+          (m_vertex_shaders.passthrough = m_gs_cache->CompileAndCreateShader(
+               header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE)) == nullptr)
+      {
+        return false;
+      }
     }
   }
 
@@ -79,6 +82,7 @@ void SharedShaderCache::DestroyShaders()
   DestroyShader(m_vertex_shaders.passthrough);
 
   // Geometry Shaders
+  DestroyShader(m_geometry_shaders.screen_quad);
   DestroyShader(m_geometry_shaders.passthrough);
 
   // Fragment Shaders
