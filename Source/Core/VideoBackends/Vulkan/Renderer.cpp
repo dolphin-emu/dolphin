@@ -332,6 +332,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   TextureCacheBase::Cleanup(frameCount);
 
   // Determine what has changed in the config.
+  CheckForSurfaceChange();
   CheckForConfigChanges();
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
@@ -383,6 +384,32 @@ void Renderer::CheckForConfigChanges()
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
     ResetSamplerStates();
+}
+
+void Renderer::CheckForSurfaceChange()
+{
+  if (!s_SurfaceNeedsChanged.IsSet())
+    return;
+
+  // Wait for the GPU to catch up
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // Recreate the surface. If this fails we're in trouble.
+  VkExtent2D old_size = m_swap_chain->GetSize();
+  if (!m_swap_chain->RecreateSurface(m_new_window_handle))
+    PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
+
+  // Notify calling thread.
+  m_new_window_handle = nullptr;
+  s_SurfaceNeedsChanged.Clear();
+  s_ChangedSurface.Set();
+
+  // Handle case where the dimensions are now different
+  if (old_size.width != m_swap_chain->GetSize().width ||
+      old_size.height != m_swap_chain->GetSize().height)
+  {
+    OnSwapChainResized();
+  }
 }
 
 void Renderer::OnSwapChainResized()
@@ -865,6 +892,13 @@ void Renderer::SetViewport()
 
   VkViewport viewport = {x, y, width, height, min_depth, max_depth};
   m_state_tracker->SetViewport(viewport);
+}
+
+void Renderer::ChangeSurface(void* new_window_handle)
+{
+  m_new_window_handle = new_window_handle;
+  s_SurfaceNeedsChanged.Set();
+  s_ChangedSurface.Wait();
 }
 
 }  // namespace Vulkan
