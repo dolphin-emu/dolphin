@@ -13,6 +13,7 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
+#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/TextureEncoder.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
@@ -22,7 +23,7 @@
 
 namespace Vulkan
 {
-TextureEncoder::TextureEncoder(StateTracker* state_tracker) : m_state_tracker(state_tracker)
+TextureEncoder::TextureEncoder()
 {
   if (!CompileShaders())
     PanicAlert("Failed to compile shaders");
@@ -32,9 +33,6 @@ TextureEncoder::TextureEncoder(StateTracker* state_tracker) : m_state_tracker(st
 
   if (!CreateEncodingTexture())
     PanicAlert("Failed to create encoding texture");
-
-  if (!CreateEncodingDownloadBuffer())
-    PanicAlert("Failed to create encoding download buffer");
 }
 
 TextureEncoder::~TextureEncoder()
@@ -46,12 +44,6 @@ TextureEncoder::~TextureEncoder()
     g_command_buffer_mgr->DeferResourceDestruction(m_encoding_texture_framebuffer);
 
   m_encoding_texture.reset();
-
-  if (m_texture_download_buffer != VK_NULL_HANDLE)
-  {
-    vkDestroyBuffer(g_object_cache->GetDevice(), m_texture_download_buffer, nullptr);
-    vkFreeMemory(g_object_cache->GetDevice(), m_texture_download_buffer_memory, nullptr);
-  }
 }
 
 void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format,
@@ -83,9 +75,6 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
                                         g_object_cache->GetLinearSampler() :
                                         g_object_cache->GetPointSampler());
 
-  // Before drawing - make sure we're not in a render pass
-  m_state_tracker->EndRenderPass();
-
   // Ensure the source image is in COLOR_ATTACHMENT state. We don't care about the old contents of
   // it, so forcing to UNDEFINED is okay here
   m_encoding_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
@@ -103,69 +92,16 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 
-  // Transition both the image and the buffer before copying
+  // Transition the image before copying
   m_encoding_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  Util::BufferMemoryBarrier(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_texture_download_buffer, 0,
-      VK_ACCESS_TRANSFER_WRITE_BIT | VK_ACCESS_MEMORY_WRITE_BIT, 0, VK_WHOLE_SIZE,
-      VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
-  // Copy from the encoding texture to the download buffer
-  VkBufferImageCopy image_copy = {
-      0,                                     // VkDeviceSize                bufferOffset
-      0,                                     // uint32_t                    bufferRowLength
-      0,                                     // uint32_t                    bufferImageHeight
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},  // VkImageSubresourceLayers    imageSubresource
-      {0, 0, 0},                             // VkOffset3D                  imageOffset
-      {render_width, render_height, 1}       // VkExtent3D                  imageExtent
-  };
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         m_encoding_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                         m_texture_download_buffer, 1, &image_copy);
-
-  // Transition buffer to host read
-  Util::BufferMemoryBarrier(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_texture_download_buffer,
-      VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_HOST_READ_BIT, 0,
-      VK_WHOLE_SIZE, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-
-  // Submit command buffer and wait until completion.
-  // Also tell the state tracker to use new descriptor sets, since we're moving to a new cmdbuffer
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  m_state_tracker->InvalidateDescriptorSets();
-  m_state_tracker->SetPendingRebind();
-
-  // Map buffer and copy to destination
-  // TODO: With vulkan can we leave this mapped?
-  u32 source_stride = render_width * sizeof(u32);
-  void* source_ptr;
-  VkResult res = vkMapMemory(g_object_cache->GetDevice(), m_texture_download_buffer_memory, 0,
-                             source_stride * render_height, 0, &source_ptr);
-  if (res != VK_SUCCESS)
+  TextureCache* texture_cache = static_cast<TextureCache*>(g_texture_cache.get());
+  if (!texture_cache->DownloadImage(m_encoding_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
+                                    render_width, render_height, 0, 0, dest_ptr, memory_stride))
   {
-    LOG_VULKAN_ERROR(res, "vkMapMemory failed: ");
-    return;
+    WARN_LOG(VIDEO, "Texture encoder readback failed.");
   }
-
-  if (source_stride == memory_stride)
-  {
-    memcpy(dest_ptr, source_ptr, source_stride * render_height);
-  }
-  else
-  {
-    u32 copy_size = std::min(source_stride, bytes_per_row);
-    u8* current_source_ptr = reinterpret_cast<u8*>(source_ptr);
-    u8* current_dest_ptr = dest_ptr;
-    for (u32 row = 0; row < render_height; row++)
-    {
-      memcpy(current_dest_ptr, current_source_ptr, copy_size);
-      current_source_ptr += source_stride;
-      current_dest_ptr += memory_stride;
-    }
-  }
-
-  vkUnmapMemory(g_object_cache->GetDevice(), m_texture_download_buffer_memory);
 }
 
 bool TextureEncoder::CompileShaders()
@@ -253,62 +189,6 @@ bool TextureEncoder::CreateEncodingTexture()
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
-    return false;
-  }
-
-  return true;
-}
-
-bool TextureEncoder::CreateEncodingDownloadBuffer()
-{
-  VkDeviceSize buffer_size = ENCODING_TEXTURE_WIDTH * ENCODING_TEXTURE_HEIGHT * sizeof(u32);
-  m_texture_download_buffer_size = buffer_size;
-
-  VkBufferCreateInfo buffer_create_info = {
-      VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
-      nullptr,                               // const void*            pNext
-      0,                                     // VkBufferCreateFlags    flags
-      buffer_size,                           // VkDeviceSize           size
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT,      // VkBufferUsageFlags     usage
-      VK_SHARING_MODE_EXCLUSIVE,             // VkSharingMode          sharingMode
-      0,                                     // uint32_t               queueFamilyIndexCount
-      nullptr                                // const uint32_t*        pQueueFamilyIndices
-  };
-  VkResult res = vkCreateBuffer(g_object_cache->GetDevice(), &buffer_create_info, nullptr,
-                                &m_texture_download_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-    return false;
-  }
-
-  VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), m_texture_download_buffer,
-                                &memory_requirements);
-
-  uint32_t memory_type_index = g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
-  VkMemoryAllocateInfo memory_allocate_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
-      nullptr,                                 // const void*        pNext
-      memory_requirements.size,                // VkDeviceSize       allocationSize
-      memory_type_index                        // uint32_t           memoryTypeIndex
-  };
-  res = vkAllocateMemory(g_object_cache->GetDevice(), &memory_allocate_info, nullptr,
-                         &m_texture_download_buffer_memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(g_object_cache->GetDevice(), m_texture_download_buffer, nullptr);
-    return false;
-  }
-
-  res = vkBindBufferMemory(g_object_cache->GetDevice(), m_texture_download_buffer,
-                           m_texture_download_buffer_memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
     return false;
   }
 
