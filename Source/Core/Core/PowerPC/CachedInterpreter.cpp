@@ -212,11 +212,3 @@ void CachedInterpreter::ClearCache()
   JitBaseBlockCache::Clear();
   UpdateMemoryOptions();
 }
-
-void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
-{
-}
-
-void CachedInterpreter::WriteLinkBlock(u8* location, const JitBlock& block)
-{
-}

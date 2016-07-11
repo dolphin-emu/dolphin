@@ -149,9 +149,8 @@ private:
   // Fast but risky block lookup based on iCache.
   int& FastLookupEntryForAddress(u32 address) { return iCache[(address >> 2) & iCache_Mask]; }
   // Virtual for overloaded
-  virtual void WriteLinkBlock(u8* location, const JitBlock& block) = 0;
-  virtual void WriteDestroyBlock(const u8* location, u32 address) = 0;
-
+  virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
+  virtual void WriteDestroyBlock(const JitBlock& block) {}
 public:
   JitBaseBlockCache() : num_blocks(0) {}
   virtual ~JitBaseBlockCache() {}
@@ -190,6 +189,6 @@ public:
 class JitBlockCache : public JitBaseBlockCache
 {
 private:
-  void WriteLinkBlock(u8* location, const JitBlock& block) override;
-  void WriteDestroyBlock(const u8* location, u32 address) override;
+  void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override;
+  void WriteDestroyBlock(const JitBlock& block) override;
 };
