@@ -41,6 +41,10 @@ VideoConfig::VideoConfig()
   // disable all features by default
   backend_info.APIType = API_NONE;
   backend_info.bSupportsExclusiveFullscreen = false;
+  backend_info.bSupportsMultithreading = false;
+
+  bEnableValidationLayer = false;
+  bBackendMultithreading = true;
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -80,6 +84,8 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("WireFrame", &bWireFrame, 0);
   settings->Get("DisableFog", &bDisableFog, 0);
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
+  settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
+  settings->Get("BackendMultithreading", &bBackendMultithreading, true);
 
   settings->Get("SWZComploc", &bZComploc, true);
   settings->Get("SWZFreeze", &bZFreeze, true);
@@ -186,6 +192,7 @@ void VideoConfig::GameIniLoad()
   }
 
   CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
+  CHECK_SETTING("Video_Settings", "BackendMultithreading", bBackendMultithreading);
 
   CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
   CHECK_SETTING("Video_Enhancements", "MaxAnisotropy",
@@ -287,6 +294,8 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("Wireframe", bWireFrame);
   settings->Set("DisableFog", bDisableFog);
   settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
+  settings->Set("EnableValidationLayer", bEnableValidationLayer);
+  settings->Set("BackendMultithreading", bBackendMultithreading);
 
   settings->Set("SWZComploc", bZComploc);
   settings->Set("SWZFreeze", bZFreeze);
