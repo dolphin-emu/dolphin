@@ -25,6 +25,7 @@ SwapChain::~SwapChain()
   DestroySwapChainImages();
   DestroySwapChain();
   DestroyRenderPass();
+  DestroySurface();
 }
 
 bool SwapChain::Initialize()
@@ -264,5 +265,32 @@ bool SwapChain::ResizeSwapChain()
   }
 
   return true;
+}
+
+bool SwapChain::RecreateSurface(void* native_handle)
+{
+  // Destroy the old swap chain, images, and surface.
+  DestroyRenderPass();
+  DestroySwapChainImages();
+  DestroySwapChain();
+  DestroySurface();
+
+  // Re-create the surface with the new native handle
+  m_native_handle = native_handle;
+  m_surface = CreateVulkanSurface(g_object_cache->GetVulkanInstance(), native_handle);
+  if (m_surface == VK_NULL_HANDLE)
+    return false;
+
+  // Finally re-create the swap chain
+  if (!CreateSwapChain(VK_NULL_HANDLE) || !SetupSwapChainImages())
+    return false;
+
+  return true;
+}
+
+void SwapChain::DestroySurface()
+{
+  vkDestroySurfaceKHR(g_object_cache->GetVulkanInstance(), m_surface, nullptr);
+  m_surface = VK_NULL_HANDLE;
 }
 }
