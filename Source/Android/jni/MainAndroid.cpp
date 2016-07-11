@@ -743,24 +743,38 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
                                                                                    jobject obj,
                                                                                    jobject _surf)
 {
-  surf = ANativeWindow_fromSurface(env, _surf);
-  if (surf == nullptr)
+  ANativeWindow* new_surf = ANativeWindow_fromSurface(env, _surf);
+  if (new_surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
+
+  // Handle surface changes for Vulkan before destroying surface
+  // Do we need to release the old window?
+  if (g_renderer)
+    g_renderer->ChangeSurface(new_surf);
 
   // If GLInterface isn't a thing yet then we don't need to let it know that the
   // surface has changed
   if (GLInterface)
   {
-    GLInterface->UpdateHandle(surf);
+    GLInterface->UpdateHandle(new_surf);
     Renderer::s_ChangedSurface.Reset();
     Renderer::s_SurfaceNeedsChanged.Set();
     Renderer::s_ChangedSurface.Wait();
   }
+
+  surf = new_surf;
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
                                                                                      jobject obj)
 {
+  // Handle surface changes for Vulkan before destroying surface
+  if (g_renderer)
+  {
+    // This will fail. TODO handle this.
+    g_renderer->ChangeSurface(nullptr);
+  }
+
   if (surf)
   {
     ANativeWindow_release(surf);
