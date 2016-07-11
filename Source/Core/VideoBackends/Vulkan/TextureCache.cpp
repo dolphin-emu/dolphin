@@ -95,12 +95,16 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
 {
+  // Determine image usage, we need to flag as an attachment if it can be used as a rendertarget.
+  VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_SAMPLED_BIT;
+  if (config.rendertarget)
+    usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
   // Allocate texture object
   std::unique_ptr<Texture2D> texture = Texture2D::Create(
       config.width, config.height, config.levels, config.layers, TEXTURECACHE_TEXTURE_FORMAT,
-      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
-          VK_IMAGE_USAGE_TRANSFER_DST_BIT);
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
 
   if (!texture)
     return nullptr;
