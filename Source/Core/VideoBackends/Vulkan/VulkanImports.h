@@ -11,6 +11,8 @@
 #elif defined(HAVE_X11)
 //#define VK_USE_PLATFORM_XLIB_KHR
 #define VK_USE_PLATFORM_XCB_KHR
+#elif defined(ANDROID)
+#define VK_USE_PLATFORM_ANDROID_KHR
 #else
 //#warning Unknown platform
 #endif
