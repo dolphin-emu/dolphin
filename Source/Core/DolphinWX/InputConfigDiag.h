@@ -61,10 +61,11 @@ public:
 class PadSettingSpin : public PadSetting
 {
 public:
-  PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const _setting)
+  PadSettingSpin(wxWindow* const parent,
+                 ControllerEmu::ControlGroup::NumericSetting* const _setting)
       : PadSetting(new wxSpinCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                  wxSize(54, -1), 0, _setting->low, _setting->high,
-                                  (int)(_setting->value * 100))),
+                                  wxSize(54, -1), 0, _setting->m_low, _setting->m_high,
+                                  (int)(_setting->GetValue() * 100))),
         setting(_setting)
   {
   }
@@ -72,17 +73,18 @@ public:
   void UpdateGUI() override;
   void UpdateValue() override;
 
-  ControllerEmu::ControlGroup::Setting* const setting;
+  ControllerEmu::ControlGroup::NumericSetting* const setting;
 };
 
 class PadSettingCheckBox : public PadSetting
 {
 public:
-  PadSettingCheckBox(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting);
+  PadSettingCheckBox(wxWindow* const parent,
+                     ControllerEmu::ControlGroup::BooleanSetting* const setting);
   void UpdateGUI() override;
   void UpdateValue() override;
 
-  ControllerEmu::ControlGroup::Setting* const setting;
+  ControllerEmu::ControlGroup::BooleanSetting* const setting;
 };
 
 class InputEventFilter : public wxEventFilter
