@@ -121,7 +121,6 @@ private:
 
   // pipeline state
   PipelineInfo m_pipeline_state = {};
-  u32 m_gx_primitive_type = 0;
   DSTALPHA_MODE m_dstalpha_mode = DSTALPHA_NONE;
   VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
