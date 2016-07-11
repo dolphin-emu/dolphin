@@ -12,6 +12,7 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "VideoCommon/VR.h"
 
 struct StreamingVoiceContext2_7 : public IXAudio2VoiceCallback
 {
@@ -172,9 +173,41 @@ bool XAudio2_7::Start()
   }
   m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+  u32 deviceCount;
+  m_xaudio2->GetDeviceCount(&deviceCount);
+
+  XAUDIO2_DEVICE_DETAILS deviceDetails;
+  u32 DeviceIndex = 0;
+  std::wstring id = VR_GetAudioDeviceId();
+  if (!id.empty())
+  {
+    for_each(id.begin(), id.end(), [](wchar_t& in) { in = ::toupper(in); });
+    for (u32 i = 0; i < deviceCount; ++i)
+    {
+      m_xaudio2->GetDeviceDetails(i, &deviceDetails);
+      std::wstring device_path(deviceDetails.DeviceID);
+      for_each(device_path.begin(), device_path.end(), [](wchar_t& in) { in = ::toupper(in); });
+      if (id.find(device_path) != std::string::npos)
+      {
+        NOTICE_LOG(VR, "Found Rift XAudio 2.7 device %d: '%S' ID='%S', %d channels", i,
+                   deviceDetails.DisplayName, deviceDetails.DeviceID,
+                   deviceDetails.OutputFormat.Format.nChannels);
+        DeviceIndex = i;
+        break;
+      }
+      else
+      {
+        NOTICE_LOG(VR, "XAudio2.7 device %d: '%S' ID='%S', %d channels", i,
+                   deviceDetails.DisplayName, deviceDetails.DeviceID,
+                   deviceDetails.OutputFormat.Format.nChannels);
+      }
+    }
+  }
+
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(),
+                                                  0, DeviceIndex)))
   {
     PanicAlert("XAudio2_7 master voice creation failed: %#X", hr);
     Stop();

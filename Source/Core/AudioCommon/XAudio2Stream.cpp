@@ -188,12 +188,13 @@ bool XAudio2::Start()
   LPCWSTR szDeviceId;
   std::wstring id = VR_GetAudioDeviceId();
   if (id.empty())
-	  szDeviceId = nullptr;
+    szDeviceId = nullptr;
   else
-	  szDeviceId = id.c_str();
+    szDeviceId = id.c_str();
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, szDeviceId)))
+  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(),
+                                                  0, szDeviceId)))
   {
     PanicAlert("XAudio2 master voice creation failed: %#X", hr);
     Stop();
