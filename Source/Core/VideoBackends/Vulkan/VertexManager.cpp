@@ -139,9 +139,13 @@ void VertexManager::vFlush(bool use_dst_alpha)
     break;
   }
 
+  // Can we do single-pass dst alpha?
+  DSTALPHA_MODE dstalpha_mode = DSTALPHA_NONE;
+  if (use_dst_alpha && g_object_cache->SupportsDualSourceBlend())
+    dstalpha_mode = DSTALPHA_DUAL_SOURCE_BLEND;
+
   // Check for any shader stage changes
-  m_state_tracker->CheckForShaderChanges(
-      current_primitive_type, use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE);
+  m_state_tracker->CheckForShaderChanges(current_primitive_type, dstalpha_mode);
 
   // Update any changed constants
   m_state_tracker->UpdateVertexShaderConstants();
@@ -156,9 +160,22 @@ void VertexManager::vFlush(bool use_dst_alpha)
   }
 
   // Execute the draw
-  // TODO: Handle two-pass dst alpha for devices that don't support dual-source blend
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                    m_current_draw_base_index, m_current_draw_base_vertex, 0);
+
+  // If we can't do single pass dst alpha, we now need to draw the alpha pass.
+  if (use_dst_alpha && !g_object_cache->SupportsDualSourceBlend())
+  {
+    m_state_tracker->CheckForShaderChanges(current_primitive_type, DSTALPHA_ALPHA_PASS);
+    if (!m_state_tracker->Bind())
+    {
+      WARN_LOG(VIDEO, "Skipped draw of %u indices (alpha pass)", index_count);
+      return;
+    }
+
+    vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
+                     m_current_draw_base_index, m_current_draw_base_vertex, 0);
+  }
 }
 
-}  // namespace
+}  // namespace Vulkan

@@ -71,8 +71,8 @@ union RasterizationState {
 
 // Depth state info
 union DepthStencilState {
-  BitField<0, 1, u32> test_enable;
-  BitField<1, 1, u32> write_enable;
+  BitField<0, 1, VkBool32> test_enable;
+  BitField<1, 1, VkBool32> write_enable;
   BitField<2, 3, VkCompareOp> compare_op;
 
   u32 hex;
@@ -80,13 +80,13 @@ union DepthStencilState {
 
 // Blend state info
 union BlendState {
-  BitField<0, 1, u32> blend_enable;
+  BitField<0, 1, VkBool32> blend_enable;
   BitField<1, 3, VkBlendOp> blend_op;
   BitField<4, 4, VkColorComponentFlags> write_mask;
   BitField<8, 5, VkBlendFactor> src_blend;
   BitField<13, 5, VkBlendFactor> dst_blend;
-  BitField<18, 1, u32> use_dst_alpha;
-  BitField<19, 1, u32> logic_op_enable;
+  BitField<18, 1, VkBool32> use_dst_alpha;
+  BitField<19, 1, VkBool32> logic_op_enable;
   BitField<20, 4, VkLogicOp> logic_op;
 
   u32 hex;
