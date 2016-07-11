@@ -1034,6 +1034,13 @@ void CFrame::StartGame(const std::string& filename)
                                    X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
 
+#ifdef _WIN32
+    // Prevents Windows from sleeping, turning off the display, or idling
+    EXECUTION_STATE shouldScreenSave =
+        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+    SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
+#endif
+
     m_RenderParent->SetFocus();
 
     wxTheApp->Bind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
@@ -1181,6 +1188,12 @@ void CFrame::OnStopped()
     X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
                                  X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
+
+#ifdef _WIN32
+  // Allow windows to resume normal idling behavior
+  SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+
   m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
   // Destroy the renderer frame when not rendering to main
