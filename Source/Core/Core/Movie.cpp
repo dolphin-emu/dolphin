@@ -22,7 +22,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/Wiimote.h"
@@ -31,7 +31,6 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
@@ -516,7 +515,7 @@ bool BeginRecordingInput(int controllers)
   if (NetPlay::IsNetPlayRunning())
   {
     s_bNetPlay = true;
-    s_recordingStartTime = g_netplay_initial_gctime;
+    s_recordingStartTime = CEXIIPL::NetPlay_GetGCTime();
   }
   else
   {

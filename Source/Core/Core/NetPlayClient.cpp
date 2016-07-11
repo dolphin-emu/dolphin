@@ -1223,6 +1223,8 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
 
 // called from ---CPU--- thread
 // so all players' games get the same time
+//
+// also called from ---GUI--- thread when starting input recording
 u64 CEXIIPL::NetPlay_GetGCTime()
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
