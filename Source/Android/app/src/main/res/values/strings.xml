@@ -263,7 +263,7 @@
     <string name="opengl_es3">OpenGL ES</string>
     <string name="opengl">OpenGL</string>
     <string name="video_backend">Video Backend</string>
-    <string name="video_backend_desc">%s</string>
+    <string name="video_backend_descrip">Select the API used for graphics rendering.</string>
     <string name="show_fps">Show FPS</string>
     <string name="show_fps_descrip">Show the number of frames rendered per second as a measure of emulation speed.</string>
 
