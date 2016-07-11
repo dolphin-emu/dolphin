@@ -639,32 +639,86 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::SetLogicOpMode()
 {
-  // TODO: Verify device logic op support
   BlendState new_blend_state = {};
   new_blend_state.hex = m_state_tracker->GetBlendState().hex;
 
-  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
+  // Does our device support logic ops?
+  bool logic_op_enable = bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable;
+  if (g_object_cache->SupportsLogicOps())
   {
-    static const std::array<VkLogicOp, 16> logic_ops = {
-        VK_LOGIC_OP_CLEAR,         VK_LOGIC_OP_AND,
-        VK_LOGIC_OP_AND_REVERSE,   VK_LOGIC_OP_COPY,
-        VK_LOGIC_OP_AND_INVERTED,  VK_LOGIC_OP_NO_OP,
-        VK_LOGIC_OP_XOR,           VK_LOGIC_OP_OR,
-        VK_LOGIC_OP_NOR,           VK_LOGIC_OP_EQUIVALENT,
-        VK_LOGIC_OP_INVERT,        VK_LOGIC_OP_OR_REVERSE,
-        VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED,
-        VK_LOGIC_OP_NAND,          VK_LOGIC_OP_SET};
+    if (logic_op_enable)
+    {
+      static const std::array<VkLogicOp, 16> logic_ops = {
+          VK_LOGIC_OP_CLEAR,         VK_LOGIC_OP_AND,
+          VK_LOGIC_OP_AND_REVERSE,   VK_LOGIC_OP_COPY,
+          VK_LOGIC_OP_AND_INVERTED,  VK_LOGIC_OP_NO_OP,
+          VK_LOGIC_OP_XOR,           VK_LOGIC_OP_OR,
+          VK_LOGIC_OP_NOR,           VK_LOGIC_OP_EQUIVALENT,
+          VK_LOGIC_OP_INVERT,        VK_LOGIC_OP_OR_REVERSE,
+          VK_LOGIC_OP_COPY_INVERTED, VK_LOGIC_OP_OR_INVERTED,
+          VK_LOGIC_OP_NAND,          VK_LOGIC_OP_SET};
 
-    new_blend_state.logic_op_enable = VK_TRUE;
-    new_blend_state.logic_op = logic_ops[bpmem.blendmode.logicmode];
+      new_blend_state.logic_op_enable = VK_TRUE;
+      new_blend_state.logic_op = logic_ops[bpmem.blendmode.logicmode];
+    }
+    else
+    {
+      new_blend_state.logic_op_enable = VK_FALSE;
+      new_blend_state.logic_op = VK_LOGIC_OP_NO_OP;
+    }
+
+    m_state_tracker->SetBlendState(new_blend_state);
   }
   else
   {
-    new_blend_state.logic_op_enable = VK_FALSE;
-    new_blend_state.logic_op = VK_LOGIC_OP_NO_OP;
-  }
+    // No logic op support, approximate with blending instead.
+    // This is by no means correct, but necessary for some devices.
+    if (logic_op_enable)
+    {
+      struct LogicOpBlend
+      {
+        VkBlendFactor src_factor;
+        VkBlendOp op;
+        VkBlendFactor dst_factor;
+      };
+      static const std::array<LogicOpBlend, 16> logic_ops = {
+          {{VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
+           {VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
+           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_SUBTRACT, VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
+           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ZERO},
+           {VK_BLEND_FACTOR_DST_COLOR, VK_BLEND_OP_REVERSE_SUBTRACT, VK_BLEND_FACTOR_ONE},
+           {VK_BLEND_FACTOR_ZERO, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
+           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_MAX,
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
+           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
+           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_MAX,
+            VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
+           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_MAX, VK_BLEND_FACTOR_SRC_COLOR},
+           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD,
+            VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
+           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR},
+           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_ADD,
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
+           {VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE},
+           {VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR, VK_BLEND_OP_ADD,
+            VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR},
+           {VK_BLEND_FACTOR_ONE, VK_BLEND_OP_ADD, VK_BLEND_FACTOR_ONE}}};
 
-  m_state_tracker->SetBlendState(new_blend_state);
+      new_blend_state.blend_enable = VK_FALSE;
+      new_blend_state.src_blend = logic_ops[bpmem.blendmode.logicmode].src_factor;
+      new_blend_state.dst_blend = logic_ops[bpmem.blendmode.logicmode].dst_factor;
+      new_blend_state.blend_op = logic_ops[bpmem.blendmode.logicmode].op;
+      new_blend_state.use_dst_alpha = 0;
+      m_state_tracker->SetBlendState(new_blend_state);
+    }
+    else
+    {
+      // This is unfortunate. Since we clobber the blend state when enabling logic ops,
+      // we have to call SetBlendMode again to restore the current blend state.
+      SetBlendMode(true);
+      return;
+    }
+  }
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
