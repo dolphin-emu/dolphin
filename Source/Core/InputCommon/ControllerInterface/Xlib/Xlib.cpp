@@ -127,7 +127,7 @@ void KeyboardMouse::UpdateInput()
   case ASPECT_ANALOG_WIDE:
     aspect = 16.0 / 9.0;
     break;
-  default: // ASPECT_AUTO
+  default:  // ASPECT_AUTO
     aspect = SConfig::GetInstance().m_SYSCONF->GetData<bool>("IPL.AR") ? 16.0 / 9.0 : 4.0 / 3.0;
     break;
   }
