@@ -12,6 +12,16 @@
         <item>5</item>
     </integer-array>
 
+    <!-- Video backend selection -->
+    <string-array name="videoBackendEntries" translatable="false">
+        <item>OpenGL</item>
+        <item>Vulkan</item>
+    </string-array>
+    <integer-array name="videoBackendValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+    </integer-array>
+
     <!-- Wiimote extensions -->
     <string-array name="wiimoteExtEntries" translatable="false">
         <item>"None"</item>
