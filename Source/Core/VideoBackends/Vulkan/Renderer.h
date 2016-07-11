@@ -63,6 +63,8 @@ public:
   void SetInterlacingMode() override;
   void SetViewport() override;
 
+  void ChangeSurface(void* new_window_handle) override;
+
 private:
   bool CreateSemaphores();
   void DestroySemaphores();
@@ -70,6 +72,7 @@ private:
   void BeginFrame();
 
   void CheckForConfigChanges();
+  void CheckForSurfaceChange();
 
   void ResetSamplerStates();
 
@@ -89,5 +92,8 @@ private:
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
+
+  // Surface changes, needed for android. Called off-thread.
+  void* m_new_window_handle = nullptr;
 };
 }
