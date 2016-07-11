@@ -40,7 +40,6 @@ namespace Vulkan
 static VkInstance s_vkInstance;
 static VkPhysicalDevice s_vkPhysicalDevice;
 static VkDevice s_vkDevice;
-static VkSurfaceKHR s_vkSurface;
 static std::unique_ptr<SwapChain> s_swap_chain;
 static std::unique_ptr<StateTracker> s_state_tracker;
 
@@ -143,6 +142,7 @@ void VideoBackend::InitBackendInfo()
 
 bool VideoBackend::Initialize(void* window_handle)
 {
+  VkSurfaceKHR surface;
   if (!LoadVulkanLibrary())
   {
     PanicAlert("Failed to load vulkan library.");
@@ -182,8 +182,8 @@ bool VideoBackend::Initialize(void* window_handle)
     EnableDebugLayerReportCallback(s_vkInstance);
 
   // Create vulkan surface
-  s_vkSurface = CreateVulkanSurface(s_vkInstance, window_handle);
-  if (!s_vkSurface)
+  surface = CreateVulkanSurface(s_vkInstance, window_handle);
+  if (!surface)
   {
     // TODO Move
     PanicAlert("Failed to create vulkan surface.");
@@ -231,9 +231,9 @@ bool VideoBackend::Initialize(void* window_handle)
   // Create vulkan device and grab queues
   uint32_t graphics_queue_family_index, present_queue_family_index;
   VkQueue graphics_queue, present_queue;
-  s_vkDevice = CreateVulkanDevice(s_vkPhysicalDevice, s_vkSurface, &graphics_queue_family_index,
-                                  &graphics_queue, &present_queue_family_index, &present_queue,
-                                  enable_debug_layer);
+  s_vkDevice =
+      CreateVulkanDevice(s_vkPhysicalDevice, surface, &graphics_queue_family_index, &graphics_queue,
+                         &present_queue_family_index, &present_queue, enable_debug_layer);
   if (!s_vkDevice)
   {
     PanicAlert("Failed to create vulkan device");
@@ -265,10 +265,11 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // create swap chain and buffers
-  s_swap_chain = std::make_unique<SwapChain>(window_handle, s_vkSurface, present_queue);
+  s_swap_chain = std::make_unique<SwapChain>(window_handle, surface, present_queue);
   if (!s_swap_chain->Initialize())
   {
     PanicAlert("Failed to create vulkan swap chain");
+    surface = VK_NULL_HANDLE;
     goto CLEANUP_DEVICE;
   }
 
@@ -283,8 +284,8 @@ CLEANUP_DEVICE:
   s_vkDevice = VK_NULL_HANDLE;
 
 CLEANUP_SURFACE:
-  vkDestroySurfaceKHR(s_vkInstance, s_vkSurface, nullptr);
-  s_vkSurface = nullptr;
+  if (surface != VK_NULL_HANDLE)
+    vkDestroySurfaceKHR(s_vkInstance, surface, nullptr);
 
   DisableDebugLayerReportCallback(s_vkInstance);
   vkDestroyInstance(s_vkInstance, nullptr);
@@ -319,9 +320,6 @@ void VideoBackend::Shutdown()
 
   vkDestroyDevice(s_vkDevice, nullptr);
   s_vkDevice = nullptr;
-
-  vkDestroySurfaceKHR(s_vkInstance, s_vkSurface, nullptr);
-  s_vkSurface = nullptr;
 
   DisableDebugLayerReportCallback(s_vkInstance);
   vkDestroyInstance(s_vkInstance, nullptr);
