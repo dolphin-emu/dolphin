@@ -128,6 +128,9 @@ std::vector<const char*> SelectVulkanInstanceExtensions(bool enable_debug_layer)
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
   if (!CheckForExtension(VK_KHR_XCB_SURFACE_EXTENSION_NAME, true))
     return {};
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+  if (!CheckForExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
+    return {};
 #endif
 
   // VK_EXT_debug_report
@@ -425,7 +428,7 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
   VkXcbSurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
       nullptr,                                        // const void*                   pNext
-      0,                                              // VkXlibSurfaceCreateFlagsKHR   flags
+      0,                                              // VkXcbSurfaceCreateFlagsKHR    flags
       connection,                                     // xcb_connection_t*             connection
       static_cast<xcb_window_t>(reinterpret_cast<uintptr_t>(hwnd))  // xcb_window_t window
   };
@@ -435,6 +438,25 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateXcbSurfaceKHR failed: ");
+    return nullptr;
+  }
+
+  return surface;
+
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+
+  VkAndroidSurfaceCreateInfoKHR surface_create_info = {
+      VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR,  // VkStructureType                sType
+      nullptr,                                            // const void*                    pNext
+      0,                                                  // VkAndroidSurfaceCreateFlagsKHR flags
+      reinterpret_cast<ANativeWindow*>(hwnd)              // ANativeWindow*                 window
+  };
+
+  VkSurfaceKHR surface;
+  VkResult res = vkCreateAndroidSurfaceKHR(instance, &surface_create_info, nullptr, &surface);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateAndroidSurfaceKHR failed: ");
     return nullptr;
   }
 
