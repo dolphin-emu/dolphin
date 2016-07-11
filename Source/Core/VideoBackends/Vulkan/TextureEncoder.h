@@ -18,9 +18,12 @@ class Texture2D;
 class TextureEncoder
 {
 public:
-  TextureEncoder(StateTracker* state_tracker);
+  TextureEncoder();
   ~TextureEncoder();
 
+  // Uses an encoding shader to copy src_texture to dest_ptr.
+  // Assumes that no render pass is currently in progress.
+  // WARNING: Executes the current command buffer.
   void EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format, u32 native_width,
                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                           PEControl::PixelFormat src_format, bool is_intensity, int scale_by_half,
@@ -35,9 +38,6 @@ private:
   bool CompileShaders();
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
-  bool CreateEncodingDownloadBuffer();
-
-  StateTracker* m_state_tracker = nullptr;
 
   std::array<VkShaderModule, NUM_TEXTURE_ENCODING_SHADERS> m_texture_encoding_shaders = {};
 
@@ -45,10 +45,6 @@ private:
 
   std::unique_ptr<Texture2D> m_encoding_texture;
   VkFramebuffer m_encoding_texture_framebuffer = VK_NULL_HANDLE;
-
-  VkBuffer m_texture_download_buffer = VK_NULL_HANDLE;
-  VkDeviceMemory m_texture_download_buffer_memory = nullptr;
-  VkDeviceSize m_texture_download_buffer_size = 0;
 };
 
 }  // namespace Vulkan

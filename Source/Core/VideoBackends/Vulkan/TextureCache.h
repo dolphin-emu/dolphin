@@ -32,6 +32,12 @@ public:
                u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
                bool is_intensity, bool scale_by_half) override;
 
+  // Download a texture from device memory to a local buffer.
+  // Assumes that the specified image is in VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL layout.
+  // WARNING: This will execute the current command buffer, take precautions when calling.
+  bool DownloadImage(VkImage image, VkImageAspectFlags aspect, int x, int y, u32 width, u32 height,
+                     u32 level, u32 layer, void* dst_buffer, u32 dst_stride);
+
 private:
   struct TCacheEntry : TCacheEntryBase
   {
@@ -63,10 +69,15 @@ private:
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
   bool CreateRenderPasses();
+  bool ResizeImageDownloadBuffer(VkDeviceSize new_size);
 
   StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_overwrite_render_pass = VK_NULL_HANDLE;
+
+  VkBuffer m_image_download_buffer = VK_NULL_HANDLE;
+  VkDeviceMemory m_image_download_buffer_memory = nullptr;
+  VkDeviceSize m_image_download_buffer_size = 0;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
