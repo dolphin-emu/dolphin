@@ -95,6 +95,7 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #if OVR_PRODUCT_VERSION >= 1
 #define OCULUSSDK044ORABOVE
 #include "OVR_CAPI.h"
+#include "OVR_CAPI_Audio.h"
 typedef ovrSession ovrHmd;
 #include "Extras/OVR_Math.h"
 #else
@@ -220,6 +221,8 @@ void VR_GetProjectionHalfTan(float& hmd_halftan);
 void VR_GetProjectionMatrices(Matrix44& left_eye, Matrix44& right_eye, float znear, float zfar);
 void VR_GetEyePos(float* posLeft, float* posRight);
 void VR_GetFovTextureSize(int* width, int* height);
+
+std::wstring VR_GetAudioDeviceId();
 
 bool VR_GetRemoteButtons(u32* buttons);
 bool VR_GetTouchButtons(u32* buttons, u32* touches, float m_triggers[], float m_axes[]);

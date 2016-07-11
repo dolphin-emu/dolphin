@@ -8,6 +8,7 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "VideoCommon/VR.h"
 
 #ifndef XAUDIO2_DLL
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path.
@@ -184,9 +185,15 @@ bool XAudio2::Start()
   }
   m_xaudio2 = std::unique_ptr<IXAudio2, Releaser>(xaudptr);
 
+  LPCWSTR szDeviceId;
+  std::wstring id = VR_GetAudioDeviceId();
+  if (id.empty())
+	  szDeviceId = nullptr;
+  else
+	  szDeviceId = id.c_str();
   // XAudio2 master voice
   // XAUDIO2_DEFAULT_CHANNELS instead of 2 for expansion?
-  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate())))
+  if (FAILED(hr = m_xaudio2->CreateMasteringVoice(&m_mastering_voice, 2, m_mixer->GetSampleRate(), 0, szDeviceId)))
   {
     PanicAlert("XAudio2 master voice creation failed: %#X", hr);
     Stop();

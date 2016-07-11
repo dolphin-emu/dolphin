@@ -3,8 +3,13 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
+// clang-format off
 #include <windows.h>
+#include <Objbase.h>
+#include <mmdeviceapi.h>
+#include <setupapi.h>
 #include "VideoCommon/VR920.h"
+// clang-format on
 #endif
 
 #include "Common/Common.h"
@@ -1085,6 +1090,80 @@ void VR_GetFovTextureSize(int* width, int* height)
     *height = size.h;
   }
 #endif
+}
+
+std::wstring VR_GetAudioDeviceId()
+{
+#if defined(OVR_PRODUCT_VERSION) && OVR_PRODUCT_VERSION >= 1
+  if (g_has_rift)
+  {
+    // this is a standard GUID, but the windows GUID include file system is insane, so just define
+    // it here
+    const GUID DEVINTERFACE_AUDIO_RENDER = {
+        0xe6327cad, 0xdcec, 0x4949, {0xae, 0x8a, 0x99, 0x1e, 0x97, 0x6a, 0x79, 0xd2}};
+    GUID rift_guid;
+    ovr_GetAudioDeviceOutGuid(&rift_guid);
+    wchar_t guid_wstr[40];
+    StringFromGUID2(rift_guid, guid_wstr, 40);
+    NOTICE_LOG(VR, "Rift Audio GUID: '%S'", guid_wstr);
+    HDEVINFO const device_info = SetupDiGetClassDevs(&DEVINTERFACE_AUDIO_RENDER, 0, 0,
+                                                     DIGCF_DEVICEINTERFACE | DIGCF_PRESENT);
+
+    SP_DEVICE_INTERFACE_DATA device_data = {};
+    device_data.cbSize = sizeof(device_data);
+    PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = nullptr;
+
+    for (int index = 0; SetupDiEnumDeviceInterfaces(
+             device_info, nullptr, &DEVINTERFACE_AUDIO_RENDER, index, &device_data);
+         ++index)
+    {
+      // Get the size of the data block required
+      DWORD len;
+      SetupDiGetDeviceInterfaceDetail(device_info, &device_data, nullptr, 0, &len, nullptr);
+      detail_data = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(len);
+      detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+
+      SP_DEVINFO_DATA device_info_data = {};
+      device_info_data.cbSize = sizeof(SP_DEVINFO_DATA);
+
+      // Query the data for this device
+      if (SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, nullptr,
+                                          &device_info_data))
+      {
+        std::wstring device_path(detail_data->DevicePath);
+        for_each(device_path.begin(), device_path.end(), [](wchar_t& in) { in = ::toupper(in); });
+        if (device_path.find(guid_wstr) != std::string::npos)
+        {
+          NOTICE_LOG(VR, "Found Rift audio device %d: DevicePath = '%S', ", index,
+                     detail_data->DevicePath);
+          free(detail_data);
+          SetupDiDestroyDeviceInfoList(device_info);
+          return std::wstring(detail_data->DevicePath);
+        }
+        else
+        {
+          // NOTICE_LOG(VR, "%d: DevicePath = '%S', ", index, detail_data->DevicePath);
+        }
+      }
+      free(detail_data);
+    }
+    SetupDiDestroyDeviceInfoList(device_info);
+    // couldn't find the audio device Oculus specified
+    ERROR_LOG(VR, "Couldn't find Rift audio device.");
+    return std::wstring();
+  }
+  else
+#endif
+#ifdef HAVE_OPENVR
+      if (g_has_steamvr)
+  {
+    return std::wstring();
+  }
+  else
+#endif
+  {
+    return std::wstring();
+  }
 }
 
 bool VR_GetRemoteButtons(u32* buttons)
