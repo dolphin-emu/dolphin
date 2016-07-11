@@ -12,7 +12,8 @@
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 #include <Windows.h>
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
+    defined(VK_USE_PLATFORM_ANDROID_KHR)
 #include <dlfcn.h>
 #endif
 
@@ -95,7 +96,8 @@ void UnloadVulkanLibrary()
   vulkan_module = nullptr;
 }
 
-#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR)
+#elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
+    defined(VK_USE_PLATFORM_ANDROID_KHR)
 
 static void* vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
@@ -109,7 +111,12 @@ bool LoadVulkanLibrary()
     return true;
   }
 
-  vulkan_module = dlopen("libvulkan.so", RTLD_NOW);
+  vulkan_module = dlopen("libvulkan.so.1", RTLD_NOW);
+  if (!vulkan_module)
+  {
+    // Try libvulkan.so as a fallback
+    vulkan_module = dlopen("libvulkan.so", RTLD_NOW);
+  }
   if (!vulkan_module)
   {
     ERROR_LOG(VIDEO, "Failed to load libvulkan.so");
