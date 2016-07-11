@@ -45,6 +45,7 @@ public:
 
   VkResult AcquireNextImage(VkSemaphore available_semaphore);
 
+  bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
 
 private:
@@ -58,6 +59,8 @@ private:
 
   bool SetupSwapChainImages();
   void DestroySwapChainImages();
+
+  void DestroySurface();
 
   struct SwapChainImage
   {
