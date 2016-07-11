@@ -36,10 +36,6 @@
 
 namespace Vulkan
 {
-// TODO: Move this to config.
-static bool ENABLE_DEBUG_LAYER = false;
-static bool USE_THREADED_SUBMISSION = true;
-
 // Can we do anything about these globals?
 static VkInstance s_vkInstance;
 static VkPhysicalDevice s_vkPhysicalDevice;
@@ -157,7 +153,12 @@ bool VideoBackend::Initialize(void* window_handle)
   PopulateBackendInfo(&g_Config);
 
   // Check for presence of the debug layer before trying to enable it
-  bool enable_debug_layer = (ENABLE_DEBUG_LAYER && CheckDebugLayerAvailability());
+  bool enable_debug_layer = g_Config.bEnableValidationLayer;
+  if (enable_debug_layer && !CheckDebugLayerAvailability())
+  {
+    WARN_LOG(VIDEO, "Validation layer requested but not available, disabling.");
+    enable_debug_layer = false;
+  }
 
   // Create vulkan instance
   s_vkInstance = CreateVulkanInstance(enable_debug_layer);
@@ -177,7 +178,7 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // Enable debug reports if debug layer is on
-  if (ENABLE_DEBUG_LAYER)
+  if (enable_debug_layer)
     EnableDebugLayerReportCallback(s_vkInstance);
 
   // Create vulkan surface
@@ -248,7 +249,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // create command buffers
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(
-      s_vkDevice, graphics_queue_family_index, graphics_queue, USE_THREADED_SUBMISSION);
+      s_vkDevice, graphics_queue_family_index, graphics_queue, g_Config.bBackendMultithreading);
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlert("Failed to create vulkan command buffers");
