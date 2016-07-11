@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
@@ -196,7 +197,7 @@ ControlState evdevDevice::Axis::GetState() const
   libevdev_fetch_event_value(m_dev, EV_ABS, m_code, &value);
 
   // Value from 0.0 to 1.0
-  ControlState fvalue = double(value - m_min) / double(m_range);
+  ControlState fvalue = MathUtil::Clamp(double(value - m_min) / double(m_range), 0.0, 1.0);
 
   // Split into two axis, each covering half the range from 0.0 to 1.0
   if (m_upper)
