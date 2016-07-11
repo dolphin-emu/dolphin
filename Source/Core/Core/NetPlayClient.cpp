@@ -356,6 +356,33 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+
+    PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
+                                  PlayerGameStatus::NotFound :
+                                  PlayerGameStatus::Ok;
+
+    spac << static_cast<u32>(status);
+    Send(spac);
+  }
+  break;
+
+  case NP_MSG_GAME_STATUS:
+  {
+    PlayerId pid;
+    packet >> pid;
+
+    {
+      std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+      Player& player = m_players[pid];
+      u32 status;
+      packet >> status;
+      player.game_status = static_cast<PlayerGameStatus>(status);
+    }
+
+    m_dialog->Update();
   }
   break;
 
@@ -597,7 +624,26 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
     enumerate_player_controller_mappings(m_pad_map, player);
     enumerate_player_controller_mappings(m_wiimote_map, player);
 
-    ss << " |\nPing: " << player.ping << "ms\n\n";
+    ss << " |\nPing: " << player.ping << "ms\n";
+    ss << "Status: ";
+
+    switch (player.game_status)
+    {
+    case PlayerGameStatus::Ok:
+      ss << "ready";
+      break;
+
+    case PlayerGameStatus::NotFound:
+      ss << "game missing";
+      break;
+
+    default:
+      ss << "unknown";
+      break;
+    }
+
+    ss << "\n\n";
+
     pid_list.push_back(player.pid);
   }
 
@@ -722,7 +768,7 @@ bool NetPlayClient::StartGame(const std::string& path)
     // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
     NetWiimote nw;
     nw.resize(4, 0);
-    m_wiimote_current_data_size = {4, 4, 4, 4};
+    m_wiimote_current_data_size.fill(4);
 
     for (unsigned int w = 0; w < 4; ++w)
     {
@@ -1141,6 +1187,14 @@ void NetPlayClient::SendTimeBase()
   *spac << netplay_client->m_timebase_frame++;
 
   netplay_client->SendAsync(std::move(spac));
+}
+
+bool NetPlayClient::DoAllPlayersHaveGame()
+{
+  std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
+
+  return std::all_of(std::begin(m_players), std::end(m_players),
+                     [](auto entry) { return entry.second.game_status == PlayerGameStatus::Ok; });
 }
 
 // stuff hacked into dolphin

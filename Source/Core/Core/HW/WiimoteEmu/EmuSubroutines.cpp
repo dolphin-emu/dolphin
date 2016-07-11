@@ -240,7 +240,7 @@ void Wiimote::RequestStatus(const wm_request_status* const rs, int ext)
   {
     using namespace WiimoteReal;
 
-    std::lock_guard<std::recursive_mutex> lk(g_refresh_lock);
+    std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
 
     if (g_wiimotes[m_index])
     {
