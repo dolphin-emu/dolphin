@@ -54,6 +54,8 @@ private:
 
   // List of fences and the corresponding positions in the buffer
   std::deque<std::pair<VkFence, size_t>> m_tracked_fences;
+
+  bool m_coherent_mapping = false;
 };
 
 }  // namespace Vulkan
