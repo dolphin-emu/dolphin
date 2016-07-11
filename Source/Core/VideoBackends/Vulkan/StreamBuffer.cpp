@@ -76,10 +76,28 @@ bool StreamBuffer::ResizeBuffer(size_t size)
   VkMemoryRequirements memory_requirements;
   vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), buffer, &memory_requirements);
 
-  // TODO: Support non-coherent mapping by use of vkFlushMappedMemoryRanges
-  uint32_t memory_type_index = g_object_cache->GetMemoryType(
-      memory_requirements.memoryTypeBits,
-      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+  // Aim for a coherent mapping if possible.
+  u32 memory_type_index = VK_MAX_MEMORY_TYPES;
+  if (g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
+                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                                    &memory_type_index))
+  {
+    // Supports coherent mapping. This is optimal.
+    m_coherent_mapping = true;
+  }
+  else
+  {
+    // Try a non-coherent mapping.
+    if (!g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
+                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memory_type_index))
+    {
+      // This shouldn't happen. If it does, how are you meant to upload to the GPU?
+      PanicAlert("Failed to find memory type for streaming buffer.");
+    }
+
+    m_coherent_mapping = false;
+  }
 
   // Allocate memory for backing this buffer
   VkMemoryAllocateInfo memory_allocate_info = {
@@ -235,9 +253,16 @@ void StreamBuffer::CommitMemory(size_t final_num_bytes)
 {
   assert((m_current_offset + final_num_bytes) <= m_current_size);
   assert(final_num_bytes <= m_last_allocation_size);
-  m_current_offset += final_num_bytes;
 
-  // TODO: For non-coherent mappings, flush the memory range
+  // For non-coherent mappings, flush the memory range
+  if (!m_coherent_mapping)
+  {
+    VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
+                                 m_current_offset, final_num_bytes};
+    vkFlushMappedMemoryRanges(g_object_cache->GetDevice(), 1, &range);
+  }
+
+  m_current_offset += final_num_bytes;
 }
 
 void StreamBuffer::OnFencePointCreated(VkFence fence)
