@@ -201,8 +201,15 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
     changed = true;
   }
 
-  m_gx_primitive_type = gx_primitive_type;
-  m_dstalpha_mode = dstalpha_mode;
+  if (m_dstalpha_mode != dstalpha_mode)
+  {
+    // Switching to/from alpha pass requires a pipeline change, since the blend state
+    // is overridden in the destination alpha pass.
+    if (m_dstalpha_mode == DSTALPHA_ALPHA_PASS || dstalpha_mode == DSTALPHA_ALPHA_PASS)
+      changed = true;
+
+    m_dstalpha_mode = dstalpha_mode;
+  }
 
   if (changed)
     m_dirty_flags |= DIRTY_FLAG_PIPELINE;
@@ -602,9 +609,31 @@ bool StateTracker::UpdatePipeline()
     return false;
 
   // Grab a new pipeline object, this can fail
-  m_pipeline_object = g_object_cache->GetPipeline(m_pipeline_state);
-  if (m_pipeline_object == VK_NULL_HANDLE)
-    return false;
+  if (m_dstalpha_mode != DSTALPHA_ALPHA_PASS)
+  {
+    m_pipeline_object = g_object_cache->GetPipeline(m_pipeline_state);
+    if (m_pipeline_object == VK_NULL_HANDLE)
+      return false;
+  }
+  else
+  {
+    // We need to make a few modifications to the pipeline object, but retain
+    // the existing state, since we don't want to break the next draw.
+    PipelineInfo temp_info = m_pipeline_state;
+
+    // Skip depth writes for this pass. The results will be the same, so no
+    // point in overwriting depth values with the same value.
+    temp_info.depth_stencil_state.write_enable = VK_FALSE;
+
+    // Only allow alpha writes, and disable blending.
+    temp_info.blend_state.blend_enable = VK_FALSE;
+    temp_info.blend_state.logic_op_enable = VK_FALSE;
+    temp_info.blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
+
+    m_pipeline_object = g_object_cache->GetPipeline(temp_info);
+    if (m_pipeline_object == VK_NULL_HANDLE)
+      return false;
+  }
 
   m_dirty_flags |= DIRTY_FLAG_PIPELINE_BINDING;
   return true;
