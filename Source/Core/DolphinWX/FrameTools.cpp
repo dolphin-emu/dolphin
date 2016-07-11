@@ -964,6 +964,30 @@ void CFrame::StartGame(const std::string& filename)
     m_ToolBar->EnableTool(IDM_PLAY, false);
   GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 
+  VR_Init();  // Must be done before g_has_hmd is used below.
+
+  VR_RecenterHMD();
+
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+  if (g_has_rift)
+  {
+    wxMessageDialog HealthDlg(this,
+      _("HEALTH & SAFETY WARNING\n\nRead and follow all warnings and "
+        "instructions\nincluded with the Headset before use. Headset\n"
+        "should be calibrated for each user. Not for use by\nchildren "
+        "under 13. Stop use if you experience any\n"
+        "discomfort or health reactions.\n\n"
+        "More: www.oculus.com/warnings\n\n"
+        "Do you acknowledge?\n"),
+      _("HEALTH & SAFETY WARNING"),
+      wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
+
+    int Ret = HealthDlg.ShowModal();
+    if (Ret != wxID_YES)
+      return;
+  }
+#endif
+
   if (SConfig::GetInstance().bRenderToMain)
   {
     // Game has been started, hide the game list
@@ -993,30 +1017,6 @@ void CFrame::StartGame(const std::string& filename)
     // position is 0,0. Weed out the 0's from existing configs.
     if (position == wxPoint(0, 0))
       position = wxDefaultPosition;
-#endif
-
-    VR_Init();  // Must be done before g_has_hmd is used below.
-
-    VR_RecenterHMD();
-
-#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
-    if (g_has_rift)
-    {
-      wxMessageDialog HealthDlg(this,
-                                _("HEALTH & SAFETY WARNING\n\nRead and follow all warnings and "
-                                  "instructions\nincluded with the Headset before use. Headset\n"
-                                  "should be calibrated for each user. Not for use by\nchildren "
-                                  "under 13. Stop use if you experience any\n"
-                                  "discomfort or health reactions.\n\n"
-                                  "More: www.oculus.com/warnings\n\n"
-                                  "Do you acknowledge?\n"),
-                                _("HEALTH & SAFETY WARNING"),
-                                wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
-
-      int Ret = HealthDlg.ShowModal();
-      if (Ret != wxID_YES)
-        return;
-    }
 #endif
 
     wxSize size(SConfig::GetInstance().iRenderWindowWidth,
