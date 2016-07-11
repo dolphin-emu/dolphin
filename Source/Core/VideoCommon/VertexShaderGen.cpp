@@ -157,7 +157,8 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
       }
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
+        g_ActiveConfig.backend_info.APIType == API_VULKAN)
     {
       out.Write("%sout VertexData {\n",
                 (g_ActiveConfig.backend_info.APIType == API_VULKAN) ? "layout(location = 0) " : "");
@@ -470,7 +471,8 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
 
   if (api_type == API_OPENGL || api_type == API_VULKAN)
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders ||
+        g_ActiveConfig.backend_info.APIType == API_VULKAN)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, uid_data->pixel_lighting);
     }

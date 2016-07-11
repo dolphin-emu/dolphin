@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include "VideoCommon/VideoConfig.h"
+
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
@@ -19,11 +21,18 @@ bool CheckDebugLayerAvailability();
 
 std::vector<VkPhysicalDevice> EnumerateVulkanPhysicalDevices(VkInstance instance);
 
-VkPhysicalDevice SelectVulkanPhysicalDevice(VkInstance instance, int device_index);
-
 std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_device);
 
 bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features);
+
+void PopulateBackendInfo(VideoConfig* config);
+
+void PopulateBackendInfoAdapters(VideoConfig* config,
+                                 const std::vector<VkPhysicalDevice>& physical_device_list);
+
+void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device);
+
+void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device);
 
 VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd);
 
