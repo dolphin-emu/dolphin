@@ -133,7 +133,6 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
     }
 
     LinkBlock(block_num);
-    LinkBlockExits(block_num);
   }
 
   JitRegister::Register(b.checkedEntry, b.codeSize, "JIT_PPC_%08x", b.physicalAddress);
@@ -213,8 +212,11 @@ void JitBaseBlockCache::LinkBlockExits(int i)
       int destinationBlock = GetBlockNumberFromStartAddress(e.exitAddress, b.msrBits);
       if (destinationBlock != -1)
       {
-        WriteLinkBlock(e.exitPtrs, blocks[destinationBlock]);
-        e.linkStatus = true;
+        if (!blocks[destinationBlock].invalid)
+        {
+          WriteLinkBlock(e, &blocks[destinationBlock]);
+          e.linkStatus = true;
+        }
       }
     }
   }
@@ -248,10 +250,12 @@ void JitBaseBlockCache::UnlinkBlock(int i)
     for (auto& e : sourceBlock.linkData)
     {
       if (e.exitAddress == b.effectiveAddress)
+      {
+        WriteLinkBlock(e, nullptr);
         e.linkStatus = false;
+      }
     }
   }
-  links_to.erase(b.effectiveAddress);
 }
 
 void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
@@ -274,10 +278,18 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
 
   UnlinkBlock(block_num);
 
-  // Send anyone who tries to run this block back to the dispatcher.
-  // Not entirely ideal, but .. pretty good.
-  // Spurious entrances from previously linked blocks can only come through checkedEntry
-  WriteDestroyBlock(b.checkedEntry, b.effectiveAddress);
+  // Delete linking adresses
+  auto it = links_to.equal_range(b.effectiveAddress);
+  while (it.first != it.second)
+  {
+    if (it.first->second == block_num)
+      it.first = links_to.erase(it.first);
+    else
+      it.first++;
+  }
+
+  // Raise an signal if we are going to call this block again
+  WriteDestroyBlock(b);
 }
 
 void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
@@ -330,9 +342,10 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   }
 }
 
-void JitBlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
+void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
-  const u8* address = block.checkedEntry;
+  u8* location = source.exitPtrs;
+  const u8* address = dest ? dest->checkedEntry : jit->GetAsmRoutines()->dispatcher;
   XEmitter emit(location);
   if (*location == 0xE8)
   {
@@ -351,9 +364,11 @@ void JitBlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
   }
 }
 
-void JitBlockCache::WriteDestroyBlock(const u8* location, u32 address)
+void JitBlockCache::WriteDestroyBlock(const JitBlock& block)
 {
-  XEmitter emit((u8*)location);
-  emit.MOV(32, PPCSTATE(pc), Imm32(address));
-  emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
+  // Only clear the entry points as we might still be within this block.
+  XEmitter emit((u8*)block.checkedEntry);
+  emit.INT3();
+  XEmitter emit2((u8*)block.normalEntry);
+  emit2.INT3();
 }
