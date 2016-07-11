@@ -100,18 +100,31 @@ void ObjectCache::Shutdown()
   ClearSamplerCache();
 }
 
-u32 ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags desired_properties)
+bool ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index)
 {
-  for (u32 i = 0; i < 32; i++)
+  for (u32 i = 0; i < VK_MAX_MEMORY_TYPES; i++)
   {
-    if ((bits & (1 << i)) != 0 &&
-        (m_device_memory_properties.memoryTypes[i].propertyFlags & desired_properties) ==
-            desired_properties)
-      return i;
+    if ((bits & (1 << i)) != 0)
+    {
+      u32 supported = m_device_memory_properties.memoryTypes[i].propertyFlags & properties;
+      if (supported == properties)
+      {
+        *out_type_index = i;
+        return true;
+      }
+    }
   }
 
-  PanicAlert("Unable to find memory type for %x:%x", bits, desired_properties);
-  return 0;
+  return false;
+}
+
+u32 ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties)
+{
+  u32 type_index = VK_MAX_MEMORY_TYPES;
+  if (!GetMemoryType(bits, properties, &type_index))
+    PanicAlert("Unable to find memory type for %x:%x", bits, properties);
+
+  return type_index;
 }
 
 static VkPipelineRasterizationStateCreateInfo
