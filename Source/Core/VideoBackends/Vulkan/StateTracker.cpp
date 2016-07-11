@@ -168,7 +168,6 @@ void StateTracker::SetBlendState(const BlendState& state)
 bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode)
 {
   VertexShaderUid vs_uid = GetVertexShaderUid();
-  GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type);
   PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode);
 
   bool changed = false;
@@ -181,16 +180,20 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
     changed = true;
   }
 
-  if (gs_uid != m_gs_uid)
+  if (g_object_cache->SupportsGeometryShaders())
   {
-    if (gs_uid.GetUidData()->IsPassthrough())
-      m_pipeline_state.gs = VK_NULL_HANDLE;
-    else
-      m_pipeline_state.gs =
-          g_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, dstalpha_mode);
+    GeometryShaderUid gs_uid = GetGeometryShaderUid(gx_primitive_type);
+    if (gs_uid != m_gs_uid)
+    {
+      if (gs_uid.GetUidData()->IsPassthrough())
+        m_pipeline_state.gs = VK_NULL_HANDLE;
+      else
+        m_pipeline_state.gs =
+            g_object_cache->GetGeometryShaderCache().GetShaderForUid(gs_uid, dstalpha_mode);
 
-    m_gs_uid = gs_uid;
-    changed = true;
+      m_gs_uid = gs_uid;
+      changed = true;
+    }
   }
 
   if (ps_uid != m_ps_uid)
