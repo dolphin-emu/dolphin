@@ -174,6 +174,10 @@ VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXlibPresentationSupportKHR, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateXcbSurfaceKHR, true)
 VULKAN_INSTANCE_ENTRY_POINT(vkGetPhysicalDeviceXcbPresentationSupportKHR, true)
 
+#elif defined(VK_USE_PLATFORM_ANDROID_KHR)
+
+VULKAN_INSTANCE_ENTRY_POINT(vkCreateAndroidSurfaceKHR, true)
+
 #endif
 
 VULKAN_INSTANCE_ENTRY_POINT(vkCreateDebugReportCallbackEXT, false)
