@@ -133,7 +133,8 @@ public:
 
   // Finds a memory type index for the specified memory properties and the bits returned by
   // vkGetImageMemoryRequirements
-  u32 GetMemoryType(u32 bits, VkMemoryPropertyFlags desired_properties);
+  bool GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index);
+  u32 GetMemoryType(u32 bits, VkMemoryPropertyFlags properties);
 
   // Find a pipeline by the specified description, if not found, attempts to create it
   VkPipeline GetPipeline(const PipelineInfo& info);
