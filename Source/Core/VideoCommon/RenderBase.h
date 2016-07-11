@@ -138,6 +138,7 @@ public:
   static Common::Event s_screenshotCompleted;
 
   // Final surface changing
+  virtual void ChangeSurface(void* new_window_handle) {}
   static Common::Flag s_SurfaceNeedsChanged;
   static Common::Event s_ChangedSurface;
 
