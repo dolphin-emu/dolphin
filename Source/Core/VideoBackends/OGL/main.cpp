@@ -115,6 +115,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;
+  g_Config.backend_info.bSupportsMultithreading = false;
 
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
