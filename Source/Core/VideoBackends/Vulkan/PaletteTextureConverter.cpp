@@ -95,10 +95,6 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
     }
   }
 
-  // End current render pass, since we're rendering to a different texture.
-  state_tracker->EndRenderPass();
-  state_tracker->SetPendingRebind();
-
   // Fill descriptor set #2 (texel buffer)
   u32 palette_offset = static_cast<u32>(m_palette_stream_buffer->GetCurrentOffset());
   VkWriteDescriptorSet texel_set_write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
@@ -115,15 +111,16 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
 
   // Transition resource states
   dst_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                             m_palette_stream_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
                             VK_ACCESS_SHADER_READ_BIT, palette_offset, palette_size,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 
   // Set up draw
-  UtilityShaderDraw draw(m_pipeline_layout, m_render_pass,
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), m_pipeline_layout,
+                         m_render_pass,
                          g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
                          VK_NULL_HANDLE, m_shaders[format]);
 
@@ -143,7 +140,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
 
   // We have to bind the texel buffer descriptor set separately.
-  vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                           VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 2, 1,
                           &texel_buffer_descriptor_set, 0, nullptr);
 
@@ -153,9 +150,9 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
   draw.EndRenderPass();
 
   // Transition resources before re-use
-  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                             m_palette_stream_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
                             VK_ACCESS_HOST_WRITE_BIT, palette_offset, palette_size,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
