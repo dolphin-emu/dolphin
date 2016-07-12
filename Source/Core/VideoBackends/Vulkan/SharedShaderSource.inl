@@ -111,7 +111,7 @@ layout(location = 0) out float4 ocol0;
 
 void main()
 {
-	ocol0 = col0;
+  ocol0 = col0;
 }
 
 )";

@@ -512,10 +512,14 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
     // ARB_image_load_store extension yet.
 
     // D3D11 also has a way to force the driver to enable early-z, so we're fine here.
-    if (ApiType == API_OPENGL || ApiType == API_VULKAN)
+    if (ApiType == API_OPENGL)
     {
       // This is a #define which signals whatever early-z method the driver supports.
       out.Write("FORCE_EARLY_Z; \n");
+    }
+    else if (ApiType == API_VULKAN)
+    {
+      out.Write("layout(early_fragment_tests) in;");
     }
     else
     {
