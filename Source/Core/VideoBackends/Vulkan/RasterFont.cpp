@@ -268,13 +268,13 @@ bool RasterFont::CreateTexture()
   VkBufferImageCopy region = {0,           CHAR_WIDTH * CHAR_COUNT,
                               CHAR_HEIGHT, {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
                               {0, 0, 0},   {CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1}};
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), temp_buffer,
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), temp_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
   // Free temp buffers after command buffer executes
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   g_command_buffer_mgr->DeferResourceDestruction(temp_buffer);
   g_command_buffer_mgr->DeferResourceDestruction(temp_buffer_memory);
@@ -301,7 +301,8 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   if (text.empty())
     return;
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), render_pass, m_vertex_shader,
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), render_pass, m_vertex_shader,
                          VK_NULL_HANDLE, m_fragment_shader);
 
   UtilityShaderVertex* vertices =
