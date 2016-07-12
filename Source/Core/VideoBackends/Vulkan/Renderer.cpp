@@ -32,6 +32,15 @@ Renderer::Renderer(SwapChain* swap_chain, StateTracker* state_tracker)
   // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
     m_sampler_states[i].hex = std::numeric_limits<decltype(m_sampler_states[i].hex)>::max();
+
+  // Update size
+  s_backbuffer_width = m_swap_chain->GetSize().width;
+  s_backbuffer_height = m_swap_chain->GetSize().height;
+  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
+  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  PixelShaderManager::SetEfbScaleChanged();
 }
 
 Renderer::~Renderer()
@@ -151,10 +160,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   // Native -> EFB coordinates
   TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
 
-  // Clearing must occur within a render pass.
-  m_state_tracker->BeginRenderPass();
-
-  // fast path: when both color and alpha are enabled, we can blow away the entire buffer
+#if 1
+  // Fast path: when both color and alpha are enabled, we can blow away the entire buffer
   // TODO: Can we also do it when the buffer is not an RGBA format?
   VkClearAttachment clear_attachments[2];
   uint32_t num_clear_attachments = 0;
@@ -171,32 +178,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
     clear_attachments[num_clear_attachments].clearValue.color.float32[3] =
         float((color >> 24) & 0xFF) / 255.0f;
     num_clear_attachments++;
+    colorEnable = false;
+    alphaEnable = false;
   }
-  else
-  {
-    // Mask away the appropriate colors and use a shader
-    BlendState blend_state = Util::GetNoBlendingBlendState();
-    if (colorEnable)
-      blend_state.write_mask =
-          VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
-    else
-      blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
-
-    // No need to start a new render pass, but we do need to restore viewport state
-    UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
-                           m_framebuffer_mgr->GetEFBRenderPass(),
-                           g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                           g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
-                           g_object_cache->GetSharedShaderCache().GetClearFragmentShader());
-
-    draw.SetBlendState(blend_state);
-    draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
-                         float((color >> 16) & 0xFF) / 255.0f, float((color >> 8) & 0xFF) / 255.0f,
-                         float((color >> 0) & 0xFF) / 255.0f, float((color >> 24) & 0xFF) / 255.0f);
-
-    m_state_tracker->SetPendingRebind();
-  }
-
   if (zEnable)
   {
     clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -205,11 +189,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
         1.0f - (float(z & 0xFFFFFF) / 16777216.0f);
     clear_attachments[num_clear_attachments].clearValue.depthStencil.stencil = 0;
     num_clear_attachments++;
+    zEnable = false;
   }
-
   if (num_clear_attachments > 0)
   {
-    VkClearRect rect;
+    VkClearRect rect = {};
     rect.rect.offset = {target_rc.left, target_rc.top};
     rect.rect.extent = {static_cast<uint32_t>(target_rc.GetWidth()),
                         static_cast<uint32_t>(target_rc.GetHeight())};
@@ -217,9 +201,52 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
     rect.baseArrayLayer = 0;
     rect.layerCount = m_framebuffer_mgr->GetEFBLayers();
 
+    m_state_tracker->BeginRenderPass();
+
     vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
                           clear_attachments, 1, &rect);
   }
+#endif
+
+  if (!colorEnable && !alphaEnable && !zEnable)
+    return;
+
+  // Clearing must occur within a render pass.
+  m_state_tracker->BeginRenderPass();
+  m_state_tracker->SetPendingRebind();
+
+  // Mask away the appropriate colors and use a shader
+  BlendState blend_state = Util::GetNoBlendingBlendState();
+  u32 write_mask = 0;
+  if (colorEnable)
+    write_mask |= VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT;
+  if (alphaEnable)
+    write_mask |= VK_COLOR_COMPONENT_A_BIT;
+  blend_state.write_mask = write_mask;
+
+  DepthStencilState depth_state = Util::GetNoDepthTestingDepthStencilState();
+  depth_state.test_enable = VK_FALSE;
+  depth_state.compare_op = VK_COMPARE_OP_ALWAYS;
+  depth_state.write_enable = zEnable ? VK_TRUE : VK_FALSE;
+
+  // No need to start a new render pass, but we do need to restore viewport state
+  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(),
+                         m_framebuffer_mgr->GetEFBRenderPass(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
+                         g_object_cache->GetSharedShaderCache().GetClearFragmentShader());
+
+  draw.SetBlendState(blend_state);
+  draw.SetDepthStencilState(depth_state);
+
+  float vertex_r = float((color >> 16) & 0xFF) / 255.0f;
+  float vertex_g = float((color >> 8) & 0xFF) / 255.0f;
+  float vertex_b = float((color >> 0) & 0xFF) / 255.0f;
+  float vertex_a = float((color >> 24) & 0xFF) / 255.0f;
+  float vertex_z = 1.0f - (float(z & 0xFFFFFF) / 16777216.0f);
+
+  draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
+                       vertex_r, vertex_g, vertex_b, vertex_a, vertex_z);
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
