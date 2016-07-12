@@ -95,9 +95,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow *const parent,
     std::string travChoice;
     netplay_section.Get("TraversalChoice", &travChoice, "direct");
     if (travChoice == "traversal") {
-      m_direct_traversal->Select(1);
+      m_direct_traversal->Select(TRAVERSAL_CHOICE);
     } else {
-      m_direct_traversal->Select(0);
+      m_direct_traversal->Select(DIRECT_CHOICE);
     }
 
     std::string centralPort;
@@ -367,7 +367,7 @@ void NetPlaySetupFrame::DoHost() {
 
   bool trav;
   unsigned long listen_port = 0;
-  if (m_direct_traversal->GetCurrentSelection() == 1) {
+  if (m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE) {
     trav = true;
     listen_port = m_traversal_listen_port_enabled->IsChecked()
                       ? m_traversal_listen_port->GetValue()
