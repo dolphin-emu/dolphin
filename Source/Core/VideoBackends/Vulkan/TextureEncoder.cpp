@@ -62,7 +62,8 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
     return;
   }
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_encoding_render_pass,
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), m_encoding_render_pass,
                          g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
                          VK_NULL_HANDLE, m_texture_encoding_shaders[format]);
 

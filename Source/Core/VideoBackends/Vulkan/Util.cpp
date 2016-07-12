@@ -112,9 +112,11 @@ void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool exe
 
 }  // namespace Util
 
-UtilityShaderDraw::UtilityShaderDraw(VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
+UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
+                                     VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
                                      VkShaderModule vertex_shader, VkShaderModule geometry_shader,
                                      VkShaderModule pixel_shader)
+    : m_command_buffer(command_buffer)
 {
   // Populate minimal pipeline state
   m_pipeline_info.vertex_format = g_object_cache->GetUtilityShaderVertexFormat();
@@ -231,25 +233,22 @@ void UtilityShaderDraw::BeginRenderPass(VkFramebuffer framebuffer, const VkRect2
                                       (clear_value) ? 1u : 0u,
                                       clear_value};
 
-  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
-                       VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdBeginRenderPass(m_command_buffer, &begin_info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void UtilityShaderDraw::EndRenderPass()
 {
-  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+  vkCmdEndRenderPass(m_command_buffer);
 }
 
 void UtilityShaderDraw::Draw()
 {
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-
-  BindVertexBuffer(command_buffer);
-  BindDescriptors(command_buffer);
-  if (!BindPipeline(command_buffer))
+  BindVertexBuffer();
+  BindDescriptors();
+  if (!BindPipeline())
     return;
 
-  vkCmdDraw(command_buffer, m_vertex_count, 1, 0, 0);
+  vkCmdDraw(m_command_buffer, m_vertex_count, 1, 0, 0);
 }
 
 void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
@@ -268,7 +267,7 @@ void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
   vertices[3].SetTextureCoordinates(1.0f, 0.0f);
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
+  Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
   UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
   Draw();
 }
@@ -296,8 +295,7 @@ void UtilityShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_he
   vertices[3].SetTextureCoordinates(u1, v0);
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), dst_x, dst_y,
-                              dst_width, dst_height);
+  Util::SetViewportAndScissor(m_command_buffer, dst_x, dst_y, dst_width, dst_height);
   UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
   Draw();
 }
@@ -319,38 +317,35 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, flo
   vertices[3].SetTextureCoordinates(1.0f, 0.0f);
   vertices[3].SetColor(r, g, b, a);
 
-  Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), x, y, width, height);
+  Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
   UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
   Draw();
 }
 
 void UtilityShaderDraw::SetViewportAndScissor(int x, int y, int width, int height)
 {
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  Util::SetViewportAndScissor(command_buffer, x, y, width, height, 0.0f, 1.0f);
+  Util::SetViewportAndScissor(m_command_buffer, x, y, width, height, 0.0f, 1.0f);
 }
 
 void UtilityShaderDraw::DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology,
                                                 u32 vertex_count)
 {
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-
   m_pipeline_info.vertex_format = nullptr;
   m_pipeline_info.primitive_topology = primitive_topology;
 
-  BindDescriptors(command_buffer);
-  if (!BindPipeline(command_buffer))
+  BindDescriptors();
+  if (!BindPipeline())
     return;
 
-  vkCmdDraw(command_buffer, vertex_count, 1, 0, 0);
+  vkCmdDraw(m_command_buffer, vertex_count, 1, 0, 0);
 }
 
-void UtilityShaderDraw::BindVertexBuffer(VkCommandBuffer command_buffer)
+void UtilityShaderDraw::BindVertexBuffer()
 {
-  vkCmdBindVertexBuffers(command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
+  vkCmdBindVertexBuffers(m_command_buffer, 0, 1, &m_vertex_buffer, &m_vertex_buffer_offset);
 }
 
-void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
+void UtilityShaderDraw::BindDescriptors()
 {
   // TODO: This method is a mess, clean it up
   std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> bind_descriptor_sets = {};
@@ -446,7 +441,7 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] == VK_NULL_HANDLE)
   {
     // UBO only
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
                             &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
@@ -454,21 +449,21 @@ void UtilityShaderDraw::BindDescriptors(VkCommandBuffer command_buffer)
   else if (bind_descriptor_sets[0] == VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Samplers only
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS,
                             1, &bind_descriptor_sets[1], 0, nullptr);
   }
   else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Both
-    vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
                             bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
 }
 
-bool UtilityShaderDraw::BindPipeline(VkCommandBuffer command_buffer)
+bool UtilityShaderDraw::BindPipeline()
 {
   VkPipeline pipeline = g_object_cache->GetPipeline(m_pipeline_info);
   if (pipeline == VK_NULL_HANDLE)
@@ -477,7 +472,7 @@ bool UtilityShaderDraw::BindPipeline(VkCommandBuffer command_buffer)
     return false;
   }
 
-  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBindPipeline(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
   return true;
 }
 

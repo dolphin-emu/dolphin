@@ -101,9 +101,9 @@ struct UtilityShaderVertex
 class UtilityShaderDraw
 {
 public:
-  UtilityShaderDraw(VkPipelineLayout pipeline_layout, VkRenderPass render_pass,
-                    VkShaderModule vertex_shader, VkShaderModule geometry_shader,
-                    VkShaderModule pixel_shader);
+  UtilityShaderDraw(VkCommandBuffer command_buffer, VkPipelineLayout pipeline_layout,
+                    VkRenderPass render_pass, VkShaderModule vertex_shader,
+                    VkShaderModule geometry_shader, VkShaderModule pixel_shader);
 
   UtilityShaderVertex* ReserveVertices(VkPrimitiveTopology topology, size_t count);
   void CommitVertices(size_t count);
@@ -146,10 +146,11 @@ public:
   void DrawWithoutVertexBuffer(VkPrimitiveTopology primitive_topology, u32 vertex_count);
 
 private:
-  void BindVertexBuffer(VkCommandBuffer command_buffer);
-  void BindDescriptors(VkCommandBuffer command_buffer);
-  bool BindPipeline(VkCommandBuffer command_buffer);
+  void BindVertexBuffer();
+  void BindDescriptors();
+  bool BindPipeline();
 
+  VkCommandBuffer m_command_buffer = VK_NULL_HANDLE;
   VkBuffer m_vertex_buffer = VK_NULL_HANDLE;
   VkDeviceSize m_vertex_buffer_offset = 0;
   uint32_t m_vertex_count = 0;
