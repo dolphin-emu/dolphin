@@ -310,31 +310,25 @@ bool InitializeGlslang()
 
 std::string GetShaderHeader()
 {
-  // TODO: Handle GLSL versions/extensions/mobile
-  return StringFromFormat(
-      "#version 450 core\n"
-      //"#extension GL_KHR_vulkan_glsl : require\n"
-      "#extension GL_ARB_shading_language_420pack : require\n"     // 420pack
-      "#extension GL_ARB_shader_image_load_store : enable\n"       // early-z
-      "#define SAMPLER_BINDING(x) layout(set = 1, binding = x)\n"  // Sampler binding
-      "#define FORCE_EARLY_Z layout(early_fragment_tests) in\n"    // early-z
+  return StringFromFormat("#version 450 core\n"
+                          "#define SAMPLER_BINDING(x) layout(set = 1, binding = x)\n"
 
-      // hlsl to glsl function translation
-      "#define float2 vec2\n"
-      "#define float3 vec3\n"
-      "#define float4 vec4\n"
-      "#define uint2 uvec2\n"
-      "#define uint3 uvec3\n"
-      "#define uint4 uvec4\n"
-      "#define int2 ivec2\n"
-      "#define int3 ivec3\n"
-      "#define int4 ivec4\n"
-      "#define frac fract\n"
-      "#define lerp mix\n"
+                          // hlsl to glsl function translation
+                          "#define float2 vec2\n"
+                          "#define float3 vec3\n"
+                          "#define float4 vec4\n"
+                          "#define uint2 uvec2\n"
+                          "#define uint3 uvec3\n"
+                          "#define uint4 uvec4\n"
+                          "#define int2 ivec2\n"
+                          "#define int3 ivec3\n"
+                          "#define int4 ivec4\n"
+                          "#define frac fract\n"
+                          "#define lerp mix\n"
 
-      // OGL->Vulkan stupidity
-      "#define gl_VertexID gl_VertexIndex\n"
-      "#define gl_InstanceID gl_InstanceIndex\n");
+                          // These were changed in Vulkan
+                          "#define gl_VertexID gl_VertexIndex\n"
+                          "#define gl_InstanceID gl_InstanceIndex\n");
 }
 
 // Vertex shader functions
