@@ -37,6 +37,8 @@ private:
   void OnDirectTraversalChoice(wxCommandEvent& event);
   void OnResetTraversal(wxCommandEvent& event);
   void OnTraversalListenPortChanged(wxCommandEvent& event);
+  void OnTabChanged(wxCommandEvent& event);
+  void OnAfterTabChange(wxIdleEvent& event);
   void OnKeyDown(wxKeyEvent& event);
   void DispatchFocus();
 

@@ -240,6 +240,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
   panel->SetSizerAndFit(main_szr);
 
+  // Handle focus on tab changes
+  panel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &NetPlaySetupFrame::OnTabChanged, this);
+
   // wxBoxSizer* const diag_szr = new wxBoxSizer(wxVERTICAL);
   // diag_szr->Add(panel, 1, wxEXPAND);
   // SetSizerAndFit(diag_szr);
@@ -528,6 +531,23 @@ void NetPlaySetupFrame::OnKeyDown(wxKeyEvent& event)
     DoHost();
     break;
   }
+}
+
+void NetPlaySetupFrame::OnTabChanged(wxCommandEvent& event)
+{
+  // Propagate event
+  event.Skip();
+
+  // Delaying action so the first tab order element doesn't override the focus
+  m_notebook->Bind(wxEVT_IDLE, &NetPlaySetupFrame::OnAfterTabChange, this);
+}
+
+void NetPlaySetupFrame::OnAfterTabChange(wxIdleEvent&)
+{
+  // Unbinding so we don't hog the idle event
+  m_notebook->Unbind(wxEVT_IDLE, &NetPlaySetupFrame::OnAfterTabChange, this);
+
+  DispatchFocus();
 }
 
 void NetPlaySetupFrame::DispatchFocus()
