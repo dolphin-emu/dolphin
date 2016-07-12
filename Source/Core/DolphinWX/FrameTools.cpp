@@ -968,8 +968,7 @@ void CFrame::StartGame(const std::string& filename)
 
   VR_RecenterHMD();
 
-#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
-  if (g_has_rift)
+  if (g_has_rift && g_vr_can_disable_hsw)
   {
     wxMessageDialog HealthDlg(this,
       _("HEALTH & SAFETY WARNING\n\nRead and follow all warnings and "
@@ -986,7 +985,6 @@ void CFrame::StartGame(const std::string& filename)
     if (Ret != wxID_YES)
       return;
   }
-#endif
 
   if (SConfig::GetInstance().bRenderToMain)
   {

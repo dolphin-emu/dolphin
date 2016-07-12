@@ -269,14 +269,17 @@ HRESULT Create(HWND wnd)
   IDXGIAdapter* adapter = nullptr;
   IDXGIOutput* output = nullptr;
   DXGI_OUTPUT_DESC out_desc;
-#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
-  if (PCreateDXGIFactory1)
-    hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+  if (g_vr_needs_DXGIFactory1)
+  {
+    if (PCreateDXGIFactory1)
+      hr = PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+    else
+      hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  }
   else
+  {
     hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
-#else
-  hr = PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
-#endif
+  }
   if (FAILED(hr))
     MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 backend"),
                MB_OK | MB_ICONERROR);

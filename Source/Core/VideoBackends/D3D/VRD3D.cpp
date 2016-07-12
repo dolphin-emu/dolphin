@@ -10,8 +10,9 @@
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
-#include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
+#include "VideoCommon/VROculus.h"
 
 namespace DX11
 {

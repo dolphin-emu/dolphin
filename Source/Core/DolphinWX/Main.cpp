@@ -157,7 +157,7 @@ bool DolphinApp::OnInit()
     y = wxDefaultCoord;
 #endif
 
-  std::string titleStr = StringFromFormat("%s%s", scm_rev_str.c_str(), SCM_OCULUS_STR);
+  std::string titleStr = StringFromFormat("%s%s", scm_rev_str.c_str(), scm_vr_sdk_str);
   main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(titleStr), wxPoint(x, y), wxSize(w, h),
                           m_use_debugger, m_batch_mode, m_use_logger);
 

@@ -18,8 +18,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
+#include "VideoCommon/VROculus.h"
+
+const char* scm_vr_sdk_str = SCM_OCULUS_STR;
 
 float g_current_fps = 60.0f, g_current_speed = 0.0f;  // g_current_speed is a percentage
 
@@ -66,27 +69,43 @@ bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
      g_vr_has_hq_distortion = true;
 bool g_vr_has_configure_tracking = false, g_vr_has_asynchronous_timewarp = true;
+bool g_vr_supports_extended = false;
 #elif OVR_MAJOR_VERSION >= 7
 bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
      g_vr_has_hq_distortion = true;
 bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
+bool g_vr_supports_extended = false;
 #else
 bool g_vr_cant_motion_blur = false, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = true, g_vr_has_configure_rendering = true,
      g_vr_has_hq_distortion = true;
 bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
+bool g_vr_supports_extended = true;
 #endif
 #else
 bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
 bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
      g_vr_has_hq_distortion = true;
 bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
+bool g_vr_supports_extended = false;
 #endif
+
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 bool g_vr_has_timewarp_tweak = true;
+bool g_vr_needs_DXGIFactory1 = false;
+bool g_vr_needs_endframe = true;
+bool g_vr_can_disable_hsw = true;
 #else
 bool g_vr_has_timewarp_tweak = false;
+#if defined(OVR_MAJOR_VERSION)
+bool g_vr_can_disable_hsw = false;
+bool g_vr_needs_DXGIFactory1 = true;
+#else
+bool g_vr_can_disable_hsw = true;
+bool g_vr_needs_DXGIFactory1 = false;
+#endif
+bool g_vr_needs_endframe = false;
 #endif
 
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
@@ -424,10 +443,12 @@ bool InitOculusHMD()
 #endif
 
 #if OVR_PRODUCT_VERSION >= 1
+    g_vr_can_disable_hsw = false;
     g_vr_has_asynchronous_timewarp = true;
     // no need to configure tracking
     g_vr_has_configure_tracking = false;
 #elif OVR_MAJOR_VERSION >= 6
+    g_vr_can_disable_hsw = false;
     g_vr_has_asynchronous_timewarp = false;
     g_vr_has_configure_tracking = true;
     if (OVR_SUCCESS(ovrHmd_ConfigureTracking(hmd,
@@ -435,6 +456,7 @@ bool InitOculusHMD()
                                                  ovrTrackingCap_MagYawCorrection,
                                              0)))
 #else
+    g_vr_can_disable_hsw = true;
     g_vr_has_asynchronous_timewarp = false;
     g_vr_has_configure_tracking = true;
     if (ovrHmd_ConfigureTracking(hmd, ovrTrackingCap_Orientation | ovrTrackingCap_Position |

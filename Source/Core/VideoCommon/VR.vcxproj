@@ -81,6 +81,7 @@
     <ClInclude Include="..\DolphinWX\HideObjectAddEdit.h" />
     <ClInclude Include="..\DolphinWX\ISOProperties.h" />
     <ClInclude Include="VRGameMatrices.h" />
+    <ClInclude Include="VROculus.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">

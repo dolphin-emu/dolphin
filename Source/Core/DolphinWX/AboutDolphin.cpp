@@ -29,7 +29,7 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
       new wxGenericStaticBitmap(this, wxID_ANY, WxUtils::LoadResourceBitmap("dolphin_logo"));
 
   const wxString DolphinText = _("Dolphin VR");
-  const wxString RevisionText = scm_desc_str + wxString::Format("%s", SCM_OCULUS_STR);
+  const wxString RevisionText = scm_desc_str + wxString::Format("%s", scm_vr_sdk_str);
   const wxString CopyrightText =
       _("(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of Nintendo. Dolphin "
         "is not affiliated with Nintendo in any way.");

@@ -86,72 +86,7 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 #define VIVE_SPECIAL_BOTTOMLEFT 0x40000
 #define VIVE_SPECIAL_BOTTOMRIGHT 0x80000
 
-#ifdef HAVE_OCULUSSDK
-#include "OVR_Version.h"
-#ifndef OVR_PRODUCT_VERSION
-#define OVR_PRODUCT_VERSION 0
-#endif
-
-#if OVR_PRODUCT_VERSION >= 1
-#define OCULUSSDK044ORABOVE
-#include "OVR_CAPI.h"
-#include "OVR_CAPI_Audio.h"
-typedef ovrSession ovrHmd;
-#include "Extras/OVR_Math.h"
-#else
-#if OVR_MAJOR_VERSION <= 4
-#include "Kernel/OVR_Types.h"
-#else
-#define OCULUSSDK044ORABOVE
-#define OVR_DLL_BUILD
-#endif
-#include "OVR_CAPI.h"
-#if OVR_MAJOR_VERSION >= 5
-#include "Extras/OVR_Math.h"
-#else
-#include "Kernel/OVR_Math.h"
-
-// Detect which version of the Oculus SDK we are using
-#if OVR_MINOR_VERSION >= 4
-#if OVR_BUILD_VERSION >= 4
-#define OCULUSSDK044ORABOVE
-#elif OVR_BUILD_VERSION >= 3
-#define OCULUSSDK043
-#else
-#define OCULUSSDK042
-#endif
-#else
-Error, Oculus SDK 0.3.x is no longer supported
-#endif
-
-extern "C" {
-void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
-}
-#endif
-#endif
-
-#ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING " or SteamVR"
-#else
-#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
-#endif
-#else
-#ifdef _WIN32
-#include "OculusSystemLibraryHeader.h"
-#define OCULUSSDK044ORABOVE
-#ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING " or SteamVR"
-#else
-#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING
-#endif
-#else
-#ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", SteamVR"
-#else
-#define SCM_OCULUS_STR ", no Oculus SDK"
-#endif
-#endif
-#endif
+extern const char* scm_vr_sdk_str;
 
 #ifdef HAVE_OPENVR
 #include <openvr.h>
@@ -205,14 +140,18 @@ typedef enum {
   CS_ARCADE_RIGHT
 } ControllerStyle;
 
+// Main emulator interface
 void VR_Init();
 void VR_StopRendering();
 void VR_Shutdown();
 void VR_RecenterHMD();
+void VR_NewVRFrame();
+void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 void VR_CheckStatus(bool* ShouldRecenter, bool* ShouldQuit);
+
+// Used for VR rendering
 void VR_ConfigureHMDTracking();
 void VR_ConfigureHMDPrediction();
-void VR_NewVRFrame();
 void VR_BeginFrame();
 void VR_GetEyePoses();
 void ReadHmdOrientation(float* roll, float* pitch, float* yaw, float* x, float* y, float* z);
@@ -238,7 +177,6 @@ void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext);
 
 bool VR_PairViveControllers();
 
-void VR_SetGame(bool is_wii, bool is_nand, std::string id);
 bool VR_GetLeftControllerPos(float* pos, float* thumbpos, Matrix33* m);
 bool VR_GetRightControllerPos(float* pos, float* thumbpos, Matrix33* m);
 ControllerStyle VR_GetHydraStyle(int hand);
@@ -246,9 +184,11 @@ ControllerStyle VR_GetHydraStyle(int hand);
 void OpcodeReplayBuffer();
 void OpcodeReplayBufferInline();
 
+// HMD description and capabilities
 extern bool g_force_vr, g_prefer_steamvr;
 extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_steamvr, g_is_direct_mode, g_is_nes;
 extern bool g_vr_cant_motion_blur, g_vr_must_motion_blur;
+extern bool g_vr_needs_endframe, g_vr_needs_DXGIFactory1, g_vr_can_disable_hsw, g_vr_supports_extended;
 extern bool g_vr_has_dynamic_predict, g_vr_has_configure_rendering, g_vr_has_hq_distortion;
 extern bool g_vr_has_configure_tracking, g_vr_has_timewarp_tweak, g_vr_has_asynchronous_timewarp;
 extern bool g_vr_should_swap_buffers, g_vr_dont_vsync;
@@ -329,38 +269,7 @@ extern bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
 extern int m_iValidPoseCount;
 #endif
 
-#ifdef OVR_MAJOR_VERSION
-extern ovrHmd hmd;
-extern ovrHmdDesc hmdDesc;
-extern ovrFovPort g_eye_fov[2];
-extern ovrEyeRenderDesc g_eye_render_desc[2];
-#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
-extern ovrFrameTiming g_rift_frame_timing;
-#endif
-extern ovrPosef g_eye_poses[2], g_front_eye_poses[2];
 extern int g_ovr_frameindex;
-#endif
-
-#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 7)
-#define ovrHmd_GetFrameTiming ovr_GetFrameTiming
-#define ovrHmd_SubmitFrame ovr_SubmitFrame
-#define ovrHmd_GetRenderDesc ovr_GetRenderDesc
-#define ovrHmd_DestroySwapTextureSet ovr_DestroySwapTextureSet
-#define ovrHmd_DestroyMirrorTexture ovr_DestroyMirrorTexture
-#define ovrHmd_SetEnabledCaps ovr_SetEnabledCaps
-#define ovrHmd_GetEnabledCaps ovr_GetEnabledCaps
-#define ovrHmd_ConfigureTracking ovr_ConfigureTracking
-#if OVR_PRODUCT_VERSION >= 1
-#define ovrHmd_RecenterPose ovr_RecenterTrackingOrigin
-#else
-#define ovrHmd_RecenterPose ovr_RecenterPose
-#endif
-#define ovrHmd_Destroy ovr_Destroy
-#define ovrHmd_GetFovTextureSize ovr_GetFovTextureSize
-#define ovrHmd_GetFloat ovr_GetFloat
-#define ovrHmd_SetBool ovr_SetBool
-#define ovrHmd_GetTrackingState ovr_GetTrackingState
-#endif
 
 #ifdef _WIN32
 extern LUID* g_hmd_luid;

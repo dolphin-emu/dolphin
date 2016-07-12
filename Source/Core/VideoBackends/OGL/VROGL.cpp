@@ -15,8 +15,9 @@
 #include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VROGL.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/VR.h"
+#include "VideoCommon/VROculus.h"
 
 // Oculus Rift
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0
