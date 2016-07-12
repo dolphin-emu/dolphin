@@ -1194,7 +1194,9 @@ bool NetPlayClient::DoAllPlayersHaveGame()
   std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
   return std::all_of(std::begin(m_players), std::end(m_players),
-                     [](auto entry) { return entry.second.game_status == PlayerGameStatus::Ok; });
+                     [](std::pair<PlayerId, Player> entry) {
+                       return entry.second.game_status == PlayerGameStatus::Ok;
+                     });
 }
 
 // stuff hacked into dolphin
