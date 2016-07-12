@@ -131,13 +131,15 @@ public:
   // NOTE: These methods alter the viewport state of the command buffer.
 
   // Sets texture coordinates to 0..1
-  void DrawQuad(int x, int y, int width, int height);
+  void DrawQuad(int x, int y, int width, int height, float z = 0.0f);
 
   // Sets texture coordinates to the specified range
   void DrawQuad(int src_x, int src_y, int src_width, int src_height, int src_full_width,
-                int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height);
+                int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height,
+                float z = 0.0f);
 
-  void DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a);
+  void DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a,
+                       float z = 0.0f);
 
   // Draw without a vertex buffer. Assumes viewport has been initialized separately.
   void SetViewportAndScissor(int x, int y, int width, int height);
