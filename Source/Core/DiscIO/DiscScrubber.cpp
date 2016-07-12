@@ -70,7 +70,7 @@ struct SPartitionGroup
 static SPartitionGroup PartitionGroup[4];
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
+void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
 bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
 bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
 bool ParseDisc();
@@ -132,7 +132,7 @@ size_t GetNextBlock(File::IOFile& in, u8* buffer)
   if (m_isScrubbing && m_FreeTable[i])
   {
     DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, CurrentOffset);
-    std::fill(buffer, buffer + m_BlockSize, 0xFF);
+    std::fill(buffer, buffer + m_BlockSize, 0x00);
     in.Seek(m_BlockSize, SEEK_CUR);
     ReadBytes = m_BlockSize;
   }
@@ -171,23 +171,24 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
     CurrentOffset += CLUSTER_SIZE;
   }
 }
-// Compensate for 0x400(SHA-1) per 0x8000(cluster)
-void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
+
+// Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
+void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 {
-  u64 Offset;
-  u64 Size;
+  u64 first_cluster_start = offset / 0x7c00 * CLUSTER_SIZE + partition_data_offset;
 
-  Offset = _Offset / 0x7c00;
-  Offset = Offset * CLUSTER_SIZE;
-  Offset += _PartitionDataOffset;
+  u64 last_cluster_end;
+  if (size == 0)
+  {
+    // Without this special case, a size of 0 can be rounded to 1 cluster instead of 0
+    last_cluster_end = first_cluster_start;
+  }
+  else
+  {
+    last_cluster_end = ((offset + size - 1) / 0x7c00 + 1) * CLUSTER_SIZE + partition_data_offset;
+  }
 
-  Size = _Size / 0x7c00;
-  Size = (Size + 1) * CLUSTER_SIZE;
-
-  // Add on the offset in the first block for the case where data straddles blocks
-  Size += _Offset % 0x7c00;
-
-  MarkAsUsed(Offset, Size);
+  MarkAsUsed(first_cluster_start, last_cluster_end - first_cluster_start);
 }
 
 // Helper functions for reading the BE volume
