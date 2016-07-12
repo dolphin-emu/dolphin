@@ -91,6 +91,9 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   m_state_tracker->SetPendingRebind();
   m_state_tracker->InvalidateDescriptorSets();
 
+  // Temporary fix for corruption on Intel/Mesa.
+  // g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
+
   // Transition to shader resource before reading.
   VkImageLayout original_layout = src_texture->GetLayout();
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -405,21 +408,14 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
       {width, height, 1}                         // VkExtent3D                  imageExtent
   };
 
-  // We can't execute texture uploads inside a render pass.
-  m_parent->m_state_tracker->EndRenderPass();
-
-  // Intel Mesa hangs with drawing commands plus buffer->image copies in the same command buffer.
-  // I suspect that the issue is elsewhere and this just prevents it from happening though.
-  // Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
-
   // Transition the texture to a transfer destination, invoke the transfer, then transition back.
   // TODO: Only transition the layer we're copying to.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), image_upload_buffer,
+  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), image_upload_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                          &image_copy);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
@@ -439,6 +435,10 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   // Can't be done in a render pass, since we're doing our own render pass!
   m_parent->m_state_tracker->EndRenderPass();
 
+  // Temporary fix for corruption on Intel/Mesa.
+  // g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
+  // m_parent->m_state_tracker->InvalidateDescriptorSets();
+
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
 
   // Transition EFB to shader resource before binding
@@ -450,12 +450,13 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(
-      g_object_cache->GetStandardPipelineLayout(), m_parent->m_overwrite_render_pass,
-      g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-      g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
-      is_depth_copy ? g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
-                      g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
+  UtilityShaderDraw draw(command_buffer, g_object_cache->GetStandardPipelineLayout(),
+                         m_parent->m_overwrite_render_pass,
+                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
+                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
+                         is_depth_copy ?
+                             g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
+                             g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
 
   // TODO: Hmm. Push constants would be useful here.
   u8* uniform_buffer = draw.AllocatePSUniforms(sizeof(float) * 28);
@@ -542,7 +543,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(
-      g_object_cache->GetStandardPipelineLayout(), m_parent->m_overwrite_render_pass,
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
+      m_parent->m_overwrite_render_pass,
       g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(), VK_NULL_HANDLE,
       g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
 

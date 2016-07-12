@@ -220,10 +220,10 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
   m_efb_convert_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(g_object_cache->GetStandardPipelineLayout(), m_efb_render_pass,
-                         g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                         g_object_cache->GetSharedShaderCache().GetScreenQuadGeometryShader(),
-                         pixel_shader);
+  UtilityShaderDraw draw(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
+      m_efb_render_pass, g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
+      g_object_cache->GetSharedShaderCache().GetScreenQuadGeometryShader(), pixel_shader);
 
   VkRect2D region = {{0, 0}, {m_efb_width, m_efb_height}};
   draw.BeginRenderPass(m_efb_convert_framebuffer, region);
