@@ -36,13 +36,17 @@ public:
 
   VkDevice GetDevice() const { return m_device; }
   VkCommandPool GetCommandPool() const { return m_command_pool; }
+  VkCommandBuffer GetCurrentInitCommandBuffer() const
+  {
+    return m_frame_resources[m_current_frame].init_command_buffer;
+  }
   VkCommandBuffer GetCurrentCommandBuffer() const
   {
-    return m_command_buffers[m_current_command_buffer_index];
+    return m_frame_resources[m_current_frame].draw_command_buffer;
   }
   VkDescriptorPool GetCurrentDescriptorPool() const
   {
-    return m_descriptor_pools[m_current_command_buffer_index];
+    return m_frame_resources[m_current_frame].descriptor_pool;
   }
 
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
@@ -72,7 +76,7 @@ public:
   void DeferResourceDestruction(T object)
   {
     DeferredResourceDestruction wrapper = DeferredResourceDestruction::Wrapper<T>(object);
-    m_pending_destructions[m_current_command_buffer_index].push_back(wrapper);
+    m_frame_resources[m_current_frame].cleanup_resources.push_back(wrapper);
   }
 
   // Instruct the manager to fire the specified callback when a fence is flagged to be signaled.
@@ -102,11 +106,25 @@ private:
   VkQueue m_graphics_queue = nullptr;
   VkCommandPool m_command_pool = nullptr;
 
-  std::array<VkCommandBuffer, NUM_COMMAND_BUFFERS> m_command_buffers = {};
-  std::array<VkFence, NUM_COMMAND_BUFFERS> m_fences = {};
-  std::array<VkDescriptorPool, NUM_COMMAND_BUFFERS> m_descriptor_pools = {};
-  std::array<std::vector<DeferredResourceDestruction>, NUM_COMMAND_BUFFERS> m_pending_destructions;
-  size_t m_current_command_buffer_index;
+  struct FrameResources
+  {
+    union {
+      struct
+      {
+        VkCommandBuffer init_command_buffer;
+        VkCommandBuffer draw_command_buffer;
+      };
+      VkCommandBuffer command_buffers[2];
+    };
+
+    VkDescriptorPool descriptor_pool;
+    VkFence fence;
+
+    std::vector<DeferredResourceDestruction> cleanup_resources;
+  };
+
+  std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources = {};
+  size_t m_current_frame;
 
   // callbacks when a fence point is set
   std::map<const void*, std::pair<FencePointCallback, FencePointCallback>> m_fence_point_callbacks;
