@@ -38,6 +38,8 @@ private:
   void OnResetTraversal(wxCommandEvent& event);
   void OnTraversalListenPortChanged(wxCommandEvent& event);
   void OnKeyDown(wxKeyEvent& event);
+  void OnTabChanged(wxCommandEvent& event);
+  void OnAfterTabChange(wxIdleEvent& event);
   void DispatchFocus();
 
   void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
