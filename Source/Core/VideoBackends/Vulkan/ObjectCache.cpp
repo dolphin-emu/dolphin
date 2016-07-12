@@ -157,7 +157,7 @@ GetVulkanDepthStencilState(const DepthStencilState& state)
       state.test_enable,   // VkBool32                                  depthTestEnable
       state.write_enable,  // VkBool32                                  depthWriteEnable
       state.compare_op,    // VkCompareOp                               depthCompareOp
-      VK_TRUE,             // VkBool32                                  depthBoundsTestEnable
+      VK_FALSE,            // VkBool32                                  depthBoundsTestEnable
       VK_FALSE,            // VkBool32                                  stencilTestEnable
       {},                  // VkStencilOpState                          front
       {},                  // VkStencilOpState                          back
