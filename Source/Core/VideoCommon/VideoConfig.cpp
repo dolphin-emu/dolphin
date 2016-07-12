@@ -200,7 +200,7 @@ void VideoConfig::Load(const std::string& ini_file)
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-  if ((g_has_rift || g_has_steamvr) && backend_info.bSupportsGeometryShaders)
+  if ((g_has_rift || g_has_openvr) && backend_info.bSupportsGeometryShaders)
     iStereoMode = STEREO_OCULUS;
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
@@ -591,7 +591,7 @@ void VideoConfig::VerifyValidity()
       backend_info.AAModes.end())
     iMultisamples = 1;
 
-  if (g_has_rift || g_has_steamvr)
+  if (g_has_rift || g_has_openvr)
     iStereoMode = STEREO_OCULUS;
   else if (g_has_vr920)
     iStereoMode = STEREO_VR920;

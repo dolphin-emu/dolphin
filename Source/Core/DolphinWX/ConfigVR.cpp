@@ -521,7 +521,7 @@ void CConfigVR::CreateGUIControls()
 #endif
       szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Near-Clipping"),
                                  wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
-      if (g_has_steamvr)
+      if (g_has_openvr)
       {
         szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Auto Pair Vive"),
                                    wxGetTranslation(autopair_desc),

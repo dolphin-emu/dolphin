@@ -58,7 +58,7 @@ void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
 #endif
 
 #ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING " or SteamVR"
+#define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING " or OpenVR"
 #else
 #define SCM_OCULUS_STR ", Oculus SDK " OVR_VERSION_STRING
 #endif
@@ -67,13 +67,13 @@ void ovrhmd_EnableHSWDisplaySDKRender(ovrHmd hmd, ovrBool enabled);
 #include "OculusSystemLibraryHeader.h"
 #define OCULUSSDK044ORABOVE
 #ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING " or SteamVR"
+#define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING " or OpenVR"
 #else
 #define SCM_OCULUS_STR ", for Oculus DLL " OVR_VERSION_STRING
 #endif
 #else
 #ifdef HAVE_OPENVR
-#define SCM_OCULUS_STR ", SteamVR"
+#define SCM_OCULUS_STR ", OpenVR"
 #else
 #define SCM_OCULUS_STR ", no Oculus SDK"
 #endif

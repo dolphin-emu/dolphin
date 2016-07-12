@@ -185,7 +185,7 @@ ID3D11Texture2D* m_right_texture = nullptr;
 void VR_ConfigureHMD()
 {
 #ifdef HAVE_OPENVR
-  if (g_has_steamvr && m_pCompositor)
+  if (g_has_openvr && m_pCompositor)
   {
     // m_pCompositor->SetGraphicsDevice(vr::Compositor_DeviceType_DirectX, nullptr);
   }
@@ -332,7 +332,7 @@ void VR_StartFramebuffer()
   }
 #if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) ||          \
     defined(HAVE_OPENVR)
-  else if (g_has_rift || g_has_steamvr)
+  else if (g_has_rift || g_has_openvr)
   {
     for (int eye = 0; eye < 2; ++eye)
     {
@@ -406,7 +406,7 @@ void VR_StartFramebuffer()
     }
 #endif
 #if defined(HAVE_OPENVR)
-    if (g_has_steamvr)
+    if (g_has_openvr)
     {
       m_left_texture = FramebufferManager::m_efb.m_frontBuffer[0]->GetTex();
       m_right_texture = FramebufferManager::m_efb.m_frontBuffer[1]->GetTex();
@@ -443,7 +443,7 @@ void VR_StopFramebuffer()
   }
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[0]);
     SAFE_RELEASE(FramebufferManager::m_efb.m_frontBuffer[1]);
@@ -497,7 +497,7 @@ void VR_RenderToEyebuffer(int eye)
   }
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(),
                                      nullptr);
 #endif

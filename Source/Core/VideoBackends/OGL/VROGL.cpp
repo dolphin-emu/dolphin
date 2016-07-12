@@ -627,7 +627,7 @@ void RenderDistortion()
 void VR_ConfigureHMD()
 {
 #ifdef HAVE_OPENVR
-  if (g_has_steamvr && m_pCompositor)
+  if (g_has_openvr && m_pCompositor)
   {
     // m_pCompositor->SetGraphicsDevice(vr::Compositor_DeviceType_OpenGL, nullptr);
   }
@@ -792,7 +792,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
   }
 #if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) ||          \
     defined(HAVE_OPENVR)
-  else if (g_has_rift || g_has_steamvr)
+  else if (g_has_rift || g_has_openvr)
   {
     // create the eye textures
     glGenTextures(2, FramebufferManager::m_frontBuffer);
@@ -832,7 +832,7 @@ void VR_StartFramebuffer(int target_width, int target_height)
     }
 #endif
 #if defined(HAVE_OPENVR)
-    if (g_has_steamvr)
+    if (g_has_openvr)
     {
       m_left_texture = FramebufferManager::m_frontBuffer[0];
       m_right_texture = FramebufferManager::m_frontBuffer[1];
@@ -887,7 +887,7 @@ void VR_StopFramebuffer()
   }
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     glDeleteFramebuffers(2, FramebufferManager::m_eyeFramebuffer);
     FramebufferManager::m_eyeFramebuffer[0] = 0;
@@ -946,7 +946,7 @@ void VR_RenderToEyebuffer(int eye)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
 }
@@ -1039,7 +1039,7 @@ void VR_DrawTimewarpFrame()
 {
 // As far as I know, OpenVR doesn't support Timewarp yet
 #if 0 && defined(HAVE_OPENVR)
-	if (g_has_steamvr && m_pCompositor)
+	if (g_has_openvr && m_pCompositor)
 	{
 		m_pCompositor->Submit(vr::Eye_Left, vr::API_OpenGL, (void*)m_left_texture, nullptr);
 		m_pCompositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)m_right_texture, nullptr);

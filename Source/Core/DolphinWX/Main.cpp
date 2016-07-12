@@ -233,9 +233,9 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
     m_load_file = parser.Found("exec", &m_file_to_load);
   g_force_vr = parser.Found("vr") || parser.Found("oculus");
   if (parser.Found("oculus"))
-    g_prefer_steamvr = false;
+    g_prefer_openvr = false;
   else if (parser.Found("steamvr"))
-    g_prefer_steamvr = true;
+    g_prefer_openvr = true;
   wxString bruteforceResult;
   ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
   ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);

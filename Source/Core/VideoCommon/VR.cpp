@@ -110,8 +110,8 @@ bool g_vr_needs_endframe = false;
 
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
 
-bool g_force_vr = false, g_prefer_steamvr = false;
-bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_steamvr = false;
+bool g_force_vr = false, g_prefer_openvr = false;
+bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
@@ -135,7 +135,7 @@ Matrix44 g_game_camera_rotmat;
 
 // used for calculating acceleration of vive controllers
 double g_older_tracking_time = 0, g_old_tracking_time = 0, g_last_tracking_time = 0;
-float g_steamvr_ipd = 0.064f;
+float g_openvr_ipd = 0.064f;
 
 u8 g_vr_reading_wiimote_accel[5] = {}, g_vr_reading_wiimote_ir[5] = {},
    g_vr_reading_wiimote_ext[5] = {};
@@ -293,19 +293,19 @@ bool BInitCompositor()
 }
 #endif
 
-bool InitSteamVR()
+bool InitOpenVR()
 {
 #ifdef HAVE_OPENVR
-  // Loading the SteamVR Runtime
+  // Loading the OpenVR Runtime
   vr::EVRInitError eError = vr::VRInitError_None;
   m_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
 
   if (eError != vr::VRInitError_None)
   {
     m_pHMD = nullptr;
-    ERROR_LOG(VR, "Unable to init SteamVR: %s: %s", vr::VR_GetVRInitErrorAsSymbol(eError),
+    ERROR_LOG(VR, "Unable to init OpenVR: %s: %s", vr::VR_GetVRInitErrorAsSymbol(eError),
               vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-    g_has_steamvr = false;
+    g_has_openvr = false;
   }
   else
   {
@@ -319,12 +319,12 @@ bool InitSteamVR()
       ERROR_LOG(VR, "Unable to get render model interface: %s: %s",
                 vr::VR_GetVRInitErrorAsSymbol(eError),
                 vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-      g_has_steamvr = false;
+      g_has_openvr = false;
     }
     else
     {
       NOTICE_LOG(VR, "VR_Init Succeeded");
-      g_has_steamvr = true;
+      g_has_openvr = true;
       g_has_hmd = true;
     }
 
@@ -333,7 +333,7 @@ bool InitSteamVR()
     // m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
     g_hmd_window_width = m_nWindowWidth;
     g_hmd_window_height = m_nWindowHeight;
-    // NOTICE_LOG(VR, "SteamVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y,
+    // NOTICE_LOG(VR, "OpenVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y,
     // g_hmd_window_width, g_hmd_window_height);
 
     std::string m_strDriver = "No Driver";
@@ -347,21 +347,21 @@ bool InitSteamVR()
         (int)(0.5f +
               m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
                                                     vr::Prop_DisplayFrequency_Float, &error));
-    g_steamvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
+    g_openvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
                                                           vr::Prop_UserIpdMeters_Float, &error);
 
-    NOTICE_LOG(VR, "SteamVR strDriver = '%s'", m_strDriver.c_str());
-    NOTICE_LOG(VR, "SteamVR strDisplay = '%s'", m_strDisplay.c_str());
+    NOTICE_LOG(VR, "OpenVR strDriver = '%s'", m_strDriver.c_str());
+    NOTICE_LOG(VR, "OpenVR strDisplay = '%s'", m_strDisplay.c_str());
 
     if (m_bUseCompositor)
     {
       if (!BInitCompositor())
       {
-        ERROR_LOG(VR, "%s - Failed to initialize SteamVR Compositor!\n", __FUNCTION__);
-        g_has_steamvr = false;
+        ERROR_LOG(VR, "%s - Failed to initialize OpenVR Compositor!\n", __FUNCTION__);
+        g_has_openvr = false;
       }
     }
-    if (g_has_steamvr)
+    if (g_has_openvr)
     {
       g_vr_cant_motion_blur = true;
       g_vr_has_dynamic_predict = false;
@@ -372,7 +372,7 @@ bool InitSteamVR()
       g_vr_has_timewarp_tweak = false;
       g_vr_has_asynchronous_timewarp = false;
     }
-    return g_has_steamvr;
+    return g_has_openvr;
   }
 #endif
   return false;
@@ -585,19 +585,19 @@ void VR_Init()
   g_has_hmd = false;
   g_is_direct_mode = false;
   g_hmd_device_name = nullptr;
-  g_has_steamvr = false;
+  g_has_openvr = false;
 #ifdef _WIN32
   g_hmd_luid = nullptr;
 #endif
 
-  if (g_prefer_steamvr)
+  if (g_prefer_openvr)
   {
-    if (!InitSteamVR() && !InitOculusVR() && !InitVR920VR() && !InitOculusDebugVR())
+    if (!InitOpenVR() && !InitOculusVR() && !InitVR920VR() && !InitOculusDebugVR())
       g_has_hmd = g_force_vr;
   }
   else
   {
-    if (!InitOculusVR() && !InitSteamVR() && !InitVR920VR() && !InitOculusDebugVR())
+    if (!InitOculusVR() && !InitOpenVR() && !InitVR920VR() && !InitOculusDebugVR())
       g_has_hmd = g_force_vr;
   }
   InitOculusHMD();
@@ -643,9 +643,9 @@ void VR_StopRendering()
 void VR_Shutdown()
 {
 #ifdef HAVE_OPENVR
-  if (g_has_steamvr && m_pHMD)
+  if (g_has_openvr && m_pHMD)
   {
-    g_has_steamvr = false;
+    g_has_openvr = false;
     m_pHMD = nullptr;
     // crashes if OpenGL
     vr::VR_Shutdown();
@@ -672,7 +672,7 @@ void VR_Shutdown()
 void VR_RecenterHMD()
 {
 #ifdef HAVE_OPENVR
-  if (g_has_steamvr && m_pHMD)
+  if (g_has_openvr && m_pHMD)
   {
     m_pHMD->ResetSeatedZeroPose();
   }
@@ -778,7 +778,7 @@ void VR_GetEyePoses()
   }
 #endif
 #if HAVE_OPENVR
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     if (m_pCompositor)
     {
@@ -815,8 +815,8 @@ void ProcessVREvent(const vr::VREvent_t& event)
   }
   case vr::VREvent_IpdChanged:
   {
-    g_steamvr_ipd = event.data.ipd.ipdMeters;
-    NOTICE_LOG(VR, "IPD changed to %fm", g_steamvr_ipd);
+    g_openvr_ipd = event.data.ipd.ipdMeters;
+    NOTICE_LOG(VR, "IPD changed to %fm", g_openvr_ipd);
   }
   }
 }
@@ -886,9 +886,9 @@ void UpdateOculusHeadTracking()
 #endif
 
 #ifdef HAVE_OPENVR
-void UpdateSteamVRHeadTracking()
+void UpdateOpenVRHeadTracking()
 {
-  // Process SteamVR events
+  // Process OpenVR events
   vr::VREvent_t event;
   while (m_pHMD->PollNextEvent(&event, sizeof(event)))
   {
@@ -966,8 +966,8 @@ void VR_UpdateHeadTrackingIfNeeded()
       UpdateVuzixHeadTracking();
 #endif
 #ifdef HAVE_OPENVR
-    if (g_has_steamvr)
-      UpdateSteamVRHeadTracking();
+    if (g_has_openvr)
+      UpdateOpenVRHeadTracking();
 #endif
 #ifdef OVR_MAJOR_VERSION
     if (g_has_rift)
@@ -991,7 +991,7 @@ void VR_GetProjectionHalfTan(float& hmd_halftan)
   }
   else
 #endif
-      if (g_has_steamvr)
+      if (g_has_openvr)
   {
     // rough approximation, can't be bothered to work this out properly
     hmd_halftan = tan(DEGREES_TO_RADIANS(100.0f / 2));
@@ -1020,7 +1020,7 @@ void VR_GetProjectionMatrices(Matrix44& left_eye, Matrix44& right_eye, float zne
   else
 #endif
 #ifdef HAVE_OPENVR
-      if (g_has_steamvr)
+      if (g_has_openvr)
   {
     vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(vr::Eye_Left, znear, zfar, vr::API_DirectX);
     for (int r = 0; r < 4; ++r)
@@ -1084,9 +1084,9 @@ void VR_GetEyePos(float* posLeft, float* posRight)
   else
 #endif
 #ifdef HAVE_OPENVR
-      if (g_has_steamvr)
+      if (g_has_openvr)
   {
-    posLeft[0] = g_steamvr_ipd / 2;
+    posLeft[0] = g_openvr_ipd / 2;
     posRight[0] = -posLeft[0];
     posLeft[1] = posRight[1] = 0;
     posLeft[2] = posRight[2] = 0;
@@ -1177,7 +1177,7 @@ std::wstring VR_GetAudioDeviceId()
   else
 #endif
 #ifdef HAVE_OPENVR
-      if (g_has_steamvr)
+      if (g_has_openvr)
   {
     return std::wstring();
   }
@@ -1488,7 +1488,7 @@ bool VR_GetViveButtons(u32* buttons, u32* touches, u64* specials, float triggers
 bool VR_ViveHapticPulse(int hands, int microseconds)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr && hands)
+  if (g_has_openvr && hands)
   {
     // find the controllers for each hand, 100 = not found
     vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
@@ -1526,7 +1526,7 @@ float right_hand_old_velocity[3] = {}, right_hand_older_velocity[3] = {};
 bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float* gy, float* gz)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     // find the controllers for each hand, 100 = not found
     vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
@@ -1667,7 +1667,7 @@ bool VR_GetAccel(int index, bool sideways, bool has_extension, float* gx, float*
 bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr && index == 0)
+  if (g_has_openvr && index == 0)
   {
     // find the controllers for each hand, 100 = not found
     vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
@@ -1746,7 +1746,7 @@ bool VR_GetNunchuckAccel(int index, float* gx, float* gy, float* gz)
 bool VR_GetIR(int index, double* irx, double* iry, double* irz)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     if (g_vr_has_ir)
     {
@@ -1816,7 +1816,7 @@ void VR_UpdateWiimoteReportingMode(int index, u8 accel, u8 ir, u8 ext)
 bool VR_GetLeftControllerPos(float* pos, float* thumbpos, Matrix33* m)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     // find the controllers for each hand, 100 = not found
     vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
@@ -1894,7 +1894,7 @@ bool VR_GetLeftControllerPos(float* pos, float* thumbpos, Matrix33* m)
 bool VR_GetRightControllerPos(float* pos, float* thumbpos, Matrix33* m)
 {
 #if defined(HAVE_OPENVR)
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     // find the controllers for each hand, 100 = not found
     vr::TrackedDeviceIndex_t left_hand = 100, right_hand = 100;
