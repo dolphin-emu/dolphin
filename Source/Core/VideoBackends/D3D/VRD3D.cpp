@@ -13,6 +13,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VROculus.h"
+#include "VideoCommon/VROpenVR.h"
 
 namespace DX11
 {

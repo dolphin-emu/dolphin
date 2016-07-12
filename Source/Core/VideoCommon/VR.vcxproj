@@ -82,6 +82,7 @@
     <ClInclude Include="..\DolphinWX\ISOProperties.h" />
     <ClInclude Include="VRGameMatrices.h" />
     <ClInclude Include="VROculus.h" />
+    <ClInclude Include="VROpenVR.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">

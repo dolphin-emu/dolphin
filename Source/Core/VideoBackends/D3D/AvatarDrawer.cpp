@@ -19,6 +19,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VRGameMatrices.h"
+#include "VideoCommon/VROpenVR.h"
 #include "VideoCommon/VideoConfig.h"
 
 #include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"

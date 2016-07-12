@@ -18,6 +18,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VROculus.h"
+#include "VideoCommon/VROpenVR.h"
 
 // Oculus Rift
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0

@@ -88,10 +88,6 @@ const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
 extern const char* scm_vr_sdk_str;
 
-#ifdef HAVE_OPENVR
-#include <openvr.h>
-#endif
-
 #include <atomic>
 #include <mutex>
 
@@ -256,18 +252,6 @@ extern std::atomic<u32> g_drawn_vr;
 }
 
 extern bool debug_nextScene;
-
-#ifdef HAVE_OPENVR
-extern vr::IVRSystem* m_pHMD;
-extern vr::IVRRenderModels* m_pRenderModels;
-extern vr::IVRCompositor* m_pCompositor;
-extern std::string m_strDriver;
-extern std::string m_strDisplay;
-extern vr::TrackedDevicePose_t m_rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-extern bool m_bUseCompositor;
-extern bool m_rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
-extern int m_iValidPoseCount;
-#endif
 
 extern int g_ovr_frameindex;
 
