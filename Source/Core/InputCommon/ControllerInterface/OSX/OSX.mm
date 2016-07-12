@@ -6,6 +6,8 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "Common/StringUtil.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
@@ -137,7 +139,7 @@ static void DeviceMatching_callback(void* inContext, IOReturn inResult, void* in
                                     IOHIDDeviceRef inIOHIDDeviceRef)
 {
   NSString* pName = (NSString*)IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
-  std::string name = (pName != nullptr) ? [pName UTF8String] : "Unknown device";
+  std::string name = (pName != nullptr) ? StripSpaces([pName UTF8String]) : "Unknown device";
 
   DeviceDebugPrint(inIOHIDDeviceRef);
 
