@@ -472,7 +472,6 @@ void WiimoteScanner::ThreadFunc()
   {
     m_scan_mode_changed_event.WaitFor(std::chrono::milliseconds(500));
 
-    Update();  // Does stuff needed to detect disconnects on Windows
     CheckForDisconnectedWiimotes();
 
     if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
@@ -489,6 +488,10 @@ void WiimoteScanner::ThreadFunc()
         if (found_board)
           TryToConnectBalanceBoard(found_board);
       }
+    }
+    else
+    {
+      Update();  // Does stuff needed to detect disconnects on Windows
     }
 
     if (m_scan_mode.load() == WiimoteScanMode::SCAN_ONCE)
