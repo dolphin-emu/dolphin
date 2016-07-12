@@ -1,14 +1,15 @@
-Dolphin VR 5.0-11
+Dolphin VR 5.0-250
 Dolphin build with Oculus Rift and SteamVR support.
 Open Source licence: GPL v2+
 
 WARNING: DO NOT SUPPORT THE OFFICIAL DOLPHIN BRANCH
-They have been taken over by fascists and are blocking developers.
+They are blocking developers.
 
 The VR branch: https://github.com/CarlKenner/dolphin/tree/VR-Hydra
 Disscusion of the VR branch: https://forums.oculus.com/viewtopic.php?f=42&t=11241
 
-Some of this readme file is probably out of date.
+Most of this readme file is probably out of date.
+Watch this tutorial video instead: https://www.youtube.com/watch?v=nCG2DTenbJ8
 
 ##
 Dolphin VR has a lot of options and it can be confusing to set them all correctly. Here's a quick setup
