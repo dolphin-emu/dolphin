@@ -7,6 +7,7 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
 namespace ciface
@@ -110,7 +111,7 @@ std::string Joystick::Button::GetName() const
 {
   std::ostringstream s;
   s << IOHIDElementGetUsage(m_element);
-  return std::string("Button ") + s.str();
+  return std::string("Button ") + StripSpaces(s.str());
 }
 
 Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
@@ -150,7 +151,7 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   {
     std::ostringstream s;
     s << usage;
-    description = s.str();
+    description = StripSpaces(s.str());
     break;
   }
   }

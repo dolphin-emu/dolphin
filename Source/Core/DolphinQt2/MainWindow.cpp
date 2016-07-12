@@ -8,6 +8,7 @@
 #include <QMessageBox>
 
 #include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/Movie.h"
@@ -198,8 +199,14 @@ bool MainWindow::Stop()
   }
 
   if (stop)
+  {
     ForceStop();
 
+#ifdef Q_OS_WIN
+    // Allow windows to idle or turn off display again
+    SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+  }
   return stop;
 }
 
@@ -258,6 +265,13 @@ void MainWindow::StartGame(const QString& path)
   Settings().SetLastGame(path);
   ShowRenderWidget();
   emit EmulationStarted();
+
+#ifdef Q_OS_WIN
+  // Prevents Windows from sleeping, turning off the display, or idling
+  EXECUTION_STATE shouldScreenSave =
+      SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+  SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
+#endif
 }
 
 void MainWindow::ShowRenderWidget()
