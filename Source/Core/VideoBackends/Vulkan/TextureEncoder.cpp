@@ -38,12 +38,16 @@ TextureEncoder::TextureEncoder()
 TextureEncoder::~TextureEncoder()
 {
   if (m_encoding_render_pass != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_encoding_render_pass);
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_encoding_render_pass, nullptr);
 
   if (m_encoding_texture_framebuffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_encoding_texture_framebuffer);
+    vkDestroyFramebuffer(g_object_cache->GetDevice(), m_encoding_texture_framebuffer, nullptr);
 
-  m_encoding_texture.reset();
+  for (VkShaderModule shader : m_texture_encoding_shaders)
+  {
+    if (shader != VK_NULL_HANDLE)
+      vkDestroyShaderModule(g_object_cache->GetDevice(), shader, nullptr);
+  }
 }
 
 void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format,
