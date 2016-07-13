@@ -163,7 +163,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
   // TODO: Cleaner way without the cast.
   EFBCache* efb_cache = static_cast<Renderer*>(g_renderer.get())->GetEFBCache();
   efb_cache->InvalidatePeekCache();
-  efb_cache->FlushEFBPokes();
+  efb_cache->FlushEFBPokes(m_state_tracker);
 
   // Execute the draw
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,

@@ -266,6 +266,8 @@ bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures
   // Not having geometry shaders or wide lines will cause issues with rendering.
   if (!available_features.geometryShader && !available_features.wideLines)
     WARN_LOG(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
+  if (!available_features.largePoints)
+    WARN_LOG(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
 
   // Enable the features we use.
   enable_features->dualSrcBlend = available_features.dualSrcBlend;
@@ -274,6 +276,7 @@ bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures
   enable_features->logicOp = available_features.logicOp;
   enable_features->fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
   enable_features->sampleRateShading = available_features.sampleRateShading;
+  enable_features->largePoints = available_features.largePoints;
 
   // Only here to shut up the debug layer, we don't actually use it
   enable_features->shaderClipDistance = available_features.shaderClipDistance;
