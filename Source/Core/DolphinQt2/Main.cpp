@@ -8,8 +8,10 @@
 #include "Core/BootManager.h"
 #include "Core/Core.h"
 #include "DolphinQt2/Host.h"
+#include "DolphinQt2/InDevelopmentWarning.h"
 #include "DolphinQt2/MainWindow.h"
 #include "DolphinQt2/Resources.h"
+#include "DolphinQt2/Settings.h"
 #include "UICommon/UICommon.h"
 
 int main(int argc, char* argv[])
@@ -26,9 +28,18 @@ int main(int argc, char* argv[])
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, &Core::HostDispatchJobs);
 
-  MainWindow win;
-  win.show();
-  int retval = app.exec();
+  int retval = 0;
+  if (Settings().IsInDevelopmentWarningEnabled())
+  {
+    InDevelopmentWarning warning_box;
+    retval = warning_box.exec() == QDialog::Rejected;
+  }
+  if (!retval)
+  {
+    MainWindow win;
+    win.show();
+    retval = app.exec();
+  }
 
   BootManager::Stop();
   Core::Shutdown();
