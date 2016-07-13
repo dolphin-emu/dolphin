@@ -401,7 +401,7 @@ private:
       if (control == nullptr)
       {
         *expr_out = new DummyExpression(tok.qualifier);
-        return EXPRESSION_PARSE_SUCCESS;
+        return EXPRESSION_PARSE_NO_DEVICE;
       }
 
       *expr_out = new ControlExpression(tok.qualifier, device, control);
@@ -427,13 +427,12 @@ private:
 
   ExpressionParseStatus Unary(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status;
-
     if (IsUnaryExpression(Peek().type))
     {
       Token tok = Chew();
       ExpressionNode* atom_expr;
-      if ((status = Atom(&atom_expr)) != EXPRESSION_PARSE_SUCCESS)
+      ExpressionParseStatus status = Atom(&atom_expr);
+      if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
         return status;
       *expr_out = new UnaryExpression(tok.type, atom_expr);
       return EXPRESSION_PARSE_SUCCESS;
@@ -457,16 +456,16 @@ private:
 
   ExpressionParseStatus Binary(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status;
-
-    if ((status = Unary(expr_out)) != EXPRESSION_PARSE_SUCCESS)
+    ExpressionParseStatus status = Unary(expr_out);
+    if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
       return status;
 
     while (IsBinaryToken(Peek().type))
     {
       Token tok = Chew();
       ExpressionNode* unary_expr;
-      if ((status = Unary(&unary_expr)) != EXPRESSION_PARSE_SUCCESS)
+      status = Unary(&unary_expr);
+      if (Unary(&unary_expr) == EXPRESSION_PARSE_SYNTAX_ERROR)
       {
         delete *expr_out;
         return status;
