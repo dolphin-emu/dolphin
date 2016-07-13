@@ -187,38 +187,45 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   case VK_IMAGE_LAYOUT_UNDEFINED:
     // Layout undefined therefore contents undefined, and we don't care what happens to it.
     barrier.srcAccessMask = 0;
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_PREINITIALIZED:
     // Image has been pre-initialized by the host, so ensure all writes have completed.
     barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_HOST_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
     // Image was being used as a color attachment, so ensure all writes have completed.
     barrier.srcAccessMask =
         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
     // Image was being used as a depthstencil attachment, so ensure all writes have completed.
     barrier.srcAccessMask =
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
     // Image was being used as a shader resource, make sure all reads have finished.
     barrier.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
     // Image was being used as a copy source, ensure all reads have finished.
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
     // Image was being used as a copy destination, ensure all writes have finished.
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    srcStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
     break;
 
   default:
@@ -229,28 +236,35 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
   {
   case VK_IMAGE_LAYOUT_UNDEFINED:
     barrier.dstAccessMask = 0;
+    dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
     barrier.dstAccessMask =
         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
     barrier.dstAccessMask =
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+    // Can we use FRAGMENT_SHADER here? We don't sample textures in the earlier stages.
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL:
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
     break;
 
   case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
