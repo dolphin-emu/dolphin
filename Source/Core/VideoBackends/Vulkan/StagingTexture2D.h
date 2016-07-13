@@ -21,6 +21,7 @@ public:
   VkFormat GetFormat() const { return m_format; }
   u32 GetRowStride() const { return m_row_stride; }
   u32 GetTexelSize() const { return m_texel_size; }
+  bool IsMapped() const { return (m_map_pointer != nullptr); }
   const char* GetMapPointer() const { return m_map_pointer; }
   char* GetMapPointer() { return m_map_pointer; }
   VkDeviceSize GetMapOffset() const { return m_map_offset; }
@@ -34,13 +35,14 @@ public:
   // Assumes that image is in TRANSFER_SRC layout.
   // Results are not ready until command_buffer has been executed.
   virtual void CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                             VkImageAspectFlags aspect, u32 x, u32 y, u32 width, u32 height,
+                             VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width, u32 height,
                              u32 level, u32 layer) = 0;
 
   // Assumes that image is in TRANSFER_DST layout.
   // Buffer is not safe for re-use until after command_buffer has been executed.
-  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags aspect,
-                           u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) = 0;
+  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image,
+                           VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width, u32 height,
+                           u32 level, u32 layer) = 0;
   virtual bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) = 0;
   virtual void Unmap() = 0;
 
@@ -68,11 +70,12 @@ public:
   ~StagingTexture2DLinear();
 
   virtual void CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                             VkImageAspectFlags aspect, u32 x, u32 y, u32 width, u32 height,
+                             VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width, u32 height,
                              u32 level, u32 layer) override;
 
-  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags aspect,
-                           u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
+  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image,
+                           VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width, u32 height,
+                           u32 level, u32 layer) override;
 
   virtual bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
   virtual void Unmap() override;
@@ -95,11 +98,12 @@ public:
   ~StagingTexture2DBuffer();
 
   virtual void CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                             VkImageAspectFlags aspect, u32 x, u32 y, u32 width, u32 height,
+                             VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width, u32 height,
                              u32 level, u32 layer) override;
 
-  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags aspect,
-                           u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
+  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image,
+                           VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width, u32 height,
+                           u32 level, u32 layer) override;
 
   virtual bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
   virtual void Unmap() override;

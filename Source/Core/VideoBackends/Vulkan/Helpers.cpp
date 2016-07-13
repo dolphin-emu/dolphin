@@ -679,6 +679,12 @@ u32 GetTexelSize(VkFormat format)
   // Only contains pixel formats we use.
   switch (format)
   {
+  case VK_FORMAT_R32_SFLOAT:
+    return 4;
+
+  case VK_FORMAT_D32_SFLOAT:
+    return 4;
+
   case VK_FORMAT_R8G8B8A8_UNORM:
     return 4;
 
