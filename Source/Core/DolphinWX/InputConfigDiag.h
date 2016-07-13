@@ -68,6 +68,7 @@ public:
                                   (int)(_setting->GetValue() * 100))),
         setting(_setting)
   {
+    wxcontrol->SetLabel(setting->m_name);
   }
 
   void UpdateGUI() override;
@@ -222,8 +223,9 @@ public:
   void LoadDefaults(wxCommandEvent& event);
 
   void AdjustControlOption(wxCommandEvent& event);
+  void EnableSettingControl(const std::string& group_name, const std::string& name, bool enabled);
   void AdjustSetting(wxCommandEvent& event);
-  void AdjustSettingUI(wxCommandEvent& event);
+  void AdjustBooleanSetting(wxCommandEvent& event);
 
   void GetProfilePath(std::string& path);
 
