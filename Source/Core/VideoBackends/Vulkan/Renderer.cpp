@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <limits>
 
+#include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
@@ -74,6 +75,18 @@ bool Renderer::Initialize()
   m_efb_cache = std::make_unique<EFBCache>(m_framebuffer_mgr);
   if (!m_efb_cache->Initialize())
     return false;
+
+  m_bounding_box = std::make_unique<BoundingBox>();
+  if (!m_bounding_box->Initialize())
+    return false;
+
+  if (g_object_cache->SupportsBoundingBox())
+  {
+    // Bind bounding box to state tracker
+    m_state_tracker->SetBBoxBuffer(m_bounding_box->GetGPUBuffer(),
+                                   m_bounding_box->GetGPUBufferOffset(),
+                                   m_bounding_box->GetGPUBufferSize());
+  }
 
   // Initialize annoying statics
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -221,6 +234,16 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       m_efb_cache->PokeEFBDepth(m_state_tracker, point.x, point.y, depth);
     }
   }
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+  return m_bounding_box->Get(m_state_tracker, index);
+}
+
+void Renderer::BBoxWrite(int index, u16 value)
+{
+  m_bounding_box->Set(m_state_tracker, index, value);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)

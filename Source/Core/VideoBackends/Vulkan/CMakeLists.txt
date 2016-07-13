@@ -1,4 +1,5 @@
 set(SRCS
+	BoundingBox.cpp
 	CommandBufferManager.cpp
 	EFBCache.cpp
 	FramebufferManager.cpp

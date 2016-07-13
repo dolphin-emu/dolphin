@@ -442,6 +442,8 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DBuffer::Create(u32 width, u32 
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
+    vkDestroyBuffer(g_object_cache->GetDevice(), buffer, nullptr);
+    vkFreeMemory(g_object_cache->GetDevice(), memory, nullptr);
     return nullptr;
   }
 
