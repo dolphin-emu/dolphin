@@ -596,8 +596,21 @@ VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSur
   };
 
   // If vsync is enabled, prefer VK_PRESENT_MODE_FIFO_KHR.
-  if (g_ActiveConfig.IsVSync() && CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
-    return VK_PRESENT_MODE_FIFO_KHR;
+  if (g_ActiveConfig.IsVSync())
+  {
+    // Try for relaxed vsync first, since it's likely the VI won't line up with
+    // the refresh rate of the system exactly, so tearing once is better than
+    // waiting for the next vblank.
+    if (CheckForMode(VK_PRESENT_MODE_FIFO_RELAXED_KHR))
+      return VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+
+    // Fall back to strict vsync.
+    if (CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
+    {
+      WARN_LOG(VIDEO, "Vulkan: FIFO_RELAXED not available, falling back to FIFO.");
+      return VK_PRESENT_MODE_FIFO_KHR;
+    }
+  }
 
   // Prefer screen-tearing, if possible, for lowest latency.
   if (CheckForMode(VK_PRESENT_MODE_IMMEDIATE_KHR))
