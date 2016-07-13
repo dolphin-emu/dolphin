@@ -53,6 +53,7 @@
     <ClCompile Include="CommandBufferManager.cpp" />
     <ClCompile Include="EFBCache.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
+    <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PaletteTextureConverter.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="EFBCache.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Constants.h" />
+    <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="PaletteTextureConverter.h" />
     <ClInclude Include="RasterFont.h" />
