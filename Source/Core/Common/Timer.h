@@ -27,6 +27,7 @@ public:
   static void RestoreResolution();
   static u64 GetTimeSinceJan1970();
   static u64 GetLocalTimeSinceJan1970();
+  static u64 GetLocalTimeSinceJan1970(u32 epoch_time);
   // Returns a timestamp with decimals for precise time comparisons
   static double GetDoubleTime();
 
