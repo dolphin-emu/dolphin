@@ -73,7 +73,6 @@ static bool EnableDebugLayerReportCallback(VkInstance instance)
     return false;
   }
 
-  // TODO: Unregister this callback before destroying the instance.
   VkDebugReportCallbackCreateInfoEXT callback_info = {
       VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT, nullptr,
       VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT |
@@ -95,7 +94,10 @@ static bool EnableDebugLayerReportCallback(VkInstance instance)
 static void DisableDebugLayerReportCallback(VkInstance instance)
 {
   if (s_debug_report_callback != VK_NULL_HANDLE)
+  {
     vkDestroyDebugReportCallbackEXT(instance, s_debug_report_callback, nullptr);
+    s_debug_report_callback = VK_NULL_HANDLE;
+  }
 }
 
 void VideoBackend::InitBackendInfo()
