@@ -1210,17 +1210,15 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     PadStatus->button |= PAD_TRIGGER_R;
   if (s_padState.disc)
   {
-    // This implementation assumes the disc change will only happen once. Trying to change more than
-    // that will cause
-    // it to load the last disc every time. As far as i know though, there are no 3+ disc games, so
-    // this should be fine.
-    CPU::Break();
+    // This implementation assumes the disc change will only happen once. Trying
+    // to change more than that will cause it to load the last disc every time.
+    // As far as I know, there are no 3+ disc games, so this should be fine.
     bool found = false;
     std::string path;
-    for (size_t i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); ++i)
+    for (const std::string& iso_folder : SConfig::GetInstance().m_ISOFolder)
     {
-      path = SConfig::GetInstance().m_ISOFolder[i];
-      if (File::Exists(path + '/' + g_discChange))
+      path = iso_folder + '/' + g_discChange;
+      if (File::Exists(path))
       {
         found = true;
         break;
@@ -1228,18 +1226,11 @@ void PlayController(GCPadStatus* PadStatus, int controllerID)
     }
     if (found)
     {
-      path += '/' + g_discChange;
-
-      Core::QueueHostJob([=] {
-        if (!Movie::IsPlayingInput())
-          return;
-
-        DVDInterface::ChangeDisc(path);
-        CPU::EnableStepping(false);
-      });
+      DVDInterface::ChangeDiscAsCPU(path);
     }
     else
     {
+      CPU::Break();
       PanicAlertT("Change the disc to %s", g_discChange.c_str());
     }
   }

@@ -472,10 +472,20 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
   delete _FileName;
 }
 
-void ChangeDisc(const std::string& newFileName)
+// Can only be called by the host thread
+void ChangeDiscAsHost(const std::string& newFileName)
 {
-  // WARNING: Can only run on Host Thread
   bool was_unpaused = Core::PauseAndLock(true);
+
+  // The host thread is now temporarily the CPU thread
+  ChangeDiscAsCPU(newFileName);
+
+  Core::PauseAndLock(false, was_unpaused);
+}
+
+// Can only be called by the CPU thread
+void ChangeDiscAsCPU(const std::string& newFileName)
+{
   std::string* _FileName = new std::string(newFileName);
   CoreTiming::ScheduleEvent(0, s_eject_disc);
   CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
@@ -492,7 +502,6 @@ void ChangeDisc(const std::string& newFileName)
     }
     Movie::g_discChange = fileName.substr(sizeofpath);
   }
-  Core::PauseAndLock(false, was_unpaused);
 }
 
 void SetLidOpen(bool open)

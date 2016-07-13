@@ -132,7 +132,7 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
   }
   else
   {
-    DVDInterface::ChangeDisc(filepath);
+    DVDInterface::ChangeDiscAsHost(filepath);
   }
 }
 
