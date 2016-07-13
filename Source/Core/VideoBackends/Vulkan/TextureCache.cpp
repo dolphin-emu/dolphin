@@ -10,6 +10,7 @@
 #include "VideoCommon/ImageWrite.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PaletteTextureConverter.h"
@@ -78,6 +79,9 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                            u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat src_format,
                            const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
 {
+  // Flush EFB pokes first, as they're expected to be included.
+  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes();
+
   // A better way of doing this would be nice.
   FramebufferManager* framebuffer_mgr =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get());
@@ -423,6 +427,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
                                                  const EFBRectangle& src_rect, bool scale_by_half,
                                                  unsigned int cbufid, const float* colmat)
 {
+  // Flush EFB pokes first, as they're expected to be included.
+  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes();
+
   // A better way of doing this would be nice.
   FramebufferManager* framebuffer_mgr =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get());

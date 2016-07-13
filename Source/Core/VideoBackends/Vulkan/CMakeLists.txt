@@ -1,5 +1,6 @@
 set(SRCS
 	CommandBufferManager.cpp
+	EFBCache.cpp
 	FramebufferManager.cpp
 	Helpers.cpp
 	ObjectCache.cpp
