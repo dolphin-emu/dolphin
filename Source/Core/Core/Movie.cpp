@@ -517,6 +517,11 @@ bool BeginRecordingInput(int controllers)
     s_bNetPlay = true;
     s_recordingStartTime = CEXIIPL::NetPlay_GetGCTime();
   }
+  else if (SConfig::GetInstance().bEnableCustomRTC)
+  {
+    s_recordingStartTime =
+        Common::Timer::ConvertEpochToLocalTimezone(static_cast<time_t>(SConfig::GetInstance().m_customRTCValue));
+  }
   else
   {
     s_recordingStartTime = Common::Timer::GetLocalTimeSinceJan1970();

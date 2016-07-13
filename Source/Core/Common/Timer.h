@@ -27,6 +27,8 @@ public:
   static void RestoreResolution();
   static u64 GetTimeSinceJan1970();
   static u64 GetLocalTimeSinceJan1970();
+  // Takes unix timestamp and converts it to localtime based on the provided timestamp
+  static u64 ConvertEpochToLocalTimezone(time_t epoch_time);
   // Returns a timestamp with decimals for precise time comparisons
   static double GetDoubleTime();
 

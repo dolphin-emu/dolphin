@@ -175,15 +175,15 @@ u64 Timer::GetTimeSinceJan1970()
   return ((u64)ltime);
 }
 
-u64 Timer::GetLocalTimeSinceJan1970()
+namespace
 {
-  time_t sysTime, tzDiff, tzDST;
-  struct tm* gmTime;
-
-  time(&sysTime);
+u64 LocalTimezoneDST(time_t time)
+{
+  time_t tzDiff, tzDST;
+  time_t sysTime = time;
+  tm* gmTime = localtime(&sysTime);
 
   // Account for DST where needed
-  gmTime = localtime(&sysTime);
   if (gmTime->tm_isdst == 1)
     tzDST = 3600;
   else
@@ -193,7 +193,20 @@ u64 Timer::GetLocalTimeSinceJan1970()
   gmTime = gmtime(&sysTime);
   tzDiff = sysTime - mktime(gmTime);
 
-  return (u64)(sysTime + tzDiff + tzDST);
+  return static_cast<u64>(sysTime + tzDiff + tzDST);
+}
+}  // namespace
+
+u64 Timer::GetLocalTimeSinceJan1970()
+{
+  time_t sysTime;
+  time(&sysTime);
+  return LocalTimezoneDST(sysTime);
+}
+
+u64 Timer::ConvertEpochToLocalTimezone(time_t epoch_time)
+{
+  return LocalTimezoneDST(epoch_time);
 }
 
 // Return the current time formatted as Minutes:Seconds:Milliseconds
