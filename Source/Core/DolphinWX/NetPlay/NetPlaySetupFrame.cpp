@@ -91,11 +91,11 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     netplay_section.Get("TraversalChoice", &travChoice, "direct");
     if (travChoice == "traversal")
     {
-      m_direct_traversal->Select(1);
+      m_direct_traversal->Select(TRAVERSAL_CHOICE);
     }
     else
     {
-      m_direct_traversal->Select(0);
+      m_direct_traversal->Select(DIRECT_CHOICE);
     }
 
     std::string centralPort;
@@ -240,6 +240,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
   panel->SetSizerAndFit(main_szr);
 
+  // Handle focus on tab changes
+  panel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &NetPlaySetupFrame::OnTabChanged, this);
+
   // wxBoxSizer* const diag_szr = new wxBoxSizer(wxVERTICAL);
   // diag_szr->Add(panel, 1, wxEXPAND);
   // SetSizerAndFit(diag_szr);
@@ -362,7 +365,7 @@ void NetPlaySetupFrame::DoHost()
 
   bool trav;
   unsigned long listen_port = 0;
-  if (m_direct_traversal->GetCurrentSelection() == 1)
+  if (m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE)
   {
     trav = true;
     listen_port =
@@ -528,6 +531,23 @@ void NetPlaySetupFrame::OnKeyDown(wxKeyEvent& event)
     DoHost();
     break;
   }
+}
+
+void NetPlaySetupFrame::OnTabChanged(wxCommandEvent& event)
+{
+  // Propagate event
+  event.Skip();
+
+  // Delaying action so the first tab order element doesn't override the focus
+  m_notebook->Bind(wxEVT_IDLE, &NetPlaySetupFrame::OnAfterTabChange, this);
+}
+
+void NetPlaySetupFrame::OnAfterTabChange(wxIdleEvent&)
+{
+  // Unbinding so we don't hog the idle event
+  m_notebook->Unbind(wxEVT_IDLE, &NetPlaySetupFrame::OnAfterTabChange, this);
+
+  DispatchFocus();
 }
 
 void NetPlaySetupFrame::DispatchFocus()
