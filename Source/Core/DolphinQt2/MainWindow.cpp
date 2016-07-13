@@ -8,6 +8,7 @@
 #include <QMessageBox>
 
 #include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/Movie.h"
