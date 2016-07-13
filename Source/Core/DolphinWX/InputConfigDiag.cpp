@@ -110,6 +110,10 @@ PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
 void PadSettingCheckBox::UpdateGUI()
 {
   ((wxCheckBox*)wxcontrol)->SetValue(setting->GetValue());
+  // Force WX to trigger an event after updating the value
+  auto* const event = new wxCommandEvent(wxEVT_CHECKBOX);
+  event->SetEventObject(wxcontrol);
+  wxcontrol->ProcessWindowEvent(*event);
 }
 
 void PadSettingCheckBox::UpdateValue()
@@ -447,15 +451,48 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   UpdateGUI();
 }
 
-void GamepadPage::AdjustSetting(wxCommandEvent& event)
+void GamepadPage::EnableSettingControl(const std::string& group_name, const std::string& name,
+                                       const bool enabled)
 {
-  ((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
+  const auto box_iterator =
+      std::find_if(control_groups.begin(), control_groups.end(), [&group_name](const auto& box) {
+        return group_name == box->control_group->name;
+      });
+  if (box_iterator == control_groups.end())
+    return;
+
+  const auto* box = *box_iterator;
+  const auto it =
+      std::find_if(box->options.begin(), box->options.end(), [&name](const auto& pad_setting) {
+        return pad_setting->wxcontrol->GetLabelText() == name;
+      });
+  if (it == box->options.end())
+    return;
+  (*it)->wxcontrol->Enable(enabled);
 }
 
-void GamepadPage::AdjustSettingUI(wxCommandEvent& event)
+void GamepadPage::AdjustSetting(wxCommandEvent& event)
 {
-  m_iterate = !m_iterate;
-  ((PadSetting*)((wxControl*)event.GetEventObject())->GetClientData())->UpdateValue();
+  const auto* const control = static_cast<wxControl*>(event.GetEventObject());
+  auto* const pad_setting = static_cast<PadSetting*>(control->GetClientData());
+  pad_setting->UpdateValue();
+}
+
+void GamepadPage::AdjustBooleanSetting(wxCommandEvent& event)
+{
+  const auto* const control = static_cast<wxControl*>(event.GetEventObject());
+  auto* const pad_setting = static_cast<PadSettingCheckBox*>(control->GetClientData());
+  pad_setting->UpdateValue();
+
+  // TODO: find a cleaner way to have actions depending on the setting
+  if (control->GetLabelText() == "Iterative Input")
+  {
+    m_iterate = pad_setting->setting->GetValue();
+  }
+  else if (control->GetLabelText() == "Relative Input")
+  {
+    EnableSettingControl("IR", "Dead Zone", pad_setting->setting->GetValue());
+  }
 }
 
 void GamepadPage::AdjustControlOption(wxCommandEvent&)
@@ -838,7 +875,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     for (auto& groupSetting : group->boolean_settings)
     {
       auto* checkbox = new PadSettingCheckBox(parent, groupSetting.get());
-      checkbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
+      checkbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustBooleanSetting, eventsink);
       options.push_back(checkbox);
       Add(checkbox->wxcontrol, 0, wxALL | wxLEFT, 5);
     }
@@ -936,15 +973,9 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     for (auto& groupSetting : group->boolean_settings)
     {
       PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
+      setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustBooleanSetting, eventsink);
       if (groupSetting->m_name == "Iterative Input")
-      {
-        setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
         groupSetting->SetValue(false);
-      }
-      else
-      {
-        setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
-      }
       options.push_back(setting_cbox);
       Add(setting_cbox->wxcontrol, 0, wxALL | wxLEFT, 5);
     }
