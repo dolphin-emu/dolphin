@@ -581,18 +581,16 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   if (m_dirty_flags & DIRTY_FLAG_DESCRIPTOR_SET_BINDING || rebind_all)
   {
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            g_object_cache->GetStandardPipelineLayout(), 0,
-                            m_num_active_descriptor_sets, m_descriptor_sets.data(),
-                            NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+                            m_pipeline_state.pipeline_layout, 0, m_num_active_descriptor_sets,
+                            m_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_bindings.uniform_buffer_offsets.data());
   }
   else if (m_dirty_flags & DIRTY_FLAG_DYNAMIC_OFFSETS)
   {
     vkCmdBindDescriptorSets(
-        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-        g_object_cache->GetStandardPipelineLayout(), DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
-        &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-        m_bindings.uniform_buffer_offsets.data());
+        command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_state.pipeline_layout,
+        DESCRIPTOR_SET_UNIFORM_BUFFERS, 1, &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+        NUM_UBO_DESCRIPTOR_SET_BINDINGS, m_bindings.uniform_buffer_offsets.data());
   }
 
   if (m_dirty_flags & DIRTY_FLAG_VIEWPORT || rebind_all)
@@ -732,7 +730,7 @@ bool StateTracker::UpdateDescriptorSet()
                                   nullptr};
 
     vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &write, 0, nullptr);
-    m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+    m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 

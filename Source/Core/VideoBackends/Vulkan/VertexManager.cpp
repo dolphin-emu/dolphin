@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Vulkan/VertexManager.h"
+#include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -12,6 +13,7 @@
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 
+#include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -153,17 +155,33 @@ void VertexManager::vFlush(bool use_dst_alpha)
   m_state_tracker->UpdateGeometryShaderConstants();
   m_state_tracker->UpdatePixelShaderConstants();
 
+  // Flush all EFB pokes and invalidate the peek cache.
+  // TODO: Cleaner way without the cast.
+  EFBCache* efb_cache = static_cast<Renderer*>(g_renderer.get())->GetEFBCache();
+  efb_cache->InvalidatePeekCache();
+  efb_cache->FlushEFBPokes(m_state_tracker);
+
+  // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
+  if (g_object_cache->SupportsBoundingBox())
+  {
+    BoundingBox* bounding_box = static_cast<Renderer*>(g_renderer.get())->GetBoundingBox();
+    bool bounding_box_enabled = (::BoundingBox::active && g_ActiveConfig.bBBoxEnable);
+    if (bounding_box_enabled)
+    {
+      bounding_box->Flush(m_state_tracker);
+      bounding_box->Invalidate(m_state_tracker);
+    }
+
+    // Update which descriptor set/pipeline layout to use.
+    m_state_tracker->SetBBoxEnable(bounding_box_enabled);
+  }
+
   // Bind all pending state to the command buffer
   if (!m_state_tracker->Bind())
   {
     WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
     return;
   }
-
-  // TODO: Cleaner way without the cast.
-  EFBCache* efb_cache = static_cast<Renderer*>(g_renderer.get())->GetEFBCache();
-  efb_cache->InvalidatePeekCache();
-  efb_cache->FlushEFBPokes(m_state_tracker);
 
   // Execute the draw
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,

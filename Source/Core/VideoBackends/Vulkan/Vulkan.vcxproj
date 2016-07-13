@@ -49,6 +49,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="CommandBufferManager.cpp" />
     <ClCompile Include="EFBCache.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
@@ -73,6 +74,7 @@
     <ClCompile Include="VulkanImports.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="CommandBufferManager.h" />
     <ClInclude Include="EFBCache.h" />
     <ClInclude Include="FramebufferManager.h" />
