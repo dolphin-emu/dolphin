@@ -538,7 +538,7 @@ bool ObjectCache::CreateUtilityShaderVertexFormat()
   vtx_decl.texcoords[0].integer = false;
   vtx_decl.texcoords[0].offset = offsetof(UtilityShaderVertex, TexCoord);
   vtx_decl.colors[0].enable = true;
-  vtx_decl.colors[0].type = VAR_FLOAT;
+  vtx_decl.colors[0].type = VAR_UNSIGNED_BYTE;
   vtx_decl.colors[0].components = 4;
   vtx_decl.colors[0].integer = false;
   vtx_decl.colors[0].offset = offsetof(UtilityShaderVertex, Color);
