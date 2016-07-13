@@ -151,6 +151,7 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Base fields
   PopulateBackendInfo(&g_Config);
+  InitializeShared();
 
   // Check for presence of the debug layer before trying to enable it
   bool enable_debug_layer = g_Config.bEnableValidationLayer;
@@ -217,9 +218,6 @@ bool VideoBackend::Initialize(void* window_handle)
   s_vkPhysicalDevice = physical_device_list[selected_adapter_index];
   PopulateBackendInfoFeatures(&g_Config, s_vkPhysicalDevice);
   PopulateBackendInfoMultisampleModes(&g_Config, s_vkPhysicalDevice);
-
-  // With features known, we can init shared
-  InitializeShared();
 
   // Display the name so the user knows which device was actually created
   VkPhysicalDeviceProperties properties;
