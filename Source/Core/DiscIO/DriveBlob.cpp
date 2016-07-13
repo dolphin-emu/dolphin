@@ -138,9 +138,9 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
 #ifdef _WIN32
   LARGE_INTEGER offset;
   offset.QuadPart = GetSectorSize() * block_num;
-  SetFilePointerEx(m_disc_handle, offset, nullptr, FILE_BEGIN);
   DWORD bytes_read;
-  if (!ReadFile(m_disc_handle, out_ptr, static_cast<DWORD>(GetSectorSize() * num_blocks),
+  if (!SetFilePointerEx(m_disc_handle, offset, nullptr, FILE_BEGIN) ||
+      !ReadFile(m_disc_handle, out_ptr, static_cast<DWORD>(GetSectorSize() * num_blocks),
                 &bytes_read, nullptr))
   {
     PanicAlertT("Disc Read Error");
