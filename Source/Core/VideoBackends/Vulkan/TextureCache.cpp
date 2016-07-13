@@ -80,7 +80,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                            const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
 {
   // Flush EFB pokes first, as they're expected to be included.
-  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes();
+  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes(m_state_tracker);
 
   // A better way of doing this would be nice.
   FramebufferManager* framebuffer_mgr =
@@ -428,7 +428,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
                                                  unsigned int cbufid, const float* colmat)
 {
   // Flush EFB pokes first, as they're expected to be included.
-  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes();
+  static_cast<Renderer*>(g_renderer.get())->GetEFBCache()->FlushEFBPokes(m_parent->m_state_tracker);
 
   // A better way of doing this would be nice.
   FramebufferManager* framebuffer_mgr =
