@@ -9,6 +9,7 @@ set(SRCS
 	ShaderCache.cpp
 	StateTracker.cpp
 	SharedShaderCache.cpp
+	StagingTexture2D.cpp
 	StreamBuffer.cpp
 	SwapChain.cpp
 	Texture2D.cpp
