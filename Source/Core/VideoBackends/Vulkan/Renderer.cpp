@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
@@ -18,6 +19,7 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -67,6 +69,10 @@ bool Renderer::Initialize()
 
   m_raster_font = std::make_unique<RasterFont>();
   if (!m_raster_font->Initialize())
+    return false;
+
+  m_efb_cache = std::make_unique<EFBCache>(m_framebuffer_mgr);
+  if (!m_efb_cache->Initialize())
     return false;
 
   // Initialize annoying statics
@@ -131,6 +137,90 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
                                     left * 2.0f / static_cast<float>(backbuffer_width) - 1,
                                     1 - top * 2.0f / static_cast<float>(backbuffer_height),
                                     backbuffer_width, backbuffer_height, color);
+}
+
+u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
+{
+  if (type == PEEK_COLOR)
+  {
+    u32 color = m_efb_cache->PeekEFBColor(m_state_tracker, x, y);
+
+    // a little-endian value is expected to be returned
+    color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
+
+    // check what to do with the alpha channel (GX_PokeAlphaRead)
+    PixelEngine::UPEAlphaReadReg alpha_read_mode = PixelEngine::GetAlphaReadMode();
+
+    if (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24)
+    {
+      color = RGBA8ToRGBA6ToRGBA8(color);
+    }
+    else if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    {
+      color = RGBA8ToRGB565ToRGBA8(color);
+    }
+    if (bpmem.zcontrol.pixel_format != PEControl::RGBA6_Z24)
+    {
+      color |= 0xFF000000;
+    }
+
+    if (alpha_read_mode.ReadMode == 2)
+    {
+      return color;  // GX_READ_NONE
+    }
+    else if (alpha_read_mode.ReadMode == 1)
+    {
+      return (color | 0xFF000000);  // GX_READ_FF
+    }
+    else /*if(alpha_read_mode.ReadMode == 0)*/
+    {
+      return (color & 0x00FFFFFF);  // GX_READ_00
+    }
+  }
+  else  // if (type == PEEK_Z)
+  {
+    // depth buffer is inverted in the d3d backend
+    float depth = 1.0f - m_efb_cache->PeekEFBDepth(m_state_tracker, x, y);
+    u32 ret = 0;
+
+    if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
+    {
+      // if Z is in 16 bit format you must return a 16 bit integer
+      ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 65536.0f), 0, 0xFFFF);
+    }
+    else
+    {
+      ret = MathUtil::Clamp<u32>(static_cast<u32>(depth * 16777216.0f), 0, 0xFFFFFF);
+    }
+
+    return ret;
+  }
+}
+
+void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
+{
+  if (type == POKE_COLOR)
+  {
+    for (size_t i = 0; i < num_points; i++)
+    {
+      // Convert to expected format (BGRA->RGBA)
+      // TODO: Check alpha, depending on mode?
+      const EfbPokeData& point = points[i];
+      u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
+                   ((point.data << 16) & 0xFF0000));
+      m_efb_cache->PokeEFBColor(point.x, point.y, color);
+    }
+  }
+  else  // if (type == POKE_Z)
+  {
+    for (size_t i = 0; i < num_points; i++)
+    {
+      // Convert to floating-point depth.
+      const EfbPokeData& point = points[i];
+      float depth = (1.0f - float(point.data & 0xFFFFFF) / 16777216.0f);
+      m_efb_cache->PokeEFBDepth(point.x, point.y, depth);
+    }
+  }
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -267,6 +357,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 {
   // End the current render pass.
   m_state_tracker->EndRenderPass();
+  m_efb_cache->FlushEFBPokes();
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
