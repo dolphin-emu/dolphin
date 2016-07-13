@@ -6,6 +6,7 @@ set(CMAKE_AUTOMOC ON)
 set(SRCS
 	AboutDialog.cpp
 	Host.cpp
+	InDevelopmentWarning.cpp
 	Main.cpp
 	MainWindow.cpp
 	MenuBar.cpp

@@ -18,6 +18,7 @@ public:
 
   // UI
   QString GetThemeDir() const;
+  bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
   QString GetLastGame() const;
