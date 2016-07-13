@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -90,6 +90,7 @@
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="Host.h" />
+    <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -105,6 +106,7 @@
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
@@ -129,6 +131,7 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="GameList\TableDelegate.cpp" />
     <ClCompile Include="Host.cpp" />
+    <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
