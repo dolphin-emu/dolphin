@@ -29,9 +29,10 @@ void StagingTexture2D::ReadTexel(u32 x, u32 y, void* data, size_t data_size)
   _assert_(data_size >= m_texel_size);
 
   VkDeviceSize offset = y * m_row_stride + x * m_texel_size;
-  _assert_(offset >= m_map_offset && (offset + m_texel_size) < (m_map_offset + m_map_size));
+  VkDeviceSize map_offset = offset - m_map_offset;
+  _assert_(offset >= m_map_offset && (map_offset + m_texel_size) <= (m_map_offset + m_map_size));
 
-  const char* ptr = m_map_pointer + (offset - m_map_offset);
+  const char* ptr = m_map_pointer + map_offset;
   memcpy(data, ptr, data_size);
 }
 
@@ -40,9 +41,10 @@ void StagingTexture2D::WriteTexel(u32 x, u32 y, const void* data, size_t data_si
   _assert_(data_size >= m_texel_size);
 
   VkDeviceSize offset = y * m_row_stride + x * m_texel_size;
-  _assert_(offset >= m_map_offset && (offset + m_texel_size) < (m_map_offset + m_map_size));
+  VkDeviceSize map_offset = offset - m_map_offset;
+  _assert_(offset >= m_map_offset && (map_offset + m_texel_size) <= (m_map_offset + m_map_size));
 
-  char* ptr = m_map_pointer + (offset - m_map_offset);
+  char* ptr = m_map_pointer + map_offset;
   memcpy(ptr, data, data_size);
 }
 
@@ -79,35 +81,32 @@ StagingTexture2DLinear::~StagingTexture2DLinear()
 }
 
 void StagingTexture2DLinear::CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                                           VkImageAspectFlags aspect, u32 x, u32 y, u32 width,
+                                           VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width,
                                            u32 height, u32 level, u32 layer)
 {
   // Prepare the buffer for copying.
-  if (m_layout != VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
-  {
-    VkImageMemoryBarrier barrier = {
-        VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
-        nullptr,                                 // const void*                pNext
-        0,                                       // VkAccessFlags              srcAccessMask
-        VK_ACCESS_TRANSFER_WRITE_BIT,            // VkAccessFlags              dstAccessMask
-        m_layout,                                // VkImageLayout              oldLayout
-        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // VkImageLayout              newLayout
-        VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
-        VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
-        m_image,                                 // VkImage                    image
-        {aspect, 0, 0, 1}                        // VkImageSubresourceRange    subresourceRange
-    };
-    vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                         VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-    m_layout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-  }
+  // We don't care about the existing contents, so set to UNDEFINED.
+  VkImageMemoryBarrier before_transfer_barrier = {
+      VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
+      nullptr,                                 // const void*                pNext
+      0,                                       // VkAccessFlags              srcAccessMask
+      VK_ACCESS_TRANSFER_WRITE_BIT,            // VkAccessFlags              dstAccessMask
+      VK_IMAGE_LAYOUT_UNDEFINED,               // VkImageLayout              oldLayout
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // VkImageLayout              newLayout
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      m_image,                                 // VkImage                    image
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // VkImageSubresourceRange    subresourceRange
+  };
+  vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
+                       &before_transfer_barrier);
 
   // Issue the image copy, gpu -> host.
   VkImageCopy copy_region = {
-      {aspect, level, layer, 1},                      // VkImageSubresourceLayers srcSubresource
+      {src_aspect, level, layer, 1},                  // VkImageSubresourceLayers srcSubresource
       {static_cast<s32>(x), static_cast<s32>(y), 0},  // VkOffset3D               srcOffset
-      {aspect, 0, 0, 1},                              // VkImageSubresourceLayers dstSubresource
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},           // VkImageSubresourceLayers dstSubresource
       {0, 0, 0},                                      // VkOffset3D               dstOffset
       {width, height, 1}                              // VkExtent3D               extent
   };
@@ -121,14 +120,15 @@ void StagingTexture2DLinear::CopyFromImage(VkCommandBuffer command_buffer, VkIma
       VK_ACCESS_TRANSFER_WRITE_BIT,            // VkAccessFlags              srcAccessMask
       VK_ACCESS_HOST_READ_BIT,                 // VkAccessFlags              dstAccessMask
       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // VkImageLayout              oldLayout
-      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // VkImageLayout              newLayout
+      VK_IMAGE_LAYOUT_GENERAL,                 // VkImageLayout              newLayout
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
-      {aspect, 0, 0, 1}                        // VkImageSubresourceRange    subresourceRange
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // VkImageSubresourceRange    subresourceRange
   };
   vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT,
                        0, 0, nullptr, 0, nullptr, 1, &visible_barrier);
+  m_layout = VK_IMAGE_LAYOUT_GENERAL;
 
   // Invalidate memory range if currently mapped.
   if (m_map_pointer)
@@ -140,7 +140,7 @@ void StagingTexture2DLinear::CopyFromImage(VkCommandBuffer command_buffer, VkIma
 }
 
 void StagingTexture2DLinear::CopyToImage(VkCommandBuffer command_buffer, VkImage image,
-                                         VkImageAspectFlags aspect, u32 x, u32 y, u32 width,
+                                         VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width,
                                          u32 height, u32 level, u32 layer)
 {
   // Flush memory range if currently mapped.
@@ -162,7 +162,7 @@ void StagingTexture2DLinear::CopyToImage(VkCommandBuffer command_buffer, VkImage
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
       VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
       m_image,                                 // VkImage                    image
-      {aspect, 0, 0, 1}                        // VkImageSubresourceRange    subresourceRange
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}  // VkImageSubresourceRange    subresourceRange
   };
   vkCmdPipelineBarrier(command_buffer, VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
                        0, 0, nullptr, 0, nullptr, 1, &barrier);
@@ -171,9 +171,9 @@ void StagingTexture2DLinear::CopyToImage(VkCommandBuffer command_buffer, VkImage
 
   // Issue the image copy, host -> gpu.
   VkImageCopy copy_region = {
-      {aspect, 0, 0, 1},                              // VkImageSubresourceLayers srcSubresource
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},           // VkImageSubresourceLayers srcSubresource
       {0, 0, 0},                                      // VkOffset3D               srcOffset
-      {aspect, level, layer, 1},                      // VkImageSubresourceLayers dstSubresource
+      {dst_aspect, level, layer, 1},                  // VkImageSubresourceLayers dstSubresource
       {static_cast<s32>(x), static_cast<s32>(y), 0},  // VkOffset3D               dstOffset
       {width, height, 1}                              // VkExtent3D               extent
   };
@@ -285,7 +285,8 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DLinear::Create(u32 width, u32 
 StagingTexture2DBuffer::StagingTexture2DBuffer(u32 width, u32 height, VkFormat format, u32 stride,
                                                VkBuffer buffer, VkDeviceMemory memory,
                                                VkDeviceSize size)
-    : StagingTexture2D(width, height, format, stride), m_buffer(buffer), m_memory(memory)
+    : StagingTexture2D(width, height, format, stride), m_buffer(buffer), m_memory(memory),
+      m_size(size)
 {
 }
 
@@ -296,7 +297,7 @@ StagingTexture2DBuffer::~StagingTexture2DBuffer()
 }
 
 void StagingTexture2DBuffer::CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                                           VkImageAspectFlags aspect, u32 x, u32 y, u32 width,
+                                           VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width,
                                            u32 height, u32 level, u32 layer)
 {
   // Issue the image->buffer copy.
@@ -304,7 +305,7 @@ void StagingTexture2DBuffer::CopyFromImage(VkCommandBuffer command_buffer, VkIma
       0,                                              // VkDeviceSize             bufferOffset
       m_width,                                        // uint32_t                 bufferRowLength
       0,                                              // uint32_t                 bufferImageHeight
-      {aspect, level, layer, 1},                      // VkImageSubresourceLayers imageSubresource
+      {src_aspect, level, layer, 1},                  // VkImageSubresourceLayers imageSubresource
       {static_cast<s32>(x), static_cast<s32>(y), 0},  // VkOffset3D               imageOffset
       {width, height, 1}                              // VkExtent3D               imageExtent
   };
@@ -327,7 +328,7 @@ void StagingTexture2DBuffer::CopyFromImage(VkCommandBuffer command_buffer, VkIma
 }
 
 void StagingTexture2DBuffer::CopyToImage(VkCommandBuffer command_buffer, VkImage image,
-                                         VkImageAspectFlags aspect, u32 x, u32 y, u32 width,
+                                         VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width,
                                          u32 height, u32 level, u32 layer)
 {
   // If we're still mapped, flush the mapped range
@@ -349,7 +350,7 @@ void StagingTexture2DBuffer::CopyToImage(VkCommandBuffer command_buffer, VkImage
       0,                                              // VkDeviceSize             bufferOffset
       m_width,                                        // uint32_t                 bufferRowLength
       0,                                              // uint32_t                 bufferImageHeight
-      {aspect, level, layer, 1},                      // VkImageSubresourceLayers imageSubresource
+      {dst_aspect, level, layer, 1},                  // VkImageSubresourceLayers imageSubresource
       {static_cast<s32>(x), static_cast<s32>(y), 0},  // VkOffset3D               imageOffset
       {width, height, 1}                              // VkExtent3D               imageExtent
   };

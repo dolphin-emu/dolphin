@@ -13,6 +13,7 @@
 
 namespace Vulkan
 {
+class EFBCache;
 class FramebufferManager;
 class SwapChain;
 class StateTracker;
@@ -27,8 +28,8 @@ public:
   bool Initialize();
 
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
-  u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override { return 0; }
-  void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
+  u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
+  void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override;
   u16 BBoxRead(int index) override { return 0; }
   void BBoxWrite(int index, u16 value) override {}
   int GetMaxTextureSize() override { return 16 * 1024; }
@@ -65,6 +66,7 @@ public:
 
   void ChangeSurface(void* new_window_handle) override;
 
+  EFBCache* GetEFBCache() const { return m_efb_cache.get(); }
 private:
   bool CreateSemaphores();
   void DestroySemaphores();
@@ -89,6 +91,7 @@ private:
   VkSemaphore m_rendering_finished_semaphore = nullptr;
 
   std::unique_ptr<RasterFont> m_raster_font;
+  std::unique_ptr<EFBCache> m_efb_cache;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};
