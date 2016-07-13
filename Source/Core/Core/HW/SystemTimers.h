@@ -44,4 +44,6 @@ u32 GetFakeDecrementer();
 
 void TimeBaseSet();
 u64 GetFakeTimeBase();
+// Custom RTC
+u64 GetLocalTimeOnBoot();
 }

@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/NetPlayServer.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -15,6 +14,7 @@
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "Core/NetPlayServer.h"
 #include "InputCommon/GCPadStatus.h"
 #if !defined(_WIN32)
 #include <sys/socket.h>
@@ -792,7 +792,10 @@ bool NetPlayServer::StartGame()
   // no change, just update with clients
   AdjustPadBufferSize(m_target_buffer_size);
 
-  g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    g_netplay_initial_gctime = SConfig::GetInstance().m_customRTCValue;
+  else
+    g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
   auto spac = std::make_unique<sf::Packet>();
