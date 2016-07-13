@@ -115,7 +115,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
   }
 
   // Speaker Pan
-  unsigned int vol = (unsigned int)(m_options->settings[4]->GetValue() * 100);
+  unsigned int vol = (unsigned int)(m_options->numeric_settings[0]->GetValue() * 100);
 
   unsigned int sample_rate = sample_rate_dividend / m_reg_speaker.sample_rate;
   float speaker_volume_ratio = (float)m_reg_speaker.volume / volume_divisor;

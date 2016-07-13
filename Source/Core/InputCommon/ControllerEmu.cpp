@@ -44,14 +44,18 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section* sec, const std::s
   std::string group(base + name + "/");
 
   // settings
-  for (auto& s : settings)
+  for (auto& s : numeric_settings)
   {
-    if (s->is_virtual)
+    if (s->m_type == SettingType::VIRTUAL)
       continue;
-    if (s->is_iterate)
+    sec->Get(group + s->m_name, &s->m_value, s->m_default_value * 100);
+    s->m_value /= 100;
+  }
+  for (auto& s : boolean_settings)
+  {
+    if (s->m_type == SettingType::VIRTUAL)
       continue;
-    sec->Get(group + s->name, &s->value, s->default_value * 100);
-    s->value /= 100;
+    sec->Get(group + s->m_name, &s->m_value, s->m_default_value);
   }
 
   for (auto& c : controls)
@@ -105,14 +109,17 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section* sec, const std::s
 {
   std::string group(base + name + "/");
 
-  for (auto& s : settings)
+  for (auto& s : numeric_settings)
   {
-    if (s->is_virtual)
+    if (s->m_type == SettingType::VIRTUAL)
       continue;
-    if (s->is_iterate)
+    sec->Set(group + s->m_name, s->m_value * 100.0, s->m_default_value * 100.0);
+  }
+  for (auto& s : boolean_settings)
+  {
+    if (s->m_type == SettingType::VIRTUAL)
       continue;
-
-    sec->Set(group + s->name, s->value * 100.0, s->default_value * 100.0);
+    sec->Set(group + s->m_name, s->m_value, s->m_default_value);
   }
 
   for (auto& c : controls)
@@ -163,25 +170,26 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name, const char* con
     controls.emplace_back(std::make_unique<Input>(named_direction));
 
   controls.emplace_back(std::make_unique<Input>(_trans("Modifier")));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Radius"), default_radius, 0, 100));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(
+      std::make_unique<NumericSetting>(_trans("Radius"), default_radius, 0, 100));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
 ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
 {
-  settings.emplace_back(std::make_unique<Setting>(_trans("Threshold"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
 ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name)
     : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
 {
-  settings.emplace_back(std::make_unique<Setting>(_trans("Threshold"), 0.9));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.9));
 }
 
 ControllerEmu::Triggers::Triggers(const std::string& _name)
     : ControlGroup(_name, GROUP_TYPE_TRIGGERS)
 {
-  settings.emplace_back(std::make_unique<Setting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
 ControllerEmu::Slider::Slider(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_SLIDER)
@@ -189,7 +197,7 @@ ControllerEmu::Slider::Slider(const std::string& _name) : ControlGroup(_name, GR
   controls.emplace_back(std::make_unique<Input>("Left"));
   controls.emplace_back(std::make_unique<Input>("Right"));
 
-  settings.emplace_back(std::make_unique<Setting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
 ControllerEmu::Force::Force(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_FORCE)
@@ -203,7 +211,7 @@ ControllerEmu::Force::Force(const std::string& _name) : ControlGroup(_name, GROU
   controls.emplace_back(std::make_unique<Input>(_trans("Forward")));
   controls.emplace_back(std::make_unique<Input>(_trans("Backward")));
 
-  settings.emplace_back(std::make_unique<Setting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
 ControllerEmu::Tilt::Tilt(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_TILT)
@@ -217,9 +225,9 @@ ControllerEmu::Tilt::Tilt(const std::string& _name) : ControlGroup(_name, GROUP_
 
   controls.emplace_back(std::make_unique<Input>(_trans("Modifier")));
 
-  settings.emplace_back(std::make_unique<Setting>(_trans("Dead Zone"), 0, 0, 50));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Circle Stick"), 0));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Angle"), 0.9, 0, 180));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Circle Stick"), 0));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Angle"), 0.9, 0, 180));
 }
 
 ControllerEmu::Cursor::Cursor(const std::string& _name)
@@ -231,9 +239,9 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
   controls.emplace_back(std::make_unique<Input>("Backward"));
   controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
 
-  settings.emplace_back(std::make_unique<Setting>(_trans("Center"), 0.5));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Width"), 0.5));
-  settings.emplace_back(std::make_unique<Setting>(_trans("Height"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
 }
 
 void ControllerEmu::LoadDefaults(const ControllerInterface& ciface)
