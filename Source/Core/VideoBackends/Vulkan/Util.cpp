@@ -4,6 +4,8 @@
 
 #include <cassert>
 
+#include "Common/MathUtil.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/Renderer.h"
@@ -32,6 +34,14 @@ size_t AlignBufferOffset(size_t offset, size_t alignment)
     return 0;
 
   return AlignValue(offset, alignment);
+}
+
+u32 MakeRGBA8Color(float r, float g, float b, float a)
+{
+  return (static_cast<u32>(MathUtil::Clamp(static_cast<int>(r * 255.0f), 0, 255)) << 0) |
+         (static_cast<u32>(MathUtil::Clamp(static_cast<int>(g * 255.0f), 0, 255)) << 8) |
+         (static_cast<u32>(MathUtil::Clamp(static_cast<int>(b * 255.0f), 0, 255)) << 16) |
+         (static_cast<u32>(MathUtil::Clamp(static_cast<int>(a * 255.0f), 0, 255)) << 24);
 }
 
 RasterizationState GetNoCullRasterizationState()
@@ -303,19 +313,24 @@ void UtilityShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_he
 void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, float r, float g,
                                         float b, float a, float z)
 {
+  return DrawColoredQuad(x, y, width, height, Util::MakeRGBA8Color(r, g, b, a), z);
+}
+
+void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, u32 color, float z)
+{
   UtilityShaderVertex vertices[4];
   vertices[0].SetPosition(-1.0f, 1.0f, z);
   vertices[0].SetTextureCoordinates(0.0f, 1.0f);
-  vertices[0].SetColor(r, g, b, a);
+  vertices[0].SetColor(color);
   vertices[1].SetPosition(1.0f, 1.0f, z);
   vertices[1].SetTextureCoordinates(1.0f, 1.0f);
-  vertices[1].SetColor(r, g, b, a);
+  vertices[1].SetColor(color);
   vertices[2].SetPosition(-1.0f, -1.0f, z);
   vertices[2].SetTextureCoordinates(0.0f, 0.0f);
-  vertices[2].SetColor(r, g, b, a);
+  vertices[2].SetColor(color);
   vertices[3].SetPosition(1.0f, -1.0f, z);
   vertices[3].SetTextureCoordinates(1.0f, 0.0f);
-  vertices[3].SetColor(r, g, b, a);
+  vertices[3].SetColor(color);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
   UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
