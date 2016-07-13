@@ -98,7 +98,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
     pad_type_choices[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnGameCubePortChanged, this);
 
     // Disable controller type selection for certain circumstances.
-    if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+    if (Core::g_want_determinism)
       pad_type_choices[i]->Disable();
 
     // Set the saved pad type as the default choice.
@@ -179,7 +179,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
     // Disable controller type selection for certain circumstances.
     bool wii_game_started =
         SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
-    if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || !wii_game_started)
+    if (Core::g_want_determinism || !wii_game_started)
       wiimote_source_ch[i]->Disable();
 
     m_orig_wiimote_sources[i] = g_wiimote_sources[i];
