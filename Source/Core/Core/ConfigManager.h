@@ -135,6 +135,11 @@ struct SConfig : NonCopyable
   // Fifo Player related settings
   bool bLoopFifoReplay;
 
+  // Custom RTC
+  bool bCustomRTC;
+  u32 m_customRTCDate;
+  u32 m_customRTCTime;
+
   enum EBootBS2
   {
     BOOT_DEFAULT,

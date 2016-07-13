@@ -273,6 +273,9 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("GFXBackend", m_strVideoBackend);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
+  core->Set("EnableCustomRTC", bCustomRTC);
+  core->Set("CustomRTCDateValue", m_customRTCDate);
+  core->Set("CustomRTCTimeValue", m_customRTCTime);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -551,6 +554,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("GFXBackend", &m_strVideoBackend, "");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
+  core->Get("EnableCustomRTC", &bCustomRTC, false);
+  core->Get("CustomRTCDateValue", &m_customRTCDate);
+  core->Get("CustomRTCTimeValue", &m_customRTCTime);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

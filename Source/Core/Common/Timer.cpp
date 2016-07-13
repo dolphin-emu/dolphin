@@ -196,6 +196,27 @@ u64 Timer::GetLocalTimeSinceJan1970()
   return (u64)(sysTime + tzDiff + tzDST);
 }
 
+u64 Timer::GetLocalTimeSinceJan1970(u32 d, u32 t)
+{
+  time_t sysTime, customTime, tzDiff, tzDST;
+  struct tm* gmTime;
+  customTime = (d + t);
+  time(&sysTime);
+
+  // Account for DST where needed
+  gmTime = localtime(&sysTime);
+  if (gmTime->tm_isdst == 1)
+    tzDST = 3600;
+  else
+    tzDST = 0;
+
+  // Lazy way to get local time in sec
+  gmTime = gmtime(&sysTime);
+  tzDiff = sysTime - mktime(gmTime);
+
+  return (u64)(customTime + tzDiff + tzDST);
+}
+
 // Return the current time formatted as Minutes:Seconds:Milliseconds
 // in the form 00:00:000.
 std::string Timer::GetTimeFormatted()

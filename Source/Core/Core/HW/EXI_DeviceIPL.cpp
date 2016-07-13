@@ -421,6 +421,13 @@ u32 CEXIIPL::GetGCTime()
     // let's keep time moving forward, regardless of what it starts at
     ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
   }
+  else if (SConfig::GetInstance().bCustomRTC && (SConfig::GetInstance().m_customRTCDate > 0 &&
+                                                 SConfig::GetInstance().m_customRTCTime > 0))
+  {
+    _assert_(!Core::g_want_determinism);
+    ltime = Common::Timer::GetLocalTimeSinceJan1970(SConfig::GetInstance().m_customRTCDate,
+                                                    SConfig::GetInstance().m_customRTCTime);
+  }
   else
   {
     _assert_(!Core::g_want_determinism);
