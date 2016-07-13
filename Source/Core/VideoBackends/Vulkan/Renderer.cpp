@@ -8,6 +8,7 @@
 #include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/EFBCache.h"
+#include "VideoBackends/Vulkan/FrameTimer.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
@@ -87,6 +88,10 @@ bool Renderer::Initialize()
                                    m_bounding_box->GetGPUBufferOffset(),
                                    m_bounding_box->GetGPUBufferSize());
   }
+
+  m_frame_timer = std::make_unique<FrameTimer>();
+  if (!m_frame_timer->Initialize(g_ActiveConfig.bShowFrameTime))
+    return false;
 
   // Initialize annoying statics
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -302,6 +307,45 @@ void Renderer::BeginFrame()
   // of descriptors out of the next pool.
   m_state_tracker->InvalidateDescriptorSets();
   m_state_tracker->SetPendingRebind();
+
+  // Update GPU timestamp for start of frame
+  m_frame_timer->BeginFrame();
+}
+
+void Renderer::DrawFrameTimer()
+{
+  static const u32 GREEN_COLOR = 0xFF00FF00;
+  static const u32 YELLOW_COLOR = 0xFFFFFF00;
+  static const u32 RED_COLOR = 0xFFFF0000;
+  static const double GREEN_THRESHOLD = 1.0 / (50.0 - 2.0);
+  static const double YELLOW_THRESHOLD = 1.0 / (25.0 - 2.0);
+  auto GetColor = [](double time) -> u32 {
+    if (time <= GREEN_THRESHOLD)
+      return GREEN_COLOR;
+    else if (time <= YELLOW_THRESHOLD)
+      return YELLOW_COLOR;
+    else
+      return RED_COLOR;
+  };
+
+  double cpu_time = m_frame_timer->GetLastCPUTime();
+  double gpu_time = m_frame_timer->GetLastGPUTime();
+  u32 cpu_color = GetColor(cpu_time);
+  u32 gpu_color = GetColor(gpu_time);
+
+  // Text headings
+  int screen_width = static_cast<int>(m_swap_chain->GetSize().width);
+  RenderText("CPU Time: ", screen_width - 340, 20, 0xFFFFFFFF);
+  RenderText(StringFromFormat(
+                 "%.2f ms (%.2f/%.2f/%.2f)", cpu_time * 1000, m_frame_timer->GetMinCPUTime() * 1000,
+                 m_frame_timer->GetMaxCPUTime() * 1000, m_frame_timer->GetAverageCPUTime() * 1000),
+             screen_width - 252, 20, cpu_color);
+
+  RenderText("GPU Time: ", screen_width - 340, 40, 0xFFFFFFFF);
+  RenderText(StringFromFormat(
+                 "%.2f ms (%.2f/%.2f/%.2f)", gpu_time * 1000, m_frame_timer->GetMinGPUTime() * 1000,
+                 m_frame_timer->GetMaxGPUTime() * 1000, m_frame_timer->GetAverageGPUTime() * 1000),
+             screen_width - 252, 40, gpu_color);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -483,6 +527,9 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                               m_swap_chain->GetSize().width, m_swap_chain->GetSize().height);
   DrawDebugText();
 
+  if (m_frame_timer->IsEnabled())
+    DrawFrameTimer();
+
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
   OSD::DrawMessages();
@@ -494,6 +541,9 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // before present.
   m_swap_chain->GetCurrentTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+
+  // Update stats for current frame if enabled
+  m_frame_timer->EndFrame();
 
   // Submit the current command buffer, signaling rendering finished semaphore when it's done
   // Because this final command buffer is rendering to the swap chain, we need to wait for
@@ -550,6 +600,9 @@ void Renderer::CheckForConfigChanges()
 
   // Copy g_Config to g_ActiveConfig.
   UpdateActiveConfig();
+
+  // Update frame timer settings.
+  m_frame_timer->SetEnabled(g_ActiveConfig.bShowFrameTime);
 
   // Handle internal resolution changes.
   if (s_last_efb_scale != g_ActiveConfig.iEFBScale)

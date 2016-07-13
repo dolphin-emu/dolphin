@@ -279,6 +279,10 @@ static wxString backend_multithreading_desc =
     wxTRANSLATE("Enables multi-threading in the video backend, which may result in performance "
                 "gains in some scenarios. Not supported by all backends.\n\nIf unsure, leave "
                 "this unchecked.");
+static wxString show_frame_time_desc =
+    wxTRANSLATE("Overlays the time taken to render the frame on the CPU and on the GPU, as well "
+                "as providing the minimum/maximum/average over several frames.\n\nIf unsure, "
+                "leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -456,6 +460,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       {
         szr_other->Add(CreateCheckBox(page_general, _("Show FPS"), wxGetTranslation(show_fps_desc),
                                       vconfig.bShowFPS));
+        szr_other->Add(CreateCheckBox(page_general, _("Show Frame Time"),
+                                      wxGetTranslation(show_frame_time_desc),
+                                      vconfig.bShowFrameTime));
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Ping"),
                                       wxGetTranslation(show_netplay_ping_desc),
                                       vconfig.bShowNetPlayPing));
