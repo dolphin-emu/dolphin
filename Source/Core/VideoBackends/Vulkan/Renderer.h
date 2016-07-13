@@ -16,6 +16,7 @@ namespace Vulkan
 class BoundingBox;
 class EFBCache;
 class FramebufferManager;
+class FrameTimer;
 class SwapChain;
 class StateTracker;
 class RasterFont;
@@ -75,6 +76,8 @@ private:
 
   void BeginFrame();
 
+  void DrawFrameTimer();
+
   void CheckForConfigChanges();
   void CheckForSurfaceChange();
 
@@ -95,6 +98,7 @@ private:
   std::unique_ptr<RasterFont> m_raster_font;
   std::unique_ptr<EFBCache> m_efb_cache;
   std::unique_ptr<BoundingBox> m_bounding_box;
+  std::unique_ptr<FrameTimer> m_frame_timer;
 
   // Keep a copy of sampler states to avoid cache lookups every draw
   std::array<SamplerState, NUM_PIXEL_SHADER_SAMPLERS> m_sampler_states = {};

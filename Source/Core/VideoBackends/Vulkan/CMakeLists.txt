@@ -3,6 +3,7 @@ set(SRCS
 	CommandBufferManager.cpp
 	EFBCache.cpp
 	FramebufferManager.cpp
+	FrameTimer.cpp
 	Helpers.cpp
 	ObjectCache.cpp
 	PaletteTextureConverter.cpp
