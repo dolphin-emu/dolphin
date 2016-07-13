@@ -7,8 +7,10 @@
 #include <wx/panel.h>
 
 class wxCheckBox;
+class wxDatePickerCtrl;
 class wxSlider;
 class wxStaticText;
+class wxTimePickerCtrl;
 
 class AdvancedConfigPane final : public wxPanel
 {
@@ -21,10 +23,24 @@ private:
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
+  void OnCustomRTCCheckBoxChanged(wxCommandEvent&);
+  void OnCustomRTCDateChanged(wxCommandEvent&);
+  void OnCustomRTCTimeChanged(wxCommandEvent&);
 
   void UpdateCPUClock();
+
+  // Custom RTC
+  void LoadCustomRTC();
+  void UpdateCustomRTC(u32 temp_date, u32 temp_time);
+  // Converts provided time to GMT0 or to user's local timezone depending on what's needed.
+  static u32 ConvertToFromLocalTimezone(u32 input_date, bool to_gmt);
+  u32 temp_date;
+  u32 temp_time;
 
   wxCheckBox* m_clock_override_checkbox;
   wxSlider* m_clock_override_slider;
   wxStaticText* m_clock_override_text;
+  wxCheckBox* m_custom_rtc_checkbox;
+  wxDatePickerCtrl* m_custom_rtc_date_picker;
+  wxTimePickerCtrl* m_custom_rtc_time_picker;
 };
