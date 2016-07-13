@@ -792,7 +792,10 @@ bool NetPlayServer::StartGame()
   // no change, just update with clients
   AdjustPadBufferSize(m_target_buffer_size);
 
-  g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    g_netplay_initial_gctime = SConfig::GetInstance().m_customRTCValue;
+  else
+    g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
   auto spac = std::make_unique<sf::Packet>();
