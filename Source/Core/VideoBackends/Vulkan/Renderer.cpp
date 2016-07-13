@@ -208,7 +208,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       const EfbPokeData& point = points[i];
       u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
                    ((point.data << 16) & 0xFF0000));
-      m_efb_cache->PokeEFBColor(point.x, point.y, color);
+      m_efb_cache->PokeEFBColor(m_state_tracker, point.x, point.y, color);
     }
   }
   else  // if (type == POKE_Z)
@@ -218,7 +218,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
       float depth = (1.0f - float(point.data & 0xFFFFFF) / 16777216.0f);
-      m_efb_cache->PokeEFBDepth(point.x, point.y, depth);
+      m_efb_cache->PokeEFBDepth(m_state_tracker, point.x, point.y, depth);
     }
   }
 }
@@ -355,9 +355,11 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
 {
+  // Flush any pending EFB pokes.
+  m_efb_cache->FlushEFBPokes(m_state_tracker);
+
   // End the current render pass.
   m_state_tracker->EndRenderPass();
-  m_efb_cache->FlushEFBPokes();
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
