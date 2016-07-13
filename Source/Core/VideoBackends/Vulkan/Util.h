@@ -19,6 +19,8 @@ namespace Util
 size_t AlignValue(size_t value, size_t alignment);
 size_t AlignBufferOffset(size_t offset, size_t alignment);
 
+u32 MakeRGBA8Color(float r, float g, float b, float a);
+
 RasterizationState GetNoCullRasterizationState();
 DepthStencilState GetNoDepthTestingDepthStencilState();
 BlendState GetNoBlendingBlendState();
@@ -34,8 +36,7 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
                          VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask);
 
 // Completes the current render pass, executes the command buffer, and restores state ready for next
-// render.
-// Use when you want to kick the current buffer to make room for new data.
+// render. Use when you want to kick the current buffer to make room for new data.
 void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool execute_off_thread);
 }
 
@@ -45,7 +46,7 @@ struct UtilityShaderVertex
 {
   float Position[4];
   float TexCoord[4];
-  float Color[4];
+  u32 Color;
 
   void SetPosition(float x, float y)
   {
@@ -82,20 +83,9 @@ struct UtilityShaderVertex
     TexCoord[2] = w;
     TexCoord[3] = x;
   }
-  void SetColor(float r, float g, float b)
-  {
-    Color[0] = r;
-    Color[1] = g;
-    Color[2] = b;
-    Color[3] = 1.0f;
-  }
-  void SetColor(float r, float g, float b, float a)
-  {
-    Color[0] = r;
-    Color[1] = g;
-    Color[2] = b;
-    Color[3] = a;
-  }
+  void SetColor(u32 color) { Color = color; }
+  void SetColor(float r, float g, float b) { Color = Util::MakeRGBA8Color(r, g, b, 1.0f); }
+  void SetColor(float r, float g, float b, float a) { Color = Util::MakeRGBA8Color(r, g, b, a); }
 };
 #pragma pack(pop)
 
@@ -138,6 +128,8 @@ public:
   void DrawQuad(int src_x, int src_y, int src_width, int src_height, int src_full_width,
                 int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height,
                 float z = 0.0f);
+
+  void DrawColoredQuad(int x, int y, int width, int height, u32 color, float z = 0.0f);
 
   void DrawColoredQuad(int x, int y, int width, int height, float r, float g, float b, float a,
                        float z = 0.0f);
