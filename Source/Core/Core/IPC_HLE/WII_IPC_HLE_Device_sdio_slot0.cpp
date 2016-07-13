@@ -49,6 +49,8 @@ void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
 
 void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 {
+  // Accessing SConfig variables like this isn't really threadsafe,
+  // but this is how it's done all over the place...
   if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
       (!SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_REMOVE))
   {
