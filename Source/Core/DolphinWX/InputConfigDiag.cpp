@@ -314,12 +314,10 @@ void GamepadPage::LoadDefaults(wxCommandEvent&)
 bool ControlDialog::Validate()
 {
   control_reference->expression = WxStrToStr(textctrl->GetValue());
-
   g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
-
   UpdateGUI();
-
-  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS);
+  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS ||
+          control_reference->parse_error == EXPRESSION_PARSE_NO_DEVICE);
 }
 
 void GamepadPage::SetDevice(wxCommandEvent&)

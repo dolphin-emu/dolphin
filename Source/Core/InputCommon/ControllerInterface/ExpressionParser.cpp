@@ -397,7 +397,7 @@ private:
       if (control == nullptr)
       {
         *expr_out = new DummyExpression(tok.qualifier);
-        return EXPRESSION_PARSE_SUCCESS;
+        return EXPRESSION_PARSE_NO_DEVICE;
       }
 
       *expr_out = new ControlExpression(tok.qualifier, control);
