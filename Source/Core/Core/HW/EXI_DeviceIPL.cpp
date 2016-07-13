@@ -421,6 +421,15 @@ u32 CEXIIPL::GetGCTime()
     // let's keep time moving forward, regardless of what it starts at
     ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
   }
+  else if (SConfig::GetInstance().bCustomRTC && SConfig::GetInstance().m_customRTC > 0)
+  {
+    _assert_(!Core::g_want_determinism);
+    ltime = SConfig::GetInstance().m_customRTC;
+
+    // TODO: Adjust this to real time instead of emulated time
+    // let's keep time moving forward, regardless of what it starts at
+    ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
+  }
   else
   {
     _assert_(!Core::g_want_determinism);

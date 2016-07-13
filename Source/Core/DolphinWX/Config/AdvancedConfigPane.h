@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <wx/datectrl.h>
 #include <wx/panel.h>
+#include <wx/timectrl.h>
 
 class wxCheckBox;
 class wxSlider;
@@ -21,10 +23,20 @@ private:
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
+  void OnCustomRTCCheckBoxChanged(wxCommandEvent&);
+  void OnCustomRTCDateChanged(wxCommandEvent&);
+  void OnCustomRTCTimeChanged(wxCommandEvent&);
 
   void UpdateCPUClock();
 
   wxCheckBox* m_clock_override_checkbox;
   wxSlider* m_clock_override_slider;
   wxStaticText* m_clock_override_text;
+  wxCheckBox* m_custom_rtc_checkbox;
+  wxDatePickerCtrl* m_custom_rtc_date_picker;
+  wxTimePickerCtrl* m_custom_rtc_time_picker;
+
+  // Custom RTC
+  u32 temp_date;
+  u32 temp_time;
 };
