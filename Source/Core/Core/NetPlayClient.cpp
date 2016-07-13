@@ -4,10 +4,14 @@
 
 #include "Core/NetPlayClient.h"
 #include <algorithm>
+#include <fstream>
+#include <mbedtls/md5.h>
 #include <memory>
+#include <thread>
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
@@ -19,6 +23,8 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/Movie.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "InputCommon/GCAdapter.h"
 
 static std::mutex crit_netplay_client;
@@ -497,6 +503,55 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       memcpy(g_SRAM.p_SRAM, sram, sizeof(g_SRAM.p_SRAM));
       g_SRAM_netplay_initialized = true;
     }
+  }
+  break;
+
+  case NP_MSG_COMPUTE_MD5:
+  {
+    std::string file_identifier;
+    packet >> file_identifier;
+
+    ComputeMD5(file_identifier);
+  }
+  break;
+
+  case NP_MSG_MD5_PROGRESS:
+  {
+    PlayerId pid;
+    int progress;
+    packet >> pid;
+    packet >> progress;
+
+    m_dialog->SetMD5Progress(pid, progress);
+  }
+  break;
+
+  case NP_MSG_MD5_RESULT:
+  {
+    PlayerId pid;
+    std::string result;
+    packet >> pid;
+    packet >> result;
+
+    m_dialog->SetMD5Result(pid, result);
+  }
+  break;
+
+  case NP_MSG_MD5_ERROR:
+  {
+    PlayerId pid;
+    std::string error;
+    packet >> pid;
+    packet >> error;
+
+    m_dialog->SetMD5Result(pid, error);
+  }
+  break;
+
+  case NP_MSG_MD5_ABORT:
+  {
+    m_should_compute_MD5 = false;
+    m_dialog->AbortMD5();
   }
   break;
 
@@ -1195,6 +1250,47 @@ bool NetPlayClient::DoAllPlayersHaveGame()
 
   return std::all_of(std::begin(m_players), std::end(m_players),
                      [](auto entry) { return entry.second.game_status == PlayerGameStatus::Ok; });
+}
+
+void NetPlayClient::ComputeMD5(const std::string& file_identifier)
+{
+  if (m_should_compute_MD5)
+    return;
+
+  m_dialog->ShowMD5Dialog(file_identifier);
+  m_should_compute_MD5 = true;
+
+  std::string file;
+  if (file_identifier == "sd.raw")
+    file = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
+  else
+    file = m_dialog->FindGame(file_identifier);
+
+  if (file.empty() || !File::Exists(file))
+  {
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    spac << "file not found";
+    Send(spac);
+    return;
+  }
+
+  m_MD5_thread = std::thread([this, file]() {
+    std::string sum = MD5::MD5Sum(file, [&](int progress) {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+      spac << progress;
+      Send(spac);
+
+      return m_should_compute_MD5;
+    });
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    spac << sum;
+    Send(spac);
+  });
+  m_MD5_thread.detach();
 }
 
 // stuff hacked into dolphin
