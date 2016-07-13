@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <limits>
 
+#include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
@@ -74,6 +75,18 @@ bool Renderer::Initialize()
   m_efb_cache = std::make_unique<EFBCache>(m_framebuffer_mgr);
   if (!m_efb_cache->Initialize())
     return false;
+
+  m_bounding_box = std::make_unique<BoundingBox>();
+  if (!m_bounding_box->Initialize())
+    return false;
+
+  if (g_object_cache->SupportsBoundingBox())
+  {
+    // Bind bounding box to state tracker
+    m_state_tracker->SetBBoxBuffer(m_bounding_box->GetGPUBuffer(),
+                                   m_bounding_box->GetGPUBufferOffset(),
+                                   m_bounding_box->GetGPUBufferSize());
+  }
 
   // Initialize annoying statics
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -221,6 +234,53 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       m_efb_cache->PokeEFBDepth(m_state_tracker, point.x, point.y, depth);
     }
   }
+}
+
+u16 Renderer::BBoxRead(int index)
+{
+  s32 value = m_bounding_box->Get(m_state_tracker, static_cast<size_t>(index));
+
+  // Here we get the min/max value of the truncated position of the upscaled framebuffer.
+  // So we have to correct them to the unscaled EFB sizes.
+  if (index < 2)
+  {
+    // left/right
+    value = value * EFB_WIDTH / s_target_width;
+  }
+  else
+  {
+    // up/down
+    value = value * EFB_HEIGHT / s_target_height;
+  }
+
+  // fix max values to describe the outer border
+  if (index & 1)
+    value++;
+
+  return static_cast<u16>(value);
+}
+
+void Renderer::BBoxWrite(int index, u16 value)
+{
+  s32 scaled_value = static_cast<s32>(value);
+
+  // fix max values to describe the outer border
+  if (index & 1)
+    scaled_value--;
+
+  // scale to internal resolution
+  if (index < 2)
+  {
+    // left/right
+    scaled_value = scaled_value * s_target_width / EFB_WIDTH;
+  }
+  else
+  {
+    // up/down
+    scaled_value = scaled_value * s_target_height / EFB_HEIGHT;
+  }
+
+  m_bounding_box->Set(m_state_tracker, static_cast<size_t>(index), scaled_value);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
