@@ -50,6 +50,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CommandBufferManager.cpp" />
+    <ClCompile Include="EFBCache.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
@@ -73,6 +74,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandBufferManager.h" />
+    <ClInclude Include="EFBCache.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="Constants.h" />
     <ClInclude Include="Helpers.h" />

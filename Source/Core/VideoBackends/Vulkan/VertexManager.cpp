@@ -4,6 +4,7 @@
 
 #include "VideoBackends/Vulkan/VertexManager.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/EFBCache.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
@@ -158,6 +159,11 @@ void VertexManager::vFlush(bool use_dst_alpha)
     WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
     return;
   }
+
+  // TODO: Cleaner way without the cast.
+  EFBCache* efb_cache = static_cast<Renderer*>(g_renderer.get())->GetEFBCache();
+  efb_cache->InvalidatePeekCache();
+  efb_cache->FlushEFBPokes();
 
   // Execute the draw
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,

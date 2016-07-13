@@ -5,6 +5,7 @@
 #pragma once
 
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan
