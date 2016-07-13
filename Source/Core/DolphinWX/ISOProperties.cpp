@@ -51,6 +51,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MD5.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ActionReplay.h"
@@ -1304,42 +1305,13 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED(event))
 
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED(event))
 {
-  u8 output[16];
-  std::string output_string;
-  std::vector<u8> data(8 * 1024 * 1024);
-  u64 read_offset = 0;
-  mbedtls_md5_context ctx;
-
-  std::unique_ptr<DiscIO::IBlobReader> file(
-      DiscIO::CreateBlobReader(OpenGameListItem.GetFileName()));
-  u64 game_size = file->GetDataSize();
-
-  wxProgressDialog progressDialog(_("Computing MD5 checksum"), _("Working..."), 1000, this,
+  wxProgressDialog progressDialog(_("Computing MD5 checksum"), _("Working..."), 100, this,
                                   wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME |
                                       wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-  mbedtls_md5_starts(&ctx);
-
-  while (read_offset < game_size)
-  {
-    if (!progressDialog.Update((int)((double)read_offset / (double)game_size * 1000)))
-      return;
-
-    size_t read_size = std::min((u64)data.size(), game_size - read_offset);
-    if (!file->Read(read_offset, read_size, data.data()))
-      return;
-
-    mbedtls_md5_update(&ctx, data.data(), read_size);
-    read_offset += read_size;
-  }
-
-  mbedtls_md5_finish(&ctx, output);
-
-  // Convert to hex
-  for (int a = 0; a < 16; ++a)
-    output_string += StringFromFormat("%02x", output[a]);
-
-  m_MD5Sum->SetValue(output_string);
+  m_MD5Sum->SetValue(MD5::MD5Sum(OpenGameListItem.GetFileName(), [&progressDialog](int progress) {
+    return progressDialog.Update(progress);
+  }));
 }
 
 // Opens all pre-defined INIs for the game. If there are multiple ones,
