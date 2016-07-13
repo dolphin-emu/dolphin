@@ -6,6 +6,7 @@
 #include <cassert>
 
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/Vulkan/Helpers.h"
@@ -670,6 +671,20 @@ VkFormat GetLinearFormat(VkFormat format)
     return VK_FORMAT_B8G8R8A8_UNORM;
   default:
     return format;
+  }
+}
+
+u32 GetTexelSize(VkFormat format)
+{
+  // Only contains pixel formats we use.
+  switch (format)
+  {
+  case VK_FORMAT_R8G8B8A8_UNORM:
+    return 4;
+
+  default:
+    PanicAlert("Unhandled pixel format");
+    return 1;
   }
 }
 
