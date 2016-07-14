@@ -235,8 +235,9 @@ public:
   ControlQualifier qualifier;
   Device::Control* control;
 
-  ControlExpression(ControlQualifier qualifier_, Device::Control* control_)
-      : qualifier(qualifier_), control(control_)
+  ControlExpression(ControlQualifier qualifier_, std::shared_ptr<Device> device,
+                    Device::Control* control_)
+      : qualifier(qualifier_), control(control_), m_device(device)
   {
   }
 
@@ -244,6 +245,8 @@ public:
   void SetValue(ControlState value) override { control->ToOutput()->SetGatedState(value); }
   int CountNumControls() override { return 1; }
   operator std::string() override { return "`" + (std::string)qualifier + "`"; }
+private:
+  std::shared_ptr<Device> m_device;
 };
 
 class BinaryExpression : public ExpressionNode
@@ -393,6 +396,7 @@ private:
     {
     case TOK_CONTROL:
     {
+      std::shared_ptr<Device> device = finder.FindDevice(tok.qualifier);
       Device::Control* control = finder.FindControl(tok.qualifier);
       if (control == nullptr)
       {
@@ -400,7 +404,7 @@ private:
         return EXPRESSION_PARSE_SUCCESS;
       }
 
-      *expr_out = new ControlExpression(tok.qualifier, control);
+      *expr_out = new ControlExpression(tok.qualifier, device, control);
       return EXPRESSION_PARSE_SUCCESS;
     }
     case TOK_LPAREN:
@@ -550,10 +554,11 @@ ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder& fin
   qualifier.control_name = str;
   qualifier.has_device = false;
 
+  std::shared_ptr<Device> device = finder.FindDevice(qualifier);
   Device::Control* control = finder.FindControl(qualifier);
   if (control)
   {
-    *expr_out = new Expression(new ControlExpression(qualifier, control));
+    *expr_out = new Expression(new ControlExpression(qualifier, device, control));
     return EXPRESSION_PARSE_SUCCESS;
   }
 

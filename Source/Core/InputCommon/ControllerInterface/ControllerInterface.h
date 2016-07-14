@@ -122,6 +122,7 @@ public:
   void Reinitialize();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
+  void RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback);
   bool IsInit() const { return m_is_init; }
   void UpdateReference(ControlReference* control,
                        const ciface::Core::DeviceQualifier& default_device) const;
