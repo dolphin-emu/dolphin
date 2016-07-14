@@ -6,8 +6,16 @@
 #include <memory>
 #include "Common/Common.h"
 
+static std::recursive_mutex s_get_state_mutex;
+std::unique_lock<std::recursive_mutex> ControllerEmu::GetStateLock()
+{
+  std::unique_lock<std::recursive_mutex> lock(s_get_state_mutex);
+  return lock;
+}
+
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
+  auto lock = ControllerEmu::GetStateLock();
   for (auto& ctrlGroup : groups)
   {
     for (auto& control : ctrlGroup->controls)
