@@ -41,12 +41,13 @@
     <ClCompile Include="CompressedBlob.cpp" />
     <ClCompile Include="DiscScrubber.cpp" />
     <ClCompile Include="DriveBlob.cpp" />
+    <ClCompile Include="Enums.cpp" />
     <ClCompile Include="FileBlob.cpp" />
     <ClCompile Include="FileMonitor.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
     <ClCompile Include="NANDContentLoader.cpp" />
-    <ClCompile Include="VolumeCommon.cpp" />
+    <ClCompile Include="Volume.cpp" />
     <ClCompile Include="VolumeCreator.cpp" />
     <ClCompile Include="VolumeDirectory.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
@@ -61,6 +62,7 @@
     <ClInclude Include="CompressedBlob.h" />
     <ClInclude Include="DiscScrubber.h" />
     <ClInclude Include="DriveBlob.h" />
+    <ClInclude Include="Enums.h" />
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="FileMonitor.h" />
     <ClInclude Include="Filesystem.h" />

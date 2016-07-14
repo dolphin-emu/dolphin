@@ -103,8 +103,8 @@ void PadSettingExtension::UpdateValue()
 }
 
 PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
-                                       ControllerEmu::ControlGroup::Setting* const _setting)
-    : PadSetting(new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->name)))),
+                                       ControllerEmu::ControlGroup::BooleanSetting* const _setting)
+    : PadSetting(new wxCheckBox(parent, wxID_ANY, wxGetTranslation(StrToWxStr(_setting->m_name)))),
       setting(_setting)
 {
   UpdateGUI();
@@ -112,13 +112,12 @@ PadSettingCheckBox::PadSettingCheckBox(wxWindow* const parent,
 
 void PadSettingCheckBox::UpdateGUI()
 {
-  ((wxCheckBox*)wxcontrol)->SetValue(!!setting->GetValue());
+  ((wxCheckBox*)wxcontrol)->SetValue(setting->GetValue());
 }
 
 void PadSettingCheckBox::UpdateValue()
 {
-  // 0.01 so its saved to the ini file as just 1. :(
-  setting->SetValue(0.01 * ((wxCheckBox*)wxcontrol)->GetValue());
+  setting->SetValue(((wxCheckBox*)wxcontrol)->GetValue());
 }
 
 void PadSettingSpin::UpdateGUI()
@@ -964,13 +963,13 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
                                        wxBITMAP_TYPE_BMP);
 
     wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
-    for (auto& groupSetting : group->settings)
+    for (auto& groupSetting : group->numeric_settings)
     {
       PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
       setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
       options.push_back(setting);
       szr->Add(
-          new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->name))));
+          new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->m_name))));
       szr->Add(setting->wxcontrol, 0, wxLEFT, 0);
     }
 
@@ -993,7 +992,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     static_bitmap = new wxStaticBitmap(parent, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize,
                                        wxBITMAP_TYPE_BMP);
 
-    PadSettingSpin* const threshold_cbox = new PadSettingSpin(parent, group->settings[0].get());
+    auto* const threshold_cbox = new PadSettingSpin(parent, group->numeric_settings[0].get());
     threshold_cbox->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
 
     threshold_cbox->wxcontrol->SetToolTip(
@@ -1002,9 +1001,9 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     options.push_back(threshold_cbox);
 
     wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-    szr->Add(
-        new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(group->settings[0]->name))),
-        0, wxCENTER | wxRIGHT, 3);
+    szr->Add(new wxStaticText(parent, wxID_ANY,
+                              wxGetTranslation(StrToWxStr(group->numeric_settings[0]->m_name))),
+             0, wxCENTER | wxRIGHT, 3);
     szr->Add(threshold_cbox->wxcontrol, 0, wxRIGHT, 3);
 
     Add(szr, 0, wxALL | wxCENTER, 3);
@@ -1030,14 +1029,15 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     static_bitmap = new wxStaticBitmap(parent, wxID_ANY, bitmap, wxDefaultPosition, wxDefaultSize,
                                        wxBITMAP_TYPE_BMP);
 
-    for (auto& groupSetting : group->settings)
+    for (auto& groupSetting : group->numeric_settings)
     {
       PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
       setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
       options.push_back(setting);
       wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-      szr->Add(new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->name))),
-               0, wxCENTER | wxRIGHT, 3);
+      szr->Add(
+          new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->m_name))), 0,
+          wxCENTER | wxRIGHT, 3);
       szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
       Add(szr, 0, wxALL | wxCENTER, 3);
     }
@@ -1059,7 +1059,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(attachments->wxcontrol, 0, wxTOP | wxLEFT | wxRIGHT | wxEXPAND, 3);
     Add(configure_btn, 0, wxALL | wxEXPAND, 3);
     // Motion Plus option
-    for (auto& groupSetting : group->settings)
+    for (auto& groupSetting : group->boolean_settings)
     {
       PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
       setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
@@ -1071,35 +1071,32 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   default:
   {
     // options
-    for (auto& groupSetting : group->settings)
+    for (auto& groupSetting : group->boolean_settings)
     {
-      if (groupSetting->high == DEFAULT_HIGH_VALUE)
+      PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
+      if (groupSetting->m_name == "Iterative Input")
       {
-        PadSettingCheckBox* setting_cbox = new PadSettingCheckBox(parent, groupSetting.get());
-        if (groupSetting->is_iterate == true)
-        {
-          setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
-          groupSetting->value = 0;
-        }
-        else
-        {
-          setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
-        }
-        options.push_back(setting_cbox);
-        Add(setting_cbox->wxcontrol, 0, wxALL | wxLEFT, 5);
+        setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSettingUI, eventsink);
+        groupSetting->SetValue(false);
       }
       else
       {
-        PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
-        setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
-        options.push_back(setting);
-        wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
-        szr->Add(
-            new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->name))), 0,
-            wxCENTER | wxRIGHT, 3);
-        szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
-        Add(szr, 0, wxALL | wxCENTER, 3);
+        setting_cbox->wxcontrol->Bind(wxEVT_CHECKBOX, &GamepadPage::AdjustSetting, eventsink);
       }
+      options.push_back(setting_cbox);
+      Add(setting_cbox->wxcontrol, 0, wxALL | wxLEFT, 5);
+    }
+    for (auto& groupSetting : group->numeric_settings)
+    {
+      PadSettingSpin* setting = new PadSettingSpin(parent, groupSetting.get());
+      setting->wxcontrol->Bind(wxEVT_SPINCTRL, &GamepadPage::AdjustSetting, eventsink);
+      options.push_back(setting);
+      wxBoxSizer* const szr = new wxBoxSizer(wxHORIZONTAL);
+      szr->Add(
+          new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(groupSetting->m_name))), 0,
+          wxCENTER | wxRIGHT, 3);
+      szr->Add(setting->wxcontrol, 0, wxRIGHT, 3);
+      Add(szr, 0, wxALL | wxCENTER, 3);
     }
   }
   break;
@@ -1125,7 +1122,8 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
         new wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->ui_name)));
     control_group->Add(control_group_box);
 
-    const size_t grp_size = group->controls.size() + group->settings.size();
+    const size_t grp_size =
+        group->controls.size() + group->numeric_settings.size() + group->boolean_settings.size();
     col_size += grp_size;
     if (col_size > 8 || nullptr == stacked_groups)
     {

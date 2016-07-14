@@ -5,13 +5,18 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
-#include "DiscIO/Volume.h"
+
+namespace DiscIO
+{
+enum class Country;
+}
 
 namespace DiscIO
 {
@@ -90,7 +95,7 @@ public:
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
   u16 GetTitleVersion() const { return m_TitleVersion; }
   u16 GetNumEntries() const { return m_NumEntries; }
-  DiscIO::IVolume::ECountry GetCountry() const;
+  DiscIO::Country GetCountry() const;
   u8 GetCountryChar() const { return m_Country; }
   enum
   {

@@ -53,6 +53,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
 
 #ifdef _WIN32
 #include <Windows.h>

@@ -11,13 +11,17 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for encrypted Wii images ---
 
 namespace DiscIO
 {
+enum class BlobType;
+enum class Country;
+enum class Language;
+enum class Platform;
+
 class CVolumeWiiCrypted : public IVolume
 {
 public:
@@ -31,18 +35,18 @@ public:
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override;
-  std::map<IVolume::ELanguage, std::string> GetLongNames() const override;
+  std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   u64 GetFSTSize() const override;
   std::string GetApploaderDate() const override;
   u8 GetDiscNumber() const override;
 
-  EPlatform GetVolumeType() const override;
+  Platform GetVolumeType() const override;
   bool SupportsIntegrityCheck() const override { return true; }
   bool CheckIntegrity() const override;
   bool ChangePartition(u64 offset) override;
 
-  ECountry GetCountry() const override;
+  Country GetCountry() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   u64 GetRawSize() const override;

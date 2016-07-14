@@ -27,6 +27,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 
 #define MC_STATUS_BUSY 0x80
@@ -135,7 +136,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-  DiscIO::IVolume::ECountry country_code = DiscIO::IVolume::COUNTRY_UNKNOWN;
+  DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
   auto strUniqueID = SConfig::GetInstance().m_strUniqueID;
 
   u32 CurrentGameId = 0;
@@ -158,14 +159,14 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
   switch (country_code)
   {
-  case DiscIO::IVolume::COUNTRY_JAPAN:
+  case DiscIO::Country::COUNTRY_JAPAN:
     ascii = false;
     strDirectoryName += JAP_DIR DIR_SEP;
     break;
-  case DiscIO::IVolume::COUNTRY_USA:
+  case DiscIO::Country::COUNTRY_USA:
     strDirectoryName += USA_DIR DIR_SEP;
     break;
-  case DiscIO::IVolume::COUNTRY_UNKNOWN:
+  case DiscIO::Country::COUNTRY_UNKNOWN:
   {
     // The current game's region is not passed down to the EXI device level.
     // Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
@@ -185,20 +186,20 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
     if (region == JAP_DIR)
     {
-      country_code = DiscIO::IVolume::COUNTRY_JAPAN;
+      country_code = DiscIO::Country::COUNTRY_JAPAN;
       ascii = false;
       strDirectoryName += JAP_DIR DIR_SEP;
       break;
     }
     else if (region == USA_DIR)
     {
-      country_code = DiscIO::IVolume::COUNTRY_USA;
+      country_code = DiscIO::Country::COUNTRY_USA;
       strDirectoryName += USA_DIR DIR_SEP;
       break;
     }
   }
   default:
-    country_code = DiscIO::IVolume::COUNTRY_EUROPE;
+    country_code = DiscIO::Country::COUNTRY_EUROPE;
     strDirectoryName += EUR_DIR DIR_SEP;
   }
   strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);

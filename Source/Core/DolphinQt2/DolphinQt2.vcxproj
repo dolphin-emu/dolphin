@@ -104,6 +104,7 @@
     <QtMoc Include="GameList\ListProxyModel.h" />
     <QtMoc Include="GameList\TableDelegate.h" />
     <QtMoc Include="Host.h" />
+    <QtMoc Include="InDevelopmentWarning.h" />
     <QtMoc Include="MainWindow.h" />
     <QtMoc Include="MenuBar.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -119,6 +120,7 @@
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)Host.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)InfoWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ListProxyModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)MainWindow.cpp" />
@@ -143,6 +145,7 @@
     <ClCompile Include="GameList\ListProxyModel.cpp" />
     <ClCompile Include="GameList\TableDelegate.cpp" />
     <ClCompile Include="Host.cpp" />
+    <ClCompile Include="InDevelopmentWarning.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MenuBar.cpp" />
@@ -203,6 +206,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
       <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
+      <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
@@ -214,9 +220,6 @@
     </ProjectReference>
     <ProjectReference Include="..\VideoBackends\D3D12\D3D12.vcxproj" Condition="'$(VisualStudioVersion)' != '12.0'">
       <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\VideoBackends\Null\Null.vcxproj">
-      <Project>{53a5391b-737e-49a8-bc8f-312ada00736f}</Project>
     </ProjectReference>
     <ProjectReference Include="..\VideoCommon\VR.vcxproj">
       <Project>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</Project>

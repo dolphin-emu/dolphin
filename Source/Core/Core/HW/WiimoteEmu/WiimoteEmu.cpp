@@ -184,7 +184,7 @@ static const char* const named_buttons[] = {
 
 bool Wiimote::GetMotionPlusAttached() const
 {
-  return m_extension->settings[0]->value != 0;
+  return m_extension->boolean_settings[0]->GetValue() != 0;
 }
 
 bool Wiimote::GetMotionPlusActive() const
@@ -233,7 +233,7 @@ void Wiimote::Reset()
   //   0x33 - 0x43: level 2
   //   0x33 - 0x54: level 3
   //   0x55 - 0xff: level 4
-  m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
+  m_status.battery = (u8)(m_options->numeric_settings[1]->GetValue() * 100);
 
   memset(m_shake_step, 0, sizeof(m_shake_step));
 
@@ -283,7 +283,8 @@ Wiimote::Wiimote(const unsigned int index)
   m_extension->attachments.emplace_back(new WiimoteEmu::Drums(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
-  m_extension->settings.emplace_back(new ControlGroup::Setting(_trans("Motion Plus"), 0, 0, 1));
+  m_extension->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Motion Plus"), false));
 
   // rumble
   groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
@@ -296,14 +297,18 @@ Wiimote::Wiimote(const unsigned int index)
 
   // options
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->settings.emplace_back(
-      new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
-  m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Sideways Wiimote"), false));
-  m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Upright Wiimote"), false));
-  m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
-  m_options->settings.emplace_back(new ControlGroup::Setting(_trans("Speaker Pan"), 0, -127, 127));
-  m_options->settings.emplace_back(
-      new ControlGroup::Setting(_trans("Battery"), 95.0 / 100, 0, 255));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wiimote"), false));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wiimote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
+      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+  m_options->numeric_settings.emplace_back(
+      std::make_unique<ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
+  m_options->numeric_settings.emplace_back(
+      std::make_unique<ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
 
   // TODO: This value should probably be re-read if SYSCONF gets changed
   m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
@@ -320,7 +325,7 @@ std::string Wiimote::GetName() const
 bool Wiimote::Step()
 {
   // TODO: change this a bit
-  m_motion_plus_present = m_extension->settings[0]->value != 0;
+  m_motion_plus_present = m_extension->boolean_settings[0]->GetValue();
   m_motion_plus_active = m_reg_motion_plus.ext_identifier[2] == 0xa4;
 
   m_rumble->controls[0]->control_ref->State(m_rumble_on);
@@ -382,7 +387,7 @@ void Wiimote::UpdateButtonsStatus()
 {
   // update buttons in status struct
   m_status.buttons.hex = 0;
-  const bool is_sideways = m_options->settings[1]->value != 0;
+  const bool is_sideways = m_options->boolean_settings[1]->GetValue();
   m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
   m_dpad->GetState(&m_status.buttons.hex, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
   bool cycle_extension = false;
@@ -408,8 +413,8 @@ void Wiimote::GetButtonData(u8* const data)
 
 void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 {
-  const bool is_sideways = m_options->settings[1]->value != 0;
-  const bool is_upright = m_options->settings[2]->value != 0;
+  const bool is_sideways = m_options->boolean_settings[1]->GetValue();
+  const bool is_upright = m_options->boolean_settings[2]->GetValue();
 
   EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
 
@@ -697,7 +702,7 @@ void Wiimote::Update()
 
   Movie::SetPolledDevice();
 
-  m_status.battery = (u8)(m_options->settings[5]->GetValue() * 100);
+  m_status.battery = (u8)(m_options->numeric_settings[1]->GetValue() * 100);
 
   const ReportFeatures& rptf = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
   s8 rptf_size = rptf.size;
@@ -1022,27 +1027,27 @@ void Wiimote::CycleThroughExtensions()
     break;
   case 0:
     // if vertical Wiimote, switch to Wiimote
-    if (m_options->settings[2]->value != 0)
+    if (m_options->boolean_settings[2]->m_value != 0)
     {
       m_extension->switch_extension = 0;
-      m_options->settings[1]->value = 0;
-      m_options->settings[2]->value = 0;
+      m_options->boolean_settings[1]->m_value = 0;
+      m_options->boolean_settings[2]->m_value = 0;
       OSD::AddMessage("Controller: Wiimote", 5000);
     }
     // if Wiimote, switch to sideways Wiimote
-    else if (m_options->settings[1]->value == 0)
+    else if (m_options->boolean_settings[1]->m_value == 0)
     {
       m_extension->switch_extension = 0;
-      m_options->settings[1]->value = 1;
-      m_options->settings[2]->value = 0;
+      m_options->boolean_settings[1]->m_value = 1;
+      m_options->boolean_settings[2]->m_value = 0;
       OSD::AddMessage("Controller: Sideways Wiimote", 5000);
     }
     // if Sideways Wiimote, switch to Wiimote+Nunchuk (not sideways)
     else
     {
       m_extension->switch_extension = 1;
-      m_options->settings[1]->value = 0;
-      m_options->settings[2]->value = 0;
+      m_options->boolean_settings[1]->m_value = 0;
+      m_options->boolean_settings[2]->m_value = 0;
       OSD::AddMessage("Controller: Wiimote + Nunchuk", 5000);
     }
     break;
@@ -1054,8 +1059,8 @@ void Wiimote::CycleThroughExtensions()
   default:
     // if anything else (Wiimote+Classic, guitar, drums, etc.) switch to Wiimote (not sideways)
     m_extension->switch_extension = 0;
-    m_options->settings[1]->value = 0;
-    m_options->settings[2]->value = 0;
+    m_options->boolean_settings[1]->m_value = 0;
+    m_options->boolean_settings[2]->m_value = 0;
     OSD::AddMessage("Controller: Wiimote", 5000);
     break;
   }

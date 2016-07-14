@@ -74,9 +74,10 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->settings.emplace_back(
-      new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
-  m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
+      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
 }
 
 std::string GCPad::GetName() const

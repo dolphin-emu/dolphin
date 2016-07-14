@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -87,6 +87,10 @@
     <ClCompile Include="$(QtMocOutPrefix)FilesystemWidget.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
+    <ClCompile Include="InDevelopmentWarning.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)InDevelopmentWarning.cpp">
+      <Filter>Generated Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />
@@ -119,6 +123,7 @@
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\InfoWidget.h" />
+    <QtMoc Include="InDevelopmentWarning.h" />
   </ItemGroup>
   <ItemGroup>
     <QtUi Include="*.ui" />

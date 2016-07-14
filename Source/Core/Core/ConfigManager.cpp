@@ -21,7 +21,9 @@
 #include "Core/HotkeyManager.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 SConfig* SConfig::m_Instance;
@@ -995,31 +997,31 @@ void SConfig::LoadDefaults()
   m_revision = 0;
 }
 
-static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
+static const char* GetRegionOfCountry(DiscIO::Country country)
 {
   switch (country)
   {
-  case DiscIO::IVolume::COUNTRY_USA:
+  case DiscIO::Country::COUNTRY_USA:
     return USA_DIR;
 
-  case DiscIO::IVolume::COUNTRY_TAIWAN:
-  case DiscIO::IVolume::COUNTRY_KOREA:
+  case DiscIO::Country::COUNTRY_TAIWAN:
+  case DiscIO::Country::COUNTRY_KOREA:
   // TODO: Should these have their own Region Dir?
-  case DiscIO::IVolume::COUNTRY_JAPAN:
+  case DiscIO::Country::COUNTRY_JAPAN:
     return JAP_DIR;
 
-  case DiscIO::IVolume::COUNTRY_AUSTRALIA:
-  case DiscIO::IVolume::COUNTRY_EUROPE:
-  case DiscIO::IVolume::COUNTRY_FRANCE:
-  case DiscIO::IVolume::COUNTRY_GERMANY:
-  case DiscIO::IVolume::COUNTRY_ITALY:
-  case DiscIO::IVolume::COUNTRY_NETHERLANDS:
-  case DiscIO::IVolume::COUNTRY_RUSSIA:
-  case DiscIO::IVolume::COUNTRY_SPAIN:
-  case DiscIO::IVolume::COUNTRY_WORLD:
+  case DiscIO::Country::COUNTRY_AUSTRALIA:
+  case DiscIO::Country::COUNTRY_EUROPE:
+  case DiscIO::Country::COUNTRY_FRANCE:
+  case DiscIO::Country::COUNTRY_GERMANY:
+  case DiscIO::Country::COUNTRY_ITALY:
+  case DiscIO::Country::COUNTRY_NETHERLANDS:
+  case DiscIO::Country::COUNTRY_RUSSIA:
+  case DiscIO::Country::COUNTRY_SPAIN:
+  case DiscIO::Country::COUNTRY_WORLD:
     return EUR_DIR;
 
-  case DiscIO::IVolume::COUNTRY_UNKNOWN:
+  case DiscIO::Country::COUNTRY_UNKNOWN:
   default:
     return nullptr;
   }
@@ -1068,7 +1070,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       m_revision = pVolume->GetRevision();
 
       // Check if we have a Wii disc
-      bWii = pVolume->GetVolumeType() == DiscIO::IVolume::WII_DISC;
+      bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
       const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
       if (!retrieved_region_dir)
@@ -1270,17 +1272,19 @@ void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& game
   }
 }
 
-DiscIO::IVolume::ELanguage SConfig::GetCurrentLanguage(bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
-  DiscIO::IVolume::ELanguage language;
+  int language_value;
   if (wii)
-    language = (DiscIO::IVolume::ELanguage)SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+    language_value = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
   else
-    language = (DiscIO::IVolume::ELanguage)(SConfig::GetInstance().SelectedLanguage + 1);
+    language_value = SConfig::GetInstance().SelectedLanguage + 1;
+  DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
-  if (language > DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN || language < 0)
-    language = DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN;
+  if (language > DiscIO::Language::LANGUAGE_UNKNOWN ||
+      language < DiscIO::Language::LANGUAGE_JAPANESE)
+    language = DiscIO::Language::LANGUAGE_UNKNOWN;
   return language;
 }
 

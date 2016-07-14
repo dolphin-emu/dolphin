@@ -1236,8 +1236,7 @@ void UpdateWantDeterminism(bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism =
-      Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning();
+  bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != g_want_determinism || initial)
   {
     WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");

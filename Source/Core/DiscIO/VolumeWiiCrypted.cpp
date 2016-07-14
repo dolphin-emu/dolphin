@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -152,53 +153,49 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
   return DecodeString(ID);
 }
 
-IVolume::ECountry CVolumeWiiCrypted::GetCountry() const
+Country CVolumeWiiCrypted::GetCountry() const
 {
   if (!m_pReader)
-    return COUNTRY_UNKNOWN;
+    return Country::COUNTRY_UNKNOWN;
 
   u8 country_byte;
   if (!m_pReader->Read(3, 1, &country_byte))
-  {
-    return COUNTRY_UNKNOWN;
-  }
+    return Country::COUNTRY_UNKNOWN;
 
-  IVolume::ECountry country_value = CountrySwitch(country_byte);
+  Country country_value = CountrySwitch(country_byte);
 
   u32 region_code;
   if (!ReadSwapped(0x4E000, &region_code, false))
-  {
     return country_value;
-  }
 
   switch (region_code)
   {
   case 0:
     switch (country_value)
     {
-    case IVolume::COUNTRY_TAIWAN:
-      return IVolume::COUNTRY_TAIWAN;
+    case Country::COUNTRY_TAIWAN:
+      return Country::COUNTRY_TAIWAN;
     default:
-      return IVolume::COUNTRY_JAPAN;
+      return Country::COUNTRY_JAPAN;
     }
   case 1:
-    return IVolume::COUNTRY_USA;
+    return Country::COUNTRY_USA;
   case 2:
     switch (country_value)
     {
-    case IVolume::COUNTRY_FRANCE:
-    case IVolume::COUNTRY_GERMANY:
-    case IVolume::COUNTRY_ITALY:
-    case IVolume::COUNTRY_NETHERLANDS:
-    case IVolume::COUNTRY_RUSSIA:
-    case IVolume::COUNTRY_SPAIN:
-    case IVolume::COUNTRY_AUSTRALIA:
+    case Country::COUNTRY_FRANCE:
+    case Country::COUNTRY_GERMANY:
+    case Country::COUNTRY_ITALY:
+    case Country::COUNTRY_NETHERLANDS:
+    case Country::COUNTRY_RUSSIA:
+    case Country::COUNTRY_SPAIN:
+    case Country::COUNTRY_AUSTRALIA:
       return country_value;
     default:
-      return IVolume::COUNTRY_EUROPE;
+      return Country::COUNTRY_EUROPE;
     }
   case 4:
-    return IVolume::COUNTRY_KOREA;
+    return Country::COUNTRY_KOREA;
   default:
     return country_value;
   }
@@ -238,12 +235,12 @@ std::string CVolumeWiiCrypted::GetInternalName() const
   return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeWiiCrypted::GetLongNames() const
+std::map<Language, std::string> CVolumeWiiCrypted::GetLongNames() const
 {
   std::unique_ptr<IFileSystem> file_system(CreateFileSystem(this));
   std::vector<u8> opening_bnr(NAMES_TOTAL_BYTES);
-  opening_bnr.resize(
-      file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C));
+  size_t size = file_system->ReadFile("opening.bnr", opening_bnr.data(), opening_bnr.size(), 0x5C);
+  opening_bnr.resize(size);
   return ReadWiiNames(opening_bnr);
 }
 
@@ -285,9 +282,9 @@ std::string CVolumeWiiCrypted::GetApploaderDate() const
   return DecodeString(date);
 }
 
-IVolume::EPlatform CVolumeWiiCrypted::GetVolumeType() const
+Platform CVolumeWiiCrypted::GetVolumeType() const
 {
-  return WII_DISC;
+  return Platform::WII_DISC;
 }
 
 u8 CVolumeWiiCrypted::GetDiscNumber() const

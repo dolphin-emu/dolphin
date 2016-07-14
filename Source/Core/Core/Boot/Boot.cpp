@@ -39,7 +39,9 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/SignatureDB.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
@@ -271,7 +273,7 @@ bool CBoot::BootUp()
 
     const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
 
-    if ((pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC) != _StartupPara.bWii)
+    if ((pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
     {
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
@@ -290,7 +292,7 @@ bool CBoot::BootUp()
       WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
     }
 
-    _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::IVolume::WII_DISC;
+    _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
 
     // HLE BS2 or not
     if (_StartupPara.bHLE_BS2)
@@ -352,7 +354,7 @@ bool CBoot::BootUp()
       BS2Success = EmulatedBS2(dolWii);
     }
     else if ((!DVDInterface::VolumeIsValid() ||
-              DVDInterface::GetVolume().GetVolumeType() != DiscIO::IVolume::WII_DISC) &&
+              DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
              !_StartupPara.m_strDefaultISO.empty())
     {
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
@@ -423,7 +425,7 @@ bool CBoot::BootUp()
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory(DiscIO::IVolume::COUNTRY_UNKNOWN);
+      SetupWiiMemory(DiscIO::Country::COUNTRY_UNKNOWN);
     else
       EmulatedBS2_GC(true);
 
