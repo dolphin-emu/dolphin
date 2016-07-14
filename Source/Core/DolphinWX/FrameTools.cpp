@@ -495,11 +495,11 @@ wxString CFrame::GetMenuLabel(int Id)
     break;
 
   case HK_SAVE_STATE_SLOT_SELECTED:
-    Label = _("Save state to selected slot");
+    Label = _("Save State to Selected Slot");
     break;
 
   case HK_LOAD_STATE_SLOT_SELECTED:
-    Label = _("Load state from selected slot");
+    Label = _("Load State from Selected Slot");
     break;
 
   case HK_SELECT_STATE_SLOT_1:
