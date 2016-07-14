@@ -127,13 +127,14 @@ void VideoBackend::InitBackendInfo()
           PopulateBackendInfoMultisampleModes(&g_Config, physical_device);
         }
       }
+
+      vkDestroyInstance(temp_instance, nullptr);
     }
     else
     {
       PanicAlert("Failed to create Vulkan instance.");
     }
 
-    vkDestroyInstance(temp_instance, nullptr);
     UnloadVulkanLibrary();
   }
   else
