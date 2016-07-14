@@ -93,8 +93,9 @@ public:
 
   virtual ~Device();
 
+  int GetId() const { return m_id; }
+  void SetId(int id) { m_id = id; }
   virtual std::string GetName() const = 0;
-  virtual int GetId() const = 0;
   virtual std::string GetSource() const = 0;
   virtual void UpdateInput() {}
   const std::vector<Input*>& Inputs() const { return m_inputs; }
@@ -130,6 +131,7 @@ protected:
   }
 
 private:
+  int m_id;
   std::vector<Input*> m_inputs;
   std::vector<Output*> m_outputs;
 };

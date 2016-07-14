@@ -27,10 +27,6 @@ std::string Touchscreen::GetSource() const
   return "Android";
 }
 
-int Touchscreen::GetId() const
-{
-  return _padID;
-}
 Touchscreen::Touchscreen(int padID) : _padID(padID)
 {
   // GC

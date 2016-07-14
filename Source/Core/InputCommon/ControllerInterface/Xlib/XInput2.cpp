@@ -300,11 +300,6 @@ std::string KeyboardMouse::GetSource() const
   return "XInput2";
 }
 
-int KeyboardMouse::GetId() const
-{
-  return -1;
-}
-
 KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
     : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
 {

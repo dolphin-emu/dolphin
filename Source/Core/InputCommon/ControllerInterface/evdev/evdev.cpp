@@ -36,12 +36,6 @@ static std::string GetName(const std::string& devnode)
 
 void Init()
 {
-  // this is used to number the joysticks
-  // multiple joysticks with the same name shall get unique ids starting at 0
-  std::map<std::string, int> name_counts;
-
-  int num_controllers = 0;
-
   // We use Udev to find any devices. In the future this will allow for hotplugging.
   // But for now it is essentially iterating over /dev/input/event0 to event31. However if the
   // naming scheme is ever updated in the future, this *should* be forwards compatable.
@@ -70,12 +64,11 @@ void Init()
       // Unfortunately udev gives us no way to filter out the non event device interfaces.
       // So we open it and see if it works with evdev ioctls or not.
       std::string name = GetName(devnode);
-      auto input = std::make_shared<evdevDevice>(devnode, name_counts[name]++);
+      auto input = std::make_shared<evdevDevice>(devnode);
 
       if (input->IsInteresting())
       {
         g_controller_interface.AddDevice(std::move(input));
-        num_controllers++;
       }
     }
     udev_device_unref(dev);
@@ -84,7 +77,7 @@ void Init()
   udev_unref(udev);
 }
 
-evdevDevice::evdevDevice(const std::string& devnode, int id) : m_devfile(devnode), m_id(id)
+evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
 {
   // The device file will be read on one of the main threads, so we open in non-blocking mode.
   m_fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);

@@ -62,16 +62,14 @@ private:
 public:
   void UpdateInput() override;
 
-  Joystick(const LPDIRECTINPUTDEVICE8 device, const unsigned int index);
+  Joystick(const LPDIRECTINPUTDEVICE8 device);
   ~Joystick();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
 private:
   const LPDIRECTINPUTDEVICE8 m_device;
-  const unsigned int m_index;
 
   DIJOYSTATE m_state_in;
 

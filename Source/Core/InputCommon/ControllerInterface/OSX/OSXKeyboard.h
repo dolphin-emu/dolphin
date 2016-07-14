@@ -60,11 +60,10 @@ private:
 public:
   void UpdateInput() override;
 
-  Keyboard(IOHIDDeviceRef device, std::string name, int index, void* window);
+  Keyboard(IOHIDDeviceRef device, std::string name, void* window);
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  int GetId() const override;
 
 private:
   struct
@@ -74,7 +73,6 @@ private:
 
   const IOHIDDeviceRef m_device;
   const std::string m_device_name;
-  int m_index;
   uint32_t m_windowid;
   unsigned char m_mousebuttons[3];
 };
