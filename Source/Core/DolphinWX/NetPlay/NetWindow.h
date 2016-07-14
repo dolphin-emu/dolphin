@@ -23,7 +23,8 @@ class wxStaticText;
 class wxString;
 class wxTextCtrl;
 
-enum {
+enum
+{
   NP_GUI_EVT_CHANGE_GAME = 45,
   NP_GUI_EVT_START_GAME,
   NP_GUI_EVT_STOP_GAME,
@@ -36,9 +37,13 @@ enum {
   NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR,
 };
 
-enum { INITIAL_PAD_BUFFER_SIZE = 5 };
+enum
+{
+  INITIAL_PAD_BUFFER_SIZE = 5
+};
 
-enum class ChatMessageType {
+enum class ChatMessageType
+{
   // Info messages logged to chat
   Info,
   // Error messages logged to chat
@@ -60,20 +65,20 @@ enum class MD5Target
 class NetPlayDialog : public wxFrame, public NetPlayUI
 {
 public:
-  NetPlayDialog(wxWindow *parent, const CGameListCtrl *const game_list,
-                const std::string &game, const bool is_hosting = false);
+  NetPlayDialog(wxWindow* parent, const CGameListCtrl* const game_list, const std::string& game,
+                const bool is_hosting = false);
   ~NetPlayDialog();
 
   Common::FifoQueue<std::string> chat_msgs;
 
-  void OnStart(wxCommandEvent &event);
+  void OnStart(wxCommandEvent& event);
 
   // implementation of NetPlayUI methods
-  void BootGame(const std::string &filename) override;
+  void BootGame(const std::string& filename) override;
   void StopGame() override;
 
   void Update() override;
-  void AppendChat(const std::string &msg) override;
+  void AppendChat(const std::string& msg) override;
 
   void ShowMD5Dialog(const std::string& file_identifier) override;
   void SetMD5Progress(int pid, int progress) override;
@@ -84,15 +89,14 @@ public:
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
   void OnPadBufferChanged(u32 buffer) override;
-  void OnDesync(u32 frame, const std::string &player) override;
+  void OnDesync(u32 frame, const std::string& player) override;
   void OnConnectionLost() override;
   void OnTraversalError(int error) override;
 
-  static NetPlayDialog *&GetInstance() { return npd; }
-  static NetPlayClient *&GetNetPlayClient() { return netplay_client; }
-  static NetPlayServer *&GetNetPlayServer() { return netplay_server; }
-  static void FillWithGameNames(wxListBox *game_lbox,
-                                const CGameListCtrl &game_list);
+  static NetPlayDialog*& GetInstance() { return npd; }
+  static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
+  static NetPlayServer*& GetNetPlayServer() { return netplay_server; }
+  static void FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list);
 
   bool IsRecording() override;
 
@@ -115,11 +119,11 @@ private:
   void OnChoice(wxCommandEvent& event);
   void UpdateHostLabel();
 
-  wxListBox *m_player_lbox;
-  wxTextCtrl *m_chat_text;
-  wxTextCtrl *m_chat_msg_text;
-  wxCheckBox *m_memcard_write;
-  wxCheckBox *m_record_chkbox;
+  wxListBox* m_player_lbox;
+  wxTextCtrl* m_chat_text;
+  wxTextCtrl* m_chat_msg_text;
+  wxCheckBox* m_memcard_write;
+  wxCheckBox* m_record_chkbox;
 
   std::string m_selected_game;
   wxButton* m_player_config_btn;
@@ -139,9 +143,9 @@ private:
 
   std::vector<int> m_playerids;
 
-  const CGameListCtrl *const m_game_list;
+  const CGameListCtrl* const m_game_list;
 
-  static NetPlayDialog *npd;
-  static NetPlayServer *netplay_server;
-  static NetPlayClient *netplay_client;
+  static NetPlayDialog* npd;
+  static NetPlayServer* netplay_server;
+  static NetPlayClient* netplay_client;
 };
