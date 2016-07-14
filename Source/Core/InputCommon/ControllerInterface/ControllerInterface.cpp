@@ -160,6 +160,14 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
   m_devices.emplace_back(std::move(device));
 }
 
+void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  m_devices.erase(std::remove_if(m_devices.begin(), m_devices.end(),
+                                 [&callback](const auto& dev) { return callback(dev.get()); }),
+                  m_devices.end());
+}
+
 //
 // UpdateInput
 //
@@ -232,8 +240,14 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref,
                                           const ciface::Core::DeviceQualifier& default_device) const
 {
-  delete ref->parsed_expression;
-  ref->parsed_expression = nullptr;
+  if (ref->parsed_expression != nullptr)
+  {
+    // This prevents a race condition where the expression node's GetValue() and SetValue()
+    // could be called before we have finished replacing this expression with another one
+    ref->parsed_expression->m_is_being_updated = true;
+    delete ref->parsed_expression;
+    ref->parsed_expression = nullptr;
+  }
 
   ControlFinder finder(*this, default_device, ref->is_input);
   ref->parse_error = ParseExpression(ref->expression, finder, &ref->parsed_expression);

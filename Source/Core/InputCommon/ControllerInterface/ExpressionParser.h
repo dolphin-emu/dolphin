@@ -37,10 +37,10 @@ public:
       : container(container_), default_device(default_), is_input(is_input_)
   {
   }
+  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier);
   Core::Device::Control* FindControl(ControlQualifier qualifier);
 
 private:
-  std::shared_ptr<Core::Device> FindDevice(ControlQualifier qualifier);
   const Core::DeviceContainer& container;
   const Core::DeviceQualifier& default_device;
   bool is_input;
@@ -57,6 +57,7 @@ public:
   void SetValue(ControlState state);
   int num_controls;
   ExpressionNode* node;
+  bool m_is_being_updated = false;
 };
 
 enum ExpressionParseStatus
