@@ -185,12 +185,6 @@ std::string KeyboardMouse::GetName() const
   return "Keyboard Mouse";
 }
 
-int KeyboardMouse::GetId() const
-{
-  // should this be -1, idk
-  return 0;
-}
-
 std::string KeyboardMouse::GetSource() const
 {
   return DINPUT_SOURCE_NAME;

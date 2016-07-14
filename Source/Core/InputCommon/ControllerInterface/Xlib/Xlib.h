@@ -81,7 +81,6 @@ public:
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  int GetId() const override;
 
 private:
   Window m_window;

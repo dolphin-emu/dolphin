@@ -27,12 +27,11 @@ void Init();
 class PipeDevice : public Core::Device
 {
 public:
-  PipeDevice(int fd, const std::string& name, int id);
+  PipeDevice(int fd, const std::string& name);
   ~PipeDevice();
 
   void UpdateInput() override;
   std::string GetName() const override { return m_name; }
-  int GetId() const override { return m_id; }
   std::string GetSource() const override { return "Pipe"; }
 private:
   class PipeInput : public Input
@@ -53,7 +52,6 @@ private:
 
   const int m_fd;
   const std::string m_name;
-  const int m_id;
   std::string m_buf;
   std::map<std::string, PipeInput*> m_buttons;
   std::map<std::string, PipeInput*> m_axes;

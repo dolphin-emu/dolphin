@@ -80,11 +80,6 @@ std::string KeyboardMouse::GetSource() const
   return "Xlib";
 }
 
-int KeyboardMouse::GetId() const
-{
-  return 0;
-}
-
 KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
     : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
 {

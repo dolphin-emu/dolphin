@@ -14,8 +14,8 @@ namespace ciface
 {
 namespace OSX
 {
-Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
-    : m_device(device), m_device_name(name), m_index(index), m_ff_device(nullptr)
+Joystick::Joystick(IOHIDDeviceRef device, std::string name)
+    : m_device(device), m_device_name(name), m_ff_device(nullptr)
 {
   // Buttons
   NSDictionary* buttonDict = @{
@@ -91,11 +91,6 @@ std::string Joystick::GetName() const
 std::string Joystick::GetSource() const
 {
   return "Input";
-}
-
-int Joystick::GetId() const
-{
-  return m_index;
 }
 
 ControlState Joystick::Button::GetState() const

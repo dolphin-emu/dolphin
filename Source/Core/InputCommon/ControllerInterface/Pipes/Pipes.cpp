@@ -46,7 +46,6 @@ void Init()
   // Search the Pipes directory for files that we can open in read-only,
   // non-blocking mode. The device name is the virtual name of the file.
   File::FSTEntry fst;
-  int found = 0;
   std::string dir_path = File::GetUserPath(D_PIPES_IDX);
   if (!File::Exists(dir_path))
     return;
@@ -61,11 +60,11 @@ void Init()
     int fd = open(child.physicalName.c_str(), O_RDONLY | O_NONBLOCK);
     if (fd < 0)
       continue;
-    g_controller_interface.AddDevice(std::make_shared<PipeDevice>(fd, child.virtualName, found++));
+    g_controller_interface.AddDevice(std::make_shared<PipeDevice>(fd, child.virtualName));
   }
 }
 
-PipeDevice::PipeDevice(int fd, const std::string& name, int id) : m_fd(fd), m_name(name), m_id(id)
+PipeDevice::PipeDevice(int fd, const std::string& name) : m_fd(fd), m_name(name)
 {
   for (const auto& tok : s_button_tokens)
   {
