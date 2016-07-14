@@ -125,6 +125,7 @@ static void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsig
   }
   else
   {
+    std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
     unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
     dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
   }
@@ -233,6 +234,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
 
     // raw dot
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
       ControlState xx, yy;
       xx = g->control_group->controls[3]->control_ref->State();
       xx -= g->control_group->controls[2]->control_ref->State();
@@ -265,10 +267,13 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
     ((ControllerEmu::Force*)g->control_group)->GetState(adj_dot);
 
     // raw
-    for (unsigned int i = 0; i < 3; ++i)
     {
-      raw_dot[i] = (g->control_group->controls[i * 2 + 1]->control_ref->State() -
-                    g->control_group->controls[i * 2]->control_ref->State());
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+      for (unsigned int i = 0; i < 3; ++i)
+      {
+        raw_dot[i] = (g->control_group->controls[i * 2 + 1]->control_ref->State() -
+                      g->control_group->controls[i * 2]->control_ref->State());
+      }
     }
 
     // deadzone rect for forward/backward visual
@@ -365,6 +370,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
 
     for (unsigned int n = 0; n < trigger_count; ++n)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
       ControlState trig_r = g->control_group->controls[n]->control_ref->State();
 
       // outline
@@ -403,6 +409,8 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
     for (unsigned int n = 0; n < trigger_count; ++n)
     {
       dc.SetBrush(*wxRED_BRUSH);
+
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
       ControlState trig_d = g->control_group->controls[n]->control_ref->State();
 
       ControlState trig_a =
@@ -430,6 +438,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
   {
     const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
+    std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
     ControlState state = g->control_group->controls[1]->control_ref->State() -
                          g->control_group->controls[0]->control_ref->State();
     dc.SetPen(*wxGREY_PEN);

@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include "Common/Thread.h"
+#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_XINPUT
@@ -160,6 +161,14 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
   m_devices.emplace_back(std::move(device));
 }
 
+void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  m_devices.erase(std::remove_if(m_devices.begin(), m_devices.end(),
+                                 [&callback](const auto& dev) { return callback(dev.get()); }),
+                  m_devices.end());
+}
+
 //
 // UpdateInput
 //
@@ -232,6 +241,7 @@ ControlState ControllerInterface::OutputReference::State(const ControlState stat
 void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref,
                                           const ciface::Core::DeviceQualifier& default_device) const
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   delete ref->parsed_expression;
   ref->parsed_expression = nullptr;
 

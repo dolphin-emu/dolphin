@@ -6,6 +6,12 @@
 #include <memory>
 #include "Common/Common.h"
 
+static std::recursive_mutex s_get_state_mutex;
+std::recursive_mutex& ControllerEmu::GetStateLock()
+{
+  return s_get_state_mutex;
+}
+
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
   for (auto& ctrlGroup : groups)

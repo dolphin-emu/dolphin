@@ -98,6 +98,7 @@ public:
   virtual std::string GetName() const = 0;
   virtual std::string GetSource() const = 0;
   virtual void UpdateInput() {}
+  virtual bool IsValid() const { return true; }
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
   Input* FindInput(const std::string& name) const;

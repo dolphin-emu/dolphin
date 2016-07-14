@@ -310,7 +310,10 @@ bool Wiimote::Step()
   // TODO: change this a bit
   m_motion_plus_present = m_extension->boolean_settings[0]->GetValue();
 
-  m_rumble->controls[0]->control_ref->State(m_rumble_on);
+  {
+    std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+    m_rumble->controls[0]->control_ref->State(m_rumble_on);
+  }
 
   // when a movie is active, this button status update is disabled (moved), because movies only
   // record data reports.

@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -164,6 +165,8 @@ public:
 
     void GetState(ControlState* const x, ControlState* const y)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
       ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
@@ -205,6 +208,8 @@ public:
     template <typename C>
     void GetState(C* const buttons, const C* bitmasks)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       for (auto& control : controls)
       {
         if (control->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
@@ -222,6 +227,8 @@ public:
 
     void GetState(u16* const digital, const u16* bitmasks, ControlState* analog)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       const unsigned int trig_count = ((unsigned int)(controls.size() / 2));
       for (unsigned int i = 0; i < trig_count; ++i, ++bitmasks, ++analog)
       {
@@ -245,6 +252,8 @@ public:
 
     void GetState(ControlState* analog)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       const unsigned int trig_count = ((unsigned int)(controls.size()));
       const ControlState deadzone = numeric_settings[0]->GetValue();
       for (unsigned int i = 0; i < trig_count; ++i, ++analog)
@@ -259,6 +268,8 @@ public:
 
     void GetState(ControlState* const slider)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       const ControlState deadzone = numeric_settings[0]->GetValue();
       const ControlState state =
           controls[1]->control_ref->State() - controls[0]->control_ref->State();
@@ -277,6 +288,8 @@ public:
 
     void GetState(ControlState* axis)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       const ControlState deadzone = numeric_settings[0]->GetValue();
       for (unsigned int i = 0; i < 6; i += 2)
       {
@@ -303,6 +316,8 @@ public:
 
     void GetState(ControlState* const x, ControlState* const y, const bool step = true)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       // this is all a mess
 
       ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
@@ -377,6 +392,8 @@ public:
     void GetState(ControlState* const x, ControlState* const y, ControlState* const z,
                   const bool adjusted = false)
     {
+      std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
       const ControlState zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
 
       // silly being here
@@ -442,6 +459,8 @@ public:
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
+
+  static std::recursive_mutex& GetStateLock();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
