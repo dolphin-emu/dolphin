@@ -91,14 +91,17 @@ void VideoBackend::InitBackendInfo()
 // If you never VR_Shutdown() the OpenGL mode, and never VR_Init() for the
 // Direct3D mode, but that is very hacky.  Running ovr_Initialize(); here stops
 // crash, bug kills Direct Mode. Wait until SDK fixes this issue?
-#if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
-  if (DX11::PCreateDXGIFactory1)
-    hr = DX11::PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+  if (g_vr_needs_DXGIFactory1)
+  {
+    if (DX11::PCreateDXGIFactory1)
+      hr = DX11::PCreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory);
+    else
+      hr = E_NOINTERFACE;
+  }
   else
-    hr = E_NOINTERFACE;
-#else
-  hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
-#endif
+  {
+    hr = DX11::PCreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+  }
   if (FAILED(hr))
     PanicAlert("Failed to create IDXGIFactory object");
 

@@ -1,5 +1,5 @@
-Dolphin VR 5.0-250
-Dolphin build with Oculus Rift and SteamVR support.
+Dolphin VR 5.0-257
+Dolphin build with Oculus Rift, HTC Vive, and OpenVR support.
 Open Source licence: GPL v2+
 
 WARNING: DO NOT SUPPORT THE OFFICIAL DOLPHIN BRANCH

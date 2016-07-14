@@ -505,15 +505,14 @@ void CConfigVR::CreateGUIControls()
       }
       szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HQ Distortion"),
                                  wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION < 7
-      szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"),
-                                 wxGetTranslation(nomirrortowindow_desc),
-                                 vconfig.bNoMirrorToWindow));
-#else
-      szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Mirroring"),
-                                 wxGetTranslation(nomirrortowindow_desc),
-                                 vconfig.bNoMirrorToWindow));
-#endif
+      if (g_vr_supports_extended)
+        szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"),
+                                   wxGetTranslation(nomirrortowindow_desc),
+                                   vconfig.bNoMirrorToWindow));
+      else
+        szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Mirroring"),
+                                   wxGetTranslation(nomirrortowindow_desc),
+                                   vconfig.bNoMirrorToWindow));
 
 #ifdef OCULUSSDK042
       szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(
@@ -522,7 +521,7 @@ void CConfigVR::CreateGUIControls()
 #endif
       szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Near-Clipping"),
                                  wxGetTranslation(nearclip_desc), vconfig.bDisableNearClipping));
-      if (g_has_steamvr)
+      if (g_has_openvr)
       {
         szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Auto Pair Vive"),
                                    wxGetTranslation(autopair_desc),

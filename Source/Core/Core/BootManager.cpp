@@ -329,8 +329,7 @@ bool BootCore(const std::string& _rFilename)
     }
   }
 
-#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION < 1
-  if (g_is_direct_mode && !g_force_vr &&
+  if (g_has_rift && !g_vr_has_asynchronous_timewarp && g_is_direct_mode && !g_force_vr &&
       StartUp.m_GPUDeterminismMode != GPU_DETERMINISM_FAKE_COMPLETION && !StartUp.bSyncGPU &&
       StartUp.bCPUThread)
     PanicAlert("Detected that the Rift is running in direct mode without 'deterministic dual core' "
@@ -339,7 +338,6 @@ bool BootCore(const std::string& _rFilename)
                "enabling one of these settings if you experience issues. "
                "They can be found in the 'config' tab or by right clicking on the game then "
                "clicking properties.");
-#endif
 
   StartUp.m_GPUDeterminismMode = ParseGPUDeterminismMode(StartUp.m_strGPUDeterminismMode);
 

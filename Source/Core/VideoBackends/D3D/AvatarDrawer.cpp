@@ -19,6 +19,7 @@
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VRGameMatrices.h"
+#include "VideoCommon/VROpenVR.h"
 #include "VideoCommon/VideoConfig.h"
 
 #include "InputCommon/ControllerInterface/Sixense/SixenseHack.h"
@@ -208,7 +209,7 @@ void AvatarDrawer::Init()
 
 #ifdef HAVE_OPENVR
   // Load Vive model
-  if (g_has_steamvr)
+  if (g_has_openvr)
   {
     vr::RenderModel_t* pModel = nullptr;
     vr::EVRRenderModelError error;
@@ -811,7 +812,7 @@ void AvatarDrawer::DrawHydra(int hand, float* pos, Matrix33& m, ControllerStyle 
 
 void AvatarDrawer::Draw()
 {
-  if (!g_ActiveConfig.bShowController || !g_has_steamvr)
+  if (!g_ActiveConfig.bShowController || !g_has_openvr)
     return;
 
   // Reset API
