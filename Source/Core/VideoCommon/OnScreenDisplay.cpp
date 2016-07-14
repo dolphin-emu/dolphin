@@ -15,35 +15,36 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 
-namespace OSD {
-
+namespace OSD
+{
 static std::multimap<CallbackType, Callback> s_callbacks;
 static std::multimap<MessageType, Message> s_msg_list;
 static std::mutex s_msg_list_mutex;
 
-void AddTypedMessage(MessageType type, const std::string &message, u32 ms,
-                     u32 rgba) {
+void AddTypedMessage(MessageType type, const std::string& message, u32 ms, u32 rgba)
+{
   std::lock_guard<std::mutex> lock(s_msg_list_mutex);
   s_msg_list.erase(type);
-  s_msg_list.emplace(type,
-                     Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+  s_msg_list.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
 }
 
-void AddMessage(const std::string &message, u32 ms, u32 rgba) {
+void AddMessage(const std::string& message, u32 ms, u32 rgba)
+{
   std::lock_guard<std::mutex> lock(s_msg_list_mutex);
   s_msg_list.emplace(MessageType::Typeless,
                      Message(message, Common::Timer::GetTimeMs() + ms, rgba));
 }
 
-void DrawMessage(const Message &msg, int top, int left, int time_left) {
+void DrawMessage(const Message& msg, int top, int left, int time_left)
+{
   float alpha = std::min(1.0f, std::max(0.0f, time_left / 1024.0f));
-  u32 color =
-      (msg.m_rgba & 0xFFFFFF) | ((u32)((msg.m_rgba >> 24) * alpha) << 24);
+  u32 color = (msg.m_rgba & 0xFFFFFF) | ((u32)((msg.m_rgba >> 24) * alpha) << 24);
 
   g_renderer->RenderText(msg.m_str, left, top, color);
 }
 
-void DrawMessages() {
+void DrawMessages()
+{
   if (!SConfig::GetInstance().bOnScreenDisplayMessages)
     return;
 
@@ -54,8 +55,9 @@ void DrawMessages() {
     int left = 20, top = 35;
 
     auto it = s_msg_list.begin();
-    while (it != s_msg_list.end()) {
-      const Message &msg = it->second;
+    while (it != s_msg_list.end())
+    {
+      const Message& msg = it->second;
       int time_left = (int)(msg.m_timestamp - now);
       DrawMessage(msg, top, left, time_left);
 
@@ -68,19 +70,23 @@ void DrawMessages() {
   }
 }
 
-void ClearMessages() {
+void ClearMessages()
+{
   std::lock_guard<std::mutex> lock(s_msg_list_mutex);
   s_msg_list.clear();
 }
 
 // On-Screen Display Callbacks
-void AddCallback(CallbackType type, Callback cb) {
+void AddCallback(CallbackType type, Callback cb)
+{
   s_callbacks.emplace(type, cb);
 }
 
-void DoCallbacks(CallbackType type) {
+void DoCallbacks(CallbackType type)
+{
   auto it_bounds = s_callbacks.equal_range(type);
-  for (auto it = it_bounds.first; it != it_bounds.second; ++it) {
+  for (auto it = it_bounds.first; it != it_bounds.second; ++it)
+  {
     it->second();
   }
 
@@ -89,4 +95,4 @@ void DoCallbacks(CallbackType type) {
     s_callbacks.clear();
 }
 
-} // namespace
+}  // namespace
