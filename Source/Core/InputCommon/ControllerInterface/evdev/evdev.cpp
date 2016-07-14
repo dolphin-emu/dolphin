@@ -5,12 +5,17 @@
 #include <fcntl.h>
 #include <libudev.h>
 #include <map>
+#include <memory>
 #include <unistd.h>
 
+#include <sys/eventfd.h>
+
 #include "Common/Assert.h"
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/evdev/evdev.h"
 
@@ -18,6 +23,15 @@ namespace ciface
 {
 namespace evdev
 {
+static std::thread s_hotplug_thread;
+static Common::Flag s_hotplug_thread_running;
+static int s_wakeup_eventfd;
+
+// There is no easy way to get the device name from only a dev node
+// during a device removed event, since libevdev can't work on removed devices;
+// sysfs is not stable, so this is probably the easiest way to get a name for a node.
+static std::map<std::string, std::string> s_devnode_name_map;
+
 static std::string GetName(const std::string& devnode)
 {
   int fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
@@ -28,20 +42,110 @@ static std::string GetName(const std::string& devnode)
     close(fd);
     return std::string();
   }
-  std::string res = libevdev_get_name(dev);
+  std::string res = StripSpaces(libevdev_get_name(dev));
   libevdev_free(dev);
   close(fd);
   return res;
 }
 
+static void HotplugThreadFunc()
+{
+  Common::SetCurrentThreadName("evdev Hotplug Thread");
+  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
+
+  udev* udev = udev_new();
+  _assert_msg_(PAD, udev != nullptr, "Couldn't initialize libudev.");
+
+  // Set up monitoring
+  udev_monitor* monitor = udev_monitor_new_from_netlink(udev, "udev");
+  udev_monitor_filter_add_match_subsystem_devtype(monitor, "input", nullptr);
+  udev_monitor_enable_receiving(monitor);
+  const int monitor_fd = udev_monitor_get_fd(monitor);
+
+  while (s_hotplug_thread_running.IsSet())
+  {
+    fd_set fds;
+
+    FD_ZERO(&fds);
+    FD_SET(monitor_fd, &fds);
+    FD_SET(s_wakeup_eventfd, &fds);
+
+    int ret = select(monitor_fd + 1, &fds, nullptr, nullptr, nullptr);
+    if (ret < 1 || !FD_ISSET(monitor_fd, &fds))
+      continue;
+
+    udev_device* dev = udev_monitor_receive_device(monitor);
+
+    const char* action = udev_device_get_action(dev);
+    const char* devnode = udev_device_get_devnode(dev);
+    if (!devnode)
+      continue;
+
+    if (strcmp(action, "remove") == 0)
+    {
+      const auto it = s_devnode_name_map.find(devnode);
+      if (it == s_devnode_name_map.end())
+        continue;  // we don't know the name for this device, so it is probably not an evdev device
+      const std::string& name = it->second;
+      g_controller_interface.RemoveDevice([&name](const auto& device) {
+        return device->GetSource() == "evdev" && device->GetName() == name && !device->IsValid();
+      });
+      NOTICE_LOG(SERIALINTERFACE, "Removed device: %s", name.c_str());
+      s_devnode_name_map.erase(devnode);
+      g_controller_interface.InvokeHotplugCallbacks();
+    }
+    // Only react to "device added" events for evdev devices that we can access.
+    else if (strcmp(action, "add") == 0 && access(devnode, W_OK) == 0)
+    {
+      const std::string name = GetName(devnode);
+      if (name.empty())
+        continue;  // probably not an evdev device
+      auto device = std::make_shared<evdevDevice>(devnode);
+      if (device->IsInteresting())
+      {
+        g_controller_interface.AddDevice(std::move(device));
+        s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
+        NOTICE_LOG(SERIALINTERFACE, "Added new device: %s", name.c_str());
+        g_controller_interface.InvokeHotplugCallbacks();
+      }
+    }
+    udev_device_unref(dev);
+  }
+  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
+}
+
+static void StartHotplugThread()
+{
+  if (s_hotplug_thread_running.IsSet())
+    return;
+
+  s_wakeup_eventfd = eventfd(0, 0);
+  _assert_msg_(PAD, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
+  s_hotplug_thread_running.Set(true);
+  s_hotplug_thread = std::thread(HotplugThreadFunc);
+}
+
+static void StopHotplugThread()
+{
+  if (s_hotplug_thread_running.TestAndClear())
+  {
+    // Write something to efd so that select() stops blocking.
+    uint64_t value = 1;
+    write(s_wakeup_eventfd, &value, sizeof(uint64_t));
+    s_hotplug_thread.join();
+  }
+}
+
 void Init()
 {
-  // We use Udev to find any devices. In the future this will allow for hotplugging.
-  // But for now it is essentially iterating over /dev/input/event0 to event31. However if the
+  s_devnode_name_map.clear();
+
+  // We use udev to find any devices. Hotplugging is handled in another thread;
+  // we first iterate over /dev/input/event0 to event31. However if the
   // naming scheme is ever updated in the future, this *should* be forwards compatable.
 
-  struct udev* udev = udev_new();
-  _assert_msg_(PAD, udev != 0, "Couldn't initilize libudev.");
+  udev* udev = udev_new();
+  _assert_msg_(PAD, udev != nullptr, "Couldn't initialize libudev.");
 
   // List all input devices
   udev_enumerate* enumerate = udev_enumerate_new(udev);
@@ -69,12 +173,20 @@ void Init()
       if (input->IsInteresting())
       {
         g_controller_interface.AddDevice(std::move(input));
+        s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
       }
     }
     udev_device_unref(dev);
   }
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
+
+  StartHotplugThread();
+}
+
+void Shutdown()
+{
+  StopHotplugThread();
 }
 
 evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
@@ -150,6 +262,22 @@ void evdevDevice::UpdateInput()
     else
       rc = libevdev_next_event(m_dev, LIBEVDEV_READ_FLAG_NORMAL, &ev);
   } while (rc >= 0);
+}
+
+bool evdevDevice::IsValid() const
+{
+  int current_fd = libevdev_get_fd(m_dev);
+  if (current_fd == -1)
+    return false;
+
+  libevdev* device;
+  if (libevdev_new_from_fd(current_fd, &device) != 0)
+  {
+    close(current_fd);
+    return false;
+  }
+  libevdev_free(device);
+  return true;
 }
 
 std::string evdevDevice::Button::GetName() const
