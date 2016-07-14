@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 #include <algorithm>
+#include <memory>
 #include <string>
 #include "Common/Thread.h"
 
@@ -95,11 +96,11 @@ bool ForceFeedbackDevice::InitForceFeedback(const LPDIRECTINPUTDEVICE8 device, i
     if (SUCCEEDED(device->CreateEffect(f.guid, &eff, &pEffect, nullptr)))
     {
       if (f.guid == GUID_ConstantForce)
-        AddOutput(new ForceConstant(f.name, pEffect));
+        AddOutput(std::make_unique<ForceConstant>(f.name, pEffect));
       else if (f.guid == GUID_RampForce)
-        AddOutput(new ForceRamp(f.name, pEffect));
+        AddOutput(std::make_unique<ForceRamp>(f.name, pEffect));
       else
-        AddOutput(new ForcePeriodic(f.name, pEffect));
+        AddOutput(std::make_unique<ForcePeriodic>(f.name, pEffect));
     }
   }
 

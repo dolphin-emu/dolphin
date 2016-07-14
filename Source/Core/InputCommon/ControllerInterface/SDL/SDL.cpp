@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <sstream>
 
 #include "Common/StringUtil.h"
@@ -99,21 +100,22 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 
   // get buttons
   for (u8 i = 0; i != SDL_JoystickNumButtons(m_joystick); ++i)
-    AddInput(new Button(i, m_joystick));
+    AddInput(std::make_unique<Button>(i, m_joystick));
 
   // get hats
   for (u8 i = 0; i != SDL_JoystickNumHats(m_joystick); ++i)
   {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
-      AddInput(new Hat(i, m_joystick, d));
+      AddInput(std::make_unique<Hat>(i, m_joystick, d));
   }
 
   // get axes
   for (u8 i = 0; i != SDL_JoystickNumAxes(m_joystick); ++i)
   {
     // each axis gets a negative and a positive input instance associated with it
-    AddAnalogInputs(new Axis(i, m_joystick, -32768), new Axis(i, m_joystick, 32767));
+    AddAnalogInputs(std::make_unique<Axis>(i, m_joystick, -32768),
+                    std::make_unique<Axis>(i, m_joystick, 32767));
   }
 
 #ifdef USE_SDL_HAPTIC
@@ -128,23 +130,23 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 
     // constant effect
     if (supported_effects & SDL_HAPTIC_CONSTANT)
-      AddOutput(new ConstantEffect(m_haptic));
+      AddOutput(std::make_unique<ConstantEffect>(m_haptic));
 
     // ramp effect
     if (supported_effects & SDL_HAPTIC_RAMP)
-      AddOutput(new RampEffect(m_haptic));
+      AddOutput(std::make_unique<RampEffect>(m_haptic));
 
     // sine effect
     if (supported_effects & SDL_HAPTIC_SINE)
-      AddOutput(new SineEffect(m_haptic));
+      AddOutput(std::make_unique<SineEffect>(m_haptic));
 
     // triangle effect
     if (supported_effects & SDL_HAPTIC_TRIANGLE)
-      AddOutput(new TriangleEffect(m_haptic));
+      AddOutput(std::make_unique<TriangleEffect>(m_haptic));
 
     // left-right effect
     if (supported_effects & SDL_HAPTIC_LEFTRIGHT)
-      AddOutput(new LeftRightEffect(m_haptic));
+      AddOutput(std::make_unique<LeftRightEffect>(m_haptic));
   }
 #endif
 }

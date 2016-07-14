@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <map>
+#include <memory>
 #include <sstream>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -106,14 +107,14 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
 
   // buttons
   for (u8 i = 0; i != js_caps.dwButtons; ++i)
-    AddInput(new Button(i, m_state_in.rgbButtons[i]));
+    AddInput(std::make_unique<Button>(i, m_state_in.rgbButtons[i]));
 
   // hats
   for (u8 i = 0; i != js_caps.dwPOVs; ++i)
   {
     // each hat gets 4 input instances associated with it, (up down left right)
     for (u8 d = 0; d != 4; ++d)
-      AddInput(new Hat(i, m_state_in.rgdwPOV[i], d));
+      AddInput(std::make_unique<Hat>(i, m_state_in.rgdwPOV[i], d));
   }
 
   // get up to 6 axes and 2 sliders
@@ -139,8 +140,8 @@ Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVI
       const LONG& ax = (&m_state_in.lX)[offset];
 
       // each axis gets a negative and a positive input instance associated with it
-      AddAnalogInputs(new Axis(offset, ax, base, range.lMin - base),
-                      new Axis(offset, ax, base, range.lMax - base));
+      AddAnalogInputs(std::make_unique<Axis>(offset, ax, base, range.lMin - base),
+                      std::make_unique<Axis>(offset, ax, base, range.lMax - base));
     }
   }
 

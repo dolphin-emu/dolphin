@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
+#include <memory>
 
 #ifndef XINPUT_GAMEPAD_GUIDE
 #define XINPUT_GAMEPAD_GUIDE 0x0400
@@ -112,7 +113,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
     // Guide button is never reported in caps
     if ((named_buttons[i].bitmask & caps.Gamepad.wButtons) ||
         ((named_buttons[i].bitmask & XINPUT_GAMEPAD_GUIDE) && haveGuideButton))
-      AddInput(new Button(i, m_state_in.Gamepad.wButtons));
+      AddInput(std::make_unique<Button>(i, m_state_in.Gamepad.wButtons));
   }
 
   // get supported triggers
@@ -120,7 +121,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
   {
     // BYTE val = (&caps.Gamepad.bLeftTrigger)[i];  // should be max value / MSDN lies
     if ((&caps.Gamepad.bLeftTrigger)[i])
-      AddInput(new Trigger(i, (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
+      AddInput(std::make_unique<Trigger>(i, (&m_state_in.Gamepad.bLeftTrigger)[i], 255));
   }
 
   // get supported axes
@@ -132,8 +133,8 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
       const SHORT& ax = (&m_state_in.Gamepad.sThumbLX)[i];
 
       // each axis gets a negative and a positive input instance associated with it
-      AddInput(new Axis(i, ax, -32768));
-      AddInput(new Axis(i, ax, 32767));
+      AddInput(std::make_unique<Axis>(i, ax, -32768));
+      AddInput(std::make_unique<Axis>(i, ax, 32767));
     }
   }
 
@@ -142,7 +143,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
   {
     // WORD val = (&caps.Vibration.wLeftMotorSpeed)[i]; // should be max value / nope, more lies
     if ((&caps.Vibration.wLeftMotorSpeed)[i])
-      AddOutput(new Motor(i, this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
+      AddOutput(std::make_unique<Motor>(i, this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
   }
 
   ZeroMemory(&m_state_in, sizeof(m_state_in));

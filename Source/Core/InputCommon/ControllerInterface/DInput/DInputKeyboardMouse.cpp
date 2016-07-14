@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <memory>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
@@ -85,7 +86,7 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   // KEYBOARD
   // add keys
   for (u8 i = 0; i < sizeof(named_keys) / sizeof(*named_keys); ++i)
-    AddInput(new Key(i, m_state_in.keyboard[named_keys[i].code]));
+    AddInput(std::make_unique<Key>(i, m_state_in.keyboard[named_keys[i].code]));
 
   // MOUSE
   // get caps
@@ -95,19 +96,19 @@ KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device,
   m_mo_device->GetCapabilities(&mouse_caps);
   // mouse buttons
   for (u8 i = 0; i < mouse_caps.dwButtons; ++i)
-    AddInput(new Button(i, m_state_in.mouse.rgbButtons[i]));
+    AddInput(std::make_unique<Button>(i, m_state_in.mouse.rgbButtons[i]));
   // mouse axes
   for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
   {
     const LONG& ax = (&m_state_in.mouse.lX)[i];
 
     // each axis gets a negative and a positive input instance associated with it
-    AddInput(new Axis(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
-    AddInput(new Axis(i, ax, -(2 == i) ? 1 : MOUSE_AXIS_SENSITIVITY));
+    AddInput(std::make_unique<Axis>(i, ax, (2 == i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
+    AddInput(std::make_unique<Axis>(i, ax, -(2 == i) ? 1 : MOUSE_AXIS_SENSITIVITY));
   }
   // cursor, with a hax for-loop
   for (unsigned int i = 0; i < 4; ++i)
-    AddInput(new Cursor(!!(i & 2), (&m_state_in.cursor.x)[i / 2], !!(i & 1)));
+    AddInput(std::make_unique<Cursor>(!!(i & 2), (&m_state_in.cursor.x)[i / 2], !!(i & 1)));
 }
 
 void GetMousePos(ControlState* const x, ControlState* const y)

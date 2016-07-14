@@ -222,14 +222,14 @@ void ControlDialog::UpdateListContents()
   {
     if (control_reference->is_input)
     {
-      for (ciface::Core::Device::Input* input : dev->Inputs())
+      for (const auto& input : dev->Inputs())
       {
         control_lbox->Append(StrToWxStr(input->GetName()));
       }
     }
     else  // It's an output
     {
-      for (ciface::Core::Device::Output* output : dev->Outputs())
+      for (const auto& output : dev->Outputs())
       {
         control_lbox->Append(StrToWxStr(output->GetName()));
       }

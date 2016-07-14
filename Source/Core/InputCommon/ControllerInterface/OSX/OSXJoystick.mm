@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <sstream>
 
 #include <Foundation/Foundation.h>
@@ -33,7 +34,7 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
       IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
       // DeviceElementDebugPrint(e, nullptr);
 
-      AddInput(new Button(e, m_device));
+      AddInput(std::make_unique<Button>(e, m_device));
     }
     CFRelease(buttons);
   }
@@ -53,15 +54,15 @@ Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
 
       if (IOHIDElementGetUsage(e) == kHIDUsage_GD_Hatswitch)
       {
-        AddInput(new Hat(e, m_device, Hat::up));
-        AddInput(new Hat(e, m_device, Hat::right));
-        AddInput(new Hat(e, m_device, Hat::down));
-        AddInput(new Hat(e, m_device, Hat::left));
+        AddInput(std::make_unique<Hat>(e, m_device, Hat::up));
+        AddInput(std::make_unique<Hat>(e, m_device, Hat::right));
+        AddInput(std::make_unique<Hat>(e, m_device, Hat::down));
+        AddInput(std::make_unique<Hat>(e, m_device, Hat::left));
       }
       else
       {
-        AddAnalogInputs(new Axis(e, m_device, Axis::negative),
-                        new Axis(e, m_device, Axis::positive));
+        AddAnalogInputs(std::make_unique<Axis>(e, m_device, Axis::negative),
+                        std::make_unique<Axis>(e, m_device, Axis::positive));
       }
     }
     CFRelease(axes);

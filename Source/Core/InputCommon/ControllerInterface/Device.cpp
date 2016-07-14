@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -26,45 +27,38 @@ namespace Core
 //
 Device::~Device()
 {
-  // delete inputs
-  for (Device::Input* input : m_inputs)
-    delete input;
-
-  // delete outputs
-  for (Device::Output* output : m_outputs)
-    delete output;
 }
 
-void Device::AddInput(Device::Input* const i)
+void Device::AddInput(std::unique_ptr<Input> input)
 {
-  m_inputs.push_back(i);
+  m_inputs.push_back(std::move(input));
 }
 
-void Device::AddOutput(Device::Output* const o)
+void Device::AddOutput(std::unique_ptr<Output> output)
 {
-  m_outputs.push_back(o);
+  m_outputs.push_back(std::move(output));
 }
 
 Device::Input* Device::FindInput(const std::string& name) const
 {
-  for (Input* input : m_inputs)
-  {
-    if (input->GetName() == name)
-      return input;
-  }
+  const auto iter = std::find_if(m_inputs.begin(), m_inputs.end(),
+                                 [&name](const auto& input) { return input->GetName() == name; });
 
-  return nullptr;
+  if (iter == m_inputs.end())
+    return nullptr;
+
+  return iter->get();
 }
 
 Device::Output* Device::FindOutput(const std::string& name) const
 {
-  for (Output* output : m_outputs)
-  {
-    if (output->GetName() == name)
-      return output;
-  }
+  const auto iter = std::find_if(m_outputs.begin(), m_outputs.end(),
+                                 [&name](const auto& output) { return output->GetName() == name; });
 
-  return nullptr;
+  if (iter == m_outputs.end())
+    return nullptr;
+
+  return iter->get();
 }
 
 bool Device::Control::InputGateOn()
