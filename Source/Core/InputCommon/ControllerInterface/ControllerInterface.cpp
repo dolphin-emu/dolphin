@@ -137,6 +137,9 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
 #endif
+#ifdef CIFACE_USE_EVDEV
+  ciface::evdev::Shutdown();
+#endif
 
   m_is_init = false;
 }
