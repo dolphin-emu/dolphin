@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -442,6 +443,8 @@ public:
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
+
+  static std::recursive_mutex& GetStateLock();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 

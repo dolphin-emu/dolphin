@@ -125,6 +125,7 @@ static void DrawButton(unsigned int* const bitmasks, unsigned int buttons, unsig
   }
   else
   {
+    std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
     unsigned char amt = 255 - g->control_group->controls[(row * 8) + n]->control_ref->State() * 128;
     dc.SetBrush(wxBrush(wxColour(amt, amt, amt)));
   }
@@ -232,17 +233,15 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
     }
 
     // raw dot
-    {
-      ControlState xx, yy;
-      xx = g->control_group->controls[3]->control_ref->State();
-      xx -= g->control_group->controls[2]->control_ref->State();
-      yy = g->control_group->controls[1]->control_ref->State();
-      yy -= g->control_group->controls[0]->control_ref->State();
+    ControlState xx, yy;
+    xx = g->control_group->controls[3]->control_ref->State();
+    xx -= g->control_group->controls[2]->control_ref->State();
+    yy = g->control_group->controls[1]->control_ref->State();
+    yy -= g->control_group->controls[0]->control_ref->State();
 
-      dc.SetPen(*wxGREY_PEN);
-      dc.SetBrush(*wxGREY_BRUSH);
-      DrawCoordinate(dc, xx, yy);
-    }
+    dc.SetPen(*wxGREY_PEN);
+    dc.SetBrush(*wxGREY_BRUSH);
+    DrawCoordinate(dc, xx, yy);
 
     // adjusted dot
     if (x != 0 || y != 0)
@@ -403,6 +402,7 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
     for (unsigned int n = 0; n < trigger_count; ++n)
     {
       dc.SetBrush(*wxRED_BRUSH);
+
       ControlState trig_d = g->control_group->controls[n]->control_ref->State();
 
       ControlState trig_a =
@@ -465,6 +465,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
   GamepadPage* const current_page =
       (GamepadPage*)m_pad_notebook->GetPage(m_pad_notebook->GetSelection());
 
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   for (ControlGroupBox* g : current_page->control_groups)
   {
     // if this control group has a bitmap

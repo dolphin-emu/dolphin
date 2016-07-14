@@ -240,6 +240,7 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
   {
     std::vector<u32> bitmasks;

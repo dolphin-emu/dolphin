@@ -86,6 +86,7 @@ std::string GCKeyboard::GetName() const
 
 void GCKeyboard::GetInput(KeyboardStatus* const kb)
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   m_keys0x->GetState(&kb->key0x, keys0_bitmasks);
   m_keys1x->GetState(&kb->key1x, keys1_bitmasks);
   m_keys2x->GetState(&kb->key2x, keys2_bitmasks);

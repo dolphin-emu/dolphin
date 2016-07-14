@@ -81,6 +81,8 @@ std::string GCPad::GetName() const
 
 void GCPad::GetInput(GCPadStatus* const pad)
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
+
   ControlState x, y, triggers[2];
 
   // buttons
@@ -116,6 +118,7 @@ void GCPad::GetInput(GCPadStatus* const pad)
 
 void GCPad::SetOutput(const ControlState strength)
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   m_rumble->controls[0]->control_ref->State(strength);
 }
 
@@ -190,5 +193,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
 bool GCPad::GetMicButton() const
 {
+  std::lock_guard<std::recursive_mutex> lk(ControllerEmu::GetStateLock());
   return (0.0f != m_buttons->controls.back()->control_ref->State());
 }
