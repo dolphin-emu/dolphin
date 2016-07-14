@@ -73,15 +73,11 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-// This can mostly be removed when we move to VS2015
-// to use the thread_local keyword
-#ifdef _MSC_VER
-#define ThreadLocalStorage __declspec(thread)
-#elif defined __ANDROID__ || defined __APPLE__
-// This will most likely have to stay, to support android
+// Android and OSX haven't implemented the keyword yet.
+#if defined __ANDROID__ || defined __APPLE__
 #include <pthread.h>
-#else  // Everything besides VS and Android
-#define ThreadLocalStorage __thread
+#else  // Everything besides OSX and Android
+#define ThreadLocalStorage thread_local
 #endif
 
 namespace Core
