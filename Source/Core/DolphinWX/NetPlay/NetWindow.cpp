@@ -492,7 +492,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   case NP_GUI_EVT_PAD_BUFFER_CHANGE:
   {
     std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
-    OSD::AddMessage(msg, OSD::Duration::NORMAL);
+    OSD::AddTypedMessage(OSD::MessageType::NetPlayBuffer, msg, OSD::Duration::NORMAL);
     AddChatMessage(ChatMessageType::Info, msg);
   }
   break;
