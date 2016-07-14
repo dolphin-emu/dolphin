@@ -255,6 +255,9 @@ static wxString show_fps_desc =
 static wxString show_netplay_ping_desc =
     wxTRANSLATE("Show the players' maximum Ping while playing on "
                 "NetPlay.\n\nIf unsure, leave this unchecked.");
+static wxString show_netplay_messages_desc =
+    wxTRANSLATE("When playing on NetPlay, show chat messages, buffer changes and "
+                "desync alerts.\n\nIf unsure, leave this unchecked.");
 static wxString log_render_time_to_file_desc =
     wxTRANSLATE("Log the render time of every frame to User/Logs/render_time.txt. Use this "
                 "feature when you want to measure the performance of Dolphin.\n\nIf "
@@ -526,6 +529,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Ping"),
                                       wxGetTranslation(show_netplay_ping_desc),
                                       vconfig.bShowNetPlayPing));
+        szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Messages"),
+                                      wxGetTranslation(show_netplay_messages_desc),
+                                      vconfig.bShowNetPlayMessages));
         szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"),
                                       wxGetTranslation(log_render_time_to_file_desc),
                                       vconfig.bLogRenderTimeToFile));

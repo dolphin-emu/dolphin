@@ -47,6 +47,7 @@
 #include "DolphinWX/WxUtils.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
@@ -492,7 +493,12 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   case NP_GUI_EVT_PAD_BUFFER_CHANGE:
   {
     std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
-    OSD::AddTypedMessage(OSD::MessageType::NetPlayBuffer, msg, OSD::Duration::NORMAL);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddTypedMessage(OSD::MessageType::NetPlayBuffer, msg, OSD::Duration::NORMAL);
+    }
+
     AddChatMessage(ChatMessageType::Info, msg);
   }
   break;
@@ -502,7 +508,11 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
                       std::to_string(m_desync_frame);
 
     AddChatMessage(ChatMessageType::Error, msg);
-    OSD::AddMessage(msg, OSD::Duration::VERY_LONG, OSD::Color::RED);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddMessage(msg, OSD::Duration::VERY_LONG, OSD::Color::RED);
+    }
   }
   break;
   case NP_GUI_EVT_CONNECTION_LOST:
@@ -524,7 +534,11 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
     std::string s;
     chat_msgs.Pop(s);
     AddChatMessage(ChatMessageType::UserIn, s);
-    OSD::AddMessage("NetPlay chat: " + s, OSD::Duration::NORMAL, OSD::Color::GREEN);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddMessage(s, OSD::Duration::NORMAL, OSD::Color::GREEN);
+    }
   }
 }
 
