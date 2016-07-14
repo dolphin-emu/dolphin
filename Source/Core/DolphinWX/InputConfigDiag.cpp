@@ -790,6 +790,8 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
   Pad::LoadConfig();
   HotkeyManagerEmu::LoadConfig();
 
+  UpdateGUI();
+
   Core::PauseAndLock(false, was_unpaused);
 }
 
