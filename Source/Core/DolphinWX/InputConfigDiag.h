@@ -223,8 +223,7 @@ public:
   void LoadDefaults(wxCommandEvent& event);
 
   void AdjustControlOption(wxCommandEvent& event);
-  void EnableSettingControl(const std::string& group_name, const std::string& name,
-                            const bool enabled);
+  void EnableSettingControl(const std::string& group_name, const std::string& name, bool enabled);
   void AdjustSetting(wxCommandEvent& event);
   void AdjustBooleanSetting(wxCommandEvent& event);
 

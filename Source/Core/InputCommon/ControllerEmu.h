@@ -373,10 +373,6 @@ public:
   class Cursor : public ControlGroup
   {
   public:
-    // This is used to reduce the cursor speed for relative input
-    // to something that makes sense with the default range.
-    static constexpr double SPEED_MULTIPLIER = 0.02;
-
     Cursor(const std::string& _name);
 
     void GetState(ControlState* const x, ControlState* const y, ControlState* const z,
@@ -435,6 +431,10 @@ public:
     ControlState m_z;
 
   private:
+    // This is used to reduce the cursor speed for relative input
+    // to something that makes sense with the default range.
+    static constexpr double SPEED_MULTIPLIER = 0.02;
+
     ControlState m_x = 0.0;
     ControlState m_y = 0.0;
   };

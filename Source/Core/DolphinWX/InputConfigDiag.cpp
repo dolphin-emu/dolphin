@@ -111,9 +111,9 @@ void PadSettingCheckBox::UpdateGUI()
 {
   ((wxCheckBox*)wxcontrol)->SetValue(setting->GetValue());
   // Force WX to trigger an event after updating the value
-  auto* const event = new wxCommandEvent(wxEVT_CHECKBOX);
-  event->SetEventObject(wxcontrol);
-  wxcontrol->ProcessWindowEvent(*event);
+  wxCommandEvent event(wxEVT_CHECKBOX);
+  event.SetEventObject(wxcontrol);
+  wxcontrol->ProcessWindowEvent(event);
 }
 
 void PadSettingCheckBox::UpdateValue()
@@ -452,7 +452,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 }
 
 void GamepadPage::EnableSettingControl(const std::string& group_name, const std::string& name,
-                                       const bool enabled)
+                                       bool enabled)
 {
   const auto box_iterator =
       std::find_if(control_groups.begin(), control_groups.end(), [&group_name](const auto& box) {
@@ -789,6 +789,8 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
   Keyboard::LoadConfig();
   Pad::LoadConfig();
   HotkeyManagerEmu::LoadConfig();
+
+  UpdateGUI();
 
   Core::PauseAndLock(false, was_unpaused);
 }
