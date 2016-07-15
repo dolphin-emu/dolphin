@@ -57,12 +57,12 @@ public:
     unsigned char* GetPalette(unsigned int frame) const;
     unsigned int GetNcolours(unsigned int frame) const;
     int GetTransparentColourIndex(unsigned int frame) const;
-    wxColour GetTransparentColour(unsigned int frame) const;
+    wxColour GetTransparentColour(unsigned int frame) const wxOVERRIDE;
 
-    virtual wxSize GetFrameSize(unsigned int frame) const;
-    virtual wxPoint GetFramePosition(unsigned int frame) const;
-    virtual wxAnimationDisposal GetDisposalMethod(unsigned int frame) const;
-    virtual long GetDelay(unsigned int frame) const;
+    virtual wxSize GetFrameSize(unsigned int frame) const wxOVERRIDE;
+    virtual wxPoint GetFramePosition(unsigned int frame) const wxOVERRIDE;
+    virtual wxAnimationDisposal GetDisposalMethod(unsigned int frame) const wxOVERRIDE;
+    virtual long GetDelay(unsigned int frame) const wxOVERRIDE;
 
     // GIFs can contain both static images and animations
     bool IsAnimation() const
@@ -75,19 +75,19 @@ public:
     void Destroy();
 
     // implementation of wxAnimationDecoder's pure virtuals
-    virtual bool Load( wxInputStream& stream )
+    virtual bool Load( wxInputStream& stream ) wxOVERRIDE
         { return LoadGIF(stream) == wxGIF_OK; }
 
-    bool ConvertToImage(unsigned int frame, wxImage *image) const;
+    bool ConvertToImage(unsigned int frame, wxImage *image) const wxOVERRIDE;
 
-    wxAnimationDecoder *Clone() const
+    wxAnimationDecoder *Clone() const wxOVERRIDE
         { return new wxGIFDecoder; }
-    wxAnimationType GetType() const
+    wxAnimationType GetType() const wxOVERRIDE
         { return wxANIMATION_TYPE_GIF; }
 
 private:
     // wxAnimationDecoder pure virtual
-    virtual bool DoCanRead( wxInputStream& stream ) const;
+    virtual bool DoCanRead( wxInputStream& stream ) const wxOVERRIDE;
         // modifies current stream position (see wxAnimationDecoder::CanRead)
 
     int getcode(wxInputStream& stream, int bits, int abfin);

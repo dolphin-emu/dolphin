@@ -26,10 +26,6 @@
         #endif
     #elif defined(__GNUWIN32__) && !defined(__MINGW32__)
         #define wxUSE_WCHAR_T 0
-    #elif defined(__WATCOMC__)
-        #define wxUSE_WCHAR_T 0
-    #elif defined(__VISAGECPP__) && (__IBMCPP__ < 400)
-        #define wxUSE_WCHAR_T 0
     #else
         /* add additional compiler checks if this fails */
         #define wxUSE_WCHAR_T 1
@@ -47,7 +43,7 @@
 
    Actually MinGW has tchar.h, but it does not include wchar.h
  */
-#if defined(__VISAGECPP__) || defined(__MINGW32__) || defined(__WATCOMC__)
+#if defined(__MINGW32__)
     #ifndef HAVE_WCHAR_H
         #define HAVE_WCHAR_H
     #endif
@@ -71,10 +67,27 @@
         }
     #endif /* Cygwin and C++ */
 
+    /* the current (as of Mar 2014) version of Android (up to api level 19) */
+    /* doesn't include some declarations (wscdup, wcslen, wcscasecmp, etc.) */
+    /* (moved out from __CYGWIN__ block) */
+    #if defined(__WXQT__) && !defined(wcsdup) && defined(__ANDROID__)
+        #ifdef __cplusplus
+            extern "C" {
+        #endif
+            extern wchar_t *wcsdup(const wchar_t *);
+            extern size_t wcslen (const wchar_t *);
+            extern size_t wcsnlen (const wchar_t *, size_t );
+            extern int wcscasecmp (const wchar_t *, const wchar_t *);
+            extern int wcsncasecmp (const wchar_t *, const wchar_t *, size_t);
+        #ifdef __cplusplus
+            }
+        #endif
+    #endif /* Android */
+
 #elif defined(HAVE_WCSTR_H)
     /* old compilers have relevant declarations here */
     #include <wcstr.h>
-#elif defined(__FreeBSD__) || defined(__DARWIN__) || defined(__EMX__)
+#elif defined(__FreeBSD__) || defined(__DARWIN__)
     /* include stdlib.h for wchar_t */
     #include <stdlib.h>
 #endif /* HAVE_WCHAR_H */
@@ -95,24 +108,11 @@
 #elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x520)
     #define wxHAVE_TCHAR_SUPPORT
     #include <ctype.h>
-#elif defined(__WATCOMC__)
-    #define wxHAVE_TCHAR_SUPPORT
-#elif defined(__DMC__)
-    #define wxHAVE_TCHAR_SUPPORT
 #elif defined(__MINGW32__) && wxCHECK_W32API_VERSION( 1, 0 )
     #define wxHAVE_TCHAR_SUPPORT
     #include <stddef.h>
     #include <string.h>
     #include <ctype.h>
-#elif 0 && defined(__VISAGECPP__) && (__IBMCPP__ >= 400)
-    /* VZ: the old VisualAge definitions were completely wrong and had no    */
-    /*     chance at all to work in Unicode build anyhow so let's pretend    */
-    /*     that VisualAge does _not_ support TCHAR for the moment (as        */
-    /*     indicated by "0 &&" above) until someone really has time to delve */
-    /*     into Unicode issues under OS/2 */
-
-    /* VisualAge 4.0+ supports TCHAR */
-    #define wxHAVE_TCHAR_SUPPORT
 #endif /* compilers with (good) TCHAR support */
 
 #ifdef wxHAVE_TCHAR_SUPPORT
@@ -140,37 +140,9 @@
     /*     signed/unsigned version of it which (a) makes sense to me (unlike */
     /*     char wchar_t is always unsigned) and (b) was how the previous     */
     /*     definitions worked so keep it like this                           */
-
-    /* Sun's SunPro compiler supports the wchar_t type and wide character    */
-    /* functions, but does not define __WCHAR_TYPE__. Define it here to      */
-    /* allow unicode enabled builds.                                         */
-    #if (defined(__SUNPRO_CC) || defined(__SUNPRO_C)) && !defined(__WCHAR_TYPE__)
-        #define __WCHAR_TYPE__ wxchar_t
-    #endif
-
-    /* GNU libc has __WCHAR_TYPE__ which requires special treatment, see */
-    /* comment below */
-    #if !defined(__WCHAR_TYPE__) || \
-        (!defined(__GNUC__) || wxCHECK_GCC_VERSION(2, 96))
-        /* standard case */
-        typedef wchar_t wxChar;
-        typedef wchar_t wxSChar;
-        typedef wchar_t wxUChar;
-    #else /* __WCHAR_TYPE__ and gcc < 2.96 */
-        /* VS: wxWidgets used to define wxChar as __WCHAR_TYPE__ here.       */
-        /*     However, this doesn't work with new GCC 3.x compilers because */
-        /*     wchar_t is C++'s builtin type in the new standard. OTOH, old  */
-        /*     compilers (GCC 2.x) won't accept new definition of            */
-        /*     wx{S,U}CharType, so we have to define wxChar                  */
-        /*     conditionally depending on detected compiler & compiler       */
-        /*     version.                                                      */
-
-        /*     with old definition of wxChar. */
-        #define wchar_t __WCHAR_TYPE__
-        typedef __WCHAR_TYPE__ wxChar;
-        typedef __WCHAR_TYPE__ wxSChar;
-        typedef __WCHAR_TYPE__ wxUChar;
-    #endif /* __WCHAR_TYPE__ */
+    typedef wchar_t wxChar;
+    typedef wchar_t wxSChar;
+    typedef wchar_t wxUChar;
 #endif /* ASCII/Unicode */
 
 /* ------------------------------------------------------------------------- */

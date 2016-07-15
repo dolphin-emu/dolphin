@@ -20,41 +20,28 @@
 #    define WXIMPORT __attribute__ ((visibility("default")))
 #elif defined(__WINDOWS__)
     /*
-       __declspec works in BC++ 5 and later, Watcom C++ 11.0 and later as well
-       as VC++.
+       __declspec works in BC++ 5 and later as well as VC++.
      */
-#    if defined(__VISUALC__) || defined(__BORLANDC__) || defined(__WATCOMC__)
+#    if defined(__VISUALC__) || defined(__BORLANDC__)
 #        define WXEXPORT __declspec(dllexport)
 #        define WXIMPORT __declspec(dllimport)
     /*
-        While gcc also supports __declspec(dllexport), it creates unusably huge
-        DLL files since gcc 4.5 (while taking horribly long amounts of time),
+        While gcc also supports __declspec(dllexport), it created unusably huge
+        DLL files in gcc 4.[56] (while taking horribly long amounts of time),
         see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=43601. Because of this
         we rely on binutils auto export/import support which seems to work
-        quite well for 4.5+.
+        quite well for 4.5+. However the problem was fixed in 4.7 and later and
+        not exporting everything creates smaller DLLs (~8% size difference), so
+        do use the explicit attributes again for the newer versions.
      */
-#    elif defined(__GNUC__) && !wxCHECK_GCC_VERSION(4, 5)
+#    elif defined(__GNUC__) && \
+        (!wxCHECK_GCC_VERSION(4, 5) || wxCHECK_GCC_VERSION(4, 7))
         /*
             __declspec could be used here too but let's use the native
             __attribute__ instead for clarity.
         */
 #       define WXEXPORT __attribute__((dllexport))
 #       define WXIMPORT __attribute__((dllimport))
-#    endif
-#elif defined(__WXPM__)
-#    if defined (__WATCOMC__)
-#        define WXEXPORT __declspec(dllexport)
-        /*
-           __declspec(dllimport) prepends __imp to imported symbols. We do NOT
-           want that!
-         */
-#        define WXIMPORT
-#    elif defined(__EMX__)
-#        define WXEXPORT
-#        define WXIMPORT
-#    elif (!(defined(__VISAGECPP__) && (__IBMCPP__ < 400 || __IBMC__ < 400 )))
-#        define WXEXPORT _Export
-#        define WXIMPORT _Export
 #    endif
 #elif defined(__CYGWIN__)
 #    define WXEXPORT __declspec(dllexport)
@@ -326,39 +313,4 @@
 #define WXDLLEXPORT WXDLLIMPEXP_CORE
 #define WXDLLEXPORT_DATA WXDLLIMPEXP_DATA_CORE
 
-/*
-   MSVC up to 6.0 needs to be explicitly told to export template instantiations
-   used by the DLL clients, use this macro to do it like this:
-
-       template <typename T> class Foo { ... };
-       WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE( Foo<int> )
-
-   (notice that currently we only need this for wxBase and wxCore libraries)
- */
-#if defined(__VISUALC__) && (__VISUALC__ <= 1200)
-    #ifdef WXMAKINGDLL_BASE
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl) \
-            template class WXDLLIMPEXP_BASE decl;
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl) \
-            template class WXDLLIMPEXP_CORE decl;
-    #else
-        /*
-           We need to disable this warning when using this macro, as
-           recommended by Microsoft itself:
-
-           http://support.microsoft.com/default.aspx?scid=kb%3ben-us%3b168958
-         */
-        #pragma warning(disable:4231)
-
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl) \
-            extern template class WXDLLIMPEXP_BASE decl;
-        #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl) \
-            extern template class WXDLLIMPEXP_CORE decl;
-    #endif
-#else /* not VC <= 6 */
-    #define WXDLLIMPEXP_TEMPLATE_INSTANCE_BASE(decl)
-    #define WXDLLIMPEXP_TEMPLATE_INSTANCE_CORE(decl)
-#endif /* VC6/others */
-
 #endif /* _WX_DLIMPEXP_H_ */
-

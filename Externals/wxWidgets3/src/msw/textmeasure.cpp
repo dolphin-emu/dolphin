@@ -105,11 +105,9 @@ void wxTextMeasure::DoGetTextExtent(const wxString& string,
         wxLogLastError(wxT("GetTextExtentPoint32()"));
     }
 
-#if !defined(_WIN32_WCE) || (_WIN32_WCE >= 400)
     // the result computed by GetTextExtentPoint32() may be too small as it
     // accounts for under/overhang of the first/last character while we want
     // just the bounding rect for this string so adjust the width as needed
-    // (using API not available in 2002 SDKs of WinCE)
     if ( len > 0 )
     {
         ABC widthABC;
@@ -131,7 +129,6 @@ void wxTextMeasure::DoGetTextExtent(const wxString& string,
         }
         //else: GetCharABCWidths() failed, not a TrueType font?
     }
-#endif // !defined(_WIN32_WCE) || (_WIN32_WCE >= 400)
 
     *width = sizeRect.cx;
     *height = sizeRect.cy;
@@ -154,27 +151,12 @@ bool wxTextMeasure::DoGetPartialTextExtents(const wxString& text,
     if ( !m_hdc )
         return wxTextMeasureBase::DoGetPartialTextExtents(text, widths, scaleX);
 
-    static int maxLenText = -1;
-    static int maxWidth = -1;
-
-    if (maxLenText == -1)
-    {
-        // Win9x and WinNT+ have different limits
-        int version = wxGetOsVersion();
-        maxLenText = version == wxOS_WINDOWS_NT ? 65535 : 8192;
-        maxWidth =   version == wxOS_WINDOWS_NT ? INT_MAX : 32767;
-    }
-
-    int len = text.length();
-    if ( len > maxLenText )
-        len = maxLenText;
-
     int fit = 0;
     SIZE sz = {0,0};
     if ( !::GetTextExtentExPoint(m_hdc,
                                  text.t_str(), // string to check
-                                 len,
-                                 maxWidth,
+                                 text.length(),
+                                 INT_MAX,      // max allowable width
                                  &fit,         // [out] count of chars
                                                // that will fit
                                  &widths[0],   // array to fill

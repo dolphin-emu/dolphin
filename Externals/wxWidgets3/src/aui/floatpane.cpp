@@ -35,7 +35,7 @@
 #include "wx/msw/private.h"
 #endif
 
-IMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxIMPLEMENT_CLASS(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass);
 
 wxAuiFloatingFrame::wxAuiFloatingFrame(wxWindow* parent,
                 wxAuiManager* owner_mgr,
@@ -165,6 +165,22 @@ wxAuiManager* wxAuiFloatingFrame::GetOwnerManager() const
     return m_ownerMgr;
 }
 
+bool wxAuiFloatingFrame::IsTopNavigationDomain(NavigationKind kind) const
+{
+    switch ( kind )
+    {
+        case Navigation_Tab:
+            break;
+
+        case Navigation_Accel:
+            // Floating frames are often used as tool palettes and it's
+            // convenient for the accelerators defined in the parent frame to
+            // work in them, so don't block their propagation.
+            return false;
+    }
+
+    return wxAuiFloatingFrameBaseClass::IsTopNavigationDomain(kind);
+}
 
 void wxAuiFloatingFrame::OnSize(wxSizeEvent& WXUNUSED(event))
 {
@@ -352,14 +368,14 @@ bool wxAuiFloatingFrame::isMouseDown()
 }
 
 
-BEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
+wxBEGIN_EVENT_TABLE(wxAuiFloatingFrame, wxAuiFloatingFrameBaseClass)
     EVT_SIZE(wxAuiFloatingFrame::OnSize)
     EVT_MOVE(wxAuiFloatingFrame::OnMoveEvent)
     EVT_MOVING(wxAuiFloatingFrame::OnMoveEvent)
     EVT_CLOSE(wxAuiFloatingFrame::OnClose)
     EVT_IDLE(wxAuiFloatingFrame::OnIdle)
     EVT_ACTIVATE(wxAuiFloatingFrame::OnActivate)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 
 #endif // wxUSE_AUI

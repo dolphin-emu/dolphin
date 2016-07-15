@@ -444,17 +444,7 @@ public:
     //*************************IOleInPlaceSiteEx***********************
     HRESULT STDMETHODCALLTYPE OnInPlaceActivateEx(BOOL * pfNoRedraw, DWORD)
     {
-#ifdef __WXWINCE__
-        IRunnableObject* runnable = NULL;
-        HRESULT hr = QueryInterface(
-            IID_IRunnableObject, (void**)(& runnable));
-        if (SUCCEEDED(hr))
-        {
-            runnable->LockRunning(TRUE, FALSE);
-        }
-#else
         OleLockRunning(m_window->m_ActiveX, TRUE, FALSE);
-#endif
         if (pfNoRedraw)
             (*pfNoRedraw) = FALSE;
         return S_OK;
@@ -462,17 +452,7 @@ public:
 
     HRESULT STDMETHODCALLTYPE OnInPlaceDeactivateEx(BOOL)
     {
-#ifdef __WXWINCE__
-        IRunnableObject* runnable = NULL;
-        HRESULT hr = QueryInterface(
-            IID_IRunnableObject, (void**)(& runnable));
-        if (SUCCEEDED(hr))
-        {
-            runnable->LockRunning(FALSE, FALSE);
-        }
-#else
         OleLockRunning(m_window->m_ActiveX, FALSE, FALSE);
-#endif
         return S_OK;
     }
     STDMETHOD(RequestUIActivate)(){ return S_OK;}
@@ -526,9 +506,7 @@ public:
     HRESULT STDMETHODCALLTYPE LockContainer(BOOL){return S_OK;}
     //********************IOleItemContainer***************************
     HRESULT STDMETHODCALLTYPE
-    #if 0 // defined(__WXWINCE__) && __VISUALC__ < 1400
-    GetObject
-    #elif defined(_UNICODE)
+    #if defined(_UNICODE)
     GetObjectW
     #else
     GetObjectA
@@ -1007,13 +985,13 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
 
         // wxAutoOleInterface<> assumes a ref has already been added
         // TYPEATTR
-        TYPEATTR *ta = NULL;
-        hret = ti->GetTypeAttr(&ta);
+        TYPEATTR *ta2 = NULL;
+        hret = ti->GetTypeAttr(&ta2);
         CHECK_HR(hret);
 
-        if (ta->typekind == TKIND_DISPATCH)
+        if (ta2->typekind == TKIND_DISPATCH)
         {
-            // WXOLE_TRACEOUT("GUID = " << GetIIDName(ta->guid).c_str());
+            // WXOLE_TRACEOUT("GUID = " << GetIIDName(ta2->guid).c_str());
             if (defEventSink)
             {
                 wxAutoIConnectionPoint    cp;
@@ -1022,8 +1000,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
                 wxAutoIConnectionPointContainer cpContainer(IID_IConnectionPointContainer, m_ActiveX);
                 wxASSERT( cpContainer.IsOk());
 
-                HRESULT hret =
-                    cpContainer->FindConnectionPoint(ta->guid, cp.GetRef());
+                hret = cpContainer->FindConnectionPoint(ta2->guid, cp.GetRef());
 
                 // Notice that the return value of CONNECT_E_NOCONNECTION is
                 // expected if the interface doesn't support connection points.
@@ -1035,7 +1012,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
                 if ( cp )
                 {
                     wxActiveXEvents * const
-                        events = new wxActiveXEvents(this, ta->guid);
+                        events = new wxActiveXEvents(this, ta2->guid);
                     hret = cp->Advise(events, &adviseCookie);
 
                     // We don't need this object any more and cp will keep a
@@ -1048,7 +1025,7 @@ void wxActiveXContainer::CreateActiveX(REFIID iid, IUnknown* pUnk)
             }
         }
 
-        ti->ReleaseTypeAttr(ta);
+        ti->ReleaseTypeAttr(ta2);
     }
 
     // free
@@ -1225,11 +1202,7 @@ void wxActiveXContainer::OnPaint(wxPaintEvent& WXUNUSED(event))
         posRect.right = w;
         posRect.bottom = h;
 
-#if !(defined(_WIN32_WCE) && _WIN32_WCE < 400)
         ::RedrawWindow(m_oleObjectHWND, NULL, NULL, RDW_INTERNALPAINT);
-#else
-        ::InvalidateRect(m_oleObjectHWND, NULL, false);
-#endif
         RECTL *prcBounds = (RECTL *) &posRect;
         wxMSWDCImpl *msw = wxDynamicCast( dc.GetImpl() , wxMSWDCImpl );
         m_viewObject->Draw(DVASPECT_CONTENT, -1, NULL, NULL, NULL,

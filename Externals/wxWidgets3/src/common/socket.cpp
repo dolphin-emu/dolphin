@@ -34,10 +34,12 @@
     #include "wx/utils.h"
     #include "wx/timer.h"
     #include "wx/module.h"
+    #include "wx/filefn.h"
 #endif
 
 #include "wx/apptrait.h"
 #include "wx/sckaddr.h"
+#include "wx/scopeguard.h"
 #include "wx/stopwatch.h"
 #include "wx/thread.h"
 #include "wx/evtloop.h"
@@ -120,11 +122,11 @@ wxDEFINE_EVENT(wxEVT_SOCKET, wxSocketEvent);
 // wxWin macros
 // --------------------------------------------------------------------------
 
-IMPLEMENT_CLASS(wxSocketBase, wxObject)
-IMPLEMENT_CLASS(wxSocketServer, wxSocketBase)
-IMPLEMENT_CLASS(wxSocketClient, wxSocketBase)
-IMPLEMENT_CLASS(wxDatagramSocket, wxSocketBase)
-IMPLEMENT_DYNAMIC_CLASS(wxSocketEvent, wxEvent)
+wxIMPLEMENT_CLASS(wxSocketBase, wxObject);
+wxIMPLEMENT_CLASS(wxSocketServer, wxSocketBase);
+wxIMPLEMENT_CLASS(wxSocketClient, wxSocketBase);
+wxIMPLEMENT_CLASS(wxDatagramSocket, wxSocketBase);
+wxIMPLEMENT_DYNAMIC_CLASS(wxSocketEvent, wxEvent);
 
 // ----------------------------------------------------------------------------
 // private functions
@@ -527,6 +529,8 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     WX_SOCKLEN_T fromlen = sizeof(from);
     const wxSOCKET_T fd = accept(m_fd, &from.addr, &fromlen);
 
+    wxScopeGuard closeSocket = wxMakeGuard(wxClose, fd);
+
     // accepting is similar to reading in the sense that it resets "ready for
     // read" flag on the socket
     ReenableEvents(wxSOCKET_INPUT_FLAG);
@@ -542,6 +546,8 @@ wxSocketImpl *wxSocketImpl::Accept(wxSocketBase& wxsocket)
     if ( !sock )
         return NULL;
 
+    // Ownership of the socket now passes to wxSocketImpl object.
+    closeSocket.Dismiss();
     sock->m_fd = fd;
     sock->m_peer = wxSockAddressImpl(from.addr, fromlen);
 
@@ -2125,24 +2131,24 @@ wxDatagramSocket& wxDatagramSocket::SendTo( const wxSockAddress& addr,
 class wxSocketModule : public wxModule
 {
 public:
-    virtual bool OnInit()
+    virtual bool OnInit() wxOVERRIDE
     {
         // wxSocketBase will call Initialize() itself only if sockets are
         // really used, don't do it from here
         return true;
     }
 
-    virtual void OnExit()
+    virtual void OnExit() wxOVERRIDE
     {
         if ( wxSocketBase::IsInitialized() )
             wxSocketBase::Shutdown();
     }
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxSocketModule)
+    wxDECLARE_DYNAMIC_CLASS(wxSocketModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxSocketModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxSocketModule, wxModule);
 
 #if defined(wxUSE_SELECT_DISPATCHER) && wxUSE_SELECT_DISPATCHER
 // NOTE: we need to force linking against socketiohandler.cpp otherwise in

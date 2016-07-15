@@ -554,7 +554,7 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-  static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+  static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT;
 
   if (m_ToolBar != nullptr)
   {

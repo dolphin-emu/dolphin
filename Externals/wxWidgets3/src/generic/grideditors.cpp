@@ -415,11 +415,13 @@ void wxGridCellTextEditor::DoCreate(wxWindow* parent,
     {
         Text()->SetMaxLength(m_maxChars);
     }
+#if wxUSE_VALIDATORS
     // validate text in textctrl, if validator is set
     if ( m_validator )
     {
         Text()->SetValidator(*m_validator);
     }
+#endif
 
     wxGridCellEditor::Create(parent, id, evtHandler);
 }
@@ -638,18 +640,22 @@ void wxGridCellTextEditor::SetParameters(const wxString& params)
     }
 }
 
+#if wxUSE_VALIDATORS
 void wxGridCellTextEditor::SetValidator(const wxValidator& validator)
 {
     m_validator.reset(static_cast<wxValidator*>(validator.Clone()));
 }
+#endif
 
 wxGridCellEditor *wxGridCellTextEditor::Clone() const
 {
     wxGridCellTextEditor* editor = new wxGridCellTextEditor(m_maxChars);
+#if wxUSE_VALIDATORS
     if ( m_validator )
     {
         editor->SetValidator(*m_validator);
     }
+#endif
     return editor;
 }
 

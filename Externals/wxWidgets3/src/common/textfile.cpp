@@ -56,26 +56,29 @@ bool wxTextFile::OnExists() const
 }
 
 
-bool wxTextFile::OnOpen(const wxString &strBufferName, wxTextBufferOpenMode OpenMode)
+bool wxTextFile::OnOpen(const wxString &strBufferName, wxTextBufferOpenMode openMode)
 {
-    wxFile::OpenMode FileOpenMode;
+    wxFile::OpenMode fileOpenMode = wxFile::read_write;
 
-    switch ( OpenMode )
+    switch ( openMode )
     {
-        default:
-            wxFAIL_MSG( wxT("unknown open mode in wxTextFile::Open") );
-            // fall through
-
-        case ReadAccess :
-            FileOpenMode = wxFile::read;
+        case ReadAccess:
+            fileOpenMode = wxFile::read;
             break;
 
-        case WriteAccess :
-            FileOpenMode = wxFile::write;
+        case WriteAccess:
+            fileOpenMode = wxFile::write;
             break;
     }
 
-    return m_file.Open(strBufferName.c_str(), FileOpenMode);
+    if ( fileOpenMode == wxFile::read_write )
+    {
+        // This must mean it hasn't been initialized in the switch above.
+        wxFAIL_MSG( wxT("unknown open mode in wxTextFile::Open") );
+        return false;
+    }
+
+    return m_file.Open(strBufferName, fileOpenMode);
 }
 
 
@@ -208,93 +211,46 @@ bool wxTextFile::OnRead(const wxMBConv& conv)
 
     // now break the buffer in lines
 
-    // was the last processed character a CR?
-    bool lastWasCR = false;
-
     // the beginning of the current line, changes inside the loop
     wxString::const_iterator lineStart = str.begin();
     const wxString::const_iterator end = str.end();
     for ( wxString::const_iterator p = lineStart; p != end; p++ )
     {
         const wxChar ch = *p;
-        switch ( ch )
+        if ( ch == '\r' || ch == '\n' )
         {
-            case '\n':
-                // could be a DOS or Unix EOL
-                if ( lastWasCR )
-                {
-                    if ( p - 1 >= lineStart )
-                    {
-                        AddLine(wxString(lineStart, p - 1), wxTextFileType_Dos);
-                    }
-                    else
-                    {
-                        // there were two line endings, so add an empty line:
-                        AddLine(wxEmptyString, wxTextFileType_Dos);
-                    }
-                }
-                else // bare '\n', Unix style
-                {
-                    AddLine(wxString(lineStart, p), wxTextFileType_Unix);
-                }
+            // Determine the kind of line ending this is.
+            wxTextFileType lineType = wxTextFileType_None;
+            if ( ch == '\r' )
+            {
+                wxString::const_iterator next = p + 1;
+                if ( next != end && *next == '\n' )
+                    lineType = wxTextFileType_Dos;
+                else
+                    lineType = wxTextFileType_Mac;
+            }
+            else // ch == '\n'
+            {
+                lineType = wxTextFileType_Unix;
+            }
 
-                lineStart = p + 1;
-                lastWasCR = false;
-                break;
+            AddLine(wxString(lineStart, p), lineType);
 
-            case '\r':
-                if ( lastWasCR )
-                {
-                    // Mac empty line
-                    AddLine(wxEmptyString, wxTextFileType_Mac);
-                    lineStart = p + 1;
-                }
-                //else: we don't know what this is yet -- could be a Mac EOL or
-                //      start of DOS EOL so wait for next char
+            // DOS EOL is the only one consisting of two chars, not one.
+            if ( lineType == wxTextFileType_Dos )
+                p++;
 
-                lastWasCR = true;
-                break;
-
-            default:
-                if ( lastWasCR )
-                {
-                    // Mac line termination
-                    if ( p - 1 >= lineStart )
-                    {
-                        AddLine(wxString(lineStart, p - 1), wxTextFileType_Mac);
-                    }
-                    else
-                    {
-                        // there were two line endings, so add an empty line:
-                        AddLine(wxEmptyString, wxTextFileType_Mac);
-                    }
-                    lineStart = p;
-                }
-                lastWasCR = false;
+            lineStart = p + 1;
         }
     }
 
     // anything in the last line?
     if ( lineStart != end )
     {
-        // add the last line, notice that it may have been terminated with CR
-        // as we don't end the line immediately when we see a CR, as it could
-        // be followed by a LF.
+        // Add the last line; notice that it is certainly not terminated with a
+        // newline, otherwise it would be handled above.
         wxString lastLine(lineStart, end);
-        wxTextFileType lastType;
-        if ( lastWasCR )
-        {
-            // last line had Mac EOL, exclude it from the string
-            lastLine.RemoveLast();
-            lastType = wxTextFileType_Mac;
-        }
-        else
-        {
-            // last line wasn't terminated at all
-            lastType = wxTextFileType_None;
-        }
-
-        AddLine(lastLine, lastType);
+        AddLine(lastLine, wxTextFileType_None);
     }
 
     return true;
@@ -314,7 +270,7 @@ bool wxTextFile::OnWrite(wxTextFileType typeNew, const wxMBConv& conv)
     wxTempFile fileTmp(fn.GetFullPath());
 
     if ( !fileTmp.IsOpened() ) {
-        wxLogError(_("can't write buffer '%s' to disk."), m_strBufferName.c_str());
+        wxLogError(_("can't write buffer '%s' to disk."), m_strBufferName);
         return false;
     }
 

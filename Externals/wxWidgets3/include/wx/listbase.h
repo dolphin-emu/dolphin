@@ -16,6 +16,7 @@
 #include "wx/gdicmn.h"
 #include "wx/event.h"
 #include "wx/control.h"
+#include "wx/systhemectrl.h"
 
 class WXDLLIMPEXP_FWD_CORE wxImageList;
 
@@ -83,11 +84,11 @@ int (wxCALLBACK *wxListCtrlCompare)(wxIntPtr item1, wxIntPtr item2, wxIntPtr sor
 #define wxLIST_STATE_FOCUSED        0x0002
 #define wxLIST_STATE_SELECTED       0x0004
 #define wxLIST_STATE_CUT            0x0008      // MSW only
-#define wxLIST_STATE_DISABLED       0x0010      // OS2 only
-#define wxLIST_STATE_FILTERED       0x0020      // OS2 only
-#define wxLIST_STATE_INUSE          0x0040      // OS2 only
-#define wxLIST_STATE_PICKED         0x0080      // OS2 only
-#define wxLIST_STATE_SOURCE         0x0100      // OS2 only
+#define wxLIST_STATE_DISABLED       0x0010      // Not used
+#define wxLIST_STATE_FILTERED       0x0020      // Not used
+#define wxLIST_STATE_INUSE          0x0040      // Not used
+#define wxLIST_STATE_PICKED         0x0080      // Not used
+#define wxLIST_STATE_SOURCE         0x0100      // Not used
 
 // Hit test flags, used in HitTest
 #define wxLIST_HITTEST_ABOVE            0x0001  // Above the client area.
@@ -339,10 +340,6 @@ public:
     int             m_format;   // left, right, centre
     int             m_width;    // width of column
 
-#ifdef __WXPM__
-    int             m_miniImage; // handle to the mini image for OS/2
-#endif
-
 protected:
     // creates m_attr if we don't have it yet
     wxListItemAttr& Attributes()
@@ -370,7 +367,7 @@ protected:
     wxListItemAttr *m_attr;     // optional pointer to the items style
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxListItem)
+    wxDECLARE_DYNAMIC_CLASS(wxListItem);
 };
 
 // ----------------------------------------------------------------------------
@@ -381,7 +378,7 @@ private:
 // the real control class but is just used for implementation convenience. We
 // should define the public class functions as pure virtual here in the future
 // however.
-class WXDLLIMPEXP_CORE wxListCtrlBase : public wxControl
+class WXDLLIMPEXP_CORE wxListCtrlBase : public wxSystemThemedControl<wxControl>
 {
 public:
     wxListCtrlBase() { }
@@ -461,13 +458,20 @@ public:
 
     void EnableAlternateRowColours(bool enable = true);
     void SetAlternateRowColour(const wxColour& colour);
+    wxColour GetAlternateRowColour() const { return m_alternateRowColour.GetBackgroundColour(); }
+
+    // Checkboxes support: only implemented in wxMSW currently.
+    virtual bool HasCheckboxes() const { return false; }
+    virtual bool EnableCheckboxes(bool WXUNUSED(enable) = true) { return false; }
+    virtual bool IsItemChecked(long WXUNUSED(item)) const { return false; }
+    virtual void CheckItem(long WXUNUSED(item), bool WXUNUSED(check)) { }
 
 protected:
     // Real implementations methods to which our public forwards.
     virtual long DoInsertColumn(long col, const wxListItem& info) = 0;
 
     // Overridden methods of the base class.
-    virtual wxSize DoGetBestClientSize() const;
+    virtual wxSize DoGetBestClientSize() const wxOVERRIDE;
 
 private:
     // user defined color to draw row lines, may be invalid
@@ -522,7 +526,7 @@ public:
     bool IsEditCancelled() const { return m_editCancelled; }
     void SetEditCanceled(bool editCancelled) { m_editCancelled = editCancelled; }
 
-    virtual wxEvent *Clone() const { return new wxListEvent(*this); }
+    virtual wxEvent *Clone() const wxOVERRIDE { return new wxListEvent(*this); }
 
 //protected: -- not for backwards compatibility
     int           m_code;
@@ -537,7 +541,7 @@ protected:
     bool          m_editCancelled;
 
 private:
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxListEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxListEvent);
 };
 
 // ----------------------------------------------------------------------------
@@ -565,6 +569,8 @@ wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_BEGIN_DRAG, wxListEve
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_DRAGGING, wxListEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_COL_END_DRAG, wxListEvent );
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_FOCUSED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_CHECKED, wxListEvent );
+wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_CORE, wxEVT_LIST_ITEM_UNCHECKED, wxListEvent );
 
 typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
 
@@ -595,6 +601,8 @@ typedef void (wxEvtHandler::*wxListEventFunction)(wxListEvent&);
 #define EVT_LIST_ITEM_MIDDLE_CLICK(id, fn) wx__DECLARE_LISTEVT(ITEM_MIDDLE_CLICK, id, fn)
 #define EVT_LIST_ITEM_ACTIVATED(id, fn) wx__DECLARE_LISTEVT(ITEM_ACTIVATED, id, fn)
 #define EVT_LIST_ITEM_FOCUSED(id, fn) wx__DECLARE_LISTEVT(ITEM_FOCUSED, id, fn)
+#define EVT_LIST_ITEM_CHECKED(id, fn) wx__DECLARE_LISTEVT(ITEM_CHECKED, id, fn)
+#define EVT_LIST_ITEM_UNCHECKED(id, fn) wx__DECLARE_LISTEVT(ITEM_UNCHECKED, id, fn)
 
 #define EVT_LIST_CACHE_HINT(id, fn) wx__DECLARE_LISTEVT(CACHE_HINT, id, fn)
 

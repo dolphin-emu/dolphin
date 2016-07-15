@@ -267,7 +267,7 @@ public:
 
         internT* data;
 
-        if ( FAILED( SafeArrayPtrOfIndex(m_array, indices, (void**)&data) ) )
+        if ( FAILED( SafeArrayPtrOfIndex(m_array, (LONG *)indices, (void**)&data) ) )
             return false;
 
         return Convertor::ToArray(element, *data);
@@ -284,7 +284,7 @@ public:
 
         internT* data;
 
-        if ( FAILED( SafeArrayPtrOfIndex(m_array, indices, (void**)&data) ) )
+        if ( FAILED( SafeArrayPtrOfIndex(m_array, (LONG *)indices, (void**)&data) ) )
             return false;
 
         return Convertor::FromArray(*data, element);

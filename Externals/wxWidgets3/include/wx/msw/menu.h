@@ -20,23 +20,7 @@
 
 class WXDLLIMPEXP_FWD_CORE wxFrame;
 
-#if defined(__WXWINCE__) && wxUSE_TOOLBAR
-class WXDLLIMPEXP_FWD_CORE wxToolBar;
-#endif
-
 class wxMenuRadioItemsData;
-
-// Not using a combined wxToolBar/wxMenuBar? then use
-// a commandbar in WinCE .NET to implement the
-// menubar, since there is no ::SetMenu function.
-#if defined(__WXWINCE__)
-#   if ((_WIN32_WCE >= 400) && !defined(__POCKETPC__) && !defined(__SMARTPHONE__)) || \
-        defined(__HANDHELDPC__)
-#       define WINCE_WITH_COMMANDBAR
-#   else
-#       define WINCE_WITHOUT_COMMANDBAR
-#   endif
-#endif
 
 
 #include "wx/arrstr.h"
@@ -67,6 +51,9 @@ public:
     // menu handle and will delete it when this object is destroyed.
     static wxMenu *MSWNewFromHMENU(WXHMENU hMenu) { return new wxMenu(hMenu); }
 
+    // Detaches HMENU so that it isn't deleted when this object is destroyed.
+    // Don't use this object after calling this method.
+    WXHMENU MSWDetachHMENU() { WXHMENU m = m_hMenu; m_hMenu = NULL; return m; }
 
     // implementation only from now on
     // -------------------------------
@@ -99,6 +86,9 @@ public:
     wxAcceleratorTable *CreateAccelTable() const;
 #endif // wxUSE_ACCEL
 
+    // get the menu with given handle (recursively)
+    wxMenu* MSWGetMenu(WXHMENU hMenu);
+
 #if wxUSE_OWNER_DRAWN
 
     int GetMaxAccelWidth()
@@ -112,9 +102,6 @@ public:
     {
         m_maxAccelWidth = -1;
     }
-
-    // get the menu with given handle (recursively)
-    wxMenu* MSWGetMenu(WXHMENU hMenu);
 
 private:
     void CalculateMaxAccelWidth();
@@ -170,7 +157,7 @@ private:
     int m_maxAccelWidth;
 #endif // wxUSE_OWNER_DRAWN
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxMenu)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxMenu);
 };
 
 // ----------------------------------------------------------------------------
@@ -205,17 +192,6 @@ public:
     virtual void Detach();
     virtual void Attach(wxFrame *frame);
 
-#if defined(__WXWINCE__) && wxUSE_TOOLBAR
-    // Under WinCE, a menubar is owned by the frame's toolbar
-    void SetToolBar(wxToolBar* toolBar) { m_toolBar = toolBar; }
-    wxToolBar* GetToolBar() const { return m_toolBar; }
-#endif
-
-#ifdef WINCE_WITH_COMMANDBAR
-    WXHWND GetCommandBar() const { return m_commandBar; }
-    bool AddAdornments(long style);
-#endif
-
 #if wxUSE_ACCEL
     // update the accel table (must be called after adding/deleting a menu)
     void RebuildAccelTable();
@@ -232,8 +208,11 @@ public:
     void Refresh( bool eraseBackground,
                           const wxRect *rect = (const wxRect *) NULL ) { wxWindow::Refresh(eraseBackground, rect); }
 
-    // get the menu with given handle (recursively)
-    wxMenu* MSWGetMenu(WXHMENU hMenu);
+    // Get a top level menu position or wxNOT_FOUND from its handle.
+    int MSWGetTopMenuPos(WXHMENU hMenu) const;
+
+    // Get a top level or sub menu with given handle (recursively).
+    wxMenu* MSWGetMenu(WXHMENU hMenu) const;
 
 protected:
     // common part of all ctors
@@ -245,17 +224,8 @@ protected:
     // the wxWidgets position.
     int MSWPositionForWxMenu(wxMenu *menu, int wxpos);
 
-#if defined(__WXWINCE__) && wxUSE_TOOLBAR
-    wxToolBar*  m_toolBar;
-#endif
-
-#ifdef WINCE_WITH_COMMANDBAR
-    WXHWND      m_commandBar;
-    bool        m_adornmentsAdded;
-#endif
-
 private:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxMenuBar)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxMenuBar);
 };
 
 #endif // _WX_MENU_H_

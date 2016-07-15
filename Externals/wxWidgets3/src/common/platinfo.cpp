@@ -66,6 +66,7 @@ static const wxChar* const wxOperatingSystemIdNames[] =
 
     wxT("DOS"),
     wxT("OS/2"),
+
 };
 
 static const wxChar* const wxPortIdNames[] =
@@ -80,6 +81,7 @@ static const wxChar* const wxPortIdNames[] =
     wxT("wxMac"),
     wxT("wxCocoa"),
     wxT("wxWinCE"),
+    wxT("wxQT")
 };
 
 static const wxChar* const wxArchitectureNames[] =
@@ -133,14 +135,18 @@ wxPlatformInfo::wxPlatformInfo(wxPortId pid, int tkMajor, int tkMinor,
                                wxEndianness endian,
                                bool usingUniversal)
 {
+    m_initializedForCurrentPlatform = false;
+
     m_tkVersionMajor = tkMajor;
     m_tkVersionMinor = tkMinor;
+    m_tkVersionMicro = -1;
     m_port = pid;
     m_usingUniversal = usingUniversal;
 
     m_os = id;
     m_osVersionMajor = osMajor;
     m_osVersionMinor = osMinor;
+    m_osVersionMicro = -1;
 
     m_endian = endian;
     m_arch = arch;
@@ -150,8 +156,10 @@ bool wxPlatformInfo::operator==(const wxPlatformInfo &t) const
 {
     return m_tkVersionMajor == t.m_tkVersionMajor &&
            m_tkVersionMinor == t.m_tkVersionMinor &&
+           m_tkVersionMicro == t.m_tkVersionMicro &&
            m_osVersionMajor == t.m_osVersionMajor &&
            m_osVersionMinor == t.m_osVersionMinor &&
+           m_osVersionMicro == t.m_osVersionMicro &&
            m_os == t.m_os &&
            m_osDesc == t.m_osDesc &&
            m_ldi == t.m_ldi &&
@@ -164,6 +172,8 @@ bool wxPlatformInfo::operator==(const wxPlatformInfo &t) const
 
 void wxPlatformInfo::InitForCurrentPlatform()
 {
+    m_initializedForCurrentPlatform = true;
+
     // autodetect all informations
     const wxAppTraits * const traits = wxTheApp ? wxTheApp->GetTraits() : NULL;
     if ( !traits )
@@ -173,16 +183,18 @@ void wxPlatformInfo::InitForCurrentPlatform()
         m_port = wxPORT_UNKNOWN;
         m_usingUniversal = false;
         m_tkVersionMajor =
-                m_tkVersionMinor = 0;
+        m_tkVersionMinor =
+        m_tkVersionMicro = 0;
     }
     else
     {
-        m_port = traits->GetToolkitVersion(&m_tkVersionMajor, &m_tkVersionMinor);
+        m_port = traits->GetToolkitVersion(&m_tkVersionMajor, &m_tkVersionMinor,
+                                           &m_tkVersionMicro);
         m_usingUniversal = traits->IsUsingUniversalWidgets();
         m_desktopEnv = traits->GetDesktopEnvironment();
     }
 
-    m_os = wxGetOsVersion(&m_osVersionMajor, &m_osVersionMinor);
+    m_os = wxGetOsVersion(&m_osVersionMajor, &m_osVersionMinor, &m_osVersionMicro);
     m_osDesc = wxGetOsDescription();
     m_endian = wxIsPlatformLittleEndian() ? wxENDIAN_LITTLE : wxENDIAN_BIG;
     m_arch = wxIsPlatform64Bit() ? wxARCH_64 : wxARCH_32;
@@ -292,6 +304,21 @@ wxString wxPlatformInfo::GetEndiannessName(wxEndianness end)
     return wxEndiannessNames[end];
 }
 
+bool wxPlatformInfo::CheckOSVersion(int major, int minor, int micro) const
+{
+    // If this instance of wxPlatformInfo has been initialized by InitForCurrentPlatform()
+    // this check gets forwarded to the wxCheckOsVersion which might do more than a simple
+    // number check if supported by the platform
+    if (m_initializedForCurrentPlatform)
+        return wxCheckOsVersion(major, minor, micro);
+    else
+        return DoCheckVersion(GetOSMajorVersion(),
+                            GetOSMinorVersion(),
+                            GetOSMicroVersion(),
+                            major,
+                            minor,
+                            micro);
+}
 
 // ----------------------------------------------------------------------------
 // wxPlatformInfo - string -> enum conversions

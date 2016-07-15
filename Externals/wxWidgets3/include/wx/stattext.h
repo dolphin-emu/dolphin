@@ -26,6 +26,9 @@
 #define wxST_ELLIPSIZE_MIDDLE      0x0008
 #define wxST_ELLIPSIZE_END         0x0010
 
+#define wxST_ELLIPSIZE_MASK \
+    (wxST_ELLIPSIZE_START | wxST_ELLIPSIZE_MIDDLE | wxST_ELLIPSIZE_END)
+
 extern WXDLLIMPEXP_DATA_CORE(const char) wxStaticTextNameStr[];
 
 class WXDLLIMPEXP_CORE wxStaticTextBase : public wxControl
@@ -39,20 +42,18 @@ public:
     void Wrap(int width);
 
     // overridden base virtuals
-    virtual bool AcceptsFocus() const { return false; }
-    virtual bool HasTransparentBackground() { return true; }
+    virtual bool AcceptsFocus() const wxOVERRIDE { return false; }
+    virtual bool HasTransparentBackground() wxOVERRIDE { return true; }
 
     bool IsEllipsized() const
     {
-        return HasFlag(wxST_ELLIPSIZE_START) ||
-               HasFlag(wxST_ELLIPSIZE_MIDDLE) ||
-               HasFlag(wxST_ELLIPSIZE_END);
+        return (GetWindowStyle() & wxST_ELLIPSIZE_MASK) != 0;
     }
 
 protected:      // functions required for wxST_ELLIPSIZE_* support
 
     // choose the default border for this window
-    virtual wxBorder GetDefaultBorder() const { return wxBORDER_NONE; }
+    virtual wxBorder GetDefaultBorder() const wxOVERRIDE { return wxBORDER_NONE; }
 
     // Calls Ellipsize() on the real label if necessary. Unlike GetLabelText(),
     // keeps the mnemonics instead of removing them.
@@ -78,6 +79,10 @@ protected:      // functions required for wxST_ELLIPSIZE_* support
     // but may contain the mnemonic characters.
     virtual void DoSetLabel(const wxString& WXUNUSED(str)) { }
 
+    // Update the current size to match the best size unless wxST_NO_AUTORESIZE
+    // style is explicitly used.
+    void AutoResizeIfNecessary();
+
 private:
     wxDECLARE_NO_COPY_CLASS(wxStaticTextBase);
 };
@@ -97,10 +102,8 @@ private:
     #include "wx/gtk1/stattext.h"
 #elif defined(__WXMAC__)
     #include "wx/osx/stattext.h"
-#elif defined(__WXCOCOA__)
-    #include "wx/cocoa/stattext.h"
-#elif defined(__WXPM__)
-    #include "wx/os2/stattext.h"
+#elif defined(__WXQT__)
+    #include "wx/qt/stattext.h"
 #endif
 
 #endif // !wxNO_PORT_STATTEXT_INCLUDE

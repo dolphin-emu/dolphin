@@ -67,7 +67,7 @@ protected:
     int m_viewSize;
     int m_objectSize;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxScrollBar)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxScrollBar);
 };
 
 #endif

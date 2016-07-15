@@ -124,8 +124,8 @@ private:
     // and we forwarded the event to this child (as we do with menu events)
     wxMDIChildFrameBase *m_childHandler;
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxGenericMDIParentFrame)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxGenericMDIParentFrame);
 };
 
 // ----------------------------------------------------------------------------
@@ -202,8 +202,8 @@ private:
     void OnMenuHighlight(wxMenuEvent& event);
     void OnClose(wxCloseEvent& event);
 
-    DECLARE_DYNAMIC_CLASS(wxGenericMDIChildFrame)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxGenericMDIChildFrame);
+    wxDECLARE_EVENT_TABLE();
 
     friend class wxGenericMDIClientWindow;
 };
@@ -243,7 +243,7 @@ private:
     // the notebook containing all MDI children as its pages
     wxNotebook *m_notebook;
 
-    DECLARE_DYNAMIC_CLASS(wxGenericMDIClientWindow)
+    wxDECLARE_DYNAMIC_CLASS(wxGenericMDIClientWindow);
 };
 
 // ----------------------------------------------------------------------------

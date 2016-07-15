@@ -234,34 +234,34 @@ public:
     }
 
     // implement base class pure virtuals
-    virtual void SetTitle(const wxString& title) { m_title = title; }
-    virtual wxString GetTitle() const { return m_title; }
+    virtual void SetTitle(const wxString& title) wxOVERRIDE { m_title = title; }
+    virtual wxString GetTitle() const wxOVERRIDE { return m_title; }
 
-    virtual void SetBitmap(const wxBitmap& bitmap) { m_bitmap = bitmap; }
-    wxBitmap GetBitmap() const { return m_bitmap; }
+    virtual void SetBitmap(const wxBitmap& bitmap) wxOVERRIDE { m_bitmap = bitmap; }
+    wxBitmap GetBitmap() const wxOVERRIDE { return m_bitmap; }
 
-    virtual void SetWidth(int width) { m_width = width; }
-    virtual int GetWidth() const { return m_width; }
+    virtual void SetWidth(int width) wxOVERRIDE { m_width = width; }
+    virtual int GetWidth() const wxOVERRIDE { return m_width; }
 
-    virtual void SetMinWidth(int minWidth) { m_minWidth = minWidth; }
-    virtual int GetMinWidth() const { return m_minWidth; }
+    virtual void SetMinWidth(int minWidth) wxOVERRIDE { m_minWidth = minWidth; }
+    virtual int GetMinWidth() const wxOVERRIDE { return m_minWidth; }
 
-    virtual void SetAlignment(wxAlignment align) { m_align = align; }
-    virtual wxAlignment GetAlignment() const { return m_align; }
+    virtual void SetAlignment(wxAlignment align) wxOVERRIDE { m_align = align; }
+    virtual wxAlignment GetAlignment() const wxOVERRIDE { return m_align; }
 
-    virtual void SetFlags(int flags) { m_flags = flags; }
-    virtual int GetFlags() const { return m_flags; }
+    virtual void SetFlags(int flags) wxOVERRIDE { m_flags = flags; }
+    virtual int GetFlags() const wxOVERRIDE { return m_flags; }
 
-    virtual bool IsSortKey() const { return m_sort; }
-    virtual void UnsetAsSortKey() { m_sort = false; }
+    virtual bool IsSortKey() const wxOVERRIDE { return m_sort; }
+    virtual void UnsetAsSortKey() wxOVERRIDE { m_sort = false; }
 
-    virtual void SetSortOrder(bool ascending)
+    virtual void SetSortOrder(bool ascending) wxOVERRIDE
     {
         m_sort = true;
         m_sortAscending = ascending;
     }
 
-    virtual bool IsSortOrderAscending() const { return m_sortAscending; }
+    virtual bool IsSortOrderAscending() const wxOVERRIDE { return m_sortAscending; }
 
 private:
     // common part of all ctors

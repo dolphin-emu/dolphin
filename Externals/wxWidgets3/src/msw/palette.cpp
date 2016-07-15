@@ -111,7 +111,7 @@ private:
 // wxPalette
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxPalette, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPalette, wxGDIObject);
 
 #define M_PALETTEDATA ((wxPaletteRefData *)m_refData)
 

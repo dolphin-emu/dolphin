@@ -34,11 +34,6 @@
 
 #define M_PENDATA ((wxPenRefData*)m_refData)
 
-// Win32 has ExtCreatePen() but WinCE doesn't
-#if !defined(__WXMICROWIN__) && !defined(__WXWINCE__)
-    #define wxHAVE_EXT_CREATE_PEN
-#endif
-
 // ----------------------------------------------------------------------------
 // wxPenRefData: contains information about an HPEN and its handle
 // ----------------------------------------------------------------------------
@@ -220,7 +215,6 @@ static int ConvertPenStyle(wxPenStyle style)
             wxFAIL_MSG( wxT("unknown pen style") );
             // fall through
 
-#ifdef wxHAVE_EXT_CREATE_PEN
         case wxPENSTYLE_DOT:
             return PS_DOT;
 
@@ -238,13 +232,10 @@ static int ConvertPenStyle(wxPenStyle style)
         case wxPENSTYLE_HORIZONTAL_HATCH:
         case wxPENSTYLE_VERTICAL_HATCH:
         case wxPENSTYLE_SOLID:
-#endif // wxHAVE_EXT_CREATE_PEN
 
             return PS_SOLID;
     }
 }
-
-#ifdef wxHAVE_EXT_CREATE_PEN
 
 static int ConvertJoinStyle(wxPenJoin join)
 {
@@ -284,8 +275,6 @@ static int ConvertCapStyle(wxPenCap cap)
     }
 }
 
-#endif // wxHAVE_EXT_CREATE_PEN
-
 bool wxPenRefData::Alloc()
 {
    if ( m_hPen )
@@ -299,20 +288,6 @@ bool wxPenRefData::Alloc()
 
    const COLORREF col = m_colour.GetPixel();
 
-#ifdef wxHAVE_EXT_CREATE_PEN
-   // Only NT can display dashed or dotted lines with width > 1
-   static const int os = wxGetOsVersion();
-   if ( os != wxOS_WINDOWS_NT &&
-           (m_style == wxPENSTYLE_DOT ||
-            m_style == wxPENSTYLE_LONG_DASH ||
-            m_style == wxPENSTYLE_SHORT_DASH ||
-            m_style == wxPENSTYLE_DOT_DASH ||
-            m_style == wxPENSTYLE_USER_DASH) &&
-            m_width > 1 )
-   {
-       m_width = 1;
-   }
-
    // check if it's a standard kind of pen which can be created with just
    // CreatePen()
    if ( m_join == wxJOIN_ROUND &&
@@ -320,11 +295,9 @@ bool wxPenRefData::Alloc()
                 m_style != wxPENSTYLE_USER_DASH &&
                     m_style != wxPENSTYLE_STIPPLE &&
                         (m_width <= 1 || m_style == wxPENSTYLE_SOLID) )
-#endif // !wxHAVE_EXT_CREATE_PEN
    {
        m_hPen = ::CreatePen(ConvertPenStyle(m_style), m_width, col);
    }
-#ifdef wxHAVE_EXT_CREATE_PEN
    else // need to use ExtCreatePen()
    {
        DWORD styleMSW = PS_GEOMETRIC |
@@ -397,7 +370,6 @@ bool wxPenRefData::Alloc()
 
        delete [] dash;
    }
-#endif // wxHAVE_EXT_CREATE_PEN
 
    return m_hPen != 0;
 }
@@ -425,19 +397,17 @@ WXHPEN wxPenRefData::GetHPEN() const
 // wxPen
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxPen, wxGDIObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxPen, wxGDIObject);
 
 wxPen::wxPen(const wxColour& col, int width, wxPenStyle style)
 {
     m_refData = new wxPenRefData(col, width, style);
 }
 
-#if FUTURE_WXWIN_COMPATIBILITY_3_0
 wxPen::wxPen(const wxColour& colour, int width, int style)
 {
     m_refData = new wxPenRefData(colour, width, (wxPenStyle)style);
 }
-#endif
 
 wxPen::wxPen(const wxBitmap& stipple, int width)
 {

@@ -91,7 +91,7 @@ void wxNonOwnedWindowImpl::Associate( WXWindow window, wxNonOwnedWindowImpl *imp
 // wxNonOwnedWindow creation
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_ABSTRACT_CLASS( wxNonOwnedWindowImpl , wxObject )
+wxIMPLEMENT_ABSTRACT_CLASS(wxNonOwnedWindowImpl, wxObject);
 
 wxNonOwnedWindow *wxNonOwnedWindow::s_macDeactivateWindow = NULL;
 
@@ -232,14 +232,6 @@ bool wxNonOwnedWindow::OSXShowWithEffect(bool show,
                                          wxShowEffect effect,
                                          unsigned timeout)
 {
-    // Cocoa code needs to manage window visibility on its own and so calls
-    // wxWindow::Show() as needed but if we already changed the internal
-    // visibility flag here, Show() would do nothing, so avoid doing it
-#if wxOSX_USE_CARBON
-    if ( !wxWindow::Show(show) )
-        return false;
-#endif // Carbon
-
     if ( effect == wxSHOW_EFFECT_NONE ||
             !m_nowpeer || !m_nowpeer->ShowWithEffect(show, effect, timeout) )
         return Show(show);
@@ -550,6 +542,14 @@ bool wxNonOwnedWindow::DoSetPathShape(const wxGraphicsPath& path)
     bmp.SetMask(new wxMask(bmp, *wxBLACK));
 
     return DoSetRegionShape(wxRegion(bmp));
+}
+
+void
+wxNonOwnedWindow::OSXHandleMiniaturize(double WXUNUSED(timestampsec),
+                                       bool miniaturized)
+{
+    if ( wxTopLevelWindowMac* top = (wxTopLevelWindowMac*) MacGetTopLevelWindow() )
+        top->OSXSetIconizeState(miniaturized);
 }
 
 #endif // wxUSE_GRAPHICS_CONTEXT

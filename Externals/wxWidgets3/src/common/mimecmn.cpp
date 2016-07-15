@@ -49,11 +49,6 @@
     #include "wx/msw/mimetype.h"
 #elif ( defined(__DARWIN__) )
     #include "wx/osx/mimetype.h"
-#elif defined(__WXPM__) || defined (__EMX__)
-    #include "wx/os2/mimetype.h"
-    #undef __UNIX__
-#elif defined(__DOS__)
-    #include "wx/msdos/mimetype.h"
 #else // Unix
     #include "wx/unix/mimetype.h"
 #endif
@@ -433,6 +428,13 @@ wxFileType::GetPrintCommand(wxString *printCmd,
     return m_impl->GetPrintCommand(printCmd, params);
 }
 
+wxString
+wxFileType::GetExpandedCommand(const wxString& verb,
+                               const wxFileType::MessageParameters& params) const
+{
+    return m_impl->GetExpandedCommand(verb, params);
+}
+
 
 size_t wxFileType::GetAllCommands(wxArrayString *verbs,
                                   wxArrayString *commands,
@@ -741,8 +743,8 @@ class wxMimeTypeCmnModule: public wxModule
 public:
     wxMimeTypeCmnModule() : wxModule() { }
 
-    virtual bool OnInit() { return true; }
-    virtual void OnExit()
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE
     {
         wxMimeTypesManagerFactory::Set(NULL);
 
@@ -753,9 +755,9 @@ public:
         }
     }
 
-    DECLARE_DYNAMIC_CLASS(wxMimeTypeCmnModule)
+    wxDECLARE_DYNAMIC_CLASS(wxMimeTypeCmnModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxMimeTypeCmnModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMimeTypeCmnModule, wxModule);
 
 #endif // wxUSE_MIMETYPE

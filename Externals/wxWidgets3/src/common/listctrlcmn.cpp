@@ -52,6 +52,8 @@ wxDEFINE_EVENT( wxEVT_LIST_ITEM_RIGHT_CLICK, wxListEvent );
 wxDEFINE_EVENT( wxEVT_LIST_ITEM_MIDDLE_CLICK, wxListEvent );
 wxDEFINE_EVENT( wxEVT_LIST_ITEM_ACTIVATED, wxListEvent );
 wxDEFINE_EVENT( wxEVT_LIST_ITEM_FOCUSED, wxListEvent );
+wxDEFINE_EVENT( wxEVT_LIST_ITEM_CHECKED, wxListEvent );
+wxDEFINE_EVENT( wxEVT_LIST_ITEM_UNCHECKED, wxListEvent );
 wxDEFINE_EVENT( wxEVT_LIST_CACHE_HINT, wxListEvent );
 
 // -----------------------------------------------------------------------------
@@ -103,10 +105,10 @@ wxFLAGS_MEMBER(wxLC_SORT_DESCENDING)
 wxFLAGS_MEMBER(wxLC_VIRTUAL)
 wxEND_FLAGS( wxListCtrlStyle )
 
-#if ((!defined(__WXMSW__) && !(defined(__WXMAC__) && wxOSX_USE_CARBON)) || defined(__WXUNIVERSAL__))
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListCtrl, wxGenericListCtrl, "wx/listctrl.h")
+#if ((!defined(__WXMSW__) && !defined(__WXQT__) && !(defined(__WXMAC__) && wxOSX_USE_CARBON)) || defined(__WXUNIVERSAL__))
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListCtrl, wxGenericListCtrl, "wx/listctrl.h");
 #else
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListCtrl, wxControl, "wx/listctrl.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxListCtrl, wxControl, "wx/listctrl.h");
 #endif
 
 wxBEGIN_PROPERTIES_TABLE(wxListCtrl)
@@ -127,9 +129,9 @@ wxCONSTRUCTOR_5( wxListCtrl, wxWindow*, Parent, wxWindowID, Id, \
  (see NotebookPageInfo)
  */
 
-IMPLEMENT_DYNAMIC_CLASS(wxListView, wxListCtrl)
-IMPLEMENT_DYNAMIC_CLASS(wxListItem, wxObject)
-IMPLEMENT_DYNAMIC_CLASS(wxListEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxListView, wxListCtrl);
+wxIMPLEMENT_DYNAMIC_CLASS(wxListItem, wxObject);
+wxIMPLEMENT_DYNAMIC_CLASS(wxListEvent, wxNotifyEvent);
 
 // ----------------------------------------------------------------------------
 // wxListCtrlBase implementation

@@ -69,7 +69,7 @@ public:
 private:
     bool m_veto;
 
-    DECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxPowerEvent)
+    wxDECLARE_DYNAMIC_CLASS_NO_ASSIGN(wxPowerEvent);
 };
 
 wxDECLARE_EXPORTED_EVENT( WXDLLIMPEXP_BASE, wxEVT_POWER_SUSPENDING, wxPowerEvent );
@@ -94,6 +94,49 @@ typedef void (wxEvtHandler::*wxPowerEventFunction)(wxPowerEvent&);
 #else // no support for power events
     #undef wxHAS_POWER_EVENTS
 #endif // support for power events/no support
+
+// ----------------------------------------------------------------------------
+// wxPowerResourceBlocker
+// ----------------------------------------------------------------------------
+
+enum wxPowerResourceKind
+{
+    wxPOWER_RESOURCE_SCREEN,
+    wxPOWER_RESOURCE_SYSTEM
+};
+
+class WXDLLIMPEXP_BASE wxPowerResource
+{
+public:
+    static bool Acquire(wxPowerResourceKind kind,
+                        const wxString& reason = wxString());
+    static void Release(wxPowerResourceKind kind);
+};
+
+class wxPowerResourceBlocker
+{
+public:
+    explicit wxPowerResourceBlocker(wxPowerResourceKind kind,
+                                    const wxString& reason = wxString())
+        : m_kind(kind),
+          m_acquired(wxPowerResource::Acquire(kind, reason))
+    {
+    }
+
+    bool IsInEffect() const { return m_acquired; }
+
+    ~wxPowerResourceBlocker()
+    {
+        if ( m_acquired )
+            wxPowerResource::Release(m_kind);
+    }
+
+private:
+    const wxPowerResourceKind m_kind;
+    const bool m_acquired;
+
+    wxDECLARE_NO_COPY_CLASS(wxPowerResourceBlocker);
+};
 
 // ----------------------------------------------------------------------------
 // power management functions

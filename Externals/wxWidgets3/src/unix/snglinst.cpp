@@ -292,7 +292,13 @@ bool wxSingleInstanceCheckerImpl::Create(const wxString& name)
                 }
                 else
                 {
-                    wxLogMessage(_("Deleted stale lock file '%s'."),
+                    // This may be important to know if something goes
+                    // mysteriously wrong, but as the user can't really do
+                    // anything about here (the most typical reason for this
+                    // message is that the previous instance of the program
+                    // crashed), don't show it by default, i.e. unless the
+                    // program is running with --verbose command line option.
+                    wxLogInfo(_("Deleted stale lock file '%s'."),
                                  name.c_str());
 
                     // retry now

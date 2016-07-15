@@ -26,20 +26,9 @@ public:
 
     virtual int ShowModal();
 
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-    wxDEPRECATED( wxFontDialog(wxWindow *parent, const wxFontData *data) );
-#endif // WXWIN_COMPATIBILITY_2_6
-
 protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxFontDialog)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxFontDialog);
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated interface, don't use
-inline wxFontDialog::wxFontDialog(wxWindow *parent, const wxFontData *data)
-        : wxFontDialogBase(parent) { InitFontData(data); Create(parent); }
-#endif // WXWIN_COMPATIBILITY_2_6
 
 #endif
     // _WX_MSW_FONTDLG_H_

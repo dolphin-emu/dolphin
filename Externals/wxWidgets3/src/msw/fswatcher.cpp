@@ -217,19 +217,39 @@ wxThread::ExitCode wxIOCPThread::Entry()
 }
 
 // wait for events to occur, read them and send to interested parties
-// returns false it empty status was read, which means we whould exit
+// returns false it empty status was read, which means we would exit
 //         true otherwise
 bool wxIOCPThread::ReadEvents()
 {
-    unsigned long count = 0;
+    DWORD count = 0;
     wxFSWatchEntryMSW* watch = NULL;
     OVERLAPPED* overlapped = NULL;
-    if (!m_iocp->GetStatus(&count, &watch, &overlapped))
-        return true; // error was logged already, we don't want to exit
+    switch ( m_iocp->GetStatus(&count, &watch, &overlapped) )
+    {
+        case wxIOCPService::Status_OK:
+            break; // nothing special to do, continue normally
 
-    // this is our exit condition, so we return false
-    if (!count && !watch && !overlapped)
-        return false;
+        case wxIOCPService::Status_Error:
+            return true; // error was logged already, we don't want to exit
+
+        case wxIOCPService::Status_Deleted:
+            {
+                wxFileSystemWatcherEvent
+                    removeEvent(wxFSW_EVENT_DELETE,
+                                watch->GetPath(),
+                                wxFileName());
+                SendEvent(removeEvent);
+            }
+
+            // It isn't useful to continue watching this directory as it
+            // doesn't exist any more -- and even recreating a directory with
+            // the same name still wouldn't resume generating events for the
+            // existing wxIOCPService, so it's useless to continue.
+            return false;
+
+        case wxIOCPService::Status_Exit:
+            return false; // stop reading events
+    }
 
     // if the thread got woken up but we got an empty packet it means that
     // there was an overflow, too many events and not all could fit in

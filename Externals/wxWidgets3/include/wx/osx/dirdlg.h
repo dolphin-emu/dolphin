@@ -64,7 +64,7 @@ private:
     // Common part of all ctors.
     void Init();
 
-    DECLARE_DYNAMIC_CLASS(wxDirDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxDirDialog);
 };
 
 #endif // _WX_DIRDLG_H_

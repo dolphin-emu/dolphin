@@ -47,7 +47,7 @@ public:
     virtual ~wxColourButton();
 
 protected:
-    void UpdateColour();
+    void UpdateColour() wxOVERRIDE;
 
 public:     // used by the GTK callback only
 
@@ -57,7 +57,7 @@ public:     // used by the GTK callback only
     wxWindow *m_topParent;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxColourButton)
+    wxDECLARE_DYNAMIC_CLASS(wxColourButton);
 };
 
 #endif // _WX_GTK_CLRPICKER_H_

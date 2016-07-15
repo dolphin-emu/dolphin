@@ -55,11 +55,35 @@ bool wxStaticText::Create(wxWindow *parent,
 
     GtkJustification justify;
     if ( style & wxALIGN_CENTER_HORIZONTAL )
-      justify = GTK_JUSTIFY_CENTER;
+    {
+#ifndef __WXGTK3__
+        // This looks like a bug in GTK+ and seems to be fixed in GTK+3, but
+        // using non-default justification with default ellipsize mode doesn't
+        // work: the justification is just ignored. In practice, alignment is
+        // more important, so turn on ellipsize mode even if it was not
+        // specified to make it work if necessary.
+        if ( !(style & wxST_ELLIPSIZE_MASK) )
+            style |= wxST_ELLIPSIZE_MIDDLE;
+#endif // GTK+ 2
+
+        justify = GTK_JUSTIFY_CENTER;
+    }
     else if ( style & wxALIGN_RIGHT )
-      justify = GTK_JUSTIFY_RIGHT;
-    else
-      justify = GTK_JUSTIFY_LEFT;
+    {
+#ifndef __WXGTK3__
+        // As above, we need to use a non-default ellipsize mode for the
+        // alignment to have any effect.
+        if ( !(style & wxST_ELLIPSIZE_MASK) )
+            style |= wxST_ELLIPSIZE_START;
+#endif // GTK+ 2
+
+        justify = GTK_JUSTIFY_RIGHT;
+    }
+    else // must be wxALIGN_LEFT which is 0
+    {
+        // No need to play games with wxST_ELLIPSIZE_XXX.
+        justify = GTK_JUSTIFY_LEFT;
+    }
 
     if (GetLayoutDirection() == wxLayout_RightToLeft)
     {
@@ -93,6 +117,13 @@ bool wxStaticText::Create(wxWindow *parent,
     m_parent->DoAddChild( this );
 
     PostCreation(size);
+
+#ifndef __WXGTK3__
+    // GtkLabel does its layout based on its size-request, rather than its
+    // actual size. The size-request may not always get set, specifically if
+    // the initial size is fully specified. So make sure it's set here.
+    gtk_widget_set_size_request(m_widget, m_width, m_height);
+#endif
 
     return true;
 }
@@ -205,11 +236,20 @@ wxSize wxStaticText::DoGetBestSize() const
     gtk_label_set_line_wrap(GTK_LABEL(m_widget), false);
 #else
     GTK_LABEL(m_widget)->wrap = FALSE;
+
+    // Reset the ellipsize mode while computing the best size, otherwise it's
+    // going to be too small as the control knows that it can be shrunk to the
+    // bare minimum and just hide most of the text replacing it with ellipsis.
+    // This is especially important because we can enable ellipsization
+    // implicitly for GTK+ 2, see the code dealing with alignment in the ctor.
+    const PangoEllipsizeMode ellipsizeMode = gtk_label_get_ellipsize(GTK_LABEL(m_widget));
+    gtk_label_set_ellipsize(GTK_LABEL(m_widget), PANGO_ELLIPSIZE_NONE);
 #endif
     wxSize size = wxStaticTextBase::DoGetBestSize();
 #ifdef __WXGTK3__
     gtk_label_set_line_wrap(GTK_LABEL(m_widget), true);
 #else
+    gtk_label_set_ellipsize(GTK_LABEL(m_widget), ellipsizeMode);
     GTK_LABEL(m_widget)->wrap = TRUE; // restore old value
 #endif
 

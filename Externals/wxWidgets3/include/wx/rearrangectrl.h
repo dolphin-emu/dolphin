@@ -95,6 +95,10 @@ public:
     bool MoveCurrentUp();
     bool MoveCurrentDown();
 
+
+    // Override this to keep our m_order array in sync with the real item state.
+    virtual void Check(unsigned int item, bool check = true) wxOVERRIDE;
+
 private:
     // swap two items at the given positions in the listbox
     void Swap(int pos1, int pos2);
@@ -107,7 +111,7 @@ private:
     wxArrayInt m_order;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxRearrangeList);
 };
 
@@ -164,7 +168,7 @@ private:
     wxRearrangeList *m_list;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
     wxDECLARE_NO_COPY_CLASS(wxRearrangeCtrl);
 };
 
