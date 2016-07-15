@@ -285,6 +285,12 @@ bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeature
   enable_features->shaderClipDistance = available_features.shaderClipDistance;
   enable_features->shaderCullDistance = available_features.shaderCullDistance;
 
+  // Dual source blending seems to be broken on AMD drivers (At least as of 16.5.1).
+  // Creating a pipeline with a fragment shader that has an output with the Index
+  // decoration causes it to fail silently.
+  if (properties.vendorID == 0x1002)
+    enable_features->dualSrcBlend = VK_FALSE;
+
   return true;
 }
 
