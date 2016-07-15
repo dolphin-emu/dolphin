@@ -28,14 +28,22 @@ namespace Vulkan
 class CommandBufferManager
 {
 public:
-  CommandBufferManager(VkDevice device, uint32_t graphics_queue_family_index,
-                       VkQueue graphics_queue, bool use_threaded_submission);
+  CommandBufferManager(VkDevice device, VkQueue graphics_queue,
+                       uint32_t graphics_queue_family_index,
+                       const VkQueueFamilyProperties& graphics_queue_family_properties,
+                       bool use_threaded_submission);
   ~CommandBufferManager();
 
   bool Initialize();
 
   VkDevice GetDevice() const { return m_device; }
   VkCommandPool GetCommandPool() const { return m_command_pool; }
+  const VkQueueFamilyProperties& GetGraphicsQueueFamilyProperties() const
+  {
+    return m_graphics_queue_family_properties;
+  }
+
+  // Descriptor sets
   VkCommandBuffer GetCurrentInitCommandBuffer() const
   {
     return m_frame_resources[m_current_frame].init_command_buffer;
@@ -48,7 +56,6 @@ public:
   {
     return m_frame_resources[m_current_frame].descriptor_pool;
   }
-
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
 
   // Ensure the worker thread has submitted the previous frame's command buffer.
@@ -102,8 +109,9 @@ private:
                            VkSwapchainKHR present_swap_chain, uint32_t present_image_index);
 
   VkDevice m_device = nullptr;
-  uint32_t m_graphics_queue_family_index = 0;
   VkQueue m_graphics_queue = nullptr;
+  uint32_t m_graphics_queue_family_index = 0;
+  VkQueueFamilyProperties m_graphics_queue_family_properties = {};
   VkCommandPool m_command_pool = nullptr;
 
   struct FrameResources
