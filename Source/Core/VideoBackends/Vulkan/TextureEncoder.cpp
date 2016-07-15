@@ -10,6 +10,7 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
@@ -33,6 +34,9 @@ TextureEncoder::TextureEncoder()
 
   if (!CreateEncodingTexture())
     PanicAlert("Failed to create encoding texture");
+
+  if (!CreateDownloadTexture())
+    PanicAlert("Failed to create download texture");
 }
 
 TextureEncoder::~TextureEncoder()
@@ -50,17 +54,20 @@ TextureEncoder::~TextureEncoder()
   }
 }
 
-void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format,
-                                        u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                                        u32 memory_stride, PEControl::PixelFormat src_format,
-                                        bool is_intensity, int scale_by_half,
-                                        const EFBRectangle& src_rect)
+void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView src_texture,
+                                        u8* dest_ptr, u32 format, u32 native_width,
+                                        u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                                        PEControl::PixelFormat src_format, bool is_intensity,
+                                        int scale_by_half, const EFBRectangle& src_rect)
 {
   if (m_texture_encoding_shaders[format] == VK_NULL_HANDLE)
   {
     ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u", format);
     return;
   }
+
+  // Can't do our own draw within a render pass.
+  state_tracker->EndRenderPass();
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetStandardPipelineLayout(), m_encoding_render_pass,
@@ -100,12 +107,25 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
   // Transition the image before copying
   m_encoding_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_download_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    m_encoding_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
+                                    render_width, render_height, 0, 0);
 
-  TextureCache* texture_cache = static_cast<TextureCache*>(g_texture_cache.get());
-  if (!texture_cache->DownloadImage(m_encoding_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-                                    render_width, render_height, 0, 0, dest_ptr, memory_stride))
+  // Block until the GPU has finished copying to the staging texture.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+  state_tracker->InvalidateDescriptorSets();
+  state_tracker->SetPendingRebind();
+
+  // Map the staging texture into client memory, and copy to the final destination.
+  // TODO: We could probably leave this mapped between calls, but we'll save address space for nw.
+  if (m_download_texture->Map())
   {
-    WARN_LOG(VIDEO, "Texture encoder readback failed.");
+    m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);
+    m_download_texture->Unmap();
+  }
+  else
+  {
+    PanicAlert("Failed to map download texture.");
   }
 }
 
@@ -134,7 +154,7 @@ bool TextureEncoder::CompileShaders()
 bool TextureEncoder::CreateEncodingRenderPass()
 {
   VkAttachmentDescription attachments[] = {
-      {0, VK_FORMAT_R8G8B8A8_UNORM,
+      {0, ENCODING_TEXTURE_FORMAT,
        VK_SAMPLE_COUNT_1_BIT,  // TODO: MSAA
        VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
        VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
@@ -173,7 +193,7 @@ bool TextureEncoder::CreateEncodingTexture()
   // From OGL: Why do we create a 1024 height texture?
   m_encoding_texture =
       Texture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
-                        VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        ENCODING_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
   if (!m_encoding_texture)
     return false;
@@ -196,6 +216,18 @@ bool TextureEncoder::CreateEncodingTexture()
     LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
     return false;
   }
+
+  return true;
+}
+
+bool TextureEncoder::CreateDownloadTexture()
+{
+  // TODO: Using a buffer here as opposed to a linear texture is faster on AMD.
+  // Investigate which is faster for nvidia.
+  m_download_texture = StagingTexture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT,
+                                                ENCODING_TEXTURE_FORMAT);
+  if (!m_download_texture)
+    return false;
 
   return true;
 }
