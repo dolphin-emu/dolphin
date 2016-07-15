@@ -80,7 +80,7 @@ private:
     NUM_DEVICES = 3
   };
 
-  std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_pDevices;
+  std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_devices;
 
   // Since channels operate a bit differently from each other
   u32 m_ChannelId;
