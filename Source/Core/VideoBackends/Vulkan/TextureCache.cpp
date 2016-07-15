@@ -374,8 +374,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
         {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
          config.layers},                   // VkImageSubresourceLayers    dstSubresource
         {dst_rect.left, dst_rect.top, 0},  // VkOffset3D                  dstOffset
-        {static_cast<uint32_t>(src_rect.GetWidth()),
-         static_cast<uint32_t>(src_rect.GetHeight())}  // VkExtent3D                  extent
+        {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()),
+         1}  // VkExtent3D                  extent
     };
 
     // Must be called outside of a render pass.
