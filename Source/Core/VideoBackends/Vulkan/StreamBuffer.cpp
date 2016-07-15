@@ -3,9 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cassert>
 #include <cstdint>
 
+#include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -153,12 +153,13 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
     return false;
   }
 
-  // Check for space past the current gpu position
+  // Is the GPU behind or up to date with our current offset?
   if (m_current_offset >= m_current_gpu_position)
   {
     size_t remaining_bytes = m_current_size - m_current_offset;
     if (required_bytes <= remaining_bytes)
     {
+      // Place at the current position, after the GPU position.
       m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
       m_last_allocation_size = num_bytes;
       return true;
@@ -177,13 +178,14 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
     }
   }
 
-  // Are we behind the gpu?
+  // Is the GPU ahead of our current offset?
   if (m_current_offset < m_current_gpu_position)
   {
+    // We have from m_current_offset..m_current_gpu_position space to use.
     size_t remaining_bytes = m_current_gpu_position - m_current_offset;
     if (required_bytes < remaining_bytes)
     {
-      // Put after the current allocation but before the gpu
+      // Place at the current position, since this is still behind the GPU.
       m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
       m_last_allocation_size = num_bytes;
       return true;
@@ -206,11 +208,8 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
   // Can we find a fence to wait on that will give us enough memory?
   if (allow_reuse && WaitForClearSpace(required_bytes))
   {
-    // Allocate from the start of the buffer.
-    if (m_current_offset > m_current_gpu_position)
-      m_current_offset = 0;
-
-    assert((m_current_offset + required_bytes) < m_current_gpu_position);
+    _assert_(m_current_offset == m_current_gpu_position ||
+             (m_current_offset + required_bytes) < m_current_gpu_position);
     m_current_offset = Util::AlignBufferOffset(m_current_offset, alignment);
     m_last_allocation_size = num_bytes;
     return true;
@@ -232,8 +231,8 @@ bool StreamBuffer::ReserveMemory(size_t num_bytes, size_t alignment, bool allow_
 
 void StreamBuffer::CommitMemory(size_t final_num_bytes)
 {
-  assert((m_current_offset + final_num_bytes) <= m_current_size);
-  assert(final_num_bytes <= m_last_allocation_size);
+  _assert_((m_current_offset + final_num_bytes) <= m_current_size);
+  _assert_(final_num_bytes <= m_last_allocation_size);
 
   // For non-coherent mappings, flush the memory range
   if (!m_coherent_mapping)
@@ -280,15 +279,52 @@ void StreamBuffer::OnFencePointReached(VkFence fence)
 
 bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
 {
-  // Currently behind the GPU? If so, we have to take that into consideration.
-  size_t required_position = num_bytes;
-  if (m_current_offset < m_current_gpu_position)
-    required_position += m_current_offset;
+  size_t new_offset = 0;
+  size_t new_gpu_position = 0;
+  auto iter = m_tracked_fences.begin();
+  for (; iter != m_tracked_fences.end(); iter++)
+  {
+    // Would this fence bring us in line with the GPU?
+    size_t gpu_position = iter->second;
+    if (gpu_position == m_current_offset)
+    {
+      // Start at the start of the buffer again.
+      new_offset = 0;
+      new_gpu_position = 0;
+      break;
+    }
 
-  // Find a fence to wait on that would give us enough space.
-  auto iter =
-      std::find_if(m_tracked_fences.begin(), m_tracked_fences.end(),
-                   [required_position](const auto& it) { return (it.second > required_position); });
+    // We can wrap around to the start, behind the GPU, if there is enough space.
+    // We use > here because otherwise we'd end up lining up with the GPU, and then the
+    // allocator would assume that the GPU has consumed what we just wrote.
+    if (m_current_offset >= m_current_gpu_position)
+    {
+      // Wrap around to the start (behind the GPU) if there is sufficient space.
+      if (gpu_position > num_bytes)
+      {
+        new_offset = 0;
+        new_gpu_position = gpu_position;
+        break;
+      }
+    }
+    else
+    {
+      // We're currently allocating behind the GPU. Therefore, if this fence is behind us,
+      // and it's the last fence in the list (no data has been written after it), we can
+      // move back to allocating in front of the GPU.
+      if (gpu_position < m_current_offset)
+      {
+        if (std::none_of(iter, m_tracked_fences.end(),
+                         [gpu_position](const auto& it) { return (it.second > gpu_position); }))
+        {
+          // Wait for this fence to complete, then allocate directly after it.
+          new_offset = gpu_position;
+          new_gpu_position = gpu_position;
+          break;
+        }
+      }
+    }
+  }
 
   // Did any fences satisfy this condition?
   if (iter == m_tracked_fences.end())
@@ -300,7 +336,8 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
     LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 
   // Update GPU position, and remove all fences up to (and including) this fence.
-  m_current_gpu_position = iter->second;
+  m_current_offset = new_offset;
+  m_current_gpu_position = new_gpu_position;
   m_tracked_fences.erase(m_tracked_fences.begin(), ++iter);
   return true;
 }
