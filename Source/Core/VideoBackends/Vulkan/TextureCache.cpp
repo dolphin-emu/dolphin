@@ -15,6 +15,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PaletteTextureConverter.h"
 #include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
@@ -45,12 +46,6 @@ TextureCache::TextureCache(StateTracker* state_tracker) : m_state_tracker(state_
 
 TextureCache::~TextureCache()
 {
-  if (m_image_download_buffer != VK_NULL_HANDLE)
-  {
-    vkDestroyBuffer(g_object_cache->GetDevice(), m_image_download_buffer, nullptr);
-    vkFreeMemory(g_object_cache->GetDevice(), m_image_download_buffer_memory, nullptr);
-  }
-
   if (m_overwrite_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_object_cache->GetDevice(), m_overwrite_render_pass, nullptr);
 }
@@ -103,9 +98,9 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  m_texture_encoder->EncodeTextureToRam(src_texture->GetView(), dst, format, native_width,
-                                        bytes_per_row, num_blocks_y, memory_stride, src_format,
-                                        is_intensity, scale_by_half, src_rect);
+  m_texture_encoder->EncodeTextureToRam(m_state_tracker, src_texture->GetView(), dst, format,
+                                        native_width, bytes_per_row, num_blocks_y, memory_stride,
+                                        src_format, is_intensity, scale_by_half, src_rect);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
@@ -188,144 +183,6 @@ bool TextureCache::CreateRenderPasses()
     return false;
   }
 
-  return true;
-}
-
-bool TextureCache::ResizeImageDownloadBuffer(VkDeviceSize new_size)
-{
-  if (new_size <= m_image_download_buffer_size)
-    return true;
-
-  VkBufferCreateInfo buffer_create_info = {
-      VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
-      nullptr,                               // const void*            pNext
-      0,                                     // VkBufferCreateFlags    flags
-      new_size,                              // VkDeviceSize           size
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT,      // VkBufferUsageFlags     usage
-      VK_SHARING_MODE_EXCLUSIVE,             // VkSharingMode          sharingMode
-      0,                                     // uint32_t               queueFamilyIndexCount
-      nullptr                                // const uint32_t*        pQueueFamilyIndices
-  };
-  VkBuffer buffer;
-  VkResult res = vkCreateBuffer(g_object_cache->GetDevice(), &buffer_create_info, nullptr, &buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-    return false;
-  }
-
-  VkMemoryRequirements memory_requirements;
-  vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), buffer, &memory_requirements);
-
-  uint32_t memory_type_index = g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
-  VkMemoryAllocateInfo memory_allocate_info = {
-      VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
-      nullptr,                                 // const void*        pNext
-      memory_requirements.size,                // VkDeviceSize       allocationSize
-      memory_type_index                        // uint32_t           memoryTypeIndex
-  };
-  VkDeviceMemory buffer_memory;
-  res =
-      vkAllocateMemory(g_object_cache->GetDevice(), &memory_allocate_info, nullptr, &buffer_memory);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(g_object_cache->GetDevice(), buffer, nullptr);
-    return false;
-  }
-
-  res = vkBindBufferMemory(g_object_cache->GetDevice(), buffer, buffer_memory, 0);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    return false;
-  }
-
-  // Replace pointers. Assume the old buffer is no longer in use.
-  if (m_image_download_buffer != VK_NULL_HANDLE)
-  {
-    vkDestroyBuffer(g_object_cache->GetDevice(), m_image_download_buffer, nullptr);
-    vkFreeMemory(g_object_cache->GetDevice(), m_image_download_buffer_memory, nullptr);
-  }
-
-  m_image_download_buffer = buffer;
-  m_image_download_buffer_memory = buffer_memory;
-  m_image_download_buffer_size = new_size;
-  return true;
-}
-
-bool TextureCache::DownloadImage(VkImage image, VkImageAspectFlags aspect, int x, int y, u32 width,
-                                 u32 height, u32 level, u32 layer, void* dst_buffer, u32 dst_stride)
-{
-  // Determine required size for the buffer.
-  // When copying to the intermediate buffer, assume tight packing.
-  // TODO: Use bufferRowLength to use same stride as dst_stride.
-  u32 src_stride = width * sizeof(u32);
-  VkDeviceSize required_buffer_size = src_stride * height;
-  if (!ResizeImageDownloadBuffer(required_buffer_size))
-  {
-    ERROR_LOG(VIDEO, "Failed to resize image download buffer");
-    return false;
-  }
-
-  // Transition buffer to transfer destination.
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            m_image_download_buffer, VK_ACCESS_HOST_READ_BIT,
-                            VK_ACCESS_TRANSFER_WRITE_BIT, 0, VK_WHOLE_SIZE,
-                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
-
-  // Issue the image->buffer copy.
-  VkBufferImageCopy image_copy = {
-      0,                          // VkDeviceSize                bufferOffset
-      0,                          // uint32_t                    bufferRowLength
-      0,                          // uint32_t                    bufferImageHeight
-      {aspect, level, layer, 1},  // VkImageSubresourceLayers    imageSubresource
-      {x, y, 0},                  // VkOffset3D                  imageOffset
-      {width, height, 1}          // VkExtent3D                  imageExtent
-  };
-  vkCmdCopyImageToBuffer(g_command_buffer_mgr->GetCurrentCommandBuffer(), image,
-                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_image_download_buffer, 1,
-                         &image_copy);
-
-  // Ensure the write has completed.
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                            m_image_download_buffer, VK_ACCESS_TRANSFER_WRITE_BIT,
-                            VK_ACCESS_HOST_READ_BIT, 0, VK_WHOLE_SIZE,
-                            VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_HOST_BIT);
-
-  // Submit command buffer and wait until the GPU has signaled the fence.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-
-  // Map the download buffer into our address space and copy to the final buffer.
-  void* source_ptr;
-  VkResult res = vkMapMemory(g_object_cache->GetDevice(), m_image_download_buffer_memory, 0,
-                             required_buffer_size, 0, &source_ptr);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkMapMemory failed: ");
-    return false;
-  }
-
-  if (src_stride == dst_stride)
-  {
-    memcpy(dst_buffer, source_ptr, src_stride * height);
-  }
-  else
-  {
-    u32 copy_size = std::min(src_stride, dst_stride);
-    u8* current_source_ptr = reinterpret_cast<u8*>(source_ptr);
-    u8* current_dest_ptr = reinterpret_cast<u8*>(dst_buffer);
-    for (u32 row = 0; row < height; row++)
-    {
-      memcpy(current_dest_ptr, current_source_ptr, copy_size);
-      current_source_ptr += src_stride;
-      current_dest_ptr += dst_stride;
-    }
-  }
-
-  vkUnmapMemory(g_object_cache->GetDevice(), m_image_download_buffer_memory);
   return true;
 }
 
@@ -584,34 +441,46 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
   u32 level_width = std::max(1u, config.width >> level);
   u32 level_height = std::max(1u, config.height >> level);
 
-  // Allocate a buffer for storing this image.
-  // This is sub-optimal, since we could write the buffer returned by vkMapMemory
-  // directly out to the image, but this is a slow path anyway.
-  u32 buffer_stride = level_width * sizeof(u32);
-  std::vector<u8> buffer(buffer_stride * level_height);
+  // Use a temporary staging texture for the download. Certainly not optimal,
+  // but since we have to idle the GPU anyway it doesn't really matter.
+  std::unique_ptr<StagingTexture2D> staging_texture =
+      StagingTexture2D::Create(level_width, level_height, TEXTURECACHE_TEXTURE_FORMAT);
 
   // Transition image to transfer source, and invalidate the current state,
   // since we'll be executing the command buffer.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   m_parent->m_state_tracker->EndRenderPass();
-  m_parent->m_state_tracker->SetPendingRebind();
-  m_parent->m_state_tracker->InvalidateDescriptorSets();
 
   // Copy to download buffer.
-  if (!m_parent->DownloadImage(m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, level_width,
-                               level_height, level, 0, buffer.data(), buffer_stride))
-  {
-    ERROR_LOG(VIDEO, "Failed to download image to buffer");
-    return false;
-  }
+  staging_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                 m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
+                                 level_width, level_height, level, 0);
 
   // Restore original state of texture.
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+  // Block until the GPU has finished copying to the staging texture.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+  m_parent->m_state_tracker->InvalidateDescriptorSets();
+  m_parent->m_state_tracker->SetPendingRebind();
+
+  // Map the staging texture so we can copy the contents out.
+  if (staging_texture->Map())
+  {
+    PanicAlert("Failed to map staging texture");
+    return false;
+  }
+
   // Write texture out to file.
-  return TextureToPng(buffer.data(), buffer_stride, filename, level_width, level_height);
+  // It's okay to throw this texture away immediately, since we're done with it, and
+  // we blocked until the copy completed on the GPU anyway.
+  bool result = TextureToPng(reinterpret_cast<u8*>(staging_texture->GetMapPointer()),
+                             staging_texture->GetRowStride(), filename, level_width, level_height);
+
+  staging_texture->Unmap();
+  return result;
 }
 
 }  // namespace Vulkan

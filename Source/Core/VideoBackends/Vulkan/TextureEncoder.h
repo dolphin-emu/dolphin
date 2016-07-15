@@ -12,6 +12,7 @@
 
 namespace Vulkan
 {
+class StagingTexture2D;
 class StateTracker;
 class Texture2D;
 
@@ -24,20 +25,22 @@ public:
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // Assumes that no render pass is currently in progress.
   // WARNING: Executes the current command buffer.
-  void EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format, u32 native_width,
-                          u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                          PEControl::PixelFormat src_format, bool is_intensity, int scale_by_half,
-                          const EFBRectangle& source);
+  void EncodeTextureToRam(StateTracker* state_tracker, VkImageView src_texture, u8* dest_ptr,
+                          u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+                          u32 memory_stride, PEControl::PixelFormat src_format, bool is_intensity,
+                          int scale_by_half, const EFBRectangle& source);
 
 private:
   // From OGL.
   static const u32 NUM_TEXTURE_ENCODING_SHADERS = 64;
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
+  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
 
   bool CompileShaders();
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
+  bool CreateDownloadTexture();
 
   std::array<VkShaderModule, NUM_TEXTURE_ENCODING_SHADERS> m_texture_encoding_shaders = {};
 
@@ -45,6 +48,8 @@ private:
 
   std::unique_ptr<Texture2D> m_encoding_texture;
   VkFramebuffer m_encoding_texture_framebuffer = VK_NULL_HANDLE;
+
+  std::unique_ptr<StagingTexture2D> m_download_texture;
 };
 
 }  // namespace Vulkan
