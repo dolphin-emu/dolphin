@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include "Common/CommonTypes.h"
 
@@ -79,7 +80,7 @@ private:
     NUM_DEVICES = 3
   };
 
-  std::unique_ptr<IEXIDevice> m_pDevices[NUM_DEVICES];
+  std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_pDevices;
 
   // Since channels operate a bit differently from each other
   u32 m_ChannelId;
