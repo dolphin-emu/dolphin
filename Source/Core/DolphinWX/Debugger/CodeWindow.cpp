@@ -8,7 +8,6 @@
 
 // clang-format off
 #include <wx/bitmap.h>
-#include <wx/aui/auibar.h>
 #include <wx/image.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
@@ -44,6 +43,7 @@
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
@@ -73,8 +73,8 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
   callers = new wxListBox(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxLB_SORT);
   callers->Bind(wxEVT_LISTBOX, &CCodeWindow::OnCallersListChange, this);
 
-  m_aui_toolbar = new wxAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                                   wxAUI_TB_HORIZONTAL | wxAUI_TB_PLAIN_BACKGROUND);
+  m_aui_toolbar = new DolphinAuiToolBar(this, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                                        wxAUI_TB_HORIZONTAL | wxAUI_TB_PLAIN_BACKGROUND);
 
   wxSearchCtrl* const address_searchctrl = new wxSearchCtrl(m_aui_toolbar, IDM_ADDRBOX);
   address_searchctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
