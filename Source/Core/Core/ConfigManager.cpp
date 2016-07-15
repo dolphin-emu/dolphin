@@ -732,10 +732,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       if (pVolume == nullptr)
       {
         if (bootDrive)
-          PanicAlertT("Could not read \"%s\".  "
-                      "There is no disc in the drive, or it is not a GC/Wii backup.  "
-                      "Please note that original GameCube and Wii discs cannot be read "
-                      "by most PC DVD drives.",
+          PanicAlertT("Could not read \"%s\". "
+                      "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                      "Please note that Dolphin cannot play games directly from the original "
+                      "GameCube and Wii discs.",
                       m_strFilename.c_str());
         else
           PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",
