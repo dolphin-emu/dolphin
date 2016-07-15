@@ -65,7 +65,7 @@ class StagingTexture2DLinear : public StagingTexture2D
 {
 public:
   StagingTexture2DLinear(u32 width, u32 height, VkFormat format, u32 stride, VkImage image,
-                         VkDeviceMemory memory, VkDeviceSize size);
+                         VkDeviceMemory memory, VkDeviceSize size, bool coherent);
 
   ~StagingTexture2DLinear();
 
@@ -87,13 +87,14 @@ private:
   VkDeviceMemory m_memory;
   VkDeviceSize m_size;
   VkImageLayout m_layout;
+  bool m_coherent;
 };
 
 class StagingTexture2DBuffer : public StagingTexture2D
 {
 public:
   StagingTexture2DBuffer(u32 width, u32 height, VkFormat format, u32 stride, VkBuffer buffer,
-                         VkDeviceMemory memory, VkDeviceSize size);
+                         VkDeviceMemory memory, VkDeviceSize size, bool coherent);
 
   ~StagingTexture2DBuffer();
 
@@ -114,5 +115,6 @@ private:
   VkBuffer m_buffer;
   VkDeviceMemory m_memory;
   VkDeviceSize m_size;
+  bool m_coherent;
 };
 }
