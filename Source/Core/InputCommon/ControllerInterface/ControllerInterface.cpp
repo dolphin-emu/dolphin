@@ -175,9 +175,13 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
 //
 void ControllerInterface::UpdateInput()
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  for (const auto& d : m_devices)
-    d->UpdateInput();
+  // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
+  if (m_devices_mutex.try_lock())
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex, std::adopt_lock);
+    for (const auto& d : m_devices)
+      d->UpdateInput();
+  }
 }
 
 //
