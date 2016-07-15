@@ -23,7 +23,7 @@ class DSPDebuggerLLE;
 class GFXDebuggerPanel;
 struct SConfig;
 
-class wxAuiToolBar;
+class DolphinAuiToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
@@ -125,5 +125,5 @@ private:
   Common::Event sync_event;
 
   wxAuiManager m_aui_manager;
-  wxAuiToolBar* m_aui_toolbar;
+  DolphinAuiToolBar* m_aui_toolbar;
 };

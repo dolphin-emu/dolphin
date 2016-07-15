@@ -4,7 +4,6 @@
 
 #include <cstdio>
 #include <wx/artprov.h>
-#include <wx/aui/auibar.h>
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/listbox.h>
@@ -20,6 +19,7 @@
 #include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 #include "Core/Host.h"
+#include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
@@ -42,7 +42,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
   m_mgr.SetFlags(wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 
   m_Toolbar =
-      new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
+      new DolphinAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
   m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
                      wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10, 10)));
   m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
