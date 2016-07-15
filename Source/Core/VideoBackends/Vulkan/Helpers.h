@@ -23,23 +23,26 @@ std::vector<VkPhysicalDevice> EnumerateVulkanPhysicalDevices(VkInstance instance
 
 std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_device);
 
-bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features);
+bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features);
 
 void PopulateBackendInfo(VideoConfig* config);
 
 void PopulateBackendInfoAdapters(VideoConfig* config,
                                  const std::vector<VkPhysicalDevice>& physical_device_list);
 
-void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device);
+void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device,
+                                 const VkPhysicalDeviceFeatures& features);
 
-void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device);
+void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device,
+                                         const VkPhysicalDeviceProperties& properties);
 
 VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd);
 
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
                             uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
                             uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
-                            bool enable_debug_layer);
+                            VkQueueFamilyProperties* out_graphics_queue_family_properties,
+                            const VkPhysicalDeviceFeatures& features, bool enable_debug_layer);
 
 VkPresentModeKHR SelectVulkanPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface);
 

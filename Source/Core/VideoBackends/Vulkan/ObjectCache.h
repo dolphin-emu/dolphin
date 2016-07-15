@@ -51,7 +51,9 @@ bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 class ObjectCache
 {
 public:
-  ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device);
+  ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device,
+              const VkPhysicalDeviceProperties& properties,
+              const VkPhysicalDeviceFeatures& features);
   ~ObjectCache();
 
   VkInstance GetVulkanInstance() const { return m_instance; }
@@ -61,8 +63,9 @@ public:
   {
     return m_device_memory_properties;
   }
+  const VkPhysicalDeviceProperties& GetDeviceProperties() const { return m_device_properties; }
   const VkPhysicalDeviceFeatures& GetDeviceFeatures() const { return m_device_features; }
-  const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_limits; }
+  const VkPhysicalDeviceLimits& GetDeviceLimits() const { return m_device_properties.limits; }
   // Support bits
   bool SupportsAnisotropicFiltering() const
   {
@@ -78,13 +81,16 @@ public:
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
   {
-    return m_device_limits.minUniformBufferOffsetAlignment;
+    return m_device_properties.limits.minUniformBufferOffsetAlignment;
   }
   VkDeviceSize GetTexelBufferAlignment() const
   {
-    return m_device_limits.minUniformBufferOffsetAlignment;
+    return m_device_properties.limits.minUniformBufferOffsetAlignment;
   }
-  VkDeviceSize GetBufferImageGranularity() const { return m_device_limits.bufferImageGranularity; }
+  VkDeviceSize GetBufferImageGranularity() const
+  {
+    return m_device_properties.limits.bufferImageGranularity;
+  }
   // We have four shared pipeline layouts:
   //   - Standard
   //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
@@ -166,7 +172,7 @@ private:
 
   VkPhysicalDeviceMemoryProperties m_device_memory_properties = {};
   VkPhysicalDeviceFeatures m_device_features = {};
-  VkPhysicalDeviceLimits m_device_limits = {};
+  VkPhysicalDeviceProperties m_device_properties = {};
 
   std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
 

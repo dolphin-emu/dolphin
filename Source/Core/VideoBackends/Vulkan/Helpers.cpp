@@ -256,8 +256,11 @@ std::vector<const char*> SelectVulkanDeviceExtensions(VkPhysicalDevice physical_
   return enabled_extensions;
 }
 
-bool CheckVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features)
+bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeatures* enable_features)
 {
+  VkPhysicalDeviceProperties properties;
+  vkGetPhysicalDeviceProperties(device, &properties);
+
   VkPhysicalDeviceFeatures available_features;
   vkGetPhysicalDeviceFeatures(device, &available_features);
 
@@ -316,11 +319,9 @@ void PopulateBackendInfoAdapters(VideoConfig* config,
   }
 }
 
-void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device)
+void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_device,
+                                 const VkPhysicalDeviceFeatures& features)
 {
-  VkPhysicalDeviceFeatures features;
-  vkGetPhysicalDeviceFeatures(physical_device, &features);
-
   config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
@@ -328,11 +329,9 @@ void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
 }
 
-void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device)
+void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device,
+                                         const VkPhysicalDeviceProperties& properties)
 {
-  VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(physical_device, &properties);
-
   // Query image support for the EFB texture formats.
   VkImageFormatProperties efb_color_properties = {};
   vkGetPhysicalDeviceImageFormatProperties(
@@ -474,7 +473,8 @@ VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd)
 VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
                             uint32_t* out_graphics_queue_family_index, VkQueue* out_graphics_queue,
                             uint32_t* out_present_queue_family_index, VkQueue* out_present_queue,
-                            bool enable_debug_layer)
+                            VkQueueFamilyProperties* out_graphics_queue_family_properties,
+                            const VkPhysicalDeviceFeatures& features, bool enable_debug_layer)
 {
   uint32_t queue_family_count;
   vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &queue_family_count, nullptr);
@@ -539,15 +539,11 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
   if (enabled_extensions.empty())
     return nullptr;
 
-  VkPhysicalDeviceFeatures enabled_features;
-  if (!CheckVulkanDeviceFeatures(physical_device, &enabled_features))
-    return nullptr;
-
   device_info.enabledLayerCount = 0;
   device_info.ppEnabledLayerNames = nullptr;
   device_info.enabledExtensionCount = static_cast<uint32_t>(enabled_extensions.size());
   device_info.ppEnabledExtensionNames = enabled_extensions.data();
-  device_info.pEnabledFeatures = &enabled_features;
+  device_info.pEnabledFeatures = &features;
 
   // Enable debug layer on debug builds
   if (enable_debug_layer)
@@ -566,6 +562,7 @@ VkDevice CreateVulkanDevice(VkPhysicalDevice physical_device, VkSurfaceKHR surfa
   }
 
   *out_graphics_queue_family_index = graphics_queue_family_index;
+  *out_graphics_queue_family_properties = queue_family_properties[graphics_queue_family_index];
   vkGetDeviceQueue(device, graphics_queue_family_index, 0, out_graphics_queue);
   *out_present_queue_family_index = graphics_queue_family_index;
   vkGetDeviceQueue(device, graphics_queue_family_index, 0, out_present_queue);
