@@ -29,8 +29,10 @@ public:
   const char* GetRowPointer(u32 row) const { return m_map_pointer + row * m_row_stride; }
   char* GetRowPointer(u32 row) { return m_map_pointer + row * m_row_stride; }
   // Requires Map() to be called first.
-  void ReadTexel(u32 x, u32 y, void* data, size_t data_size);
+  void ReadTexel(u32 x, u32 y, void* data, size_t data_size) const;
   void WriteTexel(u32 x, u32 y, const void* data, size_t data_size);
+  void ReadTexels(u32 x, u32 y, u32 width, u32 height, void* data, u32 data_stride) const;
+  void WriteTexels(u32 x, u32 y, u32 width, u32 height, const void* data, u32 data_stride);
 
   // Assumes that image is in TRANSFER_SRC layout.
   // Results are not ready until command_buffer has been executed.

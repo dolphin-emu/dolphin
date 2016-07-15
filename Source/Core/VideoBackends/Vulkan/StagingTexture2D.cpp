@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cstring>
+
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -24,7 +27,7 @@ StagingTexture2D::~StagingTexture2D()
   _assert_(!m_map_pointer);
 }
 
-void StagingTexture2D::ReadTexel(u32 x, u32 y, void* data, size_t data_size)
+void StagingTexture2D::ReadTexel(u32 x, u32 y, void* data, size_t data_size) const
 {
   _assert_(data_size >= m_texel_size);
 
@@ -46,6 +49,52 @@ void StagingTexture2D::WriteTexel(u32 x, u32 y, const void* data, size_t data_si
 
   char* ptr = m_map_pointer + map_offset;
   memcpy(ptr, data, data_size);
+}
+
+void StagingTexture2D::ReadTexels(u32 x, u32 y, u32 width, u32 height, void* data,
+                                  u32 data_stride) const
+{
+  const char* src_ptr = GetRowPointer(y);
+
+  // Optimal path: same dimensions, same stride.
+  _assert_((x + width) <= m_width && (y + height) <= m_height);
+  if (x == 0 && width == m_width && m_row_stride == data_stride)
+  {
+    memcpy(data, src_ptr, m_row_stride * height);
+    return;
+  }
+
+  u32 copy_size = std::min(width * m_texel_size, data_stride);
+  char* dst_ptr = reinterpret_cast<char*>(data);
+  for (u32 row = 0; row < height; row++)
+  {
+    memcpy(dst_ptr, src_ptr + (x * m_texel_size), copy_size);
+    src_ptr += m_row_stride;
+    dst_ptr += data_stride;
+  }
+}
+
+void StagingTexture2D::WriteTexels(u32 x, u32 y, u32 width, u32 height, const void* data,
+                                   u32 data_stride)
+{
+  char* dst_ptr = GetRowPointer(y);
+
+  // Optimal path: same dimensions, same stride.
+  _assert_((x + width) <= m_width && (y + height) <= m_height);
+  if (x == 0 && width == m_width && m_row_stride == data_stride)
+  {
+    memcpy(dst_ptr, data, m_row_stride * height);
+    return;
+  }
+
+  u32 copy_size = std::min(width * m_texel_size, data_stride);
+  const char* src_ptr = reinterpret_cast<const char*>(data);
+  for (u32 row = 0; row < height; row++)
+  {
+    memcpy(dst_ptr + (x * m_texel_size), src_ptr, copy_size);
+    dst_ptr += m_row_stride;
+    src_ptr += data_stride;
+  }
 }
 
 std::unique_ptr<StagingTexture2D> StagingTexture2D::Create(u32 width, u32 height, VkFormat format)
