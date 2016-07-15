@@ -13,11 +13,13 @@
 
 namespace Vulkan
 {
-CommandBufferManager::CommandBufferManager(VkDevice device, uint32_t graphics_queue_family_index,
-                                           VkQueue graphics_queue, bool use_threaded_submission)
-    : m_device(device), m_graphics_queue_family_index(graphics_queue_family_index),
-      m_graphics_queue(graphics_queue), m_submit_semaphore(1, 1),
-      m_use_threaded_submission(use_threaded_submission)
+CommandBufferManager::CommandBufferManager(
+    VkDevice device, VkQueue graphics_queue, uint32_t graphics_queue_family_index,
+    const VkQueueFamilyProperties& graphics_queue_family_properties, bool use_threaded_submission)
+    : m_device(device), m_graphics_queue(graphics_queue),
+      m_graphics_queue_family_index(graphics_queue_family_index),
+      m_graphics_queue_family_properties(graphics_queue_family_properties),
+      m_submit_semaphore(1, 1), m_use_threaded_submission(use_threaded_submission)
 {
 }
 
