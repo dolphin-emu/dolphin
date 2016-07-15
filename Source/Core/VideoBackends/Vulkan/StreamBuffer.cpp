@@ -77,27 +77,8 @@ bool StreamBuffer::ResizeBuffer(size_t size)
   vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), buffer, &memory_requirements);
 
   // Aim for a coherent mapping if possible.
-  u32 memory_type_index = VK_MAX_MEMORY_TYPES;
-  if (g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                    VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                        VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                                    &memory_type_index))
-  {
-    // Supports coherent mapping. This is optimal.
-    m_coherent_mapping = true;
-  }
-  else
-  {
-    // Try a non-coherent mapping.
-    if (!g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, &memory_type_index))
-    {
-      // This shouldn't happen. If it does, how are you meant to upload to the GPU?
-      PanicAlert("Failed to find memory type for streaming buffer.");
-    }
-
-    m_coherent_mapping = false;
-  }
+  u32 memory_type_index =
+      g_object_cache->GetUploadMemoryType(memory_requirements.memoryTypeBits, &m_coherent_mapping);
 
   // Allocate memory for backing this buffer
   VkMemoryAllocateInfo memory_allocate_info = {

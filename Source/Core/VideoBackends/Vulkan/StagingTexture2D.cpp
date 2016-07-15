@@ -68,9 +68,9 @@ std::unique_ptr<StagingTexture2D> StagingTexture2D::Create(u32 width, u32 height
 
 StagingTexture2DLinear::StagingTexture2DLinear(u32 width, u32 height, VkFormat format, u32 stride,
                                                VkImage image, VkDeviceMemory memory,
-                                               VkDeviceSize size)
+                                               VkDeviceSize size, bool coherent)
     : StagingTexture2D(width, height, format, stride), m_image(image), m_memory(memory),
-      m_size(size), m_layout(VK_IMAGE_LAYOUT_PREINITIALIZED)
+      m_size(size), m_layout(VK_IMAGE_LAYOUT_PREINITIALIZED), m_coherent(coherent)
 {
 }
 
@@ -131,7 +131,7 @@ void StagingTexture2DLinear::CopyFromImage(VkCommandBuffer command_buffer, VkIma
   m_layout = VK_IMAGE_LAYOUT_GENERAL;
 
   // Invalidate memory range if currently mapped.
-  if (m_map_pointer)
+  if (m_map_pointer && !m_coherent)
   {
     VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
                                  m_map_offset, m_map_size};
@@ -144,7 +144,7 @@ void StagingTexture2DLinear::CopyToImage(VkCommandBuffer command_buffer, VkImage
                                          u32 height, u32 level, u32 layer)
 {
   // Flush memory range if currently mapped.
-  if (m_map_pointer)
+  if (m_map_pointer && !m_coherent)
   {
     VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
                                  m_map_offset, m_map_size};
@@ -249,9 +249,9 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DLinear::Create(u32 width, u32 
   VkMemoryRequirements memory_requirements;
   vkGetImageMemoryRequirements(g_object_cache->GetDevice(), image, &memory_requirements);
 
-  uint32_t memory_type_index = g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
+  bool is_coherent;
+  u32 memory_type_index =
+      g_object_cache->GetReadbackMemoryType(memory_requirements.memoryTypeBits, &is_coherent);
   VkMemoryAllocateInfo memory_allocate_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
       nullptr,                                 // const void*        pNext
@@ -279,14 +279,14 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DLinear::Create(u32 width, u32 
   // Assume tight packing. Is this correct?
   u32 stride = width * Vulkan::GetTexelSize(format);
   return std::make_unique<StagingTexture2DLinear>(width, height, format, stride, image, memory,
-                                                  memory_requirements.size);
+                                                  memory_requirements.size, is_coherent);
 }
 
 StagingTexture2DBuffer::StagingTexture2DBuffer(u32 width, u32 height, VkFormat format, u32 stride,
                                                VkBuffer buffer, VkDeviceMemory memory,
-                                               VkDeviceSize size)
+                                               VkDeviceSize size, bool coherent)
     : StagingTexture2D(width, height, format, stride), m_buffer(buffer), m_memory(memory),
-      m_size(size)
+      m_size(size), m_coherent(coherent)
 {
 }
 
@@ -319,7 +319,7 @@ void StagingTexture2DBuffer::CopyFromImage(VkCommandBuffer command_buffer, VkIma
                             VK_PIPELINE_STAGE_HOST_BIT);
 
   // If we're still mapped, invalidate the mapped range
-  if (m_map_pointer)
+  if (m_map_pointer && !m_coherent)
   {
     VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
                                  m_map_offset, m_map_size};
@@ -332,7 +332,7 @@ void StagingTexture2DBuffer::CopyToImage(VkCommandBuffer command_buffer, VkImage
                                          u32 height, u32 level, u32 layer)
 {
   // If we're still mapped, flush the mapped range
-  if (m_map_pointer)
+  if (m_map_pointer && !m_coherent)
   {
     VkMappedMemoryRange range = {VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE, nullptr, m_memory,
                                  m_map_offset, m_map_size};
@@ -420,9 +420,9 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DBuffer::Create(u32 width, u32 
   VkMemoryRequirements memory_requirements;
   vkGetBufferMemoryRequirements(g_object_cache->GetDevice(), buffer, &memory_requirements);
 
-  uint32_t memory_type_index = g_object_cache->GetMemoryType(memory_requirements.memoryTypeBits,
-                                                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-
+  bool is_coherent;
+  u32 memory_type_index =
+      g_object_cache->GetReadbackMemoryType(memory_requirements.memoryTypeBits, &is_coherent);
   VkMemoryAllocateInfo memory_allocate_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
       nullptr,                                 // const void*        pNext
@@ -448,7 +448,7 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DBuffer::Create(u32 width, u32 
   }
 
   return std::make_unique<StagingTexture2DBuffer>(width, height, format, row_stride, buffer, memory,
-                                                  buffer_size);
+                                                  buffer_size, is_coherent);
 }
 
 }  // namespace Vulkan

@@ -146,6 +146,10 @@ public:
   bool GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index);
   u32 GetMemoryType(u32 bits, VkMemoryPropertyFlags properties);
 
+  // Finds a memory type for upload or readback buffers.
+  u32 GetUploadMemoryType(u32 bits, bool* is_coherent = nullptr);
+  u32 GetReadbackMemoryType(u32 bits, bool* is_coherent = nullptr, bool* is_cached = nullptr);
+
   // Find a pipeline by the specified description, if not found, attempts to create it
   VkPipeline GetPipeline(const PipelineInfo& info);
 

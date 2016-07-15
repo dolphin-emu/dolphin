@@ -124,6 +124,71 @@ u32 ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties)
   return type_index;
 }
 
+u32 ObjectCache::GetUploadMemoryType(u32 bits, bool* is_coherent)
+{
+  // Try for coherent memory first.
+  VkMemoryPropertyFlags flags =
+      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+  u32 type_index;
+  if (!GetMemoryType(bits, flags, &type_index))
+  {
+    WARN_LOG(
+        VIDEO,
+        "Vulkan: Failed to find a coherent memory type for uploads, this will affect performance.");
+
+    // Try non-coherent memory.
+    flags &= ~VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    if (!GetMemoryType(bits, flags, &type_index))
+    {
+      // We shouldn't have any memory types that aren't host-visible.
+      PanicAlert("Unable to get memory type for upload.");
+      type_index = 0;
+    }
+  }
+
+  if (is_coherent)
+    *is_coherent = ((flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0);
+
+  return type_index;
+}
+
+u32 ObjectCache::GetReadbackMemoryType(u32 bits, bool* is_coherent, bool* is_cached)
+{
+  // Try for cached and coherent memory first.
+  VkMemoryPropertyFlags flags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                VK_MEMORY_PROPERTY_HOST_CACHED_BIT |
+                                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+
+  u32 type_index;
+  if (!GetMemoryType(bits, flags, &type_index))
+  {
+    // For readbacks, caching is more important than coherency.
+    flags &= ~VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    if (!GetMemoryType(bits, flags, &type_index))
+    {
+      WARN_LOG(VIDEO, "Vulkan: Failed to find a cached memory type for readbacks, this will affect "
+                      "performance.");
+
+      // Remove the cached bit as well.
+      flags &= ~VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+      if (!GetMemoryType(bits, flags, &type_index))
+      {
+        // We shouldn't have any memory types that aren't host-visible.
+        PanicAlert("Unable to get memory type for upload.");
+        type_index = 0;
+      }
+    }
+  }
+
+  if (is_coherent)
+    *is_coherent = ((flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) != 0);
+  if (is_cached)
+    *is_cached = ((flags & VK_MEMORY_PROPERTY_HOST_CACHED_BIT) != 0);
+
+  return type_index;
+}
+
 static VkPipelineRasterizationStateCreateInfo
 GetVulkanRasterizationState(const RasterizationState& state)
 {
