@@ -15,29 +15,26 @@ namespace Vulkan
 {
 std::unique_ptr<ObjectCache> g_object_cache;
 
-ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
+ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device,
+                         const VkPhysicalDeviceProperties& properties,
+                         const VkPhysicalDeviceFeatures& features)
     : m_instance(instance), m_physical_device(physical_device), m_device(device),
-      m_vs_cache(device), m_gs_cache(device), m_ps_cache(device),
+      m_device_features(features), m_device_properties(properties), m_vs_cache(device),
+      m_gs_cache(device), m_ps_cache(device),
       m_shared_shader_cache(device, &m_vs_cache, &m_gs_cache, &m_ps_cache)
 {
   // Read device physical memory properties, we need it for allocating buffers
   vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
-  vkGetPhysicalDeviceFeatures(physical_device, &m_device_features);
-
-  // Read limits, useful for buffer alignment and such.
-  VkPhysicalDeviceProperties device_properties;
-  vkGetPhysicalDeviceProperties(physical_device, &device_properties);
-  m_device_limits = device_properties.limits;
 
   // Would any drivers be this silly? I hope not...
-  m_device_limits.minUniformBufferOffsetAlignment =
-      std::max(m_device_limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_limits.minTexelBufferOffsetAlignment =
-      std::max(m_device_limits.minTexelBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_limits.optimalBufferCopyOffsetAlignment =
-      std::max(m_device_limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
-  m_device_limits.optimalBufferCopyRowPitchAlignment =
-      std::max(m_device_limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
+  m_device_properties.limits.minUniformBufferOffsetAlignment = std::max(
+      m_device_properties.limits.minUniformBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
+  m_device_properties.limits.minTexelBufferOffsetAlignment = std::max(
+      m_device_properties.limits.minTexelBufferOffsetAlignment, static_cast<VkDeviceSize>(1));
+  m_device_properties.limits.optimalBufferCopyOffsetAlignment = std::max(
+      m_device_properties.limits.optimalBufferCopyOffsetAlignment, static_cast<VkDeviceSize>(1));
+  m_device_properties.limits.optimalBufferCopyRowPitchAlignment = std::max(
+      m_device_properties.limits.optimalBufferCopyRowPitchAlignment, static_cast<VkDeviceSize>(1));
 }
 
 ObjectCache::~ObjectCache()
@@ -600,8 +597,8 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
 
   // Cap anisotropy to device limits.
   VkBool32 anisotropy_enable = (info.anisotropy != 0) ? VK_TRUE : VK_FALSE;
-  float max_anisotropy =
-      std::min(static_cast<float>(1 << info.anisotropy), m_device_limits.maxSamplerAnisotropy);
+  float max_anisotropy = std::min(static_cast<float>(1 << info.anisotropy),
+                                  m_device_properties.limits.maxSamplerAnisotropy);
 
   VkSamplerCreateInfo create_info = {
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType

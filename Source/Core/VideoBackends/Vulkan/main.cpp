@@ -38,7 +38,6 @@ namespace Vulkan
 {
 // Can we do anything about these globals?
 static VkInstance s_vkInstance;
-static VkPhysicalDevice s_vkPhysicalDevice;
 static VkDevice s_vkDevice;
 static std::unique_ptr<SwapChain> s_swap_chain;
 static std::unique_ptr<StateTracker> s_state_tracker;
@@ -123,8 +122,12 @@ void VideoBackend::InitBackendInfo()
             device_index = 0;
 
           VkPhysicalDevice physical_device = physical_devices[device_index];
-          PopulateBackendInfoFeatures(&g_Config, physical_device);
-          PopulateBackendInfoMultisampleModes(&g_Config, physical_device);
+          VkPhysicalDeviceProperties properties;
+          vkGetPhysicalDeviceProperties(physical_device, &properties);
+          VkPhysicalDeviceFeatures features;
+          vkGetPhysicalDeviceFeatures(physical_device, &features);
+          PopulateBackendInfoFeatures(&g_Config, physical_device, features);
+          PopulateBackendInfoMultisampleModes(&g_Config, physical_device, properties);
         }
       }
 
@@ -217,24 +220,32 @@ bool VideoBackend::Initialize(void* window_handle)
     selected_adapter_index = 0;
   }
 
-  // With our physical device known we can populate the remaining backend info fields
-  s_vkPhysicalDevice = physical_device_list[selected_adapter_index];
-  PopulateBackendInfoFeatures(&g_Config, s_vkPhysicalDevice);
-  PopulateBackendInfoMultisampleModes(&g_Config, s_vkPhysicalDevice);
+  // Select features for device before creating it (also used to populate backend info).
+  VkPhysicalDeviceFeatures features = {};
+  VkPhysicalDevice physical_device = physical_device_list[selected_adapter_index];
+  if (!SelectVulkanDeviceFeatures(physical_device, &features))
+  {
+    PanicAlert("Missing one or more required device features.");
+    goto CLEANUP_SURFACE;
+  }
 
-  // Display the name so the user knows which device was actually created
+  // Query and store device properties/limits, we'll need these later.
   VkPhysicalDeviceProperties properties;
-  vkGetPhysicalDeviceProperties(s_vkPhysicalDevice, &properties);
-  WARN_LOG(VIDEO, "Vulkan: Using physical adapter %s", properties.deviceName);
-  OSD::AddMessage(StringFromFormat("Using physical adapter %s", properties.deviceName).c_str(),
-                  5000);
+  vkGetPhysicalDeviceProperties(physical_device, &properties);
+
+  // With our physical device known we can populate the remaining backend info fields
+  PopulateBackendInfoFeatures(&g_Config, physical_device, features);
+  PopulateBackendInfoMultisampleModes(&g_Config, physical_device, properties);
 
   // Create vulkan device and grab queues
+  WARN_LOG(VIDEO, "Vulkan: Trying to create a device on physical adapter %s...",
+           properties.deviceName);
   uint32_t graphics_queue_family_index, present_queue_family_index;
   VkQueue graphics_queue, present_queue;
-  s_vkDevice =
-      CreateVulkanDevice(s_vkPhysicalDevice, surface, &graphics_queue_family_index, &graphics_queue,
-                         &present_queue_family_index, &present_queue, enable_debug_layer);
+  VkQueueFamilyProperties graphics_queue_family_properties;
+  s_vkDevice = CreateVulkanDevice(physical_device, surface, &graphics_queue_family_index,
+                                  &graphics_queue, &present_queue_family_index, &present_queue,
+                                  &graphics_queue_family_properties, features, enable_debug_layer);
   if (!s_vkDevice)
   {
     PanicAlert("Failed to create vulkan device");
@@ -250,7 +261,8 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // create command buffers
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(
-      s_vkDevice, graphics_queue_family_index, graphics_queue, g_Config.bBackendMultithreading);
+      s_vkDevice, graphics_queue, graphics_queue_family_index, graphics_queue_family_properties,
+      g_Config.bBackendMultithreading);
   if (!g_command_buffer_mgr->Initialize())
   {
     PanicAlert("Failed to create vulkan command buffers");
@@ -258,7 +270,8 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // create object cache
-  g_object_cache = std::make_unique<ObjectCache>(s_vkInstance, s_vkPhysicalDevice, s_vkDevice);
+  g_object_cache = std::make_unique<ObjectCache>(s_vkInstance, physical_device, s_vkDevice,
+                                                 properties, features);
   if (!g_object_cache->Initialize())
   {
     PanicAlert("Failed to create vulkan object cache");
@@ -273,6 +286,10 @@ bool VideoBackend::Initialize(void* window_handle)
     surface = VK_NULL_HANDLE;
     goto CLEANUP_DEVICE;
   }
+
+  // Display the name so the user knows which device was actually created
+  OSD::AddMessage(StringFromFormat("Using physical adapter %s", properties.deviceName).c_str(),
+                  5000);
 
   return true;
 
@@ -290,7 +307,6 @@ CLEANUP_SURFACE:
 
   DisableDebugLayerReportCallback(s_vkInstance);
   vkDestroyInstance(s_vkInstance, nullptr);
-  s_vkPhysicalDevice = VK_NULL_HANDLE;
   s_vkInstance = VK_NULL_HANDLE;
   UnloadVulkanLibrary();
   return false;
