@@ -18,20 +18,20 @@
 namespace OSD
 {
 static std::multimap<CallbackType, Callback> s_callbacks;
-static std::multimap<MessageType, Message> s_msg_list;
-static std::mutex s_msg_list_mutex;
+static std::multimap<MessageType, Message> s_messages;
+static std::mutex s_messages_mutex;
 
 void AddTypedMessage(MessageType type, const std::string& message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_msg_list_mutex);
-  s_msg_list.erase(type);
-  s_msg_list.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  s_messages.erase(type);
+  s_messages.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void AddMessage(const std::string& message, u32 ms, u32 rgba)
 {
-  std::lock_guard<std::mutex> lock(s_msg_list_mutex);
-  s_msg_list.emplace(MessageType::Typeless,
+  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  s_messages.emplace(MessageType::Typeless,
                      Message(message, Common::Timer::GetTimeMs() + ms, rgba));
 }
 
@@ -49,20 +49,20 @@ void DrawMessages()
     return;
 
   {
-    std::lock_guard<std::mutex> lock(s_msg_list_mutex);
+    std::lock_guard<std::mutex> lock(s_messages_mutex);
 
     u32 now = Common::Timer::GetTimeMs();
     int left = 20, top = 35;
 
-    auto it = s_msg_list.begin();
-    while (it != s_msg_list.end())
+    auto it = s_messages.begin();
+    while (it != s_messages.end())
     {
       const Message& msg = it->second;
       int time_left = (int)(msg.m_timestamp - now);
       DrawMessage(msg, top, left, time_left);
 
       if (time_left <= 0)
-        it = s_msg_list.erase(it);
+        it = s_messages.erase(it);
       else
         ++it;
       top += 15;
@@ -72,8 +72,8 @@ void DrawMessages()
 
 void ClearMessages()
 {
-  std::lock_guard<std::mutex> lock(s_msg_list_mutex);
-  s_msg_list.clear();
+  std::lock_guard<std::mutex> lock(s_messages_mutex);
+  s_messages.clear();
 }
 
 // On-Screen Display Callbacks

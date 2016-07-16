@@ -792,7 +792,7 @@ void NetPlayDialog::AddChatMessage(ChatMessageType type, const std::string& msg)
   switch (type)
   {
   case ChatMessageType::Info:
-    colour = wxColour(0, 150, 150);
+    colour = wxColour(0, 150, 150);  // cyan
     break;
 
   case ChatMessageType::Error:
@@ -800,12 +800,12 @@ void NetPlayDialog::AddChatMessage(ChatMessageType type, const std::string& msg)
     break;
 
   case ChatMessageType::UserIn:
-    colour = wxColour(0, 150, 0);
+    colour = wxColour(0, 150, 0);  // green
     printed_msg = "▶ " + msg;
     break;
 
   case ChatMessageType::UserOut:
-    colour = wxColour(50, 50, 50);
+    colour = wxColour(100, 100, 100);  // grey
     printed_msg = "◀ " + msg;
     break;
   }
