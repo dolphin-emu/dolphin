@@ -157,6 +157,12 @@ bool VideoBackend::Initialize(void* window_handle)
 
   // Base fields
   PopulateBackendInfo(&g_Config);
+
+  // HACK: Use InitBackendInfo to initially populate backend features.
+  // This is because things like stereo get disabled when the config is validated,
+  // which happens before our device is created (settings control instance behavior),
+  // and we don't want that to happen if the device actually supports it.
+  InitBackendInfo();
   InitializeShared();
 
   // Check for presence of the debug layer before trying to enable it

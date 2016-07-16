@@ -281,6 +281,8 @@ bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeature
   enable_features->sampleRateShading = available_features.sampleRateShading;
   enable_features->largePoints = available_features.largePoints;
   enable_features->shaderStorageImageMultisample = available_features.shaderStorageImageMultisample;
+  enable_features->shaderTessellationAndGeometryPointSize =
+      available_features.shaderTessellationAndGeometryPointSize;
 
   // Only here to shut up the debug layer, we don't actually use it
   enable_features->shaderClipDistance = available_features.shaderClipDistance;
@@ -318,6 +320,7 @@ void PopulateBackendInfo(VideoConfig* config)
 void PopulateBackendInfoAdapters(VideoConfig* config,
                                  const std::vector<VkPhysicalDevice>& physical_device_list)
 {
+  config->backend_info.Adapters.clear();
   for (VkPhysicalDevice physical_device : physical_device_list)
   {
     VkPhysicalDeviceProperties properties;
@@ -334,6 +337,14 @@ void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsBBox = (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
+
+  // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
+  // TODO: Seems this is needed for gl_Layer?
+  if (!features.shaderTessellationAndGeometryPointSize)
+    config->backend_info.bSupportsGeometryShaders = VK_FALSE;
+
+  // TODO: Investigate if there's a feature we can enable for GS instancing.
+  config->backend_info.bSupportsGSInstancing = VK_FALSE;
 
   // TODO: We need a bSupportsMSAA for shaderStorageImageMultisample.
 }
