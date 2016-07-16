@@ -498,9 +498,6 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   // Set the size of the window after the UI has been built, but before we show it
   SetSize(size);
 
-  // Show window
-  Show();
-
   // Commit
   m_Mgr->Update();
 

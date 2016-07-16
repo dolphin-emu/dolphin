@@ -155,7 +155,8 @@ bool DolphinApp::OnInit()
                           m_use_debugger, m_batch_mode, m_use_logger);
 
   SetTopWindow(main_frame);
-  main_frame->SetMinSize(wxSize(400, 300));
+  main_frame->SetMinSize(main_frame->FromDIP(wxSize(400, 300)));
+  main_frame->Show();
 
   AfterInit();
 
