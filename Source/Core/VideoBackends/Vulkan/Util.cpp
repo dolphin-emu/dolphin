@@ -48,6 +48,8 @@ RasterizationState GetNoCullRasterizationState()
 {
   RasterizationState state = {};
   state.cull_mode = VK_CULL_MODE_NONE;
+  state.samples = VK_SAMPLE_COUNT_1_BIT;
+  state.per_sample_shading = VK_FALSE;
   return state;
 }
 

@@ -444,10 +444,11 @@ bool EFBCache::CompileShaders()
 
 bool EFBCache::CreateTextures()
 {
-  m_color_copy_texture = Texture2D::Create(
-      EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+  m_color_copy_texture =
+      Texture2D::Create(EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_COLOR_TEXTURE_FORMAT,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
   m_color_readback_texture =
       StagingTexture2D::Create(EFB_WIDTH, EFB_HEIGHT, EFB_COLOR_TEXTURE_FORMAT);
@@ -457,10 +458,11 @@ bool EFBCache::CreateTextures()
     return false;
   }
 
-  m_depth_copy_texture = Texture2D::Create(
-      EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                                   VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+  m_depth_copy_texture =
+      Texture2D::Create(EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
   // We can't copy to/from color<->depth formats, so using a linear texture is not an option here.
   // TODO: Investigate if vkCmdBlitImage can be used. The documentation isn't that clear.
@@ -551,7 +553,9 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
   state_tracker->EndRenderPass();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
-  Texture2D* src_texture = m_framebuffer_mgr->GetEFBColorTexture();
+  VkRect2D src_region = {{0, 0},
+                         {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+  Texture2D* src_texture = m_framebuffer_mgr->ResolveEFBColorTexture(state_tracker, src_region);
   VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
       m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT || g_ActiveConfig.iMultisamples > 1)
@@ -609,7 +613,9 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
   state_tracker->EndRenderPass();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
-  Texture2D* src_texture = m_framebuffer_mgr->GetEFBDepthTexture();
+  VkRect2D src_region = {{0, 0},
+                         {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+  Texture2D* src_texture = m_framebuffer_mgr->ResolveEFBDepthTexture(state_tracker, src_region);
   VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
   if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
       m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT || g_ActiveConfig.iMultisamples > 1)
