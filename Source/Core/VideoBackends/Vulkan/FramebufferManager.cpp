@@ -299,11 +299,18 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
   // TODO: Constants for these?
   VkShaderModule pixel_shader = VK_NULL_HANDLE;
   if (convtype == 0)
+  {
     pixel_shader = m_ps_rgb8_to_rgba6;
+  }
   else if (convtype == 2)
+  {
     pixel_shader = m_ps_rgba6_to_rgb8;
+  }
   else
-    PanicAlert("Unhandled reinterpret pixel data %d", convtype);
+  {
+    ERROR_LOG(VIDEO, "Unhandled reinterpret pixel data %d", convtype);
+    return;
+  }
 
   // Transition EFB color buffer to shader resource, and the convert buffer to color attachment.
   m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -311,10 +318,10 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
   m_efb_convert_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      m_efb_render_pass, g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-      g_object_cache->GetSharedShaderCache().GetScreenQuadGeometryShader(), pixel_shader);
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), m_efb_render_pass,
+                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetScreenQuadGeometryShader(), pixel_shader);
 
   RasterizationState rs_state = Util::GetNoCullRasterizationState();
   rs_state.samples = m_efb_samples;
@@ -388,9 +395,8 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(StateTracker* state_tracke
   // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetStandardPipelineLayout(), m_depth_resolve_render_pass,
-                         g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                         g_object_cache->GetSharedShaderCache().GetScreenQuadGeometryShader(),
-                         m_ps_depth_resolve);
+                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
   draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
   draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);

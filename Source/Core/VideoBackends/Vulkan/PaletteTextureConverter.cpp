@@ -120,9 +120,8 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
 
   // Set up draw
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), m_pipeline_layout,
-                         m_render_pass,
-                         g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, m_shaders[format]);
+                         m_render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         m_shaders[format]);
 
   VkRect2D region = {{0, 0}, {width, height}};
   draw.BeginRenderPass(dst_framebuffer, region);

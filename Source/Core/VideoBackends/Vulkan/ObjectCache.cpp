@@ -21,8 +21,7 @@ ObjectCache::ObjectCache(VkInstance instance, VkPhysicalDevice physical_device, 
                          const VkPhysicalDeviceFeatures& features)
     : m_instance(instance), m_physical_device(physical_device), m_device(device),
       m_device_features(features), m_device_properties(properties), m_vs_cache(device),
-      m_gs_cache(device), m_ps_cache(device),
-      m_shared_shader_cache(device, &m_vs_cache, &m_gs_cache, &m_ps_cache)
+      m_gs_cache(device), m_ps_cache(device)
 {
   // Read device physical memory properties, we need it for allocating buffers
   vkGetPhysicalDeviceMemoryProperties(physical_device, &m_device_memory_properties);
@@ -77,14 +76,14 @@ bool ObjectCache::Initialize()
   if (!CreateStaticSamplers())
     return false;
 
+  if (!CompileSharedShaders())
+    return false;
+
   m_utility_shader_vertex_buffer =
       StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 1024 * 1024, 4 * 1024 * 1024);
   m_utility_shader_uniform_buffer =
       StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 1024, 4 * 1024 * 1024);
   if (!m_utility_shader_vertex_buffer || !m_utility_shader_uniform_buffer)
-    return false;
-
-  if (!m_shared_shader_cache.CompileShaders())
     return false;
 
   return true;
@@ -99,6 +98,7 @@ void ObjectCache::Shutdown()
   m_utility_shader_vertex_format.reset();
   ClearPipelineCache();
   ClearSamplerCache();
+  DestroySharedShaders();
 }
 
 bool ObjectCache::GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index)
@@ -565,18 +565,6 @@ bool ObjectCache::CreatePipelineCache(bool load_from_disk)
   return false;
 }
 
-bool ObjectCache::RecompileSharedShaders()
-{
-  m_shared_shader_cache.DestroyShaders();
-  if (!m_shared_shader_cache.CompileShaders())
-  {
-    PanicAlert("Failed to recompile static shaders.");
-    return false;
-  }
-
-  return true;
-}
-
 void ObjectCache::ClearSamplerCache()
 {
   for (const auto& it : m_sampler_cache)
@@ -585,6 +573,13 @@ void ObjectCache::ClearSamplerCache()
       vkDestroySampler(m_device, it.second, nullptr);
   }
   m_sampler_cache.clear();
+}
+
+void ObjectCache::RecompileSharedShaders()
+{
+  DestroySharedShaders();
+  if (!CompileSharedShaders())
+    PanicAlert("Failed to recompile shared shaders.");
 }
 
 bool ObjectCache::CreateDescriptorSetLayouts()
@@ -859,5 +854,149 @@ bool operator>(const SamplerState& lhs, const SamplerState& rhs)
 bool operator<(const SamplerState& lhs, const SamplerState& rhs)
 {
   return lhs.hex < rhs.hex;
+}
+
+bool ObjectCache::CompileSharedShaders()
+{
+  static const char PASSTHROUGH_VERTEX_SHADER_SOURCE[] = R"(
+    layout(location = 0) in float4 ipos;
+    layout(location = 5) in float4 icol0;
+    layout(location = 8) in float3 itex0;
+
+    layout(location = 0) out float3 uv0;
+    layout(location = 1) out float4 col0;
+
+    void main()
+    {
+	    gl_Position = ipos;
+	    uv0 = itex0;
+	    col0 = icol0;
+    }
+  )";
+
+  static const char PASSTHROUGH_GEOMETRY_SHADER_SOURCE[] = R"(
+    layout(triangles) in;
+    layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
+
+    in VertexData
+    {
+	    float3 uv0;
+	    float4 col0;
+    } in_data[];
+
+    out VertexData
+    {
+	    float3 uv0;
+	    float4 col0;
+    } out_data;
+
+    void main()
+    {
+	    for (int j = 0; j < EFB_LAYERS; j++)
+	    {
+		    for (int i = 0; i < 3; i++)
+		    {
+			    gl_Layer = j;
+			    gl_Position = gl_in[i].gl_Position;
+			    out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
+			    out_data.col0 = in_data[i].col0;
+			    EmitVertex();
+		    }
+		    EndPrimitive();
+	    }
+    }
+  )";
+
+  // TODO: Is clamp() faster than shifting right on most GPUs?
+  static const char SCREEN_QUAD_VERTEX_SHADER_SOURCE[] = R"(
+    layout(location = 0) out float3 uv0;
+
+    void main()
+    {
+        /*
+         * id	&1 &2	clamp	*2-1
+         * 0	0 0	0 0	-1 -1	TL
+         * 1	1 0	1 0	1 -1	TR
+         * 2	0 2	0 1	-1 1	BL
+         * 3	1 2	1 1	1 1	BR
+         */
+        vec2 rawpos = float2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0f, 1.0f));
+        gl_Position = float4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
+        uv0 = float3(rawpos, 0.0f);
+    }
+  )";
+
+  static const char SCREEN_QUAD_GEOMETRY_SHADER_SOURCE[] = R"(
+    layout(triangles) in;
+    layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
+
+    in VertexData
+    {
+	    float3 uv0;
+    } in_data[];
+
+    out VertexData
+    {
+	    float3 uv0;
+    } out_data;
+
+    void main()
+    {
+	    for (int j = 0; j < EFB_LAYERS; j++)
+	    {
+		    for (int i = 0; i < 3; i++)
+		    {
+			    gl_Layer = j;
+			    gl_Position = gl_in[i].gl_Position;
+			    out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
+			    EmitVertex();
+		    }
+		    EndPrimitive();
+	    }
+    }
+  )";
+
+  std::string header = GetUtilityShaderHeader();
+
+  m_screen_quad_vertex_shader =
+      m_vs_cache.CompileAndCreateShader(header + SCREEN_QUAD_VERTEX_SHADER_SOURCE);
+  m_passthrough_vertex_shader =
+      m_vs_cache.CompileAndCreateShader(header + PASSTHROUGH_VERTEX_SHADER_SOURCE);
+  if (m_screen_quad_vertex_shader == VK_NULL_HANDLE ||
+      m_passthrough_vertex_shader == VK_NULL_HANDLE)
+  {
+    return false;
+  }
+
+  if (g_ActiveConfig.iStereoMode != STEREO_OFF && SupportsGeometryShaders())
+  {
+    m_screen_quad_geometry_shader =
+        m_gs_cache.CompileAndCreateShader(header + SCREEN_QUAD_GEOMETRY_SHADER_SOURCE);
+    m_passthrough_geometry_shader =
+        m_gs_cache.CompileAndCreateShader(header + PASSTHROUGH_GEOMETRY_SHADER_SOURCE);
+    if (m_screen_quad_geometry_shader == VK_NULL_HANDLE ||
+        m_passthrough_geometry_shader == VK_NULL_HANDLE)
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void ObjectCache::DestroySharedShaders()
+{
+  auto DestroyShader = [this](VkShaderModule& shader) {
+    if (shader != VK_NULL_HANDLE)
+    {
+      vkDestroyShaderModule(m_device, shader, nullptr);
+      shader = VK_NULL_HANDLE;
+    }
+  };
+
+  DestroyShader(m_screen_quad_vertex_shader);
+  DestroyShader(m_passthrough_vertex_shader);
+  DestroyShader(m_screen_quad_geometry_shader);
+  DestroyShader(m_passthrough_geometry_shader);
 }
 }

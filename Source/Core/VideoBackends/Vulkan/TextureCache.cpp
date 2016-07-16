@@ -42,20 +42,14 @@ TextureCache::TextureCache(StateTracker* state_tracker) : m_state_tracker(state_
   m_palette_texture_converter = std::make_unique<PaletteTextureConverter>();
   if (!m_palette_texture_converter->Initialize())
     PanicAlert("Failed to initialize palette texture converter");
+
+  TextureCache::CompileShaders();
 }
 
 TextureCache::~TextureCache()
 {
   if (m_overwrite_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_object_cache->GetDevice(), m_overwrite_render_pass, nullptr);
-}
-
-void TextureCache::CompileShaders()
-{
-}
-
-void TextureCache::DeleteShaders()
-{
 }
 
 void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted,
@@ -150,6 +144,15 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
       LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
       return nullptr;
     }
+
+    // Clear render targets before use to prevent reading uninitialized memory.
+    VkClearColorValue clear_value = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    VkImageSubresourceRange clear_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, config.levels, 0,
+                                           config.layers};
+    texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), texture->GetImage(),
+                         texture->GetLayout(), &clear_value, 1, &clear_range);
   }
 
   return new TCacheEntry(config, this, std::move(texture), framebuffer);
@@ -320,13 +323,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-  UtilityShaderDraw draw(command_buffer, g_object_cache->GetStandardPipelineLayout(),
-                         m_parent->m_overwrite_render_pass,
-                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
-                         is_depth_copy ?
-                             g_object_cache->GetSharedShaderCache().GetDepthMatrixFragmentShader() :
-                             g_object_cache->GetSharedShaderCache().GetColorMatrixFragmentShader());
+  UtilityShaderDraw draw(
+      command_buffer, g_object_cache->GetStandardPipelineLayout(),
+      m_parent->m_overwrite_render_pass, g_object_cache->GetPassthroughVertexShader(),
+      g_object_cache->GetPassthroughGeometryShader(),
+      is_depth_copy ? m_parent->m_efb_depth_to_tex_shader : m_parent->m_efb_color_to_tex_shader);
 
   // TODO: Hmm. Push constants would be useful here.
   u8* uniform_buffer = draw.AllocatePSUniforms(sizeof(float) * 28);
@@ -414,9 +415,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
 
   UtilityShaderDraw draw(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      m_parent->m_overwrite_render_pass,
-      g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(), VK_NULL_HANDLE,
-      g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
+      m_parent->m_overwrite_render_pass, g_object_cache->GetPassthroughVertexShader(),
+      VK_NULL_HANDLE, m_parent->m_copy_shader);
 
   VkRect2D region = {
       {dst_rect.left, dst_rect.top},
@@ -487,6 +487,112 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
 
   staging_texture->Unmap();
   return result;
+}
+
+void TextureCache::CompileShaders()
+{
+  static const char COPY_SHADER_SOURCE[] = R"(
+    layout(set = 1, binding = 0) uniform sampler2DArray samp0;
+
+    layout(location = 0) in float3 uv0;
+    layout(location = 1) in float4 col0;
+    layout(location = 0) out float4 ocol0;
+
+    void main()
+    {
+      ocol0 = texture(samp0, uv0);
+    }
+  )";
+
+  static const char EFB_COLOR_TO_TEX_SOURCE[] = R"(
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+
+    layout(std140, set = 0, binding = 2) uniform PSBlock
+    {
+	    vec4 colmat[7];
+    };
+
+    layout(location = 0) in vec3 uv0;
+    layout(location = 1) in vec4 col0;
+    layout(location = 0) out vec4 ocol0;
+
+    void main()
+    {
+	    float4 texcol = texture(samp0, uv0);
+	    texcol = round(texcol * colmat[5]) * colmat[6];
+	    ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];
+    }
+  )";
+
+  static const char EFB_DEPTH_TO_TEX_SOURCE[] = R"(
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+
+    layout(std140, set = 0, binding = 2) uniform PSBlock
+    {
+	    vec4 colmat[5];
+    };
+
+    layout(location = 0) in vec3 uv0;
+    layout(location = 1) in vec4 col0;
+    layout(location = 0) out vec4 ocol0;
+
+    void main()
+    {
+	    vec4 texcol = texture(samp0, uv0);
+	    int depth = int((1.0 - texcol.x) * 16777216.0);
+
+	    // Convert to Z24 format
+	    ivec4 workspace;
+	    workspace.r = (depth >> 16) & 255;
+	    workspace.g = (depth >> 8) & 255;
+	    workspace.b = depth & 255;
+
+	    // Convert to Z4 format
+	    workspace.a = (depth >> 16) & 0xF0;
+
+	    // Normalize components to [0.0..1.0]
+	    texcol = vec4(workspace) / 255.0;
+
+	    ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];
+    }
+  )";
+
+  std::string header = g_object_cache->GetUtilityShaderHeader();
+  std::string source;
+
+  source = header + COPY_SHADER_SOURCE;
+  m_copy_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
+
+  source = header + EFB_COLOR_TO_TEX_SOURCE;
+  m_efb_color_to_tex_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
+
+  source = header + EFB_DEPTH_TO_TEX_SOURCE;
+  m_efb_depth_to_tex_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
+
+  if (m_copy_shader == VK_NULL_HANDLE || m_efb_color_to_tex_shader == VK_NULL_HANDLE ||
+      m_efb_depth_to_tex_shader == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to compile one or more shaders");
+    return;
+  }
+}
+
+void TextureCache::DeleteShaders()
+{
+  auto DestroyShader = [this](VkShaderModule& shader) {
+    if (shader != VK_NULL_HANDLE)
+    {
+      vkDestroyShaderModule(g_object_cache->GetDevice(), shader, nullptr);
+      shader = VK_NULL_HANDLE;
+    }
+  };
+
+  // Since this can be called by the base class we need to wait for idle.
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  DestroyShader(m_copy_shader);
+  DestroyShader(m_efb_color_to_tex_shader);
+  DestroyShader(m_efb_depth_to_tex_shader);
 }
 
 }  // namespace Vulkan
