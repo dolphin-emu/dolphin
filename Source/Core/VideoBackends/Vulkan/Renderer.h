@@ -19,6 +19,7 @@ class FramebufferManager;
 class FrameTimer;
 class SwapChain;
 class StateTracker;
+class Texture2D;
 class RasterFont;
 
 class Renderer : public ::Renderer
@@ -91,6 +92,10 @@ private:
   void RecompileShaders();
   bool CompileShaders();
   void DestroyShaders();
+
+  // Assumes rendering to swap chain, and render pass is active.
+  void BlitScreen(const TargetRectangle& dst_rect, const TargetRectangle& src_rect,
+                  const Texture2D* src_tex, bool linear_filter);
 
   SwapChain* m_swap_chain = nullptr;
   StateTracker* m_state_tracker = nullptr;
