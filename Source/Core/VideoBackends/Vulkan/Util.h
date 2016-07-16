@@ -125,9 +125,9 @@ public:
   void DrawQuad(int x, int y, int width, int height, float z = 0.0f);
 
   // Sets texture coordinates to the specified range
-  void DrawQuad(int src_x, int src_y, int src_width, int src_height, int src_full_width,
-                int src_full_height, int dst_x, int dst_y, int dst_width, int dst_height,
-                float z = 0.0f);
+  void DrawQuad(int dst_x, int dst_y, int dst_width, int dst_height, int src_x, int src_y,
+                int src_layer, int src_width, int src_height, int src_full_width,
+                int src_full_height, float z = 0.0f);
 
   void DrawColoredQuad(int x, int y, int width, int height, u32 color, float z = 0.0f);
 
