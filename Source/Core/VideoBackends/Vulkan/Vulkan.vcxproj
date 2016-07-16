@@ -58,7 +58,6 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PaletteTextureConverter.cpp" />
     <ClCompile Include="RasterFont.cpp" />
-    <ClCompile Include="SharedShaderCache.cpp" />
     <ClCompile Include="StagingTexture2D.cpp" />
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="Util.cpp" />
@@ -84,7 +83,6 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="PaletteTextureConverter.h" />
     <ClInclude Include="RasterFont.h" />
-    <ClInclude Include="SharedShaderCache.h" />
     <ClInclude Include="StagingTexture2D.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="Util.h" />
@@ -114,7 +112,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="SharedShaderSource.inl" />
     <None Include="VulkanImports.inl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

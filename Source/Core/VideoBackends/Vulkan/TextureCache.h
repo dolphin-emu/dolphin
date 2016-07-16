@@ -63,7 +63,6 @@ private:
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
   bool CreateRenderPasses();
-  bool ResizeImageDownloadBuffer(VkDeviceSize new_size);
 
   StateTracker* m_state_tracker = nullptr;
 
@@ -74,6 +73,10 @@ private:
   std::unique_ptr<TextureEncoder> m_texture_encoder;
 
   std::unique_ptr<PaletteTextureConverter> m_palette_texture_converter;
+
+  VkShaderModule m_copy_shader = VK_NULL_HANDLE;
+  VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
+  VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

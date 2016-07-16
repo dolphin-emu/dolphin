@@ -88,6 +88,10 @@ private:
   void ResizeEFBTextures();
   void ResizeSwapChain();
 
+  void RecompileShaders();
+  bool CompileShaders();
+  void DestroyShaders();
+
   SwapChain* m_swap_chain = nullptr;
   StateTracker* m_state_tracker = nullptr;
 
@@ -106,5 +110,9 @@ private:
 
   // Surface changes, needed for android. Called off-thread.
   void* m_new_window_handle = nullptr;
+
+  // Shaders used for clear/blit.
+  VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
+  VkShaderModule m_blit_fragment_shader = VK_NULL_HANDLE;
 };
 }
