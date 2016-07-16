@@ -550,5 +550,13 @@ struct ShaderCacheFunctions<PixelShaderUid>
 
   static void IncrementCounter() { INCSTAT(stats.numPixelShadersCreated); }
 };
+
 template class ShaderCache<PixelShaderUid>;
+
+std::string GetPipelineDiskCacheFileName()
+{
+  return StringFromFormat("%svulkan-%s-pipeline.cache",
+                          File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                          SConfig::GetInstance().m_strUniqueID.c_str());
+}
 }
