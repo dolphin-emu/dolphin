@@ -113,7 +113,7 @@ private:
   void GetNetSettings(NetSettings& settings);
   std::string FindCurrentGame();
   std::string FindGame(const std::string& game);
-  void AddChatMessage(ChatMessageType type, const std::string &msg);
+  void AddChatMessage(ChatMessageType type, const std::string& msg);
 
   void OnCopyIP(wxCommandEvent&);
   void OnChoice(wxCommandEvent& event);
