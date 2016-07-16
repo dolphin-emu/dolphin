@@ -349,7 +349,10 @@ void VideoBackend::Shutdown()
 
 void VideoBackend::Video_Cleanup()
 {
-  vkDeviceWaitIdle(s_vkDevice);
+  g_command_buffer_mgr->WaitForGPUIdle();
+
+  // Save all cached pipelines out to disk for next time.
+  g_object_cache->SavePipelineCache();
 
   g_texture_cache.reset();
   g_perf_query.reset();
