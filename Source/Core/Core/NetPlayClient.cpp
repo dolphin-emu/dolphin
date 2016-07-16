@@ -9,6 +9,7 @@
 #include <memory>
 #include <thread>
 #include "Common/Common.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
 #include "Common/MD5.h"
@@ -1261,8 +1262,8 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
   m_should_compute_MD5 = true;
 
   std::string file;
-  if (file_identifier == "sd.raw")
-    file = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
+  if (file_identifier == WII_SDCARD)
+    file = File::GetUserPath(F_WIISDCARD_IDX);
   else
     file = m_dialog->FindGame(file_identifier);
 

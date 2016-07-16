@@ -24,6 +24,7 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
@@ -563,7 +564,7 @@ void NetPlayDialog::OnMD5ComputeRequested(wxCommandEvent&)
     break;
 
   case MD5Target::SdCard:
-    file_identifier = "sd.raw";
+    file_identifier = WII_SDCARD;
     break;
 
   default:
