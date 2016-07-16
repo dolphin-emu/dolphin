@@ -209,6 +209,22 @@ GetVulkanRasterizationState(const RasterizationState& state)
   };
 }
 
+static VkPipelineMultisampleStateCreateInfo
+GetVulkanMultisampleState(const RasterizationState& rs_state)
+{
+  return {
+      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,  // VkStructureType sType
+      nullptr,                      // const void*                              pNext
+      0,                            // VkPipelineMultisampleStateCreateFlags    flags
+      rs_state.samples,             // VkSampleCountFlagBits                    rasterizationSamples
+      rs_state.per_sample_shading,  // VkBool32                                 sampleShadingEnable
+      1.0f,                         // float                                    minSampleShading
+      nullptr,                      // const VkSampleMask*                      pSampleMask;
+      VK_FALSE,  // VkBool32                                 alphaToCoverageEnable
+      VK_FALSE   // VkBool32                                 alphaToOneEnable
+  };
+}
+
 static VkPipelineDepthStencilStateCreateInfo
 GetVulkanDepthStencilState(const DepthStencilState& state)
 {
@@ -378,25 +394,14 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
   // Fill in full descriptor structs
   VkPipelineRasterizationStateCreateInfo rasterization_state =
       GetVulkanRasterizationState(info.rasterization_state);
+  VkPipelineMultisampleStateCreateInfo multisample_state =
+      GetVulkanMultisampleState(info.rasterization_state);
   VkPipelineDepthStencilStateCreateInfo depth_stencil_state =
       GetVulkanDepthStencilState(info.depth_stencil_state);
   VkPipelineColorBlendAttachmentState blend_attachment_state =
       GetVulkanAttachmentBlendState(info.blend_state);
   VkPipelineColorBlendStateCreateInfo blend_state =
       GetVulkanColorBlendState(info.blend_state, &blend_attachment_state, 1);
-
-  // TODO: multisampling
-  VkPipelineMultisampleStateCreateInfo multisample_state = {
-      VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-      nullptr,
-      0,                      // VkPipelineMultisampleStateCreateFlags    flags
-      VK_SAMPLE_COUNT_1_BIT,  // VkSampleCountFlagBits                    rasterizationSamples
-      VK_FALSE,               // VkBool32                                 sampleShadingEnable
-      1.0f,                   // float                                    minSampleShading
-      nullptr,                // const VkSampleMask*                      pSampleMask;
-      VK_FALSE,               // VkBool32                                 alphaToCoverageEnable
-      VK_FALSE                // VkBool32                                 alphaToOneEnable
-  };
 
   // Viewport is used with dynamic state
   static const VkViewport viewport = {0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f};

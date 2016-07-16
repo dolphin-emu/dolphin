@@ -61,10 +61,7 @@ bool Renderer::Initialize()
 
   // Work around the stupid static crap
   m_framebuffer_mgr = static_cast<FramebufferManager*>(g_framebuffer_manager.get());
-  VkRect2D framebuffer_render_area = {
-      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+  BindEFBToStateTracker();
 
   if (!CreateSemaphores())
     return false;
@@ -423,6 +420,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   depth_state.compare_op = VK_COMPARE_OP_ALWAYS;
   depth_state.write_enable = zEnable ? VK_TRUE : VK_FALSE;
 
+  RasterizationState rs_state = Util::GetNoCullRasterizationState();
+  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
+  rs_state.samples = m_framebuffer_mgr->GetEFBSamples();
+
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetStandardPipelineLayout(),
@@ -431,8 +432,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
                          g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
                          g_object_cache->GetSharedShaderCache().GetClearFragmentShader());
 
-  draw.SetBlendState(blend_state);
+  draw.SetRasterizationState(rs_state);
   draw.SetDepthStencilState(depth_state);
+  draw.SetBlendState(blend_state);
 
   float vertex_r = float((color >> 16) & 0xFF) / 255.0f;
   float vertex_g = float((color >> 8) & 0xFF) / 255.0f;
@@ -451,9 +453,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   m_framebuffer_mgr->ReinterpretPixelData(convtype);
 
   // EFB framebuffer has now changed, so update accordingly.
-  VkRect2D framebuffer_render_area = {
-      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+  BindEFBToStateTracker();
 }
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
@@ -468,8 +468,12 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
   // Transition the EFB render target to a shader resource.
-  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  VkRect2D src_region = {{0, 0},
+                         {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+  Texture2D* efb_color_texture =
+      m_framebuffer_mgr->ResolveEFBColorTexture(m_state_tracker, src_region);
+  efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                        VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
@@ -516,8 +520,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
 
   // Draw a quad that blits/scales the internal framebuffer to the swap chain.
-  draw.SetPSSampler(0, m_framebuffer_mgr->GetEFBColorTexture()->GetView(),
-                    g_object_cache->GetLinearSampler());
+  draw.SetPSSampler(0, efb_color_texture->GetView(), g_object_cache->GetLinearSampler());
   draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
                 m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(), target_rc.left,
                 target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
@@ -591,8 +594,8 @@ void Renderer::CheckForConfigChanges()
 {
   // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
   bool vsync_changed = (g_Config.bVSync != g_ActiveConfig.bVSync);
-  // bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
-  // bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
+  bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
+  bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
   bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
   bool force_texture_filtering_changed =
       (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
@@ -603,6 +606,23 @@ void Renderer::CheckForConfigChanges()
 
   // Update frame timer settings.
   m_frame_timer->SetEnabled(g_ActiveConfig.bShowFrameTime);
+
+  // MSAA samples changed, we need to recreate the EFB render pass, and all shaders.
+  if (msaa_changed)
+  {
+    m_framebuffer_mgr->RecreateRenderPass();
+    m_framebuffer_mgr->ResizeEFBTextures();
+  }
+
+  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
+  if (msaa_changed || ssaa_changed)
+  {
+    BindEFBToStateTracker();
+    m_framebuffer_mgr->RecompileShaders();
+    g_object_cache->ClearPipelineCache();
+    if (!g_object_cache->GetSharedShaderCache().CompileShaders())
+      PanicAlert("Failed to recompile shared shaders");
+  }
 
   // Handle internal resolution changes.
   if (s_last_efb_scale != g_ActiveConfig.iEFBScale)
@@ -660,6 +680,22 @@ void Renderer::OnSwapChainResized()
   PixelShaderManager::SetEfbScaleChanged();
 }
 
+void Renderer::BindEFBToStateTracker()
+{
+  // Update framebuffer in state tracker
+  VkRect2D framebuffer_render_area = {
+      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
+  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+
+  // Update rasterization state with MSAA info
+  RasterizationState rs_state = {};
+  rs_state.hex = m_state_tracker->GetRasterizationState().hex;
+  rs_state.samples = m_framebuffer_mgr->GetEFBSamples();
+  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
+  m_state_tracker->SetRasterizationState(rs_state);
+}
+
 void Renderer::ResizeEFBTextures()
 {
   // Ensure the GPU is finished with the current EFB textures.
@@ -668,11 +704,7 @@ void Renderer::ResizeEFBTextures()
   m_framebuffer_mgr->ResizeEFBTextures();
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
 
-  // Update framebuffer in state tracker
-  VkRect2D framebuffer_render_area = {
-      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+  BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
   SetViewport();
@@ -708,6 +740,7 @@ void Renderer::RestoreAPIState()
 void Renderer::SetGenerationMode()
 {
   RasterizationState new_rs_state = {};
+  new_rs_state.hex = m_state_tracker->GetRasterizationState().hex;
 
   switch (bpmem.genMode.cullmode)
   {

@@ -191,10 +191,10 @@ bool TextureEncoder::CreateEncodingRenderPass()
 bool TextureEncoder::CreateEncodingTexture()
 {
   // From OGL: Why do we create a 1024 height texture?
-  m_encoding_texture =
-      Texture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1,
-                        ENCODING_TEXTURE_FORMAT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  m_encoding_texture = Texture2D::Create(
+      ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, ENCODING_TEXTURE_FORMAT,
+      VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
   if (!m_encoding_texture)
     return false;
 

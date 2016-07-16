@@ -209,9 +209,9 @@ bool SwapChain::SetupSwapChainImages()
     image.Image = images[i];
 
     // Create texture object, which creates a view of the backbuffer
-    image.Texture = Texture2D::CreateFromExistingImage(m_size.width, m_size.height, 1, 1,
-                                                       m_surface_format.format,
-                                                       VK_IMAGE_VIEW_TYPE_2D, image.Image);
+    image.Texture = Texture2D::CreateFromExistingImage(
+        m_size.width, m_size.height, 1, 1, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT,
+        VK_IMAGE_VIEW_TYPE_2D, image.Image);
 
     VkImageView view = image.Texture->GetView();
     VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
