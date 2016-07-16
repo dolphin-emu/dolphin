@@ -199,9 +199,10 @@ bool RasterFont::CreateTexture()
   }
 
   // create the actual texture object
-  m_texture = Texture2D::Create(
-      CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_VIEW_TYPE_2D,
-      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+  m_texture =
+      Texture2D::Create(CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
   if (!m_texture)
     return false;
 

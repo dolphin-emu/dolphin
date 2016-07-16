@@ -17,16 +17,18 @@ class Texture2D
 {
 public:
   Texture2D(u32 width, u32 height, u32 levels, u32 layers, VkFormat format,
-            VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory,
-            VkImageView view);
+            VkSampleCountFlagBits samples, VkImageViewType view_type, VkImage image,
+            VkDeviceMemory device_memory, VkImageView view);
   ~Texture2D();
 
   static std::unique_ptr<Texture2D> Create(u32 width, u32 height, u32 levels, u32 layers,
-                                           VkFormat format, VkImageViewType view_type,
-                                           VkImageTiling tiling, VkImageUsageFlags usage);
+                                           VkFormat format, VkSampleCountFlagBits samples,
+                                           VkImageViewType view_type, VkImageTiling tiling,
+                                           VkImageUsageFlags usage);
 
   static std::unique_ptr<Texture2D> CreateFromExistingImage(u32 width, u32 height, u32 levels,
                                                             u32 layers, VkFormat format,
+                                                            VkSampleCountFlagBits samples,
                                                             VkImageViewType view_type,
                                                             VkImage existing_image);
 
@@ -35,6 +37,7 @@ public:
   u32 GetLevels() const { return m_levels; }
   u32 GetLayers() const { return m_layers; }
   VkFormat GetFormat() const { return m_format; }
+  VkSampleCountFlagBits GetSamples() const { return m_samples; }
   VkImageLayout GetLayout() const { return m_layout; }
   VkImageViewType GetViewType() const { return m_view_type; }
   VkImage GetImage() const { return m_image; }
@@ -53,6 +56,7 @@ private:
   u32 m_levels = 0;
   u32 m_layers = 0;
   VkFormat m_format = VK_FORMAT_UNDEFINED;
+  VkSampleCountFlagBits m_samples = VK_SAMPLE_COUNT_1_BIT;
   VkImageLayout m_layout = VK_IMAGE_LAYOUT_UNDEFINED;
   VkImageViewType m_view_type = VK_IMAGE_VIEW_TYPE_2D_ARRAY;
 
