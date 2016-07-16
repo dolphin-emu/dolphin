@@ -562,8 +562,8 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
   {
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_color_render_pass,
-                           g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                           VK_NULL_HANDLE, m_copy_color_shader);
+                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                           m_copy_color_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_color_copy_framebuffer, rect);
@@ -622,8 +622,8 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
   {
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_depth_render_pass,
-                           g_object_cache->GetSharedShaderCache().GetScreenQuadVertexShader(),
-                           VK_NULL_HANDLE, m_copy_depth_shader);
+                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                           m_copy_depth_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_depth_copy_framebuffer, rect);

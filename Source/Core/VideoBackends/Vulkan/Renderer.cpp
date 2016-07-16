@@ -13,7 +13,6 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
-#include "VideoBackends/Vulkan/SharedShaderCache.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/Util.h"
@@ -64,19 +63,37 @@ bool Renderer::Initialize()
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
+  {
+    ERROR_LOG(VIDEO, "Failed to create semaphores.");
     return false;
+  }
+
+  if (!CompileShaders())
+  {
+    ERROR_LOG(VIDEO, "Failed to compile shaders.");
+    return false;
+  }
 
   m_raster_font = std::make_unique<RasterFont>();
   if (!m_raster_font->Initialize())
+  {
+    ERROR_LOG(VIDEO, "Failed to initialize raster font.");
     return false;
+  }
 
   m_efb_cache = std::make_unique<EFBCache>(m_framebuffer_mgr);
   if (!m_efb_cache->Initialize())
+  {
+    ERROR_LOG(VIDEO, "Failed to initialize EFB cache.");
     return false;
+  }
 
   m_bounding_box = std::make_unique<BoundingBox>();
   if (!m_bounding_box->Initialize())
+  {
+    ERROR_LOG(VIDEO, "Failed to initialize bounding box.");
     return false;
+  }
 
   if (g_object_cache->SupportsBoundingBox())
   {
@@ -88,7 +105,10 @@ bool Renderer::Initialize()
 
   m_frame_timer = std::make_unique<FrameTimer>();
   if (!m_frame_timer->Initialize(g_ActiveConfig.bShowFrameTime))
+  {
+    ERROR_LOG(VIDEO, "Failed to initialize frame timer.");
     return false;
+  }
 
   // Initialize annoying statics
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -388,12 +408,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   rs_state.samples = m_framebuffer_mgr->GetEFBSamples();
 
   // No need to start a new render pass, but we do need to restore viewport state
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(),
-                         m_framebuffer_mgr->GetEFBRenderPass(),
-                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                         g_object_cache->GetSharedShaderCache().GetPassthroughGeometryShader(),
-                         g_object_cache->GetSharedShaderCache().GetClearFragmentShader());
+  UtilityShaderDraw draw(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
+      m_framebuffer_mgr->GetEFBRenderPass(), g_object_cache->GetPassthroughVertexShader(),
+      g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
   draw.SetRasterizationState(rs_state);
   draw.SetDepthStencilState(depth_state);
@@ -469,9 +487,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Blit the EFB to the back buffer (Swap chain)
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetStandardPipelineLayout(), m_swap_chain->GetRenderPass(),
-                         g_object_cache->GetSharedShaderCache().GetPassthroughVertexShader(),
-                         VK_NULL_HANDLE,
-                         g_object_cache->GetSharedShaderCache().GetCopyFragmentShader());
+                         g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
+                         m_blit_fragment_shader);
 
   // Begin the present render pass
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -562,7 +579,7 @@ void Renderer::CheckForConfigChanges()
   bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
   bool force_texture_filtering_changed =
       (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
-  // bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
+  bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
 
   // Copy g_Config to g_ActiveConfig.
   UpdateActiveConfig();
@@ -583,8 +600,6 @@ void Renderer::CheckForConfigChanges()
     BindEFBToStateTracker();
     m_framebuffer_mgr->RecompileShaders();
     g_object_cache->ClearPipelineCache();
-    if (!g_object_cache->GetSharedShaderCache().CompileShaders())
-      PanicAlert("Failed to recompile shared shaders");
   }
 
   // Handle internal resolution changes.
@@ -593,6 +608,14 @@ void Renderer::CheckForConfigChanges()
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
     if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
       ResizeEFBTextures();
+  }
+
+  // Handle stereoscopy mode changes.
+  if (stereo_changed)
+  {
+    ResizeEFBTextures();
+    BindEFBToStateTracker();
+    RecompileShaders();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1130,6 +1153,70 @@ void Renderer::ChangeSurface(void* new_window_handle)
   m_new_window_handle = new_window_handle;
   s_SurfaceNeedsChanged.Set();
   s_ChangedSurface.Wait();
+}
+
+void Renderer::RecompileShaders()
+{
+  DestroyShaders();
+  if (!CompileShaders())
+    PanicAlert("Failed to recompile shaders.");
+}
+
+bool Renderer::CompileShaders()
+{
+  static const char CLEAR_FRAGMENT_SHADER_SOURCE[] = R"(
+    layout(location = 0) in float3 uv0;
+    layout(location = 1) in float4 col0;
+    layout(location = 0) out float4 ocol0;
+
+    void main()
+    {
+      ocol0 = col0;
+    }
+
+  )";
+
+  static const char BLIT_FRAGMENT_SHADER_SOURCE[] = R"(
+    layout(set = 1, binding = 0) uniform sampler2DArray samp0;
+
+    layout(location = 0) in float3 uv0;
+    layout(location = 1) in float4 col0;
+    layout(location = 0) out float4 ocol0;
+
+    void main()
+    {
+      ocol0 = texture(samp0, uv0);
+    }
+  )";
+
+  std::string header = g_object_cache->GetUtilityShaderHeader();
+  std::string source;
+
+  source = header + CLEAR_FRAGMENT_SHADER_SOURCE;
+  m_clear_fragment_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
+  source = header + BLIT_FRAGMENT_SHADER_SOURCE;
+  m_blit_fragment_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
+
+  if (m_clear_fragment_shader == VK_NULL_HANDLE || m_blit_fragment_shader == VK_NULL_HANDLE)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+void Renderer::DestroyShaders()
+{
+  auto DestroyShader = [this](VkShaderModule& shader) {
+    if (shader != VK_NULL_HANDLE)
+    {
+      vkDestroyShaderModule(g_object_cache->GetDevice(), shader, nullptr);
+      shader = VK_NULL_HANDLE;
+    }
+  };
+
+  DestroyShader(m_clear_fragment_shader);
+  DestroyShader(m_blit_fragment_shader);
 }
 
 }  // namespace Vulkan

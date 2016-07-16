@@ -11,7 +11,6 @@
 
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ShaderCache.h"
-#include "VideoBackends/Vulkan/SharedShaderCache.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
 
 namespace Vulkan
@@ -131,7 +130,6 @@ public:
   VertexShaderCache& GetVertexShaderCache() { return m_vs_cache; }
   GeometryShaderCache& GetGeometryShaderCache() { return m_gs_cache; }
   PixelShaderCache& GetPixelShaderCache() { return m_ps_cache; }
-  SharedShaderCache& GetSharedShaderCache() { return m_shared_shader_cache; }
   // Static samplers
   VkSampler GetPointSampler() const { return m_point_sampler; }
   VkSampler GetLinearSampler() const { return m_linear_sampler; }
@@ -160,20 +158,26 @@ public:
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 
-  // Recompile static shaders, call when MSAA mode changes, etc.
-  // Destroys the old shader modules, so assumes that the pipeline cache is clear first.
-  bool RecompileSharedShaders();
-
   // Clear sampler cache, use when anisotropy mode changes
   // WARNING: Ensure none of the objects from here are in use when calling
   void ClearSamplerCache();
 
+  // Recompile shared shaders, call when stereo mode changes.
+  void RecompileSharedShaders();
+
+  // Shared shader accessors
+  VkShaderModule GetScreenQuadVertexShader() const { return m_screen_quad_vertex_shader; }
+  VkShaderModule GetPassthroughVertexShader() const { return m_passthrough_vertex_shader; }
+  VkShaderModule GetScreenQuadGeometryShader() const { return m_screen_quad_geometry_shader; }
+  VkShaderModule GetPassthroughGeometryShader() const { return m_passthrough_geometry_shader; }
 private:
   bool CreatePipelineCache(bool load_from_disk);
   bool CreateDescriptorSetLayouts();
   bool CreatePipelineLayout();
   bool CreateUtilityShaderVertexFormat();
   bool CreateStaticSamplers();
+  bool CompileSharedShaders();
+  void DestroySharedShaders();
 
   VkInstance m_instance = VK_NULL_HANDLE;
   VkPhysicalDevice m_physical_device = VK_NULL_HANDLE;
@@ -197,8 +201,6 @@ private:
   GeometryShaderCache m_gs_cache;
   PixelShaderCache m_ps_cache;
 
-  SharedShaderCache m_shared_shader_cache;
-
   std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_objects;
   VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 
@@ -206,6 +208,12 @@ private:
   VkSampler m_linear_sampler = VK_NULL_HANDLE;
 
   std::map<SamplerState, VkSampler> m_sampler_cache;
+
+  // Utility shaders
+  VkShaderModule m_screen_quad_vertex_shader = VK_NULL_HANDLE;
+  VkShaderModule m_passthrough_vertex_shader = VK_NULL_HANDLE;
+  VkShaderModule m_screen_quad_geometry_shader = VK_NULL_HANDLE;
+  VkShaderModule m_passthrough_geometry_shader = VK_NULL_HANDLE;
 };
 
 extern std::unique_ptr<ObjectCache> g_object_cache;
