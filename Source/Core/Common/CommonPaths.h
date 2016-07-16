@@ -118,6 +118,8 @@
 
 #define WII_STATE "state.dat"
 
+#define WII_SDCARD "sd.raw"
+
 #define WII_SETTING "setting.txt"
 
 #define GECKO_CODE_HANDLER "codehandler.bin"
