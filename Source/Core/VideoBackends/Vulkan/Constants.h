@@ -65,6 +65,8 @@ constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
 // Rasterization state info
 union RasterizationState {
   BitField<0, 2, VkCullModeFlags> cull_mode;
+  BitField<2, 7, VkSampleCountFlagBits> samples;
+  BitField<9, 1, VkBool32> per_sample_shading;
 
   u32 hex;
 };
