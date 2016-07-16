@@ -28,8 +28,9 @@ public:
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
   VkSwapchainKHR GetSwapChain() const { return m_swap_chain; }
   VkRenderPass GetRenderPass() const { return m_render_pass; }
-  VkExtent2D GetSize() const { return m_size; }
-  uint32_t GetCurrentImageIndex() const { return m_current_swap_chain_image_index; }
+  u32 GetWidth() const { return m_width; }
+  u32 GetHeight() const { return m_height; }
+  u32 GetCurrentImageIndex() const { return m_current_swap_chain_image_index; }
   VkImage GetCurrentImage() const
   {
     return m_swap_chain_images[m_current_swap_chain_image_index].Image;
@@ -77,11 +78,12 @@ private:
 
   VkSwapchainKHR m_swap_chain = nullptr;
   std::vector<SwapChainImage> m_swap_chain_images;
-  uint32_t m_current_swap_chain_image_index = 0;
+  u32 m_current_swap_chain_image_index = 0;
 
   VkRenderPass m_render_pass = nullptr;
 
-  VkExtent2D m_size = {0, 0};
+  u32 m_width = 0;
+  u32 m_height = 0;
 };
 
 }  // namespace Vulkan

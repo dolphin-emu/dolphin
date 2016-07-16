@@ -340,9 +340,9 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 
   draw.BeginRenderPass(m_framebuffer, dest_region);
 
-  draw.DrawQuad(scaled_src_rect.left, scaled_src_rect.top, scaled_src_rect.GetWidth(),
-                scaled_src_rect.GetHeight(), framebuffer_mgr->GetEFBWidth(),
-                framebuffer_mgr->GetEFBHeight(), 0, 0, config.width, config.height);
+  draw.DrawQuad(0, 0, config.width, config.height, scaled_src_rect.left, scaled_src_rect.top, 0,
+                scaled_src_rect.GetWidth(), scaled_src_rect.GetHeight(),
+                framebuffer_mgr->GetEFBWidth(), framebuffer_mgr->GetEFBHeight());
 
   draw.EndRenderPass();
 
@@ -423,9 +423,9 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
       {static_cast<u32>(dst_rect.GetWidth()), static_cast<u32>(dst_rect.GetHeight())}};
   draw.BeginRenderPass(m_framebuffer, region);
   draw.SetPSSampler(0, source_vk->GetTexture()->GetView(), g_object_cache->GetLinearSampler());
-  draw.DrawQuad(src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(),
-                source->config.width, source->config.height, dst_rect.left, dst_rect.top,
-                dst_rect.GetWidth(), dst_rect.GetHeight());
+  draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
+                src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
+                source->config.width, source->config.height);
   draw.EndRenderPass();
 
   // Transition back to shader resource.
@@ -538,7 +538,11 @@ void TextureCache::CompileShaders()
 
     void main()
     {
-	    vec4 texcol = texture(samp0, uv0);
+      #if MONO_DEPTH
+	      vec4 texcol = texture(samp0, vec3(uv0.xy, 0.0f));
+      #else
+        vec4 texcol = texture(samp0, uv0);
+      #endif
 	    int depth = int((1.0 - texcol.x) * 16777216.0);
 
 	    // Convert to Z24 format
@@ -566,7 +570,10 @@ void TextureCache::CompileShaders()
   source = header + EFB_COLOR_TO_TEX_SOURCE;
   m_efb_color_to_tex_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
 
-  source = header + EFB_DEPTH_TO_TEX_SOURCE;
+  if (g_ActiveConfig.bStereoEFBMonoDepth)
+    source = header + "#define MONO_DEPTH 1\n" + EFB_DEPTH_TO_TEX_SOURCE;
+  else
+    source = header + EFB_DEPTH_TO_TEX_SOURCE;
   m_efb_depth_to_tex_shader = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(source);
 
   if (m_copy_shader == VK_NULL_HANDLE || m_efb_color_to_tex_shader == VK_NULL_HANDLE ||
