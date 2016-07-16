@@ -173,6 +173,12 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
+
+#ifdef _WIN32
+  // Windows UXTheme draws vertical rules between each column and also botches the image
+  // columns by drawing random lines in the background. Revert to wx3.0 behavior (unthemed).
+  EnableSystemTheme(false);
+#endif
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -283,10 +289,10 @@ void CGameListCtrl::Update()
 #ifdef __WXMSW__
     const int platform_padding = 0;
 #else
-    const int platform_padding = 8;
+    const int platform_padding = FromDIP(8);
 #endif
 
-    const int platform_icon_padding = 1;
+    const int platform_icon_padding = FromDIP(1);
 
     // set initial sizes for columns
     SetColumnWidth(COLUMN_DUMMY, 0);
@@ -295,12 +301,14 @@ void CGameListCtrl::Update()
                                         0);
     SetColumnWidth(COLUMN_BANNER,
                    SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
-    SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+    SetColumnWidth(COLUMN_TITLE, FromDIP(175) + platform_padding);
     SetColumnWidth(COLUMN_MAKER,
-                   SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
-    SetColumnWidth(COLUMN_FILENAME,
-                   SConfig::GetInstance().m_showFileNameColumn ? 100 + platform_padding : 0);
-    SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
+                   SConfig::GetInstance().m_showMakerColumn ? FromDIP(150) + platform_padding : 0);
+    SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ?
+                                        FromDIP(100) + platform_padding :
+                                        0);
+    SetColumnWidth(COLUMN_ID,
+                   SConfig::GetInstance().m_showIDColumn ? FromDIP(75) + platform_padding : 0);
     SetColumnWidth(COLUMN_COUNTRY,
                    SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
     SetColumnWidth(COLUMN_EMULATION_STATE,
@@ -544,7 +552,14 @@ void CGameListCtrl::ScanForISOs()
 
   if (rFilenames.size() > 0)
   {
-    wxProgressDialog dialog(
+    // wxProgressDialog uses native Win32 Task Dialogs but the dialog is used incorrectly.
+    // wxWidgets creates the dialog on a thread with no parent which causes the dialog
+    // to automatically bond with the current front window. During start-up this generally
+    // means Windows Explorer / Desktop. When the dialog is closed, it raises its bonded
+    // window instead of Dolphin. It's essentially a race condition.
+    // Just use the generic progress dialog instead which does not use threads so it works
+    // properly even if it looks ugly.
+    wxGenericProgressDialog dialog(
         _("Scanning for ISOs"), _("Scanning..."), (int)rFilenames.size() - 1, this,
         wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME |
             wxPD_REMAINING_TIME | wxPD_SMOOTH  // - makes updates as small as possible (down to 1px)
