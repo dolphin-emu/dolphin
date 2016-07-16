@@ -37,8 +37,8 @@ Renderer::Renderer(SwapChain* swap_chain, StateTracker* state_tracker)
     m_sampler_states[i].hex = std::numeric_limits<decltype(m_sampler_states[i].hex)>::max();
 
   // Update size
-  s_backbuffer_width = m_swap_chain->GetSize().width;
-  s_backbuffer_height = m_swap_chain->GetSize().height;
+  s_backbuffer_width = m_swap_chain->GetWidth();
+  s_backbuffer_height = m_swap_chain->GetHeight();
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
@@ -165,8 +165,8 @@ void Renderer::DestroySemaphores()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  u32 backbuffer_width = m_swap_chain->GetSize().width;
-  u32 backbuffer_height = m_swap_chain->GetSize().height;
+  u32 backbuffer_width = m_swap_chain->GetWidth();
+  u32 backbuffer_height = m_swap_chain->GetHeight();
 
   m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
                                     left * 2.0f / static_cast<float>(backbuffer_width) - 1,
@@ -314,7 +314,7 @@ void Renderer::DrawFrameTimer()
   u32 gpu_color = GetColor(gpu_time);
 
   // Text headings
-  int screen_width = static_cast<int>(m_swap_chain->GetSize().width);
+  int screen_width = static_cast<int>(m_swap_chain->GetWidth());
   RenderText("CPU Time: ", screen_width - 340, 20, 0xFFFFFFFF);
   RenderText(StringFromFormat(
                  "%.2f ms (%.2f/%.2f/%.2f)", cpu_time * 1000, m_frame_timer->GetMinCPUTime() * 1000,
@@ -492,22 +492,25 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // Begin the present render pass
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
-  VkRect2D region = {{0, 0}, m_swap_chain->GetSize()};
-  draw.BeginRenderPass(m_swap_chain->GetCurrentFramebuffer(), region, &clear_value);
+  VkRenderPassBeginInfo render_pass_begin = {
+      VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      nullptr,
+      m_swap_chain->GetRenderPass(),
+      m_swap_chain->GetCurrentFramebuffer(),
+      {{0, 0}, {m_swap_chain->GetWidth(), m_swap_chain->GetHeight()}},
+      1,
+      &clear_value};
+  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &render_pass_begin,
+                       VK_SUBPASS_CONTENTS_INLINE);
 
-  // Find the rect we want to draw into on the backbuffer
+  // Copy EFB -> backbuffer
   TargetRectangle target_rc = GetTargetRectangle();
   TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
-
-  // Draw a quad that blits/scales the internal framebuffer to the swap chain.
-  draw.SetPSSampler(0, efb_color_texture->GetView(), g_object_cache->GetLinearSampler());
-  draw.DrawQuad(source_rc.left, source_rc.top, source_rc.GetWidth(), source_rc.GetHeight(),
-                m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight(), target_rc.left,
-                target_rc.top, target_rc.GetWidth(), target_rc.GetHeight());
+  BlitScreen(target_rc, source_rc, efb_color_texture, true);
 
   // OSD stuff
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
-                              m_swap_chain->GetSize().width, m_swap_chain->GetSize().height);
+                              m_swap_chain->GetWidth(), m_swap_chain->GetHeight());
   DrawDebugText();
 
   if (m_frame_timer->IsEnabled())
@@ -559,8 +562,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     {
       LONG width = client_rect.right - client_rect.left;
       LONG height = client_rect.bottom - client_rect.top;
-      if (width != static_cast<LONG>(m_swap_chain->GetSize().width) ||
-          height != static_cast<LONG>(m_swap_chain->GetSize().height))
+      if (width != static_cast<LONG>(m_swap_chain->GetWidth()) ||
+          height != static_cast<LONG>(m_swap_chain->GetHeight()))
       {
         WARN_LOG(VIDEO, "Detected client rect change, resizing swap chain");
         ResizeSwapChain();
@@ -636,7 +639,8 @@ void Renderer::CheckForSurfaceChange()
   g_command_buffer_mgr->WaitForGPUIdle();
 
   // Recreate the surface. If this fails we're in trouble.
-  VkExtent2D old_size = m_swap_chain->GetSize();
+  u32 old_width = m_swap_chain->GetWidth();
+  u32 old_height = m_swap_chain->GetHeight();
   if (!m_swap_chain->RecreateSurface(m_new_window_handle))
     PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
 
@@ -646,8 +650,7 @@ void Renderer::CheckForSurfaceChange()
   s_ChangedSurface.Set();
 
   // Handle case where the dimensions are now different
-  if (old_size.width != m_swap_chain->GetSize().width ||
-      old_size.height != m_swap_chain->GetSize().height)
+  if (old_width != m_swap_chain->GetWidth() || old_height != m_swap_chain->GetHeight())
   {
     OnSwapChainResized();
   }
@@ -655,8 +658,8 @@ void Renderer::CheckForSurfaceChange()
 
 void Renderer::OnSwapChainResized()
 {
-  s_backbuffer_width = m_swap_chain->GetSize().width;
-  s_backbuffer_height = m_swap_chain->GetSize().height;
+  s_backbuffer_width = m_swap_chain->GetWidth();
+  s_backbuffer_height = m_swap_chain->GetHeight();
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
@@ -1217,6 +1220,46 @@ void Renderer::DestroyShaders()
 
   DestroyShader(m_clear_fragment_shader);
   DestroyShader(m_blit_fragment_shader);
+}
+
+void Renderer::BlitScreen(const TargetRectangle& dst_rect, const TargetRectangle& src_rect,
+                          const Texture2D* src_tex, bool linear_filter)
+{
+  // We could potentially use vkCmdBlitImage here.
+  VkSampler sampler =
+      (linear_filter) ? g_object_cache->GetLinearSampler() : g_object_cache->GetPointSampler();
+
+  // Set up common data
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), m_swap_chain->GetRenderPass(),
+                         g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
+                         m_blit_fragment_shader);
+
+  draw.SetPSSampler(0, src_tex->GetView(), sampler);
+
+  if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
+  {
+    TargetRectangle left_rect;
+    TargetRectangle right_rect;
+    if (g_ActiveConfig.iStereoMode == STEREO_TAB)
+      ConvertStereoRectangle(dst_rect, right_rect, left_rect);
+    else
+      ConvertStereoRectangle(dst_rect, left_rect, right_rect);
+
+    draw.DrawQuad(left_rect.left, left_rect.top, left_rect.GetWidth(), left_rect.GetHeight(),
+                  src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
+                  src_tex->GetWidth(), src_tex->GetHeight());
+
+    draw.DrawQuad(right_rect.left, right_rect.top, right_rect.GetWidth(), right_rect.GetHeight(),
+                  src_rect.left, src_rect.top, 1, src_rect.GetWidth(), src_rect.GetHeight(),
+                  src_tex->GetWidth(), src_tex->GetHeight());
+  }
+  else
+  {
+    draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
+                  src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
+                  src_tex->GetWidth(), src_tex->GetHeight());
+  }
 }
 
 }  // namespace Vulkan

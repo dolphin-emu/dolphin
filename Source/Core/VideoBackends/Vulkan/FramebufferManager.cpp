@@ -132,17 +132,20 @@ bool FramebufferManager::CreateEFBFramebuffer()
 {
   m_efb_width = static_cast<u32>(std::max(Renderer::GetTargetWidth(), 1));
   m_efb_height = static_cast<u32>(std::max(Renderer::GetTargetHeight(), 1));
-  m_efb_layers = 1;
+  m_efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
   INFO_LOG(VIDEO, "EFB size: %ux%ux%u", m_efb_width, m_efb_height, m_efb_layers);
 
-  // TODO: Stereo buffers
+  // Update the static variable in the base class. Why does this even exist?
+  FramebufferManagerBase::m_EFBLayers = m_efb_layers;
 
+  // Allocate EFB render targets
   m_efb_color_texture =
       Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
                         m_efb_samples, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
 
+  // We need a second texture to swap with for changing pixel formats
   m_efb_convert_color_texture =
       Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
                         m_efb_samples, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,

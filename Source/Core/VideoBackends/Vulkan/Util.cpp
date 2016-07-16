@@ -284,27 +284,28 @@ void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
   Draw();
 }
 
-void UtilityShaderDraw::DrawQuad(int src_x, int src_y, int src_width, int src_height,
-                                 int src_full_width, int src_full_height, int dst_x, int dst_y,
-                                 int dst_width, int dst_height, float z)
+void UtilityShaderDraw::DrawQuad(int dst_x, int dst_y, int dst_width, int dst_height, int src_x,
+                                 int src_y, int src_layer, int src_width, int src_height,
+                                 int src_full_width, int src_full_height, float z)
 {
   float u0 = float(src_x) / float(src_full_width);
   float v0 = float(src_y) / float(src_full_height);
   float u1 = float(src_x + src_width) / float(src_full_width);
   float v1 = float(src_y + src_height) / float(src_full_height);
+  float w = static_cast<float>(src_layer);
 
   UtilityShaderVertex vertices[4];
   vertices[0].SetPosition(-1.0f, 1.0f, z);
-  vertices[0].SetTextureCoordinates(u0, v1);
+  vertices[0].SetTextureCoordinates(u0, v1, w);
   vertices[0].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
   vertices[1].SetPosition(1.0f, 1.0f, z);
-  vertices[1].SetTextureCoordinates(u1, v1);
+  vertices[1].SetTextureCoordinates(u1, v1, w);
   vertices[1].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
   vertices[2].SetPosition(-1.0f, -1.0f, z);
-  vertices[2].SetTextureCoordinates(u0, v0);
+  vertices[2].SetTextureCoordinates(u0, v0, w);
   vertices[2].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
   vertices[3].SetPosition(1.0f, -1.0f, z);
-  vertices[3].SetTextureCoordinates(u1, v0);
+  vertices[3].SetTextureCoordinates(u1, v0, w);
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, dst_x, dst_y, dst_width, dst_height);

@@ -126,13 +126,13 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
 
   // Determine the dimensions of the swap chain. Values of -1 indicate the size we specify here
   // determines window size?
-  m_size = surface_capabilities.currentExtent;
-  if (m_size.width == UINT32_MAX)
+  VkExtent2D size = surface_capabilities.currentExtent;
+  if (size.width == UINT32_MAX)
   {
-    m_size.width = std::min(std::max(surface_capabilities.minImageExtent.width, 640u),
-                            surface_capabilities.maxImageExtent.width);
-    m_size.height = std::min(std::max(surface_capabilities.minImageExtent.height, 480u),
-                             surface_capabilities.maxImageExtent.height);
+    size.width = std::min(std::max(surface_capabilities.minImageExtent.width, 640u),
+                          surface_capabilities.maxImageExtent.width);
+    size.height = std::min(std::max(surface_capabilities.minImageExtent.height, 480u),
+                           surface_capabilities.maxImageExtent.height);
   }
 
   // Prefer identity transform if possible
@@ -158,7 +158,7 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
                                               image_count,
                                               m_surface_format.format,
                                               m_surface_format.colorSpace,
-                                              m_size,
+                                              size,
                                               1,
                                               image_usage,
                                               VK_SHARING_MODE_EXCLUSIVE,
@@ -181,6 +181,8 @@ bool SwapChain::CreateSwapChain(VkSwapchainKHR old_swap_chain)
   if (old_swap_chain)
     g_command_buffer_mgr->DeferResourceDestruction(old_swap_chain);
 
+  m_width = size.width;
+  m_height = size.height;
   return true;
 }
 
@@ -210,7 +212,7 @@ bool SwapChain::SetupSwapChainImages()
 
     // Create texture object, which creates a view of the backbuffer
     image.Texture = Texture2D::CreateFromExistingImage(
-        m_size.width, m_size.height, 1, 1, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT,
+        m_width, m_height, 1, 1, m_surface_format.format, VK_SAMPLE_COUNT_1_BIT,
         VK_IMAGE_VIEW_TYPE_2D, image.Image);
 
     VkImageView view = image.Texture->GetView();
@@ -220,8 +222,8 @@ bool SwapChain::SetupSwapChainImages()
                                                 m_render_pass,
                                                 1,
                                                 &view,
-                                                m_size.width,
-                                                m_size.height,
+                                                m_width,
+                                                m_height,
                                                 1};
 
     res = vkCreateFramebuffer(g_object_cache->GetDevice(), &framebuffer_info, nullptr,
