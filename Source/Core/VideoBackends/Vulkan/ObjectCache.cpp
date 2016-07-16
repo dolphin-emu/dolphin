@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "Common/Hash.h"
+#include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -61,6 +62,9 @@ ObjectCache::~ObjectCache()
 
 bool ObjectCache::Initialize()
 {
+  if (!CreatePipelineCache(true))
+    return false;
+
   if (!CreateDescriptorSetLayouts())
     return false;
 
@@ -336,9 +340,8 @@ GetVulkanColorBlendState(const BlendState& state,
 
 VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 {
-  // TODO: Pipeline caches
-  auto iter = m_pipeline_cache.find(info);
-  if (iter != m_pipeline_cache.end())
+  auto iter = m_pipeline_objects.find(info);
+  if (iter != m_pipeline_objects.end())
     return iter->second;
 
   // Declare descriptors for empty vertex buffers/attributes
@@ -451,23 +454,115 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 
   VkPipeline pipeline = VK_NULL_HANDLE;
   VkResult res =
-      vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &pipeline);
+      vkCreateGraphicsPipelines(m_device, m_pipeline_cache, 1, &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
 
-  m_pipeline_cache.emplace(info, pipeline);
+  m_pipeline_objects.emplace(info, pipeline);
   return pipeline;
 }
 
 void ObjectCache::ClearPipelineCache()
 {
   // Care here to ensure that pipelines are destroyed before shader modules
-  for (const auto& it : m_pipeline_cache)
+  for (const auto& it : m_pipeline_objects)
   {
     if (it.second != VK_NULL_HANDLE)
       vkDestroyPipeline(m_device, it.second, nullptr);
   }
-  m_pipeline_cache.clear();
+  m_pipeline_objects.clear();
+
+  // Reallocate the pipeline cache object, so it starts fresh and we don't
+  // save old pipelines to disk. TODO: Maybe we don't want to do this?
+  vkDestroyPipelineCache(m_device, m_pipeline_cache, nullptr);
+  m_pipeline_cache = VK_NULL_HANDLE;
+  if (!CreatePipelineCache(false))
+    PanicAlert("Failed to re-create pipeline cache");
+}
+
+class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
+{
+public:
+  PipelineCacheReadCallback(std::vector<u8>* data) : m_data(data) {}
+  virtual void Read(const u32& key, const u8* value, u32 value_size) override
+  {
+    m_data->resize(value_size);
+    if (value_size > 0)
+      memcpy(m_data->data(), value, value_size);
+  }
+
+private:
+  std::vector<u8>* m_data;
+};
+
+class PipelineCacheReadIgnoreCallback : public LinearDiskCacheReader<u32, u8>
+{
+public:
+  virtual void Read(const u32& key, const u8* value, u32 value_size) override {}
+};
+
+void ObjectCache::SavePipelineCache()
+{
+  size_t data_size;
+  VkResult res = vkGetPipelineCacheData(m_device, m_pipeline_cache, &data_size, nullptr);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkGetPipelineCacheData failed: ");
+    return;
+  }
+
+  std::vector<u8> data(data_size);
+  res = vkGetPipelineCacheData(m_device, m_pipeline_cache, &data_size, data.data());
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkGetPipelineCacheData failed: ");
+    return;
+  }
+
+  // Delete the old cache and re-create. TODO: Improve this.
+  File::Delete(GetPipelineDiskCacheFileName());
+
+  // We write a single key of 1, with the entire pipeline cache data.
+  LinearDiskCache<u32, u8> disk_cache;
+  PipelineCacheReadIgnoreCallback callback;
+  disk_cache.OpenAndRead(GetPipelineDiskCacheFileName(), callback);
+  disk_cache.Append(1, data.data(), static_cast<u32>(data.size()));
+  disk_cache.Close();
+}
+
+bool ObjectCache::CreatePipelineCache(bool load_from_disk)
+{
+  std::vector<u8> disk_data;
+  if (load_from_disk)
+  {
+    LinearDiskCache<u32, u8> disk_cache;
+    PipelineCacheReadCallback read_callback(&disk_data);
+    if (disk_cache.OpenAndRead(GetPipelineDiskCacheFileName(), read_callback) != 1)
+      disk_data.clear();
+  }
+
+  VkPipelineCacheCreateInfo info = {
+      VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
+      nullptr,                                       // const void*                pNext
+      0,                                             // VkPipelineCacheCreateFlags flags
+      disk_data.size(),                              // size_t                     initialDataSize
+      (!disk_data.empty()) ? disk_data.data() : nullptr,  // const void*                pInitialData
+  };
+
+  VkResult res = vkCreatePipelineCache(m_device, &info, nullptr, &m_pipeline_cache);
+  if (res == VK_SUCCESS)
+    return true;
+
+  // Failed to create pipeline cache, try with it empty.
+  LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed, trying empty cache: ");
+  info.initialDataSize = 0;
+  info.pInitialData = nullptr;
+  res = vkCreatePipelineCache(m_device, &info, nullptr, &m_pipeline_cache);
+  if (res == VK_SUCCESS)
+    return true;
+
+  LOG_VULKAN_ERROR(res, "vkCreatePipelineCache failed: ");
+  return false;
 }
 
 bool ObjectCache::RecompileSharedShaders()

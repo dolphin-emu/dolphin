@@ -5,6 +5,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 #include <vector>
 
 #include "Common/LinearDiskCache.h"
@@ -44,5 +45,7 @@ private:
 using VertexShaderCache = ShaderCache<VertexShaderUid>;
 using GeometryShaderCache = ShaderCache<GeometryShaderUid>;
 using PixelShaderCache = ShaderCache<PixelShaderUid>;
+
+std::string GetPipelineDiskCacheFileName();
 
 }  // namespace Vulkan

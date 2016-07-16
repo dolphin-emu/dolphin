@@ -154,7 +154,11 @@ public:
   VkPipeline GetPipeline(const PipelineInfo& info);
 
   // Wipes out the pipeline cache, use when MSAA modes change, for example
+  // Also destroys the data that would be stored in the disk cache.
   void ClearPipelineCache();
+
+  // Saves the pipeline cache to disk. Call when shutting down.
+  void SavePipelineCache();
 
   // Recompile static shaders, call when MSAA mode changes, etc.
   // Destroys the old shader modules, so assumes that the pipeline cache is clear first.
@@ -165,6 +169,7 @@ public:
   void ClearSamplerCache();
 
 private:
+  bool CreatePipelineCache(bool load_from_disk);
   bool CreateDescriptorSetLayouts();
   bool CreatePipelineLayout();
   bool CreateUtilityShaderVertexFormat();
@@ -194,7 +199,8 @@ private:
 
   SharedShaderCache m_shared_shader_cache;
 
-  std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_cache;
+  std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_objects;
+  VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
 
   VkSampler m_point_sampler = VK_NULL_HANDLE;
   VkSampler m_linear_sampler = VK_NULL_HANDLE;
