@@ -81,9 +81,15 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   FramebufferManager* framebuffer_mgr =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get());
 
-  // TODO: MSAA case where we need to resolve first.
-  Texture2D* src_texture = (src_format == PEControl::Z24) ? framebuffer_mgr->GetEFBDepthTexture() :
-                                                            framebuffer_mgr->GetEFBColorTexture();
+  // MSAA case where we need to resolve first.
+  // TODO: Do in one pass.
+  TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
+  VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
+                     {static_cast<u32>(scaled_src_rect.GetWidth()),
+                      static_cast<u32>(scaled_src_rect.GetHeight())}};
+  Texture2D* src_texture = (src_format == PEControl::Z24) ?
+                               framebuffer_mgr->ResolveEFBDepthTexture(m_state_tracker, region) :
+                               framebuffer_mgr->ResolveEFBColorTexture(m_state_tracker, region);
 
   // End render pass before barrier (since we have no self-dependencies)
   m_state_tracker->EndRenderPass();
@@ -117,7 +123,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   // Allocate texture object
   std::unique_ptr<Texture2D> texture = Texture2D::Create(
       config.width, config.height, config.levels, config.layers, TEXTURECACHE_TEXTURE_FORMAT,
-      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
+      VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL, usage);
 
   if (!texture)
     return nullptr;
@@ -297,17 +303,17 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   assert(m_framebuffer != VK_NULL_HANDLE);
 
   // Can't be done in a render pass, since we're doing our own render pass!
-  m_parent->m_state_tracker->EndRenderPass();
-
-  // Temporary fix for corruption on Intel/Mesa.
-  // g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
-  // m_parent->m_state_tracker->InvalidateDescriptorSets();
-
+  StateTracker* state_tracker = m_parent->m_state_tracker;
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  state_tracker->EndRenderPass();
 
   // Transition EFB to shader resource before binding
-  Texture2D* src_texture =
-      is_depth_copy ? framebuffer_mgr->GetEFBDepthTexture() : framebuffer_mgr->GetEFBColorTexture();
+  VkRect2D region = {{scaled_src_rect.left, scaled_src_rect.top},
+                     {static_cast<u32>(scaled_src_rect.GetWidth()),
+                      static_cast<u32>(scaled_src_rect.GetHeight())}};
+  Texture2D* src_texture = is_depth_copy ?
+                               framebuffer_mgr->ResolveEFBDepthTexture(state_tracker, region) :
+                               framebuffer_mgr->ResolveEFBColorTexture(state_tracker, region);
   VkSampler src_sampler =
       scale_by_half ? g_object_cache->GetLinearSampler() : g_object_cache->GetPointSampler();
   VkImageLayout original_layout = src_texture->GetLayout();
@@ -340,7 +346,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   draw.EndRenderPass();
 
   // We touched everything, so put it back.
-  m_parent->m_state_tracker->SetPendingRebind();
+  state_tracker->SetPendingRebind();
 
   // Transition the destination texture to shader resource, and the EFB to its original layout.
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

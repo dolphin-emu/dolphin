@@ -280,6 +280,7 @@ bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeature
   enable_features->fragmentStoresAndAtomics = available_features.fragmentStoresAndAtomics;
   enable_features->sampleRateShading = available_features.sampleRateShading;
   enable_features->largePoints = available_features.largePoints;
+  enable_features->shaderStorageImageMultisample = available_features.shaderStorageImageMultisample;
 
   // Only here to shut up the debug layer, we don't actually use it
   enable_features->shaderClipDistance = available_features.shaderClipDistance;
@@ -333,6 +334,8 @@ void PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice physical_
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsBBox = (features.fragmentStoresAndAtomics == VK_TRUE);
   config->backend_info.bSupportsSSAA = (features.sampleRateShading == VK_TRUE);
+
+  // TODO: We need a bSupportsMSAA for shaderStorageImageMultisample.
 }
 
 void PopulateBackendInfoMultisampleModes(VideoConfig* config, VkPhysicalDevice physical_device,

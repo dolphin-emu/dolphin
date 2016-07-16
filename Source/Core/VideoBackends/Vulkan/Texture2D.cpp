@@ -13,11 +13,11 @@
 namespace Vulkan
 {
 Texture2D::Texture2D(u32 width, u32 height, u32 levels, u32 layers, VkFormat format,
-                     VkImageViewType view_type, VkImage image, VkDeviceMemory device_memory,
-                     VkImageView view)
+                     VkSampleCountFlagBits samples, VkImageViewType view_type, VkImage image,
+                     VkDeviceMemory device_memory, VkImageView view)
     : m_width(width), m_height(height), m_levels(levels), m_layers(layers), m_format(format),
-      m_layout(VK_IMAGE_LAYOUT_UNDEFINED), m_view_type(view_type), m_image(image),
-      m_device_memory(device_memory), m_view(view)
+      m_samples(samples), m_layout(VK_IMAGE_LAYOUT_UNDEFINED), m_view_type(view_type),
+      m_image(image), m_device_memory(device_memory), m_view(view)
 {
 }
 
@@ -35,8 +35,9 @@ Texture2D::~Texture2D()
 }
 
 std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, u32 layers,
-                                             VkFormat format, VkImageViewType view_type,
-                                             VkImageTiling tiling, VkImageUsageFlags usage)
+                                             VkFormat format, VkSampleCountFlagBits samples,
+                                             VkImageViewType view_type, VkImageTiling tiling,
+                                             VkImageUsageFlags usage)
 {
   // Create image descriptor
   VkImageCreateInfo image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -47,7 +48,7 @@ std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, 
                                   {width, height, 1},
                                   levels,
                                   layers,
-                                  VK_SAMPLE_COUNT_1_BIT,  // TODO: MSAA
+                                  samples,
                                   tiling,
                                   usage,
                                   VK_SHARING_MODE_EXCLUSIVE,
@@ -113,12 +114,13 @@ std::unique_ptr<Texture2D> Texture2D::Create(u32 width, u32 height, u32 levels, 
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(width, height, levels, layers, format, view_type, image,
-                                     device_memory, view);
+  return std::make_unique<Texture2D>(width, height, levels, layers, format, samples, view_type,
+                                     image, device_memory, view);
 }
 
 std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 height, u32 levels,
                                                               u32 layers, VkFormat format,
+                                                              VkSampleCountFlagBits samples,
                                                               VkImageViewType view_type,
                                                               VkImage existing_image)
 {
@@ -144,7 +146,7 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 hei
     return nullptr;
   }
 
-  return std::make_unique<Texture2D>(width, height, levels, layers, format, view_type,
+  return std::make_unique<Texture2D>(width, height, levels, layers, format, samples, view_type,
                                      existing_image, nullptr, view);
 }
 
