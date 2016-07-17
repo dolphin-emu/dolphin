@@ -89,6 +89,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   m_state_tracker->EndRenderPass();
   m_state_tracker->SetPendingRebind();
   m_state_tracker->InvalidateDescriptorSets();
+  m_state_tracker->OnReadback();
 
   // Temporary fix for corruption on Intel/Mesa.
   // g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
