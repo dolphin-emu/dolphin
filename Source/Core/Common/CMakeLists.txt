@@ -93,7 +93,7 @@ elseif(USE_X11)
     set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
 endif()
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(LIBS ${LIBS} dl)
 endif()
 
