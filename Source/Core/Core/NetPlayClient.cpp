@@ -768,7 +768,6 @@ bool NetPlayClient::StartGame(const std::string& path)
     // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
     NetWiimote nw;
     nw.resize(4, 0);
-    m_wiimote_current_data_size.fill(4);
 
     for (unsigned int w = 0; w < 4; ++w)
     {
@@ -973,46 +972,24 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
-    // in game mapping for this local Wiimote
-    unsigned int in_game_num = LocalWiimoteToInGameWiimote(_number);
-    // does this local Wiimote map in game?
-    if (in_game_num < 4)
+    // Only send data, if this Wiimote is mapped to this player
+    if (m_wiimote_map[_number] == m_local_player->pid)
     {
-      if (m_wiimote_current_data_size[in_game_num] == size)
+      nw.assign(data, data + size);
+      do
       {
-        nw.assign(data, data + size);
-        do
-        {
-          // add to buffer
-          m_wiimote_buffer[in_game_num].Push(nw);
+        // add to buffer
+        m_wiimote_buffer[_number].Push(nw);
 
-          SendWiimoteState(in_game_num, nw);
-        } while (m_wiimote_buffer[in_game_num].Size() <=
-                 m_target_buffer_size * 200 /
-                     120);  // TODO: add a seperate setting for wiimote buffer?
-      }
-      else
-      {
-        while (m_wiimote_buffer[in_game_num].Size() > 0)
-        {
-          // Reporting mode changed, so previous buffer is no good.
-          m_wiimote_buffer[in_game_num].Pop();
-        }
-        nw.resize(size, 0);
-
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_current_data_size[in_game_num] = size;
-      }
+        SendWiimoteState(_number, nw);
+      } while (m_wiimote_buffer[_number].Size() <=
+               m_target_buffer_size * 200 /
+                   120);  // TODO: add a seperate setting for wiimote buffer?
     }
 
   }  // unlock players
 
-  while (m_wiimote_current_data_size[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
+  while (!m_wiimote_buffer[_number].Pop(nw))
   {
     // wait for receiving thread to push some data
     Common::SleepCurrentThread(1);
@@ -1020,23 +997,11 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
       return false;
   }
 
-  // Use a blank input, since we may not have any valid input.
-  if (m_wiimote_current_data_size[_number] != size)
-  {
-    nw.resize(size, 0);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-  }
-
-  // We should have used a blank input last time, so now we just need to pop through the old buffer,
+  // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
   if (nw.size() != size)
   {
     u32 tries = 0;
-    // Clear the buffer and wait for new input, since we probably just changed reporting mode.
     while (nw.size() != size)
     {
       while (!m_wiimote_buffer[_number].Pop(nw))
@@ -1058,7 +1023,6 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     }
   }
 
-  m_wiimote_current_data_size[_number] = size;
   memcpy(data, nw.data(), size);
   return true;
 }
@@ -1146,25 +1110,6 @@ u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
   for (; ingame_pad < 4; ingame_pad++)
   {
     if (m_pad_map[ingame_pad] == m_local_player->pid)
-      local_pad_count++;
-
-    if (local_pad_count == local_pad)
-      break;
-  }
-
-  return ingame_pad;
-}
-
-u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
-{
-  // Figure out which in-game pad maps to which local pad.
-  // The logic we have here is that the local slots always
-  // go in order.
-  int local_pad_count = -1;
-  int ingame_pad = 0;
-  for (; ingame_pad < 4; ingame_pad++)
-  {
-    if (m_wiimote_map[ingame_pad] == m_local_player->pid)
       local_pad_count++;
 
     if (local_pad_count == local_pad)

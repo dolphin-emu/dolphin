@@ -89,8 +89,6 @@ public:
   u8 InGamePadToLocalPad(u8 ingame_pad);
   u8 LocalPadToInGamePad(u8 localPad);
 
-  u8 LocalWiimoteToInGameWiimote(u8 local_pad);
-
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
 
@@ -109,7 +107,6 @@ protected:
 
   std::array<Common::FifoQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::FifoQueue<NetWiimote>, 4> m_wiimote_buffer;
-  std::array<u32, 4> m_wiimote_current_data_size;
 
   NetPlayUI* m_dialog = nullptr;
 
