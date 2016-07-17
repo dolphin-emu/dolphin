@@ -603,6 +603,89 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   return true;
 }
 
+void StateTracker::OnDraw()
+{
+  m_draw_counter++;
+
+  // If we didn't have any CPU access last frame, do nothing.
+  if (m_scheduled_command_buffer_kicks.empty())
+    return;
+
+  // Check if this draw is scheduled to kick a command buffer.
+  // The draw counters will always be sorted so a binary search is possible here.
+  if (std::binary_search(m_scheduled_command_buffer_kicks.begin(),
+                         m_scheduled_command_buffer_kicks.end(), m_draw_counter))
+  {
+    // Kick a command buffer on the background thread.
+    EndRenderPass();
+    g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
+    InvalidateDescriptorSets();
+    SetPendingRebind();
+  }
+}
+
+void StateTracker::OnReadback()
+{
+  // Check this isn't another access without any draws inbetween.
+  if (!m_cpu_accesses_this_frame.empty() && m_cpu_accesses_this_frame.back() == m_draw_counter)
+    return;
+
+  // Store the current draw counter for scheduling in OnEndFrame.
+  m_cpu_accesses_this_frame.emplace_back(m_draw_counter);
+}
+
+void StateTracker::OnEndFrame()
+{
+  m_draw_counter = 0;
+  m_scheduled_command_buffer_kicks.clear();
+
+  // If we have no CPU access at all, leave everything in the one command buffer for maximum
+  // parallelism between CPU/GPU, at the cost of slightly higher latency.
+  if (m_cpu_accesses_this_frame.empty())
+    return;
+
+  // In order to reduce CPU readback latency, we want to kick a command buffer roughly halfway
+  // between the draw counters that invoked the readback, or every 250 draws, whichever is smaller.
+  if (g_ActiveConfig.iCommandBufferExecuteInterval > 0)
+  {
+    u32 last_draw_counter = 0;
+    u32 interval = static_cast<u32>(g_ActiveConfig.iCommandBufferExecuteInterval);
+    for (u32 draw_counter : m_cpu_accesses_this_frame)
+    {
+      u32 draw_count = draw_counter - last_draw_counter;
+      if (draw_count <= interval)
+      {
+        u32 mid_point = draw_count / 2;
+        m_scheduled_command_buffer_kicks.emplace_back(last_draw_counter + mid_point);
+      }
+      else
+      {
+        u32 counter = interval;
+        while (counter < draw_count)
+        {
+          m_scheduled_command_buffer_kicks.emplace_back(last_draw_counter + counter);
+          counter += interval;
+        }
+      }
+    }
+  }
+
+#if 0
+  {
+    std::stringstream ss;
+    std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
+    WARN_LOG(VIDEO, "CPU EFB accesses in last frame: %s", ss.str().c_str());
+  }
+  {
+    std::stringstream ss;
+    std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
+    WARN_LOG(VIDEO, "Scheduled command buffer kicks: %s", ss.str().c_str());
+  }
+#endif
+
+  m_cpu_accesses_this_frame.clear();
+}
+
 bool StateTracker::UpdatePipeline()
 {
   // We need at least a vertex and fragment shader

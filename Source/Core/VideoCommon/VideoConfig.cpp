@@ -87,6 +87,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
   settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
   settings->Get("BackendMultithreading", &bBackendMultithreading, true);
+  settings->Get("CommandBufferExecuteInterval", &iCommandBufferExecuteInterval, 100);
 
   settings->Get("SWZComploc", &bZComploc, true);
   settings->Get("SWZFreeze", &bZFreeze, true);
@@ -194,6 +195,7 @@ void VideoConfig::GameIniLoad()
 
   CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
   CHECK_SETTING("Video_Settings", "BackendMultithreading", bBackendMultithreading);
+  CHECK_SETTING("Video_Settings", "CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
 
   CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
   CHECK_SETTING("Video_Enhancements", "MaxAnisotropy",
@@ -298,6 +300,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
   settings->Set("EnableValidationLayer", bEnableValidationLayer);
   settings->Set("BackendMultithreading", bBackendMultithreading);
+  settings->Set("CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
 
   settings->Set("SWZComploc", bZComploc);
   settings->Set("SWZFreeze", bZFreeze);
