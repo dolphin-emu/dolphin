@@ -200,6 +200,8 @@ void VertexManager::vFlush(bool use_dst_alpha)
     vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                      m_current_draw_base_index, m_current_draw_base_vertex, 0);
   }
+
+  m_state_tracker->OnDraw();
 }
 
 }  // namespace Vulkan
