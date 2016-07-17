@@ -232,13 +232,13 @@ void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
 {
   // End the current command buffer.
   // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[m_current_frame].init_command_buffer);
+  VkResult res = vkEndCommandBuffer(m_frame_resources[index].init_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
     PanicAlert("Failed to end command buffer");
   }
-  res = vkEndCommandBuffer(m_frame_resources[m_current_frame].draw_command_buffer);
+  res = vkEndCommandBuffer(m_frame_resources[index].draw_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
@@ -277,13 +277,13 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
 {
   // End the current command buffer.
   // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[m_current_frame].init_command_buffer);
+  VkResult res = vkEndCommandBuffer(m_frame_resources[index].init_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
     PanicAlert("Failed to end command buffer");
   }
-  res = vkEndCommandBuffer(m_frame_resources[m_current_frame].draw_command_buffer);
+  res = vkEndCommandBuffer(m_frame_resources[index].draw_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
