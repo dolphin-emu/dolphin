@@ -167,8 +167,10 @@ ControlDialog::ControlDialog(GamepadPage* const parent, InputConfig& config,
 
 ControlButton::ControlButton(wxWindow* const parent,
                              ControllerInterface::ControlReference* const _ref,
-                             const unsigned int width, const std::string& label)
-    : wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(width, 20)), control_reference(_ref)
+                             const std::string& name, const unsigned int width,
+                             const std::string& label)
+    : wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxSize(width, 20)), control_reference(_ref),
+      m_name(name)
 {
   if (label.empty())
     SetLabel(StrToWxStr(_ref->expression));
@@ -457,8 +459,8 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   UpdateGUI();
 }
 
-void GamepadPage::EnableSettingControl(const std::string& group_name, const std::string& name,
-                                       const bool enabled)
+void GamepadPage::EnablePadSetting(const std::string& group_name, const std::string& name,
+                                   const bool enabled)
 {
   const auto box_iterator =
       std::find_if(control_groups.begin(), control_groups.end(), [&group_name](const auto& box) {
@@ -475,6 +477,25 @@ void GamepadPage::EnableSettingControl(const std::string& group_name, const std:
   if (it == box->options.end())
     return;
   (*it)->wxcontrol->Enable(enabled);
+}
+
+void GamepadPage::EnableControlButton(const std::string& group_name, const std::string& name,
+                                      const bool enabled)
+{
+  const auto box_iterator =
+      std::find_if(control_groups.begin(), control_groups.end(), [&group_name](const auto& box) {
+        return group_name == box->control_group->name;
+      });
+  if (box_iterator == control_groups.end())
+    return;
+
+  const auto* box = *box_iterator;
+  const auto it =
+      std::find_if(box->control_buttons.begin(), box->control_buttons.end(),
+                   [&name](const auto& control_button) { return control_button->m_name == name; });
+  if (it == box->control_buttons.end())
+    return;
+  (*it)->Enable(enabled);
 }
 
 void GamepadPage::AdjustSetting(wxCommandEvent& event)
@@ -497,7 +518,8 @@ void GamepadPage::AdjustBooleanSetting(wxCommandEvent& event)
   }
   else if (control->GetLabelText() == "Relative Input")
   {
-    EnableSettingControl("IR", "Dead Zone", pad_setting->setting->GetValue());
+    EnablePadSetting("IR", "Dead Zone", pad_setting->setting->GetValue());
+    EnableControlButton("IR", "Recenter", pad_setting->setting->GetValue());
   }
 }
 
@@ -825,7 +847,8 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     wxStaticText* const label =
         new wxStaticText(parent, wxID_ANY, wxGetTranslation(StrToWxStr(control->name)));
 
-    ControlButton* const control_button = new ControlButton(parent, control->control_ref.get(), 80);
+    ControlButton* const control_button =
+        new ControlButton(parent, control->control_ref.get(), control->name, 80);
     control_button->SetFont(m_SmallFont);
 
     control_buttons.push_back(control_button);

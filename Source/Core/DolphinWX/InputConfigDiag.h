@@ -165,9 +165,10 @@ class ControlButton : public wxButton
 {
 public:
   ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref,
-                const unsigned int width, const std::string& label = "");
+                const std::string& name, const unsigned int width, const std::string& label = "");
 
   ControllerInterface::ControlReference* const control_reference;
+  const std::string m_name;
 };
 
 class ControlGroupBox : public wxBoxSizer
@@ -223,7 +224,8 @@ public:
   void LoadDefaults(wxCommandEvent& event);
 
   void AdjustControlOption(wxCommandEvent& event);
-  void EnableSettingControl(const std::string& group_name, const std::string& name, bool enabled);
+  void EnablePadSetting(const std::string& group_name, const std::string& name, bool enabled);
+  void EnableControlButton(const std::string& group_name, const std::string& name, bool enabled);
   void AdjustSetting(wxCommandEvent& event);
   void AdjustBooleanSetting(wxCommandEvent& event);
 

@@ -434,6 +434,13 @@ public:
             m_x = MathUtil::Clamp(m_x + xx * SPEED_MULTIPLIER, -1.0, 1.0);
           if (std::abs(yy) > deadzone)
             m_y = MathUtil::Clamp(m_y + yy * SPEED_MULTIPLIER, -1.0, 1.0);
+
+          // recenter
+          if (controls[7]->control_ref->State() > 0.5)
+          {
+            m_x = 0.0;
+            m_y = 0.0;
+          }
         }
         else
         {
