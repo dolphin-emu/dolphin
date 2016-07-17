@@ -551,6 +551,7 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
 {
   // Can't be in our normal render pass.
   state_tracker->EndRenderPass();
+  state_tracker->OnReadback();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0},
@@ -611,6 +612,7 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
 {
   // Can't be in our normal render pass.
   state_tracker->EndRenderPass();
+  state_tracker->OnReadback();
 
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0},

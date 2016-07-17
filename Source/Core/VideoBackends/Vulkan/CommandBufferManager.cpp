@@ -230,21 +230,6 @@ void CommandBufferManager::WaitForGPUIdle()
 
 void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
 {
-  // End the current command buffer.
-  // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[m_current_frame].init_command_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
-  res = vkEndCommandBuffer(m_frame_resources[m_current_frame].draw_command_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
-
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_off_thread)
   {
@@ -275,21 +260,6 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
                                                          uint32_t present_image_index,
                                                          bool submit_off_thread)
 {
-  // End the current command buffer.
-  // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[m_current_frame].init_command_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
-  res = vkEndCommandBuffer(m_frame_resources[m_current_frame].draw_command_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
-
   // Submitting off-thread?
   if (m_use_threaded_submission && submit_off_thread)
   {
@@ -320,6 +290,21 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                                                VkSwapchainKHR present_swap_chain,
                                                uint32_t present_image_index)
 {
+  // End the current command buffer.
+  // TODO: Can we move this off-thread?
+  VkResult res = vkEndCommandBuffer(m_frame_resources[index].init_command_buffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
+    PanicAlert("Failed to end command buffer");
+  }
+  res = vkEndCommandBuffer(m_frame_resources[index].draw_command_buffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
+    PanicAlert("Failed to end command buffer");
+  }
+
   // This may be executed on the worker thread, so don't modify any state of the manager class.
   uint32_t wait_bits = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
@@ -344,7 +329,7 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
     submit_info.pSignalSemaphores = &signal_semaphore;
   }
 
-  VkResult res = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_frame_resources[index].fence);
+  res = vkQueueSubmit(m_graphics_queue, 1, &submit_info, m_frame_resources[index].fence);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkQueueSubmit failed: ");
