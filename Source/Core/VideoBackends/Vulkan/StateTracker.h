@@ -81,6 +81,17 @@ public:
 
   bool Bind(bool rebind_all = false);
 
+  // CPU Access Tracking
+  // Call after a draw call is made.
+  void OnDraw();
+
+  // Call after CPU access is requested.
+  // This can be via EFBCache or EFB2RAM.
+  void OnReadback();
+
+  // Call at the end of a frame.
+  void OnEndFrame();
+
 private:
   bool UpdatePipeline();
   bool UpdateDescriptorSet();
@@ -149,5 +160,10 @@ private:
   VkRect2D m_framebuffer_render_area = {};
   bool m_in_render_pass = false;
   bool m_bbox_enabled = false;
+
+  // CPU access tracking
+  u32 m_draw_counter = 0;
+  std::vector<u32> m_cpu_accesses_this_frame;
+  std::vector<u32> m_scheduled_command_buffer_kicks;
 };
 }

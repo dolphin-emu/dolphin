@@ -482,6 +482,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // End the current render pass.
   m_state_tracker->EndRenderPass();
+  m_state_tracker->OnEndFrame();
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
