@@ -327,11 +327,11 @@ public:
   OVERLAPPED mWriteOverlapped;
   std::vector<u8> mWriteBuffer;
   bool mWritePending;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   int fd;
 #endif
 
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__)
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
   std::thread readThread;
   Common::Flag readEnabled;
   Common::Flag readThreadShutdown;
