@@ -6,6 +6,7 @@
 #ifndef _WIN32
 #include <unistd.h>
 #endif
+#include <arpa/inet.h>
 
 #include "Common/FileUtil.h"
 #include "Core/Core.h"

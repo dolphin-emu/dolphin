@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <arpa/inet.h>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
+#include <netdb.h>
+#include <poll.h>
 #include <string>
 
 #include "Common/CommonPaths.h"
