@@ -6,6 +6,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
