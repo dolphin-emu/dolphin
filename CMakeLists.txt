@@ -999,10 +999,10 @@ add_subdirectory(Source)
 if(NOT APPLE)
 	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
 endif()
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|Darwin")
+if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|OpenBSD")
 	# Install the application icon and menu item
 	install(FILES Data/dolphin-emu.svg
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
