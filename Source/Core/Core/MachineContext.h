@@ -114,7 +114,7 @@ typedef mcontext_t SContext;
 #define CTX_SP sp
 #define CTX_PC pc
 #else
-#warning No context definition for OS
+#error No context definition for OS
 #endif
 #elif defined(__NetBSD__)
 #include <ucontext.h>
@@ -164,6 +164,8 @@ typedef mcontext_t SContext;
 #else
 #error No context definition for OS
 #endif
+#else
+#error No context definition for OS
 #endif
 
 #if _M_X86_64
