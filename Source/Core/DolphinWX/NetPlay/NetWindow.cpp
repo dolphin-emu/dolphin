@@ -18,6 +18,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
+#include <wx/slider.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <wx/string.h>
@@ -154,6 +155,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
   m_player_lbox = new wxListBox(panel, wxID_ANY, wxDefaultPosition, wxSize(256, -1));
 
+  wxBoxSizer* const right_sizer = new wxBoxSizer(wxVERTICAL);
   wxStaticBoxSizer* const player_szr = new wxStaticBoxSizer(wxVERTICAL, panel, _("Players"));
 
   // player list
@@ -196,9 +198,47 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
     player_szr->Add(m_player_config_btn, 0, wxEXPAND | wxTOP, 5);
   }
 
+  right_sizer->Add(player_szr, 1, wxEXPAND);
+
+  if (is_hosting)
+  {
+    wxStaticBoxSizer* const buffer_sizer = new wxStaticBoxSizer(wxVERTICAL, panel, _("Buffer"));
+
+    wxBoxSizer* const buffer_size_sizer = new wxBoxSizer(wxHORIZONTAL);
+    buffer_size_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Size: ")), 0, wxCENTER);
+    m_padbuf_spin =
+        new wxSpinCtrl(panel, wxID_ANY, std::to_string(INITIAL_PAD_BUFFER_SIZE), wxDefaultPosition,
+                       wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
+    m_padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
+    buffer_size_sizer->Add(m_padbuf_spin, 0, wxALIGN_LEFT);
+    buffer_size_sizer->AddSpacer(10);
+
+    m_auto_buffer_chkbox = new wxCheckBox(panel, wxID_ANY, _("Auto"));
+    m_auto_buffer_chkbox->Bind(wxEVT_CHECKBOX, &NetPlayDialog::OnAutoBufferChange, this);
+    buffer_size_sizer->Add(m_auto_buffer_chkbox, 0, wxCENTER | wxALIGN_RIGHT);
+
+    buffer_sizer->Add(buffer_size_sizer, 0, wxTOP | wxBOTTOM, 5);
+
+    wxBoxSizer* const buffer_sensibility_sizer = new wxBoxSizer(wxHORIZONTAL);
+    buffer_sensibility_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Reactive")), 0,
+                                  wxRIGHT | wxCENTER, 5);
+    m_buffer_sensibility_slider = new wxSlider(panel, wxID_ANY, 80, 0, 100);
+    m_buffer_sensibility_slider->Bind(wxEVT_SLIDER, &NetPlayDialog::OnAdjustBufferSensibility,
+                                      this);
+    m_buffer_sensibility_slider->Disable();
+
+    buffer_sensibility_sizer->Add(m_buffer_sensibility_slider, 1, wxCENTER);
+    buffer_sensibility_sizer->Add(new wxStaticText(panel, wxID_ANY, _("Smooth")), 0,
+                                  wxLEFT | wxCENTER, 5);
+
+    buffer_sizer->Add(buffer_sensibility_sizer, 0, wxEXPAND, 5);
+
+    right_sizer->Add(buffer_sizer, 0, wxEXPAND);
+  }
+
   wxBoxSizer* const mid_szr = new wxBoxSizer(wxHORIZONTAL);
   mid_szr->Add(chat_szr, 1, wxEXPAND | wxRIGHT, 5);
-  mid_szr->Add(player_szr, 0, wxEXPAND);
+  mid_szr->Add(right_sizer, 0, wxEXPAND);
 
   // bottom crap
   wxButton* const quit_btn = new wxButton(panel, wxID_ANY, _("Quit Netplay"));
@@ -211,13 +251,6 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
     m_start_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnStart, this);
     bottom_szr->Add(m_start_btn);
 
-    bottom_szr->Add(new wxStaticText(panel, wxID_ANY, _("Buffer:")), 0, wxLEFT | wxCENTER, 5);
-    wxSpinCtrl* const padbuf_spin =
-        new wxSpinCtrl(panel, wxID_ANY, std::to_string(INITIAL_PAD_BUFFER_SIZE), wxDefaultPosition,
-                       wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, INITIAL_PAD_BUFFER_SIZE);
-    padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
-    bottom_szr->AddSpacer(3);
-    bottom_szr->Add(padbuf_spin, 0, wxCENTER);
     bottom_szr->AddSpacer(5);
     m_memcard_write = new wxCheckBox(panel, wxID_ANY, _("Write to memcards/SD"));
     bottom_szr->Add(m_memcard_write, 0, wxCENTER);
@@ -383,6 +416,7 @@ void NetPlayDialog::OnMsgStopGame()
   m_record_chkbox->Enable();
 }
 
+// from UI
 void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 {
   const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
@@ -390,8 +424,33 @@ void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 
   std::ostringstream ss;
   ss << "< Pad Buffer: " << val << " >";
-  netplay_client->SendChatMessage(ss.str());
   m_chat_text->AppendText(StrToWxStr(ss.str()).Append('\n'));
+}
+
+// from server
+void NetPlayDialog::OnAdjustBuffer(u32 buffer_size)
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_BUFFER);
+  evt.SetInt(buffer_size);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnAutoBufferChange(wxCommandEvent& event)
+{
+  bool checked = m_auto_buffer_chkbox->IsChecked();
+
+  if (checked)
+    netplay_server->SetAutoBufferSensibility(m_buffer_sensibility_slider->GetValue());
+  netplay_server->SetAutoBufferEnabled(checked);
+
+  m_padbuf_spin->Enable(!checked);
+  m_buffer_sensibility_slider->Enable(checked);
+}
+
+void NetPlayDialog::OnAdjustBufferSensibility(wxCommandEvent& event)
+{
+  int value = m_buffer_sensibility_slider->GetValue();
+  netplay_server->SetAutoBufferSensibility(value);
 }
 
 void NetPlayDialog::OnQuit(wxCommandEvent&)
@@ -471,6 +530,19 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
       netplay_client->StopGame();
     }
     break;
+  case NP_GUI_EVT_CHANGE_BUFFER:
+  {
+    int buffer_size = event.GetInt();
+    if (m_is_hosting)
+    {
+      m_padbuf_spin->SetValue(buffer_size);
+    }
+
+    std::ostringstream stream;
+    stream << "< Pad Buffer: " << buffer_size << " >";
+    m_chat_text->AppendText(StrToWxStr(stream.str()).Append('\n'));
+  }
+  break;
   }
 
   // chat messages

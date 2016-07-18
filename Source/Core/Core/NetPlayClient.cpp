@@ -344,6 +344,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> size;
 
     m_target_buffer_size = size;
+    m_dialog->OnAdjustBuffer(size);
   }
   break;
 
