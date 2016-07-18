@@ -100,7 +100,7 @@ bool CEXIETHERNET::IsActivated()
 #endif
 }
 
-bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
+bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
   INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());

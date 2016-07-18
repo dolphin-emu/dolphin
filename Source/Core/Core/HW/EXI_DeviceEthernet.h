@@ -297,11 +297,11 @@ public:
   const char* GetRegisterName() const;
   void MXHardReset();
   void MXCommandHandler(u32 data, u32 size);
-  void DirectFIFOWrite(u8* data, u32 size);
+  void DirectFIFOWrite(const u8* data, u32 size);
   void SendFromDirectFIFO();
   void SendFromPacketBuffer();
   void SendComplete();
-  u8 HashIndex(u8* dest_eth_addr);
+  u8 HashIndex(const u8* dest_eth_addr);
   bool RecvMACFilter();
   void inc_rwp();
   bool RecvHandlePacket();
@@ -313,7 +313,7 @@ public:
   bool Activate();
   void Deactivate();
   bool IsActivated();
-  bool SendFrame(u8* frame, u32 size);
+  bool SendFrame(const u8* frame, u32 size);
   bool RecvInit();
   void RecvStart();
   void RecvStop();
