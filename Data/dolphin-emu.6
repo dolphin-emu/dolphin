@@ -1,56 +1,67 @@
-.TH DOLPHIN-EMU 6 "March 4, 2016"
-.SH NAME
-dolphin-emu - an emulator for running GameCube, Wii, and Triforce
-games on
-Windows, Linux, OS X, and recent Android devices.
-.SH SYNOPSIS
-.B dolphin-emu
-[\fB-h\fR] [\fB-d\fR] [\fB-l\fR] [\fB-e \fIfile\fR] [\fB-b\fR] [\fB-c\fR] [\fB-V
-\fIvideo\fR] [\fB-A \fIaudio\fR] [\fB-m
-\fIfile\fR] [\fB-u \fIpath\fR]
-.SH DESCRIPTION
-Dolphin is an emulator for two recent Nintendo video game consoles: the
-GameCube and the Wii. It allows PC gamers to enjoy games for these two consoles
-in full HD (1080p) with several enhancements: compatibility with all PC
-controllers, turbo speed, networked multiplayer, and even more!
-.P
-\fBdolphin-emu\fR features a graphical user interface made using wxWidgets.
-.SH OPTIONS
-.TP
-.BR \-h ", " \-\-help
-Show this help message
-.TP
-.BR \-d ", " \-\-debugger
-Opens the debugger
-.TP
-.BR \-l ", " \-\-logger
-Opens the logger
-.TP
-.BR \-e ", " \-\-exec =\fIfile\fR
-Loads the specified file
-(\fBDOL\fR,\fBELF\fR,\fBWAD\fR,\fBGCM\fR,\fBISO\fR)
-.TP
-.BR \-b ", " \-\-batch
+.Dd July 17, 2016
+.Dt DOLPHIN-EMU 6
+.Os
+.Sh NAME
+.Nm dolphin-emu
+.Nd Nintendo GameCube and Wii emulator
+.Sh SYNOPSIS
+.Nm dolphin-emu
+.Op Fl bdhl
+.Op Fl a Ar audio
+.Op Fl c Ar str
+.Op Fl e Ar file
+.Op Fl m Ar file
+.Op Fl u Ar path
+.Op Fl v Ar video
+.Sh DESCRIPTION
+Dolphin is an emulator for two recent Nintendo video game consoles:
+the GameCube and the Wii.
+It allows PC gamers to enjoy games for these two consoles
+in full HD (1080p) with several enhancements:
+compatibility with all PC controllers, turbo speed, networked multiplayer,
+and even more!
+.Pp
+.Nm
+features a graphical user interface made using wxWidgets.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl a Ar audio , Fl Fl audio_emulation= Ns Ar audio
+Low level
+.Pq Sy LLE
+or high level
+.Pq Sy HLE
+audio
+.It Fl b , Fl Fl batch
 Exit Dolphin with emulator
-.TP
-.BR \-c ", " \-\-confirm =\fItext\fR
+.It Fl c Ar text , Fl Fl confirm= Ns Ar text
 Set Confirm on Stop
-.TP
-.BR \-V ", " \-\-video_backend =\fIvideo\fR
-OpenGL (\fBOGL\fR) or \fBSoftware Renderer\fR video backend
-.TP
-.BR \-A ", " \-\-audio_emulation =\fIaudio\fR
-Low level (\fBLLE\fR) or high level (\fBHLE\fR) audio
-.TP
-.BR \-m ", " \-\-movie =\fIfile\fR
+.It Fl d , Fl Fl debugger
+Open the debugger
+.It Fl e Ar file , Fl Fl exec= Ns Ar file
+Load the specified file
+.It Fl h , Fl Fl help
+Print a help message
+.It Fl l , Fl Fl logger
+Open the logger
+.Po
+.Pa .dol , .elf , .wad , .gcm , .iso
+.Pc
+.It Fl m Ar file , Fl Fl movie= Ns Ar file
 Play a movie file
-.TP
-.BR \-u ", " \-\-user =\fIpath\fR
+.It Fl u Ar path , Fl Fl user= Ns Ar path
 User folder path
-.SH FILES
-.TP
-.I $HOME/.dolphin-emu
+.It Fl v , Fl Fl video_backend= Ns Ar video
+OpenGL
+.Pq Sy OGL
+or
+.Sy Software Renderer
+video backend
+.El
+.Sh FILES
+.Bl -tag -width Ds
+.It Pa $HOME/.dolphin-emu
 Default user configuration directory.
-.SH AUTHOR
+.El
+.Sh AUTHOR
 This manual page was written by Jeremy Newton, but may be distributed freely
 using the CC BY license.
