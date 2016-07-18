@@ -58,6 +58,7 @@ void SetDefaultContentFile(const std::string& _rFilename);
 void ES_DIVerify(const std::vector<u8>& tmd);
 
 void SDIO_EventNotify();
+void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late);
 
 std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
 
