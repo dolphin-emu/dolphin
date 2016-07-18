@@ -93,6 +93,15 @@ else()
 	add_definitions(-DDATA_DIR="${datadir}/")
 endif()
 
+# Set file offset size to 64 bits.
+#
+# On modern Unixes, this is typically already the case. The lone exception is
+# glibc, which may default to 32 bits. glibc allows this to be configured
+# by setting _FILE_OFFSET_BITS.
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+	add_definitions(-D_FILE_OFFSET_BITS=64)
+endif()
+
 # Set where the binary files will be built.  The program will not execute from
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
