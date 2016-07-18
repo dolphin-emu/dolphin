@@ -67,7 +67,7 @@ endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES})
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(WXLIBS ${WXLIBS} dl)
 endif()
 
