@@ -58,9 +58,9 @@ void InitSRAM()
   }
 }
 
-void SetCardFlashID(u8* buffer, u8 card_index)
+void SetCardFlashID(const u8* buffer, u8 card_index)
 {
-  u64 rand = Common::swap64(*(u64*)&(buffer[12]));
+  u64 rand = Common::swap64(&buffer[12]);
   u8 csum = 0;
   for (int i = 0; i < 12; i++)
   {
