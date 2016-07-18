@@ -248,8 +248,12 @@ static void sigsegv_handler(int sig, siginfo_t* info, void* raw_context)
   }
   uintptr_t bad_address = (uintptr_t)info->si_addr;
 
-  // Get all the information we can out of the context.
+// Get all the information we can out of the context.
+#ifdef __OpenBSD__
+  ucontext_t* ctx = context;
+#else
   mcontext_t* ctx = &context->uc_mcontext;
+#endif
   // assume it's not a write
   if (!JitInterface::HandleFault(bad_address,
 #ifdef __APPLE__

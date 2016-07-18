@@ -116,6 +116,30 @@ typedef mcontext_t SContext;
 #else
 #error No context definition for architecture
 #endif
+#elif defined(__OpenBSD__)
+#include <signal.h>
+typedef ucontext_t SContext;
+#if _M_X86_64
+#define CTX_RAX sc_rax
+#define CTX_RBX sc_rbx
+#define CTX_RCX sc_rcx
+#define CTX_RDX sc_rdx
+#define CTX_RDI sc_rdi
+#define CTX_RSI sc_rsi
+#define CTX_RBP sc_rbp
+#define CTX_RSP sc_rsp
+#define CTX_R8 sc_r8
+#define CTX_R9 sc_r9
+#define CTX_R10 sc_r10
+#define CTX_R11 sc_r11
+#define CTX_R12 sc_r12
+#define CTX_R13 sc_r13
+#define CTX_R14 sc_r14
+#define CTX_R15 sc_r15
+#define CTX_RIP sc_rip
+#else
+#error No context definition for architecture
+#endif
 #elif defined(__NetBSD__)
 #include <ucontext.h>
 typedef mcontext_t SContext;
