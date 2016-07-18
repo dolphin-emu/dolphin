@@ -80,10 +80,11 @@ public:
     class NumericSetting
     {
     public:
-      NumericSetting(const std::string& name, const ControlState default_value,
+      NumericSetting(const std::string& setting_name, const ControlState default_value,
                      const unsigned int low = 0, const unsigned int high = 100,
-                     const SettingType type = SettingType::NORMAL)
-          : m_type(type), m_name(name), m_default_value(default_value), m_low(low), m_high(high)
+                     const SettingType setting_type = SettingType::NORMAL)
+          : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
+            m_high(high)
       {
       }
 
@@ -99,9 +100,9 @@ public:
     class BooleanSetting
     {
     public:
-      BooleanSetting(const std::string& name, const bool default_value,
-                     const SettingType type = SettingType::NORMAL)
-          : m_type(type), m_name(name), m_default_value(default_value)
+      BooleanSetting(const std::string& setting_name, const bool default_value,
+                     const SettingType setting_type = SettingType::NORMAL)
+          : m_type(setting_type), m_name(setting_name), m_default_value(default_value)
       {
       }
 
@@ -116,8 +117,8 @@ public:
     class BackgroundInputSetting : public BooleanSetting
     {
     public:
-      BackgroundInputSetting(const std::string& name)
-          : BooleanSetting(name, false, SettingType::VIRTUAL)
+      BackgroundInputSetting(const std::string& setting_name)
+          : BooleanSetting(setting_name, false, SettingType::VIRTUAL)
       {
       }
 
