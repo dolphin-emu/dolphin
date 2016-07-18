@@ -34,7 +34,7 @@ typedef CONTEXT SContext;
 #define CTX_R15 R15
 #define CTX_RIP Rip
 #else
-#error No context definition for OS
+#error No context definition for architecture
 #endif
 #elif defined(__APPLE__) && !defined(USE_SIGACTION_ON_APPLE)
 // for modules:
@@ -63,7 +63,7 @@ typedef x86_thread_state64_t SContext;
 #define CTX_R15 __r15
 #define CTX_RIP __rip
 #else
-#error No context definition for OS
+#error No context definition for architecture
 #endif
 #elif defined(__APPLE__)
 #include <signal.h>
@@ -114,7 +114,7 @@ typedef mcontext_t SContext;
 #define CTX_SP sp
 #define CTX_PC pc
 #else
-#error No context definition for OS
+#error No context definition for architecture
 #endif
 #elif defined(__NetBSD__)
 #include <ucontext.h>
@@ -138,7 +138,7 @@ typedef mcontext_t SContext;
 #define CTX_R15 __gregs[_REG_R15]
 #define CTX_RIP __gregs[_REG_RIP]
 #else
-#error No context definition for OS
+#error No context definition for architecture
 #endif
 #elif defined(__FreeBSD__)
 #include <ucontext.h>
@@ -162,7 +162,7 @@ typedef mcontext_t SContext;
 #define CTX_R15 mc_r15
 #define CTX_RIP mc_rip
 #else
-#error No context definition for OS
+#error No context definition for architecture
 #endif
 #else
 #error No context definition for OS
