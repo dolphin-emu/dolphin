@@ -902,7 +902,6 @@ if(NOT DISABLE_WX)
 			# Check for required libs
 			check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
 			check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
-			find_package(Backtrace REQUIRED)
 		elseif(WIN32)
 			add_definitions(-D__WXMSW__)
 		else()
