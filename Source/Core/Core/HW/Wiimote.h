@@ -35,8 +35,14 @@ extern unsigned int g_wiimote_sources[MAX_BBMOTES];
 
 namespace Wiimote
 {
+enum class InitializeMode
+{
+  DO_WAIT_FOR_WIIMOTES,
+  DO_NOT_WAIT_FOR_WIIMOTES,
+};
+
 void Shutdown();
-void Initialize(void* const hwnd, bool wait = false);
+void Initialize(void* const hwnd, InitializeMode init_mode);
 void ResetAllWiimotes();
 void LoadConfig();
 void Resume();
@@ -54,7 +60,7 @@ void Update(int _number, bool _connected);
 
 namespace WiimoteReal
 {
-void Initialize(bool wait = false);
+void Initialize(::Wiimote::InitializeMode init_mode);
 void Stop();
 void Shutdown();
 void Resume();
