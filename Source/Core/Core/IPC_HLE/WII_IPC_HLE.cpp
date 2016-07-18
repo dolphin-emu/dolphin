@@ -100,7 +100,7 @@ static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
   Update();
 }
 
-void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
+static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
 {
   auto device =
       static_cast<CWII_IPC_HLE_Device_sdio_slot0*>(GetDeviceByName("/dev/sdio/slot0").get());
