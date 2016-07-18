@@ -3,9 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <X11/XKBlib.h>
+#include <X11/Xlib.h>
 #include <cstring>
 
+#include "Core/ConfigManager.h"
+#include "Core/HW/VideoInterface.h"
 #include "InputCommon/ControllerInterface/Xlib/Xlib.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace ciface
 {
@@ -65,9 +69,83 @@ void KeyboardMouse::UpdateInput()
   XWindowAttributes win_attribs;
   XGetWindowAttributes(m_display, m_window, &win_attribs);
 
+  static const int& root_xpos = SConfig::GetInstance().iPosX;
+  static const int& root_ypos = SConfig::GetInstance().iPosY;
+  static const int& root_width = SConfig::GetInstance().iWidth;
+  static const int& root_height = SConfig::GetInstance().iHeight;
+
+  static const int& child_xpos = SConfig::GetInstance().iRenderWindowXPos;
+  static const int& child_ypos = SConfig::GetInstance().iRenderWindowYPos;
+  static const int& child_width = SConfig::GetInstance().iRenderWindowWidth;
+  static const int& child_height = SConfig::GetInstance().iRenderWindowHeight;
+
+  static const bool& isfullscreen = SConfig::GetInstance().bFullscreen;
+  static const bool& rendertomain = SConfig::GetInstance().bRenderToMain;
+
+  static const int screen_number = XScreenNumberOfScreen(win_attribs.screen);
+  static const int m_display_width = XDisplayWidth(m_display, screen_number);
+  static const int m_display_height = XDisplayHeight(m_display, screen_number);
+
+  double x_margin = 0, y_margin = 0;
+
+  int x_offset = 0, y_offset = 0, suboffset1 = 0, suboffset2 = 0, win_width = 640, win_height = 528;
+
+  if (!isfullscreen)
+  {
+    if (!rendertomain)
+    {
+      win_height = child_height;
+      win_width = child_width;
+      x_offset = root_xpos - child_xpos;
+      y_offset = root_ypos - child_ypos;
+    }
+    else
+    {
+      suboffset1 = 95;  // main window header with icons
+      suboffset2 = 20;  // bottom bar
+      win_height = root_height - suboffset1 - suboffset2;
+      win_width = root_width;
+    }
+  }
+  else
+  {
+    win_height = m_display_height;
+    win_width = m_display_width;
+    x_offset = root_xpos;
+    y_offset = root_ypos;
+  }
+
+  float aspect;
+  switch (g_ActiveConfig.iAspectRatio)
+  {
+  case ASPECT_STRETCH:
+    aspect = win_width / win_height;
+    break;
+  case ASPECT_ANALOG:
+    aspect = 4.0 / 3.0;
+    break;
+  case ASPECT_ANALOG_WIDE:
+    aspect = 16.0 / 9.0;
+    break;
+  default:  // ASPECT_AUTO
+    aspect = SConfig::GetInstance().m_SYSCONF->GetData<bool>("IPL.AR") ? 16.0 / 9.0 : 4.0 / 3.0;
+    break;
+  }
+
+  // NOTICE_LOG(WIIMOTE, "aspect ratio : %f", aspect);
+
+  if (win_width / win_height > aspect)
+    x_margin = win_width - win_height * aspect;
+  else if (win_width / win_height < aspect)
+    y_margin = win_height - win_width / aspect;
+
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = (float)win_x / (float)win_attribs.width * 2 - 1;
-  m_state.cursor.y = (float)win_y / (float)win_attribs.height * 2 - 1;
+  m_state.cursor.x =
+      (float)(win_x + x_offset - x_margin / 2.0) / (float)(win_width - x_margin) * 2 - 1;
+
+  m_state.cursor.y =
+      (float)(win_y + y_offset - suboffset1 - y_margin / 2.0) / (float)(win_height - y_margin) * 2 -
+      1;
 }
 
 std::string KeyboardMouse::GetName() const
