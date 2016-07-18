@@ -196,6 +196,9 @@
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlay\MD5Dialog.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
     <ClCompile Include="NetPlay\PadMapDialog.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
