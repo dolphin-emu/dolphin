@@ -62,7 +62,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 
 void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 {
-  const std::string filename = File::GetUserPath(D_WIIROOT_IDX) + "/sd.raw";
+  const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
   m_Card.Open(filename, "r+b");
   if (!m_Card)
   {

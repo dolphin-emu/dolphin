@@ -30,6 +30,7 @@ set(SRCS Analytics.cpp
          Version.cpp
          x64ABI.cpp
          x64Emitter.cpp
+         MD5.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
          Logging/LogManager.cpp)
