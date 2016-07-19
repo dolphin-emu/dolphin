@@ -902,8 +902,9 @@ if(NOT DISABLE_WX)
 			# Check for required libs
 			check_lib(GTHREAD2 gthread-2.0 gthread-2.0 glib/gthread.h REQUIRED)
 			check_lib(PANGOCAIRO pangocairo pangocairo pango/pangocairo.h REQUIRED)
-
-			find_package(Backtrace)
+			# On Linux "backtrace" is part of glibc. FreeBSD has a separate library.
+			# Required for wxUSE_STACKWALKER in Externals/wxWidgets3/wx/wxgtk.h
+			find_package(Backtrace REQUIRED)
 		elseif(WIN32)
 			add_definitions(-D__WXMSW__)
 		else()
