@@ -321,8 +321,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   }
 
   // Copy to write buffer.
-  mWriteBuffer.resize(size);
-  memcpy(mWriteBuffer.data(), frame, size);
+  mWriteBuffer.assign(frame, frame + size);
   mWritePending = true;
 
   // Queue async write.
