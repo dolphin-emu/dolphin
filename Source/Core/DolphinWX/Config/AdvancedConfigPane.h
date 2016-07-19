@@ -32,6 +32,7 @@ private:
   // Custom RTC
   void LoadCustomRTC();
   void UpdateCustomRTC(time_t date, time_t time);
+  void DisableCustomRTCControls();
   u32 m_temp_date;
   u32 m_temp_time;
 

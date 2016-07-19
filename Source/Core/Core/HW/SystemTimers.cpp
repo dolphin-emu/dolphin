@@ -43,7 +43,6 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
       CWII_IPC_HLE_WiiMote::Update()
 */
 
-#include "Core/HW/SystemTimers.h"
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -56,6 +55,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/PatchEngine.h"
@@ -84,7 +84,7 @@ static int s_audio_dma_period;
 static int s_ipc_hle_period;
 
 // Custom RTC
-static u64 s_localtime_on_boot;
+static u64 s_localtime_rtc_offset = 0;
 
 u32 GetTicksPerSecond()
 {
@@ -160,9 +160,9 @@ u64 GetFakeTimeBase()
          ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
-u64 GetLocalTimeOnBoot()
+u64 GetLocalTimeRTCOffset()
 {
-  return s_localtime_on_boot;
+  return s_localtime_rtc_offset;
 }
 
 static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
@@ -228,7 +228,9 @@ void Init()
 
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
-  s_localtime_on_boot = Common::Timer::GetLocalTimeSinceJan1970();
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    s_localtime_rtc_offset =
+        Common::Timer::GetLocalTimeSinceJan1970() - SConfig::GetInstance().m_customRTCValue;
   CoreTiming::SetFakeTBStartValue((u64)(s_cpu_core_clock / TIMER_RATIO) *
                                   (u64)CEXIIPL::GetGCTime());
   CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
@@ -258,7 +260,7 @@ void Init()
 void Shutdown()
 {
   Common::Timer::RestoreResolution();
-  s_localtime_on_boot = 0;
+  s_localtime_rtc_offset = 0;
 }
 
 }  // namespace
