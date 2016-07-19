@@ -1049,7 +1049,16 @@ void CFrame::StartGame(const std::string& filename)
     SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
 #endif
 
-    m_RenderParent->SetFocus();
+    // We need this specifically to support setting the focus properly when using
+    // the 'render to main window' feature on Windows
+    if (auto panel = wxDynamicCast(m_RenderParent, wxPanel))
+    {
+      panel->SetFocusIgnoringChildren();
+    }
+    else
+    {
+      m_RenderParent->SetFocus();
+    }
 
     wxTheApp->Bind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
     wxTheApp->Bind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
