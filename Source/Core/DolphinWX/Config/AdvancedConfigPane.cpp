@@ -15,6 +15,7 @@
 #include <wx/timectrl.h>
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "DolphinWX/Config/AdvancedConfigPane.h"
 
 AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
@@ -170,7 +171,7 @@ void AdvancedConfigPane::LoadCustomRTC()
 {
   wxDateTime custom_rtc(static_cast<time_t>(SConfig::GetInstance().m_customRTCValue));
   custom_rtc = custom_rtc.ToUTC();
-  bool custom_rtc_enabled = SConfig::GetInstance().bEnableCustomRTC;
+  static bool custom_rtc_enabled = SConfig::GetInstance().bEnableCustomRTC;
   m_custom_rtc_checkbox->SetValue(custom_rtc_enabled);
   if (custom_rtc.IsValid())
   {
@@ -186,8 +187,17 @@ void AdvancedConfigPane::LoadCustomRTC()
   else
     m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
                                        wxDateTime(31, wxDateTime::Dec, 2099));
-  m_custom_rtc_date_picker->Enable(custom_rtc_enabled);
-  m_custom_rtc_time_picker->Enable(custom_rtc_enabled);
+  if (!Core::IsRunning())
+  {
+    m_custom_rtc_date_picker->Enable(custom_rtc_enabled);
+    m_custom_rtc_time_picker->Enable(custom_rtc_enabled);
+  }
+  else
+  {
+    m_custom_rtc_checkbox->Enable(false);
+    m_custom_rtc_date_picker->Enable(false);
+    m_custom_rtc_time_picker->Enable(false);
+  }
 }
 
 void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
