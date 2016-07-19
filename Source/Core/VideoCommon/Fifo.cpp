@@ -154,7 +154,10 @@ void ExitGpuLoop()
 void EmulatorState(bool running)
 {
   s_emu_running_state.store(running);
-  s_gpu_mainloop.Wakeup();
+  if (running)
+    s_gpu_mainloop.Wakeup();
+  else
+    s_gpu_mainloop.AllowSleep();
 }
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
