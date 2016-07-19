@@ -55,8 +55,8 @@ public:
   // Return true on new data
   bool GetData(u32& _Hi, u32& _Low) override;
 
-  KeyboardStatus GetKeyboardStatus();
-  void MapKeys(KeyboardStatus& KeyStatus, u8* key);
+  KeyboardStatus GetKeyboardStatus() const;
+  void MapKeys(const KeyboardStatus& KeyStatus, u8* key);
 
   // Send a command directly
   void SendCommand(u32 _Cmd, u8 _Poll) override;
