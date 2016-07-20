@@ -296,7 +296,7 @@ void AVIDump::DoState()
 
 void AVIDump::CheckResolution(int width, int height)
 {
-  if (width != s_current_width || height != s_current_height)
+  if ((width != s_current_width || height != s_current_height) && (height > 0))
   {
     int temp_file_index = s_file_index;
     Stop();
