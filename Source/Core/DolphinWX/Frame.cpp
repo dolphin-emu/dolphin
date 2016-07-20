@@ -498,7 +498,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   // Set the size of the window after the UI has been built, but before we show it
   SetSize(size);
 
-  // Show window
+  // This must be here because the window needs to be visible to create m_XRRConfig.
   Show();
 
   // Commit
