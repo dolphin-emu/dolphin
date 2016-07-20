@@ -176,12 +176,10 @@ static void EventDoState(PointerWrap& p, BaseEvent* ev)
   // we can't savestate ev->type directly because events might not get registered in the same order
   // (or at all) every time.
   // so, we savestate the event's type's name, and derive ev->type from that when loading.
-  std::string name;
-  if (p.GetMode() != PointerWrap::MODE_READ)
-    name = event_types[ev->type].name;
+  std::string name = event_types[ev->type].name;
 
   p.Do(name);
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
   {
     bool foundMatch = false;
     for (unsigned int i = 0; i < event_types.size(); ++i)
@@ -203,7 +201,7 @@ static void EventDoState(PointerWrap& p, BaseEvent* ev)
   }
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   std::lock_guard<std::mutex> lk(tsWriteLock);
   p.Do(g_slicelength);
@@ -214,8 +212,7 @@ void DoState(PointerWrap& p)
   p.Do(g_fakeTBStartValue);
   p.Do(g_fakeTBStartTicks);
   p.Do(s_lastOCFactor);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
+  g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
 
   p.DoMarker("CoreTimingData");
 

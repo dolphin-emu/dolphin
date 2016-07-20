@@ -117,7 +117,7 @@ unsigned int GetAttached()
 }
 
 // Save/Load state
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   for (int i = 0; i < MAX_BBMOTES; ++i)
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);

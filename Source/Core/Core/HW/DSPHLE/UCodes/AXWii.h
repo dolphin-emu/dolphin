@@ -14,7 +14,7 @@ public:
   AXWiiUCode(DSPHLE* dsphle, u32 crc);
   virtual ~AXWiiUCode();
 
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 protected:
   // Additional AUX buffers

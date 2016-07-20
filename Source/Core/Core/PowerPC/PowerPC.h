@@ -15,7 +15,7 @@
 #include "Core/PowerPC/PPCCache.h"
 
 class CPUCoreBase;
-class PointerWrap;
+class StateLoadStore;
 
 namespace PowerPC
 {
@@ -137,7 +137,7 @@ extern PPCDebugInterface debug_interface;
 
 void Init(int cpu_core);
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 CoreMode GetMode();
 // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED

@@ -8,7 +8,7 @@
 
 #include "Core/HW/EXI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class CEXIIPL : public IEXIDevice
 {
@@ -18,7 +18,7 @@ public:
 
   void SetCS(int _iCS) override;
   bool IsPresent() const override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
   static u32 GetGCTime();
   static u64 NetPlay_GetGCTime();

@@ -67,7 +67,7 @@ public:
   CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
   CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
 
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   enum USBIOCtl
@@ -158,7 +158,7 @@ private:
 
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates
-    void DoState(PointerWrap& p) { p.Do(m_queue); }
+    void DoState(StateLoadStore& p) { p.Do(m_queue); }
   } m_acl_pool;
 
   u32 m_PacketCount[MAX_BBMOTES];

@@ -29,8 +29,8 @@ public:
   IPCCommandResult Read(u32 _CommandAddress) override;
   IPCCommandResult Write(u32 _CommandAddress) override;
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  void PrepareForState(PointerWrap::Mode mode) override;
-  void DoState(PointerWrap& p) override;
+  void PrepareForState() override;
+  void DoState(StateLoadStore& p) override;
 
   void OpenFile();
 

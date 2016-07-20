@@ -355,7 +355,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
   }
 }
 
-void CEXIAgp::DoState(PointerWrap& p)
+void CEXIAgp::DoState(StateLoadStore& p)
 {
   p.Do(m_slot);
   p.Do(m_address);

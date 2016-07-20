@@ -5,10 +5,11 @@
 #pragma once
 
 #include <string>
-#include "Common/ChunkFile.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Profiler.h"
+
+class StateLoadStore;
 
 namespace JitInterface
 {
@@ -18,7 +19,7 @@ enum class ExceptionType
   EXCEPTIONS_PAIRED_QUANTIZE
 };
 
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 CPUCoreBase* InitJitCore(int core);
 void InitTables(int core);

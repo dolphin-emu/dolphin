@@ -220,6 +220,9 @@ void VertexShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
+  Matrix44::LoadIdentity(s_viewportCorrection);
+  InvalidateXFRange(0, sizeof(XFMemory));
+  bViewportChanged = true;
   bProjectionChanged = true;
 
   dirty = true;
@@ -623,7 +626,7 @@ void VertexShaderManager::InvalidateXFRange(int start, int end)
 
   if (start < XFMEM_POSTMATRICES_END && end > XFMEM_POSTMATRICES)
   {
-    int _start = start < XFMEM_POSTMATRICES ? XFMEM_POSTMATRICES : start - XFMEM_POSTMATRICES;
+    int _start = start < XFMEM_POSTMATRICES ? 0 : start - XFMEM_POSTMATRICES;
     int _end = end < XFMEM_POSTMATRICES_END ? end - XFMEM_POSTMATRICES :
                                               XFMEM_POSTMATRICES_END - XFMEM_POSTMATRICES;
 
@@ -765,29 +768,14 @@ void VertexShaderManager::TransformToClipSpace(const float* data, float* out, u3
       t[0] * proj_matrix[12] + t[1] * proj_matrix[13] + t[2] * proj_matrix[14] + proj_matrix[15];
 }
 
-void VertexShaderManager::DoState(PointerWrap& p)
+void VertexShaderManager::DoState(StateLoadStore& p)
 {
-  p.Do(g_fProjectionMatrix);
-  p.Do(s_viewportCorrection);
+  // freelook state
   p.Do(s_viewRotationMatrix);
   p.Do(s_viewInvRotationMatrix);
   p.Do(s_fViewTranslationVector);
   p.Do(s_fViewRotation);
-
-  p.Do(nTransformMatricesChanged);
-  p.Do(nNormalMatricesChanged);
-  p.Do(nPostTransformMatricesChanged);
-  p.Do(nLightsChanged);
-
-  p.Do(nMaterialsChanged);
-  p.Do(bTexMatricesChanged);
-  p.Do(bPosNormalMatrixChanged);
-  p.Do(bProjectionChanged);
-  p.Do(bViewportChanged);
-
-  p.Do(constants);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
   {
     Dirty();
   }

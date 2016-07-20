@@ -11,6 +11,7 @@
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC
@@ -666,7 +667,7 @@ void AXUCode::Update()
   }
 }
 
-void AXUCode::DoAXState(PointerWrap& p)
+void AXUCode::DoAXState(StateLoadStore& p)
 {
   p.Do(m_cmdlist);
   p.Do(m_cmdlist_size);
@@ -682,7 +683,7 @@ void AXUCode::DoAXState(PointerWrap& p)
   p.Do(m_samples_auxB_surround);
 }
 
-void AXUCode::DoState(PointerWrap& p)
+void AXUCode::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
   DoAXState(p);

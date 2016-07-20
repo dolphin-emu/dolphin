@@ -8,9 +8,9 @@
 #include "Core/DSPEmulator.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
+#include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-class PointerWrap;
-class UCodeInterface;
+class StateLoadStore;
 
 class DSPHLE : public DSPEmulator
 {
@@ -20,7 +20,7 @@ public:
   bool Initialize(bool bWii, bool bDSPThread) override;
   void Shutdown() override;
   bool IsLLE() override { return false; }
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
   void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) override;
 
   void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
@@ -61,8 +61,8 @@ private:
   };
   DSPState m_dspState;
 
-  UCodeInterface* m_pUCode;
-  UCodeInterface* m_lastUCode;
+  std::unique_ptr<UCodeInterface> m_pUCode;
+  std::unique_ptr<UCodeInterface> m_lastUCode;
 
   DSP::UDSPControl m_DSPControl;
   CMailHandler m_MailHandler;

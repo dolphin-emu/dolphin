@@ -6,7 +6,7 @@
 
 #include "Core/HW/SI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 struct KeyboardStatus;
 
 class CSIDevice_Keyboard : public ISIDevice
@@ -62,5 +62,5 @@ public:
   void SendCommand(u32 _Cmd, u8 _Poll) override;
 
   // Savestate support
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 };

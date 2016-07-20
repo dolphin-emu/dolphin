@@ -517,16 +517,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_COLOR_RA + 6:
   {
     int num = (bp.address >> 1) & 0x3;
-    if (bpmem.tevregs[num].type_ra)
-    {
-      PixelShaderManager::SetTevKonstColor(num, 0, (s32)bpmem.tevregs[num].red);
-      PixelShaderManager::SetTevKonstColor(num, 3, (s32)bpmem.tevregs[num].alpha);
-    }
-    else
-    {
-      PixelShaderManager::SetTevColor(num, 0, (s32)bpmem.tevregs[num].red);
-      PixelShaderManager::SetTevColor(num, 3, (s32)bpmem.tevregs[num].alpha);
-    }
+    PixelShaderManager::SetTevColorRA(num);
     return;
   }
 
@@ -536,16 +527,7 @@ static void BPWritten(const BPCmd& bp)
   case BPMEM_TEV_COLOR_BG + 6:
   {
     int num = (bp.address >> 1) & 0x3;
-    if (bpmem.tevregs[num].type_bg)
-    {
-      PixelShaderManager::SetTevKonstColor(num, 1, (s32)bpmem.tevregs[num].green);
-      PixelShaderManager::SetTevKonstColor(num, 2, (s32)bpmem.tevregs[num].blue);
-    }
-    else
-    {
-      PixelShaderManager::SetTevColor(num, 1, (s32)bpmem.tevregs[num].green);
-      PixelShaderManager::SetTevColor(num, 2, (s32)bpmem.tevregs[num].blue);
-    }
+    PixelShaderManager::SetTevColorBG(num);
     return;
   }
 

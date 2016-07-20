@@ -34,13 +34,11 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID,
 {
 }
 
-void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_sdio_slot0::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
+  if (p.IsLoad())
     OpenInternal();
-  }
   p.Do(m_Status);
   p.Do(m_BlockLength);
   p.Do(m_BusWidth);

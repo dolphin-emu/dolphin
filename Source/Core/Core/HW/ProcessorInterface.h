@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-class PointerWrap;
+class StateLoadStore;
 
 namespace MMIO
 {
@@ -59,7 +59,7 @@ extern u32 Fifo_CPUEnd;
 extern u32 Fifo_CPUWritePointer;
 
 void Init();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

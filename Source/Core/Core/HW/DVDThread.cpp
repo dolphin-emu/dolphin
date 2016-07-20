@@ -75,7 +75,7 @@ void Stop()
   s_dvd_thread_exiting.Clear();
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   WaitUntilIdle();
 

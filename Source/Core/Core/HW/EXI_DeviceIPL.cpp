@@ -140,7 +140,7 @@ CEXIIPL::~CEXIIPL()
     g_SRAM_netplay_initialized = false;
   }
 }
-void CEXIIPL::DoState(PointerWrap& p)
+void CEXIIPL::DoState(StateLoadStore& p)
 {
   p.Do(m_RTC);
   p.Do(m_uPosition);

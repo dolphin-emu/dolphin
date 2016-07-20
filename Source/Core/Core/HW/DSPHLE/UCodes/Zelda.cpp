@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
@@ -144,7 +145,7 @@ void ZeldaUCode::Update()
   }
 }
 
-void ZeldaUCode::DoState(PointerWrap& p)
+void ZeldaUCode::DoState(StateLoadStore& p)
 {
   p.Do(m_flags);
   p.Do(m_mail_current_state);
@@ -1766,7 +1767,7 @@ void ZeldaAudioRenderer::DownloadRawSamplesFromMRAM(s16* dst, VPB* vpb, u16 requ
   }
 }
 
-void ZeldaAudioRenderer::DoState(PointerWrap& p)
+void ZeldaAudioRenderer::DoState(StateLoadStore& p)
 {
   p.Do(m_flags);
   p.Do(m_prepared);

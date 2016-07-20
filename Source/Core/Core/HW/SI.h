@@ -7,7 +7,7 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 class ISIDevice;
 enum SIDevices : int;
 namespace MMIO
@@ -25,7 +25,7 @@ namespace SerialInterface
 {
 void Init();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

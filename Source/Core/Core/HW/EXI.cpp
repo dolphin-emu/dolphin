@@ -66,7 +66,7 @@ void Shutdown()
     channel.reset();
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   for (auto& channel : g_Channels)
     channel->DoState(p);

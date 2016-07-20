@@ -1263,7 +1263,7 @@ void CFrame::DoRecordingSave()
   if (path.IsEmpty())
     return;
 
-  Movie::SaveRecording(WxStrToStr(path));
+  Movie::SaveRecordingUserRequested(WxStrToStr(path));
 
   if (!paused)
     DoPause();

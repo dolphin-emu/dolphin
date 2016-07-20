@@ -6,7 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 // Bounding Box manager
 namespace BoundingBox
@@ -26,6 +26,6 @@ enum
 };
 
 // Save state
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 };  // end of namespace BoundingBox

@@ -228,6 +228,7 @@
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
+    <ClCompile Include="ChunkFile.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />

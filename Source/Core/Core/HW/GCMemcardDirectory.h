@@ -33,7 +33,7 @@ public:
   s32 Write(u32 destaddress, s32 length, u8* srcaddress) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override {}
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   int LoadGCI(const std::string& fileName, DiscIO::Country card_region, bool currentGameOnly);

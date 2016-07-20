@@ -7,7 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/ConstantManager.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 // The non-API dependent parts.
 class PixelShaderManager
@@ -15,15 +15,15 @@ class PixelShaderManager
 public:
   static void Init();
   static void Dirty();
-  static void DoState(PointerWrap& p);
+  static void DoState(StateLoadStore& p);
 
   static void SetConstants();  // sets pixel shader constants
 
   // constant management
   // Some of these functions grab the constant values from global state,
   // so make sure to call them after memory is committed
-  static void SetTevColor(int index, int component, s32 value);
-  static void SetTevKonstColor(int index, int component, s32 value);
+  static void SetTevColorRA(int index);
+  static void SetTevColorBG(int index);
   static void SetAlpha();
   static void SetDestAlpha();
   static void SetTexDims(int texmapid, u32 width, u32 height);

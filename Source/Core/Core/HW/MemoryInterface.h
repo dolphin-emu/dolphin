@@ -10,11 +10,11 @@ namespace MMIO
 {
 class Mapping;
 }
-class PointerWrap;
+class StateLoadStore;
 
 namespace MemoryInterface
 {
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 }  // end of namespace MemoryInterface

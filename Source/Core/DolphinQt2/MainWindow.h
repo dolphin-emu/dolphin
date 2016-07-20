@@ -29,6 +29,7 @@ signals:
   void EmulationStarted();
   void EmulationPaused();
   void EmulationStopped();
+  void AfterLoadSave();
 
 private slots:
   void Open();

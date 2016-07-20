@@ -206,13 +206,13 @@ static USIStatusReg g_StatusReg;
 static USIEXIClockCount g_EXIClockCount;
 static u8 g_SIBuffer[128];
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   for (int i = 0; i < MAX_SI_CHANNELS; i++)
   {
-    p.Do(g_Channel[i].m_InHi.Hex);
-    p.Do(g_Channel[i].m_InLo.Hex);
-    p.Do(g_Channel[i].m_Out.Hex);
+    p.DoPOD(g_Channel[i].m_InHi);
+    p.DoPOD(g_Channel[i].m_InLo);
+    p.DoPOD(g_Channel[i].m_Out);
 
     std::unique_ptr<ISIDevice>& device = g_Channel[i].m_device;
     SIDevices type = device->GetDeviceType();

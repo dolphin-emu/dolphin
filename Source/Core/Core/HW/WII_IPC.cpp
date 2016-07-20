@@ -101,7 +101,7 @@ static u32 sensorbar_power;  // do we need to care about this?
 static int updateInterrupts;
 static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.Do(ppc_msg);
   p.Do(arm_msg);

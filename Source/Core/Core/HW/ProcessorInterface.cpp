@@ -34,7 +34,7 @@ static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
 // Let the PPC know that an external exception is set/cleared
 void UpdateException();
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.Do(m_InterruptMask);
   p.Do(m_InterruptCause);

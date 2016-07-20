@@ -267,7 +267,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.DoPOD(s_DISR);
   p.DoPOD(s_DICVR);

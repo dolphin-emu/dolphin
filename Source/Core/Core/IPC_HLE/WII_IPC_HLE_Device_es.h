@@ -11,7 +11,7 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 namespace DiscIO
 {
 class CNANDContentLoader;
@@ -29,7 +29,7 @@ public:
 
   void OpenInternal();
 
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
   IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
   IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;

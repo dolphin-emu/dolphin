@@ -127,49 +127,28 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
   INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 }
 
-void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_es::DoState(StateLoadStore& p)
 {
-  IWII_IPC_HLE_Device::DoState(p);
+  DoStateShared(p);
   p.Do(m_ContentFile);
-  OpenInternal();
+  if (p.IsLoad())
+    OpenInternal();
   p.Do(m_AccessIdentID);
   p.Do(m_TitleIDs);
 
-  u32 Count = (u32)(m_ContentAccessMap.size());
-  p.Do(Count);
-
-  u32 CFD = 0;
-  u32 Position = 0;
-  u64 TitleID = 0;
-  u16 Index = 0;
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  p.Do(m_ContentAccessMap);
+  if (p.IsLoad())
   {
-    for (u32 i = 0; i < Count; i++)
+    for (auto it = m_ContentAccessMap.begin(); it != m_ContentAccessMap.end();)
     {
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
-      CFD = OpenTitleContent(CFD, TitleID, Index);
-      if (CFD != 0xffffffff)
+      auto it_save = it++;
+      u32 CFD = it_save->first;
+      SContentAccess& sca = it_save->second;
+      if (OpenTitleContent(CFD, sca.m_TitleID, sca.m_Index) == 0xffffffff)
       {
-        m_ContentAccessMap[CFD].m_Position = Position;
+        // Couldn't re-open the content.  This isn't going to end well...
+        m_ContentAccessMap.erase(it_save);
       }
-    }
-  }
-  else
-  {
-    for (auto& pair : m_ContentAccessMap)
-    {
-      CFD = pair.first;
-      SContentAccess& Access = pair.second;
-      Position = Access.m_Position;
-      TitleID = Access.m_TitleID;
-      Index = Access.m_Index;
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
     }
   }
 }

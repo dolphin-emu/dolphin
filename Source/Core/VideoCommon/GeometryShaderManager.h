@@ -15,7 +15,7 @@ class GeometryShaderManager
 public:
   static void Init();
   static void Dirty();
-  static void DoState(PointerWrap& p);
+  static void DoState(StateLoadStore& p);
 
   static void SetConstants();
   static void SetViewportChanged();

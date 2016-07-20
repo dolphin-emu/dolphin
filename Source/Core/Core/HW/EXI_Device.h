@@ -7,7 +7,7 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 enum TEXIDevices : int
 {
@@ -42,7 +42,7 @@ public:
   virtual bool UseDelayedTransferCompletion() const { return false; }
   virtual bool IsPresent() const { return false; }
   virtual void SetCS(int) {}
-  virtual void DoState(PointerWrap&) {}
+  virtual void DoState(StateLoadStore&) {}
   virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) {}
   virtual IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1)
   {

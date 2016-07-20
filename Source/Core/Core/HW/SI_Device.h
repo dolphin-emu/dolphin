@@ -7,7 +7,7 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 // Devices can reply with these
 enum
@@ -92,7 +92,7 @@ public:
   virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
 
   // Savestate support
-  virtual void DoState(PointerWrap& p) {}
+  virtual void DoState(StateLoadStore& p) {}
   int GetDeviceNumber() const { return m_iDeviceNumber; }
   SIDevices GetDeviceType() const { return m_deviceType; }
 };

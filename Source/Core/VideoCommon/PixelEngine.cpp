@@ -104,7 +104,7 @@ enum
   INT_CAUSE_PE_FINISH = 0x400,  // GP Finished
 };
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.Do(m_ZConf);
   p.Do(m_AlphaConf);

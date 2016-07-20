@@ -6,7 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 namespace GPFifo
 {
@@ -23,7 +23,7 @@ extern u32 m_gatherPipeCount;
 
 // Init
 void Init();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 // ResetGatherPipe
 void ResetGatherPipe();

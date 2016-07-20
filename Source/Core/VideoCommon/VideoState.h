@@ -4,6 +4,6 @@
 
 #pragma once
 
-class PointerWrap;
+class StateLoadStore;
 
-void VideoCommon_DoState(PointerWrap& p);
+bool VideoCommon_DoState(StateLoadStore& p);

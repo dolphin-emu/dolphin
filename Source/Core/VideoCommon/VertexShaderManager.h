@@ -19,7 +19,7 @@ class VertexShaderManager
 public:
   static void Init();
   static void Dirty();
-  static void DoState(PointerWrap& p);
+  static void DoState(StateLoadStore& p);
 
   // constant management
   static void SetConstants();

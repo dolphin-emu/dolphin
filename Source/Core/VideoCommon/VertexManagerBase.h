@@ -12,7 +12,7 @@
 
 class DataReader;
 class NativeVertexFormat;
-class PointerWrap;
+class StateLoadStore;
 struct PortableVertexDeclaration;
 
 enum PrimitiveType
@@ -58,10 +58,9 @@ public:
   virtual NativeVertexFormat*
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
-  static void DoState(PointerWrap& p);
+  static void DoState(StateLoadStore& p);
 
 protected:
-  virtual void vDoState(PointerWrap& p) {}
   static PrimitiveType current_primitive_type;
 
   virtual void ResetBuffer(u32 stride) = 0;

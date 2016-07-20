@@ -21,7 +21,7 @@ public:
   bool Initialize(bool bWii, bool bDSPThread) override;
   void Shutdown() override;
   bool IsLLE() override { return true; }
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
   void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) override;
 
   void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;

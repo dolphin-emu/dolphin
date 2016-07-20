@@ -8,6 +8,7 @@
 #include <cstring>
 #include <fcntl.h>
 #include <limits.h>
+#include <random>
 #include <string>
 #include <sys/stat.h>
 #include <vector>
@@ -18,6 +19,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 #ifdef _WIN32
 #include <commdlg.h>  // for GetSaveFileName
@@ -104,40 +106,59 @@ bool IsDirectory(const std::string& filename)
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename)
+bool Delete(const std::string& filename, bool* existed)
 {
   INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
-  // Return true because we care about the file no
-  // being there, not the actual delete.
-  if (!Exists(filename))
-  {
-    WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
-    return true;
-  }
+  if (existed != nullptr)
+    *existed = true;
 
-  // We can't delete a directory
+  // Neither DeleteFile nor unlink has a guaranteed error code on a directory,
+  // so best effort...
   if (IsDirectory(filename))
   {
     WARN_LOG(COMMON, "Delete failed: %s is a directory", filename.c_str());
     return false;
   }
 
+  bool does_not_exist = false;
+
 #ifdef _WIN32
   if (!DeleteFile(UTF8ToTStr(filename).c_str()))
   {
-    WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
-    return false;
+    if (GetLastError() == ERROR_FILE_NOT_FOUND)
+      does_not_exist = true;
+    else
+    {
+      WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", filename.c_str(),
+               GetLastErrorMsg().c_str());
+      return false;
+    }
   }
 #else
   if (unlink(filename.c_str()) == -1)
   {
-    WARN_LOG(COMMON, "Delete: unlink failed on %s: %s", filename.c_str(),
-             GetLastErrorMsg().c_str());
-    return false;
+    if (errno == ENOENT)
+      does_not_exist = true;
+    else
+    {
+      WARN_LOG(COMMON, "Delete: unlink failed on %s: %s", filename.c_str(),
+               GetLastErrorMsg().c_str());
+      return false;
+    }
   }
 #endif
+
+  if (does_not_exist)
+  {
+    if (existed)
+      *existed = false;
+    else
+      WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
+    // Return true because we care about the file no
+    // being there, not the actual delete.
+    return true;
+  }
 
   return true;
 }
@@ -237,27 +258,48 @@ bool DeleteDir(const std::string& filename)
 }
 
 // renames file srcFilename to destFilename, returns true on success
-bool Rename(const std::string& srcFilename, const std::string& destFilename)
+bool Rename(const std::string& srcFilename, const std::string& destFilename, bool* src_existed)
 {
   INFO_LOG(COMMON, "Rename: %s --> %s", srcFilename.c_str(), destFilename.c_str());
+  bool src_does_not_exist = false;
+  if (src_existed != nullptr)
+    *src_existed = true;
 #ifdef _WIN32
   auto sf = UTF8ToTStr(srcFilename);
   auto df = UTF8ToTStr(destFilename);
   // The Internet seems torn about whether ReplaceFile is atomic or not.
   // Hopefully it's atomic enough...
-  if (ReplaceFile(df.c_str(), sf.c_str(), nullptr, REPLACEFILE_IGNORE_MERGE_ERRORS, nullptr,
-                  nullptr))
-    return true;
-  // Might have failed because the destination doesn't exist.
-  if (GetLastError() == ERROR_FILE_NOT_FOUND)
+  int tries = 0;
+  do
   {
-    if (MoveFile(sf.c_str(), df.c_str()))
+    if (ReplaceFile(df.c_str(), sf.c_str(), nullptr, REPLACEFILE_IGNORE_MERGE_ERRORS, nullptr,
+                    nullptr))
       return true;
-  }
+    if (GetLastError() != ERROR_FILE_NOT_FOUND)
+      break;
+    // Might have failed because the source doesn't exist...
+    if (!Exists(srcFilename))
+    {
+      src_does_not_exist = true;
+      break;
+    }
+    // ...or because the destination doesn't exist.
+    if (!Exists(destFilename) && MoveFile(sf.c_str(), df.c_str()))
+      return true;
+    // Don't spuriously fail because something changed in the middle of this
+    // sequence of calls; try again...
+  } while (++tries < 100);  // ...unless something is seriously wrong.
 #else
   if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
     return true;
+  if (errno == ENOENT)
+    src_does_not_exist = true;
 #endif
+  if (src_does_not_exist && src_existed != nullptr)
+  {
+    *src_existed = false;
+    return false;
+  }
   ERROR_LOG(COMMON, "Rename: failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
             GetLastErrorMsg().c_str());
   return false;
@@ -275,9 +317,9 @@ static void FSyncPath(const char* path)
 }
 #endif
 
-bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
+bool RenameSync(const std::string& srcFilename, const std::string& destFilename, bool* src_existed)
 {
-  if (!Rename(srcFilename, destFilename))
+  if (!Rename(srcFilename, destFilename, src_existed))
     return false;
 #ifdef _WIN32
   int fd = _topen(UTF8ToTStr(srcFilename).c_str(), _O_RDONLY);
@@ -693,7 +735,8 @@ std::string GetTempFilenameForAtomicWrite(const std::string& path)
   if (realpath(path.c_str(), absbuf) != nullptr)
     abs = absbuf;
 #endif
-  return abs + ".xxx";
+  std::random_device rd;
+  return abs + StringFromFormat(".%08x%08x", rd(), rd());
 }
 
 #if defined(__APPLE__)

@@ -18,8 +18,6 @@
 #define WIIMOTE_REG_EXT_SIZE 0x100
 #define WIIMOTE_REG_IR_SIZE 0x34
 
-class PointerWrap;
-
 namespace WiimoteReal
 {
 class Wiimote;
@@ -112,7 +110,7 @@ public:
   void ConnectOnInput();
   void Reset();
 
-  void DoState(PointerWrap& p);
+  void DoState(StateLoadStore& p);
   void RealState();
 
   void LoadDefaults(const ControllerInterface& ciface) override;
@@ -136,7 +134,7 @@ private:
   {
     // u16 channel;
     u32 address, size, position;
-    u8* data;
+    std::vector<u8> data;
   };
 
   void ReportMode(const wm_report_mode* const dr);
@@ -185,7 +183,7 @@ private:
   // read data request queue
   // maybe it isn't actually a queue
   // maybe read requests cancel any current requests
-  std::queue<ReadRequest> m_read_requests;
+  std::deque<ReadRequest> m_read_requests;
 
   wiimote_key m_ext_key;
 

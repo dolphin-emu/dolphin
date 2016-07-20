@@ -220,12 +220,7 @@ void Wiimote::Reset()
 
   memset(m_shake_step, 0, sizeof(m_shake_step));
 
-  // clear read request queue
-  while (!m_read_requests.empty())
-  {
-    delete[] m_read_requests.front().data;
-    m_read_requests.pop();
-  }
+  m_read_requests.clear();
 
   // Yamaha ADPCM state initialize
   m_adpcm_state.predictor = 0;
@@ -328,11 +323,8 @@ bool Wiimote::Step()
     // SendReadDataReply(rr.channel, rr);
 
     // if there is no more data, remove from queue
-    if (0 == rr.size)
-    {
-      delete[] rr.data;
-      m_read_requests.pop();
-    }
+    if (rr.position == rr.data.size())
+      m_read_requests.pop_front();
 
     // don't send any other reports
     return true;

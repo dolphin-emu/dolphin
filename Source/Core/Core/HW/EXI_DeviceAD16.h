@@ -6,7 +6,7 @@
 
 #include "Core/HW/EXI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class CEXIAD16 : public IEXIDevice
 {
@@ -14,7 +14,7 @@ public:
   CEXIAD16();
   void SetCS(int _iCS) override;
   bool IsPresent() const override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   enum

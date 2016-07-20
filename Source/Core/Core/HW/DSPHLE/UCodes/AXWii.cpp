@@ -629,7 +629,7 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
   }
 }
 
-void AXWiiUCode::DoState(PointerWrap& p)
+void AXWiiUCode::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
   DoAXState(p);

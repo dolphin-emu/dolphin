@@ -74,9 +74,7 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID,
                                                        const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)  // not a real hardware
-      ,
-      m_Mode(0), m_SeekPos(0), m_file()
+    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), m_Mode(0), m_SeekPos(0), m_file()
 {
   Common::ReadReplacements(replacements);
 }
@@ -365,14 +363,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
   return GetDefaultReply();
 }
 
-void CWII_IPC_HLE_Device_FileIO::PrepareForState(PointerWrap::Mode mode)
+void CWII_IPC_HLE_Device_FileIO::PrepareForState()
 {
   // Temporally close the file, to prevent any issues with the savestating of /tmp
   // it can be opened again with another call to OpenFile()
   m_file.reset();
 }
 
-void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_FileIO::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
 
@@ -383,5 +381,6 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
 
   // The file was closed during state (and might now be pointing at another file)
   // Open it again
-  OpenFile();
+  if (p.IsLoad())
+    OpenFile();
 }

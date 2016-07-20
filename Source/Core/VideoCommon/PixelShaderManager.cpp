@@ -48,9 +48,32 @@ void PixelShaderManager::Dirty()
 {
   // This function is called after a savestate is loaded.
   // Any constants that can changed based on settings should be re-calculated
-  s_bFogRangeAdjustChanged = true;
 
-  SetEfbScaleChanged();
+  // bpmem and xfmem must be restored
+  s_bFogRangeAdjustChanged = true;
+  s_bViewPortChanged = true;
+
+  SetConstants();
+  for (int num = 0; num < 4; num++)
+  {
+    SetTevColorRA(num);
+    SetTevColorBG(num);
+  }
+  SetAlpha();
+  SetDestAlpha();
+  // SetTexDims will always be called by VertexManagerBase::Flush
+  SetZTextureBias();
+  SetViewportChanged();
+  SetEfbScaleChanged();  // depends on Renderer state
+  // SetZSlope will be called by Flush due to s_zslope.dirty
+  SetIndTexScaleChanged(false);
+  SetIndTexScaleChanged(true);
+  for (int i = 0; i < 3; i++)
+    SetIndMatrixChanged(i);
+  SetZTextureTypeChanged();
+  for (u8 i = 0; i < 8; i++)
+    SetTexCoordChanged(i);
+  SetFogColorChanged();
   SetFogParamChanged();
 
   dirty = true;
@@ -101,22 +124,26 @@ void PixelShaderManager::SetConstants()
   }
 }
 
-void PixelShaderManager::SetTevColor(int index, int component, s32 value)
+void PixelShaderManager::SetTevColorRA(int index)
 {
-  auto& c = constants.colors[index];
-  c[component] = value;
+  bool konst = bpmem.tevregs[index].type_ra == 1;
+  s32* c = konst ? constants.kcolors[index] : constants.colors[index];
+  c[0] = (s32)bpmem.tevregs[index].red;
+  c[3] = (s32)bpmem.tevregs[index].alpha;
   dirty = true;
 
-  PRIM_LOG("tev color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
+  PRIM_LOG("tev%s color%d: %d %d %d %d\n", konst ? " konst" : "", index, c[0], c[1], c[2], c[3]);
 }
 
-void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
+void PixelShaderManager::SetTevColorBG(int index)
 {
-  auto& c = constants.kcolors[index];
-  c[component] = value;
+  bool konst = bpmem.tevregs[index].type_bg == 1;
+  s32* c = konst ? constants.kcolors[index] : constants.colors[index];
+  c[1] = (s32)bpmem.tevregs[index].green;
+  c[2] = (s32)bpmem.tevregs[index].blue;
   dirty = true;
 
-  PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
+  PRIM_LOG("tev%s color%d: %d %d %d %d\n", konst ? " konst" : "", index, c[0], c[1], c[2], c[3]);
 }
 
 void PixelShaderManager::SetAlpha()
@@ -281,14 +308,9 @@ void PixelShaderManager::SetFogRangeAdjustChanged()
   s_bFogRangeAdjustChanged = true;
 }
 
-void PixelShaderManager::DoState(PointerWrap& p)
+void PixelShaderManager::DoState(StateLoadStore& p)
 {
-  p.Do(s_bFogRangeAdjustChanged);
-  p.Do(s_bViewPortChanged);
-
-  p.Do(constants);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
   {
     // Fixup the current state from global GPU state
     // NOTE: This requires that all GPU memory has been loaded already.

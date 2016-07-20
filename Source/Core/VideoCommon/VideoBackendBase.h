@@ -15,7 +15,7 @@ namespace MMIO
 {
 class Mapping;
 }
-class PointerWrap;
+class StateLoadStore;
 
 enum FieldType
 {
@@ -92,7 +92,7 @@ public:
 
   // the implementation needs not do synchronization logic, because calls to it are surrounded by
   // PauseAndLock now
-  void DoState(PointerWrap& p);
+  bool DoState(StateLoadStore& p);
 
   void CheckInvalidState();
 

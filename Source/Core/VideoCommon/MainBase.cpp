@@ -208,25 +208,26 @@ void VideoBackendBase::CleanupShared()
 }
 
 // Run from the CPU thread
-void VideoBackendBase::DoState(PointerWrap& p)
+bool VideoBackendBase::DoState(StateLoadStore& p)
 {
   bool software = false;
   p.Do(software);
 
-  if (p.GetMode() == PointerWrap::MODE_READ && software == true)
+  if (GetName() == "Software Renderer")
   {
-    // change mode to abort load of incompatible save state.
-    p.SetMode(PointerWrap::MODE_VERIFY);
+    p.SetError("Can't use save states with software video backend.");
+    return false;
   }
 
-  VideoCommon_DoState(p);
+  if (!VideoCommon_DoState(p))
+    return false;
   p.DoMarker("VideoCommon");
 
   p.Do(s_beginFieldArgs);
   p.DoMarker("VideoBackendBase");
 
   // Refresh state.
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
   {
     m_invalid = true;
 
@@ -234,6 +235,7 @@ void VideoBackendBase::DoState(PointerWrap& p)
     // (? these don't appear to touch any emulation state that gets saved. moved to on load only.)
     VertexLoaderManager::MarkAllDirty();
   }
+  return true;
 }
 
 void VideoBackendBase::CheckInvalidState()

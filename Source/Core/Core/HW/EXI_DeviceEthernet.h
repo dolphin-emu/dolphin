@@ -15,7 +15,7 @@
 #include "Common/Flag.h"
 #include "Core/HW/EXI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 // Network Control Register A
 enum NCRA
@@ -206,7 +206,7 @@ public:
   u32 ImmRead(u32 size) override;
   void DMAWrite(u32 addr, u32 size) override;
   void DMARead(u32 addr, u32 size) override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
   // private:
   struct

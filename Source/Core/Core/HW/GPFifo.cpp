@@ -32,7 +32,7 @@ alignas(32) u8 m_gatherPipe[GATHER_PIPE_SIZE * 16];
 // pipe counter
 u32 m_gatherPipeCount = 0;
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.Do(m_gatherPipe);
   p.Do(m_gatherPipeCount);

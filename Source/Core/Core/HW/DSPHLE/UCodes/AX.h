@@ -57,7 +57,7 @@ public:
 
   void HandleMail(u32 mail) override;
   void Update() override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 protected:
   enum MailType
@@ -121,7 +121,7 @@ protected:
                      u32 auxb_r_dl);
 
   // Handle save states for main AX.
-  void DoAXState(PointerWrap& p);
+  void DoAXState(StateLoadStore& p);
 
 private:
   enum CmdType

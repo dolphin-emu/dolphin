@@ -11,7 +11,7 @@ namespace DVDThread
 {
 void Start();
 void Stop();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void WaitUntilIdle();
 void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, bool reply_to_ios,

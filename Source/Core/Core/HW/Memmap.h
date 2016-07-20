@@ -16,7 +16,7 @@
 #endif
 
 // Global declarations
-class PointerWrap;
+class StateLoadStore;
 namespace MMIO
 {
 class Mapping;
@@ -73,7 +73,7 @@ extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
 bool IsInitialized();
 void Init();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void Clear();
 bool AreMemoryBreakpointsActivated();

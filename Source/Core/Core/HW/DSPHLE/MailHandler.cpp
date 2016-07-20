@@ -31,7 +31,7 @@ void CMailHandler::PushMail(u32 _Mail, bool interrupt)
       m_Mails.front().second = true;
     }
   }
-  m_Mails.emplace(_Mail, false);
+  m_Mails.emplace_back(_Mail, false);
   DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", _Mail);
 }
 
@@ -53,7 +53,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
   {
     u16 result = m_Mails.front().first & 0xFFFF;
     bool generate_interrupt = m_Mails.front().second;
-    m_Mails.pop();
+    m_Mails.pop_front();
 
     if (generate_interrupt)
     {
@@ -67,8 +67,7 @@ u16 CMailHandler::ReadDSPMailboxLow()
 
 void CMailHandler::Clear()
 {
-  while (!m_Mails.empty())
-    m_Mails.pop();
+  m_Mails.clear();
 }
 
 bool CMailHandler::IsEmpty() const
@@ -85,46 +84,7 @@ void CMailHandler::Halt(bool _Halt)
   }
 }
 
-void CMailHandler::DoState(PointerWrap& p)
+void CMailHandler::DoState(StateLoadStore& p)
 {
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    Clear();
-    int sz = 0;
-    p.Do(sz);
-    for (int i = 0; i < sz; i++)
-    {
-      u32 mail = 0;
-      bool interrupt = false;
-      p.Do(mail);
-      p.Do(interrupt);
-      m_Mails.emplace(mail, interrupt);
-    }
-  }
-  else  // WRITE and MEASURE
-  {
-    std::queue<std::pair<u32, bool>> temp;
-    int sz = (int)m_Mails.size();
-    p.Do(sz);
-    for (int i = 0; i < sz; i++)
-    {
-      u32 value = m_Mails.front().first;
-      bool interrupt = m_Mails.front().second;
-      m_Mails.pop();
-      p.Do(value);
-      p.Do(interrupt);
-      temp.emplace(value, interrupt);
-    }
-    if (!m_Mails.empty())
-      PanicAlert("CMailHandler::DoState - WTF?");
-
-    // Restore queue.
-    for (int i = 0; i < sz; i++)
-    {
-      u32 value = temp.front().first;
-      bool interrupt = temp.front().second;
-      temp.pop();
-      m_Mails.emplace(value, interrupt);
-    }
-  }
+  p.Do(m_Mails);
 }
