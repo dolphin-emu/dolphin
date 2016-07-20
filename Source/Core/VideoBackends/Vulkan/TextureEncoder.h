@@ -35,7 +35,7 @@ private:
   static const u32 NUM_TEXTURE_ENCODING_SHADERS = 64;
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
-  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_R8G8B8A8_UNORM;
+  static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
 
   bool CompileShaders();
   bool CreateEncodingRenderPass();

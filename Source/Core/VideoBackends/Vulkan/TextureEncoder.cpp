@@ -222,15 +222,8 @@ bool TextureEncoder::CreateEncodingTexture()
 
 bool TextureEncoder::CreateDownloadTexture()
 {
-// TODO: Using a buffer here as opposed to a linear texture is faster on AMD.
-// Investigate which is faster for nvidia.
-#if 1
   m_download_texture = StagingTexture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT,
                                                 ENCODING_TEXTURE_FORMAT);
-#else
-  m_download_texture = StagingTexture2DBuffer::Create(
-      ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, ENCODING_TEXTURE_FORMAT);
-#endif
 
   if (!m_download_texture)
     return false;
