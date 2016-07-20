@@ -32,6 +32,8 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                       "(C) 1999 ArtX Inc.  All rights reserved.";
 
+static const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
+
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
 void CEXIIPL::Descrambler(u8* data, u32 size)
@@ -405,7 +407,6 @@ void CEXIIPL::TransferByte(u8& _uByte)
 u32 CEXIIPL::GetGCTime()
 {
   u64 ltime = 0;
-  static const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
   if (Movie::IsMovieActive())
   {
@@ -445,4 +446,9 @@ u32 CEXIIPL::GetGCTime()
 	u64 ltime = Common::Timer::GetTimeSinceJan1970();
 	return ((u32)ltime - cJanuary2000 - Bias);
 #endif
+}
+
+u32 CEXIIPL::GetGCTimeJan1970()
+{
+  return GetGCTime() + cJanuary2000;
 }

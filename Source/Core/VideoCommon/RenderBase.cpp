@@ -333,6 +333,11 @@ void Renderer::DrawDebugText()
     final_yellow += "\n";
   }
 
+  if (SConfig::GetInstance().m_ShowRTC)
+  {
+    final_cyan += Movie::GetRTCDisplay();
+  }
+
   // OSD Menu messages
   if (OSDChoice > 0)
   {
