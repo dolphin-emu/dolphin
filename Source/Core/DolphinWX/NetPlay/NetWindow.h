@@ -92,7 +92,7 @@ private:
   void OnPlayerSelect(wxCommandEvent& event);
   void GetNetSettings(NetSettings& settings);
   std::string FindCurrentGame();
-  std::string FindGame(const std::string& game);
+  std::string FindGame(const std::string& game) override;
 
   void OnCopyIP(wxCommandEvent&);
   void OnChoice(wxCommandEvent& event);
