@@ -15,7 +15,7 @@
 
 MD5Dialog::MD5Dialog(wxWindow* parent, NetPlayServer* server, std::vector<const Player*> players,
                      const std::string& game)
-    : wxDialog(parent, wxID_ANY, _("MD5 Checksum")), m_parent(parent), m_netplay_server(server)
+    : wxDialog(parent, wxID_ANY, _("MD5 Checksum")), m_netplay_server(server)
 {
   Bind(wxEVT_CLOSE_WINDOW, &MD5Dialog::OnClose, this);
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);

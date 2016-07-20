@@ -31,7 +31,6 @@ private:
   void OnClose(wxCloseEvent& event);
   void OnCloseBtnPressed(wxCommandEvent& event);
 
-  wxWindow* m_parent;
   wxStaticText* m_final_result_label;
   NetPlayServer* m_netplay_server;
   std::map<int, wxGauge*> m_progress_bars;
