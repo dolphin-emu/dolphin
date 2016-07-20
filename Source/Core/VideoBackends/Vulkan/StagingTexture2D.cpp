@@ -99,6 +99,9 @@ void StagingTexture2D::WriteTexels(u32 x, u32 y, u32 width, u32 height, const vo
 
 std::unique_ptr<StagingTexture2D> StagingTexture2D::Create(u32 width, u32 height, VkFormat format)
 {
+// TODO: Using a buffer here as opposed to a linear texture is faster on AMD.
+// NVIDIA also seems faster with buffers over textures.
+#if 0
   // Check for support for this format as a linear texture.
   // Some drivers don't support this (e.g. adreno).
   VkImageFormatProperties properties;
@@ -110,6 +113,7 @@ std::unique_ptr<StagingTexture2D> StagingTexture2D::Create(u32 width, u32 height
   {
     return StagingTexture2DLinear::Create(width, height, format);
   }
+#endif
 
   // Fall back to a buffer copy.
   return StagingTexture2DBuffer::Create(width, height, format);
