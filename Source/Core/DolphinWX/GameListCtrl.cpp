@@ -173,6 +173,13 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
+
+#ifdef _WIN32
+  // Windows UXTheme misrenders the List View control when using Custom Drawing to set
+  // background colors. It doesn't reset its pens / brushes correctly causing vertical streaks
+  // down the background. Revert to the wx3.0 behavior (unthemed).
+  EnableSystemTheme(false);
+#endif
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -283,10 +290,10 @@ void CGameListCtrl::Update()
 #ifdef __WXMSW__
     const int platform_padding = 0;
 #else
-    const int platform_padding = 8;
+    const int platform_padding = FromDIP(8);
 #endif
 
-    const int platform_icon_padding = 1;
+    const int platform_icon_padding = FromDIP(1);
 
     // set initial sizes for columns
     SetColumnWidth(COLUMN_DUMMY, 0);
@@ -295,12 +302,14 @@ void CGameListCtrl::Update()
                                         0);
     SetColumnWidth(COLUMN_BANNER,
                    SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
-    SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+    SetColumnWidth(COLUMN_TITLE, FromDIP(175) + platform_padding);
     SetColumnWidth(COLUMN_MAKER,
-                   SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
-    SetColumnWidth(COLUMN_FILENAME,
-                   SConfig::GetInstance().m_showFileNameColumn ? 100 + platform_padding : 0);
-    SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
+                   SConfig::GetInstance().m_showMakerColumn ? FromDIP(150) + platform_padding : 0);
+    SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ?
+                                        FromDIP(100) + platform_padding :
+                                        0);
+    SetColumnWidth(COLUMN_ID,
+                   SConfig::GetInstance().m_showIDColumn ? FromDIP(75) + platform_padding : 0);
     SetColumnWidth(COLUMN_COUNTRY,
                    SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
     SetColumnWidth(COLUMN_EMULATION_STATE,

@@ -1209,7 +1209,7 @@
 
 // Set to 0 to disable the use of the native progress dialog (currently only
 // available under MSW and suffering from some bugs there, hence this option).
-#define wxUSE_NATIVE_PROGRESSDLG 1
+#define wxUSE_NATIVE_PROGRESSDLG 0
 
 // support for startup tips (wxShowTip &c)
 #define wxUSE_STARTUP_TIPS 1
