@@ -421,18 +421,10 @@ u32 CEXIIPL::GetGCTime()
     // let's keep time moving forward, regardless of what it starts at
     ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
   }
-  else if (SConfig::GetInstance().bEnableCustomRTC)
-  {
-    _assert_(!Core::g_want_determinism);
-    ltime = SConfig::GetInstance().m_customRTCValue;
-
-    // let's keep time moving forward, regardless of what it starts at
-    ltime += Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeOnBoot();
-  }
   else
   {
     _assert_(!Core::g_want_determinism);
-    ltime = Common::Timer::GetLocalTimeSinceJan1970();
+    ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
   return ((u32)ltime - cJanuary2000);
