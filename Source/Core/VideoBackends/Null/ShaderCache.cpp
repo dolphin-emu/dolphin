@@ -6,6 +6,7 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace Null
 {
@@ -34,7 +35,7 @@ void ShaderCache<Uid>::Clear()
 template <typename Uid>
 bool ShaderCache<Uid>::SetShader(DSTALPHA_MODE dst_alpha_mode, u32 primitive_type)
 {
-  Uid uid = GetUid(dst_alpha_mode, primitive_type, API_OPENGL);
+  Uid uid = GetUid(dst_alpha_mode, primitive_type, APIType::OpenGL);
 
   // Check if the shader is already set
   if (m_last_entry)
@@ -59,7 +60,7 @@ bool ShaderCache<Uid>::SetShader(DSTALPHA_MODE dst_alpha_mode, u32 primitive_typ
   }
 
   // Need to compile a new shader
-  ShaderCode code = GenerateCode(dst_alpha_mode, API_OPENGL, uid);
+  ShaderCode code = GenerateCode(dst_alpha_mode, APIType::OpenGL, uid);
   m_shaders.emplace(uid, code.GetBuffer());
 
   GFX_DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE, true);

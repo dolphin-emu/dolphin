@@ -12,6 +12,7 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 VertexShaderUid GetVertexShaderUid()
@@ -78,13 +79,13 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_data* uid_data)
+ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_data* uid_data)
 {
   ShaderCode out;
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
     out.Write("layout(std140%s) uniform VSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
   else
@@ -96,7 +97,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, "");
   out.Write("};\n");
 
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
   {
     out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -430,7 +431,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
   // get rasterized correctly.
   out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
 
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
   {
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {

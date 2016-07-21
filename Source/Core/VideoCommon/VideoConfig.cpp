@@ -39,7 +39,7 @@ VideoConfig::VideoConfig()
   fAspectRatioHackH = 1;
 
   // disable all features by default
-  backend_info.APIType = API_NONE;
+  backend_info.api_type = APIType::Nothing;
   backend_info.bSupportsExclusiveFullscreen = false;
 }
 

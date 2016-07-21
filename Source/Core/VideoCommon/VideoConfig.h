@@ -145,7 +145,7 @@ struct VideoConfig final
   // TODO: Move this out of VideoConfig
   struct
   {
-    API_TYPE APIType;
+    APIType api_type;
 
     std::vector<std::string> Adapters;  // for D3D
     std::vector<int> AAModes;
