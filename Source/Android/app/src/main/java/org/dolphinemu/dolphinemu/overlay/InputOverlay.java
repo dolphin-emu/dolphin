@@ -39,6 +39,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
 
+	private boolean mIsInEditMode = false;
+	private InputOverlayDrawableButton mButtonBeingConfigured;
+	private InputOverlayDrawableJoystick mJoystickBeingConfigured;
+
 	/**
 	 * Resizes a {@link Bitmap} by a given scale factor
 	 * 
@@ -111,6 +115,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
+		if(isInEditMode()) {
+			return onTouchWhileEditing(v, event);
+		}
+
 		int pointerIndex = event.getActionIndex();
 
 		for (InputOverlayDrawableButton button : overlayButtons)
@@ -146,6 +154,95 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		}
 
 		return true;
+	}
+
+	public boolean onTouchWhileEditing(View v, MotionEvent event)
+	{
+		int pointerIndex = event.getActionIndex();
+		int fingerPositionX = (int)event.getX(pointerIndex);
+		int fingerPositionY = (int)event.getY(pointerIndex);
+
+		//Maybe combine Button and Joystick as subclasses of the same parent?
+		//Or maybe create an interface like IMoveableHUDControl?
+
+		for (InputOverlayDrawableButton button : overlayButtons)
+		{
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch(event.getAction() & MotionEvent.ACTION_MASK)
+			{
+				case MotionEvent.ACTION_DOWN:
+				case MotionEvent.ACTION_POINTER_DOWN:
+					// If no button is being moved now, remember the currently touched button to move.
+					if(mButtonBeingConfigured == null && button.getBounds().contains(fingerPositionX, fingerPositionY))
+					{
+						mButtonBeingConfigured = button;
+						mButtonBeingConfigured.onConfigureTouch(v, event);
+					}
+					break;
+				case MotionEvent.ACTION_MOVE:
+					if (mButtonBeingConfigured != null)
+					{
+						mButtonBeingConfigured.onConfigureTouch(v, event);
+						invalidate();
+						return true;
+					}
+					break;
+
+				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_POINTER_UP:
+					if(mButtonBeingConfigured == button)
+					{
+						//Persist button position by saving new place.
+						saveControlPosition(mButtonBeingConfigured.getSharedPrefsId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
+						mButtonBeingConfigured = null;
+					}
+					break;
+			}
+		}
+
+
+		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
+		{
+			switch(event.getAction())
+			{
+				case MotionEvent.ACTION_DOWN:
+				case MotionEvent.ACTION_POINTER_DOWN:
+					if(mJoystickBeingConfigured == null && joystick.getBounds().contains(fingerPositionX, fingerPositionY))
+					{
+						mJoystickBeingConfigured = joystick;
+						mJoystickBeingConfigured.onConfigureTouch(v, event);
+					}
+					break;
+				case MotionEvent.ACTION_MOVE:
+					if(mJoystickBeingConfigured != null)
+					{
+						mJoystickBeingConfigured.onConfigureTouch(v, event);
+						invalidate();
+					}
+					break;
+				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_POINTER_UP:
+					if(mJoystickBeingConfigured != null)
+					{
+						saveControlPosition(mJoystickBeingConfigured.getSharedPrefsId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().right);
+						mJoystickBeingConfigured = null;
+					}
+					break;
+
+			}
+		}
+
+
+		return true;
+	}
+
+	private void saveControlPosition(String sharedPrefsId, int x, int y)
+	{
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+		SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
+		sPrefsEditor.putFloat(sharedPrefsId+"-X", x);
+		sPrefsEditor.putFloat(sharedPrefsId+"-Y", y);
+		sPrefsEditor.apply();
 	}
 
 	/**
@@ -212,11 +309,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Initialize the InputOverlayDrawableButton.
 		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
-		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
-
 		// String ID of the Drawable. This is what is passed into SharedPreferences
-		// to check whether or not a value has been set.
+		// to check whether or not a value has been set. Send to button so it can be referenced.
 		final String drawableId = res.getResourceEntryName(resId);
+		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId, drawableId);
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
@@ -232,6 +328,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Now set the bounds for the InputOverlayDrawableButton.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
 		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
+
+		// Need to set the image's position
+		overlayDrawable.setPosition(drawableX, drawableY);
 
 		return overlayDrawable;
 	}
@@ -276,14 +375,26 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
 		Rect innerRect = new Rect(0, 0, outerSize / 4, outerSize / 4);
 
+		// Send the drawableId to the joystick so it can be referenced when saving control position.
 		final InputOverlayDrawableJoystick overlayDrawable
 				= new InputOverlayDrawableJoystick(res,
 					bitmapOuter, bitmapInner,
 					outerRect, innerRect,
-					joystick);
+					joystick, drawableId);
 
+		// Need to set the image's position
+		overlayDrawable.setPosition(drawableX, drawableY);
 
 		return overlayDrawable;
+	}
+
+	public void setIsInEditMode(boolean isInEditMode)
+	{
+		mIsInEditMode = isInEditMode;
+	}
+
+	public boolean isInEditMode() {
+		return mIsInEditMode;
 	}
 	
 }
