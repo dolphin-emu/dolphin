@@ -12,6 +12,7 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
+import android.view.View;
 
 /**
  * Custom {@link BitmapDrawable} that is capable
@@ -23,6 +24,9 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	private final float[] axises = {0f, 0f};
 	private final BitmapDrawable ringInner;
 	private int trackId = -1;
+	private String mSharedPrefsId;
+	private int mControlPositionX,	mControlPositionY;
+	private int mPreviousTouchX, mPreviousTouchY;
 
 	/**
 	 * Constructor
@@ -33,11 +37,12 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 	 * @param rectOuter   {@link Rect} which represents the outer joystick bounds.
 	 * @param rectInner   {@link Rect} which represents the inner joystick bounds.
 	 * @param joystick    Identifier for which joystick this is.
+	 * @param sharedPrefsId  Identifier for getting X and Y control positions from Shared Preferences.
 	 */
 	public InputOverlayDrawableJoystick(Resources res,
 	                                    Bitmap bitmapOuter, Bitmap bitmapInner,
 	                                    Rect rectOuter, Rect rectInner,
-	                                    int joystick)
+	                                    int joystick, String sharedPrefsId)
 	{
 		super(res, bitmapOuter);
 		this.setBounds(rectOuter);
@@ -49,13 +54,13 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		this.axisIDs[1] = joystick + 2;
 		this.axisIDs[2] = joystick + 3;
 		this.axisIDs[3] = joystick + 4;
+		mSharedPrefsId = sharedPrefsId;
 	}
 
 	@Override
 	public void draw(Canvas canvas)
 	{
 		super.draw(canvas);
-
 		ringInner.draw(canvas);
 	}
 
@@ -106,6 +111,33 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		}
 	}
 
+	public boolean onConfigureTouch(View v, MotionEvent event)
+	{
+		int pointerIndex = event.getActionIndex();
+		int fingerPositionX = (int)event.getX(pointerIndex);
+		int fingerPositionY = (int)event.getY(pointerIndex);
+		switch (event.getAction())
+		{
+			case MotionEvent.ACTION_DOWN:
+				mPreviousTouchX = fingerPositionX;
+				mPreviousTouchY = fingerPositionY;
+				break;
+			case MotionEvent.ACTION_MOVE:
+				int deltaX = fingerPositionX - mPreviousTouchX;
+				int deltaY = fingerPositionY - mPreviousTouchY;
+				mControlPositionX += deltaX;
+				mControlPositionY += deltaY;
+				setBounds(new Rect(mControlPositionX, mControlPositionY, getBitmap().getWidth() + mControlPositionX, getBitmap().getHeight() + mControlPositionY));
+				SetInnerBounds();
+				mPreviousTouchX = fingerPositionX;
+				mPreviousTouchY = fingerPositionY;
+				break;
+
+		}
+		return true;
+	}
+
+
 	public float[] getAxisValues()
 	{
 		float[] joyaxises = {0f, 0f, 0f, 0f};
@@ -133,5 +165,17 @@ public final class InputOverlayDrawableJoystick extends BitmapDrawable
 		int height = this.ringInner.getBounds().height() / 2;
 		this.ringInner.setBounds(X - width, Y - height,
 				X + width,  Y + height);
+		ringInner.invalidateSelf();
+	}
+
+	public String getSharedPrefsId()
+	{
+		return mSharedPrefsId;
+	}
+
+	public void setPosition(int x, int y)
+	{
+		mControlPositionX = x;
+		mControlPositionY = y;
 	}
 }

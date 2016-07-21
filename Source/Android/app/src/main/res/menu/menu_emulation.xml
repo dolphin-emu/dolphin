@@ -31,6 +31,12 @@
         android:showAsAction="never"
         android:title="@string/emulation_toggle_input"/>
 
+    <item
+        android:id="@+id/menu_emulation_configure_controls"
+        android:showAsAction="never"
+        android:title="@string/emulation_configure_controls">
+        </item>
+
     <!-- Save State Slots -->
     <item
         android:id="@+id/menu_emulation_save_root"
