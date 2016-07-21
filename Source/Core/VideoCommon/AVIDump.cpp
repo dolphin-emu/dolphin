@@ -296,7 +296,12 @@ void AVIDump::DoState()
 
 void AVIDump::CheckResolution(int width, int height)
 {
-  if (width != s_current_width || height != s_current_height)
+  // We check here to see if the requested width and height have changed since the last frame which
+  // was dumped, then create a new file accordingly. However, is it possible for the height
+  // (possibly width as well, but no examples known) to have a value of zero. This can occur as the
+  // VI is able to be set to a zero value for height/width to disable output. If this is the case,
+  // simply keep the last known resolution of the video for the added frame.
+  if ((width != s_current_width || height != s_current_height) && (width > 0 && height > 0))
   {
     int temp_file_index = s_file_index;
     Stop();
