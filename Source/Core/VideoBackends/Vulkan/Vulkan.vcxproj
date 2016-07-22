@@ -57,7 +57,9 @@
     <ClCompile Include="Helpers.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PaletteTextureConverter.cpp" />
+    <ClCompile Include="PerfQuery.cpp" />
     <ClCompile Include="RasterFont.cpp" />
+    <ClCompile Include="StagingBuffer.cpp" />
     <ClCompile Include="StagingTexture2D.cpp" />
     <ClCompile Include="TextureEncoder.cpp" />
     <ClCompile Include="Util.cpp" />
@@ -83,6 +85,7 @@
     <ClInclude Include="Helpers.h" />
     <ClInclude Include="PaletteTextureConverter.h" />
     <ClInclude Include="RasterFont.h" />
+    <ClInclude Include="StagingBuffer.h" />
     <ClInclude Include="StagingTexture2D.h" />
     <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="Util.h" />
