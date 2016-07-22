@@ -102,11 +102,14 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	}
 
 	@Override
-	public void onViewCreated(View view, Bundle savedInstanceState) {
+	public void onViewCreated(View view, Bundle savedInstanceState)
+	{
 		Button doneButton = (Button) view.findViewById(R.id.done_control_config);
-		doneButton.setOnClickListener(new View.OnClickListener() {
+		doneButton.setOnClickListener(new View.OnClickListener()
+		{
 			@Override
-			public void onClick(View v) {
+			public void onClick(View v)
+			{
 				stopConfiguringControls();
 			}
 		});
@@ -242,12 +245,14 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		mInputOverlay.setIsInEditMode(true);
 	}
 
-	public void stopConfiguringControls() {
+	public void stopConfiguringControls()
+	{
 		getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
 		mInputOverlay.setIsInEditMode(false);
 	}
 
-	public boolean isConfiguringControls() {
+	public boolean isConfiguringControls()
+	{
 		return mInputOverlay.isInEditMode();
 	}
 }
