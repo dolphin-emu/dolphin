@@ -324,7 +324,7 @@ void VideoBackend::Video_Prepare()
 {
   s_state_tracker = std::make_unique<StateTracker>();
   g_vertex_manager = std::make_unique<VertexManager>(s_state_tracker.get());
-  g_perf_query = std::make_unique<PerfQuery>();
+  g_perf_query = std::make_unique<PerfQuery>(s_state_tracker.get());
   g_texture_cache = std::make_unique<TextureCache>(s_state_tracker.get());
   g_renderer = std::make_unique<Renderer>(s_swap_chain.get(), s_state_tracker.get());
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
