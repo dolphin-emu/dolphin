@@ -115,7 +115,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	@Override
 	public boolean onTouch(View v, MotionEvent event)
 	{
-		if(isInEditMode()) {
+		if (isInEditMode())
+		{
 			return onTouchWhileEditing(v, event);
 		}
 
@@ -124,20 +125,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
 			// Determine the button state to apply based on the MotionEvent action flag.
-			switch(event.getAction() & MotionEvent.ACTION_MASK)
+			switch (event.getAction() & MotionEvent.ACTION_MASK)
 			{
 			case MotionEvent.ACTION_DOWN:
 			case MotionEvent.ACTION_POINTER_DOWN:
 			case MotionEvent.ACTION_MOVE:
 				// If a pointer enters the bounds of a button, press that button.
 				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+				{
 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.PRESSED);
+				}
 				break;
 			case MotionEvent.ACTION_UP:
 			case MotionEvent.ACTION_POINTER_UP:
 				// If a pointer ends, release the button it was pressing.
 				if (button.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
- 					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+				{
+					NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(), ButtonState.RELEASED);
+				}
 				break;
 			}
 		}
@@ -150,7 +155,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			float[] axises = joystick.getAxisValues();
 
 			for (int i = 0; i < 4; i++)
+			{
 				NativeLibrary.onGamePadMoveEvent(NativeLibrary.TouchScreenDevice, axisIDs[i], axises[i]);
+			}
 		}
 
 		return true;
@@ -168,12 +175,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
 			// Determine the button state to apply based on the MotionEvent action flag.
-			switch(event.getAction() & MotionEvent.ACTION_MASK)
+			switch (event.getAction() & MotionEvent.ACTION_MASK)
 			{
 				case MotionEvent.ACTION_DOWN:
 				case MotionEvent.ACTION_POINTER_DOWN:
 					// If no button is being moved now, remember the currently touched button to move.
-					if(mButtonBeingConfigured == null && button.getBounds().contains(fingerPositionX, fingerPositionY))
+					if (mButtonBeingConfigured == null && button.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mButtonBeingConfigured = button;
 						mButtonBeingConfigured.onConfigureTouch(v, event);
@@ -190,7 +197,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_POINTER_UP:
-					if(mButtonBeingConfigured == button)
+					if (mButtonBeingConfigured == button)
 					{
 						//Persist button position by saving new place.
 						saveControlPosition(mButtonBeingConfigured.getSharedPrefsId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
@@ -203,18 +210,18 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
 		{
-			switch(event.getAction())
+			switch (event.getAction())
 			{
 				case MotionEvent.ACTION_DOWN:
 				case MotionEvent.ACTION_POINTER_DOWN:
-					if(mJoystickBeingConfigured == null && joystick.getBounds().contains(fingerPositionX, fingerPositionY))
+					if (mJoystickBeingConfigured == null && joystick.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mJoystickBeingConfigured = joystick;
 						mJoystickBeingConfigured.onConfigureTouch(v, event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
-					if(mJoystickBeingConfigured != null)
+					if (mJoystickBeingConfigured != null)
 					{
 						mJoystickBeingConfigured.onConfigureTouch(v, event);
 						invalidate();
@@ -222,7 +229,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					break;
 				case MotionEvent.ACTION_UP:
 				case MotionEvent.ACTION_POINTER_UP:
-					if(mJoystickBeingConfigured != null)
+					if (mJoystickBeingConfigured != null)
 					{
 						saveControlPosition(mJoystickBeingConfigured.getSharedPrefsId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().right);
 						mJoystickBeingConfigured = null;
@@ -393,7 +400,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		mIsInEditMode = isInEditMode;
 	}
 
-	public boolean isInEditMode() {
+	public boolean isInEditMode()
+	{
 		return mIsInEditMode;
 	}
 	

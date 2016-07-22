@@ -396,7 +396,7 @@ public final class EmulationActivity extends AppCompatActivity
 
 			case R.id.menu_emulation_configure_controls:
 				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
-				if(emulationFragment.isConfiguringControls())
+				if (emulationFragment.isConfiguringControls())
 				{
 					emulationFragment.stopConfiguringControls();
 				}
