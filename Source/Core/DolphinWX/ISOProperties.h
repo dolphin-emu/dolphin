@@ -19,7 +19,6 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
-class GameListItem;
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
@@ -39,6 +38,8 @@ namespace Gecko
 class CodeConfigPanel;
 }
 class ActionReplayCodesPanel;
+class CheatWarningMessage;
+class GameListItem;
 
 class WiiPartition final : public wxTreeItemData
 {
@@ -123,6 +124,9 @@ private:
   ActionReplayCodesPanel* m_ar_code_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
 
+  CheatWarningMessage* m_cheats_disabled_ar;
+  CheatWarningMessage* m_cheats_disabled_gecko;
+
   enum
   {
     ID_TREECTRL = 1000,
@@ -203,6 +207,7 @@ private:
   void CheckPartitionIntegrity(wxCommandEvent& event);
   void OnEmustateChanged(wxCommandEvent& event);
   void OnChangeBannerLang(wxCommandEvent& event);
+  void OnCheatCodeToggled(wxCommandEvent& event);
 
   const GameListItem OpenGameListItem;
 
