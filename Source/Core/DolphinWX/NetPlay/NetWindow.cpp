@@ -140,7 +140,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
     m_MD5_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(150, -1));
     m_MD5_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnMD5ComputeRequested, this);
     m_MD5_choice->Append(_("MD5 check..."));
-    m_MD5_choice->Append(_("Curent game"));
+    m_MD5_choice->Append(_("Current game"));
     m_MD5_choice->Append(_("Other game"));
     m_MD5_choice->Append(_("SD card"));
     m_MD5_choice->SetSelection(0);
