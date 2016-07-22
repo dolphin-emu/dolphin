@@ -33,8 +33,8 @@ public:
 
 private:
   bool ResizeBuffer(size_t size);
-  void OnFencePointCreated(VkFence fence);
-  void OnFencePointReached(VkFence fence);
+  void OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence);
+  void OnCommandBufferExecuted(VkFence fence);
 
   // Waits for as many fences as needed to allocate num_bytes bytes from the buffer.
   bool WaitForClearSpace(size_t num_bytes);
