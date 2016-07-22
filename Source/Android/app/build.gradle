@@ -11,8 +11,8 @@ android {
         abortOnError false
 
         //Uncomment disable lines for test builds...
-        disable 'MissingTranslation'
-        disable 'ExtraTranslation'
+        //disable 'MissingTranslation'
+        //disable 'ExtraTranslation'
     }
 
     defaultConfig {
