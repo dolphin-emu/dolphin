@@ -43,7 +43,6 @@ public:
     return m_graphics_queue_family_properties;
   }
 
-  // Descriptor sets
   VkCommandBuffer GetCurrentInitCommandBuffer() const
   {
     return m_frame_resources[m_current_frame].init_command_buffer;
@@ -56,6 +55,10 @@ public:
   {
     return m_frame_resources[m_current_frame].descriptor_pool;
   }
+  // Gets the fence that will be signaled when the currently executing command buffer is
+  // queued and executed. Do not wait for this fence before the buffer is executed.
+  VkFence GetCurrentCommandBufferFence() const { return m_frame_resources[m_current_frame].fence; }
+  // Descriptor sets
   VkDescriptorSet AllocateDescriptorSet(VkDescriptorSetLayout set_layout);
 
   // Ensure the worker thread has submitted the previous frame's command buffer.
@@ -67,6 +70,10 @@ public:
   // Ensure that the worker thread has both submitted all commands, and the GPU has caught up.
   // Use with caution, huge performance penalty.
   void WaitForGPUIdle();
+
+  // Wait for a fence to be completed.
+  // Also invokes callbacks for completion.
+  void WaitForFence(VkFence fence);
 
   void SubmitCommandBuffer(bool submit_off_thread);
   void SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,
@@ -89,10 +96,11 @@ public:
   // Instruct the manager to fire the specified callback when a fence is flagged to be signaled.
   // This happens when command buffers are executed, and can be tested if signaled, which means
   // that all commands up to the point when the callback was fired have completed.
-  using FencePointCallback = std::function<void(VkFence)>;
+  using CommandBufferQueuedCallback = std::function<void(VkCommandBuffer, VkFence)>;
+  using CommandBufferExecutedCallback = std::function<void(VkFence)>;
 
-  void AddFencePointCallback(const void* key, const FencePointCallback& created_callback,
-                             const FencePointCallback& reached_callback);
+  void AddFencePointCallback(const void* key, const CommandBufferQueuedCallback& queued_callback,
+                             const CommandBufferExecutedCallback& executed_callback);
 
   void RemoveFencePointCallback(const void* key);
 
@@ -107,6 +115,8 @@ private:
 
   void SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore, VkSemaphore signal_semaphore,
                            VkSwapchainKHR present_swap_chain, uint32_t present_image_index);
+
+  void OnCommandBufferExecuted(size_t index);
 
   VkDevice m_device = nullptr;
   VkQueue m_graphics_queue = nullptr;
@@ -127,6 +137,7 @@ private:
 
     VkDescriptorPool descriptor_pool;
     VkFence fence;
+    bool needs_fence_wait;
 
     std::vector<DeferredResourceDestruction> cleanup_resources;
   };
@@ -135,7 +146,8 @@ private:
   size_t m_current_frame;
 
   // callbacks when a fence point is set
-  std::map<const void*, std::pair<FencePointCallback, FencePointCallback>> m_fence_point_callbacks;
+  std::map<const void*, std::pair<CommandBufferQueuedCallback, CommandBufferExecutedCallback>>
+      m_fence_point_callbacks;
 
   // Threaded command buffer execution
   // Semaphore determines when a command buffer can be queued
