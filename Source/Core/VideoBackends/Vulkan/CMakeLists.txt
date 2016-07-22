@@ -7,6 +7,7 @@ set(SRCS
 	Helpers.cpp
 	ObjectCache.cpp
 	PaletteTextureConverter.cpp
+    PerfQuery.cpp
 	RasterFont.cpp
 	Renderer.cpp
 	ShaderCache.cpp
