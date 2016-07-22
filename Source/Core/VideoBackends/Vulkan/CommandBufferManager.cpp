@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdint>
 
+#include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -228,70 +229,64 @@ void CommandBufferManager::WaitForGPUIdle()
   vkDeviceWaitIdle(m_device);
 }
 
-void CommandBufferManager::SubmitCommandBuffer(bool submit_off_thread)
+void CommandBufferManager::WaitForFence(VkFence fence)
 {
-  // End the current command buffer.
-  // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[index].init_command_buffer);
+  // Find the command buffer that this fence corresponds to.
+  size_t command_buffer_index = 0;
+  for (; command_buffer_index < m_frame_resources.size(); command_buffer_index++)
+  {
+    if (m_frame_resources[command_buffer_index].fence == fence)
+      break;
+  }
+  _assert_(command_buffer_index < m_frame_resources.size());
+
+  // Has this command buffer already been waited for?
+  if (!m_frame_resources[command_buffer_index].needs_fence_wait)
+    return;
+
+  // Wait for this command buffer to be completed.
+  VkResult res = vkWaitForFences(m_device, 1, &m_frame_resources[command_buffer_index].fence,
+                                 VK_TRUE, UINT64_MAX);
   if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
-  res = vkEndCommandBuffer(m_frame_resources[index].draw_command_buffer);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
-    PanicAlert("Failed to end command buffer");
-  }
+    LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
 
-  // Submitting off-thread?
-  if (m_use_threaded_submission && submit_off_thread)
-  {
-    // Push to the pending submit queue.
-    {
-      std::lock_guard<std::mutex> guard(m_pending_submit_lock);
-      m_pending_submits.push_back(
-          {m_current_frame, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, 0});
-    }
-
-    // Wake up the worker thread for a single iteration.
-    m_submit_loop->Wakeup();
-  }
-  else
-  {
-    // Pass through to normal submission path.
-    SubmitCommandBuffer(m_current_frame, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE, 0);
-  }
-
-  // Fire fence tracking callbacks. This can't happen on the worker thread.
-  for (const auto& iter : m_fence_point_callbacks)
-    iter.second.first(m_frame_resources[m_current_frame].fence);
+  // Immediately fire callbacks and cleanups, since the commands has been completed.
+  m_frame_resources[command_buffer_index].needs_fence_wait = false;
+  OnCommandBufferExecuted(command_buffer_index);
 }
 
-void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaphore,
-                                                         VkSemaphore signal_semaphore,
-                                                         VkSwapchainKHR present_swap_chain,
-                                                         uint32_t present_image_index,
-                                                         bool submit_off_thread)
+void CommandBufferManager::SubmitCommandBuffer(bool submit_on_worker_thread,
+                                               VkSemaphore wait_semaphore,
+                                               VkSemaphore signal_semaphore,
+                                               VkSwapchainKHR present_swap_chain,
+                                               uint32_t present_image_index)
 {
+  FrameResources& resources = m_frame_resources[m_current_frame];
+
+  // Fire fence tracking callbacks. This can't happen on the worker thread.
+  // We invoke these before submitting so that any last-minute commands can be added.
+  for (const auto& iter : m_fence_point_callbacks)
+    iter.second.first(resources.draw_command_buffer, resources.fence);
+
   // End the current command buffer.
-  // TODO: Can we move this off-thread?
-  VkResult res = vkEndCommandBuffer(m_frame_resources[index].init_command_buffer);
+  VkResult res = vkEndCommandBuffer(m_frame_resources[m_current_frame].init_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
     PanicAlert("Failed to end command buffer");
   }
-  res = vkEndCommandBuffer(m_frame_resources[index].draw_command_buffer);
+  res = vkEndCommandBuffer(m_frame_resources[m_current_frame].draw_command_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkEndCommandBuffer failed: ");
     PanicAlert("Failed to end command buffer");
   }
 
+  // This command buffer now has commands, so can't be re-used without waiting.
+  resources.needs_fence_wait = true;
+
   // Submitting off-thread?
-  if (m_use_threaded_submission && submit_off_thread)
+  if (m_use_threaded_submission && submit_on_worker_thread)
   {
     // Push to the pending submit queue.
     {
@@ -309,10 +304,6 @@ void CommandBufferManager::SubmitCommandBufferAndPresent(VkSemaphore wait_semaph
     SubmitCommandBuffer(m_current_frame, wait_semaphore, signal_semaphore, present_swap_chain,
                         present_image_index);
   }
-
-  // Fire fence tracking callbacks. This can't happen on the worker thread.
-  for (const auto& iter : m_fence_point_callbacks)
-    iter.second.first(m_frame_resources[m_current_frame].fence);
 }
 
 void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_semaphore,
@@ -374,19 +365,9 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
   m_submit_semaphore.Post();
 }
 
-void CommandBufferManager::ActivateCommandBuffer()
+void CommandBufferManager::OnCommandBufferExecuted(size_t index)
 {
-  // Move to the next command buffer.
-  m_current_frame = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
-  FrameResources& resources = m_frame_resources[m_current_frame];
-
-  VkResult res = vkWaitForFences(m_device, 1, &resources.fence, true, UINT64_MAX);
-  if (res != VK_SUCCESS)
-    LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
-
-  res = vkResetFences(m_device, 1, &resources.fence);
-  if (res != VK_SUCCESS)
-    LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
+  FrameResources& resources = m_frame_resources[index];
 
   // Fire fence tracking callbacks.
   for (const auto& iter : m_fence_point_callbacks)
@@ -396,6 +377,28 @@ void CommandBufferManager::ActivateCommandBuffer()
   for (const auto& it : resources.cleanup_resources)
     it.destroy_callback(m_device, it.object);
   resources.cleanup_resources.clear();
+}
+
+void CommandBufferManager::ActivateCommandBuffer()
+{
+  // Move to the next command buffer.
+  m_current_frame = (m_current_frame + 1) % NUM_COMMAND_BUFFERS;
+  FrameResources& resources = m_frame_resources[m_current_frame];
+
+  // Wait for the GPU to finish with all resources for this command buffer.
+  if (resources.needs_fence_wait)
+  {
+    VkResult res = vkWaitForFences(m_device, 1, &resources.fence, true, UINT64_MAX);
+    if (res != VK_SUCCESS)
+      LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
+
+    OnCommandBufferExecuted(m_current_frame);
+  }
+
+  // Reset fence to unsignaled before starting.
+  VkResult res = vkResetFences(m_device, 1, &resources.fence);
+  if (res != VK_SUCCESS)
+    LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
 
   // Reset command buffer to beginning since we can re-use the memory now
   res = vkResetCommandBuffer(resources.init_command_buffer, 0);
@@ -423,29 +426,24 @@ void CommandBufferManager::ActivateCommandBuffer()
 
 void CommandBufferManager::ExecuteCommandBuffer(bool submit_off_thread, bool wait_for_completion)
 {
-  PrepareToSubmitCommandBuffer();
+  VkFence pending_fence = GetCurrentCommandBufferFence();
 
   // If we're waiting for completion, don't bother waking the worker thread.
+  PrepareToSubmitCommandBuffer();
   SubmitCommandBuffer((submit_off_thread && wait_for_completion));
+  ActivateCommandBuffer();
 
   if (wait_for_completion)
-  {
-    VkResult res = vkWaitForFences(m_device, 1, &m_frame_resources[m_current_frame].fence, VK_TRUE,
-                                   UINT64_MAX);
-    if (res != VK_SUCCESS)
-      LOG_VULKAN_ERROR(res, "vkWaitForFences failed: ");
-  }
-
-  ActivateCommandBuffer();
+    WaitForFence(pending_fence);
 }
 
-void CommandBufferManager::AddFencePointCallback(const void* key,
-                                                 const FencePointCallback& created_callback,
-                                                 const FencePointCallback& reached_callback)
+void CommandBufferManager::AddFencePointCallback(
+    const void* key, const CommandBufferQueuedCallback& queued_callback,
+    const CommandBufferExecutedCallback& executed_callback)
 {
   // Shouldn't be adding twice.
   assert(m_fence_point_callbacks.find(key) == m_fence_point_callbacks.end());
-  m_fence_point_callbacks.emplace(key, std::make_pair(created_callback, reached_callback));
+  m_fence_point_callbacks.emplace(key, std::make_pair(queued_callback, executed_callback));
 }
 
 void CommandBufferManager::RemoveFencePointCallback(const void* key)

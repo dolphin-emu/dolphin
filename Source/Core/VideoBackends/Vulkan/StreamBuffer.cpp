@@ -23,8 +23,9 @@ StreamBuffer::StreamBuffer(VkBufferUsageFlags usage, size_t max_size)
 {
   // Add a callback that fires on fence point creation and signal
   g_command_buffer_mgr->AddFencePointCallback(
-      this, [this](VkFence fence) { this->OnFencePointCreated(fence); },
-      [this](VkFence fence) { this->OnFencePointReached(fence); });
+      this, std::bind(&StreamBuffer::OnCommandBufferQueued, this, std::placeholders::_1,
+                      std::placeholders::_2),
+      std::bind(&StreamBuffer::OnCommandBufferExecuted, this, std::placeholders::_1));
 }
 
 StreamBuffer::~StreamBuffer()
@@ -245,8 +246,9 @@ void StreamBuffer::CommitMemory(size_t final_num_bytes)
   m_current_offset += final_num_bytes;
 }
 
-void StreamBuffer::OnFencePointCreated(VkFence fence)
+void StreamBuffer::OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence)
 {
+  // TODO: Do we need a barrier for host writes?
   // Don't create a tracking entry if the GPU is caught up with the buffer.
   if (m_current_offset == m_current_gpu_position)
     return;
@@ -261,7 +263,7 @@ void StreamBuffer::OnFencePointCreated(VkFence fence)
   m_tracked_fences.push_back(std::make_pair(fence, m_current_offset));
 }
 
-void StreamBuffer::OnFencePointReached(VkFence fence)
+void StreamBuffer::OnCommandBufferExecuted(VkFence fence)
 {
   // Locate the entry for this fence (if any, we may have been forced to wait already)
   auto iter = std::find_if(m_tracked_fences.begin(), m_tracked_fences.end(),
