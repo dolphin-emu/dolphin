@@ -23,6 +23,8 @@
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
 #include "DolphinWX/WxUtils.h"
 
+wxDEFINE_EVENT(DOLPHIN_EVT_GECKOCODE_TOGGLED, wxCommandEvent);
+
 namespace Gecko
 {
 static const wxString wxstr_name(wxTRANSLATE("Name: ")), wxstr_notes(wxTRANSLATE("Notes: ")),
@@ -108,7 +110,13 @@ void CodeConfigPanel::ToggleCode(wxCommandEvent& evt)
 {
   const int sel = evt.GetInt();  // this right?
   if (sel > -1)
+  {
     m_gcodes[sel].enabled = m_listbox_gcodes->IsChecked(sel);
+
+    wxCommandEvent toggle_event(DOLPHIN_EVT_GECKOCODE_TOGGLED, GetId());
+    toggle_event.SetClientData(&m_gcodes[sel]);
+    GetEventHandler()->ProcessEvent(toggle_event);
+  }
 }
 
 void CodeConfigPanel::UpdateInfoBox(wxCommandEvent&)
