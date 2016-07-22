@@ -56,7 +56,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />
-    <ClCompile Include="ARCodeAddEdit.cpp" />
+    <ClCompile Include="Cheats\ActionReplayCodesPanel.cpp" />
+    <ClCompile Include="Cheats\ARCodeAddEdit.cpp" />
     <ClCompile Include="Cheats\CheatSearchTab.cpp" />
     <ClCompile Include="Cheats\CheatsWindow.cpp" />
     <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
@@ -119,6 +120,8 @@
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
+    <ClInclude Include="Cheats\ARCodeAddEdit.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />
@@ -133,7 +136,6 @@
     <ClInclude Include="NetPlay\PadMapDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
-    <ClInclude Include="ARCodeAddEdit.h" />
     <ClInclude Include="Cheats\CheatSearchTab.h" />
     <ClInclude Include="Cheats\CheatsWindow.h" />
     <ClInclude Include="Cheats\CreateCodeDialog.h" />
