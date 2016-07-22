@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
@@ -121,9 +121,6 @@
     <ClCompile Include="AboutDolphin.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="ARCodeAddEdit.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="FifoPlayerDlg.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -201,6 +198,12 @@
     </ClCompile>
     <ClCompile Include="NetPlay\PadMapDialog.cpp">
       <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheats\ActionReplayCodesPanel.cpp">
+      <Filter>GUI\Cheats</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheats\ARCodeAddEdit.cpp">
+      <Filter>GUI\Cheats</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -291,9 +294,6 @@
     <ClInclude Include="AboutDolphin.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="ARCodeAddEdit.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="FifoPlayerDlg.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -368,6 +368,12 @@
     </ClInclude>
     <ClInclude Include="NetPlay\PadMapDialog.h">
       <Filter>GUI\NetPlay</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheats\ActionReplayCodesPanel.h">
+      <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheats\ARCodeAddEdit.h">
+      <Filter>GUI\Cheats</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
