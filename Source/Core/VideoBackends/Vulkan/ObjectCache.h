@@ -77,6 +77,10 @@ public:
   {
     return (m_device_features.fragmentStoresAndAtomics == VK_TRUE);
   }
+  bool SupportsPreciseOcclusionQueries() const
+  {
+    return (m_device_features.occlusionQueryPrecise == VK_TRUE);
+  }
   // Helpers for getting constants
   VkDeviceSize GetUniformBufferAlignment() const
   {

@@ -608,7 +608,7 @@ void StateTracker::OnDraw()
   m_draw_counter++;
 
   // If we didn't have any CPU access last frame, do nothing.
-  if (m_scheduled_command_buffer_kicks.empty())
+  if (m_scheduled_command_buffer_kicks.empty() || !m_allow_background_execution)
     return;
 
   // Check if this draw is scheduled to kick a command buffer.
@@ -684,6 +684,11 @@ void StateTracker::OnEndFrame()
 #endif
 
   m_cpu_accesses_this_frame.clear();
+}
+
+void StateTracker::SetBackgroundCommandBufferExecution(bool enabled)
+{
+  m_allow_background_execution = enabled;
 }
 
 bool StateTracker::UpdatePipeline()

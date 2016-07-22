@@ -271,6 +271,8 @@ bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeature
     WARN_LOG(VIDEO, "Vulkan: Missing both geometryShader and wideLines features.");
   if (!available_features.largePoints)
     WARN_LOG(VIDEO, "Vulkan: Missing large points feature. CPU EFB writes will be slower.");
+  if (!available_features.occlusionQueryPrecise)
+    WARN_LOG(VIDEO, "Vulkan: Missing precise occlusion queries. Perf queries will be inaccurate.");
 
   // Enable the features we use.
   enable_features->dualSrcBlend = available_features.dualSrcBlend;
@@ -283,6 +285,7 @@ bool SelectVulkanDeviceFeatures(VkPhysicalDevice device, VkPhysicalDeviceFeature
   enable_features->shaderStorageImageMultisample = available_features.shaderStorageImageMultisample;
   enable_features->shaderTessellationAndGeometryPointSize =
       available_features.shaderTessellationAndGeometryPointSize;
+  enable_features->occlusionQueryPrecise = available_features.occlusionQueryPrecise;
 
   // Only here to shut up the debug layer, we don't actually use it
   enable_features->shaderClipDistance = available_features.shaderClipDistance;

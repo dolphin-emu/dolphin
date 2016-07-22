@@ -92,6 +92,10 @@ public:
   // Call at the end of a frame.
   void OnEndFrame();
 
+  // Prevent/allow background command buffer execution.
+  // Use when queries are active.
+  void SetBackgroundCommandBufferExecution(bool enabled);
+
 private:
   bool UpdatePipeline();
   bool UpdateDescriptorSet();
@@ -165,5 +169,6 @@ private:
   u32 m_draw_counter = 0;
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
+  bool m_allow_background_execution = true;
 };
 }

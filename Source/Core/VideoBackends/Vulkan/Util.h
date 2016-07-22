@@ -37,7 +37,8 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
 
 // Completes the current render pass, executes the command buffer, and restores state ready for next
 // render. Use when you want to kick the current buffer to make room for new data.
-void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool execute_off_thread);
+void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool execute_off_thread,
+                                           bool wait_for_completion = false);
 }
 
 // Utility shader vertex format
