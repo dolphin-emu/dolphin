@@ -11,6 +11,7 @@ set(SRCS
 	Renderer.cpp
 	ShaderCache.cpp
 	StateTracker.cpp
+    StagingBuffer.cpp
 	StagingTexture2D.cpp
 	StreamBuffer.cpp
 	SwapChain.cpp
