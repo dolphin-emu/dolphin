@@ -771,6 +771,8 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
     // Wiimote disconnected
     // reset eeprom/register/reporting mode
     Reset();
+    if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
+      WiimoteReal::ControlChannel(m_index, _channelID, _pData, _Size);
     return;
   }
 
