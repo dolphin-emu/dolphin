@@ -27,8 +27,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteReal/IOWin.h"
 
 //#define AUTHENTICATE_WIIMOTES
 #define SHARE_WRITE_WIIMOTES
@@ -192,28 +191,6 @@ inline void init_lib()
 
 namespace WiimoteReal
 {
-class WiimoteWindows final : public Wiimote
-{
-public:
-  WiimoteWindows(const std::basic_string<TCHAR>& path, WinWriteMethod initial_write_method);
-  ~WiimoteWindows() override;
-
-protected:
-  bool ConnectInternal() override;
-  void DisconnectInternal() override;
-  bool IsConnected() const override;
-  void IOWakeup() override;
-  int IORead(u8* buf) override;
-  int IOWrite(u8 const* buf, size_t len) override;
-
-private:
-  std::basic_string<TCHAR> m_devicepath;  // Unique Wiimote reference
-  HANDLE m_dev_handle;                    // HID handle
-  OVERLAPPED m_hid_overlap_read;          // Overlap handles
-  OVERLAPPED m_hid_overlap_write;
-  WinWriteMethod m_write_method;  // Type of Write Method to use
-};
-
 int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, enum WinWriteMethod& stack,
             const u8* buf, size_t len, DWORD* written);
 int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
@@ -225,12 +202,12 @@ bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_
 void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 bool ForgetWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
 
-WiimoteScanner::WiimoteScanner()
+WiimoteScannerWindows::WiimoteScannerWindows()
 {
   init_lib();
 }
 
-WiimoteScanner::~WiimoteScanner()
+WiimoteScannerWindows::~WiimoteScannerWindows()
 {
 // TODO: what do we want here?
 #if 0
@@ -241,7 +218,7 @@ WiimoteScanner::~WiimoteScanner()
 #endif
 }
 
-void WiimoteScanner::Update()
+void WiimoteScannerWindows::Update()
 {
   if (!s_loaded_ok)
     return;
@@ -371,7 +348,8 @@ static WinWriteMethod GetInitialWriteMethod(bool IsUsingToshibaStack)
 // Does not replace already found Wiimotes even if they are disconnected.
 // wm is an array of max_wiimotes Wiimotes
 // Returns the total number of found and connected Wiimotes.
-void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
+                                         Wiimote*& found_board)
 {
   if (!s_loaded_ok)
     return;
@@ -480,8 +458,9 @@ int CheckDeviceType_Read(HANDLE& dev_handle, u8* buf, int attempts)
 // Wiimote.
 // Because nothing on Windows should be easy.
 // (We can't seem to easily identify the Bluetooth device an HID device belongs to...)
-void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR>& devicepath,
-                                     WinWriteMethod& write_method, bool& real_wiimote, bool& is_bb)
+void WiimoteScannerWindows::CheckDeviceType(std::basic_string<TCHAR>& devicepath,
+                                            WinWriteMethod& write_method, bool& real_wiimote,
+                                            bool& is_bb)
 {
   real_wiimote = false;
   is_bb = false;
@@ -606,7 +585,7 @@ void WiimoteScanner::CheckDeviceType(std::basic_string<TCHAR>& devicepath,
   CloseHandle(dev_handle);
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScannerWindows::IsReady() const
 {
   if (!s_loaded_ok)
   {

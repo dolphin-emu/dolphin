@@ -1,9 +1,9 @@
 #define BLUETOOTH_VERSION_USE_CURRENT
 
+#include "Core/HW/WiimoteReal/IOdarwin.h"
 #include "Common/Common.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 @interface SearchBT : NSObject
 {
@@ -20,74 +20,8 @@
 
 namespace WiimoteReal
 {
-class WiimoteDarwin final : public Wiimote
-{
-public:
-  WiimoteDarwin(IOBluetoothDevice* device);
-  ~WiimoteDarwin() override;
-
-  // These are not protected/private because ConnectBT needs them.
-  void DisconnectInternal() override;
-  IOBluetoothDevice* m_btd;
-  unsigned char* m_input;
-  int m_inputlen;
-
-protected:
-  bool ConnectInternal() override;
-  bool IsConnected() const override;
-  void IOWakeup() override;
-  int IORead(u8* buf) override;
-  int IOWrite(u8 const* buf, size_t len) override;
-  void EnablePowerAssertionInternal() override;
-  void DisablePowerAssertionInternal() override;
-
-private:
-  IOBluetoothL2CAPChannel* m_ichan;
-  IOBluetoothL2CAPChannel* m_cchan;
-  bool m_connected;
-  CFRunLoopRef m_wiimote_thread_run_loop;
-  IOPMAssertionID m_pm_assertion;
-};
-
-class WiimoteDarwinHid final : public Wiimote
-{
-public:
-  WiimoteDarwinHid(IOHIDDeviceRef device);
-  ~WiimoteDarwinHid() override;
-
-protected:
-  bool ConnectInternal() override;
-  void DisconnectInternal() override;
-  bool IsConnected() const override;
-  void IOWakeup() override;
-  int IORead(u8* buf) override;
-  int IOWrite(u8 const* buf, size_t len) override;
-
-private:
-  static void ReportCallback(void* context, IOReturn result, void* sender, IOHIDReportType type,
-                             u32 reportID, u8* report, CFIndex reportLength);
-  static void RemoveCallback(void* context, IOReturn result, void* sender);
-  void QueueBufferReport(int length);
-  IOHIDDeviceRef m_device;
-  bool m_connected;
-  std::atomic<bool> m_interrupted;
-  Report m_report_buffer;
-  Common::FifoQueue<Report> m_buffered_reports;
-};
-
-WiimoteScanner::WiimoteScanner()
-{
-}
-
-WiimoteScanner::~WiimoteScanner()
-{
-}
-
-void WiimoteScanner::Update()
-{
-}
-
-void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+void WiimoteScannerDarwin::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
+                                        Wiimote*& found_board)
 {
   // TODO: find the device in the constructor and save it for later
   IOBluetoothHostController* bth;
@@ -199,7 +133,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
   }
 }
 
-bool WiimoteScanner::IsReady() const
+bool WiimoteScannerDarwin::IsReady() const
 {
   // TODO: only return true when a BT device is present
   return true;

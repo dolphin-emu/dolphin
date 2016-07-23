@@ -114,6 +114,16 @@ private:
   Common::FifoQueue<Report> m_write_reports;
 };
 
+class WiimoteScannerBackend
+{
+public:
+  virtual ~WiimoteScannerBackend(){};
+  virtual bool IsReady() const = 0;
+  virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
+  // function called when not looking for more Wiimotes
+  virtual void Update() = 0;
+};
+
 enum class WiimoteScanMode
 {
   DO_NOT_SCAN,
@@ -124,36 +134,23 @@ enum class WiimoteScanMode
 class WiimoteScanner
 {
 public:
-  WiimoteScanner();
-  ~WiimoteScanner();
-
-  bool IsReady() const;
-
+  WiimoteScanner() {}
   void StartThread();
   void StopThread();
   void SetScanMode(WiimoteScanMode scan_mode);
 
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
-
-  // function called when not looking for more Wiimotes
-  void Update();
+  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
+  bool IsReady() const;
 
 private:
   void ThreadFunc();
-
   std::thread m_scan_thread;
+  Common::Flag m_scan_thread_running;
 
   Common::Event m_scan_mode_changed_event;
-  Common::Flag m_scan_thread_running;
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 
-#if defined(_WIN32)
-  void CheckDeviceType(std::basic_string<TCHAR>& devicepath, WinWriteMethod& write_method,
-                       bool& real_wiimote, bool& is_bb);
-#elif defined(__linux__) && HAVE_BLUEZ
-  int device_id;
-  int device_sock;
-#endif
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
 extern std::mutex g_wiimotes_mutex;
