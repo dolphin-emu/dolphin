@@ -639,6 +639,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerAndroid>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerWindows>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwin>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwinHID>());
     g_wiimote_scanner.StartThread();
   }
 
