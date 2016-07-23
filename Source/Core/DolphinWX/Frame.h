@@ -109,6 +109,7 @@ public:
   void PopulateSavedPerspectives();
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
+  void OpenGeneralConfiguration(int tab = -1);
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
