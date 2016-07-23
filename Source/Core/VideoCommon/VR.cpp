@@ -1158,9 +1158,10 @@ std::wstring VR_GetAudioDeviceId()
         {
           NOTICE_LOG(VR, "Found Rift audio device %d: DevicePath = '%S', ", index,
                      detail_data->DevicePath);
+          auto result = std::wstring(detail_data->DevicePath);
           free(detail_data);
           SetupDiDestroyDeviceInfoList(device_info);
-          return std::wstring(detail_data->DevicePath);
+          return result;
         }
         else
         {
