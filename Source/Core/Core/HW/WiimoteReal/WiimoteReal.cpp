@@ -19,7 +19,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/Host.h"
 #if defined(__linux__) && HAVE_BLUEZ
-#include "Core/HW/WiimoteReal/IONix.h"
+#include "Core/HW/WiimoteReal/IOLinux.h"
 #endif
 #ifdef ANDROID
 #include "Core/HW/WiimoteReal/IOAndroid.h"
