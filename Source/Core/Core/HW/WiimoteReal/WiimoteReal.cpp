@@ -654,6 +654,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
 #endif
 #ifdef __APPLE__
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwin>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwinHID>());
 #endif
     g_wiimote_scanner.StartThread();
   }
