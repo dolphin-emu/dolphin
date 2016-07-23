@@ -402,6 +402,8 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(StateTracker* state_tracke
                          g_object_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
   draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
   draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
+  draw.SetViewportAndScissor(region.offset.x, region.offset.y, region.extent.width,
+                             region.extent.height);
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 

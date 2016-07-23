@@ -556,11 +556,19 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0},
                          {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  Texture2D* src_texture = m_framebuffer_mgr->ResolveEFBColorTexture(state_tracker, src_region);
+  Texture2D* src_texture = m_framebuffer_mgr->GetEFBColorTexture();
   VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  if (g_ActiveConfig.iMultisamples > 1)
+    src_texture = m_framebuffer_mgr->ResolveEFBColorTexture(state_tracker, src_region);
+
   if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
-      m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT || g_ActiveConfig.iMultisamples > 1)
+      m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT)
   {
+    // Transition temporary texture to color attachment before rendering.
+    m_color_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+    m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_color_render_pass,
                            g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
@@ -576,6 +584,13 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
     draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
     draw.EndRenderPass();
+
+    // Restore EFB to color attachment, since we're done with it.
+    if (src_texture == m_framebuffer_mgr->GetEFBColorTexture())
+    {
+      src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    }
 
     // Use this as a source texture now.
     src_texture = m_color_copy_texture.get();
@@ -617,11 +632,22 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
   // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
   VkRect2D src_region = {{0, 0},
                          {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  Texture2D* src_texture = m_framebuffer_mgr->ResolveEFBDepthTexture(state_tracker, src_region);
+  Texture2D* src_texture = m_framebuffer_mgr->GetEFBDepthTexture();
   VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
-  if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
-      m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT || g_ActiveConfig.iMultisamples > 1)
+  if (g_ActiveConfig.iMultisamples > 1)
   {
+    // EFB depth resolves are written out as color textures
+    src_texture = m_framebuffer_mgr->ResolveEFBDepthTexture(state_tracker, src_region);
+    src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  }
+  if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
+      m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT)
+  {
+    // Transition temporary texture to color attachment before rendering.
+    m_depth_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
+    m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_depth_render_pass,
                            g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
@@ -637,6 +663,13 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
     draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
     draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
     draw.EndRenderPass();
+
+    // Restore EFB to depth attachment, since we're done with it.
+    if (src_texture == m_framebuffer_mgr->GetEFBDepthTexture())
+    {
+      src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    }
 
     // Use this as a source texture now.
     src_texture = m_depth_copy_texture.get();
