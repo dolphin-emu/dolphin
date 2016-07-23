@@ -260,8 +260,6 @@ elseif(UNIX)
 		set(LIBS ${LIBS} bluetooth)
 	elseif(ANDROID)
 		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
-	else()
-		set(SRCS ${SRCS} HW/WiimoteReal/IODummy.cpp)
 	endif()
 endif()
 

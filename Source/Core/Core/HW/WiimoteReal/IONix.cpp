@@ -2,78 +2,49 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 #include <bluetooth/bluetooth.h>
 #include <bluetooth/hci.h>
 #include <bluetooth/hci_lib.h>
 #include <bluetooth/l2cap.h>
+#include <unistd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteReal/IONix.h"
 
 namespace WiimoteReal
 {
-class WiimoteLinux final : public Wiimote
-{
-public:
-  WiimoteLinux(bdaddr_t bdaddr);
-  ~WiimoteLinux() override;
-  const bdaddr_t& Address() const;
-
-protected:
-  bool ConnectInternal() override;
-  void DisconnectInternal() override;
-  bool IsConnected() const override;
-  void IOWakeup() override;
-  int IORead(u8* buf) override;
-  int IOWrite(u8 const* buf, size_t len) override;
-
-private:
-  bdaddr_t m_bdaddr;  // Bluetooth address
-  int m_cmd_sock;     // Command socket
-  int m_int_sock;     // Interrupt socket
-  int m_wakeup_pipe_w;
-  int m_wakeup_pipe_r;
-};
-
-WiimoteScanner::WiimoteScanner() : device_id(-1), device_sock(-1)
+WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 {
   // Get the id of the first Bluetooth device.
-  device_id = hci_get_route(nullptr);
-  if (device_id < 0)
+  m_device_id = hci_get_route(nullptr);
+  if (m_device_id < 0)
   {
     NOTICE_LOG(WIIMOTE, "Bluetooth not found.");
     return;
   }
 
   // Create a socket to the device
-  device_sock = hci_open_dev(device_id);
-  if (device_sock < 0)
+  m_device_sock = hci_open_dev(m_device_id);
+  if (m_device_sock < 0)
   {
     ERROR_LOG(WIIMOTE, "Unable to open Bluetooth.");
     return;
   }
 }
 
-bool WiimoteScanner::IsReady() const
-{
-  return device_sock > 0;
-}
-
-WiimoteScanner::~WiimoteScanner()
+WiimoteScannerLinux::~WiimoteScannerLinux()
 {
   if (IsReady())
-    close(device_sock);
+    close(m_device_sock);
 }
 
-void WiimoteScanner::Update()
+bool WiimoteScannerLinux::IsReady() const
 {
+  return m_device_sock > 0;
 }
 
-void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
+void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote*& found_board)
 {
   // supposedly 1.28 seconds
   int const wait_len = 1;
@@ -88,7 +59,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
 
   // Scan for Bluetooth devices
   int const found_devices =
-      hci_inquiry(device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
+      hci_inquiry(m_device_id, wait_len, max_infos, lap, &scan_infos_ptr, IREQ_CACHE_FLUSH);
   if (found_devices < 0)
   {
     ERROR_LOG(WIIMOTE, "Error searching for Bluetooth devices.");
@@ -104,7 +75,7 @@ void WiimoteScanner::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wiimote
 
     // BT names are a maximum of 248 bytes apparently
     char name[255] = {};
-    if (hci_read_remote_name(device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
+    if (hci_read_remote_name(m_device_sock, &scan_infos[i].bdaddr, sizeof(name), name, 1000) < 0)
     {
       ERROR_LOG(WIIMOTE, "name request failed");
       continue;
