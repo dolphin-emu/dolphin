@@ -10,7 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/HW/WiimoteReal/IONix.h"
+#include "Core/HW/WiimoteReal/IOLinux.h"
 
 namespace WiimoteReal
 {

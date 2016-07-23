@@ -18,7 +18,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
-#include "Core/HW/WiimoteReal/IONix.h"
+#include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOdarwin.h"
 #include "Core/Host.h"
