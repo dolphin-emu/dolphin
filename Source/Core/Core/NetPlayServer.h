@@ -134,6 +134,7 @@ private:
 
   static struct UPNPUrls m_upnp_urls;
   static struct IGDdatas m_upnp_data;
+  static std::string m_upnp_ourip;
   static u16 m_upnp_mapped;
   static bool m_upnp_inited;
   static bool m_upnp_error;
