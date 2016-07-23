@@ -122,7 +122,7 @@ wxMenuBar* CFrame::CreateMenu()
   fileMenu->Append(IDM_CHANGE_DISC, GetMenuLabel(HK_CHANGE_DISC));
 
   wxMenu* externalDrive = new wxMenu;
-  fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Backup..."), externalDrive);
+  fileMenu->Append(IDM_DRIVES, _("&Boot from DVD Backup"), externalDrive);
 
   drives = cdio_get_devices();
   // Windows Limitation of 24 character drives
@@ -231,13 +231,13 @@ wxMenuBar* CFrame::CreateMenu()
   // Tools menu
   wxMenu* toolsMenu = new wxMenu;
   toolsMenu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-  toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save"));
+  toolsMenu->Append(IDM_IMPORT_SAVE, _("Import Wii Save..."));
   toolsMenu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
   toolsMenu->Append(IDM_CHEATS, _("&Cheat Manager"));
 
-  toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay"));
+  toolsMenu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
 
-  toolsMenu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD"));
+  toolsMenu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD..."));
   UpdateWiiMenuChoice(toolsMenu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
 
   toolsMenu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
@@ -367,7 +367,7 @@ wxMenuBar* CFrame::CreateMenu()
   helpMenu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
   helpMenu->Append(IDM_HELP_GITHUB, _("&GitHub Repository"));
   helpMenu->AppendSeparator();
-  helpMenu->Append(wxID_ABOUT, _("&About..."));
+  helpMenu->Append(wxID_ABOUT, _("&About"));
   menubar->Append(helpMenu, _("&Help"));
 
   return menubar;
