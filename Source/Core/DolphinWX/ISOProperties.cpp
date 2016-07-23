@@ -17,6 +17,7 @@
 #include <type_traits>
 #include <vector>
 #include <wx/app.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -56,6 +57,7 @@
 #include "Common/SysConf.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "DiscIO/Blob.h"
@@ -65,11 +67,124 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
+
+// A warning message displayed on the ARCodes and GeckoCodes pages when cheats are
+// disabled globally to explain why turning cheats on does not work.
+// Also displays a different warning when the game is currently running to explain
+// that toggling codes has no effect while the game is already running.
+class CheatWarningMessage final : public wxPanel
+{
+public:
+  CheatWarningMessage(wxWindow* parent, std::string game_id)
+      : wxPanel(parent), m_game_id(std::move(game_id))
+  {
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
+    CreateGUI();
+    wxTheApp->Bind(wxEVT_IDLE, &CheatWarningMessage::OnAppIdle, this);
+    Hide();
+  }
+
+  void UpdateState()
+  {
+    // If cheats are disabled then show the notification about that.
+    // If cheats are enabled and the game is currently running then display that warning.
+    State new_state = State::Hidden;
+    if (!SConfig::GetInstance().bEnableCheats)
+      new_state = State::DisabledCheats;
+    else if (Core::IsRunning() && SConfig::GetInstance().GetUniqueID() == m_game_id)
+      new_state = State::GameRunning;
+    ApplyState(new_state);
+  }
+
+private:
+  enum class State
+  {
+    Hidden,
+    DisabledCheats,
+    GameRunning
+  };
+
+  void CreateGUI()
+  {
+    wxStaticBitmap* icon =
+        new wxStaticBitmap(this, wxID_ANY, wxArtProvider::GetMessageBoxIcon(wxICON_WARNING));
+    m_message = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                 wxST_NO_AUTORESIZE);
+    m_btn_configure = new wxButton(this, wxID_ANY, _("Configure Dolphin"));
+
+    m_btn_configure->Bind(wxEVT_BUTTON, &CheatWarningMessage::OnConfigureClicked, this);
+
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 15);
+    sizer->Add(m_message, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 15);
+    sizer->Add(m_btn_configure, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+    sizer->AddSpacer(10);
+
+    SetSizer(sizer);
+  }
+
+  void OnConfigureClicked(wxCommandEvent&)
+  {
+    main_frame->OpenGeneralConfiguration();
+    UpdateState();
+  }
+
+  void OnAppIdle(wxIdleEvent& ev)
+  {
+    ev.Skip();
+    // Don't reveal the UI if the user hasn't triggered it yet, just update it if it is already
+    // visible.
+    if (m_state != State::Hidden)
+      UpdateState();
+  }
+
+  void ApplyState(State new_state)
+  {
+    // The purpose of this function is to prevent unnecessary UI updates which cause flickering.
+    if (new_state == m_state)
+      return;
+
+    bool visible = true;
+    switch (new_state)
+    {
+    case State::Hidden:
+      visible = false;
+      break;
+
+    case State::DisabledCheats:
+      m_btn_configure->Show();
+      m_message->SetLabelText(_("Dolphin's cheat system is currently disabled."));
+      break;
+
+    case State::GameRunning:
+      m_btn_configure->Hide();
+      m_message->SetLabelText(
+          _("Changing cheats will only take effect when the game is restarted."));
+      break;
+    }
+    m_state = new_state;
+    Show(visible);
+    GetParent()->Layout();
+    if (visible)
+    {
+      m_message->Wrap(m_message->GetSize().GetWidth());
+      m_message->InvalidateBestSize();
+      GetParent()->Layout();
+    }
+  }
+
+  std::string m_game_id;
+  wxStaticText* m_message = nullptr;
+  wxButton* m_btn_configure = nullptr;
+  State m_state = State::Hidden;
+};
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 EVT_CLOSE(CISOProperties::OnClose)
@@ -313,8 +428,8 @@ void CISOProperties::CreateGUIControls()
   m_Notebook->AddPage(m_PatchPage, _("Patches"));
   wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
   m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
-  m_geckocode_panel = new Gecko::CodeConfigPanel(m_Notebook);
-  m_Notebook->AddPage(m_geckocode_panel, _("Gecko Codes"));
+  wxPanel* const gecko_cheat_page = new wxPanel(m_Notebook);
+  m_Notebook->AddPage(gecko_cheat_page, _("Gecko Codes"));
   wxPanel* const m_Information = new wxPanel(m_Notebook, ID_INFORMATION);
   m_Notebook->AddPage(m_Information, _("Info"));
 
@@ -472,12 +587,27 @@ void CISOProperties::CreateGUIControls()
   // Action Replay Cheats
   m_ar_code_panel =
       new ActionReplayCodesPanel(m_CheatPage, ActionReplayCodesPanel::STYLE_MODIFY_BUTTONS);
+  m_cheats_disabled_ar = new CheatWarningMessage(m_CheatPage, game_id);
+
+  m_ar_code_panel->Bind(DOLPHIN_EVT_ARCODE_TOGGLED, &CISOProperties::OnCheatCodeToggled, this);
 
   wxBoxSizer* const sCheatPage = new wxBoxSizer(wxVERTICAL);
-  // TODO: Cheat disabled warning.
+  sCheatPage->Add(m_cheats_disabled_ar, 0, wxEXPAND | wxTOP, 5);
   sCheatPage->Add(m_ar_code_panel, 1, wxEXPAND | wxALL, 5);
   m_CheatPage->SetSizer(sCheatPage);
 
+  // Gecko Cheats
+  m_geckocode_panel = new Gecko::CodeConfigPanel(gecko_cheat_page);
+  m_cheats_disabled_gecko = new CheatWarningMessage(gecko_cheat_page, game_id);
+
+  m_geckocode_panel->Bind(DOLPHIN_EVT_GECKOCODE_TOGGLED, &CISOProperties::OnCheatCodeToggled, this);
+
+  wxBoxSizer* gecko_layout = new wxBoxSizer(wxVERTICAL);
+  gecko_layout->Add(m_cheats_disabled_gecko, 0, wxEXPAND | wxTOP, 5);
+  gecko_layout->Add(m_geckocode_panel, 1, wxEXPAND);
+  gecko_cheat_page->SetSizer(gecko_layout);
+
+  // Info Page
   wxStaticText* const m_InternalNameText =
       new wxStaticText(m_Information, wxID_ANY, _("Internal Name:"));
   m_InternalName = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition,
@@ -1283,6 +1413,12 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED(event))
   }
   LaunchExternalEditor(GameIniFileLocal, true);
   GenerateLocalIniModified();
+}
+
+void CISOProperties::OnCheatCodeToggled(wxCommandEvent&)
+{
+  m_cheats_disabled_ar->UpdateState();
+  m_cheats_disabled_gecko->UpdateState();
 }
 
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED(event))

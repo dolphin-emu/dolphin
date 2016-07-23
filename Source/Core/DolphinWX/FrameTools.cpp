@@ -598,6 +598,20 @@ void CFrame::InitBitmaps()
     RecreateToolbar();
 }
 
+void CFrame::OpenGeneralConfiguration(int tab)
+{
+  CConfigMain config_main(this);
+  if (tab > -1)
+    config_main.SetSelectedTab(tab);
+
+  HotkeyManagerEmu::Enable(false);
+  if (config_main.ShowModal() == wxID_OK)
+    m_GameListCtrl->Update();
+  HotkeyManagerEmu::Enable(true);
+
+  UpdateGUI();
+}
+
 // Menu items
 
 // Start the game or change the disc.
@@ -1283,12 +1297,7 @@ void CFrame::OnReset(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED(event))
 {
-  CConfigMain ConfigMain(this);
-  HotkeyManagerEmu::Enable(false);
-  if (ConfigMain.ShowModal() == wxID_OK)
-    m_GameListCtrl->Update();
-  HotkeyManagerEmu::Enable(true);
-  UpdateGUI();
+  OpenGeneralConfiguration();
 }
 
 void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED(event))
@@ -1301,12 +1310,7 @@ void CFrame::OnConfigGFX(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnConfigAudio(wxCommandEvent& WXUNUSED(event))
 {
-  CConfigMain ConfigMain(this);
-  ConfigMain.SetSelectedTab(CConfigMain::ID_AUDIOPAGE);
-  HotkeyManagerEmu::Enable(false);
-  if (ConfigMain.ShowModal() == wxID_OK)
-    m_GameListCtrl->Update();
-  HotkeyManagerEmu::Enable(true);
+  OpenGeneralConfiguration(CConfigMain::ID_AUDIOPAGE);
 }
 
 void CFrame::OnConfigControllers(wxCommandEvent& WXUNUSED(event))
