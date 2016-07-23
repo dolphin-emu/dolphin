@@ -30,6 +30,11 @@
 #include <wx/tipwin.h>
 #include <wx/wxcrt.h>
 
+#ifdef __WXMSW__
+#include <CommCtrl.h>
+#include <wx/msw/dc.h>
+#endif
+
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -173,13 +178,6 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
-
-#ifdef _WIN32
-  // Windows UXTheme misrenders the List View control when using Custom Drawing to set
-  // background colors. It doesn't reset its pens / brushes correctly causing vertical streaks
-  // down the background. Revert to the wx3.0 behavior (unthemed).
-  EnableSystemTheme(false);
-#endif
 }
 
 CGameListCtrl::~CGameListCtrl()
@@ -1398,3 +1396,60 @@ bool CGameListCtrl::WiiCompressWarning()
                         "by removing padding data. Your disc image will still work. Continue?"),
                       _("Warning"), wxYES_NO) == wxYES;
 }
+
+#ifdef __WXMSW__
+// Windows draws vertical rules between columns when using UXTheme (e.g. Aero, Win10)
+// This function paints over those lines which removes them.
+// The code here replaces the code in Externals/wxWidgets3/src/msw/listctrl.cpp, it
+// supports the same functionality as the wxWidgets implementation except for alternative
+// encoding fonts (e.g. UI in ISO-8859-1 with font in ISO-8859-15 won't work).
+// [The repaint background idea is ripped off from Eclipse SWT which does the same thing]
+bool CGameListCtrl::MSWOnNotify(int id, WXLPARAM lparam, WXLPARAM* result)
+{
+  NMLVCUSTOMDRAW* nmlv = reinterpret_cast<NMLVCUSTOMDRAW*>(lparam);
+  if (nmlv->nmcd.hdr.hwndFrom != GetHWND() || nmlv->nmcd.hdr.code != NM_CUSTOMDRAW)
+    return wxListCtrl::MSWOnNotify(id, lparam, result);
+
+  switch (nmlv->nmcd.dwDrawStage)
+  {
+  case CDDS_PREPAINT:  // Background painted, about to paint items/rows
+  {
+    // The column separators have already been painted, paint over them.
+    wxDCTemp dc(nmlv->nmcd.hdc);
+    dc.SetBrush(wxBrush(GetBackgroundColour(), wxBRUSHSTYLE_SOLID));
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawRectangle(nmlv->nmcd.rc.left, nmlv->nmcd.rc.top,
+                     nmlv->nmcd.rc.right - nmlv->nmcd.rc.left,
+                     nmlv->nmcd.rc.bottom - nmlv->nmcd.rc.top);
+
+    *result = m_hasAnyAttr ? CDRF_NOTIFYITEMDRAW : CDRF_DODEFAULT;
+    return true;
+  }
+
+  case CDDS_ITEMPREPAINT:  // About to paint content of a row (nmlv->nmcd.dwItemSpec)
+    *result = CDRF_NOTIFYITEMDRAW;
+    return true;
+
+  case CDDS_SUBITEM | CDDS_ITEMPREPAINT:  // About to paint a column (nmlv->iSubItem) on the current
+                                          // row (nmlv->nmcd.dwItemSpec)
+    {
+      wxListItemAttr* attr = DoGetItemColumnAttr(nmlv->nmcd.dwItemSpec, nmlv->iSubItem);
+      *result = CDRF_DODEFAULT;
+      if (attr)
+      {
+        nmlv->clrText =
+            attr->HasTextColour() ? attr->GetTextColour().GetRGB() : GetTextColour().GetRGB();
+        nmlv->clrTextBk = attr->HasBackgroundColour() ? attr->GetBackgroundColour().GetRGB() :
+                                                        GetBackgroundColour().GetRGB();
+        if (attr->HasFont())
+        {
+          ::SelectObject(nmlv->nmcd.hdc, attr->GetFont().GetHFONT());
+          *result = CDRF_NEWFONT;
+        }
+      }
+      return true;
+    }
+  }
+  return false;
+}
+#endif
