@@ -13,6 +13,7 @@
 
 namespace Vulkan
 {
+class StagingBuffer;
 class StateTracker;
 
 class BoundingBox
@@ -40,14 +41,10 @@ private:
   VkBuffer m_gpu_buffer = VK_NULL_HANDLE;
   VkDeviceMemory m_gpu_memory = nullptr;
 
-  VkBuffer m_readback_buffer = VK_NULL_HANDLE;
-  VkDeviceMemory m_readback_memory = nullptr;
-  void* m_readback_map = nullptr;
-
   static const size_t NUM_VALUES = 4;
-  static const size_t BUFFER_SIZE = sizeof(uint32_t) * NUM_VALUES;
+  static const size_t BUFFER_SIZE = sizeof(u32) * NUM_VALUES;
 
-  std::array<s32, NUM_VALUES> m_values = {};
+  std::unique_ptr<StagingBuffer> m_readback_buffer;
   std::array<bool, NUM_VALUES> m_values_dirty = {};
   bool m_valid = true;
 };
