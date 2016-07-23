@@ -32,26 +32,19 @@
 #endif
 
 // ----------------------------------------------------------------------------
-// various wxWidgets macros
-// ----------------------------------------------------------------------------
-
-// check that the page index is valid
-#define IS_VALID_PAGE(nPage) ((nPage) < GetPageCount())
-
-// ----------------------------------------------------------------------------
 // event table
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxToolbook, wxBookCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxToolbook, wxBookCtrlBase);
 
 wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGING, wxBookCtrlEvent );
 wxDEFINE_EVENT( wxEVT_TOOLBOOK_PAGE_CHANGED,  wxBookCtrlEvent );
 
-BEGIN_EVENT_TABLE(wxToolbook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxToolbook, wxBookCtrlBase)
     EVT_SIZE(wxToolbook::OnSize)
     EVT_TOOL_RANGE(1, 50, wxToolbook::OnToolSelected)
     EVT_IDLE(wxToolbook::OnIdle)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxToolbook implementation
@@ -174,16 +167,9 @@ bool wxToolbook::SetPageImage(size_t n, int imageId)
     if (!GetImageList())
         return false;
 
-    wxToolBarToolBase* tool = GetToolBar()->FindById(n + 1);
-    if (tool)
-    {
-        // Find the image list index for this tool
-        wxBitmap bitmap = GetImageList()->GetBitmap(imageId);
-        tool->SetNormalBitmap(bitmap);
-        return true;
-    }
-    else
-        return false;
+    GetToolBar()->SetToolNormalBitmap(n + 1, GetImageList()->GetBitmap(imageId));
+
+    return true;
 }
 
 // ----------------------------------------------------------------------------

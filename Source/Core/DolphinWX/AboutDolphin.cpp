@@ -86,16 +86,19 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
   Copyright->SetFont(CopyrightFont);
   Copyright->SetFocus();
 
+  wxSizerFlags center_flag;
+  center_flag.Center();
+
   wxBoxSizer* const sCheckUpdates = new wxBoxSizer(wxHORIZONTAL);
-  sCheckUpdates->Add(UpdateText);
-  sCheckUpdates->Add(Download);
+  sCheckUpdates->Add(UpdateText, center_flag);
+  sCheckUpdates->Add(Download, center_flag);
 
   wxBoxSizer* const sLinks = new wxBoxSizer(wxHORIZONTAL);
-  sLinks->Add(License);
-  sLinks->Add(FirstSpacer);
-  sLinks->Add(Authors);
-  sLinks->Add(SecondSpacer);
-  sLinks->Add(Support);
+  sLinks->Add(License, center_flag);
+  sLinks->Add(FirstSpacer, center_flag);
+  sLinks->Add(Authors, center_flag);
+  sLinks->Add(SecondSpacer, center_flag);
+  sLinks->Add(Support, center_flag);
 
   wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);
   sInfo->Add(Dolphin);
@@ -121,7 +124,7 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
 
   wxBoxSizer* const sFooter = new wxBoxSizer(wxVERTICAL);
   sFooter->AddSpacer(15);
-  sFooter->Add(Copyright, 0, wxALIGN_BOTTOM | wxALIGN_CENTER_HORIZONTAL);
+  sFooter->Add(Copyright, 0, wxALIGN_CENTER_HORIZONTAL);
   sFooter->AddSpacer(5);
 
   wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);

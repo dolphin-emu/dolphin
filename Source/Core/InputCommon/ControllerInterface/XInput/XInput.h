@@ -97,7 +97,6 @@ public:
   Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
   void UpdateMotors();

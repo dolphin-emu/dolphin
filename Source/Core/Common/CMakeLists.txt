@@ -30,6 +30,7 @@ set(SRCS Analytics.cpp
          Version.cpp
          x64ABI.cpp
          x64Emitter.cpp
+         MD5.cpp
          Crypto/bn.cpp
          Crypto/ec.cpp
          Logging/LogManager.cpp)
@@ -93,7 +94,7 @@ elseif(USE_X11)
     set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
 endif()
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(LIBS ${LIBS} dl)
 endif()
 

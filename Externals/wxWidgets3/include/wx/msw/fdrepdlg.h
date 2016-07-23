@@ -54,7 +54,7 @@ protected:
 
     wxFindReplaceDialogImpl *m_impl;
 
-    DECLARE_DYNAMIC_CLASS(wxFindReplaceDialog)
+    wxDECLARE_DYNAMIC_CLASS(wxFindReplaceDialog);
     wxDECLARE_NO_COPY_CLASS(wxFindReplaceDialog);
 };
 

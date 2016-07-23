@@ -428,7 +428,7 @@ u32 CEXIIPL::GetGCTime()
   else
   {
     _assert_(!Core::g_want_determinism);
-    ltime = Common::Timer::GetLocalTimeSinceJan1970();
+    ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
   return ((u32)ltime - cJanuary2000);

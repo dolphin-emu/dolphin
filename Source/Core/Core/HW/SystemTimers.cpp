@@ -91,6 +91,9 @@ static int s_audio_dma_period;
 // we can just increase this number.
 static int s_ipc_hle_period;
 
+// Custom RTC
+static s64 s_localtime_rtc_offset = 0;
+
 u32 GetTicksPerSecond()
 {
   return s_cpu_core_clock;
@@ -174,6 +177,11 @@ u64 GetFakeTimeBase()
          ((CoreTiming::GetTicks() - CoreTiming::GetFakeTBStartTicks()) / TIMER_RATIO);
 }
 
+s64 GetLocalTimeRTCOffset()
+{
+  return s_localtime_rtc_offset;
+}
+
 static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
 {
   // Patch mem and run the Action Replay
@@ -237,6 +245,11 @@ void Init()
 
   Common::Timer::IncreaseResolution();
   // store and convert localtime at boot to timebase ticks
+  if (SConfig::GetInstance().bEnableCustomRTC)
+  {
+    s_localtime_rtc_offset =
+        Common::Timer::GetLocalTimeSinceJan1970() - SConfig::GetInstance().m_customRTCValue;
+  }
   CoreTiming::SetFakeTBStartValue((u64)(s_cpu_core_clock / TIMER_RATIO) *
                                   (u64)CEXIIPL::GetGCTime());
   CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
@@ -267,6 +280,7 @@ void Init()
 void Shutdown()
 {
   Common::Timer::RestoreResolution();
+  s_localtime_rtc_offset = 0;
 }
 
 }  // namespace

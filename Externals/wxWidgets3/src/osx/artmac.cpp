@@ -35,12 +35,12 @@ class wxMacArtProvider : public wxArtProvider
 protected:
 #if wxOSX_USE_COCOA_OR_CARBON
     virtual wxIconBundle CreateIconBundle(const wxArtID& id,
-                                          const wxArtClient& client);
+                                          const wxArtClient& client) wxOVERRIDE;
 #endif
 #if wxOSX_USE_COCOA_OR_IPHONE
     virtual wxBitmap CreateBitmap(const wxArtID& id,
                                   const wxArtClient& client,
-                                  const wxSize& size)
+                                  const wxSize& size) wxOVERRIDE
     {
         return wxOSXCreateSystemBitmap(id, client, size);
     }
@@ -87,6 +87,7 @@ static wxIconBundle wxMacArtProvider_CreateIconBundle(const wxArtID& id)
     ART_MSGBOX(wxART_FLOPPY,      wxICON_FLOPPY,      floppy)
     ART_MSGBOX(wxART_HARDDISK,    wxICON_HARDDISK,    harddisk)
     ART_MSGBOX(wxART_REMOVABLE,   wxICON_REMOVABLE,   removable)
+    ART_MSGBOX(wxART_PRINT,       wxICON_PRINT,       print)
 
     ART_MSGBOX(wxART_DELETE,      wxICON_DELETE,      delete)
 
@@ -96,6 +97,7 @@ static wxIconBundle wxMacArtProvider_CreateIconBundle(const wxArtID& id)
 
     ART_MSGBOX(wxART_HELP_SETTINGS, wxICON_HELP_SETTINGS, htmoptns)
     ART_MSGBOX(wxART_HELP_PAGE,   wxICON_HELP_PAGE,   htmpage)
+    ART_MSGBOX(wxART_HELP_FOLDER,   wxICON_HELP_FOLDER,   htmlfoldr)
 
     return wxNullIconBundle;
 }

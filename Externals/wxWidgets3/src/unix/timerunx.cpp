@@ -44,20 +44,6 @@ WX_DEFINE_LIST(wxTimerList)
 // trace mask for the debugging messages used here
 #define wxTrace_Timer wxT("timer")
 
-// ----------------------------------------------------------------------------
-// local functions
-// ----------------------------------------------------------------------------
-
-// helper function to format wxUsecClock_t
-static inline wxString wxUsecClockAsString(wxUsecClock_t usec)
-{
-    #if wxUSE_LONGLONG
-        return usec.ToString();
-    #else // wxUsecClock_t == double
-        return wxString::Format(wxT("%.0f"), usec);
-    #endif
-}
-
 // ============================================================================
 // wxTimerScheduler implementation
 // ============================================================================
@@ -96,7 +82,7 @@ void wxTimerScheduler::DoAddTimer(wxTimerSchedule *s)
 
     wxLogTrace(wxTrace_Timer, wxT("Inserted timer %d expiring at %s"),
                s->m_timer->GetId(),
-               wxUsecClockAsString(s->m_expiration).c_str());
+               s->m_expiration.ToString());
 }
 
 void wxTimerScheduler::RemoveTimer(wxUnixTimerImpl *timer)
@@ -252,13 +238,13 @@ class wxTimerUnixModule : public wxModule
 {
 public:
     wxTimerUnixModule() {}
-    virtual bool OnInit() { return true; }
-    virtual void OnExit() { wxTimerScheduler::Shutdown(); }
+    virtual bool OnInit() wxOVERRIDE { return true; }
+    virtual void OnExit() wxOVERRIDE { wxTimerScheduler::Shutdown(); }
 
-    DECLARE_DYNAMIC_CLASS(wxTimerUnixModule)
+    wxDECLARE_DYNAMIC_CLASS(wxTimerUnixModule);
 };
 
-IMPLEMENT_DYNAMIC_CLASS(wxTimerUnixModule, wxModule)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTimerUnixModule, wxModule);
 
 // ============================================================================
 // global functions

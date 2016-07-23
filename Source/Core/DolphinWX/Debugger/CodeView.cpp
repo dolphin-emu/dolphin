@@ -411,15 +411,15 @@ void CCodeView::OnPaint(wxPaintEvent& event)
   wxPen nullPen(bgColor);
   wxPen currentPen(*wxBLACK_PEN);
   wxPen selPen(*wxGREY_PEN);
-  nullPen.SetStyle(wxTRANSPARENT);
-  currentPen.SetStyle(wxSOLID);
+  nullPen.SetStyle(wxPENSTYLE_TRANSPARENT);
+  currentPen.SetStyle(wxPENSTYLE_SOLID);
   wxBrush currentBrush(*wxLIGHT_GREY_BRUSH);
   wxBrush pcBrush(*wxGREEN_BRUSH);
   wxBrush bpBrush(*wxRED_BRUSH);
 
   wxBrush bgBrush(bgColor);
   wxBrush nullBrush(bgColor);
-  nullBrush.SetStyle(wxTRANSPARENT);
+  nullBrush.SetStyle(wxBRUSHSTYLE_TRANSPARENT);
 
   ctx->SetPen(nullPen);
   ctx->SetBrush(bgBrush);

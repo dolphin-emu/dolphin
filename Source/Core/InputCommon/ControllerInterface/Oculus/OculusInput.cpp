@@ -69,11 +69,6 @@ std::string SIDRemote::GetName() const
   return "Remote";
 }
 
-int SIDRemote::GetId() const
-{
-  return 0;
-}
-
 std::string SIDRemote::GetSource() const
 {
   return "VR";
@@ -145,11 +140,6 @@ OculusTouch::OculusTouch()
 std::string OculusTouch::GetName() const
 {
   return "Touch";
-}
-
-int OculusTouch::GetId() const
-{
-  return 0;
 }
 
 std::string OculusTouch::GetSource() const
@@ -290,11 +280,6 @@ HMDDevice::HMDDevice()
 std::string HMDDevice::GetName() const
 {
   return "HMD";
-}
-
-int HMDDevice::GetId() const
-{
-  return 0;
 }
 
 std::string HMDDevice::GetSource() const

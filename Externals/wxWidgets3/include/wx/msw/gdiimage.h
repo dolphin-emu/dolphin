@@ -54,7 +54,7 @@ public:
 
     void SetSize(int w, int h) { m_width = w; m_height = h; }
 
-    // free the ressources we allocated
+    // free the resources we allocated
     virtual void Free() = 0;
 
     // for compatibility, the member fields are public

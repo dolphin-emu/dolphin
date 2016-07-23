@@ -23,10 +23,6 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   idi8->EnumDevices(DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks,
                     DIEDFL_ATTACHEDONLY);
 
-  // this is used to number the joysticks
-  // multiple joysticks with the same name shall get unique ids starting at 0
-  std::map<std::basic_string<TCHAR>, int> name_counts;
-
   std::vector<DWORD> xinput_guids;
   GetXInputGUIDS(&xinput_guids);
 
@@ -58,7 +54,7 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
           }
         }
 
-        auto js = std::make_shared<Joystick>(js_device, name_counts[joystick.tszInstanceName]++);
+        auto js = std::make_shared<Joystick>(js_device);
         // only add if it has some inputs/outputs
         if (js->Inputs().size() || js->Outputs().size())
           g_controller_interface.AddDevice(std::move(js));
@@ -72,9 +68,8 @@ void InitJoystick(IDirectInput8* const idi8, HWND hwnd)
   }
 }
 
-Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVICE8 device,
-                   const unsigned int index)
-    : m_device(device), m_index(index)
+Joystick::Joystick(/*const LPCDIDEVICEINSTANCE lpddi, */ const LPDIRECTINPUTDEVICE8 device)
+    : m_device(device)
 //, m_name(TStringToString(lpddi->tszInstanceName))
 {
   // seems this needs to be done before GetCapabilities
@@ -165,11 +160,6 @@ Joystick::~Joystick()
 std::string Joystick::GetName() const
 {
   return GetDeviceName(m_device);
-}
-
-int Joystick::GetId() const
-{
-  return m_index;
 }
 
 std::string Joystick::GetSource() const

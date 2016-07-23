@@ -38,7 +38,7 @@ CEXIAgp::~CEXIAgp()
   SaveFileFromEEPROM(gbapath + ".sav");
 }
 
-void CEXIAgp::CRC8(u8* data, u32 size)
+void CEXIAgp::CRC8(const u8* data, u32 size)
 {
   for (u32 it = 0; it < size; it++)
   {

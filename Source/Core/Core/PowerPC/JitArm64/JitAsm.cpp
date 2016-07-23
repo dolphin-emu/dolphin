@@ -48,54 +48,54 @@ void JitArm64::GenerateAsm()
 
   dispatcherNoCheck = GetCodePtr();
 
-  FixupBranch exram, vmem, not_exram, not_vmem;
-  ARM64Reg pc_masked = W25;
-  ARM64Reg cache_base = X27;
+  bool assembly_dispatcher = true;
 
-  // VMEM
-  not_vmem = TBZ(DISPATCHER_PC, IntLog2(JIT_ICACHE_VMEM_BIT));
-  ANDI2R(pc_masked, DISPATCHER_PC, JIT_ICACHE_MASK);
-  MOVI2R(cache_base, (u64)jit->GetBlockCache()->iCacheVMEM.data());
-  vmem = B();
-  SetJumpTarget(not_vmem);
-
-  if (SConfig::GetInstance().bWii)
+  if (assembly_dispatcher)
   {
-    // Wii EX-RAM
-    not_exram = TBZ(DISPATCHER_PC, IntLog2(JIT_ICACHE_EXRAM_BIT));
-    ANDI2R(pc_masked, DISPATCHER_PC, JIT_ICACHEEX_MASK);
-    MOVI2R(cache_base, (u64)jit->GetBlockCache()->iCacheEx.data());
-    exram = B();
-    SetJumpTarget(not_exram);
+    // iCache[(address >> 2) & iCache_Mask];
+    ARM64Reg pc_masked = W25;
+    ARM64Reg cache_base = X27;
+    ARM64Reg block_num = W27;
+    ANDI2R(pc_masked, DISPATCHER_PC, JitBaseBlockCache::iCache_Mask << 2);
+    MOVP2R(cache_base, jit->GetBlockCache()->GetICache());
+    LDR(block_num, cache_base, EncodeRegTo64(pc_masked));
+
+    // blocks[block_num]
+    ARM64Reg block = X30;
+    ARM64Reg jit_block_size = W24;
+    MOVI2R(jit_block_size, sizeof(JitBlock));
+    MUL(block_num, block_num, jit_block_size);
+    MOVP2R(block, jit->GetBlockCache()->GetBlocks());
+    ADD(block, block, EncodeRegTo64(block_num));
+
+    // b.effectiveAddress != addr || b.msrBits != msr
+    ARM64Reg pc_and_msr = W25;
+    ARM64Reg pc_and_msr2 = W24;
+    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, effectiveAddress));
+    CMP(pc_and_msr, DISPATCHER_PC);
+    FixupBranch pc_missmatch = B(CC_NEQ);
+
+    LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
+    ANDI2R(pc_and_msr2, pc_and_msr2, JitBlock::JIT_CACHE_MSR_MASK);
+    LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
+    CMP(pc_and_msr, pc_and_msr2);
+    FixupBranch msr_missmatch = B(CC_NEQ);
+
+    // return blocks[block_num].normalEntry;
+    LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
+    BR(block);
+    SetJumpTarget(pc_missmatch);
+    SetJumpTarget(msr_missmatch);
   }
 
-  // Common memory
-  ANDI2R(pc_masked, DISPATCHER_PC, JIT_ICACHE_MASK);
-  MOVI2R(cache_base, (u64)jit->GetBlockCache()->iCache.data());
-
-  SetJumpTarget(vmem);
-  if (SConfig::GetInstance().bWii)
-    SetJumpTarget(exram);
-
-  LDR(W27, cache_base, EncodeRegTo64(pc_masked));
-
-  FixupBranch JitBlock = TBNZ(W27, 7);  // Test the 7th bit
-  // Success, it is our Jitblock.
-  MOVI2R(X30, (u64)jit->GetBlockCache()->GetCodePointers());
-  UBFM(X27, X27, 61, 60);  // Same as X27 << 3
-  LDR(X30, X30, X27);      // Load the block address in to R14
-  BR(X30);
-  // No need to jump anywhere after here, the block will go back to dispatcher start
-
-  SetJumpTarget(JitBlock);
-
+  // Call C version of Dispatch().
+  // FIXME: Implement this in inline assembly.
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-  MOVI2R(X30, (u64) & ::Jit);
+  MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
   BLR(X30);
 
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-  B(dispatcherNoCheck);
+  // Jump to next block.
+  BR(X0);
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();

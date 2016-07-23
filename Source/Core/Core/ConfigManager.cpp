@@ -534,6 +534,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("GFXBackend", m_strVideoBackend);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
+  core->Set("EnableCustomRTC", bEnableCustomRTC);
+  core->Set("CustomRTCValue", m_customRTCValue);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -873,6 +875,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   m_GPUDeterminismMode = ParseGPUDeterminismMode(m_strGPUDeterminismMode);
   core->Get("PerfMapDir", &m_perfDir, "");
+  core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
+  // Default to seconds between 1.1.1970 and 1.1.2000
+  core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -1055,10 +1060,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       if (pVolume == nullptr)
       {
         if (bootDrive)
-          PanicAlertT("Could not read \"%s\".  "
-                      "There is no disc in the drive, or it is not a GC/Wii backup.  "
-                      "Please note that original GameCube and Wii discs cannot be read "
-                      "by most PC DVD drives.",
+          PanicAlertT("Could not read \"%s\". "
+                      "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                      "Please note that Dolphin cannot play games directly from the original "
+                      "GameCube and Wii discs.",
                       m_strFilename.c_str());
         else
           PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",

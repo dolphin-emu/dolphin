@@ -11,8 +11,10 @@
 #ifndef _WX_CHECKBOX_H_
 #define _WX_CHECKBOX_H_
 
+#include "wx/msw/ownerdrawnbutton.h"
+
 // Checkbox item (single checkbox)
-class WXDLLIMPEXP_CORE wxCheckBox : public wxCheckBoxBase
+class WXDLLIMPEXP_CORE wxCheckBox : public wxMSWOwnerDrawnButton<wxCheckBoxBase>
 {
 public:
     wxCheckBox() { }
@@ -45,14 +47,9 @@ public:
 
     virtual bool MSWCommand(WXUINT param, WXWORD id);
     virtual void Command(wxCommandEvent& event);
-    virtual bool SetForegroundColour(const wxColour& colour);
-    virtual bool MSWOnDraw(WXDRAWITEMSTRUCT *item);
 
     // returns true if the platform should explicitly apply a theme border
     virtual bool CanApplyThemeBorder() const { return false; }
-
-    // make the checkbox owner drawn or reset it to normal style
-    void MSWMakeOwnerDrawn(bool ownerDrawn);
 
     // implementation only from now on
     virtual WXDWORD MSWGetStyle(long flags, WXDWORD *exstyle = NULL) const;
@@ -63,31 +60,21 @@ protected:
     virtual void DoSet3StateValue(wxCheckBoxState value);
     virtual wxCheckBoxState DoGet3StateValue() const;
 
-    // return true if this checkbox is owner drawn
-    bool IsOwnerDrawn() const;
+    // Implement wxMSWOwnerDrawnButtonBase methods.
+    virtual int MSWGetButtonStyle() const wxOVERRIDE;
+    virtual void MSWOnButtonResetOwnerDrawn() wxOVERRIDE;
+    virtual int MSWGetButtonCheckedFlag() const wxOVERRIDE;
+    virtual void
+        MSWDrawButtonBitmap(wxDC& dc, const wxRect& rect, int flags) wxOVERRIDE;
 
 private:
     // common part of all ctors
     void Init();
 
-    // event handlers used by owner-drawn checkbox
-    void OnMouseEnterOrLeave(wxMouseEvent& event);
-    void OnMouseLeft(wxMouseEvent& event);
-    void OnFocus(wxFocusEvent& event);
-
-
     // current state of the checkbox
     wxCheckBoxState m_state;
 
-    // true if the checkbox is currently pressed
-    bool m_isPressed;
-
-    // true if mouse is currently over the control
-    bool m_isHot;
-
-
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxCheckBox)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxCheckBox);
 };
 
-#endif
-    // _WX_CHECKBOX_H_
+#endif // _WX_CHECKBOX_H_

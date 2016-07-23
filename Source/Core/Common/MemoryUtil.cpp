@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <sys/types.h>
-#if defined __APPLE__ || defined __FreeBSD__
+#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
 #include <sys/sysctl.h>
 #else
 #include <sys/sysinfo.h>
@@ -253,7 +253,7 @@ size_t MemPhysical()
   memInfo.dwLength = sizeof(MEMORYSTATUSEX);
   GlobalMemoryStatusEx(&memInfo);
   return memInfo.ullTotalPhys;
-#elif defined __APPLE__ || defined __FreeBSD__
+#elif defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
   int mib[2];
   size_t physical_memory;
   mib[0] = CTL_HW;
@@ -261,6 +261,8 @@ size_t MemPhysical()
   mib[1] = HW_MEMSIZE;
 #elif defined __FreeBSD__
   mib[1] = HW_REALMEM;
+#elif defined __OpenBSD__
+  mib[1] = HW_PHYSMEM;
 #endif
   size_t length = sizeof(size_t);
   sysctl(mib, 2, &physical_memory, &length, NULL, 0);

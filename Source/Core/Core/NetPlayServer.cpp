@@ -664,6 +664,49 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     }
   }
   break;
+
+  case NP_MSG_MD5_PROGRESS:
+  {
+    int progress;
+    packet >> progress;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+    spac << player.pid;
+    spac << progress;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_MD5_RESULT:
+  {
+    std::string result;
+    packet >> result;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    spac << player.pid;
+    spac << result;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_MD5_ERROR:
+  {
+    std::string error;
+    packet >> error;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    spac << player.pid;
+    spac << error;
+
+    SendToClients(spac);
+  }
+  break;
+
   default:
     PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
                 player.pid);
@@ -685,8 +728,8 @@ void NetPlayServer::OnTraversalStateChanged()
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
   auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-  *spac << (PlayerId)0;  // server id always 0
+  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  *spac << static_cast<PlayerId>(0);  // server id always 0
   *spac << msg;
 
   SendAsyncToClients(std::move(spac));
@@ -701,8 +744,31 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 
   // send changed game to clients
   auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_CHANGE_GAME;
+  *spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
   *spac << game;
+
+  SendAsyncToClients(std::move(spac));
+
+  return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
+{
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
+  *spac << file_identifier;
+
+  SendAsyncToClients(std::move(spac));
+
+  return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::AbortMD5()
+{
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
 
   SendAsyncToClients(std::move(spac));
 
@@ -726,7 +792,10 @@ bool NetPlayServer::StartGame()
   // no change, just update with clients
   AdjustPadBufferSize(m_target_buffer_size);
 
-  g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    g_netplay_initial_gctime = SConfig::GetInstance().m_customRTCValue;
+  else
+    g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
   auto spac = std::make_unique<sf::Packet>();

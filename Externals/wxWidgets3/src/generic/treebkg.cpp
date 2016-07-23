@@ -44,18 +44,18 @@
 // event table
 // ----------------------------------------------------------------------------
 
-IMPLEMENT_DYNAMIC_CLASS(wxTreebook, wxBookCtrlBase)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTreebook, wxBookCtrlBase);
 
 wxDEFINE_EVENT( wxEVT_TREEBOOK_PAGE_CHANGING,  wxBookCtrlEvent );
 wxDEFINE_EVENT( wxEVT_TREEBOOK_PAGE_CHANGED,   wxBookCtrlEvent );
 wxDEFINE_EVENT( wxEVT_TREEBOOK_NODE_COLLAPSED, wxBookCtrlEvent );
 wxDEFINE_EVENT( wxEVT_TREEBOOK_NODE_EXPANDED,  wxBookCtrlEvent );
 
-BEGIN_EVENT_TABLE(wxTreebook, wxBookCtrlBase)
+wxBEGIN_EVENT_TABLE(wxTreebook, wxBookCtrlBase)
     EVT_TREE_SEL_CHANGED   (wxID_ANY, wxTreebook::OnTreeSelectionChange)
     EVT_TREE_ITEM_EXPANDED (wxID_ANY, wxTreebook::OnTreeNodeExpandedCollapsed)
     EVT_TREE_ITEM_COLLAPSED(wxID_ANY, wxTreebook::OnTreeNodeExpandedCollapsed)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // wxTreebook implementation

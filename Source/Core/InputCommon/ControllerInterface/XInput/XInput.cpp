@@ -182,11 +182,6 @@ std::string Device::GetName() const
   }
 }
 
-int Device::GetId() const
-{
-  return m_index;
-}
-
 std::string Device::GetSource() const
 {
   return "XInput";

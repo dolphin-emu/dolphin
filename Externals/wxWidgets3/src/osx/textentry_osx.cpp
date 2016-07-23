@@ -81,6 +81,23 @@ void wxTextEntry::SetMaxLength(unsigned long len)
     m_maxLength = len ;
 }
 
+void wxTextEntry::ForceUpper()
+{
+    wxTextWidgetImpl* const textPeer = GetTextPeer();
+
+    wxCHECK_RET( textPeer, "Must create the control first" );
+
+    if ( textPeer->CanForceUpper() )
+    {
+        ConvertToUpperCase();
+        textPeer->ForceUpper();
+    }
+    else
+    {
+        wxTextEntryBase::ForceUpper();
+    }
+}
+
 // Clipboard operations
 
 void wxTextEntry::Copy()

@@ -115,7 +115,14 @@ static void pizza_size_allocate(GtkWidget* widget, GtkAllocation* alloc)
             child_alloc.height = child->height;
             if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)
                 child_alloc.x = w - child_alloc.x - child_alloc.width;
-            gtk_widget_size_allocate(child->widget, &child_alloc);
+
+            // GTK+3 doesn't like allocating 0 size, so don't do it.
+#ifdef __WXGTK3__
+            if (child_alloc.width && child_alloc.height)
+#endif
+            {
+                gtk_widget_size_allocate(child->widget, &child_alloc);
+            }
         }
     }
 }
@@ -192,8 +199,24 @@ static void pizza_remove(GtkContainer* container, GtkWidget* widget)
 }
 
 #ifdef __WXGTK3__
+// Get preferred size of children, to avoid GTK+ warnings complaining
+// that they were size-allocated without asking their preferred size
+static void children_get_preferred_size(const GList* p)
+{
+    for (; p; p = p->next)
+    {
+        const wxPizzaChild* child = static_cast<wxPizzaChild*>(p->data);
+        if (gtk_widget_get_visible(child->widget))
+        {
+            GtkRequisition req;
+            gtk_widget_get_preferred_size(child->widget, &req, NULL);
+        }
+    }
+}
+
 static void pizza_get_preferred_width(GtkWidget* widget, int* minimum, int* natural)
 {
+    children_get_preferred_size(WX_PIZZA(widget)->m_children);
     *minimum = 0;
     gtk_widget_get_size_request(widget, natural, NULL);
     if (*natural < 0)
@@ -202,6 +225,7 @@ static void pizza_get_preferred_width(GtkWidget* widget, int* minimum, int* natu
 
 static void pizza_get_preferred_height(GtkWidget* widget, int* minimum, int* natural)
 {
+    children_get_preferred_size(WX_PIZZA(widget)->m_children);
     *minimum = 0;
     gtk_widget_get_size_request(widget, NULL, natural);
     if (*natural < 0)
@@ -238,9 +262,9 @@ g_cclosure_user_marshal_VOID__OBJECT_OBJECT (GClosure     *closure,
                                                     gpointer     arg_1,
                                                     gpointer     arg_2,
                                                     gpointer     data2);
-  register GMarshalFunc_VOID__OBJECT_OBJECT callback;
-  register GCClosure *cc = (GCClosure*) closure;
-  register gpointer data1, data2;
+  GMarshalFunc_VOID__OBJECT_OBJECT callback;
+  GCClosure *cc = (GCClosure*) closure;
+  gpointer data1, data2;
 
   g_return_if_fail (n_param_values == 3);
 
@@ -380,11 +404,7 @@ void wxPizza::put(GtkWidget* widget, int x, int y, int width, int height)
 {
     // Re-parenting a TLW under a child window is possible at wx level but
     // using a TLW as child at GTK+ level results in problems, so don't do it.
-#if GTK_CHECK_VERSION(2,19,3)
     if (!gtk_widget_is_toplevel(GTK_WIDGET(widget)))
-#else
-    if (!GTK_WIDGET_TOPLEVEL(GTK_WIDGET(widget)))
-#endif
         gtk_fixed_put(GTK_FIXED(this), widget, 0, 0);
 
     wxPizzaChild* child = new wxPizzaChild;
@@ -456,6 +476,7 @@ void wxPizza::get_border(GtkBorder& border)
         else
             sc = gtk_widget_get_style_context(wxGTKPrivate::GetEntryWidget());
 
+        gtk_style_context_set_state(sc, GTK_STATE_FLAG_NORMAL);
         gtk_style_context_get_border(sc, GTK_STATE_FLAG_NORMAL, &border);
 #else // !__WXGTK3__
         GtkStyle* style;

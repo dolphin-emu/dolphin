@@ -17,9 +17,9 @@
 class WXDLLIMPEXP_CORE wxGauge: public wxGaugeBase
 {
  public:
-  inline wxGauge() { }
+  wxGauge() { }
 
-  inline wxGauge(wxWindow *parent, wxWindowID id,
+  wxGauge(wxWindow *parent, wxWindowID id,
            int range,
            const wxPoint& pos = wxDefaultPosition,
            const wxSize& size = wxDefaultSize,
@@ -46,7 +46,7 @@ class WXDLLIMPEXP_CORE wxGauge: public wxGaugeBase
     void Pulse();
 
  protected:
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxGauge);
 };
 
 #endif

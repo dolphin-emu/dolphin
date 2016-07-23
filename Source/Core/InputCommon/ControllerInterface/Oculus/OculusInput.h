@@ -39,7 +39,6 @@ public:
   SIDRemote();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
 private:
@@ -127,7 +126,6 @@ public:
   OculusTouch();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
   void UpdateMotors();
@@ -160,7 +158,6 @@ public:
   HMDDevice();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
 private:

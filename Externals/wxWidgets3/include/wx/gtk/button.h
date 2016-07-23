@@ -34,8 +34,8 @@ public:
            const wxValidator& validator = wxDefaultValidator,
            const wxString& name = wxButtonNameStr);
 
-    virtual wxWindow *SetDefault();
-    virtual void SetLabel( const wxString &label );
+    virtual wxWindow *SetDefault() wxOVERRIDE;
+    virtual void SetLabel( const wxString &label ) wxOVERRIDE;
 
     // implementation
     // --------------
@@ -54,11 +54,11 @@ public:
     void GTKReleased();
 
 protected:
-    virtual wxSize DoGetBestSize() const;
-    virtual void DoApplyWidgetStyle(GtkRcStyle *style);
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
+    virtual void DoApplyWidgetStyle(GtkRcStyle *style) wxOVERRIDE;
 
 #if wxUSE_MARKUP
-    virtual bool DoSetLabelMarkup(const wxString& markup);
+    virtual bool DoSetLabelMarkup(const wxString& markup) wxOVERRIDE;
 #endif // wxUSE_MARKUP
 
 private:
@@ -67,7 +67,7 @@ private:
     // Return the GtkLabel used by this button.
     GtkLabel *GTKGetLabel() const;
 
-    DECLARE_DYNAMIC_CLASS(wxButton)
+    wxDECLARE_DYNAMIC_CLASS(wxButton);
 };
 
 #endif // _WX_GTK_BUTTON_H_

@@ -35,7 +35,7 @@ public:
     {
     }
 
-    virtual void Save() const
+    virtual void Save() const wxOVERRIDE
     {
         wxSplitterWindow* const splitter = Get();
 
@@ -43,7 +43,7 @@ public:
         SaveValue(wxPERSIST_SPLITTER_POSITION, pos);
     }
 
-    virtual bool Restore()
+    virtual bool Restore() wxOVERRIDE
     {
         int pos;
         if ( !RestoreValue(wxPERSIST_SPLITTER_POSITION, &pos) )
@@ -57,7 +57,7 @@ public:
         return true;
     }
 
-    virtual wxString GetKind() const { return wxPERSIST_SPLITTER_KIND; }
+    virtual wxString GetKind() const wxOVERRIDE { return wxPERSIST_SPLITTER_KIND; }
 };
 
 inline wxPersistentObject *wxCreatePersistentObject(wxSplitterWindow* splitter)

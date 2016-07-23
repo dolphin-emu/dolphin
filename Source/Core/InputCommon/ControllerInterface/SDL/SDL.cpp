@@ -35,10 +35,6 @@ static std::string GetJoystickName(int index)
 
 void Init()
 {
-  // this is used to number the joysticks
-  // multiple joysticks with the same name shall get unique ids starting at 0
-  std::map<std::string, int> name_counts;
-
 #ifdef USE_SDL_HAPTIC
   if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) >= 0)
   {
@@ -58,7 +54,7 @@ void Init()
     SDL_Joystick* dev = SDL_JoystickOpen(i);
     if (dev)
     {
-      auto js = std::make_shared<Joystick>(dev, i, name_counts[GetJoystickName(i)]++);
+      auto js = std::make_shared<Joystick>(dev, i);
       // only add if it has some inputs/outputs
       if (js->Inputs().size() || js->Outputs().size())
         g_controller_interface.AddDevice(std::move(js));
@@ -66,8 +62,8 @@ void Init()
   }
 }
 
-Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index)
-    : m_joystick(joystick), m_sdl_index(sdl_index), m_index(index)
+Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index)
+    : m_joystick(joystick), m_sdl_index(sdl_index)
 {
 // really bad HACKS:
 // to not use SDL for an XInput device
@@ -288,11 +284,6 @@ std::string Joystick::GetName() const
 std::string Joystick::GetSource() const
 {
   return "SDL";
-}
-
-int Joystick::GetId() const
-{
-  return m_index;
 }
 
 std::string Joystick::Button::GetName() const

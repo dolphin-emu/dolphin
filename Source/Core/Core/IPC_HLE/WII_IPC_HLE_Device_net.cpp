@@ -6,6 +6,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#ifndef _WIN32
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
+#endif
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"

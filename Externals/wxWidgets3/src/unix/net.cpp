@@ -84,7 +84,7 @@ public:
        ISP (exact meaning of the parameter depends on the platform), returns
        TRUE on success or FALSE on failure and logs the appropriate error
        message in the latter case.
-       @param nameOfISP optional paramater for dial program
+       @param nameOfISP optional parameter for dial program
        @param username unused
        @param password unused
    */

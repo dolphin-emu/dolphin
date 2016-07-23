@@ -4,10 +4,15 @@
 
 #include "Core/NetPlayClient.h"
 #include <algorithm>
+#include <fstream>
+#include <mbedtls/md5.h>
 #include <memory>
+#include <thread>
 #include "Common/Common.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/ENetUtil.h"
+#include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
@@ -19,6 +24,8 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/Movie.h"
+#include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "InputCommon/GCAdapter.h"
 
 static std::mutex crit_netplay_client;
@@ -500,6 +507,55 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   }
   break;
 
+  case NP_MSG_COMPUTE_MD5:
+  {
+    std::string file_identifier;
+    packet >> file_identifier;
+
+    ComputeMD5(file_identifier);
+  }
+  break;
+
+  case NP_MSG_MD5_PROGRESS:
+  {
+    PlayerId pid;
+    int progress;
+    packet >> pid;
+    packet >> progress;
+
+    m_dialog->SetMD5Progress(pid, progress);
+  }
+  break;
+
+  case NP_MSG_MD5_RESULT:
+  {
+    PlayerId pid;
+    std::string result;
+    packet >> pid;
+    packet >> result;
+
+    m_dialog->SetMD5Result(pid, result);
+  }
+  break;
+
+  case NP_MSG_MD5_ERROR:
+  {
+    PlayerId pid;
+    std::string error;
+    packet >> pid;
+    packet >> error;
+
+    m_dialog->SetMD5Result(pid, error);
+  }
+  break;
+
+  case NP_MSG_MD5_ABORT:
+  {
+    m_should_compute_MD5 = false;
+    m_dialog->AbortMD5();
+  }
+  break;
+
   default:
     PanicAlertT("Unknown message received with id : %d", mid);
     break;
@@ -764,19 +820,6 @@ bool NetPlayClient::StartGame(const std::string& path)
     for (unsigned int i = 0; i < 4; ++i)
       WiimoteReal::ChangeWiimoteSource(i,
                                        m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
-
-    // Needed to prevent locking up at boot if (when) the wiimotes connect out of order.
-    NetWiimote nw;
-    nw.resize(4, 0);
-    m_wiimote_current_data_size.fill(4);
-
-    for (unsigned int w = 0; w < 4; ++w)
-    {
-      if (m_wiimote_map[w] != -1)
-        // probably overkill, but whatever
-        for (unsigned int i = 0; i < 7; ++i)
-          m_wiimote_buffer[w].Push(nw);
-    }
   }
 
   UpdateDevices();
@@ -973,46 +1016,24 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
-    // in game mapping for this local Wiimote
-    unsigned int in_game_num = LocalWiimoteToInGameWiimote(_number);
-    // does this local Wiimote map in game?
-    if (in_game_num < 4)
+    // Only send data, if this Wiimote is mapped to this player
+    if (m_wiimote_map[_number] == m_local_player->pid)
     {
-      if (m_wiimote_current_data_size[in_game_num] == size)
+      nw.assign(data, data + size);
+      do
       {
-        nw.assign(data, data + size);
-        do
-        {
-          // add to buffer
-          m_wiimote_buffer[in_game_num].Push(nw);
+        // add to buffer
+        m_wiimote_buffer[_number].Push(nw);
 
-          SendWiimoteState(in_game_num, nw);
-        } while (m_wiimote_buffer[in_game_num].Size() <=
-                 m_target_buffer_size * 200 /
-                     120);  // TODO: add a seperate setting for wiimote buffer?
-      }
-      else
-      {
-        while (m_wiimote_buffer[in_game_num].Size() > 0)
-        {
-          // Reporting mode changed, so previous buffer is no good.
-          m_wiimote_buffer[in_game_num].Pop();
-        }
-        nw.resize(size, 0);
-
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_buffer[in_game_num].Push(nw);
-        m_wiimote_current_data_size[in_game_num] = size;
-      }
+        SendWiimoteState(_number, nw);
+      } while (m_wiimote_buffer[_number].Size() <=
+               m_target_buffer_size * 200 /
+                   120);  // TODO: add a seperate setting for wiimote buffer?
     }
 
   }  // unlock players
 
-  while (m_wiimote_current_data_size[_number] == size && !m_wiimote_buffer[_number].Pop(nw))
+  while (!m_wiimote_buffer[_number].Pop(nw))
   {
     // wait for receiving thread to push some data
     Common::SleepCurrentThread(1);
@@ -1020,23 +1041,11 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
       return false;
   }
 
-  // Use a blank input, since we may not have any valid input.
-  if (m_wiimote_current_data_size[_number] != size)
-  {
-    nw.resize(size, 0);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-    m_wiimote_buffer[_number].Push(nw);
-  }
-
-  // We should have used a blank input last time, so now we just need to pop through the old buffer,
+  // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
   if (nw.size() != size)
   {
     u32 tries = 0;
-    // Clear the buffer and wait for new input, since we probably just changed reporting mode.
     while (nw.size() != size)
     {
       while (!m_wiimote_buffer[_number].Pop(nw))
@@ -1058,7 +1067,6 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     }
   }
 
-  m_wiimote_current_data_size[_number] = size;
   memcpy(data, nw.data(), size);
   return true;
 }
@@ -1155,25 +1163,6 @@ u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
   return ingame_pad;
 }
 
-u8 NetPlayClient::LocalWiimoteToInGameWiimote(u8 local_pad)
-{
-  // Figure out which in-game pad maps to which local pad.
-  // The logic we have here is that the local slots always
-  // go in order.
-  int local_pad_count = -1;
-  int ingame_pad = 0;
-  for (; ingame_pad < 4; ingame_pad++)
-  {
-    if (m_wiimote_map[ingame_pad] == m_local_player->pid)
-      local_pad_count++;
-
-    if (local_pad_count == local_pad)
-      break;
-  }
-
-  return ingame_pad;
-}
-
 void NetPlayClient::SendTimeBase()
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
@@ -1197,6 +1186,47 @@ bool NetPlayClient::DoAllPlayersHaveGame()
                      [](std::pair<PlayerId, Player> entry) {
                        return entry.second.game_status == PlayerGameStatus::Ok;
                      });
+}
+
+void NetPlayClient::ComputeMD5(const std::string& file_identifier)
+{
+  if (m_should_compute_MD5)
+    return;
+
+  m_dialog->ShowMD5Dialog(file_identifier);
+  m_should_compute_MD5 = true;
+
+  std::string file;
+  if (file_identifier == WII_SDCARD)
+    file = File::GetUserPath(F_WIISDCARD_IDX);
+  else
+    file = m_dialog->FindGame(file_identifier);
+
+  if (file.empty() || !File::Exists(file))
+  {
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    spac << "file not found";
+    Send(spac);
+    return;
+  }
+
+  m_MD5_thread = std::thread([this, file]() {
+    std::string sum = MD5::MD5Sum(file, [&](int progress) {
+      sf::Packet spac;
+      spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+      spac << progress;
+      Send(spac);
+
+      return m_should_compute_MD5;
+    });
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    spac << sum;
+    Send(spac);
+  });
+  m_MD5_thread.detach();
 }
 
 // stuff hacked into dolphin

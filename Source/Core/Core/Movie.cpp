@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cctype>
+#include <iterator>
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
@@ -517,6 +518,10 @@ bool BeginRecordingInput(int controllers)
   {
     s_bNetPlay = true;
     s_recordingStartTime = CEXIIPL::NetPlay_GetGCTime();
+  }
+  else if (SConfig::GetInstance().bEnableCustomRTC)
+  {
+    s_recordingStartTime = SConfig::GetInstance().m_customRTCValue;
   }
   else
   {
@@ -1043,63 +1048,65 @@ void LoadInput(const std::string& filename)
     else if (s_currentByte > 0 && s_totalBytes > 0)
     {
       // verify identical from movie start to the save's current frame
-      u32 len = (u32)s_currentByte;
-      u8* movInput = new u8[len];
-      t_record.ReadArray(movInput, (size_t)len);
-      for (u32 i = 0; i < len; ++i)
+      std::vector<u8> movInput(s_currentByte);
+      t_record.ReadArray(movInput.data(), movInput.size());
+
+      const auto result = std::mismatch(movInput.begin(), movInput.end(), tmpInput);
+
+      if (result.first != movInput.end())
       {
-        if (movInput[i] != tmpInput[i])
+        const ptrdiff_t mismatch_index = std::distance(movInput.begin(), result.first);
+
+        // this is a "you did something wrong" alert for the user's benefit.
+        // we'll try to say what's going on in excruciating detail, otherwise the user might not
+        // believe us.
+        if (IsUsingWiimote(0))
         {
-          // this is a "you did something wrong" alert for the user's benefit.
-          // we'll try to say what's going on in excruciating detail, otherwise the user might not
-          // believe us.
-          if (IsUsingWiimote(0))
-          {
-            // TODO: more detail
-            PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %d (0x%X). You "
-                        "should load another save before continuing, or load this state with "
-                        "read-only mode off. Otherwise you'll probably get a desync.",
-                        i + 256, i + 256);
-            memcpy(tmpInput, movInput, s_currentByte);
-          }
-          else
-          {
-            int frame = i / 8;
-            ControllerState curPadState;
-            memcpy(&curPadState, &(tmpInput[frame * 8]), 8);
-            ControllerState movPadState;
-            memcpy(&movPadState, &(movInput[frame * 8]), 8);
-            PanicAlertT(
-                "Warning: You loaded a save whose movie mismatches on frame %d. You should load "
-                "another save before continuing, or load this state with read-only mode off. "
-                "Otherwise you'll probably get a desync.\n\n"
-                "More information: The current movie is %d frames long and the savestate's movie "
-                "is %d frames long.\n\n"
-                "On frame %d, the current movie presses:\n"
-                "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-                "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
-                "\n\n"
-                "On frame %d, the savestate's movie presses:\n"
-                "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
-                "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d",
-                (int)frame, (int)g_totalFrames, (int)tmpHeader.frameCount, (int)frame,
-                (int)curPadState.Start, (int)curPadState.A, (int)curPadState.B, (int)curPadState.X,
-                (int)curPadState.Y, (int)curPadState.Z, (int)curPadState.DPadUp,
-                (int)curPadState.DPadDown, (int)curPadState.DPadLeft, (int)curPadState.DPadRight,
-                (int)curPadState.L, (int)curPadState.R, (int)curPadState.TriggerL,
-                (int)curPadState.TriggerR, (int)curPadState.AnalogStickX,
-                (int)curPadState.AnalogStickY, (int)curPadState.CStickX, (int)curPadState.CStickY,
-                (int)frame, (int)movPadState.Start, (int)movPadState.A, (int)movPadState.B,
-                (int)movPadState.X, (int)movPadState.Y, (int)movPadState.Z, (int)movPadState.DPadUp,
-                (int)movPadState.DPadDown, (int)movPadState.DPadLeft, (int)movPadState.DPadRight,
-                (int)movPadState.L, (int)movPadState.R, (int)movPadState.TriggerL,
-                (int)movPadState.TriggerR, (int)movPadState.AnalogStickX,
-                (int)movPadState.AnalogStickY, (int)movPadState.CStickX, (int)movPadState.CStickY);
-          }
-          break;
+          const size_t byte_offset = static_cast<size_t>(mismatch_index) + sizeof(DTMHeader);
+
+          // TODO: more detail
+          PanicAlertT("Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). "
+                      "You should load another save before continuing, or load this state with "
+                      "read-only mode off. Otherwise you'll probably get a desync.",
+                      byte_offset, byte_offset);
+
+          std::copy(movInput.begin(), movInput.end(), tmpInput);
+        }
+        else
+        {
+          const ptrdiff_t frame = mismatch_index / 8;
+          ControllerState curPadState;
+          memcpy(&curPadState, &tmpInput[frame * 8], 8);
+          ControllerState movPadState;
+          memcpy(&movPadState, &movInput[frame * 8], 8);
+          PanicAlertT(
+              "Warning: You loaded a save whose movie mismatches on frame %td. You should load "
+              "another save before continuing, or load this state with read-only mode off. "
+              "Otherwise you'll probably get a desync.\n\n"
+              "More information: The current movie is %d frames long and the savestate's movie "
+              "is %d frames long.\n\n"
+              "On frame %td, the current movie presses:\n"
+              "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
+              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
+              "\n\n"
+              "On frame %td, the savestate's movie presses:\n"
+              "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, "
+              "L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d",
+              frame, (int)g_totalFrames, (int)tmpHeader.frameCount, frame, (int)curPadState.Start,
+              (int)curPadState.A, (int)curPadState.B, (int)curPadState.X, (int)curPadState.Y,
+              (int)curPadState.Z, (int)curPadState.DPadUp, (int)curPadState.DPadDown,
+              (int)curPadState.DPadLeft, (int)curPadState.DPadRight, (int)curPadState.L,
+              (int)curPadState.R, (int)curPadState.TriggerL, (int)curPadState.TriggerR,
+              (int)curPadState.AnalogStickX, (int)curPadState.AnalogStickY,
+              (int)curPadState.CStickX, (int)curPadState.CStickY, frame, (int)movPadState.Start,
+              (int)movPadState.A, (int)movPadState.B, (int)movPadState.X, (int)movPadState.Y,
+              (int)movPadState.Z, (int)movPadState.DPadUp, (int)movPadState.DPadDown,
+              (int)movPadState.DPadLeft, (int)movPadState.DPadRight, (int)movPadState.L,
+              (int)movPadState.R, (int)movPadState.TriggerL, (int)movPadState.TriggerR,
+              (int)movPadState.AnalogStickX, (int)movPadState.AnalogStickY,
+              (int)movPadState.CStickX, (int)movPadState.CStickY);
         }
       }
-      delete[] movInput;
     }
   }
   t_record.Close();

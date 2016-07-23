@@ -13,10 +13,6 @@
 // wxRemoveRef<> is similar to C++11 std::remove_reference<> but works with all
 // compilers (but, to compensate for this, doesn't work with rvalue references).
 
-// Except that it doesn't work with VC++ 6 as there doesn't seem to be any way
-// to partially specialize a template for references with it.
-#ifndef __VISUALC6__
-
 template <typename T>
 struct wxRemoveRef
 {
@@ -29,8 +25,9 @@ struct wxRemoveRef<T&>
     typedef T type;
 };
 
+// Define this for compatibility with the previous versions in which
+// wxRemoveRef() wasn't always defined as we supported MSVC6 for which it
+// couldn't be implemented.
 #define wxHAS_REMOVEREF
-
-#endif // !__VISUALC6__
 
 #endif // _WX_META_REMOVEREF_H_

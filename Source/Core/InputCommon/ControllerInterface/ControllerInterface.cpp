@@ -4,9 +4,9 @@
 
 #include <mutex>
 
+#include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "Common/Logging/Log.h"
 
 #ifdef CIFACE_USE_OSVR
 #include "InputCommon/ControllerInterface/OSVR/OSVR.h"
@@ -176,6 +176,21 @@ void ControllerInterface::Shutdown()
 void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
   std::lock_guard<std::mutex> lk(m_devices_mutex);
+  // Try to find an ID for this device
+  int id = 0;
+  while (true)
+  {
+    const auto it = std::find_if(m_devices.begin(), m_devices.end(),
+                                 [&device, &id](const std::shared_ptr<ciface::Core::Device>& d) {
+                                   return d->GetSource() == device->GetSource() &&
+                                          d->GetName() == device->GetName() && d->GetId() == id;
+                                 });
+    if (it == m_devices.end())  // no device with the same name with this ID, so we can use it
+      break;
+    else
+      id++;
+  }
+  device->SetId(id);
   m_devices.emplace_back(std::move(device));
 }
 

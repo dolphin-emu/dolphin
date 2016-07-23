@@ -307,7 +307,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
   }
 }
 
-bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
+bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 {
   DEBUG_LOG(SP1, "SendFrame %u bytes:\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
@@ -321,8 +321,7 @@ bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
   }
 
   // Copy to write buffer.
-  mWriteBuffer.resize(size);
-  memcpy(mWriteBuffer.data(), frame, size);
+  mWriteBuffer.assign(frame, frame + size);
   mWritePending = true;
 
   // Queue async write.

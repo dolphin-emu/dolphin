@@ -161,11 +161,6 @@ std::string ViveController::GetName() const
   return "Vive";
 }
 
-int ViveController::GetId() const
-{
-  return 0;
-}
-
 std::string ViveController::GetSource() const
 {
   return "VR";

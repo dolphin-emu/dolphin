@@ -57,7 +57,7 @@ private:
   void LoadFileToEEPROM(const std::string& filename);
   void SaveFileFromEEPROM(const std::string& filename);
   void LoadRom();
-  void CRC8(u8* data, u32 size);
+  void CRC8(const u8* data, u32 size);
 
   u8 m_hash = 0;
   u32 m_current_cmd = 0;

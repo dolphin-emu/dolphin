@@ -53,6 +53,7 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   heading->setText(tr("DolphinQt Experimental GUI"));
   heading->setForegroundRole(QPalette::Text);
   heading->setAlignment(Qt::AlignTop | Qt::AlignLeft);
+  heading->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 
   icon->setPixmap(style()->standardPixmap(QStyle::SP_MessageBoxWarning, nullptr, this));
   icon->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -72,7 +73,8 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   body->setWordWrap(true);
   body->setForegroundRole(QPalette::Text);
   body->setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  body->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  body->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+  body->setMinimumWidth(QFontMetrics(body->font()).averageCharWidth() * 76);
 
   btn_dolphinwx->setDefault(true);
 
@@ -89,13 +91,11 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
 
   QVBoxLayout* body_column = new QVBoxLayout();
   body_column->addWidget(heading);
-  body_column->addSpacing(10);
   body_column->addWidget(body);
   body_column->addWidget(btn_dolphinwx);
-  body_column->addSpacing(10);
   body_column->addWidget(btn_run);
   body_column->setMargin(0);
-  body_column->setSpacing(0);
+  body_column->setSpacing(10);
 
   QHBoxLayout* icon_layout = new QHBoxLayout(container);
   icon_layout->addWidget(icon, 0, Qt::AlignTop);
@@ -108,11 +108,10 @@ InDevelopmentWarning::InDevelopmentWarning(QWidget* parent)
   top_layout->addWidget(std_buttons);
   top_layout->setSpacing(10);
   top_layout->setContentsMargins(0, 0, 0, 10);
+  top_layout->setSizeConstraint(QLayout::SetMinimumSize);
 
   setWindowIcon(Resources::GetMisc(Resources::LOGO_SMALL));
   setWindowTitle(tr("DolphinQt2 Experimental GUI"));
-  setMinimumSize(460, 320);
-  resize(minimumSizeHint());
 }
 
 InDevelopmentWarning::~InDevelopmentWarning()

@@ -14,6 +14,8 @@
 #include "wx/chartype.h"
 #include "wx/stringimpl.h"
 
+#include <algorithm>        // only for std::swap specialization below
+
 class WXDLLIMPEXP_FWD_BASE wxUniCharRef;
 class WXDLLIMPEXP_FWD_BASE wxString;
 
@@ -288,6 +290,34 @@ inline wxUniChar& wxUniChar::operator=(const wxUniCharRef& c)
     m_value = c.UniChar().m_value;
     return *this;
 }
+
+// wxUniCharRef doesn't behave quite like a reference, notably because template
+// deduction from wxUniCharRef doesn't yield wxUniChar as would have been the
+// case if it were a real reference. This results in a number of problems and
+// we can't fix all of them but we can at least provide a working swap() for
+// it, instead of the default version which doesn't work because a "wrong" type
+// is deduced.
+namespace std
+{
+
+template <>
+inline
+void swap<wxUniCharRef>(wxUniCharRef& lhs, wxUniCharRef& rhs)
+{
+    if ( &lhs != &rhs )
+    {
+        // The use of wxUniChar here is the crucial difference: in the default
+        // implementation, tmp would be wxUniCharRef and so assigning to lhs
+        // would modify it too. Here we make a real copy, not affected by
+        // changing lhs, instead.
+        wxUniChar tmp = lhs;
+        lhs = rhs;
+        rhs = tmp;
+    }
+}
+
+} // namespace std
+
 
 // Comparison operators for the case when wxUniChar(Ref) is the second operand
 // implemented in terms of member comparison functions

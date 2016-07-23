@@ -81,7 +81,7 @@ private:
     IDataObject *m_lastDataObject;
     bool m_isOpened;
 
-    DECLARE_DYNAMIC_CLASS(wxClipboard)
+    wxDECLARE_DYNAMIC_CLASS(wxClipboard);
 };
 
 #endif // wxUSE_CLIPBOARD

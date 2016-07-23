@@ -28,7 +28,7 @@
 #include "wx/osx/private/print.h"
 #include "wx/osx/private.h"
 
-IMPLEMENT_CLASS(wxOSXCocoaPrintData, wxOSXPrintData)
+wxIMPLEMENT_CLASS(wxOSXCocoaPrintData, wxOSXPrintData);
 
 wxOSXCocoaPrintData::wxOSXCocoaPrintData()
 {

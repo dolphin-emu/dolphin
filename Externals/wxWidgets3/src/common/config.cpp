@@ -72,7 +72,7 @@ wxConfigBase *wxAppTraitsBase::CreateConfig()
 // ----------------------------------------------------------------------------
 // wxConfigBase
 // ----------------------------------------------------------------------------
-IMPLEMENT_ABSTRACT_CLASS(wxConfigBase, wxObject)
+wxIMPLEMENT_ABSTRACT_CLASS(wxConfigBase, wxObject);
 
 // Not all args will always be used by derived classes, but including them all
 // in each class ensures compatibility.
@@ -436,9 +436,6 @@ wxString wxExpandEnvVars(const wxString& str)
 
           wxString strVarName(str.c_str() + n + 1, m - n - 1);
 
-#ifdef __WXWINCE__
-          const bool expanded = false;
-#else
           // NB: use wxGetEnv instead of wxGetenv as otherwise variables
           //     set through wxSetEnv may not be read correctly!
           bool expanded = false;
@@ -449,7 +446,6 @@ wxString wxExpandEnvVars(const wxString& str)
               expanded = true;
           }
           else
-#endif
           {
             // variable doesn't exist => don't change anything
             #ifdef  __WINDOWS__
@@ -494,7 +490,7 @@ wxString wxExpandEnvVars(const wxString& str)
 
           break;
         }
-        //else: fall through
+        wxFALLTHROUGH;
 
       default:
         strResult += str[n];

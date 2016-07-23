@@ -26,6 +26,8 @@ public:
 
     void SetChooseFull(bool flag) { m_chooseFull = flag; }
     bool GetChooseFull() const { return m_chooseFull; }
+    void SetChooseAlpha(bool flag) { m_chooseAlpha = flag; }
+    bool GetChooseAlpha() const { return m_chooseAlpha; }
     void SetColour(const wxColour& colour) { m_dataColour = colour; }
     const wxColour& GetColour() const { return m_dataColour; }
     wxColour& GetColour() { return m_dataColour; }
@@ -45,7 +47,10 @@ public:
     wxColour        m_custColours[NUM_CUSTOM];
     bool            m_chooseFull;
 
-    DECLARE_DYNAMIC_CLASS(wxColourData)
+protected:
+    bool            m_chooseAlpha;
+
+    wxDECLARE_DYNAMIC_CLASS(wxColourData);
 };
 
 #endif // _WX_COLOURDATA_H_

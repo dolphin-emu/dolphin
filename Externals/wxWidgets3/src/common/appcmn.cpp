@@ -129,7 +129,10 @@ wxAppBase::~wxAppBase()
 
 void wxAppBase::CleanUp()
 {
-    // clean up all the pending objects
+    // Clean up any still pending objects. Normally there shouldn't any as we
+    // already do this in OnExit(), but this could happen if the user code has
+    // somehow managed to create more of them since then or just forgot to call
+    // the base class OnExit().
     DeletePendingObjects();
 
     // and any remaining TLWs (they remove themselves from wxTopLevelWindows
@@ -194,8 +197,12 @@ wxLayoutDirection wxAppBase::GetLayoutDirection() const
 // GUI-specific command line options handling
 // ----------------------------------------------------------------------------
 
+#ifdef __WXUNIVERSAL__
 #define OPTION_THEME   "theme"
+#endif
+#if defined(__WXDFB__)
 #define OPTION_MODE    "mode"
+#endif
 
 void wxAppBase::OnInitCmdLine(wxCmdLineParser& parser)
 {

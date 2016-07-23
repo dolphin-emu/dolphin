@@ -33,7 +33,7 @@
 // wxMask implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxMask, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMask, wxObject);
 
 void wxMask::FreeData()
 {

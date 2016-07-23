@@ -142,17 +142,15 @@ private:
 public:
   void UpdateInput() override;
 
-  Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
+  Joystick(SDL_Joystick* const joystick, const int sdl_index);
   ~Joystick();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
 private:
   SDL_Joystick* const m_joystick;
   const int m_sdl_index;
-  const unsigned int m_index;
 
 #ifdef USE_SDL_HAPTIC
   SDL_Haptic* m_haptic;

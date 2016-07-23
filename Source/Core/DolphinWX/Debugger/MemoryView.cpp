@@ -253,19 +253,19 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
   // TODO: Add any drawing code here...
   int width = rc.width;
   int numRows = (rc.height / rowHeight) / 2 + 2;
-  dc.SetBackgroundMode(wxTRANSPARENT);
+  dc.SetBackgroundMode(wxPENSTYLE_TRANSPARENT);
   const wxColour bgColor = *wxWHITE;
   wxPen nullPen(bgColor);
   wxPen currentPen(*wxBLACK_PEN);
   wxPen selPen(*wxGREY_PEN);
-  nullPen.SetStyle(wxTRANSPARENT);
+  nullPen.SetStyle(wxPENSTYLE_TRANSPARENT);
 
   wxBrush currentBrush(*wxLIGHT_GREY_BRUSH);
   wxBrush pcBrush(*wxGREEN_BRUSH);
   wxBrush mcBrush(*wxBLUE_BRUSH);
   wxBrush bgBrush(bgColor);
   wxBrush nullBrush(bgColor);
-  nullBrush.SetStyle(wxTRANSPARENT);
+  nullBrush.SetStyle(wxBRUSHSTYLE_TRANSPARENT);
 
   dc.SetPen(nullPen);
   dc.SetBrush(bgBrush);

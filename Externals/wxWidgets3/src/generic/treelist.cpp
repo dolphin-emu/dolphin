@@ -170,10 +170,15 @@ public:
 
         wxScopedArray<wxString> oldTexts(m_columnsTexts);
         m_columnsTexts = new wxString[numColumns - 2];
+
+        // As above, n is the index in the new column texts array and m is the
+        // index in the old one.
         for ( unsigned n = 1, m = 1; n < numColumns - 1; n++, m++ )
         {
-            if ( n == col )
+            if ( m == col )
             {
+                // Skip copying the deleted column and keep the new index the
+                // same (so compensate for "n++" done in the loop).
                 n--;
             }
             else // Not the deleted column.
@@ -363,24 +368,24 @@ public:
 
 
     // Implement the base class pure virtual methods.
-    virtual unsigned GetColumnCount() const;
-    virtual wxString GetColumnType(unsigned col) const;
+    virtual unsigned GetColumnCount() const wxOVERRIDE;
+    virtual wxString GetColumnType(unsigned col) const wxOVERRIDE;
     virtual void GetValue(wxVariant& variant,
                           const wxDataViewItem& item,
-                          unsigned col) const;
+                          unsigned col) const wxOVERRIDE;
     virtual bool SetValue(const wxVariant& variant,
                           const wxDataViewItem& item,
-                          unsigned col);
-    virtual wxDataViewItem GetParent(const wxDataViewItem& item) const;
-    virtual bool IsContainer(const wxDataViewItem& item) const;
-    virtual bool HasContainerColumns(const wxDataViewItem& item) const;
+                          unsigned col) wxOVERRIDE;
+    virtual wxDataViewItem GetParent(const wxDataViewItem& item) const wxOVERRIDE;
+    virtual bool IsContainer(const wxDataViewItem& item) const wxOVERRIDE;
+    virtual bool HasContainerColumns(const wxDataViewItem& item) const wxOVERRIDE;
     virtual unsigned GetChildren(const wxDataViewItem& item,
-                                 wxDataViewItemArray& children) const;
-    virtual bool IsListModel() const { return m_isFlat; }
+                                 wxDataViewItemArray& children) const wxOVERRIDE;
+    virtual bool IsListModel() const wxOVERRIDE { return m_isFlat; }
     virtual int Compare(const wxDataViewItem& item1,
                         const wxDataViewItem& item2,
                         unsigned col,
-                        bool ascending) const;
+                        bool ascending) const wxOVERRIDE;
 
 private:
     // The control we're associated with.
@@ -427,12 +432,6 @@ public:
     {
     }
 
-    bool IsSameAs(const wxDataViewCheckIconText& other) const
-    {
-        return wxDataViewIconText::IsSameAs(other) &&
-                m_checkedState == other.m_checkedState;
-    }
-
     // There is no encapsulation anyhow, so just expose this field directly.
     wxCheckBoxState m_checkedState;
 
@@ -456,18 +455,18 @@ public:
     {
     }
 
-    virtual bool SetValue(const wxVariant& value)
+    virtual bool SetValue(const wxVariant& value) wxOVERRIDE
     {
         m_value << value;
         return true;
     }
 
-    virtual bool GetValue(wxVariant& WXUNUSED(value)) const
+    virtual bool GetValue(wxVariant& WXUNUSED(value)) const wxOVERRIDE
     {
         return false;
     }
 
-    wxSize GetSize() const
+    wxSize GetSize() const wxOVERRIDE
     {
         wxSize size = GetCheckSize();
         size.x += MARGIN_CHECK_ICON;
@@ -494,7 +493,7 @@ public:
         return size;
     }
 
-    virtual bool Render(wxRect cell, wxDC* dc, int state)
+    virtual bool Render(wxRect cell, wxDC* dc, int state) wxOVERRIDE
     {
         // Draw the checkbox first.
         int renderFlags = 0;
@@ -552,7 +551,7 @@ public:
                               wxDataViewModel *model,
                               const wxDataViewItem & item,
                               unsigned int WXUNUSED(col),
-                              const wxMouseEvent *mouseEvent)
+                              const wxMouseEvent *mouseEvent) wxOVERRIDE
     {
         if ( mouseEvent )
         {
@@ -664,20 +663,16 @@ wxTreeListModel::InsertItem(Node* parent,
     wxScopedPtr<Node>
         newItem(new Node(parent, text, imageClosed, imageOpened, data));
 
-    // FIXME-VC6: This compiler refuses to compare "Node* previous" with
-    //            wxTLI_XXX without some help.
-    const wxTreeListItem previousItem(previous);
-
     // If we have no children at all, then inserting as last child is the same
     // as inserting as the first one so check for it here too.
-    if ( previousItem == wxTLI_FIRST ||
-            (previousItem == wxTLI_LAST && !parent->GetChild()) )
+    if ( previous == wxTLI_FIRST ||
+            (previous == wxTLI_LAST && !parent->GetChild()) )
     {
         parent->InsertChild(newItem.get());
     }
     else // Not the first item, find the previous one.
     {
-        if ( previousItem == wxTLI_LAST )
+        if ( previous == wxTLI_LAST )
         {
             previous = parent->GetChild();
 
@@ -738,7 +733,10 @@ void wxTreeListModel::DeleteItem(Node* item)
         previous->DeleteNext();
     }
 
-    ItemDeleted(ToDVI(parent), ToDVI(item));
+    // Note that the item is already deleted by now, so we can't use it in any
+    // way, e.g. by calling ToDVI(item) which does dereference the pointer, but
+    // ToNonRootDVI() that we use here does not.
+    ItemDeleted(ToDVI(parent), ToNonRootDVI(item));
 }
 
 void wxTreeListModel::DeleteAllItems()
@@ -984,7 +982,7 @@ wxTreeListModel::Compare(const wxDataViewItem& item1,
 // wxTreeListCtrl implementation
 // ============================================================================
 
-BEGIN_EVENT_TABLE(wxTreeListCtrl, wxWindow)
+wxBEGIN_EVENT_TABLE(wxTreeListCtrl, wxWindow)
     EVT_DATAVIEW_SELECTION_CHANGED(wxID_ANY, wxTreeListCtrl::OnSelectionChanged)
     EVT_DATAVIEW_ITEM_EXPANDING(wxID_ANY, wxTreeListCtrl::OnItemExpanding)
     EVT_DATAVIEW_ITEM_EXPANDED(wxID_ANY, wxTreeListCtrl::OnItemExpanded)
@@ -993,7 +991,7 @@ BEGIN_EVENT_TABLE(wxTreeListCtrl, wxWindow)
     EVT_DATAVIEW_COLUMN_SORTED(wxID_ANY, wxTreeListCtrl::OnColumnSorted)
 
     EVT_SIZE(wxTreeListCtrl::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ----------------------------------------------------------------------------
 // Creation
@@ -1410,6 +1408,14 @@ void wxTreeListCtrl::UnselectAll()
     m_view->UnselectAll();
 }
 
+void wxTreeListCtrl::EnsureVisible(wxTreeListItem item)
+{
+    wxCHECK_RET( m_view, "Must create first" );
+
+    m_view->EnsureVisible(m_model->ToDVI(item));
+}
+
+
 // ----------------------------------------------------------------------------
 // Checkbox handling
 // ----------------------------------------------------------------------------
@@ -1662,7 +1668,7 @@ wxWindow* wxTreeListCtrl::GetView() const
 // wxTreeListEvent implementation
 // ============================================================================
 
-wxIMPLEMENT_DYNAMIC_CLASS(wxTreeListEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxTreeListEvent, wxNotifyEvent);
 
 #define wxDEFINE_TREELIST_EVENT(name) \
     wxDEFINE_EVENT(wxEVT_TREELIST_##name, wxTreeListEvent)

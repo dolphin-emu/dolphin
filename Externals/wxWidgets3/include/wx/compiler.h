@@ -35,12 +35,8 @@
       define special symbols for different VC version instead of writing tests
       for magic numbers such as 1200, 1300 &c repeatedly
     */
-#if __VISUALC__ < 1100
-#   error "This Visual C++ version is too old and not supported any longer."
-#elif __VISUALC__ < 1200
-#   define __VISUALC5__
-#elif __VISUALC__ < 1300
-#   define __VISUALC6__
+#if __VISUALC__ < 1300
+#   error "This Visual C++ version is not supported any longer (at least MSVC 2003 required)."
 #elif __VISUALC__ < 1400
 #   define __VISUALC7__
 #elif __VISUALC__ < 1500
@@ -57,24 +53,19 @@
     /* There is no __VISUALC13__! */
 #   define __VISUALC14__
 #else
+    /*
+        Don't forget to update include/msvc/wx/setup.h as well when adding
+        support for a newer MSVC version here.
+     */
 #   pragma message("Please update wx/compiler.h to recognize this VC++ version")
 #endif
 
 #elif defined(__BCPLUSPLUS__) && !defined(__BORLANDC__)
 #   define __BORLANDC__
-#elif defined(__WATCOMC__)
-#elif defined(__SC__)
-#   define __SYMANTECC__
 #elif defined(__SUNPRO_CC)
 #   ifndef __SUNCC__
 #       define __SUNCC__ __SUNPRO_CC
 #   endif /* Sun CC */
-#elif defined(__SC__)
-#    ifdef __DMC__
-#         define __DIGITALMARS__
-#    else
-#         define __SYMANTEC__
-#    endif
 #endif  /* compiler */
 
 /*
@@ -127,59 +118,9 @@
     #define wxCHECK_SUNCC_VERSION(maj, min) (0)
 #endif
 
-#ifndef __WATCOMC__
-#   define wxWATCOM_VERSION(major,minor) 0
-#   define wxCHECK_WATCOM_VERSION(major,minor) 0
-#   define wxONLY_WATCOM_EARLIER_THAN(major,minor) 0
-#   define WX_WATCOM_ONLY_CODE( x )
-#else
-#   if __WATCOMC__ < 1200
-#       error "Only Open Watcom is supported in this release"
-#   endif
-
-#   define wxWATCOM_VERSION(major,minor) ( major * 100 + minor * 10 + 1100 )
-#   define wxCHECK_WATCOM_VERSION(major,minor) ( __WATCOMC__ >= wxWATCOM_VERSION(major,minor) )
-#   define wxONLY_WATCOM_EARLIER_THAN(major,minor) ( __WATCOMC__ < wxWATCOM_VERSION(major,minor) )
-#   define WX_WATCOM_ONLY_CODE( x )  x
-#endif
-
 /*
-   This macro can be used to check that the version of mingw32 CRT is at least
-   maj.min
+    wxCHECK_MINGW32_VERSION() is defined in wx/msw/gccpriv.h which is included
+    later, see comments there.
  */
-
-/* Check for Mingw runtime version: */
-#ifdef __MINGW32__
-    /* Include the header defining __MINGW32_{MAJ,MIN}OR_VERSION */
-    #include <_mingw.h>
-
-    #define wxCHECK_MINGW32_VERSION( major, minor ) \
- ( ( ( __MINGW32_MAJOR_VERSION > (major) ) \
-      || ( __MINGW32_MAJOR_VERSION == (major) && __MINGW32_MINOR_VERSION >= (minor) ) ) )
-
-/*
-    MinGW-w64 project provides compilers for both Win32 and Win64 but only
-    defines the same __MINGW32__ symbol for the former as MinGW32 toolchain
-    which is quite different (notably doesn't provide many SDK headers that
-    MinGW-w64 does include). So we define a separate symbol which, unlike the
-    predefined __MINGW64__, can be used to detect this toolchain in both 32 and
-    64 bit builds.
-
-    And define __MINGW32_TOOLCHAIN__ for consistency and also because it's
-    convenient as we often want to have some workarounds only for the (old)
-    MinGW32 but not (newer) MinGW-w64, which still predefines __MINGW32__.
- */
-#   ifdef __MINGW64_VERSION_MAJOR
-#       ifndef __MINGW64_TOOLCHAIN__
-#           define __MINGW64_TOOLCHAIN__
-#       endif
-#   else
-#       ifndef __MINGW32_TOOLCHAIN__
-#           define __MINGW32_TOOLCHAIN__
-#       endif
-#   endif
-#else
-    #define wxCHECK_MINGW32_VERSION( major, minor ) (0)
-#endif
 
 #endif // _WX_COMPILER_H_

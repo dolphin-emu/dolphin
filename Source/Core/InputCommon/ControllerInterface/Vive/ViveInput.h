@@ -111,7 +111,6 @@ public:
   ViveController();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
   void UpdateMotors();

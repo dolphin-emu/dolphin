@@ -16,7 +16,6 @@
 #ifndef WX_PRECOMP
     #include "wx/settings.h"
     #include "wx/dcclient.h"
-    #include "wx/image.h"
 #endif
 
 #ifdef __WXGTK3__
@@ -27,6 +26,7 @@
 
 #include <gtk/gtk.h>
 #include "wx/gtk/private/gtk2-compat.h"
+#include "wx/gtk/private/gtk3-compat.h"
 
 //-----------------------------------------------------------------------------
 // data
@@ -38,28 +38,6 @@ extern bool        g_blockEventsOnScroll;
 //-----------------------------------------------------------------------------
 // "expose_event" of m_mainWidget
 //-----------------------------------------------------------------------------
-
-// StepColour() it a utility function that simply darkens
-// or lightens a color, based on the specified percentage
-static wxColor StepColour(const wxColor& c, int percent)
-{
-    int r = c.Red(), g = c.Green(), b = c.Blue();
-    return wxColour((unsigned char)wxMin((r*percent)/100,255),
-                    (unsigned char)wxMin((g*percent)/100,255),
-                    (unsigned char)wxMin((b*percent)/100,255));
-}
-
-static wxColor LightContrastColour(const wxColour& c)
-{
-    int amount = 120;
-
-    // if the color is especially dark, then
-    // make the contrast even lighter
-    if (c.Red() < 128 && c.Green() < 128 && c.Blue() < 128)
-        amount = 160;
-
-    return StepColour(c, amount);
-}
 
 extern "C" {
 #ifdef __WXGTK3__
@@ -78,7 +56,7 @@ static gboolean expose_event(GtkWidget* widget, GdkEventExpose* gdk_event, wxMin
     gtk_render_frame(sc, cr, 0, 0, win->m_width, win->m_height);
     gtk_style_context_restore(sc);
 
-    wxGTKCairoDC dc(cr);
+    wxGTKCairoDC dc(cr, win);
 #else
     if (gdk_event->count > 0 ||
         gdk_event->window != gtk_widget_get_window(widget))
@@ -114,7 +92,7 @@ static gboolean expose_event(GtkWidget* widget, GdkEventExpose* gdk_event, wxMin
     {
         dc.SetFont( *wxSMALL_FONT );
 
-        wxBrush brush( LightContrastColour( wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT) ) );
+        wxBrush brush(wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHT));
         dc.SetBrush( brush );
         dc.SetPen( *wxTRANSPARENT_PEN );
         dc.DrawRectangle( win->m_miniEdge-1,
@@ -122,11 +100,15 @@ static gboolean expose_event(GtkWidget* widget, GdkEventExpose* gdk_event, wxMin
                           win->m_width - (2*(win->m_miniEdge-1)),
                           15  );
 
-        dc.SetTextForeground( *wxWHITE );
+        const wxColour textColor = wxSystemSettings::GetColour(wxSYS_COLOUR_HIGHLIGHTTEXT);
+        dc.SetTextForeground(textColor);
         dc.DrawText( win->GetTitle(), 6, 4 );
 
         if (style & wxCLOSE_BOX)
+        {
+            dc.SetTextBackground(textColor);
             dc.DrawBitmap( win->m_closeButton, win->m_width-18, 3, true );
+        }
     }
 
     return false;
@@ -243,8 +225,6 @@ gtk_window_button_release_callback(GtkWidget* widget, GdkEventButton* gdk_event,
     gdk_window_get_origin(gtk_widget_get_window(widget), &org_x, &org_y);
     x += org_x - win->m_diffX;
     y += org_y - win->m_diffY;
-    win->m_x = x;
-    win->m_y = y;
     gtk_window_move( GTK_WINDOW(win->m_widget), x, y );
 
     return TRUE;
@@ -300,11 +280,22 @@ gtk_window_motion_notify_callback( GtkWidget *widget, GdkEventMotion *gdk_event,
     {
         if (win->GetWindowStyle() & wxRESIZE_BORDER)
         {
+            GdkCursor* cursor = NULL;
+            GdkWindow* window = gtk_widget_get_window(widget);
             if ((x > win->m_width-14) && (y > win->m_height-14))
-               gdk_window_set_cursor(gtk_widget_get_window(widget), gdk_cursor_new(GDK_BOTTOM_RIGHT_CORNER));
-            else
-               gdk_window_set_cursor(gtk_widget_get_window(widget), NULL);
-            win->GTKUpdateCursor(false);
+            {
+                GdkDisplay* display = gdk_window_get_display(window);
+                cursor = gdk_cursor_new_for_display(display, GDK_BOTTOM_RIGHT_CORNER);
+            }
+            gdk_window_set_cursor(window, cursor);
+            if (cursor)
+            {
+#ifdef __WXGTK3__
+                g_object_unref(cursor);
+#else
+                gdk_cursor_unref(cursor);
+#endif
+            }
         }
         return TRUE;
     }
@@ -317,8 +308,6 @@ gtk_window_motion_notify_callback( GtkWidget *widget, GdkEventMotion *gdk_event,
     gdk_window_get_origin(gtk_widget_get_window(widget), &org_x, &org_y);
     x += org_x - win->m_diffX;
     y += org_y - win->m_diffY;
-    win->m_x = x;
-    win->m_y = y;
     gtk_window_move( GTK_WINDOW(win->m_widget), x, y );
 
     return TRUE;
@@ -335,7 +324,7 @@ static unsigned char close_bits[]={
     0x07, 0xf0, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 
-IMPLEMENT_DYNAMIC_CLASS(wxMiniFrame,wxFrame)
+wxIMPLEMENT_DYNAMIC_CLASS(wxMiniFrame, wxFrame);
 
 wxMiniFrame::~wxMiniFrame()
 {
@@ -381,6 +370,17 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
         GDK_POINTER_MOTION_MASK |
         GDK_POINTER_MOTION_HINT_MASK);
     gtk_widget_show(eventbox);
+#ifdef __WXGTK3__
+    g_object_ref(m_mainWidget);
+    gtk_container_remove(GTK_CONTAINER(m_widget), m_mainWidget);
+    gtk_container_add(GTK_CONTAINER(eventbox), m_mainWidget);
+    g_object_unref(m_mainWidget);
+
+    gtk_widget_set_margin_start(m_mainWidget, m_miniEdge);
+    gtk_widget_set_margin_end(m_mainWidget, m_miniEdge);
+    gtk_widget_set_margin_top(m_mainWidget, m_miniTitle + m_miniEdge);
+    gtk_widget_set_margin_bottom(m_mainWidget, m_miniEdge);
+#else
     // Use a GtkAlignment to position m_mainWidget inside the decorations
     GtkWidget* alignment = gtk_alignment_new(0, 0, 1, 1);
     gtk_alignment_set_padding(GTK_ALIGNMENT(alignment),
@@ -389,6 +389,7 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
     // The GtkEventBox and GtkAlignment go between m_widget and m_mainWidget
     gtk_widget_reparent(m_mainWidget, alignment);
     gtk_container_add(GTK_CONTAINER(eventbox), alignment);
+#endif
     gtk_container_add(GTK_CONTAINER(m_widget), eventbox);
 
     m_gdkDecor = 0;
@@ -407,10 +408,8 @@ bool wxMiniFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title
 
     if (m_miniTitle && (style & wxCLOSE_BOX))
     {
-        wxImage img = wxBitmap((const char*)close_bits, 16, 16).ConvertToImage();
-        img.Replace(0,0,0,123,123,123);
-        img.SetMaskColour(123,123,123);
-        m_closeButton = wxBitmap( img );
+        m_closeButton = wxBitmap((const char*)close_bits, 16, 16);
+        m_closeButton.SetMask(new wxMask(m_closeButton));
     }
 
     /* these are called when the borders are drawn */

@@ -11,20 +11,16 @@
 // For compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
 
-#if wxUSE_MEDIACTRL
+#if wxUSE_MEDIACTRL && wxUSE_GSTREAMER && !wxUSE_GSTREAMER_PLAYER
 
 #include "wx/mediactrl.h"
 
-#if wxUSE_GSTREAMER
-
 #include <gst/gst.h>                // main gstreamer header
 
-// xoverlay/video stuff, gst-gconf for 0.8
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
-#   include <gst/interfaces/xoverlay.h>
+#if GST_CHECK_VERSION(1,0,0)
+#include <gst/video/video.h>
 #else
-#   include <gst/xoverlay/xoverlay.h>
-#   include <gst/gconf/gconf.h>        // gstreamer glib configuration
+#include <gst/interfaces/xoverlay.h>
 #endif
 
 #ifndef  WX_PRECOMP
@@ -48,11 +44,11 @@
 //-----------------------------------------------------------------------------
 
 /*
-   This is the GStreamer backend for unix. Currently we require 0.8 or
-   0.10. Here we use the "playbin" GstElement for ease of use.
+   This is the GStreamer backend for unix. Currently we require 0.10.
+   Here we use the "playbin" GstElement for ease of use.
 
-   Note that now we compare state change functions to GST_STATE_FAILURE
-   now rather than GST_STATE_SUCCESS as newer gstreamer versions return
+   Note that now we compare state change functions to GST_STATE_CHANGE_FAILURE
+   now rather than GST_STATE_CHANGE_SUCCESS as newer gstreamer versions return
    non-success values for returns that are otherwise successful but not
    immediate.
 
@@ -89,44 +85,6 @@
 //  Declarations
 //=============================================================================
 
-//-----------------------------------------------------------------------------
-//  GStreamer (most version compatibility) macros
-//-----------------------------------------------------------------------------
-
-// In 0.9 there was a HUGE change to GstQuery and the
-// gst_element_query function changed dramatically and split off
-// into two separate ones
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR <= 8
-#    define wxGst_element_query_duration(e, f, p) \
-                gst_element_query(e, GST_QUERY_TOTAL, f, p)
-#    define wxGst_element_query_position(e, f, p) \
-                gst_element_query(e, GST_QUERY_POSITION, f, p)
-#elif GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR == 9
-// However, the actual 0.9 version has a slightly different definition
-// and instead of gst_element_query_duration it has two parameters to
-// gst_element_query_position instead
-#    define wxGst_element_query_duration(e, f, p) \
-                gst_element_query_position(e, f, 0, p)
-#    define wxGst_element_query_position(e, f, p) \
-                gst_element_query_position(e, f, p, 0)
-#else
-#    define wxGst_element_query_duration \
-                gst_element_query_duration
-#    define wxGst_element_query_position \
-                gst_element_query_position
-#endif
-
-// Other 0.10 macros
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
-#   define GST_STATE_FAILURE GST_STATE_CHANGE_FAILURE
-#   define GST_STATE_SUCCESS GST_STATE_CHANGE_SUCCESS
-#   define GstElementState GstState
-#   define gst_gconf_get_default_video_sink() \
-        gst_element_factory_make ("gconfvideosink", "video-sink");
-#   define gst_gconf_get_default_audio_sink() \
-        gst_element_factory_make ("gconfaudiosink", "audio-sink");
-#endif
-
 // Max wait time for element state waiting - GST_CLOCK_TIME_NONE for inf
 #define wxGSTREAMER_TIMEOUT (100 * GST_MSECOND) // Max 100 milliseconds
 
@@ -154,46 +112,46 @@ public:
                                      const wxSize& size,
                                      long style,
                                      const wxValidator& validator,
-                                     const wxString& name);
+                                     const wxString& name) wxOVERRIDE;
 
-    virtual bool Play();
-    virtual bool Pause();
-    virtual bool Stop();
+    virtual bool Play() wxOVERRIDE;
+    virtual bool Pause() wxOVERRIDE;
+    virtual bool Stop() wxOVERRIDE;
 
-    virtual bool Load(const wxString& fileName);
-    virtual bool Load(const wxURI& location);
+    virtual bool Load(const wxString& fileName) wxOVERRIDE;
+    virtual bool Load(const wxURI& location) wxOVERRIDE;
     virtual bool Load(const wxURI& location,
-                      const wxURI& proxy)
+                      const wxURI& proxy) wxOVERRIDE
         { return wxMediaBackendCommonBase::Load(location, proxy); }
 
 
-    virtual wxMediaState GetState();
+    virtual wxMediaState GetState() wxOVERRIDE;
 
-    virtual bool SetPosition(wxLongLong where);
-    virtual wxLongLong GetPosition();
-    virtual wxLongLong GetDuration();
+    virtual bool SetPosition(wxLongLong where) wxOVERRIDE;
+    virtual wxLongLong GetPosition() wxOVERRIDE;
+    virtual wxLongLong GetDuration() wxOVERRIDE;
 
-    virtual void Move(int x, int y, int w, int h);
-    wxSize GetVideoSize() const;
+    virtual void Move(int x, int y, int w, int h) wxOVERRIDE;
+    wxSize GetVideoSize() const wxOVERRIDE;
 
-    virtual double GetPlaybackRate();
-    virtual bool SetPlaybackRate(double dRate);
+    virtual double GetPlaybackRate() wxOVERRIDE;
+    virtual bool SetPlaybackRate(double dRate) wxOVERRIDE;
 
-    virtual wxLongLong GetDownloadProgress();
-    virtual wxLongLong GetDownloadTotal();
+    virtual wxLongLong GetDownloadProgress() wxOVERRIDE;
+    virtual wxLongLong GetDownloadTotal() wxOVERRIDE;
 
-    virtual bool SetVolume(double dVolume);
-    virtual double GetVolume();
+    virtual bool SetVolume(double dVolume) wxOVERRIDE;
+    virtual double GetVolume() wxOVERRIDE;
 
     //------------implementation from now on-----------------------------------
     bool CheckForErrors();
     bool DoLoad(const wxString& locstring);
     wxMediaCtrl* GetControl() { return m_ctrl; } // for C Callbacks
-    void HandleStateChange(GstElementState oldstate, GstElementState newstate);
+    void HandleStateChange(GstState oldstate, GstState newstate);
     bool QueryVideoSizeFromElement(GstElement* element);
     bool QueryVideoSizeFromPad(GstPad* caps);
     void SetupXOverlay();
-    bool SyncStateChange(GstElement* element, GstElementState state,
+    bool SyncStateChange(GstElement* element, GstState state,
                          gint64 llTimeout = wxGSTREAMER_TIMEOUT);
     bool TryAudioSink(GstElement* audiosink);
     bool TryVideoSink(GstElement* videosink);
@@ -203,7 +161,11 @@ public:
     double          m_dRate;        // Current playback rate -
                                     // see GetPlaybackRate for notes
     wxLongLong      m_llPausedPos;  // Paused position - see Pause()
+#if GST_CHECK_VERSION(1,0,0)
+    GstVideoOverlay* m_xoverlay;     // X Overlay that contains the GST video
+#else
     GstXOverlay*    m_xoverlay;     // X Overlay that contains the GST video
+#endif
     wxMutex         m_asynclock;    // See "discussion of internals"
     class wxGStreamerMediaEventHandler* m_eventHandler; // see below
 
@@ -226,7 +188,7 @@ public:
 
     friend class wxGStreamerMediaEventHandler;
     friend class wxGStreamerLoadWaitTimer;
-    DECLARE_DYNAMIC_CLASS(wxGStreamerMediaBackend)
+    wxDECLARE_DYNAMIC_CLASS(wxGStreamerMediaBackend);
 };
 
 //-----------------------------------------------------------------------------
@@ -256,7 +218,7 @@ class wxGStreamerMediaEventHandler : public wxEvtHandler
 // Implementation
 //=============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxGStreamerMediaBackend, wxMediaBackend)
+wxIMPLEMENT_DYNAMIC_CLASS(wxGStreamerMediaBackend, wxMediaBackend);
 
 //-----------------------------------------------------------------------------
 //
@@ -294,7 +256,11 @@ expose_event(GtkWidget* widget, GdkEventExpose* event, wxGStreamerMediaBackend* 
         // GST Doesn't redraw automatically while paused
         // Plus, the video sometimes doesn't redraw when it looses focus
         // or is painted over so we just tell it to redraw...
+#if GST_CHECK_VERSION(1,0,0)
+        gst_video_overlay_expose(be->m_xoverlay);
+#else
         gst_x_overlay_expose(be->m_xoverlay);
+#endif
     }
     else
     {
@@ -334,44 +300,25 @@ static gint gtk_window_realize_callback(GtkWidget* widget,
     GdkWindow* window = gtk_widget_get_window(widget);
     wxASSERT(window);
 
+#if GST_CHECK_VERSION(1,0,0)
+    gst_video_overlay_set_window_handle(be->m_xoverlay,
+                                GDK_WINDOW_XID(window)
+                                );
+#else
     gst_x_overlay_set_xwindow_id( GST_X_OVERLAY(be->m_xoverlay),
                                 GDK_WINDOW_XID(window)
                                 );
-    g_signal_connect (be->GetControl()->m_wxwindow,
-#ifdef __WXGTK3__
-        "draw", G_CALLBACK(draw),
-#else
-        "expose_event", G_CALLBACK(expose_event),
 #endif
-        be);
+    GtkWidget* w = be->GetControl()->m_wxwindow;
+#ifdef __WXGTK3__
+    g_signal_connect(w, "draw", G_CALLBACK(draw), be);
+#else
+    g_signal_connect(w, "expose_event", G_CALLBACK(expose_event), be);
+#endif
     return 0;
 }
 }
 #endif // wxGTK
-
-//-----------------------------------------------------------------------------
-// "state-change" from m_playbin/GST_MESSAGE_STATE_CHANGE
-//
-// Called by gstreamer when the state changes - here we
-// send the appropriate corresponding wx event.
-//
-// 0.8 only as HandleStateChange does this in both versions
-//-----------------------------------------------------------------------------
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR < 10
-extern "C" {
-static void gst_state_change_callback(GstElement *play,
-                                      GstElementState oldstate,
-                                      GstElementState newstate,
-                                      wxGStreamerMediaBackend* be)
-{
-    if(be->m_asynclock.TryLock() == wxMUTEX_NO_ERROR)
-    {
-        be->HandleStateChange(oldstate, newstate);
-        be->m_asynclock.Unlock();
-    }
-}
-}
-#endif // <0.10
 
 //-----------------------------------------------------------------------------
 // "eos" from m_playbin/GST_MESSAGE_EOS
@@ -425,6 +372,7 @@ static void gst_notify_caps_callback(GstPad* pad,
 }
 }
 
+#if !GST_CHECK_VERSION(1,0,0)
 //-----------------------------------------------------------------------------
 // "notify::stream-info" from m_playbin
 //
@@ -437,7 +385,6 @@ static void gst_notify_caps_callback(GstPad* pad,
 //
 // (Undocumented?)
 //-----------------------------------------------------------------------------
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
 extern "C" {
 static void gst_notify_stream_info_callback(GstElement* WXUNUSED(element),
                                             GParamSpec* WXUNUSED(pspec),
@@ -445,32 +392,6 @@ static void gst_notify_stream_info_callback(GstElement* WXUNUSED(element),
 {
     wxLogTrace(wxTRACE_GStreamer, wxT("gst_notify_stream_info_callback"));
     be->QueryVideoSizeFromElement(be->m_playbin);
-}
-}
-#endif
-
-//-----------------------------------------------------------------------------
-// "desired-size-changed" from m_xoverlay
-//
-// 0.8-specific this provides us with the video size when it changes -
-// even though we get the caps as well this seems to come before the
-// caps notification does...
-//
-// Note it will return 16,16 for an early-bird value or for audio
-//-----------------------------------------------------------------------------
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR < 10
-extern "C" {
-static void gst_desired_size_changed_callback(GstElement * play,
-                                              guint width, guint height,
-                                              wxGStreamerMediaBackend* be)
-{
-    if(!(width == 16 && height == 16))
-    {
-        be->m_videoSize.x = width;
-        be->m_videoSize.y = height;
-    }
-    else
-        be->QueryVideoSizeFromElement(be->m_playbin);
 }
 }
 #endif
@@ -488,7 +409,6 @@ static void gst_desired_size_changed_callback(GstElement * play,
 // thread before the async version that we use to set the xwindow id of the
 // XOverlay (NB: This isn't currently used - see CreateControl()).
 //-----------------------------------------------------------------------------
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
 extern "C" {
 static gboolean gst_bus_async_callback(GstBus* WXUNUSED(bus),
                                        GstMessage* message,
@@ -538,8 +458,12 @@ static GstBusSyncReply gst_bus_sync_callback(GstBus* bus,
 {
     // Pass a non-xwindowid-setting event on to the async handler where it
     // belongs
+#if GST_CHECK_VERSION(1,0,0)
+    if (!gst_is_video_overlay_prepare_window_handle_message (message))
+#else
     if (GST_MESSAGE_TYPE (message) != GST_MESSAGE_ELEMENT ||
         !gst_structure_has_name (message->structure, "prepare-xwindow-id"))
+#endif
     {
         //
         // NB: Unfortunately, the async callback can be quite
@@ -558,7 +482,6 @@ static GstBusSyncReply gst_bus_sync_callback(GstBus* bus,
     return GST_BUS_DROP; // We handled this message - drop from the queue
 }
 }
-#endif
 
 //-----------------------------------------------------------------------------
 //
@@ -573,8 +496,8 @@ static GstBusSyncReply gst_bus_sync_callback(GstBus* bus,
 // the async queue in 0.10. (Mostly this is here to avoid locking the
 // the mutex twice...)
 //-----------------------------------------------------------------------------
-void wxGStreamerMediaBackend::HandleStateChange(GstElementState oldstate,
-                                                GstElementState newstate)
+void wxGStreamerMediaBackend::HandleStateChange(GstState oldstate,
+                                                GstState newstate)
 {
     switch(newstate)
     {
@@ -604,6 +527,7 @@ void wxGStreamerMediaBackend::HandleStateChange(GstElementState oldstate,
     }
 }
 
+#if !GST_CHECK_VERSION(1,0,0)
 //-----------------------------------------------------------------------------
 // wxGStreamerMediaBackend::QueryVideoSizeFromElement
 //
@@ -643,14 +567,6 @@ bool wxGStreamerMediaBackend::QueryVideoSizeFromElement(GstElement* element)
             else
                 g_object_get (info, "object", &pad, NULL);
 
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR <= 8
-            // Killed in 0.9, presumely because events and such
-            // should be pushed on pads regardless of whether they
-            // are currently linked
-            pad = (GstPad *) GST_PAD_REALIZE (pad);
-            wxASSERT(pad);
-#endif
-
             if(!QueryVideoSizeFromPad(pad))
             {
                 // wait for those caps to get ready
@@ -673,6 +589,7 @@ bool wxGStreamerMediaBackend::QueryVideoSizeFromElement(GstElement* element)
 
     return true;
 }
+#endif
 
 //-----------------------------------------------------------------------------
 // wxGStreamerMediaBackend::QueryVideoSizeFromPad
@@ -681,7 +598,11 @@ bool wxGStreamerMediaBackend::QueryVideoSizeFromElement(GstElement* element)
 //-----------------------------------------------------------------------------
 bool wxGStreamerMediaBackend::QueryVideoSizeFromPad(GstPad* pad)
 {
+#if GST_CHECK_VERSION(1,0,0)
+    GstCaps* caps = gst_pad_get_current_caps(pad);
+#else
     const GstCaps* caps = GST_PAD_CAPS(pad);
+#endif
     if ( caps )
     {
         const GstStructure *s = gst_caps_get_structure (caps, 0);
@@ -707,10 +628,20 @@ bool wxGStreamerMediaBackend::QueryVideoSizeFromPad(GstPad* pad)
                 m_videoSize.y = (int) ((float) den * m_videoSize.y / num);
         }
 
-         wxLogTrace(wxTRACE_GStreamer, wxT("Adjusted video size: [%i,%i]"),
-                     m_videoSize.x, m_videoSize.y);
+        wxLogTrace(wxTRACE_GStreamer, wxT("Adjusted video size: [%i,%i]"),
+                    m_videoSize.x, m_videoSize.y);
+#if GST_CHECK_VERSION(1,0,0)
+        gst_caps_unref (caps);
+#endif
+
+        NotifyMovieSizeChanged ();
+
         return true;
     } // end if caps
+
+    m_videoSize = wxSize(0,0);
+
+    NotifyMovieSizeChanged ();
 
     return false; // not ready/massive failure
 }
@@ -740,7 +671,11 @@ void wxGStreamerMediaBackend::SetupXOverlay()
         GdkWindow* window = gtk_widget_get_window(m_ctrl->m_wxwindow);
         wxASSERT(window);
 #endif
+#if GST_CHECK_VERSION(1,0,0)
+        gst_video_overlay_set_window_handle(m_xoverlay,
+#else
         gst_x_overlay_set_xwindow_id(GST_X_OVERLAY(m_xoverlay),
+#endif
 #ifdef __WXGTK__
                         GDK_WINDOW_XID(window)
 #else
@@ -748,13 +683,12 @@ void wxGStreamerMediaBackend::SetupXOverlay()
 #endif
                                   );
 #ifdef __WXGTK__
-        g_signal_connect(m_ctrl->m_wxwindow,
+        GtkWidget* w = m_ctrl->m_wxwindow;
 #ifdef __WXGTK3__
-            "draw", G_CALLBACK(draw),
+        g_signal_connect(w, "draw", G_CALLBACK(draw), this);
 #else
-            "expose_event", G_CALLBACK(expose_event),
+        g_signal_connect(w, "expose_event", G_CALLBACK(expose_event), this);
 #endif
-            this);
     } // end if GtkPizza realized
 #endif
 }
@@ -771,9 +705,8 @@ void wxGStreamerMediaBackend::SetupXOverlay()
 //
 // PRECONDITION: Assumes m_asynclock is Lock()ed
 //-----------------------------------------------------------------------------
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
 bool wxGStreamerMediaBackend::SyncStateChange(GstElement* element,
-                                              GstElementState desiredstate,
+                                              GstState desiredstate,
                                               gint64 llTimeout)
 {
     GstBus* bus = gst_element_get_bus(element);
@@ -846,23 +779,6 @@ bool wxGStreamerMediaBackend::SyncStateChange(GstElement* element,
 
     return bSuccess;
 }
-#else // 0.8 implementation
-bool wxGStreamerMediaBackend::SyncStateChange(GstElement* element,
-                                              GstElementState desiredstate,
-                                              gint64 llTimeout)
-{
-    gint64 llTimeWaited = 0;
-    while(GST_STATE(element) != desiredstate)
-    {
-        if(llTimeWaited >= llTimeout)
-            break;
-        llTimeWaited += 10*GST_MSECOND;
-        wxMilliSleep(10);
-    }
-
-    return llTimeWaited != llTimeout;
-}
-#endif
 
 //-----------------------------------------------------------------------------
 // wxGStreamerMediaBackend::TryAudioSink
@@ -886,6 +802,31 @@ bool wxGStreamerMediaBackend::TryAudioSink(GstElement* audiosink)
 
 bool wxGStreamerMediaBackend::TryVideoSink(GstElement* videosink)
 {
+#if GST_CHECK_VERSION(1,0,0)
+    // Check if the video sink either is an xoverlay or might contain one...
+    if( !GST_IS_BIN(videosink) && !GST_IS_VIDEO_OVERLAY(videosink) )
+    {
+        if(G_IS_OBJECT(videosink))
+            g_object_unref(videosink);
+        return false;
+    }
+
+    // Make our video sink and make sure it supports the x overlay interface
+    // the x overlay enables us to put the video in our control window
+    // (i.e. we NEED it!) - also connect to the natural video size change event
+    if( GST_IS_BIN(videosink) )
+        m_xoverlay = (GstVideoOverlay*)
+                        gst_bin_get_by_interface (GST_BIN (videosink),
+                                                  GST_TYPE_VIDEO_OVERLAY);
+    else
+        m_xoverlay = (GstVideoOverlay*) videosink;
+
+    if ( !GST_IS_VIDEO_OVERLAY(m_xoverlay) )
+    {
+        g_object_unref(videosink);
+        return false;
+    }
+#else
     // Check if the video sink either is an xoverlay or might contain one...
     if( !GST_IS_BIN(videosink) && !GST_IS_X_OVERLAY(videosink) )
     {
@@ -909,7 +850,7 @@ bool wxGStreamerMediaBackend::TryVideoSink(GstElement* videosink)
         g_object_unref(videosink);
         return false;
     }
-
+#endif
     return true;
 }
 
@@ -1048,11 +989,7 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
     //Really init gstreamer
     gboolean bInited;
     GError* error = NULL;
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
     bInited = gst_init_check(&argcGST, &argvGST, &error);
-#else
-    bInited = gst_init_check(&argcGST, &argvGST);
-#endif
 
     // Cleanup arguments for unicode case
 #if wxUSE_UNICODE
@@ -1119,29 +1056,25 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
         return false;
     }
 
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR < 10
-    // Connect the glib events/callbacks we want to our playbin
-    g_signal_connect(m_playbin, "eos",
-                     G_CALLBACK(gst_finish_callback), this);
-    g_signal_connect(m_playbin, "error",
-                     G_CALLBACK(gst_error_callback), this);
-    g_signal_connect(m_playbin, "state-change",
-                     G_CALLBACK(gst_state_change_callback), this);
-#else
     // GStreamer 0.10+ uses GstBus for this now, connect to the sync
     // handler as well so we can set the X window id of our xoverlay
     gst_bus_add_watch (gst_element_get_bus(m_playbin),
                        (GstBusFunc) gst_bus_async_callback, this);
+#if GST_CHECK_VERSION(1,0,0)
+    gst_bus_set_sync_handler(gst_element_get_bus(m_playbin),
+                             (GstBusSyncHandler) gst_bus_sync_callback, this, NULL);
+#else
     gst_bus_set_sync_handler(gst_element_get_bus(m_playbin),
                              (GstBusSyncHandler) gst_bus_sync_callback, this);
-    g_signal_connect(m_playbin, "notify::stream-info",
-                     G_CALLBACK(gst_notify_stream_info_callback), this);
 #endif
 
     // Get the audio sink
-    GstElement* audiosink = gst_gconf_get_default_audio_sink();
+    GstElement* audiosink;
+#if !GST_CHECK_VERSION(1,0,0)
+    audiosink = gst_element_factory_make ("gconfaudiosink", "audio-sink");
     if( !TryAudioSink(audiosink) )
     {
+#endif
         // fallback to autodetection, then alsa, then oss as a stopgap
         audiosink = gst_element_factory_make ("autoaudiosink", "audio-sink");
         if( !TryAudioSink(audiosink) )
@@ -1157,13 +1090,18 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
                 }
             }
         }
+#if !GST_CHECK_VERSION(1,0,0)
     }
+#endif
 
     // Setup video sink - first try gconf, then auto, then xvimage and
     // then finally plain ximage
-    GstElement* videosink = gst_gconf_get_default_video_sink();
+    GstElement* videosink;
+#if !GST_CHECK_VERSION(1,0,0)
+    videosink = gst_element_factory_make ("gconfvideosink", "video-sink");
     if( !TryVideoSink(videosink) )
     {
+#endif
         videosink = gst_element_factory_make ("autovideosink", "video-sink");
         if( !TryVideoSink(videosink) )
         {
@@ -1181,13 +1119,19 @@ bool wxGStreamerMediaBackend::CreateControl(wxControl* ctrl, wxWindow* parent,
                 }
             }
         }
+#if !GST_CHECK_VERSION(1,0,0)
     }
-
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR < 10
-    // Not on 0.10... called when video size changes
-    g_signal_connect(m_xoverlay, "desired-size-changed",
-                     G_CALLBACK(gst_desired_size_changed_callback), this);
 #endif
+
+#if GST_CHECK_VERSION(1,0,0)
+    GstPad *video_sinkpad = gst_element_get_static_pad (videosink, "sink");
+    g_signal_connect (video_sinkpad, "notify::caps", G_CALLBACK (gst_notify_caps_callback), this);
+    gst_object_unref (video_sinkpad);
+#else
+    g_signal_connect(m_playbin, "notify::stream-info",
+                     G_CALLBACK(gst_notify_stream_info_callback), this);
+#endif
+
     // Tell GStreamer which window to draw to in 0.8 - 0.10
     // sometimes needs this too...
     SetupXOverlay();
@@ -1223,6 +1167,7 @@ bool wxGStreamerMediaBackend::Load(const wxString& fileName)
 //-----------------------------------------------------------------------------
 bool wxGStreamerMediaBackend::Load(const wxURI& location)
 {
+#if !GST_CHECK_VERSION(1,0,0)
     if(location.GetScheme().CmpNoCase(wxT("file")) == 0)
     {
         wxString uristring = location.BuildUnescapedURI();
@@ -1234,6 +1179,7 @@ bool wxGStreamerMediaBackend::Load(const wxURI& location)
                      );
     }
     else
+#endif
         return DoLoad(location.BuildURI());
 }
 
@@ -1260,7 +1206,7 @@ bool wxGStreamerMediaBackend::DoLoad(const wxString& locstring)
 
     // Set playbin to ready to stop the current media...
     if( gst_element_set_state (m_playbin,
-                               GST_STATE_READY) == GST_STATE_FAILURE ||
+                               GST_STATE_READY) == GST_STATE_CHANGE_FAILURE ||
         !SyncStateChange(m_playbin, GST_STATE_READY))
     {
         CheckForErrors();
@@ -1283,7 +1229,7 @@ bool wxGStreamerMediaBackend::DoLoad(const wxString& locstring)
     // Try to pause media as gstreamer won't let us query attributes
     // such as video size unless it is paused or playing
     if( gst_element_set_state (m_playbin,
-                               GST_STATE_PAUSED) == GST_STATE_FAILURE ||
+                               GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE ||
         !SyncStateChange(m_playbin, GST_STATE_PAUSED))
     {
         CheckForErrors();
@@ -1314,7 +1260,7 @@ bool wxGStreamerMediaBackend::DoLoad(const wxString& locstring)
 bool wxGStreamerMediaBackend::Play()
 {
     if (gst_element_set_state (m_playbin,
-                               GST_STATE_PLAYING) == GST_STATE_FAILURE)
+                               GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE)
     {
         CheckForErrors();
         return false;
@@ -1334,7 +1280,7 @@ bool wxGStreamerMediaBackend::Pause()
 {
     m_llPausedPos = wxGStreamerMediaBackend::GetPosition();
     if (gst_element_set_state (m_playbin,
-                               GST_STATE_PAUSED) == GST_STATE_FAILURE)
+                               GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE)
     {
         CheckForErrors();
         return false;
@@ -1355,7 +1301,7 @@ bool wxGStreamerMediaBackend::Stop()
     {   // begin state lock
         wxMutexLocker lock(m_asynclock);
         if(gst_element_set_state (m_playbin,
-                                  GST_STATE_PAUSED) == GST_STATE_FAILURE ||
+                                  GST_STATE_PAUSED) == GST_STATE_CHANGE_FAILURE ||
           !SyncStateChange(m_playbin, GST_STATE_PAUSED))
         {
             CheckForErrors();
@@ -1419,11 +1365,17 @@ wxLongLong wxGStreamerMediaBackend::GetPosition()
     else
     {
         gint64 pos;
+#if GST_CHECK_VERSION(1,0,0)
+        if (!gst_element_query_position(m_playbin, GST_FORMAT_TIME, &pos) ||
+            pos == -1)
+            return 0;
+#else
         GstFormat fmtTime = GST_FORMAT_TIME;
 
-        if (!wxGst_element_query_position(m_playbin, &fmtTime, &pos) ||
+        if (!gst_element_query_position(m_playbin, &fmtTime, &pos) ||
             fmtTime != GST_FORMAT_TIME || pos == -1)
             return 0;
+#endif
         return pos / GST_MSECOND ;
     }
 }
@@ -1448,36 +1400,13 @@ wxLongLong wxGStreamerMediaBackend::GetPosition()
 //-----------------------------------------------------------------------------
 bool wxGStreamerMediaBackend::SetPosition(wxLongLong where)
 {
-#if GST_VERSION_MAJOR == 0 && GST_VERSION_MINOR == 8 \
-                           && GST_VERSION_MICRO == 0
-    // 0.8.0 has no gst_element_seek according to official docs!!!
-    wxLogSysError(wxT("GStreamer 0.8.0 does not have gst_element_seek")
-                  wxT(" according to official docs"));
-    return false;
-#else // != 0.8.0
+    gst_element_seek (m_playbin, m_dRate, GST_FORMAT_TIME,
+       (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
+                      GST_SEEK_TYPE_SET, where.GetValue() * GST_MSECOND,
+                      GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE );
 
-#   if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
-        gst_element_seek (m_playbin, m_dRate, GST_FORMAT_TIME,
-           (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
-                          GST_SEEK_TYPE_SET, where.GetValue() * GST_MSECOND,
-                          GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE );
-#   else
-        // NB: Some gstreamer versions return false basically all the time
-        // here - even totem doesn't bother to check the return value here
-        // so I guess we'll just assume it worked -
-        // TODO: maybe check the gst error callback???
-        gst_element_seek (m_playbin, (GstSeekType) (GST_SEEK_METHOD_SET |
-            GST_FORMAT_TIME | GST_SEEK_FLAG_FLUSH),
-            where.GetValue() * GST_MSECOND );
-
-#   endif // GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
-
-    {
-        m_llPausedPos = where;
-        return true;
-    }
+    m_llPausedPos = where;
     return true;
-#endif //== 0.8.0
 }
 
 //-----------------------------------------------------------------------------
@@ -1489,11 +1418,17 @@ bool wxGStreamerMediaBackend::SetPosition(wxLongLong where)
 wxLongLong wxGStreamerMediaBackend::GetDuration()
 {
     gint64 length;
+#if GST_CHECK_VERSION(1,0,0)
+    if(!gst_element_query_duration(m_playbin, GST_FORMAT_TIME, &length) ||
+       length == -1)
+        return 0;
+#else
     GstFormat fmtTime = GST_FORMAT_TIME;
 
-    if(!wxGst_element_query_duration(m_playbin, &fmtTime, &length) ||
+    if(!gst_element_query_duration(m_playbin, &fmtTime, &length) ||
        fmtTime != GST_FORMAT_TIME || length == -1)
         return 0;
+#endif
     return length / GST_MSECOND ;
 }
 
@@ -1552,9 +1487,8 @@ double wxGStreamerMediaBackend::GetPlaybackRate()
                     // plugins that support it...
 }
 
-bool wxGStreamerMediaBackend::SetPlaybackRate(double dRate)
+bool wxGStreamerMediaBackend::SetPlaybackRate(double /* dRate */)
 {
-#if GST_VERSION_MAJOR > 0 || GST_VERSION_MINOR >= 10
 #if 0 // not tested enough
     if( gst_element_seek (m_playbin, dRate, GST_FORMAT_TIME,
                  (GstSeekFlags)(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT),
@@ -1564,9 +1498,6 @@ bool wxGStreamerMediaBackend::SetPlaybackRate(double dRate)
         m_dRate = dRate;
         return true;
     }
-#else
-    wxUnusedVar(dRate);
-#endif
 #endif
 
     // failure
@@ -1595,11 +1526,17 @@ wxLongLong wxGStreamerMediaBackend::GetDownloadProgress()
 wxLongLong wxGStreamerMediaBackend::GetDownloadTotal()
 {
     gint64 length;
+#if GST_CHECK_VERSION(1,0,0)
+    if (!gst_element_query_duration(m_playbin, GST_FORMAT_BYTES, &length) ||
+         length == -1)
+        return 0;
+#else
     GstFormat fmtBytes = GST_FORMAT_BYTES;
 
-    if (!wxGst_element_query_duration(m_playbin, &fmtBytes, &length) ||
+    if (!gst_element_query_duration(m_playbin, &fmtBytes, &length) ||
           fmtBytes != GST_FORMAT_BYTES || length == -1)
         return 0;
+#endif
     return length;
 }
 
@@ -1650,10 +1587,8 @@ double wxGStreamerMediaBackend::GetVolume()
     return dVolume;
 }
 
-#endif //wxUSE_GSTREAMER
-
 // Force link into main library so this backend can be loaded
 #include "wx/html/forcelnk.h"
 FORCE_LINK_ME(basewxmediabackends)
 
-#endif //wxUSE_MEDIACTRL
+#endif // wxUSE_MEDIACTRL && wxUSE_GSTREAMER && !wxUSE_GSTREAMER_PLAYER

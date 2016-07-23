@@ -89,7 +89,6 @@ public:
   ~KeyboardMouse();
 
   std::string GetName() const override;
-  int GetId() const override;
   std::string GetSource() const override;
 
 private:

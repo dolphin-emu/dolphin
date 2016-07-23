@@ -44,4 +44,6 @@ u32 GetFakeDecrementer();
 
 void TimeBaseSet();
 u64 GetFakeTimeBase();
+// Custom RTC
+s64 GetLocalTimeRTCOffset();
 }
