@@ -1,7 +1,8 @@
 set(GUI_SRCS
-	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ControllerConfigDiag.cpp
+	Cheats/ActionReplayCodesPanel.cpp
+	Cheats/ARCodeAddEdit.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp

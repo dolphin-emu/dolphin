@@ -14,10 +14,8 @@
 #include <wx/treebase.h>
 
 #include "Common/IniFile.h"
-#include "Core/ActionReplay.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
-#include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
@@ -40,6 +38,7 @@ namespace Gecko
 {
 class CodeConfigPanel;
 }
+class ActionReplayCodesPanel;
 
 class WiiPartition final : public wxTreeItemData
 {
@@ -78,7 +77,6 @@ private:
   std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 
   std::vector<PatchEngine::Patch> onFrame;
-  std::vector<ActionReplay::ARCode> arCodes;
   PHackData m_PHack_Data;
 
   // Core
@@ -103,10 +101,6 @@ private:
   wxButton* EditPatch;
   wxButton* RemovePatch;
 
-  wxCheckListBox* Cheats;
-  wxButton* EditCheat;
-  wxButton* RemoveCheat;
-
   wxTextCtrl* m_InternalName;
   wxTextCtrl* m_GameID;
   wxTextCtrl* m_Country;
@@ -126,6 +120,7 @@ private:
   wxTreeCtrl* m_Treectrl;
   wxTreeItemId RootId;
 
+  ActionReplayCodesPanel* m_ar_code_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
 
   enum
@@ -159,10 +154,6 @@ private:
     ID_EDITPATCH,
     ID_ADDPATCH,
     ID_REMOVEPATCH,
-    ID_CHEATS_LIST,
-    ID_EDITCHEAT,
-    ID_ADDCHEAT,
-    ID_REMOVECHEAT,
     ID_GPUDETERMINISM,
     ID_DEPTHPERCENTAGE,
     ID_CONVERGENCE,
@@ -201,10 +192,8 @@ private:
   void OnEditConfig(wxCommandEvent& event);
   void OnComputeMD5Sum(wxCommandEvent& event);
   void OnShowDefaultConfig(wxCommandEvent& event);
-  void ListSelectionChanged(wxCommandEvent& event);
-  void OnActionReplayCodeChecked(wxCommandEvent& event);
+  void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void ActionReplayButtonClicked(wxCommandEvent& event);
   void RightClickOnBanner(wxMouseEvent& event);
   void OnBannerImageSave(wxCommandEvent& event);
   void OnRightClickOnTree(wxTreeEvent& event);
@@ -231,7 +220,6 @@ private:
   std::string game_id;
 
   std::set<std::string> DefaultPatches;
-  std::set<std::string> DefaultCheats;
 
   void LoadGameConfig();
   bool SaveGameConfig();
@@ -239,8 +227,6 @@ private:
   void GenerateLocalIniModified();
   void PatchList_Load();
   void PatchList_Save();
-  void ActionReplayList_Load();
-  void ActionReplayList_Save();
   void ChangeBannerDetails(DiscIO::Language language);
 
   long GetElementStyle(const char* section, const char* key);
