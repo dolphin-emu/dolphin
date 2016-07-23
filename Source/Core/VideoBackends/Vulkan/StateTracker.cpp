@@ -730,34 +730,34 @@ bool StateTracker::UpdatePipeline()
 
 bool StateTracker::UpdateDescriptorSet()
 {
-  // TODO: Combine set updates together.
+  const size_t MAX_DESCRIPTOR_WRITES = NUM_UBO_DESCRIPTOR_SET_BINDINGS +  // UBO
+                                       NUM_PIXEL_SHADER_SAMPLERS +        // Samplers
+                                       1;                                 // SSBO
+  std::array<VkWriteDescriptorSet, MAX_DESCRIPTOR_WRITES> writes;
+  u32 num_writes = 0;
 
   if (m_dirty_flags & (DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_UBO) ||
       m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] == VK_NULL_HANDLE)
   {
-    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
+    VkDescriptorSetLayout layout =
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS);
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
 
-    // Write all three buffers to the set.
-    std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS> set_writes;
     for (size_t i = 0; i < NUM_UBO_DESCRIPTOR_SET_BINDINGS; i++)
     {
-      set_writes[i] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                       nullptr,
-                       set,
-                       static_cast<uint32_t>(i),
-                       0,
-                       1,
-                       VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-                       nullptr,
-                       &m_bindings.uniform_buffer_bindings[i],
-                       nullptr};
+      writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                              nullptr,
+                              set,
+                              static_cast<uint32_t>(i),
+                              0,
+                              1,
+                              VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                              nullptr,
+                              &m_bindings.uniform_buffer_bindings[i],
+                              nullptr};
     }
-
-    vkUpdateDescriptorSets(g_object_cache->GetDevice(), static_cast<uint32_t>(set_writes.size()),
-                           set_writes.data(), 0, nullptr);
 
     m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
@@ -766,11 +766,9 @@ bool StateTracker::UpdateDescriptorSet()
   if (m_dirty_flags & DIRTY_FLAG_PS_SAMPLERS ||
       m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] == VK_NULL_HANDLE)
   {
-    std::array<VkWriteDescriptorSet, NUM_PIXEL_SHADER_SAMPLERS> writes;
-    uint32_t num_writes = 0;
-
-    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
+    VkDescriptorSetLayout layout =
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS);
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
 
@@ -792,7 +790,6 @@ bool StateTracker::UpdateDescriptorSet()
       }
     }
 
-    vkUpdateDescriptorSets(g_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
@@ -801,26 +798,29 @@ bool StateTracker::UpdateDescriptorSet()
       (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
        m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
   {
-    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS));
+    VkDescriptorSetLayout layout =
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS);
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
 
-    VkWriteDescriptorSet write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                  nullptr,
-                                  set,
-                                  0,
-                                  0,
-                                  1,
-                                  VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                                  nullptr,
-                                  &m_bindings.ps_ssbo,
-                                  nullptr};
+    writes[num_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                            nullptr,
+                            set,
+                            0,
+                            0,
+                            1,
+                            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+                            nullptr,
+                            &m_bindings.ps_ssbo,
+                            nullptr};
 
-    vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &write, 0, nullptr);
     m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
+
+  if (num_writes > 0)
+    vkUpdateDescriptorSets(g_object_cache->GetDevice(), num_writes, writes.data(), 0, nullptr);
 
   return true;
 }
