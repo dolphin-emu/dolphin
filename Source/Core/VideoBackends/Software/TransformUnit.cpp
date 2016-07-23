@@ -181,10 +181,10 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
   }
 
   // TODO write comment
-  if(dst->z == 0.0f)
+  if (dst->z == 0.0f)
   {
-    if(mat[8] != 0.0f || (xfmem.dualTexTrans.enabled && postMat[8] != 0.0f) ||
-       mat[9] != 0.0f || (xfmem.dualTexTrans.enabled && postMat[9] != 0.0f))
+    if (mat[8] != 0.0f || (xfmem.dualTexTrans.enabled && postMat[8] != 0.0f) || mat[9] != 0.0f ||
+        (xfmem.dualTexTrans.enabled && postMat[9] != 0.0f))
     {
       // TODO test this case more
       dst->x = 0.0f;
