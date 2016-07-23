@@ -372,16 +372,13 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
   {
 #endif
     NetPlayDialog*& npd = NetPlayDialog::GetInstance();
-    if (npd == nullptr)
-    {
-      return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
-                                   (yes_no) ? wxYES_NO : wxOK, wxWindow::FindFocus());
-    }
-    else
+    if (npd != nullptr && npd->IsShown())
     {
       npd->AppendChat("/!\\ " + std::string{text});
       return true;
     }
+    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption), (yes_no) ? wxYES_NO : wxOK,
+                                 wxWindow::FindFocus());
 #ifdef __WXGTK__
   }
   else
