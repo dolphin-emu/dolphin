@@ -83,4 +83,14 @@ public:
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override{};  // not needed
 };
+
+class WiimoteScannerDarwinHID final : public WiimoteScannerBackend
+{
+public:
+  WiimoteScannerDarwinHID() {}
+  ~WiimoteScannerDarwinHID() {}
+  bool IsReady() const override;
+  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
+  void Update() override{};  // not needed
+};
 }
