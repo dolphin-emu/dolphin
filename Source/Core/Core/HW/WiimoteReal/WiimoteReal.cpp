@@ -19,7 +19,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/Host.h"
 #ifdef WIIMOTE_USE_LINUX_BACKEND
-#include "Core/HW/WiimoteReal/IONix.h"
+#include "Core/HW/WiimoteReal/IOLinux.h"
 #endif
 #ifdef WIIMOTE_USE_ANDROID_BACKEND
 #include "Core/HW/WiimoteReal/IOAndroid.h"
