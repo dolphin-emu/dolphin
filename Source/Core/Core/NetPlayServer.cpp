@@ -937,6 +937,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 
 struct UPNPUrls NetPlayServer::m_upnp_urls;
 struct IGDdatas NetPlayServer::m_upnp_data;
+std::string NetPlayServer::m_upnp_ourip;
 u16 NetPlayServer::m_upnp_mapped = 0;
 bool NetPlayServer::m_upnp_inited = false;
 bool NetPlayServer::m_upnp_error = false;
@@ -953,23 +954,17 @@ void NetPlayServer::TryPortmapping(u16 port)
 // UPnP thread: try to map a port
 void NetPlayServer::mapPortThread(const u16 port)
 {
-  ENetAddress adr = {ENET_HOST_ANY, port};
-  char cIP[20];
-
-  enet_address_get_host(&adr, cIP, 20);
-  std::string ourIP(cIP);
-
   if (!m_upnp_inited)
     if (!initUPnP())
       goto fail;
 
-  if (!UPnPMapPort(ourIP, port))
+  if (!UPnPMapPort(m_upnp_ourip, port))
     goto fail;
 
-  NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, ourIP.c_str());
+  NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
   return;
 fail:
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, ourIP.c_str());
+  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, m_upnp_ourip.c_str());
   return;
 }
 
@@ -986,6 +981,7 @@ bool NetPlayServer::initUPnP()
 {
   std::vector<UPNPDev*> igds;
   int descXMLsize = 0, upnperror = 0;
+  char cIP[20];
 
   // Don't init if already inited
   if (m_upnp_inited)
@@ -1027,14 +1023,18 @@ bool NetPlayServer::initUPnP()
     std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0, &statusCode)));
+    descXML.reset(static_cast<char*>(
+        miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0, &statusCode)));
 #else
-    descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0)));
+    descXML.reset(
+        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0)));
 #endif
     if (descXML && statusCode == 200)
     {
       parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
       GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
+
+      m_upnp_ourip = cIP;
 
       NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
       break;
