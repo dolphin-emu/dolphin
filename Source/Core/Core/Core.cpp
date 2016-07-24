@@ -295,9 +295,7 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
-#if defined(__LIBUSB__) || defined(_WIN32)
   GCAdapter::ResetRumble();
-#endif
 
 #ifdef USE_MEMORYWATCHER
   MemoryWatcher::Shutdown();
@@ -695,9 +693,7 @@ void SetState(EState state)
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
-#if defined(__LIBUSB__) || defined(_WIN32)
     GCAdapter::ResetRumble();
-#endif
     break;
   case CORE_RUN:
     CPU::EnableStepping(false);
@@ -815,9 +811,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   // (s_efbAccessRequested).
   Fifo::PauseAndLock(do_lock, false);
 
-#if defined(__LIBUSB__) || defined(_WIN32)
   GCAdapter::ResetRumble();
-#endif
 
   // CPU is unlocked last because CPU::PauseAndLock contains the synchronization
   // mechanism that prevents CPU::Break from racing.
