@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -13,6 +15,7 @@
 #include <wx/font.h>
 #include <wx/notebook.h>
 #include <wx/pen.h>
+#include <wx/settings.h>
 #include <wx/statbmp.h>
 
 #include "DolphinWX/InputConfigDiag.h"
@@ -455,43 +458,85 @@ static void DrawControlGroupBox(wxDC& dc, ControlGroupBox* g)
   }
 }
 
+static void DrawBorder(wxDC* dc, const wxBitmap& target)
+{
+  // This function attempts to draw the scaled box outline without relying on
+  // SetUserScale() because WX doesn't offset the top/left coordinates by the scaled
+  // pen's width on Windows which results in the rendering being clipped by the
+  // top/left bitmap edges with DrawRectangle; this erroneously gives a line that is
+  // thicker at the right/bottom. We need to account for this by disabling the scaling
+  // factor then manually doing the scaling calculation ourself (correctly).
+  // This problem obviously affects DrawControlGroupBox() too but that doesn't matter
+  // since this border box hides those mistakes by drawing over them.
+  double scale_x = 1;
+  double scale_y = 1;
+  dc->GetUserScale(&scale_x, &scale_y);
+  dc->SetUserScale(1, 1);
+
+  // Use the window caption bar color as a safe accent color.
+  wxPen border_pen(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION));
+  border_pen.SetCap(wxCAP_BUTT);
+  border_pen.SetJoin(wxJOIN_MITER);
+
+  int scaled_width = static_cast<int>(target.GetScaledWidth());
+  int scaled_height = static_cast<int>(target.GetScaledHeight());
+  int round_scale_x = static_cast<int>(std::round(scale_x));  // Pen width = 1*scale
+  int round_scale_y = static_cast<int>(std::round(scale_y));
+  int left_line = round_scale_x / 2;  // Half the pen width
+  int right_line = scaled_width - std::max(left_line, 1);
+  int top_line = round_scale_y / 2;
+  int bottom_line = scaled_height - std::max(top_line, 1);
+
+  border_pen.SetWidth(round_scale_x);
+  dc->SetPen(border_pen);
+  dc->DrawLine(left_line, 0, left_line, scaled_height);
+  dc->DrawLine(right_line, 0, right_line, scaled_height);
+
+  border_pen.SetWidth(round_scale_y);
+  dc->SetPen(border_pen);
+  dc->DrawLine(0, top_line, scaled_width, top_line);
+  dc->DrawLine(0, bottom_line, scaled_width, bottom_line);
+
+  dc->SetUserScale(scale_x, scale_y);
+}
+
 void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
-  wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+  // Size is in pixels because we are going to be using scale factors and want something
+  // which is not based on physical units relative to the screen DPI (1 pt = 1/72 inches).
+  wxFont small_font(wxSize(0, 8), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
 
   g_controller_interface.UpdateInput();
 
   GamepadPage* const current_page =
-      (GamepadPage*)m_pad_notebook->GetPage(m_pad_notebook->GetSelection());
+      static_cast<GamepadPage*>(m_pad_notebook->GetPage(m_pad_notebook->GetSelection()));
 
   auto lock = ControllerEmu::GetStateLock();
+  wxMemoryDC dc;
   for (ControlGroupBox* g : current_page->control_groups)
   {
-    // if this control group has a bitmap
-    if (g->static_bitmap)
-    {
-      wxMemoryDC dc;
-      wxBitmap bitmap(g->static_bitmap->GetBitmap());
-      dc.SelectObject(bitmap);
-      dc.Clear();
+    // Only if this control group has a bitmap
+    if (!g->static_bitmap)
+      continue;
 
-      dc.SetFont(small_font);
-      dc.SetTextForeground(0xC0C0C0);
+    wxBitmap bitmap(g->static_bitmap->GetBitmap());
+    dc.SetUserScale(g->m_scale_x, g->m_scale_y);
+    // NOTE: Selecting the bitmap inherits the bitmap's ScaleFactor onto the DC as well.
+    dc.SelectObject(bitmap);
+    dc.SetBackground(*wxWHITE_BRUSH);
+    dc.Clear();
 
-      DrawControlGroupBox(dc, g);
+    dc.SetFont(small_font);
+    dc.SetTextForeground(0xC0C0C0);
 
-      // box outline
-      // Windows XP color
-      dc.SetPen(wxPen("#7f9db9"));
-      dc.SetBrush(*wxTRANSPARENT_BRUSH);
-      dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+    DrawControlGroupBox(dc, g);
+    DrawBorder(&dc, bitmap);
 
-      // label for sticks and stuff
-      if (64 == bitmap.GetHeight())
-        dc.DrawText(StrToWxStr(g->control_group->name).Upper(), 4, 2);
+    // label for sticks and stuff
+    if (g->HasBitmapHeading())
+      dc.DrawText(StrToWxStr(g->control_group->name).Upper(), 4, 2);
 
-      dc.SelectObject(wxNullBitmap);
-      g->static_bitmap->SetBitmap(bitmap);
-    }
+    dc.SelectObject(wxNullBitmap);
+    g->static_bitmap->SetBitmap(bitmap);
   }
 }
