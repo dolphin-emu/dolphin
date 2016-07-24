@@ -133,16 +133,15 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
   m_palette_stream_buffer->CommitMemory(palette_size);
 
   // PS Uniforms/Samplers
-  PSUniformBlock* uniforms =
-      reinterpret_cast<PSUniformBlock*>(draw.AllocatePSUniforms(sizeof(PSUniformBlock)));
-  uniforms->multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
-  uniforms->texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
-  draw.CommitPSUniforms(sizeof(PSUniformBlock));
+  PSUniformBlock uniforms = {};
+  uniforms.multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
+  draw.SetPushConstants(&uniforms, sizeof(uniforms));
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
 
   // We have to bind the texel buffer descriptor set separately.
   vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                          VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 2, 1,
+                          VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
                           &texel_buffer_descriptor_set, 0, nullptr);
 
   // Draw
@@ -194,14 +193,14 @@ bool PaletteTextureConverter::CreateBuffers()
 bool PaletteTextureConverter::CompileShaders()
 {
   static const char PALETTE_CONVERSION_FRAGMENT_SHADER_SOURCE[] = R"(
-    layout(std140, set = 0, binding = 2) uniform PSBlock
+    layout(std140, push_constant) uniform PCBlock
     {
       float multiplier;
       int texture_buffer_offset;
-    };
+    } PC;
 
-    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
-    layout(set = 2, binding = 0) uniform usamplerBuffer samp1;
+    layout(set = 1, binding = 0) uniform sampler2DArray samp0;
+    layout(set = 0, binding = 0) uniform usamplerBuffer samp1;
 
     layout(location = 0) in vec3 f_uv0;
     layout(location = 0) out vec4 ocol0;
@@ -262,8 +261,8 @@ bool PaletteTextureConverter::CompileShaders()
     }
     void main()
     {
-	    int src = int(round(texture(samp0, f_uv0).r * multiplier));
-	    src = int(texelFetch(samp1, src + texture_buffer_offset).r);
+	    int src = int(round(texture(samp0, f_uv0).r * PC.multiplier));
+	    src = int(texelFetch(samp1, src + PC.texture_buffer_offset).r);
 	    src = ((src << 8) & 0xFF00) | (src >> 8);
 	    ocol0 = DECODE(src);
     }
@@ -342,18 +341,19 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
     return false;
   }
 
-  VkDescriptorSetLayout sets[] = {
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS),
-      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS),
-      m_palette_set_layout};
+  VkDescriptorSetLayout sets[] = {m_palette_set_layout, g_object_cache->GetDescriptorSetLayout(
+                                                            DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS)};
+
+  VkPushConstantRange push_constant_range = {
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
 
   VkPipelineLayoutCreateInfo pipeline_layout_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                                      nullptr,
                                                      0,
                                                      static_cast<u32>(ArraySize(sets)),
                                                      sets,
-                                                     0,
-                                                     nullptr};
+                                                     1,
+                                                     &push_constant_range};
 
   res = vkCreatePipelineLayout(g_object_cache->GetDevice(), &pipeline_layout_info, nullptr,
                                &m_pipeline_layout);

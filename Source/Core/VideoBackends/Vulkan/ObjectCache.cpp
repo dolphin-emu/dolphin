@@ -643,7 +643,7 @@ bool ObjectCache::CreatePipelineLayout()
       m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]};
   VkPushConstantRange push_constant_range = {
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 128};
+      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
 
   // Info for each pipeline layout
   VkPipelineLayoutCreateInfo standard_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,

@@ -165,11 +165,10 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 bool TextureCache::CreateRenderPasses()
 {
   VkAttachmentDescription attachments[] = {
-      {0, TEXTURECACHE_TEXTURE_FORMAT,
-       VK_SAMPLE_COUNT_1_BIT,  // TODO: MSAA
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+      {0, TEXTURECACHE_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -328,16 +327,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(
-      command_buffer, g_object_cache->GetStandardPipelineLayout(),
+      command_buffer, g_object_cache->GetPushConstantPipelineLayout(),
       m_parent->m_overwrite_render_pass, g_object_cache->GetPassthroughVertexShader(),
       g_object_cache->GetPassthroughGeometryShader(),
       is_depth_copy ? m_parent->m_efb_depth_to_tex_shader : m_parent->m_efb_color_to_tex_shader);
 
-  // TODO: Hmm. Push constants would be useful here.
-  u8* uniform_buffer = draw.AllocatePSUniforms(sizeof(float) * 28);
-  memcpy(uniform_buffer, colmat, (is_depth_copy ? sizeof(float) * 20 : sizeof(float) * 28));
-  draw.CommitPSUniforms(sizeof(float) * 28);
-
+  draw.SetPushConstants(colmat, (is_depth_copy ? sizeof(float) * 20 : sizeof(float) * 28));
   draw.SetPSSampler(0, src_texture->GetView(), src_sampler);
 
   VkRect2D dest_region = {{0, 0}, {m_texture->GetWidth(), m_texture->GetHeight()}};
@@ -511,10 +506,10 @@ void TextureCache::CompileShaders()
   static const char EFB_COLOR_TO_TEX_SOURCE[] = R"(
     SAMPLER_BINDING(0) uniform sampler2DArray samp0;
 
-    layout(std140, set = 0, binding = 2) uniform PSBlock
+    layout(std140, push_constant) uniform PSBlock
     {
 	    vec4 colmat[7];
-    };
+    } C;
 
     layout(location = 0) in vec3 uv0;
     layout(location = 1) in vec4 col0;
@@ -523,18 +518,18 @@ void TextureCache::CompileShaders()
     void main()
     {
 	    float4 texcol = texture(samp0, uv0);
-	    texcol = round(texcol * colmat[5]) * colmat[6];
-	    ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];
+	    texcol = round(texcol * C.colmat[5]) * C.colmat[6];
+	    ocol0 = texcol * mat4(C.colmat[0], C.colmat[1], C.colmat[2], C.colmat[3]) + C.colmat[4];
     }
   )";
 
   static const char EFB_DEPTH_TO_TEX_SOURCE[] = R"(
     SAMPLER_BINDING(0) uniform sampler2DArray samp0;
 
-    layout(std140, set = 0, binding = 2) uniform PSBlock
+    layout(std140, push_constant) uniform PSBlock
     {
 	    vec4 colmat[5];
-    };
+    } C;
 
     layout(location = 0) in vec3 uv0;
     layout(location = 1) in vec4 col0;
@@ -561,7 +556,7 @@ void TextureCache::CompileShaders()
 	    // Normalize components to [0.0..1.0]
 	    texcol = vec4(workspace) / 255.0;
 
-	    ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];
+	    ocol0 = texcol * mat4(C.colmat[0], C.colmat[1], C.colmat[2], C.colmat[3]) + C.colmat[4];
     }
   )";
 

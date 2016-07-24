@@ -81,7 +81,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
   if (ApiType == API_VULKAN)
-    WRITE(p, "layout(std140, set = 0, binding = 2) uniform PSBlock { int4 position; };\n");
+    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
   else
     WRITE(p, "uniform int4 position;\n");
 
@@ -108,7 +108,8 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
     WRITE(p, "void main()\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
-             "  int2 uv1 = int2(gl_FragCoord.xy);\n");
+             "  int2 uv1 = int2(gl_FragCoord.xy);\n"
+             "  int4 position = PC.position;\n");
   }
   else  // D3D
   {

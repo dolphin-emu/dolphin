@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
 
@@ -212,6 +213,15 @@ void UtilityShaderDraw::CommitPSUniforms(size_t size)
       static_cast<uint32_t>(g_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset());
 
   g_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
+}
+
+void UtilityShaderDraw::SetPushConstants(const void* data, size_t data_size)
+{
+  _assert_(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
+
+  vkCmdPushConstants(m_command_buffer, m_pipeline_info.pipeline_layout,
+                     VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+                     static_cast<u32>(data_size), data);
 }
 
 void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler sampler)

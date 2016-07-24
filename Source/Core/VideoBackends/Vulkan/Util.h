@@ -108,6 +108,8 @@ public:
   u8* AllocatePSUniforms(size_t size);
   void CommitPSUniforms(size_t size);
 
+  void SetPushConstants(const void* data, size_t data_size);
+
   void SetPSSampler(size_t index, VkImageView view, VkSampler sampler);
 
   void SetRasterizationState(const RasterizationState& state);

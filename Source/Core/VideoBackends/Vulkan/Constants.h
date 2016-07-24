@@ -57,6 +57,9 @@ constexpr size_t MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE = 64 * 1024 * 1024;
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
 
+// Push constant buffer size for utility shaders
+constexpr u32 PUSH_CONSTANT_BUFFER_SIZE = 128;
+
 // Rasterization state info
 union RasterizationState {
   BitField<0, 2, VkCullModeFlags> cull_mode;

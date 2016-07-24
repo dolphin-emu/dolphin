@@ -120,10 +120,11 @@ static const u8 rasters[CHAR_COUNT][CHAR_HEIGHT] = {
 
 static const char VERTEX_SHADER_SOURCE[] = R"(
 
-layout(std140, set = 0, binding = 0) uniform VSBlock {
+layout(std140, push_constant) uniform PCBlock {
   vec2 char_size;
   vec2 offset;
-};
+  vec4 color;
+} PC;
 
 layout(location = 0) in vec4 ipos;
 layout(location = 5) in vec4 icol0;
@@ -133,18 +134,20 @@ layout(location = 0) out vec2 uv0;
 
 void main()
 {
-  gl_Position = vec4(ipos.xy + offset, 0.0f, 1.0f);
+  gl_Position = vec4(ipos.xy + PC.offset, 0.0f, 1.0f);
   gl_Position.y = -gl_Position.y;
-  uv0 = itex0.xy * char_size;
+  uv0 = itex0.xy * PC.char_size;
 }
 
 )";
 
 static const char FRAGMENT_SHADER_SOURCE[] = R"(
 
-layout(std140, set = 0, binding = 2) uniform PSBlock {
+layout(std140, push_constant) uniform PCBlock {
+  vec2 char_size;
+  vec2 offset;
   vec4 color;
-};
+} PC;
 
 layout(set = 1, binding = 0) uniform sampler2D samp0;
 
@@ -154,9 +157,7 @@ layout(location = 0) out vec4 ocol0;
 
 void main()
 {
-  ocol0 = texture(samp0, uv0) * color;
-  //ocol0 = color + vec4(0.2f, 0.2f, 0.2f, 1.0f);
-  //ocol0 = float4(uv0.xy, 0.1f, 1.0f);
+  ocol0 = texture(samp0, uv0) * PC.color;
 }
 
 )";
@@ -303,8 +304,8 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
     return;
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), render_pass, m_vertex_shader,
-                         VK_NULL_HANDLE, m_fragment_shader);
+                         g_object_cache->GetPushConstantPipelineLayout(), render_pass,
+                         m_vertex_shader, VK_NULL_HANDLE, m_fragment_shader);
 
   UtilityShaderVertex* vertices =
       draw.ReserveVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST, text.length() * 6);
@@ -372,34 +373,22 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
 
   draw.CommitVertices(num_vertices);
 
-  struct VSBlock
+  struct PCBlock
   {
     float char_size[2];
     float offset[2];
-    int pad[2];
-  } vs_block = {};
-
-  struct PSBlock
-  {
     float color[4];
-  } ps_block = {};
+  } pc_block = {};
 
-  vs_block.char_size[0] = 1.0f / static_cast<float>(CHAR_COUNT);
-  vs_block.char_size[1] = 1.0f;
+  pc_block.char_size[0] = 1.0f / static_cast<float>(CHAR_COUNT);
+  pc_block.char_size[1] = 1.0f;
 
   // shadows
-  vs_block.offset[0] = 2.0f / bbWidth;
-  vs_block.offset[1] = -2.0f / bbHeight;
-  ps_block.color[3] = (color >> 24) / 255.0f;
+  pc_block.offset[0] = 2.0f / bbWidth;
+  pc_block.offset[1] = -2.0f / bbHeight;
+  pc_block.color[3] = (color >> 24) / 255.0f;
 
-  u8* vs_uniforms_ptr = draw.AllocateVSUniforms(sizeof(vs_block));
-  memcpy(vs_uniforms_ptr, &vs_block, sizeof(vs_block));
-  draw.CommitVSUniforms(sizeof(vs_block));
-
-  u8* ps_uniforms_ptr = draw.AllocatePSUniforms(sizeof(ps_block));
-  memcpy(ps_uniforms_ptr, &ps_block, sizeof(ps_block));
-  draw.CommitPSUniforms(sizeof(ps_block));
-
+  draw.SetPushConstants(&pc_block, sizeof(pc_block));
   draw.SetPSSampler(0, m_texture->GetView(), g_object_cache->GetLinearSampler());
 
   // Setup alpha blending
@@ -413,19 +402,12 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   draw.Draw();
 
   // non-shadowed part
-  vs_block.offset[0] = 0.0f;
-  vs_block.offset[1] = 0.0f;
-  ps_block.color[0] = ((color >> 16) & 0xFF) / 255.0f;
-  ps_block.color[1] = ((color >> 8) & 0xFF) / 255.0f;
-  ps_block.color[2] = (color & 0xFF) / 255.0f;
-  vs_uniforms_ptr = draw.AllocateVSUniforms(sizeof(vs_block));
-  memcpy(vs_uniforms_ptr, &vs_block, sizeof(vs_block));
-  draw.CommitVSUniforms(sizeof(vs_block));
-
-  ps_uniforms_ptr = draw.AllocatePSUniforms(sizeof(ps_block));
-  memcpy(ps_uniforms_ptr, &ps_block, sizeof(ps_block));
-  draw.CommitPSUniforms(sizeof(ps_block));
-
+  pc_block.offset[0] = 0.0f;
+  pc_block.offset[1] = 0.0f;
+  pc_block.color[0] = ((color >> 16) & 0xFF) / 255.0f;
+  pc_block.color[1] = ((color >> 8) & 0xFF) / 255.0f;
+  pc_block.color[2] = (color & 0xFF) / 255.0f;
+  draw.SetPushConstants(&pc_block, sizeof(pc_block));
   draw.Draw();
 }
 

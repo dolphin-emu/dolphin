@@ -72,17 +72,14 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
   state_tracker->EndRenderPass();
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), m_encoding_render_pass,
+                         g_object_cache->GetPushConstantPipelineLayout(), m_encoding_render_pass,
                          g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
                          m_texture_encoding_shaders[format]);
 
-  // Allocate uniform buffer - int4 of left,top,native_width,scale
-  // TODO: Replace with push constants
+  // Uniform - int4 of left,top,native_width,scale
   s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
                              scale_by_half ? 2 : 1};
-  u8* uniform_buffer_ptr = draw.AllocatePSUniforms(sizeof(position_uniform));
-  memcpy(uniform_buffer_ptr, position_uniform, sizeof(position_uniform));
-  draw.CommitPSUniforms(sizeof(position_uniform));
+  draw.SetPushConstants(position_uniform, sizeof(position_uniform));
 
   // Doesn't make sense to linear filter depth values
   draw.SetPSSampler(0, src_texture, (scale_by_half && src_format != PEControl::Z24) ?
