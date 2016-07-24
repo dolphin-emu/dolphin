@@ -330,6 +330,41 @@ std::string GameListItem::GetName() const
   return name + ext;
 }
 
+std::string GameListItem::GetUniqueIdentifier() const
+{
+  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
+  std::vector<std::string> info;
+  if (!GetUniqueID().empty())
+    info.push_back(GetUniqueID());
+  if (GetRevision() != 0)
+  {
+    std::string rev_str = "Revision ";
+    info.push_back(rev_str + std::to_string((long long)GetRevision()));
+  }
+
+  std::string name(GetName(lang));
+  if (name.empty())
+    name = GetName();
+
+  int disc_number = GetDiscNumber() + 1;
+
+  std::string lower_name = name;
+  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  if (disc_number > 1 &&
+      lower_name.find(std::string(wxString::Format("disc %i", disc_number))) == std::string::npos &&
+      lower_name.find(std::string(wxString::Format("disc%i", disc_number))) == std::string::npos)
+  {
+    std::string disc_text = "Disc ";
+    info.push_back(disc_text + std::to_string(disc_number));
+  }
+  if (info.empty())
+    return name;
+  std::ostringstream ss;
+  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
+  ss << info.back();
+  return name + " (" + ss.str() + ")";
+}
+
 std::vector<DiscIO::Language> GameListItem::GetLanguages() const
 {
   std::vector<DiscIO::Language> languages;
