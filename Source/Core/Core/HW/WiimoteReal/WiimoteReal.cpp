@@ -21,6 +21,7 @@
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
 #include "Core/HW/WiimoteReal/IOdarwin.h"
+#include "Core/HW/WiimoteReal/IOhidapi.h"
 #include "Core/Host.h"
 #include "InputCommon/InputConfig.h"
 
@@ -639,7 +640,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerAndroid>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerWindows>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwin>());
-    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwinHID>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerHidapi>());
     g_wiimote_scanner.StartThread();
   }
 
@@ -833,7 +834,7 @@ void StateChange(EMUSTATE_CHANGE newState)
   // TODO: disable/enable auto reporting, maybe
 }
 
-bool IsValidBluetoothName(const std::string& name)
+bool IsValidDeviceName(const std::string& name)
 {
   return "Nintendo RVL-CNT-01" == name || "Nintendo RVL-CNT-01-TR" == name ||
          IsBalanceBoardName(name);

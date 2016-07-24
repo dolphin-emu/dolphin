@@ -90,7 +90,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
     }
 
     ERROR_LOG(WIIMOTE, "device name %s", name);
-    if (!IsValidBluetoothName(name))
+    if (!IsValidDeviceName(name))
       continue;
 
     char bdaddr_str[18] = {};

@@ -142,6 +142,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 			IPC_HLE/WII_Socket.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
@@ -239,18 +240,12 @@ set(LIBS
 	z
 	)
 
-if(LIBUSB_FOUND)
-	# Using shared LibUSB
-	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
-endif(LIBUSB_FOUND)
-
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
 elseif(APPLE)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
+	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm HW/WiimoteReal/IOhidapi.cpp)
 	set(LIBS ${LIBS}
 		${IOB_LIBRARY})
 elseif(UNIX)
@@ -260,6 +255,9 @@ elseif(UNIX)
 		set(LIBS ${LIBS} bluetooth)
 	elseif(ANDROID)
 		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
+	endif()
+	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND NOT ANDROID)
+		set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
 	endif()
 endif()
 
