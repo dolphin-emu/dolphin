@@ -86,12 +86,6 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
                                         g_object_cache->GetLinearSampler() :
                                         g_object_cache->GetPointSampler());
 
-  // Ensure the source image is in COLOR_ATTACHMENT state. We don't care about the old contents of
-  // it, so forcing to UNDEFINED is okay here
-  m_encoding_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-  m_encoding_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                         VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
   u32 render_width = bytes_per_row / sizeof(u32);
   u32 render_height = num_blocks_y;
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0, render_width,
@@ -104,8 +98,7 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
   draw.EndRenderPass();
 
   // Transition the image before copying
-  m_encoding_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                         VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_encoding_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   m_download_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                     m_encoding_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
                                     render_width, render_height, 0, 0);
@@ -155,8 +148,8 @@ bool TextureEncoder::CreateEncodingRenderPass()
   VkAttachmentDescription attachments[] = {
       {0, ENCODING_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
        VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_UNDEFINED,
+       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -165,6 +158,12 @@ bool TextureEncoder::CreateEncodingRenderPass()
                                                   color_attachment_references, nullptr, nullptr, 0,
                                                   nullptr}};
 
+  VkSubpassDependency dependancies[] = {
+      {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+       VK_PIPELINE_STAGE_TRANSFER_BIT,
+       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+       VK_ACCESS_TRANSFER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
+
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
@@ -172,8 +171,8 @@ bool TextureEncoder::CreateEncodingRenderPass()
                                       attachments,
                                       static_cast<u32>(ArraySize(subpass_descriptions)),
                                       subpass_descriptions,
-                                      0,
-                                      nullptr};
+                                      static_cast<u32>(ArraySize(dependancies)),
+                                      dependancies};
 
   VkResult res =
       vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_encoding_render_pass);

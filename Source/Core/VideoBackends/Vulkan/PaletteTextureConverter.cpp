@@ -36,9 +36,6 @@ PaletteTextureConverter::~PaletteTextureConverter()
   if (m_palette_buffer_view != VK_NULL_HANDLE)
     vkDestroyBufferView(g_object_cache->GetDevice(), m_palette_buffer_view, nullptr);
 
-  if (m_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_object_cache->GetDevice(), m_render_pass, nullptr);
-
   if (m_palette_set_layout != VK_NULL_HANDLE)
     vkDestroyDescriptorSetLayout(g_object_cache->GetDevice(), m_palette_set_layout, nullptr);
 }
@@ -51,16 +48,13 @@ bool PaletteTextureConverter::Initialize()
   if (!CompileShaders())
     return false;
 
-  if (!CreateRenderPass())
-    return false;
-
   if (!CreateDescriptorLayout())
     return false;
 
   return true;
 }
 
-void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Texture2D* dst_texture,
+void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, VkRenderPass render_pass,
                                              VkFramebuffer dst_framebuffer, Texture2D* src_texture,
                                              u32 width, u32 height, void* palette,
                                              TlutFormat format)
@@ -111,18 +105,14 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
                                           &m_palette_buffer_view};
   vkUpdateDescriptorSets(g_object_cache->GetDevice(), 1, &texel_set_write, 0, nullptr);
 
-  // Transition resource states
-  dst_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                             m_palette_stream_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
                             VK_ACCESS_SHADER_READ_BIT, palette_offset, palette_size,
-                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
+                            VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
   // Set up draw
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), m_pipeline_layout,
-                         m_render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                         render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
                          m_shaders[format]);
 
   VkRect2D region = {{0, 0}, {width, height}};
@@ -148,14 +138,6 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, Textur
   draw.SetViewportAndScissor(0, 0, width, height);
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
-
-  // Transition resources before re-use
-  dst_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                            m_palette_stream_buffer->GetBuffer(), VK_ACCESS_SHADER_READ_BIT,
-                            VK_ACCESS_HOST_WRITE_BIT, palette_offset, palette_size,
-                            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT);
 }
 
 bool PaletteTextureConverter::CreateBuffers()
@@ -282,42 +264,6 @@ bool PaletteTextureConverter::CompileShaders()
       (m_shaders[GX_TL_RGB5A3] = g_object_cache->GetPixelShaderCache().CompileAndCreateShader(
            palette_rgb5a3_program)) == nullptr)
   {
-    return false;
-  }
-
-  return true;
-}
-
-bool PaletteTextureConverter::CreateRenderPass()
-{
-  VkAttachmentDescription attachments[] = {
-      {0, VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkAttachmentReference color_attachment_references[] = {
-      {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
-
-  VkSubpassDescription subpass_descriptions[] = {{0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr, 1,
-                                                  color_attachment_references, nullptr, nullptr, 0,
-                                                  nullptr}};
-
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<u32>(ArraySize(attachments)),
-                                      attachments,
-                                      static_cast<u32>(ArraySize(subpass_descriptions)),
-                                      subpass_descriptions,
-                                      0,
-                                      nullptr};
-
-  VkResult res =
-      vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr, &m_render_pass);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
     return false;
   }
 

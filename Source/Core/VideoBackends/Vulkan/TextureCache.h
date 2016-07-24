@@ -64,9 +64,12 @@ private:
 
   bool CreateRenderPasses();
 
+  VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
+
   StateTracker* m_state_tracker = nullptr;
 
-  VkRenderPass m_overwrite_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 

@@ -97,11 +97,24 @@ bool FramebufferManager::CreateEFBRenderPass()
                                                   VK_ATTACHMENT_STORE_OP_STORE,
                                                   VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                                   VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+                                                  VK_IMAGE_LAYOUT_UNDEFINED,
+                                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+
+    // Ensure all reads have finished from the resolved texture before overwriting it.
+    VkSubpassDependency dependancies[] = {
+        {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_SHADER_READ_BIT,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_DEPENDENCY_BY_REGION_BIT},
+        {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
     subpass_description.pDepthStencilAttachment = nullptr;
     pass_info.pAttachments = &resolve_attachment;
     pass_info.attachmentCount = 1;
+    pass_info.dependencyCount = static_cast<u32>(ArraySize(dependancies));
+    pass_info.pDependencies = dependancies;
     res = vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr,
                              &m_depth_resolve_render_pass);
 
@@ -390,12 +403,8 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(StateTracker* state_tracke
   // Can't resolve within a render pass.
   state_tracker->EndRenderPass();
 
-  // Resolving is considered to be a transfer operation.
   m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_efb_resolve_depth_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-  m_efb_resolve_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
@@ -412,6 +421,9 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(StateTracker* state_tracke
   // Restore MSAA texture ready for rendering again
   m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                           VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+  // Render pass transitions to shader resource.
+  m_efb_resolve_depth_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
   return m_efb_resolve_depth_texture.get();
 }
 

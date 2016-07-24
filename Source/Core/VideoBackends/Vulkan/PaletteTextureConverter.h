@@ -25,7 +25,7 @@ public:
 
   bool Initialize();
 
-  void ConvertTexture(StateTracker* state_tracker, Texture2D* dst_texture,
+  void ConvertTexture(StateTracker* state_tracker, VkRenderPass render_pass,
                       VkFramebuffer dst_framebuffer, Texture2D* src_texture, u32 width, u32 height,
                       void* palette, TlutFormat format);
 
@@ -34,10 +34,7 @@ private:
 
   bool CreateBuffers();
   bool CompileShaders();
-  bool CreateRenderPass();
   bool CreateDescriptorLayout();
-
-  VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   VkDescriptorSetLayout m_palette_set_layout = VK_NULL_HANDLE;
   VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;

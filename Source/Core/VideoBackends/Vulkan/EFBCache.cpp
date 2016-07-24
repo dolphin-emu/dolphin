@@ -252,15 +252,15 @@ void EFBCache::DrawPokeVertices(StateTracker* state_tracker, const EFBPokeVertex
 bool EFBCache::CreateRenderPasses()
 {
   VkAttachmentDescription copy_attachment = {
-      0,                                         // VkAttachmentDescriptionFlags    flags
-      EFB_COLOR_TEXTURE_FORMAT,                  // VkFormat                        format
-      VK_SAMPLE_COUNT_1_BIT,                     // VkSampleCountFlagBits           samples
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // VkAttachmentLoadOp              loadOp
-      VK_ATTACHMENT_STORE_OP_STORE,              // VkAttachmentStoreOp             storeOp
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // VkAttachmentLoadOp              stencilLoadOp
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,          // VkAttachmentStoreOp             stencilStoreOp
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // VkImageLayout                   initialLayout
-      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL   // VkImageLayout                   finalLayout
+      0,                                     // VkAttachmentDescriptionFlags    flags
+      EFB_COLOR_TEXTURE_FORMAT,              // VkFormat                        format
+      VK_SAMPLE_COUNT_1_BIT,                 // VkSampleCountFlagBits           samples
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              loadOp
+      VK_ATTACHMENT_STORE_OP_STORE,          // VkAttachmentStoreOp             storeOp
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              stencilLoadOp
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,      // VkAttachmentStoreOp             stencilStoreOp
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,  // VkImageLayout                   initialLayout
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL   // VkImageLayout                   finalLayout
   };
   VkAttachmentReference copy_attachment_ref = {
       0,                                        // uint32_t         attachment
@@ -278,6 +278,14 @@ bool EFBCache::CreateRenderPasses()
       0,                                // uint32_t                        preserveAttachmentCount
       nullptr                           // const uint32_t*                 pPreserveAttachments
   };
+  VkSubpassDependency copy_dependency = {
+      0,
+      VK_SUBPASS_EXTERNAL,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+      VK_ACCESS_TRANSFER_READ_BIT,
+      VK_DEPENDENCY_BY_REGION_BIT};
   VkRenderPassCreateInfo copy_pass = {
       VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // VkStructureType                   sType
       nullptr,                                    // const void*                       pNext
@@ -286,8 +294,8 @@ bool EFBCache::CreateRenderPasses()
       &copy_attachment,  // const VkAttachmentDescription*    pAttachments
       1,                 // uint32_t                          subpassCount
       &copy_subpass,     // const VkSubpassDescription*       pSubpasses
-      0,                 // uint32_t                          dependencyCount
-      nullptr            // const VkSubpassDependency*        pDependencies
+      1,                 // uint32_t                          dependencyCount
+      &copy_dependency   // const VkSubpassDependency*        pDependencies
   };
 
   VkResult res = vkCreateRenderPass(g_object_cache->GetDevice(), &copy_pass, nullptr,
@@ -482,6 +490,12 @@ bool EFBCache::CreateTextures()
     return false;
   }
 
+  // Transition to TRANSFER_SRC, as this is expected by the render pass.
+  m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
   VkImageView framebuffer_attachment = m_color_copy_texture->GetView();
   VkFramebufferCreateInfo framebuffer_info = {
       VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,  // VkStructureType             sType
@@ -564,11 +578,6 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
   if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
       m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT)
   {
-    // Transition temporary texture to color attachment before rendering.
-    m_color_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-    m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_color_render_pass,
                            g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
@@ -593,6 +602,7 @@ bool EFBCache::PopulateColorReadbackTexture(StateTracker* state_tracker)
     }
 
     // Use this as a source texture now.
+    m_color_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     src_texture = m_color_copy_texture.get();
   }
 
@@ -643,11 +653,6 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
   if (m_framebuffer_mgr->GetEFBWidth() != EFB_WIDTH ||
       m_framebuffer_mgr->GetEFBHeight() != EFB_HEIGHT)
   {
-    // Transition temporary texture to color attachment before rendering.
-    m_depth_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_UNDEFINED);
-    m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetStandardPipelineLayout(), m_copy_depth_render_pass,
                            g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
@@ -672,6 +677,7 @@ bool EFBCache::PopulateDepthReadbackTexture(StateTracker* state_tracker)
     }
 
     // Use this as a source texture now.
+    m_depth_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     src_texture = m_depth_copy_texture.get();
     src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   }

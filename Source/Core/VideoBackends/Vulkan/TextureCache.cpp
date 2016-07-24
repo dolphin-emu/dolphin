@@ -50,8 +50,10 @@ TextureCache::TextureCache(StateTracker* state_tracker) : m_state_tracker(state_
 
 TextureCache::~TextureCache()
 {
-  if (m_overwrite_render_pass != VK_NULL_HANDLE)
-    vkDestroyRenderPass(g_object_cache->GetDevice(), m_overwrite_render_pass, nullptr);
+  if (m_initialize_render_pass != VK_NULL_HANDLE)
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_initialize_render_pass, nullptr);
+  if (m_update_render_pass != VK_NULL_HANDLE)
+    vkDestroyRenderPass(g_object_cache->GetDevice(), m_update_render_pass, nullptr);
 }
 
 void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted,
@@ -62,8 +64,11 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   assert(entry->config.rendertarget);
 
   m_palette_texture_converter->ConvertTexture(
-      m_state_tracker, entry->GetTexture(), entry->GetFramebuffer(), unconverted->GetTexture(),
-      entry->config.width, entry->config.height, palette, format);
+      m_state_tracker, GetRenderPassForTextureUpdate(entry->GetTexture()), entry->GetFramebuffer(),
+      unconverted->GetTexture(), entry->config.width, entry->config.height, palette, format);
+
+  // Render pass transitions to SHADER_READ_ONLY.
+  entry->GetTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
@@ -134,7 +139,7 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
         VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         nullptr,
         0,
-        m_overwrite_render_pass,
+        m_initialize_render_pass,
         static_cast<u32>(ArraySize(framebuffer_attachments)),
         framebuffer_attachments,
         texture->GetWidth(),
@@ -164,38 +169,111 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
 bool TextureCache::CreateRenderPasses()
 {
-  VkAttachmentDescription attachments[] = {
-      {0, TEXTURECACHE_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+  static constexpr VkAttachmentDescription initialize_attachment = {
+      0,
+      TEXTURECACHE_TEXTURE_FORMAT,
+      VK_SAMPLE_COUNT_1_BIT,
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      VK_ATTACHMENT_STORE_OP_STORE,
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
-  VkAttachmentReference color_attachment_references[] = {
-      {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+  static constexpr VkAttachmentDescription update_attachment = {
+      0,
+      TEXTURECACHE_TEXTURE_FORMAT,
+      VK_SAMPLE_COUNT_1_BIT,
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      VK_ATTACHMENT_STORE_OP_STORE,
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+      VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
 
-  VkSubpassDescription subpass_descriptions[] = {{0, VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr, 1,
-                                                  color_attachment_references, nullptr, nullptr, 0,
-                                                  nullptr}};
+  static constexpr VkAttachmentReference color_attachment_reference = {
+      0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
-  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
-                                      nullptr,
-                                      0,
-                                      static_cast<u32>(ArraySize(attachments)),
-                                      attachments,
-                                      static_cast<u32>(ArraySize(subpass_descriptions)),
-                                      subpass_descriptions,
-                                      0,
-                                      nullptr};
+  static constexpr VkSubpassDescription subpass_description = {
+      0,       VK_PIPELINE_BIND_POINT_GRAPHICS,
+      0,       nullptr,
+      1,       &color_attachment_reference,
+      nullptr, nullptr,
+      0,       nullptr};
 
-  VkResult res = vkCreateRenderPass(g_object_cache->GetDevice(), &pass_info, nullptr,
-                                    &m_overwrite_render_pass);
+  static constexpr VkSubpassDependency initialize_dependancies[] = {
+      {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_TRANSFER_BIT,
+       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+       VK_DEPENDENCY_BY_REGION_BIT},
+      {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+       VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
+
+  static constexpr VkSubpassDependency update_dependancies[] = {
+      {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_SHADER_READ_BIT,
+       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+       VK_DEPENDENCY_BY_REGION_BIT},
+      {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+       VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
+
+  VkRenderPassCreateInfo initialize_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                            nullptr,
+                                            0,
+                                            1,
+                                            &initialize_attachment,
+                                            1,
+                                            &subpass_description,
+                                            static_cast<u32>(ArraySize(initialize_dependancies)),
+                                            initialize_dependancies};
+
+  VkRenderPassCreateInfo update_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                        nullptr,
+                                        0,
+                                        1,
+                                        &update_attachment,
+                                        1,
+                                        &subpass_description,
+                                        static_cast<u32>(ArraySize(update_dependancies)),
+                                        update_dependancies};
+
+  VkResult res = vkCreateRenderPass(g_object_cache->GetDevice(), &initialize_info, nullptr,
+                                    &m_initialize_render_pass);
   if (res != VK_SUCCESS)
   {
-    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (initialize) failed: ");
+    return false;
+  }
+
+  res =
+      vkCreateRenderPass(g_object_cache->GetDevice(), &update_info, nullptr, &m_update_render_pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (update) failed: ");
     return false;
   }
 
   return true;
+}
+
+VkRenderPass TextureCache::GetRenderPassForTextureUpdate(const Texture2D* texture) const
+{
+  // EFB copies can be re-used as part of the texture pool. If this is the case, we need to insert
+  // a pipeline barrier to ensure that all reads from the texture expecting the old data have
+  // completed before overwriting the texture's contents. New textures will be in TRANSFER_DST
+  // due to the clear after creation.
+
+  // These two render passes are compatible, so even though the framebuffer was created with
+  // the initialize render pass it's still allowed.
+
+  if (texture->GetLayout() == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    return m_initialize_render_pass;
+  else
+    return m_update_render_pass;
 }
 
 TextureCache::TCacheEntry::TCacheEntry(const TCacheEntryConfig& _config, TextureCache* parent,
@@ -324,12 +402,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
       scale_by_half ? g_object_cache->GetLinearSampler() : g_object_cache->GetPointSampler();
   VkImageLayout original_layout = src_texture->GetLayout();
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(
       command_buffer, g_object_cache->GetPushConstantPipelineLayout(),
-      m_parent->m_overwrite_render_pass, g_object_cache->GetPassthroughVertexShader(),
-      g_object_cache->GetPassthroughGeometryShader(),
+      m_parent->GetRenderPassForTextureUpdate(m_texture.get()),
+      g_object_cache->GetPassthroughVertexShader(), g_object_cache->GetPassthroughGeometryShader(),
       is_depth_copy ? m_parent->m_efb_depth_to_tex_shader : m_parent->m_efb_color_to_tex_shader);
 
   draw.SetPushConstants(colmat, (is_depth_copy ? sizeof(float) * 20 : sizeof(float) * 28));
@@ -348,9 +425,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   // We touched everything, so put it back.
   state_tracker->SetPendingRebind();
 
-  // Transition the destination texture to shader resource, and the EFB to its original layout.
-  m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Transition the EFB back to its original layout.
   src_texture->TransitionToLayout(command_buffer, original_layout);
+
+  // Render pass transitions texture to SHADER_READ_ONLY.
+  m_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* source,
@@ -408,14 +487,10 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   _assert_msg_(VIDEO, config.rendertarget,
                "Destination texture for partial copy is not a rendertarget");
 
-  // Transition resource states. Source should already be in shader resource layout.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
   UtilityShaderDraw draw(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      m_parent->m_overwrite_render_pass, g_object_cache->GetPassthroughVertexShader(),
-      VK_NULL_HANDLE, m_parent->m_copy_shader);
+      m_parent->GetRenderPassForTextureUpdate(m_texture.get()),
+      g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE, m_parent->m_copy_shader);
 
   VkRect2D region = {
       {dst_rect.left, dst_rect.top},
@@ -427,10 +502,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
                 source->config.width, source->config.height);
   draw.EndRenderPass();
 
-  // Transition back to shader resource.
-  // TODO: Move this to the render pass.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Render pass transitions texture to SHADER_READ_ONLY.
+  m_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)
