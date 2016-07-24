@@ -62,33 +62,40 @@ void WiiConfigPane::InitializeGUI()
   m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
   m_connect_keyboard_checkbox->SetToolTip(_("May cause slow down in Wii Menu and some games."));
 
-  wxGridBagSizer* const misc_settings_grid_sizer = new wxGridBagSizer();
-  misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL,
-                                5);
-  misc_settings_grid_sizer->Add(m_pal60_mode_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL,
-                                5);
+  const int space5 = FromDIP(5);
+
+  wxGridBagSizer* const misc_settings_grid_sizer = new wxGridBagSizer(space5, space5);
+  misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
+  misc_settings_grid_sizer->Add(m_pal60_mode_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2));
   misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Aspect Ratio:")),
-                                wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL,
-                                5);
-  misc_settings_grid_sizer->Add(m_aspect_ratio_choice, wxGBPosition(2, 1), wxDefaultSpan, wxALL, 5);
+                                wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  misc_settings_grid_sizer->Add(m_aspect_ratio_choice, wxGBPosition(2, 1), wxDefaultSpan,
+                                wxALIGN_CENTER_VERTICAL);
   misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
-                                wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL,
-                                5);
-  misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(3, 1), wxDefaultSpan, wxALL,
-                                5);
+                                wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(3, 1), wxDefaultSpan,
+                                wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const misc_settings_static_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Misc Settings"));
-  misc_settings_static_sizer->Add(misc_settings_grid_sizer);
+  misc_settings_static_sizer->AddSpacer(space5);
+  misc_settings_static_sizer->Add(misc_settings_grid_sizer, 0, wxLEFT | wxRIGHT, space5);
+  misc_settings_static_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const device_settings_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Device Settings"));
-  device_settings_sizer->Add(m_sd_card_checkbox, 0, wxALL, 5);
-  device_settings_sizer->Add(m_connect_keyboard_checkbox, 0, wxALL, 5);
+  device_settings_sizer->AddSpacer(space5);
+  device_settings_sizer->Add(m_sd_card_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  device_settings_sizer->AddSpacer(space5);
+  device_settings_sizer->Add(m_connect_keyboard_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  device_settings_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(misc_settings_static_sizer, 0, wxEXPAND | wxALL, 5);
-  main_sizer->Add(device_settings_sizer, 0, wxEXPAND | wxALL, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(misc_settings_static_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(device_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
 }

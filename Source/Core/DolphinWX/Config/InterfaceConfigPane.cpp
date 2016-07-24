@@ -9,6 +9,7 @@
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
 #include <wx/language.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
@@ -136,27 +137,36 @@ void InterfaceConfigPane::InitializeGUI()
   m_interface_lang_choice->SetToolTip(
       _("Change the language of the user interface.\nRequires restart."));
 
-  wxGridBagSizer* const language_and_theme_grid_sizer = new wxGridBagSizer();
+  const int space5 = FromDIP(5);
+
+  wxGridBagSizer* const language_and_theme_grid_sizer = new wxGridBagSizer(space5, space5);
   language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Language:")),
-                                     wxGBPosition(0, 0), wxDefaultSpan,
-                                     wxALIGN_CENTER_VERTICAL | wxALL, 5);
+                                     wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   language_and_theme_grid_sizer->Add(m_interface_lang_choice, wxGBPosition(0, 1), wxDefaultSpan,
-                                     wxALL, 5);
+                                     wxALIGN_CENTER_VERTICAL);
   language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Theme:")),
-                                     wxGBPosition(1, 0), wxDefaultSpan,
-                                     wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  language_and_theme_grid_sizer->Add(m_theme_choice, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+                                     wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  language_and_theme_grid_sizer->Add(m_theme_choice, wxGBPosition(1, 1), wxDefaultSpan,
+                                     wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const main_static_box_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Interface Settings"));
-  main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxALL, 0);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_box_sizer = new wxBoxSizer(wxVERTICAL);
-  main_box_sizer->Add(main_static_box_sizer, 0, wxEXPAND | wxALL, 5);
+  main_box_sizer->AddSpacer(space5);
+  main_box_sizer->Add(main_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_box_sizer->AddSpacer(space5);
 
   SetSizer(main_box_sizer);
 }
@@ -221,7 +231,10 @@ void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event
 {
   if (SConfig::GetInstance().m_InterfaceLanguage !=
       language_ids[m_interface_lang_choice->GetSelection()])
-    SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
+  {
+    wxMessageBox(_("You must restart Dolphin in order for the change to take effect."),
+                 _("Restart Required"), wxOK | wxICON_INFORMATION, this);
+  }
 
   SConfig::GetInstance().m_InterfaceLanguage =
       language_ids[m_interface_lang_choice->GetSelection()];
