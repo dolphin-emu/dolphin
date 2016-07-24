@@ -349,6 +349,24 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
   // Flush buffer memory if necessary
   upload_buffer->CommitMemory(upload_size);
 
+  // We're assuming that Load() is only called for new textures, therefore we can ignore the
+  // current contents of the texture (VK_IMAGE_LAYOUT_UNDEFINED).
+  VkImageMemoryBarrier barrier = {
+      VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
+      nullptr,                                 // const void*                pNext
+      0,                                       // VkAccessFlags              srcAccessMask
+      VK_ACCESS_TRANSFER_WRITE_BIT,            // VkAccessFlags              dstAccessMask
+      VK_IMAGE_LAYOUT_UNDEFINED,               // VkImageLayout              oldLayout
+      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,    // VkImageLayout              newLayout
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   srcQueueFamilyIndex
+      VK_QUEUE_FAMILY_IGNORED,                 // uint32_t                   dstQueueFamilyIndex
+      m_texture->GetImage(),                   // VkImage                    image
+      {VK_IMAGE_ASPECT_COLOR_BIT, level, 1, 0, 1},  // VkImageSubresourceRange    subresourceRange
+  };
+  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                       nullptr, 0, nullptr, 1, &barrier);
+
   // Copy from the streaming buffer to the actual image.
   VkBufferImageCopy image_copy = {
       image_upload_buffer_offset,                // VkDeviceSize                bufferOffset
@@ -358,16 +376,19 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
       {0, 0, 0},                                 // VkOffset3D                  imageOffset
       {width, height, 1}                         // VkExtent3D                  imageExtent
   };
-
-  // Transition the texture to a transfer destination, invoke the transfer, then transition back.
-  // TODO: Only transition the layer we're copying to.
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), image_upload_buffer,
                          m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
                          &image_copy);
-  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  // Transition to shader read only.
+  barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+  barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+  barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+  barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+  vkCmdPipelineBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                       VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0, 0,
+                       nullptr, 0, nullptr, 1, &barrier);
+  m_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format,
