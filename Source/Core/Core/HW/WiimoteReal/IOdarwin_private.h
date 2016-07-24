@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-
 // Work around an Apple bug: for some reason, IOBluetooth.h errors on
 // inclusion in Mavericks, but only in Objective-C++ C++11 mode.  I filed
 // this as <rdar://15312520>; in the meantime...
@@ -13,9 +11,10 @@
 #undef NS_ENUM_AVAILABLE
 #define NS_ENUM_AVAILABLE(...)
 // end hack
-#include <IOBluetooth/IOBluetooth.h>
-#include <IOKit/hid/IOHIDManager.h>
+#import <IOBluetooth/IOBluetooth.h>
 #include <IOKit/pwr_mgt/IOPMLib.h>
+
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
 {
@@ -47,31 +46,4 @@ private:
   CFRunLoopRef m_wiimote_thread_run_loop;
   IOPMAssertionID m_pm_assertion;
 };
-
-class WiimoteDarwinHid final : public Wiimote
-{
-public:
-  WiimoteDarwinHid(IOHIDDeviceRef device);
-  ~WiimoteDarwinHid() override;
-
-protected:
-  bool ConnectInternal() override;
-  void DisconnectInternal() override;
-  bool IsConnected() const override;
-  void IOWakeup() override;
-  int IORead(u8* buf) override;
-  int IOWrite(u8 const* buf, size_t len) override;
-
-private:
-  static void ReportCallback(void* context, IOReturn result, void* sender, IOHIDReportType type,
-                             u32 reportID, u8* report, CFIndex reportLength);
-  static void RemoveCallback(void* context, IOReturn result, void* sender);
-  void QueueBufferReport(int length);
-  IOHIDDeviceRef m_device;
-  bool m_connected;
-  std::atomic<bool> m_interrupted;
-  Report m_report_buffer;
-  Common::FifoQueue<Report> m_buffered_reports;
-};
-
 }  // namespace WiimoteReal

@@ -983,7 +983,7 @@ void ProcessWiimotes(bool new_scan, T& callback)
         DEBUG_LOG(WIIMOTE, "Authenticated %i connected %i remembered %i ", btdi.fAuthenticated,
                   btdi.fConnected, btdi.fRemembered);
 
-        if (IsValidBluetoothName(UTF16ToUTF8(btdi.szName)))
+        if (IsValidDeviceName(UTF16ToUTF8(btdi.szName)))
         {
           callback(hRadio, radioInfo, btdi);
         }
