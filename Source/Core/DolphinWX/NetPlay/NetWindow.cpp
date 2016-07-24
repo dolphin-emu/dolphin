@@ -56,46 +56,10 @@ NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
 NetPlayDialog* NetPlayDialog::npd = nullptr;
 
-static std::string BuildGameName(const GameListItem& game)
-{
-  // Lang needs to be consistent
-  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
-  std::vector<std::string> info;
-  if (!game.GetUniqueID().empty())
-    info.push_back(game.GetUniqueID());
-  if (game.GetRevision() != 0)
-  {
-    std::string rev_str = "Revision ";
-    info.push_back(rev_str + std::to_string((long long)game.GetRevision()));
-  }
-
-  std::string name(game.GetName(lang));
-  if (name.empty())
-    name = game.GetName();
-
-  int disc_number = game.GetDiscNumber() + 1;
-
-  std::string lower_name = name;
-  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
-  if (disc_number > 1 &&
-      lower_name.find(std::string(wxString::Format("disc %i", disc_number))) == std::string::npos &&
-      lower_name.find(std::string(wxString::Format("disc%i", disc_number))) == std::string::npos)
-  {
-    std::string disc_text = "Disc ";
-    info.push_back(disc_text + std::to_string(disc_number));
-  }
-  if (info.empty())
-    return name;
-  std::ostringstream ss;
-  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
-  ss << info.back();
-  return name + " (" + ss.str() + ")";
-}
-
 void NetPlayDialog::FillWithGameNames(wxListBox* game_lbox, const CGameListCtrl& game_list)
 {
   for (u32 i = 0; auto game = game_list.GetISO(i); ++i)
-    game_lbox->Append(StrToWxStr(BuildGameName(*game)));
+    game_lbox->Append(StrToWxStr(game->GetFullName()));
 }
 
 NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const game_list,
@@ -298,7 +262,7 @@ std::string NetPlayDialog::FindGame(const std::string& target_game)
 {
   // find path for selected game, sloppy..
   for (u32 i = 0; auto game = m_game_list->GetISO(i); ++i)
-    if (target_game == BuildGameName(*game))
+    if (target_game == game->GetFullName())
       return game->GetFileName();
 
   return "";
