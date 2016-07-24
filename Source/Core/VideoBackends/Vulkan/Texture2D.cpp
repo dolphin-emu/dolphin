@@ -175,15 +175,9 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
        0, m_levels, 0, m_layers}  // VkImageSubresourceRange    subresourceRange
   };
 
-  // Not sure if this is correct? Doesn't make sense.
-  // Other examples seem to place the barrier at the top of the pipeline for both src and dst.
-  // From what I'm understanding we want to have all commands complete before the barrier,
-  // so srcStageMask should be set to VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, and dstStageMask
-  // set to VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, as the barrier should be completed before
-  // the next set of commands (after the barrier) can execute.
-  VkPipelineStageFlags srcStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-  VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-
+  // srcStageMask -> Stages that must complete before the barrier
+  // dstStageMask -> Stages that must wait for after the barrier before beginning
+  VkPipelineStageFlags srcStageMask, dstStageMask;
   switch (m_layout)
   {
   case VK_IMAGE_LAYOUT_UNDEFINED:
@@ -231,6 +225,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
     break;
 
   default:
+    srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
     break;
   }
 
@@ -276,6 +271,7 @@ void Texture2D::TransitionToLayout(VkCommandBuffer command_buffer, VkImageLayout
     break;
 
   default:
+    dstStageMask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     break;
   }
 

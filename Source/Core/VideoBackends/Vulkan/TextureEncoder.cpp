@@ -124,7 +124,6 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
 bool TextureEncoder::CompileShaders()
 {
   // Texture encoding shaders
-  // TODO: A better way of generating these
   static const u32 texture_encoding_shader_formats[] = {
       GX_TF_I4,   GX_TF_I8,   GX_TF_IA4,  GX_TF_IA8,  GX_TF_RGB565, GX_TF_RGB5A3, GX_TF_RGBA8,
       GX_CTF_R4,  GX_CTF_RA4, GX_CTF_RA8, GX_CTF_A8,  GX_CTF_R8,    GX_CTF_G8,    GX_CTF_B8,

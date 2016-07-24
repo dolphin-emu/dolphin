@@ -110,7 +110,6 @@ bool Vulkan::ShaderCache<Uid>::CompileShaderToSPV(const std::string& shader_sour
   if (!InitializeGlslang())
     return false;
 
-  // TODO: Handle ES profile
   EShLanguage stage = ShaderCacheFunctions<Uid>::GetStage();
   std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
   std::unique_ptr<glslang::TProgram> program;
