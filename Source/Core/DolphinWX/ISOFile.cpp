@@ -38,9 +38,6 @@
 
 static const u32 CACHE_REVISION = 0x127;  // Last changed in PR 3309
 
-#define DVD_BANNER_WIDTH 96
-#define DVD_BANNER_HEIGHT 32
-
 static std::string GetLanguageString(DiscIO::Language language,
                                      std::map<DiscIO::Language, std::string> strings)
 {
@@ -165,8 +162,10 @@ GameListItem::GameListItem(const std::string& _rFileName,
   // Volume banner. Typical for everything that isn't a DOL or ELF.
   if (!m_pImage.empty())
   {
-    wxImage image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
-    m_Bitmap = ScaleBanner(&image);
+    // Need to make explicit copy as wxImage uses reference counting for copies combined with only
+    // taking a pointer, not the content, when given a buffer to its constructor.
+    m_image.Create(m_ImageWidth, m_ImageHeight, false);
+    std::memcpy(m_image.GetData(), m_pImage.data(), m_pImage.size());
     return;
   }
 
@@ -277,22 +276,11 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
     return false;
 
   wxImage image(StrToWxStr(path), wxBITMAP_TYPE_PNG);
-  m_Bitmap = ScaleBanner(&image);
-  return true;
-}
+  if (!image.IsOk())
+    return false;
 
-wxBitmap GameListItem::ScaleBanner(wxImage* image)
-{
-  wxWindow* window = wxTheApp->GetTopWindow();
-  const double gui_scale = window->GetContentScaleFactor() * (window->FromDIP(1024) / 1024.0);
-  const double target_width = DVD_BANNER_WIDTH * gui_scale;
-  const double target_height = DVD_BANNER_HEIGHT * gui_scale;
-  const double banner_scale =
-      std::min(target_width / image->GetWidth(), target_height / image->GetHeight());
-  image->Rescale(image->GetWidth() * banner_scale, image->GetHeight() * banner_scale,
-                 wxIMAGE_QUALITY_BICUBIC);
-  image->Resize(wxSize(target_width, target_height), wxPoint(), 0xFF, 0xFF, 0xFF);
-  return wxBitmap(*image, wxBITMAP_SCREEN_DEPTH, window->GetContentScaleFactor());
+  m_image = image;
+  return true;
 }
 
 std::string GameListItem::GetDescription(DiscIO::Language language) const

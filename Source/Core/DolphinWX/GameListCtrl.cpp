@@ -426,8 +426,12 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
   {
     int ImageIndex = -1;
 
-    if (rISOFile.GetBitmap().IsOk())
-      ImageIndex = GetImageList(wxIMAGE_LIST_SMALL)->Add(rISOFile.GetBitmap());
+    if (rISOFile.GetBannerImage().IsOk())
+    {
+      wxImageList* img_list = GetImageList(wxIMAGE_LIST_SMALL);
+      ImageIndex = img_list->Add(
+          WxUtils::ScaleImageToBitmap(rISOFile.GetBannerImage(), this, img_list->GetSize()));
+    }
 
     SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
     break;

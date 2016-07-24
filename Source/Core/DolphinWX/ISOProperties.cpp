@@ -6,6 +6,7 @@
 #import <Cocoa/Cocoa.h>
 #endif
 
+#include <array>
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -36,7 +37,6 @@
 #include <wx/panel.h>
 #include <wx/progdlg.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
 #include <wx/spinctrl.h>
 #include <wx/statbmp.h>
 #include <wx/stattext.h>
@@ -66,6 +66,7 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/ARCodeAddEdit.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
+#include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
@@ -180,7 +181,8 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   bool wii = m_open_iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
   ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
 
-  m_Banner->SetBitmap(OpenGameListItem.GetBitmap());
+  m_Banner->SetBitmap(
+      WxUtils::ScaleImageToBitmap(OpenGameListItem.GetBannerImage(), this, m_Banner->GetMinSize()));
   m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
 
   // Filesystem browser/dumper
@@ -304,6 +306,9 @@ long CISOProperties::GetElementStyle(const char* section, const char* key)
 
 void CISOProperties::CreateGUIControls()
 {
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
   wxButton* const EditConfig = new wxButton(this, ID_EDITCONFIG, _("Edit Config"));
   EditConfig->SetToolTip(_("This will let you manually edit the INI config file."));
 
@@ -367,8 +372,8 @@ void CISOProperties::CreateGUIControls()
   arrayStringFor_GPUDeterminism.Add(_("fake-completion"));
   GPUDeterminism = new wxChoice(m_GameConfig, ID_GPUDETERMINISM, wxDefaultPosition, wxDefaultSize,
                                 arrayStringFor_GPUDeterminism);
-  sGPUDeterminism->Add(GPUDeterminismText);
-  sGPUDeterminism->Add(GPUDeterminism);
+  sGPUDeterminism->Add(GPUDeterminismText, 0, wxALIGN_CENTER_VERTICAL);
+  sGPUDeterminism->Add(GPUDeterminism, 0, wxALIGN_CENTER_VERTICAL);
 
   // Wii Console
   EnableWideScreen =
@@ -379,7 +384,7 @@ void CISOProperties::CreateGUIControls()
   wxBoxSizer* const sDepthPercentage = new wxBoxSizer(wxHORIZONTAL);
   wxStaticText* const DepthPercentageText =
       new wxStaticText(m_GameConfig, wxID_ANY, _("Depth Percentage: "));
-  DepthPercentage = new wxSlider(m_GameConfig, ID_DEPTHPERCENTAGE, 100, 0, 200);
+  DepthPercentage = new DolphinSlider(m_GameConfig, ID_DEPTHPERCENTAGE, 100, 0, 200);
   DepthPercentage->SetToolTip(
       _("This value is multiplied with the depth set in the graphics configuration."));
   sDepthPercentage->Add(DepthPercentageText);
@@ -412,19 +417,23 @@ void CISOProperties::CreateGUIControls()
   EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize,
                           arrayStringFor_EmuState);
   EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString);
+  sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
+  sEmuState->Add(EmuState, 0, wxALIGN_CENTER_VERTICAL);
+  sEmuState->Add(EmuIssues, 1, wxEXPAND);
 
-  wxBoxSizer* const sConfigPage = new wxBoxSizer(wxVERTICAL);
   wxStaticBoxSizer* const sbCoreOverrides =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
-  sbCoreOverrides->Add(CPUThread, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(SkipIdle, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(MMU, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(FPRF, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(SyncGPU, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(DSPHLE, 0, wxLEFT, 5);
-  sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND | wxALL, 5);
+  sbCoreOverrides->Add(CPUThread, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(SkipIdle, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(MMU, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(DCBZOFF, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(FPRF, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(SyncGPU, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(FastDiscSpeed, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->Add(DSPHLE, 0, wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->AddSpacer(space5);
+  sbCoreOverrides->Add(sGPUDeterminism, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbCoreOverrides->AddSpacer(space5);
 
   wxStaticBoxSizer* const sbWiiOverrides =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
@@ -433,7 +442,7 @@ void CISOProperties::CreateGUIControls()
     sbWiiOverrides->ShowItems(false);
     EnableWideScreen->Hide();
   }
-  sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, 5);
+  sbWiiOverrides->Add(EnableWideScreen, 0, wxLEFT, space5);
 
   wxStaticBoxSizer* const sbStereoOverrides =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Stereoscopy"));
@@ -443,15 +452,19 @@ void CISOProperties::CreateGUIControls()
 
   wxStaticBoxSizer* const sbGameConfig =
       new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
-  sbGameConfig->Add(OverrideText, 0, wxEXPAND | wxALL, 5);
+  sbGameConfig->AddSpacer(space5);
+  sbGameConfig->Add(OverrideText, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbGameConfig->AddSpacer(space5);
   sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
   sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
   sbGameConfig->Add(sbStereoOverrides, 0, wxEXPAND);
-  sConfigPage->Add(sbGameConfig, 0, wxEXPAND | wxALL, 5);
-  sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
-  sEmuState->Add(EmuState, 0, wxEXPAND);
-  sEmuState->Add(EmuIssues, 1, wxEXPAND);
-  sConfigPage->Add(sEmuState, 0, wxEXPAND | wxALL, 5);
+
+  wxBoxSizer* const sConfigPage = new wxBoxSizer(wxVERTICAL);
+  sConfigPage->AddSpacer(space5);
+  sConfigPage->Add(sbGameConfig, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sConfigPage->AddSpacer(space5);
+  sConfigPage->Add(sEmuState, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sConfigPage->AddSpacer(space5);
   m_GameConfig->SetSizer(sConfigPage);
 
   // Patches
@@ -466,13 +479,15 @@ void CISOProperties::CreateGUIControls()
   RemovePatch->Disable();
 
   wxBoxSizer* sPatchPage = new wxBoxSizer(wxVERTICAL);
-  sPatches->Add(Patches, 1, wxEXPAND | wxALL, 0);
-  sPatchButtons->Add(EditPatch, 0, wxEXPAND | wxALL, 0);
+  sPatches->Add(Patches, 1, wxEXPAND);
+  sPatchButtons->Add(EditPatch, 0, wxEXPAND);
   sPatchButtons->AddStretchSpacer();
-  sPatchButtons->Add(AddPatch, 0, wxEXPAND | wxALL, 0);
-  sPatchButtons->Add(RemovePatch, 0, wxEXPAND | wxALL, 0);
-  sPatches->Add(sPatchButtons, 0, wxEXPAND | wxALL, 0);
-  sPatchPage->Add(sPatches, 1, wxEXPAND | wxALL, 5);
+  sPatchButtons->Add(AddPatch, 0, wxEXPAND);
+  sPatchButtons->Add(RemovePatch, 0, wxEXPAND);
+  sPatches->Add(sPatchButtons, 0, wxEXPAND);
+  sPatchPage->AddSpacer(space5);
+  sPatchPage->Add(sPatches, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sPatchPage->AddSpacer(space5);
   m_PatchPage->SetSizer(sPatchPage);
 
   // Action Replay Cheats
@@ -487,13 +502,15 @@ void CISOProperties::CreateGUIControls()
   RemoveCheat->Disable();
 
   wxBoxSizer* sCheatPage = new wxBoxSizer(wxVERTICAL);
-  sCheats->Add(Cheats, 1, wxEXPAND | wxALL, 0);
-  sCheatButtons->Add(EditCheat, 0, wxEXPAND | wxALL, 0);
+  sCheats->Add(Cheats, 1, wxEXPAND);
+  sCheatButtons->Add(EditCheat, 0, wxEXPAND);
   sCheatButtons->AddStretchSpacer();
-  sCheatButtons->Add(AddCheat, 0, wxEXPAND | wxALL, 0);
-  sCheatButtons->Add(RemoveCheat, 0, wxEXPAND | wxALL, 0);
-  sCheats->Add(sCheatButtons, 0, wxEXPAND | wxALL, 0);
-  sCheatPage->Add(sCheats, 1, wxEXPAND | wxALL, 5);
+  sCheatButtons->Add(AddCheat, 0, wxEXPAND);
+  sCheatButtons->Add(RemoveCheat, 0, wxEXPAND);
+  sCheats->Add(sCheatButtons, 0, wxEXPAND);
+  sCheatPage->AddSpacer(space5);
+  sCheatPage->Add(sCheats, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sCheatPage->AddSpacer(space5);
   m_CheatPage->SetSizer(sCheatPage);
 
   wxStaticText* const m_InternalNameText =
@@ -589,67 +606,63 @@ void CISOProperties::CreateGUIControls()
   m_Comment = new wxTextCtrl(m_Information, ID_COMMENT, wxEmptyString, wxDefaultPosition,
                              wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
   wxStaticText* const m_BannerText = new wxStaticText(m_Information, wxID_ANY, _("Banner:"));
-  m_Banner =
-      new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxSize(96, 32));
+  m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition,
+                                FromDIP(wxSize(96, 32)));
 
   // ISO Details
-  wxGridBagSizer* const sISODetails = new wxGridBagSizer(0, 0);
-  sISODetails->Add(m_InternalNameText, wxGBPosition(0, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_InternalName, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL,
-                   5);
-  sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL,
-                   5);
-  sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND | wxALL, 5);
-  sISODetails->Add(m_MD5SumText, wxGBPosition(7, 0), wxGBSpan(1, 1),
-                   wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sISODetails->Add(m_MD5Sum, wxGBPosition(7, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  wxSizer* sMD5SumButtonSizer = CreateButtonSizer(wxNO_DEFAULT);
-  sMD5SumButtonSizer->Add(m_MD5SumCompute);
-  sISODetails->Add(sMD5SumButtonSizer, wxGBPosition(7, 2), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+  wxGridBagSizer* const sISODetails = new wxGridBagSizer(space5, space10);
+  sISODetails->Add(m_InternalNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_InternalName, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND);
+  sISODetails->Add(m_MD5SumText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sISODetails->Add(m_MD5Sum, wxGBPosition(7, 1), wxGBSpan(1, 1), wxEXPAND);
+  sISODetails->Add(m_MD5SumCompute, wxGBPosition(7, 2), wxGBSpan(1, 1), wxEXPAND);
 
   sISODetails->AddGrowableCol(1);
   wxStaticBoxSizer* const sbISODetails =
       new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
-  sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
+  sbISODetails->AddSpacer(space5);
+  sbISODetails->Add(sISODetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbISODetails->AddSpacer(space5);
 
   // Banner Details
-  wxGridBagSizer* const sBannerDetails = new wxGridBagSizer(0, 0);
-  sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1),
-                      wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sBannerDetails->Add(m_Lang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sBannerDetails->Add(m_NameText, wxGBPosition(1, 0), wxGBSpan(1, 1),
-                      wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sBannerDetails->Add(m_Name, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sBannerDetails->Add(m_MakerText, wxGBPosition(2, 0), wxGBSpan(1, 1),
-                      wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sBannerDetails->Add(m_Maker, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sBannerDetails->Add(m_CommentText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 5);
-  sBannerDetails->Add(m_Comment, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sBannerDetails->Add(m_BannerText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
-  sBannerDetails->Add(m_Banner, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+  wxGridBagSizer* const sBannerDetails = new wxGridBagSizer(space5, space10);
+  sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  // Comboboxes cannot be safely stretched vertically on Windows.
+  sBannerDetails->Add(WxUtils::GiveMinSize(m_Lang, wxDefaultSize), wxGBPosition(0, 1),
+                      wxGBSpan(1, 1), wxEXPAND);
+  sBannerDetails->Add(m_NameText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sBannerDetails->Add(m_Name, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND);
+  sBannerDetails->Add(m_MakerText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sBannerDetails->Add(m_Maker, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND);
+  sBannerDetails->Add(m_CommentText, wxGBPosition(3, 0), wxGBSpan(1, 1));
+  sBannerDetails->Add(m_Comment, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
+  sBannerDetails->Add(m_BannerText, wxGBPosition(4, 0), wxGBSpan(1, 1));
+  sBannerDetails->Add(m_Banner, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
   sBannerDetails->AddGrowableCol(1);
   wxStaticBoxSizer* const sbBannerDetails =
       new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
-  sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 5);
+  sbBannerDetails->AddSpacer(space5);
+  sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbBannerDetails->AddSpacer(space5);
 
   wxBoxSizer* const sInfoPage = new wxBoxSizer(wxVERTICAL);
-  sInfoPage->Add(sbISODetails, 0, wxEXPAND | wxALL, 5);
-  sInfoPage->Add(sbBannerDetails, 0, wxEXPAND | wxALL, 5);
+  sInfoPage->AddSpacer(space5);
+  sInfoPage->Add(sbISODetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sInfoPage->AddSpacer(space5);
+  sInfoPage->Add(sbBannerDetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sInfoPage->AddSpacer(space5);
   m_Information->SetSizer(sInfoPage);
 
   if (m_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
@@ -658,10 +671,14 @@ void CISOProperties::CreateGUIControls()
     m_Notebook->AddPage(filesystem_panel, _("Filesystem"));
 
     // Filesystem icons
-    wxImageList* const m_iconList = new wxImageList(16, 16);
-    m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_disc"));    // 0
-    m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_folder"));  // 1
-    m_iconList->Add(WxUtils::LoadResourceBitmap("isoproperties_file"));    // 2
+    wxSize icon_size = FromDIP(wxSize(16, 16));
+    wxImageList* const m_iconList = new wxImageList(icon_size.GetWidth(), icon_size.GetHeight());
+    static const std::array<const char* const, 3> s_icon_names{
+        "isoproperties_disc", "isoproperties_folder", "isoproperties_file"};
+    for (const auto& name : s_icon_names)
+      m_iconList->Add(
+          WxUtils::LoadScaledResourceBitmap(name, this, icon_size, wxDefaultSize,
+                                            WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER));
 
     // Filesystem tree
     m_Treectrl = new wxTreeCtrl(filesystem_panel, ID_TREECTRL);
@@ -669,14 +686,16 @@ void CISOProperties::CreateGUIControls()
     RootId = m_Treectrl->AddRoot(_("Disc"), 0, 0, nullptr);
 
     wxBoxSizer* sTreePage = new wxBoxSizer(wxVERTICAL);
-    sTreePage->Add(m_Treectrl, 1, wxEXPAND | wxALL, 5);
+    sTreePage->AddSpacer(space5);
+    sTreePage->Add(m_Treectrl, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+    sTreePage->AddSpacer(space5);
     filesystem_panel->SetSizer(sTreePage);
   }
 
-  wxSizer* sButtons = CreateButtonSizer(wxNO_DEFAULT);
+  wxStdDialogButtonSizer* sButtons = CreateStdDialogButtonSizer(wxOK | wxNO_DEFAULT);
   sButtons->Prepend(EditConfigDefault);
   sButtons->Prepend(EditConfig);
-  sButtons->Add(new wxButton(this, wxID_OK, _("Close")));
+  sButtons->GetAffirmativeButton()->SetLabel(_("Close"));
 
   // If there is no default gameini, disable the button.
   bool game_ini_exists = false;
@@ -694,10 +713,15 @@ void CISOProperties::CreateGUIControls()
 
   // Add notebook and buttons to the dialog
   wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-  sMain->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
-  sMain->Add(sButtons, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-  sMain->SetMinSize(wxSize(500, -1));
+  sMain->AddSpacer(space5);
+  sMain->Add(m_Notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->AddSpacer(space5);
+  sMain->Add(sButtons, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->AddSpacer(space5);
+  sMain->SetMinSize(FromDIP(wxSize(500, -1)));
 
+  SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
+  SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   SetSizerAndFit(sMain);
   Center();
   SetFocus();
@@ -733,7 +757,7 @@ void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED(event))
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
   if (dialog.ShowModal() == wxID_OK)
   {
-    m_Banner->GetBitmap().ConvertToImage().SaveFile(dialog.GetPath());
+    OpenGameListItem.GetBannerImage().SaveFile(dialog.GetPath());
   }
   Raise();
 }
