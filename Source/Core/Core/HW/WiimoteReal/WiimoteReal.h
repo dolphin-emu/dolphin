@@ -165,7 +165,7 @@ void ConnectOnInput(int _WiimoteNumber);
 void StateChange(EMUSTATE_CHANGE newState);
 void ChangeWiimoteSource(unsigned int index, int source);
 
-bool IsValidBluetoothName(const std::string& name);
+bool IsValidDeviceName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
 
 #ifdef ANDROID
