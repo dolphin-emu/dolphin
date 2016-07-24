@@ -7,13 +7,13 @@
 #include <cstddef>
 #include <string>
 #include <vector>
-#include <wx/arrstr.h>
 #include <wx/dialog.h>
 #include <wx/panel.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 
+class CheatSearchTab;
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
@@ -46,6 +46,7 @@ private:
   wxNotebook* m_notebook_main;
 
   wxPanel* m_tab_cheats;
+  CheatSearchTab* m_tab_cheat_search;
   wxPanel* m_tab_log;
 
   wxCheckBox* m_checkbox_log_ar;
@@ -70,7 +71,7 @@ private:
 
   bool m_ignore_ini_callback = false;
 
-  void Init_ChildControls();
+  void CreateGUI();
 
   void Load_ARCodes();
   void Load_GeckoCodes();

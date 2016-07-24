@@ -26,6 +26,4 @@ private:
   wxCheckBox* m_checkbox_use_hex;
 
   void PressOK(wxCommandEvent&);
-  void PressCancel(wxCommandEvent&);
-  void OnEvent_Close(wxCloseEvent& ev);
 };
