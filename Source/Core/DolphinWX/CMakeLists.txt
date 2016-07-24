@@ -35,6 +35,7 @@ set(GUI_SRCS
 	Debugger/WatchWindow.cpp
 	NetPlay/ChangeGameDialog.cpp
 	NetPlay/MD5Dialog.cpp
+	NetPlay/NetPlayLauncher.cpp
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
