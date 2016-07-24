@@ -54,6 +54,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/NetPlay/NetPlayLauncher.h"
 #include "DolphinWX/WxUtils.h"
 
 struct CompressionProgress final
@@ -171,6 +172,7 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnMultiDecompressISO, this, IDM_MULTI_DECOMPRESS_ISO);
   Bind(wxEVT_MENU, &CGameListCtrl::OnDeleteISO, this, IDM_DELETE_ISO);
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
+  Bind(wxEVT_MENU, &CGameListCtrl::OnNetPlayHost, this, IDM_START_NETPLAY);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
 }
@@ -968,6 +970,8 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
       if (platform == DiscIO::Platform::WII_WAD)
         popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
 
+      popupMenu.Append(IDM_START_NETPLAY, _("Host with Netplay"));
+
       PopupMenu(&popupMenu);
     }
   }
@@ -1117,6 +1121,29 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED(event))
   std::string wikiUrl =
       "https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetUniqueID();
   WxUtils::Launch(wikiUrl);
+}
+
+void CGameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
+{
+  const GameListItem* iso = GetSelectedISO();
+  if (!iso)
+    return;
+
+  IniFile ini_file;
+  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  ini_file.Load(dolphin_ini);
+  IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
+
+  NetPlayHostConfig config;
+  config.FromIniConfig(netplay_section);
+  config.game_name = iso->GetFullName();
+  config.game_list_ctrl = this;
+  config.parent_window = m_parent;
+
+  netplay_section.Set("SelectedHostGame", config.game_name);
+  ini_file.Save(dolphin_ini);
+
+  NetPlayLauncher::Host(config);
 }
 
 bool CGameListCtrl::MultiCompressCB(const std::string& text, float percent, void* arg)
