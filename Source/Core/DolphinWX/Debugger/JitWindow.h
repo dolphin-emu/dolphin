@@ -22,7 +22,7 @@ public:
   JitBlockList(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
                long style);
   void Init();
-  void Update() override;
+  void Repopulate();
 };
 
 class CJitWindow : public wxPanel
@@ -33,7 +33,7 @@ public:
              const wxString& name = _("JIT Block Viewer"));
 
   void ViewAddr(u32 em_address);
-  void Update() override;
+  void Repopulate();
 
 private:
   void OnRefresh(wxCommandEvent& /*event*/);

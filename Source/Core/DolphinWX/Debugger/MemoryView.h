@@ -47,10 +47,13 @@ private:
   int YToAddress(int y);
   void OnResize(wxSizeEvent& event);
 
+  static constexpr int LEFT_COL_WIDTH = 16;
+
   DebugInterface* debugger;
 
-  int align;
+  unsigned int align;
   int rowHeight;
+  int m_left_col_width;
 
   u32 selection;
   u32 oldSelection;

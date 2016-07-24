@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <wx/brush.h>
@@ -17,6 +18,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
+#include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -24,6 +26,7 @@
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 enum
@@ -43,7 +46,8 @@ enum
 
 CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
     : wxControl(parent, wxID_ANY), debugger(debuginterface),
-      align(debuginterface->GetInstructionSize(0)), rowHeight(13), selection(0), oldSelection(0),
+      align(debuginterface->GetInstructionSize(0)), rowHeight(FromDIP(wxPoint(-1, 13)).y),
+      m_left_col_width(FromDIP(wxPoint(LEFT_COL_WIDTH, -1)).x), selection(0), oldSelection(0),
       selecting(false), memory(0), curAddress(debuginterface->GetPC()),
       dataType(MemoryDataType::U8), viewAsType(VIEWAS_FP)
 {
@@ -55,6 +59,13 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent)
   Bind(wxEVT_MOUSEWHEEL, &CMemoryView::OnScrollWheel, this);
   Bind(wxEVT_MENU, &CMemoryView::OnPopupMenu, this);
   Bind(wxEVT_SIZE, &CMemoryView::OnResize, this);
+
+  // Every pixel will be drawn over in the paint event so erasing will
+  // just cause flickering.
+  SetBackgroundStyle(wxBG_STYLE_PAINT);
+#if defined(__WXMSW__) || defined(__WXGTK__)
+  SetDoubleBuffered(true);
+#endif
 }
 
 int CMemoryView::YToAddress(int y)
@@ -67,10 +78,10 @@ int CMemoryView::YToAddress(int y)
 
 void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 {
-  int x = event.m_x;
-  int y = event.m_y;
+  int x = event.GetX();
+  int y = event.GetY();
 
-  if (x > 16)
+  if (x > m_left_col_width)
   {
     oldSelection = selection;
     selection = YToAddress(y);
@@ -98,7 +109,7 @@ void CMemoryView::OnMouseMove(wxMouseEvent& event)
 {
   wxRect rc = GetClientRect();
 
-  if (event.m_leftDown && event.m_x > 16)
+  if (event.m_leftDown && event.m_x > m_left_col_width)
   {
     if (event.m_y < 0)
     {
@@ -119,7 +130,7 @@ void CMemoryView::OnMouseMove(wxMouseEvent& event)
 
 void CMemoryView::OnMouseUpL(wxMouseEvent& event)
 {
-  if (event.m_x > 16)
+  if (event.m_x > m_left_col_width)
   {
     curAddress = YToAddress(event.m_y);
     selecting = false;
@@ -136,11 +147,11 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
   if (scroll_down)
   {
-    curAddress += num_lines * 4;
+    curAddress += num_lines * align;
   }
   else
   {
-    curAddress -= num_lines * 4;
+    curAddress -= num_lines * align;
   }
 
   Refresh();
@@ -149,9 +160,10 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
+  // FIXME: This is terrible. Generate events instead.
+  CFrame* cframe = wxGetApp().GetCFrame();
+  CCodeWindow* code_window = cframe->g_pCodeWindow;
+  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
 
 #if wxUSE_CLIPBOARD
   wxTheClipboard->Open();
@@ -186,15 +198,18 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 
   case IDM_VIEWASFP:
     viewAsType = VIEWAS_FP;
+    align = debugger->GetInstructionSize(0);
     Refresh();
     break;
 
   case IDM_VIEWASASCII:
     viewAsType = VIEWAS_ASCII;
+    align = debugger->GetInstructionSize(0);
     Refresh();
     break;
   case IDM_VIEWASHEX:
     viewAsType = VIEWAS_HEX;
+    align = 16;  // Should probably be a multiple of real alignment
     Refresh();
     break;
   }
@@ -215,12 +230,12 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
   menu.Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
-  menu.Append(IDM_TOGGLEMEMORY, _("Toggle &memory"));
+  menu.AppendCheckItem(IDM_TOGGLEMEMORY, _("Toggle &memory"))->Check(memory != 0);
 
   wxMenu* viewAsSubMenu = new wxMenu;
-  viewAsSubMenu->Append(IDM_VIEWASFP, _("FP value"));
-  viewAsSubMenu->Append(IDM_VIEWASASCII, "ASCII");
-  viewAsSubMenu->Append(IDM_VIEWASHEX, _("Hex"));
+  viewAsSubMenu->AppendRadioItem(IDM_VIEWASFP, _("FP value"))->Check(viewAsType == VIEWAS_FP);
+  viewAsSubMenu->AppendRadioItem(IDM_VIEWASASCII, "ASCII")->Check(viewAsType == VIEWAS_ASCII);
+  viewAsSubMenu->AppendRadioItem(IDM_VIEWASHEX, _("Hex"))->Check(viewAsType == VIEWAS_HEX);
   menu.AppendSubMenu(viewAsSubMenu, _("View As:"));
 
   PopupMenu(&menu);
@@ -230,93 +245,95 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 {
   wxPaintDC dc(this);
   wxRect rc = GetClientRect();
-  wxFont hFont("Courier");
-  hFont.SetFamily(wxFONTFAMILY_TELETYPE);
 
-  wxCoord w, h;
-  dc.GetTextExtent("0WJyq", &w, &h, nullptr, nullptr, &hFont);
-  if (h > rowHeight)
-    rowHeight = h;
-  dc.GetTextExtent("0WJyq", &w, &h, nullptr, nullptr, &DebuggerFont);
-  if (h > rowHeight)
-    rowHeight = h;
-
-  if (viewAsType == VIEWAS_HEX)
-    dc.SetFont(hFont);
-  else
+  if (DebuggerFont.IsFixedWidth())
+  {
     dc.SetFont(DebuggerFont);
+  }
+  else
+  {
+    dc.SetFont(wxFont(DebuggerFont.GetPointSize(), wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
+                      wxFONTWEIGHT_NORMAL, false, "Courier"));
+  }
 
-  dc.GetTextExtent("W", &w, &h);
-  int fontSize = w;
-  int textPlacement = 17 + 9 * fontSize;
+  int font_width;
+  {
+    wxFontMetrics metrics = dc.GetFontMetrics();
+    font_width = metrics.averageWidth;
+    if (metrics.height > rowHeight)
+      rowHeight = metrics.height;
+  }
 
-  // TODO: Add any drawing code here...
-  int width = rc.width;
-  int numRows = (rc.height / rowHeight) / 2 + 2;
-  dc.SetBackgroundMode(wxPENSTYLE_TRANSPARENT);
-  const wxColour bgColor = *wxWHITE;
-  wxPen nullPen(bgColor);
-  wxPen currentPen(*wxBLACK_PEN);
-  wxPen selPen(*wxGREY_PEN);
-  nullPen.SetStyle(wxPENSTYLE_TRANSPARENT);
+  const int row_start_x = m_left_col_width + 1;
+  const int mchk_x = FromDIP(wxPoint(LEFT_COL_WIDTH / 8, -1)).x;
+  const wxSize mchk_size = FromDIP(wxSize(LEFT_COL_WIDTH * 3 / 4, LEFT_COL_WIDTH * 3 / 4));
+  const int mchk_offset_y = (rowHeight - mchk_size.GetHeight()) / 2;
 
-  wxBrush currentBrush(*wxLIGHT_GREY_BRUSH);
-  wxBrush pcBrush(*wxGREEN_BRUSH);
-  wxBrush mcBrush(*wxBLUE_BRUSH);
-  wxBrush bgBrush(bgColor);
-  wxBrush nullBrush(bgColor);
-  nullBrush.SetStyle(wxBRUSHSTYLE_TRANSPARENT);
+  int col_width = rc.width - m_left_col_width;
+  int num_rows = (rc.height / rowHeight) / 2 + 2;
+  const wxColour navy_color = wxTheColourDatabase->Find("NAVY");
 
-  dc.SetPen(nullPen);
-  dc.SetBrush(bgBrush);
-  dc.DrawRectangle(0, 0, 16, rc.height);
-  dc.DrawRectangle(0, 0, rc.width, 5 + 8);
+  const int pen_width = FromDIP(1);
+  wxPen focus_pen(*wxBLACK, pen_width);
+  wxPen selection_pen(*wxLIGHT_GREY, pen_width);
+  wxBrush pc_brush(*wxGREEN_BRUSH);
+  wxBrush mc_brush(*wxBLUE_BRUSH);
+  wxBrush bg_brush(*wxWHITE_BRUSH);
 
   // TODO - clean up this freaking mess!!!!!
-  for (int row = -numRows; row <= numRows; row++)
+  for (int row = -num_rows; row <= num_rows; ++row)
   {
-    unsigned int address = curAddress + row * align;
+    u32 address = curAddress + row * align;
 
-    int rowY1 = rc.height / 2 + rowHeight * row - rowHeight / 2;
-    int rowY2 = rc.height / 2 + rowHeight * row + rowHeight / 2;
+    int row_y = rc.height / 2 + rowHeight * row - rowHeight / 2;
+    int row_x = row_start_x;
+
+    auto draw_text = [&](const wxString& s, int offset_chars = 0, int min_length = 0) -> void {
+      dc.DrawText(s, row_x + font_width * offset_chars, row_y);
+      row_x += font_width * (std::max(static_cast<int>(s.size()), min_length) + offset_chars);
+    };
 
     wxString temp = wxString::Format("%08x", address);
     u32 col = debugger->GetColor(address);
     wxBrush rowBrush(wxColour(col >> 16, col >> 8, col));
-    dc.SetBrush(nullBrush);
-    dc.SetPen(nullPen);
-    dc.DrawRectangle(0, rowY1, 16, rowY2);
+    dc.SetBrush(bg_brush);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawRectangle(0, row_y, m_left_col_width, rowHeight);
 
     if (selecting && (address == selection))
-      dc.SetPen(selPen);
+      dc.SetPen(selection_pen);
     else
-      dc.SetPen(row == 0 ? currentPen : nullPen);
+      dc.SetPen(row == 0 ? focus_pen : *wxTRANSPARENT_PEN);
 
     if (address == debugger->GetPC())
-      dc.SetBrush(pcBrush);
+      dc.SetBrush(pc_brush);
     else
       dc.SetBrush(rowBrush);
 
-    dc.DrawRectangle(16, rowY1, width, rowY2 - 1);
-    dc.SetBrush(currentBrush);
-    dc.SetTextForeground("#600000");  // Dark red
-    dc.DrawText(temp, 17, rowY1);
+    dc.DrawRectangle(m_left_col_width, row_y, col_width, rowHeight);
+    dc.SetTextForeground(wxColour(0x60, 0x00, 0x00));  // Dark red
+    draw_text(temp);
 
     if (viewAsType != VIEWAS_HEX)
     {
       char mem[256];
       debugger->GetRawMemoryString(memory, address, mem, 256);
-      dc.SetTextForeground(wxTheColourDatabase->Find("NAVY"));
-      dc.DrawText(StrToWxStr(mem), 17 + fontSize * (8), rowY1);
-      dc.SetTextForeground(*wxBLACK);
+      dc.SetTextForeground(navy_color);
+      draw_text(StrToWxStr(mem), 2);
     }
+    dc.SetTextForeground(*wxBLACK);
 
-    if (!PowerPC::HostIsRAMAddress(address))
+    // NOTE: We can trigger a segfault inside HostIsRAMAddress (nullptr) during shutdown
+    //   because we still get paint events even though the core is being deleted so we
+    //   need to make sure the Memory still exists.
+    // FIXME: This isn't relevant to the DSP Memory View
+    if (!Memory::IsInitialized() || !PowerPC::HostIsRAMAddress(address))
       continue;
 
     if (debugger->IsAlive())
     {
       std::string dis;
+      // FIXME: This doesn't work with the DSP Debugger
       u32 mem_data = debugger->ReadExtraMemory(memory, address);
 
       if (viewAsType == VIEWAS_FP)
@@ -339,17 +356,13 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
       }
       else if (viewAsType == VIEWAS_HEX)
       {
-        u32 mema[8] = {debugger->ReadExtraMemory(memory, address),
-                       debugger->ReadExtraMemory(memory, address + 4),
-                       debugger->ReadExtraMemory(memory, address + 8),
-                       debugger->ReadExtraMemory(memory, address + 12),
-                       debugger->ReadExtraMemory(memory, address + 16),
-                       debugger->ReadExtraMemory(memory, address + 20),
-                       debugger->ReadExtraMemory(memory, address + 24),
-                       debugger->ReadExtraMemory(memory, address + 28)};
-
-        for (auto& word : mema)
+        // NOTE: Instead of building a string, we could use debugger->GetColor()
+        //   and draw each segment (u8/16/32) with the background color.
+        for (unsigned int i = 0; i < align; i += sizeof(u32))
         {
+          if (!PowerPC::HostIsRAMAddress(address + i))
+            break;
+          u32 word = debugger->ReadExtraMemory(memory, address + i);
           switch (dataType)
           {
           case MemoryDataType::U8:
@@ -375,27 +388,24 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
         dis = "INVALID VIEWAS TYPE";
       }
 
-      if (viewAsType != VIEWAS_HEX)
-        dc.DrawText(StrToWxStr(dis), textPlacement + fontSize * (8 + 8), rowY1);
-      else
-        dc.DrawText(StrToWxStr(dis), textPlacement, rowY1);
+      // Pad to a minimum of 48 characters for full fixed point float width
+      draw_text(StrToWxStr(dis), 2, 48);
 
       dc.SetTextForeground(*wxBLUE);
 
       std::string desc = debugger->GetDescription(address);
       if (!desc.empty())
-        dc.DrawText(StrToWxStr(desc), 17 + fontSize * ((8 + 8 + 8 + 30) * 2), rowY1);
+        draw_text(StrToWxStr(desc), 2);
 
       // Show blue memory check dot
       if (debugger->IsMemCheck(address))
       {
-        dc.SetBrush(mcBrush);
-        dc.DrawRectangle(8, rowY1 + 1, 11, 11);
+        dc.SetPen(*wxTRANSPARENT_PEN);
+        dc.SetBrush(mc_brush);
+        dc.DrawEllipse(mchk_x, row_y + mchk_offset_y, mchk_size.GetWidth(), mchk_size.GetHeight());
       }
     }
   }
-
-  dc.SetPen(currentPen);
 }
 
 void CMemoryView::OnResize(wxSizeEvent& event)

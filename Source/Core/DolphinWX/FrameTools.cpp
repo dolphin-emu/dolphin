@@ -625,10 +625,10 @@ void CFrame::BootGame(const std::string& filename)
     StartGame(bootfile);
     if (UseDebugger && g_pCodeWindow)
     {
-      if (g_pCodeWindow->m_WatchWindow)
-        g_pCodeWindow->m_WatchWindow->LoadAll();
-      if (g_pCodeWindow->m_BreakpointWindow)
-        g_pCodeWindow->m_BreakpointWindow->LoadAll();
+      if (g_pCodeWindow->HasPanel<CWatchWindow>())
+        g_pCodeWindow->GetPanel<CWatchWindow>()->LoadAll();
+      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
+        g_pCodeWindow->GetPanel<CBreakPointWindow>()->LoadAll();
     }
   }
 }
@@ -825,7 +825,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
 
       wxThread::Sleep(20);
       g_pCodeWindow->JumpToAddress(PC);
-      g_pCodeWindow->Update();
+      g_pCodeWindow->Repopulate();
       // Update toolbar with Play/Pause status
       UpdateGUI();
     }
@@ -1124,18 +1124,15 @@ void CFrame::DoStop()
 
     if (UseDebugger && g_pCodeWindow)
     {
-      if (g_pCodeWindow->m_WatchWindow)
-      {
-        g_pCodeWindow->m_WatchWindow->SaveAll();
-        PowerPC::watches.Clear();
-      }
-      if (g_pCodeWindow->m_BreakpointWindow)
-      {
-        g_pCodeWindow->m_BreakpointWindow->SaveAll();
-        PowerPC::breakpoints.Clear();
-        PowerPC::memchecks.Clear();
-        g_pCodeWindow->m_BreakpointWindow->NotifyUpdate();
-      }
+      if (g_pCodeWindow->HasPanel<CWatchWindow>())
+        g_pCodeWindow->GetPanel<CWatchWindow>()->SaveAll();
+      PowerPC::watches.Clear();
+      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
+        g_pCodeWindow->GetPanel<CBreakPointWindow>()->SaveAll();
+      PowerPC::breakpoints.Clear();
+      PowerPC::memchecks.Clear();
+      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
+        g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
       g_symbolDB.Clear();
       Host_NotifyMapLoaded();
     }
