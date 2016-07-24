@@ -359,6 +359,8 @@
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wiimotes</string>
+    <string name="emulation_configure_controls">Configure Controls</string>
+    <string name="emulation_done">Done</string>
     
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

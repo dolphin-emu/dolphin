@@ -10,6 +10,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -86,7 +87,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			}
 		}
 
-
 		if (savedInstanceState == null)
 		{
 			mEmulationThread = new Thread(mEmulationRunner);
@@ -99,6 +99,20 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		}
 
 		return contents;
+	}
+
+	@Override
+	public void onViewCreated(View view, Bundle savedInstanceState)
+	{
+		Button doneButton = (Button) view.findViewById(R.id.done_control_config);
+		doneButton.setOnClickListener(new View.OnClickListener()
+		{
+			@Override
+			public void onClick(View v)
+			{
+				stopConfiguringControls();
+			}
+		});
 	}
 
 	@Override
@@ -224,4 +238,21 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 			NativeLibrary.Run();
 		}
 	};
+
+	public void startConfiguringControls()
+	{
+		getView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
+		mInputOverlay.setIsInEditMode(true);
+	}
+
+	public void stopConfiguringControls()
+	{
+		getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
+		mInputOverlay.setIsInEditMode(false);
+	}
+
+	public boolean isConfiguringControls()
+	{
+		return mInputOverlay.isInEditMode();
+	}
 }
