@@ -108,17 +108,8 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
   state_tracker->InvalidateDescriptorSets();
   state_tracker->SetPendingRebind();
 
-  // Map the staging texture into client memory, and copy to the final destination.
-  // TODO: We could probably leave this mapped between calls, but we'll save address space for nw.
-  if (m_download_texture->Map())
-  {
-    m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);
-    m_download_texture->Unmap();
-  }
-  else
-  {
-    PanicAlert("Failed to map download texture.");
-  }
+  // Copy from staging texture to the final destination, adjusting pitch if necessary.
+  m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);
 }
 
 bool TextureEncoder::CompileShaders()
@@ -221,7 +212,7 @@ bool TextureEncoder::CreateDownloadTexture()
   m_download_texture = StagingTexture2D::Create(ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT,
                                                 ENCODING_TEXTURE_FORMAT);
 
-  if (!m_download_texture)
+  if (!m_download_texture || !m_download_texture->Map())
     return false;
 
   return true;

@@ -71,16 +71,14 @@ public:
 
   ~StagingTexture2DLinear();
 
-  virtual void CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                             VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width, u32 height,
-                             u32 level, u32 layer) override;
+  void CopyFromImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags src_aspect,
+                     u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
 
-  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image,
-                           VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width, u32 height,
-                           u32 level, u32 layer) override;
+  void CopyToImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags dst_aspect,
+                   u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
 
-  virtual bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
-  virtual void Unmap() override;
+  bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
+  void Unmap() override;
 
   static std::unique_ptr<StagingTexture2D> Create(u32 width, u32 height, VkFormat format);
 
@@ -100,16 +98,14 @@ public:
 
   ~StagingTexture2DBuffer();
 
-  virtual void CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
-                             VkImageAspectFlags src_aspect, u32 x, u32 y, u32 width, u32 height,
-                             u32 level, u32 layer) override;
+  void CopyFromImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags src_aspect,
+                     u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
 
-  virtual void CopyToImage(VkCommandBuffer command_buffer, VkImage image,
-                           VkImageAspectFlags dst_aspect, u32 x, u32 y, u32 width, u32 height,
-                           u32 level, u32 layer) override;
+  void CopyToImage(VkCommandBuffer command_buffer, VkImage image, VkImageAspectFlags dst_aspect,
+                   u32 x, u32 y, u32 width, u32 height, u32 level, u32 layer) override;
 
-  virtual bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
-  virtual void Unmap() override;
+  bool Map(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE) override;
+  void Unmap() override;
 
   static std::unique_ptr<StagingTexture2D> Create(u32 width, u32 height, VkFormat format);
 

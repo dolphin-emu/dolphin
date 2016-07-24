@@ -129,6 +129,9 @@ StagingTexture2DLinear::StagingTexture2DLinear(u32 width, u32 height, VkFormat f
 
 StagingTexture2DLinear::~StagingTexture2DLinear()
 {
+  if (m_map_pointer)
+    Unmap();
+
   g_command_buffer_mgr->DeferResourceDestruction(m_memory);
   g_command_buffer_mgr->DeferResourceDestruction(m_image);
 }
@@ -345,6 +348,9 @@ StagingTexture2DBuffer::StagingTexture2DBuffer(u32 width, u32 height, VkFormat f
 
 StagingTexture2DBuffer::~StagingTexture2DBuffer()
 {
+  if (m_map_pointer)
+    Unmap();
+
   g_command_buffer_mgr->DeferResourceDestruction(m_memory);
   g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
 }
