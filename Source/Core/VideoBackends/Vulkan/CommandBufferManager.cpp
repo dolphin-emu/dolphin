@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -89,7 +90,7 @@ bool CommandBufferManager::CreateCommandBuffers()
     VkCommandBufferAllocateInfo allocate_info = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr, m_command_pool,
         VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-        static_cast<uint32_t>(ARRAYSIZE(resources.command_buffers))};
+        static_cast<uint32_t>(ArraySize(resources.command_buffers))};
 
     VkResult res = vkAllocateCommandBuffers(m_device, &allocate_info, resources.command_buffers);
     if (res != VK_SUCCESS)
@@ -118,7 +119,7 @@ bool CommandBufferManager::CreateCommandBuffers()
                                                    nullptr,
                                                    0,
                                                    100000,  // tweak this
-                                                   ARRAYSIZE(pool_sizes),
+                                                   static_cast<u32>(ArraySize(pool_sizes)),
                                                    pool_sizes};
 
     res = vkCreateDescriptorPool(m_device, &pool_create_info, nullptr, &resources.descriptor_pool);
@@ -156,7 +157,8 @@ void CommandBufferManager::DestroyCommandBuffers()
     }
     if (resources.init_command_buffer != VK_NULL_HANDLE)
     {
-      vkFreeCommandBuffers(m_device, m_command_pool, ARRAYSIZE(resources.command_buffers),
+      vkFreeCommandBuffers(m_device, m_command_pool,
+                           static_cast<u32>(ArraySize(resources.command_buffers)),
                            resources.command_buffers);
 
       resources.init_command_buffer = VK_NULL_HANDLE;
@@ -318,7 +320,7 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                               0,
                               nullptr,
                               &wait_bits,
-                              ARRAYSIZE(m_frame_resources[index].command_buffers),
+                              static_cast<u32>(ArraySize(m_frame_resources[index].command_buffers)),
                               m_frame_resources[index].command_buffers,
                               0,
                               nullptr};

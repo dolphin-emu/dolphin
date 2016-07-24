@@ -6,6 +6,7 @@
 #include <cassert>
 #include <cstdint>
 
+#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -75,9 +76,9 @@ bool SwapChain::CreateRenderPass()
       VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
       nullptr,
       0,
-      ARRAYSIZE(present_render_pass_attachments),
+      static_cast<u32>(ArraySize(present_render_pass_attachments)),
       present_render_pass_attachments,
-      ARRAYSIZE(present_render_pass_subpass_descriptions),
+      static_cast<u32>(ArraySize(present_render_pass_subpass_descriptions)),
       present_render_pass_subpass_descriptions,
       0,
       nullptr};

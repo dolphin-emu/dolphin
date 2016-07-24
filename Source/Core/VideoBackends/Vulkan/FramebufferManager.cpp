@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include "Common/CommonFuncs.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/Helpers.h"
@@ -69,7 +71,7 @@ bool FramebufferManager::CreateEFBRenderPass()
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      ARRAYSIZE(attachments),
+                                      static_cast<u32>(ArraySize(attachments)),
                                       attachments,
                                       1,
                                       &subpass_description,
@@ -207,7 +209,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
                                               nullptr,
                                               0,
                                               m_efb_render_pass,
-                                              ARRAYSIZE(framebuffer_attachments),
+                                              static_cast<u32>(ArraySize(framebuffer_attachments)),
                                               framebuffer_attachments,
                                               m_efb_width,
                                               m_efb_height,

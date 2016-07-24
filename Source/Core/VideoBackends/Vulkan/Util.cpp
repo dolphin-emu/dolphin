@@ -4,6 +4,7 @@
 
 #include <cassert>
 
+#include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -281,7 +282,7 @@ void UtilityShaderDraw::DrawQuad(int x, int y, int width, int height, float z)
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
+  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
   Draw();
 }
 
@@ -310,7 +311,7 @@ void UtilityShaderDraw::DrawQuad(int dst_x, int dst_y, int dst_width, int dst_he
   vertices[3].SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 
   Util::SetViewportAndScissor(m_command_buffer, dst_x, dst_y, dst_width, dst_height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
+  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
   Draw();
 }
 
@@ -337,7 +338,7 @@ void UtilityShaderDraw::DrawColoredQuad(int x, int y, int width, int height, u32
   vertices[3].SetColor(color);
 
   Util::SetViewportAndScissor(m_command_buffer, x, y, width, height);
-  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ARRAYSIZE(vertices));
+  UploadVertices(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, vertices, ArraySize(vertices));
   Draw();
 }
 

@@ -6,6 +6,8 @@
 #include <cassert>
 #include <cstring>
 
+#include "Common/CommonFuncs.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -138,7 +140,7 @@ bool TextureEncoder::CompileShaders()
       GX_CTF_R4,  GX_CTF_RA4, GX_CTF_RA8, GX_CTF_A8,  GX_CTF_R8,    GX_CTF_G8,    GX_CTF_B8,
       GX_CTF_RG8, GX_CTF_GB8, GX_CTF_Z8H, GX_TF_Z8,   GX_CTF_Z16R,  GX_TF_Z16,    GX_TF_Z24X8,
       GX_CTF_Z4,  GX_CTF_Z8M, GX_CTF_Z8L, GX_CTF_Z16L};
-  for (size_t i = 0; i < ARRAYSIZE(texture_encoding_shader_formats); i++)
+  for (size_t i = 0; i < ArraySize(texture_encoding_shader_formats); i++)
   {
     u32 format = texture_encoding_shader_formats[i];
     const char* shader_source = TextureConversionShader::GenerateEncodingShader(format, API_VULKAN);
@@ -154,11 +156,10 @@ bool TextureEncoder::CompileShaders()
 bool TextureEncoder::CreateEncodingRenderPass()
 {
   VkAttachmentDescription attachments[] = {
-      {0, ENCODING_TEXTURE_FORMAT,
-       VK_SAMPLE_COUNT_1_BIT,  // TODO: MSAA
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_STORE,
-       VK_ATTACHMENT_LOAD_OP_DONT_CARE, VK_ATTACHMENT_STORE_OP_DONT_CARE,
-       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+      {0, ENCODING_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -170,9 +171,9 @@ bool TextureEncoder::CreateEncodingRenderPass()
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      ARRAYSIZE(attachments),
+                                      static_cast<u32>(ArraySize(attachments)),
                                       attachments,
-                                      ARRAYSIZE(subpass_descriptions),
+                                      static_cast<u32>(ArraySize(subpass_descriptions)),
                                       subpass_descriptions,
                                       0,
                                       nullptr};
@@ -203,7 +204,7 @@ bool TextureEncoder::CreateEncodingTexture()
                                               nullptr,
                                               0,
                                               m_encoding_render_pass,
-                                              ARRAYSIZE(framebuffer_attachments),
+                                              static_cast<u32>(ArraySize(framebuffer_attachments)),
                                               framebuffer_attachments,
                                               m_encoding_texture->GetWidth(),
                                               m_encoding_texture->GetHeight(),

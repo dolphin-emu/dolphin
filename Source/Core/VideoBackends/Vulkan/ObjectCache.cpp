@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "Common/CommonFuncs.h"
 #include "Common/Hash.h"
 #include "Common/LinearDiskCache.h"
 
@@ -424,9 +425,9 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
                                                   VK_DYNAMIC_STATE_SCISSOR};
   static const VkPipelineDynamicStateCreateInfo dynamic_state = {
       VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO, nullptr,
-      0,                          // VkPipelineDynamicStateCreateFlags    flags
-      ARRAYSIZE(dynamic_states),  // uint32_t                             dynamicStateCount
-      dynamic_states              // const VkDynamicState*                pDynamicStates
+      0,                                            // VkPipelineDynamicStateCreateFlags    flags
+      static_cast<u32>(ArraySize(dynamic_states)),  // uint32_t dynamicStateCount
+      dynamic_states  // const VkDynamicState*                pDynamicStates
   };
 
   // Combine to pipeline info
@@ -608,12 +609,12 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] = {
-      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(ubo_set_bindings),
-       ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       ARRAYSIZE(sampler_set_bindings), sampler_set_bindings},
+       static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       ARRAYSIZE(ssbo_set_bindings), ssbo_set_bindings}};
+       static_cast<u32>(ArraySize(sampler_set_bindings)), sampler_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(ssbo_set_bindings)), ssbo_set_bindings}};
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SETS; i++)
   {
@@ -648,21 +649,21 @@ bool ObjectCache::CreatePipelineLayout()
   VkPipelineLayoutCreateInfo standard_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                               nullptr,
                                               0,
-                                              ARRAYSIZE(standard_sets),
+                                              static_cast<u32>(ArraySize(standard_sets)),
                                               standard_sets,
                                               0,
                                               nullptr};
   VkPipelineLayoutCreateInfo bbox_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                           nullptr,
                                           0,
-                                          ARRAYSIZE(bbox_sets),
+                                          static_cast<u32>(ArraySize(bbox_sets)),
                                           bbox_sets,
                                           0,
                                           nullptr};
   VkPipelineLayoutCreateInfo push_constant_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
                                                    nullptr,
                                                    0,
-                                                   ARRAYSIZE(standard_sets),
+                                                   static_cast<u32>(ArraySize(standard_sets)),
                                                    standard_sets,
                                                    1,
                                                    &push_constant_range};

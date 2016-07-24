@@ -6,6 +6,8 @@
 #include <cassert>
 #include <cstring>
 
+#include "Common/CommonFuncs.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
@@ -305,9 +307,9 @@ bool PaletteTextureConverter::CreateRenderPass()
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      ARRAYSIZE(attachments),
+                                      static_cast<u32>(ArraySize(attachments)),
                                       attachments,
-                                      ARRAYSIZE(subpass_descriptions),
+                                      static_cast<u32>(ArraySize(subpass_descriptions)),
                                       subpass_descriptions,
                                       0,
                                       nullptr};
@@ -329,8 +331,8 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   };
   static const VkDescriptorSetLayoutCreateInfo set_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(set_bindings),
-      set_bindings};
+      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+      static_cast<u32>(ArraySize(set_bindings)), set_bindings};
 
   VkResult res = vkCreateDescriptorSetLayout(g_object_cache->GetDevice(), &set_info, nullptr,
                                              &m_palette_set_layout);
@@ -345,8 +347,13 @@ bool PaletteTextureConverter::CreateDescriptorLayout()
       g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS),
       m_palette_set_layout};
 
-  VkPipelineLayoutCreateInfo pipeline_layout_info = {
-      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0, ARRAYSIZE(sets), sets, 0, nullptr};
+  VkPipelineLayoutCreateInfo pipeline_layout_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+                                                     nullptr,
+                                                     0,
+                                                     static_cast<u32>(ArraySize(sets)),
+                                                     sets,
+                                                     0,
+                                                     nullptr};
 
   res = vkCreatePipelineLayout(g_object_cache->GetDevice(), &pipeline_layout_info, nullptr,
                                &m_pipeline_layout);

@@ -7,7 +7,7 @@
 #include <cstring>
 #include <vector>
 
-#include "VideoCommon/ImageWrite.h"
+#include "Common/CommonFuncs.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/EFBCache.h"
@@ -23,6 +23,8 @@
 #include "VideoBackends/Vulkan/TextureEncoder.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanImports.h"
+
+#include "VideoCommon/ImageWrite.h"
 
 namespace Vulkan
 {
@@ -128,15 +130,16 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   if (config.rendertarget)
   {
     VkImageView framebuffer_attachments[] = {texture->GetView()};
-    VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-                                                nullptr,
-                                                0,
-                                                m_overwrite_render_pass,
-                                                ARRAYSIZE(framebuffer_attachments),
-                                                framebuffer_attachments,
-                                                texture->GetWidth(),
-                                                texture->GetHeight(),
-                                                texture->GetLayers()};
+    VkFramebufferCreateInfo framebuffer_info = {
+        VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        nullptr,
+        0,
+        m_overwrite_render_pass,
+        static_cast<u32>(ArraySize(framebuffer_attachments)),
+        framebuffer_attachments,
+        texture->GetWidth(),
+        texture->GetHeight(),
+        texture->GetLayers()};
 
     VkResult res =
         vkCreateFramebuffer(g_object_cache->GetDevice(), &framebuffer_info, nullptr, &framebuffer);
@@ -178,9 +181,9 @@ bool TextureCache::CreateRenderPasses()
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
-                                      ARRAYSIZE(attachments),
+                                      static_cast<u32>(ArraySize(attachments)),
                                       attachments,
-                                      ARRAYSIZE(subpass_descriptions),
+                                      static_cast<u32>(ArraySize(subpass_descriptions)),
                                       subpass_descriptions,
                                       0,
                                       nullptr};
