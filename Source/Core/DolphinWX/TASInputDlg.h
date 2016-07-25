@@ -13,8 +13,8 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/GCPadStatus.h"
 
+class DolphinSlider;
 class wxCheckBox;
-class wxSlider;
 class wxStaticBitmap;
 class wxTextCtrl;
 
@@ -25,36 +25,24 @@ public:
               const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
               long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 
-  void OnCloseWindow(wxCloseEvent& event);
-  void UpdateFromSliders(wxCommandEvent& event);
-  void UpdateFromText(wxCommandEvent& event);
-  void OnMouseDownL(wxMouseEvent& event);
-  void OnMouseUpR(wxMouseEvent& event);
-  void OnRightClickSlider(wxMouseEvent& event);
-  void ResetValues();
   void GetValues(GCPadStatus* PadStatus);
   void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
-  void SetTurbo(wxMouseEvent& event);
-  void ButtonTurbo();
   void GetKeyBoardInput(GCPadStatus* PadStatus);
   void GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
   void CreateGCLayout();
   void CreateWiiLayout(int num);
-  wxBitmap CreateStickBitmap(int x, int y);
-  void SetWiiButtons(u16* butt);
-  void HandleExtensionChange();
 
 private:
-  const int ID_C_STICK = 1001;
-  const int ID_MAIN_STICK = 1002;
-  const int ID_CC_L_STICK = 1003;
-  const int ID_CC_R_STICK = 1004;
+  static constexpr int ID_C_STICK = 1001;
+  static constexpr int ID_MAIN_STICK = 1002;
+  static constexpr int ID_CC_L_STICK = 1003;
+  static constexpr int ID_CC_R_STICK = 1004;
   int m_eleID = 1005;
 
   struct Control
   {
     wxTextCtrl* text;
-    wxSlider* slider;
+    DolphinSlider* slider;
     int value = -1;
     int text_id;
     int slider_id;
@@ -100,9 +88,22 @@ private:
                     bool reverseY);
   wxStaticBoxSizer* CreateStickLayout(Stick* tempStick, const wxString& title);
   wxStaticBoxSizer* CreateAccelLayout(Control* x, Control* y, Control* z, const wxString& title);
-  Button CreateButton(const std::string& name);
+  Button CreateButton(const wxString& name);
   Control CreateControl(long style, int width, int height, bool reverse = false, u32 range = 255,
                         u32 default_value = 128);
+  wxBitmap CreateStickBitmap(int x, int y);
+
+  void OnCloseWindow(wxCloseEvent& event);
+  void UpdateFromSliders(wxCommandEvent& event);
+  void UpdateFromText(wxCommandEvent& event);
+  void OnMouseDownL(wxMouseEvent& event);
+  void OnMouseUpR(wxMouseEvent& event);
+  void OnRightClickSlider(wxMouseEvent& event);
+  void SetTurbo(wxMouseEvent& event);
+  void ButtonTurbo();
+  void HandleExtensionChange();
+  void ResetValues();
+  void SetWiiButtons(u16* butt);
 
   enum
   {
@@ -127,10 +128,6 @@ private:
   Button m_cc_buttons[15];
   Control* m_controls[10];
   Control* m_cc_controls[6];
-  static const int m_gc_pad_buttons_bitmask[12];
-  static const int m_wii_buttons_bitmask[11];
-  static const int m_cc_buttons_bitmask[15];
-  static const std::string m_cc_button_names[15];
   u8 m_ext = 0;
   wxBoxSizer* m_main_szr;
   wxBoxSizer* m_wiimote_szr;
