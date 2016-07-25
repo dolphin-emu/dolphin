@@ -218,6 +218,9 @@ void wxTipWindow::Close()
         *m_windowPtr = NULL;
         m_windowPtr = NULL;
     }
+    // XXX: Dolphin: Prevents an assertion failure due to Close being called multiple times.
+    if (!IsShown())
+        return;
 
 #if wxUSE_POPUPWIN
     Show(false);
