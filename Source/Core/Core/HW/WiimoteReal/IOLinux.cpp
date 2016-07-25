@@ -14,6 +14,14 @@
 
 namespace WiimoteReal
 {
+// This is used to store the Bluetooth address of connected Wiimotes,
+// so we can ignore Wiimotes that are already connected.
+static std::vector<std::string> s_known_addrs;
+static bool IsNewWiimote(const std::string& addr)
+{
+  return std::find(s_known_addrs.begin(), s_known_addrs.end(), addr) == s_known_addrs.end();
+}
+
 WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 {
   // Get the id of the first Bluetooth device.
@@ -82,39 +90,27 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
     }
 
     ERROR_LOG(WIIMOTE, "device name %s", name);
-    if (IsValidBluetoothName(name))
+    if (!IsValidBluetoothName(name))
+      continue;
+
+    char bdaddr_str[18] = {};
+    ba2str(&scan_infos[i].bdaddr, bdaddr_str);
+
+    if (!IsNewWiimote(bdaddr_str))
+      continue;
+
+    // Found a new device
+    s_known_addrs.push_back(bdaddr_str);
+    Wiimote* wm = new WiimoteLinux(scan_infos[i].bdaddr);
+    if (IsBalanceBoardName(name))
     {
-      bool new_wiimote = true;
-
-      // Determine if this Wiimote has already been found.
-      for (int j = 0; j < MAX_BBMOTES && new_wiimote; ++j)
-      {
-        // compare this address with the stored addresses in our global array
-        // static_cast is OK here, since we're only ever going to have this subclass in g_wiimotes
-        // on Linux (and likewise, only WiimoteWindows on Windows, etc)
-        auto connected_wiimote = static_cast<WiimoteLinux*>(g_wiimotes[j]);
-        if (connected_wiimote && bacmp(&scan_infos[i].bdaddr, &connected_wiimote->Address()) == 0)
-          new_wiimote = false;
-      }
-
-      if (new_wiimote)
-      {
-        // Found a new device
-        char bdaddr_str[18] = {};
-        ba2str(&scan_infos[i].bdaddr, bdaddr_str);
-
-        Wiimote* wm = new WiimoteLinux(scan_infos[i].bdaddr);
-        if (IsBalanceBoardName(name))
-        {
-          found_board = wm;
-          NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
-        }
-        else
-        {
-          found_wiimotes.push_back(wm);
-          NOTICE_LOG(WIIMOTE, "Found Wiimote (%s).", bdaddr_str);
-        }
-      }
+      found_board = wm;
+      NOTICE_LOG(WIIMOTE, "Found balance board (%s).", bdaddr_str);
+    }
+    else
+    {
+      found_wiimotes.push_back(wm);
+      NOTICE_LOG(WIIMOTE, "Found Wiimote (%s).", bdaddr_str);
     }
   }
 }
@@ -189,6 +185,10 @@ void WiimoteLinux::DisconnectInternal()
 
   m_cmd_sock = -1;
   m_int_sock = -1;
+  char bdaddr_str[18] = {};
+  ba2str(&m_bdaddr, bdaddr_str);
+  s_known_addrs.erase(std::remove(s_known_addrs.begin(), s_known_addrs.end(), bdaddr_str),
+                      s_known_addrs.end());
 }
 
 bool WiimoteLinux::IsConnected() const
