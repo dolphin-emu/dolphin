@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,7 +38,7 @@ public:
                 long style);
   ~CGameListCtrl();
 
-  void Update() override;
+  void ReloadList();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
@@ -65,16 +66,7 @@ private:
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
   std::vector<int> m_EmuStateImageIndex;
-  std::vector<GameListItem*> m_ISOFiles;
-
-  void ClearIsoFiles()
-  {
-    while (!m_ISOFiles.empty())  // so lazy
-    {
-      delete m_ISOFiles.back();
-      m_ISOFiles.pop_back();
-    }
-  }
+  std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
   int last_column;
   int last_sort;
