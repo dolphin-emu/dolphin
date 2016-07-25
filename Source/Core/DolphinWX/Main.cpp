@@ -86,6 +86,8 @@ std::string wxStringTranslator(const char*);
 
 CFrame* main_frame = nullptr;
 
+static std::mutex s_init_mutex;
+
 bool DolphinApp::Initialize(int& c, wxChar** v)
 {
 #if defined HAVE_X11 && HAVE_X11
@@ -98,6 +100,7 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 bool DolphinApp::OnInit()
 {
+  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
 
@@ -540,6 +543,7 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
+  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (connect)
   {
     wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
