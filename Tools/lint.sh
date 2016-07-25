@@ -5,7 +5,7 @@
 fail=0
 
 # Check for clang-format issues.
-for f in $(git status --porcelain | awk '{print $2}'); do
+for f in $(git diff --name-only --diff-filter=ACMRTUXB | awk '{print $2}'); do
   if ! echo "${f}" | egrep -q "[.](cpp|h|mm)$"; then
     continue
   fi
