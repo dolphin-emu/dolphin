@@ -16,7 +16,6 @@ class WiimoteLinux final : public Wiimote
 public:
   WiimoteLinux(bdaddr_t bdaddr);
   ~WiimoteLinux() override;
-  const bdaddr_t& Address() const;
 
 protected:
   bool ConnectInternal() override;
