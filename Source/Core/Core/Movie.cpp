@@ -180,6 +180,18 @@ std::string GetInputDisplay()
 }
 
 // NOTE: GPU Thread
+std::string GetRTCDisplay()
+{
+  time_t current_time = CEXIIPL::GetGCTimeJan1970();
+  tm* gm_time = gmtime(&current_time);
+  char buffer[256];
+  strftime(buffer, sizeof(buffer), "Date/Time: %c", gm_time);
+  std::stringstream format_time;
+  format_time << buffer;
+  return format_time.str();
+}
+
+// NOTE: GPU Thread
 void FrameUpdate()
 {
   // TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
