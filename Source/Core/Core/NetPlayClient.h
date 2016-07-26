@@ -32,6 +32,10 @@ public:
   virtual void OnMsgChangeGame(const std::string& filename) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
+  virtual void OnPadBufferChanged(u32 buffer) = 0;
+  virtual void OnDesync(u32 frame, const std::string& player) = 0;
+  virtual void OnConnectionLost() = 0;
+  virtual void OnTraversalError(int error) = 0;
   virtual bool IsRecording() = 0;
   virtual std::string FindGame(const std::string& game) = 0;
   virtual void ShowMD5Dialog(const std::string& file_identifier) = 0;
@@ -157,6 +161,8 @@ private:
   void Disconnect();
   bool Connect();
   void ComputeMD5(const std::string& file_identifier);
+  void DisplayPlayersPing();
+  u32 GetPlayersMaxPing() const;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;

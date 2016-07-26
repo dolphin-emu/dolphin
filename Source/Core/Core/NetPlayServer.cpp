@@ -350,15 +350,13 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
     {
       if (mapping == pid && pid != 1)
       {
-        PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must "
-                    "manually stop the game.");
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         m_is_running = false;
 
         sf::Packet spac;
         spac << (MessageId)NP_MSG_DISABLE_GAME;
         // this thread doesn't need players lock
-        SendToClients(spac, 1);
+        SendToClients(spac, -1);
         break;
       }
     }
@@ -636,19 +634,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           }))
       {
         int pid_to_blame = -1;
-        if (timebases.size() > 2)
+        for (auto pair : timebases)
         {
-          for (auto pair : timebases)
+          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+                return other.first == pair.first || other.second != pair.second;
+              }))
           {
-            if (std::all_of(timebases.begin(), timebases.end(),
-                            [&](std::pair<PlayerId, u64> other) {
-                              return other.first == pair.first || other.second != pair.second;
-                            }))
-            {
-              // we are the only outlier
-              pid_to_blame = pair.first;
-              break;
-            }
+            // we are the only outlier
+            pid_to_blame = pair.first;
+            break;
           }
         }
 
@@ -720,8 +714,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog)
-    m_dialog->Update();
+  if (m_dialog && m_traversal_client->m_State == TraversalClient::Failure)
+    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
 }
 
 // called from ---GUI--- thread
