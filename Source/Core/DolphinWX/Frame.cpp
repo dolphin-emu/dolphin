@@ -6,6 +6,7 @@
 #include <Cocoa/Cocoa.h>
 #endif
 
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <fstream>
@@ -51,6 +52,7 @@
 #include "Core/State.h"
 
 #include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
@@ -95,6 +97,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 
   DragAcceptFiles(true);
   Bind(wxEVT_DROP_FILES, &CRenderFrame::OnDropFiles, this);
+  Bind(wxEVT_ACTIVATE, &CRenderFrame::OnActivationChanged, this);
 }
 
 void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
@@ -136,6 +139,12 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
   }
 }
 
+void CRenderFrame::OnActivationChanged(wxActivateEvent& ev)
+{
+  m_is_active.store(ev.GetActive(), std::memory_order_relaxed);
+  ev.Skip();
+}
+
 bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
 {
   const int game_id_length = 6;
@@ -155,46 +164,19 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 {
   switch (nMsg)
   {
+  // Block screensaver if we are configured to do so.
   case WM_SYSCOMMAND:
     switch (wParam)
     {
     case SC_SCREENSAVE:
     case SC_MONITORPOWER:
-      if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
-        break;
-    default:
-      return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-    }
-    break;
-
-  case WM_USER:
-    switch (wParam)
-    {
-    case WM_USER_STOP:
-      main_frame->DoStop();
-      break;
-
-    case WM_USER_SETCURSOR:
-      if (SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
-          Core::GetState() == Core::CORE_RUN)
-        SetCursor(wxCURSOR_BLANK);
-      else
-        SetCursor(wxNullCursor);
+      if (SConfig::GetInstance().bDisableScreenSaver && Core::GetState() == Core::CORE_RUN)
+        return 0;
       break;
     }
     break;
-
-  case WM_CLOSE:
-    // Let Core finish initializing before accepting any WM_CLOSE messages
-    if (!Core::IsRunning())
-      break;
-  // Use default action otherwise
-
-  default:
-    // By default let wxWidgets do what it normally does with this event
-    return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
   }
-  return 0;
+  return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif
 
@@ -230,7 +212,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
 
-wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
+wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxThreadEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
@@ -566,8 +548,6 @@ CFrame::~CFrame()
   delete m_XRRConfig;
 #endif
 
-  ClosePages();
-
   delete m_Mgr;
 
   // This object is owned by us, not wxw
@@ -581,6 +561,9 @@ bool CFrame::RendererIsFullscreen()
 
   if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
   {
+    // WARN: This is not safe off the Main Thread.
+    // We can't use wxMutexGuiEnter/Leave because it can deadlock during
+    // pause/stop when the GUI blocks trying to change Core states.
     fullscreen = m_RenderFrame->IsFullScreen();
   }
 
@@ -599,30 +582,42 @@ bool CFrame::RendererIsFullscreen()
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
-  Close(true);
+  Close();
 }
 
 // --------
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-  if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
-  {
-    if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
-    {
-      if (SConfig::GetInstance().bRenderToMain)
-        m_RenderParent->SetFocus();
+  event.Skip();
+  if (Core::GetState() != Core::CORE_RUN && Core::GetState() != Core::CORE_PAUSE)
+    return;
 
-      if (SConfig::GetInstance().bHideCursor && Core::GetState() == Core::CORE_RUN)
-        m_RenderParent->SetCursor(wxCURSOR_BLANK);
-    }
-    else
+  if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
+  {
+    if (SConfig::GetInstance().bRenderToMain)
+      m_RenderParent->SetFocus();
+
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_PAUSE)
     {
-      if (SConfig::GetInstance().bHideCursor)
-        m_RenderParent->SetCursor(wxNullCursor);
+      Core::SetState(Core::CORE_RUN);
+      UpdateGUI();
+    }
+
+    if (SConfig::GetInstance().bHideCursor && Core::GetState() == Core::CORE_RUN)
+      m_RenderParent->SetCursor(wxCURSOR_BLANK);
+  }
+  else
+  {
+    if (SConfig::GetInstance().bHideCursor)
+      m_RenderParent->SetCursor(wxNullCursor);
+
+    if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_RUN)
+    {
+      Core::SetState(Core::CORE_PAUSE);
+      UpdateGUI();
     }
   }
-  event.Skip();
 }
 
 void CFrame::OnClose(wxCloseEvent& event)
@@ -631,14 +626,17 @@ void CFrame::OnClose(wxCloseEvent& event)
   // We'll try to close this window again once that is done.
   if (Core::GetState() != Core::CORE_UNINITIALIZED)
   {
-    DoStop();
-    if (event.CanVeto())
+    if (!DoStop(event.CanVeto()))
     {
-      event.Veto();
+      // The user cancelled the close event or the Core is not yet IsRunningAndStarted()
+      if (event.CanVeto())
+        event.Veto();
+      return;
     }
+
     // Tell OnStopped to resubmit the Close event
-    if (m_confirmStop)
-      m_bClosing = true;
+    m_bClosing = true;
+    Disable();
     return;
   }
 
@@ -659,6 +657,8 @@ void CFrame::OnClose(wxCloseEvent& event)
     m_LogWindow->SaveSettings();
   }
 
+  ClosePages();
+
   // Uninit
   m_Mgr->UnInit();
 }
@@ -671,7 +671,7 @@ void CFrame::PostEvent(wxCommandEvent& event)
   if (g_pCodeWindow && event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX)
   {
     event.StopPropagation();
-    g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
+    g_pCodeWindow->GetEventHandler()->ProcessEvent(event);
   }
   else
   {
@@ -712,31 +712,6 @@ void CFrame::OnResize(wxSizeEvent& event)
 
 // Host messages
 
-#ifdef _WIN32
-WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
-{
-  if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
-  {
-    return 0;
-  }
-  else if (nMsg == WM_QUERYENDSESSION)
-  {
-    // Indicate that the application will be able to close
-    return 1;
-  }
-  else if (nMsg == WM_ENDSESSION)
-  {
-    // Actually trigger the close now
-    Close(true);
-    return 0;
-  }
-  else
-  {
-    return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-  }
-}
-#endif
-
 void CFrame::UpdateTitle(const std::string& str)
 {
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
@@ -751,7 +726,7 @@ void CFrame::UpdateTitle(const std::string& str)
   }
 }
 
-void CFrame::OnHostMessage(wxCommandEvent& event)
+void CFrame::OnHostMessage(wxThreadEvent& event)
 {
   switch (event.GetId())
   {
@@ -770,9 +745,8 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
   case IDM_WINDOW_SIZE_REQUEST:
   {
-    std::pair<int, int>* win_size = (std::pair<int, int>*)(event.GetClientData());
-    OnRenderWindowSizeRequest(win_size->first, win_size->second);
-    delete win_size;
+    auto win_size = event.GetPayload<std::pair<int, int>>();
+    OnRenderWindowSizeRequest(win_size.first, win_size.second);
   }
   break;
 
@@ -796,20 +770,17 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
       m_RenderParent->SetCursor(wxCURSOR_BLANK);
     break;
 
-#ifdef __WXGTK__
   case IDM_PANIC:
   {
-    wxString caption = event.GetString().BeforeFirst(':');
-    wxString text = event.GetString().AfterFirst(':');
-    bPanicResult = (wxYES == wxMessageBox(text, caption, event.GetInt() ? wxYES_NO : wxOK,
-                                          wxWindow::FindFocus()));
-    panic_event.Set();
+    auto panic_data = event.GetPayload<std::shared_ptr<PanicData>>();
+    panic_data->result =
+        wxMessageBox(panic_data->text, panic_data->caption, panic_data->style, m_RenderFrame);
+    panic_data->done_signal.Set();
+    break;
   }
-  break;
-#endif
 
   case WM_USER_STOP:
-    DoStop();
+    DoStop(false);
     break;
 
   case IDM_STOPPED:
@@ -832,6 +803,43 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
     break;
   }
+}
+
+bool CFrame::CreatePanicWindowAndWait(const char* text, const char* caption, bool yes_no)
+{
+  long style = yes_no ? wxYES_NO | wxICON_WARNING : wxOK | wxICON_WARNING;
+  if (wxIsMainThread())
+  {
+    // The messagebox is attached to the game list instead of the render frame
+    // because that disables interaction with that frame; we want to limit the
+    // damage that can happen during re-entrancy.
+    // It's possible to be inside PauseAndLock when this function is called
+    // which means extreme care needs to be taken not to crash or deadlock.
+    bool have_hotkeys = HotkeyManagerEmu::IsEnabled();
+    HotkeyManagerEmu::Enable(false);
+    int result = wxMessageBox(wxString::FromUTF8(text), wxString::FromUTF8(caption), style, this);
+    if (have_hotkeys)
+      HotkeyManagerEmu::Enable(true);
+    return result == wxYES;
+  }
+
+  // We are not on the main thread so we need to create an asynchronous panic event
+  auto panic_data = std::make_shared<PanicData>();
+  panic_data->caption = wxString::FromUTF8(caption);
+  panic_data->text = wxString::FromUTF8(text);
+  // NOTE: Local stack copies of wxString have been destroyed. assert(refcount==1)
+  panic_data->style = style;
+
+  {
+    wxThreadEvent* ev = new wxThreadEvent(wxEVT_HOST_COMMAND, IDM_PANIC);
+    ev->SetPayload(panic_data);  // We're sending a copy of the shared_ptr
+    GetEventHandler()->QueueEvent(ev);
+  }
+  // NOTE: All fields are now owned exclusively by the main thread. Only result can be
+  //   read after the signal fires.
+
+  panic_data->done_signal.Wait();
+  return panic_data->result == wxYES;
 }
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
@@ -858,40 +866,12 @@ void CFrame::OnRenderWindowSizeRequest(int width, int height)
 
 bool CFrame::RendererHasFocus()
 {
+  // This should never happen as the core should always be stopped first before
+  // the render target is destroyed.
   if (m_RenderParent == nullptr)
     return false;
-#ifdef _WIN32
-  HWND window = GetForegroundWindow();
-  if (window == nullptr)
-    return false;
 
-  if (m_RenderFrame->GetHWND() == window)
-    return true;
-#else
-  wxWindow* window = wxWindow::FindFocus();
-  if (window == nullptr)
-    return false;
-  // Why these different cases?
-  if (m_RenderParent == window || m_RenderParent == window->GetParent() ||
-      m_RenderParent->GetParent() == window->GetParent())
-  {
-    return true;
-  }
-#endif
-  return false;
-}
-
-bool CFrame::UIHasFocus()
-{
-  // UIHasFocus should return true any time any one of our UI
-  // windows has the focus, including any dialogs or other windows.
-  //
-  // wxWindow::FindFocus() returns the current wxWindow which has
-  // focus. If it's not one of our windows, then it will return
-  // null.
-
-  wxWindow* focusWindow = wxWindow::FindFocus();
-  return (focusWindow != nullptr);
+  return m_RenderFrame->IsActiveThreadsafe();
 }
 
 void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
@@ -1128,8 +1108,8 @@ void OnAfterLoadCallback()
   // proper thread
   if (main_frame)
   {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
+    main_frame->GetEventHandler()->QueueEvent(
+        new wxThreadEvent(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI));
   }
 }
 
@@ -1139,8 +1119,7 @@ void OnStoppedCallback()
   // proper thread
   if (main_frame)
   {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
+    main_frame->GetEventHandler()->QueueEvent(new wxThreadEvent(wxEVT_HOST_COMMAND, IDM_STOPPED));
   }
 }
 
@@ -1225,35 +1204,6 @@ void CFrame::OnMouse(wxMouseEvent& event)
       lastMouse[0] = event.GetX();
       lastMouse[1] = event.GetY();
     }
-  }
-
-  event.Skip();
-}
-
-void CFrame::OnFocusChange(wxFocusEvent& event)
-{
-  if (SConfig::GetInstance().m_PauseOnFocusLost && Core::IsRunningAndStarted())
-  {
-    if (RendererHasFocus())
-    {
-      if (Core::GetState() == Core::CORE_PAUSE)
-      {
-        Core::SetState(Core::CORE_RUN);
-        if (SConfig::GetInstance().bHideCursor)
-          m_RenderParent->SetCursor(wxCURSOR_BLANK);
-      }
-    }
-    else
-    {
-      if (Core::GetState() == Core::CORE_RUN)
-      {
-        Core::SetState(Core::CORE_PAUSE);
-        if (SConfig::GetInstance().bHideCursor)
-          m_RenderParent->SetCursor(wxNullCursor);
-        Core::UpdateTitle();
-      }
-    }
-    UpdateGUI();
   }
 
   event.Skip();
@@ -1515,11 +1465,13 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
   {
-    State::Save(g_saveSlot);
+    wxCommandEvent ev(wxEVT_MENU, IDM_SAVE_SELECTED_SLOT);
+    CFrame::OnSaveCurrentSlot(ev);
   }
   if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
   {
-    State::Load(g_saveSlot);
+    wxCommandEvent ev(wxEVT_MENU, IDM_LOAD_SELECTED_SLOT);
+    CFrame::OnLoadCurrentSlot(ev);
   }
 
   if (IsHotkey(HK_TOGGLE_STEREO_SBS))
@@ -1635,27 +1587,43 @@ void CFrame::ParseHotkeys()
   for (u32 i = 0; i < State::NUM_STATES; i++)
   {
     if (IsHotkey(HK_LOAD_STATE_SLOT_1 + i))
-      State::Load(1 + i);
+    {
+      wxCommandEvent ev(wxEVT_MENU, IDM_LOAD_SLOT_1 + i);
+      CFrame::OnLoadState(ev);
+    }
 
     if (IsHotkey(HK_SAVE_STATE_SLOT_1 + i))
-      State::Save(1 + i);
+    {
+      wxCommandEvent ev(wxEVT_MENU, IDM_SAVE_SLOT_1 + i);
+      CFrame::OnSaveState(ev);
+    }
 
     if (IsHotkey(HK_LOAD_LAST_STATE_1 + i))
+    {
       State::LoadLastSaved(1 + i);
+    }
 
     if (IsHotkey(HK_SELECT_STATE_SLOT_1 + i))
     {
-      wxCommandEvent slot_event;
-      slot_event.SetId(IDM_SELECT_SLOT_1 + i);
-      CFrame::OnSelectSlot(slot_event);
+      wxCommandEvent ev(wxEVT_MENU, IDM_SELECT_SLOT_1 + i);
+      CFrame::OnSelectSlot(ev);
     }
   }
   if (IsHotkey(HK_SAVE_FIRST_STATE))
-    State::SaveFirstSaved();
+  {
+    wxCommandEvent ev(wxEVT_MENU, IDM_SAVE_FIRST_STATE);
+    CFrame::OnSaveFirstState(ev);
+  }
   if (IsHotkey(HK_UNDO_LOAD_STATE))
-    State::UndoLoadState();
+  {
+    wxCommandEvent ev(wxEVT_MENU, IDM_UNDO_LOAD_STATE);
+    CFrame::OnUndoLoadState(ev);
+  }
   if (IsHotkey(HK_UNDO_SAVE_STATE))
-    State::UndoSaveState();
+  {
+    wxCommandEvent ev(wxEVT_MENU, IDM_UNDO_SAVE_STATE);
+    CFrame::OnUndoSaveState(ev);
+  }
 }
 
 void CFrame::HandleFrameSkipHotkeys()

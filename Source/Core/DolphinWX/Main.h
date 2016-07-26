@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <wx/app.h>
 
@@ -18,6 +19,8 @@ class DolphinApp : public wxApp
 public:
   CFrame* GetCFrame();
 
+  // Can be called from any thread
+  bool IsActiveThreadsafe() const { return m_is_active_threadsafe.load(std::memory_order_relaxed); }
 private:
   bool OnInit() override;
   int OnExit() override;
@@ -30,6 +33,7 @@ private:
   void MacOpenFile(const wxString& fileName) override;
 #endif
 
+  void OnApplicationFocusChanged(wxActivateEvent&);
   void OnEndSession(wxCloseEvent& event);
   void InitLanguageSupport();
   void AfterInit();
@@ -50,6 +54,7 @@ private:
   wxString m_file_to_load;
   wxString m_movie_file;
   std::unique_ptr<wxLocale> m_locale;
+  std::atomic<bool> m_is_active_threadsafe{true};  // App starts active
 };
 
 DECLARE_APP(DolphinApp);

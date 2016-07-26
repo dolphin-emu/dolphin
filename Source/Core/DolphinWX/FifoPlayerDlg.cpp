@@ -36,8 +36,9 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"
 
-wxDEFINE_EVENT(RECORDING_FINISHED_EVENT, wxCommandEvent);
-wxDEFINE_EVENT(FRAME_WRITTEN_EVENT, wxCommandEvent);
+wxDEFINE_EVENT(RECORDING_FINISHED_EVENT, wxThreadEvent);
+wxDEFINE_EVENT(FILE_LOADED_EVENT, wxThreadEvent);
+wxDEFINE_EVENT(FRAME_WRITTEN_EVENT, wxThreadEvent);
 
 static std::recursive_mutex sMutex;
 wxEvtHandler* volatile FifoPlayerDlg::m_EvtHandler = nullptr;
@@ -802,7 +803,7 @@ void FifoPlayerDlg::OnObjectCmdListSelectionCopy(wxCommandEvent& WXUNUSED(event)
   }
 }
 
-void FifoPlayerDlg::OnRecordingFinished(wxEvent&)
+void FifoPlayerDlg::OnRecordingFinished(wxThreadEvent&)
 {
   m_RecordStop->SetLabel(_("Record"));
   m_RecordStop->Enable();
@@ -810,7 +811,12 @@ void FifoPlayerDlg::OnRecordingFinished(wxEvent&)
   UpdateRecorderGui();
 }
 
-void FifoPlayerDlg::OnFrameWritten(wxEvent&)
+void FifoPlayerDlg::OnFileLoaded(wxThreadEvent&)
+{
+  Refresh();
+}
+
+void FifoPlayerDlg::OnFrameWritten(wxThreadEvent&)
 {
   m_CurrentFrameLabel->SetLabel(CreateCurrentFrameLabel());
   m_NumObjectsLabel->SetLabel(CreateFileObjectCountLabel());
@@ -954,8 +960,7 @@ void FifoPlayerDlg::RecordingFinished()
 
   if (m_EvtHandler)
   {
-    wxCommandEvent event(RECORDING_FINISHED_EVENT);
-    m_EvtHandler->AddPendingEvent(event);
+    m_EvtHandler->QueueEvent(new wxThreadEvent(RECORDING_FINISHED_EVENT));
   }
 
   sMutex.unlock();
@@ -967,8 +972,7 @@ void FifoPlayerDlg::FileLoaded()
 
   if (m_EvtHandler)
   {
-    wxPaintEvent event;
-    m_EvtHandler->AddPendingEvent(event);
+    m_EvtHandler->QueueEvent(new wxThreadEvent(FILE_LOADED_EVENT));
   }
 
   sMutex.unlock();
@@ -980,8 +984,7 @@ void FifoPlayerDlg::FrameWritten()
 
   if (m_EvtHandler)
   {
-    wxCommandEvent event(FRAME_WRITTEN_EVENT);
-    m_EvtHandler->AddPendingEvent(event);
+    m_EvtHandler->QueueEvent(new wxThreadEvent(FRAME_WRITTEN_EVENT));
   }
 
   sMutex.unlock();

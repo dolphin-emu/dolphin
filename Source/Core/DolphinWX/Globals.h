@@ -303,6 +303,7 @@ enum
   IDM_MULTI_COMPRESS_ISO,
   IDM_MULTI_DECOMPRESS_ISO,
   IDM_UPDATE_DISASM_DIALOG,
+  IDM_UPDATE_DSP_DEBUGGER,
   IDM_UPDATE_GUI,
   IDM_UPDATE_STATUS_BAR,
   IDM_UPDATE_TITLE,
@@ -345,10 +346,10 @@ enum
 };
 
 // custom message macro
-#define EVT_HOST_COMMAND(id, fn) EVT_COMMAND(id, wxEVT_HOST_COMMAND, fn)
+#define EVT_HOST_COMMAND(id, fn)                                                                   \
+  wxDECLARE_EVENT_TABLE_ENTRY(wxEVT_HOST_COMMAND, id, wxID_ANY, wxThreadEventHandler(fn), nullptr),
 
-// FIXME: This should be changed to wxThreadEvent
-wxDECLARE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
+wxDECLARE_EVENT(wxEVT_HOST_COMMAND, wxThreadEvent);
 
 // Sent to wxTheApp
 // GetString() == Game's Unique ID

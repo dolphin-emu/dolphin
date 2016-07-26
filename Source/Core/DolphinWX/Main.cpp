@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <mutex>
@@ -57,8 +58,6 @@
 #import <AppKit/AppKit.h>
 #endif
 
-class wxFrame;
-
 // ------------
 //  Main window
 
@@ -84,6 +83,7 @@ bool DolphinApp::OnInit()
   if (!wxApp::OnInit())
     return false;
 
+  Bind(wxEVT_ACTIVATE_APP, &DolphinApp::OnApplicationFocusChanged, this);
   Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_IDLE, &DolphinApp::OnIdle, this);
@@ -300,6 +300,12 @@ void DolphinApp::InitLanguageSupport()
   }
 }
 
+void DolphinApp::OnApplicationFocusChanged(wxActivateEvent& ev)
+{
+  m_is_active_threadsafe.store(ev.GetActive(), std::memory_order_relaxed);
+  ev.Skip();
+}
+
 void DolphinApp::OnEndSession(wxCloseEvent& event)
 {
   // Close if we've received wxEVT_END_SESSION (ignore wxEVT_QUERY_END_SESSION)
@@ -331,34 +337,6 @@ void DolphinApp::OnIdle(wxIdleEvent& ev)
 // ------------
 // Talk to GUI
 
-bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
-{
-#ifdef __WXGTK__
-  if (wxIsMainThread())
-  {
-#endif
-    NetPlayDialog*& npd = NetPlayDialog::GetInstance();
-    if (npd != nullptr && npd->IsShown())
-    {
-      npd->AppendChat("/!\\ " + std::string{text});
-      return true;
-    }
-    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption), (yes_no) ? wxYES_NO : wxOK,
-                                 wxWindow::FindFocus());
-#ifdef __WXGTK__
-  }
-  else
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_PANIC);
-    event.SetString(StrToWxStr(caption) + ":" + StrToWxStr(text));
-    event.SetInt(yes_no);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-    main_frame->panic_event.Wait();
-    return main_frame->bPanicResult;
-  }
-#endif
-}
-
 std::string wxStringTranslator(const char* text)
 {
   return WxStrToStr(wxGetTranslation(wxString::FromUTF8(text)));
@@ -370,77 +348,119 @@ CFrame* DolphinApp::GetCFrame()
   return main_frame;
 }
 
-void Host_Message(int Id)
-{
-  if (Id == WM_USER_JOB_DISPATCH)
-  {
-    // Trigger a wxEVT_IDLE
-    wxWakeUpIdle();
-    return;
-  }
-  wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
 void* Host_GetRenderHandle()
 {
   return main_frame->GetRenderHandle();
 }
 
-// OK, this thread boundary is DANGEROUS on Linux
-// wxPostEvent / wxAddPendingEvent is the solution.
+// Posting messages across thread boundaries has several caveats:
+//   - Use QueueEvent, only wxThreadEvent can be used with AddPendingEvent. Never use
+//     ProcessEvent.
+//   - GUI objects can only be created on the main thread.
+//   - GUI objects can only have member functions called while holding the GUI lock
+//     (wxMutexGuiEnter) but if the object tries to create a window behind the scenes
+//     then it will break anyway even with the lock held.
+//   - Many wx objects, including wxString, use non-threadsafe reference counting
+//     implementations which will data race when sent across thread boundaries. These
+//     races are hard to avoid since the destructor on the stack local object will set
+//     it off. You must always be mindful of object scope and make sure local objects
+//     that are included in the message are destructed BEFORE the QueueEvent() call.
+//     (UnShare() / Clone() / etc needs to be used on objects that came from somewhere
+//     else since assigning copies just twiddles the refcount)
+static void PostHostMessage(wxEvtHandler* target, int id, int val = 0,
+                            const wxString& str = wxEmptyString)
+{
+  wxThreadEvent* event = new wxThreadEvent(wxEVT_HOST_COMMAND, id);
+  event->SetInt(val);
+  event->SetString(str.Clone());  // DEEP copy string (instead of incrementing refcount)
+  // NOTE: Local stack copy of cloned string is destroyed on this line. assert(refcount==1)
+  target->QueueEvent(event);  // Takes ownership of the object
+}
+static inline void PostHostMessage(int id, int val = 0, const wxString& str = wxEmptyString)
+{
+  PostHostMessage(main_frame->GetEventHandler(), id, val, str);
+}
+static inline void PostDebugHostMessage(int id, int val = 0, const wxString& str = wxEmptyString)
+{
+  PostHostMessage(id, val, str);
+  if (main_frame->g_pCodeWindow)
+    PostHostMessage(main_frame->g_pCodeWindow->GetEventHandler(), id, val, str);
+}
+
+bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
+{
+  // Rules:
+  //  - On Windows, any thread can create a window. That window then belongs to that
+  //    thread and it must run the message pump for it (window messages are sent to
+  //    the owner thread's queue). This also means that modal windows on Thread B will
+  //    not prevent windows on Thread A from continuing to process events.
+  //      - Caveat: If a window created on Thread B has a parent that is owned by Thread A
+  //        then that causes both threads to AttachInputQueue(...) with each other. They
+  //        share a single internal input queue which means that if either thread stops
+  //        running its message pump then both threads deadlock since the queue will refuse
+  //        to give messages while the head of the queue is intended for the other thread.
+  //        This problem scales exponentially as you can attach as many threads as you want
+  //        which will all collectively deadlock with each other as soon as one fails.
+  //        [This is a pain to deal with and very dangerous so it should be avoided]
+  //  - On GTK, only the main thread can create windows or receive messages
+  //  - On Mac OS X, only the main thread can create windows or receive messages
+  NetPlayDialog* npd = NetPlayDialog::GetInstance();
+  if (npd && npd->IsShown())
+  {
+    // This is a race because NetPlay uses a FifoQueue to transfer messages from the client thread
+    // to the GUI. FifoQueue is only dual-thread safe, not N-threads safe.
+    npd->AppendChat("/!\\ CORE PANIC: " + std::string{text});
+    return true;
+  }
+  return main_frame->CreatePanicWindowAndWait(text, caption, yes_no);
+}
+
+void Host_Message(int id)
+{
+  if (id == WM_USER_JOB_DISPATCH)
+  {
+    // Trigger a wxEVT_IDLE
+    wxWakeUpIdle();
+    return;
+  }
+  PostHostMessage(id);
+}
+
 void Host_NotifyMapLoaded()
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFY_MAP_LOADED);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-
-  if (main_frame->g_pCodeWindow)
-  {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-  }
+  PostDebugHostMessage(IDM_NOTIFY_MAP_LOADED);
 }
 
 void Host_UpdateDisasmDialog()
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-
-  if (main_frame->g_pCodeWindow)
-  {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-  }
+  PostDebugHostMessage(IDM_UPDATE_DISASM_DIALOG);
 }
 
 void Host_UpdateMainFrame()
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
+  PostDebugHostMessage(IDM_UPDATE_GUI);
+}
 
-  if (main_frame->g_pCodeWindow)
-  {
-    main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-  }
+void Host_RefreshDSPDebuggerWindow()
+{
+  PostDebugHostMessage(IDM_UPDATE_DSP_DEBUGGER);
 }
 
 void Host_UpdateTitle(const std::string& title)
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_TITLE);
-  event.SetString(StrToWxStr(title));
-  main_frame->GetEventHandler()->AddPendingEvent(event);
+  PostHostMessage(IDM_UPDATE_TITLE, 0, StrToWxStr(title));
 }
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
-  event.SetClientData(new std::pair<int, int>(width, height));
-  main_frame->GetEventHandler()->AddPendingEvent(event);
+  wxThreadEvent* ev = new wxThreadEvent(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
+  ev->SetPayload(std::pair<int, int>(width, height));
+  main_frame->GetEventHandler()->QueueEvent(ev);
 }
 
 void Host_RequestFullscreen(bool enable_fullscreen)
 {
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREEN_REQUEST);
-  event.SetInt(enable_fullscreen ? 1 : 0);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
+  PostHostMessage(IDM_FULLSCREEN_REQUEST, enable_fullscreen);
 }
 
 void Host_SetStartupDebuggingParameters()
@@ -460,45 +480,39 @@ void Host_SetStartupDebuggingParameters()
   StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false;  // RUNNING_DEBUG
 }
 
-void Host_SetWiiMoteConnectionState(int _State)
+void Host_SetWiiMoteConnectionState(int state)
 {
-  static int currentState = -1;
-  if (_State == currentState)
+  static std::atomic<int> old_state(-1);
+  if (old_state.exchange(state) == state)
     return;
-  currentState = _State;
 
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_STATUS_BAR);
+  static const std::array<const char* const, 3> s_message_list{
+      wxTRANSLATE("Not connected"), wxTRANSLATE("Connecting..."), wxTRANSLATE("Wiimote Connected")};
+  const char* message = "Unknown State";  // Doesn't need to be translated
+  if (static_cast<u32>(state) < s_message_list.size())
+    message = s_message_list[state];
 
-  switch (_State)
-  {
-  case 0:
-    event.SetString(_("Not connected"));
-    break;
-  case 1:
-    event.SetString(_("Connecting..."));
-    break;
-  case 2:
-    event.SetString(_("Wiimote Connected"));
-    break;
-  }
-  // Update field 1 or 2
-  event.SetInt(1);
+  NOTICE_LOG(WIIMOTE, "%s", message);
 
-  NOTICE_LOG(WIIMOTE, "%s", static_cast<const char*>(event.GetString().c_str()));
+  // Update field 0 or 1
+  int field = 1;
 
-  main_frame->GetEventHandler()->AddPendingEvent(event);
+  PostHostMessage(IDM_UPDATE_STATUS_BAR, field, wxGetTranslation(message));
 }
 
+// This is called from the UI and CPU Threads
 bool Host_UIHasFocus()
 {
-  return main_frame->UIHasFocus();
+  return wxGetApp().IsActiveThreadsafe();
 }
 
+// This is called from the UI, CPU and GPU threads
 bool Host_RendererHasFocus()
 {
   return main_frame->RendererHasFocus();
 }
 
+// This is not called from anywhere
 bool Host_RendererIsFullscreen()
 {
   return main_frame->RendererIsFullscreen();
@@ -506,28 +520,22 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-  if (connect)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-  else
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_DISCONNECT_WIIMOTE1 + wm_idx);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
+  int id_base = connect ? IDM_FORCE_CONNECT_WIIMOTE1 : IDM_FORCE_DISCONNECT_WIIMOTE1;
+  PostHostMessage(id_base + wm_idx);
 }
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
+  wxASSERT(wxIsMainThread());
+
   if (backend_name == "Software Renderer")
   {
-    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name);
+    SoftwareVideoConfigDialog diag(static_cast<wxWindow*>(parent), backend_name);
     diag.ShowModal();
   }
   else
   {
-    VideoConfigDiag diag((wxWindow*)parent, backend_name);
+    VideoConfigDiag diag(static_cast<wxWindow*>(parent), backend_name);
     diag.ShowModal();
   }
 }

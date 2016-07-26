@@ -5,6 +5,8 @@
 #pragma once
 
 #include <array>
+#include <atomic>
+#include <thread>
 
 #include <wx/aui/framemanager.h>
 #include <wx/bitmap.h>
@@ -151,13 +153,16 @@ private:
   void OnCallersListChange(wxCommandEvent& event);
   void OnCallsListChange(wxCommandEvent& event);
   void OnCodeViewChange(wxCommandEvent& event);
-  void OnHostMessage(wxCommandEvent& event);
+  void OnHostMessage(wxThreadEvent& event);
 
   // Debugger functions
   void SingleStep();
   void StepOver();
   void StepOut();
   void ToggleBreakpoint();
+
+  void LockWatcherThread();
+  void OnLockSignal(wxThreadEvent&);
 
   void UpdateLists();
   void UpdateCallstack();
@@ -177,7 +182,12 @@ private:
   wxListBox* symbols;
   wxListBox* callers;
   wxListBox* calls;
-  Common::Event sync_event;
+  Common::Event m_sync_event;
+  Common::Event m_thread_wake_event;
+  std::thread m_helper_thread;
+  std::atomic<bool> m_thread_run{false};
+  std::atomic<bool> m_thread_block{false};
+  bool m_step_pending = false;
 
   wxAuiManager m_aui_manager;
   wxAuiToolBar* m_aui_toolbar;

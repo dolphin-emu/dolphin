@@ -13,6 +13,7 @@
 #include <wx/image.h>
 #include <wx/listbox.h>
 #include <wx/menu.h>
+#include <wx/msgdlg.h>
 #include <wx/panel.h>
 #include <wx/srchctrl.h>
 #include <wx/stattext.h>
@@ -26,6 +27,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Common/Thread.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -42,6 +44,7 @@
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
+#include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
 #include "DolphinWX/Debugger/RegisterWindow.h"
@@ -49,6 +52,14 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+
+static constexpr int SIGNAL_ACTIVATED = 0;
+static constexpr int SIGNAL_WATCHDOG = 1;
+
+namespace
+{
+wxDEFINE_EVENT(DOLPHIN_EVT_EVENT_SIGNALED, wxThreadEvent);
+}
 
 CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
                          const wxPoint& position, const wxSize& size, long style,
@@ -126,11 +137,20 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
 
   // Other
   Bind(wxEVT_HOST_COMMAND, &CCodeWindow::OnHostMessage, this);
+  Bind(DOLPHIN_EVT_EVENT_SIGNALED, &CCodeWindow::OnLockSignal, this);
+
+  m_thread_run.store(true);
+  m_helper_thread = std::thread(std::bind(&CCodeWindow::LockWatcherThread, this));
 }
 
 CCodeWindow::~CCodeWindow()
 {
   m_aui_manager.UnInit();
+
+  // Kick background thread and join it.
+  m_thread_run.store(false);
+  m_thread_wake_event.Set();
+  m_helper_thread.join();
 }
 
 wxMenuBar* CCodeWindow::GetMenuBar()
@@ -146,7 +166,7 @@ wxToolBar* CCodeWindow::GetToolBar()
 // ----------
 // Events
 
-void CCodeWindow::OnHostMessage(wxCommandEvent& event)
+void CCodeWindow::OnHostMessage(wxThreadEvent& event)
 {
   switch (event.GetId())
   {
@@ -166,6 +186,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
       GetPanel<CWatchWindow>()->NotifyUpdate();
     if (HasPanel<CMemoryWindow>())
       GetPanel<CMemoryWindow>()->Refresh();
+    break;
+
+  case IDM_UPDATE_DSP_DEBUGGER:
+    if (HasPanel<DSPDebuggerLLE>())
+      GetPanel<DSPDebuggerLLE>()->Repopulate();
     break;
 
   case IDM_UPDATE_BREAKPOINTS:
@@ -204,12 +229,18 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
     break;
 
   case IDM_SKIP:
+    // Framing is important because the CPU thread may be running in single step mode.
+    // We need it to be completely stopped.
+    CPU::PauseAndLock(true);
     PC += 4;
+    CPU::PauseAndLock(false, false);
     Repopulate();
     break;
 
   case IDM_SETPC:
+    CPU::PauseAndLock(true);
     PC = codeview->GetSelection();
+    CPU::PauseAndLock(false, false);
     Repopulate();
     break;
 
@@ -306,9 +337,11 @@ void CCodeWindow::SingleStep()
   {
     PowerPC::breakpoints.ClearAllTemporary();
     JitInterface::InvalidateICache(PC, 4, true);
-    CPU::StepOpcode(&sync_event);
-    wxThread::Sleep(20);
-    // need a short wait here
+    CPU::StepOpcode(&m_sync_event);
+    m_thread_block.store(true);
+    m_thread_wake_event.Set();
+    wxASSERT_MSG(!m_step_pending, "Previous request is still being serviced");
+    m_step_pending = true;
     JumpToAddress(PC);
     Repopulate();
   }
@@ -323,9 +356,9 @@ void CCodeWindow::StepOver()
     {
       PowerPC::breakpoints.ClearAllTemporary();
       PowerPC::breakpoints.Add(PC + 4, true);
-      CPU::EnableStepping(false);
       JumpToAddress(PC);
       Repopulate();
+      CPU::EnableStepping(false);  // CPU is running after this, don't access the registers.
     }
     else
     {
@@ -342,7 +375,10 @@ void CCodeWindow::StepOut()
 {
   if (CPU::IsStepping())
   {
-    CPU::PauseAndLock(true, false);
+    // FIXME: This code is weird. Why not get the return address from the link register or the stack
+    // tracer and set a temporary breakpoint instead? Why is this not done on the CPU Thread itself
+    // in Core/HW/CPU?
+    CPU::PauseAndLock(true);
     PowerPC::breakpoints.ClearAllTemporary();
 
     // Keep stepping until the next blr or timeout after one second
@@ -373,10 +409,9 @@ void CCodeWindow::StepOut()
 
     PowerPC::SingleStep();
     PowerPC::SetMode(oldMode);
-    CPU::PauseAndLock(false, false);
-
     JumpToAddress(PC);
     Repopulate();
+    CPU::PauseAndLock(false, false);
 
     // Update all toolbars in the aui manager
     Parent->UpdateGUI();
@@ -391,6 +426,53 @@ void CCodeWindow::ToggleBreakpoint()
       codeview->ToggleBreakpoint(codeview->GetSelection());
     Repopulate();
   }
+}
+
+void CCodeWindow::LockWatcherThread()
+{
+  static constexpr int WATCHDOG_TIMEOUT = 3;
+
+  Common::SetCurrentThreadName("CCodeWindow Lock Watcher");
+
+  while (m_thread_run.load())
+  {
+    if (!m_thread_block.load())
+    {
+      m_thread_wake_event.Wait();
+      continue;
+    }
+
+    int response = SIGNAL_ACTIVATED;
+    int timeout = 0;
+    while (m_thread_run.load() && m_thread_block.load())
+    {
+      bool signaled = m_sync_event.WaitFor(std::chrono::seconds(1));
+      if (signaled)
+        break;
+
+      timeout += 1;
+      if (timeout == WATCHDOG_TIMEOUT)
+      {
+        response = SIGNAL_WATCHDOG;
+        break;
+      }
+    }
+
+    m_thread_block.store(false);
+    GetEventHandler()->QueueEvent(new wxThreadEvent(DOLPHIN_EVT_EVENT_SIGNALED, response));
+  }
+}
+
+void CCodeWindow::OnLockSignal(wxThreadEvent& ev)
+{
+  if (ev.GetId() == SIGNAL_WATCHDOG)
+  {
+    wxMessageBox(_("The Emulator Core is not responding. It may be deadlocked."), _("Core Timeout"),
+                 wxOK | wxICON_ERROR, this);
+  }
+  m_step_pending = false;
+  JumpToAddress(PC);
+  Repopulate();
 }
 
 void CCodeWindow::UpdateLists()
@@ -717,7 +799,7 @@ void CCodeWindow::UpdateButtonStates()
   bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
   bool Pause = (Core::GetState() == Core::CORE_PAUSE);
   bool Stepping = CPU::IsStepping();
-  bool can_step = Initialized && Stepping;
+  bool can_step = Initialized && Stepping && !m_step_pending;
   wxToolBar* ToolBar = GetToolBar();
 
   // Toolbar
@@ -728,7 +810,7 @@ void CCodeWindow::UpdateButtonStates()
   ToolBar->EnableTool(IDM_STEPOVER, can_step);
   ToolBar->EnableTool(IDM_STEPOUT, can_step);
   ToolBar->EnableTool(IDM_SKIP, can_step);
-  ToolBar->EnableTool(IDM_SETPC, Pause);
+  ToolBar->EnableTool(IDM_SETPC, can_step);
   ToolBar->Realize();
 
   // Menu bar
