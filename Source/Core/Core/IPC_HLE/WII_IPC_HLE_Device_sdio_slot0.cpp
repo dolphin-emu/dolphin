@@ -62,7 +62,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 
 void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
 {
-  const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
+  const std::string filename = SConfig::GetInstance().m_strWiiSDCardPath;
   m_Card.Open(filename, "r+b");
   if (!m_Card)
   {
