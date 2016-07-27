@@ -7,39 +7,32 @@
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
 #include "Core/PowerPC/JitInterface.h"
 
-void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
+void JitArm64BlockCache::WriteLinkBlock(u8* location, const JitBlock& block)
 {
-  u8* location = source.exitPtrs;
   ARM64XEmitter emit(location);
 
-  if (dest)
+  // Are we able to jump directly to the normal entry?
+  s64 distance = ((s64)block.normalEntry - (s64)location) >> 2;
+  if (distance >= -0x40000 && distance <= 0x3FFFF)
   {
-    // Are we able to jump directly to the normal entry?
-    s64 distance = ((s64)dest->normalEntry - (s64)location) >> 2;
-    if (distance >= -0x40000 && distance <= 0x3FFFF)
-    {
-      emit.B(CC_LE, dest->normalEntry);
-    }
+    emit.B(CC_LE, block.normalEntry);
 
-    // Use the checked entry if either downcount is smaller zero,
-    // or if we're not able to inline the downcount check here.
-    emit.B(dest->checkedEntry);
+    // We can't write DISPATCHER_PC here, as blink linking is only for 8bytes.
+    // So we'll hit two jumps when calling Advance.
+    emit.B(block.checkedEntry);
   }
   else
   {
-    emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-    emit.B(jit->GetAsmRoutines()->dispatcher);
+    emit.B(block.checkedEntry);
   }
   emit.FlushIcache();
 }
 
-void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
+void JitArm64BlockCache::WriteDestroyBlock(const u8* location, u32 address)
 {
-  // Only clear the entry points as we might still be within this block.
-  ARM64XEmitter emit((u8*)block.checkedEntry);
-
-  while (emit.GetWritableCodePtr() <= block.normalEntry)
-    emit.BRK(0x123);
-
+  // must fit within the code generated in JitArm64::WriteExit
+  ARM64XEmitter emit((u8*)location);
+  emit.MOVI2R(DISPATCHER_PC, address);
+  emit.B(jit->GetAsmRoutines()->dispatcher);
   emit.FlushIcache();
 }

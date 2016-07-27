@@ -310,7 +310,6 @@ void Jit64::dcbx(UGeckoInstruction inst)
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
   ABI_CallFunction((void*)JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-  asm_routines.ResetStack(*this);
   c = J(true);
   SwitchToNearCode();
   SetJumpTarget(c);
