@@ -31,11 +31,27 @@ enum
   NP_GUI_EVT_DISPLAY_MD5_DIALOG,
   NP_GUI_EVT_MD5_PROGRESS,
   NP_GUI_EVT_MD5_RESULT,
+  NP_GUI_EVT_PAD_BUFFER_CHANGE,
+  NP_GUI_EVT_DESYNC,
+  NP_GUI_EVT_CONNECTION_LOST,
+  NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR,
 };
 
 enum
 {
   INITIAL_PAD_BUFFER_SIZE = 5
+};
+
+enum class ChatMessageType
+{
+  // Info messages logged to chat
+  Info,
+  // Error messages logged to chat
+  Error,
+  // Incoming user chat messages
+  UserIn,
+  // Outcoming user chat messages
+  UserOut,
 };
 
 // IDs are UI-dependent here
@@ -72,6 +88,10 @@ public:
   void OnMsgChangeGame(const std::string& filename) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
+  void OnPadBufferChanged(u32 buffer) override;
+  void OnDesync(u32 frame, const std::string& player) override;
+  void OnConnectionLost() override;
+  void OnTraversalError(int error) override;
 
   static NetPlayDialog*& GetInstance() { return npd; }
   static NetPlayClient*& GetNetPlayClient() { return netplay_client; }
@@ -92,7 +112,8 @@ private:
   void OnPlayerSelect(wxCommandEvent& event);
   void GetNetSettings(NetSettings& settings);
   std::string FindCurrentGame();
-  std::string FindGame(const std::string& game) override;
+  std::string FindGame(const std::string& game);
+  void AddChatMessage(ChatMessageType type, const std::string& msg);
 
   void OnCopyIP(wxCommandEvent&);
   void OnChoice(wxCommandEvent& event);
@@ -116,6 +137,9 @@ private:
   MD5Dialog* m_MD5_dialog = nullptr;
   bool m_host_copy_btn_is_retry;
   bool m_is_hosting;
+  u32 m_pad_buffer;
+  u32 m_desync_frame;
+  std::string m_desync_player;
 
   std::vector<int> m_playerids;
 

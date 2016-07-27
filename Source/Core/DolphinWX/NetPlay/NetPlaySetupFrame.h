@@ -23,12 +23,34 @@ public:
   ~NetPlaySetupFrame();
 
 private:
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+  static enum {
+    CONNECT_TAB = 0,
+    HOST_TAB = 1,
+
+    DIRECT_CHOICE = 0,
+    TRAVERSAL_CHOICE = 1
+  };
+#else
+  static constexpr int CONNECT_TAB = 0;
+  static constexpr int HOST_TAB = 1;
+
+  static constexpr int DIRECT_CHOICE = 0;
+  static constexpr int TRAVERSAL_CHOICE = 1;
+#endif
+
   void OnJoin(wxCommandEvent& event);
   void OnHost(wxCommandEvent& event);
+  void DoJoin();
+  void DoHost();
   void OnQuit(wxCommandEvent& event);
-  void OnChoice(wxCommandEvent& event);
+  void OnDirectTraversalChoice(wxCommandEvent& event);
   void OnResetTraversal(wxCommandEvent& event);
   void OnTraversalListenPortChanged(wxCommandEvent& event);
+  void OnKeyDown(wxKeyEvent& event);
+  void OnTabChanged(wxCommandEvent& event);
+  void OnAfterTabChange(wxIdleEvent& event);
+  void DispatchFocus();
 
   void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
 
@@ -39,11 +61,13 @@ private:
   wxTextCtrl* m_host_port_text;
   wxTextCtrl* m_connect_port_text;
   wxTextCtrl* m_connect_ip_text;
+  wxTextCtrl* m_connect_hashcode_text;
   wxChoice* m_direct_traversal;
   wxStaticText* m_traversal_lbl;
   wxButton* m_trav_reset_btn;
   wxCheckBox* m_traversal_listen_port_enabled;
   wxSpinCtrl* m_traversal_listen_port;
+  wxNotebook* m_notebook;
 
   wxListBox* m_game_lbox;
 #ifdef USE_UPNP

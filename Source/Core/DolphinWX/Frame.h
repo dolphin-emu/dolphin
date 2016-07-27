@@ -266,6 +266,7 @@ private:
   void OnShowLag(wxCommandEvent& event);
   void OnShowFrameCount(wxCommandEvent& event);
   void OnShowInputDisplay(wxCommandEvent& event);
+  void OnShowRTCDisplay(wxCommandEvent& event);
   void OnChangeDisc(wxCommandEvent& event);
   void OnScreenshot(wxCommandEvent& event);
   void OnActive(wxActivateEvent& event);

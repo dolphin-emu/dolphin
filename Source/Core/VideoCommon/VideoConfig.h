@@ -98,6 +98,8 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS;
+  bool bShowNetPlayPing;
+  bool bShowNetPlayMessages;
   bool bOverlayStats;
   bool bOverlayProjStats;
   bool bTexFmtOverlayEnable;
