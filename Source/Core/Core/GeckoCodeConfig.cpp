@@ -25,7 +25,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
     for (auto& line : lines)
     {
-      if (line.empty())
+      if (line.empty() || line[0] == '#')
         continue;
 
       std::istringstream ss(line);
