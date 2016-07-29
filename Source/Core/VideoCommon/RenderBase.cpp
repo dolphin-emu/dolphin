@@ -30,6 +30,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
@@ -327,7 +328,19 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
   {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %u", g_renderer->m_fps_counter.GetFPS());
+    {
+      if (ARBruteForcer::ch_bruteforce)
+      {
+        float speed = g_renderer->m_fps_counter.GetFPS() / 3.0f;
+        int count = (int)ARBruteForcer::ch_map.size();
+        int remaining = (int)((count - ARBruteForcer::ch_current_position) / speed);
+        final_cyan += StringFromFormat("%0.0f/s, ETA: %d:%ds, %5.3f%%  %d/%d", speed, remaining / 60, remaining % 60, ARBruteForcer::ch_current_position * 100.0f / count, ARBruteForcer::ch_current_position, count);
+      }
+      else
+      {
+        final_cyan += StringFromFormat("FPS: %u", g_renderer->m_fps_counter.GetFPS());
+      }
+    }
 
     if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
       final_cyan += " - ";

@@ -319,6 +319,7 @@ private:
   void OnInstallWAD(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnDebugger(wxCommandEvent& event);
+  void OnBruteForce(wxCommandEvent& event);
   void OnConnectWiimote(wxCommandEvent& event);
   void GameListChanged(wxCommandEvent& event);
 

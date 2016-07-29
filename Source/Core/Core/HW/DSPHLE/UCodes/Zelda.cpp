@@ -8,7 +8,9 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
@@ -292,7 +294,12 @@ void ZeldaUCode::HandleMailLight(u32 mail)
   {
   case MailState::WAITING:
     if (!(mail & 0x80000000))
-      PanicAlert("Mail received in waiting state has MSB=0: %08x", mail);
+    {
+      if (ARBruteForcer::ch_bruteforce)
+        Core::KillDolphinAndRestart();
+      else
+        PanicAlert("Mail received in waiting state has MSB=0: %08x", mail);
+    }
 
     // Start of a command. We have to hardcode the number of mails required
     // for each command - the alternative is to rewrite command handling as

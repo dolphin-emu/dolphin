@@ -6,6 +6,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
@@ -198,7 +199,11 @@ __forceinline static T ReadFromHardware(const u32 em_address)
     {
       return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
     }
-    PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
+
+    if (ARBruteForcer::ch_bruteforce)
+      Core::KillDolphinAndRestart();
+    else
+      PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
     return 0;
   }
 
@@ -367,7 +372,10 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
       *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
       return;
     }
-    PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
+    if (ARBruteForcer::ch_bruteforce)
+      Core::KillDolphinAndRestart();
+    else
+      PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
     return;
   }
 
@@ -931,8 +939,11 @@ static void GenerateDSIException(u32 effectiveAddress, bool write)
   // DSI exceptions are only supported in MMU mode.
   if (!SConfig::GetInstance().bMMU)
   {
-    PanicAlert("Invalid %s 0x%08x, PC = 0x%08x ", write ? "write to" : "read from",
-               effectiveAddress, PC);
+    if (ARBruteForcer::ch_bruteforce)
+      Core::KillDolphinAndRestart();
+    else
+      PanicAlert("Invalid %s 0x%08x, PC = 0x%08x ", write ? "write to" : "read from",
+                 effectiveAddress, PC);
     return;
   }
 

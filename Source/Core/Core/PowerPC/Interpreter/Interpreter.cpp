@@ -6,11 +6,13 @@
 #include <cinttypes>
 #include <string>
 
+#include "Core/ARBruteForcer.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
+#include "Core/Core.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
@@ -302,6 +304,9 @@ void Interpreter::Run()
 
 void Interpreter::unknown_instruction(UGeckoInstruction _inst)
 {
+  if (ARBruteForcer::ch_bruteforce)
+    Core::KillDolphinAndRestart();
+
   std::string disasm = GekkoDisassembler::Disassemble(PowerPC::HostRead_U32(last_pc), last_pc);
   NOTICE_LOG(POWERPC, "Last PC = %08x : %s", last_pc, disasm.c_str());
   Dolphin_Debugger::PrintCallstack();

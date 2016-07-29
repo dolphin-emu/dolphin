@@ -1091,7 +1091,14 @@ void UpdateTitle()
 
   std::string SFPS;
 
-  if (Movie::IsPlayingInput())
+  if (ARBruteForcer::ch_bruteforce)
+  {
+    float speed = FPS / 3;
+    int count = (int)ARBruteForcer::ch_map.size();
+    int remaining = (int)((count - ARBruteForcer::ch_current_position) / speed);
+    SFPS = StringFromFormat("%0.0f/s, ETA: %d:%ds, %5.3f%%  %d/%d", speed, remaining / 60, remaining % 60, ARBruteForcer::ch_current_position * 100.0f / count, ARBruteForcer::ch_current_position, count);
+  }
+  else if (Movie::IsPlayingInput())
     SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - VR: %.0f - %.0f%%",
                             (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount,
                             (u32)Movie::g_currentFrame, FPS, VPS, VRPS, Speed);

@@ -480,7 +480,8 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   if (header.size != 0)  // non-zero size means the state is compressed
   {
-    Core::DisplayMessage("Decompressing State...", 500);
+    if (!ARBruteForcer::ch_bruteforce)
+      Core::DisplayMessage("Decompressing State...", 500);
 
     buffer.resize(header.size);
 
@@ -574,9 +575,10 @@ void LoadAs(const std::string& filename)
   {
     if (loadedSuccessfully)
     {
-      Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
       if (ARBruteForcer::ch_bruteforce)
         ARBruteForcer::ch_take_screenshot = 3;
+      else
+        Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
       if (File::Exists(filename + ".dtm"))
         Movie::LoadInput(filename + ".dtm");
       else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&

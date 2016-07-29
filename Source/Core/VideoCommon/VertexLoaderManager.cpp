@@ -13,7 +13,9 @@
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -321,7 +323,10 @@ void LoadCPReg(u32 sub_cmd, u32 value, bool is_preprocess)
     break;
 
   case 0x90:
-    _assert_((sub_cmd & 0x0F) < 8);
+    if (ARBruteForcer::ch_bruteforce && (sub_cmd & 0x0F) >= 8)
+      Core::KillDolphinAndRestart();
+    else
+      _assert_((sub_cmd & 0x0F) < 8);
     state->vtx_attr[sub_cmd & 7].g2.Hex = value;
     state->attr_dirty[sub_cmd & 7] = true;
     break;

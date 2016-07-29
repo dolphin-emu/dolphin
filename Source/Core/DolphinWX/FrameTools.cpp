@@ -26,14 +26,17 @@
 #endif
 
 #include "Common/CDUtils.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 
+#include "Core/ARBruteForcer.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Boot/Boot.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
@@ -47,8 +50,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/Movie.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/SignatureDB.h"
 #include "Core/State.h"
 
 #include "DiscIO/NANDContentLoader.h"
@@ -249,6 +254,14 @@ wxMenuBar* CFrame::CreateMenu()
 
   toolsMenu->AppendCheckItem(IDM_DEBUGGER, _("Debugger"));
   toolsMenu->Enable(IDM_DEBUGGER, !UseDebugger);
+
+  wxMenu* bruteforceMenu = new wxMenu;
+  toolsMenu->AppendSubMenu(bruteforceMenu, _("Bruteforce Functions"));
+
+  bruteforceMenu->AppendCheckItem(IDM_BRUTEFORCE0, _("return 0"));
+  bruteforceMenu->AppendCheckItem(IDM_BRUTEFORCE1, _("return 1"));
+  bruteforceMenu->Enable(IDM_BRUTEFORCE0, !ARBruteForcer::ch_bruteforce);
+  bruteforceMenu->Enable(IDM_BRUTEFORCE1, !ARBruteForcer::ch_bruteforce);
 
   toolsMenu->AppendSeparator();
   wxMenu* wiimoteMenu = new wxMenu;
@@ -1707,6 +1720,55 @@ void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
     if (g_pCodeWindow)
       g_pCodeWindow->UpdateButtonStates();
   }
+}
+
+void CFrame::OnBruteForce(wxCommandEvent& event)
+{
+  if (ARBruteForcer::ch_bruteforce)
+    return;
+  char result = event.GetId() - IDM_BRUTEFORCE0 + '0';
+  bool running = Core::IsRunning();
+  bool was_unpaused = running && Core::PauseAndLock(true);
+  ARBruteForcer::ch_code += result;
+  ARBruteForcer::ch_dont_save_settings = true;
+
+  ARBruteForcer::ch_take_screenshot = 0;
+  ARBruteForcer::ch_next_code = false;
+  ARBruteForcer::ch_begin_search = false;
+  ARBruteForcer::ch_cycles_without_snapshot = 0;
+  ARBruteForcer::ch_last_search = false;
+
+  if (running)
+  {
+    std::string existing_map_file, writable_map_file, title_id_str;
+    bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file, &title_id_str);
+    if (!map_exists)
+    {
+      PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+      SignatureDB db;
+      if (db.Load(File::GetSysDirectory() + TOTALDB))
+        db.Apply(&g_symbolDB);
+      //todo: if debugger active, call NotifyMapLoaded();
+      g_symbolDB.SaveMap(writable_map_file);
+    }
+    ARBruteForcer::ParseMapFile(SConfig::GetInstance().m_strUniqueID);
+  }
+
+  int position = ARBruteForcer::LoadLastPosition();
+  if (running && (position < 0))
+  {
+    g_Config.iEFBScale = SCALE_1X;
+    g_Config.bFullscreen = false;
+    g_Config.bFreeLook = true;
+    g_Config.iMaxAnisotropy = 0; // 1x
+    State::Save(1);
+  }
+
+  ARBruteForcer::ch_bruteforce = true;
+  if (running)
+    Core::PauseAndLock(false, was_unpaused);
+  else if (position != -1)
+    BootGame("");
 }
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)

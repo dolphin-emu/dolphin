@@ -7,6 +7,8 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Core/ARBruteForcer.h"
+#include "Core/Core.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/NativeVertexFormat.h"
@@ -20,8 +22,16 @@ VertexShaderUid GetVertexShaderUid()
   vertex_shader_uid_data* uid_data = out.GetUidData<vertex_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
-  _assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
-  _assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
+  if (ARBruteForcer::ch_bruteforce)
+  {
+    if (bpmem.genMode.numtexgens != xfmem.numTexGen.numTexGens || bpmem.genMode.numcolchans != xfmem.numChan.numColorChans)
+      Core::KillDolphinAndRestart();
+  }
+  else
+  {
+    _assert_(bpmem.genMode.numtexgens == xfmem.numTexGen.numTexGens);
+    _assert_(bpmem.genMode.numcolchans == xfmem.numChan.numColorChans);
+  }
 
   uid_data->numTexGens = xfmem.numTexGen.numTexGens;
   uid_data->components = VertexLoaderManager::g_current_components;
